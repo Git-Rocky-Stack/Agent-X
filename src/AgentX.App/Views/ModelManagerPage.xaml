@@ -1,0 +1,463 @@
+<Page
+    x:Class="AgentX.App.Views.ModelManagerPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:AgentX.App.ViewModels"
+    xmlns:converters="using:AgentX.App.Converters"
+    Background="Transparent"
+    NavigationCacheMode="Enabled">
+
+    <Page.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
+        <converters:BoolToVisibilityConverter x:Key="InverseBoolToVis" IsInverted="True" />
+        <converters:StringToVisibilityConverter x:Key="StringToVis" />
+        <converters:InverseBoolConverter x:Key="InverseBool" />
+    </Page.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled"
+                  Padding="0">
+
+        <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="1200">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- =======================================================
+                 ROW 0: PAGE HEADER
+                 ======================================================= -->
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Spacing="4">
+                    <TextBlock Text="{x:Bind ViewModel.PageTitle, Mode=OneWay}"
+                               Style="{StaticResource DisplaySmallStyle}" />
+                    <TextBlock Text="Manage your local AI models powered by Ollama."
+                               Style="{StaticResource BodySecondaryStyle}" />
+                </StackPanel>
+
+                <Button Grid.Column="1"
+                        Content="Refresh"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Command="{x:Bind ViewModel.RefreshModelsCommand}"
+                        VerticalAlignment="Center" />
+            </Grid>
+
+            <!-- =======================================================
+                 ROW 1: CONNECTION STATUS CARD (Accent Hero)
+                 ======================================================= -->
+            <Border Grid.Row="1" Style="{StaticResource CardAccentStyle}">
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Spacing="14">
+                        <!-- Status indicator row -->
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Ellipse Width="10" Height="10">
+                                <Ellipse.Fill>
+                                    <SolidColorBrush Color="{StaticResource StatusOnline}"
+                                                     x:Name="ConnectionDot" />
+                                </Ellipse.Fill>
+                            </Ellipse>
+                            <TextBlock Text="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay}"
+                                       Style="{StaticResource BodyStyle}"
+                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+
+                        <!-- Badges row -->
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <!-- Model count badge -->
+                            <Border Style="{StaticResource BadgeDefaultStyle}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE964;" FontSize="12"
+                                              Foreground="{StaticResource TextAccentBrush}" />
+                                    <TextBlock Style="{StaticResource BadgeStyle}">
+                                        <Run Text="{x:Bind ViewModel.TotalModels, Mode=OneWay}" />
+                                        <Run Text=" Models" />
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Total size badge -->
+                            <Border Style="{StaticResource BadgeDefaultStyle}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xEDA2;" FontSize="12"
+                                              Foreground="{StaticResource InfoBrush}" />
+                                    <TextBlock Text="{x:Bind ViewModel.TotalModelSize, Mode=OneWay}"
+                                               Style="{StaticResource BadgeStyle}" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Browse Models button -->
+                    <Button Grid.Column="1"
+                            Style="{StaticResource AccentButtonStyle}"
+                            VerticalAlignment="Center"
+                            Command="{x:Bind ViewModel.OpenOllamaLibraryCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE774;" FontSize="14" />
+                            <TextBlock Text="Browse Models" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- =======================================================
+                 ROW 2: DOWNLOAD NEW MODEL CARD
+                 ======================================================= -->
+            <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="20">
+                    <!-- Section heading -->
+                    <StackPanel Spacing="4">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE896;" FontSize="18"
+                                      Foreground="{StaticResource TextAccentBrush}" />
+                            <TextBlock Text="Pull New Model"
+                                       Style="{StaticResource HeadingMediumStyle}" />
+                        </StackPanel>
+                        <TextBlock Text="Enter a model name from the Ollama library to download it to your machine."
+                                   Style="{StaticResource BodySecondaryStyle}"
+                                   Margin="28,0,0,0" />
+                    </StackPanel>
+
+                    <!-- Input row -->
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox Style="{StaticResource InputTextBoxStyle}"
+                                 PlaceholderText="e.g., llama3.2, mistral, phi3, deepseek-r1"
+                                 Text="{x:Bind ViewModel.DownloadModelName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 IsEnabled="{x:Bind ViewModel.IsDownloading, Mode=OneWay, Converter={StaticResource InverseBool}}" />
+
+                        <Button Grid.Column="1"
+                                Style="{StaticResource AccentButtonStyle}"
+                                Command="{x:Bind ViewModel.PullModelCommand}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE896;" FontSize="14" />
+                                <TextBlock Text="Pull Model" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Cancel button (visible during download) -->
+                        <Button Grid.Column="2"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Content="Cancel"
+                                Command="{x:Bind ViewModel.CancelDownloadCommand}"
+                                Visibility="{x:Bind ViewModel.IsDownloading, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                    </Grid>
+
+                    <!-- Download progress -->
+                    <StackPanel Spacing="10"
+                                Visibility="{x:Bind ViewModel.IsDownloading, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                        <ProgressBar Value="{x:Bind ViewModel.DownloadProgress, Mode=OneWay}"
+                                     Maximum="100"
+                                     Style="{StaticResource AccentProgressBarStyle}"
+                                     MinHeight="6"
+                                     MaxHeight="6" />
+                        <TextBlock Text="{x:Bind ViewModel.DownloadStatus, Mode=OneWay}"
+                                   Style="{StaticResource BodySmallStyle}"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                    </StackPanel>
+
+                    <!-- Download status (when not downloading but has status) -->
+                    <TextBlock Text="{x:Bind ViewModel.DownloadStatus, Mode=OneWay}"
+                               Style="{StaticResource BodySmallStyle}"
+                               Foreground="{StaticResource SuccessBrush}"
+                               Visibility="{x:Bind ViewModel.IsDownloading, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
+
+                    <!-- Common model suggestions -->
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Popular models:"
+                                   Style="{StaticResource LabelStyle}" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Style="{StaticResource GhostButtonStyle}"
+                                    Padding="12,6,12,6" MinHeight="32"
+                                    Command="{x:Bind ViewModel.SetModelSuggestionCommand}"
+                                    CommandParameter="llama3.2">
+                                <Border Style="{StaticResource BadgeAccentStyle}" Padding="10,4">
+                                    <TextBlock Text="llama3.2" Style="{StaticResource MonoSmallStyle}"
+                                               Foreground="{StaticResource TextAccentBrush}" />
+                                </Border>
+                            </Button>
+                            <Button Style="{StaticResource GhostButtonStyle}"
+                                    Padding="12,6,12,6" MinHeight="32"
+                                    Command="{x:Bind ViewModel.SetModelSuggestionCommand}"
+                                    CommandParameter="mistral">
+                                <Border Style="{StaticResource BadgeAccentStyle}" Padding="10,4">
+                                    <TextBlock Text="mistral" Style="{StaticResource MonoSmallStyle}"
+                                               Foreground="{StaticResource TextAccentBrush}" />
+                                </Border>
+                            </Button>
+                            <Button Style="{StaticResource GhostButtonStyle}"
+                                    Padding="12,6,12,6" MinHeight="32"
+                                    Command="{x:Bind ViewModel.SetModelSuggestionCommand}"
+                                    CommandParameter="phi3">
+                                <Border Style="{StaticResource BadgeAccentStyle}" Padding="10,4">
+                                    <TextBlock Text="phi3" Style="{StaticResource MonoSmallStyle}"
+                                               Foreground="{StaticResource TextAccentBrush}" />
+                                </Border>
+                            </Button>
+                            <Button Style="{StaticResource GhostButtonStyle}"
+                                    Padding="12,6,12,6" MinHeight="32"
+                                    Command="{x:Bind ViewModel.SetModelSuggestionCommand}"
+                                    CommandParameter="qwen2.5">
+                                <Border Style="{StaticResource BadgeAccentStyle}" Padding="10,4">
+                                    <TextBlock Text="qwen2.5" Style="{StaticResource MonoSmallStyle}"
+                                               Foreground="{StaticResource TextAccentBrush}" />
+                                </Border>
+                            </Button>
+                            <Button Style="{StaticResource GhostButtonStyle}"
+                                    Padding="12,6,12,6" MinHeight="32"
+                                    Command="{x:Bind ViewModel.SetModelSuggestionCommand}"
+                                    CommandParameter="gemma2">
+                                <Border Style="{StaticResource BadgeAccentStyle}" Padding="10,4">
+                                    <TextBlock Text="gemma2" Style="{StaticResource MonoSmallStyle}"
+                                               Foreground="{StaticResource TextAccentBrush}" />
+                                </Border>
+                            </Button>
+                            <Button Style="{StaticResource GhostButtonStyle}"
+                                    Padding="12,6,12,6" MinHeight="32"
+                                    Command="{x:Bind ViewModel.SetModelSuggestionCommand}"
+                                    CommandParameter="deepseek-r1">
+                                <Border Style="{StaticResource BadgeAccentStyle}" Padding="10,4">
+                                    <TextBlock Text="deepseek-r1" Style="{StaticResource MonoSmallStyle}"
+                                               Foreground="{StaticResource TextAccentBrush}" />
+                                </Border>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- =======================================================
+                 ROW 3: ERROR MESSAGE (conditional)
+                 ======================================================= -->
+            <Border Grid.Row="3"
+                    Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                    Background="#1AEF4444"
+                    BorderBrush="#33EF4444"
+                    BorderThickness="1"
+                    CornerRadius="{StaticResource RadiusMD}"
+                    Padding="16,12">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <FontIcon Glyph="&#xE7BA;" FontSize="16"
+                              Foreground="{StaticResource ErrorBrush}"
+                              VerticalAlignment="Center" />
+                    <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                               Style="{StaticResource BodySmallStyle}"
+                               Foreground="{StaticResource ErrorBrush}"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </Border>
+
+            <!-- =======================================================
+                 ROW 4: INSTALLED MODELS
+                 ======================================================= -->
+            <StackPanel Grid.Row="4" Spacing="16">
+                <!-- Section heading with count -->
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <TextBlock Text="Installed Models"
+                               Style="{StaticResource HeadingMediumStyle}" />
+                    <Border Style="{StaticResource BadgeDefaultStyle}"
+                            VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource BadgeStyle}">
+                            <Run Text="{x:Bind ViewModel.TotalModels, Mode=OneWay}" />
+                        </TextBlock>
+                    </Border>
+                </StackPanel>
+
+                <!-- Loading indicator -->
+                <StackPanel Spacing="12"
+                            HorizontalAlignment="Center"
+                            Margin="0,24,0,24"
+                            Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                    <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
+                                  Width="40" Height="40"
+                                  Foreground="{StaticResource AccentPrimaryBrush}" />
+                    <TextBlock Text="Loading models..."
+                               Style="{StaticResource BodySecondaryStyle}"
+                               HorizontalAlignment="Center" />
+                </StackPanel>
+
+                <!-- Models list -->
+                <ItemsRepeater ItemsSource="{x:Bind ViewModel.InstalledModels, Mode=OneWay}"
+                               Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
+                    <ItemsRepeater.Layout>
+                        <StackLayout Spacing="12" />
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ModelDisplayItem">
+                            <Border Style="{StaticResource CardStyle}">
+                                <Grid ColumnSpacing="16" RowSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Row 0: Model name + active indicator -->
+                                    <StackPanel Grid.Row="0" Grid.Column="0"
+                                                Orientation="Horizontal" Spacing="12">
+                                        <!-- Active dot indicator -->
+                                        <Ellipse Width="8" Height="8"
+                                                 Fill="{StaticResource AccentPrimaryBrush}"
+                                                 VerticalAlignment="Center"
+                                                 Visibility="{x:Bind IsActive, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                                        <TextBlock Text="{x:Bind Name, Mode=OneWay}"
+                                                   Style="{StaticResource HeadingSmallStyle}" />
+                                        <!-- Active badge -->
+                                        <Border Background="#1A22C55E"
+                                                CornerRadius="{StaticResource RadiusRound}"
+                                                Padding="10,3,10,3"
+                                                Visibility="{x:Bind IsActive, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                            <TextBlock Text="ACTIVE"
+                                                       FontSize="10" FontWeight="Bold"
+                                                       Foreground="{StaticResource SuccessBrush}"
+                                                       CharacterSpacing="60" />
+                                        </Border>
+                                    </StackPanel>
+
+                                    <!-- Row 0: Action buttons -->
+                                    <StackPanel Grid.Row="0" Grid.Column="1"
+                                                Orientation="Horizontal" Spacing="8">
+                                        <Button Style="{StaticResource SecondaryButtonStyle}"
+                                                Padding="16,8,16,8" MinHeight="34"
+                                                Tag="{x:Bind Id, Mode=OneWay}"
+                                                Click="OnSetActiveModelClick"
+                                                IsEnabled="{x:Bind IsActive, Mode=OneWay, Converter={StaticResource InverseBool}}">
+                                            <TextBlock Text="Set Active" FontSize="12" FontWeight="SemiBold" />
+                                        </Button>
+                                        <Button Style="{StaticResource GhostButtonStyle}"
+                                                Padding="12,8,12,8" MinHeight="34"
+                                                Tag="{x:Bind Name, Mode=OneWay}"
+                                                Click="OnCopyModelNameClick">
+                                            <FontIcon Glyph="&#xE8C8;" FontSize="14"
+                                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                                        </Button>
+                                        <Button Style="{StaticResource GhostButtonStyle}"
+                                                Padding="12,8,12,8" MinHeight="34"
+                                                Tag="{x:Bind Id, Mode=OneWay}"
+                                                Click="OnDeleteModelClick">
+                                            <FontIcon Glyph="&#xE74D;" FontSize="14"
+                                                      Foreground="{StaticResource ErrorBrush}" />
+                                        </Button>
+                                    </StackPanel>
+
+                                    <!-- Row 1: Metadata badges -->
+                                    <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                                Orientation="Horizontal" Spacing="8">
+                                        <!-- Family badge -->
+                                        <Border Style="{StaticResource BadgeAccentStyle}"
+                                                Visibility="{x:Bind Family, Mode=OneWay, Converter={StaticResource StringToVis}}">
+                                            <TextBlock Text="{x:Bind Family, Mode=OneWay}"
+                                                       Style="{StaticResource BadgeStyle}"
+                                                       Foreground="{StaticResource TextAccentBrush}" />
+                                        </Border>
+
+                                        <!-- Size badge -->
+                                        <Border Style="{StaticResource BadgeDefaultStyle}">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <FontIcon Glyph="&#xEDA2;" FontSize="10"
+                                                          Foreground="{StaticResource TextTertiaryBrush}" />
+                                                <TextBlock Text="{x:Bind SizeFormatted, Mode=OneWay}"
+                                                           Style="{StaticResource BadgeStyle}" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Quantization badge -->
+                                        <Border Style="{StaticResource BadgeDefaultStyle}"
+                                                Visibility="{x:Bind QuantizationLevel, Mode=OneWay, Converter={StaticResource StringToVis}}">
+                                            <TextBlock Text="{x:Bind QuantizationLevel, Mode=OneWay}"
+                                                       Style="{StaticResource BadgeStyle}"
+                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                        </Border>
+
+                                        <!-- Parameters badge -->
+                                        <Border Style="{StaticResource BadgeDefaultStyle}">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <TextBlock Text="{x:Bind ParameterCountFormatted, Mode=OneWay}"
+                                                           Style="{StaticResource BadgeStyle}" />
+                                                <TextBlock Text="params"
+                                                           Style="{StaticResource BadgeStyle}"
+                                                           Foreground="{StaticResource TextTertiaryBrush}" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Context length badge -->
+                                        <Border Style="{StaticResource BadgeDefaultStyle}">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <TextBlock Text="{x:Bind ContextLengthFormatted, Mode=OneWay}"
+                                                           Style="{StaticResource BadgeStyle}" />
+                                                <TextBlock Text="ctx"
+                                                           Style="{StaticResource BadgeStyle}"
+                                                           Foreground="{StaticResource TextTertiaryBrush}" />
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+
+                                    <!-- Row 2: Digest + Modified date -->
+                                    <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                                Orientation="Horizontal" Spacing="16">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <TextBlock Text="Digest:"
+                                                       Style="{StaticResource CaptionStyle}" />
+                                            <TextBlock Text="{x:Bind DigestShort, Mode=OneWay}"
+                                                       Style="{StaticResource MonoSmallStyle}" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE787;" FontSize="10"
+                                                      Foreground="{StaticResource TextTertiaryBrush}" />
+                                            <TextBlock Text="{x:Bind ModifiedAtFormatted, Mode=OneWay}"
+                                                       Style="{StaticResource CaptionStyle}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+
+                <!-- Empty state (no models) -->
+                <Border Style="{StaticResource CardInsetStyle}"
+                        Padding="40,48"
+                        Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
+                    <StackPanel Spacing="16" HorizontalAlignment="Center"
+                                Visibility="{x:Bind HasNoModels(ViewModel.TotalModels), Mode=OneWay}">
+                        <FontIcon Glyph="&#xE964;" FontSize="40"
+                                  Foreground="{StaticResource TextTertiaryBrush}"
+                                  HorizontalAlignment="Center" />
+                        <TextBlock Text="No models installed"
+                                   Style="{StaticResource HeadingSmallStyle}"
+                                   HorizontalAlignment="Center"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                        <TextBlock Text="Pull a model from the Ollama library to get started. Popular choices include llama3.2, mistral, and phi3."
+                                   Style="{StaticResource BodySecondaryStyle}"
+                                   TextAlignment="Center"
+                                   MaxWidth="400"
+                                   HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+        </Grid>
+    </ScrollViewer>
+</Page>

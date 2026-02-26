@@ -1,0 +1,265 @@
+<Page
+    x:Class="AgentX.App.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:AgentX.App.ViewModels"
+    xmlns:converters="using:AgentX.App.Converters"
+    Background="Transparent"
+    NavigationCacheMode="Enabled">
+
+    <Page.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
+        <converters:BoolToVisibilityConverter x:Key="InverseBoolToVisibility" IsInverted="True" />
+        <converters:StringToVisibilityConverter x:Key="StringToVisibility" />
+    </Page.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0">
+        <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="800">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <StackPanel Grid.Row="0" Spacing="4">
+                <TextBlock Text="Settings"
+                           Style="{StaticResource DisplaySmallStyle}" />
+                <TextBlock Text="Configure your AI provider, inference parameters, and knowledge vault settings."
+                           Style="{StaticResource BodySecondaryStyle}" />
+            </StackPanel>
+
+            <!-- AI Provider -->
+            <Border Grid.Row="1" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="20">
+                    <TextBlock Text="AI Provider"
+                               Style="{StaticResource HeadingSmallStyle}" />
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Ollama Endpoint"
+                                   Style="{StaticResource LabelStyle}" />
+                        <TextBox Style="{StaticResource InputTextBoxStyle}"
+                                 Text="{x:Bind ViewModel.OllamaEndpoint, Mode=TwoWay}"
+                                 PlaceholderText="http://localhost:11434" />
+                    </StackPanel>
+
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Default Chat Model"
+                                       Style="{StaticResource LabelStyle}" />
+                            <TextBox Style="{StaticResource InputTextBoxStyle}"
+                                     Text="{x:Bind ViewModel.DefaultModel, Mode=TwoWay}"
+                                     PlaceholderText="llama3.2" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Spacing="6">
+                            <TextBlock Text="Embedding Model"
+                                       Style="{StaticResource LabelStyle}" />
+                            <TextBox Style="{StaticResource InputTextBoxStyle}"
+                                     Text="{x:Bind ViewModel.EmbeddingModel, Mode=TwoWay}"
+                                     PlaceholderText="all-minilm" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Inference Parameters -->
+            <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="20">
+                    <TextBlock Text="Inference"
+                               Style="{StaticResource HeadingSmallStyle}" />
+
+                    <StackPanel Spacing="6">
+                        <Grid>
+                            <TextBlock Text="Temperature"
+                                       Style="{StaticResource LabelStyle}" />
+                            <TextBlock Text="{x:Bind ViewModel.Temperature, Mode=OneWay}"
+                                       Style="{StaticResource MonoSmallStyle}"
+                                       HorizontalAlignment="Right" />
+                        </Grid>
+                        <Slider Minimum="0" Maximum="2" StepFrequency="0.1"
+                                Value="{x:Bind ViewModel.Temperature, Mode=TwoWay}" />
+                    </StackPanel>
+
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Max Tokens"
+                                       Style="{StaticResource LabelStyle}" />
+                            <NumberBox Value="{x:Bind ViewModel.MaxTokens, Mode=TwoWay}"
+                                       Minimum="256" Maximum="32768" SpinButtonPlacementMode="Compact" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Spacing="6">
+                            <TextBlock Text="Context Window"
+                                       Style="{StaticResource LabelStyle}" />
+                            <NumberBox Value="{x:Bind ViewModel.ContextWindow, Mode=TwoWay}"
+                                       Minimum="2048" Maximum="131072" SpinButtonPlacementMode="Compact" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Knowledge Vault -->
+            <Border Grid.Row="3" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="20">
+                    <TextBlock Text="Knowledge Vault"
+                               Style="{StaticResource HeadingSmallStyle}" />
+
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Chunk Size (tokens)"
+                                       Style="{StaticResource LabelStyle}" />
+                            <NumberBox Value="{x:Bind ViewModel.ChunkSize, Mode=TwoWay}"
+                                       Minimum="128" Maximum="2048" SpinButtonPlacementMode="Compact" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Spacing="6">
+                            <TextBlock Text="Chunk Overlap"
+                                       Style="{StaticResource LabelStyle}" />
+                            <NumberBox Value="{x:Bind ViewModel.ChunkOverlap, Mode=TwoWay}"
+                                       Minimum="0" Maximum="256" SpinButtonPlacementMode="Compact" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Spacing="6">
+                            <TextBlock Text="Top-K Results"
+                                       Style="{StaticResource LabelStyle}" />
+                            <NumberBox Value="{x:Bind ViewModel.TopKResults, Mode=TwoWay}"
+                                       Minimum="1" Maximum="20" SpinButtonPlacementMode="Compact" />
+                        </StackPanel>
+                    </Grid>
+
+                    <ToggleSwitch Header="Auto-index watch folders"
+                                  IsOn="{x:Bind ViewModel.AutoIndexWatchFolders, Mode=TwoWay}" />
+                </StackPanel>
+            </Border>
+
+            <!-- License -->
+            <Border Grid.Row="4" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="16">
+
+                    <!-- License Header with Tier Badge -->
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <TextBlock Text="License"
+                                   Style="{StaticResource HeadingSmallStyle}" />
+                        <Border Style="{StaticResource BadgeAccentStyle}">
+                            <TextBlock Text="{x:Bind ViewModel.LicenseTier, Mode=OneWay}"
+                                       Style="{StaticResource BadgeStyle}"
+                                       Foreground="{StaticResource TextAccentBrush}" />
+                        </Border>
+                    </StackPanel>
+
+                    <!-- License Details (visible when activated) -->
+                    <StackPanel Spacing="8"
+                                Visibility="{x:Bind ViewModel.IsLicenseValid, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+
+                        <!-- Activation Date -->
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Activated:"
+                                       Style="{StaticResource LabelStyle}"
+                                       VerticalAlignment="Center" />
+                            <TextBlock Text="{x:Bind ViewModel.LicenseActivatedAt, Mode=OneWay}"
+                                       Style="{StaticResource BodySmallStyle}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+
+                        <!-- Document Limit -->
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Document Limit:"
+                                       Style="{StaticResource LabelStyle}"
+                                       VerticalAlignment="Center" />
+                            <TextBlock Text="{x:Bind ViewModel.LicenseDocumentLimit, Mode=OneWay}"
+                                       Style="{StaticResource BodySmallStyle}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Document Limit for Trial (visible when not activated) -->
+                    <StackPanel Orientation="Horizontal" Spacing="8"
+                                Visibility="{x:Bind ViewModel.IsLicenseValid, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}">
+                        <TextBlock Text="Document Limit:"
+                                   Style="{StaticResource LabelStyle}"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Text="{x:Bind ViewModel.LicenseDocumentLimit, Mode=OneWay}"
+                                   Style="{StaticResource BodySmallStyle}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <!-- License Key Input + Activate Button -->
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox Style="{StaticResource InputTextBoxStyle}"
+                                 Text="{x:Bind ViewModel.LicenseKey, Mode=TwoWay}"
+                                 PlaceholderText="Enter your license key (AX-X-...)" />
+                        <Button Grid.Column="1"
+                                Content="Activate"
+                                Style="{StaticResource AccentButtonStyle}"
+                                Command="{x:Bind ViewModel.ValidateLicenseCommand}" />
+                    </Grid>
+
+                    <!-- Deactivate Button (only when license is active) -->
+                    <Button Content="Deactivate License"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{x:Bind ViewModel.DeactivateLicenseCommand}"
+                            Visibility="{x:Bind ViewModel.IsLicenseValid, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+
+                    <!-- Status Message -->
+                    <TextBlock Text="{x:Bind ViewModel.LicenseStatusMessage, Mode=OneWay}"
+                               Style="{StaticResource BodySmallStyle}"
+                               TextWrapping="Wrap"
+                               Visibility="{x:Bind ViewModel.LicenseStatusMessage, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
+                </StackPanel>
+            </Border>
+
+            <!-- Actions -->
+            <Grid Grid.Row="5" ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Button Content="Save Settings"
+                        Style="{StaticResource AccentButtonStyle}"
+                        Command="{x:Bind ViewModel.SaveSettingsCommand}" />
+
+                <Button Grid.Column="1"
+                        Content="Reset to Defaults"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Command="{x:Bind ViewModel.ResetToDefaultsCommand}" />
+
+                <TextBlock Grid.Column="3"
+                           Style="{StaticResource CaptionStyle}"
+                           VerticalAlignment="Center"
+                           Opacity="0.4">
+                    <Run Text="Agent-X v" />
+                    <Run Text="{x:Bind ViewModel.AppVersion, Mode=OneWay}" />
+                </TextBlock>
+            </Grid>
+
+        </Grid>
+    </ScrollViewer>
+</Page>

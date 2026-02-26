@@ -1,0 +1,525 @@
+<Page
+    x:Class="AgentX.App.Views.CollectionManagerPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:AgentX.App.ViewModels"
+    xmlns:converters="using:AgentX.App.Converters"
+    Background="Transparent"
+    NavigationCacheMode="Enabled">
+
+    <Page.Resources>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             CONVERTERS
+             ═══════════════════════════════════════════════════════════ -->
+
+        <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
+        <converters:BoolToVisibilityConverter x:Key="InverseBoolToVis" IsInverted="True" />
+        <converters:NullToVisibilityConverter x:Key="NullToVis" />
+        <converters:NullToVisibilityConverter x:Key="InverseNullToVis" IsInverted="True" />
+        <converters:StringToVisibilityConverter x:Key="StringToVis" />
+
+    </Page.Resources>
+
+    <Grid Background="{StaticResource PageBackgroundBrush}">
+        <Grid.ColumnDefinitions>
+            <!-- Left panel: Collection tree (fixed width) -->
+            <ColumnDefinition Width="320" />
+            <!-- Right panel: Selected collection detail -->
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             LEFT PANEL: COLLECTION TREE
+             ═══════════════════════════════════════════════════════════ -->
+        <Grid Grid.Column="0"
+              Background="{StaticResource SidebarGradientBrush}"
+              BorderBrush="{StaticResource BorderSubtleBrush}"
+              BorderThickness="0,0,1,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Header: Title + count + Refresh -->
+            <Border Grid.Row="0" Style="{StaticResource SidebarHeaderStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Orientation="Horizontal" Spacing="10"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="Collections"
+                                   Style="{StaticResource HeadingSmallStyle}" />
+                        <Border Style="{StaticResource BadgeDefaultStyle}"
+                                Padding="6,2,6,2">
+                            <TextBlock Style="{StaticResource BadgeStyle}">
+                                <Run Text="{x:Bind ViewModel.TotalCollections, Mode=OneWay}" />
+                            </TextBlock>
+                        </Border>
+                    </StackPanel>
+
+                    <Button Grid.Column="1"
+                            Style="{StaticResource IconButtonStyle}"
+                            Command="{x:Bind ViewModel.RefreshCommand}"
+                            ToolTipService.ToolTip="Refresh collections">
+                        <FontIcon Glyph="&#xE72C;" FontSize="14"
+                                  Foreground="{StaticResource TextSecondaryBrush}" />
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- New collection input area -->
+            <Border Grid.Row="1"
+                    Padding="16,12,16,12"
+                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                    BorderThickness="0,0,0,1">
+                <StackPanel Spacing="8">
+                    <TextBox Style="{StaticResource InputTextBoxStyle}"
+                             PlaceholderText="New collection name..."
+                             Text="{x:Bind ViewModel.NewCollectionName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox Style="{StaticResource InputTextBoxStyle}"
+                             PlaceholderText="Description (optional)"
+                             Text="{x:Bind ViewModel.NewCollectionDescription, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button Style="{StaticResource AccentButtonStyle}"
+                            HorizontalAlignment="Stretch"
+                            Command="{x:Bind ViewModel.CreateCollectionCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE710;" FontSize="12" />
+                            <TextBlock Text="Create Collection" FontSize="12" FontWeight="SemiBold" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Border>
+
+            <!-- Loading indicator -->
+            <StackPanel Grid.Row="2"
+                        Spacing="12"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
+                              Width="32" Height="32"
+                              Foreground="{StaticResource AccentPrimaryBrush}" />
+                <TextBlock Text="Loading..."
+                           Style="{StaticResource CaptionStyle}"
+                           HorizontalAlignment="Center" />
+            </StackPanel>
+
+            <!-- Collection list -->
+            <ListView Grid.Row="2"
+                      x:Name="CollectionListView"
+                      ItemsSource="{x:Bind ViewModel.Collections, Mode=OneWay}"
+                      SelectionMode="None"
+                      Padding="8,8,8,8"
+                      Background="Transparent"
+                      Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="Padding" Value="0" />
+                        <Setter Property="Margin" Value="0" />
+                        <Setter Property="MinHeight" Value="0" />
+                        <Setter Property="Background" Value="Transparent" />
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:CollectionDisplayItem">
+                        <StackPanel>
+                            <!-- Root collection item -->
+                            <Border Style="{StaticResource CollectionTreeItemStyle}"
+                                    PointerPressed="OnCollectionItemClick"
+                                    Tag="{x:Bind}">
+                                <Grid ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Folder icon -->
+                                    <FontIcon Glyph="{x:Bind IconGlyph, TargetNullValue='&#xF168;'}"
+                                              FontSize="16"
+                                              Foreground="{StaticResource TextAccentBrush}"
+                                              VerticalAlignment="Center" />
+
+                                    <!-- Name -->
+                                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind Name}"
+                                                   Style="{StaticResource BodyStyle}"
+                                                   FontWeight="SemiBold"
+                                                   MaxLines="1"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{x:Bind Description}"
+                                                   Style="{StaticResource CaptionStyle}"
+                                                   Visibility="{x:Bind Description, Converter={StaticResource StringToVis}}"
+                                                   MaxLines="1"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Opacity="0.7" />
+                                    </StackPanel>
+
+                                    <!-- Document count badge -->
+                                    <Border Grid.Column="2"
+                                            Style="{StaticResource BadgeDefaultStyle}"
+                                            Padding="6,2,6,2"
+                                            VerticalAlignment="Center">
+                                        <TextBlock Style="{StaticResource CaptionStyle}"
+                                                   Foreground="{StaticResource TextTertiaryBrush}"
+                                                   FontSize="10">
+                                            <Run Text="{x:Bind DocumentCount, Mode=OneWay}" />
+                                        </TextBlock>
+                                    </Border>
+
+                                    <!-- Delete button -->
+                                    <Button Grid.Column="3"
+                                            Style="{StaticResource GhostButtonStyle}"
+                                            Padding="4" MinHeight="28" MinWidth="28"
+                                            Width="28" Height="28"
+                                            Tag="{x:Bind Id}"
+                                            Click="OnDeleteCollectionClick"
+                                            ToolTipService.ToolTip="Delete collection"
+                                            Opacity="0.5">
+                                        <FontIcon Glyph="&#xE74D;" FontSize="11"
+                                                  Foreground="{StaticResource ErrorBrush}" />
+                                    </Button>
+                                </Grid>
+                            </Border>
+
+                            <!-- Child collections (indented) -->
+                            <ItemsRepeater ItemsSource="{x:Bind Children}"
+                                           Margin="24,0,0,0">
+                                <ItemsRepeater.Layout>
+                                    <StackLayout Spacing="0" />
+                                </ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:CollectionDisplayItem">
+                                        <Border Style="{StaticResource CollectionTreeItemStyle}"
+                                                PointerPressed="OnCollectionItemClick"
+                                                Tag="{x:Bind}">
+                                            <Grid ColumnSpacing="10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <!-- Sub-folder icon -->
+                                                <FontIcon Glyph="{x:Bind IconGlyph, TargetNullValue='&#xF168;'}"
+                                                          FontSize="14"
+                                                          Foreground="{StaticResource TextSecondaryBrush}"
+                                                          VerticalAlignment="Center" />
+
+                                                <!-- Name -->
+                                                <TextBlock Grid.Column="1"
+                                                           Text="{x:Bind Name}"
+                                                           Style="{StaticResource BodySmallStyle}"
+                                                           FontWeight="SemiBold"
+                                                           VerticalAlignment="Center"
+                                                           MaxLines="1"
+                                                           TextTrimming="CharacterEllipsis" />
+
+                                                <!-- Document count -->
+                                                <Border Grid.Column="2"
+                                                        Style="{StaticResource BadgeDefaultStyle}"
+                                                        Padding="6,2,6,2"
+                                                        VerticalAlignment="Center">
+                                                    <TextBlock Style="{StaticResource CaptionStyle}"
+                                                               Foreground="{StaticResource TextTertiaryBrush}"
+                                                               FontSize="10">
+                                                        <Run Text="{x:Bind DocumentCount, Mode=OneWay}" />
+                                                    </TextBlock>
+                                                </Border>
+
+                                                <!-- Delete button -->
+                                                <Button Grid.Column="3"
+                                                        Style="{StaticResource GhostButtonStyle}"
+                                                        Padding="4" MinHeight="24" MinWidth="24"
+                                                        Width="24" Height="24"
+                                                        Tag="{x:Bind Id}"
+                                                        Click="OnDeleteCollectionClick"
+                                                        ToolTipService.ToolTip="Delete collection"
+                                                        Opacity="0.5">
+                                                    <FontIcon Glyph="&#xE74D;" FontSize="10"
+                                                              Foreground="{StaticResource ErrorBrush}" />
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+            <!-- Sidebar footer -->
+            <Border Grid.Row="3"
+                    Padding="16,10,16,10"
+                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                    BorderThickness="0,1,0,0">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon Glyph="&#xF168;" FontSize="11"
+                              Foreground="{StaticResource TextTertiaryBrush}" />
+                    <TextBlock Style="{StaticResource CaptionStyle}">
+                        <Run Text="{x:Bind ViewModel.TotalCollections, Mode=OneWay}" />
+                        <Run Text="collections" />
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             RIGHT PANEL: SELECTED COLLECTION DETAIL
+             ═══════════════════════════════════════════════════════════ -->
+        <Grid Grid.Column="1">
+
+            <!-- Empty state: No collection selected -->
+            <Border Visibility="{x:Bind ViewModel.SelectedCollection, Mode=OneWay, Converter={StaticResource InverseNullToVis}}"
+                    Style="{StaticResource WelcomeCardStyle}">
+                <StackPanel Spacing="20" HorizontalAlignment="Center">
+                    <!-- Icon -->
+                    <Border Background="{StaticResource AccentSubtleBrush}"
+                            CornerRadius="{StaticResource RadiusRound}"
+                            Width="72" Height="72"
+                            HorizontalAlignment="Center">
+                        <FontIcon Glyph="&#xF168;"
+                                  FontSize="32"
+                                  Foreground="{StaticResource TextAccentBrush}"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center" />
+                    </Border>
+
+                    <StackPanel Spacing="8" HorizontalAlignment="Center">
+                        <TextBlock Text="Select a Collection"
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="Choose a collection from the left panel to view its documents. Collections help you organize your knowledge vault into focused groups."
+                                   Style="{StaticResource BodySecondaryStyle}"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   MaxWidth="380" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Collection detail (visible when a collection is selected) -->
+            <ScrollViewer Visibility="{x:Bind ViewModel.SelectedCollection, Mode=OneWay, Converter={StaticResource NullToVis}}"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <Grid Padding="32,24,32,24" RowSpacing="24" MaxWidth="1000">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Row 0: Collection header -->
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Spacing="8">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <FontIcon Glyph="{x:Bind ViewModel.SelectedCollection.IconGlyph, Mode=OneWay, TargetNullValue='&#xF168;'}"
+                                          FontSize="28"
+                                          Foreground="{StaticResource TextAccentBrush}"
+                                          VerticalAlignment="Center" />
+                                <TextBlock Text="{x:Bind ViewModel.SelectedCollection.Name, Mode=OneWay}"
+                                           Style="{StaticResource HeadingLargeStyle}"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+
+                            <TextBlock Text="{x:Bind ViewModel.SelectedCollection.Description, Mode=OneWay}"
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       Visibility="{x:Bind ViewModel.SelectedCollection.Description, Mode=OneWay, Converter={StaticResource StringToVis}}" />
+                        </StackPanel>
+
+                        <Button Grid.Column="1"
+                                Style="{StaticResource AccentButtonStyle}"
+                                Click="OnAddDocumentsClick"
+                                VerticalAlignment="Top">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE710;" FontSize="14" />
+                                <TextBlock Text="Add Documents" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+
+                    <!-- Row 1: Stats badges -->
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="12">
+                        <Border Style="{StaticResource BadgeDefaultStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE8F1;" FontSize="11"
+                                          Foreground="{StaticResource TextAccentBrush}" />
+                                <TextBlock Style="{StaticResource BadgeStyle}">
+                                    <Run Text="{x:Bind ViewModel.SelectedCollection.DocumentCount, Mode=OneWay}" />
+                                    <Run Text=" documents" />
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource BadgeDefaultStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE787;" FontSize="11"
+                                          Foreground="{StaticResource TextTertiaryBrush}" />
+                                <TextBlock Text="{x:Bind ViewModel.SelectedCollection.CreatedAtFormatted, Mode=OneWay}"
+                                           Style="{StaticResource BadgeStyle}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource BadgeDefaultStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE72C;" FontSize="11"
+                                          Foreground="{StaticResource TextTertiaryBrush}" />
+                                <TextBlock Style="{StaticResource BadgeStyle}">
+                                    <Run Text="Updated " />
+                                    <Run Text="{x:Bind ViewModel.SelectedCollection.UpdatedAtFormatted, Mode=OneWay}" />
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <Border Grid.Row="2" Style="{StaticResource SeparatorStyle}" />
+
+                    <!-- Row 3: Error message -->
+                    <Border Grid.Row="3"
+                            Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                            Background="#1AEF4444"
+                            BorderBrush="#33EF4444"
+                            BorderThickness="1"
+                            CornerRadius="{StaticResource RadiusMD}"
+                            Padding="16,12">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <FontIcon Glyph="&#xE7BA;" FontSize="16"
+                                      Foreground="{StaticResource ErrorBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                                       Style="{StaticResource BodySmallStyle}"
+                                       Foreground="{StaticResource ErrorBrush}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Row 4: Documents in this collection -->
+                    <StackPanel Grid.Row="4" Spacing="16">
+                        <TextBlock Text="Documents in this Collection"
+                                   Style="{StaticResource HeadingSmallStyle}" />
+
+                        <!-- Documents grid -->
+                        <ItemsRepeater x:Name="CollectionDocumentsRepeater"
+                                       ItemsSource="{x:Bind ViewModel.SelectedCollectionDocuments, Mode=OneWay}">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Spacing="12" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="vm:DocumentDisplayItem">
+                                    <Border Style="{StaticResource DocumentSimpleCardStyle}">
+                                        <Grid ColumnSpacing="12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- File type icon -->
+                                            <Border Style="{StaticResource FileTypeIconContainerStyle}"
+                                                    Width="40" Height="40">
+                                                <FontIcon Glyph="{x:Bind FileTypeIcon}"
+                                                          FontSize="18"
+                                                          Foreground="{StaticResource TextAccentBrush}"
+                                                          HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center" />
+                                            </Border>
+
+                                            <!-- File info -->
+                                            <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                                                <TextBlock Text="{x:Bind FileName}"
+                                                           Style="{StaticResource BodyStyle}"
+                                                           FontWeight="SemiBold"
+                                                           MaxLines="1"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                                    <Border Style="{StaticResource FileTypeBadgeStyle}">
+                                                        <TextBlock Text="{x:Bind FileTypeLabel}"
+                                                                   FontSize="9"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="{StaticResource TextAccentBrush}"
+                                                                   CharacterSpacing="40" />
+                                                    </Border>
+                                                    <TextBlock Text="{x:Bind FileSizeFormatted}"
+                                                               Style="{StaticResource CaptionStyle}" />
+                                                    <TextBlock Text="{x:Bind ImportedAtFormatted}"
+                                                               Style="{StaticResource CaptionStyle}" />
+                                                </StackPanel>
+                                            </StackPanel>
+
+                                            <!-- Tags -->
+                                            <ItemsRepeater Grid.Column="2"
+                                                           ItemsSource="{x:Bind Tags}"
+                                                           VerticalAlignment="Center">
+                                                <ItemsRepeater.Layout>
+                                                    <StackLayout Orientation="Horizontal" Spacing="4" />
+                                                </ItemsRepeater.Layout>
+                                                <ItemsRepeater.ItemTemplate>
+                                                    <DataTemplate x:DataType="x:String">
+                                                        <Border Style="{StaticResource TagBadgeStyle}">
+                                                            <TextBlock Text="{x:Bind}"
+                                                                       FontSize="9"
+                                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsRepeater.ItemTemplate>
+                                            </ItemsRepeater>
+
+                                            <!-- Remove button -->
+                                            <Button Grid.Column="3"
+                                                    Style="{StaticResource GhostButtonStyle}"
+                                                    Padding="6" MinHeight="32" MinWidth="32"
+                                                    Tag="{x:Bind Id}"
+                                                    Click="OnRemoveDocumentFromCollectionClick"
+                                                    ToolTipService.ToolTip="Remove from collection">
+                                                <FontIcon Glyph="&#xE738;" FontSize="12"
+                                                          Foreground="{StaticResource TextTertiaryBrush}" />
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+
+                        <!-- Empty state: No documents in this collection -->
+                        <Border Style="{StaticResource CardInsetStyle}"
+                                Padding="40,32"
+                                Visibility="{x:Bind ViewModel.HasSelectedCollectionDocuments, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
+                            <StackPanel Spacing="12" HorizontalAlignment="Center">
+                                <FontIcon Glyph="&#xE8F1;" FontSize="32"
+                                          Foreground="{StaticResource TextTertiaryBrush}"
+                                          HorizontalAlignment="Center" />
+                                <TextBlock Text="No documents in this collection"
+                                           Style="{StaticResource BodySecondaryStyle}"
+                                           HorizontalAlignment="Center" />
+                                <TextBlock Text="Click 'Add Documents' to assign files from your Knowledge Vault to this collection."
+                                           Style="{StaticResource CaptionStyle}"
+                                           TextAlignment="Center"
+                                           MaxWidth="320"
+                                           HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</Page>

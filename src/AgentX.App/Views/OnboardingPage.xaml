@@ -1,0 +1,806 @@
+<Page
+    x:Class="AgentX.App.Views.OnboardingPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:AgentX.App.ViewModels"
+    xmlns:converters="using:AgentX.App.Converters"
+    Background="Transparent"
+    NavigationCacheMode="Disabled">
+
+    <Page.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
+        <converters:BoolToVisibilityConverter x:Key="InverseBoolToVis" IsInverted="True" />
+        <converters:StringToVisibilityConverter x:Key="StringToVis" />
+    </Page.Resources>
+
+    <Grid>
+        <!-- ═══════════════════════════════════════════════════════
+             AMBIENT GLOW — Centered red glow for wizard
+             ═══════════════════════════════════════════════════════ -->
+        <Border IsHitTestVisible="False"
+                Opacity="0.25">
+            <Border.Background>
+                <RadialGradientBrush Center="0.5,0.3"
+                                     RadiusX="0.5" RadiusY="0.5"
+                                     MappingMode="RelativeToBoundingBox"
+                                     SpreadMethod="Pad">
+                    <GradientStop Color="{StaticResource RedGlow15}" Offset="0.0" />
+                    <GradientStop Color="Transparent" Offset="1.0" />
+                </RadialGradientBrush>
+            </Border.Background>
+        </Border>
+
+        <!-- Main Wizard Layout -->
+        <Grid RowSpacing="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- ═══════════════════════════════════════════════════════
+                 ROW 0: STEP INDICATOR (5 dots with connectors)
+                 ═══════════════════════════════════════════════════════ -->
+            <StackPanel Grid.Row="0"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Spacing="12"
+                        Margin="0,40,0,0">
+
+                <!-- Step 0 Dot -->
+                <Grid Width="32" Height="32">
+                    <Ellipse Width="10" Height="10"
+                             Fill="{StaticResource AccentPrimaryBrush}"
+                             Visibility="{x:Bind ViewModel.IsStep0Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                    <Ellipse Width="8" Height="8"
+                             Fill="{StaticResource TextTertiaryBrush}"
+                             Opacity="0.4"
+                             Visibility="{x:Bind ViewModel.IsStep0Visible, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
+                </Grid>
+
+                <Border Width="24" Height="1" Background="{StaticResource BorderSubtleBrush}" VerticalAlignment="Center" />
+
+                <!-- Step 1 Dot -->
+                <Grid Width="32" Height="32">
+                    <Ellipse Width="10" Height="10"
+                             Fill="{StaticResource AccentPrimaryBrush}"
+                             Visibility="{x:Bind ViewModel.IsStep1Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                    <Ellipse Width="8" Height="8"
+                             Fill="{StaticResource TextTertiaryBrush}"
+                             Opacity="0.4"
+                             Visibility="{x:Bind ViewModel.IsStep1Visible, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
+                </Grid>
+
+                <Border Width="24" Height="1" Background="{StaticResource BorderSubtleBrush}" VerticalAlignment="Center" />
+
+                <!-- Step 2 Dot -->
+                <Grid Width="32" Height="32">
+                    <Ellipse Width="10" Height="10"
+                             Fill="{StaticResource AccentPrimaryBrush}"
+                             Visibility="{x:Bind ViewModel.IsStep2Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                    <Ellipse Width="8" Height="8"
+                             Fill="{StaticResource TextTertiaryBrush}"
+                             Opacity="0.4"
+                             Visibility="{x:Bind ViewModel.IsStep2Visible, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
+                </Grid>
+
+                <Border Width="24" Height="1" Background="{StaticResource BorderSubtleBrush}" VerticalAlignment="Center" />
+
+                <!-- Step 3 Dot -->
+                <Grid Width="32" Height="32">
+                    <Ellipse Width="10" Height="10"
+                             Fill="{StaticResource AccentPrimaryBrush}"
+                             Visibility="{x:Bind ViewModel.IsStep3Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                    <Ellipse Width="8" Height="8"
+                             Fill="{StaticResource TextTertiaryBrush}"
+                             Opacity="0.4"
+                             Visibility="{x:Bind ViewModel.IsStep3Visible, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
+                </Grid>
+
+                <Border Width="24" Height="1" Background="{StaticResource BorderSubtleBrush}" VerticalAlignment="Center" />
+
+                <!-- Step 4 Dot -->
+                <Grid Width="32" Height="32">
+                    <Ellipse Width="10" Height="10"
+                             Fill="{StaticResource AccentPrimaryBrush}"
+                             Visibility="{x:Bind ViewModel.IsStep4Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                    <Ellipse Width="8" Height="8"
+                             Fill="{StaticResource TextTertiaryBrush}"
+                             Opacity="0.4"
+                             Visibility="{x:Bind ViewModel.IsStep4Visible, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
+                </Grid>
+            </StackPanel>
+
+            <!-- ═══════════════════════════════════════════════════════
+                 ROW 1: CONTENT AREA — All Steps
+                 ═══════════════════════════════════════════════════════ -->
+            <ScrollViewer Grid.Row="1"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled"
+                          Padding="0">
+
+                <Grid HorizontalAlignment="Center"
+                      MaxWidth="700"
+                      Padding="32,40,32,32">
+
+                    <!-- ════════════════════════════════════════════
+                         STEP 0: WELCOME
+                         ════════════════════════════════════════════ -->
+                    <StackPanel Visibility="{x:Bind ViewModel.IsStep0Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                Spacing="32"
+                                HorizontalAlignment="Center">
+
+                        <!-- AX Logo Mark -->
+                        <Grid Width="80" Height="80"
+                              HorizontalAlignment="Center"
+                              Margin="0,16,0,0">
+                            <Border CornerRadius="{StaticResource RadiusLG}"
+                                    Background="{StaticResource AccentGradientBrush}">
+                                <TextBlock Text="AX"
+                                           FontFamily="{StaticResource FontDisplay}"
+                                           FontSize="32"
+                                           FontWeight="Black"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           CharacterSpacing="-30" />
+                            </Border>
+                        </Grid>
+
+                        <!-- Hero Text -->
+                        <StackPanel Spacing="12" HorizontalAlignment="Center">
+                            <TextBlock Text="Welcome to Agent-X"
+                                       Style="{StaticResource DisplayLargeStyle}"
+                                       HorizontalAlignment="Center"
+                                       TextAlignment="Center" />
+                            <TextBlock Text="Your Local-First AI Intelligence Hub"
+                                       Style="{StaticResource HeadingMediumStyle}"
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       HorizontalAlignment="Center"
+                                       TextAlignment="Center"
+                                       FontWeight="Normal" />
+                        </StackPanel>
+
+                        <!-- Value Propositions -->
+                        <StackPanel Spacing="16" Margin="0,8,0,0">
+
+                            <!-- Private & Secure -->
+                            <Border Style="{StaticResource CardStyle}" Padding="20">
+                                <Grid ColumnSpacing="16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="44" Height="44"
+                                            CornerRadius="{StaticResource RadiusMD}"
+                                            Background="{StaticResource AccentSubtleBrush}">
+                                        <FontIcon Glyph="&#xE72E;"
+                                                  FontSize="20"
+                                                  Foreground="{StaticResource AccentPrimaryBrush}"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                                        <TextBlock Text="Private &amp; Secure"
+                                                   Style="{StaticResource HeadingSmallStyle}" />
+                                        <TextBlock Text="Everything runs locally on your machine. Your data never leaves your device."
+                                                   Style="{StaticResource BodySecondaryStyle}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- Unlimited & Free -->
+                            <Border Style="{StaticResource CardStyle}" Padding="20">
+                                <Grid ColumnSpacing="16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="44" Height="44"
+                                            CornerRadius="{StaticResource RadiusMD}"
+                                            Background="{StaticResource AccentSubtleBrush}">
+                                        <FontIcon Glyph="&#xE734;"
+                                                  FontSize="20"
+                                                  Foreground="{StaticResource AccentPrimaryBrush}"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                                        <TextBlock Text="Unlimited &amp; Free"
+                                                   Style="{StaticResource HeadingSmallStyle}" />
+                                        <TextBlock Text="No API costs, no usage limits, no subscriptions. Powered by open-source AI models."
+                                                   Style="{StaticResource BodySecondaryStyle}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- Your Data, Your Rules -->
+                            <Border Style="{StaticResource CardStyle}" Padding="20">
+                                <Grid ColumnSpacing="16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="44" Height="44"
+                                            CornerRadius="{StaticResource RadiusMD}"
+                                            Background="{StaticResource AccentSubtleBrush}">
+                                        <FontIcon Glyph="&#xE8F1;"
+                                                  FontSize="20"
+                                                  Foreground="{StaticResource AccentPrimaryBrush}"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                                        <TextBlock Text="Your Data, Your Rules"
+                                                   Style="{StaticResource HeadingSmallStyle}" />
+                                        <TextBlock Text="Index your documents, search semantically, and chat with your files using local AI."
+                                                   Style="{StaticResource BodySecondaryStyle}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- ════════════════════════════════════════════
+                         STEP 1: OLLAMA CONNECTION
+                         ════════════════════════════════════════════ -->
+                    <StackPanel Visibility="{x:Bind ViewModel.IsStep1Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                Spacing="24"
+                                HorizontalAlignment="Stretch">
+
+                        <!-- Header -->
+                        <StackPanel Spacing="8" HorizontalAlignment="Center">
+                            <TextBlock Text="Connect to Ollama"
+                                       Style="{StaticResource DisplayMediumStyle}"
+                                       HorizontalAlignment="Center"
+                                       TextAlignment="Center" />
+                            <TextBlock Text="Agent-X uses Ollama to run AI models locally on your machine. Ollama is a free, open-source tool that manages and serves AI models."
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       HorizontalAlignment="Center"
+                                       TextAlignment="Center"
+                                       MaxWidth="560" />
+                        </StackPanel>
+
+                        <!-- Endpoint Input Card -->
+                        <Border Style="{StaticResource CardStyle}"
+                                Margin="0,8,0,0">
+                            <StackPanel Spacing="16">
+                                <TextBlock Text="OLLAMA ENDPOINT"
+                                           Style="{StaticResource OverlineStyle}" />
+                                <TextBox Text="{x:Bind ViewModel.OllamaEndpoint, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource InputTextBoxStyle}"
+                                         PlaceholderText="http://localhost:11434" />
+
+                                <!-- Test Connection Button & Spinner -->
+                                <Grid ColumnSpacing="16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Button Content="Test Connection"
+                                            Style="{StaticResource AccentButtonStyle}"
+                                            Command="{x:Bind ViewModel.TestConnectionCommand}" />
+
+                                    <ProgressRing Grid.Column="1"
+                                                  IsActive="{x:Bind ViewModel.IsTestingConnection, Mode=OneWay}"
+                                                  Visibility="{x:Bind ViewModel.IsTestingConnection, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                                  Width="24" Height="24"
+                                                  Foreground="{StaticResource AccentPrimaryBrush}"
+                                                  VerticalAlignment="Center" />
+                                </Grid>
+
+                                <!-- Connection Status Result -->
+                                <Border Visibility="{x:Bind ViewModel.ShowConnectionStatus, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                        CornerRadius="{StaticResource RadiusMD}"
+                                        Padding="16,12"
+                                        Background="{StaticResource InputBackgroundBrush}"
+                                        Margin="0,4,0,0">
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <Ellipse Width="8" Height="8"
+                                                 VerticalAlignment="Center">
+                                            <Ellipse.Fill>
+                                                <SolidColorBrush x:Name="ConnectionDotBrush"
+                                                                 Color="{StaticResource StatusSuccess}" />
+                                            </Ellipse.Fill>
+                                        </Ellipse>
+                                        <TextBlock Text="{x:Bind ViewModel.ConnectionStatusText, Mode=OneWay}"
+                                                   Style="{StaticResource BodyStyle}" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Help Text & Skip -->
+                        <StackPanel HorizontalAlignment="Center" Spacing="8" Margin="0,8,0,0">
+                            <TextBlock Style="{StaticResource BodySecondaryStyle}"
+                                       HorizontalAlignment="Center"
+                                       TextAlignment="Center">
+                                <Run Text="Don't have Ollama? Visit" />
+                                <Run Text="ollama.com" Foreground="{StaticResource TextAccentBrush}" FontWeight="SemiBold" />
+                                <Run Text="to install it." />
+                            </TextBlock>
+
+                            <Button Content="Skip for now — I'll set it up later"
+                                    Style="{StaticResource GhostButtonStyle}"
+                                    HorizontalAlignment="Center"
+                                    Command="{x:Bind ViewModel.SkipOllamaSetupCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- ════════════════════════════════════════════
+                         STEP 2: MODEL SELECTION
+                         ════════════════════════════════════════════ -->
+                    <StackPanel Visibility="{x:Bind ViewModel.IsStep2Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                Spacing="24"
+                                HorizontalAlignment="Stretch">
+
+                        <!-- Header -->
+                        <StackPanel Spacing="8" HorizontalAlignment="Center">
+                            <TextBlock Text="Choose Your Models"
+                                       Style="{StaticResource DisplayMediumStyle}"
+                                       HorizontalAlignment="Center"
+                                       TextAlignment="Center" />
+                            <TextBlock Text="Select a default chat model and an embedding model for semantic search."
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       HorizontalAlignment="Center"
+                                       TextAlignment="Center"
+                                       MaxWidth="560" />
+                        </StackPanel>
+
+                        <!-- Hardware Info Badge -->
+                        <Border Style="{StaticResource BadgeDefaultStyle}"
+                                HorizontalAlignment="Center"
+                                Visibility="{x:Bind ViewModel.HardwareInfo, Mode=OneWay, Converter={StaticResource StringToVis}}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE950;" FontSize="12"
+                                          Foreground="{StaticResource TextTertiaryBrush}" />
+                                <TextBlock Text="{x:Bind ViewModel.HardwareInfo, Mode=OneWay}"
+                                           Style="{StaticResource CaptionStyle}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Loading Indicator -->
+                        <StackPanel Visibility="{x:Bind ViewModel.IsLoadingModels, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                    HorizontalAlignment="Center"
+                                    Spacing="12" Margin="0,24,0,0">
+                            <ProgressRing IsActive="True"
+                                          Width="32" Height="32"
+                                          Foreground="{StaticResource AccentPrimaryBrush}" />
+                            <TextBlock Text="Loading available models..."
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+
+                        <!-- Models Available State -->
+                        <StackPanel Visibility="{x:Bind ViewModel.HasModels, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                    Spacing="20">
+
+                            <!-- Chat Model Selection -->
+                            <Border Style="{StaticResource CardStyle}">
+                                <StackPanel Spacing="12">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <FontIcon Glyph="&#xE8BD;" FontSize="16"
+                                                  Foreground="{StaticResource AccentPrimaryBrush}" />
+                                        <TextBlock Text="CHAT MODEL"
+                                                   Style="{StaticResource OverlineStyle}" />
+                                    </StackPanel>
+                                    <TextBlock Text="Select the model used for AI conversations and text generation."
+                                               Style="{StaticResource BodySecondaryStyle}" />
+                                    <ComboBox ItemsSource="{x:Bind ViewModel.AvailableModels, Mode=OneWay}"
+                                              SelectedValue="{x:Bind ViewModel.SelectedChatModel, Mode=TwoWay}"
+                                              SelectedValuePath="ModelId"
+                                              DisplayMemberPath="DisplayName"
+                                              HorizontalAlignment="Stretch"
+                                              Background="{StaticResource InputBackgroundBrush}"
+                                              BorderBrush="{StaticResource InputBorderBrush}"
+                                              CornerRadius="{StaticResource RadiusMD}" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Embedding Model Selection -->
+                            <Border Style="{StaticResource CardStyle}">
+                                <StackPanel Spacing="12">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <FontIcon Glyph="&#xE773;" FontSize="16"
+                                                  Foreground="{StaticResource AccentPrimaryBrush}" />
+                                        <TextBlock Text="EMBEDDING MODEL"
+                                                   Style="{StaticResource OverlineStyle}" />
+                                    </StackPanel>
+                                    <TextBlock Text="Select the model used for semantic search and document indexing."
+                                               Style="{StaticResource BodySecondaryStyle}" />
+                                    <ComboBox ItemsSource="{x:Bind ViewModel.AvailableModels, Mode=OneWay}"
+                                              SelectedValue="{x:Bind ViewModel.SelectedEmbeddingModel, Mode=TwoWay}"
+                                              SelectedValuePath="ModelId"
+                                              DisplayMemberPath="DisplayName"
+                                              HorizontalAlignment="Stretch"
+                                              Background="{StaticResource InputBackgroundBrush}"
+                                              BorderBrush="{StaticResource InputBorderBrush}"
+                                              CornerRadius="{StaticResource RadiusMD}" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- No Models / Not Connected State -->
+                        <Border Visibility="{x:Bind ViewModel.HasModels, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}"
+                                Style="{StaticResource CardStyle}"
+                                Margin="0,8,0,0">
+                            <StackPanel Spacing="12" HorizontalAlignment="Center" Padding="20">
+                                <FontIcon Glyph="&#xE946;" FontSize="36"
+                                          Foreground="{StaticResource TextTertiaryBrush}"
+                                          HorizontalAlignment="Center" />
+                                <TextBlock Text="No models available"
+                                           Style="{StaticResource HeadingSmallStyle}"
+                                           HorizontalAlignment="Center" />
+                                <TextBlock Text="Ollama is not connected, so models cannot be listed. You can configure models later in Settings or the Model Manager."
+                                           Style="{StaticResource BodySecondaryStyle}"
+                                           HorizontalAlignment="Center"
+                                           TextAlignment="Center"
+                                           MaxWidth="420" />
+                                <TextBlock Style="{StaticResource CaptionStyle}"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,8,0,0">
+                                    <Run Text="Default chat model:" />
+                                    <Run Text="llama3.2" Foreground="{StaticResource TextAccentBrush}" FontWeight="SemiBold" />
+                                    <Run Text="  |  Default embedding model:" />
+                                    <Run Text="all-minilm" Foreground="{StaticResource TextAccentBrush}" FontWeight="SemiBold" />
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ════════════════════════════════════════════
+                         STEP 3: KNOWLEDGE VAULT INTRO
+                         ════════════════════════════════════════════ -->
+                    <StackPanel Visibility="{x:Bind ViewModel.IsStep3Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                Spacing="24"
+                                HorizontalAlignment="Stretch">
+
+                        <!-- Header -->
+                        <StackPanel Spacing="8" HorizontalAlignment="Center">
+                            <TextBlock Text="Knowledge Vault"
+                                       Style="{StaticResource DisplayMediumStyle}"
+                                       HorizontalAlignment="Center"
+                                       TextAlignment="Center" />
+                            <TextBlock Text="Import your documents and let Agent-X index them for intelligent search and AI-powered Q&amp;A."
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       HorizontalAlignment="Center"
+                                       TextAlignment="Center"
+                                       MaxWidth="560" />
+                        </StackPanel>
+
+                        <!-- How It Works Card -->
+                        <Border Style="{StaticResource CardAccentStyle}"
+                                Margin="0,8,0,0">
+                            <StackPanel Spacing="16">
+                                <TextBlock Text="HOW IT WORKS"
+                                           Style="{StaticResource OverlineStyle}" />
+
+                                <StackPanel Spacing="12">
+                                    <!-- Step 1 -->
+                                    <Grid ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Width="28" Height="28"
+                                                CornerRadius="{StaticResource RadiusRound}"
+                                                Background="{StaticResource AccentSubtleBrush}">
+                                            <TextBlock Text="1" FontSize="13" FontWeight="Bold"
+                                                       Foreground="{StaticResource AccentPrimaryBrush}"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <TextBlock Grid.Column="1"
+                                                   Text="Import files into the Knowledge Vault from your local machine."
+                                                   Style="{StaticResource BodyStyle}"
+                                                   VerticalAlignment="Center" />
+                                    </Grid>
+
+                                    <!-- Step 2 -->
+                                    <Grid ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Width="28" Height="28"
+                                                CornerRadius="{StaticResource RadiusRound}"
+                                                Background="{StaticResource AccentSubtleBrush}">
+                                            <TextBlock Text="2" FontSize="13" FontWeight="Bold"
+                                                       Foreground="{StaticResource AccentPrimaryBrush}"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <TextBlock Grid.Column="1"
+                                                   Text="Agent-X chunks, embeds, and indexes your documents locally using AI."
+                                                   Style="{StaticResource BodyStyle}"
+                                                   VerticalAlignment="Center" />
+                                    </Grid>
+
+                                    <!-- Step 3 -->
+                                    <Grid ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Width="28" Height="28"
+                                                CornerRadius="{StaticResource RadiusRound}"
+                                                Background="{StaticResource AccentSubtleBrush}">
+                                            <TextBlock Text="3" FontSize="13" FontWeight="Bold"
+                                                       Foreground="{StaticResource AccentPrimaryBrush}"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <TextBlock Grid.Column="1"
+                                                   Text="Search semantically, ask questions, and get AI answers grounded in your data."
+                                                   Style="{StaticResource BodyStyle}"
+                                                   VerticalAlignment="Center" />
+                                    </Grid>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Supported File Types -->
+                        <Border Style="{StaticResource CardStyle}">
+                            <StackPanel Spacing="16">
+                                <TextBlock Text="SUPPORTED FILE TYPES"
+                                           Style="{StaticResource OverlineStyle}" />
+                                <Grid ColumnSpacing="12" RowSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <!-- PDF -->
+                                    <Border Grid.Row="0" Grid.Column="0"
+                                            Style="{StaticResource CardInsetStyle}"
+                                            Padding="12,10">
+                                        <StackPanel Orientation="Horizontal" Spacing="8"
+                                                    HorizontalAlignment="Center">
+                                            <FontIcon Glyph="&#xEA90;" FontSize="14"
+                                                      Foreground="{StaticResource AccentPrimaryBrush}" />
+                                            <TextBlock Text="PDF" Style="{StaticResource LabelStyle}" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- DOCX -->
+                                    <Border Grid.Row="0" Grid.Column="1"
+                                            Style="{StaticResource CardInsetStyle}"
+                                            Padding="12,10">
+                                        <StackPanel Orientation="Horizontal" Spacing="8"
+                                                    HorizontalAlignment="Center">
+                                            <FontIcon Glyph="&#xE8A5;" FontSize="14"
+                                                      Foreground="{StaticResource InfoBrush}" />
+                                            <TextBlock Text="DOCX" Style="{StaticResource LabelStyle}" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- TXT -->
+                                    <Border Grid.Row="0" Grid.Column="2"
+                                            Style="{StaticResource CardInsetStyle}"
+                                            Padding="12,10">
+                                        <StackPanel Orientation="Horizontal" Spacing="8"
+                                                    HorizontalAlignment="Center">
+                                            <FontIcon Glyph="&#xE8A4;" FontSize="14"
+                                                      Foreground="{StaticResource SuccessBrush}" />
+                                            <TextBlock Text="TXT" Style="{StaticResource LabelStyle}" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Markdown -->
+                                    <Border Grid.Row="1" Grid.Column="0"
+                                            Style="{StaticResource CardInsetStyle}"
+                                            Padding="12,10">
+                                        <StackPanel Orientation="Horizontal" Spacing="8"
+                                                    HorizontalAlignment="Center">
+                                            <FontIcon Glyph="&#xE943;" FontSize="14"
+                                                      Foreground="{StaticResource WarningBrush}" />
+                                            <TextBlock Text="MD" Style="{StaticResource LabelStyle}" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Code -->
+                                    <Border Grid.Row="1" Grid.Column="1"
+                                            Style="{StaticResource CardInsetStyle}"
+                                            Padding="12,10">
+                                        <StackPanel Orientation="Horizontal" Spacing="8"
+                                                    HorizontalAlignment="Center">
+                                            <FontIcon Glyph="&#xE943;" FontSize="14"
+                                                      Foreground="{StaticResource TextAccentBrush}" />
+                                            <TextBlock Text="Code" Style="{StaticResource LabelStyle}" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Images -->
+                                    <Border Grid.Row="1" Grid.Column="2"
+                                            Style="{StaticResource CardInsetStyle}"
+                                            Padding="12,10">
+                                        <StackPanel Orientation="Horizontal" Spacing="8"
+                                                    HorizontalAlignment="Center">
+                                            <FontIcon Glyph="&#xEB9F;" FontSize="14"
+                                                      Foreground="{StaticResource OnlineBrush}" />
+                                            <TextBlock Text="Images" Style="{StaticResource LabelStyle}" />
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Info note -->
+                        <TextBlock Text="You can import files anytime from the Knowledge Vault page."
+                                   Style="{StaticResource BodySecondaryStyle}"
+                                   HorizontalAlignment="Center"
+                                   TextAlignment="Center"
+                                   FontStyle="Italic"
+                                   Opacity="0.7" />
+                    </StackPanel>
+
+                    <!-- ════════════════════════════════════════════
+                         STEP 4: ALL SET!
+                         ════════════════════════════════════════════ -->
+                    <StackPanel Visibility="{x:Bind ViewModel.IsStep4Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                Spacing="32"
+                                HorizontalAlignment="Center">
+
+                        <!-- Success Icon -->
+                        <Grid Width="80" Height="80"
+                              HorizontalAlignment="Center"
+                              Margin="0,16,0,0">
+                            <Border CornerRadius="{StaticResource RadiusRound}"
+                                    Background="{StaticResource AccentSubtleBrush}">
+                                <FontIcon Glyph="&#xE73E;"
+                                          FontSize="36"
+                                          Foreground="{StaticResource SuccessBrush}"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center" />
+                            </Border>
+                        </Grid>
+
+                        <!-- Hero Text -->
+                        <StackPanel Spacing="12" HorizontalAlignment="Center">
+                            <TextBlock Text="You're All Set!"
+                                       Style="{StaticResource DisplayLargeStyle}"
+                                       HorizontalAlignment="Center"
+                                       TextAlignment="Center" />
+                            <TextBlock Text="Agent-X is configured and ready to use."
+                                       Style="{StaticResource HeadingMediumStyle}"
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       HorizontalAlignment="Center"
+                                       TextAlignment="Center"
+                                       FontWeight="Normal" />
+                        </StackPanel>
+
+                        <!-- Configuration Summary -->
+                        <Border Style="{StaticResource CardStyle}"
+                                MinWidth="480">
+                            <StackPanel Spacing="16">
+                                <TextBlock Text="CONFIGURATION SUMMARY"
+                                           Style="{StaticResource OverlineStyle}" />
+
+                                <!-- Ollama Status -->
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Ollama Status"
+                                               Style="{StaticResource BodySecondaryStyle}" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{x:Bind ViewModel.SummaryOllamaStatus, Mode=OneWay}"
+                                               Style="{StaticResource BodyStyle}"
+                                               HorizontalAlignment="Right" />
+                                </Grid>
+
+                                <Border Style="{StaticResource SeparatorStyle}" />
+
+                                <!-- Chat Model -->
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Chat Model"
+                                               Style="{StaticResource BodySecondaryStyle}" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{x:Bind ViewModel.SummaryChatModel, Mode=OneWay}"
+                                               Style="{StaticResource BodyStyle}"
+                                               Foreground="{StaticResource TextAccentBrush}"
+                                               HorizontalAlignment="Right" />
+                                </Grid>
+
+                                <Border Style="{StaticResource SeparatorStyle}" />
+
+                                <!-- Embedding Model -->
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Embedding Model"
+                                               Style="{StaticResource BodySecondaryStyle}" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{x:Bind ViewModel.SummaryEmbeddingModel, Mode=OneWay}"
+                                               Style="{StaticResource BodyStyle}"
+                                               Foreground="{StaticResource TextAccentBrush}"
+                                               HorizontalAlignment="Right" />
+                                </Grid>
+
+                                <Border Style="{StaticResource SeparatorStyle}" />
+
+                                <!-- Storage -->
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Data Storage"
+                                               Style="{StaticResource BodySecondaryStyle}" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="Local (%LOCALAPPDATA%\AgentX)"
+                                               Style="{StaticResource MonoSmallStyle}"
+                                               HorizontalAlignment="Right"
+                                               VerticalAlignment="Center" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                </Grid>
+            </ScrollViewer>
+
+            <!-- ═══════════════════════════════════════════════════════
+                 ROW 2: NAVIGATION BUTTONS
+                 ═══════════════════════════════════════════════════════ -->
+            <Border Grid.Row="2"
+                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                    BorderThickness="0,1,0,0"
+                    Background="{StaticResource PageBackgroundBrush}"
+                    Padding="32,16,32,24">
+
+                <Grid MaxWidth="700" HorizontalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Back Button (hidden on first step) -->
+                    <Button Content="Back"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{x:Bind ViewModel.PreviousStepCommand}"
+                            Visibility="{x:Bind ViewModel.CanGoBack, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                            VerticalAlignment="Center" />
+
+                    <!-- Step-specific primary actions -->
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                Spacing="12">
+
+                        <!-- "Get Started" — Only on Step 0 -->
+                        <Button Content="Get Started"
+                                Style="{StaticResource AccentButtonStyle}"
+                                Command="{x:Bind ViewModel.NextStepCommand}"
+                                Visibility="{x:Bind ViewModel.IsStep0Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                Padding="32,12,32,12" />
+
+                        <!-- "Next" — Steps 1, 2, 3 (not 0 or 4) -->
+                        <Button Content="Next"
+                                Style="{StaticResource AccentButtonStyle}"
+                                Command="{x:Bind ViewModel.NextStepCommand}"
+                                Visibility="{x:Bind ViewModel.ShowNextButton, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                Padding="32,12,32,12" />
+
+                        <!-- "Launch Agent-X" — Only on Step 4 -->
+                        <Button Content="Launch Agent-X"
+                                Style="{StaticResource AccentButtonStyle}"
+                                Command="{x:Bind ViewModel.CompleteOnboardingCommand}"
+                                Visibility="{x:Bind ViewModel.IsStep4Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                Padding="32,12,32,12" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+        </Grid>
+    </Grid>
+</Page>

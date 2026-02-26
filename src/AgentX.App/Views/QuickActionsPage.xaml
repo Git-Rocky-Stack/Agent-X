@@ -1,0 +1,624 @@
+<Page
+    x:Class="AgentX.App.Views.QuickActionsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:AgentX.App.ViewModels"
+    xmlns:converters="using:AgentX.App.Converters"
+    Background="Transparent"
+    NavigationCacheMode="Enabled">
+
+    <Page.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
+        <converters:BoolToVisibilityConverter x:Key="InverseBoolToVis" IsInverted="True" />
+        <converters:InverseBoolConverter x:Key="InverseBool" />
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <ScrollViewer Grid.Row="0"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+
+            <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="1200">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- ==========================================================
+                     ROW 0: PAGE HEADER
+                     ========================================================== -->
+                <StackPanel Grid.Row="0" Spacing="4">
+                    <TextBlock Text="Quick Actions"
+                               Style="{StaticResource DisplaySmallStyle}" />
+                    <TextBlock Text="AI-powered document intelligence tools. Summarize, translate, detect duplicates, and organize."
+                               Style="{StaticResource BodySecondaryStyle}" />
+                </StackPanel>
+
+                <!-- ==========================================================
+                     ROW 1: TAB NAVIGATION
+                     ========================================================== -->
+                <Border Grid.Row="1" Style="{StaticResource CardStyle}" Padding="4">
+                    <Grid ColumnSpacing="4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <RadioButton Grid.Column="0"
+                                     GroupName="QuickActionTabs"
+                                     IsChecked="True"
+                                     Checked="Tab_Summarize_Checked"
+                                     Style="{StaticResource TabRadioButtonStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="8"
+                                        HorizontalAlignment="Center">
+                                <FontIcon Glyph="&#xE8C8;" FontSize="14" />
+                                <TextBlock Text="Summarize" FontSize="13" FontWeight="SemiBold" />
+                            </StackPanel>
+                        </RadioButton>
+
+                        <RadioButton Grid.Column="1"
+                                     GroupName="QuickActionTabs"
+                                     Checked="Tab_KeyPoints_Checked"
+                                     Style="{StaticResource TabRadioButtonStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="8"
+                                        HorizontalAlignment="Center">
+                                <FontIcon Glyph="&#xE8FD;" FontSize="14" />
+                                <TextBlock Text="Key Points" FontSize="13" FontWeight="SemiBold" />
+                            </StackPanel>
+                        </RadioButton>
+
+                        <RadioButton Grid.Column="2"
+                                     GroupName="QuickActionTabs"
+                                     Checked="Tab_Translate_Checked"
+                                     Style="{StaticResource TabRadioButtonStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="8"
+                                        HorizontalAlignment="Center">
+                                <FontIcon Glyph="&#xE8C1;" FontSize="14" />
+                                <TextBlock Text="Translate" FontSize="13" FontWeight="SemiBold" />
+                            </StackPanel>
+                        </RadioButton>
+
+                        <RadioButton Grid.Column="3"
+                                     GroupName="QuickActionTabs"
+                                     Checked="Tab_Duplicates_Checked"
+                                     Style="{StaticResource TabRadioButtonStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="8"
+                                        HorizontalAlignment="Center">
+                                <FontIcon Glyph="&#xE8C6;" FontSize="14" />
+                                <TextBlock Text="Duplicates" FontSize="13" FontWeight="SemiBold" />
+                            </StackPanel>
+                        </RadioButton>
+
+                        <RadioButton Grid.Column="4"
+                                     GroupName="QuickActionTabs"
+                                     Checked="Tab_Organize_Checked"
+                                     Style="{StaticResource TabRadioButtonStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="8"
+                                        HorizontalAlignment="Center">
+                                <FontIcon Glyph="&#xE8B7;" FontSize="14" />
+                                <TextBlock Text="Organize" FontSize="13" FontWeight="SemiBold" />
+                            </StackPanel>
+                        </RadioButton>
+                    </Grid>
+                </Border>
+
+                <!-- ==========================================================
+                     ROW 2: TAB CONTENT PANELS
+                     ========================================================== -->
+                <Grid Grid.Row="2">
+
+                    <!-- ======================================================
+                         SUMMARIZE TAB
+                         ====================================================== -->
+                    <StackPanel x:Name="PanelSummarize" Visibility="Visible" Spacing="16">
+
+                        <!-- Document Picker -->
+                        <Border Style="{StaticResource CardStyle}">
+                            <StackPanel Spacing="16">
+                                <TextBlock Text="Select a document to summarize"
+                                           Style="{StaticResource HeadingSmallStyle}" />
+
+                                <ComboBox ItemsSource="{x:Bind ViewModel.AvailableDocuments, Mode=OneWay}"
+                                          SelectedItem="{x:Bind ViewModel.SelectedDocument, Mode=TwoWay}"
+                                          DisplayMemberPath="DisplayLabel"
+                                          HorizontalAlignment="Stretch"
+                                          PlaceholderText="Choose a document..."
+                                          CornerRadius="{StaticResource RadiusMD}" />
+
+                                <Button Content="Generate Summary"
+                                        Style="{StaticResource AccentButtonStyle}"
+                                        Command="{x:Bind ViewModel.SummarizeCommand}"
+                                        IsEnabled="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource InverseBool}}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Processing indicator -->
+                        <StackPanel Visibility="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                    Spacing="8" HorizontalAlignment="Center" Padding="16">
+                            <ProgressRing IsActive="True" Width="32" Height="32" />
+                            <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+
+                        <!-- Summary Result -->
+                        <Border Style="{StaticResource CardStyle}"
+                                Visibility="{x:Bind ViewModel.HasSummaryResult, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                            <StackPanel Spacing="12">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <FontIcon Glyph="&#xE8C8;" FontSize="16"
+                                              Foreground="{StaticResource TextAccentBrush}" />
+                                    <TextBlock Text="Summary"
+                                               Style="{StaticResource HeadingSmallStyle}" />
+                                </StackPanel>
+                                <Border Style="{StaticResource SeparatorStyle}" />
+                                <TextBlock Text="{x:Bind ViewModel.SummaryResult, Mode=OneWay}"
+                                           Style="{StaticResource BodyStyle}"
+                                           TextWrapping="Wrap"
+                                           IsTextSelectionEnabled="True" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ======================================================
+                         KEY POINTS TAB
+                         ====================================================== -->
+                    <StackPanel x:Name="PanelKeyPoints" Visibility="Collapsed" Spacing="16">
+
+                        <!-- Document Picker -->
+                        <Border Style="{StaticResource CardStyle}">
+                            <StackPanel Spacing="16">
+                                <TextBlock Text="Select a document to extract key points"
+                                           Style="{StaticResource HeadingSmallStyle}" />
+
+                                <ComboBox ItemsSource="{x:Bind ViewModel.AvailableDocuments, Mode=OneWay}"
+                                          SelectedItem="{x:Bind ViewModel.SelectedDocument, Mode=TwoWay}"
+                                          DisplayMemberPath="DisplayLabel"
+                                          HorizontalAlignment="Stretch"
+                                          PlaceholderText="Choose a document..."
+                                          CornerRadius="{StaticResource RadiusMD}" />
+
+                                <Button Content="Extract Key Points"
+                                        Style="{StaticResource AccentButtonStyle}"
+                                        Command="{x:Bind ViewModel.ExtractKeyPointsCommand}"
+                                        IsEnabled="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource InverseBool}}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Processing indicator -->
+                        <StackPanel Visibility="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                    Spacing="8" HorizontalAlignment="Center" Padding="16">
+                            <ProgressRing IsActive="True" Width="32" Height="32" />
+                            <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+
+                        <!-- Key Points Result -->
+                        <Border Style="{StaticResource CardStyle}"
+                                Visibility="{x:Bind ViewModel.HasKeyPoints, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                            <StackPanel Spacing="12">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <FontIcon Glyph="&#xE8FD;" FontSize="16"
+                                              Foreground="{StaticResource TextAccentBrush}" />
+                                    <TextBlock Text="Key Points"
+                                               Style="{StaticResource HeadingSmallStyle}" />
+                                </StackPanel>
+                                <Border Style="{StaticResource SeparatorStyle}" />
+
+                                <ItemsRepeater ItemsSource="{x:Bind ViewModel.KeyPoints, Mode=OneWay}">
+                                    <ItemsRepeater.Layout>
+                                        <StackLayout Spacing="8" />
+                                    </ItemsRepeater.Layout>
+                                    <ItemsRepeater.ItemTemplate>
+                                        <DataTemplate x:DataType="x:String">
+                                            <Border Style="{StaticResource CardInteractiveStyle}"
+                                                    Padding="14,10">
+                                                <Grid ColumnSpacing="12">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <FontIcon Glyph="&#xE73E;" FontSize="12"
+                                                              Foreground="{StaticResource SuccessBrush}"
+                                                              VerticalAlignment="Top"
+                                                              Margin="0,3,0,0" />
+
+                                                    <TextBlock Grid.Column="1"
+                                                               Text="{x:Bind}"
+                                                               Style="{StaticResource BodyStyle}"
+                                                               TextWrapping="Wrap"
+                                                               IsTextSelectionEnabled="True" />
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsRepeater.ItemTemplate>
+                                </ItemsRepeater>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ======================================================
+                         TRANSLATE TAB
+                         ====================================================== -->
+                    <StackPanel x:Name="PanelTranslate" Visibility="Collapsed" Spacing="16">
+
+                        <Border Style="{StaticResource CardStyle}">
+                            <StackPanel Spacing="16">
+                                <TextBlock Text="Translate text with AI"
+                                           Style="{StaticResource HeadingSmallStyle}" />
+
+                                <!-- Input -->
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Input Text" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{x:Bind ViewModel.TranslationInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource InputTextBoxStyle}"
+                                             AcceptsReturn="True"
+                                             TextWrapping="Wrap"
+                                             MinHeight="100"
+                                             MaxHeight="200"
+                                             PlaceholderText="Enter or paste text to translate..." />
+                                </StackPanel>
+
+                                <!-- Language Picker -->
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Target Language" Style="{StaticResource LabelStyle}" />
+                                    <ComboBox ItemsSource="{x:Bind ViewModel.AvailableLanguages, Mode=OneWay}"
+                                              SelectedItem="{x:Bind ViewModel.SelectedLanguage, Mode=TwoWay}"
+                                              HorizontalAlignment="Stretch"
+                                              CornerRadius="{StaticResource RadiusMD}" />
+                                </StackPanel>
+
+                                <Button Content="Translate"
+                                        Style="{StaticResource AccentButtonStyle}"
+                                        Command="{x:Bind ViewModel.TranslateCommand}"
+                                        IsEnabled="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource InverseBool}}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Processing indicator -->
+                        <StackPanel Visibility="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                    Spacing="8" HorizontalAlignment="Center" Padding="16">
+                            <ProgressRing IsActive="True" Width="32" Height="32" />
+                            <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+
+                        <!-- Translation Output -->
+                        <Border Style="{StaticResource CardStyle}"
+                                Visibility="{x:Bind ViewModel.HasTranslationOutput, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                            <StackPanel Spacing="12">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <FontIcon Glyph="&#xE8C1;" FontSize="16"
+                                              Foreground="{StaticResource TextAccentBrush}" />
+                                    <TextBlock Text="Translation"
+                                               Style="{StaticResource HeadingSmallStyle}" />
+                                </StackPanel>
+                                <Border Style="{StaticResource SeparatorStyle}" />
+                                <TextBox Text="{x:Bind ViewModel.TranslationOutput, Mode=OneWay}"
+                                         Style="{StaticResource InputTextBoxStyle}"
+                                         IsReadOnly="True"
+                                         AcceptsReturn="True"
+                                         TextWrapping="Wrap"
+                                         MinHeight="100"
+                                         MaxHeight="300" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ======================================================
+                         DUPLICATES TAB
+                         ====================================================== -->
+                    <StackPanel x:Name="PanelDuplicates" Visibility="Collapsed" Spacing="16">
+
+                        <Border Style="{StaticResource CardStyle}">
+                            <StackPanel Spacing="16">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Duplicate Detection"
+                                               Style="{StaticResource HeadingSmallStyle}" />
+                                    <TextBlock Text="Scan your knowledge vault for exact-match duplicate files by content hash. No AI cost."
+                                               Style="{StaticResource BodySecondaryStyle}" />
+                                </StackPanel>
+
+                                <Button Content="Scan for Duplicates"
+                                        Style="{StaticResource AccentButtonStyle}"
+                                        Command="{x:Bind ViewModel.FindDuplicatesCommand}"
+                                        IsEnabled="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource InverseBool}}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Processing indicator -->
+                        <StackPanel Visibility="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                    Spacing="8" HorizontalAlignment="Center" Padding="16">
+                            <ProgressRing IsActive="True" Width="32" Height="32" />
+                            <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+
+                        <!-- Duplicate Results -->
+                        <StackPanel Visibility="{x:Bind ViewModel.HasDuplicateResults, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                    Spacing="12">
+
+                            <!-- Status message when no duplicates -->
+                            <Border Style="{StaticResource CardInsetStyle}"
+                                    Padding="16,12">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <FontIcon Glyph="&#xE946;" FontSize="16"
+                                              Foreground="{StaticResource InfoBrush}" />
+                                    <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                                               Style="{StaticResource BodyStyle}" />
+                                </StackPanel>
+                            </Border>
+
+                            <ItemsRepeater ItemsSource="{x:Bind ViewModel.DuplicateGroups, Mode=OneWay}">
+                                <ItemsRepeater.Layout>
+                                    <StackLayout Spacing="12" />
+                                </ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:QuickActionDuplicateGroupItem">
+                                        <Border Style="{StaticResource CardStyle}">
+                                            <StackPanel Spacing="12">
+                                                <!-- Group header -->
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <StackPanel Spacing="2">
+                                                        <TextBlock Text="{x:Bind GroupLabel}"
+                                                                   Style="{StaticResource BodyStyle}"
+                                                                   FontWeight="SemiBold" />
+                                                        <TextBlock Style="{StaticResource CaptionStyle}">
+                                                            <Run Text="Hash: " />
+                                                            <Run Text="{x:Bind ContentHash}" />
+                                                        </TextBlock>
+                                                    </StackPanel>
+
+                                                    <Border Grid.Column="1"
+                                                            Style="{StaticResource BadgeAccentStyle}"
+                                                            VerticalAlignment="Center">
+                                                        <TextBlock Style="{StaticResource CaptionStyle}"
+                                                                   Foreground="{StaticResource TextAccentBrush}">
+                                                            <Run Text="{x:Bind WastedStorage}" />
+                                                            <Run Text=" wasted" />
+                                                        </TextBlock>
+                                                    </Border>
+                                                </Grid>
+
+                                                <Border Style="{StaticResource SeparatorStyle}" />
+
+                                                <!-- Document list in group -->
+                                                <ItemsRepeater ItemsSource="{x:Bind Documents}">
+                                                    <ItemsRepeater.Layout>
+                                                        <StackLayout Spacing="6" />
+                                                    </ItemsRepeater.Layout>
+                                                    <ItemsRepeater.ItemTemplate>
+                                                        <DataTemplate x:DataType="vm:QuickActionDuplicateDocItem">
+                                                            <Border Style="{StaticResource CardInteractiveStyle}"
+                                                                    Padding="12,8">
+                                                                <Grid ColumnSpacing="12">
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="Auto" />
+                                                                        <ColumnDefinition Width="*" />
+                                                                        <ColumnDefinition Width="Auto" />
+                                                                    </Grid.ColumnDefinitions>
+
+                                                                    <FontIcon Glyph="&#xE7C3;" FontSize="14"
+                                                                              Foreground="{StaticResource TextTertiaryBrush}"
+                                                                              VerticalAlignment="Center" />
+
+                                                                    <StackPanel Grid.Column="1" Spacing="2"
+                                                                                VerticalAlignment="Center">
+                                                                        <TextBlock Text="{x:Bind FileName}"
+                                                                                   Style="{StaticResource BodyStyle}"
+                                                                                   MaxLines="1"
+                                                                                   TextTrimming="CharacterEllipsis" />
+                                                                        <TextBlock Style="{StaticResource CaptionStyle}">
+                                                                            <Run Text="{x:Bind FileSize}" />
+                                                                            <Run Text=" · Imported " />
+                                                                            <Run Text="{x:Bind ImportedAt}" />
+                                                                        </TextBlock>
+                                                                    </StackPanel>
+                                                                </Grid>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsRepeater.ItemTemplate>
+                                                </ItemsRepeater>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- ======================================================
+                         ORGANIZE TAB
+                         ====================================================== -->
+                    <StackPanel x:Name="PanelOrganize" Visibility="Collapsed" Spacing="16">
+
+                        <Border Style="{StaticResource CardStyle}">
+                            <StackPanel Spacing="16">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="AI Organization Assistant"
+                                               Style="{StaticResource HeadingSmallStyle}" />
+                                    <TextBlock Text="Analyzes uncategorized documents and suggests collections and tags based on content."
+                                               Style="{StaticResource BodySecondaryStyle}" />
+                                </StackPanel>
+
+                                <Button Content="Analyze &amp; Suggest"
+                                        Style="{StaticResource AccentButtonStyle}"
+                                        Command="{x:Bind ViewModel.SuggestOrganizationCommand}"
+                                        IsEnabled="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource InverseBool}}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Processing indicator -->
+                        <StackPanel Visibility="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                    Spacing="8" HorizontalAlignment="Center" Padding="16">
+                            <ProgressRing IsActive="True" Width="32" Height="32" />
+                            <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+
+                        <!-- Suggestion Results -->
+                        <StackPanel Visibility="{x:Bind ViewModel.HasSuggestionResults, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                    Spacing="12">
+
+                            <Border Style="{StaticResource CardInsetStyle}" Padding="16,12">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <FontIcon Glyph="&#xE946;" FontSize="16"
+                                              Foreground="{StaticResource InfoBrush}" />
+                                    <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                                               Style="{StaticResource BodyStyle}" />
+                                </StackPanel>
+                            </Border>
+
+                            <ItemsRepeater ItemsSource="{x:Bind ViewModel.Suggestions, Mode=OneWay}">
+                                <ItemsRepeater.Layout>
+                                    <StackLayout Spacing="12" />
+                                </ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:QuickActionOrganizationItem">
+                                        <Border Style="{StaticResource CardStyle}">
+                                            <StackPanel Spacing="12">
+                                                <!-- Document name -->
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                                        <FontIcon Glyph="&#xE7C3;" FontSize="16"
+                                                                  Foreground="{StaticResource TextAccentBrush}" />
+                                                        <TextBlock Text="{x:Bind FileName}"
+                                                                   Style="{StaticResource BodyStyle}"
+                                                                   FontWeight="SemiBold"
+                                                                   MaxLines="1"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                    </StackPanel>
+
+                                                    <!-- Confidence badge -->
+                                                    <Border Grid.Column="1"
+                                                            Style="{StaticResource BadgeDefaultStyle}"
+                                                            VerticalAlignment="Center">
+                                                        <TextBlock Style="{StaticResource CaptionStyle}" FontWeight="SemiBold">
+                                                            <Run Text="{x:Bind ConfidenceLabel}" />
+                                                            <Run Text=" (" /><Run Text="{x:Bind ConfidencePercent}" /><Run Text="%)" />
+                                                        </TextBlock>
+                                                    </Border>
+                                                </Grid>
+
+                                                <Border Style="{StaticResource SeparatorStyle}" />
+
+                                                <!-- Suggested collection -->
+                                                <Grid ColumnSpacing="12">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="Collection:"
+                                                               Style="{StaticResource LabelStyle}"
+                                                               VerticalAlignment="Center" />
+                                                    <Border Grid.Column="1"
+                                                            Style="{StaticResource BadgeAccentStyle}"
+                                                            HorizontalAlignment="Left">
+                                                        <TextBlock Text="{x:Bind SuggestedCollection}"
+                                                                   Style="{StaticResource CaptionStyle}"
+                                                                   Foreground="{StaticResource TextAccentBrush}"
+                                                                   FontWeight="SemiBold" />
+                                                    </Border>
+                                                </Grid>
+
+                                                <!-- Suggested tags -->
+                                                <Grid ColumnSpacing="12">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="Tags:"
+                                                               Style="{StaticResource LabelStyle}"
+                                                               VerticalAlignment="Center" />
+                                                    <TextBlock Grid.Column="1"
+                                                               Text="{x:Bind TagsDisplay}"
+                                                               Style="{StaticResource BodySmallStyle}" />
+                                                </Grid>
+
+                                                <!-- Confidence bar -->
+                                                <ProgressBar Value="{x:Bind ConfidencePercent}"
+                                                             Maximum="100"
+                                                             Style="{StaticResource AccentProgressBarStyle}" />
+
+                                                <!-- Reasoning -->
+                                                <Border Style="{StaticResource CardInsetStyle}" Padding="12,8">
+                                                    <StackPanel Spacing="4">
+                                                        <TextBlock Text="Reasoning"
+                                                                   Style="{StaticResource LabelStyle}"
+                                                                   FontSize="10" />
+                                                        <TextBlock Text="{x:Bind Reasoning}"
+                                                                   Style="{StaticResource CaptionStyle}"
+                                                                   TextWrapping="Wrap" />
+                                                    </StackPanel>
+                                                </Border>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </StackPanel>
+                    </StackPanel>
+
+                </Grid>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- ==========================================================
+             STATUS BAR (Bottom)
+             ========================================================== -->
+        <Border Grid.Row="1"
+                Background="{StaticResource CardBrush}"
+                BorderBrush="{StaticResource BorderSubtleBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="24,10">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <ProgressRing Grid.Column="0"
+                              IsActive="{x:Bind ViewModel.IsProcessing, Mode=OneWay}"
+                              Width="16" Height="16"
+                              Visibility="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+
+                <TextBlock Grid.Column="1"
+                           Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                           Style="{StaticResource BodySmallStyle}"
+                           VerticalAlignment="Center" />
+
+                <TextBlock Grid.Column="2"
+                           Style="{StaticResource CaptionStyle}"
+                           VerticalAlignment="Center">
+                    <Run Text="{x:Bind ViewModel.AvailableDocuments.Count, Mode=OneWay}" />
+                    <Run Text=" documents available" />
+                </TextBlock>
+            </Grid>
+        </Border>
+    </Grid>
+</Page>

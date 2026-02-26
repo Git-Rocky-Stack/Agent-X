@@ -1,0 +1,790 @@
+<Page
+    x:Class="AgentX.App.Views.DashboardPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:AgentX.App.ViewModels"
+    xmlns:converters="using:AgentX.App.Converters"
+    Background="Transparent"
+    NavigationCacheMode="Enabled">
+
+    <Page.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
+        <converters:BoolToVisibilityConverter x:Key="InverseBoolToVis" IsInverted="True" />
+    </Page.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled"
+                  Padding="0">
+
+        <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="1200">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- ==========================================================
+                 ROW 0: PAGE HEADER
+                 ========================================================== -->
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Dashboard"
+                               Style="{StaticResource DisplaySmallStyle}" />
+                    <TextBlock Text="Your private AI intelligence center. Everything runs on your machine."
+                               Style="{StaticResource BodySecondaryStyle}" />
+                </StackPanel>
+
+                <Button Grid.Column="1"
+                        Content="Refresh"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Command="{x:Bind ViewModel.RefreshCommand}"
+                        VerticalAlignment="Center" />
+            </Grid>
+
+            <!-- ==========================================================
+                 ROW 1: AI CONNECTION STATUS (Hero Card)
+                 ========================================================== -->
+            <Border Grid.Row="1" Style="{StaticResource CardAccentStyle}">
+                <Grid ColumnSpacing="24">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Spacing="12">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Ellipse Width="10" Height="10"
+                                     Fill="{StaticResource OfflineBrush}" />
+                            <TextBlock Text="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay}"
+                                       Style="{StaticResource BodyStyle}"
+                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+
+                        <TextBlock Text="{x:Bind ViewModel.ActiveModelName, Mode=OneWay}"
+                                   Style="{StaticResource HeadingLargeStyle}" />
+
+                        <TextBlock Text="Connect Ollama to unlock AI chat, semantic search, and file intelligence."
+                                   Style="{StaticResource BodySecondaryStyle}"
+                                   MaxWidth="500"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <Button Grid.Column="1"
+                            Content="Setup AI"
+                            Style="{StaticResource AccentButtonStyle}"
+                            VerticalAlignment="Center"
+                            Command="{x:Bind ViewModel.NavigateToChatCommand}" />
+                </Grid>
+            </Border>
+
+            <!-- ==========================================================
+                 ROW 2: QUICK SEARCH BAR
+                 ========================================================== -->
+            <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <FontIcon Glyph="&#xE721;"
+                              FontSize="18"
+                              Foreground="{StaticResource TextTertiaryBrush}"
+                              VerticalAlignment="Center" />
+
+                    <TextBox Grid.Column="1"
+                             PlaceholderText="Search your knowledge vault...  (Ctrl+K)"
+                             Style="{StaticResource SearchInputStyle}"
+                             Text="{x:Bind ViewModel.QuickSearchQuery, Mode=TwoWay}"
+                             BorderThickness="0"
+                             Background="Transparent" />
+
+                    <Border Grid.Column="2"
+                            Style="{StaticResource BadgeDefaultStyle}"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="Ctrl+K"
+                                   Style="{StaticResource MonoSmallStyle}"
+                                   Foreground="{StaticResource TextTertiaryBrush}" />
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- ==========================================================
+                 ROW 3: HERO STAT CARDS (4 columns with gradient icons)
+                 ========================================================== -->
+            <Grid Grid.Row="3" ColumnSpacing="16" RowSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Card 1: Documents -->
+                <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                    <Grid>
+                        <FontIcon Glyph="&#xE8F1;" FontSize="64"
+                                  Foreground="{StaticResource TextPrimaryBrush}"
+                                  Opacity="0.04"
+                                  HorizontalAlignment="Right"
+                                  VerticalAlignment="Top"
+                                  Margin="0,-4,-4,0" />
+
+                        <StackPanel Spacing="8">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE8F1;" FontSize="14"
+                                          Foreground="{StaticResource TextAccentBrush}" />
+                                <TextBlock Text="DOCUMENTS"
+                                           Style="{StaticResource OverlineStyle}" />
+                            </StackPanel>
+                            <TextBlock Text="{x:Bind ViewModel.TotalDocuments, Mode=OneWay}"
+                                       Style="{StaticResource MetricMediumStyle}" />
+                            <TextBlock Style="{StaticResource CaptionStyle}">
+                                <Run Text="across " />
+                                <Run Text="{x:Bind ViewModel.TotalCollections, Mode=OneWay}"
+                                     FontWeight="SemiBold"
+                                     Foreground="{StaticResource TextSecondaryBrush}" />
+                                <Run Text=" collections" />
+                            </TextBlock>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Card 2: Storage -->
+                <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                    <Grid>
+                        <FontIcon Glyph="&#xEDA2;" FontSize="64"
+                                  Foreground="{StaticResource TextPrimaryBrush}"
+                                  Opacity="0.04"
+                                  HorizontalAlignment="Right"
+                                  VerticalAlignment="Top"
+                                  Margin="0,-4,-4,0" />
+
+                        <StackPanel Spacing="8">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xEDA2;" FontSize="14"
+                                          Foreground="{StaticResource InfoBrush}" />
+                                <TextBlock Text="STORAGE"
+                                           Style="{StaticResource OverlineStyle}" />
+                            </StackPanel>
+                            <TextBlock Text="{x:Bind ViewModel.TotalStorageSize, Mode=OneWay}"
+                                       Style="{StaticResource MetricMediumStyle}" />
+                            <StackPanel Spacing="4">
+                                <TextBlock Style="{StaticResource CaptionStyle}">
+                                    <Run Text="{x:Bind ViewModel.IndexedPercent, Mode=OneWay}"
+                                         FontWeight="SemiBold"
+                                         Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <Run Text="% indexed" />
+                                </TextBlock>
+                                <ProgressBar Value="{x:Bind ViewModel.IndexedPercent, Mode=OneWay}"
+                                             Maximum="100"
+                                             Style="{StaticResource AccentProgressBarStyle}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Card 3: AI Sessions -->
+                <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                    <Grid>
+                        <FontIcon Glyph="&#xE8BD;" FontSize="64"
+                                  Foreground="{StaticResource TextPrimaryBrush}"
+                                  Opacity="0.04"
+                                  HorizontalAlignment="Right"
+                                  VerticalAlignment="Top"
+                                  Margin="0,-4,-4,0" />
+
+                        <StackPanel Spacing="8">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE8BD;" FontSize="14"
+                                          Foreground="{StaticResource WarningBrush}" />
+                                <TextBlock Text="AI SESSIONS"
+                                           Style="{StaticResource OverlineStyle}" />
+                            </StackPanel>
+                            <TextBlock Text="{x:Bind ViewModel.TotalConversations, Mode=OneWay}"
+                                       Style="{StaticResource MetricMediumStyle}" />
+                            <TextBlock Style="{StaticResource CaptionStyle}">
+                                <Run Text="{x:Bind ViewModel.TotalTokensUsed, Mode=OneWay}"
+                                     FontWeight="SemiBold"
+                                     Foreground="{StaticResource TextSecondaryBrush}" />
+                                <Run Text=" tokens used" />
+                            </TextBlock>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Card 4: System -->
+                <Border Grid.Column="3" Style="{StaticResource CardStyle}">
+                    <Grid>
+                        <FontIcon Glyph="&#xE964;" FontSize="64"
+                                  Foreground="{StaticResource TextPrimaryBrush}"
+                                  Opacity="0.04"
+                                  HorizontalAlignment="Right"
+                                  VerticalAlignment="Top"
+                                  Margin="0,-4,-4,0" />
+
+                        <StackPanel Spacing="8">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE964;" FontSize="14"
+                                          Foreground="{StaticResource SuccessBrush}" />
+                                <TextBlock Text="SYSTEM"
+                                           Style="{StaticResource OverlineStyle}" />
+                            </StackPanel>
+                            <TextBlock Text="{x:Bind ViewModel.GpuName, Mode=OneWay}"
+                                       Style="{StaticResource HeadingSmallStyle}"
+                                       MaxLines="1"
+                                       TextTrimming="CharacterEllipsis" />
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="{x:Bind ViewModel.TotalRamInfo, Mode=OneWay}"
+                                           Style="{StaticResource CaptionStyle}" />
+                                <TextBlock Text="{x:Bind ViewModel.GpuVramInfo, Mode=OneWay}"
+                                           Style="{StaticResource CaptionStyle}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- ==========================================================
+                 ROW 4: RECENT ACTIVITY (2 columns)
+                 ========================================================== -->
+            <Grid Grid.Row="4" ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Recent Documents -->
+                <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon Glyph="&#xE8F1;" FontSize="16"
+                                          Foreground="{StaticResource TextAccentBrush}" />
+                                <TextBlock Text="Recent Documents"
+                                           Style="{StaticResource HeadingSmallStyle}" />
+                            </StackPanel>
+
+                            <Button Grid.Column="1"
+                                    Content="View All"
+                                    Style="{StaticResource GhostButtonStyle}"
+                                    Padding="8,4"
+                                    FontSize="12"
+                                    Command="{x:Bind ViewModel.NavigateToVaultCommand}" />
+                        </Grid>
+
+                        <!-- Empty state -->
+                        <StackPanel Visibility="{x:Bind ViewModel.HasRecentDocuments, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}"
+                                    Spacing="8"
+                                    HorizontalAlignment="Center"
+                                    Padding="0,16">
+                            <FontIcon Glyph="&#xE8F1;" FontSize="32"
+                                      Foreground="{StaticResource TextTertiaryBrush}"
+                                      HorizontalAlignment="Center"
+                                      Opacity="0.4" />
+                            <TextBlock Text="No documents imported yet"
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock Text="Import files to start building your knowledge vault"
+                                       Style="{StaticResource CaptionStyle}"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+
+                        <!-- Document list -->
+                        <ItemsRepeater Visibility="{x:Bind ViewModel.HasRecentDocuments, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                       ItemsSource="{x:Bind ViewModel.RecentDocuments, Mode=OneWay}">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Spacing="4" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="vm:DashboardRecentDocumentItem">
+                                    <Border Background="Transparent"
+                                            CornerRadius="{StaticResource RadiusMD}"
+                                            Padding="12,10">
+                                        <Grid ColumnSpacing="12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- File type icon -->
+                                            <Border Width="32" Height="32"
+                                                    CornerRadius="{StaticResource RadiusMD}"
+                                                    Background="{StaticResource AccentSubtleBrush}">
+                                                <FontIcon Glyph="{x:Bind FileTypeIcon}"
+                                                          FontSize="14"
+                                                          Foreground="{StaticResource TextAccentBrush}"
+                                                          HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center" />
+                                            </Border>
+
+                                            <!-- File name and metadata -->
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                                <TextBlock Text="{x:Bind FileName}"
+                                                           Style="{StaticResource BodyStyle}"
+                                                           MaxLines="1"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Style="{StaticResource CaptionStyle}">
+                                                    <Run Text="{x:Bind FileType}" />
+                                                    <Run Text=" · " />
+                                                    <Run Text="{x:Bind FileSize}" />
+                                                </TextBlock>
+                                            </StackPanel>
+
+                                            <!-- Time ago -->
+                                            <TextBlock Grid.Column="2"
+                                                       Text="{x:Bind ImportedAgo}"
+                                                       Style="{StaticResource CaptionStyle}"
+                                                       VerticalAlignment="Center" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </StackPanel>
+                </Border>
+
+                <!-- Recent Conversations -->
+                <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon Glyph="&#xE8BD;" FontSize="16"
+                                          Foreground="{StaticResource WarningBrush}" />
+                                <TextBlock Text="Recent Conversations"
+                                           Style="{StaticResource HeadingSmallStyle}" />
+                            </StackPanel>
+
+                            <Button Grid.Column="1"
+                                    Content="View All"
+                                    Style="{StaticResource GhostButtonStyle}"
+                                    Padding="8,4"
+                                    FontSize="12"
+                                    Command="{x:Bind ViewModel.NavigateToChatCommand}" />
+                        </Grid>
+
+                        <!-- Empty state -->
+                        <StackPanel Visibility="{x:Bind ViewModel.HasRecentConversations, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}"
+                                    Spacing="8"
+                                    HorizontalAlignment="Center"
+                                    Padding="0,16">
+                            <FontIcon Glyph="&#xE8BD;" FontSize="32"
+                                      Foreground="{StaticResource TextTertiaryBrush}"
+                                      HorizontalAlignment="Center"
+                                      Opacity="0.4" />
+                            <TextBlock Text="No conversations yet"
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock Text="Start a chat to see your conversations here"
+                                       Style="{StaticResource CaptionStyle}"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+
+                        <!-- Conversation list -->
+                        <ItemsRepeater Visibility="{x:Bind ViewModel.HasRecentConversations, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                       ItemsSource="{x:Bind ViewModel.RecentConversations, Mode=OneWay}">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Spacing="4" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="vm:DashboardRecentConversationItem">
+                                    <Border Background="Transparent"
+                                            CornerRadius="{StaticResource RadiusMD}"
+                                            Padding="12,10">
+                                        <Grid ColumnSpacing="12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Chat icon -->
+                                            <Border Width="32" Height="32"
+                                                    CornerRadius="{StaticResource RadiusMD}"
+                                                    Background="{StaticResource AccentSubtleBrush}">
+                                                <FontIcon Glyph="&#xE8BD;"
+                                                          FontSize="14"
+                                                          Foreground="{StaticResource WarningBrush}"
+                                                          HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center" />
+                                            </Border>
+
+                                            <!-- Title and preview -->
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                                <TextBlock Text="{x:Bind Title}"
+                                                           Style="{StaticResource BodyStyle}"
+                                                           MaxLines="1"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{x:Bind Preview}"
+                                                           Style="{StaticResource CaptionStyle}"
+                                                           MaxLines="1"
+                                                           TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+
+                                            <!-- Time ago and message count -->
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center"
+                                                        HorizontalAlignment="Right" Spacing="2">
+                                                <TextBlock Text="{x:Bind TimeAgo}"
+                                                           Style="{StaticResource CaptionStyle}"
+                                                           HorizontalAlignment="Right" />
+                                                <Border Style="{StaticResource BadgeDefaultStyle}"
+                                                        Padding="6,2"
+                                                        HorizontalAlignment="Right">
+                                                    <TextBlock Style="{StaticResource CaptionStyle}" FontSize="10">
+                                                        <Run Text="{x:Bind MessageCount}" />
+                                                        <Run Text=" msgs" />
+                                                    </TextBlock>
+                                                </Border>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ==========================================================
+                 ROW 5: KNOWLEDGE INSIGHTS (2 columns)
+                 ========================================================== -->
+            <Grid Grid.Row="5" ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- File Type Distribution -->
+                <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="16">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE9D9;" FontSize="16"
+                                      Foreground="{StaticResource InfoBrush}" />
+                            <TextBlock Text="File Type Distribution"
+                                       Style="{StaticResource HeadingSmallStyle}" />
+                        </StackPanel>
+
+                        <!-- Empty state -->
+                        <StackPanel Visibility="{x:Bind ViewModel.HasFileTypeData, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}"
+                                    Spacing="8"
+                                    HorizontalAlignment="Center"
+                                    Padding="0,16">
+                            <FontIcon Glyph="&#xE9D9;" FontSize="28"
+                                      Foreground="{StaticResource TextTertiaryBrush}"
+                                      HorizontalAlignment="Center"
+                                      Opacity="0.4" />
+                            <TextBlock Text="No data yet"
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+
+                        <!-- File type bars -->
+                        <ItemsRepeater Visibility="{x:Bind ViewModel.HasFileTypeData, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                       ItemsSource="{x:Bind ViewModel.FileTypeBreakdown, Mode=OneWay}">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Spacing="10" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="vm:DashboardFileTypeBreakdownItem">
+                                    <Grid ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="48" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- File type label -->
+                                        <TextBlock Text="{x:Bind FileType}"
+                                                   Style="{StaticResource LabelStyle}"
+                                                   FontSize="11"
+                                                   VerticalAlignment="Center" />
+
+                                        <!-- Bar track with filled bar using ProgressBar -->
+                                        <ProgressBar Grid.Column="1"
+                                                     Value="{x:Bind Percentage}"
+                                                     Maximum="100"
+                                                     MinHeight="18"
+                                                     MaxHeight="18"
+                                                     CornerRadius="{StaticResource RadiusSM}"
+                                                     Background="{StaticResource InputBackgroundBrush}"
+                                                     Foreground="{StaticResource AccentPrimaryBrush}" />
+
+                                        <!-- Percentage + Count -->
+                                        <StackPanel Grid.Column="2"
+                                                    Orientation="Horizontal" Spacing="4"
+                                                    VerticalAlignment="Center">
+                                            <TextBlock Text="{x:Bind PercentageLabel}"
+                                                       Style="{StaticResource CaptionStyle}"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                            <TextBlock Text="{x:Bind CountLabel}"
+                                                       Style="{StaticResource CaptionStyle}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </StackPanel>
+                </Border>
+
+                <!-- Top Collections -->
+                <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="16">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xF168;" FontSize="16"
+                                      Foreground="{StaticResource SuccessBrush}" />
+                            <TextBlock Text="Top Collections"
+                                       Style="{StaticResource HeadingSmallStyle}" />
+                        </StackPanel>
+
+                        <!-- Empty state -->
+                        <StackPanel Visibility="{x:Bind ViewModel.HasCollectionData, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}"
+                                    Spacing="8"
+                                    HorizontalAlignment="Center"
+                                    Padding="0,16">
+                            <FontIcon Glyph="&#xF168;" FontSize="28"
+                                      Foreground="{StaticResource TextTertiaryBrush}"
+                                      HorizontalAlignment="Center"
+                                      Opacity="0.4" />
+                            <TextBlock Text="No collections yet"
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+
+                        <!-- Collection bars -->
+                        <ItemsRepeater Visibility="{x:Bind ViewModel.HasCollectionData, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                       ItemsSource="{x:Bind ViewModel.TopCollections, Mode=OneWay}">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Spacing="10" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="vm:DashboardTopCollectionItem">
+                                    <StackPanel Spacing="4">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Text="{x:Bind Name}"
+                                                       Style="{StaticResource BodyStyle}"
+                                                       FontSize="13"
+                                                       MaxLines="1"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{x:Bind CountLabel}"
+                                                       Style="{StaticResource CaptionStyle}"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                        </Grid>
+
+                                        <!-- Bar using ProgressBar for simplicity and theme compliance -->
+                                        <ProgressBar Value="{x:Bind BarWidthPercent}"
+                                                     Maximum="100"
+                                                     MinHeight="8"
+                                                     MaxHeight="8"
+                                                     CornerRadius="{StaticResource RadiusSM}"
+                                                     Background="{StaticResource InputBackgroundBrush}"
+                                                     Foreground="{StaticResource SuccessBrush}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ==========================================================
+                 ROW 6: QUICK ACTIONS BAR (4 action buttons)
+                 ========================================================== -->
+            <Grid Grid.Row="6" ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- New Chat -->
+                <Button Grid.Column="0"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        HorizontalAlignment="Stretch"
+                        Padding="16,14"
+                        Command="{x:Bind ViewModel.NavigateToChatCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="10"
+                                HorizontalAlignment="Center">
+                        <FontIcon Glyph="&#xE8BD;" FontSize="16"
+                                  Foreground="{StaticResource TextAccentBrush}" />
+                        <TextBlock Text="New Chat"
+                                   Style="{StaticResource BodyStyle}"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <!-- Import Files -->
+                <Button Grid.Column="1"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        HorizontalAlignment="Stretch"
+                        Padding="16,14"
+                        Command="{x:Bind ViewModel.NavigateToVaultCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="10"
+                                HorizontalAlignment="Center">
+                        <FontIcon Glyph="&#xE8B5;" FontSize="16"
+                                  Foreground="{StaticResource InfoBrush}" />
+                        <TextBlock Text="Import Files"
+                                   Style="{StaticResource BodyStyle}"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <!-- Search -->
+                <Button Grid.Column="2"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        HorizontalAlignment="Stretch"
+                        Padding="16,14"
+                        Command="{x:Bind ViewModel.NavigateToSearchCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="10"
+                                HorizontalAlignment="Center">
+                        <FontIcon Glyph="&#xE721;" FontSize="16"
+                                  Foreground="{StaticResource SuccessBrush}" />
+                        <TextBlock Text="Search"
+                                   Style="{StaticResource BodyStyle}"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <!-- Ask Files -->
+                <Button Grid.Column="3"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        HorizontalAlignment="Stretch"
+                        Padding="16,14"
+                        Command="{x:Bind ViewModel.NavigateToAskFilesCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="10"
+                                HorizontalAlignment="Center">
+                        <FontIcon Glyph="&#xE9D9;" FontSize="16"
+                                  Foreground="{StaticResource WarningBrush}" />
+                        <TextBlock Text="Ask Files"
+                                   Style="{StaticResource BodyStyle}"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <!-- ==========================================================
+                 ROW 7: SYSTEM INFO (compact horizontal bar)
+                 ========================================================== -->
+            <Border Grid.Row="7" Style="{StaticResource CardStyle}">
+                <Grid ColumnSpacing="24">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- GPU -->
+                    <Grid Grid.Column="0" ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE964;" FontSize="14"
+                                  Foreground="{StaticResource TextTertiaryBrush}"
+                                  VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock Text="GPU" Style="{StaticResource LabelStyle}" />
+                            <TextBlock Text="{x:Bind ViewModel.GpuName, Mode=OneWay}"
+                                       Style="{StaticResource BodySmallStyle}"
+                                       MaxLines="1"
+                                       TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Grid.Column="1" Width="1"
+                            Background="{StaticResource BorderSubtleBrush}" />
+
+                    <!-- RAM -->
+                    <Grid Grid.Column="2" ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE950;" FontSize="14"
+                                  Foreground="{StaticResource TextTertiaryBrush}"
+                                  VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock Text="Available RAM" Style="{StaticResource LabelStyle}" />
+                            <TextBlock Text="{x:Bind ViewModel.AvailableRam, Mode=OneWay}"
+                                       Style="{StaticResource BodySmallStyle}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Grid.Column="3" Width="1"
+                            Background="{StaticResource BorderSubtleBrush}" />
+
+                    <!-- Vault Storage -->
+                    <Grid Grid.Column="4" ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xEDA2;" FontSize="14"
+                                  Foreground="{StaticResource TextTertiaryBrush}"
+                                  VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock Text="Vault Storage" Style="{StaticResource LabelStyle}" />
+                            <TextBlock Text="{x:Bind ViewModel.TotalStorageSize, Mode=OneWay}"
+                                       Style="{StaticResource BodySmallStyle}" />
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- ==========================================================
+                 ROW 8: PRIVACY FOOTER
+                 ========================================================== -->
+            <Border Grid.Row="8"
+                    Style="{StaticResource CardInsetStyle}"
+                    Padding="20,14">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <FontIcon Glyph="&#xE72E;" FontSize="14"
+                              Foreground="{StaticResource SuccessBrush}" />
+                    <TextBlock Style="{StaticResource BodySmallStyle}"
+                               Foreground="{StaticResource TextTertiaryBrush}">
+                        <Run Text="100% Private" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" />
+                        <Run Text=" &#x2014; All AI processing runs locally on your hardware. Your data never leaves this machine. No telemetry. No cloud. No exceptions." />
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+
+        </Grid>
+    </ScrollViewer>
+</Page>

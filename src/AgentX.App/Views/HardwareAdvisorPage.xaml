@@ -1,0 +1,685 @@
+<Page
+    x:Class="AgentX.App.Views.HardwareAdvisorPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:AgentX.App.ViewModels"
+    xmlns:converters="using:AgentX.App.Converters"
+    Background="Transparent"
+    NavigationCacheMode="Enabled">
+
+    <Page.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
+        <converters:BoolToVisibilityConverter x:Key="InverseBoolToVis" IsInverted="True" />
+        <converters:InverseBoolConverter x:Key="InverseBool" />
+    </Page.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled"
+                  Padding="0">
+
+        <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="1200">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- =======================================================
+                 ROW 0: PAGE HEADER
+                 ======================================================= -->
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Spacing="4">
+                    <TextBlock Text="{x:Bind ViewModel.PageTitle, Mode=OneWay}"
+                               Style="{StaticResource DisplaySmallStyle}" />
+                    <TextBlock Text="Analyze your system to find the best AI models for your hardware."
+                               Style="{StaticResource BodySecondaryStyle}" />
+                </StackPanel>
+
+                <Button Grid.Column="1"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Command="{x:Bind ViewModel.RefreshHardwareCommand}"
+                        VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE72C;" FontSize="14" />
+                        <TextBlock Text="Re-scan" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <!-- =======================================================
+                 ROW 1: DETECTING SPINNER (shown while scanning)
+                 ======================================================= -->
+            <Border Grid.Row="1"
+                    Style="{StaticResource CardStyle}"
+                    Visibility="{x:Bind ViewModel.IsDetecting, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                    Padding="40,48">
+                <StackPanel Spacing="16" HorizontalAlignment="Center">
+                    <ProgressRing IsActive="{x:Bind ViewModel.IsDetecting, Mode=OneWay}"
+                                  Width="48" Height="48"
+                                  Foreground="{StaticResource AccentPrimaryBrush}" />
+                    <TextBlock Text="Scanning your hardware..."
+                               Style="{StaticResource HeadingSmallStyle}"
+                               HorizontalAlignment="Center" />
+                    <TextBlock Text="Detecting GPU, CPU, memory, and NPU capabilities."
+                               Style="{StaticResource BodySecondaryStyle}"
+                               HorizontalAlignment="Center" />
+                </StackPanel>
+            </Border>
+
+            <!-- =======================================================
+                 ROW 2: HARDWARE OVERVIEW CARDS (3-column grid)
+                 ======================================================= -->
+            <Grid Grid.Row="2" ColumnSpacing="16" RowSpacing="16"
+                  Visibility="{x:Bind ViewModel.IsDetecting, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- GPU Card -->
+                <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="16">
+                        <!-- Header -->
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Grid Width="40" Height="40">
+                                <Ellipse Fill="{StaticResource AccentSubtleBrush}"
+                                         Width="40" Height="40" />
+                                <FontIcon Glyph="&#xE964;" FontSize="18"
+                                          Foreground="{StaticResource TextAccentBrush}"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center" />
+                            </Grid>
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="GPU"
+                                           Style="{StaticResource OverlineStyle}" />
+                                <TextBlock Text="Graphics"
+                                           Style="{StaticResource CaptionStyle}" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Border Style="{StaticResource SeparatorStyle}" Margin="0" />
+
+                        <!-- GPU Name -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Device"
+                                       Style="{StaticResource LabelStyle}" />
+                            <TextBlock Text="{x:Bind ViewModel.GpuName, Mode=OneWay}"
+                                       Style="{StaticResource BodyStyle}"
+                                       TextTrimming="CharacterEllipsis"
+                                       MaxLines="2" />
+                        </StackPanel>
+
+                        <!-- VRAM -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Video Memory"
+                                       Style="{StaticResource LabelStyle}" />
+                            <TextBlock Text="{x:Bind ViewModel.GpuVram, Mode=OneWay}"
+                                       Style="{StaticResource MetricSmallStyle}" />
+                        </StackPanel>
+
+                        <!-- Tier Badge -->
+                        <Border Style="{StaticResource BadgeAccentStyle}"
+                                HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE735;" FontSize="10"
+                                          Foreground="{StaticResource TextAccentBrush}" />
+                                <TextBlock Text="{x:Bind ViewModel.GpuTier, Mode=OneWay}"
+                                           Style="{StaticResource BadgeStyle}"
+                                           Foreground="{StaticResource TextAccentBrush}" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- CPU Card -->
+                <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="16">
+                        <!-- Header -->
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Grid Width="40" Height="40">
+                                <Ellipse Fill="#1A3B82F6"
+                                         Width="40" Height="40" />
+                                <FontIcon Glyph="&#xE7F4;" FontSize="18"
+                                          Foreground="{StaticResource InfoBrush}"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center" />
+                            </Grid>
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="CPU"
+                                           Style="{StaticResource OverlineStyle}" />
+                                <TextBlock Text="Processor"
+                                           Style="{StaticResource CaptionStyle}" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Border Style="{StaticResource SeparatorStyle}" Margin="0" />
+
+                        <!-- CPU Name -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Processor"
+                                       Style="{StaticResource LabelStyle}" />
+                            <TextBlock Text="{x:Bind ViewModel.CpuName, Mode=OneWay}"
+                                       Style="{StaticResource BodyStyle}"
+                                       TextTrimming="CharacterEllipsis"
+                                       MaxLines="2" />
+                        </StackPanel>
+
+                        <!-- Cores -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Logical Cores"
+                                       Style="{StaticResource LabelStyle}" />
+                            <StackPanel Orientation="Horizontal" Spacing="4"
+                                        VerticalAlignment="Bottom">
+                                <TextBlock Text="{x:Bind ViewModel.CpuCores, Mode=OneWay}"
+                                           Style="{StaticResource MetricSmallStyle}" />
+                                <TextBlock Text="cores"
+                                           Style="{StaticResource MetricUnitStyle}"
+                                           VerticalAlignment="Bottom"
+                                           Margin="0,0,0,4" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Architecture Badge -->
+                        <Border Style="{StaticResource BadgeDefaultStyle}"
+                                HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE7F4;" FontSize="10"
+                                          Foreground="{StaticResource InfoBrush}" />
+                                <TextBlock Text="{x:Bind ViewModel.CpuArchitecture, Mode=OneWay}"
+                                           Style="{StaticResource BadgeStyle}" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Memory Card -->
+                <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="16">
+                        <!-- Header -->
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Grid Width="40" Height="40">
+                                <Ellipse Fill="#1A22C55E"
+                                         Width="40" Height="40" />
+                                <FontIcon Glyph="&#xE950;" FontSize="18"
+                                          Foreground="{StaticResource SuccessBrush}"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center" />
+                            </Grid>
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="MEMORY"
+                                           Style="{StaticResource OverlineStyle}" />
+                                <TextBlock Text="System RAM"
+                                           Style="{StaticResource CaptionStyle}" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Border Style="{StaticResource SeparatorStyle}" Margin="0" />
+
+                        <!-- Total RAM -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Total RAM"
+                                       Style="{StaticResource LabelStyle}" />
+                            <TextBlock Text="{x:Bind ViewModel.TotalRam, Mode=OneWay}"
+                                       Style="{StaticResource MetricSmallStyle}" />
+                        </StackPanel>
+
+                        <!-- Available RAM -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Available"
+                                       Style="{StaticResource LabelStyle}" />
+                            <TextBlock Text="{x:Bind ViewModel.AvailableRam, Mode=OneWay}"
+                                       Style="{StaticResource BodyStyle}" />
+                        </StackPanel>
+
+                        <!-- NPU Badge -->
+                        <Border HorizontalAlignment="Left"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Padding="10,4,10,4">
+                            <Border.Background>
+                                <SolidColorBrush Color="{StaticResource StatusSuccess}"
+                                                 Opacity="0.1" />
+                            </Border.Background>
+                            <StackPanel Orientation="Horizontal" Spacing="6"
+                                        Visibility="{x:Bind ViewModel.HasNpu, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                <FontIcon Glyph="&#xE73E;" FontSize="10"
+                                          Foreground="{StaticResource SuccessBrush}" />
+                                <TextBlock Text="{x:Bind ViewModel.NpuName, Mode=OneWay}"
+                                           Style="{StaticResource BadgeStyle}"
+                                           Foreground="{StaticResource SuccessBrush}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- No NPU fallback -->
+                        <Border Style="{StaticResource BadgeDefaultStyle}"
+                                HorizontalAlignment="Left"
+                                Visibility="{x:Bind ViewModel.HasNpu, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
+                            <TextBlock Text="No NPU"
+                                       Style="{StaticResource BadgeStyle}"
+                                       Foreground="{StaticResource TextTertiaryBrush}" />
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- =======================================================
+                 ROW 3: RECOMMENDATION CARD (Accent Hero)
+                 ======================================================= -->
+            <Border Grid.Row="3" Style="{StaticResource CardAccentStyle}"
+                    Visibility="{x:Bind ViewModel.IsDetecting, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
+                <Grid ColumnSpacing="24">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Spacing="14">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE945;" FontSize="20"
+                                      Foreground="{StaticResource TextAccentBrush}" />
+                            <TextBlock Text="Recommended Configuration"
+                                       Style="{StaticResource HeadingMediumStyle}" />
+                        </StackPanel>
+
+                        <!-- Recommended model size -->
+                        <TextBlock Text="{x:Bind ViewModel.RecommendedModelSize, Mode=OneWay}"
+                                   Style="{StaticResource MetricMediumStyle}" />
+
+                        <!-- Advisory message -->
+                        <TextBlock Text="{x:Bind ViewModel.AdvisoryMessage, Mode=OneWay}"
+                                   Style="{StaticResource BodySecondaryStyle}"
+                                   MaxWidth="700"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <!-- Performance tier badge -->
+                    <StackPanel Grid.Column="1" Spacing="8"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center"
+                                MinWidth="120">
+                        <TextBlock Text="PERFORMANCE TIER"
+                                   Style="{StaticResource OverlineStyle}"
+                                   HorizontalAlignment="Center" />
+                        <Border Style="{StaticResource BadgeAccentStyle}"
+                                Padding="16,8,16,8"
+                                HorizontalAlignment="Center">
+                            <TextBlock Text="{x:Bind ViewModel.PerformanceTier, Mode=OneWay}"
+                                       Style="{StaticResource HeadingSmallStyle}"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       HorizontalAlignment="Center" />
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- =======================================================
+                 ROW 4: ERROR MESSAGE (conditional)
+                 ======================================================= -->
+            <Border Grid.Row="4"
+                    Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                    Background="#1AEF4444"
+                    BorderBrush="#33EF4444"
+                    BorderThickness="1"
+                    CornerRadius="{StaticResource RadiusMD}"
+                    Padding="16,12">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <FontIcon Glyph="&#xE7BA;" FontSize="16"
+                              Foreground="{StaticResource ErrorBrush}"
+                              VerticalAlignment="Center" />
+                    <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                               Style="{StaticResource BodySmallStyle}"
+                               Foreground="{StaticResource ErrorBrush}"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </Border>
+
+            <!-- =======================================================
+                 ROW 5: RECOMMENDED MODELS
+                 ======================================================= -->
+            <StackPanel Grid.Row="5" Spacing="24"
+                        Visibility="{x:Bind ViewModel.IsDetecting, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
+
+                <!-- Section heading -->
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Recommended Models for Your System"
+                               Style="{StaticResource HeadingMediumStyle}" />
+                    <TextBlock Text="These models are optimized for your detected hardware capabilities."
+                               Style="{StaticResource BodySecondaryStyle}" />
+                </StackPanel>
+
+                <!-- ========== Chat Models Section ========== -->
+                <StackPanel Spacing="12"
+                            Visibility="{x:Bind HasItems(ViewModel.ChatModels.Count), Mode=OneWay}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Glyph="&#xE8BD;" FontSize="16"
+                                  Foreground="{StaticResource TextAccentBrush}" />
+                        <TextBlock Text="Chat Models"
+                                   Style="{StaticResource HeadingSmallStyle}" />
+                        <Border Style="{StaticResource BadgeDefaultStyle}"
+                                VerticalAlignment="Center">
+                            <TextBlock Text="{x:Bind ViewModel.ChatModels.Count, Mode=OneWay}"
+                                       Style="{StaticResource BadgeStyle}" />
+                        </Border>
+                    </StackPanel>
+
+                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.ChatModels, Mode=OneWay}">
+                        <ItemsRepeater.Layout>
+                            <UniformGridLayout MinItemWidth="320"
+                                               MinItemHeight="0"
+                                               MinColumnSpacing="12"
+                                               MinRowSpacing="12"
+                                               ItemsStretch="Fill" />
+                        </ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="vm:RecommendedModel">
+                                <Border Style="{StaticResource CardStyle}">
+                                    <StackPanel Spacing="12">
+                                        <!-- Model name + category badge -->
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Text="{x:Bind Name, Mode=OneWay}"
+                                                       Style="{StaticResource HeadingSmallStyle}" />
+
+                                            <Border Grid.Column="1"
+                                                    Style="{StaticResource BadgeAccentStyle}">
+                                                <TextBlock Text="Chat"
+                                                           Style="{StaticResource BadgeStyle}"
+                                                           Foreground="{StaticResource TextAccentBrush}" />
+                                            </Border>
+                                        </Grid>
+
+                                        <!-- Description -->
+                                        <TextBlock Text="{x:Bind Description, Mode=OneWay}"
+                                                   Style="{StaticResource BodySecondaryStyle}"
+                                                   MaxLines="3"
+                                                   TextTrimming="CharacterEllipsis" />
+
+                                        <!-- Size + action row -->
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border Style="{StaticResource BadgeDefaultStyle}"
+                                                    HorizontalAlignment="Left"
+                                                    VerticalAlignment="Center">
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <FontIcon Glyph="&#xEDA2;" FontSize="10"
+                                                              Foreground="{StaticResource TextTertiaryBrush}" />
+                                                    <TextBlock Text="{x:Bind Size, Mode=OneWay}"
+                                                               Style="{StaticResource BadgeStyle}" />
+                                                </StackPanel>
+                                            </Border>
+
+                                            <!-- Install button or Installed badge -->
+                                            <Border Grid.Column="1"
+                                                    Visibility="{x:Bind IsInstalled, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                                    Background="#1A22C55E"
+                                                    CornerRadius="{StaticResource RadiusRound}"
+                                                    Padding="12,6,12,6">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <FontIcon Glyph="&#xE73E;" FontSize="12"
+                                                              Foreground="{StaticResource SuccessBrush}" />
+                                                    <TextBlock Text="Installed"
+                                                               FontSize="12" FontWeight="SemiBold"
+                                                               Foreground="{StaticResource SuccessBrush}" />
+                                                </StackPanel>
+                                            </Border>
+
+                                            <Button Grid.Column="1"
+                                                    Style="{StaticResource AccentButtonStyle}"
+                                                    Padding="16,8,16,8" MinHeight="34"
+                                                    Visibility="{x:Bind IsInstalled, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}"
+                                                    Tag="{x:Bind Name, Mode=OneWay}"
+                                                    Click="OnInstallModelClick">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <FontIcon Glyph="&#xE896;" FontSize="12" />
+                                                    <TextBlock Text="Install" FontSize="12" />
+                                                </StackPanel>
+                                            </Button>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                </StackPanel>
+
+                <!-- ========== Code Models Section ========== -->
+                <StackPanel Spacing="12"
+                            Visibility="{x:Bind HasItems(ViewModel.CodeModels.Count), Mode=OneWay}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Glyph="&#xE943;" FontSize="16"
+                                  Foreground="{StaticResource InfoBrush}" />
+                        <TextBlock Text="Code Models"
+                                   Style="{StaticResource HeadingSmallStyle}" />
+                        <Border Style="{StaticResource BadgeDefaultStyle}"
+                                VerticalAlignment="Center">
+                            <TextBlock Text="{x:Bind ViewModel.CodeModels.Count, Mode=OneWay}"
+                                       Style="{StaticResource BadgeStyle}" />
+                        </Border>
+                    </StackPanel>
+
+                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.CodeModels, Mode=OneWay}">
+                        <ItemsRepeater.Layout>
+                            <UniformGridLayout MinItemWidth="320"
+                                               MinItemHeight="0"
+                                               MinColumnSpacing="12"
+                                               MinRowSpacing="12"
+                                               ItemsStretch="Fill" />
+                        </ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="vm:RecommendedModel">
+                                <Border Style="{StaticResource CardStyle}">
+                                    <StackPanel Spacing="12">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Text="{x:Bind Name, Mode=OneWay}"
+                                                       Style="{StaticResource HeadingSmallStyle}" />
+
+                                            <Border Grid.Column="1"
+                                                    Background="#1A3B82F6"
+                                                    CornerRadius="{StaticResource RadiusRound}"
+                                                    Padding="10,4,10,4">
+                                                <TextBlock Text="Code"
+                                                           Style="{StaticResource BadgeStyle}"
+                                                           Foreground="{StaticResource InfoBrush}" />
+                                            </Border>
+                                        </Grid>
+
+                                        <TextBlock Text="{x:Bind Description, Mode=OneWay}"
+                                                   Style="{StaticResource BodySecondaryStyle}"
+                                                   MaxLines="3"
+                                                   TextTrimming="CharacterEllipsis" />
+
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border Style="{StaticResource BadgeDefaultStyle}"
+                                                    HorizontalAlignment="Left"
+                                                    VerticalAlignment="Center">
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <FontIcon Glyph="&#xEDA2;" FontSize="10"
+                                                              Foreground="{StaticResource TextTertiaryBrush}" />
+                                                    <TextBlock Text="{x:Bind Size, Mode=OneWay}"
+                                                               Style="{StaticResource BadgeStyle}" />
+                                                </StackPanel>
+                                            </Border>
+
+                                            <Border Grid.Column="1"
+                                                    Visibility="{x:Bind IsInstalled, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                                    Background="#1A22C55E"
+                                                    CornerRadius="{StaticResource RadiusRound}"
+                                                    Padding="12,6,12,6">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <FontIcon Glyph="&#xE73E;" FontSize="12"
+                                                              Foreground="{StaticResource SuccessBrush}" />
+                                                    <TextBlock Text="Installed"
+                                                               FontSize="12" FontWeight="SemiBold"
+                                                               Foreground="{StaticResource SuccessBrush}" />
+                                                </StackPanel>
+                                            </Border>
+
+                                            <Button Grid.Column="1"
+                                                    Style="{StaticResource AccentButtonStyle}"
+                                                    Padding="16,8,16,8" MinHeight="34"
+                                                    Visibility="{x:Bind IsInstalled, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}"
+                                                    Tag="{x:Bind Name, Mode=OneWay}"
+                                                    Click="OnInstallModelClick">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <FontIcon Glyph="&#xE896;" FontSize="12" />
+                                                    <TextBlock Text="Install" FontSize="12" />
+                                                </StackPanel>
+                                            </Button>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                </StackPanel>
+
+                <!-- ========== Embedding Models Section ========== -->
+                <StackPanel Spacing="12"
+                            Visibility="{x:Bind HasItems(ViewModel.EmbeddingModels.Count), Mode=OneWay}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Glyph="&#xF168;" FontSize="16"
+                                  Foreground="{StaticResource SuccessBrush}" />
+                        <TextBlock Text="Embedding Models"
+                                   Style="{StaticResource HeadingSmallStyle}" />
+                        <Border Style="{StaticResource BadgeDefaultStyle}"
+                                VerticalAlignment="Center">
+                            <TextBlock Text="{x:Bind ViewModel.EmbeddingModels.Count, Mode=OneWay}"
+                                       Style="{StaticResource BadgeStyle}" />
+                        </Border>
+                    </StackPanel>
+
+                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.EmbeddingModels, Mode=OneWay}">
+                        <ItemsRepeater.Layout>
+                            <UniformGridLayout MinItemWidth="320"
+                                               MinItemHeight="0"
+                                               MinColumnSpacing="12"
+                                               MinRowSpacing="12"
+                                               ItemsStretch="Fill" />
+                        </ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="vm:RecommendedModel">
+                                <Border Style="{StaticResource CardStyle}">
+                                    <StackPanel Spacing="12">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Text="{x:Bind Name, Mode=OneWay}"
+                                                       Style="{StaticResource HeadingSmallStyle}" />
+
+                                            <Border Grid.Column="1"
+                                                    Background="#1A22C55E"
+                                                    CornerRadius="{StaticResource RadiusRound}"
+                                                    Padding="10,4,10,4">
+                                                <TextBlock Text="Embedding"
+                                                           Style="{StaticResource BadgeStyle}"
+                                                           Foreground="{StaticResource SuccessBrush}" />
+                                            </Border>
+                                        </Grid>
+
+                                        <TextBlock Text="{x:Bind Description, Mode=OneWay}"
+                                                   Style="{StaticResource BodySecondaryStyle}"
+                                                   MaxLines="3"
+                                                   TextTrimming="CharacterEllipsis" />
+
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border Style="{StaticResource BadgeDefaultStyle}"
+                                                    HorizontalAlignment="Left"
+                                                    VerticalAlignment="Center">
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <FontIcon Glyph="&#xEDA2;" FontSize="10"
+                                                              Foreground="{StaticResource TextTertiaryBrush}" />
+                                                    <TextBlock Text="{x:Bind Size, Mode=OneWay}"
+                                                               Style="{StaticResource BadgeStyle}" />
+                                                </StackPanel>
+                                            </Border>
+
+                                            <Border Grid.Column="1"
+                                                    Visibility="{x:Bind IsInstalled, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                                    Background="#1A22C55E"
+                                                    CornerRadius="{StaticResource RadiusRound}"
+                                                    Padding="12,6,12,6">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <FontIcon Glyph="&#xE73E;" FontSize="12"
+                                                              Foreground="{StaticResource SuccessBrush}" />
+                                                    <TextBlock Text="Installed"
+                                                               FontSize="12" FontWeight="SemiBold"
+                                                               Foreground="{StaticResource SuccessBrush}" />
+                                                </StackPanel>
+                                            </Border>
+
+                                            <Button Grid.Column="1"
+                                                    Style="{StaticResource AccentButtonStyle}"
+                                                    Padding="16,8,16,8" MinHeight="34"
+                                                    Visibility="{x:Bind IsInstalled, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}"
+                                                    Tag="{x:Bind Name, Mode=OneWay}"
+                                                    Click="OnInstallModelClick">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <FontIcon Glyph="&#xE896;" FontSize="12" />
+                                                    <TextBlock Text="Install" FontSize="12" />
+                                                </StackPanel>
+                                            </Button>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- =======================================================
+                 ROW 6: PRIVACY FOOTER
+                 ======================================================= -->
+            <Border Grid.Row="6"
+                    Style="{StaticResource CardInsetStyle}"
+                    Padding="20,14"
+                    Visibility="{x:Bind ViewModel.IsDetecting, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <FontIcon Glyph="&#xE72E;" FontSize="14"
+                              Foreground="{StaticResource SuccessBrush}" />
+                    <TextBlock Style="{StaticResource BodySmallStyle}"
+                               Foreground="{StaticResource TextTertiaryBrush}">
+                        <Run Text="Local AI Only" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" />
+                        <Run Text=" — All models run entirely on your hardware. No data is sent to external servers. Your hardware information never leaves this machine." />
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+
+        </Grid>
+    </ScrollViewer>
+</Page>
