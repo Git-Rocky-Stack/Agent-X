@@ -67,6 +67,9 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     [ObservableProperty] private ObservableCollection<DashboardFileTypeBreakdownItem> _fileTypeBreakdown = new();
     [ObservableProperty] private ObservableCollection<DashboardTopCollectionItem> _topCollections = new();
 
+    // ── Navigation ────────────────────────────────────────────
+    public Action<string>? NavigateRequested { get; set; }
+
     public DashboardViewModel(
         IAiService aiService,
         IConversationService conversationService,
@@ -344,41 +347,54 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
+    private void SetupAi()
+    {
+        Log.Debug("Navigate to Settings (Setup AI) requested from Dashboard");
+        NavigateRequested?.Invoke("Settings");
+    }
+
+    [RelayCommand]
     private void NavigateToChat()
     {
         Log.Debug("Navigate to Chat requested from Dashboard");
+        NavigateRequested?.Invoke("Chat");
     }
 
     [RelayCommand]
     private void NavigateToVault()
     {
         Log.Debug("Navigate to Knowledge Vault requested from Dashboard");
+        NavigateRequested?.Invoke("KnowledgeVault");
     }
 
     [RelayCommand]
     private void NavigateToAskFiles()
     {
         Log.Debug("Navigate to Ask Files requested from Dashboard");
+        NavigateRequested?.Invoke("AskFiles");
     }
 
     [RelayCommand]
     private void NavigateToSearch()
     {
         Log.Debug("Navigate to Search requested from Dashboard");
+        NavigateRequested?.Invoke("Search");
     }
 
     [RelayCommand]
     private void NavigateToQuickActions()
     {
         Log.Debug("Navigate to Quick Actions requested from Dashboard");
+        NavigateRequested?.Invoke("QuickActions");
     }
 
     [RelayCommand]
-    private async Task QuickSearchAsync()
+    private Task QuickSearchAsync()
     {
-        if (string.IsNullOrWhiteSpace(QuickSearchQuery)) return;
+        if (string.IsNullOrWhiteSpace(QuickSearchQuery)) return Task.CompletedTask;
         Log.Debug("Quick search: {Query}", QuickSearchQuery);
-        await Task.CompletedTask;
+        NavigateRequested?.Invoke("Search");
+        return Task.CompletedTask;
     }
 
     public void Dispose()

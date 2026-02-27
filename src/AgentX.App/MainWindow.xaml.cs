@@ -26,6 +26,7 @@ public sealed partial class MainWindow : Window
     private readonly KeyboardShortcutService _keyboardShortcutService;
     private DispatcherTimer? _statusTimer;
     private bool _lastConnectionState;
+    private bool _suppressNavigation;
 
     /// <summary>
     /// Map from page tags to their corresponding NavigationViewItem controls.
@@ -50,6 +51,9 @@ public sealed partial class MainWindow : Window
             ["ModelManager"] = typeof(Views.ModelManagerPage),
             ["HardwareAdvisor"] = typeof(Views.HardwareAdvisorPage),
             ["Onboarding"] = typeof(Views.OnboardingPage),
+            ["UserGuide"] = typeof(Views.UserGuidePage),
+            ["PrivacyPolicy"] = typeof(Views.PrivacyPolicyPage),
+            ["TermsOfService"] = typeof(Views.TermsOfServicePage),
         };
 
         _navItemMap = new Dictionary<string, NavigationViewItem>
@@ -64,6 +68,9 @@ public sealed partial class MainWindow : Window
             ["ModelManager"] = NavModels,
             ["HardwareAdvisor"] = NavHardware,
             ["Settings"] = NavSettings,
+            ["UserGuide"] = NavUserGuide,
+            ["PrivacyPolicy"] = NavPrivacyPolicy,
+            ["TermsOfService"] = NavTermsOfService,
         };
 
         // Initialize keyboard shortcut service and register default shortcuts
@@ -194,7 +201,7 @@ public sealed partial class MainWindow : Window
     /// Navigates to a page by its tag name, updating both the content frame and
     /// the NavigationView selection indicator to keep them in sync.
     /// </summary>
-    private void NavigateToPage(string pageTag)
+    internal void NavigateToPage(string pageTag)
     {
         if (_pageMap.TryGetValue(pageTag, out var pageType))
         {
@@ -253,6 +260,8 @@ public sealed partial class MainWindow : Window
     /// <summary>
     /// Checks if onboarding has been completed. If not, navigates to the
     /// onboarding wizard and hides the navigation pane for a focused experience.
+    /// Includes robust error recovery — if anything fails, the nav pane stays visible
+    /// and the user lands on the Dashboard.
     /// </summary>
     private async void CheckOnboardingAsync()
     {
@@ -262,15 +271,45 @@ public sealed partial class MainWindow : Window
             var settings = await settingsService.GetSettingsAsync();
             if (!settings.OnboardingCompleted)
             {
-                ContentFrame.Navigate(typeof(Views.OnboardingPage));
-                NavView.SelectedItem = null;
-                NavView.IsPaneVisible = false;
-                Log.Information("First run detected — navigating to Onboarding wizard");
+                try
+                {
+                    // Suppress NavView_SelectionChanged from re-navigating to Dashboard
+                    // when we clear the selected item and hide the pane.
+                    _suppressNavigation = true;
+
+                    var navigated = ContentFrame.Navigate(typeof(Views.OnboardingPage));
+                    if (navigated)
+                    {
+                        NavView.SelectedItem = null;
+                        NavView.IsPaneVisible = false;
+                        Log.Information("First run detected — navigating to Onboarding wizard");
+                    }
+                    else
+                    {
+                        Log.Warning("Frame.Navigate returned false for OnboardingPage, skipping onboarding");
+                        EnsureNavPaneVisible();
+                        settings.OnboardingCompleted = true;
+                        await settingsService.SaveSettingsAsync(settings);
+                    }
+                }
+                catch (Exception navEx)
+                {
+                    Log.Warning(navEx, "OnboardingPage failed to load, skipping onboarding");
+                    EnsureNavPaneVisible();
+                    ContentFrame.Navigate(typeof(Views.DashboardPage));
+                    settings.OnboardingCompleted = true;
+                    await settingsService.SaveSettingsAsync(settings);
+                }
+                finally
+                {
+                    _suppressNavigation = false;
+                }
             }
         }
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to check onboarding status, proceeding to Dashboard");
+            EnsureNavPaneVisible();
         }
     }
 
@@ -280,10 +319,20 @@ public sealed partial class MainWindow : Window
     /// </summary>
     public void CompleteOnboarding()
     {
-        NavView.IsPaneVisible = true;
+        EnsureNavPaneVisible();
         NavView.SelectedItem = NavDashboard;
         ContentFrame.Navigate(typeof(Views.DashboardPage));
         Log.Information("Onboarding completed, navigated to Dashboard");
+    }
+
+    /// <summary>
+    /// Ensures the NavigationView pane is visible and open.
+    /// Called as a safety net after onboarding completes or fails.
+    /// </summary>
+    private void EnsureNavPaneVisible()
+    {
+        NavView.IsPaneVisible = true;
+        NavView.IsPaneOpen = true;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -291,8 +340,8 @@ public sealed partial class MainWindow : Window
     // ═══════════════════════════════════════════════════════════════════
 
     /// <summary>
-    /// Initializes the status bar polling timer. Runs an immediate check on startup,
-    /// then polls every 30 seconds to keep the status bar current.
+    /// Initializes the status bar polling timer. Delays the first check by 5 seconds
+    /// to let the UI render first, then polls every 30 seconds to keep the status bar current.
     /// </summary>
     private void InitializeStatusBar()
     {
@@ -300,8 +349,23 @@ public sealed partial class MainWindow : Window
         _statusTimer.Tick += async (s, e) => await UpdateStatusBarAsync();
         _statusTimer.Start();
 
-        // Fire an initial check immediately
-        _ = UpdateStatusBarAsync();
+        // Delay the initial status check to let the UI render first.
+        // The DashboardPage and App initialization already check the connection;
+        // no need to pile on a third concurrent check at startup.
+        _ = DelayedInitialStatusCheckAsync();
+    }
+
+    private async Task DelayedInitialStatusCheckAsync()
+    {
+        try
+        {
+            await Task.Delay(5000);
+            await UpdateStatusBarAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Initial delayed status check failed");
+        }
     }
 
     /// <summary>
@@ -310,6 +374,14 @@ public sealed partial class MainWindow : Window
     /// </summary>
     private async Task UpdateStatusBarAsync()
     {
+        // Safety net: if nav pane is hidden but we're not on the onboarding page, restore it.
+        // This catches edge cases where the pane got stuck hidden.
+        if (!NavView.IsPaneVisible && ContentFrame.Content is not Views.OnboardingPage)
+        {
+            EnsureNavPaneVisible();
+            Log.Warning("Nav pane was hidden outside of onboarding — restored");
+        }
+
         // --- Connection status ---
         try
         {
@@ -467,6 +539,9 @@ public sealed partial class MainWindow : Window
 
     private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
+        // Guard: don't navigate when onboarding setup is modifying NavView state
+        if (_suppressNavigation) return;
+
         if (args.SelectedItemContainer is NavigationViewItem selectedItem)
         {
             var tag = selectedItem.Tag?.ToString();

@@ -62,10 +62,23 @@ public sealed class OllamaProvider : IAiProvider
         try
         {
             _logger.Debug("Checking Ollama connection...");
-            var running = await _client.IsRunningAsync(ct).ConfigureAwait(false);
+
+            // Use a short timeout so the app doesn't hang when Ollama isn't running.
+            // The default HttpClient timeout is ~100s which is far too long for a health check.
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeoutCts.CancelAfter(TimeSpan.FromSeconds(3));
+
+            var running = await _client.IsRunningAsync(timeoutCts.Token).ConfigureAwait(false);
             _isAvailable = running;
             _logger.Information("Ollama connection check: {IsAvailable}", _isAvailable);
             return _isAvailable;
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            // Timeout expired (not caller cancellation) — Ollama is not responding
+            _isAvailable = false;
+            _logger.Warning("Ollama connection check timed out (3s)");
+            return false;
         }
         catch (Exception ex)
         {

@@ -1,0 +1,1072 @@
+<Page
+    x:Class="AgentX.App.Views.PrivacyPolicyPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="Transparent"
+    NavigationCacheMode="Enabled">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled"
+                  Padding="0">
+
+        <Grid Padding="{StaticResource PaddingPage}"
+              RowSpacing="20"
+              MaxWidth="900"
+              HorizontalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />  <!-- Row 0: Header -->
+                <RowDefinition Height="Auto" />  <!-- Row 1: Local-First Banner -->
+                <RowDefinition Height="Auto" />  <!-- Row 2: Our Commitment -->
+                <RowDefinition Height="Auto" />  <!-- Row 3: Information We Collect -->
+                <RowDefinition Height="Auto" />  <!-- Row 4: How Data Is Stored -->
+                <RowDefinition Height="Auto" />  <!-- Row 5: Third-Party Services -->
+                <RowDefinition Height="Auto" />  <!-- Row 6: GDPR Rights -->
+                <RowDefinition Height="Auto" />  <!-- Row 7: CCPA Rights -->
+                <RowDefinition Height="Auto" />  <!-- Row 8: Data Security -->
+                <RowDefinition Height="Auto" />  <!-- Row 9: Children's Privacy -->
+                <RowDefinition Height="Auto" />  <!-- Row 10: Changes -->
+                <RowDefinition Height="Auto" />  <!-- Row 11: Contact Us -->
+                <RowDefinition Height="Auto" />  <!-- Row 12: Footer -->
+            </Grid.RowDefinitions>
+
+
+            <!-- ==========================================================
+                 ROW 0: PAGE HEADER
+                 ========================================================== -->
+            <StackPanel Grid.Row="0" Spacing="8">
+                <TextBlock Text="Privacy Policy"
+                           Style="{StaticResource DisplaySmallStyle}" />
+                <TextBlock Style="{StaticResource BodySecondaryStyle}">
+                    <Run Text="Effective Date: February 26, 2026" />
+                </TextBlock>
+                <TextBlock Text="Strategia-X ('we', 'us', 'our') operates Agent-X. This Privacy Policy explains how we handle your information when you use our desktop application."
+                           Style="{StaticResource BodyStyle}"
+                           Margin="0,4,0,0" />
+            </StackPanel>
+
+
+            <!-- ==========================================================
+                 ROW 1: LOCAL-FIRST PRIVACY BANNER
+                 ========================================================== -->
+            <Border Grid.Row="1"
+                    Style="{StaticResource CardAccentStyle}">
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Shield Icon -->
+                    <Border Grid.Column="0"
+                            Background="{StaticResource AccentSubtleBrush}"
+                            CornerRadius="{StaticResource RadiusMD}"
+                            Width="44" Height="44"
+                            VerticalAlignment="Center">
+                        <FontIcon Glyph="&#xEA18;"
+                                  FontFamily="Segoe MDL2 Assets"
+                                  FontSize="20"
+                                  Foreground="{StaticResource TextAccentBrush}"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center" />
+                    </Border>
+
+                    <!-- Banner Text -->
+                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                        <TextBlock Text="Local-First Privacy"
+                                   Style="{StaticResource HeadingSmallStyle}"
+                                   Foreground="{StaticResource TextAccentBrush}" />
+                        <TextBlock Text="Your data never leaves your device. All AI processing, document storage, and conversations remain entirely on your machine."
+                                   Style="{StaticResource BodySecondaryStyle}" />
+                    </StackPanel>
+
+                    <!-- Badge -->
+                    <Border Grid.Column="2"
+                            Style="{StaticResource BadgeAccentStyle}"
+                            VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="10"
+                                      Foreground="{StaticResource TextAccentBrush}" />
+                            <TextBlock Text="VERIFIED"
+                                       Style="{StaticResource BadgeStyle}"
+                                       Foreground="{StaticResource TextAccentBrush}" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+
+            <!-- ==========================================================
+                 ROW 2: OUR COMMITMENT TO PRIVACY
+                 ========================================================== -->
+            <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="16">
+
+                    <!-- Section Header -->
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Border Background="{StaticResource AccentSubtleBrush}"
+                                CornerRadius="{StaticResource RadiusSM}"
+                                Width="32" Height="32">
+                            <FontIcon Glyph="&#xE72E;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="Our Commitment to Privacy"
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="Agent-X is designed with privacy as a core principle. All your data &#x2014; documents, conversations, embeddings, and settings &#x2014; is stored locally on your device. We do not operate cloud servers that process or store your personal data." />
+
+                    <TextBlock Style="{StaticResource BodySecondaryStyle}"
+                               Text="Our local-first architecture means you retain full ownership and control of every piece of information you create or import into Agent-X. There are no accounts to create, no data syncing, and no telemetry being transmitted." />
+                </StackPanel>
+            </Border>
+
+
+            <!-- ==========================================================
+                 ROW 3: INFORMATION WE COLLECT
+                 ========================================================== -->
+            <Border Grid.Row="3" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="20">
+
+                    <!-- Section Header -->
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Border Background="{StaticResource AccentSubtleBrush}"
+                                CornerRadius="{StaticResource RadiusSM}"
+                                Width="32" Height="32">
+                            <FontIcon Glyph="&#xE9D5;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="Information We Collect"
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <!-- Sub-section: Information You Provide -->
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Information You Provide"
+                                   Style="{StaticResource HeadingSmallStyle}" />
+                        <TextBlock Text="When you use Agent-X, the following information is created and stored locally on your device:"
+                                   Style="{StaticResource BodySecondaryStyle}" />
+                        <StackPanel Spacing="8" Margin="8,0,0,0">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="&#x2022;"
+                                           Style="{StaticResource BodyStyle}"
+                                           Foreground="{StaticResource TextAccentBrush}"
+                                           VerticalAlignment="Top" />
+                                <TextBlock Text="Documents you import into the Knowledge Vault"
+                                           Style="{StaticResource BodyStyle}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="&#x2022;"
+                                           Style="{StaticResource BodyStyle}"
+                                           Foreground="{StaticResource TextAccentBrush}"
+                                           VerticalAlignment="Top" />
+                                <TextBlock Text="Conversations with AI models"
+                                           Style="{StaticResource BodyStyle}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="&#x2022;"
+                                           Style="{StaticResource BodyStyle}"
+                                           Foreground="{StaticResource TextAccentBrush}"
+                                           VerticalAlignment="Top" />
+                                <TextBlock Text="Settings and preferences you configure"
+                                           Style="{StaticResource BodyStyle}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="&#x2022;"
+                                           Style="{StaticResource BodyStyle}"
+                                           Foreground="{StaticResource TextAccentBrush}"
+                                           VerticalAlignment="Top" />
+                                <TextBlock Text="Collection names and organizational tags"
+                                           Style="{StaticResource BodyStyle}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Separator -->
+                    <Border Style="{StaticResource SeparatorStyle}" />
+
+                    <!-- Sub-section: Automatically Collected Information -->
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Automatically Collected Information"
+                                   Style="{StaticResource HeadingSmallStyle}" />
+                        <TextBlock Text="Agent-X may automatically gather the following, all of which remains stored locally and is never transmitted:"
+                                   Style="{StaticResource BodySecondaryStyle}" />
+                        <StackPanel Spacing="8" Margin="8,0,0,0">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="&#x2022;"
+                                           Style="{StaticResource BodyStyle}"
+                                           Foreground="{StaticResource TextAccentBrush}"
+                                           VerticalAlignment="Top" />
+                                <TextBlock Text="Application logs (stored locally only)"
+                                           Style="{StaticResource BodyStyle}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="&#x2022;"
+                                           Style="{StaticResource BodyStyle}"
+                                           Foreground="{StaticResource TextAccentBrush}"
+                                           VerticalAlignment="Top" />
+                                <TextBlock Text="Hardware capability information (for model recommendations)"
+                                           Style="{StaticResource BodyStyle}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="&#x2022;"
+                                           Style="{StaticResource BodyStyle}"
+                                           Foreground="{StaticResource TextAccentBrush}"
+                                           VerticalAlignment="Top" />
+                                <TextBlock Text="Usage statistics (stored locally, never transmitted)"
+                                           Style="{StaticResource BodyStyle}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Separator -->
+                    <Border Style="{StaticResource SeparatorStyle}" />
+
+                    <!-- Sub-section: Information We Do NOT Collect -->
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Information We Do NOT Collect"
+                                   Style="{StaticResource HeadingSmallStyle}" />
+                        <StackPanel Spacing="8" Margin="8,0,0,0">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon Glyph="&#xE711;"
+                                          FontFamily="Segoe MDL2 Assets"
+                                          FontSize="10"
+                                          Foreground="{StaticResource ErrorBrush}"
+                                          VerticalAlignment="Top"
+                                          Margin="0,5,0,0" />
+                                <TextBlock Text="We do not collect personal identification information"
+                                           Style="{StaticResource BodyStyle}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon Glyph="&#xE711;"
+                                          FontFamily="Segoe MDL2 Assets"
+                                          FontSize="10"
+                                          Foreground="{StaticResource ErrorBrush}"
+                                          VerticalAlignment="Top"
+                                          Margin="0,5,0,0" />
+                                <TextBlock Text="We do not transmit data to external servers"
+                                           Style="{StaticResource BodyStyle}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon Glyph="&#xE711;"
+                                          FontFamily="Segoe MDL2 Assets"
+                                          FontSize="10"
+                                          Foreground="{StaticResource ErrorBrush}"
+                                          VerticalAlignment="Top"
+                                          Margin="0,5,0,0" />
+                                <TextBlock Text="We do not use cookies or tracking technologies"
+                                           Style="{StaticResource BodyStyle}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon Glyph="&#xE711;"
+                                          FontFamily="Segoe MDL2 Assets"
+                                          FontSize="10"
+                                          Foreground="{StaticResource ErrorBrush}"
+                                          VerticalAlignment="Top"
+                                          Margin="0,5,0,0" />
+                                <TextBlock Text="We do not collect payment information through the app"
+                                           Style="{StaticResource BodyStyle}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+
+            <!-- ==========================================================
+                 ROW 4: HOW YOUR DATA IS STORED
+                 ========================================================== -->
+            <Border Grid.Row="4" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="16">
+
+                    <!-- Section Header -->
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Border Background="{StaticResource AccentSubtleBrush}"
+                                CornerRadius="{StaticResource RadiusSM}"
+                                Width="32" Height="32">
+                            <FontIcon Glyph="&#xEDA2;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="How Your Data Is Stored"
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <TextBlock Style="{StaticResource BodySecondaryStyle}"
+                               Text="All data generated and managed by Agent-X is stored locally on your device. There is no cloud component." />
+
+                    <StackPanel Spacing="8" Margin="8,0,0,0">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="&#x2022;"
+                                       Style="{StaticResource BodyStyle}"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       VerticalAlignment="Top" />
+                            <TextBlock Style="{StaticResource BodyStyle}">
+                                <Run Text="All data stored in local SQLite databases on your device" />
+                            </TextBlock>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="&#x2022;"
+                                       Style="{StaticResource BodyStyle}"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       VerticalAlignment="Top" />
+                            <TextBlock Style="{StaticResource BodyStyle}">
+                                <Run Text="Document embeddings stored in local vector database (sqlite-vec)" />
+                            </TextBlock>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="&#x2022;"
+                                       Style="{StaticResource BodyStyle}"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       VerticalAlignment="Top" />
+                            <TextBlock Style="{StaticResource BodyStyle}">
+                                <Run Text="Application logs stored in " />
+                                <Run Text="%LOCALAPPDATA%\AgentX\Logs\"
+                                     FontFamily="{StaticResource FontMono}"
+                                     Foreground="{StaticResource TextSecondaryBrush}"
+                                     FontSize="12" />
+                            </TextBlock>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="&#x2022;"
+                                       Style="{StaticResource BodyStyle}"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       VerticalAlignment="Top" />
+                            <TextBlock Text="Settings stored locally &#x2014; never synced to cloud"
+                                       Style="{StaticResource BodyStyle}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="&#x2022;"
+                                       Style="{StaticResource BodyStyle}"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       VerticalAlignment="Top" />
+                            <TextBlock Text="You have full control: all data can be deleted by removing the application data folder"
+                                       Style="{StaticResource BodyStyle}" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+
+            <!-- ==========================================================
+                 ROW 5: THIRD-PARTY SERVICES
+                 ========================================================== -->
+            <Border Grid.Row="5" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="16">
+
+                    <!-- Section Header -->
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Border Background="{StaticResource AccentSubtleBrush}"
+                                CornerRadius="{StaticResource RadiusSM}"
+                                Width="32" Height="32">
+                            <FontIcon Glyph="&#xE71B;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="Third-Party Services"
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <!-- Ollama Sub-section -->
+                    <Border Style="{StaticResource CardInsetStyle}">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Ollama (Local AI Runtime)"
+                                       Style="{StaticResource HeadingSmallStyle}" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="Agent-X connects to Ollama running locally on your machine. Ollama processes AI inference locally. No data is sent to external servers unless you explicitly configure a remote Ollama endpoint." />
+                            <TextBlock Style="{StaticResource BodySecondaryStyle}"
+                                       Text="If you configure a remote endpoint, data sent to that endpoint is governed by the remote server's privacy policy. We recommend using local inference for maximum privacy." />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- No Analytics -->
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="12"
+                                      Foreground="{StaticResource SuccessBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Text="No Analytics Services"
+                                       Style="{StaticResource AccentBodyStyle}"
+                                       Foreground="{StaticResource SuccessBrush}" />
+                        </StackPanel>
+                        <TextBlock Text="We do not use Google Analytics, Mixpanel, or any third-party analytics services. No usage data is collected or transmitted."
+                                   Style="{StaticResource BodySecondaryStyle}"
+                                   Margin="22,0,0,0" />
+                    </StackPanel>
+
+                    <!-- No Advertising -->
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="12"
+                                      Foreground="{StaticResource SuccessBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Text="No Advertising"
+                                       Style="{StaticResource AccentBodyStyle}"
+                                       Foreground="{StaticResource SuccessBrush}" />
+                        </StackPanel>
+                        <TextBlock Text="We do not display ads or share data with advertisers. Agent-X is a paid product; our users are our customers, not our product."
+                                   Style="{StaticResource BodySecondaryStyle}"
+                                   Margin="22,0,0,0" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+
+            <!-- ==========================================================
+                 ROW 6: YOUR RIGHTS UNDER GDPR
+                 ========================================================== -->
+            <Border Grid.Row="6" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="16">
+
+                    <!-- Section Header -->
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Border Background="{StaticResource AccentSubtleBrush}"
+                                CornerRadius="{StaticResource RadiusSM}"
+                                Width="32" Height="32">
+                            <FontIcon Glyph="&#xE909;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="Your Rights Under GDPR"
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <TextBlock Style="{StaticResource BodySecondaryStyle}"
+                               Text="If you are located in the European Economic Area (EEA), you have certain data protection rights under the General Data Protection Regulation (GDPR)." />
+
+                    <!-- GDPR Rights Grid -->
+                    <StackPanel Spacing="12">
+
+                        <!-- Right to Access -->
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      VerticalAlignment="Top"
+                                      Margin="0,4,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock Text="Right to Access"
+                                           Style="{StaticResource LabelStyle}"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock Text="You can access all your data directly on your device. No request to us is needed."
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Right to Rectification -->
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      VerticalAlignment="Top"
+                                      Margin="0,4,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock Text="Right to Rectification"
+                                           Style="{StaticResource LabelStyle}"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock Text="You can modify your data at any time through the application interface."
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Right to Erasure -->
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      VerticalAlignment="Top"
+                                      Margin="0,4,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock Text="Right to Erasure ('Right to be Forgotten')"
+                                           Style="{StaticResource LabelStyle}"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock Text="Delete documents, conversations, and all data through the app or by removing the application data folder."
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Right to Data Portability -->
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      VerticalAlignment="Top"
+                                      Margin="0,4,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock Text="Right to Data Portability"
+                                           Style="{StaticResource LabelStyle}"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock Text="Your data is stored in standard SQLite format and can be exported or moved freely."
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Right to Restrict Processing -->
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      VerticalAlignment="Top"
+                                      Margin="0,4,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock Text="Right to Restrict Processing"
+                                           Style="{StaticResource LabelStyle}"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock Text="You control all processing &#x2014; simply close the application to stop all data processing."
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Right to Object -->
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      VerticalAlignment="Top"
+                                      Margin="0,4,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock Text="Right to Object"
+                                           Style="{StaticResource LabelStyle}"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock Text="You can stop using the application at any time. Uninstalling removes all processing."
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Separator -->
+                    <Border Style="{StaticResource SeparatorStyle}" />
+
+                    <!-- Summary Note -->
+                    <Border Style="{StaticResource CardInsetStyle}">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE946;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      VerticalAlignment="Top"
+                                      Margin="0,2,0,0" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="Since all data is stored locally on your device, you exercise these rights directly without needing to contact us. You are the sole controller of your data." />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+
+            <!-- ==========================================================
+                 ROW 7: YOUR RIGHTS UNDER CCPA
+                 ========================================================== -->
+            <Border Grid.Row="7" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="16">
+
+                    <!-- Section Header -->
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Border Background="{StaticResource AccentSubtleBrush}"
+                                CornerRadius="{StaticResource RadiusSM}"
+                                Width="32" Height="32">
+                            <FontIcon Glyph="&#xE8A3;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="Your Rights Under CCPA"
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <TextBlock Style="{StaticResource BodySecondaryStyle}"
+                               Text="If you are a California resident, you have specific rights under the California Consumer Privacy Act (CCPA)." />
+
+                    <!-- CCPA Rights -->
+                    <StackPanel Spacing="12">
+
+                        <!-- Right to Know -->
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      VerticalAlignment="Top"
+                                      Margin="0,4,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock Text="Right to Know"
+                                           Style="{StaticResource LabelStyle}"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock Text="What personal information is collected &#x2014; see 'Information We Collect' above for a complete enumeration."
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Right to Delete -->
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      VerticalAlignment="Top"
+                                      Margin="0,4,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock Text="Right to Delete"
+                                           Style="{StaticResource LabelStyle}"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock Text="Remove all data by uninstalling the app or deleting the application data directory."
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Right to Opt-Out of Sale -->
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      VerticalAlignment="Top"
+                                      Margin="0,4,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock Text="Right to Opt-Out of Sale"
+                                           Style="{StaticResource LabelStyle}"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock Style="{StaticResource BodySecondaryStyle}"
+                                           Text="We do not sell your personal information. We never have and never will." />
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Right to Non-Discrimination -->
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      VerticalAlignment="Top"
+                                      Margin="0,4,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock Text="Right to Non-Discrimination"
+                                           Style="{StaticResource LabelStyle}"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock Text="We do not discriminate against users who exercise their privacy rights."
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Separator -->
+                    <Border Style="{StaticResource SeparatorStyle}" />
+
+                    <!-- Categories of Personal Information -->
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Categories of Personal Information"
+                                   Style="{StaticResource HeadingSmallStyle}" />
+                        <StackPanel Spacing="8" Margin="8,0,0,0">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="&#x2022;"
+                                           Style="{StaticResource BodyStyle}"
+                                           Foreground="{StaticResource TextAccentBrush}"
+                                           VerticalAlignment="Top" />
+                                <TextBlock Text="Documents and files you import"
+                                           Style="{StaticResource BodyStyle}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="&#x2022;"
+                                           Style="{StaticResource BodyStyle}"
+                                           Foreground="{StaticResource TextAccentBrush}"
+                                           VerticalAlignment="Top" />
+                                <TextBlock Text="AI conversation history"
+                                           Style="{StaticResource BodyStyle}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="&#x2022;"
+                                           Style="{StaticResource BodyStyle}"
+                                           Foreground="{StaticResource TextAccentBrush}"
+                                           VerticalAlignment="Top" />
+                                <TextBlock Text="Application preferences"
+                                           Style="{StaticResource BodyStyle}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Separator -->
+                    <Border Style="{StaticResource SeparatorStyle}" />
+
+                    <!-- No Sale of Data Callout -->
+                    <Border Style="{StaticResource CardInsetStyle}">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE72E;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="14"
+                                      Foreground="{StaticResource SuccessBrush}"
+                                      VerticalAlignment="Top"
+                                      Margin="0,2,0,0" />
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="No Sale of Data"
+                                           Style="{StaticResource LabelStyle}"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock Text="Strategia-X does not sell, rent, or trade any user data. Your information is yours alone."
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+
+            <!-- ==========================================================
+                 ROW 8: DATA SECURITY
+                 ========================================================== -->
+            <Border Grid.Row="8" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="16">
+
+                    <!-- Section Header -->
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Border Background="{StaticResource AccentSubtleBrush}"
+                                CornerRadius="{StaticResource RadiusSM}"
+                                Width="32" Height="32">
+                            <FontIcon Glyph="&#xE72E;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="Data Security"
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="Your data security depends on your device's security. Since all data remains local, you benefit from your operating system's built-in protections." />
+
+                    <TextBlock Style="{StaticResource BodySecondaryStyle}"
+                               Text="We recommend the following practices to keep your data secure:" />
+
+                    <StackPanel Spacing="8" Margin="8,0,0,0">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="11"
+                                      Foreground="{StaticResource SuccessBrush}"
+                                      VerticalAlignment="Top"
+                                      Margin="0,4,0,0" />
+                            <TextBlock Text="Keep your operating system and software updated"
+                                       Style="{StaticResource BodyStyle}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="11"
+                                      Foreground="{StaticResource SuccessBrush}"
+                                      VerticalAlignment="Top"
+                                      Margin="0,4,0,0" />
+                            <TextBlock Text="Use strong device passwords and biometric locks where available"
+                                       Style="{StaticResource BodyStyle}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="11"
+                                      Foreground="{StaticResource SuccessBrush}"
+                                      VerticalAlignment="Top"
+                                      Margin="0,4,0,0" />
+                            <TextBlock Text="Encrypt your hard drive (e.g., BitLocker on Windows)"
+                                       Style="{StaticResource BodyStyle}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Separator -->
+                    <Border Style="{StaticResource SeparatorStyle}" />
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Agent-X does not implement additional encryption beyond what your operating system provides."
+                                   Style="{StaticResource BodySecondaryStyle}" />
+                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,4,0,0">
+                            <FontIcon Glyph="&#xE946;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="12"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource AccentBodyStyle}"
+                                       Text="Network security: by default, all AI processing is local. No data leaves your network." />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+
+            <!-- ==========================================================
+                 ROW 9: CHILDREN'S PRIVACY
+                 ========================================================== -->
+            <Border Grid.Row="9" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+
+                    <!-- Section Header -->
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Border Background="{StaticResource AccentSubtleBrush}"
+                                CornerRadius="{StaticResource RadiusSM}"
+                                Width="32" Height="32">
+                            <FontIcon Glyph="&#xE7EF;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="Children's Privacy"
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="Agent-X is not directed at children under the age of 13. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided information through the application, please contact us so we can assist." />
+                </StackPanel>
+            </Border>
+
+
+            <!-- ==========================================================
+                 ROW 10: CHANGES TO THIS PRIVACY POLICY
+                 ========================================================== -->
+            <Border Grid.Row="10" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+
+                    <!-- Section Header -->
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Border Background="{StaticResource AccentSubtleBrush}"
+                                CornerRadius="{StaticResource RadiusSM}"
+                                Width="32" Height="32">
+                            <FontIcon Glyph="&#xE70F;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="Changes to This Privacy Policy"
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="We may update this Privacy Policy from time to time. When we make changes, we will revise the effective date at the top of this page. Changes will be reflected in the application with an updated effective date." />
+
+                    <TextBlock Style="{StaticResource BodySecondaryStyle}"
+                               Text="We encourage you to review this Privacy Policy periodically to stay informed about how we protect your information." />
+                </StackPanel>
+            </Border>
+
+
+            <!-- ==========================================================
+                 ROW 11: CONTACT US
+                 ========================================================== -->
+            <Border Grid.Row="11" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="16">
+
+                    <!-- Section Header -->
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Border Background="{StaticResource AccentSubtleBrush}"
+                                CornerRadius="{StaticResource RadiusSM}"
+                                Width="32" Height="32">
+                            <FontIcon Glyph="&#xE715;"
+                                      FontFamily="Segoe MDL2 Assets"
+                                      FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="Contact Us"
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="If you have any questions, concerns, or requests regarding this Privacy Policy or our data practices, please reach out to us." />
+
+                    <!-- Contact Details -->
+                    <Border Style="{StaticResource CardInsetStyle}">
+                        <StackPanel Spacing="12">
+
+                            <!-- Company -->
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <FontIcon Glyph="&#xE731;"
+                                          FontFamily="Segoe MDL2 Assets"
+                                          FontSize="14"
+                                          Foreground="{StaticResource TextAccentBrush}"
+                                          VerticalAlignment="Center" />
+                                <StackPanel Grid.Column="1" Spacing="2">
+                                    <TextBlock Text="Company"
+                                               Style="{StaticResource LabelStyle}" />
+                                    <TextBlock Text="Strategia-X"
+                                               Style="{StaticResource BodyStyle}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Separator -->
+                            <Border Style="{StaticResource SeparatorStyle}" Margin="0" />
+
+                            <!-- Email -->
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <FontIcon Glyph="&#xE715;"
+                                          FontFamily="Segoe MDL2 Assets"
+                                          FontSize="14"
+                                          Foreground="{StaticResource TextAccentBrush}"
+                                          VerticalAlignment="Center" />
+                                <StackPanel Grid.Column="1" Spacing="2">
+                                    <TextBlock Text="Privacy Questions"
+                                               Style="{StaticResource LabelStyle}" />
+                                    <TextBlock Text="support@strategia-x.com"
+                                               Style="{StaticResource BodyStyle}"
+                                               Foreground="{StaticResource TextLinkBrush}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Separator -->
+                            <Border Style="{StaticResource SeparatorStyle}" Margin="0" />
+
+                            <!-- GDPR Contact -->
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <FontIcon Glyph="&#xE909;"
+                                          FontFamily="Segoe MDL2 Assets"
+                                          FontSize="14"
+                                          Foreground="{StaticResource TextAccentBrush}"
+                                          VerticalAlignment="Center" />
+                                <StackPanel Grid.Column="1" Spacing="2">
+                                    <TextBlock Text="GDPR Data Protection Contact"
+                                               Style="{StaticResource LabelStyle}" />
+                                    <TextBlock Text="For GDPR inquiries, our Data Protection contact can be reached at support@strategia-x.com"
+                                               Style="{StaticResource BodySecondaryStyle}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Separator -->
+                            <Border Style="{StaticResource SeparatorStyle}" Margin="0" />
+
+                            <!-- CCPA Contact -->
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <FontIcon Glyph="&#xE8A3;"
+                                          FontFamily="Segoe MDL2 Assets"
+                                          FontSize="14"
+                                          Foreground="{StaticResource TextAccentBrush}"
+                                          VerticalAlignment="Center" />
+                                <StackPanel Grid.Column="1" Spacing="2">
+                                    <TextBlock Text="CCPA Requests (California Residents)"
+                                               Style="{StaticResource LabelStyle}" />
+                                    <TextBlock Text="California residents may contact us at support@strategia-x.com for any CCPA-related requests."
+                                               Style="{StaticResource BodySecondaryStyle}" />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+
+            <!-- ==========================================================
+                 ROW 12: FOOTER
+                 ========================================================== -->
+            <StackPanel Grid.Row="12"
+                        HorizontalAlignment="Center"
+                        Spacing="4"
+                        Margin="0,8,0,24">
+                <TextBlock Style="{StaticResource CaptionStyle}"
+                           HorizontalAlignment="Center">
+                    <Run Text="&#x00A9; 2026 Strategia-X. All rights reserved." />
+                </TextBlock>
+                <TextBlock Text="Agent-X &#x2014; Local-First AI Personal Intelligence Hub"
+                           Style="{StaticResource CaptionStyle}"
+                           HorizontalAlignment="Center" />
+            </StackPanel>
+
+        </Grid>
+    </ScrollViewer>
+</Page>

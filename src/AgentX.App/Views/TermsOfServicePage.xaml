@@ -1,0 +1,786 @@
+<Page
+    x:Class="AgentX.App.Views.TermsOfServicePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="Transparent"
+    NavigationCacheMode="Enabled">
+
+    <!--
+    ╔══════════════════════════════════════════════════════════════════╗
+    ║                 AGENT-X TERMS OF SERVICE PAGE                    ║
+    ║                                                                  ║
+    ║  Comprehensive legal terms for Agent-X desktop application.      ║
+    ║  Effective Date: February 26, 2026                               ║
+    ║  Company: Strategia-X                                            ║
+    ╚══════════════════════════════════════════════════════════════════╝
+    -->
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled"
+                  Padding="0">
+
+        <Grid Padding="{StaticResource PaddingPage}"
+              RowSpacing="20"
+              MaxWidth="900"
+              HorizontalAlignment="Center">
+
+            <Grid.RowDefinitions>
+                <!-- Row 0:  Page Header -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 1:  Acceptance of Terms -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 2:  Description of Service -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 3:  License Grant -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 4:  User Responsibilities -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 5:  Intellectual Property -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 6:  Third-Party Software -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 7:  Privacy -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 8:  Disclaimer of Warranties (warning card) -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 9:  Limitation of Liability (warning card) -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 10: AI-Generated Content Disclaimer -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 11: Indemnification -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 12: Termination -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 13: Modifications to Terms -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 14: Governing Law -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 15: Severability -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 16: Entire Agreement -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 17: Contact Information -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 18: Footer -->
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+
+            <!-- ══════════════════════════════════════════════════════════
+                 ROW 0: PAGE HEADER
+                 ══════════════════════════════════════════════════════════ -->
+            <StackPanel Grid.Row="0" Spacing="12" Margin="0,0,0,8">
+
+                <!-- Overline label -->
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon Glyph="&#xE7BA;"
+                              FontSize="14"
+                              Foreground="{StaticResource TextAccentBrush}" />
+                    <TextBlock Text="LEGAL"
+                               Style="{StaticResource OverlineStyle}"
+                               Foreground="{StaticResource TextAccentBrush}" />
+                </StackPanel>
+
+                <!-- Title -->
+                <TextBlock Text="Terms of Service"
+                           Style="{StaticResource DisplaySmallStyle}" />
+
+                <!-- Effective date -->
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon Glyph="&#xE787;"
+                              FontSize="12"
+                              Foreground="{StaticResource TextTertiaryBrush}" />
+                    <TextBlock Text="Effective Date: February 26, 2026"
+                               Style="{StaticResource CaptionStyle}" />
+                </StackPanel>
+
+                <!-- Intro paragraph -->
+                <TextBlock Style="{StaticResource BodySecondaryStyle}"
+                           Margin="0,4,0,0"
+                           Text="Please read these Terms of Service ('Terms') carefully before using Agent-X, a desktop application developed by Strategia-X ('Company', 'we', 'us', 'our'). By installing or using Agent-X, you agree to be bound by these Terms." />
+            </StackPanel>
+
+
+            <!-- ══════════════════════════════════════════════════════════
+                 ROW 1: ACCEPTANCE OF TERMS
+                 ══════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="1" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Glyph="&#xE8FB;"
+                                  FontSize="18"
+                                  Foreground="{StaticResource TextAccentBrush}" />
+                        <TextBlock Text="1. Acceptance of Terms"
+                                   Style="{StaticResource HeadingMediumStyle}" />
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="By downloading, installing, or using Agent-X, you acknowledge that you have read, understood, and agree to be bound by these Terms. If you do not agree to these Terms, you must not use Agent-X. Your continued use of the application constitutes your ongoing acceptance of any updated Terms." />
+                </StackPanel>
+            </Border>
+
+
+            <!-- ══════════════════════════════════════════════════════════
+                 ROW 2: DESCRIPTION OF SERVICE
+                 ══════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Glyph="&#xE946;"
+                                  FontSize="18"
+                                  Foreground="{StaticResource TextAccentBrush}" />
+                        <TextBlock Text="2. Description of Service"
+                                   Style="{StaticResource HeadingMediumStyle}" />
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="Agent-X is a local-first AI personal intelligence hub for Windows. It provides the following capabilities:" />
+
+                    <!-- Feature list -->
+                    <StackPanel Spacing="8" Margin="8,0,0,0">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontSize="12"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="Local AI chat via Ollama integration" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontSize="12"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="Document management and indexing" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontSize="12"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="Retrieval-augmented generation (RAG)" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontSize="12"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="Semantic search across your documents" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontSize="12"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="Model management" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontSize="12"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="Hardware capability analysis" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <TextBlock Style="{StaticResource BodySecondaryStyle}"
+                               Margin="0,4,0,0"
+                               Text="All processing occurs locally on your device. Agent-X does not transmit your data to external servers for AI inference." />
+                </StackPanel>
+            </Border>
+
+
+            <!-- ══════════════════════════════════════════════════════════
+                 ROW 3: LICENSE GRANT
+                 ══════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="3" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Glyph="&#xE8D7;"
+                                  FontSize="18"
+                                  Foreground="{StaticResource TextAccentBrush}" />
+                        <TextBlock Text="3. License Grant"
+                                   Style="{StaticResource HeadingMediumStyle}" />
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="Strategia-X grants you a limited, non-exclusive, non-transferable, revocable license to use Agent-X for personal or internal business purposes, subject to these Terms." />
+
+                    <TextBlock Style="{StaticResource HeadingSmallStyle}"
+                               Text="This license does not include the right to:"
+                               Margin="0,4,0,0" />
+
+                    <StackPanel Spacing="8" Margin="8,0,0,0">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE711;"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextTertiaryBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="Modify, reverse engineer, or decompile the software" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE711;"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextTertiaryBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="Distribute or sublicense the software to third parties" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE711;"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextTertiaryBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="Use the software for any illegal or unauthorized purposes" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE711;"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextTertiaryBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="Remove or alter any proprietary notices, labels, or marks" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+
+            <!-- ══════════════════════════════════════════════════════════
+                 ROW 4: USER RESPONSIBILITIES
+                 ══════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="4" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Glyph="&#xE77B;"
+                                  FontSize="18"
+                                  Foreground="{StaticResource TextAccentBrush}" />
+                        <TextBlock Text="4. User Responsibilities"
+                                   Style="{StaticResource HeadingMediumStyle}" />
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="You are responsible for:" />
+
+                    <StackPanel Spacing="8" Margin="8,0,0,0">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xEA3C;"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="Ensuring your system meets the minimum hardware and software requirements for Agent-X" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xEA3C;"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="Installing and maintaining Ollama separately, as it is not bundled with Agent-X" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xEA3C;"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="The content of any documents you import into or process through Agent-X" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xEA3C;"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="Compliance with all applicable laws and regulations regarding your use of the application" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xEA3C;"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="Maintaining the security of your device and any credentials stored locally" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xEA3C;"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="Backing up your data regularly, as Strategia-X is not responsible for data loss" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+
+            <!-- ══════════════════════════════════════════════════════════
+                 ROW 5: INTELLECTUAL PROPERTY
+                 ══════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="5" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Glyph="&#xE82D;"
+                                  FontSize="18"
+                                  Foreground="{StaticResource TextAccentBrush}" />
+                        <TextBlock Text="5. Intellectual Property"
+                                   Style="{StaticResource HeadingMediumStyle}" />
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="Agent-X and all associated intellectual property, including but not limited to source code, algorithms, user interface designs, and documentation, are and remain the exclusive property of Strategia-X. The application name, logos, and branding are trademarks of Strategia-X." />
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="Your documents and data remain your property at all times. We claim no ownership of content you process through Agent-X. You retain all rights to your intellectual property." />
+                </StackPanel>
+            </Border>
+
+
+            <!-- ══════════════════════════════════════════════════════════
+                 ROW 6: THIRD-PARTY SOFTWARE
+                 ══════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="6" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Glyph="&#xE71B;"
+                                  FontSize="18"
+                                  Foreground="{StaticResource TextAccentBrush}" />
+                        <TextBlock Text="6. Third-Party Software"
+                                   Style="{StaticResource HeadingMediumStyle}" />
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="Agent-X integrates with Ollama, an open-source project developed by Ollama, Inc. Ollama is subject to its own license terms and conditions, which are separate from these Terms. You are responsible for reviewing and complying with Ollama's terms of service." />
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="Agent-X also uses various open-source libraries, each governed by their respective licenses. These licenses are included in the application distribution. Your use of Agent-X constitutes acceptance of these third-party license terms." />
+                </StackPanel>
+            </Border>
+
+
+            <!-- ══════════════════════════════════════════════════════════
+                 ROW 7: PRIVACY
+                 ══════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="7" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Glyph="&#xE72E;"
+                                  FontSize="18"
+                                  Foreground="{StaticResource TextAccentBrush}" />
+                        <TextBlock Text="7. Privacy"
+                                   Style="{StaticResource HeadingMediumStyle}" />
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="Your use of Agent-X is also governed by our Privacy Policy, which is accessible within the application. The Privacy Policy describes how we handle data, what information (if any) is collected, and your rights regarding your personal data." />
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="By using Agent-X, you acknowledge and agree to our data practices as described in the Privacy Policy. The Privacy Policy is incorporated into these Terms by reference." />
+                </StackPanel>
+            </Border>
+
+
+            <!-- ══════════════════════════════════════════════════════════
+                 ROW 8: DISCLAIMER OF WARRANTIES (Warning-style card)
+                 ══════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="8"
+                    CornerRadius="{StaticResource RadiusLG}"
+                    Padding="{StaticResource PaddingCard}"
+                    BorderThickness="1"
+                    BorderBrush="{StaticResource WarningBrush}"
+                    Opacity="1">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#1AF59E0B" Offset="0.0" />
+                        <GradientStop Color="{StaticResource Surface1}" Offset="0.35" />
+                        <GradientStop Color="{StaticResource Surface0}" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Border.Background>
+
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Glyph="&#xE7BA;"
+                                  FontSize="18"
+                                  Foreground="{StaticResource WarningBrush}" />
+                        <TextBlock Text="8. Disclaimer of Warranties"
+                                   Style="{StaticResource HeadingMediumStyle}" />
+                    </StackPanel>
+
+                    <!-- Uppercase legal disclaimer block -->
+                    <Border Background="{StaticResource InputBackgroundBrush}"
+                            CornerRadius="{StaticResource RadiusMD}"
+                            Padding="16"
+                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                            BorderThickness="1">
+                        <TextBlock Style="{StaticResource BodyStyle}"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Text="AGENT-X IS PROVIDED &quot;AS IS&quot; AND &quot;AS AVAILABLE&quot; WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED. TO THE FULLEST EXTENT PERMITTED BY LAW, STRATEGIA-X DISCLAIMS ALL WARRANTIES INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT." />
+                    </Border>
+
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="We do not warrant that:" />
+
+                    <StackPanel Spacing="8" Margin="8,0,0,0">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE711;"
+                                      FontSize="11"
+                                      Foreground="{StaticResource WarningBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="The application will be error-free or uninterrupted" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE711;"
+                                      FontSize="11"
+                                      Foreground="{StaticResource WarningBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="AI-generated responses will be accurate, complete, or reliable" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE711;"
+                                      FontSize="11"
+                                      Foreground="{StaticResource WarningBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="The application will meet your specific requirements" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE711;"
+                                      FontSize="11"
+                                      Foreground="{StaticResource WarningBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="Defects in the application will be corrected in a timely manner" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+
+            <!-- ══════════════════════════════════════════════════════════
+                 ROW 9: LIMITATION OF LIABILITY (Warning-style card)
+                 ══════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="9"
+                    CornerRadius="{StaticResource RadiusLG}"
+                    Padding="{StaticResource PaddingCard}"
+                    BorderThickness="1"
+                    BorderBrush="{StaticResource WarningBrush}"
+                    Opacity="1">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#1AF59E0B" Offset="0.0" />
+                        <GradientStop Color="{StaticResource Surface1}" Offset="0.35" />
+                        <GradientStop Color="{StaticResource Surface0}" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Border.Background>
+
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Glyph="&#xE7BA;"
+                                  FontSize="18"
+                                  Foreground="{StaticResource WarningBrush}" />
+                        <TextBlock Text="9. Limitation of Liability"
+                                   Style="{StaticResource HeadingMediumStyle}" />
+                    </StackPanel>
+
+                    <!-- Uppercase legal disclaimer block -->
+                    <Border Background="{StaticResource InputBackgroundBrush}"
+                            CornerRadius="{StaticResource RadiusMD}"
+                            Padding="16"
+                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                            BorderThickness="1">
+                        <TextBlock Style="{StaticResource BodyStyle}"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Text="TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, STRATEGIA-X SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DOCUMENTS, LOSS OF PROFITS OR REVENUE, DAMAGE TO HARDWARE OR SOFTWARE, BUSINESS INTERRUPTION, OR ANY OTHER INTANGIBLE LOSSES ARISING FROM YOUR USE OF OR INABILITY TO USE AGENT-X." />
+                    </Border>
+
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="This limitation applies regardless of the legal theory on which the claim is based, whether we have been advised of the possibility of such damages, and even if a remedy fails of its essential purpose." />
+
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               FontWeight="SemiBold"
+                               Text="Our total aggregate liability to you for all claims arising from or relating to Agent-X shall not exceed the amount you paid for Agent-X." />
+                </StackPanel>
+            </Border>
+
+
+            <!-- ══════════════════════════════════════════════════════════
+                 ROW 10: AI-GENERATED CONTENT DISCLAIMER
+                 ══════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="10" Style="{StaticResource CardAccentStyle}">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Glyph="&#xE99A;"
+                                  FontSize="18"
+                                  Foreground="{StaticResource TextAccentBrush}" />
+                        <TextBlock Text="10. AI-Generated Content Disclaimer"
+                                   Style="{StaticResource HeadingMediumStyle}" />
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="Agent-X uses locally-running AI models to generate responses and perform analysis. It is important that you understand the following:" />
+
+                    <StackPanel Spacing="8" Margin="8,0,0,0">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE946;"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="AI output may contain inaccuracies, errors, or biases inherent in the underlying models" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE946;"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="You should independently verify any important information generated by AI before relying on it" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE946;"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="Strategia-X is not responsible for any decisions made based on AI-generated content" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE946;"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="AI responses do not constitute professional advice of any kind, including but not limited to legal, medical, financial, or engineering advice" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+
+            <!-- ══════════════════════════════════════════════════════════
+                 ROW 11: INDEMNIFICATION
+                 ══════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="11" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Glyph="&#xE83D;"
+                                  FontSize="18"
+                                  Foreground="{StaticResource TextAccentBrush}" />
+                        <TextBlock Text="11. Indemnification"
+                                   Style="{StaticResource HeadingMediumStyle}" />
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="You agree to indemnify, defend, and hold harmless Strategia-X, its officers, directors, employees, agents, and affiliates from and against any and all claims, damages, obligations, losses, liabilities, costs, or expenses (including reasonable attorneys' fees) arising from:" />
+
+                    <StackPanel Spacing="8" Margin="8,0,0,0">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xEA3C;"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="Your use or misuse of the application" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xEA3C;"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="Your violation of these Terms" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xEA3C;"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="Your violation of any third-party rights, including intellectual property rights" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xEA3C;"
+                                      FontSize="11"
+                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       Text="Content you process, import, or generate through the application" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+
+            <!-- ══════════════════════════════════════════════════════════
+                 ROW 12: TERMINATION
+                 ══════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="12" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Glyph="&#xE7E8;"
+                                  FontSize="18"
+                                  Foreground="{StaticResource TextAccentBrush}" />
+                        <TextBlock Text="12. Termination"
+                                   Style="{StaticResource HeadingMediumStyle}" />
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="We may terminate or suspend your license to use Agent-X at any time, with or without notice, for conduct that we believe violates these Terms or is harmful to other users, Strategia-X, or third parties, or for any other reason at our sole discretion." />
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="You may terminate your use of Agent-X at any time by uninstalling the application and deleting all associated data from your device." />
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="Upon termination, whether initiated by you or by Strategia-X, all rights and licenses granted to you under these Terms will cease immediately. Sections regarding Intellectual Property, Disclaimer of Warranties, Limitation of Liability, and Indemnification shall survive termination." />
+                </StackPanel>
+            </Border>
+
+
+            <!-- ══════════════════════════════════════════════════════════
+                 ROW 13: MODIFICATIONS TO TERMS
+                 ══════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="13" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Glyph="&#xE70F;"
+                                  FontSize="18"
+                                  Foreground="{StaticResource TextAccentBrush}" />
+                        <TextBlock Text="13. Modifications to Terms"
+                                   Style="{StaticResource HeadingMediumStyle}" />
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="We reserve the right to modify these Terms at any time at our sole discretion. When we make material changes, we will notify you through the application or by other appropriate means." />
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="Your continued use of Agent-X after any such modifications constitutes your acceptance of the revised Terms. If you do not agree to the modified Terms, you must discontinue use of the application." />
+                </StackPanel>
+            </Border>
+
+
+            <!-- ══════════════════════════════════════════════════════════
+                 ROW 14: GOVERNING LAW
+                 ══════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="14" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Glyph="&#xE909;"
+                                  FontSize="18"
+                                  Foreground="{StaticResource TextAccentBrush}" />
+                        <TextBlock Text="14. Governing Law"
+                                   Style="{StaticResource HeadingMediumStyle}" />
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="These Terms shall be governed by and construed in accordance with the laws of the State of California, United States, without regard to its conflict of law provisions." />
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="Any disputes arising out of or relating to these Terms or your use of Agent-X shall be resolved exclusively in the state or federal courts located in California. You consent to the personal jurisdiction of such courts and waive any objection to venue." />
+                </StackPanel>
+            </Border>
+
+
+            <!-- ══════════════════════════════════════════════════════════
+                 ROW 15: SEVERABILITY
+                 ══════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="15" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Glyph="&#xE8C8;"
+                                  FontSize="18"
+                                  Foreground="{StaticResource TextAccentBrush}" />
+                        <TextBlock Text="15. Severability"
+                                   Style="{StaticResource HeadingMediumStyle}" />
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="If any provision of these Terms is found to be invalid, illegal, or unenforceable by a court of competent jurisdiction, the remaining provisions of these Terms shall remain in full force and effect. The invalid provision shall be modified to the minimum extent necessary to make it valid and enforceable while preserving the original intent." />
+                </StackPanel>
+            </Border>
+
+
+            <!-- ══════════════════════════════════════════════════════════
+                 ROW 16: ENTIRE AGREEMENT
+                 ══════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="16" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Glyph="&#xE8A5;"
+                                  FontSize="18"
+                                  Foreground="{StaticResource TextAccentBrush}" />
+                        <TextBlock Text="16. Entire Agreement"
+                                   Style="{StaticResource HeadingMediumStyle}" />
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="These Terms, together with the Privacy Policy and any additional terms referenced herein, constitute the entire agreement between you and Strategia-X regarding your use of Agent-X. These Terms supersede all prior agreements, understandings, representations, and warranties, both written and oral, regarding the subject matter." />
+                </StackPanel>
+            </Border>
+
+
+            <!-- ══════════════════════════════════════════════════════════
+                 ROW 17: CONTACT INFORMATION
+                 ══════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="17" Style="{StaticResource CardAccentStyle}">
+                <StackPanel Spacing="16">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Glyph="&#xE715;"
+                                  FontSize="18"
+                                  Foreground="{StaticResource TextAccentBrush}" />
+                        <TextBlock Text="17. Contact Information"
+                                   Style="{StaticResource HeadingMediumStyle}" />
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="If you have any questions, concerns, or requests regarding these Terms of Service, please contact us:" />
+
+                    <!-- Contact details card -->
+                    <Border Background="{StaticResource InputBackgroundBrush}"
+                            CornerRadius="{StaticResource RadiusMD}"
+                            Padding="20"
+                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                            BorderThickness="1">
+                        <StackPanel Spacing="12">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon Glyph="&#xE731;"
+                                          FontSize="14"
+                                          Foreground="{StaticResource TextAccentBrush}"
+                                          VerticalAlignment="Center" />
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Email"
+                                               Style="{StaticResource LabelStyle}" />
+                                    <TextBlock Text="support@strategia-x.com"
+                                               Style="{StaticResource AccentBodyStyle}" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <Border Style="{StaticResource SeparatorStyle}" />
+
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon Glyph="&#xE7EE;"
+                                          FontSize="14"
+                                          Foreground="{StaticResource TextAccentBrush}"
+                                          VerticalAlignment="Center" />
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Company"
+                                               Style="{StaticResource LabelStyle}" />
+                                    <TextBlock Text="Strategia-X"
+                                               Style="{StaticResource BodyStyle}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+
+            <!-- ══════════════════════════════════════════════════════════
+                 ROW 18: FOOTER
+                 ══════════════════════════════════════════════════════════ -->
+            <StackPanel Grid.Row="18"
+                        Spacing="4"
+                        HorizontalAlignment="Center"
+                        Margin="0,8,0,16">
+                <TextBlock Style="{StaticResource CaptionStyle}"
+                           HorizontalAlignment="Center"
+                           Text="Agent-X by Strategia-X" />
+                <TextBlock Style="{StaticResource CaptionStyle}"
+                           HorizontalAlignment="Center"
+                           Foreground="{StaticResource TextTertiaryBrush}"
+                           Text="These Terms of Service were last updated on February 26, 2026." />
+            </StackPanel>
+
+        </Grid>
+    </ScrollViewer>
+</Page>

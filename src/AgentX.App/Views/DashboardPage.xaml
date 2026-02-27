@@ -16,7 +16,7 @@
                   HorizontalScrollBarVisibility="Disabled"
                   Padding="0">
 
-        <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="1200">
+        <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="1200" HorizontalAlignment="Center">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -84,7 +84,7 @@
                             Content="Setup AI"
                             Style="{StaticResource AccentButtonStyle}"
                             VerticalAlignment="Center"
-                            Command="{x:Bind ViewModel.NavigateToChatCommand}" />
+                            Command="{x:Bind ViewModel.SetupAiCommand}" />
                 </Grid>
             </Border>
 

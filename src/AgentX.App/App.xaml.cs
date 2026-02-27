@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Xaml;
@@ -47,10 +48,45 @@ public partial class App : Application
             .ConfigureServices(ConfigureServices)
             .Build();
 
+        // Initialize critical services before showing the window
+        InitializeCoreServicesAsync();
+
         _mainWindow = new MainWindow();
         _mainWindow.Activate();
 
         Log.Information("Agent-X started successfully");
+    }
+
+    /// <summary>
+    /// Initializes the database and AI service on startup.
+    /// Runs as fire-and-forget so the window appears immediately while
+    /// initialization continues in the background.
+    /// </summary>
+    private static async void InitializeCoreServicesAsync()
+    {
+        // 1. Ensure the database schema exists
+        try
+        {
+            var dbContext = GetService<AgentXDbContext>();
+            await dbContext.Database.EnsureCreatedAsync();
+            Log.Information("Database initialized at {Path}",
+                dbContext.Database.GetConnectionString());
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to initialize database");
+        }
+
+        // 2. Initialize the AI service (creates provider, tests connection)
+        try
+        {
+            var aiService = GetService<IAiService>();
+            await aiService.InitializeAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "AI service initialization failed — Ollama may not be running");
+        }
     }
 
     private void ConfigureServices(HostBuilderContext context, IServiceCollection services)
@@ -138,6 +174,9 @@ public partial class App : Application
         services.AddTransient<Views.HardwareAdvisorPage>();
         services.AddTransient<Views.QuickActionsPage>();
         services.AddTransient<Views.OnboardingPage>();
+        services.AddTransient<Views.UserGuidePage>();
+        services.AddTransient<Views.PrivacyPolicyPage>();
+        services.AddTransient<Views.TermsOfServicePage>();
     }
 
     private static void ConfigureLogging()

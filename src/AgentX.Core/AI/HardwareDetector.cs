@@ -12,6 +12,8 @@ namespace AgentX.Core.AI;
 public sealed class HardwareDetector : IHardwareDetector
 {
     private readonly ILogger _logger;
+    private HardwareCapability? _cachedResult;
+    private readonly SemaphoreSlim _detectLock = new(1, 1);
 
     public HardwareDetector()
     {
@@ -21,28 +23,45 @@ public sealed class HardwareDetector : IHardwareDetector
     /// <inheritdoc />
     public async Task<HardwareCapability> DetectAsync(CancellationToken ct = default)
     {
-        _logger.Information("Starting hardware detection...");
+        // Return cached result if available (WMI queries are expensive)
+        if (_cachedResult is not null)
+            return _cachedResult;
 
-        var capability = new HardwareCapability();
-
-        // Run WMI queries on a background thread to avoid blocking the UI thread,
-        // since WMI calls can be slow and are synchronous by nature.
-        await Task.Run(() =>
+        await _detectLock.WaitAsync(ct).ConfigureAwait(false);
+        try
         {
-            DetectGpu(capability);
-            DetectCpu(capability);
-            DetectMemory(capability);
-            DetectNpu(capability);
-        }, ct).ConfigureAwait(false);
+            // Double-check after acquiring lock
+            if (_cachedResult is not null)
+                return _cachedResult;
 
-        _logger.Information(
-            "Hardware detection complete: GPU={GpuName} ({GpuVram}), CPU={CpuName} ({CpuCores} cores), " +
-            "RAM={TotalRam}, NPU={HasNpu}",
-            capability.GpuName, capability.GpuVramFormatted,
-            capability.CpuName, capability.CpuCores,
-            capability.TotalRamFormatted, capability.HasNpu);
+            _logger.Information("Starting hardware detection...");
 
-        return capability;
+            var capability = new HardwareCapability();
+
+            // Run WMI queries on a background thread to avoid blocking the UI thread,
+            // since WMI calls can be slow and are synchronous by nature.
+            await Task.Run(() =>
+            {
+                DetectGpu(capability);
+                DetectCpu(capability);
+                DetectMemory(capability);
+                DetectNpu(capability);
+            }, ct).ConfigureAwait(false);
+
+            _logger.Information(
+                "Hardware detection complete: GPU={GpuName} ({GpuVram}), CPU={CpuName} ({CpuCores} cores), " +
+                "RAM={TotalRam}, NPU={HasNpu}",
+                capability.GpuName, capability.GpuVramFormatted,
+                capability.CpuName, capability.CpuCores,
+                capability.TotalRamFormatted, capability.HasNpu);
+
+            _cachedResult = capability;
+            return capability;
+        }
+        finally
+        {
+            _detectLock.Release();
+        }
     }
 
     // ── GPU Detection via Win32_VideoController ─────────────────────

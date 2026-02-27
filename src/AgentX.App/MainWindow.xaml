@@ -204,6 +204,41 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
+                <NavigationViewItemSeparator Margin="12,6" />
+
+                <!-- SUPPORT SECTION -->
+                <NavigationViewItemHeader Content="SUPPORT"
+                                          Foreground="{StaticResource TextTertiaryBrush}"
+                                          FontSize="10"
+                                          FontWeight="SemiBold" />
+
+                <NavigationViewItem x:Name="NavUserGuide"
+                                    Content="User Guide"
+                                    Tag="UserGuide"
+                                    Style="{StaticResource AgentXNavItemStyle}">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE7BE;" FontSize="16" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem x:Name="NavPrivacyPolicy"
+                                    Content="Privacy Policy"
+                                    Tag="PrivacyPolicy"
+                                    Style="{StaticResource AgentXNavItemStyle}">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE72E;" FontSize="16" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem x:Name="NavTermsOfService"
+                                    Content="Terms of Service"
+                                    Tag="TermsOfService"
+                                    Style="{StaticResource AgentXNavItemStyle}">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8A5;" FontSize="16" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
             </NavigationView.MenuItems>
 
             <!-- ═══════════════════════════════════════════════════
