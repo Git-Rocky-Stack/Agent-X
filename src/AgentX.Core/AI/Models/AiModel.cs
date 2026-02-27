@@ -4,7 +4,9 @@ public class AiModel
 {
     public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
+    public string ProviderId { get; set; } = string.Empty;
     public string Family { get; set; } = string.Empty;
+    public bool IsAvailable { get; set; } = true;
     public long SizeBytes { get; set; }
     public string QuantizationLevel { get; set; } = string.Empty;
     public int ParameterCount { get; set; }

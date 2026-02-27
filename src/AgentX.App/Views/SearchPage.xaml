@@ -59,9 +59,9 @@
 
                     <!-- Page title row -->
                     <StackPanel Spacing="4">
-                        <TextBlock Text="Semantic Search"
+                        <TextBlock Text="Search"
                                    Style="{StaticResource DisplaySmallStyle}" />
-                        <TextBlock Text="Search across your entire document library using natural language."
+                        <TextBlock Text="Search across your entire document library using semantic AI, keywords, or both."
                                    Style="{StaticResource BodySecondaryStyle}" />
                     </StackPanel>
 
@@ -123,12 +123,55 @@
             </Border>
 
             <!-- ==========================================================
-                 ROW 1: FILTER CHIPS
+                 ROW 1: SEARCH MODE TOGGLE + FILTER CHIPS
                  ========================================================== -->
 
             <Border Grid.Row="1"
                     Padding="32,0,32,12">
-                <StackPanel Spacing="8" MaxWidth="900">
+                <StackPanel Spacing="12" MaxWidth="900">
+
+                    <!-- Search Mode Toggle -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="SEARCH MODE"
+                                   Style="{StaticResource OverlineStyle}" />
+                        <Border Background="{StaticResource InputBackgroundBrush}"
+                                CornerRadius="{StaticResource RadiusMD}"
+                                Padding="3"
+                                HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal" Spacing="2">
+                                <RadioButton x:Name="ModeSemanticBtn"
+                                             Content="Semantic"
+                                             Tag="Semantic"
+                                             GroupName="SearchMode"
+                                             IsChecked="True"
+                                             Style="{StaticResource TabRadioButtonStyle}"
+                                             Checked="OnSearchModeChanged"
+                                             MinHeight="32"
+                                             Padding="14,6,14,6"
+                                             ToolTipService.ToolTip="Vector similarity search using AI embeddings" />
+                                <RadioButton x:Name="ModeKeywordBtn"
+                                             Content="Keyword"
+                                             Tag="Keyword"
+                                             GroupName="SearchMode"
+                                             Style="{StaticResource TabRadioButtonStyle}"
+                                             Checked="OnSearchModeChanged"
+                                             MinHeight="32"
+                                             Padding="14,6,14,6"
+                                             ToolTipService.ToolTip="Full-text keyword search with BM25 ranking" />
+                                <RadioButton x:Name="ModeHybridBtn"
+                                             Content="Hybrid"
+                                             Tag="Hybrid"
+                                             GroupName="SearchMode"
+                                             Style="{StaticResource TabRadioButtonStyle}"
+                                             Checked="OnSearchModeChanged"
+                                             MinHeight="32"
+                                             Padding="14,6,14,6"
+                                             ToolTipService.ToolTip="Combined semantic + keyword search for best results" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- File Type Filters -->
                     <TextBlock Text="FILE TYPE"
                                Style="{StaticResource OverlineStyle}" />
                     <StackPanel Orientation="Horizontal" Spacing="6">

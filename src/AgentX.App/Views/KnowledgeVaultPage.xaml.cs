@@ -69,7 +69,7 @@ public sealed partial class KnowledgeVaultPage : Page
             if (files is not null && files.Count > 0)
             {
                 var filePaths = files.Select(f => f.Path).ToList();
-                await ViewModel.ImportFilesCommand.ExecuteAsync(filePaths);
+                await ViewModel.ImportWithDedupCommand.ExecuteAsync(filePaths);
             }
         }
         catch (Exception ex)
@@ -203,6 +203,83 @@ public sealed partial class KnowledgeVaultPage : Page
     }
 
     // ═══════════════════════════════════════════════════════════════
+    // TAG FILTER HANDLER (Feature 7)
+    // ═══════════════════════════════════════════════════════════════
+
+    private void OnFilterTagClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button)
+        {
+            var tagName = button.Tag as string;
+            ViewModel.FilterByTagCommand.Execute(tagName);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // MULTI-SELECT HANDLER (Feature 8)
+    // ═══════════════════════════════════════════════════════════════
+
+    private void OnDocumentCheckToggle(object sender, RoutedEventArgs e)
+    {
+        if (sender is CheckBox checkBox && checkBox.Tag is long id)
+        {
+            ViewModel.ToggleDocumentSelectionCommand.Execute(id);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // ADVANCED FILTER HANDLERS (Feature 9)
+    // ═══════════════════════════════════════════════════════════════
+
+    private void OnCollectionFilterChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (sender is ComboBox comboBox)
+        {
+            if (comboBox.SelectedItem is ViewModels.CollectionFilterItem item)
+            {
+                ViewModel.CollectionFilter = item.Id;
+            }
+            else
+            {
+                ViewModel.CollectionFilter = null;
+            }
+        }
+    }
+
+    private void OnDateAfterChanged(CalendarDatePicker sender, CalendarDatePickerDateChangedEventArgs args)
+    {
+        if (args.NewDate.HasValue)
+        {
+            ViewModel.DateAfterFilter = args.NewDate.Value.DateTime;
+        }
+        else
+        {
+            ViewModel.DateAfterFilter = null;
+        }
+    }
+
+    private void OnDateBeforeChanged(CalendarDatePicker sender, CalendarDatePickerDateChangedEventArgs args)
+    {
+        if (args.NewDate.HasValue)
+        {
+            ViewModel.DateBeforeFilter = args.NewDate.Value.DateTime;
+        }
+        else
+        {
+            ViewModel.DateBeforeFilter = null;
+        }
+    }
+
+    private void OnSortByChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem item)
+        {
+            var sort = item.Tag as string ?? "date";
+            ViewModel.SortBy = sort;
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
     // DOCUMENT ACTION BUTTON HANDLERS
     // These bridge the DataTemplate button clicks to ViewModel commands,
     // since x:Bind with CommandParameter inside ItemsRepeater DataTemplates
@@ -213,7 +290,7 @@ public sealed partial class KnowledgeVaultPage : Page
     {
         if (sender is Button button && button.Tag is long id)
         {
-            ViewModel.ViewDocumentDetailCommand.Execute(id);
+            ViewModel.SelectDocumentCommand.Execute(id);
         }
     }
 
@@ -230,6 +307,14 @@ public sealed partial class KnowledgeVaultPage : Page
         if (sender is Button button && button.Tag is string filePath)
         {
             ViewModel.OpenInExplorerCommand.Execute(filePath);
+        }
+    }
+
+    private void OnGenerateTitleClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is long id)
+        {
+            ViewModel.GenerateTitleCommand.Execute(id);
         }
     }
 

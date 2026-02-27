@@ -22,57 +22,267 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <!-- Header -->
             <StackPanel Grid.Row="0" Spacing="4">
                 <TextBlock Text="Settings"
                            Style="{StaticResource DisplaySmallStyle}" />
-                <TextBlock Text="Configure your AI provider, inference parameters, and knowledge vault settings."
+                <TextBlock Text="Configure your AI providers, inference parameters, and knowledge vault settings."
                            Style="{StaticResource BodySecondaryStyle}" />
             </StackPanel>
 
-            <!-- AI Provider -->
+            <!-- ════════════════════════════════════════════════════════
+                 AI PROVIDERS
+                 ════════════════════════════════════════════════════════ -->
             <Border Grid.Row="1" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="20">
-                    <TextBlock Text="AI Provider"
+                    <TextBlock Text="AI Providers"
                                Style="{StaticResource HeadingSmallStyle}" />
 
+                    <!-- Active Provider Selector -->
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Ollama Endpoint"
+                        <TextBlock Text="Active Provider"
                                    Style="{StaticResource LabelStyle}" />
-                        <TextBox Style="{StaticResource InputTextBoxStyle}"
-                                 Text="{x:Bind ViewModel.OllamaEndpoint, Mode=TwoWay}"
-                                 PlaceholderText="http://localhost:11434" />
+                        <ComboBox ItemsSource="{x:Bind ViewModel.ProviderOptions}"
+                                  SelectedIndex="{x:Bind ViewModel.ActiveProviderIndex, Mode=TwoWay}"
+                                  HorizontalAlignment="Stretch"
+                                  MinWidth="200" />
                     </StackPanel>
 
-                    <Grid ColumnSpacing="16">
+                    <!-- Separator -->
+                    <Border Style="{StaticResource SeparatorStyle}" />
+
+                    <!-- ── Ollama (Local) ─────────────────────────── -->
+                    <StackPanel Spacing="12">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Ollama (Local)"
+                                       Style="{StaticResource HeadingSmallStyle}"
+                                       VerticalAlignment="Center" />
+                            <Border Style="{StaticResource BadgeSuccessStyle}">
+                                <TextBlock Text="FREE"
+                                           Style="{StaticResource BadgeStyle}"
+                                           Foreground="#FF22C55E" />
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Endpoint"
+                                       Style="{StaticResource LabelStyle}" />
+                            <TextBox Style="{StaticResource InputTextBoxStyle}"
+                                     Text="{x:Bind ViewModel.OllamaEndpoint, Mode=TwoWay}"
+                                     PlaceholderText="http://localhost:11434" />
+                        </StackPanel>
+
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Default Chat Model"
+                                           Style="{StaticResource LabelStyle}" />
+                                <TextBox Style="{StaticResource InputTextBoxStyle}"
+                                         Text="{x:Bind ViewModel.DefaultModel, Mode=TwoWay}"
+                                         PlaceholderText="llama3.2" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Spacing="6">
+                                <TextBlock Text="Embedding Model"
+                                           Style="{StaticResource LabelStyle}" />
+                                <TextBox Style="{StaticResource InputTextBoxStyle}"
+                                         Text="{x:Bind ViewModel.EmbeddingModel, Mode=TwoWay}"
+                                         PlaceholderText="all-minilm" />
+                            </StackPanel>
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button Content="Test Connection"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Command="{x:Bind ViewModel.TestOllamaConnectionCommand}" />
+                            <TextBlock Text="{x:Bind ViewModel.OllamaConnectionStatus, Mode=OneWay}"
+                                       Style="{StaticResource BodySmallStyle}"
+                                       VerticalAlignment="Center"
+                                       Visibility="{x:Bind ViewModel.OllamaConnectionStatus, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Separator -->
+                    <Border Style="{StaticResource SeparatorStyle}" />
+
+                    <!-- ── OpenAI ─────────────────────────────────── -->
+                    <StackPanel Spacing="12">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="OpenAI"
+                                       Style="{StaticResource HeadingSmallStyle}"
+                                       VerticalAlignment="Center" />
+                            <Border Style="{StaticResource BadgeDefaultStyle}">
+                                <TextBlock Text="CLOUD"
+                                           Style="{StaticResource BadgeStyle}"
+                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="API Key"
+                                       Style="{StaticResource LabelStyle}" />
+                            <PasswordBox Password="{x:Bind ViewModel.OpenAiApiKey, Mode=TwoWay}"
+                                         PlaceholderText="sk-..."
+                                         CornerRadius="{StaticResource RadiusMD}"
+                                         MinHeight="40" />
+                        </StackPanel>
+
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Endpoint"
+                                           Style="{StaticResource LabelStyle}" />
+                                <TextBox Style="{StaticResource InputTextBoxStyle}"
+                                         Text="{x:Bind ViewModel.OpenAiEndpoint, Mode=TwoWay}"
+                                         PlaceholderText="https://api.openai.com/v1/" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Spacing="6">
+                                <TextBlock Text="Default Model"
+                                           Style="{StaticResource LabelStyle}" />
+                                <TextBox Style="{StaticResource InputTextBoxStyle}"
+                                         Text="{x:Bind ViewModel.OpenAiDefaultModel, Mode=TwoWay}"
+                                         PlaceholderText="gpt-4o-mini" />
+                            </StackPanel>
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button Content="Test Connection"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Command="{x:Bind ViewModel.TestOpenAiConnectionCommand}" />
+                            <TextBlock Text="{x:Bind ViewModel.OpenAiConnectionStatus, Mode=OneWay}"
+                                       Style="{StaticResource BodySmallStyle}"
+                                       VerticalAlignment="Center"
+                                       Visibility="{x:Bind ViewModel.OpenAiConnectionStatus, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Separator -->
+                    <Border Style="{StaticResource SeparatorStyle}" />
+
+                    <!-- ── Anthropic Claude ────────────────────────── -->
+                    <StackPanel Spacing="12">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Anthropic Claude"
+                                       Style="{StaticResource HeadingSmallStyle}"
+                                       VerticalAlignment="Center" />
+                            <Border Style="{StaticResource BadgeDefaultStyle}">
+                                <TextBlock Text="CLOUD"
+                                           Style="{StaticResource BadgeStyle}"
+                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="API Key"
+                                       Style="{StaticResource LabelStyle}" />
+                            <PasswordBox Password="{x:Bind ViewModel.AnthropicApiKey, Mode=TwoWay}"
+                                         PlaceholderText="sk-ant-..."
+                                         CornerRadius="{StaticResource RadiusMD}"
+                                         MinHeight="40" />
+                        </StackPanel>
+
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Endpoint"
+                                           Style="{StaticResource LabelStyle}" />
+                                <TextBox Style="{StaticResource InputTextBoxStyle}"
+                                         Text="{x:Bind ViewModel.AnthropicEndpoint, Mode=TwoWay}"
+                                         PlaceholderText="https://api.anthropic.com/v1/" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Spacing="6">
+                                <TextBlock Text="Default Model"
+                                           Style="{StaticResource LabelStyle}" />
+                                <TextBox Style="{StaticResource InputTextBoxStyle}"
+                                         Text="{x:Bind ViewModel.AnthropicDefaultModel, Mode=TwoWay}"
+                                         PlaceholderText="claude-sonnet-4-20250514" />
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="Note: Anthropic does not support embeddings. Use Ollama or OpenAI for document indexing."
+                                   Style="{StaticResource CaptionStyle}"
+                                   Opacity="0.6" />
+
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button Content="Test Connection"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Command="{x:Bind ViewModel.TestAnthropicConnectionCommand}" />
+                            <TextBlock Text="{x:Bind ViewModel.AnthropicConnectionStatus, Mode=OneWay}"
+                                       Style="{StaticResource BodySmallStyle}"
+                                       VerticalAlignment="Center"
+                                       Visibility="{x:Bind ViewModel.AnthropicConnectionStatus, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- ════════════════════════════════════════════════════════
+                 COST TRACKING
+                 ════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Cost Tracking"
+                               Style="{StaticResource HeadingSmallStyle}" />
+
+                    <TextBlock Text="Estimated API costs for cloud providers. Local Ollama models are free."
+                               Style="{StaticResource BodySmallStyle}" />
+
+                    <Grid ColumnSpacing="24">
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Spacing="6">
-                            <TextBlock Text="Default Chat Model"
-                                       Style="{StaticResource LabelStyle}" />
-                            <TextBox Style="{StaticResource InputTextBoxStyle}"
-                                     Text="{x:Bind ViewModel.DefaultModel, Mode=TwoWay}"
-                                     PlaceholderText="llama3.2" />
+                        <!-- Total Cost -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="TOTAL SPEND"
+                                       Style="{StaticResource OverlineStyle}" />
+                            <TextBlock Text="{x:Bind ViewModel.TotalCostDisplay, Mode=OneWay}"
+                                       Style="{StaticResource MetricSmallStyle}" />
                         </StackPanel>
 
-                        <StackPanel Grid.Column="1" Spacing="6">
-                            <TextBlock Text="Embedding Model"
-                                       Style="{StaticResource LabelStyle}" />
-                            <TextBox Style="{StaticResource InputTextBoxStyle}"
-                                     Text="{x:Bind ViewModel.EmbeddingModel, Mode=TwoWay}"
-                                     PlaceholderText="all-minilm" />
+                        <!-- Today's Cost -->
+                        <StackPanel Grid.Column="1" Spacing="4">
+                            <TextBlock Text="TODAY"
+                                       Style="{StaticResource OverlineStyle}" />
+                            <TextBlock Text="{x:Bind ViewModel.TodayCostDisplay, Mode=OneWay}"
+                                       Style="{StaticResource MetricSmallStyle}" />
+                        </StackPanel>
+
+                        <!-- Total Tokens -->
+                        <StackPanel Grid.Column="2" Spacing="4">
+                            <TextBlock Text="TOTAL TOKENS"
+                                       Style="{StaticResource OverlineStyle}" />
+                            <TextBlock Text="{x:Bind ViewModel.TotalTokensDisplay, Mode=OneWay}"
+                                       Style="{StaticResource MetricSmallStyle}" />
                         </StackPanel>
                     </Grid>
                 </StackPanel>
             </Border>
 
-            <!-- Inference Parameters -->
-            <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+            <!-- ════════════════════════════════════════════════════════
+                 INFERENCE PARAMETERS
+                 ════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="3" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="20">
                     <TextBlock Text="Inference"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -112,8 +322,10 @@
                 </StackPanel>
             </Border>
 
-            <!-- Knowledge Vault -->
-            <Border Grid.Row="3" Style="{StaticResource CardStyle}">
+            <!-- ════════════════════════════════════════════════════════
+                 KNOWLEDGE VAULT
+                 ════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="4" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="20">
                     <TextBlock Text="Knowledge Vault"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -152,8 +364,10 @@
                 </StackPanel>
             </Border>
 
-            <!-- License -->
-            <Border Grid.Row="4" Style="{StaticResource CardStyle}">
+            <!-- ════════════════════════════════════════════════════════
+                 LICENSE
+                 ════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="5" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
 
                     <!-- License Header with Tier Badge -->
@@ -233,8 +447,27 @@
                 </StackPanel>
             </Border>
 
-            <!-- Actions -->
-            <Grid Grid.Row="5" ColumnSpacing="12">
+            <!-- ════════════════════════════════════════════════════════
+                 STORAGE
+                 ════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="6" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Storage"
+                               Style="{StaticResource HeadingSmallStyle}" />
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Data Location"
+                                   Style="{StaticResource LabelStyle}" />
+                        <TextBlock Text="{x:Bind ViewModel.StoragePath, Mode=OneWay}"
+                                   Style="{StaticResource MonoSmallStyle}"
+                                   IsTextSelectionEnabled="True" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- ════════════════════════════════════════════════════════
+                 ACTIONS
+                 ════════════════════════════════════════════════════════ -->
+            <Grid Grid.Row="7" ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />

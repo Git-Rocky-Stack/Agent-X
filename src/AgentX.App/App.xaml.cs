@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Xaml;
 using Serilog;
 using AgentX.Core.AI;
+using AgentX.Core.AI.Models;
 using AgentX.Core.Data;
 using AgentX.Core.Data.VectorDb;
 using AgentX.Core.Documents;
@@ -77,6 +78,18 @@ public partial class App : Application
             Log.Error(ex, "Failed to initialize database");
         }
 
+        // 1b. Initialize FTS5 full-text search
+        try
+        {
+            var keywordSearch = GetService<IKeywordSearchService>();
+            await keywordSearch.InitializeFtsAsync();
+            Log.Information("FTS5 keyword search initialized");
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "FTS5 initialization failed — keyword search unavailable");
+        }
+
         // 2. Initialize the AI service (creates provider, tests connection)
         try
         {
@@ -106,9 +119,12 @@ public partial class App : Application
 
         // ── AI Services ────────────────────────────────────────
         services.AddSingleton<IAiService, AiService>();
+        services.AddSingleton<ICostTracker, CostTracker>();
         services.AddSingleton<IModelManager, ModelManager>();
         services.AddSingleton<IHardwareDetector, HardwareDetector>();
         services.AddSingleton<IEmbeddingService, EmbeddingService>();
+        services.AddSingleton<IContextWindowManager, ContextWindowManager>();
+        services.AddSingleton<IRetryPolicy, ExponentialBackoffRetryPolicy>();
 
         // ── Vector Store ─────────────────────────────────────────
         services.AddSingleton<IVectorStore, SqliteVecStore>();
@@ -116,6 +132,7 @@ public partial class App : Application
         // ── Chat Services ──────────────────────────────────────
         services.AddSingleton<IConversationService, ConversationService>();
         services.AddSingleton<ISystemPromptService, SystemPromptService>();
+        services.AddSingleton<IConversationMemoryService, ConversationMemoryService>();
         services.AddSingleton<IChatService, ChatService>();
 
         // ── Document Processors ──────────────────────────────────
@@ -141,13 +158,18 @@ public partial class App : Application
 
         // ── Search & RAG ──────────────────────────────────────────
         services.AddSingleton<ISemanticSearchService, SemanticSearchService>();
+        services.AddSingleton<IKeywordSearchService, KeywordSearchService>();
+        services.AddSingleton<IHybridSearchOrchestrator, HybridSearchOrchestrator>();
         services.AddSingleton<ICitationService, CitationService>();
+        services.AddSingleton<IRagReranker, RagReranker>();
         services.AddSingleton<IRagPipeline, RagPipeline>();
 
         // ── Intelligence Services ──────────────────────────────
         services.AddSingleton<ISummaryService, SummaryService>();
         services.AddSingleton<IDuplicateDetectionService, DuplicateDetectionService>();
         services.AddSingleton<IOrganizationSuggestionService, OrganizationSuggestionService>();
+        services.AddSingleton<IKnowledgeGraphService, KnowledgeGraphService>();
+        services.AddSingleton<IDigestService, DigestService>();
 
         // ── ViewModels (Transient) ─────────────────────────────
         services.AddTransient<ViewModels.DashboardViewModel>();
@@ -161,6 +183,8 @@ public partial class App : Application
         services.AddTransient<ViewModels.HardwareAdvisorViewModel>();
         services.AddTransient<ViewModels.QuickActionsViewModel>();
         services.AddTransient<ViewModels.OnboardingViewModel>();
+        services.AddTransient<ViewModels.KnowledgeGraphViewModel>();
+        services.AddTransient<ViewModels.DigestViewModel>();
 
         // ── Views (Transient) ──────────────────────────────────
         services.AddTransient<Views.DashboardPage>();
@@ -174,6 +198,8 @@ public partial class App : Application
         services.AddTransient<Views.HardwareAdvisorPage>();
         services.AddTransient<Views.QuickActionsPage>();
         services.AddTransient<Views.OnboardingPage>();
+        services.AddTransient<Views.KnowledgeGraphPage>();
+        services.AddTransient<Views.DigestPage>();
         services.AddTransient<Views.UserGuidePage>();
         services.AddTransient<Views.PrivacyPolicyPage>();
         services.AddTransient<Views.TermsOfServicePage>();

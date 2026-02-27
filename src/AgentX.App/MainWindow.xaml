@@ -7,12 +7,17 @@
     Title="Agent-X">
 
     <Grid x:Name="RootGrid" Background="{StaticResource WindowBackgroundBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="28"/>
+        </Grid.RowDefinitions>
 
         <!-- ═══════════════════════════════════════════════════════
              AMBIENT GLOW LAYER (subtle red radial glow, top-left)
              Creates premium depth perception on the dark canvas.
              ═══════════════════════════════════════════════════════ -->
         <Border x:Name="AmbientGlow"
+                Grid.RowSpan="2"
                 IsHitTestVisible="False"
                 Opacity="0.35">
             <Border.Background>
@@ -30,6 +35,7 @@
              SECONDARY GLOW (cool tone, bottom-right for balance)
              ═══════════════════════════════════════════════════════ -->
         <Border x:Name="SecondaryGlow"
+                Grid.RowSpan="2"
                 IsHitTestVisible="False"
                 Opacity="0.15">
             <Border.Background>
@@ -116,6 +122,15 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
+                <NavigationViewItem x:Name="NavDigest"
+                                    Content="Weekly Digest"
+                                    Tag="Digest"
+                                    Style="{StaticResource AgentXNavItemStyle}">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE9D2;" FontSize="16" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
                 <NavigationViewItem x:Name="NavChat"
                                     Content="AI Chat"
                                     Tag="Chat"
@@ -175,6 +190,15 @@
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE773;" FontSize="16" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem x:Name="NavKnowledgeGraph"
+                                    Content="Knowledge Graph"
+                                    Tag="KnowledgeGraph"
+                                    Style="{StaticResource AgentXNavItemStyle}">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE9D9;" FontSize="16" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
@@ -284,7 +308,7 @@
         <!-- ═══════════════════════════════════════════════════════
              STATUS BAR (Bottom) — Connection status, model info
              ═══════════════════════════════════════════════════════ -->
-        <Border VerticalAlignment="Bottom"
+        <Border Grid.Row="1"
                 Height="28"
                 Background="{StaticResource PageBackgroundBrush}"
                 BorderBrush="{StaticResource BorderSubtleBrush}"
@@ -362,6 +386,7 @@
              Floating command palette (Ctrl+K). Renders above all content.
              ═══════════════════════════════════════════════════════ -->
         <controls:CommandPalette x:Name="CommandPalette"
+                                  Grid.RowSpan="2"
                                   Visibility="Collapsed" />
     </Grid>
 </Window>

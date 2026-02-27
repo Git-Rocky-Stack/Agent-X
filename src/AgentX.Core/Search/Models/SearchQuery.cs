@@ -1,7 +1,22 @@
 namespace AgentX.Core.Search.Models;
 
 /// <summary>
-/// Represents a semantic search query with optional filters.
+/// Specifies the search strategy to use when querying the document corpus.
+/// </summary>
+public enum SearchMode
+{
+    /// <summary>Vector similarity search using embedded query semantics.</summary>
+    Semantic,
+
+    /// <summary>Full-text keyword search using SQLite FTS5 with BM25 ranking.</summary>
+    Keyword,
+
+    /// <summary>Combined semantic + keyword search merged via Reciprocal Rank Fusion.</summary>
+    Hybrid
+}
+
+/// <summary>
+/// Represents a search query with optional filters and configurable search mode.
 /// </summary>
 public class SearchQuery
 {
@@ -25,4 +40,9 @@ public class SearchQuery
 
     /// <summary>Optional date range: only include documents created before this date.</summary>
     public DateTime? CreatedBefore { get; init; }
+
+    /// <summary>
+    /// The search mode to use: Semantic (default), Keyword, or Hybrid.
+    /// </summary>
+    public SearchMode Mode { get; init; } = SearchMode.Semantic;
 }

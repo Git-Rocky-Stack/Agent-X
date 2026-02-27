@@ -41,6 +41,7 @@ public sealed partial class MainWindow : Window
         _pageMap = new Dictionary<string, Type>
         {
             ["Dashboard"] = typeof(Views.DashboardPage),
+            ["Digest"] = typeof(Views.DigestPage),
             ["Settings"] = typeof(Views.SettingsPage),
             ["Chat"] = typeof(Views.ChatPage),
             ["AskFiles"] = typeof(Views.AskFilesPage),
@@ -48,6 +49,7 @@ public sealed partial class MainWindow : Window
             ["KnowledgeVault"] = typeof(Views.KnowledgeVaultPage),
             ["Collections"] = typeof(Views.CollectionManagerPage),
             ["Search"] = typeof(Views.SearchPage),
+            ["KnowledgeGraph"] = typeof(Views.KnowledgeGraphPage),
             ["ModelManager"] = typeof(Views.ModelManagerPage),
             ["HardwareAdvisor"] = typeof(Views.HardwareAdvisorPage),
             ["Onboarding"] = typeof(Views.OnboardingPage),
@@ -59,12 +61,14 @@ public sealed partial class MainWindow : Window
         _navItemMap = new Dictionary<string, NavigationViewItem>
         {
             ["Dashboard"] = NavDashboard,
+            ["Digest"] = NavDigest,
             ["Chat"] = NavChat,
             ["AskFiles"] = NavAskFiles,
             ["QuickActions"] = NavQuickActions,
             ["KnowledgeVault"] = NavVault,
             ["Collections"] = NavCollections,
             ["Search"] = NavSearch,
+            ["KnowledgeGraph"] = NavKnowledgeGraph,
             ["ModelManager"] = NavModels,
             ["HardwareAdvisor"] = NavHardware,
             ["Settings"] = NavSettings,

@@ -2,8 +2,12 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using AgentX.Core.AI;
+using AgentX.Core.AI.Models;
 using AgentX.Core.Documents;
+using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Indexing;
+using AgentX.Core.Services.Tagging;
 using Serilog;
 
 namespace AgentX.App.ViewModels;
@@ -23,6 +27,9 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     // ── Services ──────────────────────────────────────────────
     private readonly IDocumentService _documentService;
     private readonly IIndexingService _indexingService;
+    private readonly IAiService _aiService;
+    private readonly IAutoTagService _autoTagService;
+    private readonly ICollectionService _collectionService;
 
     // ── Page State ─────────────────────────────────────────────
     [ObservableProperty] private string _pageTitle = "Knowledge Vault";
@@ -40,20 +47,67 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     // ── Filters ──────────────────────────────────────────────
     [ObservableProperty] private string? _fileTypeFilter;
     [ObservableProperty] private string? _statusFilter;
+    [ObservableProperty] private string? _tagFilter;
     [ObservableProperty] private string _searchQuery = string.Empty;
     [ObservableProperty] private bool _showDropZone = true;
 
+    // ── Advanced Filters (Feature 9) ─────────────────────────
+    [ObservableProperty] private long? _collectionFilter;
+    [ObservableProperty] private DateTime? _dateAfterFilter;
+    [ObservableProperty] private DateTime? _dateBeforeFilter;
+    [ObservableProperty] private string _sortBy = "date";
+
+    // ── Multi-Select (Feature 8) ─────────────────────────────
+    [ObservableProperty] private bool _isMultiSelectMode;
+    [ObservableProperty] private int _selectedCount;
+
+    // ── Duplicate Detection (Feature 14) ────────────────────────
+    [ObservableProperty] private bool _showDuplicateWarning;
+    [ObservableProperty] private string _duplicateWarningMessage = string.Empty;
+    [ObservableProperty] private string? _duplicateFileName;
+    private List<string>? _pendingImportPaths;
+    private List<string>? _duplicateFilePaths;
+
+    // ── Selected Document Preview ─────────────────────────────
+    [ObservableProperty] private DocumentDisplayItem? _selectedDocument;
+    [ObservableProperty] private bool _isPreviewOpen;
+
     // ── Collections ──────────────────────────────────────────
     public ObservableCollection<DocumentDisplayItem> Documents { get; } = new();
+    public ObservableCollection<long> SelectedDocumentIds { get; } = new();
+
+    // ── Tags (Feature 7) ────────────────────────────────────
+    public ObservableCollection<TagDisplayItem> AllTags { get; } = new();
+
+    // ── Available Collections for Filtering (Feature 9) ──────
+    public ObservableCollection<CollectionFilterItem> AvailableCollections { get; } = new();
 
     // ── Computed Properties ──────────────────────────────────
     public bool HasDocuments => Documents.Count > 0;
-    public bool HasActiveFilters => FileTypeFilter is not null || StatusFilter is not null || !string.IsNullOrEmpty(SearchQuery);
+    public bool HasSelection => SelectedCount > 0;
+    public bool HasActiveFilters =>
+        FileTypeFilter is not null
+        || StatusFilter is not null
+        || TagFilter is not null
+        || CollectionFilter is not null
+        || DateAfterFilter is not null
+        || DateBeforeFilter is not null
+        || SortBy != "date"
+        || !string.IsNullOrEmpty(SearchQuery);
+    public bool HasSelectedDocument => SelectedDocument is not null;
 
-    public KnowledgeVaultViewModel(IDocumentService documentService, IIndexingService indexingService)
+    public KnowledgeVaultViewModel(
+        IDocumentService documentService,
+        IIndexingService indexingService,
+        IAiService aiService,
+        IAutoTagService autoTagService,
+        ICollectionService collectionService)
     {
         _documentService = documentService;
         _indexingService = indexingService;
+        _aiService = aiService;
+        _autoTagService = autoTagService;
+        _collectionService = collectionService;
         Log.Debug("KnowledgeVaultViewModel created with services");
     }
 
@@ -73,6 +127,8 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
             await LoadDocumentsAsync();
             await LoadStatsAsync();
             await CheckIndexingStatusAsync();
+            await LoadTagsAsync();
+            await LoadCollectionsAsync();
         }
         catch (Exception ex)
         {
@@ -93,7 +149,15 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
 
         try
         {
-            var docs = await _documentService.GetAllDocumentsAsync(FileTypeFilter, StatusFilter);
+            var docs = await _documentService.GetAllDocumentsAsync(
+                fileTypeFilter: FileTypeFilter,
+                statusFilter: StatusFilter,
+                tagFilter: TagFilter,
+                collectionId: CollectionFilter,
+                importedAfter: DateAfterFilter,
+                importedBefore: DateBeforeFilter,
+                sortBy: SortBy);
+
             foreach (var doc in docs)
             {
                 // If a search query is active, filter locally by file name
@@ -103,7 +167,23 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
                     continue;
                 }
 
-                Documents.Add(MapDocumentToDisplay(doc));
+                var displayItem = MapDocumentToDisplay(doc);
+
+                // Load tags for this document
+                try
+                {
+                    var tags = await _autoTagService.GetTagsForDocumentAsync(doc.Id);
+                    foreach (var tag in tags)
+                    {
+                        displayItem.Tags.Add(tag.Name);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Failed to load tags for document {DocumentId}", doc.Id);
+                }
+
+                Documents.Add(displayItem);
             }
         }
         catch (Exception ex)
@@ -144,6 +224,74 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         }
     }
 
+    private async Task LoadTagsAsync()
+    {
+        try
+        {
+            AllTags.Clear();
+            var tags = await _autoTagService.GetAllTagsAsync();
+
+            // Build a tag-to-document-count map from the currently loaded documents.
+            // This is efficient because we've already loaded all documents and their tags.
+            var tagDocCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (var doc in Documents)
+            {
+                foreach (var tagName in doc.Tags)
+                {
+                    if (tagDocCounts.ContainsKey(tagName))
+                        tagDocCounts[tagName]++;
+                    else
+                        tagDocCounts[tagName] = 1;
+                }
+            }
+
+            foreach (var tag in tags)
+            {
+                tagDocCounts.TryGetValue(tag.Name, out var documentCount);
+
+                AllTags.Add(new TagDisplayItem
+                {
+                    Id = tag.Id,
+                    Name = tag.Name,
+                    ColorHex = tag.ColorHex ?? "#6B7280",
+                    IsAutoGenerated = tag.IsAutoGenerated,
+                    DocumentCount = documentCount
+                });
+            }
+
+            Log.Debug("Loaded {Count} tags", AllTags.Count);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to load tags");
+        }
+    }
+
+    private async Task LoadCollectionsAsync()
+    {
+        try
+        {
+            AvailableCollections.Clear();
+            var collections = await _collectionService.GetAllCollectionsAsync();
+
+            foreach (var collection in collections)
+            {
+                AvailableCollections.Add(new CollectionFilterItem
+                {
+                    Id = collection.Id,
+                    Name = collection.Name,
+                    DocumentCount = collection.DocumentCount
+                });
+            }
+
+            Log.Debug("Loaded {Count} collections for filtering", AvailableCollections.Count);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to load collections");
+        }
+    }
+
     // ═══════════════════════════════════════════════════════════════
     // PROPERTY CHANGE HOOKS
     // ═══════════════════════════════════════════════════════════════
@@ -164,6 +312,42 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     {
         OnPropertyChanged(nameof(HasActiveFilters));
         ApplyFilters();
+    }
+
+    partial void OnTagFilterChanged(string? value)
+    {
+        OnPropertyChanged(nameof(HasActiveFilters));
+        ApplyFilters();
+    }
+
+    partial void OnCollectionFilterChanged(long? value)
+    {
+        OnPropertyChanged(nameof(HasActiveFilters));
+        ApplyFilters();
+    }
+
+    partial void OnDateAfterFilterChanged(DateTime? value)
+    {
+        OnPropertyChanged(nameof(HasActiveFilters));
+        ApplyFilters();
+    }
+
+    partial void OnDateBeforeFilterChanged(DateTime? value)
+    {
+        OnPropertyChanged(nameof(HasActiveFilters));
+        ApplyFilters();
+    }
+
+    partial void OnSortByChanged(string value)
+    {
+        OnPropertyChanged(nameof(HasActiveFilters));
+        ApplyFilters();
+    }
+
+    partial void OnSelectedDocumentChanged(DocumentDisplayItem? value)
+    {
+        IsPreviewOpen = value is not null;
+        OnPropertyChanged(nameof(HasSelectedDocument));
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -349,10 +533,122 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private void ViewDocumentDetail(long id)
+    private async Task SelectDocumentAsync(long id)
     {
-        Log.Debug("View document detail: {DocumentId}", id);
-        // Navigation will be handled by the page code-behind
+        Log.Debug("Select document for preview: {DocumentId}", id);
+
+        // Deselect previous
+        if (SelectedDocument is not null)
+        {
+            SelectedDocument.IsSelected = false;
+        }
+
+        var item = Documents.FirstOrDefault(d => d.Id == id);
+        if (item is not null)
+        {
+            item.IsSelected = true;
+
+            // Enrich with latest data from the database
+            try
+            {
+                var entity = await _documentService.GetDocumentAsync(id);
+                if (entity is not null)
+                {
+                    item.Summary = entity.Summary;
+                    item.ExtractedTitle = entity.ExtractedTitle;
+                    item.ChunkCount = entity.ChunkCount;
+                    item.WordCount = entity.WordCount;
+                    item.PageCount = entity.PageCount;
+                    item.IndexingStatus = entity.IndexingStatus;
+                    item.StatusColor = GetStatusColor(entity.IndexingStatus);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to enrich document detail for {DocumentId}", id);
+            }
+        }
+
+        SelectedDocument = item;
+    }
+
+    [RelayCommand]
+    private void ClosePreview()
+    {
+        if (SelectedDocument is not null)
+        {
+            SelectedDocument.IsSelected = false;
+        }
+        SelectedDocument = null;
+    }
+
+    [RelayCommand]
+    private async Task GenerateTitleAsync(long id)
+    {
+        Log.Information("Generate title requested for document {DocumentId}", id);
+
+        var item = Documents.FirstOrDefault(d => d.Id == id);
+        if (item is null) return;
+
+        try
+        {
+            var entity = await _documentService.GetDocumentAsync(id);
+            if (entity is null) return;
+
+            // Get the first chunk's text to generate a title from
+            var firstChunk = entity.Chunks?
+                .OrderBy(c => c.ChunkIndex)
+                .FirstOrDefault();
+
+            if (firstChunk is null || string.IsNullOrWhiteSpace(firstChunk.Content))
+            {
+                Log.Warning("No chunk content available for title generation on document {DocumentId}", id);
+                return;
+            }
+
+            // Use AI to generate a concise title
+            var contentPreview = firstChunk.Content.Length > 1500
+                ? firstChunk.Content[..1500]
+                : firstChunk.Content;
+
+            var titleResponse = await _aiService.ChatAsync(
+                new List<ChatMessage>
+                {
+                    new()
+                    {
+                        Role = "user",
+                        Content = contentPreview,
+                        Timestamp = DateTime.UtcNow
+                    }
+                },
+                systemPrompt: "Generate a concise, descriptive title (5-10 words maximum) for the following document content. Return ONLY the title text, nothing else. No quotes, no explanation.",
+                options: new ChatOptions { Temperature = 0.3, MaxTokens = 50 });
+
+            var generatedTitle = titleResponse?.Trim().Trim('"', '\'', '*');
+
+            if (!string.IsNullOrWhiteSpace(generatedTitle))
+            {
+                // Update the entity in the database
+                entity.ExtractedTitle = generatedTitle;
+                var dbContext = App.GetService<AgentX.Core.Data.AgentXDbContext>();
+                dbContext.Documents.Update(entity);
+                await dbContext.SaveChangesAsync();
+
+                // Update the display item
+                item.ExtractedTitle = generatedTitle;
+
+                if (SelectedDocument?.Id == id)
+                {
+                    SelectedDocument.ExtractedTitle = generatedTitle;
+                }
+
+                Log.Information("Generated title for document {DocumentId}: {Title}", id, generatedTitle);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to generate title for document {DocumentId}", id);
+        }
     }
 
     [RelayCommand]
@@ -404,8 +700,115 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     {
         FileTypeFilter = null;
         StatusFilter = null;
+        TagFilter = null;
+        CollectionFilter = null;
+        DateAfterFilter = null;
+        DateBeforeFilter = null;
+        SortBy = "date";
         SearchQuery = string.Empty;
         Log.Debug("Filters cleared");
+    }
+
+    [RelayCommand]
+    private void FilterByTag(string? tagName)
+    {
+        TagFilter = tagName;
+        Log.Debug("Filter by tag: {Tag}", tagName ?? "all");
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // MULTI-SELECT & BULK OPERATIONS (Feature 8)
+    // ═══════════════════════════════════════════════════════════════
+
+    [RelayCommand]
+    private void ToggleMultiSelect()
+    {
+        IsMultiSelectMode = !IsMultiSelectMode;
+        if (!IsMultiSelectMode) ClearSelection();
+        Log.Debug("Multi-select mode: {Mode}", IsMultiSelectMode);
+    }
+
+    [RelayCommand]
+    private void ToggleDocumentSelection(long id)
+    {
+        if (SelectedDocumentIds.Contains(id))
+        {
+            SelectedDocumentIds.Remove(id);
+            var doc = Documents.FirstOrDefault(d => d.Id == id);
+            if (doc != null) doc.IsSelected = false;
+        }
+        else
+        {
+            SelectedDocumentIds.Add(id);
+            var doc = Documents.FirstOrDefault(d => d.Id == id);
+            if (doc != null) doc.IsSelected = true;
+        }
+        SelectedCount = SelectedDocumentIds.Count;
+        OnPropertyChanged(nameof(HasSelection));
+    }
+
+    [RelayCommand]
+    private void SelectAllDocuments()
+    {
+        SelectedDocumentIds.Clear();
+        foreach (var doc in Documents)
+        {
+            SelectedDocumentIds.Add(doc.Id);
+            doc.IsSelected = true;
+        }
+        SelectedCount = SelectedDocumentIds.Count;
+        OnPropertyChanged(nameof(HasSelection));
+    }
+
+    private void ClearSelection()
+    {
+        foreach (var doc in Documents) doc.IsSelected = false;
+        SelectedDocumentIds.Clear();
+        SelectedCount = 0;
+        OnPropertyChanged(nameof(HasSelection));
+    }
+
+    [RelayCommand]
+    private async Task BulkDeleteAsync()
+    {
+        if (SelectedDocumentIds.Count == 0) return;
+        var ids = SelectedDocumentIds.ToList();
+        Log.Information("Bulk delete: {Count} documents", ids.Count);
+        ClearError();
+
+        try
+        {
+            await _documentService.BulkDeleteAsync(ids);
+            await LoadDocumentsAsync();
+            await LoadStatsAsync();
+            ClearSelection();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Bulk delete failed");
+            SetError("Bulk delete failed");
+        }
+    }
+
+    [RelayCommand]
+    private async Task BulkReindexAsync()
+    {
+        if (SelectedDocumentIds.Count == 0) return;
+        var ids = SelectedDocumentIds.ToList();
+        Log.Information("Bulk reindex: {Count} documents", ids.Count);
+        ClearError();
+
+        try
+        {
+            await _documentService.BulkReindexAsync(ids);
+            await CheckIndexingStatusAsync();
+            ClearSelection();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Bulk reindex failed");
+            SetError("Bulk reindex failed");
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -414,13 +817,138 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
 
     /// <summary>
     /// Called by the code-behind when files are dropped onto the drop zone.
+    /// Routes through dedup check before importing.
     /// </summary>
     public async Task HandleDroppedFilesAsync(IReadOnlyList<string> filePaths)
     {
         if (filePaths.Count == 0) return;
 
         Log.Information("Files dropped: {Count}", filePaths.Count);
-        await ImportFilesAsync(filePaths);
+        await ImportWithDedupAsync(filePaths);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // DUPLICATE DETECTION (Feature 14)
+    // ═══════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Checks each file for duplicates before importing. If any duplicates are
+    /// found, shows a warning banner allowing the user to skip, import anyway,
+    /// or dismiss. Non-duplicate files are identified for clean import.
+    /// </summary>
+    [RelayCommand]
+    private async Task ImportWithDedupAsync(IReadOnlyList<string>? filePaths)
+    {
+        if (filePaths is null || filePaths.Count == 0) return;
+
+        Log.Information("Starting duplicate check for {Count} file(s)", filePaths.Count);
+
+        var cleanPaths = new List<string>();
+        var duplicatePaths = new List<string>();
+        var duplicateNames = new List<string>();
+
+        foreach (var path in filePaths)
+        {
+            try
+            {
+                var result = await _documentService.CheckForDuplicateAsync(path);
+                if (result.IsDuplicate)
+                {
+                    duplicatePaths.Add(path);
+                    duplicateNames.Add(
+                        $"'{Path.GetFileName(path)}' matches '{result.ExistingFileName}'");
+                    Log.Debug("Duplicate detected: {FilePath} -> {ExistingFile}",
+                        path, result.ExistingFileName);
+                }
+                else
+                {
+                    cleanPaths.Add(path);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Duplicate check failed for {FilePath}, treating as non-duplicate", path);
+                cleanPaths.Add(path);
+            }
+        }
+
+        if (duplicatePaths.Count > 0)
+        {
+            _pendingImportPaths = cleanPaths;
+            _duplicateFilePaths = duplicatePaths;
+
+            DuplicateWarningMessage = duplicatePaths.Count == 1
+                ? $"1 file is a duplicate and will be skipped"
+                : $"{duplicatePaths.Count} files are duplicates and will be skipped";
+
+            DuplicateFileName = duplicateNames.Count > 0 ? duplicateNames[0] : null;
+            ShowDuplicateWarning = true;
+
+            Log.Information("Duplicate check complete: {Duplicates} duplicates, {Clean} clean",
+                duplicatePaths.Count, cleanPaths.Count);
+        }
+        else
+        {
+            // No duplicates found — import all files directly
+            await ImportFilesCommand.ExecuteAsync(filePaths);
+        }
+    }
+
+    /// <summary>
+    /// Skips the duplicate files and imports only the non-duplicate files.
+    /// </summary>
+    [RelayCommand]
+    private async Task SkipDuplicatesAsync()
+    {
+        ShowDuplicateWarning = false;
+
+        if (_pendingImportPaths is not null && _pendingImportPaths.Count > 0)
+        {
+            Log.Information("Importing {Count} non-duplicate file(s), skipping duplicates",
+                _pendingImportPaths.Count);
+            await ImportFilesCommand.ExecuteAsync(_pendingImportPaths);
+        }
+        else
+        {
+            Log.Information("No non-duplicate files to import after skipping duplicates");
+        }
+
+        _pendingImportPaths = null;
+        _duplicateFilePaths = null;
+    }
+
+    /// <summary>
+    /// Imports all files regardless of duplicate status.
+    /// </summary>
+    [RelayCommand]
+    private async Task ImportAllAnywayAsync()
+    {
+        ShowDuplicateWarning = false;
+
+        var allPaths = new List<string>();
+        if (_pendingImportPaths is not null) allPaths.AddRange(_pendingImportPaths);
+        if (_duplicateFilePaths is not null) allPaths.AddRange(_duplicateFilePaths);
+
+        if (allPaths.Count > 0)
+        {
+            Log.Information("Importing all {Count} file(s) including duplicates", allPaths.Count);
+            await ImportFilesCommand.ExecuteAsync(allPaths);
+        }
+
+        _pendingImportPaths = null;
+        _duplicateFilePaths = null;
+    }
+
+    /// <summary>
+    /// Dismisses the duplicate warning without importing any files.
+    /// </summary>
+    [RelayCommand]
+    private void DismissDuplicateWarning()
+    {
+        ShowDuplicateWarning = false;
+        _pendingImportPaths = null;
+        _duplicateFilePaths = null;
+        Log.Debug("Duplicate warning dismissed");
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -579,8 +1107,20 @@ public class DocumentDisplayItem : ObservableObject
         set => SetProperty(ref _indexingError, value);
     }
 
-    public string? Summary { get; set; }
-    public string? ExtractedTitle { get; set; }
+    private string? _summary;
+    private string? _extractedTitle;
+
+    public string? Summary
+    {
+        get => _summary;
+        set => SetProperty(ref _summary, value);
+    }
+
+    public string? ExtractedTitle
+    {
+        get => _extractedTitle;
+        set => SetProperty(ref _extractedTitle, value);
+    }
 
     /// <summary>
     /// Segoe Fluent Icons glyph for the file type.
@@ -631,4 +1171,37 @@ public class DocumentDisplayItem : ObservableObject
     /// File type display label (uppercased).
     /// </summary>
     public string FileTypeLabel => FileType.ToUpperInvariant();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TAG DISPLAY ITEM (Feature 7)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// <summary>
+/// Represents a tag displayed in the Knowledge Vault filter UI.
+/// Contains display-ready properties for tag filter chips.
+/// </summary>
+public class TagDisplayItem
+{
+    public long Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string ColorHex { get; set; } = "#6B7280";
+    public bool IsAutoGenerated { get; set; }
+    public int DocumentCount { get; set; }
+    public string DocumentCountFormatted => DocumentCount > 0 ? $"({DocumentCount})" : string.Empty;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// COLLECTION FILTER ITEM (Feature 9)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// <summary>
+/// Represents a collection option in the advanced filter dropdown.
+/// </summary>
+public class CollectionFilterItem
+{
+    public long Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public int DocumentCount { get; set; }
+    public override string ToString() => $"{Name} ({DocumentCount})";
 }

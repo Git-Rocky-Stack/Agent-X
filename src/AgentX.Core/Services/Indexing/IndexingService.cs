@@ -7,7 +7,9 @@ using AgentX.Core.Data.Entities;
 using AgentX.Core.Data.VectorDb;
 using AgentX.Core.Documents;
 using AgentX.Core.Documents.Models;
+using AgentX.Core.Search;
 using AgentX.Core.Services.Settings;
+using AgentX.Core.Services.Tagging;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -31,6 +33,8 @@ public sealed class IndexingService : IIndexingService
     private readonly IEmbeddingService _embeddingService;
     private readonly IVectorStore _vectorStore;
     private readonly ISettingsService _settingsService;
+    private readonly IKeywordSearchService _keywordSearchService;
+    private readonly IAutoTagService _autoTagService;
     private readonly ILogger _logger;
 
     // Background processing infrastructure
@@ -65,6 +69,8 @@ public sealed class IndexingService : IIndexingService
         IEmbeddingService embeddingService,
         IVectorStore vectorStore,
         ISettingsService settingsService,
+        IKeywordSearchService keywordSearchService,
+        IAutoTagService autoTagService,
         ILogger logger)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
@@ -73,6 +79,8 @@ public sealed class IndexingService : IIndexingService
         _embeddingService = embeddingService ?? throw new ArgumentNullException(nameof(embeddingService));
         _vectorStore = vectorStore ?? throw new ArgumentNullException(nameof(vectorStore));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _keywordSearchService = keywordSearchService ?? throw new ArgumentNullException(nameof(keywordSearchService));
+        _autoTagService = autoTagService ?? throw new ArgumentNullException(nameof(autoTagService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         // Unbounded channel: items are cheap (just a long ID) and we want to accept
@@ -178,6 +186,16 @@ public sealed class IndexingService : IIndexingService
                 .FirstOrDefaultAsync(d => d.Id == docId, ct);
 
             if (doc is null) continue;
+
+            // Remove document from FTS5 index before re-indexing
+            try
+            {
+                await _keywordSearchService.RemoveDocumentFromFtsAsync(docId, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.Warning(ex, "Failed to remove document {DocumentId} from FTS5 during re-index", docId);
+            }
 
             // Delete existing chunks and embeddings
             if (doc.Chunks.Count > 0)
@@ -379,6 +397,16 @@ public sealed class IndexingService : IIndexingService
             // 5. Delete any existing chunks (in case of re-index)
             if (document.Chunks.Count > 0)
             {
+                // Remove from FTS5 first (non-fatal)
+                try
+                {
+                    await _keywordSearchService.RemoveDocumentFromFtsAsync(documentId, ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Warning(ex, "Failed to remove document {DocumentId} from FTS5 during re-index", documentId);
+                }
+
                 var existingEmbeddedIds = document.Chunks
                     .Where(c => c.IsEmbedded && c.VectorRowId.HasValue)
                     .Select(c => c.Id)
@@ -477,6 +505,26 @@ public sealed class IndexingService : IIndexingService
             var queueLength = await GetQueueLengthAsync();
             RaiseProgressChanged(queueLength, _processedCount, null);
             DocumentIndexed?.Invoke(this, documentId);
+
+            // Auto-tag the document (non-fatal — must not block the indexing pipeline)
+            try
+            {
+                await _autoTagService.ApplyAutoTagsAsync(documentId, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.Warning(ex, "Auto-tagging failed for document {DocumentId}", documentId);
+            }
+
+            // Index document chunks into FTS5 for keyword search (non-fatal)
+            try
+            {
+                await _keywordSearchService.IndexDocumentChunksAsync(documentId, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.Warning(ex, "FTS5 keyword indexing failed for document {DocumentId}", documentId);
+            }
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

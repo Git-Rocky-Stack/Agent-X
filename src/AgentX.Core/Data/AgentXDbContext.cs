@@ -20,6 +20,8 @@ public class AgentXDbContext : DbContext
     public DbSet<WatchFolderEntity> WatchFolders => Set<WatchFolderEntity>();
     public DbSet<IndexingJobEntity> IndexingJobs => Set<IndexingJobEntity>();
     public DbSet<LicenseEntity> Licenses => Set<LicenseEntity>();
+    public DbSet<MemoryEntity> Memories => Set<MemoryEntity>();
+    public DbSet<DigestReportEntity> DigestReports => Set<DigestReportEntity>();
 
     private readonly string _dbPath;
 
@@ -66,6 +68,8 @@ public class AgentXDbContext : DbContext
         ConfigureWatchFolder(modelBuilder);
         ConfigureIndexingJob(modelBuilder);
         ConfigureLicense(modelBuilder);
+        ConfigureMemory(modelBuilder);
+        ConfigureDigestReport(modelBuilder);
     }
 
     private static void ConfigureConversation(ModelBuilder modelBuilder)
@@ -348,6 +352,42 @@ public class AgentXDbContext : DbContext
 
             entity.Property(e => e.LicenseKey).IsRequired();
             entity.Property(e => e.Tier).IsRequired().HasDefaultValue("starter");
+        });
+    }
+
+    private static void ConfigureDigestReport(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<DigestReportEntity>(entity =>
+        {
+            entity.ToTable("digest_reports");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.GeneratedAt).IsRequired();
+            entity.Property(e => e.PeriodStart).IsRequired();
+            entity.Property(e => e.PeriodEnd).IsRequired();
+
+            // Indexes for efficient querying
+            entity.HasIndex(e => e.GeneratedAt);
+            entity.HasIndex(e => e.IsRead);
+        });
+    }
+
+    private static void ConfigureMemory(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<MemoryEntity>(entity =>
+        {
+            entity.ToTable("memories");
+            entity.HasKey(m => m.Id);
+
+            entity.Property(m => m.Content).IsRequired();
+            entity.Property(m => m.Category).HasDefaultValue("fact");
+            entity.Property(m => m.Importance).HasDefaultValue(0.5);
+            entity.Property(m => m.IsActive).HasDefaultValue(true);
+
+            // Indexes for efficient querying
+            entity.HasIndex(m => m.Category);
+            entity.HasIndex(m => m.IsActive);
+            entity.HasIndex(m => m.Importance);
         });
     }
 }

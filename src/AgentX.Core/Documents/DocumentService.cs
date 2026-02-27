@@ -208,27 +208,81 @@ public sealed class DocumentService : IDocumentService
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<DocumentEntity>> GetAllDocumentsAsync(
+    public Task<IReadOnlyList<DocumentEntity>> GetAllDocumentsAsync(
         string? fileTypeFilter = null,
         string? statusFilter = null)
     {
+        // Delegate to the extended overload with default parameters
+        return GetAllDocumentsAsync(fileTypeFilter, statusFilter,
+            tagFilter: null, collectionId: null,
+            importedAfter: null, importedBefore: null,
+            sortBy: null, ct: default);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<DocumentEntity>> GetAllDocumentsAsync(
+        string? fileTypeFilter = null,
+        string? statusFilter = null,
+        string? tagFilter = null,
+        long? collectionId = null,
+        DateTime? importedAfter = null,
+        DateTime? importedBefore = null,
+        string? sortBy = null,
+        CancellationToken ct = default)
+    {
         IQueryable<DocumentEntity> query = _db.Documents;
 
+        // File type filter
         if (!string.IsNullOrWhiteSpace(fileTypeFilter))
         {
             var normalizedFilter = fileTypeFilter.TrimStart('.').ToLowerInvariant();
             query = query.Where(d => d.FileType == normalizedFilter);
         }
 
+        // Status filter
         if (!string.IsNullOrWhiteSpace(statusFilter))
         {
             var normalizedStatus = statusFilter.ToLowerInvariant();
             query = query.Where(d => d.IndexingStatus == normalizedStatus);
         }
 
-        return await query
-            .OrderByDescending(d => d.ImportedAt)
-            .ToListAsync();
+        // Tag filter: join through DocumentTags -> Tags
+        if (!string.IsNullOrWhiteSpace(tagFilter))
+        {
+            var normalizedTag = tagFilter.Trim().ToLowerInvariant();
+            query = query.Where(d =>
+                d.DocumentTags.Any(dt => dt.Tag.Name.ToLower() == normalizedTag));
+        }
+
+        // Collection filter: join through DocumentCollections
+        if (collectionId.HasValue)
+        {
+            query = query.Where(d =>
+                d.DocumentCollections.Any(dc => dc.CollectionId == collectionId.Value));
+        }
+
+        // Date range filters
+        if (importedAfter.HasValue)
+        {
+            query = query.Where(d => d.ImportedAt >= importedAfter.Value);
+        }
+
+        if (importedBefore.HasValue)
+        {
+            query = query.Where(d => d.ImportedAt <= importedBefore.Value);
+        }
+
+        // Sorting
+        var sort = (sortBy ?? "date").ToLowerInvariant();
+        query = sort switch
+        {
+            "name" => query.OrderBy(d => d.FileName),
+            "size" => query.OrderByDescending(d => d.FileSizeBytes),
+            "type" => query.OrderBy(d => d.FileType).ThenByDescending(d => d.ImportedAt),
+            _ => query.OrderByDescending(d => d.ImportedAt), // "date" or default
+        };
+
+        return await query.ToListAsync(ct);
     }
 
     /// <inheritdoc />
@@ -412,6 +466,155 @@ public sealed class DocumentService : IDocumentService
     public IReadOnlySet<string> GetSupportedExtensions()
     {
         return _allSupportedExtensions.Value;
+    }
+
+    // ─── Duplicate Detection ────────────────────────────────────────────
+
+    /// <inheritdoc />
+    public async Task<DuplicateCheckResult> CheckForDuplicateAsync(string filePath, CancellationToken ct = default)
+    {
+        try
+        {
+            if (!File.Exists(filePath))
+            {
+                _logger.Warning("Duplicate check skipped — file does not exist: {FilePath}", filePath);
+                return new DuplicateCheckResult { IsDuplicate = false };
+            }
+
+            // Calculate hash of the incoming file using the same helper as ImportFileAsync
+            var hash = await HashHelper.ComputeFileHashAsync(filePath, ct);
+
+            // Check for exact hash match against existing documents
+            var exactMatch = await _db.Documents
+                .FirstOrDefaultAsync(d => d.ContentHash == hash, ct);
+
+            if (exactMatch is not null)
+            {
+                _logger.Information(
+                    "Duplicate check: {FilePath} matches existing document {DocumentId} ({FileName})",
+                    filePath, exactMatch.Id, exactMatch.FileName);
+
+                return new DuplicateCheckResult
+                {
+                    IsDuplicate = true,
+                    IsExactMatch = true,
+                    ExistingDocumentId = exactMatch.Id,
+                    ExistingFileName = exactMatch.FileName,
+                    MatchScore = 1.0f
+                };
+            }
+
+            return new DuplicateCheckResult { IsDuplicate = false };
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Duplicate check failed for {FilePath}", filePath);
+            return new DuplicateCheckResult { IsDuplicate = false };
+        }
+    }
+
+    // ─── Bulk Operations ──────────────────────────────────────────────
+
+    /// <inheritdoc />
+    public async Task BulkDeleteAsync(IReadOnlyList<long> documentIds, CancellationToken ct = default)
+    {
+        if (documentIds is null || documentIds.Count == 0) return;
+
+        _logger.Information("Starting bulk delete of {Count} documents", documentIds.Count);
+
+        foreach (var id in documentIds)
+        {
+            ct.ThrowIfCancellationRequested();
+            try
+            {
+                await DeleteDocumentAsync(id);
+            }
+            catch (Exception ex)
+            {
+                _logger.Warning(ex, "Failed to delete document {Id} in bulk operation", id);
+            }
+        }
+
+        _logger.Information("Bulk delete completed for {Count} documents", documentIds.Count);
+    }
+
+    /// <inheritdoc />
+    public async Task BulkReindexAsync(IReadOnlyList<long> documentIds, CancellationToken ct = default)
+    {
+        if (documentIds is null || documentIds.Count == 0) return;
+
+        _logger.Information("Starting bulk re-index of {Count} documents", documentIds.Count);
+
+        foreach (var id in documentIds)
+        {
+            ct.ThrowIfCancellationRequested();
+            try
+            {
+                await ReindexDocumentAsync(id, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.Warning(ex, "Failed to reindex document {Id} in bulk operation", id);
+            }
+        }
+
+        _logger.Information("Bulk re-index completed for {Count} documents", documentIds.Count);
+    }
+
+    /// <inheritdoc />
+    public async Task BulkAssignToCollectionAsync(IReadOnlyList<long> documentIds, long collectionId, CancellationToken ct = default)
+    {
+        if (documentIds is null || documentIds.Count == 0) return;
+
+        _logger.Information("Starting bulk assign of {Count} documents to collection {CollectionId}",
+            documentIds.Count, collectionId);
+
+        // Verify collection exists first
+        var collectionExists = await _db.Collections
+            .AnyAsync(c => c.Id == collectionId, ct);
+
+        if (!collectionExists)
+        {
+            _logger.Warning("Collection {CollectionId} not found; aborting bulk assign", collectionId);
+            return;
+        }
+
+        foreach (var id in documentIds)
+        {
+            ct.ThrowIfCancellationRequested();
+            try
+            {
+                // Check if association already exists
+                var alreadyAssigned = await _db.DocumentCollections
+                    .AnyAsync(dc => dc.DocumentId == id && dc.CollectionId == collectionId, ct);
+
+                if (alreadyAssigned) continue;
+
+                var documentExists = await _db.Documents.AnyAsync(d => d.Id == id, ct);
+                if (!documentExists)
+                {
+                    _logger.Warning("Document {Id} not found; skipping in bulk assign", id);
+                    continue;
+                }
+
+                var docCollection = new DocumentCollectionEntity
+                {
+                    DocumentId = id,
+                    CollectionId = collectionId,
+                    AddedAt = DateTime.UtcNow
+                };
+
+                _db.DocumentCollections.Add(docCollection);
+                await _db.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.Warning(ex, "Failed to assign document {Id} to collection in bulk operation", id);
+            }
+        }
+
+        _logger.Information("Bulk assign completed for {Count} documents to collection {CollectionId}",
+            documentIds.Count, collectionId);
     }
 
     // ─── Private Helpers ─────────────────────────────────────────────

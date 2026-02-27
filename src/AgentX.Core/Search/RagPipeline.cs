@@ -46,6 +46,7 @@ public sealed class RagPipeline : IRagPipeline
     private readonly ISemanticSearchService _searchService;
     private readonly IAiService _aiService;
     private readonly ICitationService _citationService;
+    private readonly IRagReranker _reranker;
     private readonly AgentXDbContext _dbContext;
     private readonly ILogger _logger;
 
@@ -53,12 +54,14 @@ public sealed class RagPipeline : IRagPipeline
         ISemanticSearchService searchService,
         IAiService aiService,
         ICitationService citationService,
+        IRagReranker reranker,
         AgentXDbContext dbContext,
         ILogger logger)
     {
         _searchService = searchService ?? throw new ArgumentNullException(nameof(searchService));
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
         _citationService = citationService ?? throw new ArgumentNullException(nameof(citationService));
+        _reranker = reranker ?? throw new ArgumentNullException(nameof(reranker));
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _logger = logger?.ForContext<RagPipeline>() ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -141,7 +144,10 @@ public sealed class RagPipeline : IRagPipeline
         }
 
         // ── Step 3: Build Context Chunks ─────────────────────────────────
-        var contextChunks = BuildContextChunks(relevantResults);
+        var rawContextChunks = BuildContextChunks(relevantResults);
+
+        // ── Step 3b: Rerank — deduplicate, boost query terms, enforce diversity ──
+        var contextChunks = _reranker.Rerank(rawContextChunks, question, DefaultTopK);
 
         // ── Step 4: Build RAG Prompt ─────────────────────────────────────
         var systemPrompt = BuildSystemPrompt(contextChunks);

@@ -1,0 +1,9 @@
+<UserControl
+    x:Class="AgentX.App.Controls.MarkdownMessageControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Segments are rendered programmatically in code-behind to support
+         dynamic code blocks, inline formatting, and copy buttons. -->
+    <StackPanel x:Name="ContentPanel" Spacing="4" />
+</UserControl>

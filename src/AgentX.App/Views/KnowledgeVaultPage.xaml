@@ -22,19 +22,31 @@
 
     </Page.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto"
-                  HorizontalScrollBarVisibility="Disabled"
-                  Padding="0">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             COLUMN 0: MAIN CONTENT (existing ScrollViewer)
+             ═══════════════════════════════════════════════════════════ -->
+        <ScrollViewer Grid.Column="0"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      Padding="0">
 
         <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="1200">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" /> <!-- Row 0: Header -->
+                <RowDefinition Height="Auto" /> <!-- Row 1: Duplicate warning banner (Feature 14) -->
+                <RowDefinition Height="Auto" /> <!-- Row 2: Stats -->
+                <RowDefinition Height="Auto" /> <!-- Row 3: Filter bar -->
+                <RowDefinition Height="Auto" /> <!-- Row 4: Batch action bar -->
+                <RowDefinition Height="Auto" /> <!-- Row 5: Error message -->
+                <RowDefinition Height="Auto" /> <!-- Row 6: Drop zone -->
+                <RowDefinition Height="Auto" /> <!-- Row 7: Documents grid -->
+                <RowDefinition Height="Auto" /> <!-- Row 8: Indexing status -->
             </Grid.RowDefinitions>
 
             <!-- ═══════════════════════════════════════════════════════
@@ -78,6 +90,17 @@
                         </StackPanel>
                     </Button>
 
+                    <!-- Multi-Select toggle button -->
+                    <Button Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{x:Bind ViewModel.ToggleMultiSelectCommand}"
+                            ToolTipService.ToolTip="Toggle multi-select mode"
+                            Padding="12,6" MinHeight="32">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE762;" FontSize="14" />
+                            <TextBlock Text="Select" />
+                        </StackPanel>
+                    </Button>
+
                     <!-- Refresh button -->
                     <Button Style="{StaticResource SecondaryButtonStyle}"
                             Command="{x:Bind ViewModel.RefreshCommand}"
@@ -88,10 +111,45 @@
             </Grid>
 
             <!-- ═══════════════════════════════════════════════════════
-                 ROW 1: STATS BAR
+                 ROW 1: DUPLICATE WARNING BANNER (Feature 14)
+                 Visible when duplicate documents are detected during import.
+                 ═══════════════════════════════════════════════════════ -->
+            <Border Grid.Row="1"
+                    Visibility="{x:Bind ViewModel.ShowDuplicateWarning, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                    Background="#2D1D1D" CornerRadius="8" Padding="16,12"
+                    BorderBrush="#F59E0B" BorderThickness="1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE7BA;" FontSize="20" Foreground="#F59E0B"
+                              VerticalAlignment="Center" Margin="0,0,12,0" />
+                    <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                        <TextBlock Text="Duplicate Documents Detected"
+                                   Style="{StaticResource BodyStyle}" FontWeight="SemiBold" />
+                        <TextBlock Text="{x:Bind ViewModel.DuplicateWarningMessage, Mode=OneWay}"
+                                   Style="{StaticResource CaptionStyle}" Opacity="0.7" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <Button Content="Skip Duplicates" Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{x:Bind ViewModel.SkipDuplicatesCommand}" Padding="12,6" />
+                        <Button Content="Import All" Style="{StaticResource GhostButtonStyle}"
+                                Command="{x:Bind ViewModel.ImportAllAnywayCommand}" Padding="12,6" />
+                        <Button Style="{StaticResource IconButtonStyle}"
+                                Command="{x:Bind ViewModel.DismissDuplicateWarningCommand}">
+                            <FontIcon Glyph="&#xE711;" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ═══════════════════════════════════════════════════════
+                 ROW 2: STATS BAR
                  3 inline stat badges + import progress bar
                  ═══════════════════════════════════════════════════════ -->
-            <StackPanel Grid.Row="1" Spacing="12">
+            <StackPanel Grid.Row="2" Spacing="12">
                 <StackPanel Orientation="Horizontal" Spacing="12">
 
                     <!-- Document count stat -->
@@ -183,9 +241,9 @@
             </StackPanel>
 
             <!-- ═══════════════════════════════════════════════════════
-                 ROW 2: TOOLBAR / FILTER BAR
+                 ROW 3: TOOLBAR / FILTER BAR
                  ═══════════════════════════════════════════════════════ -->
-            <Border Grid.Row="2" Style="{StaticResource CardInsetStyle}">
+            <Border Grid.Row="3" Style="{StaticResource CardInsetStyle}">
                 <StackPanel Spacing="12">
 
                     <!-- File type filter chips -->
@@ -273,6 +331,90 @@
                         </StackPanel>
                     </StackPanel>
 
+                    <!-- Tag filter chips (Feature 7) -->
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="TAGS"
+                                   Style="{StaticResource OverlineStyle}" />
+                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.AllTags, Mode=OneWay}">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Orientation="Horizontal" Spacing="4" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="vm:TagDisplayItem">
+                                    <Button Style="{StaticResource GhostButtonStyle}"
+                                            Padding="8,4" MinHeight="28"
+                                            Tag="{x:Bind Name}"
+                                            Click="OnFilterTagClick">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <Ellipse Width="8" Height="8"
+                                                     Fill="{StaticResource TextTertiaryBrush}" />
+                                            <TextBlock Text="{x:Bind Name}" Style="{StaticResource CaptionStyle}" />
+                                            <TextBlock Text="{x:Bind DocumentCountFormatted}"
+                                                       Style="{StaticResource CaptionStyle}" Opacity="0.5" />
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </StackPanel>
+
+                    <!-- Advanced filters (Feature 9) -->
+                    <Grid ColumnSpacing="12" RowSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Collection filter -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="COLLECTION"
+                                       Style="{StaticResource OverlineStyle}" />
+                            <ComboBox x:Name="CollectionFilterCombo"
+                                      ItemsSource="{x:Bind ViewModel.AvailableCollections, Mode=OneWay}"
+                                      PlaceholderText="All collections"
+                                      MinWidth="160"
+                                      SelectionChanged="OnCollectionFilterChanged" />
+                        </StackPanel>
+
+                        <!-- Date After filter -->
+                        <StackPanel Grid.Column="1" Spacing="4">
+                            <TextBlock Text="IMPORTED AFTER"
+                                       Style="{StaticResource OverlineStyle}" />
+                            <CalendarDatePicker x:Name="DateAfterPicker"
+                                                PlaceholderText="Start date"
+                                                MinWidth="140"
+                                                DateChanged="OnDateAfterChanged" />
+                        </StackPanel>
+
+                        <!-- Date Before filter -->
+                        <StackPanel Grid.Column="2" Spacing="4">
+                            <TextBlock Text="IMPORTED BEFORE"
+                                       Style="{StaticResource OverlineStyle}" />
+                            <CalendarDatePicker x:Name="DateBeforePicker"
+                                                PlaceholderText="End date"
+                                                MinWidth="140"
+                                                DateChanged="OnDateBeforeChanged" />
+                        </StackPanel>
+
+                        <!-- Sort dropdown -->
+                        <StackPanel Grid.Column="3" Spacing="4">
+                            <TextBlock Text="SORT BY"
+                                       Style="{StaticResource OverlineStyle}" />
+                            <ComboBox x:Name="SortByCombo"
+                                      PlaceholderText="Date"
+                                      SelectedIndex="0"
+                                      MinWidth="120"
+                                      SelectionChanged="OnSortByChanged">
+                                <ComboBoxItem Content="Date" Tag="date" />
+                                <ComboBoxItem Content="Name" Tag="name" />
+                                <ComboBoxItem Content="Size" Tag="size" />
+                                <ComboBoxItem Content="Type" Tag="type" />
+                            </ComboBox>
+                        </StackPanel>
+                    </Grid>
+
                     <!-- Search + Clear row -->
                     <Grid ColumnSpacing="12">
                         <Grid.ColumnDefinitions>
@@ -301,7 +443,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE711;" FontSize="12"
                                           Foreground="{StaticResource TextAccentBrush}" />
-                                <TextBlock Text="Clear"
+                                <TextBlock Text="Clear All"
                                            Style="{StaticResource CaptionStyle}"
                                            Foreground="{StaticResource TextAccentBrush}" />
                             </StackPanel>
@@ -311,9 +453,54 @@
             </Border>
 
             <!-- ═══════════════════════════════════════════════════════
-                 ROW 3: ERROR MESSAGE (conditional)
+                 ROW 4: BATCH ACTION BAR (Feature 8)
+                 Visible only in multi-select mode.
                  ═══════════════════════════════════════════════════════ -->
-            <Border Grid.Row="3"
+            <Border Grid.Row="4"
+                    Visibility="{x:Bind ViewModel.IsMultiSelectMode, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                    Background="#1AEF4444"
+                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{StaticResource RadiusMD}"
+                    Padding="16,10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource BodyStyle}">
+                            <Run Text="{x:Bind ViewModel.SelectedCount, Mode=OneWay}" />
+                            <Run Text=" selected" />
+                        </TextBlock>
+                        <Button Content="Select All" Style="{StaticResource GhostButtonStyle}"
+                                Command="{x:Bind ViewModel.SelectAllDocumentsCommand}"
+                                Padding="8,4" MinHeight="28" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                        <Button Style="{StaticResource SecondaryButtonStyle}" Padding="12,6"
+                                Command="{x:Bind ViewModel.BulkReindexCommand}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE72C;" FontSize="14" />
+                                <TextBlock Text="Re-index" />
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource GhostButtonStyle}" Padding="12,6"
+                                Command="{x:Bind ViewModel.BulkDeleteCommand}"
+                                Foreground="#EF4444">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="#EF4444" />
+                                <TextBlock Text="Delete" Foreground="#EF4444" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ═══════════════════════════════════════════════════════
+                 ROW 5: ERROR MESSAGE (conditional)
+                 ═══════════════════════════════════════════════════════ -->
+            <Border Grid.Row="5"
                     Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                     Background="#1AEF4444"
                     BorderBrush="#33EF4444"
@@ -332,11 +519,11 @@
             </Border>
 
             <!-- ═══════════════════════════════════════════════════════
-                 ROW 4: DROP ZONE
+                 ROW 5: DROP ZONE
                  Visible when no documents exist or always as
                  an inviting import area.
                  ═══════════════════════════════════════════════════════ -->
-            <Border Grid.Row="4"
+            <Border Grid.Row="6"
                     x:Name="DropZoneBorder"
                     Style="{StaticResource DropZoneStyle}"
                     Visibility="{x:Bind ViewModel.ShowDropZone, Mode=OneWay, Converter={StaticResource BoolToVis}}"
@@ -396,9 +583,9 @@
             </Border>
 
             <!-- ═══════════════════════════════════════════════════════
-                 ROW 5: DOCUMENTS GRID
+                 ROW 7: DOCUMENTS GRID
                  ═══════════════════════════════════════════════════════ -->
-            <StackPanel Grid.Row="5" Spacing="16">
+            <StackPanel Grid.Row="7" Spacing="16">
 
                 <!-- Loading indicator -->
                 <StackPanel Spacing="12"
@@ -437,15 +624,25 @@
                                         <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
 
-                                    <!-- Row 0: File type icon + name + badges -->
+                                    <!-- Row 0: File type icon + name + badges + selection checkbox -->
                                     <Grid Grid.Row="0" ColumnSpacing="12">
                                         <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
 
+                                        <!-- Selection checkbox (visible in multi-select mode) -->
+                                        <CheckBox Grid.Column="0"
+                                                  IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                                                  Tag="{x:Bind Id}"
+                                                  Click="OnDocumentCheckToggle"
+                                                  MinWidth="20" MinHeight="20"
+                                                  Padding="0" Margin="0,0,0,0"
+                                                  VerticalAlignment="Center" />
+
                                         <!-- File type icon container -->
-                                        <Border Style="{StaticResource FileTypeIconContainerStyle}">
+                                        <Border Grid.Column="1" Style="{StaticResource FileTypeIconContainerStyle}">
                                             <FontIcon Glyph="{x:Bind FileTypeIcon}"
                                                       FontSize="22"
                                                       Foreground="{StaticResource TextAccentBrush}"
@@ -453,7 +650,7 @@
                                                       VerticalAlignment="Center" />
                                         </Border>
 
-                                        <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                                        <StackPanel Grid.Column="2" Spacing="4" VerticalAlignment="Center">
                                             <!-- File name -->
                                             <TextBlock Text="{x:Bind FileName}"
                                                        Style="{StaticResource HeadingSmallStyle}"
@@ -566,6 +763,21 @@
                                                 Orientation="Horizontal"
                                                 Spacing="4"
                                                 HorizontalAlignment="Right">
+                                        <!-- Generate Title -->
+                                        <Button Style="{StaticResource GhostButtonStyle}"
+                                                Padding="8,6,8,6" MinHeight="32"
+                                                Tag="{x:Bind Id}"
+                                                Click="OnGenerateTitleClick"
+                                                ToolTipService.ToolTip="Generate AI title">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <FontIcon Glyph="&#xE945;" FontSize="12"
+                                                          Foreground="{StaticResource TextAccentBrush}" />
+                                                <TextBlock Text="AI Title"
+                                                           Style="{StaticResource CaptionStyle}"
+                                                           Foreground="{StaticResource TextAccentBrush}" />
+                                            </StackPanel>
+                                        </Button>
+
                                         <!-- View Detail -->
                                         <Button Style="{StaticResource GhostButtonStyle}"
                                                 Padding="8,6,8,6" MinHeight="32"
@@ -664,10 +876,10 @@
             </StackPanel>
 
             <!-- ═══════════════════════════════════════════════════════
-                 ROW 6: INDEXING STATUS BAR
+                 ROW 8: INDEXING STATUS BAR
                  Visible when indexing is active.
                  ═══════════════════════════════════════════════════════ -->
-            <Border Grid.Row="6"
+            <Border Grid.Row="8"
                     Style="{StaticResource IndexingStatusBarStyle}"
                     Visibility="{x:Bind ViewModel.IsIndexing, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                 <Grid ColumnSpacing="12">
@@ -705,5 +917,284 @@
             </Border>
 
         </Grid>
-    </ScrollViewer>
+        </ScrollViewer>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             COLUMN 1: DOCUMENT PREVIEW PANEL
+             Slides in from the right when a document is selected.
+             Width: 360px, visible only when IsPreviewOpen is true.
+             ═══════════════════════════════════════════════════════════ -->
+        <Border Grid.Column="1"
+                Width="360"
+                Background="{StaticResource SidebarGradientBrush}"
+                BorderBrush="{StaticResource BorderSubtleBrush}"
+                BorderThickness="1,0,0,0"
+                Visibility="{x:Bind ViewModel.IsPreviewOpen, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Spacing="0" Padding="24,20,24,24">
+
+                    <!-- ── HEADER: Title + Close Button ── -->
+                    <Grid Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Document Preview"
+                                   Style="{StaticResource HeadingSmallStyle}"
+                                   VerticalAlignment="Center" />
+
+                        <Button Grid.Column="1"
+                                Style="{StaticResource IconButtonStyle}"
+                                Command="{x:Bind ViewModel.ClosePreviewCommand}"
+                                ToolTipService.ToolTip="Close preview">
+                            <FontIcon Glyph="&#xE711;" FontSize="12"
+                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                        </Button>
+                    </Grid>
+
+                    <Border Style="{StaticResource SeparatorStyle}" Margin="0,0,0,20" />
+
+                    <!-- ── FILE IDENTITY: Icon + Filename ── -->
+                    <Grid Margin="0,0,0,16" ColumnSpacing="12"
+                          Visibility="{x:Bind ViewModel.SelectedDocument, Mode=OneWay, Converter={StaticResource NullToVis}}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Style="{StaticResource FileTypeIconContainerStyle}">
+                            <FontIcon Glyph="{x:Bind ViewModel.SelectedDocument.FileTypeIcon, Mode=OneWay}"
+                                      FontSize="22"
+                                      Foreground="{StaticResource TextAccentBrush}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center" />
+                        </Border>
+
+                        <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                            <TextBlock Text="{x:Bind ViewModel.SelectedDocument.FileName, Mode=OneWay}"
+                                       Style="{StaticResource HeadingSmallStyle}"
+                                       MaxLines="2"
+                                       TextTrimming="CharacterEllipsis"
+                                       TextWrapping="WrapWholeWords" />
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <Border Style="{StaticResource FileTypeBadgeStyle}">
+                                    <TextBlock Text="{x:Bind ViewModel.SelectedDocument.FileTypeLabel, Mode=OneWay}"
+                                               FontSize="10"
+                                               FontWeight="Bold"
+                                               Foreground="{StaticResource TextAccentBrush}"
+                                               CharacterSpacing="40" />
+                                </Border>
+                                <Border CornerRadius="{StaticResource RadiusRound}"
+                                        Padding="8,3,8,3">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="{StaticResource StatusSuccess}" Opacity="0.1" />
+                                    </Border.Background>
+                                    <TextBlock Text="{x:Bind ViewModel.SelectedDocument.IndexingStatusLabel, Mode=OneWay}"
+                                               FontSize="10"
+                                               FontWeight="Bold"
+                                               CharacterSpacing="40">
+                                        <TextBlock.Foreground>
+                                            <SolidColorBrush Color="{StaticResource StatusSuccess}" />
+                                        </TextBlock.Foreground>
+                                    </TextBlock>
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- ── EXTRACTED TITLE (if available) ── -->
+                    <StackPanel Spacing="4" Margin="0,0,0,16"
+                                Visibility="{x:Bind ViewModel.SelectedDocument.ExtractedTitle, Mode=OneWay, Converter={StaticResource StringToVis}}">
+                        <TextBlock Text="EXTRACTED TITLE"
+                                   Style="{StaticResource OverlineStyle}" />
+                        <TextBlock Text="{x:Bind ViewModel.SelectedDocument.ExtractedTitle, Mode=OneWay}"
+                                   Style="{StaticResource BodyStyle}"
+                                   TextWrapping="WrapWholeWords"
+                                   MaxLines="3"
+                                   TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+
+                    <!-- ── AI SUMMARY (if available) ── -->
+                    <StackPanel Spacing="4" Margin="0,0,0,16"
+                                Visibility="{x:Bind ViewModel.SelectedDocument.Summary, Mode=OneWay, Converter={StaticResource StringToVis}}">
+                        <TextBlock Text="AI SUMMARY"
+                                   Style="{StaticResource OverlineStyle}" />
+                        <Border Style="{StaticResource CardInsetStyle}" Padding="12">
+                            <TextBlock Text="{x:Bind ViewModel.SelectedDocument.Summary, Mode=OneWay}"
+                                       Style="{StaticResource BodySmallStyle}"
+                                       TextWrapping="WrapWholeWords"
+                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ── STATS GRID ── -->
+                    <StackPanel Spacing="4" Margin="0,0,0,16">
+                        <TextBlock Text="DETAILS"
+                                   Style="{StaticResource OverlineStyle}"
+                                   Margin="0,0,0,8" />
+                        <Grid ColumnSpacing="12" RowSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Pages -->
+                            <Border Grid.Row="0" Grid.Column="0"
+                                    Style="{StaticResource CardInsetStyle}" Padding="12,10">
+                                <StackPanel Spacing="2">
+                                    <TextBlock Style="{StaticResource CaptionStyle}"
+                                               Foreground="{StaticResource TextTertiaryBrush}">
+                                        <Run Text="&#xE8A1;" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="10" />
+                                        <Run Text=" Pages" />
+                                    </TextBlock>
+                                    <TextBlock Text="{x:Bind ViewModel.SelectedDocument.PageCount, Mode=OneWay}"
+                                               Style="{StaticResource HeadingSmallStyle}" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Words -->
+                            <Border Grid.Row="0" Grid.Column="1"
+                                    Style="{StaticResource CardInsetStyle}" Padding="12,10">
+                                <StackPanel Spacing="2">
+                                    <TextBlock Style="{StaticResource CaptionStyle}"
+                                               Foreground="{StaticResource TextTertiaryBrush}">
+                                        <Run Text="&#xE8C1;" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="10" />
+                                        <Run Text=" Words" />
+                                    </TextBlock>
+                                    <TextBlock Text="{x:Bind ViewModel.SelectedDocument.WordCountFormatted, Mode=OneWay}"
+                                               Style="{StaticResource HeadingSmallStyle}" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Chunks -->
+                            <Border Grid.Row="1" Grid.Column="0"
+                                    Style="{StaticResource CardInsetStyle}" Padding="12,10">
+                                <StackPanel Spacing="2">
+                                    <TextBlock Style="{StaticResource CaptionStyle}"
+                                               Foreground="{StaticResource TextTertiaryBrush}">
+                                        <Run Text="&#xE943;" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="10" />
+                                        <Run Text=" Chunks" />
+                                    </TextBlock>
+                                    <TextBlock Text="{x:Bind ViewModel.SelectedDocument.ChunkCount, Mode=OneWay}"
+                                               Style="{StaticResource HeadingSmallStyle}" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- File Size -->
+                            <Border Grid.Row="1" Grid.Column="1"
+                                    Style="{StaticResource CardInsetStyle}" Padding="12,10">
+                                <StackPanel Spacing="2">
+                                    <TextBlock Style="{StaticResource CaptionStyle}"
+                                               Foreground="{StaticResource TextTertiaryBrush}">
+                                        <Run Text="&#xEDA2;" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="10" />
+                                        <Run Text=" Size" />
+                                    </TextBlock>
+                                    <TextBlock Text="{x:Bind ViewModel.SelectedDocument.FileSizeFormatted, Mode=OneWay}"
+                                               Style="{StaticResource HeadingSmallStyle}" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Date Imported (full width) -->
+                            <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                    Style="{StaticResource CardInsetStyle}" Padding="12,10">
+                                <StackPanel Spacing="2">
+                                    <TextBlock Style="{StaticResource CaptionStyle}"
+                                               Foreground="{StaticResource TextTertiaryBrush}">
+                                        <Run Text="&#xE787;" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="10" />
+                                        <Run Text=" Date Imported" />
+                                    </TextBlock>
+                                    <TextBlock Text="{x:Bind ViewModel.SelectedDocument.ImportedAtFormatted, Mode=OneWay}"
+                                               Style="{StaticResource HeadingSmallStyle}" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- ── TAGS ── -->
+                    <StackPanel Spacing="4" Margin="0,0,0,20"
+                                Visibility="{x:Bind ViewModel.SelectedDocument, Mode=OneWay, Converter={StaticResource NullToVis}}">
+                        <TextBlock Text="TAGS"
+                                   Style="{StaticResource OverlineStyle}"
+                                   Margin="0,0,0,8" />
+                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.SelectedDocument.Tags, Mode=OneWay}">
+                            <ItemsRepeater.Layout>
+                                <UniformGridLayout MinItemWidth="0"
+                                                   MinColumnSpacing="6"
+                                                   MinRowSpacing="6"
+                                                   ItemsStretch="None"
+                                                   Orientation="Horizontal" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <Border Style="{StaticResource TagBadgeStyle}">
+                                        <TextBlock Text="{x:Bind}"
+                                                   FontSize="11"
+                                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </StackPanel>
+
+                    <Border Style="{StaticResource SeparatorStyle}" Margin="0,0,0,20" />
+
+                    <!-- ── ACTION BUTTONS ── -->
+                    <StackPanel Spacing="8"
+                                Visibility="{x:Bind ViewModel.SelectedDocument, Mode=OneWay, Converter={StaticResource NullToVis}}">
+
+                        <!-- Generate Title (primary accent action) -->
+                        <Button Style="{StaticResource AccentButtonStyle}"
+                                HorizontalAlignment="Stretch"
+                                Tag="{x:Bind ViewModel.SelectedDocument.Id, Mode=OneWay}"
+                                Click="OnGenerateTitleClick"
+                                ToolTipService.ToolTip="Generate an AI-powered title for this document">
+                            <StackPanel Orientation="Horizontal" Spacing="8"
+                                        HorizontalAlignment="Center">
+                                <FontIcon Glyph="&#xE945;" FontSize="14" />
+                                <TextBlock Text="Generate Title" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Open in Explorer (secondary) -->
+                        <Button Style="{StaticResource SecondaryButtonStyle}"
+                                HorizontalAlignment="Stretch"
+                                Tag="{x:Bind ViewModel.SelectedDocument.FilePath, Mode=OneWay}"
+                                Click="OnOpenInExplorerClick"
+                                ToolTipService.ToolTip="Open file location in Explorer">
+                            <StackPanel Orientation="Horizontal" Spacing="8"
+                                        HorizontalAlignment="Center">
+                                <FontIcon Glyph="&#xE8DA;" FontSize="14" />
+                                <TextBlock Text="Open in Explorer" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Re-index (ghost) -->
+                        <Button Style="{StaticResource GhostButtonStyle}"
+                                HorizontalAlignment="Stretch"
+                                Tag="{x:Bind ViewModel.SelectedDocument.Id, Mode=OneWay}"
+                                Click="OnReindexClick"
+                                ToolTipService.ToolTip="Re-index this document">
+                            <StackPanel Orientation="Horizontal" Spacing="8"
+                                        HorizontalAlignment="Center">
+                                <FontIcon Glyph="&#xE72C;" FontSize="14"
+                                          Foreground="{StaticResource TextSecondaryBrush}" />
+                                <TextBlock Text="Re-index"
+                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+    </Grid>
 </Page>

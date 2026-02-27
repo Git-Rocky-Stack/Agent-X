@@ -18,6 +18,8 @@ public class ChatService : IChatService
     private readonly IAiService _aiService;
     private readonly IConversationService _conversationService;
     private readonly ISettingsService _settingsService;
+    private readonly IContextWindowManager _contextWindowManager;
+    private readonly IConversationMemoryService _memoryService;
     private readonly ILogger _log;
 
     private CancellationTokenSource? _generationCts;
@@ -43,11 +45,15 @@ public class ChatService : IChatService
         IAiService aiService,
         IConversationService conversationService,
         ISettingsService settingsService,
+        IContextWindowManager contextWindowManager,
+        IConversationMemoryService memoryService,
         ILogger logger)
     {
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
         _conversationService = conversationService ?? throw new ArgumentNullException(nameof(conversationService));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _contextWindowManager = contextWindowManager ?? throw new ArgumentNullException(nameof(contextWindowManager));
+        _memoryService = memoryService ?? throw new ArgumentNullException(nameof(memoryService));
         _log = logger?.ForContext<ChatService>()
                ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -99,10 +105,31 @@ public class ChatService : IChatService
             // 4. Get system prompt from conversation entity
             var systemPrompt = conversation.SystemPrompt;
 
+            // 4b. Enrich system prompt with user memories
+            try
+            {
+                var memoryContext = await _memoryService.GetMemoryContextAsync(8, linkedCts.Token);
+                if (!string.IsNullOrEmpty(memoryContext))
+                {
+                    systemPrompt = (systemPrompt ?? "") + memoryContext;
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.Warning(ex, "Failed to load memory context for conversation {ConversationId}", conversationId);
+            }
+
             // 5. Build chat options from settings
             var options = await BuildChatOptionsAsync();
 
-            // 6. Stream the AI response
+            // 6. Trim context to fit within model's context window
+            var contextWindow = _contextWindowManager.GetEffectiveContextWindow(
+                options?.ContextWindow ?? 0);
+            var fittedMessages = await _contextWindowManager.FitToContextWindowAsync(
+                chatMessages.ToList(), contextWindow, reserveForResponse: 1024, linkedCts.Token);
+            chatMessages = fittedMessages;
+
+            // 7. Stream the AI response
             _log.Debug(
                 "Starting streaming response for conversation {ConversationId} ({MessageCount} messages in context)",
                 conversationId, chatMessages.Count);
@@ -134,6 +161,13 @@ public class ChatService : IChatService
                 _log.Information(
                     "Completed streaming response for conversation {ConversationId}: {TokenCount} tokens in {ElapsedMs:F0}ms",
                     conversationId, tokenCount, stopwatch.Elapsed.TotalMilliseconds);
+
+                // Extract memories from this conversation (non-blocking)
+                _ = Task.Run(async () =>
+                {
+                    try { await _memoryService.ExtractMemoriesAsync(conversationId); }
+                    catch (Exception ex) { _log.Warning(ex, "Background memory extraction failed for conversation {ConversationId}", conversationId); }
+                });
             }
             else
             {
@@ -216,10 +250,16 @@ public class ChatService : IChatService
 
             // Build chat messages from the current history (without the deleted assistant message)
             // We do NOT add a new user message -- the last user message is already in history
-            var chatMessages = BuildChatMessages(updatedMessages);
+            var rawMessages = BuildChatMessages(updatedMessages);
 
             // Build chat options from settings
             var options = await BuildChatOptionsAsync();
+
+            // Trim context to fit within model's context window
+            var contextWindow = _contextWindowManager.GetEffectiveContextWindow(
+                options?.ContextWindow ?? 0);
+            var chatMessages = await _contextWindowManager.FitToContextWindowAsync(
+                rawMessages.ToList(), contextWindow, reserveForResponse: 1024, ct);
 
             // Create a linked cancellation token for stop support
             CancellationTokenSource linkedCts;

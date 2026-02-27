@@ -52,31 +52,99 @@ public sealed class AiService : IAiService
 
         try
         {
+            // Dispose any existing providers before re-initialization
+            // (supports being called again after settings change)
+            foreach (var existingProvider in _providers.Values)
+            {
+                try { existingProvider.Dispose(); }
+                catch (Exception ex)
+                {
+                    _logger.Warning(ex, "Error disposing existing provider: {Provider}",
+                        existingProvider.ProviderId);
+                }
+            }
+            _providers.Clear();
+            _activeProvider = null;
+            _isConnected = false;
+
             var settings = await _settingsService.GetSettingsAsync().ConfigureAwait(false);
 
-            // Create Ollama provider with configured endpoint
+            // ── 1. Always register Ollama ──────────────────────────
             var ollamaEndpoint = new Uri(settings.OllamaEndpoint);
             var ollamaProvider = new OllamaProvider(ollamaEndpoint, _logger);
             _providers["ollama"] = ollamaProvider;
-
             _logger.Debug("Ollama provider registered with endpoint {Endpoint}", settings.OllamaEndpoint);
 
-            // Check connection to Ollama
-            var connected = await ollamaProvider.CheckConnectionAsync(ct).ConfigureAwait(false);
-            if (connected)
+            // ── 2. Register OpenAI if API key is configured ────────
+            if (!string.IsNullOrWhiteSpace(settings.OpenAiApiKey))
             {
-                _activeProvider = ollamaProvider;
-                _isConnected = true;
-                _activeModelId = settings.DefaultModel;
-                _logger.Information("AI service initialized with Ollama provider, model: {Model}", _activeModelId);
+                try
+                {
+                    var openAiProvider = new OpenAiProvider(
+                        settings.OpenAiApiKey,
+                        settings.OpenAiEndpoint,
+                        _logger);
+                    _providers["openai"] = openAiProvider;
+                    _logger.Debug("OpenAI provider registered with endpoint {Endpoint}", settings.OpenAiEndpoint);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Warning(ex, "Failed to create OpenAI provider");
+                }
+            }
+
+            // ── 3. Register Anthropic if API key is configured ─────
+            if (!string.IsNullOrWhiteSpace(settings.AnthropicApiKey))
+            {
+                try
+                {
+                    var anthropicProvider = new AnthropicProvider(
+                        settings.AnthropicApiKey,
+                        settings.AnthropicEndpoint,
+                        _logger);
+                    _providers["anthropic"] = anthropicProvider;
+                    _logger.Debug("Anthropic provider registered with endpoint {Endpoint}", settings.AnthropicEndpoint);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Warning(ex, "Failed to create Anthropic provider");
+                }
+            }
+
+            // ── 4. Activate the preferred provider ─────────────────
+            var preferredProviderId = settings.ActiveProviderId ?? "ollama";
+
+            if (_providers.TryGetValue(preferredProviderId, out var preferredProvider))
+            {
+                var connected = await preferredProvider.CheckConnectionAsync(ct).ConfigureAwait(false);
+                _activeProvider = preferredProvider;
+                _isConnected = connected;
+                _activeModelId = ResolveDefaultModel(settings, preferredProviderId);
+
+                if (connected)
+                {
+                    _logger.Information(
+                        "AI service initialized with {Provider} provider, model: {Model}",
+                        preferredProviderId, _activeModelId);
+                }
+                else
+                {
+                    _logger.Warning(
+                        "{Provider} is not reachable. AI service initialized in offline mode.",
+                        preferredProviderId);
+                }
             }
             else
             {
-                _activeProvider = ollamaProvider; // Still set it so callers can retry later
-                _isConnected = false;
+                // Fallback to Ollama if preferred provider is not registered
+                _logger.Warning(
+                    "Preferred provider {ProviderId} not registered (missing API key?). Falling back to Ollama.",
+                    preferredProviderId);
+
+                var connected = await ollamaProvider.CheckConnectionAsync(ct).ConfigureAwait(false);
+                _activeProvider = ollamaProvider;
+                _isConnected = connected;
                 _activeModelId = settings.DefaultModel;
-                _logger.Warning("Ollama is not reachable at {Endpoint}. AI service initialized in offline mode.",
-                    settings.OllamaEndpoint);
             }
         }
         catch (Exception ex)
@@ -85,6 +153,19 @@ public sealed class AiService : IAiService
             _isConnected = false;
             throw;
         }
+    }
+
+    /// <summary>
+    /// Resolves the appropriate default model ID for the given provider based on app settings.
+    /// </summary>
+    private static string ResolveDefaultModel(AppSettings settings, string providerId)
+    {
+        return providerId.ToLowerInvariant() switch
+        {
+            "openai" => settings.OpenAiDefaultModel ?? "gpt-4o-mini",
+            "anthropic" => settings.AnthropicDefaultModel ?? "claude-sonnet-4-20250514",
+            _ => settings.DefaultModel
+        };
     }
 
     /// <inheritdoc />

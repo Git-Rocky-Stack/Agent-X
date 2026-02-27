@@ -29,25 +29,29 @@
                 <RowDefinition Height="Auto" />
                 <!-- Row 8:  Collections -->
                 <RowDefinition Height="Auto" />
-                <!-- Row 9:  Semantic Search -->
+                <!-- Row 9:  Knowledge Graph -->
                 <RowDefinition Height="Auto" />
-                <!-- Row 10: Model Manager -->
+                <!-- Row 10: Weekly Digest -->
                 <RowDefinition Height="Auto" />
-                <!-- Row 11: Hardware Advisor -->
+                <!-- Row 11: Semantic Search -->
                 <RowDefinition Height="Auto" />
-                <!-- Row 12: Settings -->
+                <!-- Row 12: Model Manager -->
                 <RowDefinition Height="Auto" />
-                <!-- Row 13: Keyboard Shortcuts -->
+                <!-- Row 13: Hardware Advisor -->
                 <RowDefinition Height="Auto" />
-                <!-- Row 14: Command Palette -->
+                <!-- Row 14: Settings -->
                 <RowDefinition Height="Auto" />
-                <!-- Row 15: Supported File Formats -->
+                <!-- Row 15: Keyboard Shortcuts -->
                 <RowDefinition Height="Auto" />
-                <!-- Row 16: Troubleshooting -->
+                <!-- Row 16: Command Palette -->
                 <RowDefinition Height="Auto" />
-                <!-- Row 17: Privacy & Security -->
+                <!-- Row 17: Supported File Formats -->
                 <RowDefinition Height="Auto" />
-                <!-- Row 18: Getting Help -->
+                <!-- Row 18: Troubleshooting -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 19: Privacy & Security -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 20: Getting Help -->
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
@@ -69,20 +73,24 @@
             <Border Grid.Row="1" Style="{StaticResource CardAccentStyle}">
                 <StackPanel Spacing="16">
                     <!-- Section Header -->
-                    <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE80F;"
                                   FontFamily="Segoe MDL2 Assets"
                                   FontSize="22"
                                   Foreground="{StaticResource TextAccentBrush}" />
-                        <TextBlock Text="Welcome to Agent-X"
+                        <TextBlock Grid.Column="1" Text="Welcome to Agent-X"
                                    Style="{StaticResource HeadingMediumStyle}" />
-                    </StackPanel>
+                    </Grid>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="Agent-X is your local-first AI personal intelligence hub. All processing happens on your machine — your data never leaves your device." />
 
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="Powered by Ollama, Agent-X lets you chat with open-source AI models, ask questions about your own documents using Retrieval-Augmented Generation (RAG), manage a local knowledge vault, run pre-built AI actions, and search your files using semantic vector search — all without an internet connection or cloud dependency." />
+                               Text="Agent-X supports multiple AI providers: Ollama for local inference with open-source models, and optional cloud providers including OpenAI and Anthropic Claude for users who want access to frontier models. Chat with AI models, ask questions about your own documents using Retrieval-Augmented Generation (RAG), manage a local knowledge vault, run pre-built AI actions, and search your files using semantic vector search — all with a local-first architecture that keeps your data on your device." />
 
                     <TextBlock Style="{StaticResource BodySecondaryStyle}"
                                Text="This guide covers every feature in detail so you can unlock the full power of your local AI setup." />
@@ -96,14 +104,18 @@
             <Border Grid.Row="2" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
                     <!-- Section Header -->
-                    <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE7B5;"
                                   FontFamily="Segoe MDL2 Assets"
                                   FontSize="20"
                                   Foreground="{StaticResource TextAccentBrush}" />
-                        <TextBlock Text="Getting Started"
+                        <TextBlock Grid.Column="1" Text="Getting Started"
                                    Style="{StaticResource HeadingMediumStyle}" />
-                    </StackPanel>
+                    </Grid>
 
                     <!-- Prerequisites -->
                     <TextBlock Text="Prerequisites"
@@ -111,7 +123,11 @@
 
                     <StackPanel Spacing="10">
                         <!-- Prereq 1 -->
-                        <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <Border Width="28" Height="28"
                                     CornerRadius="{StaticResource RadiusRound}"
                                     Background="{StaticResource AccentSubtleBrush}"
@@ -121,7 +137,7 @@
                                            Foreground="{StaticResource TextAccentBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
-                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                                 <TextBlock Style="{StaticResource BodyStyle}">
                                     <Run FontWeight="SemiBold">Install Ollama</Run>
                                     <Run Text=" — Download and install Ollama from" />
@@ -129,10 +145,14 @@
                                     <Run Text=". Ollama is the local AI runtime that powers all inference in Agent-X." />
                                 </TextBlock>
                             </StackPanel>
-                        </StackPanel>
+                        </Grid>
 
                         <!-- Prereq 2 -->
-                        <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <Border Width="28" Height="28"
                                     CornerRadius="{StaticResource RadiusRound}"
                                     Background="{StaticResource AccentSubtleBrush}"
@@ -142,7 +162,7 @@
                                            Foreground="{StaticResource TextAccentBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
-                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                                 <TextBlock Style="{StaticResource BodyStyle}">
                                     <Run FontWeight="SemiBold">Pull at least one model</Run>
                                     <Run Text=" — Open a terminal and run" />
@@ -167,10 +187,14 @@
                                                Style="{StaticResource MonoStyle}" />
                                 </Border>
                             </StackPanel>
-                        </StackPanel>
+                        </Grid>
 
                         <!-- Prereq 3 -->
-                        <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <Border Width="28" Height="28"
                                     CornerRadius="{StaticResource RadiusRound}"
                                     Background="{StaticResource AccentSubtleBrush}"
@@ -180,7 +204,7 @@
                                            Foreground="{StaticResource TextAccentBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
-                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                                 <TextBlock Style="{StaticResource BodyStyle}">
                                     <Run FontWeight="SemiBold">Ensure Ollama is running</Run>
                                     <Run Text=" — Ollama must be actively serving before launching Agent-X. You can verify by running" />
@@ -194,7 +218,7 @@
                                                Style="{StaticResource MonoStyle}" />
                                 </Border>
                             </StackPanel>
-                        </StackPanel>
+                        </Grid>
                     </StackPanel>
 
                     <Border Style="{StaticResource SeparatorStyle}" />
@@ -218,14 +242,18 @@
             <Border Grid.Row="3" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
                     <!-- Section Header -->
-                    <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE80F;"
                                   FontFamily="Segoe MDL2 Assets"
                                   FontSize="20"
                                   Foreground="{StaticResource TextAccentBrush}" />
-                        <TextBlock Text="Dashboard"
+                        <TextBlock Grid.Column="1" Text="Dashboard"
                                    Style="{StaticResource HeadingMediumStyle}" />
-                    </StackPanel>
+                    </Grid>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="The Dashboard is your home base in Agent-X. It provides a high-level overview of your entire system at a glance." />
@@ -235,41 +263,57 @@
                                Style="{StaticResource HeadingSmallStyle}" />
 
                     <StackPanel Spacing="10">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">System Status Cards</Run>
                                 <Run Text=" — Live indicators showing whether Ollama is connected, your active chat and embedding models, and total indexed documents." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">Document Statistics</Run>
                                 <Run Text=" — Total documents imported, total chunks indexed, and storage usage metrics for your Knowledge Vault." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">Recent Activity</Run>
                                 <Run Text=" — A timeline of your latest actions: recent chats, document imports, search queries, and quick action results." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">AI Connection Status</Run>
                                 <Run Text=" — A real-time health check showing Ollama connectivity, the loaded model, and response latency." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
                     </StackPanel>
 
                     <Border Style="{StaticResource SeparatorStyle}" />
@@ -332,14 +376,18 @@
             <Border Grid.Row="4" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
                     <!-- Section Header -->
-                    <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8BD;"
                                   FontFamily="Segoe MDL2 Assets"
                                   FontSize="20"
                                   Foreground="{StaticResource TextAccentBrush}" />
-                        <TextBlock Text="AI Chat"
+                        <TextBlock Grid.Column="1" Text="AI Chat"
                                    Style="{StaticResource HeadingMediumStyle}" />
-                    </StackPanel>
+                    </Grid>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="The AI Chat page lets you have natural language conversations with locally-running open-source language models. It functions like a private, offline version of ChatGPT." />
@@ -349,7 +397,11 @@
                                Style="{StaticResource HeadingSmallStyle}" />
 
                     <StackPanel Spacing="10">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <Border Width="28" Height="28"
                                     CornerRadius="{StaticResource RadiusRound}"
                                     Background="{StaticResource AccentSubtleBrush}"
@@ -359,13 +411,17 @@
                                            Foreground="{StaticResource TextAccentBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
-                            <TextBlock Style="{StaticResource BodyStyle}" VerticalAlignment="Center">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center">
                                 <Run FontWeight="SemiBold">Select a model</Run>
                                 <Run Text=" — Choose from your installed Ollama models using the model selector dropdown at the top of the chat. Different models have different capabilities and sizes." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <Border Width="28" Height="28"
                                     CornerRadius="{StaticResource RadiusRound}"
                                     Background="{StaticResource AccentSubtleBrush}"
@@ -375,13 +431,17 @@
                                            Foreground="{StaticResource TextAccentBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
-                            <TextBlock Style="{StaticResource BodyStyle}" VerticalAlignment="Center">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center">
                                 <Run FontWeight="SemiBold">Type your message</Run>
                                 <Run Text=" — Enter your prompt in the input field at the bottom. Press Enter to send, or Shift+Enter for a new line." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <Border Width="28" Height="28"
                                     CornerRadius="{StaticResource RadiusRound}"
                                     Background="{StaticResource AccentSubtleBrush}"
@@ -391,11 +451,11 @@
                                            Foreground="{StaticResource TextAccentBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
-                            <TextBlock Style="{StaticResource BodyStyle}" VerticalAlignment="Center">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center">
                                 <Run FontWeight="SemiBold">Watch the response stream</Run>
                                 <Run Text=" — Responses stream in token-by-token in real time, rendered with full Markdown formatting including headings, lists, code blocks, and inline code." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
                     </StackPanel>
 
                     <Border Style="{StaticResource SeparatorStyle}" />
@@ -404,26 +464,97 @@
                                Style="{StaticResource HeadingSmallStyle}" />
 
                     <StackPanel Spacing="8">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}"
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                        Text="Conversations are automatically saved to a local SQLite database on your device. You can return to any previous conversation from the sidebar history." />
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}"
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                        Text="Use Ctrl+N to start a new chat at any time. Each conversation maintains its own context window, so the AI remembers what was discussed within the same session." />
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}"
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                        Text="You can delete individual conversations or clear your entire chat history from the conversation sidebar." />
-                        </StackPanel>
+                        </Grid>
+                    </StackPanel>
+
+                    <Border Style="{StaticResource SeparatorStyle}" />
+
+                    <TextBlock Text="Advanced Chat Features"
+                               Style="{StaticResource HeadingSmallStyle}" />
+
+                    <StackPanel Spacing="8">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Conversation Export</Run>
+                                <Run Text=" — Export chat conversations to text or markdown files for archiving, sharing, or reference outside of Agent-X." />
+                            </TextBlock>
+                        </Grid>
+
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Rich Code Rendering</Run>
+                                <Run Text=" — Code blocks are rendered with syntax highlighting and include a copy-to-clipboard button for easy code extraction from AI responses." />
+                            </TextBlock>
+                        </Grid>
+
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Conversation Memory</Run>
+                                <Run Text=" — The AI remembers key facts across conversations, including people, projects, preferences, decisions, and technical notes, building a persistent understanding of your context over time." />
+                            </TextBlock>
+                        </Grid>
+
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Suggested Questions</Run>
+                                <Run Text=" — After each AI response, suggested follow-up questions are generated to help you explore topics more deeply and discover related areas of inquiry." />
+                            </TextBlock>
+                        </Grid>
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -435,14 +566,18 @@
             <Border Grid.Row="5" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
                     <!-- Section Header -->
-                    <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE82D;"
                                   FontFamily="Segoe MDL2 Assets"
                                   FontSize="20"
                                   Foreground="{StaticResource TextAccentBrush}" />
-                        <TextBlock Text="Ask Your Files (RAG)"
+                        <TextBlock Grid.Column="1" Text="Ask Your Files (RAG)"
                                    Style="{StaticResource HeadingMediumStyle}" />
-                    </StackPanel>
+                    </Grid>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="Retrieval-Augmented Generation (RAG) is the core intelligence feature of Agent-X. It allows you to ask natural language questions about your own documents and receive AI-generated answers grounded in your actual data." />
@@ -452,7 +587,11 @@
                                Style="{StaticResource HeadingSmallStyle}" />
 
                     <StackPanel Spacing="10">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <Border Width="28" Height="28"
                                     CornerRadius="{StaticResource RadiusRound}"
                                     Background="{StaticResource AccentSubtleBrush}"
@@ -462,13 +601,17 @@
                                            Foreground="{StaticResource TextAccentBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
-                            <TextBlock Style="{StaticResource BodyStyle}" VerticalAlignment="Center">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center">
                                 <Run FontWeight="SemiBold">Select documents</Run>
                                 <Run Text=" — Choose one or more documents from your Knowledge Vault to query against. You can select individual files or entire collections." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <Border Width="28" Height="28"
                                     CornerRadius="{StaticResource RadiusRound}"
                                     Background="{StaticResource AccentSubtleBrush}"
@@ -478,13 +621,17 @@
                                            Foreground="{StaticResource TextAccentBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
-                            <TextBlock Style="{StaticResource BodyStyle}" VerticalAlignment="Center">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center">
                                 <Run FontWeight="SemiBold">Ask a question</Run>
                                 <Run Text=" — Type a natural language question about the content of your selected documents." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <Border Width="28" Height="28"
                                     CornerRadius="{StaticResource RadiusRound}"
                                     Background="{StaticResource AccentSubtleBrush}"
@@ -494,13 +641,17 @@
                                            Foreground="{StaticResource TextAccentBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
-                            <TextBlock Style="{StaticResource BodyStyle}" VerticalAlignment="Center">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center">
                                 <Run FontWeight="SemiBold">Semantic retrieval</Run>
                                 <Run Text=" — Agent-X converts your question into a vector embedding, then searches the indexed chunks of your documents for the most semantically relevant passages." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <Border Width="28" Height="28"
                                     CornerRadius="{StaticResource RadiusRound}"
                                     Background="{StaticResource AccentSubtleBrush}"
@@ -510,11 +661,11 @@
                                            Foreground="{StaticResource TextAccentBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
-                            <TextBlock Style="{StaticResource BodyStyle}" VerticalAlignment="Center">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center">
                                 <Run FontWeight="SemiBold">AI-generated answer</Run>
                                 <Run Text=" — The retrieved passages are fed to the chat model as context, and the AI generates a comprehensive answer with citations referencing the source document and chunk." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
                     </StackPanel>
 
                     <Border Style="{StaticResource SeparatorStyle}" />
@@ -535,14 +686,18 @@
             <Border Grid.Row="6" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
                     <!-- Section Header -->
-                    <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE945;"
                                   FontFamily="Segoe MDL2 Assets"
                                   FontSize="20"
                                   Foreground="{StaticResource TextAccentBrush}" />
-                        <TextBlock Text="Quick Actions"
+                        <TextBlock Grid.Column="1" Text="Quick Actions"
                                    Style="{StaticResource HeadingMediumStyle}" />
-                    </StackPanel>
+                    </Grid>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="Quick Actions are pre-built AI workflows that perform common document intelligence tasks with a single click. Select one or more documents, choose an action, and Agent-X handles the rest." />
@@ -661,14 +816,18 @@
             <Border Grid.Row="7" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
                     <!-- Section Header -->
-                    <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;"
                                   FontFamily="Segoe MDL2 Assets"
                                   FontSize="20"
                                   Foreground="{StaticResource TextAccentBrush}" />
-                        <TextBlock Text="Knowledge Vault"
+                        <TextBlock Grid.Column="1" Text="Knowledge Vault"
                                    Style="{StaticResource HeadingMediumStyle}" />
-                    </StackPanel>
+                    </Grid>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="The Knowledge Vault is your centralized document repository. All files imported into Agent-X are stored, indexed, and made searchable through the Knowledge Vault." />
@@ -681,32 +840,44 @@
                                Text="There are three ways to add documents to your Knowledge Vault:" />
 
                     <StackPanel Spacing="8">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">Drag and drop</Run>
                                 <Run Text=" — Drag files or folders directly onto the Knowledge Vault page. Agent-X will import all supported file types." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">File picker</Run>
                                 <Run Text=" — Click the Import button and select individual files from the system file picker dialog." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">Folder import</Run>
                                 <Run Text=" — Select an entire folder to recursively import all supported files. Subfolders are scanned automatically." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
                     </StackPanel>
 
                     <Border Style="{StaticResource SeparatorStyle}" />
@@ -719,26 +890,124 @@
                                Text="Each document in the vault shows its file name, format, size, import date, chunk count, and indexing status. You can:" />
 
                     <StackPanel Spacing="8">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}"
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                        Text="View document details including full text preview, metadata, and chunk breakdown." />
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}"
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                        Text="Re-index a document if you change embedding models or chunking settings." />
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}"
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                        Text="Delete documents you no longer need. This removes the file and all associated embeddings from the local database." />
-                        </StackPanel>
+                        </Grid>
+                    </StackPanel>
+
+                    <Border Style="{StaticResource SeparatorStyle}" />
+
+                    <!-- Advanced Features -->
+                    <TextBlock Text="Advanced Features"
+                               Style="{StaticResource HeadingSmallStyle}" />
+
+                    <StackPanel Spacing="8">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Auto-Tagging</Run>
+                                <Run Text=" — AI automatically generates semantic tags when documents are imported, categorizing content by topic, domain, and key concepts without manual effort." />
+                            </TextBlock>
+                        </Grid>
+
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Duplicate Detection</Run>
+                                <Run Text=" — Smart duplicate and near-duplicate detection during import using content hashing and cosine similarity, preventing redundant documents from cluttering your vault." />
+                            </TextBlock>
+                        </Grid>
+
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Batch Operations</Run>
+                                <Run Text=" — Select multiple documents for bulk operations including delete, re-index, or tag assignment, saving time when managing large document collections." />
+                            </TextBlock>
+                        </Grid>
+
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Advanced Filtering</Run>
+                                <Run Text=" — Filter documents by collection, date range, and sort by name, date, size, or file type to quickly locate specific files in your vault." />
+                            </TextBlock>
+                        </Grid>
+
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Document Preview Panel</Run>
+                                <Run Text=" — A side panel showing document details, tags, chunks, and metadata at a glance without navigating away from the document list." />
+                            </TextBlock>
+                        </Grid>
+
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">AI-Generated Titles</Run>
+                                <Run Text=" — Generate descriptive, meaningful titles for documents using AI analysis of their content, replacing generic file names with informative labels." />
+                            </TextBlock>
+                        </Grid>
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -750,14 +1019,18 @@
             <Border Grid.Row="8" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
                     <!-- Section Header -->
-                    <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8B7;"
                                   FontFamily="Segoe MDL2 Assets"
                                   FontSize="20"
                                   Foreground="{StaticResource TextAccentBrush}" />
-                        <TextBlock Text="Collections"
+                        <TextBlock Grid.Column="1" Text="Collections"
                                    Style="{StaticResource HeadingMediumStyle}" />
-                    </StackPanel>
+                    </Grid>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="Collections let you organize your documents into logical groups. Think of them as folders or tags for your Knowledge Vault — a single document can belong to multiple collections." />
@@ -767,60 +1040,305 @@
                                Style="{StaticResource HeadingSmallStyle}" />
 
                     <StackPanel Spacing="8">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">Creating collections</Run>
                                 <Run Text=" — Navigate to the Collections page and click New Collection. Give it a descriptive name and optional description." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">Adding documents</Run>
                                 <Run Text=" — Open a collection and use the Add Documents button to select files from your Knowledge Vault. Documents can belong to multiple collections simultaneously." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">Collection-scoped search</Run>
                                 <Run Text=" — When using Semantic Search or Ask Your Files, you can scope your query to a specific collection to narrow results to only the relevant documents." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">Managing collections</Run>
                                 <Run Text=" — Rename, edit descriptions, remove documents, or delete entire collections. Deleting a collection does not delete the documents themselves — only the grouping." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
                     </StackPanel>
                 </StackPanel>
             </Border>
 
 
             <!-- ==========================================================
-                 ROW 9: SEMANTIC SEARCH
+                 ROW 9: KNOWLEDGE GRAPH
                  ========================================================== -->
             <Border Grid.Row="9" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
                     <!-- Section Header -->
-                    <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE9D9;"
+                                  FontFamily="Segoe MDL2 Assets"
+                                  FontSize="20"
+                                  Foreground="{StaticResource TextAccentBrush}" />
+                        <TextBlock Grid.Column="1" Text="Knowledge Graph"
+                                   Style="{StaticResource HeadingMediumStyle}" />
+                    </Grid>
+
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="The Knowledge Graph provides an interactive, force-directed graph visualization showing the relationships between your documents, collections, and tags. It transforms your Knowledge Vault into a visual network you can explore." />
+
+                    <!-- Features -->
+                    <TextBlock Text="Graph Elements"
+                               Style="{StaticResource HeadingSmallStyle}" />
+
+                    <StackPanel Spacing="8">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Document Nodes</Run>
+                                <Run Text=" — Represented as blue circles, each document in your vault appears as a node in the graph, sized proportionally to its content volume." />
+                            </TextBlock>
+                        </Grid>
+
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Collection Nodes</Run>
+                                <Run Text=" — Represented as purple circles, collections act as hub nodes connecting all their member documents visually." />
+                            </TextBlock>
+                        </Grid>
+
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Tag Nodes</Run>
+                                <Run Text=" — Represented as amber circles, tags show semantic connections between documents that share common topics or themes." />
+                            </TextBlock>
+                        </Grid>
+
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Edge Connections</Run>
+                                <Run Text=" — Lines between nodes represent relationships such as collection membership and tag associations, revealing how your documents are interconnected." />
+                            </TextBlock>
+                        </Grid>
+                    </StackPanel>
+
+                    <Border Style="{StaticResource SeparatorStyle}" />
+
+                    <TextBlock Text="Interaction"
+                               Style="{StaticResource HeadingSmallStyle}" />
+
+                    <StackPanel Spacing="8">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Click to Navigate</Run>
+                                <Run Text=" — Click any document or collection node to navigate directly to that item, seamlessly bridging visual exploration and detailed content access." />
+                            </TextBlock>
+                        </Grid>
+
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Zoom and Pan</Run>
+                                <Run Text=" — Use mouse wheel to zoom in and out, and click-drag on the background to pan across the graph. Navigate large knowledge bases with ease." />
+                            </TextBlock>
+                        </Grid>
+
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Physics Simulation</Run>
+                                <Run Text=" — The graph uses a force-directed layout algorithm that naturally positions related nodes closer together, making clusters and relationships visually intuitive." />
+                            </TextBlock>
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+
+            <!-- ==========================================================
+                 ROW 10: WEEKLY DIGEST
+                 ========================================================== -->
+            <Border Grid.Row="10" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="16">
+                    <!-- Section Header -->
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE9D2;"
+                                  FontFamily="Segoe MDL2 Assets"
+                                  FontSize="20"
+                                  Foreground="{StaticResource TextAccentBrush}" />
+                        <TextBlock Grid.Column="1" Text="Weekly Digest"
+                                   Style="{StaticResource HeadingMediumStyle}" />
+                    </Grid>
+
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               Text="The Weekly Digest generates AI-powered activity reports that summarize your usage of Agent-X over a configurable reporting period, giving you insights into your knowledge management workflow." />
+
+                    <!-- Features -->
+                    <TextBlock Text="Digest Features"
+                               Style="{StaticResource HeadingSmallStyle}" />
+
+                    <StackPanel Spacing="8">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">AI-Generated Reports</Run>
+                                <Run Text=" — Comprehensive weekly activity reports generated by AI that synthesize your usage patterns into clear, readable summaries." />
+                            </TextBlock>
+                        </Grid>
+
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Activity Summary</Run>
+                                <Run Text=" — Tracks and summarizes document imports, chat conversations, and search activity over the reporting period, giving you a complete picture of your workflow." />
+                            </TextBlock>
+                        </Grid>
+
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Configurable Period</Run>
+                                <Run Text=" — Adjust the reporting period to match your preferred cadence, whether you want daily snapshots, weekly overviews, or longer-range summaries." />
+                            </TextBlock>
+                        </Grid>
+
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Export Reports</Run>
+                                <Run Text=" — Export digest reports for record-keeping, sharing with team members, or integrating with your existing productivity workflows." />
+                            </TextBlock>
+                        </Grid>
+
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Automatic Insights</Run>
+                                <Run Text=" — AI analyzes your usage patterns to surface trends, highlight frequently accessed topics, and suggest areas where your knowledge base could be expanded." />
+                            </TextBlock>
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+
+            <!-- ==========================================================
+                 ROW 11: SEMANTIC SEARCH
+                 ========================================================== -->
+            <Border Grid.Row="11" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="16">
+                    <!-- Section Header -->
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE721;"
                                   FontFamily="Segoe MDL2 Assets"
                                   FontSize="20"
                                   Foreground="{StaticResource TextAccentBrush}" />
-                        <TextBlock Text="Semantic Search"
+                        <TextBlock Grid.Column="1" Text="Semantic Search"
                                    Style="{StaticResource HeadingMediumStyle}" />
-                    </StackPanel>
+                    </Grid>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="Semantic Search goes beyond traditional keyword matching. Instead of searching for exact words, it understands the meaning behind your query and finds passages with similar concepts — even if they use completely different vocabulary." />
@@ -839,60 +1357,106 @@
                                Style="{StaticResource HeadingSmallStyle}" />
 
                     <StackPanel Spacing="8">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">Natural language queries</Run>
                                 <Run Text=" — Type your question or topic naturally, such as &quot;How does the authentication system work?&quot; or &quot;Annual revenue figures for 2024.&quot;" />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">Similarity scoring</Run>
                                 <Run Text=" — Each result displays a relevance score from 0 to 1, indicating how closely the passage matches your query semantically." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">Filtering</Run>
                                 <Run Text=" — Narrow results by collection, tag, or file type to focus on the most relevant subset of your Knowledge Vault." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">Result previews</Run>
                                 <Run Text=" — Each search result shows a text snippet with the matching passage highlighted, along with the source document name and chunk location." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
+
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Hybrid Search</Run>
+                                <Run Text=" — Three search modes are available: Semantic (vector-based similarity), Keyword (FTS5 full-text search), and Hybrid which combines both using Reciprocal Rank Fusion (k=60) for the most comprehensive results." />
+                            </TextBlock>
+                        </Grid>
+
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Search History</Run>
+                                <Run Text=" — Your search queries are saved in a persistent search history that persists across sessions, allowing you to quickly re-run previous searches or review your research trail." />
+                            </TextBlock>
+                        </Grid>
                     </StackPanel>
                 </StackPanel>
             </Border>
 
 
             <!-- ==========================================================
-                 ROW 10: MODEL MANAGER
+                 ROW 12: MODEL MANAGER
                  ========================================================== -->
-            <Border Grid.Row="10" Style="{StaticResource CardStyle}">
+            <Border Grid.Row="12" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
                     <!-- Section Header -->
-                    <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE74C;"
                                   FontFamily="Segoe MDL2 Assets"
                                   FontSize="20"
                                   Foreground="{StaticResource TextAccentBrush}" />
-                        <TextBlock Text="Model Manager"
+                        <TextBlock Grid.Column="1" Text="Model Manager"
                                    Style="{StaticResource HeadingMediumStyle}" />
-                    </StackPanel>
+                    </Grid>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="The Model Manager provides a visual interface for managing all Ollama models installed on your system. You can browse, download, inspect, and remove models without using the command line." />
@@ -902,69 +1466,93 @@
                                Style="{StaticResource HeadingSmallStyle}" />
 
                     <StackPanel Spacing="8">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">View installed models</Run>
                                 <Run Text=" — See all models currently available on your system with their name, size, parameter count, and quantization level (e.g., Q4_0, Q5_K_M)." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">Model details</Run>
                                 <Run Text=" — Click any model to see detailed information: family, format, parameter size, quantization type, context window, license, and system prompt template." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">Pull new models</Run>
                                 <Run Text=" — Enter a model name (e.g., mistral, codellama, phi3) and click Pull to download it directly. A real-time progress bar tracks the download." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">Delete models</Run>
                                 <Run Text=" — Remove models you no longer need to free up disk space. Agent-X will confirm before deletion." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">Set default models</Run>
                                 <Run Text=" — Assign a default chat model and a default embedding model. These are used as the system-wide defaults in Chat, RAG, and Quick Actions." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
                     </StackPanel>
                 </StackPanel>
             </Border>
 
 
             <!-- ==========================================================
-                 ROW 11: HARDWARE ADVISOR
+                 ROW 13: HARDWARE ADVISOR
                  ========================================================== -->
-            <Border Grid.Row="11" Style="{StaticResource CardStyle}">
+            <Border Grid.Row="13" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
                     <!-- Section Header -->
-                    <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE7F4;"
                                   FontFamily="Segoe MDL2 Assets"
                                   FontSize="20"
                                   Foreground="{StaticResource TextAccentBrush}" />
-                        <TextBlock Text="Hardware Advisor"
+                        <TextBlock Grid.Column="1" Text="Hardware Advisor"
                                    Style="{StaticResource HeadingMediumStyle}" />
-                    </StackPanel>
+                    </Grid>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="The Hardware Advisor scans your system to determine your AI capabilities and recommends the best models for your specific hardware configuration." />
@@ -974,60 +1562,80 @@
                                Style="{StaticResource HeadingSmallStyle}" />
 
                     <StackPanel Spacing="8">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">GPU detection</Run>
                                 <Run Text=" — Identifies your graphics card(s), whether NVIDIA (CUDA), AMD (ROCm), or Intel (oneAPI), and reports the GPU model name." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">VRAM analysis</Run>
                                 <Run Text=" — Reports total and available video memory, which directly determines the maximum model size you can run." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">Recommended model sizes</Run>
                                 <Run Text=" — Based on your available VRAM and system RAM, the advisor suggests which model sizes (3B, 7B, 13B, 30B, 70B) will run well on your machine." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">Performance tips</Run>
                                 <Run Text=" — Actionable recommendations for maximizing inference speed, such as using quantized models, reducing context length, or offloading layers to GPU." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
                     </StackPanel>
                 </StackPanel>
             </Border>
 
 
             <!-- ==========================================================
-                 ROW 12: SETTINGS
+                 ROW 14: SETTINGS
                  ========================================================== -->
-            <Border Grid.Row="12" Style="{StaticResource CardStyle}">
+            <Border Grid.Row="14" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
                     <!-- Section Header -->
-                    <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE713;"
                                   FontFamily="Segoe MDL2 Assets"
                                   FontSize="20"
                                   Foreground="{StaticResource TextAccentBrush}" />
-                        <TextBlock Text="Settings"
+                        <TextBlock Grid.Column="1" Text="Settings"
                                    Style="{StaticResource HeadingMediumStyle}" />
-                    </StackPanel>
+                    </Grid>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="The Settings page gives you fine-grained control over every aspect of Agent-X. All settings are persisted locally." />
@@ -1047,7 +1655,7 @@
                         <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource CardInsetStyle}">
                             <StackPanel Spacing="6">
                                 <TextBlock Text="AI Provider" Style="{StaticResource AccentBodyStyle}" />
-                                <TextBlock Text="Ollama endpoint URL (default: http://localhost:11434), default chat model, and default embedding model."
+                                <TextBlock Text="Multi-provider configuration: Ollama endpoint URL (default: http://localhost:11434), OpenAI API key and model selection, Anthropic Claude API key and model selection. Per-provider settings and API key management."
                                            Style="{StaticResource BodySmallStyle}" />
                             </StackPanel>
                         </Border>
@@ -1075,6 +1683,14 @@
                                            Style="{StaticResource BodySmallStyle}" />
                             </StackPanel>
                         </Border>
+
+                        <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource CardInsetStyle}">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Cost Tracking" Style="{StaticResource AccentBodyStyle}" />
+                                <TextBlock Text="Monitor and track cloud API usage costs for OpenAI and Anthropic providers. View per-session and cumulative spending with detailed breakdowns."
+                                           Style="{StaticResource BodySmallStyle}" />
+                            </StackPanel>
+                        </Border>
                     </Grid>
 
                     <TextBlock Style="{StaticResource BodySecondaryStyle}"
@@ -1084,19 +1700,23 @@
 
 
             <!-- ==========================================================
-                 ROW 13: KEYBOARD SHORTCUTS
+                 ROW 15: KEYBOARD SHORTCUTS
                  ========================================================== -->
-            <Border Grid.Row="13" Style="{StaticResource CardStyle}">
+            <Border Grid.Row="15" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
                     <!-- Section Header -->
-                    <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE765;"
                                   FontFamily="Segoe MDL2 Assets"
                                   FontSize="20"
                                   Foreground="{StaticResource TextAccentBrush}" />
-                        <TextBlock Text="Keyboard Shortcuts"
+                        <TextBlock Grid.Column="1" Text="Keyboard Shortcuts"
                                    Style="{StaticResource HeadingMediumStyle}" />
-                    </StackPanel>
+                    </Grid>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="Agent-X supports keyboard shortcuts for rapid navigation and common actions. Master these to dramatically speed up your workflow." />
@@ -1131,7 +1751,11 @@
                                     <ColumnDefinition Width="200" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                <Grid ColumnSpacing="4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
                                     <Border Background="{StaticResource CardElevatedBrush}"
                                             BorderBrush="{StaticResource BorderMediumBrush}"
                                             BorderThickness="1"
@@ -1140,7 +1764,7 @@
                                         <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
                                                    Foreground="{StaticResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" />
                                     <Border Background="{StaticResource CardElevatedBrush}"
                                             BorderBrush="{StaticResource BorderMediumBrush}"
@@ -1150,7 +1774,7 @@
                                         <TextBlock Text="K" Style="{StaticResource MonoSmallStyle}"
                                                    Foreground="{StaticResource TextPrimaryBrush}" />
                                     </Border>
-                                </StackPanel>
+                                </Grid>
                                 <TextBlock Grid.Column="1" Text="Open Command Palette"
                                            Style="{StaticResource BodyStyle}" VerticalAlignment="Center" />
                             </Grid>
@@ -1165,7 +1789,11 @@
                                     <ColumnDefinition Width="200" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                <Grid ColumnSpacing="4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
                                     <Border Background="{StaticResource CardElevatedBrush}"
                                             BorderBrush="{StaticResource BorderMediumBrush}"
                                             BorderThickness="1"
@@ -1174,7 +1802,7 @@
                                         <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
                                                    Foreground="{StaticResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" />
                                     <Border Background="{StaticResource CardElevatedBrush}"
                                             BorderBrush="{StaticResource BorderMediumBrush}"
@@ -1184,7 +1812,7 @@
                                         <TextBlock Text="N" Style="{StaticResource MonoSmallStyle}"
                                                    Foreground="{StaticResource TextPrimaryBrush}" />
                                     </Border>
-                                </StackPanel>
+                                </Grid>
                                 <TextBlock Grid.Column="1" Text="New Chat"
                                            Style="{StaticResource BodyStyle}" VerticalAlignment="Center" />
                             </Grid>
@@ -1199,7 +1827,11 @@
                                     <ColumnDefinition Width="200" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                <Grid ColumnSpacing="4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
                                     <Border Background="{StaticResource CardElevatedBrush}"
                                             BorderBrush="{StaticResource BorderMediumBrush}"
                                             BorderThickness="1"
@@ -1208,7 +1840,7 @@
                                         <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
                                                    Foreground="{StaticResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" />
                                     <Border Background="{StaticResource CardElevatedBrush}"
                                             BorderBrush="{StaticResource BorderMediumBrush}"
@@ -1218,7 +1850,7 @@
                                         <TextBlock Text="I" Style="{StaticResource MonoSmallStyle}"
                                                    Foreground="{StaticResource TextPrimaryBrush}" />
                                     </Border>
-                                </StackPanel>
+                                </Grid>
                                 <TextBlock Grid.Column="1" Text="Knowledge Vault"
                                            Style="{StaticResource BodyStyle}" VerticalAlignment="Center" />
                             </Grid>
@@ -1233,7 +1865,11 @@
                                     <ColumnDefinition Width="200" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                <Grid ColumnSpacing="4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
                                     <Border Background="{StaticResource CardElevatedBrush}"
                                             BorderBrush="{StaticResource BorderMediumBrush}"
                                             BorderThickness="1"
@@ -1242,7 +1878,7 @@
                                         <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
                                                    Foreground="{StaticResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" />
                                     <Border Background="{StaticResource CardElevatedBrush}"
                                             BorderBrush="{StaticResource BorderMediumBrush}"
@@ -1252,7 +1888,7 @@
                                         <TextBlock Text="F" Style="{StaticResource MonoSmallStyle}"
                                                    Foreground="{StaticResource TextPrimaryBrush}" />
                                     </Border>
-                                </StackPanel>
+                                </Grid>
                                 <TextBlock Grid.Column="1" Text="Semantic Search"
                                            Style="{StaticResource BodyStyle}" VerticalAlignment="Center" />
                             </Grid>
@@ -1267,7 +1903,11 @@
                                     <ColumnDefinition Width="200" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                <Grid ColumnSpacing="4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
                                     <Border Background="{StaticResource CardElevatedBrush}"
                                             BorderBrush="{StaticResource BorderMediumBrush}"
                                             BorderThickness="1"
@@ -1276,7 +1916,7 @@
                                         <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
                                                    Foreground="{StaticResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" />
                                     <Border Background="{StaticResource CardElevatedBrush}"
                                             BorderBrush="{StaticResource BorderMediumBrush}"
@@ -1296,7 +1936,7 @@
                                         <TextBlock Text="F" Style="{StaticResource MonoSmallStyle}"
                                                    Foreground="{StaticResource TextPrimaryBrush}" />
                                     </Border>
-                                </StackPanel>
+                                </Grid>
                                 <TextBlock Grid.Column="1" Text="Search (alternate)"
                                            Style="{StaticResource BodyStyle}" VerticalAlignment="Center" />
                             </Grid>
@@ -1311,7 +1951,11 @@
                                     <ColumnDefinition Width="200" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                <Grid ColumnSpacing="4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
                                     <Border Background="{StaticResource CardElevatedBrush}"
                                             BorderBrush="{StaticResource BorderMediumBrush}"
                                             BorderThickness="1"
@@ -1320,7 +1964,7 @@
                                         <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
                                                    Foreground="{StaticResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" />
                                     <Border Background="{StaticResource CardElevatedBrush}"
                                             BorderBrush="{StaticResource BorderMediumBrush}"
@@ -1330,7 +1974,7 @@
                                         <TextBlock Text="," Style="{StaticResource MonoSmallStyle}"
                                                    Foreground="{StaticResource TextPrimaryBrush}" />
                                     </Border>
-                                </StackPanel>
+                                </Grid>
                                 <TextBlock Grid.Column="1" Text="Settings"
                                            Style="{StaticResource BodyStyle}" VerticalAlignment="Center" />
                             </Grid>
@@ -1346,7 +1990,11 @@
                                     <ColumnDefinition Width="200" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                <Grid ColumnSpacing="4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
                                     <Border Background="{StaticResource CardElevatedBrush}"
                                             BorderBrush="{StaticResource BorderMediumBrush}"
                                             BorderThickness="1"
@@ -1355,7 +2003,7 @@
                                         <TextBlock Text="Esc" Style="{StaticResource MonoSmallStyle}"
                                                    Foreground="{StaticResource TextPrimaryBrush}" />
                                     </Border>
-                                </StackPanel>
+                                </Grid>
                                 <TextBlock Grid.Column="1" Text="Close Command Palette"
                                            Style="{StaticResource BodyStyle}" VerticalAlignment="Center" />
                             </Grid>
@@ -1367,19 +2015,23 @@
 
 
             <!-- ==========================================================
-                 ROW 14: COMMAND PALETTE
+                 ROW 16: COMMAND PALETTE
                  ========================================================== -->
-            <Border Grid.Row="14" Style="{StaticResource CardStyle}">
+            <Border Grid.Row="16" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
                     <!-- Section Header -->
-                    <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE773;"
                                   FontFamily="Segoe MDL2 Assets"
                                   FontSize="20"
                                   Foreground="{StaticResource TextAccentBrush}" />
-                        <TextBlock Text="Command Palette"
+                        <TextBlock Grid.Column="1" Text="Command Palette"
                                    Style="{StaticResource HeadingMediumStyle}" />
-                    </StackPanel>
+                    </Grid>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="The Command Palette is the fastest way to navigate Agent-X. Inspired by VS Code and Spotlight, it provides instant access to every page and action through a single search interface." />
@@ -1388,7 +2040,11 @@
                                Style="{StaticResource HeadingSmallStyle}" />
 
                     <StackPanel Spacing="10">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <Border Width="28" Height="28"
                                     CornerRadius="{StaticResource RadiusRound}"
                                     Background="{StaticResource AccentSubtleBrush}"
@@ -1398,14 +2054,18 @@
                                            Foreground="{StaticResource TextAccentBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
-                            <TextBlock Style="{StaticResource BodyStyle}" VerticalAlignment="Center">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center">
                                 <Run Text="Press" />
                                 <Run FontWeight="SemiBold" Text=" Ctrl+K " />
                                 <Run Text="from anywhere in the app to open the Command Palette overlay." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <Border Width="28" Height="28"
                                     CornerRadius="{StaticResource RadiusRound}"
                                     Background="{StaticResource AccentSubtleBrush}"
@@ -1415,11 +2075,15 @@
                                            Foreground="{StaticResource TextAccentBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
-                            <TextBlock Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
                                        Text="Start typing to filter available pages and actions. Results update instantly as you type." />
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <Border Width="28" Height="28"
                                     CornerRadius="{StaticResource RadiusRound}"
                                     Background="{StaticResource AccentSubtleBrush}"
@@ -1429,9 +2093,9 @@
                                            Foreground="{StaticResource TextAccentBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
-                            <TextBlock Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
                                        Text="Use the arrow keys to navigate through results, then press Enter to go to the selected page. Press Escape to close the palette without navigating." />
-                        </StackPanel>
+                        </Grid>
                     </StackPanel>
 
                     <TextBlock Style="{StaticResource BodySecondaryStyle}"
@@ -1441,19 +2105,23 @@
 
 
             <!-- ==========================================================
-                 ROW 15: SUPPORTED FILE FORMATS
+                 ROW 17: SUPPORTED FILE FORMATS
                  ========================================================== -->
-            <Border Grid.Row="15" Style="{StaticResource CardStyle}">
+            <Border Grid.Row="17" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
                     <!-- Section Header -->
-                    <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8A5;"
                                   FontFamily="Segoe MDL2 Assets"
                                   FontSize="20"
                                   Foreground="{StaticResource TextAccentBrush}" />
-                        <TextBlock Text="Supported File Formats"
+                        <TextBlock Grid.Column="1" Text="Supported File Formats"
                                    Style="{StaticResource HeadingMediumStyle}" />
-                    </StackPanel>
+                    </Grid>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="Agent-X can ingest a wide variety of file formats into the Knowledge Vault. Each format has a specialized parser that extracts text content optimally." />
@@ -1595,19 +2263,23 @@
 
 
             <!-- ==========================================================
-                 ROW 16: TROUBLESHOOTING
+                 ROW 18: TROUBLESHOOTING
                  ========================================================== -->
-            <Border Grid.Row="16" Style="{StaticResource CardStyle}">
+            <Border Grid.Row="18" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
                     <!-- Section Header -->
-                    <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE90F;"
                                   FontFamily="Segoe MDL2 Assets"
                                   FontSize="20"
                                   Foreground="{StaticResource TextAccentBrush}" />
-                        <TextBlock Text="Troubleshooting"
+                        <TextBlock Grid.Column="1" Text="Troubleshooting"
                                    Style="{StaticResource HeadingMediumStyle}" />
-                    </StackPanel>
+                    </Grid>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="If you encounter issues, check the common problems and solutions below before reaching out for support." />
@@ -1615,12 +2287,16 @@
                     <!-- Issue 1: Ollama not detected -->
                     <Border Style="{StaticResource CardInsetStyle}">
                         <StackPanel Spacing="8">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
                                 <FontIcon Glyph="&#xEA39;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                           Foreground="{StaticResource WarningBrush}" />
-                                <TextBlock Text="&quot;Ollama not detected&quot;"
+                                <TextBlock Grid.Column="1" Text="&quot;Ollama not detected&quot;"
                                            Style="{StaticResource HeadingSmallStyle}" />
-                            </StackPanel>
+                            </Grid>
                             <TextBlock Style="{StaticResource BodySecondaryStyle}">
                                 <Run Text="Ensure Ollama is running on your system. Open a terminal and run" />
                                 <Run Text=" ollama serve " FontFamily="{StaticResource FontMono}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" />
@@ -1632,12 +2308,16 @@
                     <!-- Issue 2: Slow responses -->
                     <Border Style="{StaticResource CardInsetStyle}">
                         <StackPanel Spacing="8">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
                                 <FontIcon Glyph="&#xEA39;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                           Foreground="{StaticResource WarningBrush}" />
-                                <TextBlock Text="Slow responses"
+                                <TextBlock Grid.Column="1" Text="Slow responses"
                                            Style="{StaticResource HeadingSmallStyle}" />
-                            </StackPanel>
+                            </Grid>
                             <TextBlock Style="{StaticResource BodySecondaryStyle}"
                                        Text="Try switching to a smaller model (e.g., 3B or 7B parameters instead of 13B or larger). Check the Hardware Advisor page to see which models are recommended for your VRAM. Using quantized models (Q4 or Q5) significantly reduces memory usage and improves speed." />
                         </StackPanel>
@@ -1646,12 +2326,16 @@
                     <!-- Issue 3: Documents not indexing -->
                     <Border Style="{StaticResource CardInsetStyle}">
                         <StackPanel Spacing="8">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
                                 <FontIcon Glyph="&#xEA39;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                           Foreground="{StaticResource WarningBrush}" />
-                                <TextBlock Text="Documents not indexing"
+                                <TextBlock Grid.Column="1" Text="Documents not indexing"
                                            Style="{StaticResource HeadingSmallStyle}" />
-                            </StackPanel>
+                            </Grid>
                             <TextBlock Style="{StaticResource BodySecondaryStyle}"
                                        Text="Verify the file format is supported (see Supported File Formats above). Ensure an embedding model is configured in Settings — documents cannot be indexed without one. If you recently changed embedding models, you may need to re-index existing documents from the Knowledge Vault." />
                         </StackPanel>
@@ -1660,12 +2344,16 @@
                     <!-- Issue 4: High memory usage -->
                     <Border Style="{StaticResource CardInsetStyle}">
                         <StackPanel Spacing="8">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
                                 <FontIcon Glyph="&#xEA39;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                           Foreground="{StaticResource WarningBrush}" />
-                                <TextBlock Text="High memory usage"
+                                <TextBlock Grid.Column="1" Text="High memory usage"
                                            Style="{StaticResource HeadingSmallStyle}" />
-                            </StackPanel>
+                            </Grid>
                             <TextBlock Style="{StaticResource BodySecondaryStyle}"
                                        Text="Reduce the context window size in Settings (lower values use less RAM). Switch to a quantized model variant (e.g., Q4_0 instead of FP16). Close other memory-intensive applications while running large models. The Hardware Advisor can help identify optimal settings for your system." />
                         </StackPanel>
@@ -1674,12 +2362,16 @@
                     <!-- Issue 5: Search returns no results -->
                     <Border Style="{StaticResource CardInsetStyle}">
                         <StackPanel Spacing="8">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
                                 <FontIcon Glyph="&#xEA39;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                           Foreground="{StaticResource WarningBrush}" />
-                                <TextBlock Text="Search returns no results"
+                                <TextBlock Grid.Column="1" Text="Search returns no results"
                                            Style="{StaticResource HeadingSmallStyle}" />
-                            </StackPanel>
+                            </Grid>
                             <TextBlock Style="{StaticResource BodySecondaryStyle}"
                                        Text="Ensure your documents have been fully indexed (check indexing status in the Knowledge Vault). Try rephrasing your query using different terminology. Semantic search works on meaning, so broader or more descriptive queries often yield better results than very specific technical terms." />
                         </StackPanel>
@@ -1689,78 +2381,115 @@
 
 
             <!-- ==========================================================
-                 ROW 17: PRIVACY & SECURITY
+                 ROW 19: PRIVACY & SECURITY
                  ========================================================== -->
-            <Border Grid.Row="17" Style="{StaticResource CardElevatedStyle}">
+            <Border Grid.Row="19" Style="{StaticResource CardElevatedStyle}">
                 <StackPanel Spacing="16">
                     <!-- Section Header -->
-                    <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE72E;"
                                   FontFamily="Segoe MDL2 Assets"
                                   FontSize="20"
                                   Foreground="{StaticResource TextAccentBrush}" />
-                        <TextBlock Text="Privacy &amp; Security"
+                        <TextBlock Grid.Column="1" Text="Privacy &amp; Security"
                                    Style="{StaticResource HeadingMediumStyle}" />
-                    </StackPanel>
+                    </Grid>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="Agent-X is designed from the ground up to be a fully local-first application. Your privacy is not a feature — it is the architecture." />
 
                     <StackPanel Spacing="10">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="#FF22C55E" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">All data stored locally</Run>
                                 <Run Text=" — Documents, embeddings, conversations, and settings are stored in a local SQLite database on your machine." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="#FF22C55E" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
-                                <Run FontWeight="SemiBold">No cloud services</Run>
-                                <Run Text=" — All AI inference happens locally through Ollama. No data is sent to external APIs, cloud servers, or third-party services." />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Local-first by default</Run>
+                                <Run Text=" — All AI inference defaults to running locally through Ollama. No data is sent to external services unless you explicitly opt into cloud providers." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="#FF22C55E" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">No telemetry</Run>
                                 <Run Text=" — Agent-X does not collect usage analytics, crash reports, or any form of telemetry. Your activity stays on your device." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                       Foreground="#FF22C55E" VerticalAlignment="Top" Margin="0,3,0,0" />
-                            <TextBlock Style="{StaticResource BodyStyle}">
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
                                 <Run FontWeight="SemiBold">Your data, your control</Run>
                                 <Run Text=" — Documents and conversations are never shared, uploaded, or used for training. You can delete any data at any time from within the app." />
                             </TextBlock>
-                        </StackPanel>
+                        </Grid>
+
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE7BA;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}">
+                                <Run FontWeight="SemiBold">Cloud provider notice</Run>
+                                <Run Text=" — If you opt into cloud providers (OpenAI, Anthropic), queries sent to those services are subject to their respective privacy policies. Agent-X clearly indicates when a cloud provider is active so you always know where your data is being processed." />
+                            </TextBlock>
+                        </Grid>
                     </StackPanel>
                 </StackPanel>
             </Border>
 
 
             <!-- ==========================================================
-                 ROW 18: GETTING HELP
+                 ROW 20: GETTING HELP
                  ========================================================== -->
-            <Border Grid.Row="18" Style="{StaticResource CardStyle}">
+            <Border Grid.Row="20" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
                     <!-- Section Header -->
-                    <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE897;"
                                   FontFamily="Segoe MDL2 Assets"
                                   FontSize="20"
                                   Foreground="{StaticResource TextAccentBrush}" />
-                        <TextBlock Text="Getting Help"
+                        <TextBlock Grid.Column="1" Text="Getting Help"
                                    Style="{StaticResource HeadingMediumStyle}" />
-                    </StackPanel>
+                    </Grid>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="If you need assistance beyond what this guide covers, we are here to help." />
@@ -1773,11 +2502,15 @@
 
                         <Border Grid.Column="0" Style="{StaticResource CardInsetStyle}">
                             <StackPanel Spacing="6">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
                                     <FontIcon Glyph="&#xE715;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                               Foreground="{StaticResource TextAccentBrush}" />
-                                    <TextBlock Text="Email Support" Style="{StaticResource AccentBodyStyle}" />
-                                </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="Email Support" Style="{StaticResource AccentBodyStyle}" />
+                                </Grid>
                                 <TextBlock Text="support@strategia-x.com"
                                            Style="{StaticResource MonoStyle}"
                                            Foreground="{StaticResource TextSecondaryBrush}" />
@@ -1788,11 +2521,15 @@
 
                         <Border Grid.Column="1" Style="{StaticResource CardInsetStyle}">
                             <StackPanel Spacing="6">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
                                     <FontIcon Glyph="&#xE774;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                               Foreground="{StaticResource TextAccentBrush}" />
-                                    <TextBlock Text="Documentation" Style="{StaticResource AccentBodyStyle}" />
-                                </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="Documentation" Style="{StaticResource AccentBodyStyle}" />
+                                </Grid>
                                 <TextBlock Text="docs.strategia-x.com"
                                            Style="{StaticResource MonoStyle}"
                                            Foreground="{StaticResource TextSecondaryBrush}" />

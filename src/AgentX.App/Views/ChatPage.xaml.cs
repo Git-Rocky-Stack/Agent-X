@@ -180,6 +180,22 @@ public sealed partial class ChatPage : Page
     }
 
     // ═══════════════════════════════════════════════════════════════
+    // SUGGESTED QUESTIONS
+    // ═══════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Handles click events on suggested follow-up question buttons,
+    /// populating the input box with the selected question text.
+    /// </summary>
+    private void OnSuggestedQuestionClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Content is string question)
+        {
+            ViewModel.UseSuggestedQuestionCommand.Execute(question);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
     // CONVERSATION LIST SELECTION
     // ═══════════════════════════════════════════════════════════════
 

@@ -1,9 +1,11 @@
 using System.Collections.ObjectModel;
+using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Services.Chat;
+using AgentX.App.Helpers;
 using Serilog;
 
 namespace AgentX.App.ViewModels;
@@ -42,11 +44,15 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     // ── Search ─────────────────────────────────────────────────
     [ObservableProperty] private string _conversationSearchQuery = string.Empty;
 
+    // ── Memory ────────────────────────────────────────────────
+    [ObservableProperty] private int _memoryCount;
+
     // ── Collections ────────────────────────────────────────────
     public ObservableCollection<ChatMessageItem> Messages { get; } = new();
     public ObservableCollection<ConversationListItem> Conversations { get; } = new();
     public ObservableCollection<AiModel> AvailableModels { get; } = new();
     public ObservableCollection<SystemPromptItem> SystemPrompts { get; } = new();
+    public ObservableCollection<string> SuggestedQuestions { get; } = new();
 
     // ── Computed Properties ────────────────────────────────────
     public bool HasNoConversations => Conversations.Count == 0;
@@ -60,6 +66,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private readonly IAiService _aiService;
     private readonly IModelManager _modelManager;
     private readonly ISystemPromptService _systemPromptService;
+    private readonly IConversationMemoryService _memoryService;
 
     private CancellationTokenSource? _generationCts;
 
@@ -68,13 +75,15 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         IConversationService conversationService,
         IAiService aiService,
         IModelManager modelManager,
-        ISystemPromptService systemPromptService)
+        ISystemPromptService systemPromptService,
+        IConversationMemoryService memoryService)
     {
         _chatService = chatService;
         _conversationService = conversationService;
         _aiService = aiService;
         _modelManager = modelManager;
         _systemPromptService = systemPromptService;
+        _memoryService = memoryService;
         Log.Debug("ChatViewModel created with services");
     }
 
@@ -92,6 +101,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             await CheckConnectionStatusAsync();
             await LoadAvailableModelsAsync();
             await LoadSystemPromptsAsync();
+            await UpdateMemoryCountAsync();
         }
         catch (Exception ex)
         {
@@ -225,6 +235,47 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(HasActiveSystemPrompt));
     }
 
+    partial void OnConversationSearchQueryChanged(string value)
+    {
+        _ = FilterConversationsAsync(value);
+    }
+
+    private async Task FilterConversationsAsync(string query)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                // Reload all conversations
+                await LoadConversationsAsync();
+                return;
+            }
+
+            var results = await _conversationService.SearchConversationsAsync(query.Trim());
+            Conversations.Clear();
+
+            foreach (var conv in results)
+            {
+                var lastMsg = conv.Messages?.OrderByDescending(m => m.SortOrder).FirstOrDefault();
+                Conversations.Add(new ConversationListItem
+                {
+                    Id = conv.Id,
+                    Title = conv.Title,
+                    LastMessage = lastMsg?.Content ?? string.Empty,
+                    UpdatedAt = conv.UpdatedAt,
+                    IsPinned = conv.IsPinned,
+                    MessageCount = conv.MessageCount
+                });
+            }
+
+            OnPropertyChanged(nameof(HasNoConversations));
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to search conversations");
+        }
+    }
+
     // ═══════════════════════════════════════════════════════════════
     // COMMANDS
     // ═══════════════════════════════════════════════════════════════
@@ -338,6 +389,10 @@ public partial class ChatViewModel : ObservableObject, IDisposable
                 // Fallback: use IAiService.StreamChatAsync directly (no persistence)
                 await StreamDirectResponseAsync(assistantMessage, userContent, _generationCts.Token);
             }
+
+            // Load suggested follow-up questions and update memory count (non-blocking)
+            await LoadSuggestedQuestionsAsync();
+            await UpdateMemoryCountAsync();
         }
         catch (OperationCanceledException)
         {
@@ -433,6 +488,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         TokenCount = 0;
         GenerationTimeMs = 0;
         Messages.Clear();
+        SuggestedQuestions.Clear();
         OnPropertyChanged(nameof(HasNoMessages));
 
         await Task.CompletedTask;
@@ -624,6 +680,65 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
+    private void ExportConversationToClipboard()
+    {
+        if (Messages.Count == 0)
+        {
+            Log.Debug("Export to clipboard: no messages to export");
+            return;
+        }
+
+        try
+        {
+            var markdown = BuildConversationMarkdown();
+            var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+            dataPackage.SetText(markdown);
+            Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+            Log.Information("Conversation exported to clipboard ({Length} chars)", markdown.Length);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to export conversation to clipboard");
+        }
+    }
+
+    [RelayCommand]
+    private async Task ExportConversationToFileAsync()
+    {
+        if (Messages.Count == 0)
+        {
+            Log.Debug("Export to file: no messages to export");
+            return;
+        }
+
+        try
+        {
+            var markdown = BuildConversationMarkdown();
+
+            var picker = new Windows.Storage.Pickers.FileSavePicker();
+            picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
+            picker.FileTypeChoices.Add("Markdown", new List<string> { ".md" });
+            picker.FileTypeChoices.Add("Text", new List<string> { ".txt" });
+            picker.SuggestedFileName = SanitizeFileName(ActiveConversationTitle);
+
+            // WinUI 3 requires the window handle
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+            var file = await picker.PickSaveFileAsync();
+            if (file != null)
+            {
+                await Windows.Storage.FileIO.WriteTextAsync(file, markdown);
+                Log.Information("Conversation exported to {Path}", file.Path);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to export conversation to file");
+        }
+    }
+
+    [RelayCommand]
     private async Task RegenerateAsync()
     {
         Log.Debug("Regenerate last response requested");
@@ -660,6 +775,107 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         await LoadAvailableModelsAsync();
     }
 
+    [RelayCommand]
+    private void UseSuggestedQuestion(string question)
+    {
+        if (!string.IsNullOrWhiteSpace(question))
+        {
+            UserInput = question;
+            SuggestedQuestions.Clear();
+        }
+    }
+
+    /// <summary>
+    /// Loads AI-generated follow-up question suggestions based on the
+    /// current conversation and persisted user memories.
+    /// </summary>
+    private async Task LoadSuggestedQuestionsAsync()
+    {
+        if (ActiveConversationId is null) return;
+        try
+        {
+            var questions = await _memoryService.GetSuggestedQuestionsAsync(ActiveConversationId.Value);
+            SuggestedQuestions.Clear();
+            foreach (var q in questions) SuggestedQuestions.Add(q);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to load suggested questions");
+        }
+    }
+
+    /// <summary>
+    /// Updates the memory count for display in the UI.
+    /// </summary>
+    private async Task UpdateMemoryCountAsync()
+    {
+        try
+        {
+            MemoryCount = await _memoryService.GetMemoryCountAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to update memory count");
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // PRIVATE HELPERS
+    // ═══════════════════════════════════════════════════════════════
+
+    private string BuildConversationMarkdown()
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"# {ActiveConversationTitle}");
+        sb.AppendLine();
+        sb.AppendLine($"*Exported from Agent-X on {DateTime.Now:MMMM d, yyyy 'at' h:mm tt}*");
+        sb.AppendLine();
+
+        if (!string.IsNullOrEmpty(ActiveSystemPromptName))
+        {
+            sb.AppendLine($"**System Prompt:** {ActiveSystemPromptName}");
+            sb.AppendLine();
+        }
+
+        sb.AppendLine("---");
+        sb.AppendLine();
+
+        foreach (var msg in Messages)
+        {
+            var roleLabel = msg.Role switch
+            {
+                "user" => "**You**",
+                "assistant" => "**Agent-X**",
+                "system" => "**System**",
+                _ => $"**{msg.Role}**"
+            };
+
+            sb.AppendLine($"### {roleLabel}");
+            sb.AppendLine($"*{msg.FormattedTime}*");
+            sb.AppendLine();
+            sb.AppendLine(msg.Content);
+            sb.AppendLine();
+
+            if (msg.IsAssistant && msg.TokenCount > 0)
+            {
+                sb.AppendLine($"_{msg.FormattedTokens} | {msg.FormattedTokenSpeed}_");
+                sb.AppendLine();
+            }
+
+            sb.AppendLine("---");
+            sb.AppendLine();
+        }
+
+        return sb.ToString();
+    }
+
+    private static string SanitizeFileName(string name)
+    {
+        var invalid = Path.GetInvalidFileNameChars();
+        var sanitized = new string(name.Where(c => !invalid.Contains(c)).ToArray());
+        return string.IsNullOrWhiteSpace(sanitized) ? "conversation" : sanitized;
+    }
+
     // ═══════════════════════════════════════════════════════════════
     // DISPOSAL
     // ═══════════════════════════════════════════════════════════════
@@ -689,8 +905,20 @@ public class ChatMessageItem : ObservableObject
     public string Content
     {
         get => _content;
-        set => SetProperty(ref _content, value);
+        set
+        {
+            if (SetProperty(ref _content, value))
+            {
+                OnPropertyChanged(nameof(ContentSegments));
+            }
+        }
     }
+
+    /// <summary>
+    /// Parsed markdown segments for rich rendering of assistant messages.
+    /// Re-computed whenever Content changes.
+    /// </summary>
+    public List<MarkdownSegment> ContentSegments => MarkdownParser.Parse(Content);
 
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     public bool IsUser { get; set; }

@@ -1,187 +1,539 @@
-# Agent-X
+# Agent-X — Intelligence Hub
 
-**Private AI Command Center for Windows**
+**Local-First AI-Powered Document Intelligence for Windows**
 
-Agent-X is a local-first AI personal intelligence hub that runs entirely on your machine. Import your documents, ask questions, search semantically, and interact with large language models -- all without any data ever leaving your computer. No cloud services, no subscriptions, no telemetry.
+Agent-X is a native Windows desktop application that transforms your personal document collection into a queryable, AI-augmented knowledge base. Import documents, ask questions in natural language, search semantically across your entire vault, and interact with large language models — all without a single byte of your data leaving your machine. No cloud subscription, no telemetry, no internet dependency.
 
-Built on .NET 8.0 and WinUI 3, Agent-X provides a native Windows desktop experience with enterprise-grade document processing, vector search, and retrieval-augmented generation (RAG) powered by Ollama.
+Built on .NET 8.0 and WinUI 3 (Windows App SDK 1.6), Agent-X delivers an enterprise-grade document intelligence pipeline — chunking, embedding, vector search, retrieval-augmented generation, knowledge graph visualization, and AI memory — as a self-contained, privacy-first Windows application.
+
+> **Version:** 1.0.0
+> **Publisher:** Rocky Stack
+> **Platform:** Windows 10 19041+ (x64)
+> **License:** Proprietary — see [License Tiers](#license-tiers)
 
 ---
 
 ## Table of Contents
 
-- [Features](#features)
-- [Screenshots](#screenshots)
-- [Prerequisites](#prerequisites)
-- [Quick Start](#quick-start)
-- [Build, Publish, and Installer](#build-publish-and-installer)
-- [Project Structure](#project-structure)
-- [Technology Stack](#technology-stack)
-- [Architecture](#architecture)
-- [Licensing](#licensing)
-- [Contributing](#contributing)
+1. [Feature Overview](#feature-overview)
+2. [Screenshots](#screenshots)
+3. [Prerequisites](#prerequisites)
+4. [Installation](#installation)
+5. [Build from Source](#build-from-source)
+6. [Configuration](#configuration)
+7. [Application Architecture](#application-architecture)
+8. [Pages and Navigation](#pages-and-navigation)
+9. [Core Service Layer](#core-service-layer)
+10. [Data Storage](#data-storage)
+11. [Keyboard Shortcuts](#keyboard-shortcuts)
+12. [License Tiers](#license-tiers)
+13. [Contributing](#contributing)
+14. [License](#license)
 
 ---
 
-## Features
+## Feature Overview
 
-### AI Chat
+Agent-X ships fifteen discrete features organized across three delivery tiers. All tiers run entirely offline; cloud AI providers (OpenAI, Anthropic) are optional and user-configured.
 
-Stream conversations with locally-running large language models through Ollama. Manage multiple conversations, configure system prompts per chat, and switch between any downloaded model on the fly. All inference runs on your hardware -- nothing is sent externally.
+### Tier 1 — Core Productivity
 
-### Knowledge Vault
+| Feature | Description |
+|---|---|
+| Conversation Export | Copy any conversation to clipboard or save as a Markdown file with a single action |
+| Conversation Search | Filter the conversation sidebar by title or content in real time |
+| Document Preview Panel | 360 px right-side panel inside Knowledge Vault renders file metadata, content preview, tags, and collection membership without leaving the page |
+| Auto-Generate Titles | AI generates a concise, descriptive title for each imported document based on its extracted content |
+| Persistent Search History | Every search query is persisted to SQLite and displayed as clickable history chips on the Search page |
 
-Import documents in a wide range of formats: PDF, DOCX, TXT, Markdown, source code files, and images (via OCR). Documents are automatically chunked into semantically meaningful segments, embedded into vector representations, and stored in a local SQLite-backed vector database for instant retrieval.
+### Tier 2 — Differentiated Intelligence
 
-### Semantic Search
+| Feature | Description |
+|---|---|
+| Hybrid Search | Runs semantic (vector cosine similarity) and keyword (SQLite FTS5) searches in parallel, then merges results using Reciprocal Rank Fusion (RRF, k=60) for a unified relevance ranking |
+| Auto-Tagging System | On import, the AI analyzes document content (up to 2,000 characters) and assigns confidence-scored tags stored in the relational tag graph |
+| Batch Document Operations | Multi-select documents in Knowledge Vault for bulk delete, re-index, or collection assignment without per-document navigation |
+| Advanced Filtering | Filter the document vault by file type, collection, date range, indexing status, and sort order through a composable filter panel |
+| Chat Code Rendering | Markdown parsing via Markdig renders AI responses with syntax-highlighted code blocks and one-click copy buttons |
 
-Search across your entire document library using natural language queries. Agent-X uses vector similarity search (powered by sqlite-vec) to find content based on meaning rather than exact keyword matching, surfacing the most relevant passages regardless of wording.
+### Tier 3 — Premium Intelligence
 
-### Ask Your Files (RAG)
-
-Retrieval-augmented generation lets you ask questions in natural language and receive AI-generated answers grounded in your own documents. Every response includes citations pointing back to the specific source passages, so you can verify the information and trace it to its origin.
-
-### Collections
-
-Organize your documents into hierarchical collections with support for nested grouping and tagging. Collections provide a structured way to manage large document libraries by topic, project, or any organizational scheme that fits your workflow.
-
-### Quick Actions
-
-AI-powered utilities that operate on your documents with a single click:
-
-- **Summarize** -- Generate concise summaries of any document.
-- **Key Points** -- Extract the most important takeaways.
-- **Translate** -- Translate document content to another language.
-- **Duplicate Detection** -- Identify near-duplicate documents in your vault.
-- **Organization Suggestions** -- Get AI-driven recommendations for how to categorize and structure your library.
-
-### Model Manager
-
-Download, manage, and delete Ollama models directly from the application. The Model Manager displays model metadata (size, quantization, parameter count) and provides hardware-aware recommendations to help you select models that will perform well on your system.
-
-### Hardware Advisor
-
-WMI-based hardware detection profiles your GPU, CPU, RAM, and NPU capabilities, then recommends which models are appropriate for your configuration. Know before you download whether a model will run smoothly, require compromise, or exceed your hardware limits.
-
-### Dashboard
-
-A real-time overview of your Agent-X workspace: total documents indexed, file type distribution, recent activity, indexing status, and system health. The dashboard provides an at-a-glance summary of your entire knowledge base.
-
-### Command Palette
-
-Press `Ctrl+K` to open a fast, keyboard-driven command palette for navigating between pages, executing actions, and searching your workspace without touching the mouse.
-
-### Onboarding Wizard
-
-A guided five-step setup that walks new users through initial configuration:
-
-1. Welcome and introduction
-2. Ollama connection setup and verification
-3. Model selection and download
-4. License activation
-5. Configuration summary and launch
-
-### Settings
-
-Comprehensive settings covering general preferences, inference parameters (temperature, top-p, context length), indexing behavior, appearance customization, and license management.
+| Feature | Description |
+|---|---|
+| Knowledge Graph Visualization | Interactive force-directed graph (spring-electric algorithm, 100 iterations) renders documents, collections, and tags as typed nodes with weighted edges showing shared membership; rendered on a WinUI 3 Canvas |
+| Multi-Provider LLM Support | Unified AI service abstraction over Ollama (local), OpenAI (GPT-4o and family), and Anthropic (Claude family) with per-provider cost tracking |
+| Conversation Memory | AI extracts facts, preferences, instructions, and topics of interest from conversations; stores them as importance-weighted memory entities; injects the top memories into system prompts for personalized future interactions; and generates three suggested follow-up questions after each assistant reply |
+| Semantic Deduplication | SHA-256 hash check on every import detects exact duplicates before incurring any AI cost; near-duplicate detection uses vector embedding similarity for semantic overlap identification |
+| Scheduled Digest Reports | Weekly activity summaries aggregate new document counts, conversation activity, top searches, file type distribution, storage delta, and token consumption into persisted digest reports |
 
 ---
 
 ## Screenshots
 
-*Screenshots are located in the `/screenshots` directory.*
+Screenshots are located in the `/screenshots/` directory at the repository root. The directory is populated during development builds; the release installer does not include screenshots.
 
-| View | Description |
-|------|-------------|
-| Dashboard | Real-time workspace overview with stats and activity |
-| AI Chat | Streaming conversation interface with model selection |
-| Knowledge Vault | Document library with import and management controls |
-| Semantic Search | Natural language search with relevance-ranked results |
-| Ask Your Files | RAG interface with citations and source references |
-| Model Manager | Ollama model download and management panel |
-| Hardware Advisor | System hardware profile and model recommendations |
-| Settings | Application configuration and license management |
+Suggested screenshots to capture before release:
+
+- Dashboard with populated statistics cards
+- AI Chat page with streaming response and rendered code block
+- Knowledge Vault with document preview panel open
+- Semantic Search results with citation excerpts highlighted
+- Knowledge Graph visualization with multiple node types
+- Model Manager showing Ollama model list with download progress
 
 ---
 
 ## Prerequisites
 
-| Requirement | Version | Notes |
-|-------------|---------|-------|
-| Windows | 10 (1903+) or 11 | x64 architecture |
-| .NET SDK | 8.0 | Required for building from source |
-| Windows App SDK | 1.5+ | Included via NuGet on build |
-| Visual Studio | 2022 (17.8+) | Workloads: ".NET Desktop Development" and "Windows App SDK C# Templates" |
-| Ollama | Latest | Required for AI chat, embeddings, and RAG features |
-| Inno Setup | 6 | Optional -- only needed to build the installer |
+### Required
 
-**For end users:** The published installer (`AgentX-Setup-1.0.0-x64.exe`) is fully self-contained and does not require the .NET SDK or Visual Studio. Only Ollama is needed for AI functionality.
+| Requirement | Minimum Version | Notes |
+|---|---|---|
+| Windows | 10, build 19041 (version 2004) | Windows 11 is fully supported and recommended |
+| Architecture | x64 | The installer and published binary target win-x64 |
+
+### Strongly Recommended
+
+| Requirement | Notes |
+|---|---|
+| Ollama | Download from [https://ollama.com](https://ollama.com). Agent-X auto-detects Ollama at `http://localhost:11434`. Pull at minimum one chat model (e.g., `llama3.2`, `phi4`, `mistral`) and one embedding model (e.g., `nomic-embed-text`, `mxbai-embed-large`) |
+| GPU (NVIDIA or AMD) | Required for practical inference performance with 7B+ parameter models. CPU inference works but is significantly slower |
+| RAM | 8 GB minimum; 16 GB recommended for 7B models; 32 GB+ for 30B+ models |
+
+### Optional (Cloud AI Providers)
+
+| Provider | Requirement |
+|---|---|
+| OpenAI | API key configured in Settings; billed per token at standard OpenAI rates |
+| Anthropic | API key configured in Settings; billed per token at standard Anthropic rates |
+
+### Build Prerequisites
+
+| Requirement | Minimum Version |
+|---|---|
+| .NET SDK | 8.0 |
+| Windows App SDK Workload | Installed via `dotnet workload install windowsdesktop` |
+| Visual Studio (optional) | 2022 17.8+ with "Windows application development" workload |
+| Inno Setup (installer only) | 6.x — available at [https://jrsoftware.org/isinfo.php](https://jrsoftware.org/isinfo.php) |
 
 ---
 
-## Quick Start
+## Installation
 
-### 1. Clone the Repository
+### Installer (Recommended)
+
+1. Download `AgentX-Setup-1.0.0-x64.exe` from the releases page or the `installer-output/` directory.
+2. Run the installer. It does not require administrator privileges by default (installs to `%LocalAppData%\Programs\Agent-X` unless elevated).
+3. The installer automatically creates the application data directories at `%LocalAppData%\AgentX\`.
+4. Launch Agent-X from the Start Menu or desktop shortcut.
+5. On first launch, the onboarding wizard runs and guides you through Ollama connection, model selection, and initial settings.
+
+### Uninstall
+
+Use the "Add or Remove Programs" entry in Windows Settings, or run the uninstaller from the Start Menu group. Log files at `%LocalAppData%\AgentX\Logs\` are removed on uninstall; the database (`agentx.db`) and settings (`settings.json`) are preserved to protect your data.
+
+---
+
+## Build from Source
+
+### Clone the Repository
 
 ```bash
-git clone <repository-url> Agent-X
+git clone <repository-url>
 cd Agent-X
 ```
 
-### 2. Restore and Build
+### Restore and Build
 
 ```bash
-dotnet restore AgentX.sln
-dotnet build AgentX.sln
+# Restore NuGet packages and build all projects
+dotnet build
+
+# Build in Release configuration
+dotnet build -c Release
 ```
 
-### 3. Run the Application
+### Run the Application
 
 ```bash
-dotnet run --project src/AgentX.App/AgentX.App.csproj
+# Run with debug output to the debug console
+dotnet run --project src/AgentX.App
 ```
 
-The onboarding wizard will launch on first run and guide you through connecting to Ollama, selecting a model, and activating your license.
-
-### 4. Install Ollama (if not already installed)
-
-Download Ollama from [https://ollama.com](https://ollama.com) and ensure it is running before launching Agent-X. The application connects to Ollama's local API (default: `http://localhost:11434`) for all AI operations.
-
----
-
-## Build, Publish, and Installer
-
-### Development Build
+### Run Tests
 
 ```bash
-dotnet build AgentX.sln
-```
-
-### Run Unit Tests
-
-```bash
-dotnet test tests/AgentX.Tests/AgentX.Tests.csproj
+dotnet test
 ```
 
 ### Publish Self-Contained Binary
 
-Produces a standalone executable that does not require .NET to be installed on the target machine:
+The published output is what the Inno Setup installer packages. Publishing produces a self-contained, ReadyToRun-compiled binary that does not require the .NET runtime to be pre-installed on the target machine.
 
 ```bash
-dotnet publish src/AgentX.App/AgentX.App.csproj -c Release -r win-x64 --self-contained -o publish/win-x64
+dotnet publish src/AgentX.App/AgentX.App.csproj \
+  -c Release \
+  -r win-x64 \
+  --self-contained \
+  -o publish/win-x64
 ```
-
-The output is written to `publish/win-x64/`.
 
 ### Build the Installer
 
-Requires [Inno Setup 6](https://jrsoftware.org/isinfo.php) to be installed:
+Requires Inno Setup 6 to be installed and `ISCC.exe` to be on the system PATH, or specify the full path.
 
 ```bash
-"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer/AgentX-Setup.iss
+ISCC.exe installer/AgentX-Setup.iss
 ```
 
-The compiled installer is output to `installer-output/AgentX-Setup-1.0.0-x64.exe`.
+The installer output is written to `installer-output/AgentX-Setup-1.0.0-x64.exe`.
+
+### Platform Targets
+
+The project supports three runtime identifiers. Only win-x64 is currently packaged by the installer.
+
+| Runtime ID | Architecture |
+|---|---|
+| `win-x64` | 64-bit Intel/AMD (recommended) |
+| `win-x86` | 32-bit (not installer-packaged) |
+| `win-arm64` | ARM64 (not installer-packaged) |
+
+---
+
+## Configuration
+
+### Application Settings File
+
+Agent-X stores user preferences in `%LocalAppData%\AgentX\settings.json`. This file is created automatically on first launch with defaults. It is a plain JSON document and can be edited manually while the application is closed.
+
+Key settings fields include:
+
+| Field | Default | Description |
+|---|---|---|
+| `ollamaEndpoint` | `http://localhost:11434` | Ollama server base URL |
+| `selectedModelId` | (empty) | Active Ollama model for chat |
+| `embeddingModelId` | `nomic-embed-text` | Model used to generate embeddings |
+| `aiProvider` | `ollama` | Active AI provider: `ollama`, `openai`, or `anthropic` |
+| `openAiApiKey` | (empty) | OpenAI API key (stored locally, never transmitted by Agent-X) |
+| `anthropicApiKey` | (empty) | Anthropic API key (stored locally, never transmitted by Agent-X) |
+| `storagePath` | `%LocalAppData%\AgentX` | Root path for the SQLite database and vector store |
+| `chunkSize` | `512` | Target token count per document chunk |
+| `chunkOverlap` | `64` | Token overlap between consecutive chunks |
+| `maxSearchResults` | `10` | Default number of results returned by search |
+| `onboardingCompleted` | `false` | Set to `true` after the onboarding wizard is dismissed |
+| `theme` | `dark` | UI theme: `dark` or `light` |
+
+### Environment Variables
+
+Agent-X does not read API keys from environment variables by design — all credentials are stored in `settings.json` and managed through the Settings page UI. This is an explicit privacy decision: secrets are kept in the user's own profile directory, under the user's control, and are never embedded in the application binary or transmitted anywhere.
+
+### AI Provider Configuration
+
+Navigate to **Settings** in the application to configure AI providers:
+
+- **Ollama:** No key required. Set the endpoint URL if Ollama runs on a non-default port or a remote host (e.g., a local network GPU server).
+- **OpenAI:** Paste your API key. The model selector populates from the OpenAI models list endpoint.
+- **Anthropic:** Paste your API key. Claude models are listed from the Anthropic messages API.
+
+Provider switching is live — the active provider is changed immediately and persisted to settings.
+
+### Logging
+
+Structured logs are written to `%LocalAppData%\AgentX\Logs\agentx-YYYYMMDD.log` using a daily rolling strategy. The last 7 days of logs are retained; older files are automatically deleted. Log entries use the format:
+
+```
+2026-02-27 14:32:01.123 [INF] Database initialized at Data Source=C:\Users\...\AgentX\agentx.db
+```
+
+Log files are useful for diagnosing indexing failures, AI provider connection issues, and database errors. The log level is set to `Debug` in the current build, which produces verbose output during development.
+
+---
+
+## Application Architecture
+
+Agent-X is structured as a two-project .NET solution with a strict dependency direction: the UI project depends on Core; Core has no dependency on the UI project.
+
+```
+AgentX.sln
+├── src/
+│   ├── AgentX.App/          -- WinUI 3 presentation layer
+│   └── AgentX.Core/         -- Platform-independent business logic and data layer
+└── tests/                   -- Unit and integration tests
+```
+
+### AgentX.App (Presentation Layer)
+
+The application host project. Responsibilities:
+
+- **Dependency Injection Composition Root:** `App.xaml.cs` builds the `IHost` using `Microsoft.Extensions.Hosting`, registers every service and view model as singleton or transient, and resolves the dependency graph before the main window is shown.
+- **Main Window Shell:** `MainWindow.xaml.cs` manages the `NavigationView`, `Frame`, command palette overlay, keyboard shortcut dispatch, live status bar (Ollama connection state, indexing progress, document count), and system backdrop (Mica Alt with Acrylic fallback).
+- **Views:** 16 XAML pages, each paired with a code-behind that resolves its ViewModel from the DI container.
+- **ViewModels:** 13 ViewModels inheriting from `CommunityToolkit.Mvvm.ComponentModel.ObservableObject`, using `[ObservableProperty]` source generation and `[RelayCommand]` for command binding.
+- **Onboarding Flow:** First-run detection hides the navigation pane and presents a focused onboarding wizard; navigation is restored and Dashboard is loaded on completion.
+- **Controls:** Reusable XAML controls including the Command Palette overlay.
+
+### AgentX.Core (Business Logic and Data Layer)
+
+The portable class library. Responsibilities:
+
+- **AI Subsystem** (`AI/`): Provider abstraction (`IAiProvider`), multi-provider service (`IAiService`), embedding generation (`IEmbeddingService`), context window management (`IContextWindowManager`), model enumeration (`IModelManager`), hardware detection (`IHardwareDetector`), cost tracking (`ICostTracker`), and retry policy (`IRetryPolicy`).
+- **Chat Subsystem** (`Services/Chat/`): Conversation persistence (`IConversationService`), message streaming orchestration (`IChatService`), system prompt management (`ISystemPromptService`), and AI memory extraction and injection (`IConversationMemoryService`).
+- **Document Processing** (`Documents/`): Document ingestion and metadata extraction (`IDocumentService`), pluggable processor pipeline (`IDocumentProcessor`), and text chunking with configurable size and overlap (`IChunkingService`).
+- **Indexing Pipeline** (`Services/Indexing/`): Asynchronous queue-based indexing (`IIndexingQueueService`, `IIndexingService`), file system watcher for watch folder auto-import (`IFileWatcherService`).
+- **Search and RAG** (`Search/`): Vector cosine similarity search (`ISemanticSearchService`), SQLite FTS5 keyword search (`IKeywordSearchService`), hybrid orchestration with RRF fusion (`IHybridSearchOrchestrator`), source citation extraction (`ICitationService`), LLM-based reranking (`IRagReranker`), and the full RAG pipeline (`IRagPipeline`).
+- **Intelligence Services** (`Services/Intelligence/`): Document summarization (`ISummaryService`), duplicate detection via SHA-256 and semantic similarity (`IDuplicateDetectionService`), organization suggestions (`IOrganizationSuggestionService`), knowledge graph construction with force-directed layout (`IKnowledgeGraphService`), and digest report generation (`IDigestService`).
+- **Collections and Tagging** (`Services/Collections/`, `Services/Tagging/`): Hierarchical collection management (`ICollectionService`) and AI-powered tag generation with confidence scoring (`IAutoTagService`).
+- **Data Layer** (`Data/`): Entity Framework Core DbContext with 16 entity types mapped to SQLite, vector embedding store (`SqliteVecStore`) implementing cosine similarity search in managed C# code, and EF Core migrations.
+- **Settings and Licensing** (`Services/Settings/`, `Services/License/`): JSON-file settings persistence (`ISettingsService`) and offline HMAC-SHA256 license key validation with machine fingerprinting (`ILicenseService`).
+
+### Dependency Injection Pattern
+
+All services are registered as singletons at application startup in `App.xaml.cs`. ViewModels and Views are registered as transients — a new instance is created for each navigation to a page, which simplifies lifecycle management in the absence of a navigation cache. The DI container is accessed via `App.GetService<T>()` throughout the application.
+
+```csharp
+// Example: resolving a service from outside the constructor
+var aiService = App.GetService<IAiService>();
+```
+
+### Startup Sequence
+
+1. `App.OnLaunched` builds the `IHost` and calls `InitializeCoreServicesAsync`.
+2. `InitializeCoreServicesAsync` (fire-and-forget): ensures the SQLite schema exists via `EnsureCreatedAsync`, initializes FTS5 virtual tables, and calls `IAiService.InitializeAsync` to connect to Ollama.
+3. `MainWindow` is instantiated and shown immediately — initialization continues in the background.
+4. The main window checks onboarding status; if not completed, it hides the navigation pane and navigates to `OnboardingPage`.
+5. The status bar polling timer fires after a 5-second delay and every 30 seconds thereafter, updating the Ollama connection dot, active model name, indexing progress ring, and document count.
+
+### System Backdrop
+
+Agent-X uses Mica Alt (`MicaKind.BaseAlt`) on supported systems for a deep, material-aware title bar and window background. It falls back to Desktop Acrylic and finally to a solid dark background on systems that do not support composited backdrops (e.g., older GPU drivers or RDP sessions).
+
+---
+
+## Pages and Navigation
+
+Navigation is managed by a `NavigationView` in `MainWindow.xaml`. The `ContentFrame` loads pages as transient instances. The command palette and keyboard shortcuts can navigate to any page without using the nav rail.
+
+| Page | Nav Tag | Description |
+|---|---|---|
+| Dashboard | `Dashboard` | Activity summary with statistics cards: total documents, conversations, searches, and storage. Quick-access cards link to frequently used pages. |
+| Weekly Digest | `Digest` | Reads and displays the most recent `DigestReportEntity`. Shows document import counts, conversation highlights, top search queries, file type distribution, storage delta, and token consumption for the selected 7-day period. |
+| AI Chat | `Chat` | Full-featured chat interface. Streams responses token-by-token from the active provider. Supports multiple conversations, pinning, system prompt selection, model switching, conversation export (clipboard and `.md` file), and conversation search sidebar filter. Renders markdown with syntax-highlighted code blocks. |
+| Ask Your Files | `AskFiles` | RAG-powered question answering against the document vault. Retrieves relevant document chunks via hybrid search, reranks them, injects them into a context-aware prompt, and streams a grounded answer with source citations. |
+| Quick Actions | `QuickActions` | One-click shortcut panel for the most common tasks: new conversation, import files, run semantic search, generate a digest, and open settings. |
+| Knowledge Vault | `KnowledgeVault` | Document library with list/grid view toggle, multi-select for batch operations (delete, re-index, assign to collection), advanced filter panel (file type, collection, date range, status, sort), and 360 px document preview panel. |
+| Collections | `Collections` | Hierarchical collection manager. Create, rename, delete, and nest collections. Drag documents between collections. |
+| Semantic Search | `Search` | Unified search page with mode toggle (Semantic / Keyword / Hybrid). Displays results with relevance scores, source excerpts, and citation links. Persistent search history displayed as chips. |
+| Knowledge Graph | `KnowledgeGraph` | Interactive Canvas-rendered force-directed graph. Nodes are color-coded by type (blue = document, purple = collection, amber = tag). Edges indicate collection membership, tag assignment, and shared-connection relationships. Supports pan and zoom. |
+| Model Manager | `ModelManager` | Lists all locally installed Ollama models. Pull new models with a download progress bar. Delete models. Set active chat and embedding models. |
+| Hardware Advisor | `HardwareAdvisor` | Reads CPU, RAM, and GPU specifications via `System.Management` and provides model size recommendations (e.g., "Your hardware supports up to 13B parameter models at 4-bit quantization"). |
+| Settings | `Settings` | Full settings editor: AI provider selection and API keys, Ollama endpoint, model selection, chunking parameters, UI theme, storage path, watch folders, and license activation/deactivation. |
+| Onboarding | `Onboarding` | First-run wizard shown on initial launch with navigation pane hidden. Steps through Ollama connection check, model selection, and a brief feature tour. |
+| User Guide | `UserGuide` | In-app reference documentation rendered as styled rich text. |
+| Privacy Policy | `PrivacyPolicy` | Full privacy policy text confirming the local-only data model. |
+| Terms of Service | `TermsOfService` | Terms of service for the application. |
+
+---
+
+## Core Service Layer
+
+This section documents the interface contracts and implementation behavior of each major service group.
+
+### AI Providers
+
+The `IAiProvider` interface abstracts the three supported LLM backends behind a uniform API:
+
+```csharp
+public interface IAiProvider : IDisposable
+{
+    string ProviderId { get; }
+    string DisplayName { get; }
+    bool IsAvailable { get; }
+
+    Task<bool> CheckConnectionAsync(CancellationToken ct = default);
+    Task<IReadOnlyList<AiModel>> ListModelsAsync(CancellationToken ct = default);
+    Task PullModelAsync(string modelName, IProgress<ModelDownloadProgress>? progress, CancellationToken ct);
+    Task DeleteModelAsync(string modelName, CancellationToken ct = default);
+    IAsyncEnumerable<string> StreamChatAsync(IReadOnlyList<ChatMessage> messages, ChatOptions? options, CancellationToken ct);
+    Task<string> ChatAsync(IReadOnlyList<ChatMessage> messages, ChatOptions? options, CancellationToken ct);
+    Task<float[]> GenerateEmbeddingAsync(string text, string modelName, CancellationToken ct);
+    Task<IReadOnlyList<float[]>> GenerateEmbeddingsAsync(IReadOnlyList<string> texts, string modelName, CancellationToken ct);
+}
+```
+
+| Provider | Implementation | Transport |
+|---|---|---|
+| Ollama | `OllamaProvider` | OllamaSharp 4.0.12 over HTTP to `localhost:11434` |
+| OpenAI | `OpenAiProvider` | Raw `HttpClient` to `api.openai.com/v1` |
+| Anthropic | `AnthropicProvider` | Raw `HttpClient` to `api.anthropic.com/v1` |
+
+The Ollama connection check uses a 3-second timeout so the status bar never blocks the UI when Ollama is not running.
+
+### Hybrid Search and RRF Fusion
+
+The `HybridSearchOrchestrator` accepts a `SearchQuery` with a `SearchMode` discriminant:
+
+- **Semantic:** Delegates directly to `SemanticSearchService`, which queries the `SqliteVecStore` using cosine similarity.
+- **Keyword:** Delegates directly to `KeywordSearchService`, which queries the SQLite FTS5 virtual table.
+- **Hybrid:** Executes both searches in parallel with a 3x-expanded `TopK` to give RRF a larger candidate pool, then merges results using Reciprocal Rank Fusion with k=60.
+
+RRF scoring formula applied to each result:
+
+```
+RRF_score = sum(1 / (k + rank_i))  for each list where the chunk appears
+```
+
+Normalized scores are clamped to [0, 1] using the theoretical maximum (result ranked first in both lists). If either backend fails, the orchestrator gracefully degrades to the surviving backend's results rather than propagating the exception.
+
+### Vector Store
+
+`SqliteVecStore` stores embeddings as BLOBs in a dedicated `vec_embeddings` table within the main SQLite database file. Embeddings are serialized as little-endian IEEE 754 float arrays using `Buffer.BlockCopy`. The pre-computed L2 magnitude is stored alongside each embedding to avoid recomputing it during every similarity comparison.
+
+Search is a full table scan with cosine similarity computed in managed C#:
+
+```
+cosine_similarity(a, b) = dot(a, b) / (|a| * |b|)
+```
+
+This approach is portable (no native SQLite extensions required) and suitable for collections up to approximately 100,000 embeddings. The database uses WAL journal mode for concurrent read/write access during indexing and search.
+
+### Document Processing Pipeline
+
+When a file is imported, the following pipeline executes:
+
+1. `IDocumentService.ImportDocumentAsync` computes the SHA-256 hash and checks for an exact duplicate.
+2. The appropriate `IDocumentProcessor` is selected by file extension and extracts raw text and metadata.
+3. `IChunkingService` splits the text into overlapping chunks of the configured size.
+4. `IIndexingQueueService` enqueues the document for background indexing.
+5. `IIndexingService` (background consumer) generates embeddings for each chunk via `IEmbeddingService` and writes them to `SqliteVecStore`.
+6. `IAutoTagService` calls the AI to generate confidence-scored tags and persists them to the tag graph.
+
+Supported file types and their processors:
+
+| Extension | Processor | Notes |
+|---|---|---|
+| `.pdf` | `PdfProcessor` | PDFsharp content stream parser; handles standard text-based PDFs |
+| `.docx` | `DocxProcessor` | DocumentFormat.OpenXml paragraph extraction |
+| `.txt` | `TextProcessor` | UTF-8 plain text |
+| `.md` | `MarkdownProcessor` | Markdig strips markup; extracts plain text |
+| `.cs`, `.py`, `.js`, `.ts`, `.go`, etc. | `CodeFileProcessor` | Treated as UTF-8 text with file type metadata |
+| `.png`, `.jpg`, `.jpeg`, `.bmp`, `.gif` | `ImageProcessor` | Extracts EXIF metadata; content extraction requires a vision-capable model |
+
+### Conversation Memory
+
+`ConversationMemoryService` extracts four categories of memory from conversation turns:
+
+| Category | Description | Default Importance |
+|---|---|---|
+| `instruction` | Explicit user directives ("Always respond in bullet points") | 0.9 |
+| `preference` | User preferences ("I prefer concise answers") | 0.8 |
+| `fact` | Factual statements made by the user | 0.5 |
+| `topic` | Topics of interest surfaced in conversation | 0.5 |
+
+Duplicate detection uses a substring match on the first 30 characters of the memory content. When a near-duplicate is found, the existing record's importance is incremented by 0.1 (capped at 1.0) rather than creating a new record. The top 10 memories ranked by importance and recency are injected into every system prompt as a `[User Memory Context]` block.
+
+### Knowledge Graph Construction
+
+`KnowledgeGraphService.BuildGraphAsync` executes the following pipeline:
+
+1. Loads all documents (with collections and tags eager-loaded), all collections, and all tags from EF Core.
+2. Creates typed nodes: document nodes (size proportional to chunk count, capped at 40 px), collection nodes (fixed 32 px), tag nodes (fixed 16 px).
+3. Builds edges: document-to-collection, document-to-tag, and document-to-document (for pairs sharing at least one collection or tag, weighted by shared connection count).
+4. Assigns initial random positions using a deterministic seed (42) for reproducible starting layouts.
+5. Runs 100 iterations of a spring-electric force-directed layout: Coulomb repulsion between all node pairs (strength 5000), Hooke attraction along edges (strength 0.01, ideal length 100 px), centering gravity (0.01), and velocity damping (0.85 per iteration).
+
+The resulting node positions are returned to `KnowledgeGraphViewModel` and rendered on a WinUI 3 `Canvas` using `Ellipse` and `Line` primitives.
+
+### License Validation
+
+License keys follow the format `AX-{TIER}-{PAYLOAD}-{CHECKSUM}`:
+
+- `AX` — product prefix
+- `TIER` — `S` (Starter), `P` (Professional), `U` (Ultimate)
+- `PAYLOAD` — 16-character Base32-encoded random data
+- `CHECKSUM` — 4-character HMAC-SHA256 truncated checksum
+
+Validation is fully offline. The HMAC signing key is embedded in the binary. A machine fingerprint is computed from `MachineName`, `OSVersion`, and `ProcessorCount` via SHA-256 and stored with the license record. License records are stored in the `licenses` SQLite table; only one license may be active at a time.
+
+---
+
+## Data Storage
+
+All persistent data lives under `%LocalAppData%\AgentX\`.
+
+```
+%LocalAppData%\AgentX\
+├── agentx.db          -- SQLite database (EF Core + raw vector BLOB store)
+├── settings.json      -- User preferences (JSON)
+└── Logs\
+    ├── agentx-20260227.log
+    └── agentx-20260226.log   (7-day rolling retention)
+```
+
+### Database Schema
+
+The `AgentXDbContext` maps 16 entity types to SQLite tables:
+
+| Table | Entity | Description |
+|---|---|---|
+| `conversations` | `ConversationEntity` | Chat sessions with title, model ID, pin state, message count, and token usage |
+| `messages` | `MessageEntity` | Individual chat messages with role, content, timestamp, sort order, and token count |
+| `documents` | `DocumentEntity` | Imported file metadata with SHA-256 hash, indexing status, file type, and timestamps |
+| `document_chunks` | `DocumentChunkEntity` | Text chunks with content, position index, and vector store row ID |
+| `collections` | `CollectionEntity` | Hierarchical collections with self-referencing parent/child relationship |
+| `document_collections` | `DocumentCollectionEntity` | Many-to-many join between documents and collections |
+| `tags` | `TagEntity` | Tag names with auto-generated flag; unique name constraint |
+| `document_tags` | `DocumentTagEntity` | Many-to-many join with confidence score and assignment timestamp |
+| `search_history` | `SearchHistoryEntity` | Persisted search queries with type and timestamp |
+| `system_prompts` | `SystemPromptEntity` | Named, categorized system prompt templates |
+| `user_settings` | `UserSettingsEntity` | Key-value settings with type annotation (supplement to settings.json) |
+| `watch_folders` | `WatchFolderEntity` | File system paths monitored for auto-import, optionally linked to a collection |
+| `indexing_jobs` | `IndexingJobEntity` | Asynchronous indexing job queue with status lifecycle |
+| `licenses` | `LicenseEntity` | License key, tier, activation timestamp, and machine fingerprint |
+| `memories` | `MemoryEntity` | AI-extracted memory entries with category, importance, and usage tracking |
+| `digest_reports` | `DigestReportEntity` | Weekly activity summaries with JSON-serialized sub-reports |
+| `vec_embeddings` | (raw SQL) | Float array BLOBs with pre-computed magnitude; managed outside EF Core |
+
+Key indexes are defined on all foreign keys, date columns used in range queries, and the `content_hash` column for O(1) duplicate detection.
+
+---
+
+## Keyboard Shortcuts
+
+All shortcuts are registered in `MainWindow.RegisterDefaultShortcuts()` via `KeyboardShortcutService`. They are handled at the root `Grid` level using `PreviewKeyDown` to intercept before child controls consume the event.
+
+| Shortcut | Action |
+|---|---|
+| `Ctrl+K` | Toggle the Command Palette overlay |
+| `Ctrl+N` | Navigate to AI Chat (new conversation) |
+| `Ctrl+I` | Navigate to Knowledge Vault (import documents) |
+| `Ctrl+F` | Navigate to Semantic Search |
+| `Ctrl+Shift+F` | Navigate to Semantic Search (alternate) |
+| `Ctrl+,` | Navigate to Settings |
+| `Esc` | Close the Command Palette (when open) |
+
+### Command Palette
+
+The Command Palette (`Ctrl+K`) provides keyboard-first access to all 16 pages and common actions. Type to filter the command list. Press `Enter` to execute the selected command or `Esc` to dismiss. Actions available from the palette include:
+
+- Navigate to any application page
+- Start a new conversation
+- Import files (opens Knowledge Vault)
+- Refresh the Dashboard
+
+---
+
+## License Tiers
+
+Agent-X uses an offline perpetual license model. All tiers are permanent — there is no subscription, no renewal, and no expiry date.
+
+| Tier | Document Limit | Key Features |
+|---|---|---|
+| **Trial** | 50 documents | Full feature access; document limit enforced on import |
+| **Starter** | 500 documents | All Tier 1 and Tier 2 features |
+| **Professional** | Unlimited documents | All features including Tier 3 premium intelligence |
+| **Ultimate** | Unlimited documents | All features, priority support, and future premium additions |
+
+License keys are activated in the Settings page. The key format is `AX-{S|P|U}-{16-char payload}-{4-char checksum}`. Activation is instant and offline — no internet connection is required. One license key activates one machine (identified by machine fingerprint). To move a license to a new machine, deactivate from the current machine first.
 
 ---
 
@@ -189,133 +541,122 @@ The compiled installer is output to `installer-output/AgentX-Setup-1.0.0-x64.exe
 
 ```
 Agent-X/
-|
-|-- AgentX.sln                          Solution file
-|-- Directory.Build.props               Shared build properties (version, company, language)
-|
-|-- src/
-|   |-- AgentX.App/                     WinUI 3 desktop application
-|   |   |-- Views/                      XAML pages (Dashboard, Chat, KnowledgeVault, Search, etc.)
-|   |   |-- ViewModels/                 MVVM view models (CommunityToolkit.Mvvm)
-|   |   |-- Controls/                   Custom WinUI controls
-|   |   |-- Converters/                 XAML value converters
-|   |   |-- Styles/                     Application styles and themes
-|   |   |-- Services/                   App-layer services (navigation, dialogs, etc.)
-|   |   |-- Helpers/                    UI helper utilities
-|   |   |-- Assets/                     Icons, images, and brand assets
-|   |   |-- MainWindow.xaml             Application shell and navigation
-|   |   +-- App.xaml                    Application entry point and resource configuration
-|   |
-|   +-- AgentX.Core/                    Core logic library (no UI dependency)
-|       |-- AI/                         Ollama integration, model management, hardware detection
-|       |   |-- Models/                 AI-related data models
-|       |   +-- Providers/              AI provider abstractions and implementations
-|       |-- Data/                       Entity Framework Core context, entities, migrations
-|       |-- Documents/                  Document processing (PDF, DOCX, TXT, MD, code, OCR)
-|       |-- Search/                     Semantic search, RAG pipeline, citation service
-|       |   +-- Models/                 Search result and citation models
-|       |-- Services/                   Core business services
-|       +-- Helpers/                    Shared utility helpers
-|
-|-- tests/
-|   +-- AgentX.Tests/                   xUnit test project
-|
-|-- installer/
-|   +-- AgentX-Setup.iss                Inno Setup installer script
-|
-|-- publish/
-|   +-- win-x64/                        Self-contained published binaries
-|
-|-- installer-output/
-|   +-- AgentX-Setup-1.0.0-x64.exe      Compiled installer
-|
-|-- screenshots/                        Application screenshots
-+-- docs/                               Documentation
+├── src/
+│   ├── AgentX.App/                    -- WinUI 3 application host
+│   │   ├── App.xaml / App.xaml.cs     -- DI composition root, logging, exception handling
+│   │   ├── MainWindow.xaml.cs         -- Shell, navigation, keyboard shortcuts, status bar
+│   │   ├── Assets/                    -- Application icons and brand assets
+│   │   ├── Controls/                  -- Reusable XAML controls (CommandPalette, etc.)
+│   │   ├── Converters/                -- IValueConverter implementations
+│   │   ├── Helpers/                   -- UI helper utilities
+│   │   ├── Services/                  -- UI-layer services (KeyboardShortcutService)
+│   │   ├── Styles/                    -- Global XAML resource dictionaries and theme overrides
+│   │   ├── ViewModels/                -- 13 ObservableObject ViewModels
+│   │   └── Views/                     -- 16 XAML pages and code-behind files
+│   │
+│   └── AgentX.Core/                   -- Platform-independent business logic
+│       ├── AI/                        -- AI provider abstraction, embedding, context management
+│       │   ├── Providers/             -- OllamaProvider, OpenAiProvider, AnthropicProvider
+│       │   └── Models/                -- AiModel, ChatMessage, ChatOptions, CostTracker
+│       ├── Data/                      -- EF Core DbContext, entities, migrations, vector store
+│       │   ├── Entities/              -- 16 EF Core entity classes
+│       │   ├── Migrations/            -- EF Core database migrations
+│       │   └── VectorDb/              -- SqliteVecStore (BLOB-based cosine similarity)
+│       ├── Documents/                 -- Document processing pipeline
+│       │   └── Processors/            -- PdfProcessor, DocxProcessor, TextProcessor, etc.
+│       ├── Helpers/                   -- HashHelper, shared utilities
+│       ├── Search/                    -- Semantic, keyword, and hybrid search
+│       │   └── Models/                -- SearchQuery, SearchResult
+│       └── Services/
+│           ├── Chat/                  -- ChatService, ConversationService, MemoryService
+│           ├── Collections/           -- CollectionService
+│           ├── Indexing/              -- IndexingService, IndexingQueueService, FileWatcherService
+│           ├── Intelligence/          -- DigestService, KnowledgeGraphService, SummaryService, etc.
+│           ├── License/               -- LicenseService
+│           ├── Settings/              -- SettingsService, AppSettings model
+│           └── Tagging/               -- AutoTagService
+│
+├── tests/                             -- Test projects
+├── installer/
+│   └── AgentX-Setup.iss               -- Inno Setup 6 installer script
+├── installer-output/                  -- Built installer executables
+├── publish/
+│   └── win-x64/                       -- Published self-contained binary
+├── docs/                              -- Project documentation
+├── screenshots/                       -- Application screenshots
+├── Directory.Build.props              -- Solution-wide MSBuild properties (version, copyright)
+└── AgentX.sln                         -- Visual Studio solution file
 ```
 
 ---
 
 ## Technology Stack
 
-| Category | Technology | Version | Purpose |
-|----------|-----------|---------|---------|
-| Runtime | .NET | 8.0 | Application framework |
-| UI Framework | WinUI 3 (Windows App SDK) | 1.5+ | Native Windows desktop UI |
-| Language | C# | 12.0 | Primary language |
-| MVVM | CommunityToolkit.Mvvm | 8.3.2 | Observable properties, commands, messaging |
-| Database | SQLite via EF Core | 8.0.10 | Document metadata, conversations, settings |
-| Vector Storage | sqlite-vec | -- | Embedding storage and similarity search |
-| AI Runtime | Ollama (via OllamaSharp) | 4.0.10 | Local LLM inference and embedding generation |
-| PDF Processing | PdfSharpCore | 1.3.65 | PDF text extraction |
-| DOCX Processing | DocumentFormat.OpenXml | 3.2.0 | Word document text extraction |
-| Logging | Serilog + Serilog.Sinks.File | -- | Structured file logging |
-| Installer | Inno Setup | 6 | Windows installer packaging |
-| Testing | xUnit | -- | Unit and integration testing |
-
----
-
-## Architecture
-
-Agent-X follows a clean three-layer architecture:
-
-```
-+-----------------------------------------------------+
-|                    AgentX.App                        |
-|   WinUI 3 Views  |  ViewModels  |  App Services     |
-+-----------------------------------------------------+
-                          |
-                          v
-+-----------------------------------------------------+
-|                   AgentX.Core                        |
-|   AI Services | Document Processing | Search/RAG    |
-|   Data Layer  | Hardware Detection  | Embeddings     |
-+-----------------------------------------------------+
-                          |
-                          v
-+-----------------------------------------------------+
-|                External Dependencies                 |
-|   Ollama (local)  |  SQLite  |  sqlite-vec          |
-+-----------------------------------------------------+
-```
-
-- **AgentX.App** -- The presentation layer. Contains all XAML views, view models, value converters, custom controls, and navigation logic. Depends on AgentX.Core for all business logic.
-- **AgentX.Core** -- The domain and infrastructure layer. Contains AI service abstractions and Ollama integration, document processing pipelines, semantic search and RAG, Entity Framework Core data access, and hardware detection. Has no dependency on the UI framework.
-- **AgentX.Tests** -- Unit and integration tests targeting AgentX.Core.
-
-For a detailed architecture breakdown including data flow diagrams, service dependency graphs, and extension points, see [ARCHITECTURE.md](./ARCHITECTURE.md).
-
----
-
-## Licensing
-
-Agent-X is proprietary commercial software developed by Rocky Stack / Strategia.
-
-All rights reserved. Copyright (c) 2026 Rocky Stack.
-
-### Pricing Tiers
-
-| Tier | Price | Description |
-|------|-------|-------------|
-| Starter | $79 | Core features for individual use |
-| Professional | $149 | Full feature set for power users |
-| Ultimate | $249 | Complete suite with priority support |
-
-All tiers are one-time purchases. No subscriptions, no recurring fees.
-
-License activation is managed within the application under Settings > License Management.
+| Category | Package | Version |
+|---|---|---|
+| UI Framework | Microsoft.WindowsAppSDK | 1.6.250108002 |
+| MVVM | CommunityToolkit.Mvvm | 8.2.2 |
+| WinUI Animations | CommunityToolkit.WinUI.Animations | 8.1.240916 |
+| Dependency Injection | Microsoft.Extensions.Hosting | 8.0.1 |
+| ORM | Microsoft.EntityFrameworkCore.Sqlite | 8.0.11 |
+| SQLite Driver | Microsoft.Data.Sqlite | 8.0.11 |
+| AI Abstractions | Microsoft.Extensions.AI | 9.5.0 |
+| Ollama Client | OllamaSharp | 4.0.12 |
+| PDF Processing | PDFsharp | 6.1.1 |
+| DOCX Processing | DocumentFormat.OpenXml | 3.2.0 |
+| Markdown | Markdig | 0.37.0 |
+| Logging | Serilog | 4.0.2 |
+| System Info | System.Management | 8.0.0 |
+| Installer | Inno Setup | 6.x |
+| Language | C# 12 (.NET 8.0) | — |
+| Target Framework | net8.0-windows10.0.22621.0 | — |
 
 ---
 
 ## Contributing
 
-Agent-X is not currently accepting external contributions. For development setup instructions, coding conventions, and internal contribution workflows, see [DEVELOPER-GUIDE.md](./DEVELOPER-GUIDE.md).
+Agent-X is a proprietary application. External contributions are not accepted at this time.
+
+For bug reports, feature requests, or support inquiries, contact Rocky Stack through the official support channel listed in the installer.
+
+### Internal Development Guidelines
+
+The following conventions apply to all code in this repository:
+
+**Architecture constraints:**
+- `AgentX.Core` must remain free of any WinUI 3 or Windows App SDK references. It targets `net8.0-windows10.0.22621.0` for `System.Management` access but must not take on any UI framework dependency.
+- All public service methods must accept a `CancellationToken` parameter. Background tasks are cancellable.
+- Services must not call other services' internal implementation details — only program to the interface.
+
+**Error handling:**
+- Catch and log exceptions at service boundaries. Do not let exceptions from AI providers or file I/O propagate unhandled to the ViewModel layer.
+- For user-facing operations, return result objects (e.g., `LicenseActivationResult`) rather than throwing exceptions.
+- For background operations, log at `Warning` level and continue where possible (graceful degradation).
+
+**Logging:**
+- Use Serilog's structured logging: `_logger.Information("Processed {Count} chunks for document {DocumentId}", count, id)`.
+- Log at `Information` for significant state changes, `Debug` for fine-grained diagnostics, `Warning` for recoverable failures, and `Error`/`Fatal` for unrecoverable conditions.
+- Do not log sensitive data: API keys, full file paths containing usernames, or document content.
+
+**Data access:**
+- Use `AsNoTracking()` on all read-only EF Core queries.
+- Prefer async EF Core methods (`ToListAsync`, `FirstOrDefaultAsync`, `SaveChangesAsync`).
+- Raw ADO.NET is acceptable only in `SqliteVecStore` and `KeywordSearchService` where FTS5 or vector operations require it.
+
+**UI and ViewModel:**
+- ViewModels must extend `ObservableObject` from CommunityToolkit.Mvvm.
+- Use `[ObservableProperty]` and `[RelayCommand]` source generators.
+- All UI updates from async operations must be dispatched to the UI thread using `DispatcherQueue.TryEnqueue`.
+- Do not put business logic in code-behind files. Code-behind is for event wiring and DI resolution only.
 
 ---
 
-## Support
+## License
 
-For bug reports, feature requests, and support inquiries, contact the development team at Rocky Stack / Strategia.
+Copyright (c) 2026 Rocky Stack. All rights reserved.
 
----
+Agent-X is proprietary software. Redistribution, reverse engineering, decompilation, and creation of derivative works are prohibited without written permission from Rocky Stack.
 
-*Agent-X v1.0.0 -- Built by Rocky Stack / Strategia*
+Use of the application is governed by the Terms of Service accessible from within the application (Settings > Terms of Service) and included in the installer.
+
+The Trial tier is provided at no cost for evaluation purposes. Starter, Professional, and Ultimate tier licenses are available for purchase through the official Rocky Stack sales channel.

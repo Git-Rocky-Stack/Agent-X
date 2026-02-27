@@ -5,10 +5,23 @@ public class AppSettings
     // Onboarding
     public bool OnboardingCompleted { get; set; } = false;
 
-    // AI Provider
+    // AI Provider — Active selection
+    public string ActiveProviderId { get; set; } = "ollama";
+
+    // Ollama Provider
     public string OllamaEndpoint { get; set; } = "http://localhost:11434";
     public string DefaultModel { get; set; } = "llama3.2";
     public string EmbeddingModel { get; set; } = "all-minilm";
+
+    // OpenAI Provider
+    public string? OpenAiApiKey { get; set; }
+    public string OpenAiEndpoint { get; set; } = "https://api.openai.com/v1/";
+    public string? OpenAiDefaultModel { get; set; } = "gpt-4o-mini";
+
+    // Anthropic Provider
+    public string? AnthropicApiKey { get; set; }
+    public string AnthropicEndpoint { get; set; } = "https://api.anthropic.com/v1/";
+    public string? AnthropicDefaultModel { get; set; } = "claude-sonnet-4-20250514";
 
     // Inference
     public double Temperature { get; set; } = 0.7;

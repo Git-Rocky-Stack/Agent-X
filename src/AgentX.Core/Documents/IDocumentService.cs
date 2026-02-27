@@ -43,7 +43,21 @@ public interface IDocumentService
     /// </summary>
     /// <param name="fileTypeFilter">Optional file type to filter by (e.g., "pdf").</param>
     /// <param name="statusFilter">Optional indexing status to filter by (e.g., "completed").</param>
-    Task<IReadOnlyList<DocumentEntity>> GetAllDocumentsAsync(string? fileTypeFilter = null, string? statusFilter = null);
+    /// <param name="tagFilter">Optional tag name to filter documents that have this tag assigned.</param>
+    /// <param name="collectionId">Optional collection ID to filter documents belonging to a specific collection.</param>
+    /// <param name="importedAfter">Optional lower bound (inclusive) for the ImportedAt date.</param>
+    /// <param name="importedBefore">Optional upper bound (inclusive) for the ImportedAt date.</param>
+    /// <param name="sortBy">Sort field: "name", "date" (default), "size", or "type".</param>
+    /// <param name="ct">Cancellation token.</param>
+    Task<IReadOnlyList<DocumentEntity>> GetAllDocumentsAsync(
+        string? fileTypeFilter = null,
+        string? statusFilter = null,
+        string? tagFilter = null,
+        long? collectionId = null,
+        DateTime? importedAfter = null,
+        DateTime? importedBefore = null,
+        string? sortBy = null,
+        CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves all documents belonging to a specific collection.
@@ -90,4 +104,37 @@ public interface IDocumentService
     /// Returns the union of all supported file extensions across all registered processors.
     /// </summary>
     IReadOnlySet<string> GetSupportedExtensions();
+
+    // ── Duplicate Detection ──────────────────────────────────────
+
+    /// <summary>
+    /// Checks an incoming file against the knowledge vault for duplicate content
+    /// using SHA-256 hash comparison. Returns a result indicating whether the file
+    /// is an exact duplicate of an existing document.
+    /// </summary>
+    /// <param name="filePath">Absolute path to the file to check.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>A <see cref="DuplicateCheckResult"/> indicating whether a duplicate exists.</returns>
+    Task<DuplicateCheckResult> CheckForDuplicateAsync(string filePath, CancellationToken ct = default);
+
+    // ── Bulk Operations ──────────────────────────────────────────
+
+    /// <summary>
+    /// Deletes multiple documents by their IDs. Failures for individual documents
+    /// are logged but do not abort the batch.
+    /// </summary>
+    Task BulkDeleteAsync(IReadOnlyList<long> documentIds, CancellationToken ct = default);
+
+    /// <summary>
+    /// Re-indexes multiple documents by their IDs. Each document is reset to
+    /// "pending" status. Failures for individual documents are logged but do not
+    /// abort the batch.
+    /// </summary>
+    Task BulkReindexAsync(IReadOnlyList<long> documentIds, CancellationToken ct = default);
+
+    /// <summary>
+    /// Associates multiple documents with the specified collection. Failures for
+    /// individual documents are logged but do not abort the batch.
+    /// </summary>
+    Task BulkAssignToCollectionAsync(IReadOnlyList<long> documentIds, long collectionId, CancellationToken ct = default);
 }

@@ -20,6 +20,7 @@ namespace AgentX.App.ViewModels;
 public partial class SearchViewModel : ObservableObject
 {
     private readonly ISemanticSearchService _searchService;
+    private readonly IHybridSearchOrchestrator _hybridSearchOrchestrator;
     private readonly IDocumentService _documentService;
     private readonly ILogger _logger;
 
@@ -33,6 +34,7 @@ public partial class SearchViewModel : ObservableObject
     [ObservableProperty] private string? _selectedFileTypeFilter;
     [ObservableProperty] private long? _selectedCollectionId;
     [ObservableProperty] private string _statusMessage = "Ready to search";
+    [ObservableProperty] private SearchMode _searchMode = SearchMode.Semantic;
 
     // ── Collections ──────────────────────────────────────────────
     public ObservableCollection<SearchResultItem> Results { get; } = new();
@@ -42,15 +44,37 @@ public partial class SearchViewModel : ObservableObject
     private readonly List<SearchHistoryItem> _historyStore = new();
     private long _historyIdCounter;
 
+    /// <summary>True when the current search mode is Semantic.</summary>
+    public bool IsSemanticMode => SearchMode == SearchMode.Semantic;
+
+    /// <summary>True when the current search mode is Keyword.</summary>
+    public bool IsKeywordMode => SearchMode == SearchMode.Keyword;
+
+    /// <summary>True when the current search mode is Hybrid.</summary>
+    public bool IsHybridMode => SearchMode == SearchMode.Hybrid;
+
     public SearchViewModel(
         ISemanticSearchService searchService,
+        IHybridSearchOrchestrator hybridSearchOrchestrator,
         IDocumentService documentService,
         ILogger logger)
     {
         _searchService = searchService;
+        _hybridSearchOrchestrator = hybridSearchOrchestrator;
         _documentService = documentService;
         _logger = logger;
         _logger.Debug("SearchViewModel created with services");
+    }
+
+    /// <summary>
+    /// Called by the generated code when SearchMode changes.
+    /// Notifies computed property changes for mode-dependent UI bindings.
+    /// </summary>
+    partial void OnSearchModeChanged(SearchMode value)
+    {
+        OnPropertyChanged(nameof(IsSemanticMode));
+        OnPropertyChanged(nameof(IsKeywordMode));
+        OnPropertyChanged(nameof(IsHybridMode));
     }
 
     // =================================================================
@@ -63,8 +87,7 @@ public partial class SearchViewModel : ObservableObject
 
         try
         {
-            // Load persisted search history (in-memory for now)
-            SyncHistoryToObservable();
+            await LoadSearchHistoryAsync();
             StatusMessage = "Ready to search";
         }
         catch (Exception ex)
@@ -72,8 +95,47 @@ public partial class SearchViewModel : ObservableObject
             _logger.Warning(ex, "Failed to initialize SearchViewModel");
             StatusMessage = "Ready to search";
         }
+    }
 
-        await Task.CompletedTask;
+    private async Task LoadSearchHistoryAsync()
+    {
+        try
+        {
+            var entries = await _searchService.GetSearchHistoryAsync(20);
+            _historyStore.Clear();
+            _historyIdCounter = 0;
+
+            foreach (var entry in entries)
+            {
+                _historyIdCounter++;
+                _historyStore.Add(new SearchHistoryItem
+                {
+                    Id = entry.Id,
+                    QueryText = entry.QueryText,
+                    ResultCount = entry.ResultCount,
+                    SearchedAgo = FormatTimeAgo(entry.SearchedAt)
+                });
+            }
+
+            SyncHistoryToObservable();
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Failed to load search history from database");
+        }
+    }
+
+    private static string FormatTimeAgo(DateTime dateTime)
+    {
+        var span = DateTime.UtcNow - dateTime.ToUniversalTime();
+        return span.TotalMinutes switch
+        {
+            < 1 => "just now",
+            < 60 => $"{(int)span.TotalMinutes}m ago",
+            < 1440 => $"{(int)span.TotalHours}h ago",
+            < 43200 => $"{(int)span.TotalDays}d ago",
+            _ => dateTime.ToLocalTime().ToString("MMM d")
+        };
     }
 
     // =================================================================
@@ -81,7 +143,7 @@ public partial class SearchViewModel : ObservableObject
     // =================================================================
 
     /// <summary>
-    /// Performs semantic search using the current QueryText,
+    /// Performs search using the current QueryText and SearchMode,
     /// applies any active file-type filter, updates Results,
     /// and records the search in history.
     /// </summary>
@@ -101,15 +163,16 @@ public partial class SearchViewModel : ObservableObject
         {
             var stopwatch = Stopwatch.StartNew();
 
-            // Execute semantic search
+            // Execute search via the hybrid orchestrator (handles Semantic, Keyword, and Hybrid modes)
             var searchQuery = new SearchQuery
             {
                 QueryText = query,
                 TopK = 20,
                 CollectionId = SelectedCollectionId,
-                FileTypeFilter = SelectedFileTypeFilter
+                FileTypeFilter = SelectedFileTypeFilter,
+                Mode = SearchMode
             };
-            var rawResults = await _searchService.SearchAsync(searchQuery);
+            var rawResults = await _hybridSearchOrchestrator.SearchAsync(searchQuery);
 
             stopwatch.Stop();
             SearchLatencyMs = stopwatch.Elapsed.TotalMilliseconds;
@@ -178,7 +241,7 @@ public partial class SearchViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            _logger.Error(ex, "Semantic search failed for query: {Query}", query);
+            _logger.Error(ex, "{SearchMode} search failed for query: {Query}", SearchMode, query);
             StatusMessage = "Search failed. Please try again.";
             ShowNoResults = true;
         }
@@ -220,10 +283,19 @@ public partial class SearchViewModel : ObservableObject
     /// Clears all search history entries.
     /// </summary>
     [RelayCommand]
-    private void ClearHistory()
+    private async Task ClearHistoryAsync()
     {
         _historyStore.Clear();
         SearchHistory.Clear();
+
+        try
+        {
+            await _searchService.ClearSearchHistoryAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Failed to clear search history from database");
+        }
     }
 
     /// <summary>
@@ -344,6 +416,19 @@ public partial class SearchViewModel : ObservableObject
             _historyStore.RemoveAt(_historyStore.Count - 1);
 
         SyncHistoryToObservable();
+
+        // Persist to database (fire-and-forget)
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _searchService.SaveSearchHistoryAsync(query, resultCount);
+            }
+            catch (Exception ex)
+            {
+                _logger.Warning(ex, "Failed to persist search history entry");
+            }
+        });
     }
 
     private void SyncHistoryToObservable()

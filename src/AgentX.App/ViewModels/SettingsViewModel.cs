@@ -1,5 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using AgentX.Core.AI;
+using AgentX.Core.AI.Models;
 using AgentX.Core.Services.License;
 using AgentX.Core.Services.Settings;
 using Serilog;
@@ -10,12 +12,31 @@ public partial class SettingsViewModel : ObservableObject
 {
     private readonly ISettingsService _settingsService;
     private readonly ILicenseService _licenseService;
+    private readonly IAiService _aiService;
+    private readonly ICostTracker _costTracker;
 
-    // ── General ─────────────────────────────────────────────
+    // ── Active Provider ──────────────────────────────────────
+    [ObservableProperty] private int _activeProviderIndex;
+    [ObservableProperty] private string _activeProviderId = "ollama";
+
+    // ── Ollama ────────────────────────────────────────────────
     [ObservableProperty] private string _ollamaEndpoint = "http://localhost:11434";
     [ObservableProperty] private string _defaultModel = "llama3.2";
     [ObservableProperty] private string _embeddingModel = "all-minilm";
     [ObservableProperty] private string _storagePath = string.Empty;
+    [ObservableProperty] private string _ollamaConnectionStatus = string.Empty;
+
+    // ── OpenAI ────────────────────────────────────────────────
+    [ObservableProperty] private string _openAiApiKey = string.Empty;
+    [ObservableProperty] private string _openAiEndpoint = "https://api.openai.com/v1/";
+    [ObservableProperty] private string _openAiDefaultModel = "gpt-4o-mini";
+    [ObservableProperty] private string _openAiConnectionStatus = string.Empty;
+
+    // ── Anthropic ─────────────────────────────────────────────
+    [ObservableProperty] private string _anthropicApiKey = string.Empty;
+    [ObservableProperty] private string _anthropicEndpoint = "https://api.anthropic.com/v1/";
+    [ObservableProperty] private string _anthropicDefaultModel = "claude-sonnet-4-20250514";
+    [ObservableProperty] private string _anthropicConnectionStatus = string.Empty;
 
     // ── Inference ───────────────────────────────────────────
     [ObservableProperty] private double _temperature = 0.7;
@@ -31,6 +52,11 @@ public partial class SettingsViewModel : ObservableObject
     // ── Appearance ──────────────────────────────────────────
     [ObservableProperty] private bool _compactMode;
 
+    // ── Cost Tracking ────────────────────────────────────────
+    [ObservableProperty] private string _totalCostDisplay = "$0.00";
+    [ObservableProperty] private string _todayCostDisplay = "$0.00";
+    [ObservableProperty] private string _totalTokensDisplay = "0";
+
     // ── License ─────────────────────────────────────────────
     [ObservableProperty] private string _licenseKey = string.Empty;
     [ObservableProperty] private string _licenseTier = "Trial";
@@ -45,10 +71,22 @@ public partial class SettingsViewModel : ObservableObject
     // ── App Info ────────────────────────────────────────────
     [ObservableProperty] private string _appVersion = "1.0.0";
 
-    public SettingsViewModel(ISettingsService settingsService, ILicenseService licenseService)
+    /// <summary>
+    /// Provider display names for the ComboBox items.
+    /// Order must match the index mapping in ProviderIndexToId / ProviderIdToIndex.
+    /// </summary>
+    public List<string> ProviderOptions { get; } = new() { "Ollama (Local)", "OpenAI", "Anthropic Claude" };
+
+    public SettingsViewModel(
+        ISettingsService settingsService,
+        ILicenseService licenseService,
+        IAiService aiService,
+        ICostTracker costTracker)
     {
         _settingsService = settingsService;
         _licenseService = licenseService;
+        _aiService = aiService;
+        _costTracker = costTracker;
 
         StoragePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -62,17 +100,39 @@ public partial class SettingsViewModel : ObservableObject
         var settings = await _settingsService.GetSettingsAsync();
         if (settings != null)
         {
+            // Provider settings
+            ActiveProviderId = settings.ActiveProviderId ?? "ollama";
+            ActiveProviderIndex = ProviderIdToIndex(ActiveProviderId);
+
+            // Ollama
             OllamaEndpoint = settings.OllamaEndpoint;
             DefaultModel = settings.DefaultModel;
             EmbeddingModel = settings.EmbeddingModel;
+
+            // OpenAI
+            OpenAiApiKey = settings.OpenAiApiKey ?? string.Empty;
+            OpenAiEndpoint = settings.OpenAiEndpoint;
+            OpenAiDefaultModel = settings.OpenAiDefaultModel ?? "gpt-4o-mini";
+
+            // Anthropic
+            AnthropicApiKey = settings.AnthropicApiKey ?? string.Empty;
+            AnthropicEndpoint = settings.AnthropicEndpoint;
+            AnthropicDefaultModel = settings.AnthropicDefaultModel ?? "claude-sonnet-4-20250514";
+
+            // Inference
             Temperature = settings.Temperature;
             MaxTokens = settings.MaxTokens;
             ContextWindow = settings.ContextWindow;
+
+            // Indexing
             ChunkSize = settings.ChunkSize;
             ChunkOverlap = settings.ChunkOverlap;
             TopKResults = settings.TopKResults;
             AutoIndexWatchFolders = settings.AutoIndexWatchFolders;
         }
+
+        // Load cost tracking data
+        RefreshCostDisplay();
 
         // Load current license info
         await LoadLicenseInfoAsync();
@@ -83,21 +143,123 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private async Task SaveSettingsAsync()
     {
-        var settings = new AppSettings
-        {
-            OllamaEndpoint = OllamaEndpoint,
-            DefaultModel = DefaultModel,
-            EmbeddingModel = EmbeddingModel,
-            Temperature = Temperature,
-            MaxTokens = MaxTokens,
-            ContextWindow = ContextWindow,
-            ChunkSize = ChunkSize,
-            ChunkOverlap = ChunkOverlap,
-            TopKResults = TopKResults,
-            AutoIndexWatchFolders = AutoIndexWatchFolders,
-        };
+        // Load existing settings to preserve fields not managed by this view
+        // (e.g. OnboardingCompleted, StoragePath)
+        var settings = await _settingsService.GetSettingsAsync();
+
+        // Resolve provider ID from the selected ComboBox index
+        var resolvedProviderId = ProviderIndexToId(ActiveProviderIndex);
+
+        // Provider
+        settings.ActiveProviderId = resolvedProviderId;
+
+        // Ollama
+        settings.OllamaEndpoint = OllamaEndpoint;
+        settings.DefaultModel = DefaultModel;
+        settings.EmbeddingModel = EmbeddingModel;
+
+        // OpenAI
+        settings.OpenAiApiKey = string.IsNullOrWhiteSpace(OpenAiApiKey) ? null : OpenAiApiKey;
+        settings.OpenAiEndpoint = OpenAiEndpoint;
+        settings.OpenAiDefaultModel = OpenAiDefaultModel;
+
+        // Anthropic
+        settings.AnthropicApiKey = string.IsNullOrWhiteSpace(AnthropicApiKey) ? null : AnthropicApiKey;
+        settings.AnthropicEndpoint = AnthropicEndpoint;
+        settings.AnthropicDefaultModel = AnthropicDefaultModel;
+
+        // Inference
+        settings.Temperature = Temperature;
+        settings.MaxTokens = MaxTokens;
+        settings.ContextWindow = ContextWindow;
+
+        // Indexing
+        settings.ChunkSize = ChunkSize;
+        settings.ChunkOverlap = ChunkOverlap;
+        settings.TopKResults = TopKResults;
+        settings.AutoIndexWatchFolders = AutoIndexWatchFolders;
+
         await _settingsService.SaveSettingsAsync(settings);
-        Log.Information("Settings saved");
+
+        // Re-initialize AI service so provider changes take effect
+        try
+        {
+            await _aiService.InitializeAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "AI service re-initialization failed after settings save");
+        }
+
+        Log.Information("Settings saved with active provider: {Provider}", resolvedProviderId);
+    }
+
+    [RelayCommand]
+    private async Task TestOllamaConnectionAsync()
+    {
+        OllamaConnectionStatus = "Testing...";
+        try
+        {
+            // Always create a temporary provider with the current endpoint value
+            // (the user may have edited the endpoint but not saved yet)
+            using var tempProvider = new AgentX.Core.AI.Providers.OllamaProvider(
+                new Uri(OllamaEndpoint), Log.Logger);
+            var connected = await tempProvider.CheckConnectionAsync();
+            OllamaConnectionStatus = connected ? "Connected" : "Not reachable";
+        }
+        catch (Exception ex)
+        {
+            OllamaConnectionStatus = $"Error: {ex.Message}";
+            Log.Warning(ex, "Ollama connection test failed");
+        }
+    }
+
+    [RelayCommand]
+    private async Task TestOpenAiConnectionAsync()
+    {
+        if (string.IsNullOrWhiteSpace(OpenAiApiKey))
+        {
+            OpenAiConnectionStatus = "API key required";
+            return;
+        }
+
+        OpenAiConnectionStatus = "Testing...";
+        try
+        {
+            using var tempProvider = new AgentX.Core.AI.Providers.OpenAiProvider(
+                OpenAiApiKey, OpenAiEndpoint, Log.Logger);
+            var connected = await tempProvider.CheckConnectionAsync();
+            OpenAiConnectionStatus = connected ? "Connected" : "Authentication failed";
+        }
+        catch (Exception ex)
+        {
+            OpenAiConnectionStatus = $"Error: {ex.Message}";
+            Log.Warning(ex, "OpenAI connection test failed");
+        }
+    }
+
+    [RelayCommand]
+    private async Task TestAnthropicConnectionAsync()
+    {
+        if (string.IsNullOrWhiteSpace(AnthropicApiKey))
+        {
+            AnthropicConnectionStatus = "API key required";
+            return;
+        }
+
+        AnthropicConnectionStatus = "Testing...";
+        try
+        {
+            using var tempProvider = new AgentX.Core.AI.Providers.AnthropicProvider(
+                AnthropicApiKey, AnthropicEndpoint, Log.Logger);
+            var connected = await tempProvider.CheckConnectionAsync();
+            AnthropicConnectionStatus = connected ? "Connected" : "Authentication failed";
+        }
+        catch (Exception ex)
+        {
+            AnthropicConnectionStatus = $"Error: {ex.Message}";
+            Log.Warning(ex, "Anthropic connection test failed");
+        }
     }
 
     [RelayCommand]
@@ -154,22 +316,87 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private async Task ResetToDefaultsAsync()
     {
+        // Provider defaults
+        ActiveProviderIndex = 0; // Ollama
+        ActiveProviderId = "ollama";
+
+        // Ollama
         OllamaEndpoint = "http://localhost:11434";
         DefaultModel = "llama3.2";
         EmbeddingModel = "all-minilm";
+
+        // OpenAI — clear key, keep default endpoint/model
+        OpenAiApiKey = string.Empty;
+        OpenAiEndpoint = "https://api.openai.com/v1/";
+        OpenAiDefaultModel = "gpt-4o-mini";
+
+        // Anthropic — clear key, keep default endpoint/model
+        AnthropicApiKey = string.Empty;
+        AnthropicEndpoint = "https://api.anthropic.com/v1/";
+        AnthropicDefaultModel = "claude-sonnet-4-20250514";
+
+        // Inference
         Temperature = 0.7;
         MaxTokens = 4096;
         ContextWindow = 8192;
+
+        // Indexing
         ChunkSize = 512;
         ChunkOverlap = 50;
         TopKResults = 5;
         AutoIndexWatchFolders = true;
+
+        // Clear connection statuses
+        OllamaConnectionStatus = string.Empty;
+        OpenAiConnectionStatus = string.Empty;
+        AnthropicConnectionStatus = string.Empty;
 
         await SaveSettingsAsync();
         Log.Information("Settings reset to defaults");
     }
 
     // ── Private Helpers ─────────────────────────────────────
+
+    /// <summary>
+    /// Refreshes the cost display properties from the cost tracker.
+    /// </summary>
+    private void RefreshCostDisplay()
+    {
+        try
+        {
+            TotalCostDisplay = $"${_costTracker.GetTotalCostUsd():F4}";
+            var todayStart = DateTime.UtcNow.Date;
+            TodayCostDisplay = $"${_costTracker.GetCostForPeriod(todayStart, DateTime.UtcNow):F4}";
+            var totalTokens = _costTracker.GetTotalInputTokens() + _costTracker.GetTotalOutputTokens();
+            TotalTokensDisplay = totalTokens.ToString("N0");
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to refresh cost display");
+        }
+    }
+
+    /// <summary>
+    /// Maps a provider ComboBox index to the provider ID string.
+    /// </summary>
+    private static string ProviderIndexToId(int index) => index switch
+    {
+        0 => "ollama",
+        1 => "openai",
+        2 => "anthropic",
+        _ => "ollama"
+    };
+
+    /// <summary>
+    /// Maps a provider ID string to the ComboBox index.
+    /// </summary>
+    private static int ProviderIdToIndex(string providerId) => providerId?.ToLowerInvariant() switch
+    {
+        "ollama" => 0,
+        "openai" => 1,
+        "anthropic" => 2,
+        _ => 0
+    };
 
     private async Task LoadLicenseInfoAsync()
     {

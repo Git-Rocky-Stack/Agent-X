@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using AgentX.App.ViewModels;
+using AgentX.Core.Search.Models;
 using Serilog;
 using Windows.System;
 using Windows.UI;
@@ -116,6 +117,29 @@ public sealed partial class SearchPage : Page
         if (ViewModel.FilterByFileTypeCommand.CanExecute(filterValue))
         {
             ViewModel.FilterByFileTypeCommand.Execute(filterValue);
+        }
+    }
+
+    // =================================================================
+    // SEARCH MODE TOGGLE
+    // =================================================================
+
+    /// <summary>
+    /// Handles the search mode RadioButton toggle. Parses the Tag string
+    /// to a <see cref="SearchMode"/> enum value and updates the ViewModel.
+    /// </summary>
+    private void OnSearchModeChanged(object sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton rb && rb.Tag is string modeStr)
+        {
+            ViewModel.SearchMode = modeStr switch
+            {
+                "Keyword" => SearchMode.Keyword,
+                "Hybrid" => SearchMode.Hybrid,
+                _ => SearchMode.Semantic
+            };
+
+            Log.Debug("Search mode changed to {Mode}", ViewModel.SearchMode);
         }
     }
 

@@ -208,7 +208,7 @@
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
                                         <TextBlock Text="Unlimited &amp; Free"
                                                    Style="{StaticResource HeadingSmallStyle}" />
-                                        <TextBlock Text="No API costs, no usage limits, no subscriptions. Powered by open-source AI models."
+                                        <TextBlock Text="Powered by local open-source AI models via Ollama. Optionally connect to OpenAI or Anthropic Claude for cloud-based models."
                                                    Style="{StaticResource BodySecondaryStyle}" />
                                     </StackPanel>
                                 </Grid>
@@ -233,7 +233,7 @@
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
                                         <TextBlock Text="Your Data, Your Rules"
                                                    Style="{StaticResource HeadingSmallStyle}" />
-                                        <TextBlock Text="Index your documents, search semantically, and chat with your files using local AI."
+                                        <TextBlock Text="Index your documents, search semantically, and chat with your files. Use local AI for full privacy, or optional cloud providers for additional model choices."
                                                    Style="{StaticResource BodySecondaryStyle}" />
                                     </StackPanel>
                                 </Grid>
@@ -254,7 +254,7 @@
                                        Style="{StaticResource DisplayMediumStyle}"
                                        HorizontalAlignment="Center"
                                        TextAlignment="Center" />
-                            <TextBlock Text="Agent-X uses Ollama to run AI models locally on your machine. Ollama is a free, open-source tool that manages and serves AI models."
+                            <TextBlock Text="Agent-X uses Ollama to run AI models locally on your machine. Ollama is a free, open-source tool that manages and serves AI models. You can also configure OpenAI or Anthropic providers later in Settings."
                                        Style="{StaticResource BodySecondaryStyle}"
                                        HorizontalAlignment="Center"
                                        TextAlignment="Center"
@@ -664,7 +664,7 @@
                                        Style="{StaticResource DisplayLargeStyle}"
                                        HorizontalAlignment="Center"
                                        TextAlignment="Center" />
-                            <TextBlock Text="Agent-X is configured and ready to use."
+                            <TextBlock Text="Agent-X is configured and ready to use. You can add OpenAI or Anthropic cloud providers anytime from Settings."
                                        Style="{StaticResource HeadingMediumStyle}"
                                        Foreground="{StaticResource TextSecondaryBrush}"
                                        HorizontalAlignment="Center"
