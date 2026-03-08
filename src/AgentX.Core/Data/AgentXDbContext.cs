@@ -22,6 +22,15 @@ public class AgentXDbContext : DbContext
     public DbSet<LicenseEntity> Licenses => Set<LicenseEntity>();
     public DbSet<MemoryEntity> Memories => Set<MemoryEntity>();
     public DbSet<DigestReportEntity> DigestReports => Set<DigestReportEntity>();
+    public DbSet<WorkflowEntity> Workflows => Set<WorkflowEntity>();
+    public DbSet<WorkflowStepEntity> WorkflowSteps => Set<WorkflowStepEntity>();
+    public DbSet<WorkflowRunEntity> WorkflowRuns => Set<WorkflowRunEntity>();
+    public DbSet<AnnotationEntity> Annotations => Set<AnnotationEntity>();
+    public DbSet<BackupEntity> Backups => Set<BackupEntity>();
+    public DbSet<InboxItemEntity> InboxItems => Set<InboxItemEntity>();
+    public DbSet<WorkspaceProfileEntity> WorkspaceProfiles => Set<WorkspaceProfileEntity>();
+    public DbSet<SyncLogEntity> SyncLogs => Set<SyncLogEntity>();
+    public DbSet<PluginEntity> Plugins => Set<PluginEntity>();
 
     private readonly string _dbPath;
 
@@ -70,6 +79,15 @@ public class AgentXDbContext : DbContext
         ConfigureLicense(modelBuilder);
         ConfigureMemory(modelBuilder);
         ConfigureDigestReport(modelBuilder);
+        ConfigureWorkflow(modelBuilder);
+        ConfigureWorkflowStep(modelBuilder);
+        ConfigureWorkflowRun(modelBuilder);
+        ConfigureAnnotation(modelBuilder);
+        ConfigureBackup(modelBuilder);
+        ConfigureInboxItem(modelBuilder);
+        ConfigureWorkspaceProfile(modelBuilder);
+        ConfigureSyncLog(modelBuilder);
+        ConfigurePlugin(modelBuilder);
     }
 
     private static void ConfigureConversation(ModelBuilder modelBuilder)
@@ -84,10 +102,19 @@ public class AgentXDbContext : DbContext
             entity.Property(e => e.CreatedAt).IsRequired();
             entity.Property(e => e.UpdatedAt).IsRequired();
 
+            // Self-referencing relationship: Conversation can have a parent and child branches
+            entity.HasOne(e => e.ParentConversation)
+                .WithMany(e => e.Branches)
+                .HasForeignKey(e => e.ParentConversationId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
             // Indexes
             entity.HasIndex(e => e.CreatedAt);
             entity.HasIndex(e => e.UpdatedAt);
             entity.HasIndex(e => e.IsPinned);
+            entity.HasIndex(e => e.ParentConversationId);
+            entity.HasIndex(e => e.BranchPointMessageId);
         });
     }
 
@@ -388,6 +415,232 @@ public class AgentXDbContext : DbContext
             entity.HasIndex(m => m.Category);
             entity.HasIndex(m => m.IsActive);
             entity.HasIndex(m => m.Importance);
+        });
+    }
+
+    private static void ConfigureWorkflow(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<WorkflowEntity>(entity =>
+        {
+            entity.ToTable("workflows");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Name).IsRequired();
+            entity.Property(e => e.Category).IsRequired().HasDefaultValue("Custom");
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired();
+
+            // Indexes
+            entity.HasIndex(e => e.Category);
+            entity.HasIndex(e => e.IsBuiltIn);
+            entity.HasIndex(e => e.IsEnabled);
+        });
+    }
+
+    private static void ConfigureWorkflowStep(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<WorkflowStepEntity>(entity =>
+        {
+            entity.ToTable("workflow_steps");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.WorkflowId).IsRequired();
+            entity.Property(e => e.Name).IsRequired();
+            entity.Property(e => e.StepType).IsRequired().HasDefaultValue("AiPrompt");
+            entity.Property(e => e.PromptTemplate).IsRequired();
+
+            // Relationship: Step belongs to Workflow
+            entity.HasOne(e => e.Workflow)
+                .WithMany(w => w.Steps)
+                .HasForeignKey(e => e.WorkflowId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Indexes
+            entity.HasIndex(e => new { e.WorkflowId, e.StepOrder });
+        });
+    }
+
+    private static void ConfigureWorkflowRun(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<WorkflowRunEntity>(entity =>
+        {
+            entity.ToTable("workflow_runs");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.WorkflowId).IsRequired();
+            entity.Property(e => e.Status).IsRequired().HasDefaultValue("pending");
+            entity.Property(e => e.StartedAt).IsRequired();
+
+            // Relationship: Run belongs to Workflow
+            entity.HasOne(e => e.Workflow)
+                .WithMany(w => w.Runs)
+                .HasForeignKey(e => e.WorkflowId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Indexes
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.StartedAt);
+            entity.HasIndex(e => e.WorkflowId);
+        });
+    }
+
+    private static void ConfigureAnnotation(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<AnnotationEntity>(entity =>
+        {
+            entity.ToTable("annotations");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.DocumentId).IsRequired();
+            entity.Property(e => e.StartOffset).IsRequired();
+            entity.Property(e => e.EndOffset).IsRequired();
+            entity.Property(e => e.HighlightedText).IsRequired();
+            entity.Property(e => e.Color).IsRequired().HasDefaultValue("yellow");
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired();
+
+            // Relationship: Annotation belongs to Document (cascade delete)
+            entity.HasOne(e => e.Document)
+                .WithMany()
+                .HasForeignKey(e => e.DocumentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Indexes
+            entity.HasIndex(e => e.DocumentId);
+            entity.HasIndex(e => e.ChunkId);
+            entity.HasIndex(e => e.Color);
+            entity.HasIndex(e => e.CreatedAt);
+        });
+    }
+
+    private static void ConfigureBackup(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<BackupEntity>(entity =>
+        {
+            entity.ToTable("backups");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.FileName).IsRequired();
+            entity.Property(e => e.FilePath).IsRequired();
+            entity.Property(e => e.BackupType).IsRequired().HasDefaultValue("manual");
+            entity.Property(e => e.SizeMB).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.IsValid).IsRequired().HasDefaultValue(true);
+
+            // Indexes
+            entity.HasIndex(e => e.CreatedAt);
+            entity.HasIndex(e => e.BackupType);
+            entity.HasIndex(e => e.IsValid);
+        });
+    }
+
+    private static void ConfigureInboxItem(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<InboxItemEntity>(entity =>
+        {
+            entity.ToTable("inbox_items");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.FilePath).IsRequired();
+            entity.Property(e => e.FileName).IsRequired();
+            entity.Property(e => e.FileType).IsRequired();
+            entity.Property(e => e.FileSizeBytes).IsRequired();
+            entity.Property(e => e.Status).IsRequired().HasDefaultValue("pending");
+            entity.Property(e => e.AddedAt).IsRequired();
+
+            // Nullable columns — no IsRequired() call needed; EF infers nullable from the CLR type.
+            entity.Property(e => e.Preview);
+            entity.Property(e => e.SuggestedCollectionId);
+            entity.Property(e => e.SuggestedCollectionName);
+            entity.Property(e => e.SuggestedTags);
+            entity.Property(e => e.ProcessedAt);
+            entity.Property(e => e.WatchFolderId);
+
+            // Indexes to support the most common query patterns:
+            //   - GetPendingItemsAsync / GetPendingCountAsync filter on Status
+            //   - GetAllItemsAsync orders by AddedAt
+            //   - Lookup by source watch folder
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.AddedAt);
+            entity.HasIndex(e => e.WatchFolderId);
+        });
+    }
+
+    private static void ConfigureSyncLog(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<SyncLogEntity>(entity =>
+        {
+            entity.ToTable("sync_logs");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.SyncedAt).IsRequired();
+            entity.Property(e => e.Direction).IsRequired();
+            entity.Property(e => e.ChangesApplied).IsRequired();
+            entity.Property(e => e.ConflictsDetected).IsRequired();
+            entity.Property(e => e.ConflictsResolved).IsRequired();
+            entity.Property(e => e.DurationMs).IsRequired();
+            entity.Property(e => e.IsSuccess).IsRequired();
+            entity.Property(e => e.ErrorMessage);
+
+            // Indexes to support history queries (newest first) and failure filtering
+            entity.HasIndex(e => e.SyncedAt);
+            entity.HasIndex(e => e.Direction);
+            entity.HasIndex(e => e.IsSuccess);
+        });
+    }
+
+    private static void ConfigurePlugin(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<PluginEntity>(entity =>
+        {
+            entity.ToTable("plugins");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.PluginId).IsRequired();
+            entity.Property(e => e.Name).IsRequired();
+            entity.Property(e => e.Version).IsRequired();
+            entity.Property(e => e.Author).IsRequired();
+            entity.Property(e => e.Description).IsRequired();
+            entity.Property(e => e.PluginType).IsRequired().HasDefaultValue("Custom");
+            entity.Property(e => e.InstallPath).IsRequired();
+            entity.Property(e => e.IsEnabled).IsRequired().HasDefaultValue(false);
+            entity.Property(e => e.InstalledAt).IsRequired();
+            entity.Property(e => e.LastActivatedAt);
+            entity.Property(e => e.SettingsJson);
+
+            // PluginId must be unique — one row per installed plugin identity.
+            entity.HasIndex(e => e.PluginId).IsUnique();
+
+            // Common query patterns: list by name, filter by type, filter by enabled state.
+            entity.HasIndex(e => e.Name);
+            entity.HasIndex(e => e.PluginType);
+            entity.HasIndex(e => e.IsEnabled);
+            entity.HasIndex(e => e.InstalledAt);
+        });
+    }
+
+    private static void ConfigureWorkspaceProfile(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<WorkspaceProfileEntity>(entity =>
+        {
+            entity.ToTable("workspace_profiles");
+            entity.HasKey(e => e.Id);
+
+            // Name is required; all other content columns are optional.
+            entity.Property(e => e.Name).IsRequired();
+            entity.Property(e => e.Description);
+            entity.Property(e => e.ActiveModelId);
+            entity.Property(e => e.ActiveCollectionIds);
+            entity.Property(e => e.CustomSettings);
+            entity.Property(e => e.IsDefault).IsRequired().HasDefaultValue(false);
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired();
+
+            // Indexes:
+            //   - GetDefaultProfileAsync filters on IsDefault
+            //   - GetAllProfilesAsync orders by CreatedAt
+            entity.HasIndex(e => e.IsDefault);
+            entity.HasIndex(e => e.CreatedAt);
         });
     }
 }

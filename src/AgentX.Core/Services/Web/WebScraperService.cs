@@ -1,0 +1,1241 @@
+using System.Net;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Web;
+using System.Xml.Linq;
+using AgentX.Core.Services.Web.Models;
+using HtmlAgilityPack;
+using Serilog;
+
+namespace AgentX.Core.Services.Web;
+
+/// <summary>
+/// Extracts article content from web pages using HtmlAgilityPack and a text-density-based
+/// readability algorithm. Supports general HTML pages and YouTube transcript extraction.
+/// <para>
+/// The readability algorithm works as follows:
+/// <list type="number">
+///   <item>Remove non-content elements (script, style, nav, header, footer, aside, form, etc.)</item>
+///   <item>Look for an <c>&lt;article&gt;</c> element first.</item>
+///   <item>If none found, score all <c>&lt;div&gt;</c> and <c>&lt;section&gt;</c> elements by text density
+///         (ratio of text length to total descendant count plus link density penalty).</item>
+///   <item>Select the highest-scoring container as the main content.</item>
+///   <item>Extract and clean the text from the selected container.</item>
+/// </list>
+/// </para>
+/// </summary>
+public class WebScraperService : IWebScraperService
+{
+    private readonly ILogger _log;
+
+    /// <summary>
+    /// A long-lived, shared HttpClient instance configured with appropriate defaults
+    /// for web scraping: a realistic User-Agent header, 15-second timeout, and
+    /// automatic redirect following.
+    /// </summary>
+    private static readonly HttpClient SharedHttpClient;
+
+    /// <summary>
+    /// Default timeout for HTTP requests.
+    /// </summary>
+    private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(15);
+
+    /// <summary>
+    /// Delay between batch requests to be polite to servers.
+    /// </summary>
+    private static readonly TimeSpan BatchRequestDelay = TimeSpan.FromMilliseconds(500);
+
+    /// <summary>
+    /// HTML element names that are removed during content extraction because they
+    /// contain non-article content (navigation, scripts, ads, etc.).
+    /// </summary>
+    private static readonly HashSet<string> ElementsToRemove = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "script", "style", "noscript", "iframe", "nav", "header", "footer",
+        "aside", "form", "button", "select", "textarea", "input",
+        "svg", "canvas", "video", "audio", "figure", "figcaption",
+        "menu", "menuitem", "dialog"
+    };
+
+    /// <summary>
+    /// CSS class and ID name fragments that typically indicate non-article content.
+    /// Used as a negative signal when scoring content containers.
+    /// </summary>
+    private static readonly string[] NegativeClassPatterns =
+    {
+        "comment", "comments", "sidebar", "side-bar", "widget", "footer",
+        "header", "nav", "navigation", "menu", "ad", "advertisement",
+        "social", "share", "sharing", "related", "recommended", "promo",
+        "popup", "modal", "banner", "cookie", "consent", "newsletter",
+        "subscribe", "signup", "sign-up", "pagination", "breadcrumb"
+    };
+
+    /// <summary>
+    /// CSS class and ID name fragments that typically indicate article content.
+    /// Used as a positive signal when scoring content containers.
+    /// </summary>
+    private static readonly string[] PositiveClassPatterns =
+    {
+        "article", "content", "entry", "post", "text", "body",
+        "story", "main", "page", "blog", "single", "hentry",
+        "prose", "markdown-body", "rich-text"
+    };
+
+    /// <summary>
+    /// Regex to match YouTube video URLs and extract the video ID.
+    /// Supports youtube.com/watch?v=, youtu.be/, youtube.com/embed/, and youtube.com/shorts/.
+    /// </summary>
+    private static readonly Regex YouTubeUrlRegex = new(
+        @"(?:https?://)?(?:www\.)?(?:youtube\.com/(?:watch\?.*?v=|embed/|shorts/)|youtu\.be/)(?<id>[\w-]{11})",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    /// <summary>
+    /// Regex to normalize runs of whitespace within a single line to a single space.
+    /// </summary>
+    private static readonly Regex WhitespaceNormalizer = new(
+        @"[^\S\n]+",
+        RegexOptions.Compiled);
+
+    /// <summary>
+    /// Regex to collapse three or more consecutive newlines into exactly two.
+    /// </summary>
+    private static readonly Regex ExcessiveNewlines = new(
+        @"\n{3,}",
+        RegexOptions.Compiled);
+
+    static WebScraperService()
+    {
+        var handler = new HttpClientHandler
+        {
+            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
+            AllowAutoRedirect = true,
+            MaxAutomaticRedirections = 5,
+        };
+
+        SharedHttpClient = new HttpClient(handler)
+        {
+            Timeout = DefaultTimeout,
+        };
+
+        // Use a realistic browser User-Agent to avoid being blocked by sites that
+        // reject requests from non-browser clients.
+        SharedHttpClient.DefaultRequestHeaders.UserAgent.ParseAdd(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+
+        SharedHttpClient.DefaultRequestHeaders.Accept.ParseAdd(
+            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+
+        SharedHttpClient.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en-US,en;q=0.9");
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="WebScraperService"/>.
+    /// </summary>
+    /// <param name="logger">The Serilog logger instance for structured logging.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="logger"/> is null.</exception>
+    public WebScraperService(ILogger logger)
+    {
+        _log = logger?.ForContext<WebScraperService>()
+               ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    // ─── IWebScraperService Implementation ──────────────────────────────────
+
+    /// <inheritdoc />
+    public async Task<WebContent> ExtractContentAsync(string url, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            return CreateFailureResult(url, "URL must not be empty.");
+        }
+
+        if (!IsValidUrl(url))
+        {
+            return CreateFailureResult(url, $"Invalid URL: '{url}'. Only HTTP and HTTPS URLs are supported.");
+        }
+
+        // Route YouTube URLs to the dedicated transcript extractor
+        if (IsYouTubeUrl(url))
+        {
+            return await ExtractYouTubeTranscriptAsync(url, ct);
+        }
+
+        _log.Debug("Extracting web content from: {Url}", url);
+
+        try
+        {
+            // 1. Fetch the HTML
+            var html = await FetchHtmlAsync(url, ct);
+
+            if (string.IsNullOrWhiteSpace(html))
+            {
+                return CreateFailureResult(url, "The page returned empty content.");
+            }
+
+            // 2. Parse with HtmlAgilityPack
+            var htmlDoc = new HtmlDocument();
+            htmlDoc.LoadHtml(html);
+
+            // 3. Extract metadata from <head>
+            var metadata = ExtractMetadata(htmlDoc, url);
+
+            // 4. Extract article content using readability algorithm
+            var articleText = ExtractArticleContent(htmlDoc);
+
+            if (string.IsNullOrWhiteSpace(articleText))
+            {
+                _log.Warning("No article content extracted from: {Url}", url);
+                return CreateFailureResult(url, "Could not extract meaningful article content from the page.");
+            }
+
+            // 5. Clean the extracted text
+            var cleanedText = CleanText(articleText);
+            var wordCount = CountWords(cleanedText);
+
+            var result = new WebContent
+            {
+                Url = url,
+                Title = metadata.Title,
+                Content = cleanedText,
+                Author = metadata.Author,
+                PublishDate = metadata.PublishDate,
+                SiteName = metadata.SiteName,
+                Description = metadata.Description,
+                FeaturedImageUrl = metadata.FeaturedImageUrl,
+                Language = metadata.Language,
+                WordCount = wordCount,
+                Success = true,
+            };
+
+            _log.Information(
+                "Successfully extracted content from {Url}: '{Title}' ({WordCount} words)",
+                url, result.Title, result.WordCount);
+
+            return result;
+        }
+        catch (TaskCanceledException ex) when (!ct.IsCancellationRequested)
+        {
+            // TaskCanceledException with a non-cancelled token indicates an HTTP timeout
+            _log.Warning(ex, "Request timed out for {Url}", url);
+            return CreateFailureResult(url, "The request timed out after 15 seconds.");
+        }
+        catch (OperationCanceledException)
+        {
+            // Genuine cancellation requested by the caller
+            throw;
+        }
+        catch (HttpRequestException ex)
+        {
+            _log.Error(ex, "HTTP error while fetching {Url}", url);
+            return CreateFailureResult(url, $"Network error: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Unexpected error extracting content from {Url}", url);
+            return CreateFailureResult(url, $"Extraction failed: {ex.Message}");
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<WebContent> ExtractYouTubeTranscriptAsync(string youtubeUrl, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(youtubeUrl))
+        {
+            return CreateFailureResult(youtubeUrl, "YouTube URL must not be empty.");
+        }
+
+        var videoId = ExtractYouTubeVideoId(youtubeUrl);
+        if (string.IsNullOrEmpty(videoId))
+        {
+            return CreateFailureResult(youtubeUrl, "Could not extract a valid video ID from the URL.");
+        }
+
+        _log.Debug("Extracting YouTube transcript for video ID: {VideoId}", videoId);
+
+        try
+        {
+            // Step 1: Fetch the YouTube watch page to find available captions
+            var watchPageUrl = $"https://www.youtube.com/watch?v={videoId}";
+            var watchPageHtml = await FetchHtmlAsync(watchPageUrl, ct);
+
+            if (string.IsNullOrWhiteSpace(watchPageHtml))
+            {
+                return CreateFailureResult(youtubeUrl, "Failed to load the YouTube video page.");
+            }
+
+            // Extract video title from the watch page
+            var htmlDoc = new HtmlDocument();
+            htmlDoc.LoadHtml(watchPageHtml);
+            var metadata = ExtractMetadata(htmlDoc, watchPageUrl);
+
+            // Step 2: Extract the captions URL from the page source
+            // YouTube embeds caption track info in a JSON structure within the page
+            var captionsUrl = ExtractCaptionsUrlFromPage(watchPageHtml, videoId);
+
+            if (string.IsNullOrEmpty(captionsUrl))
+            {
+                _log.Warning("No transcript/captions available for YouTube video: {VideoId}", videoId);
+                return new WebContent
+                {
+                    Url = youtubeUrl,
+                    Title = metadata.Title,
+                    Description = metadata.Description,
+                    SiteName = "YouTube",
+                    FeaturedImageUrl = $"https://img.youtube.com/vi/{videoId}/maxresdefault.jpg",
+                    Language = metadata.Language,
+                    Success = false,
+                    ErrorMessage = "No transcript or captions are available for this video.",
+                };
+            }
+
+            // Step 3: Fetch the transcript XML
+            var transcriptXml = await FetchHtmlAsync(captionsUrl, ct);
+
+            if (string.IsNullOrWhiteSpace(transcriptXml))
+            {
+                return CreateFailureResult(youtubeUrl, "Failed to fetch the transcript data.");
+            }
+
+            // Step 4: Parse the XML transcript into clean text
+            var transcriptText = ParseYouTubeTranscriptXml(transcriptXml);
+
+            if (string.IsNullOrWhiteSpace(transcriptText))
+            {
+                return CreateFailureResult(youtubeUrl, "The transcript was empty or could not be parsed.");
+            }
+
+            var wordCount = CountWords(transcriptText);
+
+            var result = new WebContent
+            {
+                Url = youtubeUrl,
+                Title = metadata.Title,
+                Content = transcriptText,
+                Author = metadata.Author,
+                PublishDate = metadata.PublishDate,
+                SiteName = "YouTube",
+                Description = metadata.Description,
+                FeaturedImageUrl = $"https://img.youtube.com/vi/{videoId}/maxresdefault.jpg",
+                Language = metadata.Language,
+                WordCount = wordCount,
+                Success = true,
+            };
+
+            _log.Information(
+                "Successfully extracted YouTube transcript for {VideoId}: '{Title}' ({WordCount} words)",
+                videoId, result.Title, result.WordCount);
+
+            return result;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to extract YouTube transcript for: {Url}", youtubeUrl);
+            return CreateFailureResult(youtubeUrl, $"YouTube transcript extraction failed: {ex.Message}");
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<WebContent>> ExtractBatchAsync(
+        IReadOnlyList<string> urls,
+        IProgress<int>? progress = null,
+        CancellationToken ct = default)
+    {
+        if (urls is null || urls.Count == 0)
+        {
+            return Array.Empty<WebContent>();
+        }
+
+        _log.Information("Starting batch extraction of {Count} URLs", urls.Count);
+
+        var results = new List<WebContent>(urls.Count);
+        var completed = 0;
+
+        foreach (var url in urls)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            try
+            {
+                var result = await ExtractContentAsync(url, ct);
+                results.Add(result);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _log.Warning(ex, "Batch extraction failed for URL: {Url}", url);
+                results.Add(CreateFailureResult(url, $"Extraction failed: {ex.Message}"));
+            }
+
+            completed++;
+            progress?.Report(completed);
+
+            // Politeness delay between requests (skip after the last one)
+            if (completed < urls.Count)
+            {
+                await Task.Delay(BatchRequestDelay, ct);
+            }
+        }
+
+        var successCount = results.Count(r => r.Success);
+        _log.Information(
+            "Batch extraction completed: {Success}/{Total} URLs succeeded",
+            successCount, urls.Count);
+
+        return results.AsReadOnly();
+    }
+
+    /// <inheritdoc />
+    public bool IsYouTubeUrl(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return false;
+
+        return YouTubeUrlRegex.IsMatch(url);
+    }
+
+    /// <inheritdoc />
+    public bool IsValidUrl(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return false;
+
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            return false;
+
+        // Only allow HTTP and HTTPS schemes
+        return uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps;
+    }
+
+    // ─── HTTP Fetching ──────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Fetches the raw HTML content from the specified URL using the shared HttpClient.
+    /// </summary>
+    /// <param name="url">The URL to fetch.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>The HTML string, or null if the request fails.</returns>
+    private async Task<string> FetchHtmlAsync(string url, CancellationToken ct)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // Some sites return different content based on Accept header
+        request.Headers.Accept.ParseAdd("text/html,application/xhtml+xml");
+
+        using var response = await SharedHttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
+        response.EnsureSuccessStatusCode();
+
+        // Read content with a size limit to prevent out-of-memory on extremely large pages
+        const int maxContentLength = 10 * 1024 * 1024; // 10 MB
+        var contentLength = response.Content.Headers.ContentLength;
+
+        if (contentLength.HasValue && contentLength.Value > maxContentLength)
+        {
+            throw new InvalidOperationException(
+                $"Page content too large ({contentLength.Value / 1024 / 1024:F1} MB). Maximum is 10 MB.");
+        }
+
+        return await response.Content.ReadAsStringAsync(ct);
+    }
+
+    // ─── Metadata Extraction ────────────────────────────────────────────────
+
+    /// <summary>
+    /// Extracts page metadata (title, author, publish date, site name, description,
+    /// featured image, language) from the HTML document's &lt;head&gt; section.
+    /// Checks multiple meta tag conventions: Open Graph, Twitter Card, standard HTML meta tags.
+    /// </summary>
+    private PageMetadata ExtractMetadata(HtmlDocument htmlDoc, string url)
+    {
+        var metadata = new PageMetadata();
+
+        try
+        {
+            var head = htmlDoc.DocumentNode;
+
+            // Title: og:title > twitter:title > <title>
+            metadata.Title = GetMetaContent(head, "og:title")
+                             ?? GetMetaContent(head, "twitter:title")
+                             ?? head.SelectSingleNode("//title")?.InnerText?.Trim()
+                             ?? string.Empty;
+
+            // Decode HTML entities in the title
+            metadata.Title = WebUtility.HtmlDecode(metadata.Title);
+
+            // Author: author meta > article:author > dc.creator
+            metadata.Author = GetMetaContent(head, "author")
+                               ?? GetMetaContent(head, "article:author")
+                               ?? GetMetaContent(head, "dc.creator")
+                               ?? GetMetaContent(head, "byl");
+
+            if (!string.IsNullOrEmpty(metadata.Author))
+            {
+                metadata.Author = WebUtility.HtmlDecode(metadata.Author);
+            }
+
+            // Publish date: article:published_time > date > datePublished > dc.date
+            var dateString = GetMetaContent(head, "article:published_time")
+                             ?? GetMetaContent(head, "date")
+                             ?? GetMetaContent(head, "datePublished")
+                             ?? GetMetaContent(head, "dc.date")
+                             ?? GetMetaContent(head, "article:modified_time");
+
+            if (!string.IsNullOrEmpty(dateString) && DateTime.TryParse(dateString, out var parsedDate))
+            {
+                metadata.PublishDate = parsedDate.ToUniversalTime();
+            }
+
+            // Site name: og:site_name > application-name
+            metadata.SiteName = GetMetaContent(head, "og:site_name")
+                                ?? GetMetaContent(head, "application-name");
+
+            if (!string.IsNullOrEmpty(metadata.SiteName))
+            {
+                metadata.SiteName = WebUtility.HtmlDecode(metadata.SiteName);
+            }
+
+            // If site name is still empty, derive from the URL host
+            if (string.IsNullOrEmpty(metadata.SiteName) && Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            {
+                metadata.SiteName = uri.Host.Replace("www.", "", StringComparison.OrdinalIgnoreCase);
+            }
+
+            // Description: og:description > twitter:description > description
+            metadata.Description = GetMetaContent(head, "og:description")
+                                   ?? GetMetaContent(head, "twitter:description")
+                                   ?? GetMetaContent(head, "description");
+
+            if (!string.IsNullOrEmpty(metadata.Description))
+            {
+                metadata.Description = WebUtility.HtmlDecode(metadata.Description);
+            }
+
+            // Featured image: og:image > twitter:image
+            metadata.FeaturedImageUrl = GetMetaContent(head, "og:image")
+                                        ?? GetMetaContent(head, "twitter:image");
+
+            // Language: html lang attribute > content-language meta
+            var htmlNode = htmlDoc.DocumentNode.SelectSingleNode("//html");
+            metadata.Language = htmlNode?.GetAttributeValue("lang", null)
+                                ?? GetMetaHttpEquiv(head, "content-language");
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Error extracting metadata from {Url}", url);
+        }
+
+        return metadata;
+    }
+
+    /// <summary>
+    /// Retrieves the "content" attribute value from a meta tag matched by name or property.
+    /// Searches both <c>name</c> and <c>property</c> attributes to cover standard HTML meta
+    /// tags, Open Graph tags, and Twitter Card tags.
+    /// </summary>
+    /// <param name="root">The root node to search within.</param>
+    /// <param name="nameOrProperty">The meta tag name or property value to look for.</param>
+    /// <returns>The content value, or null if not found.</returns>
+    private static string? GetMetaContent(HtmlNode root, string nameOrProperty)
+    {
+        // Search by property attribute (Open Graph, etc.)
+        var node = root.SelectSingleNode(
+            $"//meta[@property='{nameOrProperty}']");
+
+        if (node is not null)
+        {
+            var content = node.GetAttributeValue("content", null);
+            if (!string.IsNullOrWhiteSpace(content))
+                return content.Trim();
+        }
+
+        // Search by name attribute (standard HTML meta tags)
+        node = root.SelectSingleNode(
+            $"//meta[@name='{nameOrProperty}']");
+
+        if (node is not null)
+        {
+            var content = node.GetAttributeValue("content", null);
+            if (!string.IsNullOrWhiteSpace(content))
+                return content.Trim();
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Retrieves the "content" attribute value from a meta tag matched by http-equiv.
+    /// </summary>
+    private static string? GetMetaHttpEquiv(HtmlNode root, string httpEquiv)
+    {
+        var node = root.SelectSingleNode(
+            $"//meta[@http-equiv='{httpEquiv}']");
+
+        if (node is not null)
+        {
+            var content = node.GetAttributeValue("content", null);
+            if (!string.IsNullOrWhiteSpace(content))
+                return content.Trim();
+        }
+
+        return null;
+    }
+
+    // ─── Readability / Content Extraction ───────────────────────────────────
+
+    /// <summary>
+    /// Extracts the main article content from an HTML document using a multi-step
+    /// readability algorithm:
+    /// <list type="number">
+    ///   <item>Remove all non-content elements (scripts, styles, nav, etc.).</item>
+    ///   <item>Try to find an <c>&lt;article&gt;</c> element.</item>
+    ///   <item>If no article, score all block-level containers by text density.</item>
+    ///   <item>Extract text from the highest-scoring container.</item>
+    /// </list>
+    /// </summary>
+    private string ExtractArticleContent(HtmlDocument htmlDoc)
+    {
+        var body = htmlDoc.DocumentNode.SelectSingleNode("//body");
+        if (body is null)
+        {
+            // Fallback: use the entire document
+            body = htmlDoc.DocumentNode;
+        }
+
+        // Step 1: Remove non-content elements
+        RemoveNonContentElements(body);
+
+        // Step 2: Try to find <article> element
+        var articleNode = body.SelectSingleNode(".//article");
+        if (articleNode is not null)
+        {
+            var articleText = ExtractTextFromNode(articleNode);
+            if (!string.IsNullOrWhiteSpace(articleText) && CountWords(articleText) >= 20)
+            {
+                _log.Debug("Extracted content from <article> element");
+                return articleText;
+            }
+        }
+
+        // Step 3: Try elements with role="main" or id/class containing "content"/"article"
+        var mainNode = body.SelectSingleNode(".//*[@role='main']")
+                       ?? body.SelectSingleNode(".//*[@id='content']")
+                       ?? body.SelectSingleNode(".//*[@id='main-content']")
+                       ?? body.SelectSingleNode(".//*[@id='article-body']");
+
+        if (mainNode is not null)
+        {
+            var mainText = ExtractTextFromNode(mainNode);
+            if (!string.IsNullOrWhiteSpace(mainText) && CountWords(mainText) >= 20)
+            {
+                _log.Debug("Extracted content from semantic main element");
+                return mainText;
+            }
+        }
+
+        // Step 4: Score all block-level containers by text density
+        var bestNode = FindBestContentNode(body);
+        if (bestNode is not null)
+        {
+            var bestText = ExtractTextFromNode(bestNode);
+            if (!string.IsNullOrWhiteSpace(bestText) && CountWords(bestText) >= 20)
+            {
+                _log.Debug("Extracted content from highest-scoring container");
+                return bestText;
+            }
+        }
+
+        // Step 5: Fallback — extract all text from body
+        _log.Debug("Falling back to full body text extraction");
+        return ExtractTextFromNode(body);
+    }
+
+    /// <summary>
+    /// Removes all elements from the DOM that are known to contain non-article content:
+    /// scripts, styles, navigation, headers, footers, forms, ads, etc.
+    /// Also removes elements whose class or ID strongly suggest non-content (e.g., "sidebar", "comment").
+    /// </summary>
+    private static void RemoveNonContentElements(HtmlNode root)
+    {
+        // Collect nodes to remove first to avoid modifying the tree during iteration
+        var nodesToRemove = new List<HtmlNode>();
+
+        foreach (var node in root.DescendantsAndSelf())
+        {
+            if (node.NodeType != HtmlNodeType.Element)
+                continue;
+
+            // Remove known non-content element types
+            if (ElementsToRemove.Contains(node.Name))
+            {
+                nodesToRemove.Add(node);
+                continue;
+            }
+
+            // Remove elements with obviously non-content class/ID patterns
+            var classAttr = node.GetAttributeValue("class", "").ToLowerInvariant();
+            var idAttr = node.GetAttributeValue("id", "").ToLowerInvariant();
+            var roleAttr = node.GetAttributeValue("role", "").ToLowerInvariant();
+
+            // Skip if the element is the main content area (don't remove role="main")
+            if (roleAttr == "main" || roleAttr == "article")
+                continue;
+
+            // Remove elements with navigation, banner, or complementary roles
+            if (roleAttr is "navigation" or "banner" or "complementary" or "contentinfo")
+            {
+                nodesToRemove.Add(node);
+                continue;
+            }
+
+            // Remove elements with strongly non-content class/ID names,
+            // but only if they are block-level containers (div, section, etc.)
+            if (node.Name is "div" or "section" or "aside" or "ul" or "ol")
+            {
+                var combined = classAttr + " " + idAttr;
+
+                // Count negative vs positive signals
+                var negativeScore = NegativeClassPatterns.Count(p => combined.Contains(p, StringComparison.OrdinalIgnoreCase));
+                var positiveScore = PositiveClassPatterns.Count(p => combined.Contains(p, StringComparison.OrdinalIgnoreCase));
+
+                // Only remove if strongly negative (negative signals without positive countersignals)
+                if (negativeScore >= 2 && positiveScore == 0)
+                {
+                    nodesToRemove.Add(node);
+                }
+            }
+        }
+
+        // Remove collected nodes (in reverse order to avoid ancestor removal issues)
+        foreach (var node in nodesToRemove.AsEnumerable().Reverse())
+        {
+            try
+            {
+                node.Remove();
+            }
+            catch
+            {
+                // Node may have already been removed as a descendant of a previously removed node
+            }
+        }
+    }
+
+    /// <summary>
+    /// Scores all block-level container elements (div, section, td) in the document body
+    /// by text density and returns the highest-scoring node as the likely main content area.
+    /// <para>
+    /// The scoring algorithm considers:
+    /// <list type="bullet">
+    ///   <item><b>Text length</b>: longer text content scores higher.</item>
+    ///   <item><b>Paragraph count</b>: more &lt;p&gt; children indicate article-like structure.</item>
+    ///   <item><b>Link density</b>: high ratio of link text to total text is penalized (navigation areas).</item>
+    ///   <item><b>Class/ID signals</b>: positive class names like "article", "content" boost score;
+    ///     negative names like "sidebar", "comment" reduce it.</item>
+    ///   <item><b>Descendant count normalization</b>: text length is divided by descendant count
+    ///     to favor containers with dense, direct text over deeply nested wrappers.</item>
+    /// </list>
+    /// </para>
+    /// </summary>
+    private static HtmlNode? FindBestContentNode(HtmlNode root)
+    {
+        var candidates = root.Descendants()
+            .Where(n => n.NodeType == HtmlNodeType.Element
+                        && n.Name is "div" or "section" or "td" or "main")
+            .ToList();
+
+        if (candidates.Count == 0)
+            return null;
+
+        HtmlNode? bestNode = null;
+        var bestScore = 0.0;
+
+        foreach (var candidate in candidates)
+        {
+            var score = ScoreContentNode(candidate);
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestNode = candidate;
+            }
+        }
+
+        return bestNode;
+    }
+
+    /// <summary>
+    /// Computes a content score for a single HTML node based on text density,
+    /// paragraph count, link density, and class/ID signals.
+    /// </summary>
+    private static double ScoreContentNode(HtmlNode node)
+    {
+        // Get direct and descendant text content
+        var textContent = node.InnerText ?? string.Empty;
+        var textLength = textContent.Length;
+
+        // Minimum text threshold: skip nodes with very little text
+        if (textLength < 100)
+            return 0;
+
+        var score = 0.0;
+
+        // Base score: text length (logarithmic to avoid overwhelming other signals)
+        score += Math.Log10(Math.Max(textLength, 1)) * 10;
+
+        // Paragraph bonus: more <p> elements strongly indicate article content
+        var paragraphCount = node.Descendants("p").Count();
+        score += paragraphCount * 5;
+
+        // Text density: text length divided by total descendant element count
+        // This penalizes deeply nested containers with little direct text
+        var descendantCount = node.Descendants().Count(d => d.NodeType == HtmlNodeType.Element);
+        if (descendantCount > 0)
+        {
+            var density = (double)textLength / descendantCount;
+            score += Math.Min(density, 100); // Cap the density bonus
+        }
+
+        // Link density penalty: high ratio of link text to total text indicates navigation
+        var linkTextLength = node.Descendants("a")
+            .Sum(a => (a.InnerText?.Length ?? 0));
+
+        if (textLength > 0)
+        {
+            var linkDensity = (double)linkTextLength / textLength;
+            if (linkDensity > 0.5)
+            {
+                // Heavy link density: likely navigation or link list
+                score *= 0.1;
+            }
+            else if (linkDensity > 0.3)
+            {
+                // Moderate link density: somewhat penalize
+                score *= 0.5;
+            }
+        }
+
+        // Class/ID signal bonus/penalty
+        var classAttr = node.GetAttributeValue("class", "").ToLowerInvariant();
+        var idAttr = node.GetAttributeValue("id", "").ToLowerInvariant();
+        var combined = classAttr + " " + idAttr;
+
+        foreach (var pattern in PositiveClassPatterns)
+        {
+            if (combined.Contains(pattern, StringComparison.OrdinalIgnoreCase))
+            {
+                score += 15;
+            }
+        }
+
+        foreach (var pattern in NegativeClassPatterns)
+        {
+            if (combined.Contains(pattern, StringComparison.OrdinalIgnoreCase))
+            {
+                score -= 20;
+            }
+        }
+
+        // Heading bonus: presence of headings within the container suggests article structure
+        var headingCount = node.Descendants()
+            .Count(d => d.Name is "h1" or "h2" or "h3" or "h4" or "h5" or "h6");
+
+        score += headingCount * 3;
+
+        return Math.Max(score, 0);
+    }
+
+    /// <summary>
+    /// Recursively extracts and joins plain text from an HTML node tree.
+    /// Inserts newlines after block-level elements and headings to preserve
+    /// paragraph structure in the extracted text.
+    /// </summary>
+    private static string ExtractTextFromNode(HtmlNode node)
+    {
+        var sb = new StringBuilder();
+        ExtractTextRecursive(node, sb);
+        return sb.ToString().Trim();
+    }
+
+    /// <summary>
+    /// Recursively walks the HTML node tree, appending text content to the StringBuilder.
+    /// Block-level elements get newline separators to preserve paragraph boundaries.
+    /// </summary>
+    private static void ExtractTextRecursive(HtmlNode node, StringBuilder sb)
+    {
+        switch (node.NodeType)
+        {
+            case HtmlNodeType.Text:
+                var text = WebUtility.HtmlDecode(node.InnerText);
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    sb.Append(text);
+                }
+                break;
+
+            case HtmlNodeType.Element:
+                // Skip hidden elements
+                var style = node.GetAttributeValue("style", "");
+                if (style.Contains("display:none", StringComparison.OrdinalIgnoreCase)
+                    || style.Contains("display: none", StringComparison.OrdinalIgnoreCase)
+                    || style.Contains("visibility:hidden", StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
+                var isBlockElement = IsBlockElement(node.Name);
+
+                // Add line break before block elements to preserve paragraph structure
+                if (isBlockElement && sb.Length > 0 && sb[sb.Length - 1] != '\n')
+                {
+                    sb.Append('\n');
+                }
+
+                // Special handling for list items
+                if (node.Name is "li")
+                {
+                    sb.Append("- ");
+                }
+
+                // Recurse into children
+                foreach (var child in node.ChildNodes)
+                {
+                    ExtractTextRecursive(child, sb);
+                }
+
+                // Add line break after block elements
+                if (isBlockElement && sb.Length > 0 && sb[sb.Length - 1] != '\n')
+                {
+                    sb.Append('\n');
+                }
+
+                // Add an extra newline after headings and paragraphs for readability
+                if (node.Name is "p" or "h1" or "h2" or "h3" or "h4" or "h5" or "h6"
+                    && sb.Length > 0)
+                {
+                    sb.Append('\n');
+                }
+
+                // Add space after inline elements that typically need word separation
+                if (node.Name is "a" or "span" or "em" or "strong" or "b" or "i" or "code"
+                    && sb.Length > 0 && sb[sb.Length - 1] != ' ' && sb[sb.Length - 1] != '\n')
+                {
+                    sb.Append(' ');
+                }
+
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Returns whether the given HTML element name is a block-level element
+    /// that should be separated by newlines in extracted text.
+    /// </summary>
+    private static bool IsBlockElement(string elementName)
+    {
+        return elementName switch
+        {
+            "p" or "div" or "section" or "article" or "main" => true,
+            "h1" or "h2" or "h3" or "h4" or "h5" or "h6" => true,
+            "ul" or "ol" or "li" or "dl" or "dt" or "dd" => true,
+            "blockquote" or "pre" or "table" or "tr" or "td" or "th" => true,
+            "br" or "hr" => true,
+            "header" or "footer" or "nav" or "aside" => true,
+            "details" or "summary" or "address" => true,
+            _ => false,
+        };
+    }
+
+    // ─── YouTube Transcript Helpers ─────────────────────────────────────────
+
+    /// <summary>
+    /// Extracts the YouTube video ID from various URL formats.
+    /// </summary>
+    private static string? ExtractYouTubeVideoId(string url)
+    {
+        var match = YouTubeUrlRegex.Match(url);
+        return match.Success ? match.Groups["id"].Value : null;
+    }
+
+    /// <summary>
+    /// Extracts the auto-generated or manually-uploaded captions URL from the YouTube
+    /// watch page HTML. YouTube embeds this information in a JSON blob within a script tag.
+    /// </summary>
+    private static string? ExtractCaptionsUrlFromPage(string pageHtml, string videoId)
+    {
+        // YouTube embeds captions info in ytInitialPlayerResponse or similar JSON structures.
+        // Look for "captionTracks" in the page source.
+        const string captionTracksMarker = "\"captionTracks\":";
+        var markerIndex = pageHtml.IndexOf(captionTracksMarker, StringComparison.Ordinal);
+
+        if (markerIndex < 0)
+        {
+            // Try alternative marker
+            const string altMarker = "\"captions\":";
+            markerIndex = pageHtml.IndexOf(altMarker, StringComparison.Ordinal);
+            if (markerIndex < 0)
+                return null;
+
+            // Navigate to captionTracks within the captions object
+            var nestedIndex = pageHtml.IndexOf(captionTracksMarker, markerIndex, StringComparison.Ordinal);
+            if (nestedIndex < 0)
+                return null;
+
+            markerIndex = nestedIndex;
+        }
+
+        // Find the array start
+        var arrayStart = pageHtml.IndexOf('[', markerIndex);
+        if (arrayStart < 0)
+            return null;
+
+        // Find the matching array end (handle nested objects)
+        var depth = 0;
+        var arrayEnd = -1;
+        for (var i = arrayStart; i < pageHtml.Length; i++)
+        {
+            switch (pageHtml[i])
+            {
+                case '[':
+                    depth++;
+                    break;
+                case ']':
+                    depth--;
+                    if (depth == 0)
+                    {
+                        arrayEnd = i;
+                        goto FoundEnd;
+                    }
+                    break;
+            }
+        }
+
+    FoundEnd:
+        if (arrayEnd < 0)
+            return null;
+
+        var captionTracksJson = pageHtml.Substring(arrayStart, arrayEnd - arrayStart + 1);
+
+        // Extract the first baseUrl from the caption tracks
+        // Look for English captions first, then fall back to any available
+        var bestUrl = ExtractCaptionUrl(captionTracksJson, preferredLanguage: "en")
+                      ?? ExtractCaptionUrl(captionTracksJson, preferredLanguage: null);
+
+        return bestUrl;
+    }
+
+    /// <summary>
+    /// Extracts a caption track URL from the JSON array string.
+    /// Optionally filters by language code.
+    /// </summary>
+    private static string? ExtractCaptionUrl(string jsonArray, string? preferredLanguage)
+    {
+        // Simple extraction using string searching since we don't want to add
+        // a JSON dependency for this single use case (System.Text.Json is available
+        // but the JSON is embedded in JavaScript and may not be cleanly extractable)
+        var searchStart = 0;
+
+        while (searchStart < jsonArray.Length)
+        {
+            // Find next baseUrl
+            const string baseUrlKey = "\"baseUrl\":\"";
+            var urlKeyIndex = jsonArray.IndexOf(baseUrlKey, searchStart, StringComparison.Ordinal);
+            if (urlKeyIndex < 0)
+                break;
+
+            var urlStart = urlKeyIndex + baseUrlKey.Length;
+            var urlEnd = jsonArray.IndexOf('"', urlStart);
+            if (urlEnd < 0)
+                break;
+
+            var url = jsonArray.Substring(urlStart, urlEnd - urlStart);
+            // Unescape JSON string escapes (primarily \u0026 for &)
+            url = url.Replace("\\u0026", "&").Replace("\\/", "/");
+
+            if (preferredLanguage is null)
+            {
+                // Return the first URL found
+                return url;
+            }
+
+            // Check if this track is for the preferred language
+            // Look for languageCode near this baseUrl
+            var contextStart = Math.Max(0, urlKeyIndex - 200);
+            var contextEnd = Math.Min(jsonArray.Length, urlKeyIndex + url.Length + 200);
+            var context = jsonArray.Substring(contextStart, contextEnd - contextStart);
+
+            var langPattern = $"\"languageCode\":\"{preferredLanguage}\"";
+            if (context.Contains(langPattern, StringComparison.OrdinalIgnoreCase))
+            {
+                return url;
+            }
+
+            // Also check for vssId which uses language codes like ".en" or "a.en" (auto-generated)
+            var vssPattern1 = $"\"vssId\":\".{preferredLanguage}\"";
+            var vssPattern2 = $"\"vssId\":\"a.{preferredLanguage}\"";
+            if (context.Contains(vssPattern1, StringComparison.OrdinalIgnoreCase)
+                || context.Contains(vssPattern2, StringComparison.OrdinalIgnoreCase))
+            {
+                return url;
+            }
+
+            searchStart = urlEnd + 1;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Parses YouTube's XML transcript format into clean plain text with timestamps.
+    /// The XML format uses &lt;text&gt; elements with start and dur attributes.
+    /// </summary>
+    private static string ParseYouTubeTranscriptXml(string xml)
+    {
+        try
+        {
+            var doc = XDocument.Parse(xml);
+            var sb = new StringBuilder();
+
+            var textElements = doc.Descendants("text").ToList();
+
+            foreach (var element in textElements)
+            {
+                var startAttr = element.Attribute("start")?.Value;
+                var text = element.Value;
+
+                if (string.IsNullOrWhiteSpace(text))
+                    continue;
+
+                // Decode HTML entities that YouTube may include in transcript text
+                text = WebUtility.HtmlDecode(text).Trim();
+
+                if (string.IsNullOrWhiteSpace(text))
+                    continue;
+
+                // Format timestamp for readability
+                if (!string.IsNullOrEmpty(startAttr) && double.TryParse(startAttr,
+                        System.Globalization.NumberStyles.Float,
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        out var startSeconds))
+                {
+                    var timeSpan = TimeSpan.FromSeconds(startSeconds);
+                    var timestamp = timeSpan.TotalHours >= 1
+                        ? timeSpan.ToString(@"h\:mm\:ss")
+                        : timeSpan.ToString(@"m\:ss");
+
+                    sb.AppendLine($"[{timestamp}] {text}");
+                }
+                else
+                {
+                    sb.AppendLine(text);
+                }
+            }
+
+            return sb.ToString().Trim();
+        }
+        catch (Exception)
+        {
+            // If XML parsing fails, try a regex-based fallback
+            return ParseTranscriptFallback(xml);
+        }
+    }
+
+    /// <summary>
+    /// Fallback transcript parser that uses regex to extract text from malformed
+    /// XML transcript data.
+    /// </summary>
+    private static string ParseTranscriptFallback(string xml)
+    {
+        var textPattern = new Regex(
+            @"<text[^>]*>(?<content>[^<]*)</text>",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        var sb = new StringBuilder();
+
+        foreach (Match match in textPattern.Matches(xml))
+        {
+            var content = WebUtility.HtmlDecode(match.Groups["content"].Value).Trim();
+            if (!string.IsNullOrWhiteSpace(content))
+            {
+                sb.AppendLine(content);
+            }
+        }
+
+        return sb.ToString().Trim();
+    }
+
+    // ─── Text Cleaning ──────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Normalizes whitespace and removes excessive blank lines from extracted text.
+    /// Collapses runs of horizontal whitespace within a line to a single space,
+    /// and reduces three or more consecutive newlines to exactly two (one blank line).
+    /// </summary>
+    private static string CleanText(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return string.Empty;
+
+        // Normalize horizontal whitespace (tabs, multiple spaces) within lines to single space
+        text = WhitespaceNormalizer.Replace(text, " ");
+
+        // Collapse excessive newlines (3+ consecutive) to double newline (one blank line)
+        text = ExcessiveNewlines.Replace(text, "\n\n");
+
+        // Trim each line individually to remove leading/trailing whitespace
+        var lines = text.Split('\n');
+        var trimmedLines = lines.Select(line => line.Trim());
+        text = string.Join("\n", trimmedLines);
+
+        return text.Trim();
+    }
+
+    // ─── Utility Methods ────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Counts words by splitting on whitespace, filtering out empty entries.
+    /// </summary>
+    private static long CountWords(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return 0;
+
+        return text.Split(
+            (char[]?)null,
+            StringSplitOptions.RemoveEmptyEntries).LongLength;
+    }
+
+    /// <summary>
+    /// Creates a <see cref="WebContent"/> instance representing a failed extraction.
+    /// </summary>
+    private static WebContent CreateFailureResult(string url, string errorMessage)
+    {
+        return new WebContent
+        {
+            Url = url ?? string.Empty,
+            Success = false,
+            ErrorMessage = errorMessage,
+        };
+    }
+
+    // ─── Internal Types ─────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Internal DTO holding extracted page metadata before it is mapped
+    /// to the public <see cref="WebContent"/> model.
+    /// </summary>
+    private sealed class PageMetadata
+    {
+        public string Title { get; set; } = string.Empty;
+        public string? Author { get; set; }
+        public DateTime? PublishDate { get; set; }
+        public string? SiteName { get; set; }
+        public string? Description { get; set; }
+        public string? FeaturedImageUrl { get; set; }
+        public string? Language { get; set; }
+    }
+}

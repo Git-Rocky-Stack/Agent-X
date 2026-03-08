@@ -1,0 +1,260 @@
+<Page
+    x:Class="AgentX.App.Views.WebImportPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:AgentX.App.ViewModels"
+    xmlns:views="using:AgentX.App.Views"
+    xmlns:converters="using:AgentX.App.Converters"
+    Background="Transparent"
+    NavigationCacheMode="Enabled">
+
+    <Page.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
+        <converters:BoolToVisibilityConverter x:Key="InverseBoolToVis" IsInverted="True" />
+        <converters:InverseBoolConverter x:Key="InverseBool" />
+    </Page.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
+
+        <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="900">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- ═══ PAGE HEADER ═══ -->
+            <StackPanel Grid.Row="0" Spacing="4">
+                <TextBlock Text="Web Import"
+                           Style="{StaticResource DisplaySmallStyle}" />
+                <TextBlock Text="Paste URLs to extract and ingest web articles into your Knowledge Vault."
+                           Style="{StaticResource BodySecondaryStyle}" />
+            </StackPanel>
+
+            <!-- ═══ URL INPUT CARD ═══ -->
+            <Border Grid.Row="1" Style="{StaticResource CardStyle}" Padding="24">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Enter URLs"
+                               Style="{StaticResource HeadingSmallStyle}" />
+                    <TextBlock Text="One URL per line. Supports web articles and YouTube videos."
+                               Style="{StaticResource CaptionStyle}"
+                               Opacity="0.5" />
+
+                    <!-- URL Input -->
+                    <TextBox Text="{x:Bind ViewModel.UrlInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             PlaceholderText="https://example.com/article&#x0a;https://www.youtube.com/watch?v=..."
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             MinHeight="100"
+                             MaxHeight="200"
+                             Style="{StaticResource InputTextBoxStyle}" />
+
+                    <!-- Collection Selector -->
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Add to Collection (optional)" Style="{StaticResource LabelStyle}" />
+                        <ComboBox ItemsSource="{x:Bind ViewModel.Collections}"
+                                  SelectedItem="{x:Bind ViewModel.SelectedCollection, Mode=TwoWay}"
+                                  DisplayMemberPath="Name"
+                                  PlaceholderText="No collection"
+                                  HorizontalAlignment="Stretch" />
+                    </StackPanel>
+
+                    <!-- Action Buttons -->
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Button Content="Preview First URL"
+                                Command="{x:Bind ViewModel.PreviewUrlCommand}"
+                                IsEnabled="{x:Bind ViewModel.IsImporting, Mode=OneWay, Converter={StaticResource InverseBool}}"
+                                Style="{StaticResource SecondaryButtonStyle}" />
+                        <Button Content="Import All"
+                                Command="{x:Bind ViewModel.ImportUrlsCommand}"
+                                IsEnabled="{x:Bind ViewModel.IsImporting, Mode=OneWay, Converter={StaticResource InverseBool}}"
+                                Style="{StaticResource AccentButtonStyle}" />
+                        <Button Content="Cancel"
+                                Command="{x:Bind ViewModel.CancelImportCommand}"
+                                Visibility="{x:Bind ViewModel.IsImporting, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                Style="{StaticResource SecondaryButtonStyle}" />
+                    </StackPanel>
+
+                    <!-- Progress Bar -->
+                    <StackPanel Spacing="4"
+                                Visibility="{x:Bind ViewModel.IsImporting, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                        <ProgressBar Value="{x:Bind ViewModel.ImportProgress, Mode=OneWay}"
+                                     Maximum="{x:Bind ViewModel.ImportTotal, Mode=OneWay}" />
+                        <TextBlock Style="{StaticResource CaptionStyle}" Opacity="0.6">
+                            <Run Text="Importing" />
+                            <Run Text="{x:Bind ViewModel.ImportProgress, Mode=OneWay}" />
+                            <Run Text="of" />
+                            <Run Text="{x:Bind ViewModel.ImportTotal, Mode=OneWay}" />
+                        </TextBlock>
+                    </StackPanel>
+
+                    <!-- Loading Spinner for Preview -->
+                    <StackPanel Orientation="Horizontal" Spacing="8"
+                                Visibility="{x:Bind ViewModel.IsPreviewing, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                        <ProgressRing IsActive="True" Width="16" Height="16" />
+                        <TextBlock Text="Extracting content..."
+                                   Style="{StaticResource CaptionStyle}"
+                                   Opacity="0.6" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- ═══ PREVIEW CARD ═══ -->
+            <Border Grid.Row="2"
+                    Style="{StaticResource CardStyle}"
+                    Padding="24"
+                    Visibility="{x:Bind ViewModel.HasPreview, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Preview"
+                               Style="{StaticResource HeadingSmallStyle}" />
+
+                    <!-- Meta Info -->
+                    <Grid ColumnSpacing="24" RowSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Title" Style="{StaticResource LabelStyle}" />
+                        <TextBlock Grid.Row="0" Grid.Column="1"
+                                   Text="{x:Bind ViewModel.PreviewTitle, Mode=OneWay}"
+                                   Style="{StaticResource BodyStyle}"
+                                   FontWeight="SemiBold"
+                                   TextWrapping="Wrap" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Site" Style="{StaticResource LabelStyle}" />
+                        <TextBlock Grid.Row="1" Grid.Column="1"
+                                   Text="{x:Bind ViewModel.PreviewSiteName, Mode=OneWay}"
+                                   Style="{StaticResource BodyStyle}" />
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Author" Style="{StaticResource LabelStyle}" />
+                        <TextBlock Grid.Row="2" Grid.Column="1"
+                                   Text="{x:Bind ViewModel.PreviewAuthor, Mode=OneWay}"
+                                   Style="{StaticResource BodyStyle}" />
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Words" Style="{StaticResource LabelStyle}" />
+                        <TextBlock Grid.Row="3" Grid.Column="1"
+                                   Style="{StaticResource BodyStyle}">
+                            <Run Text="{x:Bind ViewModel.PreviewWordCount, Mode=OneWay}" />
+                        </TextBlock>
+                    </Grid>
+
+                    <!-- Content Preview -->
+                    <Border Background="{StaticResource InputBackgroundBrush}"
+                            CornerRadius="{StaticResource RadiusSM}"
+                            Padding="16"
+                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                            BorderThickness="1">
+                        <TextBlock Text="{x:Bind ViewModel.PreviewContent, Mode=OneWay}"
+                                   Style="{StaticResource BodyStyle}"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.7"
+                                   MaxLines="12"
+                                   IsTextSelectionEnabled="True" />
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- ═══ IMPORT RESULTS ═══ -->
+            <Border Grid.Row="3"
+                    Style="{StaticResource CardStyle}"
+                    Padding="24"
+                    Visibility="{x:Bind ViewModel.HasResults, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <StackPanel Spacing="16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Import Results"
+                                   Style="{StaticResource HeadingSmallStyle}" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
+                            <Border CornerRadius="{StaticResource RadiusSM}"
+                                    Background="{StaticResource AccentSubtleBrush}"
+                                    Padding="10,4">
+                                <TextBlock Foreground="{StaticResource SuccessBrush}"
+                                           Style="{StaticResource CaptionStyle}">
+                                    <Run Text="{x:Bind ViewModel.SuccessCount, Mode=OneWay}" />
+                                    <Run Text="imported" />
+                                </TextBlock>
+                            </Border>
+                            <Border CornerRadius="{StaticResource RadiusSM}"
+                                    Background="{StaticResource AccentSubtleBrush}"
+                                    Padding="10,4"
+                                    Visibility="{x:Bind views:WebImportPage.IntToVisibility(ViewModel.FailCount)}">
+                                <TextBlock Foreground="{StaticResource ErrorBrush}"
+                                           Style="{StaticResource CaptionStyle}">
+                                    <Run Text="{x:Bind ViewModel.FailCount, Mode=OneWay}" />
+                                    <Run Text="failed" />
+                                </TextBlock>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+
+                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.ImportResults}">
+                        <ItemsRepeater.Layout>
+                            <StackLayout Spacing="6" />
+                        </ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="vm:WebImportResultItem">
+                                <Grid ColumnSpacing="12" Padding="8,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Status Icon -->
+                                    <FontIcon Grid.Column="0"
+                                              Glyph="{x:Bind views:WebImportPage.SuccessGlyph(Success)}"
+                                              FontSize="14"
+                                              Foreground="{x:Bind views:WebImportPage.SuccessBrush(Success)}" />
+
+                                    <!-- URL + Doc Name -->
+                                    <StackPanel Grid.Column="1" Spacing="2">
+                                        <TextBlock Text="{x:Bind DocumentName}"
+                                                   Style="{StaticResource BodyStyle}"
+                                                   FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{x:Bind Url}"
+                                                   Style="{StaticResource CaptionStyle}"
+                                                   Opacity="0.4"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+
+                                    <!-- Word Count -->
+                                    <TextBlock Grid.Column="2"
+                                               Style="{StaticResource CaptionStyle}"
+                                               Opacity="0.5"
+                                               VerticalAlignment="Center">
+                                        <Run Text="{x:Bind WordCount}" />
+                                        <Run Text="words" />
+                                    </TextBlock>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+
+                    <Button Content="Clear Results"
+                            Command="{x:Bind ViewModel.ClearResultsCommand}"
+                            Style="{StaticResource SecondaryButtonStyle}" />
+                </StackPanel>
+            </Border>
+
+            <!-- ═══ STATUS ═══ -->
+            <TextBlock Grid.Row="4"
+                       Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                       Style="{StaticResource CaptionStyle}"
+                       Opacity="0.5" />
+        </Grid>
+    </ScrollViewer>
+</Page>

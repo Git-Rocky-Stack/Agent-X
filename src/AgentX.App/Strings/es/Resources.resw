@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+
+  <!-- Navigation -->
+  <data name="Nav_Dashboard" xml:space="preserve"><value>Panel</value></data>
+  <data name="Nav_Chat" xml:space="preserve"><value>Chat IA</value></data>
+  <data name="Nav_AskFiles" xml:space="preserve"><value>Consultar Archivos</value></data>
+  <data name="Nav_QuickActions" xml:space="preserve"><value>Acciones R&#225;pidas</value></data>
+  <data name="Nav_Workflows" xml:space="preserve"><value>Flujos de Trabajo</value></data>
+  <data name="Nav_KnowledgeVault" xml:space="preserve"><value>B&#243;veda de Conocimiento</value></data>
+  <data name="Nav_WebImport" xml:space="preserve"><value>Importar Web</value></data>
+  <data name="Nav_Collections" xml:space="preserve"><value>Colecciones</value></data>
+  <data name="Nav_Search" xml:space="preserve"><value>B&#250;squeda Sem&#225;ntica</value></data>
+  <data name="Nav_KnowledgeGraph" xml:space="preserve"><value>Grafo de Conocimiento</value></data>
+  <data name="Nav_ModelManager" xml:space="preserve"><value>Gestor de Modelos</value></data>
+  <data name="Nav_HardwareAdvisor" xml:space="preserve"><value>Asesor de Hardware</value></data>
+  <data name="Nav_Settings" xml:space="preserve"><value>Configuraci&#243;n</value></data>
+  <data name="Nav_BackupRestore" xml:space="preserve"><value>Copia de Seguridad</value></data>
+  <data name="Nav_Annotations" xml:space="preserve"><value>Anotaciones</value></data>
+  <data name="Nav_Digest" xml:space="preserve"><value>Resumen Semanal</value></data>
+
+  <!-- Section Headers -->
+  <data name="Section_Intelligence" xml:space="preserve"><value>INTELIGENCIA</value></data>
+  <data name="Section_Knowledge" xml:space="preserve"><value>CONOCIMIENTO</value></data>
+  <data name="Section_System" xml:space="preserve"><value>SISTEMA</value></data>
+  <data name="Section_Support" xml:space="preserve"><value>SOPORTE</value></data>
+
+  <!-- Common Actions -->
+  <data name="Action_Save" xml:space="preserve"><value>Guardar</value></data>
+  <data name="Action_Cancel" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="Action_Delete" xml:space="preserve"><value>Eliminar</value></data>
+  <data name="Action_Export" xml:space="preserve"><value>Exportar</value></data>
+  <data name="Action_Import" xml:space="preserve"><value>Importar</value></data>
+  <data name="Action_Search" xml:space="preserve"><value>Buscar</value></data>
+  <data name="Action_Create" xml:space="preserve"><value>Crear</value></data>
+  <data name="Action_Edit" xml:space="preserve"><value>Editar</value></data>
+  <data name="Action_Close" xml:space="preserve"><value>Cerrar</value></data>
+  <data name="Action_Browse" xml:space="preserve"><value>Explorar</value></data>
+  <data name="Action_Copy" xml:space="preserve"><value>Copiar</value></data>
+  <data name="Action_Refresh" xml:space="preserve"><value>Actualizar</value></data>
+
+  <!-- Status Messages -->
+  <data name="Status_Loading" xml:space="preserve"><value>Cargando...</value></data>
+  <data name="Status_Connected" xml:space="preserve"><value>Conectado</value></data>
+  <data name="Status_Disconnected" xml:space="preserve"><value>Desconectado</value></data>
+  <data name="Status_Initializing" xml:space="preserve"><value>Inicializando...</value></data>
+  <data name="Status_Ready" xml:space="preserve"><value>Listo</value></data>
+
+  <!-- Backup & Restore -->
+  <data name="Backup_Title" xml:space="preserve"><value>Copia de Seguridad y Restauraci&#243;n</value></data>
+  <data name="Backup_Subtitle" xml:space="preserve"><value>Protege tu base de conocimiento con copias de seguridad cifradas y restauraci&#243;n con un clic.</value></data>
+  <data name="Backup_CreateBackup" xml:space="preserve"><value>Crear Copia de Seguridad</value></data>
+  <data name="Backup_RestoreFromBackup" xml:space="preserve"><value>Restaurar desde Copia</value></data>
+  <data name="Backup_History" xml:space="preserve"><value>Historial de Copias</value></data>
+  <data name="Backup_Destination" xml:space="preserve"><value>Carpeta de Destino</value></data>
+  <data name="Backup_Encrypt" xml:space="preserve"><value>Cifrar copia (AES-256)</value></data>
+  <data name="Backup_IncludeDocs" xml:space="preserve"><value>Incluir documentos indexados</value></data>
+  <data name="Backup_Success" xml:space="preserve"><value>Copia de seguridad creada exitosamente</value></data>
+  <data name="Backup_RestoreComplete" xml:space="preserve"><value>Restauraci&#243;n Completa</value></data>
+
+  <!-- Annotations -->
+  <data name="Annotations_Title" xml:space="preserve"><value>Anotaciones</value></data>
+  <data name="Annotations_Highlights" xml:space="preserve"><value>resaltados</value></data>
+  <data name="Annotations_SearchPlaceholder" xml:space="preserve"><value>Buscar anotaciones...</value></data>
+  <data name="Annotations_FilterByColor" xml:space="preserve"><value>FILTRAR POR COLOR</value></data>
+  <data name="Annotations_Distribution" xml:space="preserve"><value>DISTRIBUCI&#211;N</value></data>
+  <data name="Annotations_ExportMarkdown" xml:space="preserve"><value>Exportar como Markdown</value></data>
+  <data name="Annotations_Empty" xml:space="preserve"><value>Sin anotaciones a&#250;n</value></data>
+  <data name="Annotations_EmptyHint" xml:space="preserve"><value>Resalta texto en tus documentos para crear anotaciones.</value></data>
+
+  <!-- Settings -->
+  <data name="Settings_Title" xml:space="preserve"><value>Configuraci&#243;n</value></data>
+  <data name="Settings_Language" xml:space="preserve"><value>Idioma</value></data>
+  <data name="Settings_LanguageHint" xml:space="preserve"><value>Los cambios surten efecto despu&#233;s de reiniciar</value></data>
+  <data name="Settings_SystemDefault" xml:space="preserve"><value>Predeterminado del Sistema</value></data>
+  <data name="Settings_KeyboardShortcuts" xml:space="preserve"><value>Atajos de Teclado</value></data>
+</root>

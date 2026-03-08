@@ -158,6 +158,15 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
+                <NavigationViewItem x:Name="NavWorkflows"
+                                    Content="Workflows"
+                                    Tag="Workflows"
+                                    Style="{StaticResource AgentXNavItemStyle}">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8C7;" FontSize="16" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
                 <NavigationViewItemSeparator Margin="12,6" />
 
                 <!-- KNOWLEDGE SECTION -->
@@ -172,6 +181,15 @@
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE8F1;" FontSize="16" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem x:Name="NavWebImport"
+                                    Content="Web Import"
+                                    Tag="WebImport"
+                                    Style="{StaticResource AgentXNavItemStyle}">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE774;" FontSize="16" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
@@ -202,6 +220,32 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
+                <NavigationViewItem x:Name="NavComparison"
+                                    Content="Compare Documents"
+                                    Tag="Comparison"
+                                    Style="{StaticResource AgentXNavItemStyle}">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8F4;" FontSize="16" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItemSeparator Margin="12,6" />
+
+                <!-- TRIAGE SECTION -->
+                <NavigationViewItemHeader Content="TRIAGE"
+                                          Foreground="{StaticResource TextTertiaryBrush}"
+                                          FontSize="10"
+                                          FontWeight="SemiBold" />
+
+                <NavigationViewItem x:Name="NavInbox"
+                                    Content="Smart Inbox"
+                                    Tag="Inbox"
+                                    Style="{StaticResource AgentXNavItemStyle}">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8B7;" FontSize="16" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
                 <NavigationViewItemSeparator Margin="12,6" />
 
                 <!-- SYSTEM SECTION -->
@@ -225,6 +269,54 @@
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE950;" FontSize="16" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem x:Name="NavBackupRestore"
+                                    Content="Backup &amp; Restore"
+                                    Tag="BackupRestore"
+                                    Style="{StaticResource AgentXNavItemStyle}">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8F1;" FontSize="16" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem x:Name="NavWorkspaceProfiles"
+                                    Content="Workspace Profiles"
+                                    Tag="WorkspaceProfiles"
+                                    Style="{StaticResource AgentXNavItemStyle}">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE77B;" FontSize="16" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem x:Name="NavPluginManager"
+                                    Content="Plugin Manager"
+                                    Tag="PluginManager"
+                                    Style="{StaticResource AgentXNavItemStyle}">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xEA86;" FontSize="16" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem x:Name="NavSyncSettings"
+                                    Content="Collaborative Sync"
+                                    Tag="SyncSettings"
+                                    Style="{StaticResource AgentXNavItemStyle}">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE895;" FontSize="16" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItemSeparator Margin="12,6" />
+
+                <!-- ANNOTATIONS SECTION -->
+                <NavigationViewItem x:Name="NavAnnotations"
+                                    Content="Annotations"
+                                    Tag="Annotations"
+                                    Style="{StaticResource AgentXNavItemStyle}">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE7BC;" FontSize="16" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
@@ -373,7 +465,7 @@
                                Style="{StaticResource CaptionStyle}"
                                VerticalAlignment="Center"
                                Opacity="0.4" />
-                    <TextBlock Text="Agent-X v1.0.0"
+                    <TextBlock Text="Agent-X v1.2.0"
                                Style="{StaticResource CaptionStyle}"
                                VerticalAlignment="Center"
                                Opacity="0.5" />

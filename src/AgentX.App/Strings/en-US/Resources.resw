@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+
+  <!-- Navigation -->
+  <data name="Nav_Dashboard" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="Nav_Chat" xml:space="preserve"><value>AI Chat</value></data>
+  <data name="Nav_AskFiles" xml:space="preserve"><value>Ask Your Files</value></data>
+  <data name="Nav_QuickActions" xml:space="preserve"><value>Quick Actions</value></data>
+  <data name="Nav_Workflows" xml:space="preserve"><value>Workflows</value></data>
+  <data name="Nav_KnowledgeVault" xml:space="preserve"><value>Knowledge Vault</value></data>
+  <data name="Nav_WebImport" xml:space="preserve"><value>Web Import</value></data>
+  <data name="Nav_Collections" xml:space="preserve"><value>Collections</value></data>
+  <data name="Nav_Search" xml:space="preserve"><value>Semantic Search</value></data>
+  <data name="Nav_KnowledgeGraph" xml:space="preserve"><value>Knowledge Graph</value></data>
+  <data name="Nav_ModelManager" xml:space="preserve"><value>Model Manager</value></data>
+  <data name="Nav_HardwareAdvisor" xml:space="preserve"><value>Hardware Advisor</value></data>
+  <data name="Nav_Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Nav_BackupRestore" xml:space="preserve"><value>Backup &amp; Restore</value></data>
+  <data name="Nav_Annotations" xml:space="preserve"><value>Annotations</value></data>
+  <data name="Nav_Digest" xml:space="preserve"><value>Weekly Digest</value></data>
+
+  <!-- Section Headers -->
+  <data name="Section_Intelligence" xml:space="preserve"><value>INTELLIGENCE</value></data>
+  <data name="Section_Knowledge" xml:space="preserve"><value>KNOWLEDGE</value></data>
+  <data name="Section_System" xml:space="preserve"><value>SYSTEM</value></data>
+  <data name="Section_Support" xml:space="preserve"><value>SUPPORT</value></data>
+
+  <!-- Common Actions -->
+  <data name="Action_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Action_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Action_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Action_Export" xml:space="preserve"><value>Export</value></data>
+  <data name="Action_Import" xml:space="preserve"><value>Import</value></data>
+  <data name="Action_Search" xml:space="preserve"><value>Search</value></data>
+  <data name="Action_Create" xml:space="preserve"><value>Create</value></data>
+  <data name="Action_Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Action_Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Action_Browse" xml:space="preserve"><value>Browse</value></data>
+  <data name="Action_Copy" xml:space="preserve"><value>Copy</value></data>
+  <data name="Action_Refresh" xml:space="preserve"><value>Refresh</value></data>
+
+  <!-- Status Messages -->
+  <data name="Status_Loading" xml:space="preserve"><value>Loading...</value></data>
+  <data name="Status_Connected" xml:space="preserve"><value>Connected</value></data>
+  <data name="Status_Disconnected" xml:space="preserve"><value>Disconnected</value></data>
+  <data name="Status_Initializing" xml:space="preserve"><value>Initializing...</value></data>
+  <data name="Status_Ready" xml:space="preserve"><value>Ready</value></data>
+
+  <!-- Backup & Restore -->
+  <data name="Backup_Title" xml:space="preserve"><value>Backup &amp; Restore</value></data>
+  <data name="Backup_Subtitle" xml:space="preserve"><value>Protect your knowledge base with encrypted backups and one-click restore.</value></data>
+  <data name="Backup_CreateBackup" xml:space="preserve"><value>Create Backup</value></data>
+  <data name="Backup_RestoreFromBackup" xml:space="preserve"><value>Restore from Backup</value></data>
+  <data name="Backup_History" xml:space="preserve"><value>Backup History</value></data>
+  <data name="Backup_Destination" xml:space="preserve"><value>Destination Folder</value></data>
+  <data name="Backup_Encrypt" xml:space="preserve"><value>Encrypt backup (AES-256)</value></data>
+  <data name="Backup_IncludeDocs" xml:space="preserve"><value>Include indexed documents</value></data>
+  <data name="Backup_Success" xml:space="preserve"><value>Backup created successfully</value></data>
+  <data name="Backup_RestoreComplete" xml:space="preserve"><value>Restore Complete</value></data>
+
+  <!-- Annotations -->
+  <data name="Annotations_Title" xml:space="preserve"><value>Annotations</value></data>
+  <data name="Annotations_Highlights" xml:space="preserve"><value>highlights</value></data>
+  <data name="Annotations_SearchPlaceholder" xml:space="preserve"><value>Search annotations...</value></data>
+  <data name="Annotations_FilterByColor" xml:space="preserve"><value>FILTER BY COLOR</value></data>
+  <data name="Annotations_Distribution" xml:space="preserve"><value>DISTRIBUTION</value></data>
+  <data name="Annotations_ExportMarkdown" xml:space="preserve"><value>Export as Markdown</value></data>
+  <data name="Annotations_Empty" xml:space="preserve"><value>No annotations yet</value></data>
+  <data name="Annotations_EmptyHint" xml:space="preserve"><value>Highlight text in your documents to create annotations.</value></data>
+
+  <!-- Settings -->
+  <data name="Settings_Title" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings_Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings_LanguageHint" xml:space="preserve"><value>Changes take effect after restart</value></data>
+  <data name="Settings_SystemDefault" xml:space="preserve"><value>System Default</value></data>
+  <data name="Settings_KeyboardShortcuts" xml:space="preserve"><value>Keyboard Shortcuts</value></data>
+</root>

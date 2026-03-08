@@ -1,3 +1,4 @@
+using System.Linq;
 using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Input;
@@ -46,12 +47,21 @@ public sealed partial class MainWindow : Window
             ["Chat"] = typeof(Views.ChatPage),
             ["AskFiles"] = typeof(Views.AskFilesPage),
             ["QuickActions"] = typeof(Views.QuickActionsPage),
+            ["Workflows"] = typeof(Views.WorkflowBuilderPage),
             ["KnowledgeVault"] = typeof(Views.KnowledgeVaultPage),
+            ["WebImport"] = typeof(Views.WebImportPage),
             ["Collections"] = typeof(Views.CollectionManagerPage),
             ["Search"] = typeof(Views.SearchPage),
             ["KnowledgeGraph"] = typeof(Views.KnowledgeGraphPage),
             ["ModelManager"] = typeof(Views.ModelManagerPage),
             ["HardwareAdvisor"] = typeof(Views.HardwareAdvisorPage),
+            ["BackupRestore"] = typeof(Views.BackupRestorePage),
+            ["Annotations"] = typeof(Views.AnnotationsPage),
+            ["Inbox"] = typeof(Views.InboxPage),
+            ["Comparison"] = typeof(Views.ComparisonPage),
+            ["WorkspaceProfiles"] = typeof(Views.WorkspaceProfilePage),
+            ["PluginManager"] = typeof(Views.PluginManagerPage),
+            ["SyncSettings"] = typeof(Views.SyncSettingsPage),
             ["Onboarding"] = typeof(Views.OnboardingPage),
             ["UserGuide"] = typeof(Views.UserGuidePage),
             ["PrivacyPolicy"] = typeof(Views.PrivacyPolicyPage),
@@ -65,12 +75,21 @@ public sealed partial class MainWindow : Window
             ["Chat"] = NavChat,
             ["AskFiles"] = NavAskFiles,
             ["QuickActions"] = NavQuickActions,
+            ["Workflows"] = NavWorkflows,
             ["KnowledgeVault"] = NavVault,
+            ["WebImport"] = NavWebImport,
             ["Collections"] = NavCollections,
             ["Search"] = NavSearch,
             ["KnowledgeGraph"] = NavKnowledgeGraph,
             ["ModelManager"] = NavModels,
             ["HardwareAdvisor"] = NavHardware,
+            ["BackupRestore"] = NavBackupRestore,
+            ["Annotations"] = NavAnnotations,
+            ["Inbox"] = NavInbox,
+            ["Comparison"] = NavComparison,
+            ["WorkspaceProfiles"] = NavWorkspaceProfiles,
+            ["PluginManager"] = NavPluginManager,
+            ["SyncSettings"] = NavSyncSettings,
             ["Settings"] = NavSettings,
             ["UserGuide"] = NavUserGuide,
             ["PrivacyPolicy"] = NavPrivacyPolicy,
@@ -107,38 +126,77 @@ public sealed partial class MainWindow : Window
 
     private void RegisterDefaultShortcuts()
     {
-        // Ctrl+K — Toggle Command Palette
+        // ── Navigation Shortcuts ──────────────────────────────────
         _keyboardShortcutService.RegisterShortcut(
             VirtualKey.K, ctrl: true, shift: false, alt: false,
-            () => CommandPalette.Toggle());
+            () => CommandPalette.Toggle(),
+            "cmd.palette", "Command Palette", "Navigation");
 
-        // Ctrl+N — Navigate to Chat (new conversation)
         _keyboardShortcutService.RegisterShortcut(
             VirtualKey.N, ctrl: true, shift: false, alt: false,
-            () => NavigateToPage("Chat"));
+            () => NavigateToPage("Chat"),
+            "nav.chat", "New Conversation", "Navigation");
 
-        // Ctrl+I — Navigate to Knowledge Vault (import)
         _keyboardShortcutService.RegisterShortcut(
             VirtualKey.I, ctrl: true, shift: false, alt: false,
-            () => NavigateToPage("KnowledgeVault"));
+            () => NavigateToPage("KnowledgeVault"),
+            "nav.vault", "Knowledge Vault", "Navigation");
 
-        // Ctrl+F — Navigate to Search
         _keyboardShortcutService.RegisterShortcut(
             VirtualKey.F, ctrl: true, shift: false, alt: false,
-            () => NavigateToPage("Search"));
+            () => NavigateToPage("Search"),
+            "nav.search", "Semantic Search", "Navigation");
 
-        // Ctrl+Shift+F — Navigate to Search (alternate)
         _keyboardShortcutService.RegisterShortcut(
             VirtualKey.F, ctrl: true, shift: true, alt: false,
-            () => NavigateToPage("Search"));
+            () => NavigateToPage("Search"),
+            "nav.search.alt", "Semantic Search", "Navigation");
 
-        // Ctrl+, — Navigate to Settings
-        // Note: VirtualKey 188 is the comma key on most keyboard layouts
         _keyboardShortcutService.RegisterShortcut(
             (VirtualKey)188, ctrl: true, shift: false, alt: false,
-            () => NavigateToPage("Settings"));
+            () => NavigateToPage("Settings"),
+            "nav.settings", "Settings", "Navigation");
 
-        // Escape — Close Command Palette (only if open)
+        // ── Page Quick-Access (Ctrl+1 through Ctrl+9) ─────────────
+        var pageOrder = new[] { "Dashboard", "Chat", "AskFiles", "Search", "KnowledgeVault", "Collections", "Workflows", "ModelManager", "Settings" };
+        for (int i = 0; i < pageOrder.Length; i++)
+        {
+            var pageTag = pageOrder[i];
+            var num = i + 1;
+            _keyboardShortcutService.RegisterShortcut(
+                (VirtualKey)(num + 48), ctrl: true, shift: false, alt: false,
+                () => NavigateToPage(pageTag),
+                $"nav.page{num}", $"{pageTag} (Ctrl+{num})", "Quick Access");
+        }
+
+        // ── App Actions ───────────────────────────────────────────
+        _keyboardShortcutService.RegisterShortcut(
+            VirtualKey.W, ctrl: true, shift: true, alt: false,
+            () => NavigateToPage("Workflows"),
+            "nav.workflows", "Workflows", "Actions");
+
+        _keyboardShortcutService.RegisterShortcut(
+            VirtualKey.E, ctrl: true, shift: true, alt: false,
+            () => NavigateToPage("WebImport"),
+            "nav.webimport", "Web Import", "Actions");
+
+        _keyboardShortcutService.RegisterShortcut(
+            VirtualKey.D, ctrl: true, shift: false, alt: false,
+            () => NavigateToPage("Dashboard"),
+            "nav.dashboard", "Dashboard", "Actions");
+
+        _keyboardShortcutService.RegisterShortcut(
+            VirtualKey.G, ctrl: true, shift: false, alt: false,
+            () => NavigateToPage("KnowledgeGraph"),
+            "nav.graph", "Knowledge Graph", "Actions");
+
+        // ── Keyboard Shortcuts Help (Ctrl+?) ──────────────────────
+        _keyboardShortcutService.RegisterShortcut(
+            (VirtualKey)191, ctrl: true, shift: true, alt: false,
+            () => ShowShortcutsOverlay(),
+            "help.shortcuts", "Show Keyboard Shortcuts", "Help");
+
+        // ── Escape — Close Command Palette ────────────────────────
         _keyboardShortcutService.RegisterShortcut(
             VirtualKey.Escape, ctrl: false, shift: false, alt: false,
             () =>
@@ -150,6 +208,83 @@ public sealed partial class MainWindow : Window
             });
 
         Log.Information("Registered {Count} default keyboard shortcuts", _keyboardShortcutService.RegisteredCount);
+    }
+
+    private async void ShowShortcutsOverlay()
+    {
+        var shortcuts = _keyboardShortcutService.GetAllShortcuts();
+        var categories = _keyboardShortcutService.GetCategories();
+
+        var content = new StackPanel { Spacing = 16 };
+        foreach (var category in categories)
+        {
+            var catShortcuts = shortcuts.Where(s => s.Category == category).ToList();
+            if (catShortcuts.Count == 0) continue;
+
+            content.Children.Add(new Microsoft.UI.Xaml.Controls.TextBlock
+            {
+                Text = category.ToUpperInvariant(),
+                FontSize = 11,
+                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                Opacity = 0.5,
+                Margin = new Thickness(0, 4, 0, 0)
+            });
+
+            foreach (var shortcut in catShortcuts)
+            {
+                var row = new Grid { Margin = new Thickness(0, 2, 0, 2) };
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+                var nameBlock = new Microsoft.UI.Xaml.Controls.TextBlock
+                {
+                    Text = shortcut.DisplayName,
+                    FontSize = 13,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                Grid.SetColumn(nameBlock, 0);
+                row.Children.Add(nameBlock);
+
+                var keyBorder = new Microsoft.UI.Xaml.Controls.Border
+                {
+                    Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["InputBackgroundBrush"],
+                    BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["BorderSubtleBrush"],
+                    BorderThickness = new Thickness(1),
+                    CornerRadius = new CornerRadius(4),
+                    Padding = new Thickness(8, 2, 8, 2)
+                };
+                var keyBlock = new Microsoft.UI.Xaml.Controls.TextBlock
+                {
+                    Text = shortcut.KeyCombo,
+                    FontSize = 12,
+                    FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Consolas"),
+                    Opacity = 0.7
+                };
+                keyBorder.Child = keyBlock;
+                Grid.SetColumn(keyBorder, 1);
+                row.Children.Add(keyBorder);
+
+                content.Children.Add(row);
+            }
+        }
+
+        var scrollViewer = new Microsoft.UI.Xaml.Controls.ScrollViewer
+        {
+            Content = content,
+            MaxHeight = 500,
+            HorizontalScrollBarVisibility = Microsoft.UI.Xaml.Controls.ScrollBarVisibility.Disabled
+        };
+
+        var dialog = new Microsoft.UI.Xaml.Controls.ContentDialog
+        {
+            Title = "Keyboard Shortcuts",
+            Content = scrollViewer,
+            CloseButtonText = "Close",
+            XamlRoot = Content.XamlRoot,
+            RequestedTheme = Microsoft.UI.Xaml.ElementTheme.Dark
+        };
+
+        await dialog.ShowAsync();
     }
 
     private void RootGrid_PreviewKeyDown(object sender, KeyRoutedEventArgs e)

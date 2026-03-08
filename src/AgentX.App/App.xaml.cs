@@ -17,6 +17,17 @@ using AgentX.Core.Services.Settings;
 using AgentX.Core.Services.Tagging;
 using AgentX.Core.Search;
 using AgentX.Core.Services.Intelligence;
+using AgentX.Core.Services.Export;
+using AgentX.Core.Services.Workflows;
+using AgentX.Core.Services.Web;
+using AgentX.Core.Services.Backup;
+using AgentX.Core.Services.Annotations;
+using AgentX.Core.Services.Localization;
+using AgentX.Core.Services.Inbox;
+using AgentX.Core.Services.Workspace;
+using AgentX.Core.Services.Plugins;
+using AgentX.Core.Services.Audio;
+using AgentX.Core.Services.Sync;
 using AgentX.App.Services;
 
 namespace AgentX.App;
@@ -171,6 +182,50 @@ public partial class App : Application
         services.AddSingleton<IKnowledgeGraphService, KnowledgeGraphService>();
         services.AddSingleton<IDigestService, DigestService>();
 
+        // ── Export Services ──────────────────────────────────
+        services.AddSingleton<IExportService, ExportService>();
+
+        // ── Workflow Services ────────────────────────────────
+        services.AddSingleton<IWorkflowService, WorkflowService>();
+        services.AddSingleton<IWorkflowEngine, WorkflowEngine>();
+
+        // ── Web Services ─────────────────────────────────────
+        services.AddSingleton<IWebScraperService, WebScraperService>();
+        services.AddSingleton<IWebImportService, WebImportService>();
+
+        // ── Conversation Branching ───────────────────────────
+        services.AddSingleton<IConversationBranchService, ConversationBranchService>();
+
+        // ── Backup & Restore ────────────────────────────────
+        services.AddSingleton<IBackupService, BackupService>();
+
+        // ── Annotations ─────────────────────────────────────
+        services.AddSingleton<IAnnotationService, AnnotationService>();
+
+        // ── Localization ────────────────────────────────────
+        services.AddSingleton<ILocalizationService, LocalizationService>();
+
+        // ── Inbox (Smart Triage) ──────────────────────────────
+        services.AddSingleton<IInboxService, InboxService>();
+
+        // ── Comparison (Comparative Analysis) ─────────────────
+        services.AddSingleton<IComparisonService, ComparisonService>();
+
+        // ── Workspace Profiles ────────────────────────────────
+        services.AddSingleton<IWorkspaceProfileService, WorkspaceProfileService>();
+
+        // ── Plugin API ──────────────────────────────────────────
+        services.AddSingleton<IPluginService, PluginService>();
+
+        // ── Voice / Audio ──────────────────────────────────────
+        services.AddSingleton<ITranscriptionService, TranscriptionService>();
+
+        // ── Collaborative Sync ─────────────────────────────────
+        services.AddSingleton<ISyncService, SyncService>();
+
+        // ── System Tray ───────────────────────────────────────
+        services.AddSingleton<SystemTrayService>();
+
         // ── ViewModels (Transient) ─────────────────────────────
         services.AddTransient<ViewModels.DashboardViewModel>();
         services.AddTransient<ViewModels.SettingsViewModel>();
@@ -185,6 +240,16 @@ public partial class App : Application
         services.AddTransient<ViewModels.OnboardingViewModel>();
         services.AddTransient<ViewModels.KnowledgeGraphViewModel>();
         services.AddTransient<ViewModels.DigestViewModel>();
+        services.AddTransient<ViewModels.WorkflowBuilderViewModel>();
+        services.AddTransient<ViewModels.WebImportViewModel>();
+        services.AddTransient<ViewModels.ExportViewModel>();
+        services.AddTransient<ViewModels.BackupRestoreViewModel>();
+        services.AddTransient<ViewModels.AnnotationsViewModel>();
+        services.AddTransient<ViewModels.InboxViewModel>();
+        services.AddTransient<ViewModels.ComparisonViewModel>();
+        services.AddTransient<ViewModels.WorkspaceProfileViewModel>();
+        services.AddTransient<ViewModels.PluginManagerViewModel>();
+        services.AddTransient<ViewModels.SyncSettingsViewModel>();
 
         // ── Views (Transient) ──────────────────────────────────
         services.AddTransient<Views.DashboardPage>();
@@ -200,6 +265,15 @@ public partial class App : Application
         services.AddTransient<Views.OnboardingPage>();
         services.AddTransient<Views.KnowledgeGraphPage>();
         services.AddTransient<Views.DigestPage>();
+        services.AddTransient<Views.WorkflowBuilderPage>();
+        services.AddTransient<Views.WebImportPage>();
+        services.AddTransient<Views.BackupRestorePage>();
+        services.AddTransient<Views.AnnotationsPage>();
+        services.AddTransient<Views.InboxPage>();
+        services.AddTransient<Views.ComparisonPage>();
+        services.AddTransient<Views.WorkspaceProfilePage>();
+        services.AddTransient<Views.PluginManagerPage>();
+        services.AddTransient<Views.SyncSettingsPage>();
         services.AddTransient<Views.UserGuidePage>();
         services.AddTransient<Views.PrivacyPolicyPage>();
         services.AddTransient<Views.TermsOfServicePage>();

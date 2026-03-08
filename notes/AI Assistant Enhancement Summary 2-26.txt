@@ -93,7 +93,7 @@
   ┌─────┬──────────────────────────┬────────────────────────────────────────────────────────────────────────────────┐
   │  #  │         Feature          │                                 Why It Matters                                 │
   ├─────┼──────────────────────────┼────────────────────────────────────────────────────────────────────────────────┤
-  │ 6   │ Hybrid Search (Keyword + │ Add SQLite FTS5 alongside vector search with a toggle — users expect keyword   │
+  │ XX6   │ Hybrid Search (Keyword + │ Add SQLite FTS5 alongside vector search with a toggle — users expect keyword   │
   │     │  Semantic)               │ matching, and it catches things semantic search misses                         │
   ├─────┼──────────────────────────┼────────────────────────────────────────────────────────────────────────────────┤
   │ 7   │ Auto-Tagging System      │ Tag infrastructure exists in the schema but has no UI — wire it up with        │

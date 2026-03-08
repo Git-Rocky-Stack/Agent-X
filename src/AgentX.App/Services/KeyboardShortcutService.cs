@@ -1,9 +1,25 @@
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Windows.System;
 
 namespace AgentX.App.Services;
+
+/// <summary>
+/// Describes a registered keyboard shortcut for display in the shortcut overlay.
+/// </summary>
+public sealed class ShortcutDescriptor
+{
+    public required string Id { get; init; }
+    public required string DisplayName { get; init; }
+    public required string Category { get; init; }
+    public required string KeyCombo { get; init; }
+    public VirtualKey Key { get; init; }
+    public bool Ctrl { get; init; }
+    public bool Shift { get; init; }
+    public bool Alt { get; init; }
+}
 
 /// <summary>
 /// Registers and handles global keyboard shortcuts for the application.
@@ -45,23 +61,35 @@ public sealed class KeyboardShortcutService
             if (Ctrl) parts.Add("Ctrl");
             if (Shift) parts.Add("Shift");
             if (Alt) parts.Add("Alt");
-            parts.Add(Key.ToString());
+            parts.Add(FormatKeyName(Key));
             return string.Join("+", parts);
         }
+
+        private static string FormatKeyName(VirtualKey key) => key switch
+        {
+            (VirtualKey)188 => ",",
+            (VirtualKey)190 => ".",
+            (VirtualKey)191 => "/",
+            (VirtualKey)186 => ";",
+            (VirtualKey)222 => "'",
+            (VirtualKey)219 => "[",
+            (VirtualKey)221 => "]",
+            (VirtualKey)220 => "\\",
+            (VirtualKey)189 => "-",
+            (VirtualKey)187 => "=",
+            _ => key.ToString()
+        };
     }
 
     private readonly Dictionary<ShortcutKey, Action> _shortcuts = new();
+    private readonly Dictionary<ShortcutKey, ShortcutDescriptor> _descriptors = new();
 
     /// <summary>
-    /// Registers a keyboard shortcut with the specified modifier keys and action handler.
-    /// If a shortcut with the same key combination already exists, it is overwritten.
+    /// Registers a keyboard shortcut with the specified modifier keys, action handler,
+    /// and optional metadata for the shortcuts overlay.
     /// </summary>
-    /// <param name="key">The primary virtual key.</param>
-    /// <param name="ctrl">Whether Ctrl must be held.</param>
-    /// <param name="shift">Whether Shift must be held.</param>
-    /// <param name="alt">Whether Alt must be held.</param>
-    /// <param name="handler">The action to execute when the shortcut is triggered.</param>
-    public void RegisterShortcut(VirtualKey key, bool ctrl, bool shift, bool alt, Action handler)
+    public void RegisterShortcut(VirtualKey key, bool ctrl, bool shift, bool alt, Action handler,
+        string? id = null, string? displayName = null, string? category = null)
     {
         var shortcutKey = new ShortcutKey(key, ctrl, shift, alt);
 
@@ -71,22 +99,35 @@ public sealed class KeyboardShortcutService
         }
 
         _shortcuts[shortcutKey] = handler;
+
+        if (id is not null && displayName is not null)
+        {
+            _descriptors[shortcutKey] = new ShortcutDescriptor
+            {
+                Id = id,
+                DisplayName = displayName,
+                Category = category ?? "General",
+                KeyCombo = shortcutKey.ToString(),
+                Key = key,
+                Ctrl = ctrl,
+                Shift = shift,
+                Alt = alt
+            };
+        }
+
         Log.Debug("Registered keyboard shortcut: {Shortcut}", shortcutKey);
     }
 
     /// <summary>
     /// Unregisters a previously registered keyboard shortcut.
     /// </summary>
-    /// <param name="key">The primary virtual key.</param>
-    /// <param name="ctrl">Whether Ctrl must be held.</param>
-    /// <param name="shift">Whether Shift must be held.</param>
-    /// <param name="alt">Whether Alt must be held.</param>
     public void UnregisterShortcut(VirtualKey key, bool ctrl, bool shift, bool alt)
     {
         var shortcutKey = new ShortcutKey(key, ctrl, shift, alt);
 
         if (_shortcuts.Remove(shortcutKey))
         {
+            _descriptors.Remove(shortcutKey);
             Log.Debug("Unregistered keyboard shortcut: {Shortcut}", shortcutKey);
         }
         else
@@ -99,11 +140,6 @@ public sealed class KeyboardShortcutService
     /// Attempts to match the given key combination against registered shortcuts.
     /// If a match is found, the associated handler is invoked.
     /// </summary>
-    /// <param name="key">The primary virtual key that was pressed.</param>
-    /// <param name="ctrl">Whether Ctrl is held.</param>
-    /// <param name="shift">Whether Shift is held.</param>
-    /// <param name="alt">Whether Alt is held.</param>
-    /// <returns>True if a shortcut was matched and handled; false otherwise.</returns>
     public bool HandleKeyDown(VirtualKey key, bool ctrl, bool shift, bool alt)
     {
         var shortcutKey = new ShortcutKey(key, ctrl, shift, alt);
@@ -126,6 +162,35 @@ public sealed class KeyboardShortcutService
 
         return false;
     }
+
+    /// <summary>
+    /// Gets all registered shortcuts with their descriptive metadata, grouped by category.
+    /// Used by the keyboard shortcut help overlay.
+    /// </summary>
+    public IReadOnlyList<ShortcutDescriptor> GetAllShortcuts() =>
+        _descriptors.Values
+            .OrderBy(s => s.Category)
+            .ThenBy(s => s.DisplayName)
+            .ToList();
+
+    /// <summary>
+    /// Gets shortcuts filtered by category.
+    /// </summary>
+    public IReadOnlyList<ShortcutDescriptor> GetShortcutsByCategory(string category) =>
+        _descriptors.Values
+            .Where(s => s.Category.Equals(category, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(s => s.DisplayName)
+            .ToList();
+
+    /// <summary>
+    /// Gets all distinct categories that have registered shortcuts.
+    /// </summary>
+    public IReadOnlyList<string> GetCategories() =>
+        _descriptors.Values
+            .Select(s => s.Category)
+            .Distinct()
+            .OrderBy(c => c)
+            .ToList();
 
     /// <summary>
     /// Gets the total number of registered shortcuts (primarily for diagnostics).
