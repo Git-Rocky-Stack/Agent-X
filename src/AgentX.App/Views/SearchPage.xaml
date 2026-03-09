@@ -41,7 +41,9 @@
             <Grid.RowDefinitions>
                 <!-- Header + Search bar -->
                 <RowDefinition Height="Auto" />
-                <!-- Filter chips -->
+                <!-- Filter chips + Collection filter -->
+                <RowDefinition Height="Auto" />
+                <!-- Advanced filters panel (collapsible) -->
                 <RowDefinition Height="Auto" />
                 <!-- Status bar -->
                 <RowDefinition Height="Auto" />
@@ -171,6 +173,41 @@
                         </Border>
                     </StackPanel>
 
+                    <!-- Collection Filter + Advanced Toggle -->
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="COLLECTION"
+                                       Style="{StaticResource OverlineStyle}" />
+                            <ComboBox x:Name="CollectionFilterCombo"
+                                      ItemsSource="{x:Bind ViewModel.CollectionFilters, Mode=OneWay}"
+                                      SelectedIndex="0"
+                                      DisplayMemberPath="Name"
+                                      MinWidth="200"
+                                      SelectionChanged="OnCollectionFilterChanged" />
+                        </StackPanel>
+
+                        <Button Grid.Column="2"
+                                Style="{StaticResource GhostButtonStyle}"
+                                Padding="10,6,10,6" MinHeight="32"
+                                VerticalAlignment="Bottom"
+                                Command="{x:Bind ViewModel.ToggleAdvancedFiltersCommand}"
+                                ToolTipService.ToolTip="Toggle advanced search filters">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE71C;" FontSize="12"
+                                          Foreground="{StaticResource TextSecondaryBrush}" />
+                                <TextBlock Text="Advanced"
+                                           Style="{StaticResource CaptionStyle}"
+                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+
                     <!-- File Type Filters -->
                     <TextBlock Text="FILE TYPE"
                                Style="{StaticResource OverlineStyle}" />
@@ -237,15 +274,98 @@
             </Border>
 
             <!-- ==========================================================
-                 ROW 2: STATUS BAR
+                 ROW 2: ADVANCED FILTERS PANEL (collapsible)
                  ========================================================== -->
 
-            <Border Grid.Row="2"
+            <Border Grid.Row="2" Padding="32,0,32,12"
+                    Visibility="{x:Bind ViewModel.IsAdvancedFiltersOpen, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <Border Background="{StaticResource InputBackgroundBrush}"
+                        CornerRadius="{StaticResource RadiusMD}"
+                        Padding="20,16,20,16"
+                        MaxWidth="900">
+                    <Grid ColumnSpacing="24" RowSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!-- Min Score Slider -->
+                        <StackPanel Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="MIN RELEVANCE"
+                                           Style="{StaticResource OverlineStyle}" />
+                                <TextBlock Style="{StaticResource MonoSmallStyle}"
+                                           Foreground="{StaticResource TextAccentBrush}"
+                                           Text="{x:Bind local:SearchPage.FormatPercent(ViewModel.MinScoreFilter), Mode=OneWay}" />
+                            </StackPanel>
+                            <Slider Minimum="0" Maximum="100" StepFrequency="5"
+                                    Value="{x:Bind ViewModel.MinScoreFilter, Mode=TwoWay}" />
+                        </StackPanel>
+
+                        <!-- Max Results -->
+                        <StackPanel Grid.Column="1" Spacing="6">
+                            <TextBlock Text="MAX RESULTS"
+                                       Style="{StaticResource OverlineStyle}" />
+                            <NumberBox Minimum="1" Maximum="100"
+                                       SpinButtonPlacementMode="Inline"
+                                       Value="{x:Bind ViewModel.TopKFilter, Mode=TwoWay}"
+                                       SmallChange="5" LargeChange="10" />
+                        </StackPanel>
+
+                        <!-- Reset button -->
+                        <Button Grid.Column="2"
+                                Style="{StaticResource GhostButtonStyle}"
+                                Padding="10,6,10,6" MinHeight="32"
+                                VerticalAlignment="Bottom"
+                                Command="{x:Bind ViewModel.ClearAdvancedFiltersCommand}"
+                                ToolTipService.ToolTip="Reset all advanced filters">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <FontIcon Glyph="&#xE894;" FontSize="12"
+                                          Foreground="{StaticResource TextSecondaryBrush}" />
+                                <TextBlock Text="Reset"
+                                           Style="{StaticResource CaptionStyle}"
+                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Date After -->
+                        <StackPanel Grid.Row="1" Spacing="6">
+                            <TextBlock Text="CREATED AFTER"
+                                       Style="{StaticResource OverlineStyle}" />
+                            <CalendarDatePicker Date="{x:Bind ViewModel.CreatedAfterDate, Mode=TwoWay}"
+                                                PlaceholderText="Any date"
+                                                MinWidth="180" />
+                        </StackPanel>
+
+                        <!-- Date Before -->
+                        <StackPanel Grid.Row="1" Grid.Column="1" Spacing="6">
+                            <TextBlock Text="CREATED BEFORE"
+                                       Style="{StaticResource OverlineStyle}" />
+                            <CalendarDatePicker Date="{x:Bind ViewModel.CreatedBeforeDate, Mode=TwoWay}"
+                                                PlaceholderText="Any date"
+                                                MinWidth="180" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Border>
+
+            <!-- ==========================================================
+                 ROW 3: STATUS BAR
+                 ========================================================== -->
+
+            <Border Grid.Row="3"
                     Padding="32,0,32,12">
                 <Grid MaxWidth="900">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
@@ -263,8 +383,38 @@
                                    VerticalAlignment="Center" />
                     </StackPanel>
 
-                    <!-- Result count badge (visible when results exist) -->
-                    <Border Grid.Column="2"
+                    <!-- Sort dropdown (visible when results exist) -->
+                    <ComboBox Grid.Column="2"
+                              SelectedIndex="{x:Bind ViewModel.SelectedSortIndex, Mode=TwoWay}"
+                              MinWidth="140"
+                              Visibility="{x:Bind ViewModel.HasResults, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                              VerticalAlignment="Center"
+                              Margin="0,0,8,0">
+                        <ComboBoxItem Content="Relevance" />
+                        <ComboBoxItem Content="Newest First" />
+                        <ComboBoxItem Content="Oldest First" />
+                        <ComboBoxItem Content="File Name" />
+                    </ComboBox>
+
+                    <!-- Save Filter button -->
+                    <Button Grid.Column="3"
+                            Style="{StaticResource GhostButtonStyle}"
+                            Padding="8,4,8,4" MinHeight="28"
+                            Command="{x:Bind ViewModel.SaveCurrentFilterCommand}"
+                            Visibility="{x:Bind ViewModel.HasResults, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                            ToolTipService.ToolTip="Save current search as a filter"
+                            Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <FontIcon Glyph="&#xE728;" FontSize="11"
+                                      Foreground="{StaticResource TextAccentBrush}" />
+                            <TextBlock Text="Save"
+                                       Style="{StaticResource CaptionStyle}"
+                                       Foreground="{StaticResource TextAccentBrush}" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Result count badge -->
+                    <Border Grid.Column="4"
                             Style="{StaticResource BadgeDefaultStyle}"
                             Padding="8,3,8,3"
                             Visibility="{x:Bind ViewModel.HasResults, Mode=OneWay, Converter={StaticResource BoolToVis}}">
@@ -278,10 +428,10 @@
             </Border>
 
             <!-- ==========================================================
-                 ROW 3: CONTENT AREA (Results / Empty / No Results)
+                 ROW 4: CONTENT AREA (Results / Empty / No Results)
                  ========================================================== -->
 
-            <Grid Grid.Row="3">
+            <Grid Grid.Row="4">
 
                 <!-- ======================================================
                      EMPTY STATE: Initial state before any search
@@ -557,6 +707,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <!-- Sidebar Header -->
@@ -654,8 +805,99 @@
                 </ListView.ItemTemplate>
             </ListView>
 
+            <!-- Saved Filters Section -->
+            <Grid Grid.Row="2"
+                  Visibility="{x:Bind ViewModel.HasSavedFilters, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Saved Filters Header -->
+                <Border Grid.Row="0" Padding="16,10,16,6"
+                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                        BorderThickness="0,1,0,0">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE728;" FontSize="12"
+                                  Foreground="{StaticResource TextAccentBrush}"
+                                  VerticalAlignment="Center" />
+                        <TextBlock Text="Saved Filters"
+                                   Style="{StaticResource HeadingSmallStyle}"
+                                   VerticalAlignment="Center" FontSize="12" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Saved Filter Items -->
+                <ItemsRepeater Grid.Row="1"
+                               ItemsSource="{x:Bind ViewModel.SavedFilters, Mode=OneWay}"
+                               Margin="8,0,8,8">
+                    <ItemsRepeater.Layout>
+                        <StackLayout Spacing="2" />
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="vm:SavedFilterItem">
+                            <Border Background="Transparent"
+                                    CornerRadius="{StaticResource RadiusMD}"
+                                    Padding="10,8,10,8">
+                                <Grid ColumnSpacing="6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Spacing="2" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind QueryText}"
+                                                   Style="{StaticResource BodySmallStyle}"
+                                                   FontWeight="SemiBold"
+                                                   MaxLines="1"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <Border Background="{StaticResource AccentSubtleBrush}"
+                                                    CornerRadius="{StaticResource RadiusSM}"
+                                                    Padding="4,1,4,1">
+                                                <TextBlock Text="{x:Bind SearchType}"
+                                                           FontSize="9" FontWeight="Bold"
+                                                           Foreground="{StaticResource TextAccentBrush}"
+                                                           CharacterSpacing="40" />
+                                            </Border>
+                                            <TextBlock Text="{x:Bind SavedAt}"
+                                                       Style="{StaticResource CaptionStyle}"
+                                                       Opacity="0.6" />
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <!-- Apply button -->
+                                    <Button Grid.Column="1"
+                                            Style="{StaticResource GhostButtonStyle}"
+                                            Padding="6,4,6,4" MinHeight="24"
+                                            Tag="{x:Bind}"
+                                            Click="OnApplySavedFilterClick"
+                                            ToolTipService.ToolTip="Apply this filter">
+                                        <FontIcon Glyph="&#xE768;" FontSize="10"
+                                                  Foreground="{StaticResource TextAccentBrush}" />
+                                    </Button>
+
+                                    <!-- Remove button -->
+                                    <Button Grid.Column="2"
+                                            Style="{StaticResource GhostButtonStyle}"
+                                            Padding="6,4,6,4" MinHeight="24"
+                                            Tag="{x:Bind Id}"
+                                            Click="OnRemoveSavedFilterClick"
+                                            ToolTipService.ToolTip="Remove saved filter">
+                                        <FontIcon Glyph="&#xE711;" FontSize="10"
+                                                  Foreground="{StaticResource TextTertiaryBrush}" />
+                                    </Button>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </Grid>
+
             <!-- Sidebar Footer -->
-            <Border Grid.Row="2"
+            <Border Grid.Row="3"
                     Padding="16,10,16,10"
                     BorderBrush="{StaticResource BorderSubtleBrush}"
                     BorderThickness="0,1,0,0">

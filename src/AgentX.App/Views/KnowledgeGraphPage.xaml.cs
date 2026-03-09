@@ -15,6 +15,7 @@ namespace AgentX.App.Views;
 /// Knowledge Graph visualization page. Renders a force-directed node graph
 /// on a Canvas, showing document relationships, collection clusters, and
 /// tag connections. Nodes are clickable for detail display in the sidebar.
+/// Supports zoom, search highlighting, cluster highlighting, and hover tooltips.
 /// </summary>
 public sealed partial class KnowledgeGraphPage : Page
 {
@@ -63,23 +64,21 @@ public sealed partial class KnowledgeGraphPage : Page
 
     private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(KnowledgeGraphViewModel.GraphData)
-            || e.PropertyName == nameof(KnowledgeGraphViewModel.SelectedNode))
+        switch (e.PropertyName)
         {
-            // Must dispatch to UI thread since ViewModel may raise from a background thread
-            DispatcherQueue.TryEnqueue(() =>
-            {
-                if (e.PropertyName == nameof(KnowledgeGraphViewModel.GraphData))
-                {
-                    RenderGraph();
-                }
+            case nameof(KnowledgeGraphViewModel.GraphData):
+            case nameof(KnowledgeGraphViewModel.ZoomLevel):
+            case nameof(KnowledgeGraphViewModel.HighlightedNodeIds):
+                DispatcherQueue.TryEnqueue(RenderGraph);
+                break;
 
-                if (e.PropertyName == nameof(KnowledgeGraphViewModel.SelectedNode))
+            case nameof(KnowledgeGraphViewModel.SelectedNode):
+                DispatcherQueue.TryEnqueue(() =>
                 {
                     UpdateDetailPanel();
                     UpdateDetailColumnWidth();
-                }
-            });
+                });
+                break;
         }
     }
 
@@ -150,8 +149,9 @@ public sealed partial class KnowledgeGraphPage : Page
 
     /// <summary>
     /// Clears the canvas and renders all visible nodes and edges from the
-    /// current graph data. Applies coordinate normalization to fit the
-    /// graph into the available canvas space with padding.
+    /// current graph data. Applies coordinate normalization, zoom, and
+    /// highlighting (search or cluster) to fit the graph into the available
+    /// canvas space with padding.
     /// </summary>
     private void RenderGraph()
     {
@@ -177,6 +177,15 @@ public sealed partial class KnowledgeGraphPage : Page
         // ── Calculate bounding box and normalization ─────────────────
         var (offsetX, offsetY, scale) = CalculateTransform(visibleNodes, canvasWidth, canvasHeight);
 
+        // ── Zoom ─────────────────────────────────────────────────────
+        var zoomScale = ViewModel.ZoomLevel;
+        var centerX = canvasWidth / 2.0;
+        var centerY = canvasHeight / 2.0;
+
+        // ── Highlight state ──────────────────────────────────────────
+        var isHighlighting = ViewModel.IsClusterHighlighted || ViewModel.HasSearchResults;
+        var highlightedIds = ViewModel.HighlightedNodeIds;
+
         // ── Draw edges first (behind nodes) ──────────────────────────
         foreach (var edge in graphData.Edges)
         {
@@ -190,12 +199,25 @@ public sealed partial class KnowledgeGraphPage : Page
             if (sourceNode == null || targetNode == null)
                 continue;
 
-            var sx = sourceNode.X * scale + offsetX;
-            var sy = sourceNode.Y * scale + offsetY;
-            var tx = targetNode.X * scale + offsetX;
-            var ty = targetNode.Y * scale + offsetY;
+            // Apply zoom transform (scale from canvas center)
+            var sx = (sourceNode.X * scale + offsetX - centerX) * zoomScale + centerX;
+            var sy = (sourceNode.Y * scale + offsetY - centerY) * zoomScale + centerY;
+            var tx = (targetNode.X * scale + offsetX - centerX) * zoomScale + centerX;
+            var ty = (targetNode.Y * scale + offsetY - centerY) * zoomScale + centerY;
 
             var edgeColor = ParseColor(edge.ColorHex);
+
+            // Determine edge highlighting
+            var bothHighlighted = isHighlighting &&
+                highlightedIds.Contains(edge.SourceId) && highlightedIds.Contains(edge.TargetId);
+
+            var edgeOpacity = isHighlighting
+                ? (bothHighlighted ? 0.6 : 0.06)
+                : 0.3;
+            var edgeThickness = bothHighlighted
+                ? Math.Clamp(edge.Weight * 1.2, 1.0, 4.0)
+                : Math.Clamp(edge.Weight * 0.8, 0.5, 3.0);
+
             var line = new Line
             {
                 X1 = sx,
@@ -203,8 +225,8 @@ public sealed partial class KnowledgeGraphPage : Page
                 X2 = tx,
                 Y2 = ty,
                 Stroke = new SolidColorBrush(edgeColor),
-                StrokeThickness = Math.Clamp(edge.Weight * 0.8, 0.5, 3.0),
-                Opacity = 0.3,
+                StrokeThickness = edgeThickness,
+                Opacity = edgeOpacity,
             };
 
             GraphCanvas.Children.Add(line);
@@ -215,17 +237,41 @@ public sealed partial class KnowledgeGraphPage : Page
 
         foreach (var node in visibleNodes)
         {
-            var nx = node.X * scale + offsetX;
-            var ny = node.Y * scale + offsetY;
+            // Apply zoom transform
+            var rawX = node.X * scale + offsetX;
+            var rawY = node.Y * scale + offsetY;
+            var nx = (rawX - centerX) * zoomScale + centerX;
+            var ny = (rawY - centerY) * zoomScale + centerY;
             var nodeColor = ParseColor(node.ColorHex);
+            var nodeSize = node.Size * zoomScale;
+
+            var isNodeHighlighted = !isHighlighting || highlightedIds.Contains(node.Id);
+            var nodeOpacity = isNodeHighlighted ? 0.9 : 0.12;
+
+            // Draw glow ring for highlighted nodes when highlighting is active
+            if (isHighlighting && highlightedIds.Contains(node.Id))
+            {
+                var glowSize = nodeSize + 8;
+                var glow = new Ellipse
+                {
+                    Width = glowSize,
+                    Height = glowSize,
+                    Fill = new SolidColorBrush(
+                        Color.FromArgb(50, nodeColor.R, nodeColor.G, nodeColor.B)),
+                    IsHitTestVisible = false,
+                };
+                Canvas.SetLeft(glow, nx - glowSize / 2);
+                Canvas.SetTop(glow, ny - glowSize / 2);
+                GraphCanvas.Children.Add(glow);
+            }
 
             // Draw the node circle
             var ellipse = new Ellipse
             {
-                Width = node.Size,
-                Height = node.Size,
+                Width = nodeSize,
+                Height = nodeSize,
                 Fill = new SolidColorBrush(nodeColor),
-                Opacity = 0.9,
+                Opacity = nodeOpacity,
             };
 
             // Highlight the selected node
@@ -236,8 +282,8 @@ public sealed partial class KnowledgeGraphPage : Page
                 ellipse.Stroke = new SolidColorBrush(Colors.White);
             }
 
-            Canvas.SetLeft(ellipse, nx - node.Size / 2);
-            Canvas.SetTop(ellipse, ny - node.Size / 2);
+            Canvas.SetLeft(ellipse, nx - nodeSize / 2);
+            Canvas.SetTop(ellipse, ny - nodeSize / 2);
 
             // Make the node clickable
             ellipse.Tag = node;
@@ -247,20 +293,26 @@ public sealed partial class KnowledgeGraphPage : Page
 
             GraphCanvas.Children.Add(ellipse);
 
-            // Draw the label below the node
-            var label = new TextBlock
+            // Draw label (only for visible/highlighted nodes)
+            if (isNodeHighlighted)
             {
-                Text = TruncateLabel(node.Label, MaxLabelLength),
-                FontSize = 10,
-                Foreground = textBrush,
-                TextAlignment = TextAlignment.Center,
-                MaxWidth = 80,
-                TextTrimming = TextTrimming.CharacterEllipsis,
-            };
+                var scaledFontSize = 10 * Math.Min(zoomScale, 1.5);
+                var scaledMaxWidth = 80 * zoomScale;
 
-            Canvas.SetLeft(label, nx - 40);
-            Canvas.SetTop(label, ny + node.Size / 2 + 3);
-            GraphCanvas.Children.Add(label);
+                var label = new TextBlock
+                {
+                    Text = TruncateLabel(node.Label, MaxLabelLength),
+                    FontSize = scaledFontSize,
+                    Foreground = textBrush,
+                    TextAlignment = TextAlignment.Center,
+                    MaxWidth = scaledMaxWidth,
+                    TextTrimming = TextTrimming.CharacterEllipsis,
+                };
+
+                Canvas.SetLeft(label, nx - scaledMaxWidth / 2);
+                Canvas.SetTop(label, ny + nodeSize / 2 + 3);
+                GraphCanvas.Children.Add(label);
+            }
         }
     }
 
@@ -269,13 +321,21 @@ public sealed partial class KnowledgeGraphPage : Page
     // =================================================================
 
     /// <summary>
-    /// Handles click/tap on a node ellipse to select it.
+    /// Handles click/tap on a node ellipse to select it and optionally
+    /// trigger cluster highlighting for Collection/Tag nodes.
     /// </summary>
     private void Node_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
         if (sender is Ellipse { Tag: GraphNode node })
         {
             ViewModel.SelectNodeCommand.Execute(node);
+
+            // Trigger cluster highlight for Collection/Tag nodes
+            if (node.NodeType is GraphNodeType.Collection or GraphNodeType.Tag)
+            {
+                ViewModel.HighlightClusterCommand.Execute(node);
+            }
+
             e.Handled = true;
 
             // Re-render to update selection highlight
@@ -284,33 +344,103 @@ public sealed partial class KnowledgeGraphPage : Page
     }
 
     /// <summary>
-    /// Provides hover feedback by increasing node opacity.
+    /// Provides hover feedback by increasing node opacity and showing tooltip.
     /// </summary>
     private void Node_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
-        if (sender is Ellipse ellipse)
+        if (sender is Ellipse { Tag: GraphNode node } ellipse)
         {
-            ellipse.Opacity = 1.0;
+            // Increase opacity unless node is dimmed by highlighting
+            var isHighlighting = ViewModel.IsClusterHighlighted || ViewModel.HasSearchResults;
+            if (!isHighlighting || ViewModel.HighlightedNodeIds.Contains(node.Id))
+            {
+                ellipse.Opacity = 1.0;
+            }
+
+            ShowTooltip(node, e);
         }
     }
 
     /// <summary>
-    /// Restores node opacity when pointer leaves.
+    /// Restores node opacity when pointer leaves and hides tooltip.
     /// </summary>
     private void Node_PointerExited(object sender, PointerRoutedEventArgs e)
     {
-        if (sender is Ellipse ellipse)
+        if (sender is Ellipse { Tag: GraphNode node } ellipse)
         {
+            var isHighlighting = ViewModel.IsClusterHighlighted || ViewModel.HasSearchResults;
+
             // Keep full opacity if this is the selected node
-            if (ellipse.Tag is GraphNode node &&
-                ViewModel.SelectedNode != null &&
-                ViewModel.SelectedNode.Id == node.Id)
+            if (ViewModel.SelectedNode?.Id == node.Id)
             {
-                return;
+                ellipse.Opacity = 1.0;
+            }
+            else if (isHighlighting && !ViewModel.HighlightedNodeIds.Contains(node.Id))
+            {
+                ellipse.Opacity = 0.12;
+            }
+            else
+            {
+                ellipse.Opacity = 0.9;
             }
 
-            ellipse.Opacity = 0.9;
+            HideTooltip();
         }
+    }
+
+    // =================================================================
+    // CANVAS INTERACTION
+    // =================================================================
+
+    /// <summary>
+    /// Clicking on canvas background clears cluster highlight.
+    /// </summary>
+    private void GraphCanvas_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        if (ViewModel.IsClusterHighlighted)
+        {
+            ViewModel.ClearClusterHighlightCommand.Execute(null);
+        }
+    }
+
+    /// <summary>
+    /// Mouse wheel zoom on the canvas.
+    /// </summary>
+    private void GraphCanvas_PointerWheelChanged(object sender, PointerRoutedEventArgs e)
+    {
+        var delta = e.GetCurrentPoint(GraphCanvas).Properties.MouseWheelDelta;
+        if (delta > 0)
+            ViewModel.ZoomInCommand.Execute(null);
+        else if (delta < 0)
+            ViewModel.ZoomOutCommand.Execute(null);
+        e.Handled = true;
+    }
+
+    // =================================================================
+    // TOOLTIP
+    // =================================================================
+
+    /// <summary>
+    /// Displays the hover tooltip near the pointer with node details.
+    /// </summary>
+    private void ShowTooltip(GraphNode node, PointerRoutedEventArgs e)
+    {
+        TooltipLabel.Text = node.Label;
+        TooltipType.Text = node.NodeType.ToString();
+        TooltipTypeIndicator.Fill = new SolidColorBrush(ParseColor(node.ColorHex));
+        TooltipConnections.Text = $"{node.ConnectionCount} connection{(node.ConnectionCount != 1 ? "s" : "")}";
+
+        var point = e.GetCurrentPoint(GraphCanvas).Position;
+        NodeTooltip.Margin = new Thickness(point.X + 16, point.Y - 8, 0, 0);
+        NodeTooltip.Visibility = Visibility.Visible;
+    }
+
+    /// <summary>
+    /// Hides the hover tooltip.
+    /// </summary>
+    private void HideTooltip()
+    {
+        NodeTooltip.Visibility = Visibility.Collapsed;
     }
 
     // =================================================================
@@ -442,4 +572,18 @@ public sealed partial class KnowledgeGraphPage : Page
 
         return Visibility.Collapsed;
     }
+
+    // =================================================================
+    // STATIC HELPERS for x:Bind in DataTemplate
+    // =================================================================
+
+    /// <summary>
+    /// Formats the zoom level for display (e.g., "1.0x").
+    /// </summary>
+    public static string FormatZoom(double zoomLevel) => $"{zoomLevel:F1}x";
+
+    /// <summary>
+    /// Formats the search match count for display (e.g., "3 found").
+    /// </summary>
+    public static string FormatMatchCount(int count) => $"{count} found";
 }

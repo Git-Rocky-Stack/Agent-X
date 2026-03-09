@@ -4,7 +4,8 @@
 - **23 ViewModels**, **25 entities**, **50+ services**, **25+ navigation pages**
 - **222 unit tests** passing (was 0% - test project was scaffolded but empty)
 - Tiers 1-3 enhancements completed, Tier 4 (Plugin Manager + Sync Settings) completed
-- High Priority #1-4 completed (Unit Tests, Validation, Error Handling, Search Caching)
+- High Priority #1-5 completed (Unit Tests, Validation, Error Handling, Search Caching, Hybrid Search UI)
+- Medium Priority #8 completed (Knowledge Graph enhanced with search, zoom, tooltips, cluster highlight)
 
 ---
 
@@ -16,7 +17,7 @@
 | 2 | **Input Validation Layer** | IValidator<T> with AppSettingsValidator, SyncConfigurationValidator, PluginManifestValidator. Registered in DI. | DONE |
 | 3 | **Structured Error Handling** | 7 typed exceptions: AgentXException, EntityNotFoundException, ValidationException, PluginException, SyncException, ExportException, LicenseException. | DONE |
 | 4 | **Search Result Caching** | Thread-safe LRU cache (100 entries, 5min TTL) integrated into HybridSearchOrchestrator with auto-invalidation on re-index. | DONE |
-| 5 | **Hybrid Search Prominence** | The semantic + keyword hybrid search infrastructure exists but isn't surfaced well in the UI — add a unified search bar with filters and facets. | Pending |
+| 5 | **Hybrid Search Prominence** | Collection filter dropdown, advanced filters panel (min relevance, max results, date range), sort options, saved filters sidebar. Full UI + backend. | DONE |
 
 ## MEDIUM PRIORITY — Feature Richness
 
@@ -24,7 +25,7 @@
 |---|-------------|-------------|--------|
 | 6 | **Localization / i18n** | All strings are hardcoded English. Add IStringLocalizer with .resw resource files for multi-language support. | Pending |
 | 7 | **Plugin Documentation Viewer** | Show plugin README/docs inline in the Plugin Manager detail panel. | Pending |
-| 8 | **Knowledge Graph Visualization** | Visualize entity relationships in the knowledge base using an interactive node graph. | Pending |
+| 8 | **Knowledge Graph Visualization** | Node search/highlight, zoom/pan controls (mouse wheel + buttons), hover tooltips, cluster highlighting for Collection/Tag nodes. | DONE |
 | 9 | **Additional Export Formats** | Currently limited — add PDF, Markdown, and CSV export for reports, search results, and sync history. | Pending |
 | 10 | **Workflow Templates** | Pre-built agent workflow templates users can import and customize. | Pending |
 | 11 | **Batch Operations** | Multi-select in list views (plugins, documents, history) with bulk enable/disable/delete. | Pending |

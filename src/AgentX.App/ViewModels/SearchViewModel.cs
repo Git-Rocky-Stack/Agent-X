@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using AgentX.Core.Documents;
 using AgentX.Core.Search;
 using AgentX.Core.Search.Models;
+using AgentX.Core.Services.Collections;
 using Serilog;
 
 namespace AgentX.App.ViewModels;
@@ -14,7 +15,7 @@ namespace AgentX.App.ViewModels;
 //
 // Drives the Semantic Search page: accepts user queries, performs vector
 // similarity search via ISemanticSearchService, manages results display,
-// search history, file-type filtering, and latency reporting.
+// search history, file-type filtering, saved filters, and latency reporting.
 // =============================================================================
 
 public partial class SearchViewModel : ObservableObject
@@ -22,6 +23,7 @@ public partial class SearchViewModel : ObservableObject
     private readonly ISemanticSearchService _searchService;
     private readonly IHybridSearchOrchestrator _hybridSearchOrchestrator;
     private readonly IDocumentService _documentService;
+    private readonly ICollectionService _collectionService;
     private readonly ILogger _logger;
 
     // ── Search Input & State ─────────────────────────────────────
@@ -36,9 +38,25 @@ public partial class SearchViewModel : ObservableObject
     [ObservableProperty] private string _statusMessage = "Ready to search";
     [ObservableProperty] private SearchMode _searchMode = SearchMode.Semantic;
 
-    // ── Collections ──────────────────────────────────────────────
+    // ── Advanced Filters ─────────────────────────────────────────
+    [ObservableProperty] private bool _isAdvancedFiltersOpen;
+    [ObservableProperty] private double _minScoreFilter = 30;
+    [ObservableProperty] private int _topKFilter = 20;
+    [ObservableProperty] private DateTimeOffset? _createdAfterDate;
+    [ObservableProperty] private DateTimeOffset? _createdBeforeDate;
+    [ObservableProperty] private long _selectedCollectionFilterId;
+
+    // ── Sort ─────────────────────────────────────────────────────
+    [ObservableProperty] private int _selectedSortIndex;
+
+    // ── Saved Filters ────────────────────────────────────────────
+    [ObservableProperty] private bool _hasSavedFilters;
+
+    // ── Observable Collections ────────────────────────────────────
     public ObservableCollection<SearchResultItem> Results { get; } = new();
     public ObservableCollection<SearchHistoryItem> SearchHistory { get; } = new();
+    public ObservableCollection<SavedFilterItem> SavedFilters { get; } = new();
+    public ObservableCollection<CollectionFilterItem> CollectionFilters { get; } = new();
 
     // ── Internal history storage ─────────────────────────────────
     private readonly List<SearchHistoryItem> _historyStore = new();
@@ -57,11 +75,13 @@ public partial class SearchViewModel : ObservableObject
         ISemanticSearchService searchService,
         IHybridSearchOrchestrator hybridSearchOrchestrator,
         IDocumentService documentService,
+        ICollectionService collectionService,
         ILogger logger)
     {
         _searchService = searchService;
         _hybridSearchOrchestrator = hybridSearchOrchestrator;
         _documentService = documentService;
+        _collectionService = collectionService;
         _logger = logger;
         _logger.Debug("SearchViewModel created with services");
     }
@@ -88,6 +108,8 @@ public partial class SearchViewModel : ObservableObject
         try
         {
             await LoadSearchHistoryAsync();
+            await LoadSavedFiltersAsync();
+            await LoadCollectionFiltersAsync();
             StatusMessage = "Ready to search";
         }
         catch (Exception ex)
@@ -164,12 +186,19 @@ public partial class SearchViewModel : ObservableObject
             var stopwatch = Stopwatch.StartNew();
 
             // Execute search via the hybrid orchestrator (handles Semantic, Keyword, and Hybrid modes)
+            var effectiveCollectionId = SelectedCollectionFilterId > 0
+                ? SelectedCollectionFilterId
+                : SelectedCollectionId;
+
             var searchQuery = new SearchQuery
             {
                 QueryText = query,
-                TopK = 20,
-                CollectionId = SelectedCollectionId,
+                TopK = TopKFilter,
+                MinScore = (float)(MinScoreFilter / 100.0),
+                CollectionId = effectiveCollectionId,
                 FileTypeFilter = SelectedFileTypeFilter,
+                CreatedAfter = CreatedAfterDate?.DateTime,
+                CreatedBefore = CreatedBeforeDate?.DateTime,
                 Mode = SearchMode
             };
             var rawResults = await _hybridSearchOrchestrator.SearchAsync(searchQuery);
@@ -314,6 +343,132 @@ public partial class SearchViewModel : ObservableObject
         }
     }
 
+    // =================================================================
+    // SAVED FILTER COMMANDS
+    // =================================================================
+
+    /// <summary>
+    /// Saves the current query and search mode as a reusable saved filter.
+    /// </summary>
+    [RelayCommand]
+    private async Task SaveCurrentFilterAsync()
+    {
+        var query = QueryText?.Trim();
+        if (string.IsNullOrWhiteSpace(query))
+            return;
+
+        try
+        {
+            await _searchService.SaveSearchHistoryAsync(query, TotalResults);
+
+            var history = await _searchService.GetSearchHistoryAsync(50);
+            var entry = history.FirstOrDefault(h =>
+                h.QueryText.Equals(query, StringComparison.OrdinalIgnoreCase));
+
+            if (entry is not null)
+            {
+                await _searchService.SaveSearchFilterAsync(entry.Id);
+                await LoadSavedFiltersAsync();
+                StatusMessage = "Filter saved";
+                _logger.Information("Search filter saved: Query={Query}", query);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Failed to save current filter");
+            StatusMessage = "Failed to save filter";
+        }
+    }
+
+    /// <summary>
+    /// Removes a saved filter by unsaving the underlying search history entry.
+    /// </summary>
+    [RelayCommand]
+    private async Task RemoveSavedFilterAsync(long filterId)
+    {
+        try
+        {
+            await _searchService.UnsaveSearchFilterAsync(filterId);
+            await LoadSavedFiltersAsync();
+            StatusMessage = "Filter removed";
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Failed to remove saved filter {Id}", filterId);
+            StatusMessage = "Failed to remove filter";
+        }
+    }
+
+    /// <summary>
+    /// Restores the query text and search mode from a saved filter and executes the search.
+    /// </summary>
+    [RelayCommand]
+    private async Task ApplySavedFilterAsync(SavedFilterItem? filter)
+    {
+        if (filter is null)
+            return;
+
+        QueryText = filter.QueryText;
+        SearchMode = filter.SearchType?.ToLowerInvariant() switch
+        {
+            "keyword" => SearchMode.Keyword,
+            "hybrid" => SearchMode.Hybrid,
+            _ => SearchMode.Semantic
+        };
+
+        await SearchAsync();
+    }
+
+    // =================================================================
+    // ADVANCED FILTER COMMANDS
+    // =================================================================
+
+    [RelayCommand]
+    private void ToggleAdvancedFilters()
+    {
+        IsAdvancedFiltersOpen = !IsAdvancedFiltersOpen;
+    }
+
+    [RelayCommand]
+    private void ClearAdvancedFilters()
+    {
+        MinScoreFilter = 30;
+        TopKFilter = 20;
+        CreatedAfterDate = null;
+        CreatedBeforeDate = null;
+        SelectedCollectionFilterId = 0;
+    }
+
+    // =================================================================
+    // SORT
+    // =================================================================
+
+    partial void OnSelectedSortIndexChanged(int value)
+    {
+        SortResults();
+    }
+
+    private void SortResults()
+    {
+        if (Results.Count == 0) return;
+
+        var sorted = SelectedSortIndex switch
+        {
+            1 => Results.OrderByDescending(r => r.DocumentId).ToList(),
+            2 => Results.OrderBy(r => r.DocumentId).ToList(),
+            3 => Results.OrderBy(r => r.FileName).ToList(),
+            _ => Results.OrderByDescending(r => r.RelevancePercent).ToList(),
+        };
+
+        Results.Clear();
+        foreach (var item in sorted)
+            Results.Add(item);
+    }
+
+    // =================================================================
+    // DOCUMENT ACTIONS
+    // =================================================================
+
     /// <summary>
     /// Opens the source document in Windows Explorer, selecting the file.
     /// </summary>
@@ -437,6 +592,51 @@ public partial class SearchViewModel : ObservableObject
         foreach (var item in _historyStore)
             SearchHistory.Add(item);
     }
+
+    private async Task LoadSavedFiltersAsync()
+    {
+        try
+        {
+            var entries = await _searchService.GetSavedFiltersAsync();
+
+            SavedFilters.Clear();
+            foreach (var entry in entries)
+            {
+                SavedFilters.Add(new SavedFilterItem
+                {
+                    Id = entry.Id,
+                    QueryText = entry.QueryText,
+                    SearchType = entry.SearchType,
+                    SavedAt = FormatTimeAgo(entry.SearchedAt)
+                });
+            }
+
+            HasSavedFilters = SavedFilters.Count > 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Failed to load saved filters");
+        }
+    }
+
+    private async Task LoadCollectionFiltersAsync()
+    {
+        try
+        {
+            var collections = await _collectionService.GetAllCollectionsAsync();
+
+            CollectionFilters.Clear();
+            CollectionFilters.Add(new CollectionFilterItem { Id = 0, Name = "All Collections", DocumentCount = 0 });
+            foreach (var col in collections.OrderBy(c => c.Name))
+            {
+                CollectionFilters.Add(new CollectionFilterItem { Id = col.Id, Name = col.Name, DocumentCount = col.DocumentCount });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Failed to load collection filters");
+        }
+    }
 }
 
 // =============================================================================
@@ -492,3 +692,17 @@ public class SearchHistoryItem
     public int ResultCount { get; init; }
     public string SearchedAgo { get; init; } = string.Empty;
 }
+
+// =============================================================================
+// SAVED FILTER ITEM — Display model for a bookmarked search filter
+// =============================================================================
+
+public class SavedFilterItem
+{
+    public long Id { get; init; }
+    public string QueryText { get; init; } = string.Empty;
+    public string SearchType { get; init; } = "semantic";
+    public string SavedAt { get; init; } = string.Empty;
+}
+
+// NOTE: CollectionFilterItem is defined in KnowledgeVaultViewModel.cs

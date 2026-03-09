@@ -289,7 +289,10 @@ public sealed class SemanticSearchService : ISemanticSearchService
                     Id = h.Id,
                     QueryText = h.Query,
                     ResultCount = h.ResultCount,
-                    SearchedAt = h.SearchedAt
+                    SearchedAt = h.SearchedAt,
+                    IsSaved = h.IsSaved,
+                    SearchType = h.SearchType,
+                    CollectionFilter = h.CollectionFilter
                 })
                 .ToListAsync()
                 .ConfigureAwait(false);
@@ -315,6 +318,59 @@ public sealed class SemanticSearchService : ISemanticSearchService
         {
             _logger.Error(ex, "Failed to clear search history");
             throw;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task SaveSearchFilterAsync(long historyId)
+    {
+        var entry = await _db.SearchHistory.FindAsync(historyId).ConfigureAwait(false);
+        if (entry is not null)
+        {
+            entry.IsSaved = true;
+            await _db.SaveChangesAsync().ConfigureAwait(false);
+            _logger.Debug("Search filter saved: ID={Id}", historyId);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task UnsaveSearchFilterAsync(long historyId)
+    {
+        var entry = await _db.SearchHistory.FindAsync(historyId).ConfigureAwait(false);
+        if (entry is not null)
+        {
+            entry.IsSaved = false;
+            await _db.SaveChangesAsync().ConfigureAwait(false);
+            _logger.Debug("Search filter unsaved: ID={Id}", historyId);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<SearchHistoryEntry>> GetSavedFiltersAsync()
+    {
+        try
+        {
+            return await _db.SearchHistory
+                .AsNoTracking()
+                .Where(h => h.IsSaved)
+                .OrderByDescending(h => h.SearchedAt)
+                .Select(h => new SearchHistoryEntry
+                {
+                    Id = h.Id,
+                    QueryText = h.Query,
+                    ResultCount = h.ResultCount,
+                    SearchedAt = h.SearchedAt,
+                    IsSaved = h.IsSaved,
+                    SearchType = h.SearchType,
+                    CollectionFilter = h.CollectionFilter
+                })
+                .ToListAsync()
+                .ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Failed to retrieve saved filters");
+            return Array.Empty<SearchHistoryEntry>();
         }
     }
 

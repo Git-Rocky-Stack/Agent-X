@@ -34,6 +34,21 @@ public interface ISemanticSearchService
     /// Clears all search history.
     /// </summary>
     Task ClearSearchHistoryAsync();
+
+    /// <summary>
+    /// Marks a search history entry as a saved filter for quick re-use.
+    /// </summary>
+    Task SaveSearchFilterAsync(long historyId);
+
+    /// <summary>
+    /// Removes the saved-filter flag from a search history entry.
+    /// </summary>
+    Task UnsaveSearchFilterAsync(long historyId);
+
+    /// <summary>
+    /// Retrieves all search history entries that have been saved as filters.
+    /// </summary>
+    Task<IReadOnlyList<SearchHistoryEntry>> GetSavedFiltersAsync();
 }
 
 /// <summary>
@@ -45,4 +60,7 @@ public class SearchHistoryEntry
     public string QueryText { get; init; } = string.Empty;
     public int ResultCount { get; init; }
     public DateTime SearchedAt { get; init; }
+    public bool IsSaved { get; init; }
+    public string SearchType { get; init; } = "semantic";
+    public string? CollectionFilter { get; init; }
 }

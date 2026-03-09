@@ -55,6 +55,8 @@
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <!-- Title + Description -->
+                        <ColumnDefinition Width="Auto" />
+                        <!-- Node Search -->
                         <ColumnDefinition Width="*" />
                         <!-- Stat badges + Refresh button -->
                         <ColumnDefinition Width="Auto" />
@@ -64,12 +66,37 @@
                     <StackPanel Spacing="4" VerticalAlignment="Center">
                         <TextBlock Text="Knowledge Graph"
                                    Style="{StaticResource DisplaySmallStyle}" />
-                        <TextBlock Text="Visualize how your documents, collections, and tags relate to each other."
+                        <TextBlock Text="Visualize relationships between documents, collections, and tags."
                                    Style="{StaticResource BodySecondaryStyle}" />
                     </StackPanel>
 
+                    <!-- Node Search -->
+                    <Grid Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"
+                          Margin="24,0,24,0" MinWidth="220" MaxWidth="340">
+                        <TextBox x:Name="GraphSearchBox"
+                                 PlaceholderText="Search nodes..."
+                                 Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 Padding="36,8,12,8"
+                                 CornerRadius="{StaticResource RadiusMD}" />
+                        <FontIcon Glyph="&#xE721;" FontSize="14"
+                                  Foreground="{StaticResource TextTertiaryBrush}"
+                                  HorizontalAlignment="Left" VerticalAlignment="Center"
+                                  Margin="12,0,0,0" IsHitTestVisible="False" />
+                        <!-- Search match count badge -->
+                        <Border Background="{StaticResource AccentSubtleBrush}"
+                                CornerRadius="{StaticResource RadiusSM}"
+                                Padding="6,2,6,2"
+                                HorizontalAlignment="Right" VerticalAlignment="Center"
+                                Margin="0,0,8,0"
+                                Visibility="{x:Bind ViewModel.HasSearchResults, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Style="{StaticResource MonoSmallStyle}"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       Text="{x:Bind local:KnowledgeGraphPage.FormatMatchCount(ViewModel.SearchMatchCount), Mode=OneWay}" />
+                        </Border>
+                    </Grid>
+
                     <!-- Stats + Refresh -->
-                    <StackPanel Grid.Column="1"
+                    <StackPanel Grid.Column="2"
                                 Orientation="Horizontal"
                                 Spacing="8"
                                 VerticalAlignment="Center">
@@ -148,7 +175,9 @@
                     <!-- The Canvas for programmatic graph rendering -->
                     <Canvas x:Name="GraphCanvas"
                             Background="Transparent"
-                            SizeChanged="GraphCanvas_SizeChanged" />
+                            SizeChanged="GraphCanvas_SizeChanged"
+                            PointerPressed="GraphCanvas_PointerPressed"
+                            PointerWheelChanged="GraphCanvas_PointerWheelChanged" />
                 </Border>
 
                 <!-- Loading overlay -->
@@ -165,6 +194,75 @@
                         <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
                                    Style="{StaticResource BodySecondaryStyle}"
                                    HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Zoom Controls Overlay (bottom-right) -->
+                <Border HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Margin="0,0,16,16"
+                        Background="{StaticResource CardBackgroundBrush}"
+                        CornerRadius="{StaticResource RadiusMD}"
+                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                        BorderThickness="1"
+                        Padding="4">
+                    <StackPanel Orientation="Horizontal" Spacing="2">
+                        <Button Style="{StaticResource GhostButtonStyle}"
+                                Padding="8,6,8,6" MinHeight="32" MinWidth="32"
+                                Command="{x:Bind ViewModel.ZoomOutCommand}"
+                                ToolTipService.ToolTip="Zoom Out">
+                            <FontIcon Glyph="&#xE738;" FontSize="14" />
+                        </Button>
+
+                        <TextBlock Style="{StaticResource MonoSmallStyle}"
+                                   VerticalAlignment="Center"
+                                   MinWidth="40" TextAlignment="Center"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Text="{x:Bind local:KnowledgeGraphPage.FormatZoom(ViewModel.ZoomLevel), Mode=OneWay}" />
+
+                        <Button Style="{StaticResource GhostButtonStyle}"
+                                Padding="8,6,8,6" MinHeight="32" MinWidth="32"
+                                Command="{x:Bind ViewModel.ZoomInCommand}"
+                                ToolTipService.ToolTip="Zoom In">
+                            <FontIcon Glyph="&#xE710;" FontSize="14" />
+                        </Button>
+
+                        <Border Width="1" Background="{StaticResource BorderSubtleBrush}" Margin="2,4,2,4" />
+
+                        <Button Style="{StaticResource GhostButtonStyle}"
+                                Padding="8,6,8,6" MinHeight="32" MinWidth="32"
+                                Command="{x:Bind ViewModel.ResetZoomCommand}"
+                                ToolTipService.ToolTip="Reset Zoom">
+                            <FontIcon Glyph="&#xE9A6;" FontSize="14" />
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <!-- Hover Tooltip -->
+                <Border x:Name="NodeTooltip"
+                        Visibility="Collapsed"
+                        Background="{StaticResource CardBackgroundBrush}"
+                        CornerRadius="{StaticResource RadiusMD}"
+                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                        BorderThickness="1"
+                        Padding="12,8,12,8"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        IsHitTestVisible="False">
+                    <StackPanel Spacing="4">
+                        <TextBlock x:Name="TooltipLabel"
+                                   Style="{StaticResource BodySmallStyle}"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Ellipse x:Name="TooltipTypeIndicator" Width="8" Height="8" VerticalAlignment="Center" />
+                            <TextBlock x:Name="TooltipType"
+                                       Style="{StaticResource CaptionStyle}"
+                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+                        <TextBlock x:Name="TooltipConnections"
+                                   Style="{StaticResource CaptionStyle}"
+                                   Foreground="{StaticResource TextTertiaryBrush}" />
                     </StackPanel>
                 </Border>
 
@@ -252,6 +350,27 @@
                             <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
                                        Style="{StaticResource MonoSmallStyle}"
                                        Foreground="{StaticResource TextTertiaryBrush}" />
+                        </Border>
+
+                        <!-- Cluster highlight indicator -->
+                        <Border Background="{StaticResource AccentSubtleBrush}"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Padding="10,4,6,4"
+                                Visibility="{x:Bind ViewModel.IsClusterHighlighted, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="Cluster Active"
+                                           Style="{StaticResource CaptionStyle}"
+                                           Foreground="{StaticResource TextAccentBrush}"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center" />
+                                <Button Style="{StaticResource GhostButtonStyle}"
+                                        Padding="4,2,4,2" MinHeight="20" MinWidth="20"
+                                        Command="{x:Bind ViewModel.ClearClusterHighlightCommand}"
+                                        ToolTipService.ToolTip="Clear cluster highlight">
+                                    <FontIcon Glyph="&#xE711;" FontSize="10"
+                                              Foreground="{StaticResource TextAccentBrush}" />
+                                </Button>
+                            </StackPanel>
                         </Border>
                     </StackPanel>
 

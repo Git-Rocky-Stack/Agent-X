@@ -202,8 +202,53 @@ public sealed partial class SearchPage : Page
     }
 
     // =================================================================
+    // COLLECTION FILTER HANDLING
+    // =================================================================
+
+    private void OnCollectionFilterChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (sender is ComboBox combo && combo.SelectedItem is CollectionFilterItem item)
+        {
+            ViewModel.SelectedCollectionFilterId = item.Id;
+
+            if (!string.IsNullOrWhiteSpace(ViewModel.QueryText))
+            {
+                if (ViewModel.SearchCommand.CanExecute(null))
+                    ViewModel.SearchCommand.Execute(null);
+            }
+        }
+    }
+
+    // =================================================================
+    // SAVED FILTER ACTIONS
+    // =================================================================
+
+    private void OnApplySavedFilterClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: SavedFilterItem filter })
+        {
+            if (ViewModel.ApplySavedFilterCommand.CanExecute(filter))
+                ViewModel.ApplySavedFilterCommand.Execute(filter);
+        }
+    }
+
+    private void OnRemoveSavedFilterClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: long filterId })
+        {
+            if (ViewModel.RemoveSavedFilterCommand.CanExecute(filterId))
+                ViewModel.RemoveSavedFilterCommand.Execute(filterId);
+        }
+    }
+
+    // =================================================================
     // STATIC HELPERS for x:Bind in DataTemplate
     // =================================================================
+
+    /// <summary>
+    /// Formats a percentage value for display in the advanced filters panel.
+    /// </summary>
+    public static string FormatPercent(double value) => $"{value:F0}%";
 
     /// <summary>
     /// Calculates the width of the relevance score bar based on percentage.
