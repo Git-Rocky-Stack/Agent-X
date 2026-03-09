@@ -28,6 +28,9 @@ using AgentX.Core.Services.Workspace;
 using AgentX.Core.Services.Plugins;
 using AgentX.Core.Services.Audio;
 using AgentX.Core.Services.Sync;
+using AgentX.Core.Services.Sync.Models;
+using AgentX.Core.Services.Search;
+using AgentX.Core.Validation;
 using AgentX.App.Services;
 
 namespace AgentX.App;
@@ -170,10 +173,16 @@ public partial class App : Application
         // ── Search & RAG ──────────────────────────────────────────
         services.AddSingleton<ISemanticSearchService, SemanticSearchService>();
         services.AddSingleton<IKeywordSearchService, KeywordSearchService>();
+        services.AddSingleton<ISearchCacheService, SearchCacheService>();
         services.AddSingleton<IHybridSearchOrchestrator, HybridSearchOrchestrator>();
         services.AddSingleton<ICitationService, CitationService>();
         services.AddSingleton<IRagReranker, RagReranker>();
         services.AddSingleton<IRagPipeline, RagPipeline>();
+
+        // ── Validation ──────────────────────────────────────────
+        services.AddSingleton<IValidator<AppSettings>, AppSettingsValidator>();
+        services.AddSingleton<IValidator<SyncConfiguration>, SyncConfigurationValidator>();
+        services.AddSingleton<IValidator<PluginManifest>, PluginManifestValidator>();
 
         // ── Intelligence Services ──────────────────────────────
         services.AddSingleton<ISummaryService, SummaryService>();

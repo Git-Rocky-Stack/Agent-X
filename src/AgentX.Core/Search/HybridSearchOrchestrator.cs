@@ -1,4 +1,5 @@
 using AgentX.Core.Search.Models;
+using AgentX.Core.Services.Search;
 using Serilog;
 
 namespace AgentX.Core.Search;
@@ -33,6 +34,7 @@ public sealed class HybridSearchOrchestrator : IHybridSearchOrchestrator
 {
     private readonly ISemanticSearchService _semanticSearch;
     private readonly IKeywordSearchService _keywordSearch;
+    private readonly ISearchCacheService? _searchCacheService;
     private readonly ILogger _logger;
 
     /// <summary>
@@ -45,11 +47,13 @@ public sealed class HybridSearchOrchestrator : IHybridSearchOrchestrator
     public HybridSearchOrchestrator(
         ISemanticSearchService semanticSearch,
         IKeywordSearchService keywordSearch,
-        ILogger logger)
+        ILogger logger,
+        ISearchCacheService? searchCacheService = null)
     {
         _semanticSearch = semanticSearch ?? throw new ArgumentNullException(nameof(semanticSearch));
         _keywordSearch = keywordSearch ?? throw new ArgumentNullException(nameof(keywordSearch));
         _logger = logger?.ForContext<HybridSearchOrchestrator>() ?? throw new ArgumentNullException(nameof(logger));
+        _searchCacheService = searchCacheService;
     }
 
     /// <inheritdoc />
@@ -57,13 +61,34 @@ public sealed class HybridSearchOrchestrator : IHybridSearchOrchestrator
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        return query.Mode switch
+        // Check cache first (when available)
+        if (_searchCacheService is not null)
+        {
+            var cached = _searchCacheService.TryGetCached(query);
+            if (cached is not null)
+            {
+                _logger.Debug("Cache hit for {Mode} search query: {Query}", query.Mode, TruncateForLog(query.QueryText));
+                return cached;
+            }
+        }
+
+        var results = query.Mode switch
         {
             SearchMode.Semantic => await ExecuteSemanticSearchAsync(query, ct),
             SearchMode.Keyword => await ExecuteKeywordSearchAsync(query, ct),
             SearchMode.Hybrid => await ExecuteHybridSearchAsync(query, ct),
             _ => throw new ArgumentOutOfRangeException(nameof(query), $"Unknown search mode: {query.Mode}")
         };
+
+        // Cache the results (when available)
+        if (_searchCacheService is not null && results.Count > 0)
+        {
+            _searchCacheService.Cache(query, results);
+            _logger.Debug("Cached {Count} results for {Mode} search query: {Query}",
+                results.Count, query.Mode, TruncateForLog(query.QueryText));
+        }
+
+        return results;
     }
 
     // ═══════════════════════════════════════════════════════════════════

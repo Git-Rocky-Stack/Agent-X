@@ -8,6 +8,7 @@ using AgentX.Core.Data.VectorDb;
 using AgentX.Core.Documents;
 using AgentX.Core.Documents.Models;
 using AgentX.Core.Search;
+using AgentX.Core.Services.Search;
 using AgentX.Core.Services.Settings;
 using AgentX.Core.Services.Tagging;
 using Microsoft.EntityFrameworkCore;
@@ -35,6 +36,7 @@ public sealed class IndexingService : IIndexingService
     private readonly ISettingsService _settingsService;
     private readonly IKeywordSearchService _keywordSearchService;
     private readonly IAutoTagService _autoTagService;
+    private readonly ISearchCacheService? _searchCacheService;
     private readonly ILogger _logger;
 
     // Background processing infrastructure
@@ -71,7 +73,8 @@ public sealed class IndexingService : IIndexingService
         ISettingsService settingsService,
         IKeywordSearchService keywordSearchService,
         IAutoTagService autoTagService,
-        ILogger logger)
+        ILogger logger,
+        ISearchCacheService? searchCacheService = null)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
         _processors = processors ?? throw new ArgumentNullException(nameof(processors));
@@ -82,6 +85,7 @@ public sealed class IndexingService : IIndexingService
         _keywordSearchService = keywordSearchService ?? throw new ArgumentNullException(nameof(keywordSearchService));
         _autoTagService = autoTagService ?? throw new ArgumentNullException(nameof(autoTagService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _searchCacheService = searchCacheService;
 
         // Unbounded channel: items are cheap (just a long ID) and we want to accept
         // enqueue requests without blocking the caller. Processing is serialized.
@@ -166,6 +170,9 @@ public sealed class IndexingService : IIndexingService
         IProgress<(int Processed, int Total)>? progress = null,
         CancellationToken ct = default)
     {
+        // Invalidate the entire search cache since all documents are being re-indexed
+        _searchCacheService?.InvalidateAll();
+
         var completedDocs = await _db.Documents
             .Where(d => d.IndexingStatus == "completed" || d.IndexingStatus == "failed")
             .Select(d => d.Id)
@@ -505,6 +512,9 @@ public sealed class IndexingService : IIndexingService
             var queueLength = await GetQueueLengthAsync();
             RaiseProgressChanged(queueLength, _processedCount, null);
             DocumentIndexed?.Invoke(this, documentId);
+
+            // Invalidate cached search results that reference this document
+            _searchCacheService?.InvalidateForDocument(documentId);
 
             // Auto-tag the document (non-fatal — must not block the indexing pipeline)
             try
