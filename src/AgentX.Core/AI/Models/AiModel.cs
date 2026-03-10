@@ -66,4 +66,27 @@ public class HardwareCapability
         < 32_000_000_000L => "Up to 34B parameter models",
         _ => "Up to 70B+ parameter models"
     };
+
+    /// <summary>Whether the detected GPU is an NVIDIA GPU (CUDA-capable).</summary>
+    public bool IsNvidiaGpu =>
+        !string.IsNullOrEmpty(GpuName) &&
+        GpuName.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Recommended GPU layer count based on available VRAM.
+    /// Returns 0 for non-NVIDIA GPUs or when VRAM is insufficient.
+    /// </summary>
+    public int RecommendedGpuLayers => IsNvidiaGpu ? GpuVramBytes switch
+    {
+        < 2_000_000_000L => 0,    // < 2 GB: CPU only
+        < 4_000_000_000L => 16,   // 2-4 GB: partial offload
+        < 6_000_000_000L => 28,   // 4-6 GB: most layers
+        < 8_000_000_000L => 33,   // 6-8 GB: all layers for 3B model
+        _ => 33                    // 8+ GB: full offload
+    } : 0;
+
+    /// <summary>GPU acceleration summary for display.</summary>
+    public string GpuAccelerationSummary => IsNvidiaGpu
+        ? $"CUDA acceleration available ({GpuVramFormatted} VRAM, {RecommendedGpuLayers} layers)"
+        : "CPU inference (no NVIDIA GPU detected)";
 }

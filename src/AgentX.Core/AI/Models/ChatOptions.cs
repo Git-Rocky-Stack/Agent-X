@@ -1,6 +1,21 @@
 namespace AgentX.Core.AI.Models;
 
 /// <summary>
+/// Specifies the expected response format from the AI model.
+/// </summary>
+public enum ResponseFormat
+{
+    /// <summary>Default: free-form text response.</summary>
+    Text = 0,
+
+    /// <summary>
+    /// Constrains the model to produce valid JSON output.
+    /// Provider implementations use their native JSON mode where available.
+    /// </summary>
+    JsonObject = 1
+}
+
+/// <summary>
 /// Configuration options for AI chat inference, controlling model behavior
 /// such as temperature, token limits, and sampling parameters.
 /// </summary>
@@ -51,4 +66,10 @@ public class ChatOptions
     /// when encountered.
     /// </summary>
     public string[]? StopSequences { get; set; }
+
+    /// <summary>
+    /// Specifies the expected response format. When set to <see cref="Models.ResponseFormat.JsonObject"/>,
+    /// the model is constrained to produce valid JSON output.
+    /// </summary>
+    public ResponseFormat ResponseFormat { get; set; } = ResponseFormat.Text;
 }

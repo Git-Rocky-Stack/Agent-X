@@ -193,6 +193,8 @@ public sealed class OpenAiProvider : IAiProvider
             body["presence_penalty"] = options!.PresencePenalty;
         if (options?.StopSequences is { Length: > 0 })
             body["stop"] = options.StopSequences;
+        if (options?.ResponseFormat == ResponseFormat.JsonObject)
+            body["response_format"] = new Dictionary<string, string> { ["type"] = "json_object" };
 
         _logger.Debug("Streaming OpenAI chat with {Count} messages, model={Model}",
             messages.Count, modelId);

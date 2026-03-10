@@ -382,7 +382,8 @@ public sealed class OllamaProvider : IAiProvider
             Model = modelId ?? string.Empty,
             Messages = ollamaMessages,
             Stream = stream,
-            Options = BuildRequestOptions(options)
+            Options = BuildRequestOptions(options),
+            Format = options?.ResponseFormat == ResponseFormat.JsonObject ? "json" : null
         };
 
         return request;

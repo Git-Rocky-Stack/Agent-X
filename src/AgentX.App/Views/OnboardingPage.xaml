@@ -450,7 +450,7 @@
                     </StackPanel>
 
                     <!-- ════════════════════════════════════════════
-                         STEP 3: KNOWLEDGE VAULT INTRO
+                         STEP 3: BUILT-IN AI & CLOUD API KEYS
                          ════════════════════════════════════════════ -->
                     <StackPanel Visibility="{x:Bind ViewModel.IsStep3Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                 Spacing="24"
@@ -458,183 +458,147 @@
 
                         <!-- Header -->
                         <StackPanel Spacing="8" HorizontalAlignment="Center">
-                            <TextBlock Text="Knowledge Vault"
+                            <TextBlock Text="Your AI is Ready"
                                        Style="{StaticResource DisplayMediumStyle}"
                                        HorizontalAlignment="Center"
                                        TextAlignment="Center" />
-                            <TextBlock Text="Import your documents and let Agent-X index them for intelligent search and AI-powered Q&amp;A."
+                            <TextBlock Text="Agent-X includes a built-in AI model for fully offline operation. Optionally add cloud API keys for additional models."
                                        Style="{StaticResource BodySecondaryStyle}"
                                        HorizontalAlignment="Center"
                                        TextAlignment="Center"
                                        MaxWidth="560" />
                         </StackPanel>
 
-                        <!-- How It Works Card -->
+                        <!-- Built-in Model Status Card -->
                         <Border Style="{StaticResource CardAccentStyle}"
                                 Margin="0,8,0,0">
                             <StackPanel Spacing="16">
-                                <TextBlock Text="HOW IT WORKS"
+                                <TextBlock Text="BUILT-IN LOCAL MODEL"
                                            Style="{StaticResource OverlineStyle}" />
 
-                                <StackPanel Spacing="12">
-                                    <!-- Step 1 -->
-                                    <Grid ColumnSpacing="12">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <Border Width="28" Height="28"
-                                                CornerRadius="{StaticResource RadiusRound}"
-                                                Background="{StaticResource AccentSubtleBrush}">
-                                            <TextBlock Text="1" FontSize="13" FontWeight="Bold"
-                                                       Foreground="{StaticResource AccentPrimaryBrush}"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                        </Border>
-                                        <TextBlock Grid.Column="1"
-                                                   Text="Import files into the Knowledge Vault from your local machine."
-                                                   Style="{StaticResource BodyStyle}"
-                                                   VerticalAlignment="Center" />
-                                    </Grid>
-
-                                    <!-- Step 2 -->
-                                    <Grid ColumnSpacing="12">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <Border Width="28" Height="28"
-                                                CornerRadius="{StaticResource RadiusRound}"
-                                                Background="{StaticResource AccentSubtleBrush}">
-                                            <TextBlock Text="2" FontSize="13" FontWeight="Bold"
-                                                       Foreground="{StaticResource AccentPrimaryBrush}"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                        </Border>
-                                        <TextBlock Grid.Column="1"
-                                                   Text="Agent-X chunks, embeds, and indexes your documents locally using AI."
-                                                   Style="{StaticResource BodyStyle}"
-                                                   VerticalAlignment="Center" />
-                                    </Grid>
-
-                                    <!-- Step 3 -->
-                                    <Grid ColumnSpacing="12">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <Border Width="28" Height="28"
-                                                CornerRadius="{StaticResource RadiusRound}"
-                                                Background="{StaticResource AccentSubtleBrush}">
-                                            <TextBlock Text="3" FontSize="13" FontWeight="Bold"
-                                                       Foreground="{StaticResource AccentPrimaryBrush}"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                        </Border>
-                                        <TextBlock Grid.Column="1"
-                                                   Text="Search semantically, ask questions, and get AI answers grounded in your data."
-                                                   Style="{StaticResource BodyStyle}"
-                                                   VerticalAlignment="Center" />
-                                    </Grid>
-                                </StackPanel>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Supported File Types -->
-                        <Border Style="{StaticResource CardStyle}">
-                            <StackPanel Spacing="16">
-                                <TextBlock Text="SUPPORTED FILE TYPES"
-                                           Style="{StaticResource OverlineStyle}" />
-                                <Grid ColumnSpacing="12" RowSpacing="12">
+                                <!-- Model Name & Status -->
+                                <Grid ColumnSpacing="12">
                                     <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="40" Height="40"
+                                            CornerRadius="{StaticResource RadiusRound}"
+                                            Background="{StaticResource AccentSubtleBrush}">
+                                        <FontIcon Glyph="&#xE99A;"
+                                                  FontSize="18"
+                                                  Foreground="{StaticResource AccentPrimaryBrush}"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind ViewModel.LocalModelName, Mode=OneWay}"
+                                                   Style="{StaticResource BodyStyle}"
+                                                   FontWeight="SemiBold" />
+                                        <TextBlock Text="Q4_K_M quantization  |  ~2 GB  |  Runs entirely on your device"
+                                                   Style="{StaticResource CaptionStyle}"
+                                                   Foreground="{StaticResource TextTertiaryBrush}" />
+                                    </StackPanel>
+                                    <Border Grid.Column="2"
+                                            CornerRadius="12"
+                                            Padding="12,6"
+                                            Background="{StaticResource SuccessSubtleBrush}"
+                                            Visibility="{x:Bind ViewModel.IsLocalModelAvailable, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Text="{x:Bind ViewModel.LocalModelStatusText, Mode=OneWay}"
+                                                   FontSize="12"
+                                                   Foreground="{StaticResource SuccessBrush}"
+                                                   FontWeight="SemiBold" />
+                                    </Border>
+                                </Grid>
+
+                                <Border Style="{StaticResource SeparatorStyle}" />
+
+                                <!-- GPU Acceleration Info -->
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                    </Grid.RowDefinitions>
-
-                                    <!-- PDF -->
-                                    <Border Grid.Row="0" Grid.Column="0"
-                                            Style="{StaticResource CardInsetStyle}"
-                                            Padding="12,10">
-                                        <StackPanel Orientation="Horizontal" Spacing="8"
-                                                    HorizontalAlignment="Center">
-                                            <FontIcon Glyph="&#xEA90;" FontSize="14"
-                                                      Foreground="{StaticResource AccentPrimaryBrush}" />
-                                            <TextBlock Text="PDF" Style="{StaticResource LabelStyle}" />
-                                        </StackPanel>
-                                    </Border>
-
-                                    <!-- DOCX -->
-                                    <Border Grid.Row="0" Grid.Column="1"
-                                            Style="{StaticResource CardInsetStyle}"
-                                            Padding="12,10">
-                                        <StackPanel Orientation="Horizontal" Spacing="8"
-                                                    HorizontalAlignment="Center">
-                                            <FontIcon Glyph="&#xE8A5;" FontSize="14"
-                                                      Foreground="{StaticResource InfoBrush}" />
-                                            <TextBlock Text="DOCX" Style="{StaticResource LabelStyle}" />
-                                        </StackPanel>
-                                    </Border>
-
-                                    <!-- TXT -->
-                                    <Border Grid.Row="0" Grid.Column="2"
-                                            Style="{StaticResource CardInsetStyle}"
-                                            Padding="12,10">
-                                        <StackPanel Orientation="Horizontal" Spacing="8"
-                                                    HorizontalAlignment="Center">
-                                            <FontIcon Glyph="&#xE8A4;" FontSize="14"
-                                                      Foreground="{StaticResource SuccessBrush}" />
-                                            <TextBlock Text="TXT" Style="{StaticResource LabelStyle}" />
-                                        </StackPanel>
-                                    </Border>
-
-                                    <!-- Markdown -->
-                                    <Border Grid.Row="1" Grid.Column="0"
-                                            Style="{StaticResource CardInsetStyle}"
-                                            Padding="12,10">
-                                        <StackPanel Orientation="Horizontal" Spacing="8"
-                                                    HorizontalAlignment="Center">
-                                            <FontIcon Glyph="&#xE943;" FontSize="14"
-                                                      Foreground="{StaticResource WarningBrush}" />
-                                            <TextBlock Text="MD" Style="{StaticResource LabelStyle}" />
-                                        </StackPanel>
-                                    </Border>
-
-                                    <!-- Code -->
-                                    <Border Grid.Row="1" Grid.Column="1"
-                                            Style="{StaticResource CardInsetStyle}"
-                                            Padding="12,10">
-                                        <StackPanel Orientation="Horizontal" Spacing="8"
-                                                    HorizontalAlignment="Center">
-                                            <FontIcon Glyph="&#xE943;" FontSize="14"
-                                                      Foreground="{StaticResource TextAccentBrush}" />
-                                            <TextBlock Text="Code" Style="{StaticResource LabelStyle}" />
-                                        </StackPanel>
-                                    </Border>
-
-                                    <!-- Images -->
-                                    <Border Grid.Row="1" Grid.Column="2"
-                                            Style="{StaticResource CardInsetStyle}"
-                                            Padding="12,10">
-                                        <StackPanel Orientation="Horizontal" Spacing="8"
-                                                    HorizontalAlignment="Center">
-                                            <FontIcon Glyph="&#xEB9F;" FontSize="14"
-                                                      Foreground="{StaticResource OnlineBrush}" />
-                                            <TextBlock Text="Images" Style="{StaticResource LabelStyle}" />
-                                        </StackPanel>
-                                    </Border>
+                                    <FontIcon Glyph="&#xE7F4;"
+                                              FontSize="16"
+                                              Foreground="{StaticResource TextSecondaryBrush}"
+                                              VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{x:Bind ViewModel.GpuAccelerationInfo, Mode=OneWay}"
+                                               Style="{StaticResource BodySecondaryStyle}"
+                                               VerticalAlignment="Center" />
                                 </Grid>
                             </StackPanel>
                         </Border>
 
-                        <!-- Info note -->
-                        <TextBlock Text="You can import files anytime from the Knowledge Vault page."
-                                   Style="{StaticResource BodySecondaryStyle}"
-                                   HorizontalAlignment="Center"
-                                   TextAlignment="Center"
-                                   FontStyle="Italic"
-                                   Opacity="0.7" />
+                        <!-- Cloud API Keys (Optional) -->
+                        <Border Style="{StaticResource CardStyle}">
+                            <StackPanel Spacing="16">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="CLOUD PROVIDERS (OPTIONAL)"
+                                               Style="{StaticResource OverlineStyle}" />
+                                    <TextBlock Text="Connect cloud AI providers for access to GPT-4o, Claude, and other advanced models."
+                                               Style="{StaticResource CaptionStyle}"
+                                               Foreground="{StaticResource TextTertiaryBrush}" />
+                                </StackPanel>
+
+                                <!-- OpenAI API Key -->
+                                <StackPanel Spacing="6">
+                                    <Grid ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="OpenAI"
+                                                   Style="{StaticResource LabelStyle}"
+                                                   VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1"
+                                                   Text="GPT-4o, GPT-4o-mini"
+                                                   Style="{StaticResource CaptionStyle}"
+                                                   Foreground="{StaticResource TextTertiaryBrush}"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Right" />
+                                    </Grid>
+                                    <TextBox Text="{x:Bind ViewModel.OpenAiApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             PlaceholderText="sk-..."
+                                             MaxWidth="600"
+                                             HorizontalAlignment="Stretch" />
+                                </StackPanel>
+
+                                <Border Style="{StaticResource SeparatorStyle}" />
+
+                                <!-- Anthropic API Key -->
+                                <StackPanel Spacing="6">
+                                    <Grid ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Anthropic"
+                                                   Style="{StaticResource LabelStyle}"
+                                                   VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1"
+                                                   Text="Claude Sonnet, Claude Opus"
+                                                   Style="{StaticResource CaptionStyle}"
+                                                   Foreground="{StaticResource TextTertiaryBrush}"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Right" />
+                                    </Grid>
+                                    <TextBox Text="{x:Bind ViewModel.AnthropicApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             PlaceholderText="sk-ant-..."
+                                             MaxWidth="600"
+                                             HorizontalAlignment="Stretch" />
+                                </StackPanel>
+
+                                <!-- Note -->
+                                <TextBlock Text="API keys are stored locally on your device and never sent anywhere except the respective provider."
+                                           Style="{StaticResource CaptionStyle}"
+                                           Foreground="{StaticResource TextTertiaryBrush}"
+                                           FontStyle="Italic"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
 
                     <!-- ════════════════════════════════════════════
@@ -664,7 +628,7 @@
                                        Style="{StaticResource DisplayLargeStyle}"
                                        HorizontalAlignment="Center"
                                        TextAlignment="Center" />
-                            <TextBlock Text="Agent-X is configured and ready to use. You can add OpenAI or Anthropic cloud providers anytime from Settings."
+                            <TextBlock Text="Agent-X is configured and ready to use. All settings can be changed anytime from the Settings page."
                                        Style="{StaticResource HeadingMediumStyle}"
                                        Foreground="{StaticResource TextSecondaryBrush}"
                                        HorizontalAlignment="Center"
@@ -724,6 +688,39 @@
                                                Text="{x:Bind ViewModel.SummaryEmbeddingModel, Mode=OneWay}"
                                                Style="{StaticResource BodyStyle}"
                                                Foreground="{StaticResource TextAccentBrush}"
+                                               HorizontalAlignment="Right" />
+                                </Grid>
+
+                                <Border Style="{StaticResource SeparatorStyle}" />
+
+                                <!-- Local Model -->
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Built-in Model"
+                                               Style="{StaticResource BodySecondaryStyle}" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{x:Bind ViewModel.SummaryLocalModel, Mode=OneWay}"
+                                               Style="{StaticResource BodyStyle}"
+                                               Foreground="{StaticResource SuccessBrush}"
+                                               HorizontalAlignment="Right" />
+                                </Grid>
+
+                                <Border Style="{StaticResource SeparatorStyle}" />
+
+                                <!-- Cloud Providers -->
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Cloud Providers"
+                                               Style="{StaticResource BodySecondaryStyle}" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{x:Bind ViewModel.SummaryCloudProviders, Mode=OneWay}"
+                                               Style="{StaticResource BodyStyle}"
                                                HorizontalAlignment="Right" />
                                 </Grid>
 

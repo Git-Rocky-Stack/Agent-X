@@ -64,7 +64,8 @@ public sealed class LlmReranker : ILlmReranker
             var options = new ChatOptions
             {
                 Temperature = 0.0,
-                MaxTokens = 256
+                MaxTokens = 256,
+                ResponseFormat = ResponseFormat.JsonObject
             };
 
             var response = await _aiService.ChatAsync(messages, SystemPrompt, options, ct)

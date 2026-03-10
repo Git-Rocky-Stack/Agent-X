@@ -43,10 +43,20 @@ public partial class OnboardingViewModel : ObservableObject
     [ObservableProperty] private bool _isLoadingModels;
     [ObservableProperty] private string _hardwareInfo = "";
 
+    // ── Step 3: Built-in AI & Cloud API Keys ─────────────────
+    [ObservableProperty] private bool _isLocalModelAvailable;
+    [ObservableProperty] private string _gpuAccelerationInfo = "Detecting hardware...";
+    [ObservableProperty] private string _localModelName = "Llama 3.2 3B Instruct";
+    [ObservableProperty] private string _localModelStatusText = "Checking...";
+    [ObservableProperty] private string _openAiApiKey = "";
+    [ObservableProperty] private string _anthropicApiKey = "";
+
     // ── Step 4: Summary ──────────────────────────────────────
     [ObservableProperty] private string _summaryOllamaStatus = "Not configured";
     [ObservableProperty] private string _summaryChatModel = "Default (llama3.2)";
     [ObservableProperty] private string _summaryEmbeddingModel = "Default (all-minilm)";
+    [ObservableProperty] private string _summaryLocalModel = "Not detected";
+    [ObservableProperty] private string _summaryCloudProviders = "None configured";
 
     public OnboardingViewModel(
         IAiService aiService,
@@ -78,6 +88,10 @@ public partial class OnboardingViewModel : ObservableObject
         if (CurrentStep == 2)
         {
             await LoadModelsAsync();
+        }
+        else if (CurrentStep == 3)
+        {
+            await CheckBuiltInModelAsync();
         }
         else if (CurrentStep == 4)
         {
@@ -252,6 +266,55 @@ public partial class OnboardingViewModel : ObservableObject
     }
 
     // ═══════════════════════════════════════════════════════════
+    //  STEP 3: BUILT-IN AI MODEL & CLOUD API KEYS
+    // ═══════════════════════════════════════════════════════════
+
+    private async Task CheckBuiltInModelAsync()
+    {
+        LocalModelStatusText = "Checking...";
+
+        try
+        {
+            // The model is bundled with the installer into %LOCALAPPDATA%\AgentX\Models
+            var settings = await _settingsService.GetSettingsAsync();
+            var modelsDir = Path.Combine(settings.StoragePath, "Models");
+            var modelPath = Path.Combine(modelsDir, settings.LocalModelFileName);
+            IsLocalModelAvailable = File.Exists(modelPath);
+
+            if (IsLocalModelAvailable)
+            {
+                var fileInfo = new FileInfo(modelPath);
+                var sizeMb = fileInfo.Length / 1_000_000.0;
+                LocalModelStatusText = $"Ready ({sizeMb:F0} MB)";
+            }
+            else
+            {
+                LocalModelStatusText = "Model not found — reinstall Agent-X to restore it.";
+            }
+
+            // Load any existing API keys from settings
+            if (!string.IsNullOrEmpty(settings.OpenAiApiKey))
+            {
+                OpenAiApiKey = settings.OpenAiApiKey;
+            }
+            if (!string.IsNullOrEmpty(settings.AnthropicApiKey))
+            {
+                AnthropicApiKey = settings.AnthropicApiKey;
+            }
+
+            // Detect hardware for GPU info
+            var hw = await _hardwareDetector.DetectAsync();
+            GpuAccelerationInfo = hw.GpuAccelerationSummary;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to check built-in model during onboarding");
+            LocalModelStatusText = "Unable to verify model";
+            GpuAccelerationInfo = "Hardware detection unavailable";
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
     //  STEP 4: SUMMARY & COMPLETION
     // ═══════════════════════════════════════════════════════════
 
@@ -268,6 +331,20 @@ public partial class OnboardingViewModel : ObservableObject
         SummaryEmbeddingModel = !string.IsNullOrEmpty(SelectedEmbeddingModel)
             ? SelectedEmbeddingModel
             : "Default (all-minilm)";
+
+        SummaryLocalModel = IsLocalModelAvailable
+            ? $"{LocalModelName} (ready)"
+            : "Not found (reinstall to restore)";
+
+        var cloudProviders = new List<string>();
+        if (!string.IsNullOrWhiteSpace(OpenAiApiKey))
+            cloudProviders.Add("OpenAI");
+        if (!string.IsNullOrWhiteSpace(AnthropicApiKey))
+            cloudProviders.Add("Anthropic");
+
+        SummaryCloudProviders = cloudProviders.Count > 0
+            ? string.Join(", ", cloudProviders)
+            : "None (can be added later in Settings)";
     }
 
     [RelayCommand]
@@ -281,6 +358,30 @@ public partial class OnboardingViewModel : ObservableObject
 
             // Save Ollama endpoint
             settings.OllamaEndpoint = OllamaEndpoint;
+
+            // Save API keys (trimmed, null if empty)
+            var openAiKey = OpenAiApiKey?.Trim();
+            var anthropicKey = AnthropicApiKey?.Trim();
+            settings.OpenAiApiKey = string.IsNullOrEmpty(openAiKey) ? null : openAiKey;
+            settings.AnthropicApiKey = string.IsNullOrEmpty(anthropicKey) ? null : anthropicKey;
+
+            // Set active provider based on what's available
+            if (IsLocalModelAvailable)
+            {
+                settings.ActiveProviderId = "local";
+            }
+            else if (IsOllamaConnected == true)
+            {
+                settings.ActiveProviderId = "ollama";
+            }
+            else if (!string.IsNullOrEmpty(settings.OpenAiApiKey))
+            {
+                settings.ActiveProviderId = "openai";
+            }
+            else if (!string.IsNullOrEmpty(settings.AnthropicApiKey))
+            {
+                settings.ActiveProviderId = "anthropic";
+            }
 
             // Save selected models (if user picked any)
             if (!string.IsNullOrEmpty(SelectedChatModel))
@@ -298,17 +399,14 @@ public partial class OnboardingViewModel : ObservableObject
 
             await _settingsService.SaveSettingsAsync(settings);
 
-            // Set the active model if one was selected and Ollama is connected
-            if (IsOllamaConnected == true && !string.IsNullOrEmpty(SelectedChatModel))
+            // Re-initialize AI service to pick up new settings
+            try
             {
-                try
-                {
-                    await _aiService.SetActiveModelAsync(SelectedChatModel);
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning(ex, "Failed to set active model during onboarding completion");
-                }
+                await _aiService.InitializeAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "AI service re-initialization failed during onboarding completion");
             }
 
             Log.Information("Onboarding settings saved. Navigating to Dashboard");

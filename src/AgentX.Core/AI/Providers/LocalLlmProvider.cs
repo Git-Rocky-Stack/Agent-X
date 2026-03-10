@@ -248,7 +248,7 @@ public sealed class LocalLlmProvider : IAiProvider
         ThrowIfDisposed();
         await EnsureModelLoadedAsync(ct).ConfigureAwait(false);
 
-        var prompt = FormatChatPrompt(messages);
+        var prompt = FormatChatPrompt(messages, options?.ResponseFormat == ResponseFormat.JsonObject);
         var inferenceParams = BuildInferenceParams(options);
 
         // StatelessExecutor creates its own context per call — thread-safe
@@ -354,13 +354,22 @@ public sealed class LocalLlmProvider : IAiProvider
             if (!File.Exists(modelPath))
                 throw new FileNotFoundException($"GGUF model not found: {modelPath}");
 
-            _logger.Information("Loading local LLM from {ModelPath}...", modelPath);
+            // Auto-detect GPU layers: if user set 0 (default), try to detect NVIDIA GPU
+            var effectiveGpuLayers = _gpuLayers;
+            if (effectiveGpuLayers == 0)
+            {
+                effectiveGpuLayers = DetectRecommendedGpuLayers();
+            }
+
+            _logger.Information(
+                "Loading local LLM from {ModelPath} (GPU layers: {GpuLayers})...",
+                modelPath, effectiveGpuLayers);
 
             // Chat parameters
             _chatParams = new ModelParams(modelPath)
             {
                 ContextSize = (uint)_contextSize,
-                GpuLayerCount = _gpuLayers
+                GpuLayerCount = effectiveGpuLayers
             };
 
             // Load weights (shared between chat and embeddings)
@@ -374,7 +383,7 @@ public sealed class LocalLlmProvider : IAiProvider
             _embeddingParams = new ModelParams(modelPath)
             {
                 ContextSize = 512, // Smaller context for embeddings
-                GpuLayerCount = _gpuLayers,
+                GpuLayerCount = effectiveGpuLayers,
                 Embeddings = true
             };
 
@@ -419,11 +428,20 @@ public sealed class LocalLlmProvider : IAiProvider
 
     /// <summary>
     /// Formats messages into the Llama 3.x instruct chat template.
+    /// When <paramref name="jsonMode"/> is true, injects a JSON-constraining system instruction.
     /// </summary>
-    private static string FormatChatPrompt(IReadOnlyList<ChatMessage> messages)
+    private static string FormatChatPrompt(IReadOnlyList<ChatMessage> messages, bool jsonMode = false)
     {
         var sb = new StringBuilder(4096);
         sb.Append("<|begin_of_text|>");
+
+        // Inject JSON mode instruction before any user-provided system message
+        if (jsonMode)
+        {
+            sb.Append("<|start_header_id|>system<|end_header_id|>\n\n");
+            sb.Append("You MUST respond with valid JSON only. No markdown code fences, no explanation, no text outside the JSON object.");
+            sb.Append("<|eot_id|>");
+        }
 
         foreach (var msg in messages)
         {
@@ -441,6 +459,10 @@ public sealed class LocalLlmProvider : IAiProvider
 
         // Prompt the model to generate the assistant response
         sb.Append("<|start_header_id|>assistant<|end_header_id|>\n\n");
+
+        // For JSON mode, prime the output to start with an opening brace
+        if (jsonMode)
+            sb.Append('{');
 
         return sb.ToString();
     }
@@ -485,6 +507,60 @@ public sealed class LocalLlmProvider : IAiProvider
                 "https://huggingface.co/hugging-quants/Llama-3.2-1B-Instruct-Q4_K_M-GGUF/resolve/main/llama-3.2-1b-instruct-q4_k_m.gguf",
             _ => null
         };
+    }
+
+    /// <summary>
+    /// Detects NVIDIA GPU via WMI and returns recommended GPU layer count.
+    /// Falls back to 0 (CPU-only) on any failure.
+    /// </summary>
+    private int DetectRecommendedGpuLayers()
+    {
+        try
+        {
+            using var searcher = new System.Management.ManagementObjectSearcher(
+                "SELECT Name, AdapterRAM FROM Win32_VideoController");
+            using var results = searcher.Get();
+
+            foreach (System.Management.ManagementObject gpu in results)
+            {
+                try
+                {
+                    var name = gpu["Name"]?.ToString() ?? "";
+                    if (!name.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    var adapterRam = gpu["AdapterRAM"];
+                    long vramBytes = adapterRam is not null ? Convert.ToInt64(adapterRam) : 0;
+                    if (vramBytes < 0) vramBytes += 4_294_967_296L;
+
+                    var layers = vramBytes switch
+                    {
+                        < 2_000_000_000L => 0,
+                        < 4_000_000_000L => 16,
+                        < 6_000_000_000L => 28,
+                        < 8_000_000_000L => 33,
+                        _ => 33
+                    };
+
+                    _logger.Information(
+                        "NVIDIA GPU detected: {GpuName} ({Vram:F1} GB) — auto-setting {Layers} GPU layers",
+                        name, vramBytes / 1_000_000_000.0, layers);
+
+                    return layers;
+                }
+                finally
+                {
+                    gpu.Dispose();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Debug(ex, "GPU auto-detection failed; defaulting to CPU-only");
+        }
+
+        _logger.Debug("No NVIDIA GPU detected; using CPU-only inference");
+        return 0;
     }
 
     private void ThrowIfDisposed()

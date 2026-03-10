@@ -7,6 +7,7 @@
 - High Priority #1-5 completed (Unit Tests, Validation, Error Handling, Search Caching, Hybrid Search UI)
 - Medium Priority #8 completed (Knowledge Graph enhanced with search, zoom, tooltips, cluster highlight)
 - Built-in Local LLM (LLamaSharp) + 6 Advanced RAG Enhancements completed
+- GPU Acceleration (CUDA 12), JSON Mode / Structured Output, Installer-Bundled Model completed
 
 ---
 
@@ -43,6 +44,10 @@
 | I5 | **Parent Document Retrieval** | Expands matched chunks by loading ±1 adjacent chunks from the same document for richer context. | DONE |
 | I6 | **Contextual Compression** | LLM extracts only question-relevant sentences from each chunk, filtering irrelevant passages entirely. | DONE |
 | I7 | **RAG Evaluation Pipeline** | LLM-as-judge scoring context relevance, faithfulness, and answer relevance (0-1 normalized). Runs async post-generation. | DONE |
+| I8 | **GPU Acceleration (CUDA 12)** | LLamaSharp.Backend.Cuda12 for NVIDIA GPUs. Auto-detects GPU via WMI, configures layer offloading based on VRAM (2-8+ GB tiers). Falls back to CPU gracefully. | DONE |
+| I9 | **Structured Output / JSON Mode** | ResponseFormat enum (Text/JsonObject) in ChatOptions. OpenAI: response_format API param. Anthropic: system prompt reinforcement. Ollama: Format="json". Local LLM: prompt engineering + output priming. Used by tag generation, RAG evaluation, and LLM reranking. | DONE |
+| I10 | **Installer-Bundled AI Model** | Llama 3.2 3B GGUF (~2 GB) bundled directly in the Inno Setup installer. Users get fully working offline AI out of the box — zero downloads required. Model installed to %LOCALAPPDATA%\AgentX\Models. | DONE |
+| I11 | **Onboarding Cloud API Keys** | Step 3 redesigned: shows built-in model status + GPU info, with optional OpenAI/Anthropic API key entry. Keys saved securely to local settings. Summary step updated with model & provider info. | DONE |
 
 ## LOWER PRIORITY — Advanced Features
 

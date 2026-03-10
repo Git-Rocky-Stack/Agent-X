@@ -355,7 +355,11 @@ public sealed class AiService : IAiService
 
         try
         {
-            var response = await ChatAsync(messages, systemPrompt, ct: ct).ConfigureAwait(false);
+            var jsonOptions = new ChatOptions
+            {
+                ResponseFormat = ResponseFormat.JsonObject
+            };
+            var response = await ChatAsync(messages, systemPrompt, jsonOptions, ct).ConfigureAwait(false);
             return ParseTagsFromResponse(response, maxTags);
         }
         catch (Exception ex)

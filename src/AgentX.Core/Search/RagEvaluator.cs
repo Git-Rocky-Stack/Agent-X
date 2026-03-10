@@ -69,7 +69,8 @@ public sealed class RagEvaluator : IRagEvaluator
             var options = new ChatOptions
             {
                 Temperature = 0.0,
-                MaxTokens = 128
+                MaxTokens = 128,
+                ResponseFormat = ResponseFormat.JsonObject
             };
 
             var response = await _aiService.ChatAsync(messages, EvalSystemPrompt, options, ct)

@@ -25,9 +25,9 @@ AllowNoIcons=yes
 OutputDir=..\installer-output
 OutputBaseFilename=AgentX-Setup-{#MyAppVersion}-x64
 ; Compression
-Compression=lzma2/ultra64
+Compression=lzma2/max
 SolidCompression=yes
-LZMANumBlockThreads=4
+LZMANumBlockThreads=2
 ; Appearance
 WizardStyle=modern
 WizardSizePercent=120,120
@@ -57,6 +57,8 @@ Name: "startmenuicon"; Description: "Create a Start Menu shortcut"; GroupDescrip
 [Files]
 ; Install all published files
 Source: "..\publish\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Bundle the built-in GGUF AI model (~2 GB) for fully offline operation
+Source: "..\models\llama-3.2-3b-instruct-q4_k_m.gguf"; DestDir: "{localappdata}\AgentX\Models"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Comment: "{#MyAppDescription}"
@@ -107,4 +109,4 @@ begin
 end;
 
 [Messages]
-WelcomeLabel2=This will install [name/ver] on your computer.%n%nAgent-X is a Local-First AI Personal Intelligence Hub that runs entirely on your device. No cloud, no subscriptions, no data leaving your machine.%n%nPrerequisites:%n- Windows 10 version 1903 or later%n- Ollama (recommended for AI features)%n%nIt is recommended that you close all other applications before continuing.
+WelcomeLabel2=This will install [name/ver] on your computer.%n%nAgent-X is a Local-First AI Personal Intelligence Hub that runs entirely on your device. No cloud, no subscriptions, no data leaving your machine.%n%nIncludes a built-in AI model (Llama 3.2 3B) for fully offline operation. Optionally connect OpenAI or Anthropic API keys for cloud models.%n%nPrerequisites:%n- Windows 10 version 1903 or later%n%nIt is recommended that you close all other applications before continuing.

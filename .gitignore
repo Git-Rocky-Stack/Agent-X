@@ -51,3 +51,6 @@ logs/
 *.pfx
 key.properties
 appsettings.Development.json
+
+## AI Models (bundled in installer, too large for git)
+models/*.gguf

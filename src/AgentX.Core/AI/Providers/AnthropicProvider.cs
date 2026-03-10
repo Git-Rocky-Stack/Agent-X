@@ -189,6 +189,12 @@ public sealed class AnthropicProvider : IAiProvider
             ["stream"] = true
         };
 
+        // Anthropic uses system prompt reinforcement for JSON mode
+        if (options?.ResponseFormat == ResponseFormat.JsonObject && !string.IsNullOrEmpty(systemPrompt))
+            systemPrompt += "\n\nIMPORTANT: You MUST respond with valid JSON only. No markdown, no explanation, no text outside the JSON.";
+        else if (options?.ResponseFormat == ResponseFormat.JsonObject)
+            systemPrompt = "You MUST respond with valid JSON only. No markdown, no explanation, no text outside the JSON.";
+
         if (!string.IsNullOrEmpty(systemPrompt))
             body["system"] = systemPrompt;
 
