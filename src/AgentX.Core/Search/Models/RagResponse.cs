@@ -31,4 +31,10 @@ public class RagResponse
 
     /// <summary>The collection scope used for the query (null = all collections).</summary>
     public long? CollectionScope { get; init; }
+
+    /// <summary>
+    /// RAG quality evaluation metrics (populated asynchronously after response generation).
+    /// Null if the evaluator is not available or has not yet completed.
+    /// </summary>
+    public RagEvalMetrics? EvalMetrics { get; set; }
 }

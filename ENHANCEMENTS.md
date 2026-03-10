@@ -2,10 +2,11 @@
 
 ## Codebase Audit Summary (2026-03-07)
 - **23 ViewModels**, **25 entities**, **50+ services**, **25+ navigation pages**
-- **222 unit tests** passing (was 0% - test project was scaffolded but empty)
+- **224 unit tests** passing (was 0% - test project was scaffolded but empty)
 - Tiers 1-3 enhancements completed, Tier 4 (Plugin Manager + Sync Settings) completed
 - High Priority #1-5 completed (Unit Tests, Validation, Error Handling, Search Caching, Hybrid Search UI)
 - Medium Priority #8 completed (Knowledge Graph enhanced with search, zoom, tooltips, cluster highlight)
+- Built-in Local LLM (LLamaSharp) + 6 Advanced RAG Enhancements completed
 
 ---
 
@@ -30,6 +31,18 @@
 | 10 | **Workflow Templates** | Pre-built agent workflow templates users can import and customize. | Pending |
 | 11 | **Batch Operations** | Multi-select in list views (plugins, documents, history) with bulk enable/disable/delete. | Pending |
 | 12 | **Saved Filters & Views** | Let users save and recall search filters and list configurations. | Pending |
+
+## INFRASTRUCTURE — Offline AI & RAG Pipeline
+
+| # | Enhancement | Description | Status |
+|---|-------------|-------------|--------|
+| I1 | **Built-in Local LLM** | LLamaSharp-based local AI provider (Llama 3.2 3B Instruct Q4_K_M GGUF). Fully offline inference with StatelessExecutor, lazy model loading, HuggingFace download support. Default provider — no internet required. | DONE |
+| I2 | **Multi-Query Retrieval** | Generates 3 alternative query phrasings via LLM for improved recall across diverse document sets. | DONE |
+| I3 | **HyDE (Hypothetical Document Embeddings)** | Generates a hypothetical answer passage and embeds it for improved semantic matching against actual documents. | DONE |
+| I4 | **LLM-based Reranking** | Cross-encoder style reranking using the LLM to score passage relevance (0-10), combined 40/60 with original score. | DONE |
+| I5 | **Parent Document Retrieval** | Expands matched chunks by loading ±1 adjacent chunks from the same document for richer context. | DONE |
+| I6 | **Contextual Compression** | LLM extracts only question-relevant sentences from each chunk, filtering irrelevant passages entirely. | DONE |
+| I7 | **RAG Evaluation Pipeline** | LLM-as-judge scoring context relevance, faithfulness, and answer relevance (0-1 normalized). Runs async post-generation. | DONE |
 
 ## LOWER PRIORITY — Advanced Features
 

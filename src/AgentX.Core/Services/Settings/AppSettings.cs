@@ -5,8 +5,13 @@ public class AppSettings
     // Onboarding
     public bool OnboardingCompleted { get; set; } = false;
 
-    // AI Provider — Active selection
-    public string ActiveProviderId { get; set; } = "ollama";
+    // AI Provider — Active selection ("local", "ollama", "openai", "anthropic")
+    public string ActiveProviderId { get; set; } = "local";
+
+    // Built-in Local LLM (LLamaSharp)
+    public string LocalModelFileName { get; set; } = "llama-3.2-3b-instruct-q4_k_m.gguf";
+    public int LocalContextSize { get; set; } = 8192;
+    public int LocalGpuLayers { get; set; } = 0; // 0 = CPU only; increase for GPU offloading
 
     // Ollama Provider
     public string OllamaEndpoint { get; set; } = "http://localhost:11434";

@@ -69,6 +69,24 @@ public sealed class AiService : IAiService
 
             var settings = await _settingsService.GetSettingsAsync().ConfigureAwait(false);
 
+            // ── 0. Register built-in local LLM (LLamaSharp) ────────
+            try
+            {
+                var modelsDir = Path.Combine(settings.StoragePath, "Models");
+                var localProvider = new LocalLlmProvider(
+                    modelsDir,
+                    settings.LocalModelFileName,
+                    settings.LocalContextSize,
+                    settings.LocalGpuLayers,
+                    _logger);
+                _providers["local"] = localProvider;
+                _logger.Debug("Local LLM provider registered — model: {Model}", settings.LocalModelFileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.Warning(ex, "Failed to create local LLM provider");
+            }
+
             // ── 1. Always register Ollama ──────────────────────────
             var ollamaEndpoint = new Uri(settings.OllamaEndpoint);
             var ollamaProvider = new OllamaProvider(ollamaEndpoint, _logger);
@@ -162,6 +180,7 @@ public sealed class AiService : IAiService
     {
         return providerId.ToLowerInvariant() switch
         {
+            "local" => settings.LocalModelFileName,
             "openai" => settings.OpenAiDefaultModel ?? "gpt-4o-mini",
             "anthropic" => settings.AnthropicDefaultModel ?? "claude-sonnet-4-20250514",
             _ => settings.DefaultModel

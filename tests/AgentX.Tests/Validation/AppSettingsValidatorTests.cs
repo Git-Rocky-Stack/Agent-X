@@ -222,9 +222,11 @@ public sealed class AppSettingsValidatorTests
     }
 
     [Theory]
+    [InlineData("local")]
     [InlineData("ollama")]
     [InlineData("openai")]
     [InlineData("anthropic")]
+    [InlineData("Local")]     // case-insensitive
     [InlineData("Ollama")]    // case-insensitive
     [InlineData("OPENAI")]    // case-insensitive
     public void Validate_ValidProvider_Passes(string provider)

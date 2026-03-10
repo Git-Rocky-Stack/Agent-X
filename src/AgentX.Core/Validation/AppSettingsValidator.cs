@@ -11,7 +11,7 @@ namespace AgentX.Core.Validation;
 /// </para>
 /// <list type="bullet">
 ///   <item><see cref="AppSettings.ActiveProviderId"/> must be one of
-///         <c>"ollama"</c>, <c>"openai"</c>, or <c>"anthropic"</c>.</item>
+///         <c>"local"</c>, <c>"ollama"</c>, <c>"openai"</c>, or <c>"anthropic"</c>.</item>
 ///   <item>Numeric inference and chunking parameters must fall within their documented ranges.</item>
 ///   <item>Provider-specific endpoints must be valid URIs when their provider is active.</item>
 ///   <item>Provider-specific API keys must be non-empty when their provider is active.</item>
@@ -25,6 +25,7 @@ public sealed class AppSettingsValidator : IValidator<AppSettings>
     /// </summary>
     private static readonly HashSet<string> ValidProviderIds = new(StringComparer.OrdinalIgnoreCase)
     {
+        "local",
         "ollama",
         "openai",
         "anthropic",

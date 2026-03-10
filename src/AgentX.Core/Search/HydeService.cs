@@ -1,0 +1,67 @@
+using AgentX.Core.AI;
+using AgentX.Core.AI.Models;
+using Serilog;
+
+namespace AgentX.Core.Search;
+
+/// <summary>
+/// HyDE (Hypothetical Document Embeddings) implementation.
+/// Uses the LLM to generate a plausible answer passage for the user's question,
+/// then embeds that passage. The resulting vector is closer in semantic space to
+/// actual answer documents than the raw question embedding would be.
+/// </summary>
+public sealed class HydeService : IHydeService
+{
+    private readonly IAiService _aiService;
+    private readonly IEmbeddingService _embeddingService;
+    private readonly ILogger _logger;
+
+    private const string SystemPrompt =
+        """
+        Write a detailed, factual passage that directly answers the following question.
+        Write as if you are quoting from an authoritative document. Do not include
+        phrases like "According to..." or "The answer is...". Just write the content
+        that would appear in a relevant document. Keep it to 1-2 paragraphs.
+        """;
+
+    public HydeService(IAiService aiService, IEmbeddingService embeddingService, ILogger logger)
+    {
+        _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
+        _embeddingService = embeddingService ?? throw new ArgumentNullException(nameof(embeddingService));
+        _logger = logger?.ForContext<HydeService>() ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    /// <inheritdoc />
+    public async Task<float[]> GenerateHypotheticalEmbeddingAsync(
+        string query,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            throw new ArgumentException("Query cannot be empty.", nameof(query));
+
+        _logger.Debug("Generating hypothetical document for: {Query}", query);
+
+        // Step 1: Generate a hypothetical answer passage
+        var messages = new List<ChatMessage>
+        {
+            new() { Role = "user", Content = query }
+        };
+
+        var options = new ChatOptions
+        {
+            Temperature = 0.3, // Low temperature for factual content
+            MaxTokens = 512
+        };
+
+        var hypotheticalDoc = await _aiService.ChatAsync(messages, SystemPrompt, options, ct)
+            .ConfigureAwait(false);
+
+        _logger.Debug("Generated hypothetical document ({Length} chars)", hypotheticalDoc.Length);
+
+        // Step 2: Embed the hypothetical document
+        var embedding = await _embeddingService.EmbedAsync(hypotheticalDoc, ct)
+            .ConfigureAwait(false);
+
+        return embedding;
+    }
+}

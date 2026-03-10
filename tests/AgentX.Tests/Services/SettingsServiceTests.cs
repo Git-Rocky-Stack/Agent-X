@@ -58,7 +58,7 @@ public sealed class SettingsServiceTests : IDisposable
 
         // Assert
         settings.Should().NotBeNull();
-        settings.ActiveProviderId.Should().Be("ollama");
+        settings.ActiveProviderId.Should().Be("local");
         settings.Temperature.Should().Be(0.7);
         settings.MaxTokens.Should().Be(4096);
         settings.ChunkSize.Should().Be(512);

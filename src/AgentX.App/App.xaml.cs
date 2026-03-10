@@ -177,6 +177,15 @@ public partial class App : Application
         services.AddSingleton<IHybridSearchOrchestrator, HybridSearchOrchestrator>();
         services.AddSingleton<ICitationService, CitationService>();
         services.AddSingleton<IRagReranker, RagReranker>();
+
+        // ── RAG Enhancements (optional pipeline stages) ─────────
+        services.AddSingleton<IMultiQueryGenerator, MultiQueryGenerator>();
+        services.AddSingleton<IHydeService, HydeService>();
+        services.AddSingleton<ILlmReranker, LlmReranker>();
+        services.AddSingleton<IParentDocumentRetriever, ParentDocumentRetriever>();
+        services.AddSingleton<IContextualCompressor, ContextualCompressor>();
+        services.AddSingleton<IRagEvaluator, RagEvaluator>();
+
         services.AddSingleton<IRagPipeline, RagPipeline>();
 
         // ── Validation ──────────────────────────────────────────
