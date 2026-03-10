@@ -1,3 +1,4 @@
+using AgentX.Core.Constants;
 using AgentX.Core.Services.Sync.Models;
 
 namespace AgentX.Core.Validation;
@@ -25,20 +26,9 @@ namespace AgentX.Core.Validation;
 /// </remarks>
 public sealed class SyncConfigurationValidator : IValidator<SyncConfiguration>
 {
-    /// <summary>
-    /// The minimum acceptable length for the encryption key.
-    /// </summary>
-    private const int MinEncryptionKeyLength = 8;
-
-    /// <summary>
-    /// The minimum sync interval in minutes.
-    /// </summary>
-    private const int MinSyncIntervalMinutes = 1;
-
-    /// <summary>
-    /// The maximum sync interval in minutes (24 hours).
-    /// </summary>
-    private const int MaxSyncIntervalMinutes = 1440;
+    private const int MinEncryptionKeyLength = AppConstants.MinEncryptionKeyLength;
+    private const int MinSyncIntervalMinutes = AppConstants.MinSyncIntervalMinutes;
+    private const int MaxSyncIntervalMinutes = AppConstants.MaxSyncIntervalMinutes;
 
     /// <inheritdoc />
     public ValidationResult Validate(SyncConfiguration instance)

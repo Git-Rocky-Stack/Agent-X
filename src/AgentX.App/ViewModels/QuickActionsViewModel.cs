@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AgentX.Core.Documents;
+using AgentX.Core.Helpers;
 using AgentX.Core.Services.Intelligence;
 using AgentX.Core.Services.Intelligence.Models;
 using Serilog;
@@ -90,9 +91,9 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
                 Id = d.Id,
                 FileName = d.FileName,
                 FileType = d.FileType,
-                FileSizeFormatted = FormatBytes(d.FileSizeBytes),
+                FileSizeFormatted = FormatHelper.FormatBytes(d.FileSizeBytes),
                 IndexingStatus = d.IndexingStatus,
-                DisplayLabel = $"{d.FileName}  ({d.FileType.ToUpperInvariant()}, {FormatBytes(d.FileSizeBytes)})"
+                DisplayLabel = $"{d.FileName}  ({d.FileType.ToUpperInvariant()}, {FormatHelper.FormatBytes(d.FileSizeBytes)})"
             });
 
             AvailableDocuments = new ObservableCollection<QuickActionDocumentItem>(items);
@@ -247,10 +248,10 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
                     {
                         DocumentId = d.DocumentId,
                         FileName = d.FileName,
-                        FileSize = FormatBytes(d.FileSizeBytes),
+                        FileSize = FormatHelper.FormatBytes(d.FileSizeBytes),
                         ImportedAt = d.ImportedAt.ToString("yyyy-MM-dd HH:mm")
                     })),
-                WastedStorage = FormatBytes(g.WastedStorageBytes),
+                WastedStorage = FormatHelper.FormatBytes(g.WastedStorageBytes),
                 DocumentCount = g.Documents.Count
             });
 
@@ -259,7 +260,7 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
 
             var totalWasted = groups.Sum(g => g.WastedStorageBytes);
             StatusMessage = groups.Count > 0
-                ? $"Found {groups.Count} duplicate groups ({FormatBytes(totalWasted)} wasted)"
+                ? $"Found {groups.Count} duplicate groups ({FormatHelper.FormatBytes(totalWasted)} wasted)"
                 : "No duplicates found";
 
             _logger.Information("Duplicate scan: {GroupCount} groups, {WastedBytes} bytes wasted",
@@ -327,17 +328,6 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
         {
             IsProcessing = false;
         }
-    }
-
-    private static string FormatBytes(long bytes)
-    {
-        return bytes switch
-        {
-            < 1_024 => $"{bytes} B",
-            < 1_048_576 => $"{bytes / 1_024.0:F1} KB",
-            < 1_073_741_824 => $"{bytes / 1_048_576.0:F1} MB",
-            _ => $"{bytes / 1_073_741_824.0:F2} GB"
-        };
     }
 
     public void Dispose()

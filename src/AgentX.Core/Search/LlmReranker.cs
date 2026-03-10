@@ -1,6 +1,7 @@
 using System.Text.Json;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Constants;
 using Serilog;
 
 namespace AgentX.Core.Search;
@@ -64,7 +65,7 @@ public sealed class LlmReranker : ILlmReranker
             var options = new ChatOptions
             {
                 Temperature = 0.0,
-                MaxTokens = 256,
+                MaxTokens = AppConstants.RerankerMaxTokens,
                 ResponseFormat = ResponseFormat.JsonObject
             };
 

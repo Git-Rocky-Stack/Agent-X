@@ -3,6 +3,7 @@ using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AgentX.Core.Documents;
+using AgentX.Core.Helpers;
 using AgentX.Core.Search;
 using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Collections;
@@ -135,7 +136,7 @@ public partial class SearchViewModel : ObservableObject
                     Id = entry.Id,
                     QueryText = entry.QueryText,
                     ResultCount = entry.ResultCount,
-                    SearchedAgo = FormatTimeAgo(entry.SearchedAt)
+                    SearchedAgo = FormatHelper.TimeAgoWithMonths(entry.SearchedAt)
                 });
             }
 
@@ -145,19 +146,6 @@ public partial class SearchViewModel : ObservableObject
         {
             _logger.Warning(ex, "Failed to load search history from database");
         }
-    }
-
-    private static string FormatTimeAgo(DateTime dateTime)
-    {
-        var span = DateTime.UtcNow - dateTime.ToUniversalTime();
-        return span.TotalMinutes switch
-        {
-            < 1 => "just now",
-            < 60 => $"{(int)span.TotalMinutes}m ago",
-            < 1440 => $"{(int)span.TotalHours}h ago",
-            < 43200 => $"{(int)span.TotalDays}d ago",
-            _ => dateTime.ToLocalTime().ToString("MMM d")
-        };
     }
 
     // =================================================================
@@ -607,7 +595,7 @@ public partial class SearchViewModel : ObservableObject
                     Id = entry.Id,
                     QueryText = entry.QueryText,
                     SearchType = entry.SearchType,
-                    SavedAt = FormatTimeAgo(entry.SearchedAt)
+                    SavedAt = FormatHelper.TimeAgoWithMonths(entry.SearchedAt)
                 });
             }
 

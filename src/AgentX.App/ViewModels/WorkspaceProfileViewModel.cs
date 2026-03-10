@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using AgentX.Core.Helpers;
 using AgentX.Core.Services.Workspace;
 using AgentX.Core.Data.Entities;
 using Serilog;
@@ -235,7 +236,7 @@ public partial class WorkspaceProfileViewModel : ObservableObject, IDisposable
             SelectedProfile.ActiveCollectionIds = entity.ActiveCollectionIds;
             SelectedProfile.CustomSettings = entity.CustomSettings;
             SelectedProfile.UpdatedAt = entity.UpdatedAt;
-            SelectedProfile.UpdatedAtFormatted = FormatTimeAgo(entity.UpdatedAt);
+            SelectedProfile.UpdatedAtFormatted = FormatHelper.TimeAgoWithMonths(entity.UpdatedAt);
 
             // Handle default status change
             if (EditIsDefault && !SelectedProfile.IsDefault)
@@ -430,7 +431,7 @@ public partial class WorkspaceProfileViewModel : ObservableObject, IDisposable
             CreatedAt = entity.CreatedAt,
             UpdatedAt = entity.UpdatedAt,
             CreatedAtFormatted = entity.CreatedAt.ToString("MMM d, yyyy"),
-            UpdatedAtFormatted = FormatTimeAgo(entity.UpdatedAt)
+            UpdatedAtFormatted = FormatHelper.TimeAgoWithMonths(entity.UpdatedAt)
         };
     }
 
@@ -453,19 +454,6 @@ public partial class WorkspaceProfileViewModel : ObservableObject, IDisposable
         {
             Profiles[index] = updatedItem;
         }
-    }
-
-    private static string FormatTimeAgo(DateTime dateTime)
-    {
-        var span = DateTime.UtcNow - dateTime.ToUniversalTime();
-        return span.TotalMinutes switch
-        {
-            < 1 => "just now",
-            < 60 => $"{(int)span.TotalMinutes}m ago",
-            < 1440 => $"{(int)span.TotalHours}h ago",
-            < 43200 => $"{(int)span.TotalDays}d ago",
-            _ => $"{(int)(span.TotalDays / 30)}mo ago"
-        };
     }
 
     private void SetError(string message)

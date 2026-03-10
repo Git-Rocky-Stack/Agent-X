@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using AgentX.Core.Constants;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Backup.Models;
@@ -34,11 +35,11 @@ public sealed class BackupService : IBackupService
     private const string ManifestEntryName = "manifest.json";
     private const string DocumentsEntryPrefix = "documents/";
     private const string BackupExtension = ".agentxbak";
-    private const int AesKeySize = 256;          // bits
-    private const int AesBlockSize = 128;         // bits
-    private const int Pbkdf2Iterations = 100_000;
-    private const int SaltSize = 16;             // bytes
-    private const int IvSize = 16;              // bytes
+    private const int AesKeySize = AppConstants.AesKeySizeBits;         // bits
+    private const int AesBlockSize = AppConstants.AesBlockSizeBits;     // bits
+    private const int Pbkdf2Iterations = AppConstants.Pbkdf2Iterations;
+    private const int SaltSize = AppConstants.PbkdfSaltBytes;          // bytes
+    private const int IvSize = AppConstants.IvSizeBytes;               // bytes
 
     // ── Fields ─────────────────────────────────────────────────────────────
 

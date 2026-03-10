@@ -1,4 +1,5 @@
 using AgentX.Core.AI.Models;
+using AgentX.Core.Constants;
 using Serilog;
 
 namespace AgentX.Core.AI;
@@ -15,35 +16,12 @@ public sealed class ContextWindowManager : IContextWindowManager
 {
     private readonly ILogger _logger;
 
-    /// <summary>
-    /// Approximate number of characters per token for English text.
-    /// Conservative estimate suitable for Llama-family and similar models.
-    /// </summary>
-    private const int CharsPerToken = 4;
-
-    /// <summary>
-    /// Per-message token overhead to account for role labels, delimiters,
-    /// and formatting tokens injected by the model's chat template.
-    /// </summary>
-    private const int MessageOverheadTokens = 4;
-
-    /// <summary>
-    /// Default context window size when the model does not report one.
-    /// 4096 is a safe minimum supported by virtually all instruction-tuned models.
-    /// </summary>
-    private const int DefaultContextWindow = 4096;
-
-    /// <summary>
-    /// Maximum context window cap to prevent unreasonable values.
-    /// 128K tokens is the upper bound for current large-context models.
-    /// </summary>
-    private const int MaxContextWindowCap = 131072;
-
-    /// <summary>
-    /// Minimum number of non-system messages to preserve even when trimming.
-    /// Ensures at least the most recent user-assistant exchange is retained.
-    /// </summary>
-    private const int MinPreservedMessages = 4;
+    // Constants are centralized in AppConstants. Local aliases for readability.
+    private const int CharsPerToken = AppConstants.CharsPerToken;
+    private const int MessageOverheadTokens = AppConstants.MessageOverheadTokens;
+    private const int DefaultContextWindow = AppConstants.ChatDefaultContextWindow;
+    private const int MaxContextWindowCap = AppConstants.MaxContextWindowCap;
+    private const int MinPreservedMessages = AppConstants.MinPreservedMessages;
 
     /// <summary>
     /// Creates a new ContextWindowManager with the specified logger.

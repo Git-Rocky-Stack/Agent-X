@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Helpers;
 using Serilog;
 using Windows.ApplicationModel.DataTransfer;
 
@@ -102,13 +103,13 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
                     ParameterCount = model.ParameterCount,
                     ContextLength = model.ContextLength,
                     Digest = model.Digest,
-                    ModifiedAtFormatted = FormatTimeAgo(model.ModifiedAt),
+                    ModifiedAtFormatted = FormatHelper.TimeAgoWithMonths(model.ModifiedAt),
                     IsActive = string.Equals(model.Id, activeModelId, StringComparison.OrdinalIgnoreCase)
                 });
             }
 
             TotalModels = InstalledModels.Count;
-            TotalModelSize = FormatBytes(totalSize);
+            TotalModelSize = FormatHelper.FormatBytes(totalSize);
         }
         catch (Exception ex)
         {
@@ -306,32 +307,9 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         if (progress.TotalBytes <= 0)
             return progress.Status;
 
-        var downloaded = FormatBytes(progress.CompletedBytes);
-        var total = FormatBytes(progress.TotalBytes);
+        var downloaded = FormatHelper.FormatBytes(progress.CompletedBytes);
+        var total = FormatHelper.FormatBytes(progress.TotalBytes);
         return $"{progress.Status} - {downloaded} / {total} ({progress.PercentComplete:F1}%)";
-    }
-
-    private static string FormatBytes(long bytes)
-    {
-        return bytes switch
-        {
-            < 1_000_000 => $"{bytes / 1_000.0:F1} KB",
-            < 1_000_000_000 => $"{bytes / 1_000_000.0:F1} MB",
-            _ => $"{bytes / 1_000_000_000.0:F2} GB"
-        };
-    }
-
-    private static string FormatTimeAgo(DateTime dateTime)
-    {
-        var span = DateTime.UtcNow - dateTime.ToUniversalTime();
-        return span.TotalMinutes switch
-        {
-            < 1 => "just now",
-            < 60 => $"{(int)span.TotalMinutes}m ago",
-            < 1440 => $"{(int)span.TotalHours}h ago",
-            < 43200 => $"{(int)span.TotalDays}d ago",
-            _ => $"{(int)(span.TotalDays / 30)}mo ago"
-        };
     }
 
     private void SetError(string message)

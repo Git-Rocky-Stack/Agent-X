@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using AgentX.Core.Constants;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Sync.Models;
@@ -46,14 +47,14 @@ public sealed class SyncService : ISyncService
     /// <summary>Monotonically increasing wire-format version written into every .axs header.</summary>
     private const ushort FormatVersion = 1;
 
-    // AES-256-GCM parameters
-    private const int AesKeyBytes   = 32; // 256 bits
-    private const int GcmNonceBytes = 12; // 96-bit nonce — optimal for GCM
-    private const int GcmTagBytes   = 16; // 128-bit authentication tag
+    // AES-256-GCM parameters (centralized in AppConstants)
+    private const int AesKeyBytes   = AppConstants.AesKeyBytes;   // 256 bits
+    private const int GcmNonceBytes = AppConstants.GcmNonceBytes; // 96-bit nonce — optimal for GCM
+    private const int GcmTagBytes   = AppConstants.GcmTagBytes;   // 128-bit authentication tag
 
-    // PBKDF2 parameters
-    private const int Pbkdf2Iterations = 100_000;
-    private const int SaltBytes        = 16;
+    // PBKDF2 parameters (centralized in AppConstants)
+    private const int Pbkdf2Iterations = AppConstants.Pbkdf2Iterations;
+    private const int SaltBytes        = AppConstants.PbkdfSaltBytes;
 
     // File header offsets and sizes
     private static readonly byte[] SyncMagic       = "AXSYNC\0\0"u8.ToArray(); // 8 bytes

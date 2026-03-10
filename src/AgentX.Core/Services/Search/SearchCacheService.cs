@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using AgentX.Core.Search.Models;
+using AgentX.Core.Services.FeatureFlags;
 
 namespace AgentX.Core.Services.Search;
 
@@ -66,6 +67,7 @@ public sealed class SearchCacheService : ISearchCacheService, IDisposable
 
     private readonly int _maxEntries;
     private readonly TimeSpan _ttl;
+    private readonly IFeatureFlagService? _featureFlags;
 
     /// <summary>
     /// Doubly-linked list ordered by access recency. The head is the most recently
@@ -107,7 +109,7 @@ public sealed class SearchCacheService : ISearchCacheService, IDisposable
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown if <paramref name="maxEntries"/> is less than 1 or <paramref name="ttl"/> is not positive.
     /// </exception>
-    public SearchCacheService(int maxEntries = DefaultMaxEntries, TimeSpan? ttl = null)
+    public SearchCacheService(int maxEntries = DefaultMaxEntries, TimeSpan? ttl = null, IFeatureFlagService? featureFlags = null)
     {
         if (maxEntries < 1)
         {
@@ -124,6 +126,7 @@ public sealed class SearchCacheService : ISearchCacheService, IDisposable
 
         _maxEntries = maxEntries;
         _ttl = resolvedTtl;
+        _featureFlags = featureFlags;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -135,6 +138,12 @@ public sealed class SearchCacheService : ISearchCacheService, IDisposable
     {
         ArgumentNullException.ThrowIfNull(query);
         ThrowIfDisposed();
+
+        // Skip cache when the SearchCaching feature flag is disabled
+        if (!(_featureFlags?.IsEnabled(FeatureFlags.FeatureFlags.SearchCaching.Name) ?? true))
+        {
+            return null;
+        }
 
         var key = GenerateCacheKey(query);
 
@@ -195,6 +204,12 @@ public sealed class SearchCacheService : ISearchCacheService, IDisposable
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(results);
         ThrowIfDisposed();
+
+        // Skip storing when the SearchCaching feature flag is disabled
+        if (!(_featureFlags?.IsEnabled(FeatureFlags.FeatureFlags.SearchCaching.Name) ?? true))
+        {
+            return;
+        }
 
         var key = GenerateCacheKey(query);
         var now = DateTime.UtcNow;

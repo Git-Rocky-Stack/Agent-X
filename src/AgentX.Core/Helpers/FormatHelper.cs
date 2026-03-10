@@ -43,4 +43,29 @@ public static class FormatHelper
             _ => dateTime.ToString("MMM d, yyyy")
         };
     }
+
+    public static string FormatPercent(double value) => $"{value:F0}%";
+
+    public static string FormatLatency(double milliseconds) => milliseconds switch
+    {
+        < 1000 => $"{milliseconds:F0}ms",
+        < 60_000 => $"{milliseconds / 1000:F1}s",
+        < 3_600_000 => $"{milliseconds / 60_000:F1}m",
+        _ => $"{milliseconds / 3_600_000:F1}h"
+    };
+
+    public static string TimeAgoWithMonths(DateTime dateTime)
+    {
+        var span = DateTime.UtcNow - dateTime;
+        return span.TotalMinutes switch
+        {
+            < 1 => "just now",
+            < 60 => $"{(int)span.TotalMinutes}m ago",
+            < 1440 => $"{(int)span.TotalHours}h ago",
+            < 10080 => $"{(int)span.TotalDays}d ago",
+            < 43200 => $"{(int)(span.TotalDays / 7)}w ago",
+            < 525600 => $"{(int)(span.TotalDays / 30)}mo ago",
+            _ => dateTime.ToString("MMM d, yyyy")
+        };
+    }
 }

@@ -1,5 +1,6 @@
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Constants;
 using Serilog;
 
 namespace AgentX.Core.Search;
@@ -50,7 +51,7 @@ public sealed class HydeService : IHydeService
         var options = new ChatOptions
         {
             Temperature = 0.3, // Low temperature for factual content
-            MaxTokens = 512
+            MaxTokens = AppConstants.HydeMaxTokens
         };
 
         var hypotheticalDoc = await _aiService.ChatAsync(messages, SystemPrompt, options, ct)

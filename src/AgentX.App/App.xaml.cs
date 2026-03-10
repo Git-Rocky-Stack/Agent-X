@@ -30,6 +30,7 @@ using AgentX.Core.Services.Audio;
 using AgentX.Core.Services.Sync;
 using AgentX.Core.Services.Sync.Models;
 using AgentX.Core.Services.Search;
+using AgentX.Core.Services.FeatureFlags;
 using AgentX.Core.Validation;
 using AgentX.App.Services;
 
@@ -114,6 +115,17 @@ public partial class App : Application
         {
             Log.Warning(ex, "AI service initialization failed — Ollama may not be running");
         }
+
+        // 3. Initialize feature flags
+        try
+        {
+            var featureFlags = GetService<IFeatureFlagService>();
+            await featureFlags.InitializeAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Feature flag initialization failed — using defaults");
+        }
     }
 
     private void ConfigureServices(HostBuilderContext context, IServiceCollection services)
@@ -127,6 +139,7 @@ public partial class App : Application
         // ── Core Services ──────────────────────────────────────
         services.AddSingleton<ISettingsService, SettingsService>();
         services.AddSingleton<ILicenseService, LicenseService>();
+        services.AddSingleton<IFeatureFlagService, FeatureFlagService>();
 
         // ── App Services (UI layer) ──────────────────────────────
         services.AddSingleton<KeyboardShortcutService>();

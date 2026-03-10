@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Constants;
 using LLama;
 using LLama.Common;
 using LLama.Sampling;
@@ -115,7 +116,7 @@ public sealed class LocalLlmProvider : IAiProvider
                 IsAvailable = true,
                 SizeBytes = fileInfo.Length,
                 QuantizationLevel = "Q4_K_M",
-                ParameterCount = 3000, // Stored in millions (3B = 3000M)
+                ParameterCount = AppConstants.DefaultModelParamCountMillions, // Stored in millions (3B = 3000M)
                 ContextLength = _contextSize,
                 ModifiedAt = fileInfo.LastWriteTimeUtc
             });
@@ -175,7 +176,7 @@ public sealed class LocalLlmProvider : IAiProvider
             Status = "Downloading..."
         });
 
-        using var httpClient = new HttpClient { Timeout = TimeSpan.FromHours(2) };
+        using var httpClient = new HttpClient { Timeout = AppConstants.ModelDownloadTimeout };
         using var response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct)
             .ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
@@ -185,9 +186,9 @@ public sealed class LocalLlmProvider : IAiProvider
 
         await using var contentStream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
         await using var fileStream = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None,
-            bufferSize: 81920, useAsync: true);
+            bufferSize: AppConstants.FileStreamBufferSize, useAsync: true);
 
-        var buffer = new byte[81920];
+        var buffer = new byte[AppConstants.FileStreamBufferSize];
         int bytesRead;
 
         while ((bytesRead = await contentStream.ReadAsync(buffer, ct).ConfigureAwait(false)) > 0)
@@ -276,7 +277,7 @@ public sealed class LocalLlmProvider : IAiProvider
         ChatOptions? options = null,
         CancellationToken ct = default)
     {
-        var sb = new StringBuilder(1024);
+        var sb = new StringBuilder(AppConstants.ResponseBuilderCapacity);
 
         await foreach (var token in StreamChatAsync(messages, options, ct).ConfigureAwait(false))
         {
@@ -382,7 +383,7 @@ public sealed class LocalLlmProvider : IAiProvider
             // Embedding parameters (same weights, embedding mode)
             _embeddingParams = new ModelParams(modelPath)
             {
-                ContextSize = 512, // Smaller context for embeddings
+                ContextSize = AppConstants.EmbeddingContextSize, // Smaller context for embeddings
                 GpuLayerCount = effectiveGpuLayers,
                 Embeddings = true
             };

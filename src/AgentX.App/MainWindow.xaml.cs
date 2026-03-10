@@ -17,6 +17,7 @@ using AgentX.App.Services;
 using AgentX.Core.AI;
 using AgentX.Core.Documents;
 using AgentX.Core.Services.Indexing;
+using AgentX.Core.Constants;
 using AgentX.Core.Services.Settings;
 
 namespace AgentX.App;
@@ -356,7 +357,7 @@ public sealed partial class MainWindow : Window
         }
         else
         {
-            Log.Warning("Attempted to navigate to unknown page: {Page}", pageTag);
+            Log.Debug("Attempted to navigate to unknown page: {Page}", pageTag);
         }
     }
 
@@ -425,7 +426,7 @@ public sealed partial class MainWindow : Window
                     }
                     else
                     {
-                        Log.Warning("Frame.Navigate returned false for OnboardingPage, skipping onboarding");
+                        Log.Error("Frame.Navigate returned false for OnboardingPage, skipping onboarding");
                         EnsureNavPaneVisible();
                         settings.OnboardingCompleted = true;
                         await settingsService.SaveSettingsAsync(settings);
@@ -433,7 +434,7 @@ public sealed partial class MainWindow : Window
                 }
                 catch (Exception navEx)
                 {
-                    Log.Warning(navEx, "OnboardingPage failed to load, skipping onboarding");
+                    Log.Error(navEx, "OnboardingPage failed to load, skipping onboarding");
                     EnsureNavPaneVisible();
                     ContentFrame.Navigate(typeof(Views.DashboardPage));
                     settings.OnboardingCompleted = true;
@@ -484,7 +485,7 @@ public sealed partial class MainWindow : Window
     /// </summary>
     private void InitializeStatusBar()
     {
-        _statusTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
+        _statusTimer = new DispatcherTimer { Interval = AppConstants.StatusBarPollInterval };
         _statusTimer.Tick += async (s, e) => await UpdateStatusBarAsync();
         _statusTimer.Start();
 
@@ -498,7 +499,7 @@ public sealed partial class MainWindow : Window
     {
         try
         {
-            await Task.Delay(5000);
+            await Task.Delay(AppConstants.InitialStatusCheckDelay);
             await UpdateStatusBarAsync();
         }
         catch (Exception ex)
@@ -568,9 +569,9 @@ public sealed partial class MainWindow : Window
                 IndexingText.Text = "";
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Silently ignore indexing status errors — non-critical
+            Log.Debug(ex, "Indexing status check failed");
         }
 
         // --- Document count ---
@@ -580,9 +581,9 @@ public sealed partial class MainWindow : Window
             var docCount = await docService.GetTotalDocumentCountAsync();
             DocCountText.Text = docCount > 0 ? $"{docCount} docs" : "";
         }
-        catch
+        catch (Exception ex)
         {
-            // Silently ignore document count errors — non-critical
+            Log.Debug(ex, "Document count check failed");
         }
     }
 

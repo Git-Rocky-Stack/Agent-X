@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Documents;
+using AgentX.Core.Helpers;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Indexing;
 using AgentX.Core.Services.Tagging;
@@ -201,7 +202,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         {
             TotalDocuments = await _documentService.GetTotalDocumentCountAsync();
             var storageBytes = await _documentService.GetTotalStorageBytesAsync();
-            TotalStorageFormatted = FormatBytes(storageBytes);
+            TotalStorageFormatted = FormatHelper.FormatBytes(storageBytes);
         }
         catch (Exception ex)
         {
@@ -984,8 +985,8 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
             FileName = doc.FileName,
             FilePath = doc.FilePath,
             FileType = doc.FileType,
-            FileSizeFormatted = FormatBytes(doc.FileSizeBytes),
-            ImportedAtFormatted = FormatTimeAgo(doc.ImportedAt),
+            FileSizeFormatted = FormatHelper.FormatBytes(doc.FileSizeBytes),
+            ImportedAtFormatted = FormatHelper.TimeAgoWithMonths(doc.ImportedAt),
             ChunkCount = doc.ChunkCount,
             WordCount = doc.WordCount,
             PageCount = doc.PageCount,
@@ -1021,19 +1022,6 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         _ => "#6B7280"
     };
 
-    private static string FormatTimeAgo(DateTime dateTime)
-    {
-        var span = DateTime.UtcNow - dateTime.ToUniversalTime();
-        return span.TotalMinutes switch
-        {
-            < 1 => "just now",
-            < 60 => $"{(int)span.TotalMinutes}m ago",
-            < 1440 => $"{(int)span.TotalHours}h ago",
-            < 43200 => $"{(int)span.TotalDays}d ago",
-            _ => $"{(int)(span.TotalDays / 30)}mo ago"
-        };
-    }
-
     private void SetError(string message)
     {
         ErrorMessage = message;
@@ -1044,20 +1032,6 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     {
         ErrorMessage = string.Empty;
         HasError = false;
-    }
-
-    /// <summary>
-    /// Formats bytes to a human-readable string.
-    /// </summary>
-    public static string FormatBytes(long bytes)
-    {
-        return bytes switch
-        {
-            < 1_024 => $"{bytes} B",
-            < 1_048_576 => $"{bytes / 1_024.0:F1} KB",
-            < 1_073_741_824 => $"{bytes / 1_048_576.0:F1} MB",
-            _ => $"{bytes / 1_073_741_824.0:F2} GB"
-        };
     }
 
     // ═══════════════════════════════════════════════════════════════

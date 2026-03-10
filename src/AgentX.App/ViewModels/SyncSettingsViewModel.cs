@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using AgentX.Core.Helpers;
 using AgentX.Core.Services.Sync;
 using AgentX.Core.Services.Sync.Models;
 using AgentX.Core.Data.Entities;
@@ -285,11 +286,11 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
             PendingChanges = status.PendingChanges;
 
             LastSyncAt = status.LastSyncAt.HasValue
-                ? FormatTimeAgo(status.LastSyncAt.Value)
+                ? FormatHelper.TimeAgoWithMonths(status.LastSyncAt.Value)
                 : "Never";
 
             LastSyncDurationMs = status.LastSyncDurationMs > 0
-                ? FormatDuration(status.LastSyncDurationMs)
+                ? FormatHelper.FormatDuration(status.LastSyncDurationMs)
                 : "--";
 
             IsSyncing = status.SyncState == AgentX.Core.Services.Sync.Models.SyncState.Syncing;
@@ -726,9 +727,9 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         ChangesApplied    = entry.ChangesApplied,
         ConflictsDetected = entry.ConflictsDetected,
         IsSuccess         = entry.IsSuccess,
-        SyncedAtFormatted = FormatTimeAgo(entry.SyncedAt),
+        SyncedAtFormatted = FormatHelper.TimeAgoWithMonths(entry.SyncedAt),
         SyncedAtFull      = entry.SyncedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt"),
-        DurationFormatted = FormatDuration(entry.DurationMs),
+        DurationFormatted = FormatHelper.FormatDuration(entry.DurationMs),
         ErrorMessage      = entry.ErrorMessage
     };
 
@@ -744,33 +745,6 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(HasSyncHistory));
         SyncNowCommand.NotifyCanExecuteChanged();
         SaveConfigurationCommand.NotifyCanExecuteChanged();
-    }
-
-    // ── Formatting Helpers ────────────────────────────────────────────────────
-
-    private static string FormatTimeAgo(DateTime dateTime)
-    {
-        var span = DateTime.UtcNow - dateTime.ToUniversalTime();
-
-        return span.TotalSeconds switch
-        {
-            < 60      => "just now",
-            < 3600    => $"{(int)span.TotalMinutes}m ago",
-            < 86400   => $"{(int)span.TotalHours}h ago",
-            < 2592000 => $"{(int)span.TotalDays}d ago",
-            _         => $"{(int)(span.TotalDays / 30)}mo ago"
-        };
-    }
-
-    private static string FormatDuration(double durationMs)
-    {
-        return durationMs switch
-        {
-            < 1000    => $"{(long)durationMs}ms",
-            < 60000   => $"{durationMs / 1000.0:F1}s",
-            < 3600000 => $"{durationMs / 60000.0:F1}m",
-            _         => $"{durationMs / 3600000.0:F1}h"
-        };
     }
 
     // ── Error / Status Management ─────────────────────────────────────────────

@@ -8,6 +8,7 @@
 - Medium Priority #8 completed (Knowledge Graph enhanced with search, zoom, tooltips, cluster highlight)
 - Built-in Local LLM (LLamaSharp) + 6 Advanced RAG Enhancements completed
 - GPU Acceleration (CUDA 12), JSON Mode / Structured Output, Installer-Bundled Model completed
+- Tech Debt A-E completed (Magic Numbers, Formatting, DTOs, Logging, Feature Flags)
 
 ---
 
@@ -63,8 +64,8 @@
 
 | # | Item | Description | Status |
 |---|------|-------------|--------|
-| A | **Magic Numbers** | Replace hardcoded values (timeouts, retry counts, buffer sizes) with configuration constants. | Pending |
-| B | **Duplicate Formatting** | Consolidate repeated date/time/size formatting logic into shared helpers. | Pending |
-| C | **DTO Layer** | Add Data Transfer Objects between services and ViewModels to decouple layers. | Pending |
-| D | **Logging Levels** | Audit all Log.Debug/Log.Information usage — some should be Warning or Error. | Pending |
-| E | **Feature Flags** | Add a feature flag system for staged rollout of new capabilities. | Pending |
+| A | **Magic Numbers** | 60+ named constants in AppConstants.cs replacing hardcoded timeouts, retry values, buffer sizes, crypto params, validation limits, AI inference values. 15 source files updated to reference centralized constants. | DONE |
+| B | **Duplicate Formatting** | FormatHelper enhanced with FormatPercent, FormatLatency, TimeAgoWithMonths. Removed 13 duplicate private FormatBytes/FormatTimeAgo/FormatDuration methods across 9 ViewModels, all now use shared helpers. | DONE |
+| C | **DTO Layer** | 5 DTO files: DocumentDisplayDto, SearchResultDto, ConversationDto, MessageDto, DashboardItemDto. Pre-computed display properties (formatted sizes, time-ago, file icons, token speeds). Ready for ViewModel adoption. | DONE |
+| D | **Logging Levels** | Fixed 5 logging issues: added logging to 2 empty catch blocks, upgraded 2 onboarding failures from Warning→Error, downgraded unknown page nav from Warning→Debug. | DONE |
+| E | **Feature Flags** | FeatureFlagService registered in DI and initialized at startup. 15 flags (AI, Search, Intelligence, Sync, Plugins, Experimental). Feature guards added to SearchCacheService, AutoTagService, DuplicateDetectionService. | DONE |

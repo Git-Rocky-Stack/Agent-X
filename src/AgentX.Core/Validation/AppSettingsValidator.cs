@@ -1,3 +1,4 @@
+using AgentX.Core.Constants;
 using AgentX.Core.Services.Settings;
 
 namespace AgentX.Core.Validation;
@@ -60,14 +61,14 @@ public sealed class AppSettingsValidator : IValidator<AppSettings>
                 $"Temperature must be between 0.0 and 2.0. Got {instance.Temperature}."));
         }
 
-        if (instance.MaxTokens < 1 || instance.MaxTokens > 128_000)
+        if (instance.MaxTokens < 1 || instance.MaxTokens > AppConstants.MaxTokensLimit)
         {
             errors.Add(new ValidationError(
                 nameof(AppSettings.MaxTokens),
                 $"MaxTokens must be between 1 and 128000. Got {instance.MaxTokens}."));
         }
 
-        if (instance.ContextWindow < 512 || instance.ContextWindow > 1_048_576)
+        if (instance.ContextWindow < 512 || instance.ContextWindow > AppConstants.MaxContextWindowLimit)
         {
             errors.Add(new ValidationError(
                 nameof(AppSettings.ContextWindow),
@@ -75,7 +76,7 @@ public sealed class AppSettingsValidator : IValidator<AppSettings>
         }
 
         // ── Knowledge Vault chunking parameters ──────────────────────────
-        if (instance.ChunkSize < 64 || instance.ChunkSize > 8192)
+        if (instance.ChunkSize < 64 || instance.ChunkSize > AppConstants.MaxChunkSize)
         {
             errors.Add(new ValidationError(
                 nameof(AppSettings.ChunkSize),

@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Constants;
 using OllamaSharp;
 using OllamaSharp.Models;
 using OllamaSharp.Models.Chat;
@@ -66,7 +67,7 @@ public sealed class OllamaProvider : IAiProvider
             // Use a short timeout so the app doesn't hang when Ollama isn't running.
             // The default HttpClient timeout is ~100s which is far too long for a health check.
             using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            timeoutCts.CancelAfter(TimeSpan.FromSeconds(3));
+            timeoutCts.CancelAfter(AppConstants.OllamaCheckTimeout);
 
             var running = await _client.IsRunningAsync(timeoutCts.Token).ConfigureAwait(false);
             _isAvailable = running;

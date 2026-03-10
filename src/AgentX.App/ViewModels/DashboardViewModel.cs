@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AgentX.Core.AI;
 using AgentX.Core.Documents;
+using AgentX.Core.Helpers;
 using AgentX.Core.Search;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Collections;
@@ -134,7 +135,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             TotalDocuments = (int)docCount;
 
             var storageBytes = await _documentService.GetTotalStorageBytesAsync();
-            TotalStorageSize = FormatBytes(storageBytes);
+            TotalStorageSize = FormatHelper.FormatBytes(storageBytes);
 
             var collectionCount = await _collectionService.GetCollectionCountAsync();
             TotalCollections = collectionCount;
@@ -200,8 +201,8 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
                 Id = d.Id,
                 FileName = d.FileName,
                 FileType = d.FileType,
-                ImportedAgo = FormatTimeAgo(d.ImportedAt),
-                FileSize = FormatBytes(d.FileSizeBytes)
+                ImportedAgo = FormatHelper.TimeAgoWithMonths(d.ImportedAt),
+                FileSize = FormatHelper.FormatBytes(d.FileSizeBytes)
             });
 
             RecentDocuments = new ObservableCollection<DashboardRecentDocumentItem>(recentDocs);
@@ -214,7 +215,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
                 Id = c.Id,
                 Title = string.IsNullOrWhiteSpace(c.Title) ? "Untitled Conversation" : c.Title,
                 Preview = $"{c.MessageCount} messages",
-                TimeAgo = FormatTimeAgo(c.UpdatedAt),
+                TimeAgo = FormatHelper.TimeAgoWithMonths(c.UpdatedAt),
                 MessageCount = c.MessageCount
             });
 
@@ -310,31 +311,6 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             IndexedPercent = 100;
             IndexingStatus = "Idle";
         }
-    }
-
-    private static string FormatBytes(long bytes)
-    {
-        return bytes switch
-        {
-            < 1_024 => $"{bytes} B",
-            < 1_048_576 => $"{bytes / 1_024.0:F1} KB",
-            < 1_073_741_824 => $"{bytes / 1_048_576.0:F1} MB",
-            _ => $"{bytes / 1_073_741_824.0:F2} GB"
-        };
-    }
-
-    private static string FormatTimeAgo(DateTime timestamp)
-    {
-        var diff = DateTime.UtcNow - timestamp;
-        return diff switch
-        {
-            { TotalMinutes: < 1 } => "just now",
-            { TotalMinutes: < 60 } => $"{(int)diff.TotalMinutes}m ago",
-            { TotalHours: < 24 } => $"{(int)diff.TotalHours}h ago",
-            { TotalDays: < 7 } => $"{(int)diff.TotalDays}d ago",
-            { TotalDays: < 30 } => $"{(int)(diff.TotalDays / 7)}w ago",
-            _ => $"{(int)(diff.TotalDays / 30)}mo ago"
-        };
     }
 
     // ── Commands ─────────────────────────────────────────────

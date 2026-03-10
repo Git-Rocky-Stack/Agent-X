@@ -1,4 +1,5 @@
 using System.Net.Http;
+using AgentX.Core.Constants;
 using Serilog;
 
 namespace AgentX.Core.AI;
@@ -16,12 +17,12 @@ public sealed class ExponentialBackoffRetryPolicy : IRetryPolicy
     /// <summary>
     /// Base delay before the first retry. Subsequent retries double this value.
     /// </summary>
-    private static readonly TimeSpan BaseDelay = TimeSpan.FromMilliseconds(500);
+    private static readonly TimeSpan BaseDelay = TimeSpan.FromMilliseconds(AppConstants.RetryBaseDelayMs);
 
     /// <summary>
     /// Maximum jitter factor applied to each delay (plus or minus 25%).
     /// </summary>
-    private const double JitterFactor = 0.25;
+    private const double JitterFactor = AppConstants.RetryJitterFactor;
 
     /// <summary>
     /// Creates a new <see cref="ExponentialBackoffRetryPolicy"/> with the specified logger.

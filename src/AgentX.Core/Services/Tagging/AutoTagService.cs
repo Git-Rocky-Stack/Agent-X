@@ -4,6 +4,7 @@ using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Services.FeatureFlags;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -19,6 +20,7 @@ public class AutoTagService : IAutoTagService
     private readonly AgentXDbContext _db;
     private readonly IAiService _aiService;
     private readonly ILogger _log;
+    private readonly IFeatureFlagService? _featureFlags;
 
     /// <summary>
     /// Maximum number of characters sent to the AI model for tag generation.
@@ -40,12 +42,13 @@ public class AutoTagService : IAutoTagService
         "You are a document tagging assistant. You analyze document content and produce " +
         "concise, descriptive tags. Always respond with valid JSON only, no extra text.";
 
-    public AutoTagService(AgentXDbContext db, IAiService aiService, ILogger logger)
+    public AutoTagService(AgentXDbContext db, IAiService aiService, ILogger logger, IFeatureFlagService? featureFlags = null)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
         _log = logger?.ForContext<AutoTagService>()
                ?? throw new ArgumentNullException(nameof(logger));
+        _featureFlags = featureFlags;
     }
 
     /// <inheritdoc />
@@ -54,6 +57,13 @@ public class AutoTagService : IAutoTagService
         int maxTags = 5,
         CancellationToken ct = default)
     {
+        // Return early when auto-tagging is disabled via feature flag
+        if (!(_featureFlags?.IsEnabled(FeatureFlags.FeatureFlags.AutoTagging.Name) ?? true))
+        {
+            _log.Debug("Auto-tagging is disabled via feature flag, skipping tag generation");
+            return Array.Empty<(string, double)>();
+        }
+
         try
         {
             if (string.IsNullOrWhiteSpace(documentContent))
@@ -112,6 +122,13 @@ public class AutoTagService : IAutoTagService
     /// <inheritdoc />
     public async Task ApplyAutoTagsAsync(long documentId, CancellationToken ct = default)
     {
+        // Return early when auto-tagging is disabled via feature flag
+        if (!(_featureFlags?.IsEnabled(FeatureFlags.FeatureFlags.AutoTagging.Name) ?? true))
+        {
+            _log.Debug("Auto-tagging is disabled via feature flag, skipping for document {DocumentId}", documentId);
+            return;
+        }
+
         try
         {
             // Load the document

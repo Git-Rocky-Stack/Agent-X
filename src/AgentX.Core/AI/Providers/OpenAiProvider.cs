@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Constants;
 using Serilog;
 
 namespace AgentX.Core.AI.Providers;
@@ -50,7 +51,7 @@ public sealed class OpenAiProvider : IAiProvider
         _http = new HttpClient
         {
             BaseAddress = new Uri(endpoint),
-            Timeout = TimeSpan.FromMinutes(5) // Long timeout for streaming responses
+            Timeout = AppConstants.StreamingResponseTimeout // Long timeout for streaming responses
         };
         _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
 
@@ -67,7 +68,7 @@ public sealed class OpenAiProvider : IAiProvider
             _logger.Debug("Checking OpenAI connection...");
 
             using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            timeoutCts.CancelAfter(TimeSpan.FromSeconds(10));
+            timeoutCts.CancelAfter(AppConstants.OpenAiCheckTimeout);
 
             var response = await _http.GetAsync("models", timeoutCts.Token).ConfigureAwait(false);
             _isAvailable = response.IsSuccessStatusCode;

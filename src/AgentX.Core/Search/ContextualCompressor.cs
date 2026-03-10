@@ -1,5 +1,6 @@
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Constants;
 using Serilog;
 
 namespace AgentX.Core.Search;
@@ -59,7 +60,7 @@ public sealed class ContextualCompressor : IContextualCompressor
                 var options = new ChatOptions
                 {
                     Temperature = 0.0, // Deterministic extraction
-                    MaxTokens = 512
+                    MaxTokens = AppConstants.CompressionMaxTokens
                 };
 
                 var extracted = await _aiService.ChatAsync(messages, SystemPrompt, options, ct)

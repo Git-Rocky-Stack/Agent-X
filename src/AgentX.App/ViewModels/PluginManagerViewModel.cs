@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using AgentX.Core.Helpers;
 using AgentX.Core.Services.Plugins;
 using AgentX.Core.Data.Entities;
 using Serilog;
@@ -181,7 +182,7 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
             {
                 target.IsEnabled = true;
                 target.LastActivatedAt = DateTime.Now;
-                target.LastActivatedAtFormatted = FormatTimeAgo(DateTime.Now);
+                target.LastActivatedAtFormatted = FormatHelper.TimeAgoWithMonths(DateTime.Now);
             }
 
             StatusMessage = $"Enabled {target?.Name ?? $"plugin #{id}"}";
@@ -239,26 +240,13 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
         InstallPath = entity.InstallPath,
         IsEnabled = entity.IsEnabled,
         InstalledAt = entity.InstalledAt,
-        InstalledAtFormatted = FormatTimeAgo(entity.InstalledAt),
+        InstalledAtFormatted = FormatHelper.TimeAgoWithMonths(entity.InstalledAt),
         LastActivatedAt = entity.LastActivatedAt,
         LastActivatedAtFormatted = entity.LastActivatedAt.HasValue
-            ? FormatTimeAgo(entity.LastActivatedAt.Value)
+            ? FormatHelper.TimeAgoWithMonths(entity.LastActivatedAt.Value)
             : "Never",
         SettingsJson = entity.SettingsJson
     };
-
-    private static string FormatTimeAgo(DateTime dateTime)
-    {
-        var span = DateTime.UtcNow - dateTime.ToUniversalTime();
-        return span.TotalMinutes switch
-        {
-            < 1 => "just now",
-            < 60 => $"{(int)span.TotalMinutes}m ago",
-            < 1440 => $"{(int)span.TotalHours}h ago",
-            < 43200 => $"{(int)span.TotalDays}d ago",
-            _ => $"{(int)(span.TotalDays / 30)}mo ago"
-        };
-    }
 
     private void SetError(string message)
     {

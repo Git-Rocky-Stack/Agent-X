@@ -1,5 +1,6 @@
 using AgentX.Core.Data;
 using AgentX.Core.Data.VectorDb;
+using AgentX.Core.Services.FeatureFlags;
 using AgentX.Core.Services.Intelligence.Models;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -16,6 +17,7 @@ public class DuplicateDetectionService : IDuplicateDetectionService
     private readonly AgentXDbContext _db;
     private readonly IVectorStore _vectorStore;
     private readonly ILogger _log;
+    private readonly IFeatureFlagService? _featureFlags;
 
     /// <summary>
     /// Maximum number of documents to scan for near-duplicate detection.
@@ -23,17 +25,25 @@ public class DuplicateDetectionService : IDuplicateDetectionService
     /// </summary>
     private const int MaxNearDuplicateScanDocuments = 500;
 
-    public DuplicateDetectionService(AgentXDbContext db, IVectorStore vectorStore, ILogger logger)
+    public DuplicateDetectionService(AgentXDbContext db, IVectorStore vectorStore, ILogger logger, IFeatureFlagService? featureFlags = null)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
         _vectorStore = vectorStore ?? throw new ArgumentNullException(nameof(vectorStore));
         _log = logger?.ForContext<DuplicateDetectionService>()
                ?? throw new ArgumentNullException(nameof(logger));
+        _featureFlags = featureFlags;
     }
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<DuplicateGroup>> FindDuplicatesAsync(CancellationToken ct = default)
     {
+        // Return empty when duplicate detection is disabled via feature flag
+        if (!(_featureFlags?.IsEnabled(FeatureFlags.FeatureFlags.DuplicateDetection.Name) ?? true))
+        {
+            _log.Debug("Duplicate detection is disabled via feature flag, returning empty list");
+            return Array.Empty<DuplicateGroup>();
+        }
+
         _log.Information("Starting exact duplicate detection scan");
 
         try
@@ -102,6 +112,13 @@ public class DuplicateDetectionService : IDuplicateDetectionService
     public async Task<IReadOnlyList<DuplicateGroup>> FindNearDuplicatesAsync(
         float similarityThreshold = 0.9f, CancellationToken ct = default)
     {
+        // Return empty when duplicate detection is disabled via feature flag
+        if (!(_featureFlags?.IsEnabled(FeatureFlags.FeatureFlags.DuplicateDetection.Name) ?? true))
+        {
+            _log.Debug("Duplicate detection is disabled via feature flag, returning empty list");
+            return Array.Empty<DuplicateGroup>();
+        }
+
         if (similarityThreshold is < 0f or > 1f)
         {
             throw new ArgumentOutOfRangeException(

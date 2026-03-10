@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Constants;
 using Serilog;
 
 namespace AgentX.Core.AI.Providers;
@@ -66,7 +67,7 @@ public sealed class AnthropicProvider : IAiProvider
         _http = new HttpClient
         {
             BaseAddress = new Uri(endpoint),
-            Timeout = TimeSpan.FromMinutes(5) // Long timeout for streaming responses
+            Timeout = AppConstants.StreamingResponseTimeout // Long timeout for streaming responses
         };
         _http.DefaultRequestHeaders.Add("x-api-key", apiKey);
         _http.DefaultRequestHeaders.Add("anthropic-version", AnthropicApiVersion);
@@ -84,7 +85,7 @@ public sealed class AnthropicProvider : IAiProvider
             _logger.Debug("Checking Anthropic connection...");
 
             using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            timeoutCts.CancelAfter(TimeSpan.FromSeconds(10));
+            timeoutCts.CancelAfter(AppConstants.AnthropicCheckTimeout);
 
             // Anthropic doesn't have a simple health-check endpoint.
             // We send a minimal messages request to verify the API key works.

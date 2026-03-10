@@ -1,5 +1,6 @@
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Constants;
 using Serilog;
 
 namespace AgentX.Core.Search;
@@ -49,7 +50,7 @@ public sealed class MultiQueryGenerator : IMultiQueryGenerator
             var options = new ChatOptions
             {
                 Temperature = 0.7,
-                MaxTokens = 256
+                MaxTokens = AppConstants.MultiQueryMaxTokens
             };
 
             var response = await _aiService.ChatAsync(messages, SystemPrompt, options, ct)
