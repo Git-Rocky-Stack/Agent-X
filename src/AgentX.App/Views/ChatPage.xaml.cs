@@ -264,6 +264,42 @@ public sealed partial class ChatPage : Page
     }
 
     // ═══════════════════════════════════════════════════════════════
+    // FOLDER ORGANIZATION
+    // ═══════════════════════════════════════════════════════════════
+
+    private void OnFolderFilterClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn)
+        {
+            var folder = btn.Tag as string;
+            ViewModel.FilterByFolderCommand.Execute(string.IsNullOrEmpty(folder) ? null : folder);
+        }
+    }
+
+    private void OnSetFolderClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn)
+        {
+            var folder = btn.Tag as string;
+            ViewModel.SetConversationFolderCommand.Execute(string.IsNullOrEmpty(folder) ? null : folder);
+        }
+    }
+
+    private void OnCustomFolderKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key == VirtualKey.Enter && sender is TextBox textBox)
+        {
+            var folder = textBox.Text?.Trim();
+            if (!string.IsNullOrEmpty(folder))
+            {
+                ViewModel.SetConversationFolderCommand.Execute(folder);
+                textBox.Text = string.Empty;
+            }
+            e.Handled = true;
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
     // CONVERSATION LIST SELECTION
     // ═══════════════════════════════════════════════════════════════
 

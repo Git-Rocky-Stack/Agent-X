@@ -14,6 +14,7 @@ public class AgentXDbContext : DbContext
     public DbSet<DocumentCollectionEntity> DocumentCollections => Set<DocumentCollectionEntity>();
     public DbSet<TagEntity> Tags => Set<TagEntity>();
     public DbSet<DocumentTagEntity> DocumentTags => Set<DocumentTagEntity>();
+    public DbSet<ConversationTagEntity> ConversationTags => Set<ConversationTagEntity>();
     public DbSet<SearchHistoryEntity> SearchHistory => Set<SearchHistoryEntity>();
     public DbSet<SystemPromptEntity> SystemPrompts => Set<SystemPromptEntity>();
     public DbSet<UserSettingsEntity> UserSettings => Set<UserSettingsEntity>();
@@ -72,6 +73,7 @@ public class AgentXDbContext : DbContext
         ConfigureDocumentCollection(modelBuilder);
         ConfigureTag(modelBuilder);
         ConfigureDocumentTag(modelBuilder);
+        ConfigureConversationTag(modelBuilder);
         ConfigureSearchHistory(modelBuilder);
         ConfigureSystemPrompt(modelBuilder);
         ConfigureUserSettings(modelBuilder);
@@ -274,6 +276,26 @@ public class AgentXDbContext : DbContext
             // Relationship: DocumentTag -> Tag
             entity.HasOne(e => e.Tag)
                 .WithMany(t => t.DocumentTags)
+                .HasForeignKey(e => e.TagId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private static void ConfigureConversationTag(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ConversationTagEntity>(entity =>
+        {
+            entity.ToTable("conversation_tags");
+            entity.HasKey(e => new { e.ConversationId, e.TagId });
+            entity.Property(e => e.AssignedAt).IsRequired();
+
+            entity.HasOne(e => e.Conversation)
+                .WithMany(c => c.ConversationTags)
+                .HasForeignKey(e => e.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Tag)
+                .WithMany(t => t.ConversationTags)
                 .HasForeignKey(e => e.TagId)
                 .OnDelete(DeleteBehavior.Cascade);
         });

@@ -55,6 +55,10 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     public ObservableCollection<AiModel> AvailableModels { get; } = new();
     public ObservableCollection<SystemPromptItem> SystemPrompts { get; } = new();
     public ObservableCollection<string> SuggestedQuestions { get; } = new();
+    public ObservableCollection<string> FolderNames { get; } = new();
+
+    // ── Folder Filter ──────────────────────────────────────────
+    [ObservableProperty] private string? _activeFolderFilter;
 
     // ── Computed Properties ────────────────────────────────────
     public bool HasNoConversations => Conversations.Count == 0;
@@ -110,6 +114,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             await LoadAvailableModelsAsync();
             await LoadSystemPromptsAsync();
             await UpdateMemoryCountAsync();
+            await LoadFolderNamesAsync();
         }
         catch (Exception ex)
         {
@@ -136,7 +141,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
                     LastMessage = lastMsg?.Content ?? string.Empty,
                     UpdatedAt = conv.UpdatedAt,
                     IsPinned = conv.IsPinned,
-                    MessageCount = conv.MessageCount
+                    MessageCount = conv.MessageCount,
+                    FolderName = conv.FolderName
                 });
             }
         }
@@ -272,7 +278,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
                     LastMessage = lastMsg?.Content ?? string.Empty,
                     UpdatedAt = conv.UpdatedAt,
                     IsPinned = conv.IsPinned,
-                    MessageCount = conv.MessageCount
+                    MessageCount = conv.MessageCount,
+                    FolderName = conv.FolderName
                 });
             }
 
@@ -1131,6 +1138,85 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     }
 
     // ═══════════════════════════════════════════════════════════════
+    // FOLDER ORGANIZATION
+    // ═══════════════════════════════════════════════════════════════
+
+    [RelayCommand]
+    private async Task SetConversationFolderAsync(string? folderName)
+    {
+        if (ActiveConversationId is null) return;
+
+        Log.Debug("Set conversation folder: {Folder}", folderName ?? "(none)");
+
+        try
+        {
+            await _conversationService.SetConversationFolderAsync(ActiveConversationId.Value, folderName);
+            var item = Conversations.FirstOrDefault(c => c.Id == ActiveConversationId);
+            if (item is not null)
+            {
+                item.FolderName = folderName;
+            }
+            await LoadFolderNamesAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to set conversation folder");
+        }
+    }
+
+    [RelayCommand]
+    private async Task FilterByFolderAsync(string? folderName)
+    {
+        ActiveFolderFilter = folderName;
+        Log.Debug("Filter by folder: {Folder}", folderName ?? "All");
+
+        if (string.IsNullOrEmpty(folderName))
+        {
+            await LoadConversationsAsync();
+            return;
+        }
+
+        try
+        {
+            var conversations = await _conversationService.GetConversationsByFolderAsync(folderName);
+            Conversations.Clear();
+            foreach (var conv in conversations)
+            {
+                var lastMsg = conv.Messages?.OrderByDescending(m => m.SortOrder).FirstOrDefault();
+                Conversations.Add(new ConversationListItem
+                {
+                    Id = conv.Id,
+                    Title = conv.Title,
+                    LastMessage = lastMsg?.Content ?? string.Empty,
+                    UpdatedAt = conv.UpdatedAt,
+                    IsPinned = conv.IsPinned,
+                    MessageCount = conv.MessageCount,
+                    FolderName = conv.FolderName
+                });
+            }
+            OnPropertyChanged(nameof(HasNoConversations));
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to filter conversations by folder");
+        }
+    }
+
+    private async Task LoadFolderNamesAsync()
+    {
+        try
+        {
+            var folders = await _conversationService.GetAllFolderNamesAsync();
+            FolderNames.Clear();
+            foreach (var f in folders) FolderNames.Add(f);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to load folder names");
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
     // DISPOSAL
     // ═══════════════════════════════════════════════════════════════
 
@@ -1262,6 +1348,7 @@ public class ConversationListItem : ObservableObject
 {
     private bool _isPinned;
     private string _lastMessage = string.Empty;
+    private string? _folderName;
 
     public long Id { get; set; }
     public string Title { get; set; } = string.Empty;
@@ -1278,6 +1365,12 @@ public class ConversationListItem : ObservableObject
     {
         get => _isPinned;
         set => SetProperty(ref _isPinned, value);
+    }
+
+    public string? FolderName
+    {
+        get => _folderName;
+        set => SetProperty(ref _folderName, value);
     }
 
     public int MessageCount { get; set; }

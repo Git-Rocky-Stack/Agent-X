@@ -4,6 +4,7 @@ using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Services.License;
 using AgentX.Core.Services.Settings;
+using AgentX.App.Services;
 using Serilog;
 
 namespace AgentX.App.ViewModels;
@@ -14,6 +15,7 @@ public partial class SettingsViewModel : ObservableObject
     private readonly ILicenseService _licenseService;
     private readonly IAiService _aiService;
     private readonly ICostTracker _costTracker;
+    private readonly IThemeService _themeService;
 
     // ── Active Provider ──────────────────────────────────────
     [ObservableProperty] private int _activeProviderIndex;
@@ -51,6 +53,7 @@ public partial class SettingsViewModel : ObservableObject
 
     // ── Appearance ──────────────────────────────────────────
     [ObservableProperty] private bool _compactMode;
+    [ObservableProperty] private int _themeIndex;
 
     // ── Cost Tracking ────────────────────────────────────────
     [ObservableProperty] private string _totalCostDisplay = "$0.00";
@@ -76,17 +79,20 @@ public partial class SettingsViewModel : ObservableObject
     /// Order must match the index mapping in ProviderIndexToId / ProviderIdToIndex.
     /// </summary>
     public List<string> ProviderOptions { get; } = new() { "Ollama (Local)", "OpenAI", "Anthropic Claude" };
+    public List<string> ThemeOptions { get; } = new() { "Dark", "Light", "System Default" };
 
     public SettingsViewModel(
         ISettingsService settingsService,
         ILicenseService licenseService,
         IAiService aiService,
-        ICostTracker costTracker)
+        ICostTracker costTracker,
+        IThemeService themeService)
     {
         _settingsService = settingsService;
         _licenseService = licenseService;
         _aiService = aiService;
         _costTracker = costTracker;
+        _themeService = themeService;
 
         StoragePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -136,6 +142,14 @@ public partial class SettingsViewModel : ObservableObject
 
         // Load current license info
         await LoadLicenseInfoAsync();
+
+        // Load theme preference
+        ThemeIndex = _themeService.CurrentTheme switch
+        {
+            Microsoft.UI.Xaml.ElementTheme.Dark => 0,
+            Microsoft.UI.Xaml.ElementTheme.Light => 1,
+            _ => 2
+        };
 
         Log.Information("Settings loaded");
     }
@@ -426,5 +440,21 @@ public partial class SettingsViewModel : ObservableObject
         LicenseActivatedAt = info.ActivatedAt?.ToString("MMMM d, yyyy") ?? string.Empty;
         LicenseDocumentLimit = info.DocumentLimitDisplay;
         LicenseBadgeColor = info.TierBadgeColor;
+    }
+
+    /// <summary>
+    /// Reacts to theme ComboBox selection changes.
+    /// Maps the index to an <see cref="Microsoft.UI.Xaml.ElementTheme"/> and
+    /// applies it immediately via <see cref="IThemeService"/>.
+    /// </summary>
+    partial void OnThemeIndexChanged(int value)
+    {
+        var theme = value switch
+        {
+            0 => Microsoft.UI.Xaml.ElementTheme.Dark,
+            1 => Microsoft.UI.Xaml.ElementTheme.Light,
+            _ => Microsoft.UI.Xaml.ElementTheme.Default
+        };
+        _ = _themeService.SetThemeAsync(theme);
     }
 }

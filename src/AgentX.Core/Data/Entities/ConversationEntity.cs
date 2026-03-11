@@ -13,6 +13,11 @@ public class ConversationEntity
     public int MessageCount { get; set; }
     public long TokensUsed { get; set; }
 
+    /// <summary>
+    /// Optional folder/category for organizing conversations (e.g., "Work", "Research", "Personal").
+    /// </summary>
+    public string? FolderName { get; set; }
+
     // Branching support
     /// <summary>
     /// The ID of the parent conversation this branch was forked from. Null for root conversations.
@@ -32,6 +37,7 @@ public class ConversationEntity
 
     // Navigation
     public ICollection<MessageEntity> Messages { get; set; } = new List<MessageEntity>();
+    public ICollection<ConversationTagEntity> ConversationTags { get; set; } = new List<ConversationTagEntity>();
 
     /// <summary>
     /// The parent conversation this branch was forked from. Null for root conversations.

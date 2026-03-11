@@ -521,4 +521,150 @@ public class ConversationService : IConversationService
             throw;
         }
     }
+
+    // ── Folder / Tag Organization ────────────────────────────────
+
+    /// <inheritdoc />
+    public async Task SetConversationFolderAsync(long conversationId, string? folderName)
+    {
+        try
+        {
+            var conversation = await _db.Conversations.FindAsync(conversationId);
+            if (conversation is null)
+            {
+                _log.Warning(
+                    "Cannot set folder: conversation {ConversationId} not found",
+                    conversationId);
+                return;
+            }
+
+            conversation.FolderName = string.IsNullOrWhiteSpace(folderName) ? null : folderName.Trim();
+            conversation.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+
+            _log.Information(
+                "Set folder for conversation {ConversationId} to '{FolderName}'",
+                conversationId, conversation.FolderName ?? "(none)");
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to set folder for conversation {ConversationId}", conversationId);
+            throw;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<string>> GetAllFolderNamesAsync()
+    {
+        try
+        {
+            var folders = await _db.Conversations
+                .Where(c => c.FolderName != null && c.FolderName != string.Empty)
+                .Select(c => c.FolderName!)
+                .Distinct()
+                .OrderBy(f => f)
+                .ToListAsync();
+
+            _log.Debug("Retrieved {Count} distinct folder names", folders.Count);
+            return folders;
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to get folder names");
+            throw;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task AddTagToConversationAsync(long conversationId, long tagId)
+    {
+        try
+        {
+            var exists = await _db.ConversationTags
+                .AnyAsync(ct => ct.ConversationId == conversationId && ct.TagId == tagId);
+
+            if (exists)
+            {
+                _log.Debug(
+                    "Tag {TagId} already assigned to conversation {ConversationId}",
+                    tagId, conversationId);
+                return;
+            }
+
+            var conversationTag = new Data.Entities.ConversationTagEntity
+            {
+                ConversationId = conversationId,
+                TagId = tagId,
+                AssignedAt = DateTime.UtcNow
+            };
+
+            _db.ConversationTags.Add(conversationTag);
+            await _db.SaveChangesAsync();
+
+            _log.Information(
+                "Added tag {TagId} to conversation {ConversationId}",
+                tagId, conversationId);
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to add tag {TagId} to conversation {ConversationId}",
+                tagId, conversationId);
+            throw;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task RemoveTagFromConversationAsync(long conversationId, long tagId)
+    {
+        try
+        {
+            var conversationTag = await _db.ConversationTags
+                .FirstOrDefaultAsync(ct => ct.ConversationId == conversationId && ct.TagId == tagId);
+
+            if (conversationTag is null)
+            {
+                _log.Warning(
+                    "Cannot remove: tag {TagId} not assigned to conversation {ConversationId}",
+                    tagId, conversationId);
+                return;
+            }
+
+            _db.ConversationTags.Remove(conversationTag);
+            await _db.SaveChangesAsync();
+
+            _log.Information(
+                "Removed tag {TagId} from conversation {ConversationId}",
+                tagId, conversationId);
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to remove tag {TagId} from conversation {ConversationId}",
+                tagId, conversationId);
+            throw;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<ConversationEntity>> GetConversationsByFolderAsync(string folderName)
+    {
+        try
+        {
+            var conversations = await _db.Conversations
+                .Where(c => c.FolderName == folderName && !c.IsArchived)
+                .OrderByDescending(c => c.IsPinned)
+                .ThenByDescending(c => c.UpdatedAt)
+                .ToListAsync();
+
+            _log.Debug(
+                "Retrieved {Count} conversations in folder '{FolderName}'",
+                conversations.Count, folderName);
+
+            return conversations;
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to get conversations for folder '{FolderName}'", folderName);
+            throw;
+        }
+    }
 }

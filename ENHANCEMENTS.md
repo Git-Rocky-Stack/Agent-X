@@ -11,6 +11,7 @@
 - Tech Debt A-E completed (Magic Numbers, Formatting, DTOs, Logging, Feature Flags)
 - Lower Priority #13-17 ALL completed (Collaboration, Feedback/Few-Shot, Analytics Dashboard, REST API, Mobile Companion)
 - UX Polish #18-21 completed (Per-Message Actions, Message Editing, Code Syntax Highlighting, Notification Toasts)
+- UX Polish #22-25 completed (Drag-Drop File Import [pre-existing], Keyboard Shortcuts Overlay [pre-existing], Conversation Folders/Tags, Dark/Light Theme Toggle)
 
 ---
 
@@ -60,6 +61,10 @@
 | 19 | **Message Editing** | Edit sent user messages inline with a TextBox overlay and "Save & Resend" action. Editing truncates all subsequent messages (both UI and DB via DeleteMessagesAfterAsync) then re-sends. New IConversationService methods: DeleteMessageAsync, UpdateMessageContentAsync, DeleteMessagesAfterAsync. IsEditing/EditContent observable properties on ChatMessageItem. | DONE |
 | 20 | **Code Syntax Highlighting** | Language-aware token coloring in code blocks. SyntaxHighlighter helper with keyword-based regex tokenizer supporting 18 languages (C#, Python, JS/TS, SQL, JSON, HTML/XML, Rust, Go, Java, Bash, YAML, CSS, C/C++). One Dark Pro inspired color palette (purple keywords, green strings, grey comments, blue functions, orange numbers, cyan operators). MarkdownMessageControl upgraded to use RichTextBlock with colored Runs for supported languages. | DONE |
 | 21 | **Error Toasts / Notification System** | App-wide toast notification overlay in MainWindow. INotificationService with Show/ShowSuccess/ShowError/ShowWarning/ShowInfo methods. NotificationOverlay UserControl with auto-dismissing cards (configurable duration), severity icons, dismiss button. Max 5 visible notifications. Integrated into ChatViewModel for generation failures. Available via DI for all pages. | DONE |
+| 22 | **Drag-and-Drop File Import** | Files can be dragged onto the Knowledge Vault page for immediate import. AllowDrop + Drop handler wiring with file type validation, progress feedback, and auto-indexing. | DONE (pre-existing) |
+| 23 | **Keyboard Shortcuts Overlay** | Global keyboard shortcut system via KeyboardShortcutService. 18+ registered shortcuts (Ctrl+K command palette, Ctrl+1-9 page quick-access, Ctrl+N new chat, Ctrl+? help overlay). ContentDialog-based overlay with categorized shortcut listing. RootGrid.PreviewKeyDown handler with modifier key detection. | DONE (pre-existing) |
+| 24 | **Conversation Folders/Tags** | Organize conversations into folders (Work, Research, Personal, Archive, custom). FolderName property on ConversationEntity with ALTER TABLE migration. ConversationTagEntity junction table for tag support. Folder filter chips in chat sidebar. Folder assignment flyout in top bar with preset + custom folder names. IConversationService methods: SetConversationFolderAsync, GetAllFolderNamesAsync, GetConversationsByFolderAsync, AddTagToConversationAsync, RemoveTagFromConversationAsync. | DONE |
+| 25 | **Dark/Light Theme Toggle** | IThemeService with Dark/Light/System Default support. ThemeService persists preference via ISettingsService key-value store (app.theme key). Applies theme by setting RequestedTheme on root FrameworkElement. Appearance section in Settings page with ComboBox selector. Command palette "Toggle Theme" action wired to instant theme switch. Theme initialized on startup from saved preference. | DONE |
 
 ## LOWER PRIORITY — Advanced Features
 

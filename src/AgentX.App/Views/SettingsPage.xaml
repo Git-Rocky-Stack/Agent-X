@@ -24,6 +24,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <!-- Header -->
@@ -235,9 +236,31 @@
             </Border>
 
             <!-- ════════════════════════════════════════════════════════
-                 COST TRACKING
+                 APPEARANCE
                  ════════════════════════════════════════════════════════ -->
             <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Appearance"
+                               Style="{StaticResource HeadingSmallStyle}" />
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Theme"
+                                   Style="{StaticResource LabelStyle}" />
+                        <ComboBox ItemsSource="{x:Bind ViewModel.ThemeOptions}"
+                                  SelectedIndex="{x:Bind ViewModel.ThemeIndex, Mode=TwoWay}"
+                                  HorizontalAlignment="Stretch"
+                                  MinWidth="200" />
+                        <TextBlock Text="Changes apply immediately. 'System Default' follows your Windows theme."
+                                   Style="{StaticResource CaptionStyle}"
+                                   Opacity="0.6" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- ════════════════════════════════════════════════════════
+                 COST TRACKING
+                 ════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="3" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
                     <TextBlock Text="Cost Tracking"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -282,7 +305,7 @@
             <!-- ════════════════════════════════════════════════════════
                  INFERENCE PARAMETERS
                  ════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="3" Style="{StaticResource CardStyle}">
+            <Border Grid.Row="4" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="20">
                     <TextBlock Text="Inference"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -325,7 +348,7 @@
             <!-- ════════════════════════════════════════════════════════
                  KNOWLEDGE VAULT
                  ════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="4" Style="{StaticResource CardStyle}">
+            <Border Grid.Row="5" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="20">
                     <TextBlock Text="Knowledge Vault"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -367,7 +390,7 @@
             <!-- ════════════════════════════════════════════════════════
                  LICENSE
                  ════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="5" Style="{StaticResource CardStyle}">
+            <Border Grid.Row="6" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
 
                     <!-- License Header with Tier Badge -->
@@ -450,7 +473,7 @@
             <!-- ════════════════════════════════════════════════════════
                  STORAGE
                  ════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="6" Style="{StaticResource CardStyle}">
+            <Border Grid.Row="7" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="12">
                     <TextBlock Text="Storage"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -467,7 +490,7 @@
             <!-- ════════════════════════════════════════════════════════
                  ACTIONS
                  ════════════════════════════════════════════════════════ -->
-            <Grid Grid.Row="7" ColumnSpacing="12">
+            <Grid Grid.Row="8" ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />

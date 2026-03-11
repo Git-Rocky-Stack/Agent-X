@@ -103,4 +103,32 @@ public interface IConversationService
     /// Returns the sum of TokensUsed across all conversations.
     /// </summary>
     Task<long> GetTotalTokensUsedAsync();
+
+    // ── Folder / Tag Organization ───────────────────────────────
+
+    /// <summary>
+    /// Sets or clears the folder name for a conversation.
+    /// Pass null to remove the conversation from any folder.
+    /// </summary>
+    Task SetConversationFolderAsync(long conversationId, string? folderName);
+
+    /// <summary>
+    /// Returns all distinct folder names currently in use across conversations.
+    /// </summary>
+    Task<IReadOnlyList<string>> GetAllFolderNamesAsync();
+
+    /// <summary>
+    /// Assigns a tag to a conversation via the junction table.
+    /// </summary>
+    Task AddTagToConversationAsync(long conversationId, long tagId);
+
+    /// <summary>
+    /// Removes a tag assignment from a conversation.
+    /// </summary>
+    Task RemoveTagFromConversationAsync(long conversationId, long tagId);
+
+    /// <summary>
+    /// Returns all conversations that belong to the specified folder.
+    /// </summary>
+    Task<IReadOnlyList<ConversationEntity>> GetConversationsByFolderAsync(string folderName);
 }

@@ -10,4 +10,5 @@ public class TagEntity
 
     // Navigation
     public ICollection<DocumentTagEntity> DocumentTags { get; set; } = new List<DocumentTagEntity>();
+    public ICollection<ConversationTagEntity> ConversationTags { get; set; } = new List<ConversationTagEntity>();
 }

@@ -102,7 +102,8 @@ public partial class App : Application
                 "ALTER TABLE search_history ADD COLUMN MaxResults INTEGER NULL",
                 "ALTER TABLE search_history ADD COLUMN DateAfter TEXT NULL",
                 "ALTER TABLE search_history ADD COLUMN DateBefore TEXT NULL",
-                "ALTER TABLE search_history ADD COLUMN SortOrder TEXT NULL"
+                "ALTER TABLE search_history ADD COLUMN SortOrder TEXT NULL",
+                "ALTER TABLE conversations ADD COLUMN FolderName TEXT NULL"
             ];
 
             foreach (var sql in alterStatements)
@@ -155,6 +156,23 @@ public partial class App : Application
         {
             Log.Warning(ex, "Feature flag initialization failed — using defaults");
         }
+
+        // 4. Initialize theme from user preferences
+        try
+        {
+            var themeService = GetService<IThemeService>();
+            await themeService.InitializeAsync();
+            // Apply theme on UI thread
+            App.MainWindow?.DispatcherQueue.TryEnqueue(() =>
+            {
+                themeService.ApplyTheme(themeService.CurrentTheme);
+            });
+            Log.Information("Theme initialized: {Theme}", themeService.CurrentTheme);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to initialize theme");
+        }
     }
 
     private void ConfigureServices(HostBuilderContext context, IServiceCollection services)
@@ -172,6 +190,7 @@ public partial class App : Application
 
         // ── App Services (UI layer) ──────────────────────────────
         services.AddSingleton<KeyboardShortcutService>();
+        services.AddSingleton<IThemeService, ThemeService>();
 
         // ── AI Services ────────────────────────────────────────
         services.AddSingleton<IAiService, AiService>();

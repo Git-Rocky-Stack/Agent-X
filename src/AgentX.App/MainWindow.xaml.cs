@@ -277,13 +277,25 @@ public sealed partial class MainWindow : Window
             HorizontalScrollBarVisibility = Microsoft.UI.Xaml.Controls.ScrollBarVisibility.Disabled
         };
 
+        // Use the current theme for the dialog instead of hardcoding Dark
+        var currentTheme = Microsoft.UI.Xaml.ElementTheme.Dark;
+        try
+        {
+            var themeService = App.GetService<IThemeService>();
+            currentTheme = themeService.CurrentTheme;
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Could not resolve theme service for shortcuts dialog, defaulting to Dark");
+        }
+
         var dialog = new Microsoft.UI.Xaml.Controls.ContentDialog
         {
             Title = "Keyboard Shortcuts",
             Content = scrollViewer,
             CloseButtonText = "Close",
             XamlRoot = Content.XamlRoot,
-            RequestedTheme = Microsoft.UI.Xaml.ElementTheme.Dark
+            RequestedTheme = currentTheme
         };
 
         await dialog.ShowAsync();
@@ -383,9 +395,19 @@ public sealed partial class MainWindow : Window
                 break;
 
             case "ToggleTheme":
-                // Theme toggle is a future feature; navigate to Settings for now
-                Log.Information("Toggle theme action invoked — redirecting to Settings");
-                NavigateToPage("Settings");
+                try
+                {
+                    var themeService = App.GetService<IThemeService>();
+                    var newTheme = themeService.CurrentTheme == Microsoft.UI.Xaml.ElementTheme.Dark
+                        ? Microsoft.UI.Xaml.ElementTheme.Light
+                        : Microsoft.UI.Xaml.ElementTheme.Dark;
+                    _ = themeService.SetThemeAsync(newTheme);
+                    Log.Information("Theme toggled to {Theme} via command palette", newTheme);
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Failed to toggle theme");
+                }
                 break;
 
             default:
