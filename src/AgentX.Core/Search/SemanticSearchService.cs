@@ -239,7 +239,10 @@ public sealed class SemanticSearchService : ISemanticSearchService
     }
 
     /// <inheritdoc />
-    public async Task SaveSearchHistoryAsync(string queryText, int resultCount)
+    public async Task SaveSearchHistoryAsync(string queryText, int resultCount,
+        double? minScore = null, int? maxResults = null,
+        DateTime? dateAfter = null, DateTime? dateBefore = null,
+        string? sortOrder = null)
     {
         if (string.IsNullOrWhiteSpace(queryText))
         {
@@ -254,7 +257,12 @@ public sealed class SemanticSearchService : ISemanticSearchService
                 SearchType = "semantic",
                 ResultCount = resultCount,
                 SearchedAt = DateTime.UtcNow,
-                IsSaved = false
+                IsSaved = false,
+                MinScore = minScore,
+                MaxResults = maxResults,
+                DateAfter = dateAfter,
+                DateBefore = dateBefore,
+                SortOrder = sortOrder
             };
 
             _db.SearchHistory.Add(entity);
@@ -292,7 +300,12 @@ public sealed class SemanticSearchService : ISemanticSearchService
                     SearchedAt = h.SearchedAt,
                     IsSaved = h.IsSaved,
                     SearchType = h.SearchType,
-                    CollectionFilter = h.CollectionFilter
+                    CollectionFilter = h.CollectionFilter,
+                    MinScore = h.MinScore,
+                    MaxResults = h.MaxResults,
+                    DateAfter = h.DateAfter,
+                    DateBefore = h.DateBefore,
+                    SortOrder = h.SortOrder
                 })
                 .ToListAsync()
                 .ConfigureAwait(false);
@@ -362,7 +375,12 @@ public sealed class SemanticSearchService : ISemanticSearchService
                     SearchedAt = h.SearchedAt,
                     IsSaved = h.IsSaved,
                     SearchType = h.SearchType,
-                    CollectionFilter = h.CollectionFilter
+                    CollectionFilter = h.CollectionFilter,
+                    MinScore = h.MinScore,
+                    MaxResults = h.MaxResults,
+                    DateAfter = h.DateAfter,
+                    DateBefore = h.DateBefore,
+                    SortOrder = h.SortOrder
                 })
                 .ToListAsync()
                 .ConfigureAwait(false);

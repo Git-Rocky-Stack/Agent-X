@@ -175,6 +175,19 @@ public sealed partial class PluginManagerPage : Page
         {
             DetailSettingsCard.Visibility = Visibility.Collapsed;
         }
+
+        // Documentation card (only shown if ReadmeContent is non-empty)
+        if (!string.IsNullOrWhiteSpace(plugin.ReadmeContent))
+        {
+            DetailDocumentationCard.Visibility = Visibility.Visible;
+            var segments = Helpers.MarkdownParser.Parse(plugin.ReadmeContent);
+            DetailReadmeContent.Segments = segments;
+        }
+        else
+        {
+            DetailDocumentationCard.Visibility = Visibility.Collapsed;
+            DetailReadmeContent.Segments = null;
+        }
     }
 
     /// <summary>

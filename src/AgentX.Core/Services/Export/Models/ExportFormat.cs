@@ -29,4 +29,9 @@ public enum ExportFormat
     /// Plain text (.txt) with minimal formatting.
     /// </summary>
     PlainText,
+
+    /// <summary>
+    /// Comma-separated values (.csv) for spreadsheet import and data analysis.
+    /// </summary>
+    Csv,
 }

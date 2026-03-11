@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:AgentX.App.ViewModels"
     xmlns:converters="using:AgentX.App.Converters"
+    xmlns:controls="using:AgentX.App.Controls"
     Background="Transparent"
     NavigationCacheMode="Enabled">
 
@@ -60,7 +61,7 @@
                     <!-- Title + plugin count badge -->
                     <StackPanel Orientation="Horizontal" Spacing="10"
                                 VerticalAlignment="Center">
-                        <TextBlock Text="Plugins"
+                        <TextBlock x:Uid="Plugin_Manager"
                                    Style="{StaticResource HeadingSmallStyle}" />
                         <Border Style="{StaticResource BadgeDefaultStyle}"
                                 Padding="6,2,6,2">
@@ -72,18 +73,18 @@
 
                     <!-- Install button -->
                     <Button Grid.Column="1"
+                            x:Uid="Plugin_Install"
                             Style="{StaticResource IconButtonStyle}"
-                            Command="{x:Bind ViewModel.InstallPluginCommand}"
-                            ToolTipService.ToolTip="Install plugin from file">
+                            Command="{x:Bind ViewModel.InstallPluginCommand}">
                         <FontIcon Glyph="&#xE710;" FontSize="14"
                                   Foreground="{StaticResource TextAccentBrush}" />
                     </Button>
 
                     <!-- Refresh button -->
                     <Button Grid.Column="2"
+                            x:Uid="Plugin_Refresh"
                             Style="{StaticResource IconButtonStyle}"
-                            Command="{x:Bind ViewModel.RefreshPluginsCommand}"
-                            ToolTipService.ToolTip="Refresh plugins">
+                            Command="{x:Bind ViewModel.RefreshPluginsCommand}">
                         <FontIcon Glyph="&#xE72C;" FontSize="14"
                                   Foreground="{StaticResource TextSecondaryBrush}" />
                     </Button>
@@ -123,7 +124,7 @@
                 <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
                               Width="32" Height="32"
                               Foreground="{StaticResource AccentPrimaryBrush}" />
-                <TextBlock Text="Loading plugins..."
+                <TextBlock x:Uid="Plugin_Loading"
                            Style="{StaticResource CaptionStyle}"
                            HorizontalAlignment="Center" />
             </StackPanel>
@@ -221,10 +222,10 @@
                     <FontIcon Glyph="&#xE74C;" FontSize="28"
                               Foreground="{StaticResource TextTertiaryBrush}"
                               HorizontalAlignment="Center" />
-                    <TextBlock Text="No plugins installed"
+                    <TextBlock x:Uid="Plugin_NoPlugins"
                                Style="{StaticResource BodySmallStyle}"
                                HorizontalAlignment="Center" />
-                    <TextBlock Text="Install .agentx-plugin or .zip packages to extend Agent-X."
+                    <TextBlock x:Uid="Plugin_NoPluginsHint"
                                Style="{StaticResource CaptionStyle}"
                                TextAlignment="Center"
                                MaxWidth="200"
@@ -236,7 +237,7 @@
                             Command="{x:Bind ViewModel.InstallPluginCommand}">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon Glyph="&#xE710;" FontSize="12" />
-                            <TextBlock Text="Install Plugin" FontSize="12" FontWeight="SemiBold" />
+                            <TextBlock x:Uid="Plugin_InstallButton" FontSize="12" FontWeight="SemiBold" />
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -303,10 +304,10 @@
                     </Border>
 
                     <StackPanel Spacing="8" HorizontalAlignment="Center">
-                        <TextBlock Text="Select a Plugin"
+                        <TextBlock x:Uid="Plugin_SelectPlugin"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    HorizontalAlignment="Center" />
-                        <TextBlock Text="Choose a plugin from the left panel to view its details, configuration, and manage its state. Install new plugins using the + button above."
+                        <TextBlock x:Uid="Plugin_SelectPluginHint"
                                    Style="{StaticResource BodySecondaryStyle}"
                                    TextWrapping="Wrap"
                                    TextAlignment="Center"
@@ -324,6 +325,7 @@
                           HorizontalScrollBarVisibility="Disabled">
                 <Grid Padding="32,24,32,24" RowSpacing="24" MaxWidth="900">
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -362,7 +364,7 @@
                             <TextBlock x:Name="DetailName"
                                        Style="{StaticResource HeadingLargeStyle}" />
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <TextBlock Text="by"
+                                <TextBlock x:Uid="Plugin_ByAuthor"
                                            Style="{StaticResource BodySecondaryStyle}" />
                                 <TextBlock x:Name="DetailAuthor"
                                            Style="{StaticResource BodyStyle}"
@@ -375,15 +377,14 @@
                                     Orientation="Horizontal" Spacing="8"
                                     VerticalAlignment="Top">
                             <ToggleSwitch x:Name="DetailToggle"
-                                          OnContent="Active"
-                                          OffContent="Disabled"
+                                          x:Uid="Plugin_Active"
                                           Toggled="OnPluginToggled"
                                           VerticalAlignment="Center" />
                             <Button x:Name="DetailUninstallSmall"
+                                    x:Uid="Plugin_Uninstall"
                                     Style="{StaticResource GhostButtonStyle}"
                                     Padding="12,8,12,8" MinHeight="34"
-                                    Click="OnUninstallPluginClick"
-                                    ToolTipService.ToolTip="Uninstall this plugin">
+                                    Click="OnUninstallPluginClick">
                                 <FontIcon Glyph="&#xE74D;" FontSize="14"
                                           Foreground="{StaticResource ErrorBrush}" />
                             </Button>
@@ -443,7 +444,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Glyph="&#xE946;" FontSize="16"
                                           Foreground="{StaticResource TextAccentBrush}" />
-                                <TextBlock Text="Description"
+                                <TextBlock x:Uid="Plugin_Description"
                                            Style="{StaticResource HeadingSmallStyle}" />
                             </StackPanel>
 
@@ -465,7 +466,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Glyph="&#xE946;" FontSize="16"
                                           Foreground="{StaticResource TextAccentBrush}" />
-                                <TextBlock Text="Details"
+                                <TextBlock x:Uid="Plugin_Details"
                                            Style="{StaticResource HeadingSmallStyle}" />
                             </StackPanel>
 
@@ -476,7 +477,7 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
 
-                                <TextBlock Text="Install Path"
+                                <TextBlock x:Uid="Plugin_InstallPath"
                                            Style="{StaticResource LabelStyle}"
                                            VerticalAlignment="Center" />
                                 <Border Grid.Column="1"
@@ -500,7 +501,7 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
 
-                                <TextBlock Text="Installed"
+                                <TextBlock x:Uid="Plugin_Installed"
                                            Style="{StaticResource LabelStyle}"
                                            VerticalAlignment="Center" />
                                 <StackPanel Grid.Column="1"
@@ -520,7 +521,7 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
 
-                                <TextBlock Text="Last Activated"
+                                <TextBlock x:Uid="Plugin_LastActivated"
                                            Style="{StaticResource LabelStyle}"
                                            VerticalAlignment="Center" />
                                 <StackPanel Grid.Column="1"
@@ -546,7 +547,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Glyph="&#xE713;" FontSize="16"
                                           Foreground="{StaticResource TextAccentBrush}" />
-                                <TextBlock Text="Configuration"
+                                <TextBlock x:Uid="Plugin_Configuration"
                                            Style="{StaticResource HeadingSmallStyle}" />
                             </StackPanel>
 
@@ -565,10 +566,29 @@
                     </Border>
 
                     <!-- =======================================================
-                         DETAIL ROW 5: DANGER ZONE
+                         DETAIL ROW 5: DOCUMENTATION CARD
+                         README / documentation rendered as Markdown.
+                         Only visible when ReadmeContent is not null/empty.
+                         ======================================================= -->
+                    <Border Grid.Row="5" Style="{StaticResource CardStyle}"
+                            x:Name="DetailDocumentationCard"
+                            Visibility="Collapsed">
+                        <StackPanel Spacing="16">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE736;" FontSize="16"
+                                          Foreground="{StaticResource AccentPrimaryBrush}" />
+                                <TextBlock x:Uid="Plugin_Documentation"
+                                           Style="{StaticResource LabelStyle}" />
+                            </StackPanel>
+                            <controls:MarkdownMessageControl x:Name="DetailReadmeContent" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- =======================================================
+                         DETAIL ROW 6: DANGER ZONE
                          Prominent uninstall action with warning messaging
                          ======================================================= -->
-                    <Border Grid.Row="5"
+                    <Border Grid.Row="6"
                             Background="#0DEF4444"
                             BorderBrush="#1AEF4444"
                             BorderThickness="1"
@@ -581,10 +601,10 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Spacing="4" VerticalAlignment="Center">
-                                <TextBlock Text="Danger Zone"
+                                <TextBlock x:Uid="Plugin_DangerZone"
                                            Style="{StaticResource HeadingSmallStyle}"
                                            Foreground="{StaticResource ErrorBrush}" />
-                                <TextBlock Text="Uninstalling a plugin will remove all its files and configuration. This action cannot be undone."
+                                <TextBlock x:Uid="Plugin_DangerZoneHint"
                                            Style="{StaticResource BodySmallStyle}"
                                            Foreground="{StaticResource TextTertiaryBrush}"
                                            MaxWidth="480" />
@@ -598,7 +618,7 @@
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE74D;" FontSize="14"
                                               Foreground="{StaticResource ErrorBrush}" />
-                                    <TextBlock Text="Uninstall Plugin"
+                                    <TextBlock x:Uid="Plugin_UninstallButton"
                                                Foreground="{StaticResource ErrorBrush}"
                                                FontWeight="SemiBold"
                                                FontSize="13" />

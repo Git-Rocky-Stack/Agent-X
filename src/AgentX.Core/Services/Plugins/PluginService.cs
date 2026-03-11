@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Text.Json;
+using AgentX.Core.Constants;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -152,6 +153,54 @@ public sealed class PluginService : IPluginService
                 $"Failed to extract plugin package '{Path.GetFileName(packagePath)}': {ex.Message}", ex);
         }
 
+        // ── Step 3b: extract README content for documentation viewer ────────────
+        string? readmeContent = null;
+
+        // Prefer a standalone README file in the extracted directory over the manifest field.
+        var readmePath = Directory.GetFiles(installPath, "README*", SearchOption.TopDirectoryOnly)
+            .FirstOrDefault();
+
+        if (readmePath != null)
+        {
+            try
+            {
+                var readmeBytes = await File.ReadAllBytesAsync(readmePath).ConfigureAwait(false);
+                if (readmeBytes.Length <= AppConstants.MaxPluginReadmeBytes)
+                {
+                    readmeContent = System.Text.Encoding.UTF8.GetString(readmeBytes);
+                    _log.Debug("Extracted README from file ({Bytes} bytes) for plugin '{PluginId}'",
+                        readmeBytes.Length, manifest.Id);
+                }
+                else
+                {
+                    _log.Warning(
+                        "README file for plugin '{PluginId}' exceeds {MaxBytes} byte limit ({ActualBytes} bytes) — skipped",
+                        manifest.Id, AppConstants.MaxPluginReadmeBytes, readmeBytes.Length);
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.Warning(ex, "Failed to read README file for plugin '{PluginId}'", manifest.Id);
+            }
+        }
+        else if (!string.IsNullOrWhiteSpace(manifest.Readme))
+        {
+            // Fall back to the inline readme field from the manifest.
+            var manifestReadmeBytes = System.Text.Encoding.UTF8.GetByteCount(manifest.Readme);
+            if (manifestReadmeBytes <= AppConstants.MaxPluginReadmeBytes)
+            {
+                readmeContent = manifest.Readme;
+                _log.Debug("Using inline manifest readme ({Bytes} bytes) for plugin '{PluginId}'",
+                    manifestReadmeBytes, manifest.Id);
+            }
+            else
+            {
+                _log.Warning(
+                    "Inline manifest readme for plugin '{PluginId}' exceeds {MaxBytes} byte limit — skipped",
+                    manifest.Id, AppConstants.MaxPluginReadmeBytes);
+            }
+        }
+
         // ── Step 4: create the database record (disabled by default) ───────────
         var entity = new PluginEntity
         {
@@ -164,6 +213,7 @@ public sealed class PluginService : IPluginService
             InstallPath = installPath,
             IsEnabled   = false,
             InstalledAt = DateTime.UtcNow,
+            ReadmeContent = readmeContent,
         };
 
         _dbContext.Plugins.Add(entity);

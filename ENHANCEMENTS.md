@@ -1,11 +1,11 @@
 # Agent-X Enhancement Roadmap
 
-## Codebase Audit Summary (2026-03-07)
+## Codebase Audit Summary (2026-03-10)
 - **23 ViewModels**, **25 entities**, **50+ services**, **25+ navigation pages**
 - **224 unit tests** passing (was 0% - test project was scaffolded but empty)
 - Tiers 1-3 enhancements completed, Tier 4 (Plugin Manager + Sync Settings) completed
 - High Priority #1-5 completed (Unit Tests, Validation, Error Handling, Search Caching, Hybrid Search UI)
-- Medium Priority #8 completed (Knowledge Graph enhanced with search, zoom, tooltips, cluster highlight)
+- Medium Priority #6-12 ALL completed (Localization, Plugin Docs, Knowledge Graph, CSV Export, Workflow Templates, Batch Ops, Saved Filters)
 - Built-in Local LLM (LLamaSharp) + 6 Advanced RAG Enhancements completed
 - GPU Acceleration (CUDA 12), JSON Mode / Structured Output, Installer-Bundled Model completed
 - Tech Debt A-E completed (Magic Numbers, Formatting, DTOs, Logging, Feature Flags)
@@ -26,13 +26,13 @@
 
 | # | Enhancement | Description | Status |
 |---|-------------|-------------|--------|
-| 6 | **Localization / i18n** | All strings are hardcoded English. Add IStringLocalizer with .resw resource files for multi-language support. | Pending |
-| 7 | **Plugin Documentation Viewer** | Show plugin README/docs inline in the Plugin Manager detail panel. | Pending |
+| 6 | **Localization / i18n** | x:Uid wiring on PluginManagerPage (23 resource entries), full .resw translations for 5 locales (en-US, de, fr, ja, zh-CN) with x:Uid property format. | DONE |
+| 7 | **Plugin Documentation Viewer** | README extraction during plugin install, markdown rendering in Plugin Manager detail panel using MarkdownParser + MarkdownMessageControl. ReadmeContent persisted in PluginEntity. | DONE |
 | 8 | **Knowledge Graph Visualization** | Node search/highlight, zoom/pan controls (mouse wheel + buttons), hover tooltips, cluster highlighting for Collection/Tag nodes. | DONE |
-| 9 | **Additional Export Formats** | Currently limited — add PDF, Markdown, and CSV export for reports, search results, and sync history. | Pending |
-| 10 | **Workflow Templates** | Pre-built agent workflow templates users can import and customize. | Pending |
-| 11 | **Batch Operations** | Multi-select in list views (plugins, documents, history) with bulk enable/disable/delete. | Pending |
-| 12 | **Saved Filters & Views** | Let users save and recall search filters and list configurations. | Pending |
+| 9 | **Additional Export Formats** | CSV export for conversations, search results, and collections. Manual CSV escaping (RFC 4180). ExportFormat.Csv enum + 4 builder methods in ExportService. | DONE |
+| 10 | **Workflow Templates** | Pre-built agent workflow templates users can import and customize. | DONE |
+| 11 | **Batch Operations** | Plugin multi-select with bulk enable/disable/uninstall. Collection multi-select with recursive select-all and bulk delete. IsMultiSelectMode toggle in both ViewModels. | DONE |
+| 12 | **Saved Filters & Views** | 5 new SearchHistoryEntity fields (MinScore, MaxResults, DateAfter, DateBefore, SortOrder). Full save/load/apply cycle with schema migration for existing databases. | DONE |
 
 ## INFRASTRUCTURE — Offline AI & RAG Pipeline
 

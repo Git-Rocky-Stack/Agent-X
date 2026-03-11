@@ -30,7 +30,8 @@ public partial class ExportViewModel : ObservableObject
         ExportFormat.Html,
         ExportFormat.Pdf,
         ExportFormat.Json,
-        ExportFormat.PlainText
+        ExportFormat.PlainText,
+        ExportFormat.Csv
     };
 
     public ExportViewModel(IExportService exportService)

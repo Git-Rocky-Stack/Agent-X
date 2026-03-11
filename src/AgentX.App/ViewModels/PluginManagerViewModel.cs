@@ -21,6 +21,12 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _errorMessage = string.Empty;
     [ObservableProperty] private bool _hasError;
 
+    // -- Multi-Select State -----------------------------------------------
+    [ObservableProperty] private bool _isMultiSelectMode;
+    [ObservableProperty] private int _selectedCount;
+
+    public ObservableCollection<long> SelectedPluginIds { get; } = new();
+
     public ObservableCollection<PluginDisplayItem> Plugins { get; } = new();
 
     /// <summary>
@@ -223,6 +229,174 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
         }
     }
 
+    // -- Multi-Select Commands --------------------------------------------
+
+    /// <summary>
+    /// Toggles multi-select mode on or off. When toggled off, all selections are cleared.
+    /// </summary>
+    [RelayCommand]
+    private void ToggleMultiSelect()
+    {
+        IsMultiSelectMode = !IsMultiSelectMode;
+        if (!IsMultiSelectMode)
+        {
+            SelectedPluginIds.Clear();
+            SelectedCount = 0;
+        }
+        Log.Debug("Multi-select mode toggled: {IsActive}", IsMultiSelectMode);
+    }
+
+    /// <summary>
+    /// Toggles the selection state of a single plugin by its database ID.
+    /// If already selected, it is deselected; otherwise it is added to the selection.
+    /// </summary>
+    [RelayCommand]
+    private void TogglePluginSelection(long pluginId)
+    {
+        if (SelectedPluginIds.Contains(pluginId))
+            SelectedPluginIds.Remove(pluginId);
+        else
+            SelectedPluginIds.Add(pluginId);
+
+        SelectedCount = SelectedPluginIds.Count;
+    }
+
+    /// <summary>
+    /// Selects all currently displayed plugins.
+    /// </summary>
+    [RelayCommand]
+    private void SelectAllPlugins()
+    {
+        SelectedPluginIds.Clear();
+        foreach (var plugin in Plugins)
+            SelectedPluginIds.Add(plugin.Id);
+
+        SelectedCount = SelectedPluginIds.Count;
+        Log.Debug("Selected all {Count} plugins", SelectedCount);
+    }
+
+    /// <summary>
+    /// Enables all currently selected plugins in bulk.
+    /// After completion, the selection is cleared and the plugin list is refreshed.
+    /// </summary>
+    [RelayCommand]
+    private async Task BulkEnableAsync()
+    {
+        if (SelectedPluginIds.Count == 0) return;
+
+        var count = SelectedPluginIds.Count;
+        Log.Information("Bulk enabling {Count} plugins", count);
+        ClearError();
+        IsLoading = true;
+        StatusMessage = $"Enabling {count} plugins...";
+
+        try
+        {
+            foreach (var id in SelectedPluginIds.ToList())
+            {
+                await _pluginService.EnablePluginAsync(id);
+            }
+
+            await LoadPluginsAsync();
+            Log.Information("Bulk enabled {Count} plugins", count);
+            StatusMessage = $"Successfully enabled {count} plugin{(count == 1 ? "" : "s")}";
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Bulk enable failed");
+            SetError($"Bulk enable failed: {ex.Message}");
+            StatusMessage = "Bulk enable failed";
+        }
+        finally
+        {
+            SelectedPluginIds.Clear();
+            SelectedCount = 0;
+            IsLoading = false;
+        }
+    }
+
+    /// <summary>
+    /// Disables all currently selected plugins in bulk.
+    /// After completion, the selection is cleared and the plugin list is refreshed.
+    /// </summary>
+    [RelayCommand]
+    private async Task BulkDisableAsync()
+    {
+        if (SelectedPluginIds.Count == 0) return;
+
+        var count = SelectedPluginIds.Count;
+        Log.Information("Bulk disabling {Count} plugins", count);
+        ClearError();
+        IsLoading = true;
+        StatusMessage = $"Disabling {count} plugins...";
+
+        try
+        {
+            foreach (var id in SelectedPluginIds.ToList())
+            {
+                await _pluginService.DisablePluginAsync(id);
+            }
+
+            await LoadPluginsAsync();
+            Log.Information("Bulk disabled {Count} plugins", count);
+            StatusMessage = $"Successfully disabled {count} plugin{(count == 1 ? "" : "s")}";
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Bulk disable failed");
+            SetError($"Bulk disable failed: {ex.Message}");
+            StatusMessage = "Bulk disable failed";
+        }
+        finally
+        {
+            SelectedPluginIds.Clear();
+            SelectedCount = 0;
+            IsLoading = false;
+        }
+    }
+
+    /// <summary>
+    /// Uninstalls all currently selected plugins in bulk.
+    /// After completion, the selection is cleared, multi-select mode is exited,
+    /// and the plugin list is refreshed.
+    /// </summary>
+    [RelayCommand]
+    private async Task BulkUninstallAsync()
+    {
+        if (SelectedPluginIds.Count == 0) return;
+
+        var count = SelectedPluginIds.Count;
+        Log.Information("Bulk uninstalling {Count} plugins", count);
+        ClearError();
+        IsLoading = true;
+        StatusMessage = $"Uninstalling {count} plugins...";
+
+        try
+        {
+            foreach (var id in SelectedPluginIds.ToList())
+            {
+                await _pluginService.UninstallPluginAsync(id);
+            }
+
+            await LoadPluginsAsync();
+            Log.Information("Bulk uninstalled {Count} plugins", count);
+            StatusMessage = $"Successfully uninstalled {count} plugin{(count == 1 ? "" : "s")}";
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Bulk uninstall failed");
+            SetError($"Bulk uninstall failed: {ex.Message}");
+            StatusMessage = "Bulk uninstall failed";
+        }
+        finally
+        {
+            SelectedPluginIds.Clear();
+            SelectedCount = 0;
+            IsMultiSelectMode = false;
+            IsLoading = false;
+        }
+    }
+
     // -- Helpers ----------------------------------------------------------
 
     /// <summary>
@@ -245,7 +419,8 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
         LastActivatedAtFormatted = entity.LastActivatedAt.HasValue
             ? FormatHelper.TimeAgoWithMonths(entity.LastActivatedAt.Value)
             : "Never",
-        SettingsJson = entity.SettingsJson
+        SettingsJson = entity.SettingsJson,
+        ReadmeContent = entity.ReadmeContent
     };
 
     private void SetError(string message)
@@ -289,6 +464,7 @@ public partial class PluginDisplayItem : ObservableObject
     [ObservableProperty] private DateTime? _lastActivatedAt;
     [ObservableProperty] private string _lastActivatedAtFormatted = "Never";
     [ObservableProperty] private string? _settingsJson;
+    [ObservableProperty] private string? _readmeContent;
 
     /// <summary>
     /// Returns a Segoe Fluent Icons glyph string based on the plugin type.

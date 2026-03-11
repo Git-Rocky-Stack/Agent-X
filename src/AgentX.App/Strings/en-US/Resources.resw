@@ -91,4 +91,29 @@
   <data name="Settings_LanguageHint" xml:space="preserve"><value>Changes take effect after restart</value></data>
   <data name="Settings_SystemDefault" xml:space="preserve"><value>System Default</value></data>
   <data name="Settings_KeyboardShortcuts" xml:space="preserve"><value>Keyboard Shortcuts</value></data>
+
+  <!-- Plugin Manager -->
+  <data name="Plugin_Manager.Text" xml:space="preserve"><value>Plugins</value></data>
+  <data name="Plugin_Install.ToolTipService.ToolTip" xml:space="preserve"><value>Install plugin from file</value></data>
+  <data name="Plugin_Refresh.ToolTipService.ToolTip" xml:space="preserve"><value>Refresh plugins</value></data>
+  <data name="Plugin_Loading.Text" xml:space="preserve"><value>Loading plugins...</value></data>
+  <data name="Plugin_NoPlugins.Text" xml:space="preserve"><value>No plugins installed</value></data>
+  <data name="Plugin_NoPluginsHint.Text" xml:space="preserve"><value>Install .agentx-plugin or .zip packages to extend Agent-X.</value></data>
+  <data name="Plugin_InstallButton.Text" xml:space="preserve"><value>Install Plugin</value></data>
+  <data name="Plugin_SelectPlugin.Text" xml:space="preserve"><value>Select a Plugin</value></data>
+  <data name="Plugin_SelectPluginHint.Text" xml:space="preserve"><value>Choose a plugin from the left panel to view its details, configuration, and manage its state. Install new plugins using the + button above.</value></data>
+  <data name="Plugin_Active.OnContent" xml:space="preserve"><value>Active</value></data>
+  <data name="Plugin_Active.OffContent" xml:space="preserve"><value>Disabled</value></data>
+  <data name="Plugin_Uninstall.ToolTipService.ToolTip" xml:space="preserve"><value>Uninstall this plugin</value></data>
+  <data name="Plugin_Description.Text" xml:space="preserve"><value>Description</value></data>
+  <data name="Plugin_Details.Text" xml:space="preserve"><value>Details</value></data>
+  <data name="Plugin_InstallPath.Text" xml:space="preserve"><value>Install Path</value></data>
+  <data name="Plugin_Installed.Text" xml:space="preserve"><value>Installed</value></data>
+  <data name="Plugin_LastActivated.Text" xml:space="preserve"><value>Last Activated</value></data>
+  <data name="Plugin_Configuration.Text" xml:space="preserve"><value>Configuration</value></data>
+  <data name="Plugin_DangerZone.Text" xml:space="preserve"><value>Danger Zone</value></data>
+  <data name="Plugin_DangerZoneHint.Text" xml:space="preserve"><value>Uninstalling a plugin will remove all its files and configuration. This action cannot be undone.</value></data>
+  <data name="Plugin_UninstallButton.Text" xml:space="preserve"><value>Uninstall Plugin</value></data>
+  <data name="Plugin_Documentation.Text" xml:space="preserve"><value>Documentation</value></data>
+  <data name="Plugin_ByAuthor.Text" xml:space="preserve"><value>by</value></data>
 </root>

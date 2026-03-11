@@ -607,6 +607,7 @@ public class AgentXDbContext : DbContext
             entity.Property(e => e.InstalledAt).IsRequired();
             entity.Property(e => e.LastActivatedAt);
             entity.Property(e => e.SettingsJson);
+            entity.Property(e => e.ReadmeContent);
 
             // PluginId must be unique — one row per installed plugin identity.
             entity.HasIndex(e => e.PluginId).IsUnique();

@@ -72,6 +72,14 @@ public sealed class PluginManifest
     public string EntryAssembly { get; set; } = string.Empty;
 
     /// <summary>
+    /// Optional inline README / documentation content. If present, the host stores this in the
+    /// database for rendering in the Plugin Manager detail panel. When both this field and a
+    /// standalone <c>README.md</c> file exist in the archive, the file takes precedence.
+    /// </summary>
+    [JsonPropertyName("readme")]
+    public string? Readme { get; set; }
+
+    /// <summary>
     /// Declared permissions this plugin requires. The host validates these against
     /// the user's consent record before activation. Unknown permission strings are
     /// silently ignored to maintain forward compatibility.

@@ -347,7 +347,23 @@ public partial class SearchViewModel : ObservableObject
 
         try
         {
-            await _searchService.SaveSearchHistoryAsync(query, TotalResults);
+            // Map the current sort index to a persistable string identifier
+            string? sortOrder = SelectedSortIndex switch
+            {
+                1 => "newest",
+                2 => "oldest",
+                3 => "name",
+                _ => "relevance"
+            };
+
+            await _searchService.SaveSearchHistoryAsync(
+                query,
+                TotalResults,
+                minScore: MinScoreFilter,
+                maxResults: TopKFilter,
+                dateAfter: CreatedAfterDate?.DateTime,
+                dateBefore: CreatedBeforeDate?.DateTime,
+                sortOrder: sortOrder);
 
             var history = await _searchService.GetSearchHistoryAsync(50);
             var entry = history.FirstOrDefault(h =>
@@ -396,6 +412,7 @@ public partial class SearchViewModel : ObservableObject
         if (filter is null)
             return;
 
+        // Restore query text and search mode
         QueryText = filter.QueryText;
         SearchMode = filter.SearchType?.ToLowerInvariant() switch
         {
@@ -403,6 +420,32 @@ public partial class SearchViewModel : ObservableObject
             "hybrid" => SearchMode.Hybrid,
             _ => SearchMode.Semantic
         };
+
+        // Restore advanced filter settings
+        MinScoreFilter = filter.MinScore ?? 30;
+        TopKFilter = filter.MaxResults ?? 20;
+        CreatedAfterDate = filter.DateAfter.HasValue
+            ? new DateTimeOffset(filter.DateAfter.Value)
+            : null;
+        CreatedBeforeDate = filter.DateBefore.HasValue
+            ? new DateTimeOffset(filter.DateBefore.Value)
+            : null;
+
+        // Restore sort order
+        SelectedSortIndex = filter.SortOrder?.ToLowerInvariant() switch
+        {
+            "newest" => 1,
+            "oldest" => 2,
+            "name" => 3,
+            _ => 0 // "relevance" or null
+        };
+
+        // Open the advanced filters panel so the user can see the restored settings
+        if (filter.MinScore.HasValue || filter.MaxResults.HasValue ||
+            filter.DateAfter.HasValue || filter.DateBefore.HasValue)
+        {
+            IsAdvancedFiltersOpen = true;
+        }
 
         await SearchAsync();
     }
@@ -595,7 +638,12 @@ public partial class SearchViewModel : ObservableObject
                     Id = entry.Id,
                     QueryText = entry.QueryText,
                     SearchType = entry.SearchType,
-                    SavedAt = FormatHelper.TimeAgoWithMonths(entry.SearchedAt)
+                    SavedAt = FormatHelper.TimeAgoWithMonths(entry.SearchedAt),
+                    MinScore = entry.MinScore,
+                    MaxResults = entry.MaxResults,
+                    DateAfter = entry.DateAfter,
+                    DateBefore = entry.DateBefore,
+                    SortOrder = entry.SortOrder
                 });
             }
 
@@ -691,6 +739,13 @@ public class SavedFilterItem
     public string QueryText { get; init; } = string.Empty;
     public string SearchType { get; init; } = "semantic";
     public string SavedAt { get; init; } = string.Empty;
+
+    // ── Advanced filter settings ─────────────────────────────────
+    public double? MinScore { get; init; }
+    public int? MaxResults { get; init; }
+    public DateTime? DateAfter { get; init; }
+    public DateTime? DateBefore { get; init; }
+    public string? SortOrder { get; init; }
 }
 
 // NOTE: CollectionFilterItem is defined in KnowledgeVaultViewModel.cs

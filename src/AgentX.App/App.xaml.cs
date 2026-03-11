@@ -87,6 +87,31 @@ public partial class App : Application
             await dbContext.Database.EnsureCreatedAsync();
             Log.Information("Database initialized at {Path}",
                 dbContext.Database.GetConnectionString());
+
+            // 1a. Apply schema upgrades for existing databases
+            // EnsureCreated does not alter existing tables, so new columns must
+            // be added manually. Each ALTER TABLE is wrapped individually so that
+            // columns already present (on fresh installs) are silently skipped.
+            string[] alterStatements =
+            [
+                "ALTER TABLE search_history ADD COLUMN MinScore REAL NULL",
+                "ALTER TABLE search_history ADD COLUMN MaxResults INTEGER NULL",
+                "ALTER TABLE search_history ADD COLUMN DateAfter TEXT NULL",
+                "ALTER TABLE search_history ADD COLUMN DateBefore TEXT NULL",
+                "ALTER TABLE search_history ADD COLUMN SortOrder TEXT NULL"
+            ];
+
+            foreach (var sql in alterStatements)
+            {
+                try
+                {
+                    await dbContext.Database.ExecuteSqlRawAsync(sql);
+                }
+                catch
+                {
+                    // Column already exists — safe to ignore on fresh databases
+                }
+            }
         }
         catch (Exception ex)
         {

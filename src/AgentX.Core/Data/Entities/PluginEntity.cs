@@ -67,4 +67,12 @@ public class PluginEntity
     /// <see cref="IPluginService"/> using the plugin's declared settings schema.
     /// </summary>
     public string? SettingsJson { get; set; }
+
+    /// <summary>
+    /// Optional README / documentation content extracted from the plugin package at install time.
+    /// Capped at <see cref="AgentX.Core.Constants.AppConstants.MaxPluginReadmeBytes"/> bytes to
+    /// prevent excessively large blobs from being stored in the database. Rendered as Markdown
+    /// in the Plugin Manager detail panel.
+    /// </summary>
+    public string? ReadmeContent { get; set; }
 }

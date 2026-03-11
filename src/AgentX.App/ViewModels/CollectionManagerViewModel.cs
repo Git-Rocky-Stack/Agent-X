@@ -37,6 +37,12 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _newCollectionName = string.Empty;
     [ObservableProperty] private string _newCollectionDescription = string.Empty;
 
+    // ── Multi-Select State ───────────────────────────────────
+    [ObservableProperty] private bool _isMultiSelectMode;
+    [ObservableProperty] private int _selectedCount;
+
+    public ObservableCollection<long> SelectedCollectionIds { get; } = new();
+
     // ── Stats ────────────────────────────────────────────────
     [ObservableProperty] private int _totalCollections;
 
@@ -342,6 +348,109 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
     {
         Log.Debug("Collection manager refresh requested");
         await InitializeAsync();
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // MULTI-SELECT / BATCH COMMANDS
+    // ═══════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Toggles multi-select mode on or off. When toggled off, all selections are cleared.
+    /// </summary>
+    [RelayCommand]
+    private void ToggleMultiSelect()
+    {
+        IsMultiSelectMode = !IsMultiSelectMode;
+        if (!IsMultiSelectMode)
+        {
+            SelectedCollectionIds.Clear();
+            SelectedCount = 0;
+        }
+        Log.Debug("Collection multi-select mode toggled: {IsActive}", IsMultiSelectMode);
+    }
+
+    /// <summary>
+    /// Toggles the selection state of a single collection by its database ID.
+    /// If already selected, it is deselected; otherwise it is added to the selection.
+    /// </summary>
+    [RelayCommand]
+    private void ToggleCollectionSelection(long collectionId)
+    {
+        if (SelectedCollectionIds.Contains(collectionId))
+            SelectedCollectionIds.Remove(collectionId);
+        else
+            SelectedCollectionIds.Add(collectionId);
+
+        SelectedCount = SelectedCollectionIds.Count;
+    }
+
+    /// <summary>
+    /// Selects all currently displayed root collections.
+    /// </summary>
+    [RelayCommand]
+    private void SelectAllCollections()
+    {
+        SelectedCollectionIds.Clear();
+        AddAllCollectionIds(Collections);
+        SelectedCount = SelectedCollectionIds.Count;
+        Log.Debug("Selected all {Count} collections", SelectedCount);
+    }
+
+    /// <summary>
+    /// Recursively collects IDs from all collections in the tree for Select All.
+    /// </summary>
+    private void AddAllCollectionIds(ObservableCollection<CollectionDisplayItem> items)
+    {
+        foreach (var item in items)
+        {
+            SelectedCollectionIds.Add(item.Id);
+            if (item.Children.Count > 0)
+            {
+                AddAllCollectionIds(item.Children);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Deletes all currently selected collections in bulk.
+    /// After completion, the selection is cleared, multi-select mode is exited,
+    /// and the collection list is refreshed.
+    /// </summary>
+    [RelayCommand]
+    private async Task BulkDeleteCollectionsAsync()
+    {
+        if (SelectedCollectionIds.Count == 0) return;
+
+        var count = SelectedCollectionIds.Count;
+        Log.Information("Bulk deleting {Count} collections", count);
+        ClearError();
+        IsLoading = true;
+
+        try
+        {
+            foreach (var id in SelectedCollectionIds.ToList())
+            {
+                await _collectionService.DeleteCollectionAsync(id);
+            }
+
+            await LoadCollectionsAsync();
+            TotalCollections = await _collectionService.GetCollectionCountAsync();
+            OnPropertyChanged(nameof(HasCollections));
+
+            Log.Information("Bulk deleted {Count} collections", count);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Bulk delete collections failed");
+            SetError($"Failed to delete collections: {ex.Message}");
+        }
+        finally
+        {
+            SelectedCollectionIds.Clear();
+            SelectedCount = 0;
+            IsMultiSelectMode = false;
+            IsLoading = false;
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════

@@ -21,8 +21,12 @@ public interface ISemanticSearchService
 
     /// <summary>
     /// Saves a search query to the search history for later re-use.
+    /// Accepts optional advanced filter settings for full filter persistence.
     /// </summary>
-    Task SaveSearchHistoryAsync(string queryText, int resultCount);
+    Task SaveSearchHistoryAsync(string queryText, int resultCount,
+        double? minScore = null, int? maxResults = null,
+        DateTime? dateAfter = null, DateTime? dateBefore = null,
+        string? sortOrder = null);
 
     /// <summary>
     /// Retrieves recent search history entries.
@@ -63,4 +67,11 @@ public class SearchHistoryEntry
     public bool IsSaved { get; init; }
     public string SearchType { get; init; } = "semantic";
     public string? CollectionFilter { get; init; }
+
+    // ── Advanced filter settings ─────────────────────────────────
+    public double? MinScore { get; init; }
+    public int? MaxResults { get; init; }
+    public DateTime? DateAfter { get; init; }
+    public DateTime? DateBefore { get; init; }
+    public string? SortOrder { get; init; }
 }

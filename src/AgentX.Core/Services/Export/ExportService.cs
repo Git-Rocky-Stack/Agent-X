@@ -19,7 +19,7 @@ namespace AgentX.Core.Services.Export;
 /// <summary>
 /// Production implementation of <see cref="IExportService"/>.
 /// Exports conversations, search results, and document collections to
-/// Markdown, HTML, PDF, JSON, and PlainText formats.
+/// Markdown, HTML, PDF, JSON, PlainText, and CSV formats.
 /// </summary>
 public class ExportService : IExportService
 {
@@ -115,6 +115,12 @@ public class ExportService : IExportService
                 case ExportFormat.PlainText:
                 {
                     var content = BuildPlainText(conversation, options, title);
+                    await File.WriteAllTextAsync(outputPath, content, Encoding.UTF8, ct);
+                    break;
+                }
+                case ExportFormat.Csv:
+                {
+                    var content = BuildConversationCsv(conversation, options);
                     await File.WriteAllTextAsync(outputPath, content, Encoding.UTF8, ct);
                     break;
                 }
@@ -264,6 +270,35 @@ public class ExportService : IExportService
                     await File.WriteAllTextAsync(outputPath, sb.ToString(), Encoding.UTF8, ct);
                     break;
                 }
+                case ExportFormat.Csv:
+                {
+                    var csvSb = new StringBuilder();
+                    csvSb.AppendLine("ConversationTitle,Role,Content,Timestamp,Model,Tokens");
+
+                    foreach (var conv in conversations)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        var messages = conv.Messages
+                            .OrderBy(m => m.SortOrder)
+                            .ToList();
+
+                        foreach (var message in messages)
+                        {
+                            if (message.Role.Equals("system", StringComparison.OrdinalIgnoreCase))
+                                continue;
+
+                            csvSb.Append(CsvEscape(conv.Title)).Append(',');
+                            csvSb.Append(CsvEscape(message.Role)).Append(',');
+                            csvSb.Append(CsvEscape(message.Content)).Append(',');
+                            csvSb.Append(CsvEscape(message.Timestamp.ToString("O"))).Append(',');
+                            csvSb.Append(CsvEscape(message.ModelId ?? "")).Append(',');
+                            csvSb.AppendLine(message.TokenCount.ToString());
+                        }
+                    }
+
+                    await File.WriteAllTextAsync(outputPath, csvSb.ToString(), Encoding.UTF8, ct);
+                    break;
+                }
                 default:
                     return ExportResult.Fail($"Unsupported export format: {options.Format}");
             }
@@ -347,6 +382,12 @@ public class ExportService : IExportService
                     await File.WriteAllTextAsync(outputPath, content, Encoding.UTF8, ct);
                     break;
                 }
+                case ExportFormat.Csv:
+                {
+                    var content = BuildSearchResultsCsv(query, results);
+                    await File.WriteAllTextAsync(outputPath, content, Encoding.UTF8, ct);
+                    break;
+                }
                 default:
                     return ExportResult.Fail($"Unsupported export format: {options.Format}");
             }
@@ -394,6 +435,28 @@ public class ExportService : IExportService
             var documents = await _collectionService.GetDocumentsInCollectionAsync(collectionId);
 
             var title = options.Title ?? collection.Name;
+
+            // CSV format gets a dedicated flat-file export instead of the default ZIP
+            if (options.Format == ExportFormat.Csv)
+            {
+                var csvOutputPath = options.OutputPath
+                    ?? Path.Combine(
+                        await GetExportDirectoryAsync(),
+                        SanitizeFileName($"{title}_{DateTime.Now:yyyyMMdd_HHmmss}.csv"));
+
+                EnsureDirectoryExists(csvOutputPath);
+
+                var csvContent = BuildCollectionCsv(collection, documents);
+                await File.WriteAllTextAsync(csvOutputPath, csvContent, Encoding.UTF8, ct);
+
+                var csvFileInfo = new FileInfo(csvOutputPath);
+                _log.Information(
+                    "Exported collection {CollectionId} '{Name}' ({DocumentCount} documents) as CSV to '{Path}' ({Size} bytes)",
+                    collectionId, collection.Name, documents.Count, csvOutputPath, csvFileInfo.Length);
+
+                return ExportResult.Ok(csvOutputPath, csvFileInfo.Length);
+            }
+
             var outputPath = options.OutputPath
                 ?? Path.Combine(
                     await GetExportDirectoryAsync(),
@@ -1894,6 +1957,118 @@ public class ExportService : IExportService
     }
 
     // ════════════════════════════════════════════════════════════════
+    //  CSV builders
+    // ════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Builds a CSV representation of a single conversation's messages.
+    /// Columns: Role, Content, Timestamp, Model, Tokens.
+    /// System messages are excluded from the output.
+    /// </summary>
+    private static string BuildConversationCsv(
+        ConversationEntity conversation,
+        ExportOptions options)
+    {
+        var sb = new StringBuilder();
+
+        // CSV header row
+        sb.AppendLine("Role,Content,Timestamp,Model,Tokens");
+
+        var messages = conversation.Messages
+            .OrderBy(m => m.SortOrder)
+            .ToList();
+
+        foreach (var message in messages)
+        {
+            // Skip system messages — they are internal directives, not user-facing content
+            if (message.Role.Equals("system", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            sb.Append(CsvEscape(message.Role)).Append(',');
+            sb.Append(CsvEscape(message.Content)).Append(',');
+            sb.Append(CsvEscape(message.Timestamp.ToString("O"))).Append(',');
+            sb.Append(CsvEscape(message.ModelId ?? "")).Append(',');
+            sb.AppendLine(message.TokenCount.ToString());
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Builds a CSV representation of search results.
+    /// Columns: Query, DocumentName, Excerpt, Score, Citations.
+    /// </summary>
+    private static string BuildSearchResultsCsv(
+        string query,
+        IReadOnlyList<SearchResultExportItem> results)
+    {
+        var sb = new StringBuilder();
+
+        // CSV header row
+        sb.AppendLine("Query,DocumentName,Excerpt,Score,Citations");
+
+        foreach (var result in results)
+        {
+            sb.Append(CsvEscape(query)).Append(',');
+            sb.Append(CsvEscape(result.DocumentName)).Append(',');
+            sb.Append(CsvEscape(result.Content)).Append(',');
+            sb.Append(CsvEscape(result.RelevanceScore.ToString("F4"))).Append(',');
+
+            var citations = result.Citations.Count > 0
+                ? string.Join("; ", result.Citations)
+                : "";
+            sb.AppendLine(CsvEscape(citations));
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Builds a CSV representation of a document collection's contents.
+    /// Columns: FileName, FilePath, FileType, FileSize, ImportedAt, IndexingStatus, PageCount, WordCount.
+    /// </summary>
+    private static string BuildCollectionCsv(
+        CollectionEntity collection,
+        IReadOnlyList<DocumentEntity> documents)
+    {
+        var sb = new StringBuilder();
+
+        // CSV header row
+        sb.AppendLine("FileName,FilePath,FileType,FileSize,ImportedAt,IndexingStatus,PageCount,WordCount");
+
+        foreach (var doc in documents)
+        {
+            sb.Append(CsvEscape(doc.FileName)).Append(',');
+            sb.Append(CsvEscape(doc.FilePath)).Append(',');
+            sb.Append(CsvEscape(doc.FileType)).Append(',');
+            sb.Append(doc.FileSizeBytes.ToString()).Append(',');
+            sb.Append(CsvEscape(doc.ImportedAt.ToString("O"))).Append(',');
+            sb.Append(CsvEscape(doc.IndexingStatus)).Append(',');
+            sb.Append(doc.PageCount.ToString()).Append(',');
+            sb.AppendLine(doc.WordCount.ToString());
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Escapes a value for safe inclusion in a CSV field.
+    /// Wraps the value in double quotes if it contains commas, double quotes,
+    /// newlines, or carriage returns. Internal double quotes are escaped by doubling them.
+    /// Empty or null values are represented as an empty quoted string.
+    /// </summary>
+    private static string CsvEscape(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return "\"\"";
+
+        if (value.Contains('"') || value.Contains(',') || value.Contains('\n') || value.Contains('\r'))
+            return $"\"{value.Replace("\"", "\"\"")}\"";
+
+        return value;
+    }
+
+    // ════════════════════════════════════════════════════════════════
     //  Utility methods
     // ════════════════════════════════════════════════════════════════
 
@@ -1955,6 +2130,7 @@ public class ExportService : IExportService
             ExportFormat.Pdf => ".pdf",
             ExportFormat.Json => ".json",
             ExportFormat.PlainText => ".txt",
+            ExportFormat.Csv => ".csv",
             _ => ".txt",
         };
     }
