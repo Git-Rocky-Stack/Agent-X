@@ -873,6 +873,76 @@
           }
         }
       },
+      "HtmlAgilityPack/1.11.67": {
+        "runtime": {
+          "lib/netstandard2.0/HtmlAgilityPack.dll": {
+            "assemblyVersion": "1.11.67.0",
+            "fileVersion": "1.11.67.0"
+          }
+        }
+      },
+      "LLamaSharp/0.19.0": {
+        "dependencies": {
+          "Microsoft.Bcl.AsyncInterfaces": "8.0.0",
+          "Microsoft.Extensions.AI.Abstractions": "9.5.0",
+          "Microsoft.Extensions.Logging.Abstractions": "8.0.3",
+          "System.Numerics.Tensors": "8.0.0"
+        },
+        "runtime": {
+          "lib/net8.0/LLamaSharp.dll": {
+            "assemblyVersion": "0.0.0.0",
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      },
+      "LLamaSharp.Backend.Cpu/0.19.0": {
+        "native": {
+          "runtimes/win-x64/native/avx/ggml.dll": {
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win-x64/native/avx/llama.dll": {
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win-x64/native/avx/llava_shared.dll": {
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win-x64/native/avx2/ggml.dll": {
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win-x64/native/avx2/llama.dll": {
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win-x64/native/avx2/llava_shared.dll": {
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win-x64/native/avx512/ggml.dll": {
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win-x64/native/avx512/llama.dll": {
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win-x64/native/avx512/llava_shared.dll": {
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win-x64/native/ggml.dll": {
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win-x64/native/llama.dll": {
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win-x64/native/llava_shared.dll": {
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      },
+      "LLamaSharp.Backend.Cuda12/0.19.0": {
+        "dependencies": {
+          "LLamaSharp.Backend.Cuda12.Linux": "0.19.0",
+          "LLamaSharp.Backend.Cuda12.Windows": "0.19.0"
+        }
+      },
+      "LLamaSharp.Backend.Cuda12.Linux/0.19.0": {},
+      "LLamaSharp.Backend.Cuda12.Windows/0.19.0": {},
       "Markdig/0.37.0": {
         "runtime": {
           "lib/net8.0/Markdig.dll": {
@@ -1522,6 +1592,31 @@
           }
         }
       },
+      "QuestPDF/2024.12.2": {
+        "runtime": {
+          "lib/net8.0/QuestPDF.dll": {
+            "assemblyVersion": "2024.12.2.0",
+            "fileVersion": "2024.12.2.0"
+          }
+        },
+        "native": {
+          "runtimes/win-x64/native/QuestPdfSkia.dll": {
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win-x64/native/libgcc_s_seh-1.dll": {
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win-x64/native/libstdc++-6.dll": {
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win-x64/native/libwinpthread-1.dll": {
+            "fileVersion": "1.0.0.0"
+          },
+          "runtimes/win-x64/native/qpdf.dll": {
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      },
       "Serilog/4.0.2": {
         "runtime": {
           "lib/net8.0/Serilog.dll": {
@@ -1672,12 +1767,24 @@
         }
       },
       "System.Memory/4.5.3": {},
+      "System.Numerics.Tensors/8.0.0": {
+        "runtime": {
+          "lib/net8.0/System.Numerics.Tensors.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.23.53103"
+          }
+        }
+      },
       "System.Text.Json/8.0.5": {},
       "System.Threading.Channels/8.0.0": {},
       "AgentX.Core/1.0.0": {
         "dependencies": {
           "CommunityToolkit.Mvvm": "8.2.2",
           "DocumentFormat.OpenXml": "3.2.0",
+          "HtmlAgilityPack": "1.11.67",
+          "LLamaSharp": "0.19.0",
+          "LLamaSharp.Backend.Cpu": "0.19.0",
+          "LLamaSharp.Backend.Cuda12": "0.19.0",
           "Markdig": "0.37.0",
           "Microsoft.Data.Sqlite": "8.0.11",
           "Microsoft.EntityFrameworkCore.Sqlite": "8.0.11",
@@ -1685,6 +1792,7 @@
           "Microsoft.Extensions.AI.Abstractions": "9.5.0",
           "OllamaSharp": "4.0.12",
           "PDFsharp": "6.1.1",
+          "QuestPDF": "2024.12.2",
           "Serilog": "4.0.2",
           "System.Management": "8.0.0",
           "System.Text.Json": "8.0.5"
@@ -1791,6 +1899,48 @@
       "sha512": "sha512-1tAYbvV2vyQ0lXKrMmNvpIiP5tXZibtyXCqlmH2Wjcc3i/W/EatihtVATpeuWZpxM6RA9T1H5pTZhT8+5y7wcQ==",
       "path": "h.notifyicon.winui/2.1.3",
       "hashPath": "h.notifyicon.winui.2.1.3.nupkg.sha512"
+    },
+    "HtmlAgilityPack/1.11.67": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-xnt6f8E56oK9nLqgkF42bsVSAkUuIuJnSfvzimK7GwvbhdXWRmGsx4A8AKmLOlCUq1rVSUADKalxnSMizHt4Mg==",
+      "path": "htmlagilitypack/1.11.67",
+      "hashPath": "htmlagilitypack.1.11.67.nupkg.sha512"
+    },
+    "LLamaSharp/0.19.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-lfFrPHVNe6AVRascLBNc6m8g5Rj4vGJvcOo2Zg/3GFUrNBsDOh4fyI2kJ94UDiDEvJ1OFnhExff7W7aYngzqdw==",
+      "path": "llamasharp/0.19.0",
+      "hashPath": "llamasharp.0.19.0.nupkg.sha512"
+    },
+    "LLamaSharp.Backend.Cpu/0.19.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-zG6xQCE2072MDqAgXRgyXXe2hWws4y6r40vU/vuxLzzYUXTyQwypPCpm+ZHuFJqL3YmZ9SNOzPFo3LnN7bDNKA==",
+      "path": "llamasharp.backend.cpu/0.19.0",
+      "hashPath": "llamasharp.backend.cpu.0.19.0.nupkg.sha512"
+    },
+    "LLamaSharp.Backend.Cuda12/0.19.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-mv0khmMLJ8oXfJQRxBPnvns5ZikBWSHWF0YbeqsQa3evWKIXpxCnPHEP6VgfTc9aJwuq8JoLiiP+OfgqaBse7g==",
+      "path": "llamasharp.backend.cuda12/0.19.0",
+      "hashPath": "llamasharp.backend.cuda12.0.19.0.nupkg.sha512"
+    },
+    "LLamaSharp.Backend.Cuda12.Linux/0.19.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-lF0zpF/g26HI4hpUdeIhn3nZ5WiSzpXLOUuYCCvFWNLkwliQMmzR05/pUzo6/jOy27EF6RpSGOGRagBwTyGvEg==",
+      "path": "llamasharp.backend.cuda12.linux/0.19.0",
+      "hashPath": "llamasharp.backend.cuda12.linux.0.19.0.nupkg.sha512"
+    },
+    "LLamaSharp.Backend.Cuda12.Windows/0.19.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-ZxQwX2ciGGrBm21rtvr7eIMpfWsi75jiavvYm8inlHdoaykSrWAsM9MHJm7uW43KQY3TSu+uS+t/ROrdUSZvUg==",
+      "path": "llamasharp.backend.cuda12.windows/0.19.0",
+      "hashPath": "llamasharp.backend.cuda12.windows.0.19.0.nupkg.sha512"
     },
     "Markdig/0.37.0": {
       "type": "package",
@@ -2128,6 +2278,13 @@
       "path": "pdfsharp/6.1.1",
       "hashPath": "pdfsharp.6.1.1.nupkg.sha512"
     },
+    "QuestPDF/2024.12.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-tVKd0zv1tqCvwEWGhtm437hnN3zh+h1M0Catba6RALAyMr96tKo6/8QlHvpjfwbm9unKYxTW/F/O2WSwRW2EWg==",
+      "path": "questpdf/2024.12.2",
+      "hashPath": "questpdf.2024.12.2.nupkg.sha512"
+    },
     "Serilog/4.0.2": {
       "type": "package",
       "serviceable": true,
@@ -2239,6 +2396,13 @@
       "sha512": "sha512-3oDzvc/zzetpTKWMShs1AADwZjQ/36HnsufHRPcOjyRAAMLDlu2iD33MBI2opxnezcVUtXyqDXXjoFMOU9c7SA==",
       "path": "system.memory/4.5.3",
       "hashPath": "system.memory.4.5.3.nupkg.sha512"
+    },
+    "System.Numerics.Tensors/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-fhODzTe9ON9IzmRfyVeA6L8yXOciMtpq1YufkRVBliggcVKZE+XDxqIn46+yF4PWR6wNPuDpXtPpuY86VcKxUA==",
+      "path": "system.numerics.tensors/8.0.0",
+      "hashPath": "system.numerics.tensors.8.0.0.nupkg.sha512"
     },
     "System.Text.Json/8.0.5": {
       "type": "package",
