@@ -19,6 +19,7 @@
         <converters:StatusToColorConverter x:Key="StatusToColor" />
         <converters:StringToVisibilityConverter x:Key="StringToVisibility" />
         <converters:CountToVisibilityConverter x:Key="CountToVisibility" />
+        <converters:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
 
         <!-- ═══════════════════════════════════════════════════════════
              CONVERSATION LIST ITEM TEMPLATE
@@ -571,24 +572,92 @@
                         <ItemsRepeater.ItemTemplate>
                             <DataTemplate x:DataType="vm:ChatMessageItem">
                                 <Grid>
-                                    <!-- User message layout -->
+                                    <!-- ═══════════════════════════════════════════
+                                         USER MESSAGE LAYOUT
+                                         ═══════════════════════════════════════════ -->
                                     <StackPanel Visibility="{x:Bind IsUser, Converter={StaticResource BoolToVisibility}}"
                                                 HorizontalAlignment="Right"
                                                 Margin="64,4,0,4"
                                                 MaxWidth="680">
-                                        <Border Style="{StaticResource UserMessageStyle}">
+
+                                        <!-- Normal display mode -->
+                                        <Border Style="{StaticResource UserMessageStyle}"
+                                                Visibility="{x:Bind IsNotEditing, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                                             <TextBlock Text="{x:Bind Content, Mode=OneWay}"
                                                        Style="{StaticResource BodyStyle}"
                                                        TextWrapping="Wrap"
                                                        IsTextSelectionEnabled="True" />
                                         </Border>
-                                        <TextBlock Text="{x:Bind FormattedTime}"
-                                                   Style="{StaticResource ChatTimestampStyle}"
-                                                   HorizontalAlignment="Right"
-                                                   Margin="0,4,4,0" />
+
+                                        <!-- Inline edit mode (#19) -->
+                                        <Border Style="{StaticResource UserMessageStyle}"
+                                                Visibility="{x:Bind IsEditing, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                            <StackPanel Spacing="8">
+                                                <TextBox Text="{x:Bind EditContent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                         Style="{StaticResource ChatInputStyle}"
+                                                         AcceptsReturn="True"
+                                                         TextWrapping="Wrap"
+                                                         MaxHeight="200"
+                                                         MinHeight="44" />
+                                                <StackPanel Orientation="Horizontal"
+                                                            Spacing="6"
+                                                            HorizontalAlignment="Right">
+                                                    <Button Style="{StaticResource GhostButtonStyle}"
+                                                            Content="Cancel"
+                                                            Padding="10,4,10,4"
+                                                            MinHeight="28"
+                                                            Click="OnCancelEditClick"
+                                                            Tag="{x:Bind}" />
+                                                    <Button Style="{StaticResource AccentButtonStyle}"
+                                                            Content="Save &amp; Resend"
+                                                            Padding="10,4,10,4"
+                                                            MinHeight="28"
+                                                            Click="OnSaveEditClick"
+                                                            Tag="{x:Bind}" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- User message action bar -->
+                                        <StackPanel Orientation="Horizontal"
+                                                    Spacing="2"
+                                                    HorizontalAlignment="Right"
+                                                    Margin="0,4,4,0"
+                                                    Visibility="{x:Bind IsNotEditing, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                            <TextBlock Text="{x:Bind FormattedTime}"
+                                                       Style="{StaticResource ChatTimestampStyle}"
+                                                       VerticalAlignment="Center"
+                                                       Margin="0,0,6,0" />
+
+                                            <!-- Edit button -->
+                                            <Button Style="{StaticResource MessageActionButtonStyle}"
+                                                    Click="OnEditMessageClick"
+                                                    Tag="{x:Bind}"
+                                                    ToolTipService.ToolTip="Edit message">
+                                                <FontIcon Glyph="&#xE70F;" FontSize="12" />
+                                            </Button>
+
+                                            <!-- Copy button -->
+                                            <Button Style="{StaticResource MessageActionButtonStyle}"
+                                                    Click="OnCopyMessageClick"
+                                                    Tag="{x:Bind}"
+                                                    ToolTipService.ToolTip="Copy to clipboard">
+                                                <FontIcon Glyph="&#xE8C8;" FontSize="12" />
+                                            </Button>
+
+                                            <!-- Delete button -->
+                                            <Button Style="{StaticResource MessageActionButtonStyle}"
+                                                    Click="OnDeleteMessageClick"
+                                                    Tag="{x:Bind}"
+                                                    ToolTipService.ToolTip="Delete message">
+                                                <FontIcon Glyph="&#xE74D;" FontSize="12" />
+                                            </Button>
+                                        </StackPanel>
                                     </StackPanel>
 
-                                    <!-- Assistant message layout -->
+                                    <!-- ═══════════════════════════════════════════
+                                         ASSISTANT MESSAGE LAYOUT
+                                         ═══════════════════════════════════════════ -->
                                     <StackPanel Visibility="{x:Bind IsAssistant, Converter={StaticResource BoolToVisibility}}"
                                                 HorizontalAlignment="Left"
                                                 Margin="0,4,64,4"
@@ -617,19 +686,74 @@
                                             </Grid>
                                         </Border>
 
-                                        <!-- Meta info row -->
-                                        <StackPanel Orientation="Horizontal"
-                                                    Spacing="10"
-                                                    Margin="4,4,0,0">
-                                            <TextBlock Text="{x:Bind FormattedTime}"
-                                                       Style="{StaticResource ChatTimestampStyle}" />
-                                            <TextBlock Text="{x:Bind FormattedTokens}"
-                                                       Style="{StaticResource MessageMetaStyle}"
-                                                       Visibility="{x:Bind FormattedTokens, Converter={StaticResource StringToVisibility}}" />
-                                            <TextBlock Text="{x:Bind FormattedTokenSpeed}"
-                                                       Style="{StaticResource MessageMetaStyle}"
-                                                       Visibility="{x:Bind FormattedTokenSpeed, Converter={StaticResource StringToVisibility}}" />
-                                        </StackPanel>
+                                        <!-- Meta info + action bar -->
+                                        <Grid Margin="4,4,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Left: timestamps and meta -->
+                                            <StackPanel Orientation="Horizontal"
+                                                        Spacing="10">
+                                                <TextBlock Text="{x:Bind FormattedTime}"
+                                                           Style="{StaticResource ChatTimestampStyle}" />
+                                                <TextBlock Text="{x:Bind FormattedTokens}"
+                                                           Style="{StaticResource MessageMetaStyle}"
+                                                           Visibility="{x:Bind FormattedTokens, Converter={StaticResource StringToVisibility}}" />
+                                                <TextBlock Text="{x:Bind FormattedTokenSpeed}"
+                                                           Style="{StaticResource MessageMetaStyle}"
+                                                           Visibility="{x:Bind FormattedTokenSpeed, Converter={StaticResource StringToVisibility}}" />
+                                            </StackPanel>
+
+                                            <!-- Right: action buttons -->
+                                            <StackPanel Grid.Column="1"
+                                                        Orientation="Horizontal"
+                                                        Spacing="2">
+
+                                                <!-- Thumbs up -->
+                                                <Button Style="{StaticResource MessageActionButtonStyle}"
+                                                        Click="OnThumbsUpClick"
+                                                        Tag="{x:Bind}"
+                                                        Opacity="{x:Bind IsThumbsUp, Mode=OneWay, Converter={StaticResource BoolToOpacityConverter}}"
+                                                        ToolTipService.ToolTip="Good response">
+                                                    <FontIcon Glyph="&#xE8E1;" FontSize="12" />
+                                                </Button>
+
+                                                <!-- Thumbs down -->
+                                                <Button Style="{StaticResource MessageActionButtonStyle}"
+                                                        Click="OnThumbsDownClick"
+                                                        Tag="{x:Bind}"
+                                                        Opacity="{x:Bind IsThumbsDown, Mode=OneWay, Converter={StaticResource BoolToOpacityConverter}}"
+                                                        ToolTipService.ToolTip="Poor response">
+                                                    <FontIcon Glyph="&#xE8E0;" FontSize="12" />
+                                                </Button>
+
+                                                <!-- Copy -->
+                                                <Button Style="{StaticResource MessageActionButtonStyle}"
+                                                        Click="OnCopyMessageClick"
+                                                        Tag="{x:Bind}"
+                                                        ToolTipService.ToolTip="Copy to clipboard">
+                                                    <FontIcon Glyph="&#xE8C8;" FontSize="12" />
+                                                </Button>
+
+                                                <!-- Regenerate -->
+                                                <Button Style="{StaticResource MessageActionButtonStyle}"
+                                                        Click="OnRegenerateMessageClick"
+                                                        Tag="{x:Bind}"
+                                                        ToolTipService.ToolTip="Regenerate response">
+                                                    <FontIcon Glyph="&#xE72C;" FontSize="12" />
+                                                </Button>
+
+                                                <!-- Delete -->
+                                                <Button Style="{StaticResource MessageActionButtonStyle}"
+                                                        Click="OnDeleteMessageClick"
+                                                        Tag="{x:Bind}"
+                                                        ToolTipService.ToolTip="Delete message">
+                                                    <FontIcon Glyph="&#xE74D;" FontSize="12" />
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
                                     </StackPanel>
                                 </Grid>
                             </DataTemplate>

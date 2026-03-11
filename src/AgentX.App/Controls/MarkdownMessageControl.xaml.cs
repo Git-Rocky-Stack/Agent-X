@@ -184,7 +184,7 @@ public sealed partial class MarkdownMessageControl : UserControl
         Grid.SetRow(headerBorder, 0);
         grid.Children.Add(headerBorder);
 
-        // ── Code content area ─────────────────────────────────────
+        // ── Code content area (with syntax highlighting) ──────────
         var codeBorder = new Border
         {
             Background = new SolidColorBrush(Color.FromArgb(255, 24, 24, 28)),
@@ -198,18 +198,44 @@ public sealed partial class MarkdownMessageControl : UserControl
             VerticalScrollBarVisibility = ScrollBarVisibility.Disabled
         };
 
-        var codeText = new TextBlock
+        if (SyntaxHighlighter.IsSupported(segment.Language))
         {
-            Text = segment.Content,
-            FontFamily = new FontFamily("Cascadia Code, Consolas, Courier New, monospace"),
-            FontSize = 13,
-            Foreground = new SolidColorBrush(Color.FromArgb(230, 220, 220, 230)),
-            TextWrapping = TextWrapping.NoWrap,
-            IsTextSelectionEnabled = true,
-            LineHeight = 20
-        };
+            // Syntax-highlighted code via RichTextBlock with colored Runs
+            var richBlock = new RichTextBlock
+            {
+                FontFamily = new FontFamily("Cascadia Code, Consolas, Courier New, monospace"),
+                FontSize = 13,
+                TextWrapping = TextWrapping.NoWrap,
+                IsTextSelectionEnabled = true,
+                LineHeight = 20
+            };
 
-        codeScroll.Content = codeText;
+            var paragraph = new Paragraph();
+            var runs = SyntaxHighlighter.Highlight(segment.Content, segment.Language);
+            foreach (var run in runs)
+            {
+                paragraph.Inlines.Add(run);
+            }
+            richBlock.Blocks.Add(paragraph);
+
+            codeScroll.Content = richBlock;
+        }
+        else
+        {
+            // Fallback: plain monospace TextBlock (no highlighting)
+            var codeText = new TextBlock
+            {
+                Text = segment.Content,
+                FontFamily = new FontFamily("Cascadia Code, Consolas, Courier New, monospace"),
+                FontSize = 13,
+                Foreground = new SolidColorBrush(Color.FromArgb(230, 220, 220, 230)),
+                TextWrapping = TextWrapping.NoWrap,
+                IsTextSelectionEnabled = true,
+                LineHeight = 20
+            };
+            codeScroll.Content = codeText;
+        }
+
         codeBorder.Child = codeScroll;
         Grid.SetRow(codeBorder, 1);
         grid.Children.Add(codeBorder);

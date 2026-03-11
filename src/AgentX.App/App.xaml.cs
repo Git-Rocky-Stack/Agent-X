@@ -295,6 +295,9 @@ public partial class App : Application
         // ── REST API ─────────────────────────────────────────────
         services.AddSingleton<IApiHostService, ApiHostService>();
 
+        // ── Notifications ────────────────────────────────────────
+        services.AddSingleton<INotificationService, NotificationService>();
+
         // ── System Tray ───────────────────────────────────────
         services.AddSingleton<SystemTrayService>();
 

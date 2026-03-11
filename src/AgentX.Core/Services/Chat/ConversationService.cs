@@ -400,6 +400,99 @@ public class ConversationService : IConversationService
     }
 
     /// <inheritdoc />
+    public async Task DeleteMessageAsync(long messageId)
+    {
+        try
+        {
+            var message = await _db.Messages.FindAsync(messageId);
+            if (message is null)
+            {
+                _log.Warning("Cannot delete: message {MessageId} not found", messageId);
+                return;
+            }
+
+            var conversation = await _db.Conversations.FindAsync(message.ConversationId);
+            if (conversation is not null)
+            {
+                conversation.MessageCount = Math.Max(0, conversation.MessageCount - 1);
+                conversation.TokensUsed = Math.Max(0, conversation.TokensUsed - message.TokenCount);
+                conversation.UpdatedAt = DateTime.UtcNow;
+            }
+
+            _db.Messages.Remove(message);
+            await _db.SaveChangesAsync();
+
+            _log.Information("Deleted message {MessageId} from conversation {ConversationId}",
+                messageId, message.ConversationId);
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to delete message {MessageId}", messageId);
+            throw;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task UpdateMessageContentAsync(long messageId, string newContent)
+    {
+        try
+        {
+            var message = await _db.Messages.FindAsync(messageId);
+            if (message is null)
+            {
+                _log.Warning("Cannot update: message {MessageId} not found", messageId);
+                return;
+            }
+
+            message.Content = newContent;
+            message.Timestamp = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+
+            _log.Information("Updated content of message {MessageId}", messageId);
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to update message {MessageId}", messageId);
+            throw;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteMessagesAfterAsync(long conversationId, int sortOrder)
+    {
+        try
+        {
+            var toDelete = await _db.Messages
+                .Where(m => m.ConversationId == conversationId && m.SortOrder > sortOrder)
+                .ToListAsync();
+
+            if (toDelete.Count == 0) return;
+
+            var conversation = await _db.Conversations.FindAsync(conversationId);
+            if (conversation is not null)
+            {
+                var tokenSum = toDelete.Sum(m => m.TokenCount);
+                conversation.MessageCount = Math.Max(0, conversation.MessageCount - toDelete.Count);
+                conversation.TokensUsed = Math.Max(0, conversation.TokensUsed - tokenSum);
+                conversation.UpdatedAt = DateTime.UtcNow;
+            }
+
+            _db.Messages.RemoveRange(toDelete);
+            await _db.SaveChangesAsync();
+
+            _log.Information(
+                "Deleted {Count} messages after SortOrder {SortOrder} in conversation {ConversationId}",
+                toDelete.Count, sortOrder, conversationId);
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to delete messages after SortOrder {SortOrder} in conversation {ConversationId}",
+                sortOrder, conversationId);
+            throw;
+        }
+    }
+
+    /// <inheritdoc />
     public async Task<int> GetConversationCountAsync()
     {
         try

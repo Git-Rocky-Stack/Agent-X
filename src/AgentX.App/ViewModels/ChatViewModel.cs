@@ -5,7 +5,9 @@ using CommunityToolkit.Mvvm.Input;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Services.Chat;
+using AgentX.Core.Services.Feedback;
 using AgentX.App.Helpers;
+using AgentX.App.Services;
 using Serilog;
 
 namespace AgentX.App.ViewModels;
@@ -67,6 +69,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private readonly IModelManager _modelManager;
     private readonly ISystemPromptService _systemPromptService;
     private readonly IConversationMemoryService _memoryService;
+    private readonly IFeedbackService _feedbackService;
+    private readonly INotificationService _notificationService;
 
     private CancellationTokenSource? _generationCts;
 
@@ -76,7 +80,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         IAiService aiService,
         IModelManager modelManager,
         ISystemPromptService systemPromptService,
-        IConversationMemoryService memoryService)
+        IConversationMemoryService memoryService,
+        IFeedbackService feedbackService,
+        INotificationService notificationService)
     {
         _chatService = chatService;
         _conversationService = conversationService;
@@ -84,6 +90,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         _modelManager = modelManager;
         _systemPromptService = systemPromptService;
         _memoryService = memoryService;
+        _feedbackService = feedbackService;
+        _notificationService = notificationService;
         Log.Debug("ChatViewModel created with services");
     }
 
@@ -403,6 +411,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         {
             Log.Error(ex, "Error during message generation");
             assistantMessage.Content = "An error occurred while generating a response. Please check that Ollama is running and a model is loaded.";
+            _notificationService.ShowError("Generation Failed",
+                "Could not generate a response. Check your AI connection in Settings.");
         }
         finally
         {
@@ -540,8 +550,11 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             var messages = await _conversationService.GetMessagesAsync(conversationId);
             foreach (var msg in messages)
             {
-                Messages.Add(new ChatMessageItem
+                var chatItem = new ChatMessageItem
                 {
+                    MessageId = msg.Id,
+                    ConversationId = msg.ConversationId,
+                    SortOrder = msg.SortOrder,
                     Role = msg.Role,
                     Content = msg.Content,
                     Timestamp = msg.Timestamp,
@@ -550,7 +563,23 @@ public partial class ChatViewModel : ObservableObject, IDisposable
                     IsSystem = msg.Role == "system",
                     TokenCount = msg.TokenCount,
                     GenerationTimeMs = msg.GenerationTimeMs ?? 0
-                });
+                };
+
+                // Load existing feedback rating for assistant messages
+                if (msg.Role == "assistant" && msg.Id > 0)
+                {
+                    try
+                    {
+                        var feedback = await _feedbackService.GetFeedbackForMessageAsync(msg.Id);
+                        if (feedback is not null)
+                        {
+                            chatItem.FeedbackRating = feedback.Rating;
+                        }
+                    }
+                    catch { /* non-critical */ }
+                }
+
+                Messages.Add(chatItem);
             }
         }
         catch (Exception ex)
@@ -785,6 +814,231 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         }
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    // PER-MESSAGE ACTIONS (#18)
+    // ═══════════════════════════════════════════════════════════════
+
+    [RelayCommand]
+    private async Task DeleteMessageAsync(ChatMessageItem? message)
+    {
+        if (message is null) return;
+
+        Log.Debug("Delete message requested: {MessageId}", message.MessageId);
+
+        // Delete from database if persisted
+        if (message.MessageId > 0)
+        {
+            try
+            {
+                await _conversationService.DeleteMessageAsync(message.MessageId);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to delete message {MessageId} from database", message.MessageId);
+            }
+        }
+
+        Messages.Remove(message);
+        OnPropertyChanged(nameof(HasNoMessages));
+        _notificationService.ShowInfo("Message deleted", "The message has been removed.");
+    }
+
+    [RelayCommand]
+    private async Task SubmitFeedbackAsync(ChatMessageItem? message)
+    {
+        if (message is null || !message.IsAssistant || message.MessageId <= 0) return;
+
+        // Toggle: if already positive → negative → none → positive
+        var newRating = message.FeedbackRating switch
+        {
+            "positive" => "negative",
+            "negative" => "none",
+            _ => "positive"
+        };
+
+        Log.Debug("Submit feedback for message {MessageId}: {Rating}", message.MessageId, newRating);
+
+        message.FeedbackRating = newRating;
+
+        try
+        {
+            await _feedbackService.SubmitFeedbackAsync(
+                message.MessageId,
+                ActiveConversationId ?? 0,
+                newRating);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to submit feedback for message {MessageId}", message.MessageId);
+        }
+    }
+
+    [RelayCommand]
+    private async Task ThumbsUpAsync(ChatMessageItem? message)
+    {
+        if (message is null || !message.IsAssistant || message.MessageId <= 0) return;
+
+        var newRating = message.FeedbackRating == "positive" ? "none" : "positive";
+        message.FeedbackRating = newRating;
+
+        Log.Debug("Thumbs up for message {MessageId}: {Rating}", message.MessageId, newRating);
+
+        try
+        {
+            await _feedbackService.SubmitFeedbackAsync(
+                message.MessageId, ActiveConversationId ?? 0, newRating);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to submit thumbs up for message {MessageId}", message.MessageId);
+        }
+    }
+
+    [RelayCommand]
+    private async Task ThumbsDownAsync(ChatMessageItem? message)
+    {
+        if (message is null || !message.IsAssistant || message.MessageId <= 0) return;
+
+        var newRating = message.FeedbackRating == "negative" ? "none" : "negative";
+        message.FeedbackRating = newRating;
+
+        Log.Debug("Thumbs down for message {MessageId}: {Rating}", message.MessageId, newRating);
+
+        try
+        {
+            await _feedbackService.SubmitFeedbackAsync(
+                message.MessageId, ActiveConversationId ?? 0, newRating);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to submit thumbs down for message {MessageId}", message.MessageId);
+        }
+    }
+
+    [RelayCommand]
+    private async Task RegenerateMessageAsync(ChatMessageItem? message)
+    {
+        if (message is null || !message.IsAssistant) return;
+
+        Log.Debug("Regenerate specific message requested: {MessageId}", message.MessageId);
+
+        // Find the user message just before this assistant message
+        var msgIndex = Messages.IndexOf(message);
+        if (msgIndex < 1) return;
+
+        var userMessage = Messages[msgIndex - 1];
+        if (!userMessage.IsUser) return;
+
+        // Remove the assistant message
+        Messages.Remove(message);
+
+        // Delete from DB if persisted
+        if (message.MessageId > 0)
+        {
+            try
+            {
+                await _conversationService.DeleteMessageAsync(message.MessageId);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to delete message for regeneration");
+            }
+        }
+
+        // Re-send using the user message content
+        UserInput = userMessage.Content;
+        Messages.Remove(userMessage);
+        OnPropertyChanged(nameof(HasNoMessages));
+        await SendMessageAsync();
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // MESSAGE EDITING (#19)
+    // ═══════════════════════════════════════════════════════════════
+
+    [RelayCommand]
+    private void StartEditMessage(ChatMessageItem? message)
+    {
+        if (message is null || !message.IsUser) return;
+
+        Log.Debug("Start editing message {MessageId}", message.MessageId);
+
+        // Cancel any other edit in progress
+        foreach (var msg in Messages.Where(m => m.IsEditing))
+        {
+            msg.IsEditing = false;
+        }
+
+        message.EditContent = message.Content;
+        message.IsEditing = true;
+    }
+
+    [RelayCommand]
+    private void CancelEditMessage(ChatMessageItem? message)
+    {
+        if (message is null) return;
+        message.IsEditing = false;
+        message.EditContent = string.Empty;
+    }
+
+    [RelayCommand]
+    private async Task SaveEditMessageAsync(ChatMessageItem? message)
+    {
+        if (message is null || !message.IsUser || string.IsNullOrWhiteSpace(message.EditContent)) return;
+
+        var newContent = message.EditContent.Trim();
+        message.IsEditing = false;
+
+        Log.Debug("Save edited message {MessageId}", message.MessageId);
+
+        // Update the message content
+        message.Content = newContent;
+
+        // Update in database
+        if (message.MessageId > 0)
+        {
+            try
+            {
+                await _conversationService.UpdateMessageContentAsync(message.MessageId, newContent);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to update message content in database");
+            }
+        }
+
+        // Remove all messages after this one (they are now stale)
+        var msgIndex = Messages.IndexOf(message);
+        if (msgIndex >= 0 && ActiveConversationId is not null)
+        {
+            // Delete subsequent messages from DB
+            if (message.SortOrder >= 0)
+            {
+                try
+                {
+                    await _conversationService.DeleteMessagesAfterAsync(
+                        ActiveConversationId.Value, message.SortOrder);
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Failed to delete subsequent messages");
+                }
+            }
+
+            // Remove from UI
+            while (Messages.Count > msgIndex + 1)
+            {
+                Messages.RemoveAt(Messages.Count - 1);
+            }
+        }
+
+        // Re-generate assistant response
+        UserInput = newContent;
+        Messages.Remove(message);
+        OnPropertyChanged(nameof(HasNoMessages));
+        await SendMessageAsync();
+    }
+
     /// <summary>
     /// Loads AI-generated follow-up question suggestions based on the
     /// current conversation and persisted user memories.
@@ -899,6 +1153,18 @@ public class ChatMessageItem : ObservableObject
 {
     private string _content = string.Empty;
     private bool _isStreaming;
+    private string _feedbackRating = "none";
+    private bool _isEditing;
+    private string _editContent = string.Empty;
+
+    /// <summary>Database primary key. 0 if not yet persisted.</summary>
+    public long MessageId { get; set; }
+
+    /// <summary>Conversation this message belongs to.</summary>
+    public long ConversationId { get; set; }
+
+    /// <summary>Sort order within the conversation.</summary>
+    public int SortOrder { get; set; }
 
     public string Role { get; set; } = string.Empty;
 
@@ -931,6 +1197,47 @@ public class ChatMessageItem : ObservableObject
     {
         get => _isStreaming;
         set => SetProperty(ref _isStreaming, value);
+    }
+
+    /// <summary>
+    /// Feedback rating for assistant messages: "positive", "negative", or "none".
+    /// </summary>
+    public string FeedbackRating
+    {
+        get => _feedbackRating;
+        set
+        {
+            if (SetProperty(ref _feedbackRating, value))
+            {
+                OnPropertyChanged(nameof(IsThumbsUp));
+                OnPropertyChanged(nameof(IsThumbsDown));
+            }
+        }
+    }
+
+    public bool IsThumbsUp => FeedbackRating == "positive";
+    public bool IsThumbsDown => FeedbackRating == "negative";
+
+    /// <summary>Whether this user message is in inline edit mode.</summary>
+    public bool IsEditing
+    {
+        get => _isEditing;
+        set
+        {
+            if (SetProperty(ref _isEditing, value))
+            {
+                OnPropertyChanged(nameof(IsNotEditing));
+            }
+        }
+    }
+
+    public bool IsNotEditing => !IsEditing;
+
+    /// <summary>Content of the edit TextBox while editing.</summary>
+    public string EditContent
+    {
+        get => _editContent;
+        set => SetProperty(ref _editContent, value);
     }
 
     public string FormattedTime => Timestamp.ToLocalTime().ToString("h:mm tt");

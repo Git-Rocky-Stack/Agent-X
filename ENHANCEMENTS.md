@@ -10,6 +10,7 @@
 - GPU Acceleration (CUDA 12), JSON Mode / Structured Output, Installer-Bundled Model completed
 - Tech Debt A-E completed (Magic Numbers, Formatting, DTOs, Logging, Feature Flags)
 - Lower Priority #13-17 ALL completed (Collaboration, Feedback/Few-Shot, Analytics Dashboard, REST API, Mobile Companion)
+- UX Polish #18-21 completed (Per-Message Actions, Message Editing, Code Syntax Highlighting, Notification Toasts)
 
 ---
 
@@ -50,6 +51,15 @@
 | I9 | **Structured Output / JSON Mode** | ResponseFormat enum (Text/JsonObject) in ChatOptions. OpenAI: response_format API param. Anthropic: system prompt reinforcement. Ollama: Format="json". Local LLM: prompt engineering + output priming. Used by tag generation, RAG evaluation, and LLM reranking. | DONE |
 | I10 | **Installer-Bundled AI Model** | Llama 3.2 3B GGUF (~2 GB) bundled directly in the Inno Setup installer. Users get fully working offline AI out of the box — zero downloads required. Model installed to %LOCALAPPDATA%\AgentX\Models. | DONE |
 | I11 | **Onboarding Cloud API Keys** | Step 3 redesigned: shows built-in model status + GPU info, with optional OpenAI/Anthropic API key entry. Keys saved securely to local settings. Summary step updated with model & provider info. | DONE |
+
+## UX POLISH — Chat & Developer Experience
+
+| # | Enhancement | Description | Status |
+|---|-------------|-------------|--------|
+| 18 | **Per-Message Actions** | Copy, delete, and regenerate buttons on each chat message bubble using the existing MessageActionButtonStyle. Inline thumbs up/down wired to IFeedbackService with toggle cycling (positive→negative→none). MessageId, ConversationId, SortOrder, FeedbackRating added to ChatMessageItem. Feedback state loaded from database on conversation select. | DONE |
+| 19 | **Message Editing** | Edit sent user messages inline with a TextBox overlay and "Save & Resend" action. Editing truncates all subsequent messages (both UI and DB via DeleteMessagesAfterAsync) then re-sends. New IConversationService methods: DeleteMessageAsync, UpdateMessageContentAsync, DeleteMessagesAfterAsync. IsEditing/EditContent observable properties on ChatMessageItem. | DONE |
+| 20 | **Code Syntax Highlighting** | Language-aware token coloring in code blocks. SyntaxHighlighter helper with keyword-based regex tokenizer supporting 18 languages (C#, Python, JS/TS, SQL, JSON, HTML/XML, Rust, Go, Java, Bash, YAML, CSS, C/C++). One Dark Pro inspired color palette (purple keywords, green strings, grey comments, blue functions, orange numbers, cyan operators). MarkdownMessageControl upgraded to use RichTextBlock with colored Runs for supported languages. | DONE |
+| 21 | **Error Toasts / Notification System** | App-wide toast notification overlay in MainWindow. INotificationService with Show/ShowSuccess/ShowError/ShowWarning/ShowInfo methods. NotificationOverlay UserControl with auto-dismissing cards (configurable duration), severity icons, dismiss button. Max 5 visible notifications. Integrated into ChatViewModel for generation failures. Available via DI for all pages. | DONE |
 
 ## LOWER PRIORITY — Advanced Features
 

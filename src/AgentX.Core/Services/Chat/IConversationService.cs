@@ -79,6 +79,22 @@ public interface IConversationService
     Task DeleteLastAssistantMessageAsync(long conversationId);
 
     /// <summary>
+    /// Deletes a specific message by ID and updates conversation metadata.
+    /// </summary>
+    Task DeleteMessageAsync(long messageId);
+
+    /// <summary>
+    /// Updates the content of an existing message. Used for message editing.
+    /// </summary>
+    Task UpdateMessageContentAsync(long messageId, string newContent);
+
+    /// <summary>
+    /// Deletes all messages in a conversation after a given SortOrder.
+    /// Used to truncate the conversation when editing and re-generating.
+    /// </summary>
+    Task DeleteMessagesAfterAsync(long conversationId, int sortOrder);
+
+    /// <summary>
     /// Returns the count of non-archived conversations.
     /// </summary>
     Task<int> GetConversationCountAsync();

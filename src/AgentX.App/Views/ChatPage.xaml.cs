@@ -196,6 +196,74 @@ public sealed partial class ChatPage : Page
     }
 
     // ═══════════════════════════════════════════════════════════════
+    // PER-MESSAGE ACTION HANDLERS (#18, #19)
+    // ═══════════════════════════════════════════════════════════════
+
+    private void OnCopyMessageClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is ChatMessageItem message)
+        {
+            ViewModel.CopyMessageCommand.Execute(message.Content);
+        }
+    }
+
+    private void OnDeleteMessageClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is ChatMessageItem message)
+        {
+            ViewModel.DeleteMessageCommand.Execute(message);
+        }
+    }
+
+    private void OnRegenerateMessageClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is ChatMessageItem message)
+        {
+            ViewModel.RegenerateMessageCommand.Execute(message);
+        }
+    }
+
+    private void OnThumbsUpClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is ChatMessageItem message)
+        {
+            ViewModel.ThumbsUpCommand.Execute(message);
+        }
+    }
+
+    private void OnThumbsDownClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is ChatMessageItem message)
+        {
+            ViewModel.ThumbsDownCommand.Execute(message);
+        }
+    }
+
+    private void OnEditMessageClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is ChatMessageItem message)
+        {
+            ViewModel.StartEditMessageCommand.Execute(message);
+        }
+    }
+
+    private void OnCancelEditClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is ChatMessageItem message)
+        {
+            ViewModel.CancelEditMessageCommand.Execute(message);
+        }
+    }
+
+    private void OnSaveEditClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is ChatMessageItem message)
+        {
+            ViewModel.SaveEditMessageCommand.Execute(message);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
     // CONVERSATION LIST SELECTION
     // ═══════════════════════════════════════════════════════════════
 
