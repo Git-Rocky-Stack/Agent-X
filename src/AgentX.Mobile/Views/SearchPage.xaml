@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="AgentX.Mobile.Views.SearchPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:AgentX.Mobile.ViewModels"
+    xmlns:models="clr-namespace:AgentX.Mobile.Models"
+    x:DataType="vm:SearchViewModel"
+    Title="Search"
+    BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceLight}, Dark={StaticResource SurfaceDark}}">
+
+    <Grid RowDefinitions="Auto,Auto,Auto,*">
+
+        <!-- ── Search bar ──────────────────────────────────────────────── -->
+        <Grid
+            Grid.Row="0"
+            ColumnDefinitions="*,Auto"
+            Margin="16,16,16,8"
+            ColumnSpacing="8">
+
+            <SearchBar
+                Grid.Column="0"
+                Placeholder="Ask anything about your documents…"
+                Text="{Binding Query}"
+                SearchCommand="{Binding SearchCommand}"
+                IsEnabled="{Binding IsSearching, Converter={StaticResource InvertedBoolConverter}}"
+                BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceCardLight}, Dark={StaticResource SurfaceCardDark}}"
+                TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                PlaceholderColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
+
+            <Button
+                Grid.Column="1"
+                Text="Search"
+                Style="{StaticResource PrimaryButton}"
+                Command="{Binding SearchCommand}"
+                IsEnabled="{Binding IsSearching, Converter={StaticResource InvertedBoolConverter}}"
+                WidthRequest="80"
+                Padding="12,12" />
+
+        </Grid>
+
+        <!-- ── Loading indicator ──────────────────────────────────────── -->
+        <ActivityIndicator
+            Grid.Row="1"
+            IsRunning="{Binding IsSearching}"
+            IsVisible="{Binding IsSearching}"
+            Color="{StaticResource BrandPrimary}"
+            Margin="0,4" />
+
+        <!-- ── Error banner ───────────────────────────────────────────── -->
+        <Frame
+            Grid.Row="2"
+            IsVisible="{Binding HasError}"
+            BackgroundColor="#FEE2E2"
+            BorderColor="#FECACA"
+            CornerRadius="8"
+            Margin="16,4"
+            Padding="12,8">
+            <Label
+                Text="{Binding ErrorMessage}"
+                TextColor="#991B1B"
+                FontSize="13" />
+        </Frame>
+
+        <!-- ── Prompt / empty state ────────────────────────────────────── -->
+        <VerticalStackLayout
+            Grid.Row="3"
+            IsVisible="{Binding HasSearched, Converter={StaticResource InvertedBoolConverter}}"
+            VerticalOptions="Center"
+            HorizontalOptions="Center"
+            Spacing="8"
+            Margin="32,0">
+            <Label
+                Text="Semantic Search"
+                FontSize="20"
+                FontAttributes="Bold"
+                TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                HorizontalOptions="Center" />
+            <Label
+                Text="Type a question or phrase above to search through your indexed documents by meaning, not just keywords."
+                FontSize="14"
+                LineHeight="1.5"
+                TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                HorizontalOptions="Center"
+                HorizontalTextAlignment="Center" />
+        </VerticalStackLayout>
+
+        <!-- ── No results ──────────────────────────────────────────────── -->
+        <VerticalStackLayout
+            Grid.Row="3"
+            IsVisible="{Binding IsEmpty}"
+            VerticalOptions="Center"
+            HorizontalOptions="Center"
+            Spacing="8">
+            <Label
+                Text="No results found."
+                FontSize="17"
+                FontAttributes="Bold"
+                TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                HorizontalOptions="Center" />
+            <Label
+                Text="Try rephrasing your query or lowering the relevance threshold."
+                FontSize="14"
+                TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                HorizontalOptions="Center"
+                HorizontalTextAlignment="Center"
+                Margin="32,0" />
+        </VerticalStackLayout>
+
+        <!-- ── Results list ────────────────────────────────────────────── -->
+        <CollectionView
+            Grid.Row="3"
+            ItemsSource="{Binding Results}"
+            IsVisible="{Binding IsEmpty, Converter={StaticResource InvertedBoolConverter}}">
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:SearchResultDto">
+                    <Frame Style="{StaticResource Card}" Margin="16,6">
+
+                        <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto">
+
+                            <!-- File name -->
+                            <Label
+                                Grid.Row="0" Grid.Column="0"
+                                Text="{Binding FileName}"
+                                FontSize="14"
+                                FontAttributes="Bold"
+                                TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                LineBreakMode="TailTruncation" />
+
+                            <!-- Relevance badge -->
+                            <Frame
+                                Grid.Row="0" Grid.Column="1"
+                                BackgroundColor="{Binding RelevanceColor}"
+                                CornerRadius="6"
+                                Padding="8,3"
+                                HasShadow="False"
+                                VerticalOptions="Center">
+                                <Label
+                                    Text="{Binding RelevancePercent, StringFormat='{0}%'}"
+                                    TextColor="White"
+                                    FontSize="11"
+                                    FontAttributes="Bold" />
+                            </Frame>
+
+                            <!-- Content preview -->
+                            <Label
+                                Grid.Row="1" Grid.ColumnSpan="2"
+                                Text="{Binding ContentPreview}"
+                                FontSize="13"
+                                LineHeight="1.5"
+                                TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                Margin="0,6,0,0" />
+
+                            <!-- Document ID -->
+                            <Label
+                                Grid.Row="2" Grid.ColumnSpan="2"
+                                Text="{Binding DocumentId, StringFormat='Document #{0}'}"
+                                FontSize="12"
+                                TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                Margin="0,4,0,0" />
+
+                        </Grid>
+
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+        </CollectionView>
+
+    </Grid>
+
+</ContentPage>

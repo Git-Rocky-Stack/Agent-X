@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="AgentX.Mobile.Views.DocumentsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:AgentX.Mobile.ViewModels"
+    xmlns:models="clr-namespace:AgentX.Mobile.Models"
+    x:DataType="vm:DocumentsViewModel"
+    Title="Documents"
+    BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceLight}, Dark={StaticResource SurfaceDark}}">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem
+            Text="Refresh"
+            IconImageSource="icon_refresh.png"
+            Command="{Binding LoadCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- ── Loading indicator ──────────────────────────────────────── -->
+        <ActivityIndicator
+            Grid.Row="0"
+            IsRunning="{Binding IsLoading}"
+            IsVisible="{Binding IsLoading}"
+            Color="{StaticResource BrandPrimary}"
+            Margin="0,8" />
+
+        <!-- ── Error banner ───────────────────────────────────────────── -->
+        <Frame
+            Grid.Row="0"
+            IsVisible="{Binding HasError}"
+            BackgroundColor="#FEE2E2"
+            BorderColor="#FECACA"
+            CornerRadius="8"
+            Margin="16,8"
+            Padding="12,8">
+            <Label
+                Text="{Binding ErrorMessage}"
+                TextColor="#991B1B"
+                FontSize="13" />
+        </Frame>
+
+        <!-- ── Empty state ─────────────────────────────────────────────── -->
+        <VerticalStackLayout
+            Grid.Row="1"
+            IsVisible="{Binding IsEmpty}"
+            VerticalOptions="Center"
+            HorizontalOptions="Center"
+            Spacing="12">
+            <Label
+                Text="No documents found."
+                FontSize="17"
+                FontAttributes="Bold"
+                TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                HorizontalOptions="Center" />
+            <Label
+                Text="Import documents in the Agent-X desktop app, then refresh."
+                FontSize="14"
+                TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                HorizontalOptions="Center"
+                HorizontalTextAlignment="Center"
+                Margin="32,0" />
+        </VerticalStackLayout>
+
+        <!-- ── Document list ──────────────────────────────────────────── -->
+        <CollectionView
+            Grid.Row="1"
+            ItemsSource="{Binding Documents}"
+            IsVisible="{Binding IsEmpty, Converter={StaticResource InvertedBoolConverter}}"
+            Margin="0,4">
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:DocumentDto">
+                    <Frame Style="{StaticResource Card}" Margin="16,6">
+
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto">
+
+                            <!-- File name -->
+                            <Label
+                                Grid.Row="0" Grid.Column="0"
+                                Text="{Binding FileName}"
+                                FontSize="15"
+                                FontAttributes="Bold"
+                                TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                LineBreakMode="TailTruncation" />
+
+                            <!-- Status badge -->
+                            <Frame
+                                Grid.Row="0" Grid.Column="1"
+                                BackgroundColor="{Binding StatusColor}"
+                                CornerRadius="6"
+                                Padding="8,3"
+                                HasShadow="False"
+                                VerticalOptions="Center">
+                                <Label
+                                    Text="{Binding StatusDisplay}"
+                                    TextColor="White"
+                                    FontSize="11"
+                                    FontAttributes="Bold" />
+                            </Frame>
+
+                            <!-- Type + size -->
+                            <Label
+                                Grid.Row="1" Grid.ColumnSpan="2"
+                                FontSize="13"
+                                TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                Margin="0,4,0,0">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="{Binding FileType}" FontAttributes="Bold" />
+                                        <Span Text="  •  " />
+                                        <Span Text="{Binding FileSizeDisplay}" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+
+                            <!-- Import date -->
+                            <Label
+                                Grid.Row="2" Grid.ColumnSpan="2"
+                                Text="{Binding ImportedAt, StringFormat='Imported {0:MMM d, yyyy}'}"
+                                FontSize="12"
+                                TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                Margin="0,2,0,0" />
+
+                        </Grid>
+
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+        </CollectionView>
+
+    </Grid>
+
+</ContentPage>

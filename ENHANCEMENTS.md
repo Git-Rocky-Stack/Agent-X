@@ -1,7 +1,7 @@
 # Agent-X Enhancement Roadmap
 
 ## Codebase Audit Summary (2026-03-10)
-- **23 ViewModels**, **25 entities**, **50+ services**, **25+ navigation pages**
+- **24 ViewModels**, **26 entities**, **55+ services**, **26+ navigation pages**
 - **224 unit tests** passing (was 0% - test project was scaffolded but empty)
 - Tiers 1-3 enhancements completed, Tier 4 (Plugin Manager + Sync Settings) completed
 - High Priority #1-5 completed (Unit Tests, Validation, Error Handling, Search Caching, Hybrid Search UI)
@@ -9,6 +9,7 @@
 - Built-in Local LLM (LLamaSharp) + 6 Advanced RAG Enhancements completed
 - GPU Acceleration (CUDA 12), JSON Mode / Structured Output, Installer-Bundled Model completed
 - Tech Debt A-E completed (Magic Numbers, Formatting, DTOs, Logging, Feature Flags)
+- Lower Priority #13-17 ALL completed (Collaboration, Feedback/Few-Shot, Analytics Dashboard, REST API, Mobile Companion)
 
 ---
 
@@ -54,11 +55,11 @@
 
 | # | Enhancement | Description | Status |
 |---|-------------|-------------|--------|
-| 13 | **Real-time Collaboration** | Multi-user sync with SignalR for live editing indicators. | Pending |
-| 14 | **Custom Model Training** | Fine-tune agent behavior with user feedback loops. | Pending |
-| 15 | **Analytics Dashboard** | Usage stats, performance metrics, and trend charts for agent activity. | Pending |
-| 16 | **REST API Layer** | Expose core functionality via a local REST API for external tool integration. | Pending |
-| 17 | **Mobile Companion** | MAUI-based mobile app sharing the AgentX.Core library. | Pending |
+| 13 | **Real-time Collaboration** | Lightweight HTTP-based collaboration service with HttpListener. 4 REST endpoints (/join, /heartbeat, /events, /leave). ConcurrentDictionary session management with 10s heartbeat + 30s stale-peer pruning. CollaborationSession, CollaborationEvent, CollaborationEventType models. ICollaborationService interface with start/stop hosting, presence updates, event broadcasting. | DONE |
+| 14 | **User Feedback & Few-Shot Learning** | Thumbs up/down feedback on assistant messages with FeedbackEntity (rating, preferred response, category, notes). 7-method IFeedbackService with upsert, category filtering, and BuildFewShotExamplesAsync that formats positive-rated messages into few-shot prompt examples. EF Core mapping with unique MessageId index + cascading delete. | DONE |
+| 15 | **Analytics Dashboard** | Full-page analytics with 6 summary stat cards (conversations, messages, tokens, documents, searches, response time). Indexing progress bar with tokens/conversation insight. 30-day activity bar charts for conversations, documents, and searches. Model usage horizontal bars. File type distribution. 7 performance metric tiles (avg, median, P95, throughput, fastest, slowest, total inference). AnalyticsService with parallel EF Core queries, gap-filling, and percentile calculations. | DONE |
+| 16 | **REST API Layer** | Embedded HttpListener-based local REST API on port 9846. SemaphoreSlim(16) concurrency gate with CORS headers. 5 route groups: /api/health, /api/documents (GET list + GET by ID), /api/conversations, /api/collections, /api/search (POST). ApiResponse<T> envelope with typed DTOs. IApiHostService with start/stop lifecycle. | DONE |
+| 17 | **Mobile Companion** | MAUI project scaffold (Android + iOS targets) connecting to desktop app via REST API. AgentXApiClient HTTP service with configurable base URL. 4 pages: Documents, Conversations, Search, Settings. MVVM ViewModels with async data loading. Shell navigation with tab bar. SettingsService for persistent API URL configuration. | DONE |
 
 ## TECH DEBT — Code Health
 

@@ -63,6 +63,7 @@ public sealed partial class MainWindow : Window
             ["WorkspaceProfiles"] = typeof(Views.WorkspaceProfilePage),
             ["PluginManager"] = typeof(Views.PluginManagerPage),
             ["SyncSettings"] = typeof(Views.SyncSettingsPage),
+            ["Analytics"] = typeof(Views.AnalyticsPage),
             ["Onboarding"] = typeof(Views.OnboardingPage),
             ["UserGuide"] = typeof(Views.UserGuidePage),
             ["PrivacyPolicy"] = typeof(Views.PrivacyPolicyPage),

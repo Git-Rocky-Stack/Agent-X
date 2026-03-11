@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Shell
+    x:Class="AgentX.Mobile.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:AgentX.Mobile.Views"
+    Title="Agent-X"
+    Shell.NavBarIsVisible="True">
+
+    <!--
+        Shell.TabBar hosts the four primary tabs.
+        Each ShellContent is backed by a ContentPage from the Views namespace.
+        The Icon values use standard SF Symbols (iOS) / Material Design (Android);
+        MAUI resolves the correct platform glyph automatically when you place
+        platform-specific icon files in Resources/Images.
+    -->
+
+    <TabBar>
+
+        <!-- Documents tab -->
+        <ShellContent
+            Title="Documents"
+            Icon="tab_documents.png"
+            ContentTemplate="{DataTemplate views:DocumentsPage}"
+            Route="documents" />
+
+        <!-- Search tab -->
+        <ShellContent
+            Title="Search"
+            Icon="tab_search.png"
+            ContentTemplate="{DataTemplate views:SearchPage}"
+            Route="search" />
+
+        <!-- Conversations tab -->
+        <ShellContent
+            Title="Conversations"
+            Icon="tab_conversations.png"
+            ContentTemplate="{DataTemplate views:ConversationsPage}"
+            Route="conversations" />
+
+        <!-- Settings tab -->
+        <ShellContent
+            Title="Settings"
+            Icon="tab_settings.png"
+            ContentTemplate="{DataTemplate views:SettingsPage}"
+            Route="settings" />
+
+    </TabBar>
+
+</Shell>

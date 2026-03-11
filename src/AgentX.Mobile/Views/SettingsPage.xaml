@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="AgentX.Mobile.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:AgentX.Mobile.ViewModels"
+    x:DataType="vm:SettingsViewModel"
+    Title="Settings"
+    BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceLight}, Dark={StaticResource SurfaceDark}}">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="0" Padding="16">
+
+            <!-- ── Section: Connection ─────────────────────────────────── -->
+            <Label
+                Text="CONNECTION"
+                Style="{StaticResource SectionHeader}"
+                Margin="4,16,4,8" />
+
+            <Frame Style="{StaticResource Card}" Padding="16">
+                <VerticalStackLayout Spacing="12">
+
+                    <!-- API URL field -->
+                    <Label
+                        Text="Agent-X API URL"
+                        FontSize="14"
+                        FontAttributes="Bold"
+                        TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+
+                    <Label
+                        Text="Enter the address where the Agent-X desktop app is running. Use localhost:9846 when on the same device, or the machine's IP on the same network."
+                        FontSize="12"
+                        LineHeight="1.5"
+                        TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
+
+                    <Entry
+                        Text="{Binding ApiUrl}"
+                        Placeholder="http://localhost:9846"
+                        Keyboard="Url"
+                        ClearButtonVisibility="WhileEditing"
+                        FontSize="14"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceCardLight}, Dark={StaticResource SurfaceDark}}"
+                        TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                        PlaceholderColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                        MinimumHeightRequest="48" />
+
+                    <!-- Action buttons -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                        <Button
+                            Grid.Column="0"
+                            Text="Save"
+                            Style="{StaticResource PrimaryButton}"
+                            Command="{Binding SaveCommand}" />
+                        <Button
+                            Grid.Column="1"
+                            Text="Test Connection"
+                            Style="{StaticResource SecondaryButton}"
+                            Command="{Binding TestConnectionCommand}"
+                            IsEnabled="{Binding IsTesting, Converter={StaticResource InvertedBoolConverter}}" />
+                    </Grid>
+
+                    <!-- Reset to default -->
+                    <Button
+                        Text="Reset to Default"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding ResetToDefaultCommand}"
+                        HorizontalOptions="Start"
+                        Padding="12,8"
+                        FontSize="13" />
+
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- ── Section: Connection Status ─────────────────────────── -->
+            <Label
+                Text="STATUS"
+                Style="{StaticResource SectionHeader}"
+                Margin="4,24,4,8"
+                IsVisible="{Binding ConnectionStatus, Converter={StaticResource StringNotEmptyConverter}}" />
+
+            <!-- Testing indicator -->
+            <Frame
+                Style="{StaticResource Card}"
+                IsVisible="{Binding IsTesting}"
+                Padding="16">
+                <HorizontalStackLayout Spacing="12">
+                    <ActivityIndicator
+                        IsRunning="{Binding IsTesting}"
+                        Color="{StaticResource BrandPrimary}"
+                        WidthRequest="20"
+                        HeightRequest="20" />
+                    <Label
+                        Text="Testing connection…"
+                        FontSize="14"
+                        TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                        VerticalOptions="Center" />
+                </HorizontalStackLayout>
+            </Frame>
+
+            <!-- Success result -->
+            <Frame
+                BackgroundColor="#DCFCE7"
+                BorderColor="#BBF7D0"
+                CornerRadius="12"
+                Padding="16"
+                IsVisible="{Binding TestSucceeded}">
+                <VerticalStackLayout Spacing="8">
+                    <Label
+                        Text="{Binding ConnectionStatus}"
+                        FontSize="14"
+                        TextColor="#166534" />
+                    <Grid
+                        ColumnDefinitions="*,*"
+                        RowDefinitions="Auto,Auto"
+                        RowSpacing="4"
+                        IsVisible="{Binding HealthInfo, Converter={StaticResource IsNotNullConverter}}">
+                        <Label Grid.Row="0" Grid.Column="0" Text="Version" FontSize="12" TextColor="#166534" FontAttributes="Bold" />
+                        <Label Grid.Row="0" Grid.Column="1" Text="{Binding HealthInfo.Version}" FontSize="12" TextColor="#166534" />
+                        <Label Grid.Row="1" Grid.Column="0" Text="Uptime" FontSize="12" TextColor="#166534" FontAttributes="Bold" />
+                        <Label Grid.Row="1" Grid.Column="1" Text="{Binding HealthInfo.Uptime}" FontSize="12" TextColor="#166534" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Failure result -->
+            <Frame
+                BackgroundColor="#FEE2E2"
+                BorderColor="#FECACA"
+                CornerRadius="12"
+                Padding="16"
+                IsVisible="{Binding TestFailed}">
+                <Label
+                    Text="{Binding ConnectionStatus}"
+                    FontSize="14"
+                    TextColor="#991B1B" />
+            </Frame>
+
+            <!-- ── Section: About ──────────────────────────────────────── -->
+            <Label
+                Text="ABOUT"
+                Style="{StaticResource SectionHeader}"
+                Margin="4,24,4,8" />
+
+            <Frame Style="{StaticResource Card}" Padding="16">
+                <VerticalStackLayout Spacing="6">
+                    <Label
+                        Text="Agent-X Mobile"
+                        FontSize="17"
+                        FontAttributes="Bold"
+                        TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+                    <Label
+                        Text="Version 1.0.0"
+                        FontSize="13"
+                        TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
+                    <Label
+                        Text="Mobile companion for the Agent-X desktop knowledge management and AI chat application. Connect to your desktop instance via the REST API to browse documents, run semantic search, and review conversations."
+                        FontSize="13"
+                        LineHeight="1.5"
+                        TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                        Margin="0,6,0,0" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Bottom padding -->
+            <BoxView HeightRequest="40" Color="Transparent" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

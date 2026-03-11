@@ -31,6 +31,7 @@ public class AgentXDbContext : DbContext
     public DbSet<WorkspaceProfileEntity> WorkspaceProfiles => Set<WorkspaceProfileEntity>();
     public DbSet<SyncLogEntity> SyncLogs => Set<SyncLogEntity>();
     public DbSet<PluginEntity> Plugins => Set<PluginEntity>();
+    public DbSet<FeedbackEntity> Feedbacks => Set<FeedbackEntity>();
 
     private readonly string _dbPath;
 
@@ -88,6 +89,7 @@ public class AgentXDbContext : DbContext
         ConfigureWorkspaceProfile(modelBuilder);
         ConfigureSyncLog(modelBuilder);
         ConfigurePlugin(modelBuilder);
+        ConfigureFeedback(modelBuilder);
     }
 
     private static void ConfigureConversation(ModelBuilder modelBuilder)
@@ -641,6 +643,33 @@ public class AgentXDbContext : DbContext
             //   - GetDefaultProfileAsync filters on IsDefault
             //   - GetAllProfilesAsync orders by CreatedAt
             entity.HasIndex(e => e.IsDefault);
+            entity.HasIndex(e => e.CreatedAt);
+        });
+    }
+
+    private static void ConfigureFeedback(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<FeedbackEntity>(entity =>
+        {
+            entity.ToTable("feedback");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Rating).IsRequired().HasDefaultValue("none");
+            entity.Property(e => e.ConversationId).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired();
+            entity.Property(e => e.PreferredResponse);
+            entity.Property(e => e.FeedbackNote);
+            entity.Property(e => e.Category);
+
+            entity.HasOne(e => e.Message)
+                .WithMany()
+                .HasForeignKey(e => e.MessageId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.MessageId).IsUnique();
+            entity.HasIndex(e => e.Rating);
+            entity.HasIndex(e => e.ConversationId);
             entity.HasIndex(e => e.CreatedAt);
         });
     }

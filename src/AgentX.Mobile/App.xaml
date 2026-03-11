@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Application
+    x:Class="AgentX.Mobile.App"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Application.Resources>
+        <ResourceDictionary>
+
+            <!-- ── Brand palette ─────────────────────────────────────── -->
+            <Color x:Key="BrandPrimary">#6366F1</Color>
+            <Color x:Key="BrandPrimaryDark">#4F46E5</Color>
+            <Color x:Key="BrandAccent">#A5B4FC</Color>
+
+            <Color x:Key="SurfaceLight">#FFFFFF</Color>
+            <Color x:Key="SurfaceDark">#0F172A</Color>
+            <Color x:Key="SurfaceCardLight">#F8FAFC</Color>
+            <Color x:Key="SurfaceCardDark">#1E293B</Color>
+
+            <Color x:Key="TextPrimaryLight">#0F172A</Color>
+            <Color x:Key="TextSecondaryLight">#64748B</Color>
+            <Color x:Key="TextPrimaryDark">#F1F5F9</Color>
+            <Color x:Key="TextSecondaryDark">#94A3B8</Color>
+
+            <Color x:Key="BorderLight">#E2E8F0</Color>
+            <Color x:Key="BorderDark">#334155</Color>
+
+            <Color x:Key="ErrorColor">#EF4444</Color>
+            <Color x:Key="SuccessColor">#22C55E</Color>
+            <Color x:Key="WarningColor">#F59E0B</Color>
+
+            <!-- ── Spacing ─────────────────────────────────────────────── -->
+            <x:Double x:Key="SpacingXS">4</x:Double>
+            <x:Double x:Key="SpacingS">8</x:Double>
+            <x:Double x:Key="SpacingM">16</x:Double>
+            <x:Double x:Key="SpacingL">24</x:Double>
+            <x:Double x:Key="SpacingXL">32</x:Double>
+
+            <!-- ── Corner radii ───────────────────────────────────────── -->
+            <x:Double x:Key="RadiusS">6</x:Double>
+            <x:Double x:Key="RadiusM">12</x:Double>
+            <x:Double x:Key="RadiusL">16</x:Double>
+
+            <!-- ── Shared styles ──────────────────────────────────────── -->
+
+            <!-- Primary action button -->
+            <Style x:Key="PrimaryButton" TargetType="Button">
+                <Setter Property="BackgroundColor" Value="{StaticResource BrandPrimary}" />
+                <Setter Property="TextColor" Value="White" />
+                <Setter Property="CornerRadius" Value="10" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="Padding" Value="20,12" />
+                <Setter Property="MinimumHeightRequest" Value="48" />
+            </Style>
+
+            <!-- Secondary / outline button -->
+            <Style x:Key="SecondaryButton" TargetType="Button">
+                <Setter Property="BackgroundColor" Value="Transparent" />
+                <Setter Property="BorderColor" Value="{StaticResource BrandPrimary}" />
+                <Setter Property="BorderWidth" Value="1.5" />
+                <Setter Property="TextColor" Value="{StaticResource BrandPrimary}" />
+                <Setter Property="CornerRadius" Value="10" />
+                <Setter Property="Padding" Value="20,12" />
+                <Setter Property="MinimumHeightRequest" Value="48" />
+            </Style>
+
+            <!-- Rounded card frame -->
+            <Style x:Key="Card" TargetType="Frame">
+                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource SurfaceCardLight}, Dark={StaticResource SurfaceCardDark}}" />
+                <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}" />
+                <Setter Property="CornerRadius" Value="12" />
+                <Setter Property="Padding" Value="16" />
+                <Setter Property="HasShadow" Value="False" />
+            </Style>
+
+            <!-- Section heading label -->
+            <Style x:Key="SectionHeader" TargetType="Label">
+                <Setter Property="FontSize" Value="13" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
+                <Setter Property="CharacterSpacing" Value="0.8" />
+                <Setter Property="TextTransform" Value="Uppercase" />
+            </Style>
+
+        </ResourceDictionary>
+    </Application.Resources>
+
+</Application>

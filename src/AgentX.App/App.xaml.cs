@@ -31,6 +31,10 @@ using AgentX.Core.Services.Sync;
 using AgentX.Core.Services.Sync.Models;
 using AgentX.Core.Services.Search;
 using AgentX.Core.Services.FeatureFlags;
+using AgentX.Core.Services.Analytics;
+using AgentX.Core.Services.Feedback;
+using AgentX.Core.Services.Collaboration;
+using AgentX.Core.Services.Api;
 using AgentX.Core.Validation;
 using AgentX.App.Services;
 
@@ -279,6 +283,18 @@ public partial class App : Application
         // ── Collaborative Sync ─────────────────────────────────
         services.AddSingleton<ISyncService, SyncService>();
 
+        // ── Analytics ────────────────────────────────────────────
+        services.AddSingleton<IAnalyticsService, AnalyticsService>();
+
+        // ── User Feedback ────────────────────────────────────────
+        services.AddSingleton<IFeedbackService, FeedbackService>();
+
+        // ── Collaboration ────────────────────────────────────────
+        services.AddSingleton<ICollaborationService, CollaborationService>();
+
+        // ── REST API ─────────────────────────────────────────────
+        services.AddSingleton<IApiHostService, ApiHostService>();
+
         // ── System Tray ───────────────────────────────────────
         services.AddSingleton<SystemTrayService>();
 
@@ -306,6 +322,7 @@ public partial class App : Application
         services.AddTransient<ViewModels.WorkspaceProfileViewModel>();
         services.AddTransient<ViewModels.PluginManagerViewModel>();
         services.AddTransient<ViewModels.SyncSettingsViewModel>();
+        services.AddTransient<ViewModels.AnalyticsViewModel>();
 
         // ── Views (Transient) ──────────────────────────────────
         services.AddTransient<Views.DashboardPage>();
@@ -330,6 +347,7 @@ public partial class App : Application
         services.AddTransient<Views.WorkspaceProfilePage>();
         services.AddTransient<Views.PluginManagerPage>();
         services.AddTransient<Views.SyncSettingsPage>();
+        services.AddTransient<Views.AnalyticsPage>();
         services.AddTransient<Views.UserGuidePage>();
         services.AddTransient<Views.PrivacyPolicyPage>();
         services.AddTransient<Views.TermsOfServicePage>();
