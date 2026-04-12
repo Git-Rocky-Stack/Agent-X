@@ -43,6 +43,9 @@ Thumbs.db
 .DS_Store
 desktop.ini
 
+## Worktrees
+.worktrees/
+
 ## Logs
 *.log
 logs/
