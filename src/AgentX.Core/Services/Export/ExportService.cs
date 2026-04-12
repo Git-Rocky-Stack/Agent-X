@@ -6,7 +6,9 @@ using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Collections;
+using AgentX.Core.Services.Export.Formats;
 using AgentX.Core.Services.Export.Models;
+using AgentX.Core.Services.License;
 using AgentX.Core.Services.Settings;
 using Markdig;
 using QuestPDF.Fluent;
@@ -27,7 +29,10 @@ public class ExportService : IExportService
     private readonly IDocumentService _documentService;
     private readonly ICollectionService _collectionService;
     private readonly ISettingsService _settingsService;
+    private readonly ILicenseService _licenseService;
     private readonly ILogger _log;
+    private readonly HtmlExport _htmlExport;
+    private readonly PdfExport _pdfExport;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -45,6 +50,7 @@ public class ExportService : IExportService
         IDocumentService documentService,
         ICollectionService collectionService,
         ISettingsService settingsService,
+        ILicenseService licenseService,
         ILogger logger)
     {
         _conversationService = conversationService
@@ -55,8 +61,12 @@ public class ExportService : IExportService
             ?? throw new ArgumentNullException(nameof(collectionService));
         _settingsService = settingsService
             ?? throw new ArgumentNullException(nameof(settingsService));
+        _licenseService = licenseService
+            ?? throw new ArgumentNullException(nameof(licenseService));
         _log = logger?.ForContext<ExportService>()
                ?? throw new ArgumentNullException(nameof(logger));
+        _htmlExport = new HtmlExport();
+        _pdfExport = new PdfExport(logger);
     }
 
     // ────────────────────────────────────────────────────────────────
@@ -72,6 +82,17 @@ public class ExportService : IExportService
         try
         {
             ct.ThrowIfCancellationRequested();
+
+            // License gating for PDF/Markdown/HTML formats (requires Professional or Ultimate)
+            if (options.Format is ExportFormat.Pdf or ExportFormat.Markdown or ExportFormat.Html)
+            {
+                var license = await _licenseService.GetCurrentLicenseAsync();
+                if (license.Tier < LicenseTier.Professional)
+                {
+                    _log.Warning("Export blocked: {Format} requires Professional or Ultimate license, current tier is {Tier}", options.Format, license.Tier);
+                    return ExportResult.Fail("PDF/Markdown/HTML export requires Professional or Ultimate license.");
+                }
+            }
 
             var conversation = await _conversationService.GetConversationAsync(conversationId);
             if (conversation is null)
@@ -97,13 +118,13 @@ public class ExportService : IExportService
                 }
                 case ExportFormat.Html:
                 {
-                    var content = BuildHtml(conversation, options, title);
+                    var content = (string)await _htmlExport.RenderAsync(conversation, options, ct);
                     await File.WriteAllTextAsync(outputPath, content, Encoding.UTF8, ct);
                     break;
                 }
                 case ExportFormat.Pdf:
                 {
-                    await GeneratePdfAsync(conversation, options, title, outputPath, ct);
+                    await _pdfExport.RenderToFileAsync(conversation, options, outputPath, ct);
                     break;
                 }
                 case ExportFormat.Json:
@@ -160,6 +181,17 @@ public class ExportService : IExportService
         try
         {
             ct.ThrowIfCancellationRequested();
+
+            // License gating for PDF/Markdown/HTML formats (requires Professional or Ultimate)
+            if (options.Format is ExportFormat.Pdf or ExportFormat.Markdown or ExportFormat.Html)
+            {
+                var license = await _licenseService.GetCurrentLicenseAsync();
+                if (license.Tier < LicenseTier.Professional)
+                {
+                    _log.Warning("Export blocked: {Format} requires Professional or Ultimate license, current tier is {Tier}", options.Format, license.Tier);
+                    return ExportResult.Fail("PDF/Markdown/HTML export requires Professional or Ultimate license.");
+                }
+            }
 
             if (conversationIds is null || conversationIds.Count == 0)
             {
@@ -219,26 +251,13 @@ public class ExportService : IExportService
                 }
                 case ExportFormat.Html:
                 {
-                    var sb = new StringBuilder();
-                    sb.Append(GetHtmlDocumentHeader(title));
-
-                    for (var i = 0; i < conversations.Count; i++)
-                    {
-                        ct.ThrowIfCancellationRequested();
-                        if (i > 0)
-                        {
-                            sb.AppendLine("<hr class=\"section-divider\" />");
-                        }
-                        sb.Append(BuildHtmlBody(conversations[i], options, conversations[i].Title));
-                    }
-
-                    sb.Append(GetHtmlDocumentFooter());
-                    await File.WriteAllTextAsync(outputPath, sb.ToString(), Encoding.UTF8, ct);
+                    var content = (string)await _htmlExport.RenderAsync(conversations, options, ct);
+                    await File.WriteAllTextAsync(outputPath, content, Encoding.UTF8, ct);
                     break;
                 }
                 case ExportFormat.Pdf:
                 {
-                    await GenerateMultiConversationPdfAsync(conversations, options, title, outputPath, ct);
+                    await _pdfExport.RenderToFileAsync(conversations, options, outputPath, ct);
                     break;
                 }
                 case ExportFormat.Json:
@@ -337,6 +356,17 @@ public class ExportService : IExportService
         {
             ct.ThrowIfCancellationRequested();
 
+            // License gating for PDF/Markdown/HTML formats (requires Professional or Ultimate)
+            if (options.Format is ExportFormat.Pdf or ExportFormat.Markdown or ExportFormat.Html)
+            {
+                var license = await _licenseService.GetCurrentLicenseAsync();
+                if (license.Tier < LicenseTier.Professional)
+                {
+                    _log.Warning("Export blocked: {Format} requires Professional or Ultimate license, current tier is {Tier}", options.Format, license.Tier);
+                    return ExportResult.Fail("PDF/Markdown/HTML export requires Professional or Ultimate license.");
+                }
+            }
+
             if (string.IsNullOrWhiteSpace(query))
             {
                 return ExportResult.Fail("Search query must not be empty.");
@@ -361,13 +391,13 @@ public class ExportService : IExportService
                 }
                 case ExportFormat.Html:
                 {
-                    var content = BuildSearchResultsHtml(query, results, options, title);
+                    var content = (string)await _htmlExport.RenderAsync(results, options, ct);
                     await File.WriteAllTextAsync(outputPath, content, Encoding.UTF8, ct);
                     break;
                 }
                 case ExportFormat.Pdf:
                 {
-                    await GenerateSearchResultsPdfAsync(query, results, options, title, outputPath, ct);
+                    await _pdfExport.RenderToFileAsync(results, options, outputPath, ct);
                     break;
                 }
                 case ExportFormat.Json:
@@ -598,7 +628,7 @@ public class ExportService : IExportService
                 IncludeModelInfo = includeMeta,
             };
 
-            return BuildHtml(conversation, options, conversation.Title);
+            return (string)await _htmlExport.RenderAsync(conversation, options);
         }
         catch (Exception ex)
         {
