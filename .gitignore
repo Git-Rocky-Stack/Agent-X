@@ -61,6 +61,10 @@ models/*.gguf
 ## Installer output (build artifact, too large for git)
 installer-output/
 
+## Node.js (browser extension)
+node_modules/
+browser-extension/dist/
+
 ## Claude / Loki development tooling
 .claude/
 .loki/

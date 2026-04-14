@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:AgentX.App"
     xmlns:controls="using:AgentX.App.Controls"
+    xmlns:tb="using:H.NotifyIcon"
     Title="Agent-X">
 
     <Grid x:Name="RootGrid" Background="{StaticResource WindowBackgroundBrush}">
@@ -489,5 +490,45 @@
         <controls:CommandPalette x:Name="CommandPalette"
                                   Grid.RowSpan="2"
                                   Visibility="Collapsed" />
+
+        <!-- ═══════════════════════════════════════════════════════
+             SYSTEM TRAY ICON (H.NotifyIcon)
+             Manages minimize-to-tray, context menu, and tray interactions.
+             ═══════════════════════════════════════════════════════ -->
+        <tb:TaskbarIcon
+            x:Name="TrayIcon"
+            Grid.RowSpan="2"
+            ToolTipText="Agent-X — Intelligence Hub"
+            MenuActivation="RightClick"
+            ContextMenuMode="SecondWindow">
+            <tb:TaskbarIcon.IconSource>
+                <tb:GeneratedIconSource Text="AX" Foreground="White" FontSize="28" FontWeight="Bold" />
+            </tb:TaskbarIcon.IconSource>
+            <tb:TaskbarIcon.ContextFlyout>
+                <MenuFlyout>
+                    <MenuFlyoutItem Text="Open Agent-X" Click="TrayMenu_OpenAgentX">
+                        <MenuFlyoutItem.Icon>
+                            <FontIcon Glyph="&#xE80F;" />
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutItem Text="Quick Chat" Click="TrayMenu_QuickChat">
+                        <MenuFlyoutItem.Icon>
+                            <FontIcon Glyph="&#xE8BD;" />
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutItem Text="Settings" Click="TrayMenu_Settings">
+                        <MenuFlyoutItem.Icon>
+                            <FontIcon Glyph="&#xE713;" />
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutSeparator />
+                    <MenuFlyoutItem Text="Exit" Click="TrayMenu_Exit">
+                        <MenuFlyoutItem.Icon>
+                            <FontIcon Glyph="&#xE8BB;" />
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                </MenuFlyout>
+            </tb:TaskbarIcon.ContextFlyout>
+        </tb:TaskbarIcon>
     </Grid>
 </Window>

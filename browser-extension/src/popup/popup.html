@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="popup.css">
+  <title>AgentX Web Clipper</title>
+</head>
+<body>
+  <div class="popup-container">
+    <header class="popup-header">
+      <h1 class="popup-title">AgentX Clipper</h1>
+      <div class="connection-status" id="connectionStatus">
+        <span class="status-dot" id="statusDot"></span>
+        <span class="status-text" id="statusText">Checking...</span>
+      </div>
+    </header>
+
+    <section class="clip-actions">
+      <button class="clip-btn" id="clipFull" data-mode="full">
+        <span class="clip-btn-icon">&#9878;</span>
+        <span class="clip-btn-label">Full Page</span>
+      </button>
+      <button class="clip-btn" id="clipSelection" data-mode="selection">
+        <span class="clip-btn-icon">&#9998;</span>
+        <span class="clip-btn-label">Selection</span>
+      </button>
+      <button class="clip-btn" id="clipReader" data-mode="reader">
+        <span class="clip-btn-icon">&#9784;</span>
+        <span class="clip-btn-label">Reader Mode</span>
+      </button>
+    </section>
+
+    <section class="batch-action">
+      <button class="clip-btn clip-btn-batch" id="clipAllTabs">
+        <span class="clip-btn-icon">&#10697;</span>
+        <span class="clip-btn-label">Clip All Tabs</span>
+      </button>
+    </section>
+
+    <div class="feedback-area" id="feedbackArea"></div>
+
+    <section class="recent-clips">
+      <h2 class="section-title">Recent Clips</h2>
+      <ul class="clip-list" id="clipList">
+        <li class="clip-list-empty" id="clipListEmpty">No clips yet</li>
+      </ul>
+    </section>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

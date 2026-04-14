@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml;
 using Serilog;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.AI.Routing;
 using AgentX.Core.Data;
 using AgentX.Core.Data.VectorDb;
 using AgentX.Core.Documents;
@@ -35,6 +36,7 @@ using AgentX.Core.Services.Analytics;
 using AgentX.Core.Services.Feedback;
 using AgentX.Core.Services.Collaboration;
 using AgentX.Core.Services.Api;
+using AgentX.Core.Services.Security;
 using AgentX.Core.Validation;
 using AgentX.App.Services;
 
@@ -183,6 +185,10 @@ public partial class App : Application
         // ── Data Layer ─────────────────────────────────────────
         services.AddSingleton<AgentXDbContext>();
 
+        // ── Security ──────────────────────────────────────────
+        services.AddSingleton<IDpapiEncryptionService, DpapiEncryptionService>();
+        services.AddSingleton<ISecurityStatusService, SecurityStatusService>();
+
         // ── Core Services ──────────────────────────────────────
         services.AddSingleton<ISettingsService, SettingsService>();
         services.AddSingleton<ILicenseService, LicenseService>();
@@ -200,6 +206,10 @@ public partial class App : Application
         services.AddSingleton<IEmbeddingService, EmbeddingService>();
         services.AddSingleton<IContextWindowManager, ContextWindowManager>();
         services.AddSingleton<IRetryPolicy, ExponentialBackoffRetryPolicy>();
+
+        // ── AI Routing ────────────────────────────────────────
+        services.AddSingleton<ITaskTypeDetector, TaskTypeDetector>();
+        services.AddSingleton<IModelRouterService, ModelRouterService>();
 
         // ── Vector Store ─────────────────────────────────────────
         services.AddSingleton<IVectorStore, SqliteVecStore>();
@@ -345,6 +355,7 @@ public partial class App : Application
         services.AddTransient<ViewModels.PluginManagerViewModel>();
         services.AddTransient<ViewModels.SyncSettingsViewModel>();
         services.AddTransient<ViewModels.AnalyticsViewModel>();
+        services.AddTransient<ViewModels.QuickChatViewModel>();
 
         // ── Views (Transient) ──────────────────────────────────
         services.AddTransient<Views.DashboardPage>();

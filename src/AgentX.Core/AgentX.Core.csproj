@@ -35,6 +35,7 @@
 
     <!-- System -->
     <PackageReference Include="System.Management" Version="8.0.0" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.6" />
 
     <!-- Audio Transcription (Whisper local speech-to-text) -->
     <PackageReference Include="Whisper.Net" Version="1.5.0" />

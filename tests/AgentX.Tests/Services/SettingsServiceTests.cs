@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
+using AgentX.Core.Services.Security;
 using AgentX.Core.Services.Settings;
 using FluentAssertions;
 using Xunit;
@@ -25,7 +26,7 @@ public sealed class SettingsServiceTests : IDisposable
         _tempDir = Path.Combine(Path.GetTempPath(), "AgentXTests_Settings_" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(_tempDir);
 
-        _sut = new SettingsService();
+        _sut = new SettingsService(new DpapiEncryptionService());
 
         // Redirect _settingsPath via reflection so we don't touch real app data.
         var field = typeof(SettingsService).GetField("_settingsPath",
@@ -100,7 +101,7 @@ public sealed class SettingsServiceTests : IDisposable
         await _sut.SaveSettingsAsync(original);
 
         // Force a fresh service instance to read from disk (bypasses cache).
-        var freshService = new SettingsService();
+        var freshService = new SettingsService(new DpapiEncryptionService());
         var field = typeof(SettingsService).GetField("_settingsPath",
             BindingFlags.Instance | BindingFlags.NonPublic);
         field!.SetValue(freshService, Path.Combine(_tempDir, "settings.json"));
@@ -190,7 +191,7 @@ public sealed class SettingsServiceTests : IDisposable
         settings.MaxTokens.Should().Be(16384);
 
         // Assert: verify persistence — read from disk with a fresh instance
-        var freshService = new SettingsService();
+        var freshService = new SettingsService(new DpapiEncryptionService());
         var field = typeof(SettingsService).GetField("_settingsPath",
             BindingFlags.Instance | BindingFlags.NonPublic);
         field!.SetValue(freshService, Path.Combine(_tempDir, "settings.json"));

@@ -2,7 +2,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.AI.Routing;
 using AgentX.Core.Services.License;
+using AgentX.Core.Services.Security;
 using AgentX.Core.Services.Settings;
 using AgentX.App.Services;
 using Serilog;
@@ -16,6 +18,8 @@ public partial class SettingsViewModel : ObservableObject
     private readonly IAiService _aiService;
     private readonly ICostTracker _costTracker;
     private readonly IThemeService _themeService;
+    private readonly ISecurityStatusService _securityStatusService;
+    private readonly IModelRouterService? _modelRouterService;
 
     // ── Active Provider ──────────────────────────────────────
     [ObservableProperty] private int _activeProviderIndex;
@@ -71,6 +75,15 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private string _licenseDocumentLimit = "50";
     [ObservableProperty] private string _licenseBadgeColor = "#666666";
 
+    // ── Security Status ────────────────────────────────────
+    [ObservableProperty] private bool _areKeysEncrypted;
+    [ObservableProperty] private string _encryptionStatusDescription = string.Empty;
+
+    // ── Multi-Model Routing ──────────────────────────────
+    [ObservableProperty] private bool _enableModelRouting;
+    [ObservableProperty] private string _activeRoutingProfileId = "balanced";
+    [ObservableProperty] private int _routingProfileIndex;
+
     // ── App Info ────────────────────────────────────────────
     [ObservableProperty] private string _appVersion = "1.0.0";
 
@@ -81,18 +94,28 @@ public partial class SettingsViewModel : ObservableObject
     public List<string> ProviderOptions { get; } = new() { "Ollama (Local)", "OpenAI", "Anthropic Claude" };
     public List<string> ThemeOptions { get; } = new() { "Dark", "Light", "System Default" };
 
+    /// <summary>
+    /// Routing profile display names for the ComboBox. Order must match RoutingProfileIndexToId.
+    /// </summary>
+    public List<string> RoutingProfileOptions { get; } = RoutingProfile.AllDefaults
+        .Select(p => p.DisplayName).ToList();
+
     public SettingsViewModel(
         ISettingsService settingsService,
         ILicenseService licenseService,
         IAiService aiService,
         ICostTracker costTracker,
-        IThemeService themeService)
+        IThemeService themeService,
+        ISecurityStatusService securityStatusService,
+        IModelRouterService? modelRouterService = null)
     {
         _settingsService = settingsService;
         _licenseService = licenseService;
         _aiService = aiService;
         _costTracker = costTracker;
         _themeService = themeService;
+        _securityStatusService = securityStatusService;
+        _modelRouterService = modelRouterService;
 
         StoragePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -135,6 +158,11 @@ public partial class SettingsViewModel : ObservableObject
             ChunkOverlap = settings.ChunkOverlap;
             TopKResults = settings.TopKResults;
             AutoIndexWatchFolders = settings.AutoIndexWatchFolders;
+
+            // Multi-Model Routing
+            EnableModelRouting = settings.EnableModelRouting;
+            ActiveRoutingProfileId = settings.ActiveRoutingProfileId ?? "balanced";
+            RoutingProfileIndex = RoutingProfileIdToIndex(ActiveRoutingProfileId);
         }
 
         // Load cost tracking data
@@ -150,6 +178,10 @@ public partial class SettingsViewModel : ObservableObject
             Microsoft.UI.Xaml.ElementTheme.Light => 1,
             _ => 2
         };
+
+        // Load security status
+        AreKeysEncrypted = _securityStatusService.AreKeysEncrypted;
+        EncryptionStatusDescription = _securityStatusService.GetEncryptionStatusDescription();
 
         Log.Information("Settings loaded");
     }
@@ -192,6 +224,11 @@ public partial class SettingsViewModel : ObservableObject
         settings.ChunkOverlap = ChunkOverlap;
         settings.TopKResults = TopKResults;
         settings.AutoIndexWatchFolders = AutoIndexWatchFolders;
+
+        // Multi-Model Routing
+        settings.EnableModelRouting = EnableModelRouting;
+        settings.ActiveRoutingProfileId = RoutingProfileIndexToId(RoutingProfileIndex);
+        ActiveRoutingProfileId = settings.ActiveRoutingProfileId;
 
         await _settingsService.SaveSettingsAsync(settings);
 
@@ -360,6 +397,11 @@ public partial class SettingsViewModel : ObservableObject
         TopKResults = 5;
         AutoIndexWatchFolders = true;
 
+        // Multi-Model Routing
+        EnableModelRouting = false;
+        RoutingProfileIndex = 2; // Balanced
+        ActiveRoutingProfileId = "balanced";
+
         // Clear connection statuses
         OllamaConnectionStatus = string.Empty;
         OpenAiConnectionStatus = string.Empty;
@@ -457,4 +499,37 @@ public partial class SettingsViewModel : ObservableObject
         };
         _ = _themeService.SetThemeAsync(theme);
     }
+
+    /// <summary>
+    /// Reacts to routing profile ComboBox selection changes.
+    /// Updates the active routing profile immediately if the router is available.
+    /// </summary>
+    partial void OnRoutingProfileIndexChanged(int value)
+    {
+        var profileId = RoutingProfileIndexToId(value);
+        ActiveRoutingProfileId = profileId;
+        _modelRouterService?.SetActiveProfile(profileId);
+    }
+
+    /// <summary>
+    /// Maps a routing profile ComboBox index to the profile ID string.
+    /// </summary>
+    private static string RoutingProfileIndexToId(int index) => index switch
+    {
+        0 => "cost-optimized",
+        1 => "quality-optimized",
+        2 => "balanced",
+        _ => "balanced"
+    };
+
+    /// <summary>
+    /// Maps a routing profile ID string to the ComboBox index.
+    /// </summary>
+    private static int RoutingProfileIdToIndex(string profileId) => profileId?.ToLowerInvariant() switch
+    {
+        "cost-optimized" => 0,
+        "quality-optimized" => 1,
+        "balanced" => 2,
+        _ => 2
+    };
 }

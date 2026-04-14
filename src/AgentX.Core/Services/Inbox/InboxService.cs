@@ -56,7 +56,9 @@ public sealed class InboxService : IInboxService
     /// <inheritdoc />
     public async Task<InboxItemEntity> AddToInboxAsync(
         string filePath,
-        long? watchFolderId = null)
+        long? watchFolderId = null,
+        string? sourceType = null,
+        string? sourceUrl = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
 
@@ -95,6 +97,8 @@ public sealed class InboxService : IInboxService
             Status = "pending",
             AddedAt = DateTime.UtcNow,
             WatchFolderId = watchFolderId,
+            SourceType = sourceType,
+            SourceUrl = sourceUrl,
         };
 
         _db.InboxItems.Add(item);

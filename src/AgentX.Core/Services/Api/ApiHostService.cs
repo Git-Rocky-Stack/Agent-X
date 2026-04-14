@@ -3,12 +3,14 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
 using AgentX.Core.Search;
 using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Api.Models;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Collections;
+using AgentX.Core.Services.Inbox;
 using Serilog;
 
 namespace AgentX.Core.Services.Api;
@@ -27,6 +29,8 @@ namespace AgentX.Core.Services.Api;
 ///   GET  /api/conversations/{id}
 ///   GET  /api/collections
 ///   POST /api/search
+///   POST /api/inbox/clip
+///   GET  /api/extension/health
 /// </summary>
 public sealed class ApiHostService : IApiHostService, IAsyncDisposable
 {
@@ -36,6 +40,7 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
     private readonly IDocumentService _documents;
     private readonly ICollectionService _collections;
     private readonly ISemanticSearchService _search;
+    private readonly IInboxService _inboxService;
     private readonly ILogger _log = Log.ForContext<ApiHostService>();
 
     // ── State ─────────────────────────────────────────────────────────────────
@@ -74,12 +79,14 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
         IConversationService conversations,
         IDocumentService documents,
         ICollectionService collections,
-        ISemanticSearchService search)
+        ISemanticSearchService search,
+        IInboxService inboxService)
     {
         _conversations = conversations;
         _documents = documents;
         _collections = collections;
         _search = search;
+        _inboxService = inboxService;
     }
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
@@ -290,6 +297,14 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
         if (method == "POST" && path == "/api/search")
             return await HandlePostSearchAsync(ctx, ct).ConfigureAwait(false);
 
+        // POST /api/inbox/clip
+        if (method == "POST" && path == "/api/inbox/clip")
+            return await HandlePostClipAsync(ctx, ct).ConfigureAwait(false);
+
+        // GET /api/extension/health
+        if (method == "GET" && path == "/api/extension/health")
+            return await HandleGetExtensionHealthAsync(resp, ct).ConfigureAwait(false);
+
         // 404 fallback
         await WriteErrorResponseAsync(resp, 404, $"Route not found: {method} {path}", ct).ConfigureAwait(false);
         return 404;
@@ -466,6 +481,154 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
         return 200;
     }
 
+    private async Task<int> HandlePostClipAsync(HttpListenerContext ctx, CancellationToken ct)
+    {
+        var resp = ctx.Response;
+        var req = ctx.Request;
+
+        // Deserialize request body
+        ApiClipRequest? clipReq;
+        try
+        {
+            using var reader = new StreamReader(req.InputStream, req.ContentEncoding ?? Encoding.UTF8);
+            var json = await reader.ReadToEndAsync(ct).ConfigureAwait(false);
+            clipReq = JsonSerializer.Deserialize<ApiClipRequest>(json, JsonOptions);
+        }
+        catch (JsonException ex)
+        {
+            _log.Warning(ex, "Malformed JSON in POST /api/inbox/clip body.");
+            await WriteErrorResponseAsync(resp, 400, "Invalid JSON in request body.", ct).ConfigureAwait(false);
+            return 400;
+        }
+
+        if (clipReq is null || string.IsNullOrWhiteSpace(clipReq.Content))
+        {
+            await WriteErrorResponseAsync(resp, 400, "Request body must include a non-empty 'content' field.", ct).ConfigureAwait(false);
+            return 400;
+        }
+
+        // Build markdown content with YAML frontmatter
+        var fileName = SanitizeFileName(clipReq.Title);
+        var sb = new StringBuilder();
+
+        sb.AppendLine("---");
+        sb.AppendLine($"title: \"{clipReq.Title.Replace("\"", "\\\"")}\"");
+        sb.AppendLine($"source_url: \"{clipReq.SourceUrl}\"");
+
+        if (!string.IsNullOrWhiteSpace(clipReq.Author))
+            sb.AppendLine($"author: \"{clipReq.Author.Replace("\"", "\\\"")}\"");
+
+        if (clipReq.PublishedDate.HasValue)
+            sb.AppendLine($"published_date: \"{clipReq.PublishedDate.Value:yyyy-MM-dd}\"");
+
+        sb.AppendLine($"clip_mode: {clipReq.ClipMode}");
+        sb.AppendLine($"word_count: {clipReq.WordCount}");
+        sb.AppendLine($"clipped_at: \"{DateTime.UtcNow:O}\"");
+
+        if (clipReq.Metadata is not null)
+        {
+            foreach (var (key, value) in clipReq.Metadata)
+            {
+                var escapedValue = value.Replace("\"", "\\\"");
+                sb.AppendLine($"{key}: \"{escapedValue}\"");
+            }
+        }
+
+        sb.AppendLine("---");
+        sb.AppendLine();
+        sb.AppendLine(clipReq.Content);
+
+        // Write to temp directory so InboxService can pick it up
+        var tempDir = Path.Combine(Path.GetTempPath(), "AgentX", "clips");
+        Directory.CreateDirectory(tempDir);
+
+        var timestamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss");
+        var tempFilePath = Path.Combine(tempDir, $"{fileName}-{timestamp}.md");
+
+        await File.WriteAllTextAsync(tempFilePath, sb.ToString(), ct).ConfigureAwait(false);
+
+        _log.Information(
+            "API: Clipped content saved to {FilePath} (source: {SourceUrl}, mode: {ClipMode}, words: {WordCount})",
+            tempFilePath, clipReq.SourceUrl, clipReq.ClipMode, clipReq.WordCount);
+
+        // Add to Smart Inbox
+        InboxItemEntity inboxItem;
+        try
+        {
+            inboxItem = await _inboxService.AddToInboxAsync(
+                tempFilePath,
+                watchFolderId: null,
+                sourceType: "browser-extension",
+                sourceUrl: clipReq.SourceUrl).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "API: Failed to add clipped content to inbox from {SourceUrl}", clipReq.SourceUrl);
+
+            // Clean up temp file since inbox ingestion failed
+            try { File.Delete(tempFilePath); } catch { /* best effort */ }
+
+            await WriteErrorResponseAsync(resp, 500, "Failed to add clip to inbox.", ct).ConfigureAwait(false);
+            return 500;
+        }
+
+        var clipResponse = new ApiClipResponse
+        {
+            InboxItemId = inboxItem.Id,
+            Status = "clipped",
+            Message = $"Content clipped to inbox as item #{inboxItem.Id}."
+        };
+
+        await WriteJsonResponseAsync(resp, 201, ApiResponse<ApiClipResponse>.Ok(clipResponse), ct).ConfigureAwait(false);
+        return 201;
+    }
+
+    private async Task<int> HandleGetExtensionHealthAsync(HttpListenerResponse resp, CancellationToken ct)
+    {
+        var payload = new ApiExtensionHealthDto
+        {
+            Connected = true,
+            Version = "1.4.0",
+            InboxEnabled = true,
+            Provider = "local"
+        };
+
+        await WriteJsonResponseAsync(resp, 200, ApiResponse<ApiExtensionHealthDto>.Ok(payload), ct).ConfigureAwait(false);
+        return 200;
+    }
+
+    // ── Clip Helpers ──────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Sanitizes a title string for use as a file name by removing or replacing
+    /// characters that are invalid in Windows file paths.
+    /// </summary>
+    private static string SanitizeFileName(string? title)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+            return "untitled";
+
+        var invalidChars = Path.GetInvalidFileNameChars();
+        var sanitized = new StringBuilder(title.Length);
+
+        foreach (var c in title)
+        {
+            if (invalidChars.Contains(c) || c is '/' or '\\' or ':' or '*' or '?' or '"' or '<' or '>' or '|')
+            {
+                sanitized.Append('_');
+            }
+            else
+            {
+                sanitized.Append(c);
+            }
+        }
+
+        // Collapse consecutive underscores and trim edges
+        var result = string.Join("_", sanitized.ToString().Split('_', StringSplitOptions.RemoveEmptyEntries));
+
+        return string.IsNullOrWhiteSpace(result) ? "untitled" : result;
+    }
+
     // ── Response Helpers ──────────────────────────────────────────────────────
 
     private static async Task WriteJsonResponseAsync<T>(
@@ -502,8 +665,8 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
     private static void WriteCorsHeaders(HttpListenerResponse resp)
     {
         resp.AddHeader("Access-Control-Allow-Origin", "*");
-        resp.AddHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-        resp.AddHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept");
+        resp.AddHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        resp.AddHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept, X-Requested-With");
         resp.AddHeader("Access-Control-Max-Age", "86400");
     }
 

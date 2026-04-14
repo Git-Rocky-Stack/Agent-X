@@ -1,0 +1,345 @@
+/* ── Reset & Base ────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --color-bg: #0f1117;
+  --color-surface: #1a1d27;
+  --color-surface-hover: #252836;
+  --color-border: rgba(255, 255, 255, 0.06);
+  --color-text: #e4e6f0;
+  --color-text-secondary: #8b8fa3;
+  --color-accent: #6c8cff;
+  --color-accent-hover: #5a7ae6;
+  --color-success: #34d399;
+  --color-error: #f87171;
+  --color-warning: #fbbf24;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 20px;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+  --transition-fast: 150ms ease-out;
+  --transition-normal: 250ms ease-out;
+}
+
+body {
+  width: 340px;
+  min-height: 200px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Container ───────────────────────────────────────────────────────────── */
+
+.popup-container {
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+
+.popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.popup-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-text-secondary);
+  transition: background var(--transition-normal);
+}
+
+.status-dot.connected {
+  background: var(--color-success);
+  box-shadow: 0 0 6px rgba(52, 211, 153, 0.4);
+}
+
+.status-dot.disconnected {
+  background: var(--color-error);
+  box-shadow: 0 0 6px rgba(248, 113, 113, 0.4);
+}
+
+/* ── Clip Buttons ────────────────────────────────────────────────────────── */
+
+.clip-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-sm);
+}
+
+.clip-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md) var(--spacing-sm);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.clip-btn:hover {
+  background: var(--color-surface-hover);
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.clip-btn:active {
+  transform: translateY(0);
+}
+
+.clip-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.clip-btn-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.clip-btn-label {
+  white-space: nowrap;
+}
+
+/* ── Batch Button ────────────────────────────────────────────────────────── */
+
+.batch-action {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--spacing-md);
+}
+
+.clip-btn-batch {
+  width: 100%;
+  flex-direction: row;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: linear-gradient(135deg, rgba(108, 140, 255, 0.12), rgba(108, 140, 255, 0.06));
+  border-color: rgba(108, 140, 255, 0.2);
+}
+
+.clip-btn-batch:hover {
+  background: linear-gradient(135deg, rgba(108, 140, 255, 0.2), rgba(108, 140, 255, 0.1));
+  border-color: rgba(108, 140, 255, 0.35);
+}
+
+/* ── Feedback Area ───────────────────────────────────────────────────────── */
+
+.feedback-area {
+  min-height: 0;
+  transition: min-height var(--transition-normal);
+}
+
+.feedback-message {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  line-height: 1.4;
+  animation: feedbackSlideIn var(--transition-fast) ease-out;
+}
+
+.feedback-message.success {
+  background: rgba(52, 211, 153, 0.1);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  color: var(--color-success);
+}
+
+.feedback-message.error {
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  color: var(--color-error);
+}
+
+.feedback-message.info {
+  background: rgba(108, 140, 255, 0.1);
+  border: 1px solid rgba(108, 140, 255, 0.2);
+  color: var(--color-accent);
+}
+
+@keyframes feedbackSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Recent Clips ────────────────────────────────────────────────────────── */
+
+.section-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.clip-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.clip-list-empty {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  padding: var(--spacing-sm) 0;
+}
+
+.clip-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+}
+
+.clip-item:hover {
+  background: var(--color-surface);
+}
+
+.clip-item-mode {
+  flex-shrink: 0;
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-top: 2px;
+}
+
+.clip-item-mode.full {
+  background: rgba(108, 140, 255, 0.15);
+  color: var(--color-accent);
+}
+
+.clip-item-mode.selection {
+  background: rgba(52, 211, 153, 0.15);
+  color: var(--color-success);
+}
+
+.clip-item-mode.reader {
+  background: rgba(251, 191, 36, 0.15);
+  color: var(--color-warning);
+}
+
+.clip-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.clip-item-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clip-item-url {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clip-item-time {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+
+.clip-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.clip-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.clip-list::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 2px;
+}
+
+.clip-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ── Loading Spinner ──────────────────────────────────────────────────────── */
+
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
