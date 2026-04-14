@@ -25,6 +25,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <!-- Header -->
@@ -267,7 +268,45 @@
             <!-- ════════════════════════════════════════════════════════
                  COST TRACKING
                  ════════════════════════════════════════════════════════ -->
+            <!-- Multi-Model Routing section -->
             <Border Grid.Row="3" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Multi-Model Routing"
+                               Style="{StaticResource HeadingSmallStyle}" />
+
+                    <TextBlock Text="Automatically route prompts to the best AI model based on task type. Extraction and chat prefer fast local models; analysis and code prefer quality cloud models."
+                               Style="{StaticResource BodySecondaryStyle}"
+                               TextWrapping="Wrap" />
+
+                    <ToggleSwitch Header="Enable Auto-Routing"
+                                  IsOn="{x:Bind ViewModel.EnableModelRouting, Mode=TwoWay}" />
+
+                    <StackPanel Spacing="6"
+                                Visibility="{x:Bind ViewModel.EnableModelRouting, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="Routing Profile"
+                                   Style="{StaticResource LabelStyle}" />
+                        <ComboBox ItemsSource="{x:Bind ViewModel.RoutingProfileOptions}"
+                                  SelectedIndex="{x:Bind ViewModel.RoutingProfileIndex, Mode=TwoWay}"
+                                  HorizontalAlignment="Stretch"
+                                  MinWidth="200"
+                                  IsEnabled="{x:Bind ViewModel.EnableModelRouting, Mode=OneWay}" />
+
+                        <StackPanel Spacing="4" Padding="4,0,0,0">
+                            <TextBlock Text="Cost Optimized — Local models for all tasks, cloud only as fallback"
+                                       Style="{StaticResource CaptionStyle}"
+                                       Opacity="0.7" />
+                            <TextBlock Text="Quality Optimized — Cloud models for analysis, code, creative"
+                                       Style="{StaticResource CaptionStyle}"
+                                       Opacity="0.7" />
+                            <TextBlock Text="Balanced — Local for simple tasks, cloud for quality-critical tasks"
+                                       Style="{StaticResource CaptionStyle}"
+                                       Opacity="0.7" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="4" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
                     <TextBlock Text="Cost Tracking"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -312,7 +351,7 @@
             <!-- ════════════════════════════════════════════════════════
                  INFERENCE PARAMETERS
                  ════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="4" Style="{StaticResource CardStyle}">
+            <Border Grid.Row="5" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="20">
                     <TextBlock Text="Inference"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -355,7 +394,7 @@
             <!-- ════════════════════════════════════════════════════════
                  KNOWLEDGE VAULT
                  ════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="5" Style="{StaticResource CardStyle}">
+            <Border Grid.Row="6" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="20">
                     <TextBlock Text="Knowledge Vault"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -397,7 +436,7 @@
             <!-- ════════════════════════════════════════════════════════
                  LICENSE
                  ════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="6" Style="{StaticResource CardStyle}">
+            <Border Grid.Row="7" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
 
                     <!-- License Header with Tier Badge -->
@@ -480,7 +519,7 @@
             <!-- ════════════════════════════════════════════════════════
                  STORAGE
                  ════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="7" Style="{StaticResource CardStyle}">
+            <Border Grid.Row="8" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="12">
                     <TextBlock Text="Storage"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -497,7 +536,7 @@
             <!-- ════════════════════════════════════════════════════════
                  ACTIONS
                  ════════════════════════════════════════════════════════ -->
-            <Grid Grid.Row="8" ColumnSpacing="12">
+            <Grid Grid.Row="9" ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
