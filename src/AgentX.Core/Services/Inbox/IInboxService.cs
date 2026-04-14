@@ -21,7 +21,11 @@ public interface IInboxService
     /// Optional ID of the watch folder that detected the file.
     /// </param>
     /// <returns>The newly created (or pre-existing pending) inbox item.</returns>
-    Task<InboxItemEntity> AddToInboxAsync(string filePath, long? watchFolderId = null);
+    Task<InboxItemEntity> AddToInboxAsync(
+        string filePath,
+        long? watchFolderId = null,
+        string? sourceType = null,
+        string? sourceUrl = null);
 
     // ── Queries ──────────────────────────────────────────────────────────────
 

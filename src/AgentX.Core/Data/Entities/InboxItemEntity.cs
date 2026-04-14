@@ -68,4 +68,17 @@ public class InboxItemEntity
     /// this file. Null for items added to the inbox programmatically.
     /// </summary>
     public long? WatchFolderId { get; set; }
+
+    /// <summary>
+    /// Identifies how the item entered the inbox.
+    /// Valid values: "file-watcher", "browser-extension", "manual".
+    /// Null for items created before this field was introduced.
+    /// </summary>
+    public string? SourceType { get; set; }
+
+    /// <summary>
+    /// Original URL for items clipped from the web via the browser extension.
+    /// Null for file-watcher or manually-added items.
+    /// </summary>
+    public string? SourceUrl { get; set; }
 }

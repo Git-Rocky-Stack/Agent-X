@@ -96,7 +96,10 @@ public partial class InboxViewModel : ObservableObject
                     SuggestedCollectionName = item.SuggestedCollectionName ?? string.Empty,
                     SuggestedTags = item.SuggestedTags ?? string.Empty,
                     AddedAt = item.AddedAt,
-                    HasPreview = !string.IsNullOrEmpty(item.Preview)
+                    HasPreview = !string.IsNullOrEmpty(item.Preview),
+                    SourceType = item.SourceType ?? string.Empty,
+                    SourceUrl = item.SourceUrl ?? string.Empty,
+                    IsBrowserClip = item.SourceType == "browser-extension"
                 });
             }
 
@@ -250,4 +253,7 @@ public partial class InboxDisplayItem : ObservableObject
     [ObservableProperty] private string _suggestedTags = string.Empty;
     [ObservableProperty] private DateTime _addedAt;
     [ObservableProperty] private bool _hasPreview;
+    [ObservableProperty] private string _sourceType = string.Empty;
+    [ObservableProperty] private string _sourceUrl = string.Empty;
+    [ObservableProperty] private bool _isBrowserClip;
 }

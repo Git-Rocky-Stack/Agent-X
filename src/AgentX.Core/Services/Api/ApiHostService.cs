@@ -555,7 +555,11 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
         InboxItemEntity inboxItem;
         try
         {
-            inboxItem = await _inboxService.AddToInboxAsync(tempFilePath, null).ConfigureAwait(false);
+            inboxItem = await _inboxService.AddToInboxAsync(
+                tempFilePath,
+                watchFolderId: null,
+                sourceType: "browser-extension",
+                sourceUrl: clipReq.SourceUrl).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
