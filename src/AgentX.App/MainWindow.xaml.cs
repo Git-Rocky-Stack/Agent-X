@@ -553,6 +553,11 @@ public sealed partial class MainWindow : Window
             Log.Warning("Nav pane was hidden outside of onboarding — restored");
         }
 
+        // Track values across try/catch blocks for tray tooltip update
+        var trayAiStatus = "Disconnected";
+        var trayModel = string.Empty;
+        var trayDocCount = 0L;
+
         // --- Connection status ---
         try
         {
@@ -569,6 +574,8 @@ public sealed partial class MainWindow : Window
                 StatusText.Text = !string.IsNullOrEmpty(modelId)
                     ? $"Connected \u2014 {modelId}"
                     : "Connected to Ollama";
+                trayAiStatus = "Connected";
+                trayModel = modelId ?? string.Empty;
             }
             else
             {
@@ -611,10 +618,21 @@ public sealed partial class MainWindow : Window
             var docService = App.GetService<IDocumentService>();
             var docCount = await docService.GetTotalDocumentCountAsync();
             DocCountText.Text = docCount > 0 ? $"{docCount} docs" : "";
+            trayDocCount = docCount;
         }
         catch (Exception ex)
         {
             Log.Debug(ex, "Document count check failed");
+        }
+
+        // --- Update tray tooltip with dynamic status ---
+        try
+        {
+            _systemTrayService.UpdateTooltip(trayAiStatus, trayModel, trayDocCount);
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Tray tooltip update failed");
         }
     }
 

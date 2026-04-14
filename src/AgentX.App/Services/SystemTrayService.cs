@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using H.NotifyIcon;
 using Serilog;
@@ -174,6 +175,26 @@ public sealed class SystemTrayService : IDisposable
             _trayIcon.ToolTipText = text;
             Log.Debug("Tray tooltip updated: {Text}", text);
         }
+    }
+
+    /// <summary>
+    /// Updates the tray icon tooltip with dynamic status information.
+    /// Formats as: "Agent-X | Connected | model-name | 42 docs"
+    /// or: "Agent-X | Disconnected" when AI is not available.
+    /// </summary>
+    public void UpdateTooltip(string aiStatus, string model, long documentCount)
+    {
+        // Build tooltip segments — only include model/docs when connected
+        var parts = new List<string> { "Agent-X", aiStatus };
+
+        if (aiStatus == "Connected" && !string.IsNullOrEmpty(model))
+            parts.Add(model);
+
+        if (documentCount > 0)
+            parts.Add($"{documentCount} docs");
+
+        var text = string.Join(" | ", parts);
+        UpdateTooltip(text);
     }
 
     /// <summary>
