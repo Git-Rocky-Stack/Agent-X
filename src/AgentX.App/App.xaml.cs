@@ -35,6 +35,7 @@ using AgentX.Core.Services.Analytics;
 using AgentX.Core.Services.Feedback;
 using AgentX.Core.Services.Collaboration;
 using AgentX.Core.Services.Api;
+using AgentX.Core.Services.Security;
 using AgentX.Core.Validation;
 using AgentX.App.Services;
 
@@ -182,6 +183,9 @@ public partial class App : Application
 
         // ── Data Layer ─────────────────────────────────────────
         services.AddSingleton<AgentXDbContext>();
+
+        // ── Security ──────────────────────────────────────────
+        services.AddSingleton<IDpapiEncryptionService, DpapiEncryptionService>();
 
         // ── Core Services ──────────────────────────────────────
         services.AddSingleton<ISettingsService, SettingsService>();
