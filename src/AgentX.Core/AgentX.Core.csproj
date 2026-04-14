@@ -36,6 +36,10 @@
     <!-- System -->
     <PackageReference Include="System.Management" Version="8.0.0" />
 
+    <!-- Audio Transcription (Whisper local speech-to-text) -->
+    <PackageReference Include="Whisper.Net" Version="1.5.0" />
+    <PackageReference Include="Whisper.Net.Runtime" Version="1.5.0" />
+
     <!-- Utilities -->
     <PackageReference Include="Serilog" Version="4.0.2" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />

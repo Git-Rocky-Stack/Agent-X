@@ -928,6 +928,7 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
                         <!-- Multi-line input TextBox -->
@@ -939,8 +940,56 @@
                                  MaxHeight="160"
                                  VerticalAlignment="Bottom" />
 
-                        <!-- Action buttons stack -->
+                        <!-- Voice input buttons -->
                         <StackPanel Grid.Column="1"
+                                    Spacing="4"
+                                    VerticalAlignment="Bottom"
+                                    Margin="0,0,0,2">
+
+                            <!-- Idle: Microphone button (click to start recording, right-click to pick file) -->
+                            <Button Style="{StaticResource IconButtonStyle}"
+                                    Padding="12,10,12,10"
+                                    MinHeight="44"
+                                    MinWidth="44"
+                                    Command="{x:Bind ViewModel.ToggleVoiceRecordingCommand}"
+                                    Visibility="{x:Bind ViewModel.IsVoiceActive, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}"
+                                    ToolTipService.ToolTip="Voice input — click to record"
+                                    RightTapped="OnMicRightTapped">
+                                <FontIcon Glyph="&#xE720;" FontSize="16"
+                                          Foreground="{StaticResource TextSecondaryBrush}" />
+                            </Button>
+
+                            <!-- Recording: Stop button with red indicator -->
+                            <Button Style="{StaticResource SecondaryButtonStyle}"
+                                    Padding="12,10,12,10"
+                                    MinHeight="44"
+                                    MinWidth="44"
+                                    BorderBrush="{StaticResource ErrorBrush}"
+                                    Command="{x:Bind ViewModel.ToggleVoiceRecordingCommand}"
+                                    Visibility="{x:Bind ViewModel.IsRecording, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
+                                    ToolTipService.ToolTip="Stop recording and transcribe">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <Ellipse Width="8" Height="8"
+                                             Fill="{StaticResource ErrorBrush}" />
+                                    <FontIcon Glyph="&#xE72A;" FontSize="14"
+                                              Foreground="{StaticResource ErrorBrush}" />
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Processing: Transcribing spinner -->
+                            <Button Style="{StaticResource IconButtonStyle}"
+                                    Padding="12,10,12,10"
+                                    MinHeight="44"
+                                    MinWidth="44"
+                                    IsEnabled="False"
+                                    Visibility="{x:Bind ViewModel.IsTranscribing, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
+                                    ToolTipService.ToolTip="{x:Bind ViewModel.VoiceStatusMessage, Mode=OneWay}">
+                                <ProgressRing IsActive="True" Width="16" Height="16" />
+                            </Button>
+                        </StackPanel>
+
+                        <!-- Action buttons stack -->
+                        <StackPanel Grid.Column="2"
                                     Spacing="4"
                                     VerticalAlignment="Bottom"
                                     Margin="0,0,0,2">

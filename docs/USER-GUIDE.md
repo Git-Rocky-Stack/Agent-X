@@ -2,7 +2,7 @@
 
 **Agent-X -- Local-First AI Personal Intelligence Hub for Windows**
 
-Version 1.0 | Last Updated: February 2026
+Version 1.3.0 | Last Updated: April 2026
 
 ---
 
@@ -25,9 +25,15 @@ Version 1.0 | Last Updated: February 2026
 15. [Command Palette](#15-command-palette)
 16. [Keyboard Shortcuts](#16-keyboard-shortcuts)
 17. [Status Bar](#17-status-bar)
-18. [Troubleshooting](#18-troubleshooting)
-19. [FAQ](#19-faq)
-20. [Appendix: Supported File Types](#20-appendix-supported-file-types)
+18. [Workspace Profiles](#18-workspace-profiles) *(v1.3.0)*
+19. [Smart Inbox](#19-smart-inbox) *(v1.3.0)*
+20. [Comparative Analysis](#20-comparative-analysis) *(v1.3.0)*
+21. [Voice Input](#21-voice-input) *(v1.3.0)*
+22. [Plugin Manager](#22-plugin-manager) *(v1.3.0)*
+23. [Sync Settings](#23-sync-settings) *(v1.3.0)*
+24. [Troubleshooting](#24-troubleshooting)
+25. [FAQ](#25-faq)
+26. [Appendix: Supported File Types](#26-appendix-supported-file-types)
 
 ---
 
@@ -941,6 +947,176 @@ The table below lists every file extension supported by Agent-X, its category, a
 | `.ini`      | Code       | INI Configuration         | Code-aware text extraction   |
 | `.cfg`      | Code       | Configuration File        | Code-aware text extraction   |
 | `.xaml`     | Code       | XAML Markup               | Code-aware text extraction   |
+
+---
+
+## 18. Workspace Profiles *(v1.3.0)*
+
+Workspace Profiles let you create isolated environments for different projects or contexts. Each workspace has its own conversations, knowledge base, and AI settings.
+
+### Creating a Workspace
+
+1. Navigate to **Workspaces** in the sidebar
+2. Click **New Workspace**
+3. Enter a name, choose an icon and color
+4. Click **Create**
+
+### Switching Workspaces
+
+- Click any workspace in the sidebar to switch
+- The Default workspace cannot be renamed or deleted
+- Switching workspaces changes your active conversations and settings
+
+### Workspace Storage
+
+Each workspace stores its data in a separate directory under `%LocalAppData%\AgentX\Workspaces\{id}\`. This ensures complete isolation between workspaces.
+
+---
+
+## 19. Smart Inbox *(v1.3.0)*
+
+The Smart Inbox automatically detects new files added to your watch folders and presents them for review before importing into your knowledge base.
+
+### Inbox Workflow
+
+1. **New files appear** in the Inbox when detected in watch folders
+2. **AI-powered previews** are generated for each item
+3. **Accept** to import into a collection, **Reject** to dismiss, or **Defer** for later
+4. **Batch operations** — Accept or Reject multiple items at once
+
+### Accepting Items
+
+When you accept an item, you can optionally assign it to a specific collection. If no collection is selected, it goes to the default collection.
+
+### Auto-Preview
+
+The Inbox can generate AI previews for all pending items. Click **Generate All Previews** to batch-process your queue.
+
+---
+
+## 20. Comparative Analysis *(v1.3.0)*
+
+Comparative Analysis lets you select multiple documents and have AI analyze the similarities, differences, and patterns across them.
+
+### Running a Comparison
+
+1. Navigate to **Comparison** in the sidebar
+2. Select 2 or more documents from your knowledge base
+3. Choose analysis dimensions (themes, arguments, methodology, sentiment)
+4. Click **Compare**
+
+### Comparison Options
+
+| Option | Description |
+|--------|-------------|
+| **Analysis Depth** | Quick summary vs. detailed deep-dive |
+| **Focus Areas** | Themes, Arguments, Methodology, Sentiment |
+| **Output Format** | Structured report with citations |
+
+### Exporting Results
+
+Use **Export as Markdown** to save the full comparison report for sharing or archival.
+
+---
+
+## 21. Voice Input *(v1.3.0)*
+
+Voice Input lets you transcribe speech to text using local Whisper models. All processing happens on your machine — no audio data leaves your device.
+
+### Using Voice Input
+
+- **Click the microphone button** in the chat input bar to start recording
+- **Click again** (or the stop button) to stop recording and transcribe
+- **Right-click the microphone button** to select an audio file for transcription
+
+### Supported Audio Formats
+
+`.mp3`, `.wav`, `.m4a`, `.flac`, `.ogg`, `.webm`
+
+### Setting Up Voice Input
+
+1. Go to **Settings > Voice**
+2. Download a Whisper model (recommended: `base` for most users)
+3. Choose your language or leave on auto-detect
+
+### How It Works
+
+Voice recording uses your microphone via NAudio (WaveIn 16kHz mono) and transcribes the audio locally using Whisper.net. The transcribed text is inserted into the chat input box for review before sending.
+
+### Model Sizes
+
+| Model | Size | Speed | Accuracy |
+|-------|------|-------|----------|
+| tiny | ~75 MB | Fastest | Good for quick notes |
+| base | ~142 MB | Fast | Recommended for most users |
+| small | ~466 MB | Moderate | Higher accuracy |
+| medium | ~1.5 GB | Slow | High accuracy |
+| large | ~3 GB | Slowest | Best accuracy |
+
+---
+
+## 22. Plugin Manager *(v1.3.0)*
+
+The Plugin Manager lets you install, enable, disable, and uninstall third-party plugins that extend Agent-X's capabilities.
+
+### Installing a Plugin
+
+1. Navigate to **Plugin Manager** in the sidebar
+2. Click **Install Plugin**
+3. Select a `.agentx-plugin` package file
+4. The plugin is installed in disabled state
+5. Click **Enable** to activate it
+
+### Plugin Types
+
+| Type | Description |
+|------|-------------|
+| **Document Processor** | Adds support for new file formats |
+| **AI Provider** | Integrates additional AI backends |
+| **Quick Action** | Adds single-click commands |
+| **Workflow Step** | Extends the workflow builder |
+| **Theme** | Applies custom visual themes |
+| **Custom** | Catch-all for other extensions |
+
+### Creating a Plugin
+
+See the [Plugin Development Guide](PLUGIN-DEVELOPMENT-GUIDE.md) for detailed instructions on creating your own plugins.
+
+### Plugin Safety
+
+- Plugins run in isolated `AssemblyLoadContext` instances
+- Each plugin has a sandboxed data directory
+- Plugins declare required permissions in their manifest
+- Disable or uninstall any plugin from the Plugin Manager
+
+---
+
+## 23. Sync Settings *(v1.3.0)*
+
+Sync Settings allow you to configure data synchronization between Agent-X instances or backup destinations.
+
+### Setting Up Sync
+
+1. Navigate to **Sync Settings** in the sidebar
+2. Configure your sync destination (local path or network share)
+3. Choose what to sync: conversations, knowledge base, settings
+4. Set sync interval (manual, 5 minutes, 15 minutes, 30 minutes, 1 hour)
+
+### Export and Import
+
+- **Export**: Creates an encrypted sync package of your selected data
+- **Import**: Restores data from a sync package, with conflict detection
+
+### Conflict Resolution
+
+When importing changes that conflict with local data, choose:
+- **Keep Local** — Discard the incoming change
+- **Keep Remote** — Accept the incoming change
+- **Merge** — Combine both versions
+
+### Auto-Sync
+
+Enable automatic sync to run at your chosen interval. Changes are encrypted with AES-256-GCM before transmission.
 
 ---
 

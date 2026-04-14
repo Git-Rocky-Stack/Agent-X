@@ -57,3 +57,10 @@ appsettings.Development.json
 
 ## AI Models (bundled in installer, too large for git)
 models/*.gguf
+
+## Installer output (build artifact, too large for git)
+installer-output/
+
+## Claude / Loki development tooling
+.claude/
+.loki/

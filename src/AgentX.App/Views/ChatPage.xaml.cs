@@ -55,6 +55,12 @@ public sealed partial class ChatPage : Page
 
         StopCursorBlinkTimer();
 
+        // Stop any active voice recording when navigating away
+        if (ViewModel.IsRecording)
+        {
+            ViewModel.ToggleVoiceRecordingCommand.Execute(null);
+        }
+
         ViewModel.Messages.CollectionChanged -= OnMessagesCollectionChanged;
     }
 
@@ -261,6 +267,20 @@ public sealed partial class ChatPage : Page
         {
             ViewModel.SaveEditMessageCommand.Execute(message);
         }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // VOICE INPUT
+    // ═══════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Right-click on mic button opens the audio file picker for transcribing
+    /// an existing audio file (alternative to live recording).
+    /// </summary>
+    private void OnMicRightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        e.Handled = true;
+        ViewModel.PickAudioFileCommand.Execute(null);
     }
 
     // ═══════════════════════════════════════════════════════════════

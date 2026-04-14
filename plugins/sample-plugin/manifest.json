@@ -1,0 +1,15 @@
+{
+  "id": "com.agentx.sample-plugin",
+  "name": "Sample Document Processor",
+  "version": "1.0.0",
+  "author": "AgentX Team",
+  "description": "A sample plugin demonstrating the AgentX plugin system. Implements a document processor that handles .txt and .md files with word counting and metadata extraction.",
+  "pluginType": "DocumentProcessor",
+  "minAppVersion": "1.3.0",
+  "entryAssembly": "SamplePlugin.dll",
+  "permissions": [
+    "Documents"
+  ],
+  "readme": "Sample Document Processor plugin for AgentX. Demonstrates the IPlugin lifecycle (Initialize, Activate, Deactivate, Dispose) and a DocumentProcessor extension point that reads .txt and .md files, counts words/lines/characters, and extracts YAML frontmatter from Markdown.",
+  "dependencies": []
+}

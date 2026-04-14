@@ -1,6 +1,7 @@
 using AgentX.Core.Helpers;
 using AgentX.Core.Services.Audio.Models;
 using Serilog;
+using Whisper.net;
 
 namespace AgentX.Core.Services.Audio;
 
@@ -332,44 +333,10 @@ public sealed class TranscriptionService : ITranscriptionService
     // ── Private pipeline ─────────────────────────────────────────────────────
 
     /// <summary>
-    /// The core Whisper execution boundary.
-    /// <para>
-    /// <b>Integration point:</b> this method is the exact location where Whisper.net
-    /// (or any compatible Whisper binding) is wired in. The surrounding pipeline —
-    /// validation, progress phases, cancellation propagation, error wrapping, and
-    /// segment assembly — is complete and must not be modified when adding the library.
-    /// </para>
-    /// <para>
-    /// <b>To integrate Whisper.net:</b>
-    /// <list type="number">
-    ///   <item>Add NuGet: <c>Whisper.net</c> and <c>Whisper.net.Runtime</c> (or a GPU variant).</item>
-    ///   <item>Replace the <see cref="NotSupportedException"/> throw below with:
-    ///     <code>
-    ///     using var whisperFactory = WhisperFactory.FromPath(modelPath);
-    ///     using var processor = whisperFactory.CreateBuilder()
-    ///         .WithLanguage(options.Language ?? "auto")
-    ///         .WithSegmentEventHandler(seg =>
-    ///         {
-    ///             var transcriptSegment = new TranscriptionSegment
-    ///             {
-    ///                 StartMs  = (long)seg.Start.TotalMilliseconds,
-    ///                 EndMs    = (long)seg.End.TotalMilliseconds,
-    ///                 Text     = seg.Text.Trim(),
-    ///             };
-    ///             segments.Add(transcriptSegment);
-    ///             var pct = Math.Min(90.0, 30.0 + segments.Count * 2.0);
-    ///             ReportProgress(progress, pct, "Transcribing...", transcriptSegment);
-    ///         })
-    ///         .Build();
-    ///     await processor.ProcessAsync(audioFilePath, ct).ConfigureAwait(false);
-    ///     </code>
-    ///   </item>
-    ///   <item>Populate <c>fullText</c>, <c>detectedLanguage</c>, and <c>durationMs</c>
-    ///         from the processor results and remove the throw.</item>
-    /// </list>
-    /// </para>
+    /// The core Whisper execution boundary. Runs the Whisper model on the given audio file
+    /// and produces a <see cref="TranscriptionResult"/> with text, segments, language, and duration.
     /// </summary>
-    private static Task<TranscriptionResult> RunWhisperAsync(
+    private async Task<TranscriptionResult> RunWhisperAsync(
         string audioFilePath,
         string modelPath,
         TranscriptionOptions options,
@@ -378,17 +345,81 @@ public sealed class TranscriptionService : ITranscriptionService
     {
         ct.ThrowIfCancellationRequested();
 
-        // ── WHISPER.NET INTEGRATION POINT ────────────────────────────────────
-        //
-        // The full pipeline scaffold above (validation, model load check, progress
-        // phases, cancellation) is in place. Replace this throw with Whisper.net calls.
-        //
-        // See XML doc comment on this method for the exact integration steps.
-        //
-        throw new NotSupportedException(
-            "Whisper.net runtime not installed. " +
-            "Install the 'Whisper.net' and 'Whisper.net.Runtime' NuGet packages to enable transcription. " +
-            $"[model: {options.ModelSize}, file: {Path.GetFileName(audioFilePath)}]");
+        // ── Whisper.net execution ──────────────────────────────────────────────
+
+        WhisperFactory whisperFactory;
+        try
+        {
+            whisperFactory = WhisperFactory.FromPath(modelPath);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                $"Failed to load Whisper model from '{modelPath}'. " +
+                "The model file may be corrupt or incompatible. " +
+                "Try deleting the file and downloading it again.", ex);
+        }
+
+        using var factory = whisperFactory;
+
+        var builder = whisperFactory.CreateBuilder()
+            .WithLanguage(options.Language ?? "auto");
+
+        var segments = new List<TranscriptionSegment>();
+
+        await using var processor = builder.Build();
+
+        ct.ThrowIfCancellationRequested();
+
+        // Process the audio file via FileStream and iterate over segments
+        await using var fileStream = new FileStream(
+            audioFilePath,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.Read,
+            bufferSize: 81_920,
+            useAsync: true);
+
+        await foreach (var segment in processor.ProcessAsync(fileStream, ct).ConfigureAwait(false))
+        {
+            var transcriptSegment = new TranscriptionSegment
+            {
+                StartMs = (long)segment.Start.TotalMilliseconds,
+                EndMs = (long)segment.End.TotalMilliseconds,
+                Text = segment.Text.Trim(),
+            };
+
+            segments.Add(transcriptSegment);
+
+            // Progress: 30–90% range during transcription
+            var pct = Math.Min(90.0, 30.0 + segments.Count * 2.0);
+            ReportProgress(progress, pct, "Transcribing...", transcriptSegment);
+        }
+
+        // ── Assemble result ────────────────────────────────────────────────────
+
+        var fullText = string.Join(" ", segments.Select(s => s.Text));
+
+        long durationMs = segments.Count > 0
+            ? segments[^1].EndMs
+            : 0;
+
+        // Language: if user forced a specific language, report that; otherwise null (auto-detected)
+        string? detectedLanguage = options.Language;
+
+        _log.Debug(
+            "Whisper transcription complete — file: {FilePath}, segments: {SegmentCount}, " +
+            "durationMs: {DurationMs}, language: {Language}",
+            audioFilePath, segments.Count, durationMs, detectedLanguage ?? "auto-detected");
+
+        return new TranscriptionResult
+        {
+            FullText = fullText,
+            Segments = segments,
+            Language = detectedLanguage,
+            DurationMs = durationMs,
+            ModelUsed = options.ModelSize,
+        };
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────

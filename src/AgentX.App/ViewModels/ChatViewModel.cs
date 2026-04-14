@@ -4,10 +4,13 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Services.Audio;
+using AgentX.Core.Services.Audio.Models;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Feedback;
 using AgentX.App.Helpers;
 using AgentX.App.Services;
+using NAudio.Wave;
 using Serilog;
 
 namespace AgentX.App.ViewModels;
@@ -49,6 +52,11 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     // ── Memory ────────────────────────────────────────────────
     [ObservableProperty] private int _memoryCount;
 
+    // ── Voice Input ───────────────────────────────────────────
+    [ObservableProperty] private bool _isRecording;
+    [ObservableProperty] private bool _isTranscribing;
+    [ObservableProperty] private string _voiceStatusMessage = string.Empty;
+
     // ── Collections ────────────────────────────────────────────
     public ObservableCollection<ChatMessageItem> Messages { get; } = new();
     public ObservableCollection<ConversationListItem> Conversations { get; } = new();
@@ -65,6 +73,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     public bool HasNoMessages => Messages.Count == 0;
     public bool HasActiveSystemPrompt => !string.IsNullOrEmpty(ActiveSystemPromptName);
     public bool CanSend => !string.IsNullOrWhiteSpace(UserInput) && !IsGenerating;
+    public bool IsVoiceActive => IsRecording || IsTranscribing;
 
     // ── Services ──────────────────────────────────────────────
     private readonly IChatService _chatService;
@@ -75,8 +84,15 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private readonly IConversationMemoryService _memoryService;
     private readonly IFeedbackService _feedbackService;
     private readonly INotificationService _notificationService;
+    private readonly ITranscriptionService _transcriptionService;
 
     private CancellationTokenSource? _generationCts;
+
+    // ── Voice Recording Resources ──────────────────────────────
+    private WaveInEvent? _waveIn;
+    private WaveFileWriter? _waveWriter;
+    private string? _currentRecordingPath;
+    private TaskCompletionSource? _recordingStopTcs;
 
     public ChatViewModel(
         IChatService chatService,
@@ -86,7 +102,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         ISystemPromptService systemPromptService,
         IConversationMemoryService memoryService,
         IFeedbackService feedbackService,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        ITranscriptionService transcriptionService)
     {
         _chatService = chatService;
         _conversationService = conversationService;
@@ -96,6 +113,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         _memoryService = memoryService;
         _feedbackService = feedbackService;
         _notificationService = notificationService;
+        _transcriptionService = transcriptionService;
         Log.Debug("ChatViewModel created with services");
     }
 
@@ -242,6 +260,17 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         SendMessageCommand.NotifyCanExecuteChanged();
         StopGenerationCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(CanSend));
+    }
+
+    partial void OnIsRecordingChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsVoiceActive));
+        ToggleVoiceRecordingCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnIsTranscribingChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsVoiceActive));
     }
 
     partial void OnActiveSystemPromptNameChanged(string? value)
@@ -1217,11 +1246,232 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     }
 
     // ═══════════════════════════════════════════════════════════════
+    // VOICE INPUT & TRANSCRIPTION
+    // ═══════════════════════════════════════════════════════════════
+
+    [RelayCommand]
+    private async Task ToggleVoiceRecordingAsync()
+    {
+        if (IsRecording)
+        {
+            await StopRecordingAndTranscribeAsync();
+        }
+        else
+        {
+            StartRecording();
+        }
+    }
+
+    [RelayCommand]
+    private async Task PickAudioFileAsync()
+    {
+        var picker = new Windows.Storage.Pickers.FileOpenPicker();
+        picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.MusicLibrary;
+
+        foreach (var ext in _transcriptionService.SupportedFormats)
+            picker.FileTypeFilter.Add(ext);
+
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+        var file = await picker.PickSingleFileAsync();
+        if (file is null) return;
+
+        IsTranscribing = true;
+        VoiceStatusMessage = "Transcribing...";
+
+        try
+        {
+            var result = await _transcriptionService.TranscribeFileAsync(
+                file.Path,
+                new TranscriptionOptions { ModelSize = "base" },
+                progress: new Progress<TranscriptionProgress>(p => VoiceStatusMessage = p.CurrentPhase),
+                CancellationToken.None);
+
+            if (!string.IsNullOrWhiteSpace(result.FullText))
+            {
+                UserInput = result.FullText.Trim();
+            }
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("model", StringComparison.OrdinalIgnoreCase))
+        {
+            Log.Warning(ex, "Whisper model not available for file transcription");
+            _notificationService.ShowError("Model Required",
+                "Download a Whisper model first. Go to Settings > Voice to download one.");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Audio file transcription failed");
+            _notificationService.ShowError("Transcription Failed",
+                $"Could not transcribe the selected file: {ex.Message}");
+        }
+        finally
+        {
+            IsTranscribing = false;
+            VoiceStatusMessage = string.Empty;
+        }
+    }
+
+    private void StartRecording()
+    {
+        try
+        {
+            _currentRecordingPath = Path.Combine(
+                Path.GetTempPath(),
+                $"agentx-voice-{Guid.NewGuid():N}.wav");
+
+            _recordingStopTcs = new TaskCompletionSource();
+
+            _waveIn = new WaveInEvent
+            {
+                WaveFormat = new WaveFormat(16000, 16, 1),
+                BufferMilliseconds = 100
+            };
+
+            _waveWriter = new WaveFileWriter(_currentRecordingPath, _waveIn.WaveFormat);
+
+            _waveIn.DataAvailable += OnRecordingDataAvailable;
+            _waveIn.RecordingStopped += OnRecordingStopped;
+
+            _waveIn.StartRecording();
+            IsRecording = true;
+            VoiceStatusMessage = "Recording...";
+
+            Log.Debug("Voice recording started: {Path}", _currentRecordingPath);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to start voice recording");
+            CleanupRecording();
+            _notificationService.ShowError("Recording Failed",
+                "Could not start voice recording. Ensure a microphone is connected and permissions are granted.");
+        }
+    }
+
+    private void OnRecordingDataAvailable(object? sender, WaveInEventArgs e)
+    {
+        _waveWriter?.Write(e.Buffer, 0, e.BytesRecorded);
+    }
+
+    private void OnRecordingStopped(object? sender, StoppedEventArgs e)
+    {
+        _waveWriter?.Dispose();
+        _waveWriter = null;
+
+        _waveIn?.Dispose();
+        _waveIn = null;
+
+        _recordingStopTcs?.TrySetResult();
+
+        if (e.Exception is not null)
+        {
+            Log.Error(e.Exception, "Recording stopped with error");
+        }
+    }
+
+    private async Task StopRecordingAndTranscribeAsync()
+    {
+        if (_waveIn is null || _currentRecordingPath is null) return;
+
+        Log.Debug("Stopping voice recording for transcription");
+
+        _waveIn.StopRecording();
+        IsRecording = false;
+        IsTranscribing = true;
+        VoiceStatusMessage = "Transcribing...";
+
+        if (_recordingStopTcs is not null)
+            await _recordingStopTcs.Task;
+
+        try
+        {
+            if (File.Exists(_currentRecordingPath))
+            {
+                var fileInfo = new FileInfo(_currentRecordingPath);
+                if (fileInfo.Length > 44) // WAV header is 44 bytes minimum
+                {
+                    var result = await _transcriptionService.TranscribeFileAsync(
+                        _currentRecordingPath,
+                        new TranscriptionOptions { ModelSize = "base" },
+                        progress: new Progress<TranscriptionProgress>(p =>
+                        {
+                            VoiceStatusMessage = p.CurrentPhase;
+                        }),
+                        CancellationToken.None);
+
+                    if (!string.IsNullOrWhiteSpace(result.FullText))
+                    {
+                        UserInput = result.FullText.Trim();
+                        Log.Information("Voice transcription complete: {Length} chars, {Segments} segments",
+                            result.FullText.Length, result.Segments.Count);
+                    }
+                    else
+                    {
+                        _notificationService.ShowInfo("No Speech Detected",
+                            "Could not detect speech in the recording. Try again in a quieter environment.");
+                    }
+                }
+                else
+                {
+                    _notificationService.ShowInfo("Recording Too Short",
+                        "The recording was too short to transcribe. Hold the button longer while speaking.");
+                }
+            }
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("model", StringComparison.OrdinalIgnoreCase))
+        {
+            Log.Warning(ex, "Whisper model not available");
+            _notificationService.ShowError("Model Required",
+                "Download a Whisper model first. Go to Settings > Voice to download one.");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Voice transcription failed");
+            _notificationService.ShowError("Transcription Failed",
+                $"Could not transcribe the recording: {ex.Message}");
+        }
+        finally
+        {
+            IsTranscribing = false;
+            VoiceStatusMessage = string.Empty;
+            CleanupRecording();
+        }
+    }
+
+    private void CleanupRecording()
+    {
+        _waveWriter?.Dispose();
+        _waveWriter = null;
+
+        if (_waveIn is not null)
+        {
+            _waveIn.DataAvailable -= OnRecordingDataAvailable;
+            _waveIn.RecordingStopped -= OnRecordingStopped;
+            _waveIn.Dispose();
+            _waveIn = null;
+        }
+
+        if (_currentRecordingPath is not null)
+        {
+            try { if (File.Exists(_currentRecordingPath)) File.Delete(_currentRecordingPath); }
+            catch { /* best effort */ }
+            _currentRecordingPath = null;
+        }
+
+        _recordingStopTcs = null;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
     // DISPOSAL
     // ═══════════════════════════════════════════════════════════════
 
     public void Dispose()
     {
+        if (_waveIn is not null && IsRecording)
+        {
+            _waveIn.StopRecording();
+        }
+        CleanupRecording();
         _generationCts?.Cancel();
         _generationCts?.Dispose();
         Log.Debug("ChatViewModel disposed");
