@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Services.License;
+using AgentX.Core.Services.Security;
 using AgentX.Core.Services.Settings;
 using AgentX.App.Services;
 using Serilog;
@@ -16,6 +17,7 @@ public partial class SettingsViewModel : ObservableObject
     private readonly IAiService _aiService;
     private readonly ICostTracker _costTracker;
     private readonly IThemeService _themeService;
+    private readonly ISecurityStatusService _securityStatusService;
 
     // ── Active Provider ──────────────────────────────────────
     [ObservableProperty] private int _activeProviderIndex;
@@ -71,6 +73,10 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private string _licenseDocumentLimit = "50";
     [ObservableProperty] private string _licenseBadgeColor = "#666666";
 
+    // ── Security Status ────────────────────────────────────
+    [ObservableProperty] private bool _areKeysEncrypted;
+    [ObservableProperty] private string _encryptionStatusDescription = string.Empty;
+
     // ── App Info ────────────────────────────────────────────
     [ObservableProperty] private string _appVersion = "1.0.0";
 
@@ -86,13 +92,15 @@ public partial class SettingsViewModel : ObservableObject
         ILicenseService licenseService,
         IAiService aiService,
         ICostTracker costTracker,
-        IThemeService themeService)
+        IThemeService themeService,
+        ISecurityStatusService securityStatusService)
     {
         _settingsService = settingsService;
         _licenseService = licenseService;
         _aiService = aiService;
         _costTracker = costTracker;
         _themeService = themeService;
+        _securityStatusService = securityStatusService;
 
         StoragePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -150,6 +158,10 @@ public partial class SettingsViewModel : ObservableObject
             Microsoft.UI.Xaml.ElementTheme.Light => 1,
             _ => 2
         };
+
+        // Load security status
+        AreKeysEncrypted = _securityStatusService.AreKeysEncrypted;
+        EncryptionStatusDescription = _securityStatusService.GetEncryptionStatusDescription();
 
         Log.Information("Settings loaded");
     }

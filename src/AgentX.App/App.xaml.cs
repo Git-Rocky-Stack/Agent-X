@@ -186,6 +186,7 @@ public partial class App : Application
 
         // ── Security ──────────────────────────────────────────
         services.AddSingleton<IDpapiEncryptionService, DpapiEncryptionService>();
+        services.AddSingleton<ISecurityStatusService, SecurityStatusService>();
 
         // ── Core Services ──────────────────────────────────────
         services.AddSingleton<ISettingsService, SettingsService>();

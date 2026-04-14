@@ -43,6 +43,13 @@
                     <TextBlock Text="AI Providers"
                                Style="{StaticResource HeadingSmallStyle}" />
 
+                    <!-- Encryption Status -->
+                    <InfoBar IsOpen="{x:Bind ViewModel.AreKeysEncrypted, Mode=OneWay}"
+                             Severity="Success"
+                             Title="API Keys Secured"
+                             Message="{x:Bind ViewModel.EncryptionStatusDescription, Mode=OneWay}"
+                             IsClosable="False" />
+
                     <!-- Active Provider Selector -->
                     <StackPanel Spacing="6">
                         <TextBlock Text="Active Provider"
