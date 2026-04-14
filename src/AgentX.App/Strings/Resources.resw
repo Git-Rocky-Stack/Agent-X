@@ -124,35 +124,6 @@
   <data name="Search_SavedFilters" xml:space="preserve"><value>Saved Filters</value></data>
   <data name="Search_ClearFilters" xml:space="preserve"><value>Clear Filters</value></data>
 
-  <!-- Backup & Restore -->
-  <data name="Backup_Title" xml:space="preserve"><value>Backup &amp; Restore</value></data>
-  <data name="Backup_Subtitle" xml:space="preserve"><value>Protect your knowledge base with encrypted backups and one-click restore.</value></data>
-  <data name="Backup_CreateBackup" xml:space="preserve"><value>Create Backup</value></data>
-  <data name="Backup_RestoreFromBackup" xml:space="preserve"><value>Restore from Backup</value></data>
-  <data name="Backup_History" xml:space="preserve"><value>Backup History</value></data>
-  <data name="Backup_Destination" xml:space="preserve"><value>Destination Folder</value></data>
-  <data name="Backup_Encrypt" xml:space="preserve"><value>Encrypt backup (AES-256)</value></data>
-  <data name="Backup_IncludeDocs" xml:space="preserve"><value>Include indexed documents</value></data>
-  <data name="Backup_Success" xml:space="preserve"><value>Backup created successfully</value></data>
-  <data name="Backup_RestoreComplete" xml:space="preserve"><value>Restore Complete</value></data>
-
-  <!-- Annotations -->
-  <data name="Annotations_Title" xml:space="preserve"><value>Annotations</value></data>
-  <data name="Annotations_Highlights" xml:space="preserve"><value>highlights</value></data>
-  <data name="Annotations_SearchPlaceholder" xml:space="preserve"><value>Search annotations...</value></data>
-  <data name="Annotations_FilterByColor" xml:space="preserve"><value>FILTER BY COLOR</value></data>
-  <data name="Annotations_Distribution" xml:space="preserve"><value>DISTRIBUTION</value></data>
-  <data name="Annotations_ExportMarkdown" xml:space="preserve"><value>Export as Markdown</value></data>
-  <data name="Annotations_Empty" xml:space="preserve"><value>No annotations yet</value></data>
-  <data name="Annotations_EmptyHint" xml:space="preserve"><value>Highlight text in your documents to create annotations.</value></data>
-
-  <!-- Settings -->
-  <data name="Settings_Title" xml:space="preserve"><value>Settings</value></data>
-  <data name="Settings_Language" xml:space="preserve"><value>Language</value></data>
-  <data name="Settings_LanguageHint" xml:space="preserve"><value>Changes take effect after restart</value></data>
-  <data name="Settings_SystemDefault" xml:space="preserve"><value>System Default</value></data>
-  <data name="Settings_KeyboardShortcuts" xml:space="preserve"><value>Keyboard Shortcuts</value></data>
-
   <!-- Plugin Manager -->
   <data name="Plugin_Manager.Text" xml:space="preserve"><value>Plugins</value></data>
   <data name="Plugin_Install.ToolTipService.ToolTip" xml:space="preserve"><value>Install plugin from file</value></data>
@@ -184,7 +155,34 @@
   <data name="Plugin_MultiSelect" xml:space="preserve"><value>Multi-Select</value></data>
   <data name="Plugin_BatchActions" xml:space="preserve"><value>Batch Actions</value></data>
 
-  <!-- Settings (additional) -->
+  <!-- Backup & Restore -->
+  <data name="Backup_Title" xml:space="preserve"><value>Backup &amp; Restore</value></data>
+  <data name="Backup_Subtitle" xml:space="preserve"><value>Protect your knowledge base with encrypted backups and one-click restore.</value></data>
+  <data name="Backup_CreateBackup" xml:space="preserve"><value>Create Backup</value></data>
+  <data name="Backup_RestoreFromBackup" xml:space="preserve"><value>Restore from Backup</value></data>
+  <data name="Backup_History" xml:space="preserve"><value>Backup History</value></data>
+  <data name="Backup_Destination" xml:space="preserve"><value>Destination Folder</value></data>
+  <data name="Backup_Encrypt" xml:space="preserve"><value>Encrypt backup (AES-256)</value></data>
+  <data name="Backup_IncludeDocs" xml:space="preserve"><value>Include indexed documents</value></data>
+  <data name="Backup_Success" xml:space="preserve"><value>Backup created successfully</value></data>
+  <data name="Backup_RestoreComplete" xml:space="preserve"><value>Restore Complete</value></data>
+
+  <!-- Annotations -->
+  <data name="Annotations_Title" xml:space="preserve"><value>Annotations</value></data>
+  <data name="Annotations_Highlights" xml:space="preserve"><value>highlights</value></data>
+  <data name="Annotations_SearchPlaceholder" xml:space="preserve"><value>Search annotations...</value></data>
+  <data name="Annotations_FilterByColor" xml:space="preserve"><value>FILTER BY COLOR</value></data>
+  <data name="Annotations_Distribution" xml:space="preserve"><value>DISTRIBUTION</value></data>
+  <data name="Annotations_ExportMarkdown" xml:space="preserve"><value>Export as Markdown</value></data>
+  <data name="Annotations_Empty" xml:space="preserve"><value>No annotations yet</value></data>
+  <data name="Annotations_EmptyHint" xml:space="preserve"><value>Highlight text in your documents to create annotations.</value></data>
+
+  <!-- Settings -->
+  <data name="Settings_Title" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings_Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings_LanguageHint" xml:space="preserve"><value>Changes take effect after restart</value></data>
+  <data name="Settings_SystemDefault" xml:space="preserve"><value>System Default</value></data>
+  <data name="Settings_KeyboardShortcuts" xml:space="preserve"><value>Keyboard Shortcuts</value></data>
   <data name="Settings_General" xml:space="preserve"><value>General</value></data>
   <data name="Settings_Appearance" xml:space="preserve"><value>Appearance</value></data>
   <data name="Settings_AIProvider" xml:space="preserve"><value>AI Provider</value></data>

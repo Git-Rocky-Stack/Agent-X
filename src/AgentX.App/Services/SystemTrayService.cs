@@ -53,7 +53,9 @@ public sealed class SystemTrayService : IDisposable
     /// <summary>
     /// Raised when the user requests "Quit" from the tray context menu.
     /// </summary>
+#pragma warning disable CS0067 // Event is never used — will be wired when context menu is implemented
     public event Action? QuitRequested;
+#pragma warning restore CS0067
 
     /// <summary>
     /// Initializes the system tray icon for the given window handle.
