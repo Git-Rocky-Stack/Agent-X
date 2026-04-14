@@ -14,6 +14,8 @@ using Windows.UI;
 using Windows.UI.Core;
 using WinRT.Interop;
 using AgentX.App.Services;
+using AgentX.App.ViewModels;
+using AgentX.App.Views;
 using AgentX.Core.AI;
 using AgentX.Core.Documents;
 using AgentX.Core.Services.Indexing;
@@ -33,6 +35,7 @@ public sealed partial class MainWindow : Window
     private bool _lastConnectionState;
     private bool _suppressNavigation;
     private bool _isReallyClosing;
+    private QuickChatWindow? _quickChatWindow;
 
     /// <summary>
     /// Map from page tags to their corresponding NavigationViewItem controls.
@@ -741,15 +744,40 @@ public sealed partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Opens the Quick Chat overlay. Stub implementation — the actual
-    /// Quick Chat window will be implemented in Task 3.
-    /// For now, restores the main window and navigates to Chat.
+    /// Opens the Quick Chat overlay window. Creates a singleton instance on first
+    /// invocation; subsequent calls activate (bring to front) the existing window.
+    /// The overlay is always-on-top, positioned at the top-center of the screen.
     /// </summary>
     private void OpenQuickChat()
     {
-        Log.Information("Quick Chat requested (stub \u2014 full implementation in Task 3)");
-        RestoreFromTray();
-        NavigateToPage("Chat");
+        Log.Information("Quick Chat requested — opening overlay window");
+
+        if (_quickChatWindow != null)
+        {
+            // Window already exists — bring it to front
+            try
+            {
+                _quickChatWindow.Activate();
+                return;
+            }
+            catch (Exception ex)
+            {
+                Log.Debug(ex, "Existing Quick Chat window could not be activated — creating new instance");
+                _quickChatWindow = null;
+            }
+        }
+
+        try
+        {
+            var viewModel = App.GetService<QuickChatViewModel>();
+            _quickChatWindow = new QuickChatWindow(viewModel);
+            _quickChatWindow.Closed += (s, e) => _quickChatWindow = null;
+            _quickChatWindow.Activate();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to create Quick Chat overlay window");
+        }
     }
 
     /// <summary>

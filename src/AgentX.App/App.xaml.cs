@@ -350,6 +350,7 @@ public partial class App : Application
         services.AddTransient<ViewModels.PluginManagerViewModel>();
         services.AddTransient<ViewModels.SyncSettingsViewModel>();
         services.AddTransient<ViewModels.AnalyticsViewModel>();
+        services.AddTransient<ViewModels.QuickChatViewModel>();
 
         // ── Views (Transient) ──────────────────────────────────
         services.AddTransient<Views.DashboardPage>();
