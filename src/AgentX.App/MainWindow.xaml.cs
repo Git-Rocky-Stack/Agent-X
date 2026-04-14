@@ -19,6 +19,7 @@ using AgentX.Core.Documents;
 using AgentX.Core.Services.Indexing;
 using AgentX.Core.Constants;
 using AgentX.Core.Services.Settings;
+using H.NotifyIcon;
 
 namespace AgentX.App;
 
@@ -26,9 +27,12 @@ public sealed partial class MainWindow : Window
 {
     private readonly Dictionary<string, Type> _pageMap;
     private readonly KeyboardShortcutService _keyboardShortcutService;
+    private SystemTrayService _systemTrayService = null!;
+    private AppWindow _appWindow = null!;
     private DispatcherTimer? _statusTimer;
     private bool _lastConnectionState;
     private bool _suppressNavigation;
+    private bool _isReallyClosing;
 
     /// <summary>
     /// Map from page tags to their corresponding NavigationViewItem controls.
@@ -109,6 +113,7 @@ public sealed partial class MainWindow : Window
         RootGrid.PreviewKeyDown += RootGrid_PreviewKeyDown;
 
         ConfigureWindow();
+        ConfigureSystemTray();
         ConfigureTitleBar();
         ConfigureBackdrop();
 
@@ -619,12 +624,12 @@ public sealed partial class MainWindow : Window
         // Set window size and center on screen
         var hwnd = WindowNative.GetWindowHandle(this);
         var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
-        var appWindow = AppWindow.GetFromWindowId(windowId);
+        _appWindow = AppWindow.GetFromWindowId(windowId);
 
-        appWindow.Resize(new SizeInt32(1440, 900));
+        _appWindow.Resize(new SizeInt32(1440, 900));
 
         // Center the window
-        if (appWindow.Presenter is OverlappedPresenter presenter)
+        if (_appWindow.Presenter is OverlappedPresenter presenter)
         {
             presenter.IsResizable = true;
             presenter.IsMaximizable = true;
@@ -637,11 +642,147 @@ public sealed partial class MainWindow : Window
         {
             var centerX = (displayArea.WorkArea.Width - 1440) / 2;
             var centerY = (displayArea.WorkArea.Height - 900) / 2;
-            appWindow.Move(new PointInt32(centerX, centerY));
+            _appWindow.Move(new PointInt32(centerX, centerY));
         }
 
-        Title = "Agent-X — Intelligence Hub";
+        Title = "Agent-X \u2014 Intelligence Hub";
         Log.Information("Window configured: 1440x900");
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  SYSTEM TRAY INTEGRATION
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Initializes the system tray icon, global hotkey, and context menu.
+    /// Subscribes to tray events for restore, quit, quick chat, and settings.
+    /// Hooks the AppWindow.Closing event to minimize-to-tray instead of exiting.
+    /// Wires DoubleClickCommand on the TaskbarIcon for restore-on-double-click.
+    /// </summary>
+    private void ConfigureSystemTray()
+    {
+        _systemTrayService = App.GetService<SystemTrayService>();
+
+        var hwnd = WindowNative.GetWindowHandle(this);
+        _systemTrayService.Initialize(hwnd, TrayIcon);
+        _systemTrayService.ShowTrayIcon();
+        _systemTrayService.RegisterGlobalHotkey();
+
+        // Wire double-click on tray icon to restore the window
+        // (H.NotifyIcon WinRT events are disabled by default, so we use DoubleClickCommand)
+        TrayIcon.DoubleClickCommand = new DelegateCommand(RestoreFromTray);
+
+        // Subscribe to tray events (raised by global hotkey)
+        _systemTrayService.RestoreRequested += RestoreFromTray;
+        _systemTrayService.QuitRequested += CloseAppForReal;
+        _systemTrayService.QuickChatRequested += OpenQuickChat;
+        _systemTrayService.SettingsRequested += OnTraySettingsRequested;
+
+        // Intercept window closing to minimize to tray instead of exiting
+        _appWindow.Closing += OnWindowClosing;
+
+        Log.Information("System tray integration configured");
+    }
+
+    /// <summary>
+    /// Intercepts the window close event. If MinimizeToTray is enabled and the
+    /// user hasn't explicitly chosen "Exit", hides the window instead of closing.
+    /// </summary>
+    private void OnWindowClosing(AppWindow sender, AppWindowClosingEventArgs args)
+    {
+        if (_systemTrayService.MinimizeToTray && !_isReallyClosing)
+        {
+            args.Cancel = true;
+
+            // Use H.NotifyIcon's WindowExtensions.Hide for Windows 11 Efficiency Mode
+            this.Hide(enableEfficiencyMode: true);
+
+            Log.Information("Window hidden to system tray (minimize-to-tray)");
+        }
+    }
+
+    /// <summary>
+    /// Restores the main window from the system tray.
+    /// Shows the window, brings it to the foreground, and deactivates Efficiency Mode.
+    /// </summary>
+    private void RestoreFromTray()
+    {
+        // Use H.NotifyIcon's WindowExtensions.Show to restore with Efficiency Mode disabled
+        this.Show(disableEfficiencyMode: true);
+        Activate();
+
+        // If the window was minimized before hiding, restore it to its previous state
+        if (_appWindow.Presenter is OverlappedPresenter presenter
+            && presenter.State == OverlappedPresenterState.Minimized)
+        {
+            presenter.Restore();
+        }
+
+        Log.Information("Window restored from system tray");
+    }
+
+    /// <summary>
+    /// Actually closes the application. Sets the flag so AppWindow.Closing
+    /// doesn't cancel the close, hides the tray icon, and disposes resources.
+    /// </summary>
+    private void CloseAppForReal()
+    {
+        _isReallyClosing = true;
+
+        // Clean up tray resources before closing
+        _systemTrayService.HideTrayIcon();
+        _systemTrayService.UnregisterGlobalHotkey();
+
+        // Hide the window first to avoid visual artifacts during teardown
+        _appWindow.Hide();
+        Close();
+
+        Log.Information("Application exiting via tray Exit command");
+    }
+
+    /// <summary>
+    /// Opens the Quick Chat overlay. Stub implementation — the actual
+    /// Quick Chat window will be implemented in Task 3.
+    /// For now, restores the main window and navigates to Chat.
+    /// </summary>
+    private void OpenQuickChat()
+    {
+        Log.Information("Quick Chat requested (stub \u2014 full implementation in Task 3)");
+        RestoreFromTray();
+        NavigateToPage("Chat");
+    }
+
+    /// <summary>
+    /// Handles the "Settings" context menu item from the tray icon.
+    /// Restores the window and navigates to the Settings page.
+    /// </summary>
+    private void OnTraySettingsRequested()
+    {
+        RestoreFromTray();
+        NavigateToPage("Settings");
+        Log.Information("Navigated to Settings via tray context menu");
+    }
+
+    // ── XAML Click Handlers for Tray Context Menu ────────────
+
+    private void TrayMenu_OpenAgentX(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        RestoreFromTray();
+    }
+
+    private void TrayMenu_QuickChat(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        OpenQuickChat();
+    }
+
+    private void TrayMenu_Settings(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        OnTraySettingsRequested();
+    }
+
+    private void TrayMenu_Exit(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        CloseAppForReal();
     }
 
     private void ConfigureTitleBar()
@@ -721,4 +862,28 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    //  NESTED: DelegateCommand (simple ICommand for tray icon commands)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Minimal ICommand implementation for wiring H.NotifyIcon's
+    /// DoubleClickCommand and similar command properties.
+    /// </summary>
+    private sealed class DelegateCommand : System.Windows.Input.ICommand
+    {
+        private readonly Action _execute;
+
+        public DelegateCommand(Action execute)
+        {
+            _execute = execute;
+        }
+
+        public bool CanExecute(object? parameter) => true;
+
+        public void Execute(object? parameter) => _execute();
+
+        // Intentionally empty — CanExecute always returns true, no need for change notifications
+        public event EventHandler? CanExecuteChanged { add { } remove { } }
+    }
 }

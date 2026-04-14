@@ -1,68 +1,79 @@
 using System.Runtime.InteropServices;
-using Microsoft.UI.Xaml;
+using H.NotifyIcon;
 using Serilog;
 
 namespace AgentX.App.Services;
 
 /// <summary>
-/// Manages system tray icon presence using Win32 Shell_NotifyIcon API.
-/// Provides minimize-to-tray functionality and a global hotkey registration.
+/// Manages system tray icon presence using H.NotifyIcon library and provides
+/// minimize-to-tray functionality with a global hotkey (Win+Shift+A).
 /// </summary>
 public sealed class SystemTrayService : IDisposable
 {
-    // Win32 constants
-    private const int WM_USER = 0x0400;
-    private const int WM_TRAYICON = WM_USER + 1;
-    private const int WM_LBUTTONDBLCLK = 0x0203;
-    private const int WM_RBUTTONUP = 0x0205;
+    // ── Win32 Constants ──────────────────────────────────────────
     private const int WM_HOTKEY = 0x0312;
-
-    private const int NIF_ICON = 0x00000002;
-    private const int NIF_MESSAGE = 0x00000001;
-    private const int NIF_TIP = 0x00000004;
-    private const int NIM_ADD = 0x00000000;
-    private const int NIM_DELETE = 0x00000002;
-    private const int NIM_MODIFY = 0x00000001;
-
+    private const int GWLP_WNDPROC = -4;
     private const int MOD_SHIFT = 0x0004;
     private const int MOD_WIN = 0x0008;
     private const int MOD_NOREPEAT = 0x4000;
-
     private const int HOTKEY_ID = 9001;
 
-    private bool _trayIconAdded;
-    private bool _hotkeyRegistered;
+    private TaskbarIcon? _trayIcon;
     private IntPtr _hwnd;
+    private IntPtr _oldWndProc;
+    private bool _hotkeyRegistered;
     private bool _disposed;
 
+    // Keep delegate alive to prevent GC during window subclass
+    private WndProcDelegate? _wndProc;
+
+    private delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
     /// <summary>
-    /// Gets or sets whether minimizing the window hides it to the system tray.
+    /// Gets or sets whether closing the window minimizes to the system tray instead of exiting.
     /// </summary>
     public bool MinimizeToTray { get; set; } = true;
 
     /// <summary>
     /// Gets or sets the tooltip text displayed when hovering over the tray icon.
     /// </summary>
-    public string TooltipText { get; set; } = "Agent-X — Intelligence Hub";
+    public string TooltipText { get; set; } = "Agent-X \u2014 Intelligence Hub";
 
     /// <summary>
     /// Raised when the user double-clicks the tray icon or presses the global hotkey.
+    /// Subscribed by MainWindow to restore the window from the tray.
     /// </summary>
     public event Action? RestoreRequested;
 
     /// <summary>
-    /// Raised when the user requests "Quit" from the tray context menu.
+    /// Raised when the user selects "Exit" from the tray context menu.
     /// </summary>
-#pragma warning disable CS0067 // Event is never used — will be wired when context menu is implemented
     public event Action? QuitRequested;
-#pragma warning restore CS0067
 
     /// <summary>
-    /// Initializes the system tray icon for the given window handle.
+    /// Raised when the user selects "Quick Chat" from the tray context menu.
     /// </summary>
-    public void Initialize(IntPtr hwnd)
+    public event Action? QuickChatRequested;
+
+    /// <summary>
+    /// Raised when the user selects "Settings" from the tray context menu.
+    /// </summary>
+    public event Action? SettingsRequested;
+
+    /// <summary>
+    /// Initializes the service with the main window handle and the XAML TaskbarIcon.
+    /// Installs a window subclass to receive WM_HOTKEY messages for the global hotkey.
+    /// The TaskbarIcon's ContextFlyout and DoubleClickCommand should be configured
+    /// in XAML/code-behind; this service handles icon lifecycle and hotkey routing.
+    /// </summary>
+    public void Initialize(IntPtr hwnd, TaskbarIcon trayIcon)
     {
         _hwnd = hwnd;
+        _trayIcon = trayIcon;
+
+        // Install window subclass for global hotkey (WM_HOTKEY)
+        InstallSubclass();
+
         Log.Information("SystemTrayService initialized with HWND {Handle}", hwnd);
     }
 
@@ -83,7 +94,7 @@ public sealed class SystemTrayService : IDisposable
             }
             else
             {
-                Log.Warning("Failed to register global hotkey Win+Shift+A — may already be in use");
+                Log.Warning("Failed to register global hotkey Win+Shift+A \u2014 may already be in use");
             }
         }
         catch (Exception ex)
@@ -93,17 +104,39 @@ public sealed class SystemTrayService : IDisposable
     }
 
     /// <summary>
-    /// Shows the system tray icon.
+    /// Unregisters the global hotkey.
     /// </summary>
-    public void ShowTrayIcon()
+    public void UnregisterGlobalHotkey()
     {
-        if (_hwnd == IntPtr.Zero || _trayIconAdded) return;
+        if (!_hotkeyRegistered || _hwnd == IntPtr.Zero) return;
 
         try
         {
-            // For now, we use a simple approach — the full tray icon with custom icon
-            // would require loading an .ico resource. This is a foundation.
-            _trayIconAdded = true;
+            UnregisterHotKey(_hwnd, HOTKEY_ID);
+            _hotkeyRegistered = false;
+            Log.Debug("Global hotkey unregistered");
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to unregister global hotkey");
+        }
+    }
+
+    /// <summary>
+    /// Forces creation of the system tray icon. The icon is also created
+    /// automatically when the TaskbarIcon is loaded in the visual tree.
+    /// </summary>
+    public void ShowTrayIcon()
+    {
+        if (_trayIcon == null)
+        {
+            Log.Warning("Cannot show tray icon: TaskbarIcon not initialized");
+            return;
+        }
+
+        try
+        {
+            _trayIcon.ForceCreate();
             Log.Information("System tray icon shown");
         }
         catch (Exception ex)
@@ -113,15 +146,15 @@ public sealed class SystemTrayService : IDisposable
     }
 
     /// <summary>
-    /// Hides the system tray icon.
+    /// Disposes the system tray icon, removing it from the system tray.
     /// </summary>
     public void HideTrayIcon()
     {
-        if (!_trayIconAdded) return;
+        if (_trayIcon == null) return;
 
         try
         {
-            _trayIconAdded = false;
+            _trayIcon.Dispose();
             Log.Information("System tray icon hidden");
         }
         catch (Exception ex)
@@ -136,72 +169,140 @@ public sealed class SystemTrayService : IDisposable
     public void UpdateTooltip(string text)
     {
         TooltipText = text;
-        if (_trayIconAdded)
+        if (_trayIcon != null)
         {
-            // Would call Shell_NotifyIcon with NIM_MODIFY here
+            _trayIcon.ToolTipText = text;
             Log.Debug("Tray tooltip updated: {Text}", text);
         }
     }
 
     /// <summary>
-    /// Processes window messages related to tray icon and global hotkey.
-    /// Call this from the main window's message handler.
+    /// Processes window messages. Kept for API compatibility; messages
+    /// are now handled by the window subclass and H.NotifyIcon internally.
     /// </summary>
     public bool ProcessMessage(uint msg, IntPtr wParam, IntPtr lParam)
     {
-        if (msg == WM_HOTKEY && wParam.ToInt32() == HOTKEY_ID)
-        {
-            Log.Debug("Global hotkey activated");
-            RestoreRequested?.Invoke();
-            return true;
-        }
-
-        if (msg == WM_TRAYICON)
-        {
-            var mouseMsg = lParam.ToInt32();
-            if (mouseMsg == WM_LBUTTONDBLCLK)
-            {
-                RestoreRequested?.Invoke();
-                return true;
-            }
-            if (mouseMsg == WM_RBUTTONUP)
-            {
-                // Context menu would be shown here
-                return true;
-            }
-        }
-
+        // Messages are handled by the WndProc subclass and H.NotifyIcon.
         return false;
     }
+
+    /// <summary>
+    /// Raises the RestoreRequested event. Called by MainWindow when the
+    /// tray icon is double-clicked (via DoubleClickCommand) or when the
+    /// "Open Agent-X" context menu item is clicked.
+    /// </summary>
+    public void InvokeRestoreRequested() => RestoreRequested?.Invoke();
+
+    /// <summary>
+    /// Raises the QuitRequested event. Called by MainWindow when the
+    /// "Exit" context menu item is clicked.
+    /// </summary>
+    public void InvokeQuitRequested() => QuitRequested?.Invoke();
+
+    /// <summary>
+    /// Raises the QuickChatRequested event. Called by MainWindow when the
+    /// "Quick Chat" context menu item is clicked.
+    /// </summary>
+    public void InvokeQuickChatRequested() => QuickChatRequested?.Invoke();
+
+    /// <summary>
+    /// Raises the SettingsRequested event. Called by MainWindow when the
+    /// "Settings" context menu item is clicked.
+    /// </summary>
+    public void InvokeSettingsRequested() => SettingsRequested?.Invoke();
 
     public void Dispose()
     {
         if (_disposed) return;
         _disposed = true;
 
-        if (_hotkeyRegistered && _hwnd != IntPtr.Zero)
+        UnregisterGlobalHotkey();
+
+        // Restore original WndProc before removing the tray icon
+        if (_oldWndProc != IntPtr.Zero && _hwnd != IntPtr.Zero)
         {
             try
             {
-                UnregisterHotKey(_hwnd, HOTKEY_ID);
-                _hotkeyRegistered = false;
-                Log.Debug("Global hotkey unregistered");
+                SetWindowLongPtrSafe(_hwnd, GWLP_WNDPROC, _oldWndProc);
+                _oldWndProc = IntPtr.Zero;
+                Log.Debug("Window subclass removed");
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Failed to unregister global hotkey");
+                Log.Warning(ex, "Failed to restore original WndProc");
             }
         }
 
-        HideTrayIcon();
+        // Dispose the tray icon (removes it from the system tray)
+        if (_trayIcon != null)
+        {
+            try
+            {
+                _trayIcon.Dispose();
+                _trayIcon = null;
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to dispose tray icon");
+            }
+        }
     }
 
-    // ── P/Invoke Declarations ─────────────────────────────────
-    [DllImport("user32.dll", SetLastError = true)]
+    // ═══════════════════════════════════════════════════════════════════
+    //  PRIVATE: WINDOW SUBCLASS FOR GLOBAL HOTKEY
+    // ═══════════════════════════════════════════════════════════════════
+
+    private void InstallSubclass()
+    {
+        if (_hwnd == IntPtr.Zero) return;
+
+        _wndProc = new WndProcDelegate(WndProc);
+        var wndProcPtr = Marshal.GetFunctionPointerForDelegate(_wndProc);
+        _oldWndProc = SetWindowLongPtrSafe(_hwnd, GWLP_WNDPROC, wndProcPtr);
+        Log.Debug("Window subclass installed for global hotkey (WM_HOTKEY)");
+    }
+
+    private IntPtr WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
+    {
+        if (msg == WM_HOTKEY && wParam.ToInt32() == HOTKEY_ID)
+        {
+            Log.Debug("Global hotkey Win+Shift+A activated");
+            RestoreRequested?.Invoke();
+            return IntPtr.Zero;
+        }
+
+        return CallWindowProc(_oldWndProc, hWnd, msg, wParam, lParam);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  P/INVOKE DECLARATIONS
+    // ═══════════════════════════════════════════════════════════════════
+
+    [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);
 
-    [DllImport("user32.dll", SetLastError = true)]
+    [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+
+    /// <summary>
+    /// Safe wrapper for SetWindowLongPtr that handles both 32-bit and 64-bit.
+    /// </summary>
+    private static IntPtr SetWindowLongPtrSafe(IntPtr hWnd, int nIndex, IntPtr dwNewLong)
+    {
+        if (IntPtr.Size == 8)
+            return SetWindowLongPtr64(hWnd, nIndex, dwNewLong);
+        else
+            return new IntPtr(SetWindowLong32(hWnd, nIndex, dwNewLong.ToInt32()));
+    }
+
+    [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]
+    private static extern IntPtr SetWindowLongPtr64(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+    [DllImport("user32.dll", EntryPoint = "SetWindowLong")]
+    private static extern int SetWindowLong32(IntPtr hWnd, int nIndex, int dwNewLong);
 }
