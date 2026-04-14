@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml;
 using Serilog;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.AI.Routing;
 using AgentX.Core.Data;
 using AgentX.Core.Data.VectorDb;
 using AgentX.Core.Documents;
@@ -205,6 +206,10 @@ public partial class App : Application
         services.AddSingleton<IEmbeddingService, EmbeddingService>();
         services.AddSingleton<IContextWindowManager, ContextWindowManager>();
         services.AddSingleton<IRetryPolicy, ExponentialBackoffRetryPolicy>();
+
+        // ── AI Routing ────────────────────────────────────────
+        services.AddSingleton<ITaskTypeDetector, TaskTypeDetector>();
+        services.AddSingleton<IModelRouterService, ModelRouterService>();
 
         // ── Vector Store ─────────────────────────────────────────
         services.AddSingleton<IVectorStore, SqliteVecStore>();

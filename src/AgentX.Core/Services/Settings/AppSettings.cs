@@ -39,6 +39,10 @@ public class AppSettings
     public int TopKResults { get; set; } = 5;
     public bool AutoIndexWatchFolders { get; set; } = true;
 
+    // Multi-Model Routing
+    public bool EnableModelRouting { get; set; } = false;
+    public string ActiveRoutingProfileId { get; set; } = "balanced";
+
     // Storage
     public string StoragePath { get; set; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),

@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.AI.Routing;
 using AgentX.Core.Services.Settings;
 using Serilog;
 
@@ -20,6 +21,7 @@ public class ChatService : IChatService
     private readonly ISettingsService _settingsService;
     private readonly IContextWindowManager _contextWindowManager;
     private readonly IConversationMemoryService _memoryService;
+    private readonly IModelRouterService? _modelRouterService;
     private readonly ILogger _log;
 
     private CancellationTokenSource? _generationCts;
@@ -41,13 +43,20 @@ public class ChatService : IChatService
     /// <inheritdoc />
     public event EventHandler<bool>? GenerationStateChanged;
 
+    /// <summary>
+    /// Fires when the model router makes a routing decision during message processing.
+    /// Null when routing is disabled or not configured.
+    /// </summary>
+    public event EventHandler<RoutingDecision>? RoutingDecisionMade;
+
     public ChatService(
         IAiService aiService,
         IConversationService conversationService,
         ISettingsService settingsService,
         IContextWindowManager contextWindowManager,
         IConversationMemoryService memoryService,
-        ILogger logger)
+        ILogger logger,
+        IModelRouterService? modelRouterService = null)
     {
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
         _conversationService = conversationService ?? throw new ArgumentNullException(nameof(conversationService));
@@ -56,6 +65,7 @@ public class ChatService : IChatService
         _memoryService = memoryService ?? throw new ArgumentNullException(nameof(memoryService));
         _log = logger?.ForContext<ChatService>()
                ?? throw new ArgumentNullException(nameof(logger));
+        _modelRouterService = modelRouterService;
     }
 
     /// <inheritdoc />
@@ -121,6 +131,38 @@ public class ChatService : IChatService
 
             // 5. Build chat options from settings
             var options = await BuildChatOptionsAsync();
+
+            // 5b. Apply model routing if enabled and available
+            if (_modelRouterService is not null)
+            {
+                try
+                {
+                    var routingSettings = await _settingsService.GetSettingsAsync();
+                    if (routingSettings.EnableModelRouting)
+                    {
+                        var routingDecision = await _modelRouterService.RouteAsync(userMessage, linkedCts.Token);
+
+                        _log.Information(
+                            "Auto-routing applied: Provider={ProviderId}, Model={ModelId}, Task={TaskType}, Reason={Reason}",
+                            routingDecision.ProviderId, routingDecision.ModelId,
+                            routingDecision.TaskType.Name, routingDecision.Reason);
+
+                        // Switch to the routed provider if different from current
+                        var switched = await _aiService.SwitchProviderAsync(routingDecision.ProviderId, linkedCts.Token);
+                        if (switched)
+                        {
+                            await _aiService.SetActiveModelAsync(routingDecision.ModelId, linkedCts.Token);
+                        }
+
+                        // Notify listeners (UI indicators, telemetry, etc.)
+                        RoutingDecisionMade?.Invoke(this, routingDecision);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _log.Warning(ex, "Model routing failed, proceeding with current provider");
+                }
+            }
 
             // 6. Trim context to fit within model's context window
             var contextWindow = _contextWindowManager.GetEffectiveContextWindow(
