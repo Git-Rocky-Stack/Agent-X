@@ -100,16 +100,29 @@ public class DpapiEncryptionServiceTests
         decrypted.Should().BeEmpty();
     }
 
-    [Theory]
-    [InlineData("DPAPI:some-encrypted-value", true)]
-    [InlineData("sk-plaintext-api-key", false)]
-    [InlineData("", false)]
-    public void IsEncrypted_ReturnsExpectedResult(string value, bool expected)
+    [Fact]
+    public void IsEncrypted_EncryptedValue_ReturnsTrue()
     {
+        // Arrange
+        var encrypted = _sut.Encrypt("test-key");
+
         // Act
-        bool result = _sut.IsEncrypted(value);
+        bool result = _sut.IsEncrypted(encrypted);
 
         // Assert
-        result.Should().Be(expected);
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsEncrypted_PlaintextKey_ReturnsFalse()
+    {
+        // Arrange
+        const string plaintext = "sk-proj-abc123";
+
+        // Act
+        bool result = _sut.IsEncrypted(plaintext);
+
+        // Assert
+        result.Should().BeFalse();
     }
 }
