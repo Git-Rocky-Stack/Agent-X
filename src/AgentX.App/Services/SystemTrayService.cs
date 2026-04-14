@@ -40,7 +40,7 @@ public sealed class SystemTrayService : IDisposable
     public string TooltipText { get; set; } = "Agent-X \u2014 Intelligence Hub";
 
     /// <summary>
-    /// Raised when the user double-clicks the tray icon or presses the global hotkey.
+    /// Raised when the user double-clicks the tray icon.
     /// Subscribed by MainWindow to restore the window from the tray.
     /// </summary>
     public event Action? RestoreRequested;
@@ -266,8 +266,8 @@ public sealed class SystemTrayService : IDisposable
     {
         if (msg == WM_HOTKEY && wParam.ToInt32() == HOTKEY_ID)
         {
-            Log.Debug("Global hotkey Win+Shift+A activated");
-            RestoreRequested?.Invoke();
+            Log.Debug("Global hotkey Win+Shift+A activated — requesting Quick Chat");
+            QuickChatRequested?.Invoke();
             return IntPtr.Zero;
         }
 
