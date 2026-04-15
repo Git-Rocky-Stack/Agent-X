@@ -18,7 +18,13 @@ public static class IdeWindowDetector
     /// </summary>
     private static readonly (string Suffix, string IdeName)[] IdeSuffixes =
     [
+        // Longer/more-specific suffixes must come before shorter ones
+        // to avoid premature partial matches (e.g., "Microsoft Visual Studio 2022"
+        // before "Microsoft Visual Studio").
         ("- Visual Studio Code", "VS Code"),
+        ("- Microsoft Visual Studio 2022", "Visual Studio"),
+        ("- Microsoft Visual Studio 2019", "Visual Studio"),
+        ("- Microsoft Visual Studio 2017", "Visual Studio"),
         ("- Microsoft Visual Studio", "Visual Studio"),
         ("\u2013 JetBrains Rider", "JetBrains Rider"),         // en-dash (U+2013)
         ("\u2013 IntelliJ IDEA", "IntelliJ IDEA"),             // en-dash (U+2013)
@@ -216,18 +222,20 @@ public static class IdeWindowDetector
         if (string.IsNullOrWhiteSpace(fileName))
             return string.Empty;
 
-        var dotIndex = fileName.LastIndexOf('.');
-        if (dotIndex < 0 || dotIndex == fileName.Length - 1)
-            return string.Empty;
-
-        var extension = fileName[dotIndex..];
-
         // Special case: "Dockerfile" (no extension) and "Dockerfile.dev"
+        // Must be checked before extension extraction, since "Dockerfile"
+        // has no dot and would otherwise fall through the early return.
         if (fileName.Equals("Dockerfile", StringComparison.OrdinalIgnoreCase) ||
             fileName.StartsWith("Dockerfile.", StringComparison.OrdinalIgnoreCase))
         {
             return "Docker";
         }
+
+        var dotIndex = fileName.LastIndexOf('.');
+        if (dotIndex < 0 || dotIndex == fileName.Length - 1)
+            return string.Empty;
+
+        var extension = fileName[dotIndex..];
 
         return ExtensionToLanguage.TryGetValue(extension, out var language)
             ? language

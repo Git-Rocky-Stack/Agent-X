@@ -132,6 +132,46 @@ public sealed class ScreenContextResultTests
         result.CapturedAtUtc.Should().BeOnOrBefore(after);
     }
 
+    // ── IdeContext ────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public void IsEmpty_WithIdeContext_ReturnsFalse()
+    {
+        // Arrange
+        var result = new ScreenContextResult
+        {
+            IdeContext = new IdeDetection { IdeName = "VS Code" },
+        };
+
+        // Assert
+        result.IsEmpty.Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsEmpty_WithOcrTextAndIdeContext_ReturnsFalse()
+    {
+        // Arrange
+        var result = new ScreenContextResult
+        {
+            OcrText = "console.log('hello')",
+            IdeContext = new IdeDetection { IdeName = "Visual Studio" },
+        };
+
+        // Assert
+        result.IsEmpty.Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsEmpty_WithoutIdeContext_ReturnsTrue_WhenOtherFieldsEmpty()
+    {
+        // Arrange — default instance has no IdeContext and empty strings
+        var result = new ScreenContextResult();
+
+        // Assert
+        result.IsEmpty.Should().BeTrue();
+        result.IdeContext.Should().BeNull();
+    }
+
     // ── Init-set values ─────────────────────────────────────────────────────────
 
     [Fact]
