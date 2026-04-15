@@ -13,6 +13,12 @@ namespace AgentX.Core.Services.Web;
 /// Extracts article content from web pages using HtmlAgilityPack and a text-density-based
 /// readability algorithm. Supports general HTML pages and YouTube transcript extraction.
 /// <para>
+/// When the readability algorithm returns minimal content (fewer than 100 characters),
+/// the service can optionally fall back to <see cref="IJsRenderingService"/> to render
+/// the page in a headless Chromium browser, which allows JavaScript-heavy pages to be
+/// fully processed before extraction is attempted again.
+/// </para>
+/// <para>
 /// The readability algorithm works as follows:
 /// <list type="number">
 ///   <item>Remove non-content elements (script, style, nav, header, footer, aside, form, etc.)</item>
@@ -27,6 +33,7 @@ namespace AgentX.Core.Services.Web;
 public class WebScraperService : IWebScraperService
 {
     private readonly ILogger _log;
+    private readonly IJsRenderingService? _jsRenderingService;
 
     /// <summary>
     /// A long-lived, shared HttpClient instance configured with appropriate defaults
@@ -132,11 +139,16 @@ public class WebScraperService : IWebScraperService
     /// Initializes a new instance of <see cref="WebScraperService"/>.
     /// </summary>
     /// <param name="logger">The Serilog logger instance for structured logging.</param>
+    /// <param name="jsRenderingService">
+    /// Optional JavaScript rendering service. When provided, the scraper will fall back to
+    /// headless Chromium rendering for pages where readability extraction returns minimal content.
+    /// </param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="logger"/> is null.</exception>
-    public WebScraperService(ILogger logger)
+    public WebScraperService(ILogger logger, IJsRenderingService? jsRenderingService = null)
     {
         _log = logger?.ForContext<WebScraperService>()
                ?? throw new ArgumentNullException(nameof(logger));
+        _jsRenderingService = jsRenderingService;
     }
 
     // ─── IWebScraperService Implementation ──────────────────────────────────
@@ -182,13 +194,57 @@ public class WebScraperService : IWebScraperService
             // 4. Extract article content using readability algorithm
             var articleText = ExtractArticleContent(htmlDoc);
 
+            // 5. If readability returned minimal content, fall back to JS rendering
+            if (string.IsNullOrWhiteSpace(articleText) || articleText.Length < 100)
+            {
+                if (_jsRenderingService is not null)
+                {
+                    _log.Information(
+                        "Readability extraction returned minimal content ({Length} chars) for {Url}, falling back to JS rendering",
+                        articleText?.Length ?? 0, url);
+
+                    try
+                    {
+                        var renderedHtml = await _jsRenderingService.RenderPageAsync(
+                            url, waitForNetworkIdle: true, ct);
+
+                        if (!string.IsNullOrWhiteSpace(renderedHtml))
+                        {
+                            var renderedDoc = new HtmlDocument();
+                            renderedDoc.LoadHtml(renderedHtml);
+
+                            // Re-extract metadata from the rendered page (JS may have populated meta tags)
+                            metadata = ExtractMetadata(renderedDoc, url);
+
+                            // Re-run readability extraction on the rendered DOM
+                            var renderedArticleText = ExtractArticleContent(renderedDoc);
+
+                            if (!string.IsNullOrWhiteSpace(renderedArticleText)
+                                && renderedArticleText.Length > (articleText?.Length ?? 0))
+                            {
+                                _log.Information(
+                                    "JS rendering fallback improved content from {OldLength} to {NewLength} chars for {Url}",
+                                    articleText?.Length ?? 0, renderedArticleText.Length, url);
+
+                                articleText = renderedArticleText;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.Warning(ex, "JS rendering fallback failed for {Url}", url);
+                        // Continue with whatever readability produced
+                    }
+                }
+            }
+
             if (string.IsNullOrWhiteSpace(articleText))
             {
                 _log.Warning("No article content extracted from: {Url}", url);
                 return CreateFailureResult(url, "Could not extract meaningful article content from the page.");
             }
 
-            // 5. Clean the extracted text
+            // 6. Clean the extracted text
             var cleanedText = CleanText(articleText);
             var wordCount = CountWords(cleanedText);
 
