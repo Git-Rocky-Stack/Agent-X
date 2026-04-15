@@ -7,6 +7,7 @@ using AgentX.Core.AI.Models;
 using AgentX.Core.Services.Audio;
 using AgentX.Core.Services.Audio.Models;
 using AgentX.Core.Services.Chat;
+using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Services.Feedback;
 using AgentX.App.Helpers;
 using AgentX.App.Services;
@@ -67,6 +68,18 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
     // ── Folder Filter ──────────────────────────────────────────
     [ObservableProperty] private string? _activeFolderFilter;
+
+    // ── Branching ───────────────────────────────────────────────
+    private ConversationBranchTree? _branchTree;
+    public ConversationBranchTree? BranchTree
+    {
+        get => _branchTree;
+        set => SetProperty(ref _branchTree, value);
+    }
+
+    public bool HasBranches => _branchTree?.TotalBranchCount > 0;
+
+    public ObservableCollection<ConversationBranchTree> ActiveBranches { get; } = new();
 
     // ── Computed Properties ────────────────────────────────────
     public bool HasNoConversations => Conversations.Count == 0;
@@ -627,6 +640,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         }
 
         OnPropertyChanged(nameof(HasNoMessages));
+        await LoadBranchTreeAsync();
     }
 
     [RelayCommand]
@@ -1465,6 +1479,91 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     }
 
     // ═══════════════════════════════════════════════════════════════
+    // CONVERSATION BRANCHING
+    // ═══════════════════════════════════════════════════════════════
+
+    [RelayCommand]
+    private async Task BranchFromMessageAsync(long messageId)
+    {
+        if (ActiveConversationId is null) return;
+        try
+        {
+            var branch = await _branchService.BranchAtMessageAsync(
+                ActiveConversationId.Value, messageId);
+            await LoadBranchTreeAsync();
+            _notificationService.ShowInfo("Branch Created", $"Created branch: {branch.Title}");
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to create branch from message {MessageId}", messageId);
+            _notificationService.ShowError("Branch Failed", ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private async Task LoadBranchTreeAsync()
+    {
+        if (ActiveConversationId is null) return;
+        try
+        {
+            BranchTree = await _branchService.GetBranchTreeAsync(ActiveConversationId.Value);
+            OnPropertyChanged(nameof(HasBranches));
+            ActiveBranches.Clear();
+            if (BranchTree is not null)
+            {
+                foreach (var child in BranchTree.Children)
+                    ActiveBranches.Add(child);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to load branch tree for conversation {ConversationId}", ActiveConversationId);
+            _notificationService.ShowError("Branch Load Failed", $"Could not load branches: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    private async Task SwitchToBranchAsync(long branchConversationId)
+    {
+        await SelectConversationCommand.ExecuteAsync(branchConversationId);
+    }
+
+    [RelayCommand]
+    private async Task MergeToMainAsync(MergeBranchRequest request)
+    {
+        if (request is null) return;
+        try
+        {
+            await _branchService.MergeMessagesAsync(
+                request.SourceConversationId, request.MessageIds, request.TargetConversationId);
+            _notificationService.ShowInfo("Merge Complete", "Merged insights to main thread");
+            await SelectConversationCommand.ExecuteAsync(request.TargetConversationId);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to merge messages from {SourceId} to {TargetId}",
+                request.SourceConversationId, request.TargetConversationId);
+            _notificationService.ShowError("Merge Failed", ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private async Task DeleteBranchAsync(long branchConversationId)
+    {
+        try
+        {
+            await _branchService.DeleteBranchAsync(branchConversationId);
+            await LoadBranchTreeAsync();
+            _notificationService.ShowInfo("Branch Deleted", "The branch has been removed.");
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to delete branch {BranchId}", branchConversationId);
+            _notificationService.ShowError("Delete Failed", ex.Message);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
     // DISPOSAL
     // ═══════════════════════════════════════════════════════════════
 
@@ -1672,3 +1771,12 @@ public class SystemPromptItem : ObservableObject
         _ => "\uE8BD"
     };
 }
+
+/// <summary>
+/// Parameter object for the merge-branch command, since [RelayCommand]
+/// only supports a single parameter.
+/// </summary>
+public record MergeBranchRequest(
+    long SourceConversationId,
+    IReadOnlyList<long> MessageIds,
+    long TargetConversationId);
