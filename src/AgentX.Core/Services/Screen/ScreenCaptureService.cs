@@ -128,6 +128,7 @@ public sealed class ScreenCaptureService : IScreenCaptureService
         _log.Debug("Starting full-screen capture and OCR");
 
         var activeTitle = GetActiveWindowTitle();
+        var ideContext = IdeWindowDetector.Detect(activeTitle);
         var screenWidth = GetSystemMetrics(SM_CXSCREEN);
         var screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
@@ -181,6 +182,7 @@ public sealed class ScreenCaptureService : IScreenCaptureService
                 OcrText = ocrText,
                 ActiveWindowTitle = activeTitle,
                 CapturedAtUtc = DateTime.UtcNow,
+                IdeContext = ideContext,
             };
         }
         catch (OperationCanceledException)
@@ -226,6 +228,7 @@ public sealed class ScreenCaptureService : IScreenCaptureService
         }
 
         var activeTitle = GetActiveWindowTitle();
+        var ideContext = IdeWindowDetector.Detect(activeTitle);
 
         if (!GetWindowRect(hwnd, out var rect))
         {
@@ -285,6 +288,7 @@ public sealed class ScreenCaptureService : IScreenCaptureService
                 OcrText = ocrText,
                 ActiveWindowTitle = activeTitle,
                 CapturedAtUtc = DateTime.UtcNow,
+                IdeContext = ideContext,
             };
         }
         catch (OperationCanceledException)

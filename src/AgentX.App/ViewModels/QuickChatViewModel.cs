@@ -96,12 +96,29 @@ public partial class QuickChatViewModel : ObservableObject
                                "concisely based on the user's knowledge vault. Be brief, accurate, and helpful. " +
                                "If you don't know the answer, say so clearly.";
 
-            // Append screen context to the system prompt if available.
+            // Append IDE context and screen context to the system prompt if available.
             if (screenContext is not null && !screenContext.IsEmpty)
             {
                 var contextSection = new StringBuilder();
                 contextSection.AppendLine();
                 contextSection.AppendLine();
+
+                // IDE context comes first — it's structured and more precise than OCR
+                if (screenContext.IdeContext is not null)
+                {
+                    contextSection.AppendLine("--- IDE CONTEXT ---");
+                    contextSection.AppendLine($"Active IDE: {screenContext.IdeContext.IdeName}");
+                    contextSection.AppendLine($"Active File: {screenContext.IdeContext.ActiveFileName}");
+
+                    if (!string.IsNullOrWhiteSpace(screenContext.IdeContext.ProjectName))
+                        contextSection.AppendLine($"Project: {screenContext.IdeContext.ProjectName}");
+
+                    if (!string.IsNullOrWhiteSpace(screenContext.IdeContext.Language))
+                        contextSection.AppendLine($"Language: {screenContext.IdeContext.Language}");
+
+                    contextSection.AppendLine();
+                }
+
                 contextSection.AppendLine("--- SCREEN CONTEXT ---");
 
                 if (!string.IsNullOrWhiteSpace(screenContext.ActiveWindowTitle))
