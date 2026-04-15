@@ -24,8 +24,16 @@ public class ScreenContextResult
     public DateTime CapturedAtUtc { get; init; } = DateTime.UtcNow;
 
     /// <summary>
-    /// Indicates whether both <see cref="OcrText"/> and <see cref="ActiveWindowTitle"/>
-    /// are empty or whitespace, meaning no useful context was captured.
+    /// Structured IDE context detected from <see cref="ActiveWindowTitle"/>.
+    /// <c>null</c> if the active window is not a recognized IDE.
     /// </summary>
-    public bool IsEmpty => string.IsNullOrWhiteSpace(OcrText) && string.IsNullOrWhiteSpace(ActiveWindowTitle);
+    public IdeDetection? IdeContext { get; init; }
+
+    /// <summary>
+    /// Indicates whether all context fields are empty or unset,
+    /// meaning no useful context was captured.
+    /// </summary>
+    public bool IsEmpty => string.IsNullOrWhiteSpace(OcrText)
+        && string.IsNullOrWhiteSpace(ActiveWindowTitle)
+        && IdeContext is null;
 }
