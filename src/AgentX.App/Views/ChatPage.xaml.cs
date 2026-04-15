@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using AgentX.App.ViewModels;
+using AgentX.Core.Services.Chat.Models;
 using Serilog;
 using Windows.System;
 
@@ -316,6 +317,95 @@ public sealed partial class ChatPage : Page
                 textBox.Text = string.Empty;
             }
             e.Handled = true;
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // CONVERSATION BRANCHING
+    // ═══════════════════════════════════════════════════════════════
+
+    private async void BranchFromMessage_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is ChatMessageItem msg)
+        {
+            var input = new TextBox { PlaceholderText = "Branch label (optional)", Width = 300 };
+            var dialog = new ContentDialog
+            {
+                Title = "Create Branch",
+                Content = new StackPanel
+                {
+                    Children =
+                    {
+                        new TextBlock { Text = "Give this branch an optional label:", Margin = new(0, 0, 0, 8) },
+                        input
+                    }
+                },
+                PrimaryButtonText = "Branch",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = this.XamlRoot
+            };
+
+            var result = await dialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
+            {
+                ViewModel.PendingBranchLabel = string.IsNullOrWhiteSpace(input.Text) ? null : input.Text;
+                await ViewModel.BranchFromMessageCommand.ExecuteAsync(msg.MessageId);
+            }
+        }
+    }
+
+    private async void BranchTree_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
+    {
+        if (args.InvokedItem is ConversationBranchTree node)
+        {
+            await ViewModel.SwitchToBranchCommand.ExecuteAsync(node.Conversation.Id);
+        }
+    }
+
+    private async void DeleteBranch_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement fe && fe.Tag is long branchId)
+        {
+            var dialog = new ContentDialog
+            {
+                Title = "Delete Branch",
+                Content = "Delete this branch and all its sub-branches?",
+                PrimaryButtonText = "Delete",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = this.XamlRoot
+            };
+
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+            {
+                await ViewModel.DeleteBranchCommand.ExecuteAsync(branchId);
+            }
+        }
+    }
+
+    private async void MergeBranch_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement fe && fe.Tag is long branchId)
+        {
+            var rootId = ViewModel.BranchTree?.Conversation.Id;
+            if (rootId == null) return;
+
+            var dialog = new ContentDialog
+            {
+                Title = "Merge to Main Thread",
+                Content = "Merge all messages from this branch into the main conversation?",
+                PrimaryButtonText = "Merge",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = this.XamlRoot
+            };
+
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+            {
+                var request = new MergeBranchRequest(branchId, rootId.Value);
+                await ViewModel.MergeToMainCommand.ExecuteAsync(request);
+            }
         }
     }
 

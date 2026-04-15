@@ -243,6 +243,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <!-- Sidebar Header -->
@@ -331,8 +332,58 @@
                 </ListView.ItemContainerStyle>
             </ListView>
 
+            <!-- Branch Tree Panel -->
+            <Expander Grid.Row="4"
+                      x:Name="BranchPanel"
+                      Header="Branches"
+                      IsExpanded="False"
+                      Margin="12,4,12,4"
+                      Visibility="{x:Bind ViewModel.HasBranches, Mode=OneWay}">
+                <TreeView x:Name="BranchTree"
+                          ItemsSource="{x:Bind ViewModel.ActiveBranches, Mode=OneWay}"
+                          ItemInvoked="BranchTree_ItemInvoked"
+                          MinHeight="60"
+                          MaxHeight="200">
+                    <TreeView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Padding="4" ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <FontIcon Glyph="&#xE735;" FontSize="12" Foreground="{StaticResource TextAccentBrush}" />
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding BranchLabel}"
+                                           VerticalAlignment="Center"
+                                           Style="{StaticResource CaptionStyle}" />
+                                <Button Grid.Column="2"
+                                        ToolTipService.ToolTip="Merge to main"
+                                        Click="MergeBranch_Click"
+                                        Tag="{Binding Conversation.Id}"
+                                        Padding="4,2,4,2"
+                                        MinHeight="24"
+                                        MinWidth="24">
+                                    <FontIcon Glyph="&#xE8A5;" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" />
+                                </Button>
+                                <Button Grid.Column="3"
+                                        ToolTipService.ToolTip="Delete branch"
+                                        Click="DeleteBranch_Click"
+                                        Tag="{Binding Conversation.Id}"
+                                        Padding="4,2,4,2"
+                                        MinHeight="24"
+                                        MinWidth="24">
+                                    <FontIcon Glyph="&#xE74D;" FontSize="10" Foreground="{StaticResource ErrorBrush}" />
+                                </Button>
+                            </Grid>
+                        </DataTemplate>
+                    </TreeView.ItemTemplate>
+                </TreeView>
+            </Expander>
+
             <!-- Sidebar Footer -->
-            <Border Grid.Row="4"
+            <Border Grid.Row="5"
                     Padding="16,10,16,10"
                     BorderBrush="{StaticResource BorderSubtleBrush}"
                     BorderThickness="0,1,0,0">
@@ -371,6 +422,7 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
@@ -560,8 +612,19 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Refresh connection button -->
+                    <!-- Compare branches button -->
                     <Button Grid.Column="7"
+                            Style="{StaticResource IconButtonStyle}"
+                            Command="{x:Bind ViewModel.CompareBranchesCommand}"
+                            ToolTipService.ToolTip="Compare branches"
+                            Margin="0,0,4,0"
+                            Visibility="{x:Bind ViewModel.HasBranches, Mode=OneWay}">
+                        <FontIcon Glyph="&#xE735;" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" />
+                    </Button>
+
+                    <!-- Refresh connection button -->
+                    <Button Grid.Column="8"
                             Style="{StaticResource IconButtonStyle}"
                             Command="{x:Bind ViewModel.RefreshConnectionCommand}"
                             ToolTipService.ToolTip="Refresh connection">
@@ -570,7 +633,7 @@
                     </Button>
 
                     <!-- Export conversation button -->
-                    <Button Grid.Column="8"
+                    <Button Grid.Column="9"
                             Style="{StaticResource IconButtonStyle}"
                             ToolTipService.ToolTip="Export conversation"
                             Margin="4,0,0,0">
@@ -735,6 +798,20 @@
                                                        VerticalAlignment="Center"
                                                        Margin="0,0,6,0" />
 
+                                            <!-- Branch indicator badge (visible when message has branches) -->
+                                            <Border
+                                                Background="{StaticResource AccentSubtleBrush}"
+                                                CornerRadius="4"
+                                                Padding="4,2"
+                                                Margin="4,0,0,0"
+                                                VerticalAlignment="Center"
+                                                Visibility="{x:Bind IsBranchPoint, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                                <StackPanel Orientation="Horizontal" Spacing="2">
+                                                    <FontIcon Glyph="&#xE735;" FontSize="10" Foreground="{StaticResource TextAccentBrush}" />
+                                                    <TextBlock Text="{x:Bind BranchCountAtPoint, Mode=OneWay}" FontSize="10" Foreground="{StaticResource TextAccentBrush}" />
+                                                </StackPanel>
+                                            </Border>
+
                                             <!-- Edit button -->
                                             <Button Style="{StaticResource MessageActionButtonStyle}"
                                                     Click="OnEditMessageClick"
@@ -749,6 +826,14 @@
                                                     Tag="{x:Bind}"
                                                     ToolTipService.ToolTip="Copy to clipboard">
                                                 <FontIcon Glyph="&#xE8C8;" FontSize="12" />
+                                            </Button>
+
+                                            <!-- Branch from here button -->
+                                            <Button Style="{StaticResource MessageActionButtonStyle}"
+                                                    Click="BranchFromMessage_Click"
+                                                    Tag="{x:Bind}"
+                                                    ToolTipService.ToolTip="Branch from here">
+                                                <FontIcon Glyph="&#xE735;" FontSize="12" />
                                             </Button>
 
                                             <!-- Delete button -->

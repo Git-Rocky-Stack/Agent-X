@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -11,6 +12,7 @@ using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Services.Feedback;
 using AgentX.App.Helpers;
 using AgentX.App.Services;
+using AgentX.App.Views;
 using NAudio.Wave;
 using Serilog;
 
@@ -57,6 +59,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _isRecording;
     [ObservableProperty] private bool _isTranscribing;
     [ObservableProperty] private string _voiceStatusMessage = string.Empty;
+
+    // ── Branching ─────────────────────────────────────────────────
+    [ObservableProperty] private string? _pendingBranchLabel;
 
     // ── Collections ────────────────────────────────────────────
     public ObservableCollection<ChatMessageItem> Messages { get; } = new();
@@ -1486,10 +1491,12 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private async Task BranchFromMessageAsync(long messageId)
     {
         if (ActiveConversationId is null) return;
+        var label = PendingBranchLabel;
+        PendingBranchLabel = null;
         try
         {
             var branch = await _branchService.BranchAtMessageAsync(
-                ActiveConversationId.Value, messageId);
+                ActiveConversationId.Value, messageId, label);
             await LoadBranchTreeAsync();
             _notificationService.ShowInfo("Branch Created", $"Created branch: {branch.Title}");
         }
@@ -1514,6 +1521,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
                 foreach (var child in BranchTree.Children)
                     ActiveBranches.Add(child);
             }
+
+            MarkBranchPoints();
         }
         catch (Exception ex)
         {
@@ -1534,8 +1543,16 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         if (request is null) return;
         try
         {
+            var messageIds = request.MessageIds;
+            if (messageIds is null || messageIds.Count == 0)
+            {
+                // Load all messages from the source branch when no specific IDs provided
+                var messages = await _conversationService.GetMessagesAsync(request.SourceConversationId);
+                messageIds = messages.Select(m => m.Id).ToList();
+            }
+
             await _branchService.MergeMessagesAsync(
-                request.SourceConversationId, request.MessageIds, request.TargetConversationId);
+                request.SourceConversationId, messageIds, request.TargetConversationId);
             _notificationService.ShowInfo("Merge Complete", "Merged insights to main thread");
             await SelectConversationCommand.ExecuteAsync(request.TargetConversationId);
         }
@@ -1561,6 +1578,57 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             Log.Warning(ex, "Failed to delete branch {BranchId}", branchConversationId);
             _notificationService.ShowError("Delete Failed", ex.Message);
         }
+    }
+
+    [RelayCommand]
+    private void CompareBranches()
+    {
+        if (BranchTree is null || BranchTree.Children.Count < 1) return;
+
+        var mainBranch = BranchTree;
+        var compareBranch = BranchTree.Children[0];
+
+        var window = new Views.BranchCompareWindow(
+            mainBranch, compareBranch,
+            "Main Thread",
+            compareBranch.BranchLabel ?? "Branch");
+
+        window.Activate();
+    }
+
+    /// <summary>
+    /// Marks messages in the current conversation that are branch points
+    /// based on the loaded branch tree data.
+    /// </summary>
+    private void MarkBranchPoints()
+    {
+        // Reset all branch point markers
+        foreach (var msg in Messages)
+        {
+            msg.IsBranchPoint = false;
+            msg.BranchCountAtPoint = 0;
+        }
+
+        if (BranchTree is null) return;
+
+        void MarkFromNode(ConversationBranchTree node)
+        {
+            foreach (var child in node.Children)
+            {
+                if (child.BranchPointMessageId is not null)
+                {
+                    var msg = Messages.FirstOrDefault(m => m.MessageId == child.BranchPointMessageId.Value);
+                    if (msg is not null)
+                    {
+                        msg.IsBranchPoint = true;
+                        msg.BranchCountAtPoint += 1;
+                    }
+                }
+                MarkFromNode(child);
+            }
+        }
+
+        MarkFromNode(BranchTree);
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -1691,6 +1759,22 @@ public class ChatMessageItem : ObservableObject
     public string FormattedTokenSpeed => TokenCount > 0 && GenerationTimeMs > 0
         ? $"{TokenCount / (GenerationTimeMs / 1000.0):F1} tok/s"
         : string.Empty;
+
+    /// <summary>Whether this message is a point where one or more branches diverge.</summary>
+    private bool _isBranchPoint;
+    public bool IsBranchPoint
+    {
+        get => _isBranchPoint;
+        set => SetProperty(ref _isBranchPoint, value);
+    }
+
+    /// <summary>Number of branches diverging from this message.</summary>
+    private int _branchCountAtPoint;
+    public int BranchCountAtPoint
+    {
+        get => _branchCountAtPoint;
+        set => SetProperty(ref _branchCountAtPoint, value);
+    }
 }
 
 /// <summary>
@@ -1778,5 +1862,5 @@ public class SystemPromptItem : ObservableObject
 /// </summary>
 public record MergeBranchRequest(
     long SourceConversationId,
-    IReadOnlyList<long> MessageIds,
-    long TargetConversationId);
+    long TargetConversationId,
+    IReadOnlyList<long>? MessageIds = null);
