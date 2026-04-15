@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="AgentX.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- AI Providers -->
     <PackageReference Include="Microsoft.Extensions.AI" Version="9.5.0" />
     <PackageReference Include="Microsoft.Extensions.AI.Abstractions" Version="9.5.0" />
