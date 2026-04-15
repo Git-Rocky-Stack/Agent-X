@@ -4,6 +4,7 @@ using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Data;
 using AgentX.Core.Search.Models;
+using AgentX.Core.Services.Search;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -59,6 +60,7 @@ public sealed class RagPipeline : IRagPipeline
     private readonly IParentDocumentRetriever? _parentRetriever;
     private readonly IContextualCompressor? _compressor;
     private readonly IRagEvaluator? _evaluator;
+    private readonly IWebSearchService? _webSearchService;
 
     public RagPipeline(
         ISemanticSearchService searchService,
@@ -72,7 +74,8 @@ public sealed class RagPipeline : IRagPipeline
         ILlmReranker? llmReranker = null,
         IParentDocumentRetriever? parentRetriever = null,
         IContextualCompressor? compressor = null,
-        IRagEvaluator? evaluator = null)
+        IRagEvaluator? evaluator = null,
+        IWebSearchService? webSearchService = null)
     {
         _searchService = searchService ?? throw new ArgumentNullException(nameof(searchService));
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
@@ -87,12 +90,14 @@ public sealed class RagPipeline : IRagPipeline
         _parentRetriever = parentRetriever;
         _compressor = compressor;
         _evaluator = evaluator;
+        _webSearchService = webSearchService;
 
         _logger.Information(
             "RagPipeline initialized — enhancements: MultiQuery={MQ}, HyDE={HyDE}, LlmRerank={LR}, " +
-            "ParentDoc={PD}, Compression={C}, Eval={E}",
+            "ParentDoc={PD}, Compression={C}, Eval={E}, WebSearch={WS}",
             _multiQueryGenerator is not null, _hydeService is not null, _llmReranker is not null,
-            _parentRetriever is not null, _compressor is not null, _evaluator is not null);
+            _parentRetriever is not null, _compressor is not null, _evaluator is not null,
+            _webSearchService is not null);
     }
 
     /// <inheritdoc />
@@ -100,6 +105,7 @@ public sealed class RagPipeline : IRagPipeline
         string question,
         long? collectionId = null,
         Action<string>? onToken = null,
+        bool enableResearchMode = false,
         CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(question))
@@ -252,6 +258,43 @@ public sealed class RagPipeline : IRagPipeline
             }
         }
 
+        // ── Step 8b: Deep Research Mode — Web Search Enrichment ──────────
+        IReadOnlyList<WebCitation>? webCitations = null;
+        if (enableResearchMode && _webSearchService is not null && _webSearchService.IsConfigured)
+        {
+            try
+            {
+                var webResponse = await _webSearchService
+                    .SearchAsync(question, 10, ct)
+                    .ConfigureAwait(false);
+
+                if (webResponse.Results.Count > 0)
+                {
+                    webCitations = webResponse.Results.Select(r => new WebCitation
+                    {
+                        Title = r.Title,
+                        Url = r.Url,
+                        Snippet = r.Snippet,
+                        Source = WebCitationSource.Web,
+                        DocumentName = null
+                    }).ToList();
+
+                    _logger.Information(
+                        "Research mode: added {Count} web citations (provider={Provider}, cached={FromCache})",
+                        webCitations.Count, webResponse.SearchProvider, webResponse.FromCache);
+                }
+                else
+                {
+                    _logger.Debug("Research mode: web search returned no results for '{Query}'", question);
+                }
+            }
+            catch (OperationCanceledException) { throw; }
+            catch (Exception ex)
+            {
+                _logger.Warning(ex, "Research mode: web search failed; continuing with vault context only");
+            }
+        }
+
         // ── Step 9: Build RAG Prompt ─────────────────────────────────────
         var systemPrompt = BuildSystemPrompt(contextChunks);
 
@@ -330,6 +373,7 @@ public sealed class RagPipeline : IRagPipeline
         ragResponse.Citations = citations;
         ragResponse.IsStreaming = false;
         ragResponse.TotalLatencyMs = totalStopwatch.Elapsed.TotalMilliseconds;
+        ragResponse.WebCitations = webCitations;
 
         _logger.Information(
             "RAG pipeline completed: {CitationCount} citations, {ChunkCount} context chunks, " +

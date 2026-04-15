@@ -1,3 +1,5 @@
+using AgentX.Core.Services.Search;
+
 namespace AgentX.Core.Search.Models;
 
 /// <summary>
@@ -37,4 +39,10 @@ public class RagResponse
     /// Null if the evaluator is not available or has not yet completed.
     /// </summary>
     public RagEvalMetrics? EvalMetrics { get; set; }
+
+    /// <summary>
+    /// Citations from external web sources, populated when Deep Research Mode is enabled.
+    /// Null when research mode is off or no web results were found.
+    /// </summary>
+    public IReadOnlyList<WebCitation>? WebCitations { get; set; }
 }

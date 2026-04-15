@@ -18,12 +18,17 @@ public interface IRagPipeline
     /// <param name="question">The user's natural language question.</param>
     /// <param name="collectionId">Optional collection scope (null = search all).</param>
     /// <param name="onToken">Callback invoked for each streamed token.</param>
+    /// <param name="enableResearchMode">
+    /// When <c>true</c>, augments the vault context with web search results (Deep Research Mode).
+    /// Requires a configured <see cref="IWebSearchService"/> injected into the pipeline.
+    /// </param>
     /// <param name="ct">Cancellation token.</param>
-    /// <returns>The complete RAG response with citations.</returns>
+    /// <returns>The complete RAG response with citations and optional web citations.</returns>
     Task<RagResponse> AskAsync(
         string question,
         long? collectionId = null,
         Action<string>? onToken = null,
+        bool enableResearchMode = false,
         CancellationToken ct = default);
 
     /// <summary>

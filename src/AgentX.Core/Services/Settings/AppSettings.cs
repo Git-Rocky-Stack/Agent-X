@@ -1,3 +1,5 @@
+using AgentX.Core.Services.Search;
+
 namespace AgentX.Core.Services.Settings;
 
 public class AppSettings
@@ -42,6 +44,13 @@ public class AppSettings
     // Multi-Model Routing
     public bool EnableModelRouting { get; set; } = false;
     public string ActiveRoutingProfileId { get; set; } = "balanced";
+
+    // Deep Research Mode
+    public bool EnableResearchMode { get; set; } = false;
+    public WebSearchProvider WebSearchProvider { get; set; } = WebSearchProvider.Brave;
+    public string? WebSearchApiKey { get; set; }
+    public int MaxSearchResults { get; set; } = 10;
+    public int SearchCacheTtlMinutes { get; set; } = 60;
 
     // Storage
     public string StoragePath { get; set; } = Path.Combine(
