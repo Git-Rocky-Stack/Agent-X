@@ -85,6 +85,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private readonly IFeedbackService _feedbackService;
     private readonly INotificationService _notificationService;
     private readonly ITranscriptionService _transcriptionService;
+    private readonly IConversationBranchService _branchService;
 
     private CancellationTokenSource? _generationCts;
 
@@ -103,7 +104,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         IConversationMemoryService memoryService,
         IFeedbackService feedbackService,
         INotificationService notificationService,
-        ITranscriptionService transcriptionService)
+        ITranscriptionService transcriptionService,
+        IConversationBranchService branchService)
     {
         _chatService = chatService;
         _conversationService = conversationService;
@@ -114,6 +116,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         _feedbackService = feedbackService;
         _notificationService = notificationService;
         _transcriptionService = transcriptionService;
+        _branchService = branchService;
         Log.Debug("ChatViewModel created with services");
     }
 
