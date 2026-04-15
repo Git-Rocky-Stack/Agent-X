@@ -52,6 +52,9 @@ public class AppSettings
     public int MaxSearchResults { get; set; } = 10;
     public int SearchCacheTtlMinutes { get; set; } = 60;
 
+    // Screen Awareness
+    public bool EnableScreenAwareness { get; set; } = false;
+
     // HNSW Vector Search
     public bool EnableHnswIndex { get; set; } = true;
     public int HnswM { get; set; } = 16;
