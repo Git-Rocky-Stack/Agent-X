@@ -52,6 +52,12 @@ public class WebContent
     public long WordCount { get; set; }
 
     /// <summary>
+    /// The canonical URL of the page, extracted from &lt;link rel="canonical"&gt;.
+    /// Falls back to the original request URL if no canonical link is found.
+    /// </summary>
+    public string? CanonicalUrl { get; set; }
+
+    /// <summary>
     /// The language of the page, extracted from the html lang attribute or content-language meta tag.
     /// </summary>
     public string? Language { get; set; }

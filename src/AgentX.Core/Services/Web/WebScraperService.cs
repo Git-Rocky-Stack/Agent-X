@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Xml.Linq;
@@ -191,6 +192,30 @@ public class WebScraperService : IWebScraperService
             // 3. Extract metadata from <head>
             var metadata = ExtractMetadata(htmlDoc, url);
 
+            // 3b. Enrich author metadata with JSON-LD and additional meta author sources
+            // JSON-LD author takes highest priority (most reliable on modern sites)
+            var jsonLdAuthor = ExtractJsonLdAuthor(htmlDoc);
+            if (!string.IsNullOrEmpty(jsonLdAuthor))
+            {
+                metadata.Author = jsonLdAuthor;
+            }
+            else if (string.IsNullOrEmpty(metadata.Author))
+            {
+                // Fall back to additional meta author sources not covered by ExtractMetadata
+                var metaAuthor = ExtractMetaAuthor(htmlDoc);
+                if (!string.IsNullOrEmpty(metaAuthor))
+                {
+                    metadata.Author = metaAuthor;
+                }
+            }
+
+            // 3c. Extract canonical URL
+            metadata.CanonicalUrl = ExtractCanonicalUrl(htmlDoc);
+
+            // 3d. Extract tables as markdown before readability (tables may be removed
+            //     during content extraction, and markdown format preserves structure)
+            var tableMarkdown = ExtractTablesAsMarkdown(htmlDoc);
+
             // 4. Extract article content using readability algorithm
             var articleText = ExtractArticleContent(htmlDoc);
 
@@ -216,6 +241,27 @@ public class WebScraperService : IWebScraperService
                             // Re-extract metadata from the rendered page (JS may have populated meta tags)
                             metadata = ExtractMetadata(renderedDoc, url);
 
+                            // Re-enrich author with JSON-LD and meta author from rendered page
+                            var renderedJsonLdAuthor = ExtractJsonLdAuthor(renderedDoc);
+                            if (!string.IsNullOrEmpty(renderedJsonLdAuthor))
+                            {
+                                metadata.Author = renderedJsonLdAuthor;
+                            }
+                            else if (string.IsNullOrEmpty(metadata.Author))
+                            {
+                                var renderedMetaAuthor = ExtractMetaAuthor(renderedDoc);
+                                if (!string.IsNullOrEmpty(renderedMetaAuthor))
+                                {
+                                    metadata.Author = renderedMetaAuthor;
+                                }
+                            }
+
+                            // Re-extract canonical URL from rendered page
+                            metadata.CanonicalUrl = ExtractCanonicalUrl(renderedDoc);
+
+                            // Re-extract tables as markdown from rendered page
+                            var renderedTableMarkdown = ExtractTablesAsMarkdown(renderedDoc);
+
                             // Re-run readability extraction on the rendered DOM
                             var renderedArticleText = ExtractArticleContent(renderedDoc);
 
@@ -227,6 +273,7 @@ public class WebScraperService : IWebScraperService
                                     articleText?.Length ?? 0, renderedArticleText.Length, url);
 
                                 articleText = renderedArticleText;
+                                tableMarkdown = renderedTableMarkdown;
                             }
                         }
                     }
@@ -246,6 +293,14 @@ public class WebScraperService : IWebScraperService
 
             // 6. Clean the extracted text
             var cleanedText = CleanText(articleText);
+
+            // 6b. Append table markdown if available (adds structured table data that
+            //     plain text extraction would lose)
+            if (!string.IsNullOrWhiteSpace(tableMarkdown))
+            {
+                cleanedText = cleanedText + "\n\n" + tableMarkdown.TrimEnd();
+            }
+
             var wordCount = CountWords(cleanedText);
 
             var result = new WebContent
@@ -259,6 +314,7 @@ public class WebScraperService : IWebScraperService
                 Description = metadata.Description,
                 FeaturedImageUrl = metadata.FeaturedImageUrl,
                 Language = metadata.Language,
+                CanonicalUrl = metadata.CanonicalUrl,
                 WordCount = wordCount,
                 Success = true,
             };
@@ -640,6 +696,197 @@ public class WebScraperService : IWebScraperService
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Extracts the author name from JSON-LD structured data embedded in
+    /// <c>&lt;script type="application/ld+json"&gt;</c> blocks. JSON-LD is the most
+    /// reliable source for author information on modern websites and takes priority
+    /// over meta tag extraction.
+    /// </summary>
+    private string? ExtractJsonLdAuthor(HtmlDocument doc)
+    {
+        var scripts = doc.DocumentNode.SelectNodes("//script[@type='application/ld+json']");
+        if (scripts == null) return null;
+
+        foreach (var script in scripts)
+        {
+            try
+            {
+                using var json = JsonDocument.Parse(script.InnerText);
+                var root = json.RootElement;
+
+                // Handle arrays of JSON-LD objects (some pages have multiple scripts)
+                if (root.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var item in root.EnumerateArray())
+                    {
+                        var author = ExtractAuthorFromJsonElement(item);
+                        if (author != null) return author;
+                    }
+                }
+                else
+                {
+                    var author = ExtractAuthorFromJsonElement(root);
+                    if (author != null) return author;
+                }
+            }
+            catch
+            {
+                // Skip malformed JSON-LD blocks
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Extracts the author name from a single JSON-LD element, handling both
+    /// string-form authors and object-form authors with a "name" property.
+    /// Also checks nested <c>@graph</c> structures common in schema.org markup.
+    /// </summary>
+    private static string? ExtractAuthorFromJsonElement(JsonElement element)
+    {
+        // Check for @graph arrays (schema.org commonly uses this pattern)
+        if (element.TryGetProperty("@graph", out var graph) && graph.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var graphItem in graph.EnumerateArray())
+            {
+                if (graphItem.TryGetProperty("author", out var graphAuthor))
+                {
+                    var name = ResolveAuthorName(graphAuthor);
+                    if (name != null) return name;
+                }
+            }
+        }
+
+        if (element.TryGetProperty("author", out var author))
+        {
+            return ResolveAuthorName(author);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Resolves an author value from JSON-LD, which may be a plain string,
+    /// a single object with a "name" property, or an array of authors.
+    /// Returns the first author name found.
+    /// </summary>
+    private static string? ResolveAuthorName(JsonElement author)
+    {
+        if (author.ValueKind == JsonValueKind.String)
+            return author.GetString();
+
+        if (author.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in author.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.String)
+                    return item.GetString();
+
+                if (item.TryGetProperty("name", out var name))
+                    return name.GetString();
+            }
+        }
+
+        if (author.TryGetProperty("name", out var objectName))
+            return objectName.GetString();
+
+        return null;
+    }
+
+    /// <summary>
+    /// Extracts the author name from HTML meta tags and link elements that are not
+    /// covered by <see cref="ExtractMetadata"/>: <c>article:author</c> meta property,
+    /// <c>author</c> meta name, and <c>&lt;a rel="author"&gt;</c> links.
+    /// This serves as a fallback when JSON-LD author data is unavailable.
+    /// </summary>
+    private static string? ExtractMetaAuthor(HtmlDocument doc)
+    {
+        // Try article:author meta property
+        var articleAuthor = doc.DocumentNode.SelectSingleNode("//meta[@property='article:author']");
+        if (articleAuthor != null)
+        {
+            var content = articleAuthor.GetAttributeValue("content", null);
+            if (!string.IsNullOrWhiteSpace(content)) return content.Trim();
+        }
+
+        // Try author meta tag (different from the property-based version)
+        var authorMeta = doc.DocumentNode.SelectSingleNode("//meta[@name='author']");
+        if (authorMeta != null)
+        {
+            var content = authorMeta.GetAttributeValue("content", null);
+            if (!string.IsNullOrWhiteSpace(content)) return content.Trim();
+        }
+
+        // Try rel=author link (common in WordPress and Blogger themes)
+        var authorLink = doc.DocumentNode.SelectSingleNode("//a[@rel='author']");
+        if (authorLink != null)
+        {
+            var text = authorLink.InnerText?.Trim();
+            if (!string.IsNullOrWhiteSpace(text)) return text;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Extracts the canonical URL from <c>&lt;link rel="canonical"&gt;</c> in the
+    /// document head. The canonical URL represents the preferred URL for the page,
+    /// which may differ from the request URL when pages have alternate URLs
+    /// (query parameters, www vs non-www, etc.).
+    /// </summary>
+    private static string? ExtractCanonicalUrl(HtmlDocument doc)
+    {
+        var link = doc.DocumentNode.SelectSingleNode("//link[@rel='canonical']");
+        return link?.GetAttributeValue("href", null);
+    }
+
+    /// <summary>
+    /// Converts HTML <c>&lt;table&gt;</c> elements to markdown table format.
+    /// Each table is rendered as a pipe-delimited markdown table with a separator
+    /// row after the header. Tables are separated by blank lines in the output.
+    /// </summary>
+    private static string ExtractTablesAsMarkdown(HtmlDocument doc)
+    {
+        var sb = new StringBuilder();
+        var tables = doc.DocumentNode.SelectNodes("//table");
+        if (tables == null) return string.Empty;
+
+        foreach (var table in tables)
+        {
+            var rows = table.SelectNodes(".//tr");
+            if (rows == null) continue;
+
+            var isFirstRow = true;
+            foreach (var row in rows)
+            {
+                var cells = row.SelectNodes(".//th | .//td");
+                if (cells == null) continue;
+
+                var cellTexts = cells.Select(c =>
+                {
+                    var text = WebUtility.HtmlDecode(c.InnerText ?? string.Empty).Trim();
+                    // Escape pipe characters in cell content for valid markdown
+                    return text.Replace("|", "\\|");
+                }).ToList();
+
+                if (cellTexts.Count == 0) continue;
+
+                sb.AppendLine("| " + string.Join(" | ", cellTexts) + " |");
+
+                if (isFirstRow)
+                {
+                    sb.AppendLine("| " + string.Join(" | ", cellTexts.Select(_ => "---")) + " |");
+                    isFirstRow = false;
+                }
+            }
+
+            sb.AppendLine();
+        }
+
+        return sb.ToString();
     }
 
     // ─── Readability / Content Extraction ───────────────────────────────────
@@ -1293,5 +1540,6 @@ public class WebScraperService : IWebScraperService
         public string? Description { get; set; }
         public string? FeaturedImageUrl { get; set; }
         public string? Language { get; set; }
+        public string? CanonicalUrl { get; set; }
     }
 }
