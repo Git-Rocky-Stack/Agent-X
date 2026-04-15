@@ -8,6 +8,7 @@ using AgentX.Core.AI.Models;
 using AgentX.Core.AI.Routing;
 using AgentX.Core.Data;
 using AgentX.Core.Data.VectorDb;
+using AgentX.Core.Services.Screen;
 using AgentX.Core.Documents;
 using AgentX.Core.Documents.Processors;
 using AgentX.Core.Services.Chat;
@@ -224,6 +225,9 @@ public partial class App : Application
         services.AddSingleton<ISystemPromptService, SystemPromptService>();
         services.AddSingleton<IConversationMemoryService, ConversationMemoryService>();
         services.AddSingleton<IChatService, ChatService>();
+
+        // ── Screen Awareness ─────────────────────────────────────
+        services.AddSingleton<IScreenCaptureService, ScreenCaptureService>();
 
         // ── Document Processors ──────────────────────────────────
         services.AddSingleton<IDocumentProcessor, PdfProcessor>();
