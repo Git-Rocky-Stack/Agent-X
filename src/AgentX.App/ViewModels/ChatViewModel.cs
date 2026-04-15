@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Audio;
 using AgentX.Core.Services.Audio.Models;
 using AgentX.Core.Services.Chat;
@@ -48,6 +49,30 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     // ── Panel State ────────────────────────────────────────────
     [ObservableProperty] private bool _isConversationPaneOpen = true;
     [ObservableProperty] private bool _showSystemPromptPicker;
+
+    // ── Research Mode ──────────────────────────────────────────
+    private bool _isResearchMode;
+    public bool IsResearchMode
+    {
+        get => _isResearchMode;
+        set
+        {
+            if (SetProperty(ref _isResearchMode, value))
+            {
+                OnPropertyChanged(nameof(ResearchModeTooltip));
+            }
+        }
+    }
+
+    public string ResearchModeTooltip => IsResearchMode
+        ? "Research Mode ON — answers include web sources"
+        : "Research Mode OFF — local vault only";
+
+    [RelayCommand]
+    private void ToggleResearchMode()
+    {
+        IsResearchMode = !IsResearchMode;
+    }
 
     // ── Search ─────────────────────────────────────────────────
     [ObservableProperty] private string _conversationSearchQuery = string.Empty;
@@ -1775,6 +1800,12 @@ public class ChatMessageItem : ObservableObject
         get => _branchCountAtPoint;
         set => SetProperty(ref _branchCountAtPoint, value);
     }
+
+    /// <summary>Web citations associated with this message (from Deep Research Mode).</summary>
+    public IReadOnlyList<WebCitation>? WebCitations { get; set; }
+
+    /// <summary>Whether this message has web citations to display.</summary>
+    public bool HasWebCitations => WebCitations?.Count > 0;
 }
 
 /// <summary>

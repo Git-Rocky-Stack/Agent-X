@@ -259,6 +259,20 @@ public partial class App : Application
 
         services.AddSingleton<IRagPipeline, RagPipeline>();
 
+        // ── Deep Research (Web Search) ────────────────────────────
+        services.AddSingleton<WebSearchCache>();
+        services.AddSingleton<WebSearchServiceFactory>(sp =>
+        {
+            var settings = sp.GetRequiredService<ISettingsService>().GetSettingsAsync().GetAwaiter().GetResult();
+            return new WebSearchServiceFactory(settings.WebSearchApiKey, settings.WebSearchApiKey, null);
+        });
+        services.AddSingleton<IWebSearchService>(sp =>
+        {
+            var factory = sp.GetRequiredService<WebSearchServiceFactory>();
+            var settings = sp.GetRequiredService<ISettingsService>().GetSettingsAsync().GetAwaiter().GetResult();
+            return factory.GetConfiguredService(settings);
+        });
+
         // ── Validation ──────────────────────────────────────────
         services.AddSingleton<IValidator<AppSettings>, AppSettingsValidator>();
         services.AddSingleton<IValidator<SyncConfiguration>, SyncConfigurationValidator>();

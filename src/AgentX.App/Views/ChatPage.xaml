@@ -999,6 +999,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
                         <!-- Multi-line input TextBox -->
@@ -1058,8 +1059,21 @@
                             </Button>
                         </StackPanel>
 
+                        <!-- Research Mode toggle -->
+                        <ToggleButton Grid.Column="2"
+                                      x:Name="ResearchModeToggle"
+                                      Style="{StaticResource GhostButtonStyle}"
+                                      Padding="10,10,10,10"
+                                      MinHeight="44"
+                                      MinWidth="44"
+                                      IsChecked="{x:Bind ViewModel.IsResearchMode, Mode=TwoWay}"
+                                      ToolTipService.ToolTip="{x:Bind ViewModel.ResearchModeTooltip, Mode=OneWay}">
+                            <FontIcon Glyph="&#xE774;" FontSize="16"
+                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                        </ToggleButton>
+
                         <!-- Action buttons stack -->
-                        <StackPanel Grid.Column="2"
+                        <StackPanel Grid.Column="3"
                                     Spacing="4"
                                     VerticalAlignment="Bottom"
                                     Margin="0,0,0,2">

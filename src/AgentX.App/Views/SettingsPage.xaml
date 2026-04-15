@@ -26,6 +26,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <!-- Header -->
@@ -438,6 +439,64 @@
                  ════════════════════════════════════════════════════════ -->
             <Border Grid.Row="7" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
+                    <TextBlock Text="Research Mode"
+                               Style="{StaticResource HeadingSmallStyle}" />
+
+                    <TextBlock Text="Augment AI answers with live web sources. When enabled, queries will search the web and blend results with your local Knowledge Vault."
+                               Style="{StaticResource BodySecondaryStyle}"
+                               TextWrapping="Wrap" />
+
+                    <ToggleSwitch Header="Enable Research Mode"
+                                  IsOn="{x:Bind ViewModel.EnableResearchMode, Mode=TwoWay}"
+                                  OffContent="Local vault only"
+                                  OnContent="Local vault + web search" />
+
+                    <StackPanel Spacing="12"
+                                Visibility="{x:Bind ViewModel.EnableResearchMode, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Search Provider"
+                                       Style="{StaticResource LabelStyle}" />
+                            <ComboBox ItemsSource="{x:Bind ViewModel.WebSearchProviders, Mode=OneWay}"
+                                      SelectedItem="{x:Bind ViewModel.SelectedWebSearchProvider, Mode=TwoWay}"
+                                      HorizontalAlignment="Stretch"
+                                      MinWidth="200" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Search API Key"
+                                       Style="{StaticResource LabelStyle}" />
+                            <PasswordBox Password="{x:Bind ViewModel.WebSearchApiKey, Mode=TwoWay}"
+                                         PlaceholderText="Enter your search API key"
+                                         CornerRadius="{StaticResource RadiusMD}"
+                                         MinHeight="40" />
+                        </StackPanel>
+
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Max Search Results"
+                                           Style="{StaticResource LabelStyle}" />
+                                <NumberBox Value="{x:Bind ViewModel.MaxSearchResults, Mode=TwoWay}"
+                                           Minimum="1" Maximum="20" SpinButtonPlacementMode="Compact" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Spacing="6">
+                                <TextBlock Text="Cache Duration (minutes)"
+                                           Style="{StaticResource LabelStyle}" />
+                                <NumberBox Value="{x:Bind ViewModel.SearchCacheTtlMinutes, Mode=TwoWay}"
+                                           Minimum="5" Maximum="1440" SpinButtonPlacementMode="Compact" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="8" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="16">
 
                     <!-- License Header with Tier Badge -->
                     <StackPanel Orientation="Horizontal" Spacing="12">
@@ -519,7 +578,7 @@
             <!-- ════════════════════════════════════════════════════════
                  STORAGE
                  ════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="8" Style="{StaticResource CardStyle}">
+            <Border Grid.Row="9" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="12">
                     <TextBlock Text="Storage"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -536,7 +595,7 @@
             <!-- ════════════════════════════════════════════════════════
                  ACTIONS
                  ════════════════════════════════════════════════════════ -->
-            <Grid Grid.Row="9" ColumnSpacing="12">
+            <Grid Grid.Row="10" ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />

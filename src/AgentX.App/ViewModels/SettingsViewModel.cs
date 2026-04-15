@@ -4,6 +4,7 @@ using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.AI.Routing;
 using AgentX.Core.Services.License;
+using AgentX.Core.Services.Search;
 using AgentX.Core.Services.Security;
 using AgentX.Core.Services.Settings;
 using AgentX.App.Services;
@@ -84,6 +85,16 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private string _activeRoutingProfileId = "balanced";
     [ObservableProperty] private int _routingProfileIndex;
 
+    // ── Deep Research Mode ──────────────────────────────
+    [ObservableProperty] private bool _enableResearchMode;
+    [ObservableProperty] private WebSearchProvider _selectedWebSearchProvider = WebSearchProvider.Brave;
+    [ObservableProperty] private string? _webSearchApiKey;
+    [ObservableProperty] private int _maxSearchResults = 10;
+    [ObservableProperty] private int _searchCacheTtlMinutes = 60;
+
+    public IReadOnlyList<WebSearchProvider> WebSearchProviders { get; }
+        = Enum.GetValues<WebSearchProvider>().ToList();
+
     // ── App Info ────────────────────────────────────────────
     [ObservableProperty] private string _appVersion = "1.0.0";
 
@@ -163,6 +174,13 @@ public partial class SettingsViewModel : ObservableObject
             EnableModelRouting = settings.EnableModelRouting;
             ActiveRoutingProfileId = settings.ActiveRoutingProfileId ?? "balanced";
             RoutingProfileIndex = RoutingProfileIdToIndex(ActiveRoutingProfileId);
+
+            // Deep Research Mode
+            EnableResearchMode = settings.EnableResearchMode;
+            SelectedWebSearchProvider = settings.WebSearchProvider;
+            WebSearchApiKey = settings.WebSearchApiKey;
+            MaxSearchResults = settings.MaxSearchResults;
+            SearchCacheTtlMinutes = settings.SearchCacheTtlMinutes;
         }
 
         // Load cost tracking data
@@ -229,6 +247,13 @@ public partial class SettingsViewModel : ObservableObject
         settings.EnableModelRouting = EnableModelRouting;
         settings.ActiveRoutingProfileId = RoutingProfileIndexToId(RoutingProfileIndex);
         ActiveRoutingProfileId = settings.ActiveRoutingProfileId;
+
+        // Deep Research Mode
+        settings.EnableResearchMode = EnableResearchMode;
+        settings.WebSearchProvider = SelectedWebSearchProvider;
+        settings.WebSearchApiKey = string.IsNullOrWhiteSpace(WebSearchApiKey) ? null : WebSearchApiKey;
+        settings.MaxSearchResults = MaxSearchResults;
+        settings.SearchCacheTtlMinutes = SearchCacheTtlMinutes;
 
         await _settingsService.SaveSettingsAsync(settings);
 
@@ -401,6 +426,13 @@ public partial class SettingsViewModel : ObservableObject
         EnableModelRouting = false;
         RoutingProfileIndex = 2; // Balanced
         ActiveRoutingProfileId = "balanced";
+
+        // Deep Research Mode
+        EnableResearchMode = false;
+        SelectedWebSearchProvider = WebSearchProvider.Brave;
+        WebSearchApiKey = null;
+        MaxSearchResults = 10;
+        SearchCacheTtlMinutes = 60;
 
         // Clear connection statuses
         OllamaConnectionStatus = string.Empty;
