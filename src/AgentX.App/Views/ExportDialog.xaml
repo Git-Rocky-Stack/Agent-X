@@ -1,0 +1,42 @@
+<ContentDialog
+    x:Class="AgentX.App.Views.ExportDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Export Conversation"
+    PrimaryButtonText="Export"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    PrimaryButtonClick="OnPrimaryButtonClick">
+
+    <StackPanel Spacing="12" MinWidth="400">
+        <ComboBox x:Name="FormatCombo"
+                  Header="Format"
+                  HorizontalAlignment="Stretch"
+                  SelectedIndex="0" />
+
+        <ComboBox x:Name="TemplateCombo"
+                  Header="Template (optional)"
+                  HorizontalAlignment="Stretch"
+                  SelectedIndex="0" />
+
+        <ToggleSwitch x:Name="IncludeCitationsToggle"
+                      Header="Include citations"
+                      IsOn="True" />
+
+        <ToggleSwitch x:Name="IncludeMetadataToggle"
+                      Header="Include metadata"
+                      IsOn="True" />
+
+        <ToggleSwitch x:Name="IncludeTimestampsToggle"
+                      Header="Include timestamps"
+                      IsOn="True" />
+
+        <ToggleSwitch x:Name="IncludeBranchesToggle"
+                      Header="Include branches"
+                      IsOn="True" />
+
+        <InfoBar x:Name="StatusInfoBar"
+                 IsClosable="True"
+                 IsOpen="False" />
+    </StackPanel>
+</ContentDialog>

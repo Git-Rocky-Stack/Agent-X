@@ -42,4 +42,16 @@ public class ExportOptions
     /// If null, the conversation title or a generated title is used.
     /// </summary>
     public string? Title { get; set; }
+
+    /// <summary>
+    /// When set, the export is structured according to the specified template
+    /// (e.g., Research Report, Executive Summary, Annotated Bibliography).
+    /// Templates are only applicable to Markdown, HTML, and DOCX formats.
+    /// </summary>
+    public ExportTemplateId? TemplateId { get; set; }
+
+    /// <summary>
+    /// When true, conversation branch data is included in the export.
+    /// </summary>
+    public bool IncludeBranches { get; set; } = true;
 }

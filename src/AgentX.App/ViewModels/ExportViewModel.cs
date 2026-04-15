@@ -49,7 +49,7 @@ public partial class ExportViewModel : ObservableObject
 
         try
         {
-            var options = BuildOptions(request.OutputPath, request.Title);
+            var options = request.Options ?? BuildOptions(request.OutputPath, request.Title);
             var result = await _exportService.ExportConversationAsync(
                 request.ConversationId, options, CancellationToken.None);
 
@@ -179,6 +179,6 @@ public partial class ExportViewModel : ObservableObject
 
 // ── Request Models ──────────────────────────────────────────────
 
-public record ExportConversationRequest(long ConversationId, string? OutputPath = null, string? Title = null);
+public record ExportConversationRequest(long ConversationId, ExportOptions? Options = null, string? OutputPath = null, string? Title = null);
 public record ExportBatchRequest(IReadOnlyList<long> ConversationIds, string? OutputPath = null, string? Title = null);
 public record ExportCollectionRequest(long CollectionId, string? OutputPath = null, string? Title = null);

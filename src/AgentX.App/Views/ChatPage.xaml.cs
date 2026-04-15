@@ -410,6 +410,29 @@ public sealed partial class ChatPage : Page
     }
 
     // ═══════════════════════════════════════════════════════════════
+    // EXPORT
+    // ═══════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Opens the ExportDialog for the active conversation.
+    /// Replaces the previous MenuFlyout approach with a full-featured
+    /// dialog that supports all 8 export formats and 3 built-in templates.
+    /// </summary>
+    private async void ExportButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.ActiveConversationId is null) return;
+
+        var exportVm = App.GetService<ExportViewModel>();
+        var dialog = new ExportDialog(exportVm);
+        dialog.SetConversation(
+            ViewModel.ActiveConversationId.Value,
+            ViewModel.ActiveConversationTitle ?? "Conversation");
+        dialog.XamlRoot = this.XamlRoot;
+
+        await dialog.ShowAsync();
+    }
+
+    // ═══════════════════════════════════════════════════════════════
     // CONVERSATION LIST SELECTION
     // ═══════════════════════════════════════════════════════════════
 

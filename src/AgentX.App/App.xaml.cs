@@ -273,6 +273,7 @@ public partial class App : Application
 
         // ── Export Services ──────────────────────────────────
         services.AddSingleton<IExportService, ExportService>();
+        services.AddSingleton<IExportTemplateService, ExportTemplateService>();
 
         // ── Workflow Services ────────────────────────────────
         services.AddSingleton<IWorkflowService, WorkflowService>();
