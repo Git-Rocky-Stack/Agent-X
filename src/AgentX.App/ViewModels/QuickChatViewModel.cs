@@ -161,6 +161,7 @@ public partial class QuickChatViewModel : ObservableObject
         ResponseText = string.Empty;
         StatusMessage = "Ready";
         IsProcessing = false;
+        ScreenContextCaptured = false;
     }
 
     /// <summary>

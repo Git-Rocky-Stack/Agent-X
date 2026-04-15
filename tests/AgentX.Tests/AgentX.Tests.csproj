@@ -28,6 +28,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\AgentX.Core\AgentX.Core.csproj" />
+    <!-- QuickChatViewModel is linked from AgentX.App because the WinUI 3 app project
+         cannot be referenced directly (WindowsAppSDKSelfContained requires a RID). -->
+    <Compile Include="..\..\src\AgentX.App\ViewModels\QuickChatViewModel.cs" Link="ViewModels\QuickChatViewModel.cs" />
   </ItemGroup>
 </Project>
