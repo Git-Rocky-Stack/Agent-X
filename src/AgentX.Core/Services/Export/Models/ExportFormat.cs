@@ -34,4 +34,14 @@ public enum ExportFormat
     /// Comma-separated values (.csv) for spreadsheet import and data analysis.
     /// </summary>
     Csv,
+
+    /// <summary>
+    /// Word document (.docx) with formatted conversation content using OpenXML SDK.
+    /// </summary>
+    Docx,
+
+    /// <summary>
+    /// PowerPoint presentation (.pptx) with key insights as slides using OpenXML SDK.
+    /// </summary>
+    Pptx,
 }

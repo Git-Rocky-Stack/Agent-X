@@ -4,7 +4,7 @@ namespace AgentX.Core.Services.Export;
 
 /// <summary>
 /// Exports conversations, search results, and document collections to various
-/// file formats (Markdown, HTML, PDF, JSON, PlainText, CSV). Handles formatting,
+/// file formats (Markdown, HTML, PDF, JSON, PlainText, CSV, DOCX, PPTX). Handles formatting,
 /// file I/O, and error recovery for all export operations.
 /// </summary>
 public interface IExportService

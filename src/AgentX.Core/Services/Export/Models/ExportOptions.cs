@@ -7,7 +7,7 @@ namespace AgentX.Core.Services.Export.Models;
 public class ExportOptions
 {
     /// <summary>
-    /// The desired output format (Markdown, HTML, PDF, JSON, PlainText, or Csv).
+    /// The desired output format (Markdown, HTML, PDF, JSON, PlainText, Csv, Docx, or Pptx).
     /// </summary>
     public ExportFormat Format { get; set; } = ExportFormat.Markdown;
 
