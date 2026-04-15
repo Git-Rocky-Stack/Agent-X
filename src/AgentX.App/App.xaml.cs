@@ -212,7 +212,12 @@ public partial class App : Application
         services.AddSingleton<IModelRouterService, ModelRouterService>();
 
         // ── Vector Store ─────────────────────────────────────────
-        services.AddSingleton<IVectorStore, SqliteVecStore>();
+        services.AddSingleton<IVectorStore>(sp =>
+        {
+            var settingsService = sp.GetRequiredService<ISettingsService>();
+            var logger = sp.GetRequiredService<Serilog.ILogger>();
+            return VectorStoreFactory.Create(settingsService, logger);
+        });
 
         // ── Chat Services ──────────────────────────────────────
         services.AddSingleton<IConversationService, ConversationService>();

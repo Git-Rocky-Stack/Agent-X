@@ -52,6 +52,13 @@ public class AppSettings
     public int MaxSearchResults { get; set; } = 10;
     public int SearchCacheTtlMinutes { get; set; } = 60;
 
+    // HNSW Vector Search
+    public bool EnableHnswIndex { get; set; } = true;
+    public int HnswM { get; set; } = 16;
+    public int HnswEfConstruction { get; set; } = 200;
+    public int HnswEfSearch { get; set; } = 50;
+    public int HnswFallbackThreshold { get; set; } = 10000;
+
     // Storage
     public string StoragePath { get; set; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
