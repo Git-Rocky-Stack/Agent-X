@@ -42,6 +42,12 @@ public partial class WebImportViewModel : ObservableObject
     [ObservableProperty] private int _successCount;
     [ObservableProperty] private int _failCount;
 
+    // ── Feed & Sitemap State ────────────────────────────────
+    [ObservableProperty] private string _feedUrl = string.Empty;
+    [ObservableProperty] private string _sitemapUrl = string.Empty;
+    [ObservableProperty] private bool _isSubscribingFeed;
+    [ObservableProperty] private string _feedStatusMessage = string.Empty;
+
     private CancellationTokenSource? _importCts;
 
     public WebImportViewModel(
@@ -207,6 +213,177 @@ public partial class WebImportViewModel : ObservableObject
         UrlInput = string.Empty;
         HasPreview = false;
         StatusMessage = string.Empty;
+    }
+
+    // ── Feed Subscription ────────────────────────────────────
+
+    [RelayCommand]
+    private async Task SubscribeToFeedAsync()
+    {
+        if (string.IsNullOrWhiteSpace(FeedUrl)) return;
+
+        IsSubscribingFeed = true;
+        FeedStatusMessage = "Subscribing...";
+
+        try
+        {
+            var feedService = App.GetService<IFeedService>();
+            var feed = await feedService.ParseFeedAsync(FeedUrl);
+            FeedStatusMessage = $"Subscribed: {feed.Title} ({feed.Items.Count} items)";
+
+            var urls = feed.Items
+                .Select(i => i.Url)
+                .Where(u => !string.IsNullOrWhiteSpace(u))
+                .ToList();
+
+            if (urls.Count > 0)
+            {
+                IsImporting = true;
+                ImportProgress = 0;
+                ImportTotal = urls.Count;
+                ImportResults.Clear();
+                SuccessCount = 0;
+                FailCount = 0;
+                _importCts = new CancellationTokenSource();
+
+                try
+                {
+                    var progress = new Progress<int>(completed =>
+                    {
+                        ImportProgress = completed;
+                        StatusMessage = $"Importing {completed}/{urls.Count}...";
+                    });
+
+                    long? collectionId = SelectedCollection?.Id;
+                    var documents = await _webImportService.ImportFromUrlsAsync(
+                        urls, collectionId, progress, _importCts.Token);
+
+                    for (int i = 0; i < urls.Count; i++)
+                    {
+                        var doc = i < documents.Count ? documents[i] : null;
+                        var success = doc is not null;
+
+                        ImportResults.Add(new WebImportResultItem
+                        {
+                            Url = urls[i],
+                            DocumentName = doc?.FileName ?? "Failed",
+                            Success = success,
+                            WordCount = doc?.WordCount ?? 0,
+                            ErrorMessage = success ? null : "Failed to import"
+                        });
+
+                        if (success) SuccessCount++;
+                        else FailCount++;
+                    }
+
+                    HasResults = true;
+                    StatusMessage = $"Imported {SuccessCount} of {urls.Count} feed items";
+                }
+                catch (OperationCanceledException)
+                {
+                    StatusMessage = "Feed import cancelled";
+                }
+                finally
+                {
+                    IsImporting = false;
+                    _importCts?.Dispose();
+                    _importCts = null;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to subscribe to feed: {Url}", FeedUrl);
+            FeedStatusMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            IsSubscribingFeed = false;
+        }
+    }
+
+    // ── Sitemap Import ──────────────────────────────────────
+
+    [RelayCommand]
+    private async Task ImportSitemapAsync()
+    {
+        if (string.IsNullOrWhiteSpace(SitemapUrl)) return;
+
+        IsImporting = true;
+        StatusMessage = "Parsing sitemap...";
+
+        try
+        {
+            var sitemapParser = App.GetService<ISitemapParser>();
+            var urls = await sitemapParser.ParseSitemapAsync(SitemapUrl);
+            StatusMessage = $"Found {urls.Count} URLs. Importing...";
+
+            var urlsToImport = urls.Take(100).ToList();
+            if (urlsToImport.Count == 0)
+            {
+                StatusMessage = "No URLs found in sitemap";
+                return;
+            }
+
+            ImportProgress = 0;
+            ImportTotal = urlsToImport.Count;
+            ImportResults.Clear();
+            SuccessCount = 0;
+            FailCount = 0;
+            _importCts = new CancellationTokenSource();
+
+            try
+            {
+                var progress = new Progress<int>(completed =>
+                {
+                    ImportProgress = completed;
+                    StatusMessage = $"Importing {completed}/{urlsToImport.Count}...";
+                });
+
+                long? collectionId = SelectedCollection?.Id;
+                var documents = await _webImportService.ImportFromUrlsAsync(
+                    urlsToImport, collectionId, progress, _importCts.Token);
+
+                for (int i = 0; i < urlsToImport.Count; i++)
+                {
+                    var doc = i < documents.Count ? documents[i] : null;
+                    var success = doc is not null;
+
+                    ImportResults.Add(new WebImportResultItem
+                    {
+                        Url = urlsToImport[i],
+                        DocumentName = doc?.FileName ?? "Failed",
+                        Success = success,
+                        WordCount = doc?.WordCount ?? 0,
+                        ErrorMessage = success ? null : "Failed to import"
+                    });
+
+                    if (success) SuccessCount++;
+                    else FailCount++;
+                }
+
+                HasResults = true;
+                StatusMessage = $"Imported {SuccessCount} of {urlsToImport.Count} sitemap URLs";
+            }
+            catch (OperationCanceledException)
+            {
+                StatusMessage = "Sitemap import cancelled";
+            }
+            finally
+            {
+                _importCts?.Dispose();
+                _importCts = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to import sitemap: {Url}", SitemapUrl);
+            StatusMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            IsImporting = false;
+        }
     }
 }
 

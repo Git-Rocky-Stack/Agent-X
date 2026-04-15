@@ -281,6 +281,9 @@ public partial class App : Application
         // ── Web Services ─────────────────────────────────────
         services.AddSingleton<IWebScraperService, WebScraperService>();
         services.AddSingleton<IWebImportService, WebImportService>();
+        services.AddSingleton<IFeedService, FeedService>();
+        services.AddSingleton<ISitemapParser, SitemapParser>();
+        services.AddSingleton<IJsRenderingService, JsRenderingService>();
 
         // ── Conversation Branching ───────────────────────────
         services.AddSingleton<IConversationBranchService, ConversationBranchService>();
