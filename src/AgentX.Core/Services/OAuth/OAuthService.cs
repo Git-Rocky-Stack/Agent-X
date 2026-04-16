@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Security;
@@ -324,23 +325,23 @@ public sealed class OAuthService : IOAuthService
     /// </summary>
     private static string BuildAuthorizationUrl(OAuthProviderConfig config, string scopes, string redirectUri)
     {
-        var queryParams = new Dictionary<string, string>
+        var queryParams = new List<KeyValuePair<string, string>>
         {
-            ["client_id"] = config.ClientId,
-            ["redirect_uri"] = redirectUri,
-            ["response_type"] = "code",
-            ["scope"] = scopes,
-            ["access_type"] = "offline",
-            ["prompt"] = "consent"
+            new("client_id", config.ClientId),
+            new("redirect_uri", redirectUri),
+            new("response_type", "code"),
+            new("scope", scopes),
+            new("access_type", "offline"),
+            new("prompt", "consent")
         };
 
-        var builder = new UriBuilder(config.AuthorizationEndpoint);
-        var query = HttpUtility.ParseQueryString(builder.Query);
-        foreach (var (key, value) in queryParams)
+        var query = string.Join("&", queryParams.Select(kvp =>
+            $"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}"));
+
+        var builder = new UriBuilder(config.AuthorizationEndpoint)
         {
-            query[key] = value;
-        }
-        builder.Query = query.ToString();
+            Query = query
+        };
         return builder.Uri.ToString();
     }
 
@@ -668,54 +669,34 @@ public sealed class OAuthService : IOAuthService
 
     /// <summary>
     /// DTO for deserializing the OAuth2 token endpoint response.
+    /// OAuth2 providers return snake_case JSON fields, so explicit
+    /// <see cref="JsonPropertyNameAttribute"/> mappings are required
+    /// since <see cref="JsonSerializerOptions.PropertyNameCaseInsensitive"/>
+    /// only handles case differences, not snake_case-to-PascalCase conversion.
     /// </summary>
     private sealed class TokenResponse
     {
+        [JsonPropertyName("access_token")]
         public string AccessToken { get; set; } = string.Empty;
+
+        [JsonPropertyName("refresh_token")]
         public string? RefreshToken { get; set; }
+
+        [JsonPropertyName("expires_in")]
         public int ExpiresInSeconds { get; set; }
+
+        [JsonPropertyName("token_type")]
         public string? TokenType { get; set; }
+
+        [JsonPropertyName("scope")]
         public string? Scope { get; set; }
+
+        [JsonPropertyName("id_token")]
+        public string? IdToken { get; set; }
+
+        // Non-standard field; some providers include user_id in token response
+        [JsonPropertyName("user_id")]
         public string? UserId { get; set; }
     }
 }
 
-/// <summary>
-/// Helper for URL query string parsing, needed by <see cref="OAuthService.BuildAuthorizationUrl"/>.
-/// Provides <see cref="ParseQueryString"/> on all .NET targets.
-/// </summary>
-internal static class HttpUtility
-{
-    /// <summary>
-    /// Parses a query string into a collection of name-value pairs.
-    /// This is a minimal implementation that handles the OAuth authorization URL construction.
-    /// </summary>
-    public static Dictionary<string, string> ParseQueryString(string? query)
-    {
-        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-        if (string.IsNullOrEmpty(query))
-            return result;
-
-        // Strip leading '?' if present
-        if (query.StartsWith('?'))
-            query = query[1..];
-
-        foreach (var pair in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
-        {
-            var eqIndex = pair.IndexOf('=');
-            if (eqIndex < 0)
-            {
-                result[Uri.UnescapeDataString(pair)] = string.Empty;
-            }
-            else
-            {
-                var key = Uri.UnescapeDataString(pair[..eqIndex]);
-                var value = Uri.UnescapeDataString(pair[(eqIndex + 1)..]);
-                result[key] = value;
-            }
-        }
-
-        return result;
-    }
-}
