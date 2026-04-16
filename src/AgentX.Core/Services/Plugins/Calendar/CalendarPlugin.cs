@@ -428,8 +428,7 @@ public sealed class CalendarPlugin : IPlugin
     /// <summary>
     /// Checks which providers have valid OAuth credentials and registers
     /// their <see cref="ICalendarProvider"/> implementations.
-    /// Called during initialization. Provider implementations (GoogleCalendarProvider,
-    /// OutlookCalendarProvider) are registered in task FEAT10-P2-008 and FEAT10-P2-009.
+    /// Called during initialization.
     /// </summary>
     private async Task RegisterProvidersAsync()
     {
@@ -438,22 +437,20 @@ public sealed class CalendarPlugin : IPlugin
         if (_oauthService is null)
             return;
 
-        // Check Google credentials.
+        // Check Google credentials — register GoogleCalendarProvider if connected.
         var googleCred = await _oauthService.GetCredentialAsync("google").ConfigureAwait(false);
         if (googleCred is not null)
         {
-            _log?.Information("Google OAuth credential found — Google Calendar provider will be registered by task FEAT10-P2-008");
-            // GoogleCalendarProvider will be registered here in task FEAT10-P2-008:
-            // AddProvider(new GoogleCalendarProvider(_oauthService, _log));
+            _log?.Information("Google OAuth credential found — registering GoogleCalendarProvider");
+            AddProvider(new GoogleCalendarProvider(_oauthService, _log!));
         }
 
-        // Check Microsoft credentials.
+        // Check Microsoft credentials — register OutlookCalendarProvider if connected.
         var msCred = await _oauthService.GetCredentialAsync("microsoft").ConfigureAwait(false);
         if (msCred is not null)
         {
-            _log?.Information("Microsoft OAuth credential found — Outlook Calendar provider will be registered by task FEAT10-P2-009");
-            // OutlookCalendarProvider will be registered here in task FEAT10-P2-009:
-            // AddProvider(new OutlookCalendarProvider(_oauthService, _log));
+            _log?.Information("Microsoft OAuth credential found — registering OutlookCalendarProvider");
+            AddProvider(new OutlookCalendarProvider(_oauthService, _log!));
         }
     }
 
