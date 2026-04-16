@@ -97,7 +97,7 @@ public sealed class EmailPluginTests : IDisposable
     }
 
     [Fact]
-    public async Task ActivateAsync_WithoutInitialize_Throws()
+    public void ActivateAsync_WithoutInitialize_Throws()
     {
         Assert.Throws<InvalidOperationException>(() => _plugin.ActivateAsync().GetAwaiter().GetResult());
     }
@@ -167,7 +167,7 @@ public sealed class EmailPluginTests : IDisposable
     // ── Settings ──────────────────────────────────────────────────────────────
 
     [Fact]
-    public async Task GetSettings_ReturnsDefaultWhenNotInitialized()
+    public void GetSettings_ReturnsDefaultWhenNotInitialized()
     {
         // Default settings before initialization
         var settings = _plugin.GetSettings();

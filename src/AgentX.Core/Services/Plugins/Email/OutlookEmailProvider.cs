@@ -79,7 +79,7 @@ public sealed class OutlookEmailProvider : IEmailProvider
         var messages = new List<EmailMessage>();
 
         // Build URL: use delta endpoint if we have a token, otherwise initial delta query.
-        string url;
+        string? url;
         if (!string.IsNullOrEmpty(deltaToken))
         {
             // deltaToken is the full URL from @odata.deltaLink

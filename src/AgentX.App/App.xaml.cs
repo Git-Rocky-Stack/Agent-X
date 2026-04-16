@@ -121,7 +121,15 @@ public partial class App : Application
                     UpdatedAt TEXT NOT NULL DEFAULT '0001-01-01T00:00:00'
                 )
                 """,
-                "CREATE UNIQUE INDEX IF NOT EXISTS ix_oauth_credentials_providerid ON oauth_credentials (ProviderId)"
+                "CREATE UNIQUE INDEX IF NOT EXISTS ix_oauth_credentials_providerid ON oauth_credentials (ProviderId)",
+
+                // inbox_items: new columns for DataConnector plugin support (Calendar/Email)
+                "ALTER TABLE inbox_items ADD COLUMN SourceType TEXT NULL",
+                "ALTER TABLE inbox_items ADD COLUMN SourceUrl TEXT NULL",
+                "ALTER TABLE inbox_items ADD COLUMN SourcePluginId TEXT NULL",
+                "ALTER TABLE inbox_items ADD COLUMN SourceCategory TEXT NULL",
+                "ALTER TABLE inbox_items ADD COLUMN ExternalId TEXT NULL",
+                "ALTER TABLE inbox_items ADD COLUMN DocumentId INTEGER NULL",
             ];
 
             foreach (var sql in alterStatements)
