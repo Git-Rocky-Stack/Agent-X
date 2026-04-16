@@ -37,6 +37,7 @@ using AgentX.Core.Services.Analytics;
 using AgentX.Core.Services.Feedback;
 using AgentX.Core.Services.Collaboration;
 using AgentX.Core.Services.Api;
+using AgentX.Core.Services.OAuth;
 using AgentX.Core.Services.Security;
 using AgentX.Core.Validation;
 using AgentX.App.Services;
@@ -203,6 +204,9 @@ public partial class App : Application
         // ── Security ──────────────────────────────────────────
         services.AddSingleton<IDpapiEncryptionService, DpapiEncryptionService>();
         services.AddSingleton<ISecurityStatusService, SecurityStatusService>();
+
+        // ── OAuth ──────────────────────────────────────────────
+        services.AddSingleton<IOAuthService, OAuthService>();
 
         // ── Core Services ──────────────────────────────────────
         services.AddSingleton<ISettingsService, SettingsService>();
