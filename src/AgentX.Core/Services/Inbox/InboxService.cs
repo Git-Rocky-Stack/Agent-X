@@ -1,5 +1,6 @@
 using System.Text;
 using AgentX.Core.AI;
+using AgentX.Core.Documents;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
@@ -23,6 +24,7 @@ public sealed class InboxService : IInboxService
     private readonly ISummaryService _summaryService;
     private readonly ICollectionService _collectionService;
     private readonly IAiService _aiService;
+    private readonly IDocumentService? _documentService;
 
     /// <summary>
     /// Maximum characters read from a file for AI preview generation.
@@ -43,12 +45,14 @@ public sealed class InboxService : IInboxService
         AgentXDbContext dbContext,
         ISummaryService summaryService,
         ICollectionService collectionService,
-        IAiService aiService)
+        IAiService aiService,
+        IDocumentService? documentService = null)
     {
         _db = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _summaryService = summaryService ?? throw new ArgumentNullException(nameof(summaryService));
         _collectionService = collectionService ?? throw new ArgumentNullException(nameof(collectionService));
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
+        _documentService = documentService;
     }
 
     // ── Ingestion ────────────────────────────────────────────────────────────
@@ -611,6 +615,110 @@ public sealed class InboxService : IInboxService
             Log.Error(ex, "InboxService: Failed to delete processed inbox items");
             throw;
         }
+    }
+
+    // ── External (plugin-sourced) items ────────────────────────────────────────
+
+    /// <inheritdoc />
+    public async Task<InboxItemEntity> TriageExternalAsync(
+        string fileName,
+        string fileType,
+        string sourceType,
+        string? sourceUrl,
+        string sourcePluginId,
+        string? sourceCategory,
+        string externalId,
+        string? contentPreview,
+        string contentText)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourcePluginId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(externalId);
+
+        // Deduplicate: if an item with the same ExternalId and SourcePluginId already
+        // exists in the inbox, return it as-is.
+        var existing = await _db.InboxItems
+            .FirstOrDefaultAsync(i =>
+                i.ExternalId == externalId &&
+                i.SourcePluginId == sourcePluginId)
+            .ConfigureAwait(false);
+
+        if (existing is not null)
+        {
+            Log.Debug(
+                "InboxService: External item already in inbox (ExternalId={ExternalId}, Plugin={PluginId}) — skipping duplicate",
+                externalId, sourcePluginId);
+            return existing;
+        }
+
+        // Write content text to a temp file so the indexing pipeline can process it.
+        var tempDir = Path.Combine(
+            Path.GetTempPath(), "AgentX", "ExternalItems", sourcePluginId);
+        Directory.CreateDirectory(tempDir);
+
+        // Sanitize fileName for the filesystem.
+        var safeFileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
+        var tempFilePath = Path.Combine(tempDir, $"{externalId}_{safeFileName}.txt");
+
+        await File.WriteAllTextAsync(tempFilePath, contentText).ConfigureAwait(false);
+        var fileInfo = new FileInfo(tempFilePath);
+
+        var item = new InboxItemEntity
+        {
+            FilePath = tempFilePath,
+            FileName = fileName,
+            FileType = fileType,
+            FileSizeBytes = fileInfo.Length,
+            Status = "accepted", // Auto-accept external items
+            Preview = contentPreview,
+            AddedAt = DateTime.UtcNow,
+            ProcessedAt = DateTime.UtcNow,
+            SourceType = sourceType,
+            SourceUrl = sourceUrl,
+            SourcePluginId = sourcePluginId,
+            SourceCategory = sourceCategory,
+            ExternalId = externalId,
+        };
+
+        _db.InboxItems.Add(item);
+        await _db.SaveChangesAsync().ConfigureAwait(false);
+
+        // Bridge to the document library so the content is searchable.
+        // When IDocumentService is available, import the temp file with the
+        // semantic file type preserved (e.g. "CalendarEvent", "EmailMessage").
+        if (_documentService is not null)
+        {
+            try
+            {
+                var document = await _documentService.ImportExternalContentAsync(
+                    tempFilePath,
+                    fileType,
+                    displayName: fileName,
+                    sourceUrl: sourceUrl,
+                    ct: default).ConfigureAwait(false);
+
+                item.DocumentId = document.Id;
+                _db.InboxItems.Update(item);
+                await _db.SaveChangesAsync().ConfigureAwait(false);
+
+                Log.Debug(
+                    "InboxService: TriageExternal — linked inbox item {ItemId} to document {DocumentId}",
+                    item.Id, document.Id);
+            }
+            catch (Exception ex)
+            {
+                // Non-fatal: the inbox item is still valid; search indexing is best-effort.
+                Log.Warning(ex,
+                    "InboxService: TriageExternal — failed to import '{FileName}' into document library (non-fatal)",
+                    fileName);
+            }
+        }
+
+        Log.Information(
+            "InboxService: TriageExternal — added '{FileName}' (Plugin={PluginId}, ExternalId={ExternalId})",
+            fileName, sourcePluginId, externalId);
+
+        return item;
     }
 
     // ── Private helpers ──────────────────────────────────────────────────────

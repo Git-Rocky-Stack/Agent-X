@@ -60,6 +60,23 @@ public class SettingsService : ISettingsService
                         needsMigration = true;
                 }
 
+                // Decrypt OAuth client secrets
+                if (!string.IsNullOrEmpty(_cachedSettings.OAuth.Google.ClientSecret))
+                {
+                    if (_encryptionService.IsEncrypted(_cachedSettings.OAuth.Google.ClientSecret))
+                        _cachedSettings.OAuth.Google.ClientSecret = _encryptionService.Decrypt(_cachedSettings.OAuth.Google.ClientSecret);
+                    else
+                        needsMigration = true;
+                }
+
+                if (!string.IsNullOrEmpty(_cachedSettings.OAuth.Microsoft.ClientSecret))
+                {
+                    if (_encryptionService.IsEncrypted(_cachedSettings.OAuth.Microsoft.ClientSecret))
+                        _cachedSettings.OAuth.Microsoft.ClientSecret = _encryptionService.Decrypt(_cachedSettings.OAuth.Microsoft.ClientSecret);
+                    else
+                        needsMigration = true;
+                }
+
                 Log.Debug("Settings loaded from disk");
 
                 // Auto-migrate plaintext keys to DPAPI encryption
@@ -97,6 +114,8 @@ public class SettingsService : ISettingsService
             var onDiskSettings = JsonSerializer.Deserialize<AppSettings>(json, JsonOptions)!;
             onDiskSettings.OpenAiApiKey = EncryptIfNotEmpty(settings.OpenAiApiKey);
             onDiskSettings.AnthropicApiKey = EncryptIfNotEmpty(settings.AnthropicApiKey);
+            onDiskSettings.OAuth.Google.ClientSecret = EncryptIfNotEmpty(settings.OAuth.Google.ClientSecret) ?? string.Empty;
+            onDiskSettings.OAuth.Microsoft.ClientSecret = EncryptIfNotEmpty(settings.OAuth.Microsoft.ClientSecret) ?? string.Empty;
 
             var onDiskJson = JsonSerializer.Serialize(onDiskSettings, JsonOptions);
             await File.WriteAllTextAsync(_settingsPath, onDiskJson);

@@ -4,6 +4,7 @@ using Serilog;
 using Windows.Graphics.Imaging;
 using Windows.Media.Ocr;
 using Windows.Storage;
+using Windows.Storage.Streams;
 
 namespace AgentX.Core.Documents.Processors;
 
@@ -199,6 +200,126 @@ public class ImageProcessor : IDocumentProcessor
         }
 
         return (extractedText, originalWidth, originalHeight);
+    }
+
+    /// <summary>
+    /// Performs OCR on an existing <see cref="SoftwareBitmap"/> without requiring a file path.
+    /// <para>
+    /// This overload is designed for screen-capture and in-memory pipeline scenarios
+    /// where a <see cref="SoftwareBitmap"/> is already available (e.g. from P/Invoke
+    /// screen capture). The bitmap is scaled down if either dimension exceeds
+    /// <see cref="MaxOcrDimension"/> and then passed to <see cref="OcrEngine"/>
+    /// for text recognition.
+    /// </para>
+    /// </summary>
+    /// <param name="bitmap">
+    /// A <see cref="SoftwareBitmap"/> in any pixel format. The method converts to
+    /// <see cref="BitmapPixelFormat.Bgra8"/> with <see cref="BitmapAlphaMode.Premultiplied"/>
+    /// if necessary, as required by <see cref="OcrEngine"/>.
+    /// </param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>The extracted OCR text, or an empty string if no text is found.</returns>
+    public static async Task<string> ExtractTextFromSoftwareBitmapAsync(
+        SoftwareBitmap bitmap, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(bitmap);
+
+        var ocrEngine = OcrEngine.TryCreateFromUserProfileLanguages();
+        if (ocrEngine is null)
+        {
+            Log.Warning("No OCR engine available from user profile languages");
+            return string.Empty;
+        }
+
+        ct.ThrowIfCancellationRequested();
+
+        // Ensure the bitmap is in Bgra8 / Premultiplied — OcrEngine requirement
+        SoftwareBitmap? ocrBitmap = null;
+        SoftwareBitmap bitmapToOcr;
+
+        if (bitmap.BitmapPixelFormat != BitmapPixelFormat.Bgra8 ||
+            bitmap.BitmapAlphaMode != BitmapAlphaMode.Premultiplied)
+        {
+            ocrBitmap = SoftwareBitmap.Convert(
+                bitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+            bitmapToOcr = ocrBitmap;
+        }
+        else
+        {
+            bitmapToOcr = bitmap;
+        }
+
+        // Scale down if dimensions exceed MaxOcrDimension
+        if (bitmapToOcr.PixelWidth > MaxOcrDimension || bitmapToOcr.PixelHeight > MaxOcrDimension)
+        {
+            var scale = Math.Min(
+                (double)MaxOcrDimension / bitmapToOcr.PixelWidth,
+                (double)MaxOcrDimension / bitmapToOcr.PixelHeight);
+
+            var scaledWidth = (uint)(bitmapToOcr.PixelWidth * scale);
+            var scaledHeight = (uint)(bitmapToOcr.PixelHeight * scale);
+
+            Log.Debug(
+                "Scaling SoftwareBitmap from {OrigW}x{OrigH} to {ScaledW}x{ScaledH} for OCR",
+                bitmapToOcr.PixelWidth, bitmapToOcr.PixelHeight, scaledWidth, scaledHeight);
+
+            // Use BitmapDecoder round-trip for scaling — create an in-memory stream,
+            // encode the bitmap to it, then decode with a transform
+            using var stream = new Windows.Storage.Streams.InMemoryRandomAccessStream();
+            var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, stream);
+            encoder.SetSoftwareBitmap(bitmapToOcr);
+            await encoder.FlushAsync();
+
+            // Reset stream position for decoding
+            stream.Seek(0);
+
+            var transform = new BitmapTransform
+            {
+                ScaledWidth = scaledWidth,
+                ScaledHeight = scaledHeight,
+                InterpolationMode = BitmapInterpolationMode.Fant,
+            };
+
+            var decoder = await BitmapDecoder.CreateAsync(stream);
+            var scaledBitmap = await decoder.GetSoftwareBitmapAsync(
+                BitmapPixelFormat.Bgra8,
+                BitmapAlphaMode.Premultiplied,
+                transform,
+                ExifOrientationMode.IgnoreExifOrientation,
+                ColorManagementMode.DoNotColorManage);
+
+            // Dispose intermediate bitmaps
+            ocrBitmap?.Dispose();
+            ocrBitmap = scaledBitmap;
+            bitmapToOcr = scaledBitmap;
+        }
+
+        ct.ThrowIfCancellationRequested();
+
+        // Perform OCR
+        OcrResult ocrResult;
+        try
+        {
+            ocrResult = await ocrEngine.RecognizeAsync(bitmapToOcr);
+        }
+        finally
+        {
+            // Only dispose the converted/scaled bitmap, not the caller's original
+            if (ocrBitmap is not null && !ReferenceEquals(ocrBitmap, bitmap))
+                ocrBitmap.Dispose();
+        }
+
+        if (ocrResult.Lines.Count == 0)
+        {
+            Log.Debug("OCR returned no text lines from SoftwareBitmap");
+            return string.Empty;
+        }
+
+        var extractedText = string.Join(
+            Environment.NewLine,
+            ocrResult.Lines.Select(line => line.Text));
+
+        return string.IsNullOrWhiteSpace(extractedText) ? string.Empty : extractedText;
     }
 
     /// <summary>

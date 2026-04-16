@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <!-- AI Providers -->
+    <PackageReference Include="HnswLite.RamStorage" Version="1.0.6" />
     <PackageReference Include="Microsoft.Extensions.AI" Version="9.5.0" />
     <PackageReference Include="Microsoft.Extensions.AI.Abstractions" Version="9.5.0" />
     <PackageReference Include="Microsoft.Playwright" Version="1.59.0" />
@@ -39,12 +40,16 @@
     <PackageReference Include="HtmlAgilityPack" Version="1.11.67" />
 
     <!-- System -->
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
     <PackageReference Include="System.Management" Version="8.0.0" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.6" />
 
     <!-- Audio Transcription (Whisper local speech-to-text) -->
     <PackageReference Include="Whisper.Net" Version="1.5.0" />
     <PackageReference Include="Whisper.Net.Runtime" Version="1.5.0" />
+
+    <!-- Vector Search (HNSW approximate nearest neighbor index) -->
+    <PackageReference Include="HnswLite" Version="1.0.6" />
 
     <!-- Utilities -->
     <PackageReference Include="Serilog" Version="4.0.2" />

@@ -95,6 +95,12 @@ public enum PluginType
     WorkflowStep,
 
     /// <summary>
+    /// Supplies an external data source that syncs content into the knowledge vault
+    /// (e.g. calendar, email, RSS).
+    /// </summary>
+    DataConnector,
+
+    /// <summary>
     /// Supplies a visual theme (color palette, typography overrides) applied
     /// application-wide via WinUI 3 ResourceDictionary injection.
     /// </summary>

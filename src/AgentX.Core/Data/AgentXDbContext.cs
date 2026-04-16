@@ -33,6 +33,7 @@ public class AgentXDbContext : DbContext
     public DbSet<SyncLogEntity> SyncLogs => Set<SyncLogEntity>();
     public DbSet<PluginEntity> Plugins => Set<PluginEntity>();
     public DbSet<FeedbackEntity> Feedbacks => Set<FeedbackEntity>();
+    public DbSet<OAuthCredentialEntity> OAuthCredentials => Set<OAuthCredentialEntity>();
 
     private readonly string _dbPath;
 
@@ -92,6 +93,7 @@ public class AgentXDbContext : DbContext
         ConfigureSyncLog(modelBuilder);
         ConfigurePlugin(modelBuilder);
         ConfigureFeedback(modelBuilder);
+        ConfigureOAuthCredential(modelBuilder);
     }
 
     private static void ConfigureConversation(ModelBuilder modelBuilder)
@@ -579,6 +581,12 @@ public class AgentXDbContext : DbContext
             entity.Property(e => e.SuggestedTags);
             entity.Property(e => e.ProcessedAt);
             entity.Property(e => e.WatchFolderId);
+            entity.Property(e => e.SourceType);
+            entity.Property(e => e.SourceUrl);
+            entity.Property(e => e.SourcePluginId);
+            entity.Property(e => e.SourceCategory);
+            entity.Property(e => e.ExternalId);
+            entity.Property(e => e.DocumentId);
 
             // Indexes to support the most common query patterns:
             //   - GetPendingItemsAsync / GetPendingCountAsync filter on Status
@@ -587,6 +595,8 @@ public class AgentXDbContext : DbContext
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.AddedAt);
             entity.HasIndex(e => e.WatchFolderId);
+            entity.HasIndex(e => new { e.ExternalId, e.SourcePluginId });
+            entity.HasIndex(e => e.DocumentId);
         });
     }
 
@@ -693,6 +703,27 @@ public class AgentXDbContext : DbContext
             entity.HasIndex(e => e.Rating);
             entity.HasIndex(e => e.ConversationId);
             entity.HasIndex(e => e.CreatedAt);
+        });
+    }
+
+    private static void ConfigureOAuthCredential(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<OAuthCredentialEntity>(entity =>
+        {
+            entity.ToTable("oauth_credentials");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.ProviderId).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.AccessToken).IsRequired();
+            entity.Property(e => e.RefreshToken).IsRequired();
+            entity.Property(e => e.TokenExpiry).IsRequired();
+            entity.Property(e => e.Scopes).IsRequired().HasMaxLength(500);
+            entity.Property(e => e.UserId).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired();
+
+            // ProviderId must be unique — one credential row per OAuth provider.
+            entity.HasIndex(e => e.ProviderId).IsUnique();
         });
     }
 }

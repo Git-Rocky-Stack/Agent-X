@@ -19,6 +19,27 @@ public interface IDocumentService
     Task<DocumentEntity> ImportFileAsync(string filePath, long? collectionId = null, CancellationToken ct = default);
 
     /// <summary>
+    /// Imports a file produced by a DataConnector plugin (calendar, email, etc.).
+    /// Unlike <see cref="ImportFileAsync"/>, this preserves the semantic file type
+    /// (e.g. "CalendarEvent", "EmailMessage") rather than deriving it from the extension,
+    /// so that search filtering by plugin type works correctly.
+    /// </summary>
+    /// <param name="filePath">Absolute path to the temp file on disk.</param>
+    /// <param name="fileTypeOverride">Semantic file type to store (e.g. "CalendarEvent").</param>
+    /// <param name="displayName">Display name for the document (overrides filename).</param>
+    /// <param name="sourceUrl">Optional URL to the original item (e.g. web link to calendar event).</param>
+    /// <param name="collectionId">Optional collection to associate the document with.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>The created DocumentEntity with status "pending".</returns>
+    Task<DocumentEntity> ImportExternalContentAsync(
+        string filePath,
+        string fileTypeOverride,
+        string displayName,
+        string? sourceUrl = null,
+        long? collectionId = null,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Imports multiple files, reporting progress as each file completes.
     /// </summary>
     /// <param name="filePaths">Absolute paths to the files to import.</param>

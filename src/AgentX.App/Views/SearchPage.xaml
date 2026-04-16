@@ -269,6 +269,26 @@
                             </StackPanel>
                         </Button>
 
+                        <!-- Calendar Event filter -->
+                        <Button Click="OnFilterChipClick" Tag="CalendarEvent"
+                                Style="{StaticResource FilterChipStyle}"
+                                x:Name="FilterCalendar">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <FontIcon Glyph="&#xE787;" FontSize="11" />
+                                <TextBlock Text="Calendar" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Email filter -->
+                        <Button Click="OnFilterChipClick" Tag="EmailMessage"
+                                Style="{StaticResource FilterChipStyle}"
+                                x:Name="FilterEmail">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <FontIcon Glyph="&#xE715;" FontSize="11" />
+                                <TextBlock Text="Email" />
+                            </StackPanel>
+                        </Button>
+
                     </StackPanel>
                 </StackPanel>
             </Border>

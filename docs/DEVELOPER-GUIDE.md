@@ -14,10 +14,11 @@ Version 1.0.0 | Last updated: February 2026
 6. [Database and Data Access](#6-database-and-data-access)
 7. [AI Integration](#7-ai-integration)
 8. [Search and RAG](#8-search-and-rag)
-9. [Testing](#9-testing)
-10. [Build, Publish, and Packaging](#10-build-publish-and-packaging)
-11. [Troubleshooting](#11-troubleshooting)
-12. [Code Style Guidelines](#12-code-style-guidelines)
+9. [Data Connectors (Calendar and Email)](#9-data-connectors-calendar-and-email)
+10. [Testing](#10-testing)
+11. [Build, Publish, and Packaging](#11-build-publish-and-packaging)
+12. [Troubleshooting](#12-troubleshooting)
+13. [Code Style Guidelines](#13-code-style-guidelines)
 
 ---
 
@@ -157,6 +158,8 @@ AgentX.App/
     PrivacyPolicyPage.xaml(.cs)
     QuickActionsPage.xaml(.cs)
     SearchPage.xaml(.cs)
+    CalendarSettingsPage.xaml(.cs)
+    EmailSettingsPage.xaml(.cs)
     SettingsPage.xaml(.cs)
     TermsOfServicePage.xaml(.cs)
     UserGuidePage.xaml(.cs)
@@ -173,6 +176,8 @@ AgentX.App/
     OnboardingViewModel.cs
     QuickActionsViewModel.cs
     SearchViewModel.cs
+    CalendarSettingsViewModel.cs
+    EmailSettingsViewModel.cs
     SettingsViewModel.cs
   Controls/                # Custom UserControls
     CommandPalette.xaml(.cs)        # Ctrl+K VS Code-style command palette
@@ -329,6 +334,40 @@ AgentX.Core/
     Tagging/
       IAutoTagService.cs
       AutoTagService.cs          # AI-generated tags applied during indexing
+    OAuth/
+      IOAuthService.cs
+      OAuthService.cs            # OAuth2 with DPAPI encryption, PKCE, CSRF state
+      OAuthCredential.cs         # Credential DTO
+      OAuthProviderConfig.cs     # Per-provider auth endpoint configuration
+      OAuthProviderRegistry.cs   # Google/Microsoft endpoint registry
+    Inbox/
+      IInboxService.cs
+      InboxService.cs            # Smart inbox triage with AI preview generation
+    Plugins/
+      IPlugin.cs                 # Plugin interface (Initialize/Activate/Deactivate/Dispose)
+      IPluginContext.cs           # Plugin DI context (Services, PluginDataPath, Logger)
+      PluginType.cs               # Enum: Agent, DataConnector
+      PluginService.cs            # Plugin lifecycle manager with scoped DI
+      Calendar/
+        CalendarPlugin.cs        # IPlugin for calendar sync
+        ICalendarProvider.cs     # Google/Outlook calendar provider interface
+        ICalendarService.cs
+        CalendarService.cs        # Calendar sync orchestration
+        CalendarSyncService.cs    # Provider → Processor → Inbox pipeline
+        CalendarEventProcessor.cs # CalEvent → TriageExternalAsync conversion
+        GoogleCalendarProvider.cs # Google Calendar API v3
+        OutlookCalendarProvider.cs # Microsoft Graph API v1.0
+        Models/                   # CalEvent, CalAttendee, CalendarInfo, SyncResult, etc.
+      Email/
+        EmailPlugin.cs            # IPlugin for email sync
+        IEmailProvider.cs         # Gmail/Outlook email provider interface
+        IEmailService.cs
+        EmailService.cs           # Email sync orchestration
+        EmailSyncService.cs       # Provider → Processor → Inbox pipeline
+        EmailTriageProcessor.cs   # EmailMessage → TriageExternalAsync conversion
+        GmailProvider.cs          # Gmail API v1 with history delta sync
+        OutlookEmailProvider.cs   # Microsoft Graph API v1.0 with OData delta
+        Models/                   # EmailMessage, EmailContact, EmailFolderInfo, etc.
 ```
 
 ### 3.3 AgentX.Tests — Unit Tests
@@ -1375,11 +1414,148 @@ The channel is `UnboundedChannelOptions { SingleReader = true, SingleWriter = fa
 
 Default settings (configurable in `AppSettings`): `ChunkSize = 512` words, `ChunkOverlap = 50` words.
 
+### 8.8 Data Connector Search Integration
+
+Calendar and Email content from DataConnector plugins is integrated into the search pipeline via the **Inbox-to-Document bridge**:
+
+```
+CalendarSyncService / EmailSyncService
+    |
+    v
+IInboxService.TriageExternalAsync()     -- auto-accepts, writes .txt temp file
+    |
+    v
+IDocumentService.ImportExternalContentAsync()  -- creates DocumentEntity with
+    |                                           semantic FileType preserved
+    v
+IndexingService                          -- chunks, embeds, FTS5 indexes
+    |
+    v
+Searchable via Semantic / Keyword / Hybrid search
+```
+
+**Key design decisions:**
+
+- `InboxItemEntity.FileType` stores the semantic type (`"CalendarEvent"`, `"EmailMessage"`)
+- `DocumentEntity.FileType` also preserves the semantic type via `ImportExternalContentAsync(fileTypeOverride: ...)`
+- The bridge is best-effort — if `IDocumentService` is unavailable, the inbox item is still created; only search indexing is skipped
+- `InboxItemEntity.DocumentId` links back to the `DocumentEntity` for cross-referencing
+- Search filter chips on `SearchPage` support `"CalendarEvent"` and `"EmailMessage"` types with appropriate icons
+
 ---
 
-## 9. Testing
+## 9. Data Connectors (Calendar and Email)
 
-### 9.1 Test Framework
+### 9.1 Plugin Architecture
+
+Data Connectors implement the `IPlugin` interface with `Type = PluginType.DataConnector`. They are loaded by `PluginService` and receive a scoped `IPluginContext` containing:
+
+- `IPluginContext.Services` — DI service provider (includes `IOAuthService`, `IInboxService`)
+- `IPluginContext.PluginDataPath` — per-plugin data directory for settings and delta tokens
+- `IPluginContext.Logger` — Serilog logger
+
+**Plugin lifecycle:**
+
+```
+InitializeAsync(IPluginContext)  -- resolve dependencies, load settings
+    |
+    v
+ActivateAsync()                  -- start sync timer, register providers
+    |
+    v
+[Running: periodic sync cycles]
+    |
+    v
+DeactivateAsync()                -- stop timer, flush state
+    |
+    v
+Dispose()                        -- release resources
+```
+
+### 9.2 OAuth2 Service
+
+`IOAuthService` provides provider-agnostic OAuth2 authorization:
+
+| Method | Purpose |
+|---|---|
+| `AuthorizeAsync(providerId, scopes)` | Launch browser auth flow with CSRF state and PKCE |
+| `GetAccessTokenAsync(providerId)` | Get valid access token (auto-refreshes if expired) |
+| `RefreshTokenAsync(providerId)` | Force token refresh |
+| `RevokeAsync(providerId)` | Revoke and delete credentials |
+| `GetCredentialAsync(providerId)` | Check if a provider is connected |
+
+Credentials are stored in SQLite (`oauth_credentials` table) with DPAPI encryption for access/refresh tokens. The `OAuthProviderRegistry` maps provider IDs (`"google"`, `"microsoft"`) to authorization/token endpoints and scopes.
+
+### 9.3 Calendar Connector
+
+**Key files:**
+
+| File | Purpose |
+|---|---|
+| `CalendarPlugin.cs` | IPlugin lifecycle, sync timer, provider registration |
+| `ICalendarProvider.cs` | Provider interface: `ListCalendarsAsync`, `GetEventsAsync` (returns delta token) |
+| `GoogleCalendarProvider.cs` | Google Calendar API v3: sync tokens, all-day events, recurring expansion |
+| `OutlookCalendarProvider.cs` | Microsoft Graph API v1.0: OData delta queries, iCalUId |
+| `CalendarSyncService.cs` | Orchestration: providers → CalendarEventProcessor → IInboxService |
+| `CalendarEventProcessor.cs` | Converts `CalEvent` → `TriageExternalAsync` parameters |
+| `ICalendarService.cs` | Service interface: `SyncCalendarsAsync`, `IsConnectedAsync` |
+
+**Sync flow:**
+
+1. `CalendarPlugin.ExecuteSyncCycleAsync()` checks `IOAuthService.GetCredentialAsync()` for connected providers
+2. For each connected provider, calls `CalendarSyncService.SyncAsync()`
+3. `CalendarSyncService` iterates enabled calendars, fetches events via `ICalendarProvider.GetEventsAsync(deltaToken)`
+4. Events are converted by `CalendarEventProcessor` into inbox parameters (fileName, fileType="CalendarEvent", sourceType="calendar-connector", externalId=`provider:calendarId:eventId`)
+5. `IInboxService.TriageExternalAsync()` auto-accepts and bridges to the document library
+6. Delta tokens are persisted per `provider:calendarId` key in `calendar-delta-tokens.json`
+
+**Settings page:** `CalendarSettingsPage.xaml` with `CalendarSettingsViewModel` — connect/disconnect Google/Outlook, sync interval, days back, conflict resolution.
+
+### 9.4 Email Connector
+
+**Key files:**
+
+| File | Purpose |
+|---|---|
+| `EmailPlugin.cs` | IPlugin lifecycle, sync timer, provider registration |
+| `IEmailProvider.cs` | Provider interface: `ListFoldersAsync`, `GetMessagesAsync` (returns delta token) |
+| `GmailProvider.cs` | Gmail API v1: labels, messages (list+get), history delta sync |
+| `OutlookEmailProvider.cs` | Microsoft Graph API v1.0: mailFolders, messages/delta, OData pagination |
+| `EmailSyncService.cs` | Orchestration: providers → EmailTriageProcessor → IInboxService |
+| `EmailTriageProcessor.cs` | Converts `EmailMessage` → `TriageExternalAsync` parameters |
+| `IEmailService.cs` | Service interface: `SyncMessagesAsync`, `IsConnectedAsync` |
+
+**Sync flow:**
+
+1. `EmailPlugin.ExecuteSyncCycleAsync()` checks OAuth credentials for connected providers
+2. For each connected provider, calls `EmailSyncService.SyncAsync()`
+3. `EmailSyncService` iterates enabled folders, fetches messages via `IEmailProvider.GetMessagesAsync(deltaToken)`
+4. Messages are converted by `EmailTriageProcessor` into inbox parameters (fileName, fileType="EmailMessage", sourceType="email-connector", externalId=`provider:folderId:messageId`)
+5. `IInboxService.TriageExternalAsync()` auto-accepts and bridges to the document library
+6. Delta tokens are persisted per `provider:folderId` key in `email-delta-tokens.json`
+
+**Email triage content:** `EmailTriageProcessor.ExtractSearchableContent()` builds a full-text representation including Subject, From (formatted), To, Cc, Date, Folder, Flags (Starred, HasAttachments), Attachment names, Source provider, and Body (text preferred, HTML fallback with `StripHtmlTags`).
+
+**Settings page:** `EmailSettingsPage.xaml` with `EmailSettingsViewModel` — connect/disconnect Gmail/Outlook, sync interval, max messages per sync, days back, AI categorization toggle, attachment names toggle.
+
+### 9.5 External ID Format
+
+External IDs follow the pattern `{providerId}:{folderOrCalendarId}:{itemId}`:
+
+| Source | Example External ID |
+|---|---|
+| Google Calendar | `google:primary:abc123` |
+| Outlook Calendar | `microsoft:AAMkAGI2AAA=:xyz789` |
+| Gmail | `google:INBOX:msg-1` |
+| Outlook Email | `microsoft:AAMkAGI2AAA=:msg-2` |
+
+Deduplication uses `ExternalId + SourcePluginId` — if a matching inbox item already exists, the duplicate is silently skipped.
+
+---
+
+## 10. Testing
+
+### 10.1 Test Framework
 
 | Package | Version | Purpose |
 |---|---|---|
@@ -1389,7 +1565,7 @@ Default settings (configurable in `AppSettings`): `ChunkSize = 512` words, `Chun
 | coverlet.collector | 6.0.2 | Code coverage collection |
 | Microsoft.NET.Test.Sdk | 17.12.0 | Test host infrastructure |
 
-### 9.2 Running Tests
+### 10.2 Running Tests
 
 ```bash
 # Run all tests
@@ -1407,7 +1583,7 @@ dotnet test --verbosity normal
 
 From Visual Studio: open Test Explorer (`Ctrl+E, T`) and run all or selected tests.
 
-### 9.3 What to Test
+### 10.3 What to Test
 
 Focus unit tests on:
 
@@ -1418,7 +1594,7 @@ Focus unit tests on:
 
 Integration tests (requiring a live Ollama or SQLite database) are currently minimal. Use Moq to mock `IAiService`, `IAiProvider`, `IVectorStore`, `ISettingsService`, and `AgentXDbContext` for unit tests.
 
-### 9.4 Writing a Unit Test
+### 10.4 Writing a Unit Test
 
 ```csharp
 using AgentX.Core.Documents;
@@ -1478,7 +1654,7 @@ public class ChunkingServiceTests
 }
 ```
 
-### 9.5 Mocking Services
+### 10.5 Mocking Services
 
 ```csharp
 using AgentX.Core.AI;
@@ -1520,9 +1696,9 @@ public class ChatServiceTests
 
 ---
 
-## 10. Build, Publish, and Packaging
+## 11. Build, Publish, and Packaging
 
-### 10.1 Development Builds
+### 11.1 Development Builds
 
 ```bash
 # Build all projects
@@ -1537,7 +1713,7 @@ dotnet build -c Release
 
 In Visual Studio: press F5 to build and run with debugger, Ctrl+F5 to run without debugger.
 
-### 10.2 Self-Contained Publish
+### 11.2 Self-Contained Publish
 
 The release build produces a self-contained, single-directory publish with all .NET runtime and app dependencies bundled:
 
@@ -1561,7 +1737,7 @@ Key project settings that control the publish behavior (in `AgentX.App.csproj`):
 
 The publish output in `publish/win-x64/` contains all binaries. The installer packages this entire directory.
 
-### 10.3 Building the Installer
+### 11.3 Building the Installer
 
 Prerequisites:
 - Inno Setup 6 must be installed at its default path (`C:\Program Files (x86)\Inno Setup 6\`)
@@ -1584,7 +1760,7 @@ The installer script (`installer/AgentX-Setup.iss`) configures:
 
 The installer output is written to `installer-output/AgentX-Setup-{version}-x64.exe`.
 
-### 10.4 Version Numbering
+### 11.4 Version Numbering
 
 The application version is defined in `installer/AgentX-Setup.iss`:
 
@@ -1598,7 +1774,7 @@ For a new release:
 3. Publish the new binaries
 4. Build the installer
 
-### 10.5 Complete Release Build Script
+### 11.5 Complete Release Build Script
 
 ```bash
 # 1. Build
@@ -1622,7 +1798,7 @@ dotnet publish src/AgentX.App/AgentX.App.csproj \
 
 ---
 
-## 11. Troubleshooting
+## 12. Troubleshooting
 
 ### 11.1 Application Fails to Start
 
@@ -1731,7 +1907,7 @@ If any of these are missing, look at the preceding `[ERR]` or `[FTL]` lines for 
 
 ---
 
-## 12. Code Style Guidelines
+## 13. Code Style Guidelines
 
 ### 12.1 General Principles
 

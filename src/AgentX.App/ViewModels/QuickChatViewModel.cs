@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Services.Screen;
 using Serilog;
 
 namespace AgentX.App.ViewModels;
@@ -10,10 +11,13 @@ namespace AgentX.App.ViewModels;
 /// <summary>
 /// ViewModel for the Quick Chat overlay window. Provides lightweight Q&A
 /// against the knowledge vault with streaming AI responses.
+/// When screen awareness is enabled, captures the screen at query time
+/// and injects OCR text as context into the system prompt.
 /// </summary>
 public partial class QuickChatViewModel : ObservableObject
 {
     private readonly IAiService _aiService;
+    private readonly IScreenCaptureService? _screenCaptureService;
     private CancellationTokenSource? _queryCts;
 
     // ── Observable Properties ─────────────────────────────────────
@@ -30,9 +34,18 @@ public partial class QuickChatViewModel : ObservableObject
     [ObservableProperty]
     private string _statusMessage = "Ready";
 
+    [ObservableProperty]
+    private bool _screenContextCaptured;
+
     public QuickChatViewModel(IAiService aiService)
     {
-        _aiService = aiService;
+        _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
+    }
+
+    public QuickChatViewModel(IAiService aiService, IScreenCaptureService screenCaptureService)
+    {
+        _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
+        _screenCaptureService = screenCaptureService;
     }
 
     // ── Commands ─────────────────────────────────────────────────
@@ -51,6 +64,7 @@ public partial class QuickChatViewModel : ObservableObject
         IsProcessing = true;
         StatusMessage = "Thinking...";
         ResponseText = string.Empty;
+        ScreenContextCaptured = false;
 
         _queryCts?.Cancel();
         _queryCts = new CancellationTokenSource();
@@ -58,6 +72,21 @@ public partial class QuickChatViewModel : ObservableObject
 
         try
         {
+            // Capture screen context if screen awareness service is available.
+            ScreenContextResult? screenContext = null;
+            if (_screenCaptureService is not null)
+            {
+                try
+                {
+                    screenContext = await _screenCaptureService.CaptureActiveWindowAndOcrAsync(ct).ConfigureAwait(false);
+                    ScreenContextCaptured = !screenContext.IsEmpty;
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Screen capture failed; continuing without screen context");
+                }
+            }
+
             var messages = new List<ChatMessage>
             {
                 new() { Role = "user", Content = query }
@@ -66,6 +95,40 @@ public partial class QuickChatViewModel : ObservableObject
             var systemPrompt = "You are Agent-X Quick Chat, a fast assistant that answers questions " +
                                "concisely based on the user's knowledge vault. Be brief, accurate, and helpful. " +
                                "If you don't know the answer, say so clearly.";
+
+            // Append IDE context and screen context to the system prompt if available.
+            if (screenContext is not null && !screenContext.IsEmpty)
+            {
+                var contextSection = new StringBuilder();
+                contextSection.AppendLine();
+                contextSection.AppendLine();
+
+                // IDE context comes first — it's structured and more precise than OCR
+                if (screenContext.IdeContext is not null)
+                {
+                    contextSection.AppendLine("--- IDE CONTEXT ---");
+                    contextSection.AppendLine($"Active IDE: {screenContext.IdeContext.IdeName}");
+                    contextSection.AppendLine($"Active File: {screenContext.IdeContext.ActiveFileName}");
+
+                    if (!string.IsNullOrWhiteSpace(screenContext.IdeContext.ProjectName))
+                        contextSection.AppendLine($"Project: {screenContext.IdeContext.ProjectName}");
+
+                    if (!string.IsNullOrWhiteSpace(screenContext.IdeContext.Language))
+                        contextSection.AppendLine($"Language: {screenContext.IdeContext.Language}");
+
+                    contextSection.AppendLine();
+                }
+
+                contextSection.AppendLine("--- SCREEN CONTEXT ---");
+
+                if (!string.IsNullOrWhiteSpace(screenContext.ActiveWindowTitle))
+                    contextSection.AppendLine($"Active window: {screenContext.ActiveWindowTitle}");
+
+                if (!string.IsNullOrWhiteSpace(screenContext.OcrText))
+                    contextSection.AppendLine($"Screen text (captured {screenContext.CapturedAtUtc:HH:mm:ss} UTC):\n{screenContext.OcrText}");
+
+                systemPrompt += contextSection.ToString();
+            }
 
             var options = new ChatOptions
             {
@@ -115,6 +178,7 @@ public partial class QuickChatViewModel : ObservableObject
         ResponseText = string.Empty;
         StatusMessage = "Ready";
         IsProcessing = false;
+        ScreenContextCaptured = false;
     }
 
     /// <summary>

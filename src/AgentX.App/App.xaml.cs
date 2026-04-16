@@ -8,6 +8,7 @@ using AgentX.Core.AI.Models;
 using AgentX.Core.AI.Routing;
 using AgentX.Core.Data;
 using AgentX.Core.Data.VectorDb;
+using AgentX.Core.Services.Screen;
 using AgentX.Core.Documents;
 using AgentX.Core.Documents.Processors;
 using AgentX.Core.Services.Chat;
@@ -36,6 +37,7 @@ using AgentX.Core.Services.Analytics;
 using AgentX.Core.Services.Feedback;
 using AgentX.Core.Services.Collaboration;
 using AgentX.Core.Services.Api;
+using AgentX.Core.Services.OAuth;
 using AgentX.Core.Services.Security;
 using AgentX.Core.Validation;
 using AgentX.App.Services;
@@ -105,7 +107,21 @@ public partial class App : Application
                 "ALTER TABLE search_history ADD COLUMN DateAfter TEXT NULL",
                 "ALTER TABLE search_history ADD COLUMN DateBefore TEXT NULL",
                 "ALTER TABLE search_history ADD COLUMN SortOrder TEXT NULL",
-                "ALTER TABLE conversations ADD COLUMN FolderName TEXT NULL"
+                "ALTER TABLE conversations ADD COLUMN FolderName TEXT NULL",
+                """
+                CREATE TABLE IF NOT EXISTS oauth_credentials (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ProviderId TEXT NOT NULL DEFAULT '',
+                    AccessToken TEXT NOT NULL DEFAULT '',
+                    RefreshToken TEXT NOT NULL DEFAULT '',
+                    TokenExpiry TEXT NOT NULL DEFAULT '0001-01-01T00:00:00',
+                    Scopes TEXT NOT NULL DEFAULT '',
+                    UserId TEXT NOT NULL DEFAULT '',
+                    CreatedAt TEXT NOT NULL DEFAULT '0001-01-01T00:00:00',
+                    UpdatedAt TEXT NOT NULL DEFAULT '0001-01-01T00:00:00'
+                )
+                """,
+                "CREATE UNIQUE INDEX IF NOT EXISTS ix_oauth_credentials_providerid ON oauth_credentials (ProviderId)"
             ];
 
             foreach (var sql in alterStatements)
@@ -189,6 +205,38 @@ public partial class App : Application
         services.AddSingleton<IDpapiEncryptionService, DpapiEncryptionService>();
         services.AddSingleton<ISecurityStatusService, SecurityStatusService>();
 
+        // ── OAuth ──────────────────────────────────────────────
+        services.AddSingleton<IOAuthService>(sp =>
+        {
+            var oauthService = new OAuthService(
+                sp.GetRequiredService<AgentXDbContext>(),
+                sp.GetRequiredService<IDpapiEncryptionService>(),
+                sp.GetRequiredService<Serilog.ILogger>());
+
+            var settings = sp.GetRequiredService<ISettingsService>().GetSettingsAsync().GetAwaiter().GetResult();
+
+            // Only register Google if credentials are configured
+            if (!string.IsNullOrWhiteSpace(settings.OAuth.Google.ClientId))
+            {
+                oauthService.RegisterProvider(OAuthProviderRegistry.Google(
+                    settings.OAuth.Google.ClientId,
+                    settings.OAuth.Google.ClientSecret,
+                    settings.OAuth.Google.RedirectUri));
+            }
+
+            // Only register Microsoft if credentials are configured
+            if (!string.IsNullOrWhiteSpace(settings.OAuth.Microsoft.ClientId))
+            {
+                oauthService.RegisterProvider(OAuthProviderRegistry.Microsoft(
+                    settings.OAuth.Microsoft.ClientId,
+                    settings.OAuth.Microsoft.ClientSecret,
+                    settings.OAuth.Microsoft.TenantId,
+                    settings.OAuth.Microsoft.RedirectUri));
+            }
+
+            return oauthService;
+        });
+
         // ── Core Services ──────────────────────────────────────
         services.AddSingleton<ISettingsService, SettingsService>();
         services.AddSingleton<ILicenseService, LicenseService>();
@@ -212,13 +260,21 @@ public partial class App : Application
         services.AddSingleton<IModelRouterService, ModelRouterService>();
 
         // ── Vector Store ─────────────────────────────────────────
-        services.AddSingleton<IVectorStore, SqliteVecStore>();
+        services.AddSingleton<IVectorStore>(sp =>
+        {
+            var settingsService = sp.GetRequiredService<ISettingsService>();
+            var logger = sp.GetRequiredService<Serilog.ILogger>();
+            return VectorStoreFactory.Create(settingsService, logger);
+        });
 
         // ── Chat Services ──────────────────────────────────────
         services.AddSingleton<IConversationService, ConversationService>();
         services.AddSingleton<ISystemPromptService, SystemPromptService>();
         services.AddSingleton<IConversationMemoryService, ConversationMemoryService>();
         services.AddSingleton<IChatService, ChatService>();
+
+        // ── Screen Awareness ─────────────────────────────────────
+        services.AddSingleton<IScreenCaptureService, ScreenCaptureService>();
 
         // ── Document Processors ──────────────────────────────────
         services.AddSingleton<IDocumentProcessor, PdfProcessor>();
@@ -372,6 +428,8 @@ public partial class App : Application
         services.AddTransient<ViewModels.WorkspaceProfileViewModel>();
         services.AddTransient<ViewModels.PluginManagerViewModel>();
         services.AddTransient<ViewModels.SyncSettingsViewModel>();
+        services.AddTransient<ViewModels.CalendarSettingsViewModel>();
+        services.AddTransient<ViewModels.EmailSettingsViewModel>();
         services.AddTransient<ViewModels.AnalyticsViewModel>();
         services.AddTransient<ViewModels.QuickChatViewModel>();
 
@@ -398,6 +456,8 @@ public partial class App : Application
         services.AddTransient<Views.WorkspaceProfilePage>();
         services.AddTransient<Views.PluginManagerPage>();
         services.AddTransient<Views.SyncSettingsPage>();
+        services.AddTransient<Views.CalendarSettingsPage>();
+        services.AddTransient<Views.EmailSettingsPage>();
         services.AddTransient<Views.AnalyticsPage>();
         services.AddTransient<Views.UserGuidePage>();
         services.AddTransient<Views.PrivacyPolicyPage>();
