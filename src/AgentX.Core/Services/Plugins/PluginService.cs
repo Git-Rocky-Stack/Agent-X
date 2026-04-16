@@ -7,6 +7,7 @@ using AgentX.Core.Constants;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
 namespace AgentX.Core.Services.Plugins;
@@ -45,6 +46,7 @@ public sealed class PluginService : IPluginService
     // ── Fields ─────────────────────────────────────────────────────────────────
 
     private readonly AgentXDbContext _dbContext;
+    private readonly IServiceProvider _rootServiceProvider;
     private readonly ILogger _log;
 
     /// <summary>
@@ -70,14 +72,20 @@ public sealed class PluginService : IPluginService
     /// The application <see cref="AgentXDbContext"/>. Used exclusively for plugin metadata
     /// persistence. Must not be null.
     /// </param>
+    /// <param name="rootServiceProvider">
+    /// The root <see cref="IServiceProvider"/> used to resolve host services (such as
+    /// <see cref="AgentX.Core.Services.OAuth.IOAuthService"/>) for injection into the
+    /// plugin-scoped container. Must not be null.
+    /// </param>
     /// <param name="logger">
     /// The application-level Serilog <see cref="ILogger"/>. A context-specific child logger
     /// enriched with <c>SourceContext=PluginService</c> is derived via
     /// <see cref="Log.ForContext{T}()"/>.
     /// </param>
-    public PluginService(AgentXDbContext dbContext, ILogger logger)
+    public PluginService(AgentXDbContext dbContext, IServiceProvider rootServiceProvider, ILogger logger)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        _rootServiceProvider = rootServiceProvider ?? throw new ArgumentNullException(nameof(rootServiceProvider));
         _log = logger?.ForContext<PluginService>()
                ?? throw new ArgumentNullException(nameof(logger));
 
@@ -333,8 +341,15 @@ public sealed class PluginService : IPluginService
                 .ForContext("PluginId", entity.PluginId)
                 .ForContext("PluginVersion", entity.Version);
 
+            // Build a scoped service provider for the plugin, surfacing only the
+            // host services that are approved for plugin consumption.
+            var pluginServices = new ServiceCollection();
+            pluginServices.AddSingleton(_rootServiceProvider.GetRequiredService<AgentX.Core.Services.OAuth.IOAuthService>());
+            var pluginServiceProvider = pluginServices.BuildServiceProvider();
+
             var pluginContext = new PluginContext(
                 pluginDataPath: dataPath,
+                services: pluginServiceProvider,
                 logger: pluginLogger);
 
             // ── Lifecycle: Initialize → Activate ──────────────────────────────
@@ -800,12 +815,7 @@ public sealed class PluginService : IPluginService
     private sealed class PluginContext : IPluginContext
     {
         /// <inheritdoc />
-        /// <remarks>
-        /// Exposes an empty <see cref="IServiceProvider"/> by default. Plugins that require
-        /// host services should declare the appropriate permissions in their manifest and
-        /// receive a scoped provider from the host at a future integration point.
-        /// </remarks>
-        public IServiceProvider Services { get; } = EmptyServiceProvider.Instance;
+        public IServiceProvider Services { get; }
 
         /// <inheritdoc />
         public string PluginDataPath { get; }
@@ -817,31 +827,18 @@ public sealed class PluginService : IPluginService
         /// Absolute path to the plugin's private data directory.
         /// The directory is guaranteed to exist before this constructor is called.
         /// </param>
+        /// <param name="services">
+        /// A scoped <see cref="IServiceProvider"/> containing only the host services
+        /// approved for plugin consumption (e.g. <c>IOAuthService</c> for DataConnector plugins).
+        /// </param>
         /// <param name="logger">
         /// A Serilog <see cref="ILogger"/> instance pre-enriched with the plugin's metadata.
         /// </param>
-        public PluginContext(string pluginDataPath, ILogger logger)
+        public PluginContext(string pluginDataPath, IServiceProvider services, ILogger logger)
         {
             PluginDataPath = pluginDataPath;
+            Services       = services;
             Logger         = logger;
         }
-    }
-
-    // ── Private nested type: EmptyServiceProvider ─────────────────────────────
-
-    /// <summary>
-    /// Minimal <see cref="IServiceProvider"/> that always returns <see langword="null"/>.
-    /// Used as the default <see cref="IPluginContext.Services"/> implementation when no
-    /// host service scope is injected into <see cref="PluginService"/>.
-    /// </summary>
-    private sealed class EmptyServiceProvider : IServiceProvider
-    {
-        /// <summary>Singleton instance — allocation-free for all callers.</summary>
-        public static readonly EmptyServiceProvider Instance = new();
-
-        private EmptyServiceProvider() { }
-
-        /// <inheritdoc />
-        public object? GetService(Type serviceType) => null;
     }
 }

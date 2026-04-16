@@ -33,6 +33,11 @@ public interface IPluginContext
     /// approved for plugin consumption. Plugins should resolve dependencies through
     /// this provider rather than storing direct references to host objects, so that
     /// the host can revoke access cleanly when the plugin is deactivated.
+    /// <para>
+    /// <see cref="AgentX.Core.Services.OAuth.IOAuthService"/> is available through
+    /// this provider for <see cref="PluginType.DataConnector"/> plugins that need
+    /// to authenticate with external data sources.
+    /// </para>
     /// </summary>
     IServiceProvider Services { get; }
 
