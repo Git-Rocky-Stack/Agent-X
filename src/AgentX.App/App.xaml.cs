@@ -106,7 +106,21 @@ public partial class App : Application
                 "ALTER TABLE search_history ADD COLUMN DateAfter TEXT NULL",
                 "ALTER TABLE search_history ADD COLUMN DateBefore TEXT NULL",
                 "ALTER TABLE search_history ADD COLUMN SortOrder TEXT NULL",
-                "ALTER TABLE conversations ADD COLUMN FolderName TEXT NULL"
+                "ALTER TABLE conversations ADD COLUMN FolderName TEXT NULL",
+                """
+                CREATE TABLE IF NOT EXISTS oauth_credentials (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ProviderId TEXT NOT NULL DEFAULT '',
+                    AccessToken TEXT NOT NULL DEFAULT '',
+                    RefreshToken TEXT NOT NULL DEFAULT '',
+                    TokenExpiry TEXT NOT NULL DEFAULT '0001-01-01T00:00:00',
+                    Scopes TEXT NOT NULL DEFAULT '',
+                    UserId TEXT NOT NULL DEFAULT '',
+                    CreatedAt TEXT NOT NULL DEFAULT '0001-01-01T00:00:00',
+                    UpdatedAt TEXT NOT NULL DEFAULT '0001-01-01T00:00:00'
+                )
+                """,
+                "CREATE UNIQUE INDEX IF NOT EXISTS ix_oauth_credentials_providerid ON oauth_credentials (ProviderId)"
             ];
 
             foreach (var sql in alterStatements)
