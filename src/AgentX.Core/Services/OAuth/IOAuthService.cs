@@ -42,7 +42,11 @@ public interface IOAuthService
     /// Thrown when no <see cref="OAuthProviderConfig"/> is registered for the provider,
     /// or when the user denies consent, or when the token exchange fails.
     /// </exception>
-    Task<OAuthCredential> AuthorizeAsync(string provider, string? scopes = null, string? redirectUri = null);
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when the operation is cancelled via the <paramref name="cancellationToken"/>
+    /// or when the 5-minute timeout elapses without a callback.
+    /// </exception>
+    Task<OAuthCredential> AuthorizeAsync(string provider, string? scopes = null, string? redirectUri = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Returns a valid access token for the specified provider. If the stored token

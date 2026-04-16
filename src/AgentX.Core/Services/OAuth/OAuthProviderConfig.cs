@@ -69,4 +69,12 @@ public sealed class OAuthProviderConfig
     /// HTTP listener captures the authorization code.
     /// </summary>
     public string RedirectUri { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Provider-specific extra query parameters to include in the authorization URL.
+    /// For Google, this might include <c>access_type=offline</c> and <c>prompt=consent</c>.
+    /// For Microsoft, this is typically empty or contains different parameters.
+    /// These are merged into the authorization URL query string at build time.
+    /// </summary>
+    public Dictionary<string, string>? ExtraAuthParameters { get; init; }
 }

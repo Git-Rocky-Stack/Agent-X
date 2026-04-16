@@ -2,6 +2,8 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
+using System.Security;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -31,7 +33,7 @@ namespace AgentX.Core.Services.OAuth;
 /// access token is expired or within 5 minutes of expiry. If so, it calls
 /// <see cref="RefreshTokenAsync"/> automatically before returning the token.</para>
 /// </remarks>
-public sealed class OAuthService : IOAuthService
+public sealed class OAuthService : IOAuthService, IDisposable
 {
     // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -66,6 +68,20 @@ public sealed class OAuthService : IOAuthService
     /// Registered provider configurations, keyed by <see cref="OAuthProviderConfig.ProviderId"/>.
     /// </summary>
     private readonly ConcurrentDictionary<string, OAuthProviderConfig> _providerConfigs = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Pending CSRF state values for in-progress authorization flows, keyed by provider ID.
+    /// Used to validate that callback requests originate from the same authorization request.
+    /// One-time use: removed immediately after validation.
+    /// </summary>
+    private readonly ConcurrentDictionary<string, string> _pendingStates = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Pending PKCE code verifiers for in-progress authorization flows, keyed by provider ID.
+    /// Sent to the token endpoint during code exchange to prove the client owns the authorization code.
+    /// One-time use: removed after the token exchange is complete.
+    /// </summary>
+    private readonly ConcurrentDictionary<string, string> _pendingCodeVerifiers = new(StringComparer.Ordinal);
 
     // ── Constructor ────────────────────────────────────────────────────────────
 
@@ -118,7 +134,7 @@ public sealed class OAuthService : IOAuthService
     // ── IOAuthService Implementation ────────────────────────────────────────────
 
     /// <inheritdoc />
-    public async Task<OAuthCredential> AuthorizeAsync(string provider, string? scopes = null, string? redirectUri = null)
+    public async Task<OAuthCredential> AuthorizeAsync(string provider, string? scopes = null, string? redirectUri = null, CancellationToken cancellationToken = default)
     {
         ValidateProviderId(provider);
 
@@ -129,8 +145,21 @@ public sealed class OAuthService : IOAuthService
         _log.Information("Starting OAuth authorization for {Provider} with scopes: {Scopes}",
             provider, effectiveScopes);
 
-        // Build the authorization URL
-        var authUrl = BuildAuthorizationUrl(config, effectiveScopes, effectiveRedirectUri);
+        // Generate CSRF state parameter (RFC 6749 Section 10.12)
+        var state = GenerateState();
+        _pendingStates[provider] = state;
+
+        // Generate PKCE code verifier and challenge (RFC 8252)
+        var codeVerifier = GenerateCodeVerifier();
+        var codeChallenge = ComputeCodeChallenge(codeVerifier);
+        _pendingCodeVerifiers[provider] = codeVerifier;
+
+        // Build the authorization URL with state and PKCE
+        var authUrl = BuildAuthorizationUrl(config, effectiveScopes, effectiveRedirectUri, state, codeChallenge);
+
+        // Create a linked cancellation token with a 5-minute timeout
+        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeoutCts.CancelAfter(TimeSpan.FromMinutes(5));
 
         // Start the local HTTP listener to receive the callback
         var callbackUri = new Uri(effectiveRedirectUri);
@@ -147,10 +176,44 @@ public sealed class OAuthService : IOAuthService
             // Open the system browser for user consent
             Process.Start(new ProcessStartInfo(authUrl) { UseShellExecute = true });
 
-            // Wait for the callback with the authorization code
-            var context = await listener.GetContextAsync();
+            // Wait for the callback with a timeout
+            HttpListenerContext context;
+            try
+            {
+                context = await listener.GetContextAsync().WaitAsync(timeoutCts.Token);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                _log.Warning("OAuth authorization timed out for {Provider} after 5 minutes", provider);
+                throw new OperationCanceledException(
+                    $"OAuth authorization timed out for provider '{provider}'. " +
+                    "The operation was cancelled after 5 minutes of waiting for the browser callback.");
+            }
+
+            // Extract state, code, and error from the callback
+            var receivedState = context.Request.QueryString["state"];
             var code = context.Request.QueryString["code"];
             var error = context.Request.QueryString["error"];
+
+            // Validate CSRF state parameter (one-time use)
+            if (string.IsNullOrEmpty(receivedState) || !string.Equals(receivedState, state, StringComparison.Ordinal))
+            {
+                _log.Warning("OAuth state validation failed for {Provider}: received state does not match expected value", provider);
+
+                var errorHtml = "<html><body><h2>Authorization failed</h2><p>Security validation failed. Please try again.</p></body></html>";
+                var errorBytes = Encoding.UTF8.GetBytes(errorHtml);
+                context.Response.StatusCode = 400;
+                context.Response.ContentType = "text/html";
+                await context.Response.OutputStream.WriteAsync(errorBytes, cancellationToken);
+                context.Response.Close();
+
+                throw new SecurityException(
+                    $"OAuth state validation failed for provider '{provider}'. " +
+                    "The callback may have been tampered with or is from a different authorization request.");
+            }
+
+            // Remove state after successful validation (one-time use)
+            _pendingStates.TryRemove(provider, out _);
 
             // Respond to the browser
             var responseHtml = string.IsNullOrEmpty(error)
@@ -160,7 +223,7 @@ public sealed class OAuthService : IOAuthService
             var responseBytes = Encoding.UTF8.GetBytes(responseHtml);
             context.Response.StatusCode = 200;
             context.Response.ContentType = "text/html";
-            await context.Response.OutputStream.WriteAsync(responseBytes);
+            await context.Response.OutputStream.WriteAsync(responseBytes, cancellationToken);
             context.Response.Close();
 
             if (!string.IsNullOrEmpty(error))
@@ -178,8 +241,11 @@ public sealed class OAuthService : IOAuthService
 
             _log.Debug("Received OAuth authorization code for {Provider}", provider);
 
-            // Exchange the authorization code for tokens
-            var tokenResponse = await ExchangeCodeForTokensAsync(config, code, effectiveRedirectUri);
+            // Remove PKCE code verifier before token exchange (one-time use)
+            _pendingCodeVerifiers.TryRemove(provider, out _);
+
+            // Exchange the authorization code for tokens (with PKCE code_verifier)
+            var tokenResponse = await ExchangeCodeForTokensAsync(config, code, effectiveRedirectUri, codeVerifier);
 
             // Encrypt and persist the credential
             var credential = await PersistCredentialAsync(provider, tokenResponse, effectiveScopes);
@@ -198,6 +264,10 @@ public sealed class OAuthService : IOAuthService
         {
             listener?.Stop();
             listener?.Close();
+
+            // Clean up pending state and PKCE values regardless of outcome
+            _pendingStates.TryRemove(provider, out _);
+            _pendingCodeVerifiers.TryRemove(provider, out _);
         }
     }
 
@@ -321,9 +391,11 @@ public sealed class OAuthService : IOAuthService
     // ── Private: Authorization Flow ─────────────────────────────────────────────
 
     /// <summary>
-    /// Builds the full authorization URL with query parameters for the OAuth2 consent screen.
+    /// Builds the full authorization URL with query parameters for the OAuth2 consent screen,
+    /// including the CSRF <c>state</c> parameter and PKCE <c>code_challenge</c>.
     /// </summary>
-    private static string BuildAuthorizationUrl(OAuthProviderConfig config, string scopes, string redirectUri)
+    private static string BuildAuthorizationUrl(
+        OAuthProviderConfig config, string scopes, string redirectUri, string state, string codeChallenge)
     {
         var queryParams = new List<KeyValuePair<string, string>>
         {
@@ -331,9 +403,19 @@ public sealed class OAuthService : IOAuthService
             new("redirect_uri", redirectUri),
             new("response_type", "code"),
             new("scope", scopes),
-            new("access_type", "offline"),
-            new("prompt", "consent")
+            new("state", state),
+            new("code_challenge", codeChallenge),
+            new("code_challenge_method", "S256")
         };
+
+        // Merge provider-specific extra parameters (e.g. access_type=offline, prompt=consent for Google)
+        if (config.ExtraAuthParameters is not null)
+        {
+            foreach (var kvp in config.ExtraAuthParameters)
+            {
+                queryParams.Add(new KeyValuePair<string, string>(kvp.Key, kvp.Value));
+            }
+        }
 
         var query = string.Join("&", queryParams.Select(kvp =>
             $"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}"));
@@ -370,10 +452,11 @@ public sealed class OAuthService : IOAuthService
     }
 
     /// <summary>
-    /// Exchanges an authorization code for access and refresh tokens via the token endpoint.
+    /// Exchanges an authorization code for access and refresh tokens via the token endpoint,
+    /// including the PKCE <c>code_verifier</c> to complete the PKCE flow.
     /// </summary>
     private async Task<TokenResponse> ExchangeCodeForTokensAsync(
-        OAuthProviderConfig config, string code, string redirectUri)
+        OAuthProviderConfig config, string code, string redirectUri, string codeVerifier)
     {
         var tokenRequest = new Dictionary<string, string>
         {
@@ -381,7 +464,8 @@ public sealed class OAuthService : IOAuthService
             ["client_id"] = config.ClientId,
             ["client_secret"] = config.ClientSecret,
             ["redirect_uri"] = redirectUri,
-            ["grant_type"] = "authorization_code"
+            ["grant_type"] = "authorization_code",
+            ["code_verifier"] = codeVerifier
         };
 
         var response = await _httpClient.PostAsync(config.TokenEndpoint, new FormUrlEncodedContent(tokenRequest));
@@ -389,17 +473,18 @@ public sealed class OAuthService : IOAuthService
 
         if (!response.IsSuccessStatusCode)
         {
-            _log.Error("Token exchange failed with status {StatusCode}: {Body}",
-                (int)response.StatusCode, responseBody);
+            _log.Error("Token exchange failed with status {StatusCode}", (int)response.StatusCode);
+            _log.Debug("Token exchange failure response body: {Body}", responseBody);
             throw new InvalidOperationException(
-                $"Token exchange failed with HTTP {(int)response.StatusCode}. Response: {responseBody}");
+                $"Token exchange failed with HTTP {(int)response.StatusCode}.");
         }
 
         var tokenData = JsonSerializer.Deserialize<TokenResponse>(responseBody, JsonOptions);
         if (tokenData is null || string.IsNullOrEmpty(tokenData.AccessToken))
         {
+            _log.Debug("Token exchange response did not contain an access token. Response body: {Body}", responseBody);
             throw new InvalidOperationException(
-                $"Token exchange response did not contain an access token. Response: {responseBody}");
+                "Token exchange response did not contain an access token.");
         }
 
         return tokenData;
@@ -462,8 +547,10 @@ public sealed class OAuthService : IOAuthService
 
             if (!response.IsSuccessStatusCode)
             {
-                _log.Error("Token refresh failed for {Provider} with status {StatusCode}: {Body}",
-                    provider, (int)response.StatusCode, responseBody);
+                _log.Error("Token refresh failed for {Provider} with status {StatusCode}",
+                    provider, (int)response.StatusCode);
+                _log.Debug("Token refresh failure response body for {Provider}: {Body}",
+                    provider, responseBody);
                 return false;
             }
 
@@ -582,8 +669,9 @@ public sealed class OAuthService : IOAuthService
         if (!response.IsSuccessStatusCode)
         {
             var body = await response.Content.ReadAsStringAsync();
+            _log.Debug("Server-side revocation failure response: {Body}", body);
             throw new InvalidOperationException(
-                $"Server-side revocation failed with HTTP {(int)response.StatusCode}: {body}");
+                $"Server-side revocation failed with HTTP {(int)response.StatusCode}.");
         }
     }
 
@@ -663,6 +751,67 @@ public sealed class OAuthService : IOAuthService
     {
         if (string.IsNullOrWhiteSpace(provider))
             throw new ArgumentException("Provider identifier cannot be null or whitespace.", nameof(provider));
+    }
+
+    // ── Private: CSRF & PKCE Helpers ────────────────────────────────────────────
+
+    /// <summary>
+    /// Generates a cryptographically random <c>state</c> parameter for CSRF protection
+    /// per RFC 6749 Section 10.12. The value is Base64-encoded (32 bytes of entropy).
+    /// </summary>
+    private static string GenerateState()
+    {
+        return Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+    }
+
+    /// <summary>
+    /// Generates a PKCE <c>code_verifier</c> per RFC 7636. Uses 32 bytes of
+    /// cryptographic randomness, Base64Url-encoded to produce a 43-character verifier.
+    /// </summary>
+    private static string GenerateCodeVerifier()
+    {
+        var bytes = RandomNumberGenerator.GetBytes(32);
+        return Base64UrlEncode(bytes);
+    }
+
+    /// <summary>
+    /// Computes the PKCE <c>code_challenge</c> from the <c>code_verifier</c>
+    /// using SHA-256, per RFC 7636 Section 4.2.
+    /// </summary>
+    private static string ComputeCodeChallenge(string codeVerifier)
+    {
+        var challengeBytes = SHA256.HashData(Encoding.ASCII.GetBytes(codeVerifier));
+        return Base64UrlEncode(challengeBytes);
+    }
+
+    /// <summary>
+    /// Encodes bytes using Base64Url encoding (RFC 4648 Section 5) with no padding,
+    /// as required by RFC 7636 for PKCE.
+    /// </summary>
+    private static string Base64UrlEncode(byte[] bytes)
+    {
+        return Convert.ToBase64String(bytes)
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
+    }
+
+    // ── IDisposable ──────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Disposes owned resources: the <see cref="HttpClient"/> and all
+    /// <see cref="SemaphoreSlim"/> instances in <see cref="_refreshLocks"/>.
+    /// The DI container disposes this automatically since it is registered as a singleton.
+    /// </summary>
+    public void Dispose()
+    {
+        foreach (var slim in _refreshLocks.Values)
+            slim.Dispose();
+        _refreshLocks.Clear();
+
+        _httpClient.Dispose();
+
+        _log.Debug("OAuthService disposed");
     }
 
     // ── Inner: Token Response DTO ───────────────────────────────────────────────
