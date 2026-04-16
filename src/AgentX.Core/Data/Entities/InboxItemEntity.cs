@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace AgentX.Core.Data.Entities;
 
 /// <summary>
@@ -81,4 +83,27 @@ public class InboxItemEntity
     /// Null for file-watcher or manually-added items.
     /// </summary>
     public string? SourceUrl { get; set; }
+
+    /// <summary>
+    /// Identifies the plugin that created this inbox item (e.g. <c>"com.agentx.calendar"</c>,
+    /// <c>"com.agentx.email"</c>). Null for file-watcher or manually-added items.
+    /// </summary>
+    [MaxLength(50)]
+    public string? SourcePluginId { get; set; }
+
+    /// <summary>
+    /// Category or source type within the plugin (e.g. <c>"calendar_event"</c>,
+    /// <c>"ActionRequired"</c>). Null for non-plugin items.
+    /// </summary>
+    [MaxLength(50)]
+    public string? SourceCategory { get; set; }
+
+    /// <summary>
+    /// External ID from the provider (e.g. Google event ID, Gmail message ID).
+    /// Used for deduplication — if an item with the same ExternalId and SourcePluginId
+    /// already exists in the inbox, the duplicate is skipped.
+    /// Null for file-watcher or manually-added items.
+    /// </summary>
+    [MaxLength(500)]
+    public string? ExternalId { get; set; }
 }

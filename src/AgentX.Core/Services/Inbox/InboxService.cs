@@ -613,6 +613,79 @@ public sealed class InboxService : IInboxService
         }
     }
 
+    // ── External (plugin-sourced) items ────────────────────────────────────────
+
+    /// <inheritdoc />
+    public async Task<InboxItemEntity> TriageExternalAsync(
+        string fileName,
+        string fileType,
+        string sourceType,
+        string? sourceUrl,
+        string sourcePluginId,
+        string? sourceCategory,
+        string externalId,
+        string? contentPreview,
+        string contentText)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourcePluginId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(externalId);
+
+        // Deduplicate: if an item with the same ExternalId and SourcePluginId already
+        // exists in the inbox, return it as-is.
+        var existing = await _db.InboxItems
+            .FirstOrDefaultAsync(i =>
+                i.ExternalId == externalId &&
+                i.SourcePluginId == sourcePluginId)
+            .ConfigureAwait(false);
+
+        if (existing is not null)
+        {
+            Log.Debug(
+                "InboxService: External item already in inbox (ExternalId={ExternalId}, Plugin={PluginId}) — skipping duplicate",
+                externalId, sourcePluginId);
+            return existing;
+        }
+
+        // Write content text to a temp file so the indexing pipeline can process it.
+        var tempDir = Path.Combine(
+            Path.GetTempPath(), "AgentX", "ExternalItems", sourcePluginId);
+        Directory.CreateDirectory(tempDir);
+
+        // Sanitize fileName for the filesystem.
+        var safeFileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
+        var tempFilePath = Path.Combine(tempDir, $"{externalId}_{safeFileName}.txt");
+
+        await File.WriteAllTextAsync(tempFilePath, contentText).ConfigureAwait(false);
+        var fileInfo = new FileInfo(tempFilePath);
+
+        var item = new InboxItemEntity
+        {
+            FilePath = tempFilePath,
+            FileName = fileName,
+            FileType = fileType,
+            FileSizeBytes = fileInfo.Length,
+            Status = "accepted", // Auto-accept external items
+            Preview = contentPreview,
+            AddedAt = DateTime.UtcNow,
+            ProcessedAt = DateTime.UtcNow,
+            SourceType = sourceType,
+            SourceUrl = sourceUrl,
+            SourcePluginId = sourcePluginId,
+            SourceCategory = sourceCategory,
+            ExternalId = externalId,
+        };
+
+        _db.InboxItems.Add(item);
+        await _db.SaveChangesAsync().ConfigureAwait(false);
+
+        Log.Information(
+            "InboxService: TriageExternal — added '{FileName}' (Plugin={PluginId}, ExternalId={ExternalId})",
+            fileName, sourcePluginId, externalId);
+
+        return item;
+    }
+
     // ── Private helpers ──────────────────────────────────────────────────────
 
     /// <summary>

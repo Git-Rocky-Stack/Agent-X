@@ -1,4 +1,5 @@
 using System.Text.Json;
+using AgentX.Core.Services.Inbox;
 using AgentX.Core.Services.OAuth;
 using AgentX.Core.Services.Plugins.Calendar.Models;
 using Serilog;
@@ -45,6 +46,9 @@ public sealed class CalendarPlugin : IPlugin
 
     private IPluginContext? _context;
     private IOAuthService? _oauthService;
+    private IInboxService? _inboxService;
+    private CalendarSyncService? _syncService;
+    private CalendarEventProcessor? _eventProcessor;
     private ILogger? _log;
     private CalendarSyncSettings _syncSettings = new();
     private Timer? _syncTimer;
@@ -93,6 +97,20 @@ public sealed class CalendarPlugin : IPlugin
         else
         {
             _log.Information("IOAuthService resolved successfully for CalendarPlugin");
+        }
+
+        // Resolve IInboxService for pushing events into the Smart Inbox.
+        _inboxService = context.Services.GetService(typeof(IInboxService)) as IInboxService;
+
+        if (_inboxService is null)
+        {
+            _log.Warning(
+                "IInboxService not available in plugin context. " +
+                "Calendar events will be fetched but not indexed until InboxService is available.");
+        }
+        else
+        {
+            _log.Information("IInboxService resolved successfully for CalendarPlugin");
         }
 
         // Load persisted sync settings from the plugin data directory.
@@ -338,12 +356,33 @@ public sealed class CalendarPlugin : IPlugin
 
     /// <summary>
     /// Executes one sync cycle across all enabled calendars and all registered providers.
-    /// Aggregates results into a single <see cref="SyncResult"/>.
-    /// Note: The actual event processing (converting to InboxItems) is handled by
-    /// <see cref="CalendarSyncService"/>, which will be implemented in a subsequent task.
-    /// This method currently returns a placeholder result.
+    /// Delegates to <see cref="CalendarSyncService"/> for event processing and
+    /// inbox triage. If <see cref="IInboxService"/> is not available, falls back to
+    /// a fetch-only cycle that counts events without indexing them.
     /// </summary>
     private async Task<SyncResult> ExecuteSyncCycleAsync(CancellationToken cancellationToken)
+    {
+        // If InboxService is available, use the full sync pipeline.
+        if (_inboxService is not null && _context is not null)
+        {
+            // Lazily create the sync service (depends on InboxService).
+            _eventProcessor ??= new CalendarEventProcessor(_log!);
+            _syncService ??= new CalendarSyncService(
+                _inboxService, _eventProcessor, _log!, _context.PluginDataPath);
+
+            return await _syncService.SyncAsync(_providers, _syncSettings, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        // Fallback: fetch-only cycle when InboxService is unavailable.
+        return await FetchOnlySyncCycleAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Fetch-only sync cycle that counts events without processing them into the inbox.
+    /// Used as a fallback when <see cref="IInboxService"/> is not available.
+    /// </summary>
+    private async Task<SyncResult> FetchOnlySyncCycleAsync(CancellationToken cancellationToken)
     {
         var startedAt = DateTime.UtcNow;
         var totalAdded = 0;

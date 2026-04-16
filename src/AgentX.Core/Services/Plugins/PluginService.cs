@@ -345,6 +345,13 @@ public sealed class PluginService : IPluginService
             // host services that are approved for plugin consumption.
             var pluginServices = new ServiceCollection();
             pluginServices.AddSingleton(_rootServiceProvider.GetRequiredService<AgentX.Core.Services.OAuth.IOAuthService>());
+
+            // Register IInboxService for DataConnector plugins that need to push
+            // external items into the Smart Inbox pipeline.
+            var inboxService = _rootServiceProvider.GetService<AgentX.Core.Services.Inbox.IInboxService>();
+            if (inboxService is not null)
+                pluginServices.AddSingleton(inboxService);
+
             var pluginServiceProvider = pluginServices.BuildServiceProvider();
 
             var pluginContext = new PluginContext(

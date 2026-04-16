@@ -140,4 +140,33 @@ public interface IInboxService
     /// or "deferred". Pending items are not touched. Does not affect files on disk.
     /// </summary>
     Task DeleteProcessedItemsAsync();
+
+    // ── External (plugin-sourced) items ────────────────────────────────────────
+
+    /// <summary>
+    /// Adds an external item to the inbox from a DataConnector plugin (calendar, email, etc.).
+    /// Unlike <see cref="AddToInboxAsync"/>, this does not require a physical file on disk.
+    /// The item is auto-accepted and immediately available for indexing since external
+    /// items are already processed by the plugin before submission.
+    /// </summary>
+    /// <param name="fileName">Display name for the item (e.g. "Meeting: Sprint Planning").</param>
+    /// <param name="fileType">Category label (e.g. "CalendarEvent", "EmailMessage").</param>
+    /// <param name="sourceType">Source type identifier (e.g. "calendar-connector", "email-connector").</param>
+    /// <param name="sourceUrl">Link to the original item (e.g. Google Calendar web link).</param>
+    /// <param name="sourcePluginId">Plugin ID that created this item (e.g. "com.agentx.calendar").</param>
+    /// <param name="sourceCategory">Category within the plugin (e.g. "calendar_event", "ActionRequired").</param>
+    /// <param name="externalId">Provider-specific ID for deduplication.</param>
+    /// <param name="contentPreview">AI-generated or extracted content preview.</param>
+    /// <param name="contentText">Full text content for indexing (will be stored as a temp file).</param>
+    /// <returns>The created inbox item, already in "accepted" status.</returns>
+    Task<InboxItemEntity> TriageExternalAsync(
+        string fileName,
+        string fileType,
+        string sourceType,
+        string? sourceUrl,
+        string sourcePluginId,
+        string? sourceCategory,
+        string externalId,
+        string? contentPreview,
+        string contentText);
 }
