@@ -1,0 +1,197 @@
+<Page
+    x:Class="AgentX.App.Views.CalendarSettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:c="using:AgentX.App.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    NavigationCacheMode="Enabled"
+    Background="{StaticResource PageBackgroundBrush}">
+
+    <Page.Resources>
+        <c:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+        <c:BoolToVisibilityConverter x:Key="InverseBoolToVisibility" IsInverted="True"/>
+    </Page.Resources>
+
+    <ScrollViewer Padding="40,32,40,32">
+        <Grid MaxWidth="900" RowSpacing="16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <StackPanel Grid.Row="0" Spacing="4">
+                <TextBlock Text="Calendar Connector" Style="{StaticResource TitleTextBlockStyle}"/>
+                <TextBlock
+                    Text="Sync Google Calendar and Microsoft Outlook events into your knowledge vault for AI-powered search."
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Opacity="0.7"/>
+            </StackPanel>
+
+            <!-- Error bar -->
+            <InfoBar
+                Grid.Row="1"
+                Title="Error"
+                Severity="Error"
+                IsOpen="{x:Bind ViewModel.HasError, Mode=OneWay}"
+                Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                IsClosable="True"/>
+
+            <!-- Connected Accounts -->
+            <Border Grid.Row="2" Style="{StaticResource CardStyle}" Padding="20">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Connected Accounts" Style="{StaticResource SubtitleTextBlockStyle}"/>
+
+                    <!-- Google Calendar -->
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <FontIcon Grid.Column="0" Glyph="&#xE716;" FontSize="24" Opacity="0.8"/>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Text="Google Calendar" Style="{StaticResource BodyStrongTextBlockStyle}"/>
+                            <TextBlock
+                                Text="{x:Bind ViewModel.GoogleStatusText, Mode=OneWay}"
+                                Opacity="0.7"
+                                Style="{StaticResource CaptionTextBlockStyle}"/>
+                        </StackPanel>
+                        <Button
+                            Grid.Column="2"
+                            Content="Connect"
+                            Command="{x:Bind ViewModel.ConnectGoogleCommand, Mode=OneWay}"
+                            Visibility="{x:Bind ViewModel.IsGoogleConnected, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}"
+                            Style="{StaticResource AccentButtonStyle}"
+                            MinWidth="120"/>
+                        <Button
+                            Grid.Column="2"
+                            Content="Disconnect"
+                            Command="{x:Bind ViewModel.DisconnectGoogleCommand, Mode=OneWay}"
+                            Visibility="{x:Bind ViewModel.IsGoogleConnected, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
+                            MinWidth="120"/>
+                    </Grid>
+
+                    <!-- Microsoft Outlook -->
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <FontIcon Grid.Column="0" Glyph="&#xE77B;" FontSize="24" Opacity="0.8"/>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Text="Outlook Calendar" Style="{StaticResource BodyStrongTextBlockStyle}"/>
+                            <TextBlock
+                                Text="{x:Bind ViewModel.MicrosoftStatusText, Mode=OneWay}"
+                                Opacity="0.7"
+                                Style="{StaticResource CaptionTextBlockStyle}"/>
+                        </StackPanel>
+                        <Button
+                            Grid.Column="2"
+                            Content="Connect"
+                            Command="{x:Bind ViewModel.ConnectMicrosoftCommand, Mode=OneWay}"
+                            Visibility="{x:Bind ViewModel.IsMicrosoftConnected, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}"
+                            Style="{StaticResource AccentButtonStyle}"
+                            MinWidth="120"/>
+                        <Button
+                            Grid.Column="2"
+                            Content="Disconnect"
+                            Command="{x:Bind ViewModel.DisconnectMicrosoftCommand, Mode=OneWay}"
+                            Visibility="{x:Bind ViewModel.IsMicrosoftConnected, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
+                            MinWidth="120"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Sync Settings -->
+            <Border Grid.Row="3" Style="{StaticResource CardStyle}" Padding="20">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Sync Settings" Style="{StaticResource SubtitleTextBlockStyle}"/>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Sync Interval (minutes)" Style="{StaticResource BodyTextBlockStyle}"/>
+                        <ComboBox
+                            ItemsSource="{x:Bind ViewModel.SyncIntervalOptions, Mode=OneWay}"
+                            SelectedIndex="{x:Bind ViewModel.SyncIntervalIndex, Mode=TwoWay}"
+                            MinWidth="200"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Sync Range: Past Days" Style="{StaticResource BodyTextBlockStyle}"/>
+                        <NumberBox
+                            Value="{x:Bind ViewModel.DaysPastToSync, Mode=TwoWay}"
+                            Minimum="1" Maximum="365"
+                            SpinButtonPlacementMode="Compact"
+                            MinWidth="200"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Sync Range: Future Days" Style="{StaticResource BodyTextBlockStyle}"/>
+                        <NumberBox
+                            Value="{x:Bind ViewModel.DaysFutureToSync, Mode=TwoWay}"
+                            Minimum="1" Maximum="365"
+                            SpinButtonPlacementMode="Compact"
+                            MinWidth="200"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Conflict Resolution" Style="{StaticResource BodyTextBlockStyle}"/>
+                        <ComboBox
+                            ItemsSource="{x:Bind ViewModel.ConflictResolutionOptions, Mode=OneWay}"
+                            SelectedIndex="{x:Bind ViewModel.ConflictResolutionIndex, Mode=TwoWay}"
+                            MinWidth="200"/>
+                    </StackPanel>
+
+                    <ToggleSwitch
+                        Header="Include attendee details"
+                        IsOn="{x:Bind ViewModel.IncludeAttendeeDetails, Mode=TwoWay}"
+                        OffContent="Exclude" OnContent="Include"/>
+
+                    <ToggleSwitch
+                        Header="Include event descriptions"
+                        IsOn="{x:Bind ViewModel.IncludeDescriptions, Mode=TwoWay}"
+                        OffContent="Exclude" OnContent="Include"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Actions -->
+            <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="12">
+                <Button
+                    Content="Save Settings"
+                    Command="{x:Bind ViewModel.SaveSettingsCommand, Mode=OneWay}"
+                    Style="{StaticResource AccentButtonStyle}"/>
+                <ProgressBar
+                    IsIndeterminate="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
+                    Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
+                    Width="100" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Status -->
+            <Border Grid.Row="5" Style="{StaticResource CardStyle}" Padding="16">
+                <Grid ColumnSpacing="24">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Spacing="2">
+                        <TextBlock Text="Last Synced" Opacity="0.6" Style="{StaticResource CaptionTextBlockStyle}"/>
+                        <TextBlock Text="{x:Bind ViewModel.LastSyncTime, Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Spacing="2">
+                        <TextBlock Text="Next Sync" Opacity="0.6" Style="{StaticResource CaptionTextBlockStyle}"/>
+                        <TextBlock Text="{x:Bind ViewModel.NextSyncTime, Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</Page>
