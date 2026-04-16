@@ -10,8 +10,9 @@
     <UseWinUI>true</UseWinUI>
     <EnableMsixTooling>true</EnableMsixTooling>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
-    <!-- Default RID so dotnet build works without -r; override with -r win-arm64 etc. -->
-    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
+    <!-- Default Platform and RID so dotnet build works without arguments. -->
+    <Platform Condition="'$(Platform)' == ''">x64</Platform>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-$(Platform.ToLower())</RuntimeIdentifier>
     <WindowsPackageType>None</WindowsPackageType>
     <PublishReadyToRun>true</PublishReadyToRun>
     <!-- <ApplicationIcon>app.ico</ApplicationIcon> -->
