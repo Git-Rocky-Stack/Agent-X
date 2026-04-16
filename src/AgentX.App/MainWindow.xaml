@@ -318,6 +318,15 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
+                <NavigationViewItem x:Name="NavEmailSettings"
+                                    Content="Email"
+                                    Tag="EmailSettings"
+                                    Style="{StaticResource AgentXNavItemStyle}">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE715;" FontSize="16" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
                 <NavigationViewItemSeparator Margin="12,6" />
 
                 <!-- ANNOTATIONS SECTION -->

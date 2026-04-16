@@ -429,6 +429,7 @@ public partial class App : Application
         services.AddTransient<ViewModels.PluginManagerViewModel>();
         services.AddTransient<ViewModels.SyncSettingsViewModel>();
         services.AddTransient<ViewModels.CalendarSettingsViewModel>();
+        services.AddTransient<ViewModels.EmailSettingsViewModel>();
         services.AddTransient<ViewModels.AnalyticsViewModel>();
         services.AddTransient<ViewModels.QuickChatViewModel>();
 
@@ -456,6 +457,7 @@ public partial class App : Application
         services.AddTransient<Views.PluginManagerPage>();
         services.AddTransient<Views.SyncSettingsPage>();
         services.AddTransient<Views.CalendarSettingsPage>();
+        services.AddTransient<Views.EmailSettingsPage>();
         services.AddTransient<Views.AnalyticsPage>();
         services.AddTransient<Views.UserGuidePage>();
         services.AddTransient<Views.PrivacyPolicyPage>();
