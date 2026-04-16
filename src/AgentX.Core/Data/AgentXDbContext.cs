@@ -581,6 +581,12 @@ public class AgentXDbContext : DbContext
             entity.Property(e => e.SuggestedTags);
             entity.Property(e => e.ProcessedAt);
             entity.Property(e => e.WatchFolderId);
+            entity.Property(e => e.SourceType);
+            entity.Property(e => e.SourceUrl);
+            entity.Property(e => e.SourcePluginId);
+            entity.Property(e => e.SourceCategory);
+            entity.Property(e => e.ExternalId);
+            entity.Property(e => e.DocumentId);
 
             // Indexes to support the most common query patterns:
             //   - GetPendingItemsAsync / GetPendingCountAsync filter on Status
@@ -589,6 +595,8 @@ public class AgentXDbContext : DbContext
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.AddedAt);
             entity.HasIndex(e => e.WatchFolderId);
+            entity.HasIndex(e => new { e.ExternalId, e.SourcePluginId });
+            entity.HasIndex(e => e.DocumentId);
         });
     }
 

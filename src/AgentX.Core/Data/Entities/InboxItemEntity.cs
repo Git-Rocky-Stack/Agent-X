@@ -106,4 +106,11 @@ public class InboxItemEntity
     /// </summary>
     [MaxLength(500)]
     public string? ExternalId { get; set; }
+
+    /// <summary>
+    /// Foreign key to the <see cref="DocumentEntity"/> created when this inbox item
+    /// was bridged into the document library for search indexing.
+    /// Null until the bridge completes (or if IDocumentService is unavailable).
+    /// </summary>
+    public long? DocumentId { get; set; }
 }

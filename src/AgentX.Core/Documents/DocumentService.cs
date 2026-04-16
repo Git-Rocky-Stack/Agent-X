@@ -161,6 +161,93 @@ public sealed class DocumentService : IDocumentService
     }
 
     /// <inheritdoc />
+    public async Task<DocumentEntity> ImportExternalContentAsync(
+        string filePath,
+        string fileTypeOverride,
+        string displayName,
+        string? sourceUrl = null,
+        long? collectionId = null,
+        CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(fileTypeOverride);
+        ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
+
+        if (!File.Exists(filePath))
+        {
+            throw new FileNotFoundException($"The file does not exist: {filePath}", filePath);
+        }
+
+        // Find a processor for the file (typically TextProcessor for .txt temp files)
+        var processor = FindProcessorFor(filePath);
+        if (processor is null)
+        {
+            throw new NotSupportedException(
+                $"No processor found for file '{filePath}'. Supported types: {string.Join(", ", GetSupportedExtensions())}");
+        }
+
+        var processed = await processor.ProcessAsync(filePath, ct);
+
+        var fileInfo = new FileInfo(filePath);
+        var contentHash = await HashHelper.ComputeFileHashAsync(filePath, ct);
+        var metadataJson = SerializeMetadata(processed.Metadata);
+
+        // Store the source URL in metadata if provided
+        if (!string.IsNullOrWhiteSpace(sourceUrl))
+        {
+            processed.Metadata.Custom["sourceUrl"] = sourceUrl;
+            metadataJson = SerializeMetadata(processed.Metadata);
+        }
+
+        var entity = new DocumentEntity
+        {
+            FileName = displayName,
+            FilePath = Path.GetFullPath(filePath),
+            FileType = fileTypeOverride, // Preserve semantic type (CalendarEvent, EmailMessage, etc.)
+            MimeType = "text/plain",
+            FileSizeBytes = fileInfo.Length,
+            ContentHash = contentHash,
+            ImportedAt = DateTime.UtcNow,
+            FileModifiedAt = fileInfo.LastWriteTimeUtc,
+            IndexingStatus = "pending",
+            PageCount = processed.PageCount,
+            WordCount = processed.WordCount,
+            ExtractedTitle = displayName,
+            Language = processed.Language,
+            MetadataJson = metadataJson,
+        };
+
+        _db.Documents.Add(entity);
+        await _db.SaveChangesAsync(ct);
+
+        _logger.Information(
+            "Imported external content: {DisplayName} (ID {DocumentId}, Type={FileType}, {WordCount} words)",
+            displayName, entity.Id, entity.FileType, entity.WordCount);
+
+        // Associate with collection if specified
+        if (collectionId.HasValue)
+        {
+            var collectionExists = await _db.Collections
+                .AnyAsync(c => c.Id == collectionId.Value, ct);
+
+            if (collectionExists)
+            {
+                var docCollection = new DocumentCollectionEntity
+                {
+                    DocumentId = entity.Id,
+                    CollectionId = collectionId.Value,
+                    AddedAt = DateTime.UtcNow
+                };
+
+                _db.DocumentCollections.Add(docCollection);
+                await _db.SaveChangesAsync(ct);
+            }
+        }
+
+        return entity;
+    }
+
+    /// <inheritdoc />
     public async Task<IReadOnlyList<DocumentEntity>> ImportFilesAsync(
         IReadOnlyList<string> filePaths,
         long? collectionId = null,

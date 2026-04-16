@@ -1,5 +1,6 @@
 using System.Text;
 using AgentX.Core.AI;
+using AgentX.Core.Documents;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
@@ -23,6 +24,7 @@ public sealed class InboxService : IInboxService
     private readonly ISummaryService _summaryService;
     private readonly ICollectionService _collectionService;
     private readonly IAiService _aiService;
+    private readonly IDocumentService? _documentService;
 
     /// <summary>
     /// Maximum characters read from a file for AI preview generation.
@@ -43,12 +45,14 @@ public sealed class InboxService : IInboxService
         AgentXDbContext dbContext,
         ISummaryService summaryService,
         ICollectionService collectionService,
-        IAiService aiService)
+        IAiService aiService,
+        IDocumentService? documentService = null)
     {
         _db = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _summaryService = summaryService ?? throw new ArgumentNullException(nameof(summaryService));
         _collectionService = collectionService ?? throw new ArgumentNullException(nameof(collectionService));
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
+        _documentService = documentService;
     }
 
     // ── Ingestion ────────────────────────────────────────────────────────────
@@ -678,6 +682,37 @@ public sealed class InboxService : IInboxService
 
         _db.InboxItems.Add(item);
         await _db.SaveChangesAsync().ConfigureAwait(false);
+
+        // Bridge to the document library so the content is searchable.
+        // When IDocumentService is available, import the temp file with the
+        // semantic file type preserved (e.g. "CalendarEvent", "EmailMessage").
+        if (_documentService is not null)
+        {
+            try
+            {
+                var document = await _documentService.ImportExternalContentAsync(
+                    tempFilePath,
+                    fileType,
+                    displayName: fileName,
+                    sourceUrl: sourceUrl,
+                    ct: default).ConfigureAwait(false);
+
+                item.DocumentId = document.Id;
+                _db.InboxItems.Update(item);
+                await _db.SaveChangesAsync().ConfigureAwait(false);
+
+                Log.Debug(
+                    "InboxService: TriageExternal — linked inbox item {ItemId} to document {DocumentId}",
+                    item.Id, document.Id);
+            }
+            catch (Exception ex)
+            {
+                // Non-fatal: the inbox item is still valid; search indexing is best-effort.
+                Log.Warning(ex,
+                    "InboxService: TriageExternal — failed to import '{FileName}' into document library (non-fatal)",
+                    fileName);
+            }
+        }
 
         Log.Information(
             "InboxService: TriageExternal — added '{FileName}' (Plugin={PluginId}, ExternalId={ExternalId})",

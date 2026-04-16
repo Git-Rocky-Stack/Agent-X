@@ -53,6 +53,8 @@ public sealed partial class SearchPage : Page
         _filterChips["txt"] = FilterTxt;
         _filterChips["code"] = FilterCode;
         _filterChips["md"] = FilterMd;
+        _filterChips["CalendarEvent"] = FilterCalendar;
+        _filterChips["EmailMessage"] = FilterEmail;
 
         await ViewModel.InitializeAsync();
 

@@ -554,6 +554,8 @@ public partial class SearchViewModel : ObservableObject
             "txt" => fileType is "txt" or "text",
             "code" => fileType is "cs" or "py" or "js" or "ts" or "java" or "cpp" or "c" or "go" or "rs" or "rb" or "php" or "swift" or "kt",
             "md" => fileType is "md" or "markdown",
+            "calendarevent" => fileType is "calendarevent",
+            "emailmessage" => fileType is "emailmessage",
             _ => true
         };
     }
@@ -701,6 +703,8 @@ public partial class SearchResultItem : ObservableObject
         "txt" => "\uE8A4",
         "md" => "\uE943",
         "cs" or "py" or "js" or "ts" => "\uE943",
+        "calendarevent" => "\uE787",
+        "emailmessage" => "\uE715",
         _ => "\uE7C3"
     };
 
