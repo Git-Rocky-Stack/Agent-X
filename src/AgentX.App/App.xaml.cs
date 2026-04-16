@@ -206,7 +206,36 @@ public partial class App : Application
         services.AddSingleton<ISecurityStatusService, SecurityStatusService>();
 
         // ── OAuth ──────────────────────────────────────────────
-        services.AddSingleton<IOAuthService, OAuthService>();
+        services.AddSingleton<IOAuthService>(sp =>
+        {
+            var oauthService = new OAuthService(
+                sp.GetRequiredService<AgentXDbContext>(),
+                sp.GetRequiredService<IDpapiEncryptionService>(),
+                sp.GetRequiredService<Serilog.ILogger>());
+
+            var settings = sp.GetRequiredService<ISettingsService>().GetSettingsAsync().GetAwaiter().GetResult();
+
+            // Only register Google if credentials are configured
+            if (!string.IsNullOrWhiteSpace(settings.OAuth.Google.ClientId))
+            {
+                oauthService.RegisterProvider(OAuthProviderRegistry.Google(
+                    settings.OAuth.Google.ClientId,
+                    settings.OAuth.Google.ClientSecret,
+                    settings.OAuth.Google.RedirectUri));
+            }
+
+            // Only register Microsoft if credentials are configured
+            if (!string.IsNullOrWhiteSpace(settings.OAuth.Microsoft.ClientId))
+            {
+                oauthService.RegisterProvider(OAuthProviderRegistry.Microsoft(
+                    settings.OAuth.Microsoft.ClientId,
+                    settings.OAuth.Microsoft.ClientSecret,
+                    settings.OAuth.Microsoft.TenantId,
+                    settings.OAuth.Microsoft.RedirectUri));
+            }
+
+            return oauthService;
+        });
 
         // ── Core Services ──────────────────────────────────────
         services.AddSingleton<ISettingsService, SettingsService>();

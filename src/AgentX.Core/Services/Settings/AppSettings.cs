@@ -62,8 +62,156 @@ public class AppSettings
     public int HnswEfSearch { get; set; } = 50;
     public int HnswFallbackThreshold { get; set; } = 10000;
 
+    // OAuth2 Configuration
+    public OAuthSettings OAuth { get; set; } = new();
+
+    // Calendar Connector
+    public CalendarSettings CalendarConnector { get; set; } = new();
+
+    // Email Connector
+    public EmailSettings EmailConnector { get; set; } = new();
+
     // Storage
     public string StoragePath { get; set; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "AgentX");
+}
+
+/// <summary>
+/// OAuth2 provider configuration for third-party authentication.
+/// Contains settings for Google and Microsoft providers, plus
+/// global parameters like token refresh buffer and auth timeout.
+/// </summary>
+public class OAuthSettings
+{
+    public GoogleOAuthSettings Google { get; set; } = new();
+    public MicrosoftOAuthSettings Microsoft { get; set; } = new();
+
+    /// <summary>
+    /// Number of minutes before token expiry at which a refresh is triggered.
+    /// Prevents API calls from failing due to tokens that expire mid-request.
+    /// </summary>
+    public int TokenRefreshBufferMinutes { get; set; } = 5;
+
+    /// <summary>
+    /// Maximum number of seconds to wait for the user to complete the
+    /// OAuth consent flow in the browser before timing out.
+    /// </summary>
+    public int AuthTimeoutSeconds { get; set; } = 300;
+}
+
+/// <summary>
+/// Google OAuth2 settings. Client credentials are obtained from the
+/// Google Cloud Console (APIs &amp; Services &gt; Credentials).
+/// </summary>
+public class GoogleOAuthSettings
+{
+    public string ClientId { get; set; } = string.Empty;
+    public string ClientSecret { get; set; } = string.Empty;
+    public string RedirectUri { get; set; } = "http://localhost:8400/oauth/callback";
+}
+
+/// <summary>
+/// Microsoft (Azure AD / Entra ID) OAuth2 settings. Client credentials are
+/// obtained from the Azure Portal (App Registrations).
+/// </summary>
+public class MicrosoftOAuthSettings
+{
+    public string ClientId { get; set; } = string.Empty;
+    public string ClientSecret { get; set; } = string.Empty;
+    public string TenantId { get; set; } = "common";
+    public string RedirectUri { get; set; } = "http://localhost:8401/oauth/callback";
+}
+
+/// <summary>
+/// Calendar sync configuration. Controls how the application connects to
+/// and synchronizes with external calendar providers (Google Calendar,
+/// Microsoft Outlook).
+/// </summary>
+public class CalendarSettings
+{
+    /// <summary>
+    /// Whether calendar synchronization is enabled.
+    /// When disabled, no calendar data is fetched or stored locally.
+    /// </summary>
+    public bool EnableCalendarSync { get; set; } = false;
+
+    /// <summary>
+    /// How often (in minutes) to poll the calendar provider for changes.
+    /// </summary>
+    public int SyncIntervalMinutes { get; set; } = 15;
+
+    /// <summary>
+    /// Number of days in the past to include when syncing calendar events.
+    /// </summary>
+    public int DaysPastToSync { get; set; } = 90;
+
+    /// <summary>
+    /// Number of days in the future to include when syncing calendar events.
+    /// </summary>
+    public int DaysFutureToSync { get; set; } = 30;
+
+    /// <summary>
+    /// Strategy for resolving conflicting calendar events during sync.
+    /// Valid values: "LocalWins", "RemoteWins", "Merge".
+    /// </summary>
+    public string ConflictResolution { get; set; } = "RemoteWins";
+
+    /// <summary>
+    /// Whether to include attendee details (names, emails, response status)
+    /// when syncing calendar events.
+    /// </summary>
+    public bool IncludeAttendeeDetails { get; set; } = true;
+
+    /// <summary>
+    /// Whether to include the full event description/body when syncing
+    /// calendar events.
+    /// </summary>
+    public bool IncludeDescriptions { get; set; } = true;
+}
+
+/// <summary>
+/// Email sync configuration. Controls how the application connects to
+/// and synchronizes with external email providers (Gmail, Outlook).
+/// </summary>
+public class EmailSettings
+{
+    /// <summary>
+    /// Whether email synchronization is enabled.
+    /// When disabled, no email data is fetched or stored locally.
+    /// </summary>
+    public bool EnableEmailSync { get; set; } = false;
+
+    /// <summary>
+    /// How often (in minutes) to poll the email provider for new messages.
+    /// </summary>
+    public int SyncIntervalMinutes { get; set; } = 10;
+
+    /// <summary>
+    /// Maximum number of messages to fetch per sync cycle.
+    /// </summary>
+    public int MessagesPerSync { get; set; } = 50;
+
+    /// <summary>
+    /// Number of days back to include when syncing email messages.
+    /// </summary>
+    public int DaysBackToSync { get; set; } = 30;
+
+    /// <summary>
+    /// Whether to use AI-based categorization to automatically tag
+    /// and prioritize incoming email messages.
+    /// </summary>
+    public bool EnableAiCategorization { get; set; } = true;
+
+    /// <summary>
+    /// Whether to include the full email body content when syncing messages.
+    /// When disabled, only metadata (sender, subject, date) is stored.
+    /// </summary>
+    public bool IncludeBodyContent { get; set; } = true;
+
+    /// <summary>
+    /// Whether to include attachment metadata (filename, size, content type)
+    /// when syncing email messages. Does not download the actual attachments.
+    /// </summary>
+    public bool IncludeAttachmentMetadata { get; set; } = false;
 }
