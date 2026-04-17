@@ -42,10 +42,19 @@ Every spike produces a concrete finding written into the `Spike Findings` subsec
 - [ ] If any site is **missing** from the plan: add it to Task 8 with exact file path and line range
 - [ ] If any line number is drifted by more than 10 lines: update the plan's Task 8 with current line numbers
 
-**Spike Findings:**
-- Total SqliteConnection sites found: ___
-- Sites added to plan (not in original list): ___
-- Line-range corrections: ___
+**Spike Findings (recorded 2026-04-17):**
+- **Total SqliteConnection sites found: 6** — plan listed 5; one new post-B9 addition.
+- Plan's 5 production sites all confirmed at the documented line numbers:
+  - `src/AgentX.Core/Data/AgentXDbContext.cs:61` — `optionsBuilder.UseSqlite($"Data Source={_dbPath}")`
+  - `src/AgentX.Core/Data/VectorDb/HnswVectorStore.cs:187` + `194` — builder + `new SqliteConnection`
+  - `src/AgentX.Core/Data/VectorDb/SqliteVecStore.cs:78` + `85` — builder + `new SqliteConnection`
+  - `src/AgentX.Core/Services/Backup/BackupService.cs:787` + `788` — two `new SqliteConnection($"Data Source=...")` (source + destination)
+  - `src/AgentX.Core/Services/Workspaces/WorkspaceService.cs:545` + `551` — builder + `await using var connection = new SqliteConnection(...)`
+- **New site discovered (post-B9): `src/AgentX.Core/Data/AgentXDbContextFactory.cs:16`** — `.UseSqlite("Data Source=agentx.design.db")`. This is the design-time `IDesignTimeDbContextFactory` for `dotnet ef` migration tooling. It writes to a throwaway tooling DB that is never used by the shipping app. **EXEMPTION:** this site MUST NOT route through `IEncryptedConnectionFactory` — adding a `Password=` parameter would break `dotnet ef migrations add` / `script` because those CLI invocations do not have a real key in scope.
+- **Line-range correction:** plan's Task 8 reference to `WorkspaceService.cs:611-617` is wrong. Line ~611 is `QueryTableCountAsync(SqliteConnection connection, ...)` — a method that **receives** a `SqliteConnection` as a parameter, not a site that creates one. The creator is line 545/551; that caller already routes through the factory, so the callee needs no change. Drop 611-617 from Task 8.
+- **Task 8 revisions applied at Spike Closure:**
+  1. Add an explicit "Do NOT modify" note for `AgentXDbContextFactory.cs:16` (design-time factory exempt from encryption).
+  2. Remove the `WorkspaceService.cs:611-617` reference; keep only `545-551`.
 
 ### Spike 3 — Prove `sqlcipher_export()` works via ATTACH DATABASE
 
@@ -71,9 +80,19 @@ Every spike produces a concrete finding written into the `Spike Findings` subsec
 - [ ] Update Task 9 Step 1 of this plan: change `AddScoped` to `AddSingleton` for `IDatabaseKeyService` and `IDatabaseEncryptionMigrator`. `IDatabaseKeyProvider` stays Singleton. `IEncryptedConnectionFactory` stays Singleton.
 - [ ] Update commit messages accordingly.
 
-**Spike Findings:**
-- DbContext lifetime confirmed: ___
-- Corrected lifetimes for C13 services: ___
+**Spike Findings (recorded 2026-04-17):**
+- **DbContext lifetime confirmed: Singleton** at `src/AgentX.App/App.xaml.cs:166` — `services.AddSingleton<AgentXDbContext>();`
+- **Codebase DI convention is uniformly Singleton for production services.** Confirmed registrations include: `DpapiEncryptionService` (171), `SecurityStatusService` (172), `OAuthService` (175, factory form), `SettingsService` (207), `LicenseService` (208), `FeatureFlagService` (209), `KeyboardShortcutService` (212), `ThemeService` (213), `AiService` + 10+ AI services (216–226), `IVectorStore` factory (229), `ConversationService` (237), `ChatService` (240), `ScreenCaptureService` (243), all `IDocumentProcessor` implementations (246–249), `IMigrationRunner` from B9 (167). There are **no `AddScoped` registrations anywhere in the production DI graph** (transients appear only for WinUI 3 ViewModels).
+- **Corrected lifetimes for C13 services:**
+  - `IDatabaseKeyProvider` → **Singleton** (already Singleton in plan — unchanged)
+  - `IEncryptedConnectionFactory` → **Singleton** (already Singleton in plan — unchanged)
+  - `IDatabaseKeyService` → **Singleton** (CHANGED — plan said Scoped)
+  - `IDatabaseEncryptionMigrator` → **Singleton** (CHANGED — plan Task 13 said Scoped)
+- **Task 9 Step 1 and Task 13 Step 1 revisions at Spike Closure:**
+  1. Replace `services.AddScoped<IDatabaseKeyService, DatabaseKeyService>();` with `services.AddSingleton<IDatabaseKeyService, DatabaseKeyService>();`
+  2. Replace `services.AddScoped<IDatabaseEncryptionMigrator, DatabaseEncryptionMigrator>();` with `services.AddSingleton<IDatabaseEncryptionMigrator, DatabaseEncryptionMigrator>();`
+  3. Commit messages: "register as singleton" (matching B9's `feat(di): register IMigrationRunner as singleton service` pattern)
+- **C14 implication:** the C14 plan's `IAuditKeyService`, `IAuditLogService`, `IAuditLogVerifier`, `IAuditLogExporter` should also all be Singleton (C14 Spike 4 should re-verify).
 
 ### Spike 5 — Locate real Settings UI and License tier plumbing
 
@@ -84,11 +103,19 @@ Every spike produces a concrete finding written into the `Spike Findings` subsec
 - [ ] `grep -rn "enum LicenseTier\|interface ILicenseService\|class LicenseService" src/AgentX.Core --include='*.cs'` — confirm `Ultimate` is a valid tier name and `GetCurrentTierAsync` is the correct method name
 - [ ] If either differs (e.g., tier is called `Pro` not `Professional`, method is `GetTier()` not `GetCurrentTierAsync()`): update Task 13 Step 3 code block with the correct names.
 
-**Spike Findings:**
-- SettingsViewModel path: ___
-- LicenseTier enum values: ___
-- Method name on ILicenseService: ___
-- Code corrections for Task 13: ___
+**Spike Findings (recorded 2026-04-17):**
+- **SettingsViewModel path:** `src/AgentX.App/ViewModels/SettingsViewModel.cs` — `public partial class SettingsViewModel : ObservableObject` at line 15. Namespace `AgentX.App.ViewModels`.
+- **SettingsPage path:** `src/AgentX.App/Views/SettingsPage.xaml.cs` — `public sealed partial class SettingsPage : Page`.
+- **Existing VM injection pattern:** constructor already takes 7 deps (`ISettingsService`, `ILicenseService`, `IAiService`, `ICostTracker`, `IThemeService`, `ISecurityStatusService`, `IModelRouterService?`). Adding C13's `IDatabaseKeyService`, `IDatabaseEncryptionMigrator`, `IDatabaseKeyProvider` fits this pattern cleanly — no refactor needed.
+- **LicenseTier enum values:** `Trial`, `Starter`, `Professional`, `Ultimate` (exactly 4; defined at `src/AgentX.Core/Services/License/LicenseTier.cs:7`).
+- **Correct method on `ILicenseService`:** `Task<LicenseInfo> GetCurrentLicenseAsync()` — **NOT** `GetCurrentTierAsync()` (plan was wrong). The plan's Task 13 Step 3 must be corrected.
+- **Correct accessor pattern:** `var info = await _licenseService.GetCurrentLicenseAsync(); var tier = info.Tier;`
+- **Dialog pattern:** codebase has no `IDialogService` abstraction. Direct `ContentDialog` construction is standard — examples in `MainWindow.xaml.cs:304`, `ChatPage.xaml.cs` (lines 332/370/394), and `ExportDialog` (subclass of `ContentDialog`). Plan's inline ContentDialog + PasswordBox approach is consistent.
+- **XamlRoot pattern:** `App.MainWindow.Content.XamlRoot` is used throughout for VM-invoked dialogs; confirmed usable.
+- **Code corrections for Task 13 Step 3 at Spike Closure:**
+  1. Replace `var tier = await _license.GetCurrentTierAsync();` with `var licenseInfo = await _license.GetCurrentLicenseAsync();`
+  2. Replace `var mode = tier == LicenseTier.Ultimate ? ... : ...;` with `var mode = licenseInfo.Tier == LicenseTier.Ultimate ? ... : ...;`
+  3. Rename the `_license` field to `_licenseService` to match existing ViewModel convention.
 
 ### Spike 6 — Startup sequence ordering (encryption unlock vs B9 migration runner)
 
@@ -100,9 +127,32 @@ Every spike produces a concrete finding written into the `Spike Findings` subsec
 - [ ] Also verify: the `IDatabaseKeyService.IsProvisionedAsync()` call itself touches the DB (it reads UserSettings). This is a chicken-and-egg problem on first launch with encryption pre-provisioned by a different user profile (rare but possible). Document the fallback: attempt unlock, catch SqliteException with "file is not a database", prompt passphrase.
 - [ ] Update Task 14 implementation with the corrected ordering and exception handling.
 
-**Spike Findings:**
-- Ordering corrections: ___
-- Exception-handling additions: ___
+**Spike Findings (recorded 2026-04-17):**
+- **Current post-B9 startup sequence** in `App.InitializeCoreServicesAsync`:
+  1. `GetService<IMigrationRunner>().RunAsync()` — first DB touch
+  1b. `IKeywordSearchService.InitializeFtsAsync()` — more DB
+  2. `IAiService.InitializeAsync()` — unrelated
+- **MigrationRunner's first DB touch:** `await _context.Database.CanConnectAsync()` on the FIRST line of `RunAsync` (after `ExtractDbPath`). On an encrypted DB with no key loaded, this throws `SqliteException` ("file is not a database" or SQLCipher-specific). So unlock MUST happen before `IMigrationRunner.RunAsync()`.
+- **Chicken-and-egg caught:** the plan's Task 14 calls `IDatabaseKeyService.IsProvisionedAsync()` which reads `UserSettings.EncryptionEnabled` — but reading `UserSettings` requires the DB to be UNLOCKED, which requires knowing the mode, which we don't know until reading UserSettings. Plan is broken as written.
+- **Fix — add an out-of-DB marker file:** whenever encryption is provisioned, write `%LocalAppData%\AgentX\encryption.info.json`:
+  ```json
+  { "version": 1, "storageMode": "DpapiWrapped" | "UserPassphrase", "enabledAt": "<ISO-8601>" }
+  ```
+  Startup reads this marker FIRST (no DB access). Absent → plaintext DB, skip unlock. Present → load key per mode, set provider, THEN run migrations.
+- **New interface needed:** `IEncryptionStateFile` with methods `Exists()`, `Read()`, `Write(KeyStorageMode mode)`, `Delete()` — backed by a JSON file at the known path. Put under `src/AgentX.Core/Services/Security/EncryptionStateFile.cs`.
+- **`IDatabaseKeyService.IsProvisionedAsync()` still exists** for scenarios where we want post-unlock verification of UserSettings (e.g., confirm key matches what was expected, detect state-file vs DB-state desync). But startup gate is the marker file, not the DB read.
+- **Ordering corrections applied at Spike Closure — revised Task 14 sequence:**
+  1. Read `IEncryptionStateFile.Exists()`. If false → skip all encryption logic; fall through to existing migration runner call.
+  2. If true → read the marker, get `storageMode`.
+  3. If `DpapiWrapped` → `keySvc.GetOrCreateKeyAsync(DpapiWrapped)` and `keyProvider.Set(key)`. No user prompt.
+  4. If `UserPassphrase` → show passphrase dialog. On submit → `keySvc.UnlockWithPassphraseAsync(passphrase)` → `keyProvider.Set(key)` → open a trivial test connection via `IEncryptedConnectionFactory` → execute `PRAGMA schema_version;`. If that throws `SqliteException` → wrong passphrase, loop prompt. If success → break.
+  5. Only then → `IMigrationRunner.RunAsync()`.
+- **Exception-handling additions:**
+  - `SqliteException` on key-probed open → treat as wrong key / corrupted header (user-passphrase path loops; DPAPI path should alert, never loop).
+  - `FileNotFoundException` when marker claims encryption but DB file missing → log error, tell user to restore from backup.
+  - `JsonException` on marker parse → treat as tamper/corruption; prompt user to re-provision (destructive — requires backup).
+- **Task 13 "enable encryption" flow must ALSO write the marker file** after `MigrateToEncryptedAsync` succeeds (atomic with the encryption flip — write marker LAST so if anything upstream fails, startup still sees "no marker" and opens plaintext).
+- **Task 14 startup code at Spike Closure is rewritten — see revised Task 14 section for the full implementation.**
 
 ### Spike Closure
 
