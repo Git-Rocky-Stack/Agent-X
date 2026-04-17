@@ -88,61 +88,17 @@ public partial class App : Application
     /// </summary>
     private static async void InitializeCoreServicesAsync()
     {
-        // 1. Ensure the database schema exists
+        // 1. Ensure the database schema is at the latest migration
         try
         {
-            var dbContext = GetService<AgentXDbContext>();
-            await dbContext.Database.EnsureCreatedAsync();
-            Log.Information("Database initialized at {Path}",
-                dbContext.Database.GetConnectionString());
-
-            // 1a. Apply schema upgrades for existing databases
-            // EnsureCreated does not alter existing tables, so new columns must
-            // be added manually. Each ALTER TABLE is wrapped individually so that
-            // columns already present (on fresh installs) are silently skipped.
-            string[] alterStatements =
-            [
-                "ALTER TABLE search_history ADD COLUMN MinScore REAL NULL",
-                "ALTER TABLE search_history ADD COLUMN MaxResults INTEGER NULL",
-                "ALTER TABLE search_history ADD COLUMN DateAfter TEXT NULL",
-                "ALTER TABLE search_history ADD COLUMN DateBefore TEXT NULL",
-                "ALTER TABLE search_history ADD COLUMN SortOrder TEXT NULL",
-                "ALTER TABLE conversations ADD COLUMN FolderName TEXT NULL",
-                """
-                CREATE TABLE IF NOT EXISTS oauth_credentials (
-                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    ProviderId TEXT NOT NULL DEFAULT '',
-                    AccessToken TEXT NOT NULL DEFAULT '',
-                    RefreshToken TEXT NOT NULL DEFAULT '',
-                    TokenExpiry TEXT NOT NULL DEFAULT '0001-01-01T00:00:00',
-                    Scopes TEXT NOT NULL DEFAULT '',
-                    UserId TEXT NOT NULL DEFAULT '',
-                    CreatedAt TEXT NOT NULL DEFAULT '0001-01-01T00:00:00',
-                    UpdatedAt TEXT NOT NULL DEFAULT '0001-01-01T00:00:00'
-                )
-                """,
-                "CREATE UNIQUE INDEX IF NOT EXISTS ix_oauth_credentials_providerid ON oauth_credentials (ProviderId)",
-
-                // inbox_items: new columns for DataConnector plugin support (Calendar/Email)
-                "ALTER TABLE inbox_items ADD COLUMN SourceType TEXT NULL",
-                "ALTER TABLE inbox_items ADD COLUMN SourceUrl TEXT NULL",
-                "ALTER TABLE inbox_items ADD COLUMN SourcePluginId TEXT NULL",
-                "ALTER TABLE inbox_items ADD COLUMN SourceCategory TEXT NULL",
-                "ALTER TABLE inbox_items ADD COLUMN ExternalId TEXT NULL",
-                "ALTER TABLE inbox_items ADD COLUMN DocumentId INTEGER NULL",
-            ];
-
-            foreach (var sql in alterStatements)
-            {
-                try
-                {
-                    await dbContext.Database.ExecuteSqlRawAsync(sql);
-                }
-                catch
-                {
-                    // Column already exists — safe to ignore on fresh databases
-                }
-            }
+            var runner = GetService<AgentX.Core.Data.MigrationRunner.IMigrationRunner>();
+            var result = await runner.RunAsync();
+            Log.Information(
+                "Migration runner: db={DbPath} created={Created} applied={Applied} alreadyApplied={AlreadyApplied}",
+                result.DatabasePath,
+                result.DatabaseCreated,
+                string.Join(",", result.AppliedMigrations),
+                string.Join(",", result.AlreadyApplied));
         }
         catch (Exception ex)
         {
@@ -208,6 +164,8 @@ public partial class App : Application
 
         // ── Data Layer ─────────────────────────────────────────
         services.AddSingleton<AgentXDbContext>();
+        services.AddSingleton<AgentX.Core.Data.MigrationRunner.IMigrationRunner,
+                             AgentX.Core.Data.MigrationRunner.MigrationRunner>();
 
         // ── Security ──────────────────────────────────────────
         services.AddSingleton<IDpapiEncryptionService, DpapiEncryptionService>();

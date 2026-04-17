@@ -857,11 +857,31 @@ Results are serialized to JSON and persisted as a `DigestReportEntity`.
 
 ### 7.1 Entity Framework Core Database Context
 
-`AgentXDbContext` uses SQLite via the `Microsoft.EntityFrameworkCore.Sqlite` package. The database file is stored at `%LocalAppData%/AgentX/agentx.db`. The context is registered as a singleton with `EnsureCreatedAsync()` called at startup (no EF Core migration runner is invoked at runtime; migrations are used during development only).
+`AgentXDbContext` uses SQLite via the `Microsoft.EntityFrameworkCore.Sqlite` package. The database file is stored at `%LocalAppData%/AgentX/agentx.db`. The context is registered as a singleton and schema changes are applied at startup via `IMigrationRunner` (see 7.1.1 below).
 
 SQLite WAL (Write-Ahead Logging) mode is enabled by the `SqliteVecStore` for the vec_embeddings connection. The main EF Core connection operates in shared cache mode on the same file.
 
 **Database path:** `Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AgentX", "agentx.db")`
+
+#### 7.1.1 Migrations
+
+Schema changes ship via EF Core migrations under `src/AgentX.Core/Data/Migrations/`. `IMigrationRunner` is invoked during `App.InitializeCoreServicesAsync` to apply any pending migrations at launch. Pre-migration installs are automatically adopted at the `InitialBaseline` migration so existing user data is preserved on first run after upgrade.
+
+The runner is implemented in `src/AgentX.Core/Data/MigrationRunner/MigrationRunner.cs` and exposes two methods:
+
+- `RunAsync()` — applies pending migrations and returns a `MigrationResult` with the database path, whether the database was newly created, and which migrations were applied.
+- `GetPendingMigrationsAsync()` — returns pending migration names without applying them (used for UI surfacing).
+
+The `AgentXDbContextFactory` is an `IDesignTimeDbContextFactory<AgentXDbContext>` used by the `dotnet ef` tooling to create new migrations. To author a migration:
+
+```bash
+dotnet ef migrations add <MigrationName> \
+  --project src/AgentX.Core/AgentX.Core.csproj \
+  --output-dir Data/Migrations \
+  --context AgentXDbContext
+```
+
+Baseline adoption covers users upgrading from pre-B9 builds where `EnsureCreatedAsync()` created the schema without an `__EFMigrationsHistory` table. On first launch after upgrade, `MigrationRunner.RunAsync` detects the missing history table, writes the `InitialBaseline` row to mark the schema as already at baseline, and only applies migrations newer than the baseline.
 
 ### 7.2 Entity Relationship Model
 
