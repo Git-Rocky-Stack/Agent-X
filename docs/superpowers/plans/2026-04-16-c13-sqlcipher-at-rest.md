@@ -28,10 +28,25 @@ Every spike produces a concrete finding written into the `Spike Findings` subsec
 - [ ] If it does NOT encrypt: research the `Mode=` connection string options and the `PRAGMA key` fallback path — update Task 1 Step 7 of this plan with the corrected setup before proceeding.
 - [ ] Delete `spike/sqlcipher-probe/` after finding is recorded.
 
-**Spike Findings:**
-- Provider engagement: ___
-- Exception message for wrong key: ___
-- Revisions to plan tasks: ___
+**Spike Findings (recorded 2026-04-17, probe project deleted):**
+- **SQLitePCLRaw.bundle_e_sqlcipher 2.1.7 installs cleanly.** Provider engagement: **CONFIRMED.**
+- **Step 2 (open encrypted DB with no password):** throws `SqliteException` with `SqliteErrorCode: 26`, message: `'file is not a database'`.
+- **Step 3 (open with wrong password):** throws `SqliteException` with `SqliteErrorCode: 26`, message: `'file is not a database'`. (Same error code and message as no-password — tests must not distinguish these two cases by exception content.)
+- **Step 4 (open with right password):** opens successfully; row read back correctly.
+- **CRITICAL FINDING — Plan is wrong in a silent-corruption way:** `SqliteConnectionStringBuilder.Password` property sends the value through **PBKDF2 key derivation** — it is treated as a passphrase. `PRAGMA key = "x'<hex>'"` and `ATTACH DATABASE ... KEY "x'<hex>'"` use **raw key bytes** (no KDF). Using `Password="<hex>"` for create and `KEY "x'<hex>'"` for ATTACH produces **two different derived keys** → the DB appears corrupt on reopen. This bug would have shipped without this spike.
+- **Correct key-delivery pattern for raw-hex keys (applies to ALL SqliteConnection opens in C13):**
+  1. Open with a bare connection string — NO `Password=`: `new SqliteConnection($"Data Source={path}")`
+  2. Immediately after `.Open()`, execute ONE pragma: `PRAGMA key = "x'<hexKey>'";`
+  3. Only then issue other commands on the connection
+  4. For ATTACH operations: include `KEY "x'<hex>'"` in the ATTACH statement directly
+- **This pattern must be used consistently** across create, reopen, and ATTACH. Mixing `Password=` with `PRAGMA key`/`ATTACH KEY` produces key-format mismatch.
+
+**Revisions to plan tasks at Spike Closure:**
+1. **Task 1 Step 7:** Retain the `SQLitePCL.Batteries_V2.Init()` call and the provider setup. Remove any language suggesting `Password=` is the correct key-delivery mechanism.
+2. **Task 7 (EncryptedConnectionFactory) rewrite:** Remove `builder.Password = key.HexKey` from `BuildConnectionString`. Factory returns plain `Data Source=<path>` string. Add a new method `SqliteConnection OpenKeyed(string dbPath)` that opens the connection AND executes `PRAGMA key` in one unit — this is the new canonical entry point. Existing callers using `CreateConnection` need to migrate to `OpenKeyed` OR call a helper `ApplyKey(SqliteConnection)` immediately after `.Open()`. Update tests accordingly.
+3. **Task 12 (DatabaseEncryptionMigrator):** Already uses ATTACH KEY — consistent with the raw-bytes path. After DETACH, the verification open must also use `PRAGMA key` (NOT `builder.Password`). Update verification code accordingly.
+4. **Tests that assert exception on wrong-key open:** must expect `SqliteException` with `SqliteErrorCode == 26` AND message `'file is not a database'`. Same error fires for no-key and wrong-key cases — tests cannot distinguish.
+5. **Add a new helper in `EncryptedConnectionFactory`:** `ApplyKey(SqliteConnection)` method that reads the key from `IDatabaseKeyProvider.Current` and executes `PRAGMA key = "x'<hex>'"` against the given connection. This keeps the PRAGMA construction in one place with proper escaping.
 
 ### Spike 2 — Inventory every `SqliteConnection` creation site
 
@@ -65,10 +80,24 @@ Every spike produces a concrete finding written into the `Spike Findings` subsec
 - [ ] If the pattern differs from Task 12's `DatabaseEncryptionMigrator.MigrateToEncryptedAsync` code: update Task 12 Step 1 before proceeding.
 - [ ] Delete the probe.
 
-**Spike Findings:**
-- Working command pattern: ___
-- Quoting style: ___
-- Revisions to Task 12: ___
+**Spike Findings (recorded 2026-04-17, probe project deleted):**
+- **Exact working command string (verified end-to-end):**
+  ```sql
+  ATTACH DATABASE '<encPath>' AS encrypted KEY "x'<hexKey>'";
+  SELECT sqlcipher_export('encrypted');
+  DETACH DATABASE encrypted;
+  ```
+- **Quoting style:** `"x'<hex>'"` — double-quote wrapper, `x`-prefix hex literal inside single quotes. This is the SQLite BLOB literal syntax; `x'<hex>'` is recognized by SQLCipher as a raw-bytes key.
+- **Source-DB key delivery:** the plaintext source is opened with **NO key and NO PRAGMA key** (standard open) — because the source is plaintext. Only the ATTACH target receives a key.
+- **Verification of encrypted target:** opening the target with `PRAGMA key = "x'<hex>'"` immediately after `.Open()` (NOT `Password=`) successfully reads the exported rows. Row count matched source (2 of 2).
+- **Plaintext-read of encrypted target:** throws `SqliteException` with `SqliteErrorCode: 26`, message `'file is not a database'` — same exception as wrong-key case.
+- **Windows-specific footgun:** `Microsoft.Data.Sqlite` uses a connection pool that **holds a file handle open** after `using` block disposes. `File.Delete(plaintextPath)` immediately after `sqlcipher_export` throws `IOException` (file in use). **Must call `SqliteConnection.ClearAllPools()`** (or a `GC.Collect()` + `GC.WaitForPendingFinalizers()` pair) before attempting to delete the plaintext source. This affects the `DatabaseEncryptionMigrator` where the migrator deletes the plaintext backup after verification.
+
+**Revisions to Task 12 at Spike Closure:**
+1. Keep the exact ATTACH+export+DETACH SQL shown above. It works verbatim.
+2. **After DETACH but before the `File.Move` operations:** call `SqliteConnection.ClearAllPools()` to release the source-DB file handle. Add `using Microsoft.Data.Sqlite;` if not already present for `SqliteConnection.ClearAllPools` accessibility.
+3. **Verification-open step** in `MigrateToEncryptedAsync`: replace the `new SqliteConnectionStringBuilder { DataSource = dbPath, Password = key.HexKey }` pattern with: open connection with bare `Data Source=...`, then execute `PRAGMA key = "x'<hexKey>'";`, then run the verification query. This aligns with the Spike 1 canonical key-delivery pattern.
+4. **Rollback cleanup:** if the migration fails after `File.Move(dbPath, backupPath)`, the plaintext backup at `backupPath` will be restored — and that file also needs `ClearAllPools` called before the `File.Delete(tempEncryptedPath)` in the failure path.
 
 ### Spike 4 — Verify DI lifetime assumptions
 
@@ -161,6 +190,231 @@ Before starting Task 1 of the implementation:
 - [ ] Plan tasks revised in place for every finding that changes implementation
 - [ ] Commit the revised plan with message: `docs(plans): revise C13 plan after pre-implementation spikes`
 - [ ] Only then begin Task 1.
+
+---
+
+## ⚠️ Spike Closure Corrections — READ BEFORE IMPLEMENTATION
+
+**The implementation tasks (Task 1 → Task 15) below were written before the spikes ran. Apply these corrections as you execute each task.** The spike findings in the preceding sections are authoritative; where a task below contradicts a finding, the finding wins.
+
+### Critical correction #1 — Key delivery: `PRAGMA key`, NOT `Password=`
+
+`SqliteConnectionStringBuilder.Password` runs the value through PBKDF2 KDF. `PRAGMA key = "x'<hex>'"` and `ATTACH ... KEY "x'<hex>'"` use raw bytes. **These produce different derived keys.** Mixing them silently corrupts the DB on reopen.
+
+**Every SqliteConnection open in C13 uses this pattern:**
+```csharp
+using var conn = new SqliteConnection($"Data Source={dbPath}");  // NO Password=
+conn.Open();
+using (var cmd = conn.CreateCommand()) {
+    cmd.CommandText = $@"PRAGMA key = ""x'{hexKey}'"";";
+    cmd.ExecuteNonQuery();
+}
+// ... now issue other commands
+```
+
+### Correction #2 — `EncryptedConnectionFactory` shape (Task 7)
+
+Replace the proposed `CreateConnection(dbPath)` / `BuildConnectionString(dbPath)` surface with:
+
+```csharp
+public interface IEncryptedConnectionFactory
+{
+    /// <summary>Opens a connection AND applies the current PRAGMA key if one is loaded.
+    /// If no key is loaded (encryption disabled), returns a plaintext-opened connection.</summary>
+    SqliteConnection OpenKeyed(string dbPath);
+
+    /// <summary>Applies PRAGMA key to an already-opened connection. No-op if no key loaded.
+    /// Use this when a caller (e.g. ATTACH-based workflow) opens its own connection.</summary>
+    void ApplyKey(SqliteConnection openConnection);
+}
+```
+
+Implementation:
+```csharp
+public SqliteConnection OpenKeyed(string dbPath)
+{
+    var conn = new SqliteConnection($"Data Source={dbPath}");
+    conn.Open();
+    ApplyKey(conn);
+    return conn;
+}
+
+public void ApplyKey(SqliteConnection openConnection)
+{
+    var key = _keyProvider.Current;
+    if (key is null) return;
+    using var cmd = openConnection.CreateCommand();
+    // key.HexKey is 64 hex chars; x'<hex>' is the SQLite BLOB literal form for raw bytes.
+    cmd.CommandText = $@"PRAGMA key = ""x'{key.HexKey}'"";";
+    cmd.ExecuteNonQuery();
+}
+```
+
+Tests in Task 6 must:
+- Drop the `CreateConnection` tests that assert `cs.Should().Contain("Password=...")` — that semantic is gone.
+- Replace with tests that `OpenKeyed(path)` on an encrypted DB with the correct key reads rows back; with the wrong key throws `SqliteException` (ErrorCode 26, message `'file is not a database'`).
+
+### Correction #3 — Routing DbContext through the factory (Task 8)
+
+`AgentXDbContext` is Singleton. It cannot use `OpenKeyed` directly from `OnConfiguring` because EF creates the connection lazily. Instead:
+
+1. Inject `IEncryptedConnectionFactory` into `AgentXDbContext` via constructor (new overload already exists per plan Task 8 Step 1).
+2. Override `OnConfiguring` to build a plain `Data Source=...` connection string.
+3. In the factory's `ApplyKey` extension, ALSO register an EF Core `IDbContextOptionsConfiguration` that hooks a connection-opened callback — OR simpler: subscribe to `_context.Database.GetDbConnection().StateChange` and call `ApplyKey` when state transitions to Open.
+
+The simplest safe pattern: add a method `EnsureKeyApplied()` on DbContext that the MigrationRunner and Unlock flow call once at startup:
+```csharp
+public void EnsureKeyApplied()
+{
+    var conn = Database.GetDbConnection();
+    if (conn.State == ConnectionState.Closed) conn.Open();
+    _connectionFactory?.ApplyKey((SqliteConnection)conn);
+}
+```
+Call this AFTER unlock and BEFORE `RunAsync` so the migration runner's first DB touch already has the key.
+
+### Correction #4 — Design-time factory is EXEMPT (Task 8)
+
+`src/AgentX.Core/Data/AgentXDbContextFactory.cs:16` is post-B9 and is used ONLY by `dotnet ef` tooling. It must **NOT** route through `IEncryptedConnectionFactory` — `dotnet ef` invocations do not have a key provider in scope. Leave that file alone.
+
+### Correction #5 — `WorkspaceService.cs:611-617` is not a site (Task 8)
+
+Drop the `611-617` reference. Only `545` + `551` create a connection. Line 611 is `QueryTableCountAsync(SqliteConnection connection, ...)` which receives a connection — no change needed there.
+
+### Correction #6 — DI lifetimes: everything Singleton (Task 9, Task 13)
+
+- `IDatabaseKeyProvider` → Singleton (unchanged)
+- `IEncryptedConnectionFactory` → Singleton (unchanged)
+- `IDatabaseKeyService` → **Singleton** (plan said Scoped — change to Singleton)
+- `IDatabaseEncryptionMigrator` → **Singleton** (plan said Scoped — change to Singleton)
+- `IEncryptionStateFile` (new — see correction #10) → Singleton
+
+Commit message format: follow B9's pattern — `feat(di): register C13 security services as singletons`.
+
+### Correction #7 — License API (Task 13 Step 3)
+
+The plan's `GetCurrentTierAsync()` does not exist. Use:
+```csharp
+var licenseInfo = await _licenseService.GetCurrentLicenseAsync();
+var mode = licenseInfo.Tier == LicenseTier.Ultimate
+    ? KeyStorageMode.UserPassphrase
+    : KeyStorageMode.DpapiWrapped;
+```
+Rename the field `_license` → `_licenseService` to match existing VM convention.
+
+### Correction #8 — Migrator verification open + file-handle release (Task 12)
+
+In `DatabaseEncryptionMigrator.MigrateToEncryptedAsync`:
+
+1. **Before `File.Move(dbPath, backupPath)`:** call `SqliteConnection.ClearAllPools();` — Microsoft.Data.Sqlite's pool holds a file handle open after the `using` block disposes. Without this, `File.Move` fails on Windows with `IOException`.
+2. **Verification step** (after the move): open the encrypted DB with `new SqliteConnection($"Data Source={dbPath}")` (plain), then `PRAGMA key = "x'<hexKey>'";`, then run the verification query. Do NOT use `builder.Password = key.HexKey`.
+3. **Rollback path:** before `File.Move(backupPath, dbPath)` and `File.Delete(tempEncryptedPath)`, call `ClearAllPools()` again.
+
+### Correction #9 — Tests expect ErrorCode 26 / "file is not a database"
+
+Any test asserting `SqliteException` on a wrong-key or no-key open of an encrypted DB must expect:
+- `ex.SqliteErrorCode == 26`
+- `ex.Message.Contains("file is not a database")`
+
+The same error fires for both wrong-key and no-key — tests cannot distinguish these two cases by exception content. If you need to differentiate, add an `ApplyKey` path that detects the "no-key" case upstream (check `_keyProvider.Current` is null before calling).
+
+### Correction #10 — New `IEncryptionStateFile` to break unlock chicken-and-egg (Task 14)
+
+Add BEFORE Task 14:
+
+**Task 13.5 (NEW) — `IEncryptionStateFile`:**
+- Create `src/AgentX.Core/Services/Security/IEncryptionStateFile.cs` and `EncryptionStateFile.cs`
+- Stores a JSON marker at `%LocalAppData%\AgentX\encryption.info.json`:
+  ```json
+  { "version": 1, "storageMode": "DpapiWrapped" | "UserPassphrase", "enabledAt": "<ISO-8601>" }
+  ```
+- Methods: `bool Exists()`, `EncryptionStateInfo? Read()`, `Task WriteAsync(KeyStorageMode mode)`, `void Delete()`
+- Written **after** `MigrateToEncryptedAsync` succeeds in Task 13's enable flow (last step — so if anything upstream fails, startup still sees "no marker" and opens plaintext)
+- Deleted if the user ever disables encryption (future feature — out of scope here; leave a `// TODO` comment if the delete path is not wired yet)
+
+**Task 14 rewritten:**
+```csharp
+using (var scope = Host.Services.CreateScope())
+{
+    var stateFile = scope.ServiceProvider.GetRequiredService<IEncryptionStateFile>();
+
+    if (stateFile.Exists())
+    {
+        var info = stateFile.Read()!;
+        var keySvc = scope.ServiceProvider.GetRequiredService<IDatabaseKeyService>();
+        var keyProvider = (DatabaseKeyProvider)scope.ServiceProvider.GetRequiredService<IDatabaseKeyProvider>();
+
+        DatabaseKeyMaterial key;
+        if (info.StorageMode == KeyStorageMode.DpapiWrapped)
+        {
+            // Transparent unlock — no user prompt
+            key = await keySvc.GetOrCreateKeyAsync(KeyStorageMode.DpapiWrapped);
+        }
+        else
+        {
+            // Passphrase unlock loop
+            while (true)
+            {
+                var passphrase = await PromptForPassphraseAsync();
+                if (passphrase is null) { Application.Current.Exit(); return; }
+                var candidate = await keySvc.UnlockWithPassphraseAsync(passphrase);
+                if (await TryProbeKeyAsync(candidate))
+                {
+                    key = candidate;
+                    break;
+                }
+                await ShowInvalidPassphraseDialogAsync();
+            }
+        }
+        keyProvider.Set(key);
+    }
+    // If no marker file: plaintext DB, fall through without key.
+}
+
+// THEN the migration runner scope from B9 runs — the DbContext will now see the key
+// via EnsureKeyApplied() which the runner should call internally as its first step.
+```
+
+Add helper `TryProbeKeyAsync`:
+```csharp
+private static async Task<bool> TryProbeKeyAsync(DatabaseKeyMaterial candidate)
+{
+    var dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AgentX", "agentx.db");
+    try
+    {
+        await using var conn = new SqliteConnection($"Data Source={dbPath}");
+        await conn.OpenAsync();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = $@"PRAGMA key = ""x'{candidate.HexKey}'""; SELECT COUNT(1) FROM sqlite_master;";
+        await cmd.ExecuteScalarAsync();
+        return true;
+    }
+    catch (SqliteException ex) when (ex.SqliteErrorCode == 26)
+    {
+        return false;
+    }
+}
+```
+
+This probe uses the canonical PRAGMA key path and checks for ErrorCode 26 specifically — exactly matching the Spike 1 findings.
+
+### Correction #11 — MigrationRunner integration
+
+`IMigrationRunner.RunAsync` (from B9) touches the DB on `CanConnectAsync`. When encryption is on, the DbContext must have its key applied BEFORE that call. Since the DbContext is Singleton, the key stays applied for the rest of the session.
+
+Option A (minimal change to B9 code): add a call in `MigrationRunner.RunAsync` that checks if the DbContext has an `IEncryptedConnectionFactory` and calls `EnsureKeyApplied()` before `CanConnectAsync`. Requires exposing a new method on DbContext.
+
+Option B (cleaner): don't touch B9's `MigrationRunner`. Instead, in `App.InitializeCoreServicesAsync`, after the unlock flow and BEFORE `runner.RunAsync()`, call:
+```csharp
+var db = GetService<AgentXDbContext>();
+db.EnsureKeyApplied();  // opens connection if not open, applies PRAGMA key if key loaded
+```
+
+**Use Option B.** It keeps B9's migration runner purely about migrations, and the key lifecycle stays in the startup sequence where it's visible.
+
+---
+
+**All 11 corrections must be applied when executing Tasks 1–15. The findings sections at the top of this document are the authoritative source — any contradiction with task prose below is resolved by the findings.**
 
 ---
 
