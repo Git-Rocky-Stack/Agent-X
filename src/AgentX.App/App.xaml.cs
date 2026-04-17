@@ -208,6 +208,8 @@ public partial class App : Application
 
         // ── Data Layer ─────────────────────────────────────────
         services.AddSingleton<AgentXDbContext>();
+        services.AddSingleton<AgentX.Core.Data.MigrationRunner.IMigrationRunner,
+                             AgentX.Core.Data.MigrationRunner.MigrationRunner>();
 
         // ── Security ──────────────────────────────────────────
         services.AddSingleton<IDpapiEncryptionService, DpapiEncryptionService>();
