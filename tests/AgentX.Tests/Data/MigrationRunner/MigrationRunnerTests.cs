@@ -108,4 +108,42 @@ public class MigrationRunnerTests
             if (File.Exists(dbPath)) File.Delete(dbPath);
         }
     }
+
+    [Fact]
+    public async Task RunAsync_on_preexisting_database_without_history_table_adopts_baseline()
+    {
+        var (ctx, dbPath) = CreateContextAtTempPath();
+        try
+        {
+            // Simulate pre-migration install: schema present, no __EFMigrationsHistory.
+            await ctx.Database.EnsureCreatedAsync();
+            // Drop history table if EnsureCreated created one (it doesn't, but be safe).
+            await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS __EFMigrationsHistory;");
+
+            IMigrationRunner runner = new Core.Data.MigrationRunner.MigrationRunner(ctx);
+
+            var result = await runner.RunAsync();
+
+            result.AppliedMigrations.Should().Contain(m => m.EndsWith("_InitialBaseline"));
+            // Data tables must still exist after adoption (query sqlite_master via raw ADO.NET).
+            await using var cmd = ctx.Database.GetDbConnection().CreateCommand();
+            await ctx.Database.OpenConnectionAsync();
+            try
+            {
+                cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='conversations';";
+                var tableExists = (await cmd.ExecuteScalarAsync()) is not null;
+                tableExists.Should().BeTrue();
+            }
+            finally
+            {
+                await ctx.Database.CloseConnectionAsync();
+            }
+        }
+        finally
+        {
+            await ctx.DisposeAsync();
+            SqliteConnection.ClearAllPools();
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
 }
