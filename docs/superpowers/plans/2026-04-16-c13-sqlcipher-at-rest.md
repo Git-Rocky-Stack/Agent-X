@@ -12,6 +12,108 @@
 
 ---
 
+## Pre-Implementation Spikes (REQUIRED — run first)
+
+Every spike produces a concrete finding written into the `Spike Findings` subsection at the end of each spike. If a spike invalidates any implementation task below, the plan is revised **in place** and committed before the first implementation task starts. Zero assumptions survive into implementation.
+
+### Spike 1 — Verify SQLCipher provider swap actually engages
+
+**Question:** Does adding `SQLitePCLRaw.bundle_e_sqlcipher 2.1.7` to a csproj and calling `SQLitePCL.Batteries_V2.Init()` actually route through SQLCipher 4.x — not the default sqlite3 bundle that silently ignores `Password=`?
+
+- [ ] Create a throwaway `spike/sqlcipher-probe/` project: `dotnet new console -o spike/sqlcipher-probe`
+- [ ] Add `Microsoft.Data.Sqlite 8.0.11` and `SQLitePCLRaw.bundle_e_sqlcipher 2.1.7`
+- [ ] Write a 20-line Main: init provider, create db with `Password=x'0102...20 bytes...'`, write 1 row, close, reopen without password — must throw with "file is not a database" message
+- [ ] Run it. Confirm the exception actually fires. Confirm reopening WITH the same password returns the row.
+- [ ] Record exact exception message and stack (implementation tests depend on it)
+- [ ] If it does NOT encrypt: research the `Mode=` connection string options and the `PRAGMA key` fallback path — update Task 1 Step 7 of this plan with the corrected setup before proceeding.
+- [ ] Delete `spike/sqlcipher-probe/` after finding is recorded.
+
+**Spike Findings:**
+- Provider engagement: ___
+- Exception message for wrong key: ___
+- Revisions to plan tasks: ___
+
+### Spike 2 — Inventory every `SqliteConnection` creation site
+
+**Question:** The plan lists 5 sites but line numbers may have drifted since the plan was written. Are there sites the plan missed entirely?
+
+- [ ] Run `grep -rn "new SqliteConnection\|SqliteConnectionStringBuilder" src/AgentX.Core src/AgentX.App --include='*.cs' | grep -v '/bin/' | grep -v '/obj/'`
+- [ ] Compare result against the 5 sites in the plan (`AgentXDbContext:61`, `HnswVectorStore:187-194`, `SqliteVecStore:78-85`, `BackupService:787-788`, `WorkspaceService:545-551, 611-617`)
+- [ ] If any site is **missing** from the plan: add it to Task 8 with exact file path and line range
+- [ ] If any line number is drifted by more than 10 lines: update the plan's Task 8 with current line numbers
+
+**Spike Findings:**
+- Total SqliteConnection sites found: ___
+- Sites added to plan (not in original list): ___
+- Line-range corrections: ___
+
+### Spike 3 — Prove `sqlcipher_export()` works via ATTACH DATABASE
+
+**Question:** Can we invoke the SQLCipher `sqlcipher_export()` function through ATTACH inside a `Microsoft.Data.Sqlite` SqliteCommand — or does the plaintext source need to be opened a specific way?
+
+- [ ] Write a 40-line integration probe in the same `spike/sqlcipher-probe` project (or a fresh one): create plaintext DB with 3 rows across 2 tables, ATTACH an empty encrypted DB with `KEY "x'<64 hex chars>'"`, run `SELECT sqlcipher_export('encrypted');`, DETACH, close source, open encrypted target with password and verify rows present.
+- [ ] Record the exact command string that works, including quoting style for the KEY parameter.
+- [ ] If the pattern differs from Task 12's `DatabaseEncryptionMigrator.MigrateToEncryptedAsync` code: update Task 12 Step 1 before proceeding.
+- [ ] Delete the probe.
+
+**Spike Findings:**
+- Working command pattern: ___
+- Quoting style: ___
+- Revisions to Task 12: ___
+
+### Spike 4 — Verify DI lifetime assumptions
+
+**Question:** B9 discovered `AgentXDbContext` is Singleton. Will the plan's proposed `AddScoped<IDatabaseKeyService>` and `AddSingleton<IDatabaseKeyProvider>` graph actually resolve cleanly, or will we hit "cannot consume scoped service from singleton" at runtime?
+
+- [ ] Read `src/AgentX.App/App.xaml.cs` around line 167 and confirm `AddSingleton<AgentXDbContext>()` still present
+- [ ] Enumerate which C13 services consume `AgentXDbContext` directly: `IDatabaseKeyService`, `IAuditKeyService` (from C14), `IDatabaseEncryptionMigrator`
+- [ ] Decision: because `AgentXDbContext` is Singleton and only startup code calls these services, register them all as **Singleton** (NOT Scoped as plan originally prescribes).
+- [ ] Update Task 9 Step 1 of this plan: change `AddScoped` to `AddSingleton` for `IDatabaseKeyService` and `IDatabaseEncryptionMigrator`. `IDatabaseKeyProvider` stays Singleton. `IEncryptedConnectionFactory` stays Singleton.
+- [ ] Update commit messages accordingly.
+
+**Spike Findings:**
+- DbContext lifetime confirmed: ___
+- Corrected lifetimes for C13 services: ___
+
+### Spike 5 — Locate real Settings UI and License tier plumbing
+
+**Question:** The plan assumes `SettingsPage.xaml` and `SettingsViewModel.cs` exist with a known structure, and `ILicenseService.GetCurrentTierAsync()` returns a `LicenseTier.Ultimate` enum value. Verify.
+
+- [ ] `grep -rn "class SettingsViewModel\|class SettingsPage" src/AgentX.App --include='*.cs'` — capture exact file paths
+- [ ] Read the ViewModel constructor to see existing DI injection pattern (keep the additions consistent)
+- [ ] `grep -rn "enum LicenseTier\|interface ILicenseService\|class LicenseService" src/AgentX.Core --include='*.cs'` — confirm `Ultimate` is a valid tier name and `GetCurrentTierAsync` is the correct method name
+- [ ] If either differs (e.g., tier is called `Pro` not `Professional`, method is `GetTier()` not `GetCurrentTierAsync()`): update Task 13 Step 3 code block with the correct names.
+
+**Spike Findings:**
+- SettingsViewModel path: ___
+- LicenseTier enum values: ___
+- Method name on ILicenseService: ___
+- Code corrections for Task 13: ___
+
+### Spike 6 — Startup sequence ordering (encryption unlock vs B9 migration runner)
+
+**Question:** The plan's Task 14 adds an encryption unlock step **before** the migration runner. Will the migration runner's existing DI wiring still resolve if the DbContext cannot be constructed (because no key is set yet for the encrypted DB)?
+
+- [ ] Read the current `App.InitializeCoreServicesAsync` sequence (post-B9 state)
+- [ ] Confirm the migration runner's first DB touch happens inside `RunAsync()` itself, not on DI resolution
+- [ ] Decision: unlock flow must run **before** ANY DbContext method is called. In the Task 14 code block, move all key-service + key-provider work into a pre-migration scope, then resolve migration runner in a second scope.
+- [ ] Also verify: the `IDatabaseKeyService.IsProvisionedAsync()` call itself touches the DB (it reads UserSettings). This is a chicken-and-egg problem on first launch with encryption pre-provisioned by a different user profile (rare but possible). Document the fallback: attempt unlock, catch SqliteException with "file is not a database", prompt passphrase.
+- [ ] Update Task 14 implementation with the corrected ordering and exception handling.
+
+**Spike Findings:**
+- Ordering corrections: ___
+- Exception-handling additions: ___
+
+### Spike Closure
+
+Before starting Task 1 of the implementation:
+- [ ] All 6 spike findings recorded above
+- [ ] Plan tasks revised in place for every finding that changes implementation
+- [ ] Commit the revised plan with message: `docs(plans): revise C13 plan after pre-implementation spikes`
+- [ ] Only then begin Task 1.
+
+---
+
 ## File Structure
 
 **Create:**
