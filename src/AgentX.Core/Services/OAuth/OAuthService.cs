@@ -82,6 +82,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
     /// One-time use: removed after the token exchange is complete.
     /// </summary>
     private readonly ConcurrentDictionary<string, string> _pendingCodeVerifiers = new(StringComparer.Ordinal);
+    private bool _isDisposed;
 
     // ── Constructor ────────────────────────────────────────────────────────────
 
@@ -140,6 +141,16 @@ public sealed class OAuthService : IOAuthService, IDisposable
 
         var config = GetProviderConfig(provider);
         var effectiveRedirectUri = redirectUri ?? config.RedirectUri;
+
+        // Validate redirect URI is localhost (defense-in-depth: HttpListener already
+        // binds to localhost, but we reject any non-localhost URI at the call site).
+        if (!effectiveRedirectUri.StartsWith("http://localhost:", StringComparison.OrdinalIgnoreCase) &&
+            !effectiveRedirectUri.StartsWith("http://127.0.0.1:", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException(
+                "Redirect URI must use localhost for security.", nameof(redirectUri));
+        }
+
         var effectiveScopes = BuildScopes(config.Scopes, scopes);
 
         _log.Information("Starting OAuth authorization for {Provider} with scopes: {Scopes}",
@@ -241,11 +252,11 @@ public sealed class OAuthService : IOAuthService, IDisposable
 
             _log.Debug("Received OAuth authorization code for {Provider}", provider);
 
-            // Remove PKCE code verifier before token exchange (one-time use)
-            _pendingCodeVerifiers.TryRemove(provider, out _);
-
             // Exchange the authorization code for tokens (with PKCE code_verifier)
             var tokenResponse = await ExchangeCodeForTokensAsync(config, code, effectiveRedirectUri, codeVerifier);
+
+            // Remove PKCE code verifier after successful exchange (one-time use)
+            _pendingCodeVerifiers.TryRemove(provider, out _);
 
             // Encrypt and persist the credential
             var credential = await PersistCredentialAsync(provider, tokenResponse, effectiveScopes);
@@ -276,39 +287,49 @@ public sealed class OAuthService : IOAuthService, IDisposable
     {
         ValidateProviderId(provider);
 
-        var credential = await GetCredentialAsync(provider);
-
-        if (credential is null)
+        // Double-check lock: acquire the per-provider refresh lock before checking expiry
+        // to prevent multiple concurrent callers from all refreshing the same token.
+        var refreshLock = _refreshLocks.GetOrAdd(provider, _ => new SemaphoreSlim(1, 1));
+        await refreshLock.WaitAsync().ConfigureAwait(false);
+        try
         {
-            throw new InvalidOperationException(
-                $"No OAuth credential stored for provider '{provider}'. " +
-                "Call AuthorizeAsync first to establish a credential.");
-        }
+            var credential = await GetCredentialAsync(provider);
 
-        // Check if the token is expired or within the refresh buffer
-        if (credential.TokenExpiry <= DateTime.UtcNow.Add(RefreshBuffer))
-        {
-            _log.Information("Access token for {Provider} expires at {Expiry} (within {Buffer} min buffer), refreshing",
-                provider, credential.TokenExpiry, RefreshBuffer.TotalMinutes);
-
-            var refreshed = await RefreshTokenAsync(provider);
-            if (!refreshed)
-            {
-                throw new InvalidOperationException(
-                    $"Failed to refresh the expired access token for provider '{provider}'. " +
-                    "The refresh token may have been revoked. Re-authorize with AuthorizeAsync.");
-            }
-
-            // Re-fetch the refreshed credential
-            credential = await GetCredentialAsync(provider);
             if (credential is null)
             {
                 throw new InvalidOperationException(
-                    $"Credential for provider '{provider}' was lost after refresh. This should not happen.");
+                    $"No OAuth credential stored for provider '{provider}'. " +
+                    "Call AuthorizeAsync first to establish a credential.");
             }
-        }
 
-        return credential.AccessToken;
+            // Re-check expiry inside the lock — another caller may have already refreshed
+            if (credential.TokenExpiry <= DateTime.UtcNow.Add(RefreshBuffer))
+            {
+                _log.Information("Access token for {Provider} expires at {Expiry} (within {Buffer} min buffer), refreshing",
+                    provider, credential.TokenExpiry, RefreshBuffer.TotalMinutes);
+
+                var refreshed = await RefreshTokenAsync(provider);
+                if (!refreshed)
+                {
+                    throw new InvalidOperationException(
+                        $"Failed to refresh the expired access token for provider '{provider}'. " +
+                        "The refresh token may have been revoked. Re-authorize with AuthorizeAsync.");
+                }
+
+                credential = await GetCredentialAsync(provider);
+                if (credential is null)
+                {
+                    throw new InvalidOperationException(
+                        $"Credential for provider '{provider}' was lost after refresh. This should not happen.");
+                }
+            }
+
+            return credential.AccessToken;
+        }
+        finally
+        {
+            refreshLock.Release();
+        }
     }
 
     /// <inheritdoc />
@@ -474,7 +495,6 @@ public sealed class OAuthService : IOAuthService, IDisposable
         if (!response.IsSuccessStatusCode)
         {
             _log.Error("Token exchange failed with status {StatusCode}", (int)response.StatusCode);
-            _log.Debug("Token exchange failure response body: {Body}", responseBody);
             throw new InvalidOperationException(
                 $"Token exchange failed with HTTP {(int)response.StatusCode}.");
         }
@@ -482,7 +502,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
         var tokenData = JsonSerializer.Deserialize<TokenResponse>(responseBody, JsonOptions);
         if (tokenData is null || string.IsNullOrEmpty(tokenData.AccessToken))
         {
-            _log.Debug("Token exchange response did not contain an access token. Response body: {Body}", responseBody);
+            _log.Error("Token exchange response did not contain an access token for {Provider}");
             throw new InvalidOperationException(
                 "Token exchange response did not contain an access token.");
         }
@@ -549,8 +569,6 @@ public sealed class OAuthService : IOAuthService, IDisposable
             {
                 _log.Error("Token refresh failed for {Provider} with status {StatusCode}",
                     provider, (int)response.StatusCode);
-                _log.Debug("Token refresh failure response body for {Provider}: {Body}",
-                    provider, responseBody);
                 return false;
             }
 
@@ -805,6 +823,9 @@ public sealed class OAuthService : IOAuthService, IDisposable
     /// </summary>
     public void Dispose()
     {
+        if (_isDisposed) return;
+        _isDisposed = true;
+
         foreach (var slim in _refreshLocks.Values)
             slim.Dispose();
         _refreshLocks.Clear();

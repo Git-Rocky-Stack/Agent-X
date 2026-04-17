@@ -22,7 +22,6 @@ public sealed class GmailProvider : IEmailProvider
 
     private readonly IOAuthService _oauthService;
     private readonly ILogger _log;
-    private readonly string _scopes;
     private readonly HttpClient _http;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -35,7 +34,6 @@ public sealed class GmailProvider : IEmailProvider
     {
         _oauthService = oauthService ?? throw new ArgumentNullException(nameof(oauthService));
         _log = (logger ?? throw new ArgumentNullException(nameof(logger))).ForContext<GmailProvider>();
-        _scopes = scopes ?? throw new ArgumentNullException(nameof(scopes));
         _http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
     }
 
@@ -114,9 +112,7 @@ public sealed class GmailProvider : IEmailProvider
         }
 
         // The historyId from the list response serves as our delta token.
-        var newDeltaToken = listResult.ResultSizeEstimate > 0
-            ? listResult.ResultSizeEstimate.ToString()
-            : null;
+        var newDeltaToken = listResult.HistoryId;
 
         return (messages, newDeltaToken);
     }
@@ -219,10 +215,10 @@ public sealed class GmailProvider : IEmailProvider
             .Where(s => !string.IsNullOrWhiteSpace(s))
             .Select(ParseContact).ToList();
 
-        // Parse date.
+        // Parse date — use DateTimeOffset to correctly handle timezone offsets (RFC 2822).
         DateTime receivedAt = DateTime.MinValue;
-        if (DateTime.TryParse(dateRaw, out var parsedDate))
-            receivedAt = DateTime.SpecifyKind(parsedDate, DateTimeKind.Utc);
+        if (DateTimeOffset.TryParse(dateRaw, out var parsedOffset))
+            receivedAt = parsedOffset.UtcDateTime;
 
         return new EmailMessage
         {
@@ -314,20 +310,8 @@ public sealed class GmailProvider : IEmailProvider
         return new EmailContact { EmailAddress = trimmed };
     }
 
-    private async Task<string> GetAccessTokenAsync()
-    {
-        var credential = await _oauthService.GetCredentialAsync("google").ConfigureAwait(false)
-            ?? throw new InvalidOperationException("Google OAuth credential not found. Connect Google first.");
-
-        if (credential.TokenExpiry <= DateTime.UtcNow.AddMinutes(-5))
-        {
-            await _oauthService.RefreshTokenAsync("google").ConfigureAwait(false);
-            credential = await _oauthService.GetCredentialAsync("google").ConfigureAwait(false)
-                ?? throw new InvalidOperationException("Failed to refresh Google OAuth token.");
-        }
-
-        return credential.AccessToken;
-    }
+    private Task<string> GetAccessTokenAsync()
+        => _oauthService.GetAccessTokenAsync(ProviderId);
 
     // ── Internal JSON models ───────────────────────────────────────────────────
 
@@ -357,6 +341,8 @@ public sealed class GmailProvider : IEmailProvider
         public string? NextPageToken { get; init; }
         [JsonPropertyName("resultSizeEstimate")]
         public int ResultSizeEstimate { get; init; }
+        [JsonPropertyName("historyId")]
+        public string? HistoryId { get; init; }
     }
 
     private sealed class GmailMessageId

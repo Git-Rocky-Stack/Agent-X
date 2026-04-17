@@ -14,6 +14,10 @@ Complete API reference for all public services in the Agent-X platform. This doc
 8. [Settings & License Services](#settings--license-services)
 9. [Vector Database](#vector-database)
 10. [Models & Data Structures](#models--data-structures)
+11. [OAuth Services](#oauth-services)
+12. [Calendar Connector](#calendar-connector)
+13. [Email Connector](#email-connector)
+14. [Plugin Infrastructure](#plugin-infrastructure)
 
 ---
 
@@ -3130,5 +3134,472 @@ foreach (var result in results)
 
 ---
 
-**Last Updated**: 2026-02-27
-**Version**: 1.0.0
+---
+
+## OAuth Services
+
+### IOAuthService
+
+**Namespace**: `AgentX.Core.Services.OAuth`
+
+Manages the OAuth2 authorization code flow for external providers (Google, Microsoft). Handles browser-based consent, token exchange, DPAPI-encrypted persistence, automatic refresh, and server-side revocation.
+
+#### Methods
+
+##### AuthorizeAsync
+
+```csharp
+Task<OAuthCredential> AuthorizeAsync(string provider, string? scopes = null, string? redirectUri = null, CancellationToken cancellationToken = default)
+```
+
+Opens a browser consent screen, exchanges the authorization code for tokens, encrypts and persists the credential. Returns the decrypted credential.
+
+**Parameters**:
+- `provider` (string): Provider identifier (e.g. `"google"`, `"microsoft"`)
+- `scopes` (string?): Additional OAuth scopes beyond the provider defaults
+- `redirectUri` (string?): Override redirect URI (defaults to localhost listener)
+- `cancellationToken` (CancellationToken): Cancellation token
+
+**Returns**: `Task<OAuthCredential>` — The authorized credential with decrypted tokens
+
+##### GetAccessTokenAsync
+
+```csharp
+Task<string> GetAccessTokenAsync(string provider)
+```
+
+Returns a valid access token for the provider. Automatically refreshes if the token is expired or within 5 minutes of expiry.
+
+**Parameters**:
+- `provider` (string): Provider identifier
+
+**Returns**: `Task<string>` — A valid, non-expired access token
+
+##### RefreshTokenAsync
+
+```csharp
+Task<bool> RefreshTokenAsync(string provider)
+```
+
+Refreshes the access token using the stored refresh token. Uses per-provider semaphore to prevent concurrent refresh races.
+
+**Parameters**:
+- `provider` (string): Provider identifier
+
+**Returns**: `Task<bool>` — `true` if refresh succeeded
+
+##### RevokeAsync
+
+```csharp
+Task RevokeAsync(string provider)
+```
+
+Sends a server-side revocation request to the provider's revocation endpoint (if configured), then deletes the local credential.
+
+**Parameters**:
+- `provider` (string): Provider identifier
+
+##### GetCredentialAsync
+
+```csharp
+Task<OAuthCredential?> GetCredentialAsync(string provider)
+```
+
+Returns the stored credential for the provider, or `null` if the user has not authorized. Does not trigger a refresh.
+
+**Parameters**:
+- `provider` (string): Provider identifier
+
+**Returns**: `Task<OAuthCredential?>` — The stored credential, or null
+
+---
+
+### OAuthService
+
+**Namespace**: `AgentX.Core.Services.OAuth`
+
+Production implementation of `IOAuthService`. Manages the full OAuth2 authorization code flow for desktop applications.
+
+**Thread Safety**: Per-provider `SemaphoreSlim` guards prevent concurrent token refresh operations.
+
+**DPAPI Encryption**: All tokens are encrypted via `IDpapiEncryptionService` before being persisted to SQLite.
+
+**Auto-Refresh**: `GetAccessTokenAsync` checks whether the stored access token is expired or within 5 minutes of expiry. If so, it calls `RefreshTokenAsync` automatically.
+
+#### Constructor
+
+```csharp
+public OAuthService(AgentXDbContext db, IDpapiEncryptionService encryption, ILogger logger)
+```
+
+#### Methods
+
+| Method | Return Type | Description |
+|--------|------------|-------------|
+| `RegisterProvider(OAuthProviderConfig config)` | `void` | Registers an OAuth provider configuration. Must be called before `AuthorizeAsync`. |
+| `GetRegisteredProviders()` | `IReadOnlyDictionary<string, OAuthProviderConfig>` | Returns all registered provider configurations. |
+
+---
+
+### OAuthProviderConfig
+
+**Namespace**: `AgentX.Core.Services.OAuth`
+
+Immutable configuration for an OAuth2 provider. All properties are `init`-only to prevent accidental mutation.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `ProviderId` | `string` | Stable identifier (e.g. `"google"`, `"microsoft"`) |
+| `DisplayName` | `string` | Display name for UI |
+| `ClientId` | `string` | OAuth2 client ID from the provider's developer console |
+| `ClientSecret` | `string` | OAuth2 client secret (DPAPI-encrypted at rest) |
+| `AuthorizationEndpoint` | `string` | OAuth2 authorization endpoint URL |
+| `TokenEndpoint` | `string` | OAuth2 token exchange endpoint URL |
+| `RevocationEndpoint` | `string?` | OAuth2 revocation endpoint URL (optional) |
+| `Scopes` | `string` | Comma-separated default scopes |
+| `RedirectUri` | `string` | Redirect URI for the OAuth2 flow |
+| `ExtraAuthParameters` | `Dictionary<string, string>` | Provider-specific auth parameters |
+
+---
+
+### OAuthProviderRegistry
+
+**Namespace**: `AgentX.Core.Services.OAuth`
+
+Static factory for pre-configured OAuth2 provider configurations.
+
+#### Constants
+
+| Constant | Value | Description |
+|----------|-------|-------------|
+| `ProviderIdGoogle` | `"google"` | Stable identifier for Google OAuth2 |
+| `ProviderIdMicrosoft` | `"microsoft"` | Stable identifier for Microsoft OAuth2 |
+
+#### Methods
+
+| Method | Return Type | Description |
+|--------|------------|-------------|
+| `CreateGoogleConfig(string clientId, string clientSecret, string? redirectUri = null)` | `OAuthProviderConfig` | Factory for Google OAuth2 config with endpoints, scopes, and `access_type=offline`, `prompt=consent` |
+| `CreateMicrosoftConfig(string clientId, string clientSecret, string? redirectUri = null)` | `OAuthProviderConfig` | Factory for Microsoft Graph config with endpoints, scopes, and `prompt=select_account` |
+
+---
+
+### OAuthCredential
+
+**Namespace**: `AgentX.Core.Services.OAuth`
+
+Decrypted OAuth2 credential DTO. Never persisted in plaintext.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `ProviderId` | `string` | Provider identifier |
+| `AccessToken` | `string` | Decrypted access token (in-memory only) |
+| `RefreshToken` | `string` | Decrypted refresh token (in-memory only) |
+| `TokenExpiry` | `DateTime` | UTC expiry timestamp |
+| `Scopes` | `string` | Comma-separated granted scopes |
+| `UserId` | `string` | Provider-specific user identifier |
+| `CreatedAt` | `DateTime` | UTC timestamp when first stored |
+| `UpdatedAt` | `DateTime` | UTC timestamp when last refreshed |
+
+---
+
+## Calendar Connector
+
+### ICalendarService
+
+**Namespace**: `AgentX.Core.Services.Plugins.Calendar`
+
+High-level calendar service exposed by `CalendarPlugin`. Other AgentX services (search, RAG, Quick Chat) consume this to access calendar data.
+
+#### Methods
+
+##### GetUpcomingEventsAsync
+
+```csharp
+Task<IReadOnlyList<CalEvent>> GetUpcomingEventsAsync(int daysAhead = 7, CancellationToken cancellationToken = default)
+```
+
+Returns upcoming calendar events within the specified number of days ahead. Queries all enabled calendars across all connected providers. Sorted by start time.
+
+##### SyncCalendarsAsync
+
+```csharp
+Task<SyncResult> SyncCalendarsAsync(CancellationToken cancellationToken = default)
+```
+
+Triggers a full sync cycle: fetches events from all enabled calendars and pushes new/updated items into the Smart Inbox pipeline.
+
+##### GetEventAsync
+
+```csharp
+Task<CalEvent?> GetEventAsync(string eventId, string sourceProvider, string calendarId, CancellationToken cancellationToken = default)
+```
+
+Retrieves a specific calendar event by provider-specific event ID.
+
+##### ListCalendarsAsync
+
+```csharp
+Task<IReadOnlyList<CalendarInfo>> ListCalendarsAsync(CancellationToken cancellationToken = default)
+```
+
+Lists all calendars available from connected providers.
+
+#### Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `IsConnected` | `bool` | Whether at least one calendar provider has valid OAuth credentials |
+
+---
+
+### ICalendarProvider
+
+**Namespace**: `AgentX.Core.Services.Plugins.Calendar`
+
+Abstraction over a specific calendar API provider.
+
+#### Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `ProviderId` | `string` | Provider identifier (e.g. `"google"`, `"microsoft"`) |
+
+#### Methods
+
+##### ListCalendarsAsync
+
+```csharp
+Task<IReadOnlyList<CalendarInfo>> ListCalendarsAsync(CancellationToken cancellationToken = default)
+```
+
+Lists all calendars the authenticated user has read access to.
+
+##### GetEventsAsync
+
+```csharp
+Task<(IReadOnlyList<CalEvent> Events, string? NewDeltaToken)> GetEventsAsync(string calendarId, DateTime start, DateTime end, string? deltaToken = null, CancellationToken cancellationToken = default)
+```
+
+Fetches events from a specific calendar. Supports incremental sync via `deltaToken`.
+
+---
+
+### CalendarPlugin
+
+**Namespace**: `AgentX.Core.Services.Plugins.Calendar`
+
+First-party DataConnector plugin. Implements `IPlugin` lifecycle.
+
+| Metadata | Value |
+|----------|-------|
+| Id | `"com.agentx.calendar"` |
+| Name | `"Calendar Connector"` |
+| Type | `PluginType.DataConnector` |
+
+| Event | Type | Description |
+|-------|------|-------------|
+| `SyncCompleted` | `EventHandler<SyncResult>` | Fired after each sync cycle |
+
+---
+
+### Calendar Models
+
+#### CalEvent
+
+Unified calendar event DTO.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Id` | `string` | Provider-specific event identifier |
+| `Title` | `string` | Event title/subject |
+| `Description` | `string?` | Full description (may contain HTML) |
+| `Start` | `DateTime` | Start time (UTC) |
+| `End` | `DateTime` | End time (UTC) |
+| `Location` | `string?` | Event location |
+| `IsAllDay` | `bool` | All-day event flag |
+| `IsRecurring` | `bool` | Recurring event flag |
+| `Attendees` | `IReadOnlyList<CalAttendee>` | Attendee list |
+| `Organizer` | `string?` | Organizer display name |
+| `SourceProvider` | `string` | `"google"` or `"microsoft"` |
+| `HtmlLink` | `string?` | Link to view in provider web UI |
+
+#### CalendarSyncSettings
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `EnabledCalendars` | `Dictionary<string, bool>` | `new()` | Calendar ID → enabled |
+| `SyncIntervalMinutes` | `int` | `15` | Polling interval |
+| `DaysFutureToSync` | `int` | `30` | Future sync window |
+| `DaysPastToSync` | `int` | `90` | Past sync window |
+| `ConflictResolution` | `string` | `"RemoteWins"` | Conflict strategy |
+| `IncludeAttendeeDetails` | `bool` | `true` | Include attendee info |
+| `IncludeDescriptions` | `bool` | `true` | Include full descriptions |
+
+---
+
+## Email Connector
+
+### IEmailService
+
+**Namespace**: `AgentX.Core.Services.Plugins.Email`
+
+High-level email service exposed by `EmailPlugin`.
+
+#### Methods
+
+##### GetRecentMessagesAsync
+
+```csharp
+Task<IReadOnlyList<EmailMessage>> GetRecentMessagesAsync(int count = 20, CancellationToken cancellationToken = default)
+```
+
+Gets recent messages across all enabled folders and providers, sorted by `ReceivedAt` descending.
+
+##### SyncMessagesAsync
+
+```csharp
+Task<SyncResult> SyncMessagesAsync(CancellationToken cancellationToken = default)
+```
+
+Triggers a sync cycle across all providers and folders. Pushes new/updated messages into the Smart Inbox.
+
+##### ListFoldersAsync
+
+```csharp
+Task<IReadOnlyList<EmailFolderInfo>> ListFoldersAsync(CancellationToken cancellationToken = default)
+```
+
+Lists available mail folders from all connected providers.
+
+#### Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `IsConnected` | `bool` | Whether at least one email provider is connected |
+
+---
+
+### IEmailProvider
+
+**Namespace**: `AgentX.Core.Services.Plugins.Email`
+
+Abstraction for an email provider (Gmail, Outlook).
+
+#### Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `ProviderId` | `string` | Unique provider identifier |
+
+#### Methods
+
+##### ListFoldersAsync
+
+```csharp
+Task<IReadOnlyList<EmailFolderInfo>> ListFoldersAsync(CancellationToken cancellationToken = default)
+```
+
+Lists all mail folders/labels available to the authenticated user.
+
+##### GetMessagesAsync
+
+```csharp
+Task<(IReadOnlyList<EmailMessage> Messages, string? NewDeltaToken)> GetMessagesAsync(string folderId, int maxResults = 50, string? deltaToken = null, CancellationToken cancellationToken = default)
+```
+
+Fetches messages from a specific folder. Supports incremental sync via delta token.
+
+---
+
+### EmailPlugin
+
+**Namespace**: `AgentX.Core.Services.Plugins.Email`
+
+Email Connector plugin. Implements `IPlugin` lifecycle.
+
+| Metadata | Value |
+|----------|-------|
+| Id | `"com.agentx.email"` |
+| Name | `"Email Connector"` |
+| Type | `PluginType.DataConnector` |
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Providers` | `IReadOnlyList<IEmailProvider>` | Currently registered email providers |
+
+---
+
+### Email Models
+
+#### EmailMessage
+
+Unified email message DTO.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Id` | `string` | Provider-specific message identifier |
+| `Subject` | `string` | Message subject |
+| `BodyPreview` | `string` | Short body preview |
+| `BodyHtml` | `string` | Full HTML body |
+| `BodyText` | `string` | Plain text body |
+| `From` | `EmailContact` | Sender |
+| `To` | `List<EmailContact>` | To recipients |
+| `Cc` | `List<EmailContact>` | CC recipients |
+| `Bcc` | `List<EmailContact>` | BCC recipients |
+| `ReceivedAt` | `DateTime` | UTC received timestamp |
+| `IsRead` | `bool` | Read status |
+| `IsStarred` | `bool` | Starred/flagged status |
+| `HasAttachments` | `bool` | Attachment indicator |
+| `FolderName` | `string` | Folder display name |
+| `FolderId` | `string` | Provider-specific folder ID |
+| `ThreadId` | `string` | Conversation thread ID |
+| `SourceProvider` | `string` | `"google"` or `"microsoft"` |
+| `AttachmentNames` | `List<string>` | Names of attached files |
+| `WebLink` | `string?` | Link to view in provider web UI |
+
+#### EmailSyncSettings
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `EnabledFolders` | `Dictionary<string, bool>` | `{ ["INBOX"] = true }` | Folder ID → enabled |
+| `SyncIntervalMinutes` | `int` | `10` | Polling interval |
+| `MaxMessagesPerSync` | `int` | `50` | Max messages per cycle |
+| `SyncDaysBack` | `int` | `30` | Initial sync lookback |
+| `EnableAiCategorization` | `bool` | `true` | AI email categorization |
+| `CategorizationPrompt` | `string?` | `null` | Custom AI prompt |
+| `IncludeHtmlBody` | `bool` | `false` | Include HTML in index |
+| `IncludeAttachmentNames` | `bool` | `true` | Include attachment names |
+
+---
+
+## Plugin Infrastructure
+
+### IPluginContext
+
+**Namespace**: `AgentX.Core.Services.Plugins`
+
+Provides a plugin with controlled, safe access to host application resources. Created per plugin by `IPluginService` and passed to `IPlugin.InitializeAsync` before activation.
+
+**Design Rationale**: Plugins must never receive the root `IServiceProvider`. `Services` is a dedicated child scope containing only approved services. File-system access is constrained to `PluginDataPath`.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Services` | `IServiceProvider` | Scoped service provider with only host-approved services. `IOAuthService` is available for `DataConnector` plugins. |
+| `PluginDataPath` | `string` | Absolute path to per-plugin data directory. Created by the host before initialization. |
+| `Logger` | `ILogger` | Serilog logger pre-enriched with plugin identifier and version. |
+
+---
+
+### PluginType
+
+**Namespace**: `AgentX.Core.Services.Plugins`
+
+| Value | Name | Description |
+|-------|------|-------------|
+| `0` | `DataConnector` | Connects to external data sources and syncs into the knowledge vault. Has access to `IOAuthService`. |
+
+---
+
+**Last Updated**: 2026-04-16
+**Version**: 2.0.0

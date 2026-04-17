@@ -130,6 +130,7 @@ public sealed class GoogleCalendarProvider : ICalendarProvider
             queryParams.Add($"syncToken={Uri.EscapeDataString(deltaToken)}");
 
         string? pageToken = null;
+        string? nextSyncToken = null;
 
         do
         {
@@ -162,16 +163,12 @@ public sealed class GoogleCalendarProvider : ICalendarProvider
             }
 
             pageToken = result.NextPageToken;
-        } while (pageToken is not null);
 
-        // The nextSyncToken is only returned on the last page.
-        string? nextSyncToken = null;
-        // We need to re-parse the last response to get the sync token.
-        // Since we consumed the stream in the loop, we'll capture it on the final iteration.
-        // For simplicity, we return the sync token as null here and rely on the
-        // CalendarSyncService to track delta tokens. A full implementation would
-        // capture the nextSyncToken from the last page response.
-        // TODO: Capture nextSyncToken from the last page response in a future iteration.
+            // Capture sync token from each page — the last page's value is the
+            // definitive one returned by the API after all results are enumerated.
+            if (result.NextSyncToken is not null)
+                nextSyncToken = result.NextSyncToken;
+        } while (pageToken is not null);
 
         _log.Information(
             "Fetched {EventCount} Google Calendar events for CalendarId={CalendarId}",

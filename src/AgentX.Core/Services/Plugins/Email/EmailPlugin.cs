@@ -19,6 +19,7 @@ public sealed class EmailPlugin : IPlugin
     private EmailSyncService? _syncService;
     private EmailTriageProcessor? _processor;
     private Timer? _syncTimer;
+    private readonly SemaphoreSlim _syncLock = new(1, 1);
 
     // ── IPlugin ─────────────────────────────────────────────────────────────────
 
@@ -84,7 +85,7 @@ public sealed class EmailPlugin : IPlugin
 
         // Start periodic sync timer.
         _syncTimer = new Timer(
-            _ => _ = ExecuteSyncCycleAsync(),
+            callback: async _ => await OnSyncTimerTickAsync(),
             state: null,
             dueTime: TimeSpan.FromMinutes(1),
             period: TimeSpan.FromMinutes(_settings.SyncIntervalMinutes));
@@ -156,6 +157,7 @@ public sealed class EmailPlugin : IPlugin
         _isDisposed = true;
         _syncTimer?.Dispose();
         _syncTimer = null;
+        _syncLock.Dispose();
         _providers.Clear();
         _log.Information("EmailPlugin disposed");
     }
@@ -193,7 +195,36 @@ public sealed class EmailPlugin : IPlugin
 
     // ── Internal: sync cycle ───────────────────────────────────────────────────
 
-    private async Task ExecuteSyncCycleAsync()
+    private async Task OnSyncTimerTickAsync()
+    {
+        // Timer callbacks have no CancellationToken — use a default 5-minute timeout.
+        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+
+        if (!await _syncLock.WaitAsync(0, cts.Token).ConfigureAwait(false))
+        {
+            _log.Debug("Email sync timer tick skipped — sync already in progress");
+            return;
+        }
+
+        try
+        {
+            await ExecuteSyncCycleAsync(cts.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            _log.Debug("Email sync cycle cancelled (5-minute timeout)");
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Email sync cycle failed");
+        }
+        finally
+        {
+            _syncLock.Release();
+        }
+    }
+
+    private async Task ExecuteSyncCycleAsync(CancellationToken cancellationToken = default)
     {
         if (_isDisposed || _providers.Count == 0) return;
 
@@ -202,7 +233,7 @@ public sealed class EmailPlugin : IPlugin
             if (_syncService is not null)
             {
                 var result = await _syncService.SyncAsync(
-                    _providers, _settings, CancellationToken.None).ConfigureAwait(false);
+                    _providers, _settings, cancellationToken).ConfigureAwait(false);
 
                 _log.Information(
                     "Email sync complete. Added={Added} Skipped={Skipped} Failed={Failed}",

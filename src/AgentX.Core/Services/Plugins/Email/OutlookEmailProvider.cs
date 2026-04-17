@@ -18,7 +18,6 @@ public sealed class OutlookEmailProvider : IEmailProvider
 
     private readonly IOAuthService _oauthService;
     private readonly ILogger _log;
-    private readonly string _scopes;
     private readonly HttpClient _http;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -31,7 +30,6 @@ public sealed class OutlookEmailProvider : IEmailProvider
     {
         _oauthService = oauthService ?? throw new ArgumentNullException(nameof(oauthService));
         _log = (logger ?? throw new ArgumentNullException(nameof(logger))).ForContext<OutlookEmailProvider>();
-        _scopes = scopes ?? throw new ArgumentNullException(nameof(scopes));
         _http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
     }
 
@@ -203,20 +201,8 @@ public sealed class OutlookEmailProvider : IEmailProvider
             .Replace("&quot;", "\"").Replace("&#39;", "'").Replace("&nbsp;", " ");
     }
 
-    private async Task<string> GetAccessTokenAsync()
-    {
-        var credential = await _oauthService.GetCredentialAsync("microsoft").ConfigureAwait(false)
-            ?? throw new InvalidOperationException("Microsoft OAuth credential not found. Connect Outlook first.");
-
-        if (credential.TokenExpiry <= DateTime.UtcNow.AddMinutes(-5))
-        {
-            await _oauthService.RefreshTokenAsync("microsoft").ConfigureAwait(false);
-            credential = await _oauthService.GetCredentialAsync("microsoft").ConfigureAwait(false)
-                ?? throw new InvalidOperationException("Failed to refresh Microsoft OAuth token.");
-        }
-
-        return credential.AccessToken;
-    }
+    private Task<string> GetAccessTokenAsync()
+        => _oauthService.GetAccessTokenAsync(ProviderId);
 
     // ── Internal JSON models ───────────────────────────────────────────────────
 
