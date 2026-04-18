@@ -207,7 +207,10 @@ Before starting Task 1:
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <!-- TEMPORARY during Tasks 1-4: must be Library because Program.cs is excluded -->
+    <!-- (Exe target requires Main, and excluding Program.cs removes it). -->
+    <!-- Task 4 Step 5 restores this to Exe. -->
+    <OutputType>Library</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -221,7 +224,7 @@ Before starting Task 1:
   <!-- TEMPORARY during Tasks 1-4: Program.cs references types (XamlUidExtractor, -->
   <!-- CSharpGetStringExtractor, ReswReader, CoverageReport) that don't exist yet. -->
   <!-- Excluding it lets the test project's ProjectReference compile cleanly so -->
-  <!-- tests can run red/green as each type lands. Task 5 Step 5 removes this block. -->
+  <!-- tests can run red/green as each type lands. Task 4 Step 5 removes this block. -->
   <ItemGroup>
     <Compile Remove="Program.cs" />
   </ItemGroup>
@@ -1139,13 +1142,21 @@ public sealed class CoverageReport
 Run: `dotnet test tests/LocaleAudit.Tests/LocaleAudit.Tests.csproj`
 Expected: all 21 tests pass (5 XamlUidExtractor + 7 CSharpGetStringExtractor + 3 ReswReader + 6 CoverageReport).
 
-- [ ] **Step 5: Remove the temporary `Program.cs` exclusion**
+- [ ] **Step 5: Restore tool to full-executable state**
 
-Open `tools/LocaleAudit/LocaleAudit.Tool.csproj` and DELETE the temporary block added in Task 1 Step 1:
+Open `tools/LocaleAudit/LocaleAudit.Tool.csproj` and revert BOTH temporary blocks added in Task 1 Step 1:
 
+(a) Change `OutputType` back to `Exe` and remove the 3 comment lines flagging it as temporary:
 ```xml
-<!-- DELETE THESE 5 LINES: -->
+<!-- REVERT TO: -->
+<OutputType>Exe</OutputType>
+```
+
+(b) DELETE the entire temporary `<ItemGroup>` that excludes `Program.cs`:
+```xml
+<!-- DELETE THESE 8 LINES: -->
 <!-- TEMPORARY during Tasks 1-4: Program.cs references types ... -->
+<!-- ... -->
 <ItemGroup>
   <Compile Remove="Program.cs" />
 </ItemGroup>
@@ -1158,13 +1169,13 @@ dotnet build tools/LocaleAudit/LocaleAudit.Tool.csproj
 dotnet test tests/LocaleAudit.Tests/LocaleAudit.Tests.csproj
 ```
 
-Expected: tool builds clean (0W/0E), all 21 tests still pass. `Program.cs` now compiles against all four now-existing types.
+Expected: tool builds clean (0W/0E) as an executable, all 21 tests still pass. `Program.cs` now compiles against all four now-existing types.
 
-- [ ] **Step 7: Commit the exclusion removal**
+- [ ] **Step 7: Commit the restoration**
 
 ```bash
 git add tools/LocaleAudit/LocaleAudit.Tool.csproj
-git commit -m "build(a1): remove temporary Program.cs exclusion (all types now exist)"
+git commit -m "build(a1): restore Exe output + Program.cs compilation (all extractor types exist)"
 ```
 
 - [ ] **Step 5: Verify Program.cs builds**
