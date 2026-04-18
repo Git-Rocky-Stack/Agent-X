@@ -80,6 +80,43 @@ public class ReswReaderTests
         }
     }
 
+    [Fact]
+    public void ReadAllLocales_throws_when_root_does_not_exist()
+    {
+        var missingPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+
+        var act = () => ReswReader.ReadAllLocales(missingPath);
+
+        act.Should().ThrowExactly<DirectoryNotFoundException>()
+           .WithMessage($"*{missingPath}*");
+    }
+
+    [Fact]
+    public void ReadAllLocales_skips_non_locale_subdirectories()
+    {
+        var root = Directory.CreateTempSubdirectory("resw-filter-test").FullName;
+        try
+        {
+            // Real locale
+            Directory.CreateDirectory(Path.Combine(root, "en-US"));
+            File.WriteAllText(
+                Path.Combine(root, "en-US", "Resources.resw"),
+                "<?xml version=\"1.0\" encoding=\"utf-8\"?><root><data name=\"K\"><value>V</value></data></root>");
+            // Tool-generated subdirectories that must be skipped
+            Directory.CreateDirectory(Path.Combine(root, ".vs"));
+            Directory.CreateDirectory(Path.Combine(root, "obj"));
+            Directory.CreateDirectory(Path.Combine(root, "bin"));
+
+            var result = ReswReader.ReadAllLocales(root);
+
+            result.Keys.Should().BeEquivalentTo("en-US");
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
     private static string WriteTempResw(string content)
     {
         var path = Path.Combine(Path.GetTempPath(), $"resw-{Guid.NewGuid():N}.resw");

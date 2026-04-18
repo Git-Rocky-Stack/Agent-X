@@ -27,7 +27,18 @@ public static class ReswReader
             throw new DirectoryNotFoundException($"Strings root not found: {stringsRoot}");
 
         var result = new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.Ordinal);
-        foreach (var localeDir in Directory.EnumerateDirectories(stringsRoot))
+        // Skip build-tool-generated subdirectories that occasionally appear inside resource trees
+        // (.vs/, obj/, bin/, .cache/). Real WinUI locale folders use BCP-47 names like "en-US", "fr".
+        var localeDirs = Directory.EnumerateDirectories(stringsRoot)
+            .Where(d =>
+            {
+                var name = Path.GetFileName(d);
+                return !name.StartsWith(".", StringComparison.Ordinal)
+                    && !name.Equals("obj", StringComparison.OrdinalIgnoreCase)
+                    && !name.Equals("bin", StringComparison.OrdinalIgnoreCase);
+            });
+
+        foreach (var localeDir in localeDirs)
         {
             var locale = Path.GetFileName(localeDir);
             var reswPath = Path.Combine(localeDir, "Resources.resw");
