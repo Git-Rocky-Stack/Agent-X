@@ -277,7 +277,7 @@ dotnet sln AgentX.sln add tools/LocaleAudit/LocaleAudit.Tool.csproj
 dotnet build tools/LocaleAudit/LocaleAudit.Tool.csproj
 ```
 
-Expected: 4 `CS0103: The name '...' does not exist` errors. This is intentional — Tasks 2, 2.5, 3, and 4 add the types.
+Expected immediately after Task 1: **1 `CS0246` error** on `using LocaleAudit;` — Roslyn short-circuits when the namespace has zero defined types. This is the correct TDD-gate signal (build must fail; any missing-dependency error satisfies that). As Tasks 2, 2.5, 3, and 4 land types into the `LocaleAudit` namespace, the `using` resolves and the error set transitions to the 4 individual `CS0103: The name '...' does not exist` errors (progressively shrinking as each type is added). Task 4 Step 4 brings the error count to zero.
 
 - [ ] **Step 5: Commit**
 
