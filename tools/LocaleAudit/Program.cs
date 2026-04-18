@@ -1,5 +1,11 @@
 using LocaleAudit;
 
+if (args.Length >= 1 && (args[^1] == "--output" || args[^1] == "--fail-below"))
+{
+    Console.Error.WriteLine($"Error: flag '{args[^1]}' requires a value.");
+    return 2;
+}
+
 if (args.Length < 3)
 {
     Console.Error.WriteLine("Usage: LocaleAudit.Tool <app-xaml-root> <app-csharp-root> <strings-root> [--output report.json] [--fail-below 98]");
@@ -25,12 +31,13 @@ try
 }
 catch (Exception ex)
 {
-    Console.Error.WriteLine($"LocaleAudit failed: {ex.Message}");
+    Console.Error.WriteLine($"LocaleAudit failed: {ex}");
     return 3;
 }
 
 static string? ParseArg(string[] args, string name)
 {
+    // First occurrence wins; duplicate flags are silently ignored (POSIX-style).
     for (int i = 0; i < args.Length - 1; i++)
         if (args[i] == name) return args[i + 1];
     return null;
