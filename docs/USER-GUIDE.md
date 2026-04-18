@@ -1140,4 +1140,24 @@ For quick reference, the table below summarizes all configurable settings and th
 
 ---
 
+## Database Encryption
+
+Agent-X can encrypt your local vault with SQLCipher (AES-256). Open Settings → Database Encryption → toggle the switch on.
+
+**Starter and Professional tiers** use a transparent key that is automatically generated and tied to your Windows user account. You never see it. The database is unlocked automatically on every launch for as long as you are signed in as the same Windows user.
+
+**Ultimate tier** prompts you to set a passphrase of at least 12 characters. The passphrase is used to derive the encryption key on each launch — Agent-X never stores your passphrase itself. **Write your passphrase down and keep it safe.** If you lose it, your database cannot be recovered. Create an unencrypted backup first via Settings → Backup & Restore if you are not sure.
+
+Once encryption is enabled, every file Agent-X writes to its vault — documents, conversations, collections, memories, settings — is protected on disk. Encrypted backups preserve the same key: restoring an encrypted backup on a different machine requires the same passphrase (Ultimate) or the same Windows user profile (Starter / Professional).
+
+**Disabling encryption is not supported in v2.1.** To revert to a plaintext vault, restore from a pre-encryption backup.
+
+**Troubleshooting**
+
+- *Forgot your passphrase?* The key cannot be recovered. Restore the most recent unencrypted backup.
+- *Moved to a new machine (Starter / Professional tier)?* The DPAPI-wrapped key is bound to the original Windows user. Create an export via Settings → Backup & Restore on the old machine, import it on the new one.
+- *App says "file is not a database" on launch?* The DB file and the encryption marker file have gotten out of sync. Close the app, rename `%LocalAppData%\AgentX\encryption.info.json` to `encryption.info.json.bak`, and relaunch — Agent-X will start in plaintext mode. If the DB is actually encrypted, it will fail to open; restore from your most recent backup. If the DB is plaintext and the marker was stale, the app will resume normally.
+
+---
+
 *Agent-X is developed by Rocky Stack / Strategia. For support, feature requests, or bug reports, please contact the development team.*
