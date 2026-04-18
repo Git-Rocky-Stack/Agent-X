@@ -1,4 +1,6 @@
+using System.Data;
 using AgentX.Core.Data.Entities;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 namespace AgentX.Core.Data;
@@ -36,6 +38,7 @@ public class AgentXDbContext : DbContext
     public DbSet<OAuthCredentialEntity> OAuthCredentials => Set<OAuthCredentialEntity>();
 
     private readonly string _dbPath;
+    private readonly IEncryptedConnectionFactory? _connectionFactory;
 
     public AgentXDbContext()
     {
@@ -54,12 +57,38 @@ public class AgentXDbContext : DbContext
         _dbPath = Path.Combine(appDataDir, "agentx.db");
     }
 
+    /// <summary>
+    /// DI-preferred constructor: injects the encrypted connection factory so PRAGMA key
+    /// can be applied to the underlying connection via <see cref="EnsureKeyApplied"/>
+    /// once the unlock flow has loaded key material.
+    /// </summary>
+    public AgentXDbContext(DbContextOptions<AgentXDbContext> options, IEncryptedConnectionFactory connectionFactory)
+        : this(options)
+    {
+        _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
+    }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
         {
             optionsBuilder.UseSqlite($"Data Source={_dbPath}");
         }
+    }
+
+    /// <summary>
+    /// Opens the underlying connection (if closed) and applies the current database key
+    /// via PRAGMA key. Called from startup once after the unlock flow and before any
+    /// migrations or queries run. Idempotent — safe to call multiple times.
+    /// No-op when no factory was injected (EF tooling path) or when no key is loaded.
+    /// </summary>
+    public void EnsureKeyApplied()
+    {
+        if (_connectionFactory is null) return;
+        var conn = Database.GetDbConnection();
+        if (conn.State == ConnectionState.Closed)
+            conn.Open();
+        _connectionFactory.ApplyKey((SqliteConnection)conn);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

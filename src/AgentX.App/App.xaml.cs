@@ -232,7 +232,11 @@ public partial class App : Application
         {
             var settingsService = sp.GetRequiredService<ISettingsService>();
             var logger = sp.GetRequiredService<Serilog.ILogger>();
-            return VectorStoreFactory.Create(settingsService, logger);
+            // IEncryptedConnectionFactory is registered in Task 9; this resolve is
+            // wired here as the minimal call-site adjustment for Task 8's signature
+            // change so the project builds.
+            var connectionFactory = sp.GetRequiredService<AgentX.Core.Data.IEncryptedConnectionFactory>();
+            return VectorStoreFactory.Create(settingsService, logger, connectionFactory);
         });
 
         // ── Chat Services ──────────────────────────────────────

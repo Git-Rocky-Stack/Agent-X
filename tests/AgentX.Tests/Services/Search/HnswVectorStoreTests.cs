@@ -1,5 +1,7 @@
 using System.Text.Json;
+using AgentX.Core.Data;
 using AgentX.Core.Data.VectorDb;
+using AgentX.Core.Services.Security;
 using AgentX.Core.Services.Settings;
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
@@ -68,6 +70,13 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
 
     // ── Helper: Create store with small dimensions and fallbackThreshold=0 ─
 
+    /// <summary>
+    /// Tests run without encryption — the factory resolves to a plaintext open when
+    /// no key is loaded on the provider, matching pre-C13 behaviour.
+    /// </summary>
+    private static IEncryptedConnectionFactory CreatePlainFactory()
+        => new EncryptedConnectionFactory(new DatabaseKeyProvider());
+
     private HnswVectorStore CreateStore(
         int dimensions = 3,
         long fallbackThreshold = 0, // 0 forces HNSW path even with tiny collections
@@ -80,7 +89,8 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
             m: m,
             efConstruction: efConstruction,
             dimensions: dimensions,
-            fallbackThreshold: fallbackThreshold);
+            fallbackThreshold: fallbackThreshold,
+            connectionFactory: CreatePlainFactory());
     }
 
     // ── 1. InitializeAsync_EmptyStore_CreatesIndex ───────────────────────
@@ -371,7 +381,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
             });
 
         // Act
-        var store = VectorStoreFactory.Create(mockSettings.Object, _logger);
+        var store = VectorStoreFactory.Create(mockSettings.Object, _logger, CreatePlainFactory());
 
         // Assert
         store.Should().BeOfType<HnswVectorStore>(
@@ -400,7 +410,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
             });
 
         // Act
-        var store = VectorStoreFactory.Create(mockSettings.Object, _logger);
+        var store = VectorStoreFactory.Create(mockSettings.Object, _logger, CreatePlainFactory());
 
         // Assert
         store.Should().BeOfType<SqliteVecStore>(

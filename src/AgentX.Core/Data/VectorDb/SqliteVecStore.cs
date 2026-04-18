@@ -27,6 +27,7 @@ namespace AgentX.Core.Data.VectorDb;
 public sealed class SqliteVecStore : IVectorStore
 {
     private readonly ISettingsService _settingsService;
+    private readonly IEncryptedConnectionFactory _connectionFactory;
     private readonly ILogger _logger;
 
     private SqliteConnection? _connection;
@@ -36,21 +37,22 @@ public sealed class SqliteVecStore : IVectorStore
     /// Creates a new SqliteVecStore.
     /// </summary>
     /// <param name="settingsService">Settings service providing the database storage path.</param>
-    public SqliteVecStore(ISettingsService settingsService)
+    /// <param name="connectionFactory">Encrypted connection factory — required so PRAGMA key is applied when opening SQLite.</param>
+    public SqliteVecStore(ISettingsService settingsService, IEncryptedConnectionFactory connectionFactory)
+        : this(settingsService, logger: null, connectionFactory)
     {
-        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-        _logger = Log.ForContext<SqliteVecStore>();
-        _logger.Information("SqliteVecStore created");
     }
 
     /// <summary>
     /// Creates a new SqliteVecStore with an explicit logger.
     /// </summary>
     /// <param name="settingsService">Settings service providing the database storage path.</param>
-    /// <param name="logger">Serilog logger instance.</param>
-    public SqliteVecStore(ISettingsService settingsService, ILogger logger)
+    /// <param name="logger">Serilog logger instance (may be null to use the default context logger).</param>
+    /// <param name="connectionFactory">Encrypted connection factory — required so PRAGMA key is applied when opening SQLite.</param>
+    public SqliteVecStore(ISettingsService settingsService, ILogger? logger, IEncryptedConnectionFactory connectionFactory)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
         _logger = logger ?? Log.ForContext<SqliteVecStore>();
         _logger.Information("SqliteVecStore created");
     }
@@ -75,15 +77,10 @@ public sealed class SqliteVecStore : IVectorStore
             }
 
             var dbPath = Path.Combine(storagePath, "agentx.db");
-            var connectionString = new SqliteConnectionStringBuilder
-            {
-                DataSource = dbPath,
-                Mode = SqliteOpenMode.ReadWriteCreate,
-                Cache = SqliteCacheMode.Shared
-            }.ToString();
-
-            _connection = new SqliteConnection(connectionString);
-            await _connection.OpenAsync(ct).ConfigureAwait(false);
+            // Route through IEncryptedConnectionFactory so PRAGMA key is applied when
+            // encryption is enabled. When no key is loaded, the factory performs a
+            // plaintext open.
+            _connection = _connectionFactory.OpenKeyed(dbPath);
 
             _logger.Debug("SQLite connection opened: {Path}", dbPath);
 
