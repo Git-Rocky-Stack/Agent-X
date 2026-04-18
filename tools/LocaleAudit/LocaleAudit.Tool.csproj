@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <!-- TEMPORARY during Tasks 1-4: OutputType flipped to Library because Program.cs -->
+    <!-- is excluded below (has no Main). Task 5 Step 5 restores OutputType=Exe. -->
+    <OutputType>Library</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -10,5 +12,12 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Text.Json" Version="8.0.5" />
+  </ItemGroup>
+  <!-- TEMPORARY during Tasks 1-4: Program.cs references types (XamlUidExtractor, -->
+  <!-- CSharpGetStringExtractor, ReswReader, CoverageReport) that don't exist yet. -->
+  <!-- Excluding it lets the test project's ProjectReference compile cleanly so -->
+  <!-- tests can run red/green as each type lands. Task 5 Step 5 removes this block. -->
+  <ItemGroup>
+    <Compile Remove="Program.cs" />
   </ItemGroup>
 </Project>
