@@ -45,6 +45,7 @@ public sealed class BackupService : IBackupService
 
     private readonly AgentXDbContext _db;
     private readonly ISettingsService _settingsService;
+    private readonly IEncryptedConnectionFactory _connectionFactory;
 
     /// <summary>
     /// CancellationTokenSource used to stop the scheduled backup loop from <see cref="StopScheduledBackups"/>.
@@ -60,10 +61,19 @@ public sealed class BackupService : IBackupService
 
     // ── Constructor ────────────────────────────────────────────────────────
 
-    public BackupService(AgentXDbContext dbContext, ISettingsService settingsService)
+    /// <summary>
+    /// Creates a <see cref="BackupService"/>. The <paramref name="connectionFactory"/> is a
+    /// required dependency — PRAGMA key is applied through it to the source and destination
+    /// connections of the SQLite Online Backup API.
+    /// </summary>
+    public BackupService(
+        AgentXDbContext dbContext,
+        ISettingsService settingsService,
+        IEncryptedConnectionFactory connectionFactory)
     {
         _db = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
         Log.Information("BackupService initialized");
     }
 
@@ -784,11 +794,11 @@ public sealed class BackupService : IBackupService
         {
             ct.ThrowIfCancellationRequested();
 
-            using var source = new SqliteConnection($"Data Source={dbPath}");
-            using var destination = new SqliteConnection($"Data Source={tempPath}");
-
-            source.Open();
-            destination.Open();
+            // Backups preserve the source's key — a backup of an encrypted DB stays encrypted.
+            // Users restoring on a different machine need the matching key material (passphrase
+            // for UserPassphrase mode, or a matching Windows user profile for DpapiWrapped).
+            using var source = _connectionFactory.OpenKeyed(dbPath);
+            using var destination = _connectionFactory.OpenKeyed(tempPath);
 
             // BackupDatabase is synchronous but very fast for local files
             source.BackupDatabase(destination);

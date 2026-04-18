@@ -21,18 +21,23 @@ public static class VectorStoreFactory
     /// </summary>
     /// <param name="settingsService">Settings service providing app configuration.</param>
     /// <param name="logger">Serilog logger instance.</param>
+    /// <param name="connectionFactory">Encrypted connection factory — required so PRAGMA key is applied when opening SQLite.</param>
     /// <returns>A fully constructed (but not yet initialized) <see cref="IVectorStore"/>.</returns>
-    public static IVectorStore Create(ISettingsService settingsService, ILogger logger)
+    public static IVectorStore Create(
+        ISettingsService settingsService,
+        ILogger logger,
+        IEncryptedConnectionFactory connectionFactory)
     {
         ArgumentNullException.ThrowIfNull(settingsService);
         ArgumentNullException.ThrowIfNull(logger);
+        ArgumentNullException.ThrowIfNull(connectionFactory);
 
         var settings = settingsService.GetSettingsAsync().GetAwaiter().GetResult();
 
         if (!settings.EnableHnswIndex)
         {
             logger.Information("HNSW index disabled in settings; using SqliteVecStore (linear scan)");
-            return new SqliteVecStore(settingsService, logger);
+            return new SqliteVecStore(settingsService, logger, connectionFactory);
         }
 
         logger.Information(
@@ -45,6 +50,7 @@ public static class VectorStoreFactory
             m: settings.HnswM,
             efConstruction: settings.HnswEfConstruction,
             dimensions: 384, // all-MiniLM-L6-v2 default; matches EmbeddingService.Dimensions
-            fallbackThreshold: settings.HnswFallbackThreshold);
+            fallbackThreshold: settings.HnswFallbackThreshold,
+            connectionFactory: connectionFactory);
     }
 }

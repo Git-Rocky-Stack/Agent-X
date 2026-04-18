@@ -857,11 +857,68 @@ Results are serialized to JSON and persisted as a `DigestReportEntity`.
 
 ### 7.1 Entity Framework Core Database Context
 
-`AgentXDbContext` uses SQLite via the `Microsoft.EntityFrameworkCore.Sqlite` package. The database file is stored at `%LocalAppData%/AgentX/agentx.db`. The context is registered as a singleton with `EnsureCreatedAsync()` called at startup (no EF Core migration runner is invoked at runtime; migrations are used during development only).
+`AgentXDbContext` uses SQLite via the `Microsoft.EntityFrameworkCore.Sqlite` package. The database file is stored at `%LocalAppData%/AgentX/agentx.db`. The context is registered as a singleton and schema changes are applied at startup via `IMigrationRunner` (see 7.1.1 below).
 
 SQLite WAL (Write-Ahead Logging) mode is enabled by the `SqliteVecStore` for the vec_embeddings connection. The main EF Core connection operates in shared cache mode on the same file.
 
 **Database path:** `Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AgentX", "agentx.db")`
+
+#### 7.1.1 Migrations
+
+Schema changes ship via EF Core migrations under `src/AgentX.Core/Data/Migrations/`. `IMigrationRunner` is invoked during `App.InitializeCoreServicesAsync` to apply any pending migrations at launch. Pre-migration installs are automatically adopted at the `InitialBaseline` migration so existing user data is preserved on first run after upgrade.
+
+The runner is implemented in `src/AgentX.Core/Data/MigrationRunner/MigrationRunner.cs` and exposes two methods:
+
+- `RunAsync()` — applies pending migrations and returns a `MigrationResult` with the database path, whether the database was newly created, and which migrations were applied.
+- `GetPendingMigrationsAsync()` — returns pending migration names without applying them (used for UI surfacing).
+
+The `AgentXDbContextFactory` is an `IDesignTimeDbContextFactory<AgentXDbContext>` used by the `dotnet ef` tooling to create new migrations. To author a migration:
+
+```bash
+dotnet ef migrations add <MigrationName> \
+  --project src/AgentX.Core/AgentX.Core.csproj \
+  --output-dir Data/Migrations \
+  --context AgentXDbContext
+```
+
+Baseline adoption covers users upgrading from pre-B9 builds where `EnsureCreatedAsync()` created the schema without an `__EFMigrationsHistory` table. On first launch after upgrade, `MigrationRunner.RunAsync` detects the missing history table, writes the `InitialBaseline` row to mark the schema as already at baseline, and only applies migrations newer than the baseline.
+
+#### 7.1.2 Database Encryption (C13)
+
+When enabled, `agentx.db` is encrypted at rest using **SQLCipher 4** (AES-256-CBC, 4096-byte pages) via `SQLitePCLRaw.bundle_e_sqlcipher`. Encryption is off by default; the user enables it from Settings → Database Encryption.
+
+**Key management — tier-aware**
+
+| Tier | Mode | Key source | Unlock UX |
+|---|---|---|---|
+| Starter / Professional | `DpapiWrapped` | 32 random bytes, DPAPI-wrapped per Windows user in the out-of-DB `encryption.info.json` sibling file (field `DpapiWrappedKey`) | Transparent at launch |
+| Ultimate | `UserPassphrase` | PBKDF2-HMAC-SHA256 (600,000 iterations) of the user's passphrase with a 16-byte salt stored in `encryption.info.json` (field `SaltBase64`) | Passphrase prompt at launch |
+
+**Key delivery to SQLCipher (important)**
+
+Keys are delivered via `PRAGMA key = "x'<hex>'"` issued immediately after `SqliteConnection.Open()`, **never** through `SqliteConnectionStringBuilder.Password`. These two paths are NOT equivalent — `Password=` runs the value through PBKDF2 KDF, while `PRAGMA key = "x'..."` uses the raw bytes directly. Mixing them produces two different derived keys and silent DB corruption on reopen. All production `SqliteConnection` opens flow through `IEncryptedConnectionFactory.OpenKeyed(path)` or `IEncryptedConnectionFactory.ApplyKey(connection)` to enforce the raw-bytes path.
+
+The design-time `AgentXDbContextFactory` (used by `dotnet ef` tooling) is exempt from encryption — it writes to a throwaway tooling DB that never ships.
+
+**Out-of-DB key state**
+
+All encryption state — provisioning flag, storage mode, DPAPI-wrapped key (DpapiWrapped mode), salt (UserPassphrase mode), and enable timestamp — lives in `%LocalAppData%\AgentX\encryption.info.json` (managed by `IEncryptionStateFile`). Nothing about the encryption key is stored inside the encrypted DB itself. This is deliberate and avoids a chicken-and-egg that would otherwise make the `DpapiWrapped` unlock path unreachable: the key needed to open the encrypted DB cannot also live inside that DB.
+
+The file stores `{ version, storageMode, enabledAt, dpapiWrappedKey, saltBase64 }` — one of `dpapiWrappedKey` or `saltBase64` is set depending on mode. `DatabaseKeyService` depends on `IEncryptionStateFile` + `IDpapiEncryptionService` only (no `AgentXDbContext` dependency), so provisioning and unlock never touch the DB before the key is applied. The file is written LAST by the enable flow — only after `IDatabaseEncryptionMigrator.MigrateToEncryptedAsync` succeeds and the key provider is set — so a failed enable never leaves a stale "encrypted" marker pointing at a plaintext DB.
+
+**Plaintext → encrypted migration**
+
+`IDatabaseEncryptionMigrator.MigrateToEncryptedAsync` uses SQLCipher's `sqlcipher_export()` via `ATTACH DATABASE <target> AS encrypted KEY "x'<hex>'"` to copy schema and rows from the plaintext source into a new encrypted target. On success, the plaintext file is replaced atomically (via `File.Move` after `SqliteConnection.ClearAllPools()` to release Windows file handles). On failure, the plaintext backup is restored from `agentx.db.plain.bak` and the incomplete encrypted temp is deleted.
+
+**Startup unlock sequence** (in `App.InitializeCoreServicesAsync`):
+1. Initialize SQLitePCL provider (`Batteries_V2.Init`)
+2. Check `IEncryptionStateFile.Exists()` — no DB access yet
+3. If marker present → derive/unwrap key per `storageMode`, set `IDatabaseKeyProvider.Current`
+4. Call `db.EnsureKeyApplied()` — opens the underlying connection and runs `PRAGMA key` once
+5. Run `IMigrationRunner.RunAsync()` — now sees a keyed connection
+6. Continue with FTS5 / AI service init
+
+**Tests covering the chain** — 26 xUnit tests across `DatabaseKeyServiceTests` (6), `EncryptedConnectionFactoryTests` (4), `DatabaseEncryptionMigratorTests` (4), `EncryptionStateFileTests` (7), `MigrationRunnerTests` (5 — includes the pre-C13-schema adoption test).
 
 ### 7.2 Entity Relationship Model
 

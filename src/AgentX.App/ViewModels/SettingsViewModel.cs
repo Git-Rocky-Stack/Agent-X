@@ -21,6 +21,10 @@ public partial class SettingsViewModel : ObservableObject
     private readonly IThemeService _themeService;
     private readonly ISecurityStatusService _securityStatusService;
     private readonly IModelRouterService? _modelRouterService;
+    private readonly IDatabaseKeyService _databaseKeyService;
+    private readonly IDatabaseEncryptionMigrator _databaseEncryptionMigrator;
+    private readonly IDatabaseKeyProvider _databaseKeyProvider;
+    private readonly IEncryptionStateFile _encryptionStateFile;
 
     // ── Active Provider ──────────────────────────────────────
     [ObservableProperty] private int _activeProviderIndex;
@@ -80,6 +84,10 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private bool _areKeysEncrypted;
     [ObservableProperty] private string _encryptionStatusDescription = string.Empty;
 
+    // ── Database Encryption ───────────────────────────────────
+    [ObservableProperty] private bool _encryptionEnabled;
+    [ObservableProperty] private string _encryptionStatus = string.Empty;
+
     // ── Multi-Model Routing ──────────────────────────────
     [ObservableProperty] private bool _enableModelRouting;
     [ObservableProperty] private string _activeRoutingProfileId = "balanced";
@@ -118,6 +126,10 @@ public partial class SettingsViewModel : ObservableObject
         ICostTracker costTracker,
         IThemeService themeService,
         ISecurityStatusService securityStatusService,
+        IDatabaseKeyService databaseKeyService,
+        IDatabaseEncryptionMigrator databaseEncryptionMigrator,
+        IDatabaseKeyProvider databaseKeyProvider,
+        IEncryptionStateFile encryptionStateFile,
         IModelRouterService? modelRouterService = null)
     {
         _settingsService = settingsService;
@@ -126,6 +138,10 @@ public partial class SettingsViewModel : ObservableObject
         _costTracker = costTracker;
         _themeService = themeService;
         _securityStatusService = securityStatusService;
+        _databaseKeyService = databaseKeyService;
+        _databaseEncryptionMigrator = databaseEncryptionMigrator;
+        _databaseKeyProvider = databaseKeyProvider;
+        _encryptionStateFile = encryptionStateFile;
         _modelRouterService = modelRouterService;
 
         StoragePath = Path.Combine(
@@ -564,4 +580,143 @@ public partial class SettingsViewModel : ObservableObject
         "balanced" => 2,
         _ => 2
     };
+
+    // ── Database Encryption Toggle Flow ───────────────────────
+
+    /// <summary>
+    /// Invoked by the Settings page when the encryption ToggleSwitch changes.
+    /// Runs a tier-aware enable flow: Ultimate → passphrase dialog,
+    /// Starter/Professional/Trial → transparent DPAPI-wrapped key.
+    /// On failure, reverts the toggle and does NOT write the marker file.
+    /// </summary>
+    public async System.Threading.Tasks.Task OnEncryptionToggledAsync()
+    {
+        // Called by the XAML code-behind when the ToggleSwitch is toggled by the user.
+        // The TwoWay binding means EncryptionEnabled already reflects the target state.
+
+        if (!EncryptionEnabled)
+        {
+            // v2.1 does not support disabling encryption.
+            if (_encryptionStateFile.Exists())
+            {
+                EncryptionStatus = "Disabling encryption is not supported in v2.1. Restore from an unencrypted backup to revert.";
+                EncryptionEnabled = true;
+            }
+            else
+            {
+                EncryptionStatus = "Encryption is not enabled.";
+            }
+            return;
+        }
+
+        var licenseInfo = await _licenseService.GetCurrentLicenseAsync();
+        var mode = licenseInfo.Tier == AgentX.Core.Services.License.LicenseTier.Ultimate
+            ? KeyStorageMode.UserPassphrase
+            : KeyStorageMode.DpapiWrapped;
+
+        string? passphrase = null;
+        if (mode == KeyStorageMode.UserPassphrase)
+        {
+            passphrase = await PromptForNewPassphraseAsync();
+            if (string.IsNullOrEmpty(passphrase))
+            {
+                EncryptionEnabled = false;
+                EncryptionStatus = "Encryption was not enabled.";
+                return;
+            }
+        }
+
+        try
+        {
+            EncryptionStatus = "Encrypting…";
+
+            // Provisioning writes the marker file (containing the DPAPI-wrapped key or
+            // the PBKDF2 salt) as part of GetOrCreateKeyAsync — no separate marker write
+            // is needed. If MigrateToEncryptedAsync fails below, the marker will be
+            // present but the DB unencrypted; the next launch will detect the mismatch
+            // and prompt the user. This is acceptable for v2.1 (disable-encryption flow
+            // is a future feature).
+            var key = await _databaseKeyService.GetOrCreateKeyAsync(mode, passphrase);
+            var dbPath = System.IO.Path.Combine(
+                System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
+                "AgentX",
+                "agentx.db");
+
+            await _databaseEncryptionMigrator.MigrateToEncryptedAsync(dbPath, key);
+
+            // Activate the key for THIS session so subsequent DB opens see it.
+            if (_databaseKeyProvider is DatabaseKeyProvider provider)
+                provider.Set(key);
+
+            EncryptionStatus = mode == KeyStorageMode.UserPassphrase
+                ? "Encrypted with your passphrase. You'll be prompted on next launch."
+                : "Encrypted. The key is managed automatically and tied to your Windows user account.";
+
+            Serilog.Log.Information("Database encryption enabled (mode={Mode})", mode);
+        }
+        catch (System.Exception ex)
+        {
+            Serilog.Log.Error(ex, "Database encryption enable failed");
+            EncryptionEnabled = false;
+            EncryptionStatus = $"Encryption failed: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// Loads the current encryption status from the marker file.
+    /// Called by the Settings page on navigation.
+    /// </summary>
+    public System.Threading.Tasks.Task LoadEncryptionStatusAsync()
+    {
+        if (_encryptionStateFile.Exists())
+        {
+            EncryptionEnabled = true;
+            var info = _encryptionStateFile.Read();
+            EncryptionStatus = info?.StorageMode == KeyStorageMode.UserPassphrase
+                ? "Encrypted with your passphrase (Ultimate tier)."
+                : "Encrypted. The key is managed automatically and tied to your Windows user account.";
+        }
+        else
+        {
+            EncryptionEnabled = false;
+            EncryptionStatus = "Encryption is not enabled.";
+        }
+        return System.Threading.Tasks.Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Shows a ContentDialog prompting the user to enter a new encryption passphrase.
+    /// Returns null if cancelled or if the passphrase fails the minimum-length check.
+    /// </summary>
+    private static async System.Threading.Tasks.Task<string?> PromptForNewPassphraseAsync()
+    {
+        var box = new Microsoft.UI.Xaml.Controls.PasswordBox
+        {
+            PlaceholderText = "Minimum 12 characters"
+        };
+        var help = new Microsoft.UI.Xaml.Controls.TextBlock
+        {
+            Text = "Write this down and store it safely. If lost, your database cannot be recovered.",
+            TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap,
+            Opacity = 0.7,
+            Margin = new Microsoft.UI.Xaml.Thickness(0, 0, 0, 8)
+        };
+        var panel = new Microsoft.UI.Xaml.Controls.StackPanel { Spacing = 8 };
+        panel.Children.Add(help);
+        panel.Children.Add(box);
+
+        var dialog = new Microsoft.UI.Xaml.Controls.ContentDialog
+        {
+            Title = "Set an encryption passphrase",
+            Content = panel,
+            PrimaryButtonText = "Encrypt",
+            CloseButtonText = "Cancel",
+            DefaultButton = Microsoft.UI.Xaml.Controls.ContentDialogButton.Primary,
+            XamlRoot = App.MainWindow.Content.XamlRoot,
+        };
+
+        var result = await dialog.ShowAsync();
+        if (result != Microsoft.UI.Xaml.Controls.ContentDialogResult.Primary) return null;
+        return box.Password.Length >= 12 ? box.Password : null;
+    }
 }

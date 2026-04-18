@@ -1,8 +1,10 @@
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Xaml;
 using Serilog;
+using SQLitePCL;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.AI.Routing;
@@ -88,61 +90,70 @@ public partial class App : Application
     /// </summary>
     private static async void InitializeCoreServicesAsync()
     {
-        // 1. Ensure the database schema exists
+        Batteries_V2.Init();
+
+        // 0. Unlock encrypted database (if encryption has been enabled)
+        // We check an out-of-DB marker file FIRST — reading UserSettings requires an unlocked
+        // DB, which we cannot do until the key is applied. The marker tells us which path to
+        // take without any DB access.
         try
         {
-            var dbContext = GetService<AgentXDbContext>();
-            await dbContext.Database.EnsureCreatedAsync();
-            Log.Information("Database initialized at {Path}",
-                dbContext.Database.GetConnectionString());
-
-            // 1a. Apply schema upgrades for existing databases
-            // EnsureCreated does not alter existing tables, so new columns must
-            // be added manually. Each ALTER TABLE is wrapped individually so that
-            // columns already present (on fresh installs) are silently skipped.
-            string[] alterStatements =
-            [
-                "ALTER TABLE search_history ADD COLUMN MinScore REAL NULL",
-                "ALTER TABLE search_history ADD COLUMN MaxResults INTEGER NULL",
-                "ALTER TABLE search_history ADD COLUMN DateAfter TEXT NULL",
-                "ALTER TABLE search_history ADD COLUMN DateBefore TEXT NULL",
-                "ALTER TABLE search_history ADD COLUMN SortOrder TEXT NULL",
-                "ALTER TABLE conversations ADD COLUMN FolderName TEXT NULL",
-                """
-                CREATE TABLE IF NOT EXISTS oauth_credentials (
-                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    ProviderId TEXT NOT NULL DEFAULT '',
-                    AccessToken TEXT NOT NULL DEFAULT '',
-                    RefreshToken TEXT NOT NULL DEFAULT '',
-                    TokenExpiry TEXT NOT NULL DEFAULT '0001-01-01T00:00:00',
-                    Scopes TEXT NOT NULL DEFAULT '',
-                    UserId TEXT NOT NULL DEFAULT '',
-                    CreatedAt TEXT NOT NULL DEFAULT '0001-01-01T00:00:00',
-                    UpdatedAt TEXT NOT NULL DEFAULT '0001-01-01T00:00:00'
-                )
-                """,
-                "CREATE UNIQUE INDEX IF NOT EXISTS ix_oauth_credentials_providerid ON oauth_credentials (ProviderId)",
-
-                // inbox_items: new columns for DataConnector plugin support (Calendar/Email)
-                "ALTER TABLE inbox_items ADD COLUMN SourceType TEXT NULL",
-                "ALTER TABLE inbox_items ADD COLUMN SourceUrl TEXT NULL",
-                "ALTER TABLE inbox_items ADD COLUMN SourcePluginId TEXT NULL",
-                "ALTER TABLE inbox_items ADD COLUMN SourceCategory TEXT NULL",
-                "ALTER TABLE inbox_items ADD COLUMN ExternalId TEXT NULL",
-                "ALTER TABLE inbox_items ADD COLUMN DocumentId INTEGER NULL",
-            ];
-
-            foreach (var sql in alterStatements)
+            var stateFile = GetService<AgentX.Core.Services.Security.IEncryptionStateFile>();
+            if (stateFile.Exists())
             {
-                try
+                var info = stateFile.Read();
+                var keySvc = GetService<AgentX.Core.Services.Security.IDatabaseKeyService>();
+                var keyProviderRaw = GetService<AgentX.Core.Services.Security.IDatabaseKeyProvider>();
+                var keyProvider = keyProviderRaw as AgentX.Core.Services.Security.DatabaseKeyProvider
+                                  ?? throw new InvalidOperationException("Expected DatabaseKeyProvider concrete type from DI.");
+
+                AgentX.Core.Services.Security.DatabaseKeyMaterial key;
+
+                if (info is null)
                 {
-                    await dbContext.Database.ExecuteSqlRawAsync(sql);
+                    Log.Warning("Encryption state file exists but is unreadable. Assuming plaintext DB.");
+                    key = null!; // fall-through — will NOT be used below
                 }
-                catch
+                else if (info.StorageMode == AgentX.Core.Services.Security.KeyStorageMode.DpapiWrapped)
                 {
-                    // Column already exists — safe to ignore on fresh databases
+                    key = await keySvc.GetOrCreateKeyAsync(AgentX.Core.Services.Security.KeyStorageMode.DpapiWrapped);
+                    Log.Information("Database unlocked via DPAPI-wrapped key.");
                 }
+                else
+                {
+                    // UserPassphrase — prompt loop with probe.
+                    key = await UnlockWithPassphraseLoopAsync(keySvc);
+                    Log.Information("Database unlocked via user passphrase.");
+                }
+
+                if (key is not null)
+                    keyProvider.Set(key);
             }
+            else
+            {
+                Log.Debug("Encryption marker not present — opening plaintext database.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Database unlock flow failed before migration runner");
+            // Swallow here so the migration runner can still try (it will fail clearly
+            // if the DB is encrypted and we have no key — user can re-enter passphrase).
+        }
+
+        // 1. Ensure the database schema is at the latest migration
+        try
+        {
+            var db = GetService<AgentXDbContext>();
+            db.EnsureKeyApplied();
+            var runner = GetService<AgentX.Core.Data.MigrationRunner.IMigrationRunner>();
+            var result = await runner.RunAsync();
+            Log.Information(
+                "Migration runner: db={DbPath} created={Created} applied={Applied} alreadyApplied={AlreadyApplied}",
+                result.DatabasePath,
+                result.DatabaseCreated,
+                string.Join(",", result.AppliedMigrations),
+                string.Join(",", result.AlreadyApplied));
         }
         catch (Exception ex)
         {
@@ -207,10 +218,25 @@ public partial class App : Application
         services.AddSingleton<Serilog.ILogger>(_ => Log.Logger);
 
         // ── Data Layer ─────────────────────────────────────────
-        services.AddSingleton<AgentXDbContext>();
+        services.AddSingleton<AgentXDbContext>(sp =>
+        {
+            var options = new Microsoft.EntityFrameworkCore.DbContextOptionsBuilder<AgentXDbContext>().Options;
+            var factory = sp.GetRequiredService<AgentX.Core.Data.IEncryptedConnectionFactory>();
+            return new AgentXDbContext(options, factory);
+        });
+        services.AddSingleton<AgentX.Core.Data.MigrationRunner.IMigrationRunner,
+                             AgentX.Core.Data.MigrationRunner.MigrationRunner>();
 
         // ── Security ──────────────────────────────────────────
         services.AddSingleton<IDpapiEncryptionService, DpapiEncryptionService>();
+        services.AddSingleton<AgentX.Core.Services.Security.IDatabaseKeyProvider,
+                             AgentX.Core.Services.Security.DatabaseKeyProvider>();
+        services.AddSingleton<AgentX.Core.Data.IEncryptedConnectionFactory,
+                             AgentX.Core.Data.EncryptedConnectionFactory>();
+        services.AddSingleton<AgentX.Core.Services.Security.IDatabaseKeyService,
+                             AgentX.Core.Services.Security.DatabaseKeyService>();
+        services.AddSingleton<AgentX.Core.Services.Security.IEncryptionStateFile,
+                             AgentX.Core.Services.Security.EncryptionStateFile>();
         services.AddSingleton<ISecurityStatusService, SecurityStatusService>();
 
         // ── OAuth ──────────────────────────────────────────────
@@ -272,7 +298,11 @@ public partial class App : Application
         {
             var settingsService = sp.GetRequiredService<ISettingsService>();
             var logger = sp.GetRequiredService<Serilog.ILogger>();
-            return VectorStoreFactory.Create(settingsService, logger);
+            // IEncryptedConnectionFactory is registered in Task 9; this resolve is
+            // wired here as the minimal call-site adjustment for Task 8's signature
+            // change so the project builds.
+            var connectionFactory = sp.GetRequiredService<AgentX.Core.Data.IEncryptedConnectionFactory>();
+            return VectorStoreFactory.Create(settingsService, logger, connectionFactory);
         });
 
         // ── Chat Services ──────────────────────────────────────
@@ -470,6 +500,81 @@ public partial class App : Application
         services.AddTransient<Views.UserGuidePage>();
         services.AddTransient<Views.PrivacyPolicyPage>();
         services.AddTransient<Views.TermsOfServicePage>();
+    }
+
+    private static async System.Threading.Tasks.Task<AgentX.Core.Services.Security.DatabaseKeyMaterial> UnlockWithPassphraseLoopAsync(
+        AgentX.Core.Services.Security.IDatabaseKeyService keySvc)
+    {
+        while (true)
+        {
+            var passphrase = await PromptForPassphraseAsync();
+            if (passphrase is null)
+            {
+                Microsoft.UI.Xaml.Application.Current.Exit();
+                throw new OperationCanceledException("User cancelled passphrase entry.");
+            }
+
+            var candidate = await keySvc.UnlockWithPassphraseAsync(passphrase);
+            if (await TryProbeKeyAsync(candidate))
+                return candidate;
+
+            await ShowInvalidPassphraseDialogAsync();
+        }
+    }
+
+    private static async System.Threading.Tasks.Task<bool> TryProbeKeyAsync(AgentX.Core.Services.Security.DatabaseKeyMaterial candidate)
+    {
+        var dbPath = System.IO.Path.Combine(
+            System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
+            "AgentX",
+            "agentx.db");
+        try
+        {
+            await using var conn = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={dbPath}");
+            await conn.OpenAsync();
+            using var keyCmd = conn.CreateCommand();
+            keyCmd.CommandText = $@"PRAGMA key = ""x'{candidate.HexKey}'"";";
+            await keyCmd.ExecuteNonQueryAsync();
+            using var probeCmd = conn.CreateCommand();
+            probeCmd.CommandText = "SELECT count(*) FROM sqlite_master";
+            await probeCmd.ExecuteScalarAsync();
+            return true;
+        }
+        catch (Microsoft.Data.Sqlite.SqliteException ex) when (ex.SqliteErrorCode == 26)
+        {
+            return false;
+        }
+    }
+
+    private static async System.Threading.Tasks.Task<string?> PromptForPassphraseAsync()
+    {
+        var box = new Microsoft.UI.Xaml.Controls.PasswordBox
+        {
+            PlaceholderText = "Enter your database passphrase"
+        };
+        var dialog = new Microsoft.UI.Xaml.Controls.ContentDialog
+        {
+            Title = "Unlock your Agent-X database",
+            Content = box,
+            PrimaryButtonText = "Unlock",
+            CloseButtonText = "Exit app",
+            DefaultButton = Microsoft.UI.Xaml.Controls.ContentDialogButton.Primary,
+            XamlRoot = MainWindow.Content.XamlRoot,
+        };
+        var result = await dialog.ShowAsync();
+        return result == Microsoft.UI.Xaml.Controls.ContentDialogResult.Primary ? box.Password : null;
+    }
+
+    private static async System.Threading.Tasks.Task ShowInvalidPassphraseDialogAsync()
+    {
+        var dialog = new Microsoft.UI.Xaml.Controls.ContentDialog
+        {
+            Title = "Incorrect passphrase",
+            Content = "That passphrase did not unlock the database. Please try again, or exit to restore from a backup.",
+            CloseButtonText = "OK",
+            XamlRoot = MainWindow.Content.XamlRoot,
+        };
+        await dialog.ShowAsync();
     }
 
     private static void ConfigureLogging()

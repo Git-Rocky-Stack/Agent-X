@@ -27,6 +27,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <!-- Header -->
@@ -593,9 +594,32 @@
             </Border>
 
             <!-- ════════════════════════════════════════════════════════
+                 DATABASE ENCRYPTION
+                 ════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="10" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock x:Uid="Encryption_SectionHeader"
+                               Text="Database Encryption"
+                               Style="{StaticResource SubtitleTextBlockStyle}" />
+                    <TextBlock x:Uid="Encryption_Description"
+                               Text="Encrypt your knowledge vault with AES-256 (SQLCipher). Ultimate tier uses a passphrase you enter on each launch; other tiers use an automatic key tied to your Windows account."
+                               TextWrapping="Wrap"
+                               Opacity="0.8" />
+                    <ToggleSwitch x:Name="EncryptionToggle"
+                                  OnContent="Encrypted"
+                                  OffContent="Not encrypted"
+                                  IsOn="{x:Bind ViewModel.EncryptionEnabled, Mode=TwoWay}"
+                                  Toggled="EncryptionToggle_Toggled" />
+                    <TextBlock Text="{x:Bind ViewModel.EncryptionStatus, Mode=OneWay}"
+                               TextWrapping="Wrap"
+                               Opacity="0.7" />
+                </StackPanel>
+            </Border>
+
+            <!-- ════════════════════════════════════════════════════════
                  ACTIONS
                  ════════════════════════════════════════════════════════ -->
-            <Grid Grid.Row="10" ColumnSpacing="12">
+            <Grid Grid.Row="11" ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
