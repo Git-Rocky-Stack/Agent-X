@@ -891,8 +891,8 @@ When enabled, `agentx.db` is encrypted at rest using **SQLCipher 4** (AES-256-CB
 
 | Tier | Mode | Key source | Unlock UX |
 |---|---|---|---|
-| Starter / Professional | `DpapiWrapped` | 32 random bytes, DPAPI-wrapped per Windows user in `UserSettings.DpapiWrappedKey` | Transparent at launch |
-| Ultimate | `UserPassphrase` | PBKDF2-HMAC-SHA256 (600,000 iterations) of the user's passphrase with a 16-byte salt stored in `UserSettings.EncryptionSaltBase64` | Passphrase prompt at launch |
+| Starter / Professional | `DpapiWrapped` | 32 random bytes, DPAPI-wrapped per Windows user in the out-of-DB `encryption.info.json` sibling file (field `DpapiWrappedKey`) | Transparent at launch |
+| Ultimate | `UserPassphrase` | PBKDF2-HMAC-SHA256 (600,000 iterations) of the user's passphrase with a 16-byte salt stored in `encryption.info.json` (field `SaltBase64`) | Passphrase prompt at launch |
 
 **Key delivery to SQLCipher (important)**
 
@@ -900,9 +900,11 @@ Keys are delivered via `PRAGMA key = "x'<hex>'"` issued immediately after `Sqlit
 
 The design-time `AgentXDbContextFactory` (used by `dotnet ef` tooling) is exempt from encryption — it writes to a throwaway tooling DB that never ships.
 
-**Out-of-DB marker file**
+**Out-of-DB key state**
 
-Unlock state is persisted to `%LocalAppData%\AgentX\encryption.info.json` (managed by `IEncryptionStateFile`). Startup reads this marker **before any DB access** to decide the unlock path, breaking a chicken-and-egg where `UserSettings.EncryptionEnabled` can only be read once the DB is unlocked. The marker records `{ version, storageMode, enabledAt }` and is written LAST by the enable flow — only after `IDatabaseEncryptionMigrator.MigrateToEncryptedAsync` succeeds and the key provider is set.
+All encryption state — provisioning flag, storage mode, DPAPI-wrapped key (DpapiWrapped mode), salt (UserPassphrase mode), and enable timestamp — lives in `%LocalAppData%\AgentX\encryption.info.json` (managed by `IEncryptionStateFile`). Nothing about the encryption key is stored inside the encrypted DB itself. This is deliberate and avoids a chicken-and-egg that would otherwise make the `DpapiWrapped` unlock path unreachable: the key needed to open the encrypted DB cannot also live inside that DB.
+
+The file stores `{ version, storageMode, enabledAt, dpapiWrappedKey, saltBase64 }` — one of `dpapiWrappedKey` or `saltBase64` is set depending on mode. `DatabaseKeyService` depends on `IEncryptionStateFile` + `IDpapiEncryptionService` only (no `AgentXDbContext` dependency), so provisioning and unlock never touch the DB before the key is applied. The file is written LAST by the enable flow — only after `IDatabaseEncryptionMigrator.MigrateToEncryptedAsync` succeeds and the key provider is set — so a failed enable never leaves a stale "encrypted" marker pointing at a plaintext DB.
 
 **Plaintext → encrypted migration**
 
