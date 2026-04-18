@@ -116,9 +116,17 @@ public class MigrationRunnerTests
         try
         {
             // Simulate pre-migration install: schema present, no __EFMigrationsHistory.
+            // EnsureCreated creates the CURRENT model's schema which includes columns added
+            // by post-baseline migrations (AddEncryptionColumns). To faithfully simulate a
+            // pre-migration-era install (DB from before AddEncryptionColumns existed), drop
+            // those columns so that after adoption the AddEncryptionColumns migration has
+            // real work to do and does not fail with "duplicate column".
             await ctx.Database.EnsureCreatedAsync();
-            // Drop history table if EnsureCreated created one (it doesn't, but be safe).
             await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS __EFMigrationsHistory;");
+            await ctx.Database.ExecuteSqlRawAsync("ALTER TABLE user_settings DROP COLUMN DpapiWrappedKey;");
+            await ctx.Database.ExecuteSqlRawAsync("ALTER TABLE user_settings DROP COLUMN EncryptionSaltBase64;");
+            await ctx.Database.ExecuteSqlRawAsync("ALTER TABLE user_settings DROP COLUMN EncryptionKeyStorageMode;");
+            await ctx.Database.ExecuteSqlRawAsync("ALTER TABLE user_settings DROP COLUMN EncryptionEnabled;");
 
             IMigrationRunner runner = new Core.Data.MigrationRunner.MigrationRunner(ctx);
 
