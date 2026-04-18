@@ -32,6 +32,26 @@ public class CSharpGetStringExtractorTests
     }
 
     [Fact]
+    public void Extract_ignores_empty_string_key()
+    {
+        var cs = """
+            var a = _l.GetString("");
+            var b = _l.GetString("Real_Key");
+            """;
+        var tmp = WriteTempCs(cs);
+        try
+        {
+            var result = CSharpGetStringExtractor.ExtractFromFile(tmp);
+
+            result.Select(r => r.Key).Should().BeEquivalentTo("Real_Key");
+        }
+        finally
+        {
+            File.Delete(tmp);
+        }
+    }
+
+    [Fact]
     public void Extract_finds_multiple_distinct_keys_in_one_file()
     {
         var cs = """
@@ -70,6 +90,27 @@ public class CSharpGetStringExtractorTests
             var result = CSharpGetStringExtractor.ExtractFromFile(tmp);
 
             result.Select(r => r.Key).Should().BeEquivalentTo("Search_ResultCount");
+        }
+        finally
+        {
+            File.Delete(tmp);
+        }
+    }
+
+    [Fact]
+    public void Extract_finds_GetString_with_method_call_arg()
+    {
+        var cs = """
+            var a = _l.GetString("Nav_Count", items.Count());
+            var b = _l.GetString("Nav_Max", Math.Max(a, b));
+            var c = _l.GetString("Nav_Plain", GetCount());
+            """;
+        var tmp = WriteTempCs(cs);
+        try
+        {
+            var result = CSharpGetStringExtractor.ExtractFromFile(tmp);
+
+            result.Select(r => r.Key).Should().BeEquivalentTo("Nav_Count", "Nav_Max", "Nav_Plain");
         }
         finally
         {
@@ -160,6 +201,32 @@ public class CSharpGetStringExtractorTests
             var result = CSharpGetStringExtractor.ExtractFromFile(tmp);
 
             result.Select(r => r.Key).Should().BeEquivalentTo("Nav_Real");
+        }
+        finally
+        {
+            File.Delete(tmp);
+        }
+    }
+
+    [Fact]
+    public void Extract_handles_url_literals_on_separate_line_from_GetString()
+    {
+        // Documents the known limitation: URL-in-string and GetString on SEPARATE lines are safe.
+        // Same-line `var url = "https://..."; _l.GetString("K")` would drop the K — see LIMITATION
+        // comment in CSharpGetStringExtractor.SingleLineCommentRegex.
+        var cs = """
+            public class Foo
+            {
+                private const string ApiUrl = "https://api.example.com";
+                public string Bar() => _l.GetString("Nav_Bar");
+            }
+            """;
+        var tmp = WriteTempCs(cs);
+        try
+        {
+            var result = CSharpGetStringExtractor.ExtractFromFile(tmp);
+
+            result.Select(r => r.Key).Should().BeEquivalentTo("Nav_Bar");
         }
         finally
         {
