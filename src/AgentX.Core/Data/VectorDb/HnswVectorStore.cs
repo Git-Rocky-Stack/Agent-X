@@ -7,6 +7,9 @@ using Hsnw;
 using Microsoft.Data.Sqlite;
 using Serilog;
 
+// Task 8b: IEncryptedConnectionFactory integration — connection opens go through the factory
+// so PRAGMA key is applied whenever encryption is enabled.
+
 namespace AgentX.Core.Data.VectorDb;
 
 /// <summary>
@@ -46,6 +49,7 @@ public sealed class HnswVectorStore : IVectorStore
     // ── Fields ──────────────────────────────────────────────────────────
 
     private readonly ISettingsService _settingsService;
+    private readonly IEncryptedConnectionFactory _connectionFactory;
     private readonly ILogger _logger;
     private readonly int _m;
     private readonly int _efConstruction;
@@ -89,8 +93,9 @@ public sealed class HnswVectorStore : IVectorStore
     /// Creates a new HnswVectorStore with default HNSW parameters.
     /// </summary>
     /// <param name="settingsService">Settings service providing the database storage path.</param>
-    public HnswVectorStore(ISettingsService settingsService)
-        : this(settingsService, DefaultM, DefaultEfConstruction, DefaultDimensions, FallbackThreshold)
+    /// <param name="connectionFactory">Encrypted connection factory — required so PRAGMA key is applied when opening SQLite.</param>
+    public HnswVectorStore(ISettingsService settingsService, IEncryptedConnectionFactory connectionFactory)
+        : this(settingsService, logger: null, DefaultM, DefaultEfConstruction, DefaultDimensions, FallbackThreshold, connectionFactory)
     {
     }
 
@@ -99,54 +104,33 @@ public sealed class HnswVectorStore : IVectorStore
     /// </summary>
     /// <param name="settingsService">Settings service providing the database storage path.</param>
     /// <param name="logger">Serilog logger instance.</param>
-    public HnswVectorStore(ISettingsService settingsService, ILogger logger)
-        : this(settingsService, logger, DefaultM, DefaultEfConstruction, DefaultDimensions, FallbackThreshold)
+    /// <param name="connectionFactory">Encrypted connection factory — required so PRAGMA key is applied when opening SQLite.</param>
+    public HnswVectorStore(ISettingsService settingsService, ILogger logger, IEncryptedConnectionFactory connectionFactory)
+        : this(settingsService, logger, DefaultM, DefaultEfConstruction, DefaultDimensions, FallbackThreshold, connectionFactory)
     {
     }
 
     /// <summary>
-    /// Creates a new HnswVectorStore with custom HNSW parameters.
+    /// Full-featured constructor — all HNSW parameters configurable.
     /// </summary>
     /// <param name="settingsService">Settings service providing the database storage path.</param>
-    /// <param name="m">HNSW M parameter: max connections per layer (default: 16).</param>
-    /// <param name="efConstruction">HNSW EfConstruction: candidate list size during build (default: 200).</param>
-    /// <param name="dimensions">Embedding vector dimensionality (default: 1536).</param>
-    /// <param name="fallbackThreshold">Embedding count below which linear scan is used (default: 10,000).</param>
-    public HnswVectorStore(
-        ISettingsService settingsService,
-        int m = DefaultM,
-        int efConstruction = DefaultEfConstruction,
-        int dimensions = DefaultDimensions,
-        long fallbackThreshold = FallbackThreshold)
-    {
-        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-        _logger = Log.ForContext<HnswVectorStore>();
-        _m = m;
-        _efConstruction = efConstruction;
-        _dimensions = dimensions;
-        _fallbackThreshold = fallbackThreshold;
-        _logger.Information("HnswVectorStore created (M={M}, EfConstruction={EfConstruction}, Dims={Dimensions}, Threshold={Threshold})",
-            _m, _efConstruction, _dimensions, _fallbackThreshold);
-    }
-
-    /// <summary>
-    /// Creates a new HnswVectorStore with explicit logger and custom HNSW parameters.
-    /// </summary>
-    /// <param name="settingsService">Settings service providing the database storage path.</param>
-    /// <param name="logger">Serilog logger instance.</param>
+    /// <param name="logger">Serilog logger instance (may be null to use the default context logger).</param>
     /// <param name="m">HNSW M parameter: max connections per layer.</param>
     /// <param name="efConstruction">HNSW EfConstruction: candidate list size during build.</param>
     /// <param name="dimensions">Embedding vector dimensionality.</param>
     /// <param name="fallbackThreshold">Embedding count below which linear scan is used.</param>
+    /// <param name="connectionFactory">Encrypted connection factory — required so PRAGMA key is applied when opening SQLite.</param>
     public HnswVectorStore(
         ISettingsService settingsService,
-        ILogger logger,
-        int m = DefaultM,
-        int efConstruction = DefaultEfConstruction,
-        int dimensions = DefaultDimensions,
-        long fallbackThreshold = FallbackThreshold)
+        ILogger? logger,
+        int m,
+        int efConstruction,
+        int dimensions,
+        long fallbackThreshold,
+        IEncryptedConnectionFactory connectionFactory)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
         _logger = logger ?? Log.ForContext<HnswVectorStore>();
         _m = m;
         _efConstruction = efConstruction;
@@ -182,17 +166,11 @@ public sealed class HnswVectorStore : IVectorStore
                 _logger.Debug("Created storage directory: {Path}", _storagePath);
             }
 
-            // Open SQLite connection (same schema as SqliteVecStore).
+            // Open SQLite connection (same schema as SqliteVecStore) via the encrypted
+            // connection factory — PRAGMA key is applied automatically when encryption
+            // is enabled, and the call is a plaintext open when no key is loaded.
             var dbPath = Path.Combine(_storagePath, "agentx.db");
-            var connectionString = new SqliteConnectionStringBuilder
-            {
-                DataSource = dbPath,
-                Mode = SqliteOpenMode.ReadWriteCreate,
-                Cache = SqliteCacheMode.Shared
-            }.ToString();
-
-            _connection = new SqliteConnection(connectionString);
-            await _connection.OpenAsync(ct).ConfigureAwait(false);
+            _connection = _connectionFactory.OpenKeyed(dbPath);
 
             _logger.Debug("SQLite connection opened: {Path}", dbPath);
 

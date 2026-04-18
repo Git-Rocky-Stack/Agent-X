@@ -883,6 +883,41 @@ dotnet ef migrations add <MigrationName> \
 
 Baseline adoption covers users upgrading from pre-B9 builds where `EnsureCreatedAsync()` created the schema without an `__EFMigrationsHistory` table. On first launch after upgrade, `MigrationRunner.RunAsync` detects the missing history table, writes the `InitialBaseline` row to mark the schema as already at baseline, and only applies migrations newer than the baseline.
 
+#### 7.1.2 Database Encryption (C13)
+
+When enabled, `agentx.db` is encrypted at rest using **SQLCipher 4** (AES-256-CBC, 4096-byte pages) via `SQLitePCLRaw.bundle_e_sqlcipher`. Encryption is off by default; the user enables it from Settings → Database Encryption.
+
+**Key management — tier-aware**
+
+| Tier | Mode | Key source | Unlock UX |
+|---|---|---|---|
+| Starter / Professional | `DpapiWrapped` | 32 random bytes, DPAPI-wrapped per Windows user in `UserSettings.DpapiWrappedKey` | Transparent at launch |
+| Ultimate | `UserPassphrase` | PBKDF2-HMAC-SHA256 (600,000 iterations) of the user's passphrase with a 16-byte salt stored in `UserSettings.EncryptionSaltBase64` | Passphrase prompt at launch |
+
+**Key delivery to SQLCipher (important)**
+
+Keys are delivered via `PRAGMA key = "x'<hex>'"` issued immediately after `SqliteConnection.Open()`, **never** through `SqliteConnectionStringBuilder.Password`. These two paths are NOT equivalent — `Password=` runs the value through PBKDF2 KDF, while `PRAGMA key = "x'..."` uses the raw bytes directly. Mixing them produces two different derived keys and silent DB corruption on reopen. All production `SqliteConnection` opens flow through `IEncryptedConnectionFactory.OpenKeyed(path)` or `IEncryptedConnectionFactory.ApplyKey(connection)` to enforce the raw-bytes path.
+
+The design-time `AgentXDbContextFactory` (used by `dotnet ef` tooling) is exempt from encryption — it writes to a throwaway tooling DB that never ships.
+
+**Out-of-DB marker file**
+
+Unlock state is persisted to `%LocalAppData%\AgentX\encryption.info.json` (managed by `IEncryptionStateFile`). Startup reads this marker **before any DB access** to decide the unlock path, breaking a chicken-and-egg where `UserSettings.EncryptionEnabled` can only be read once the DB is unlocked. The marker records `{ version, storageMode, enabledAt }` and is written LAST by the enable flow — only after `IDatabaseEncryptionMigrator.MigrateToEncryptedAsync` succeeds and the key provider is set.
+
+**Plaintext → encrypted migration**
+
+`IDatabaseEncryptionMigrator.MigrateToEncryptedAsync` uses SQLCipher's `sqlcipher_export()` via `ATTACH DATABASE <target> AS encrypted KEY "x'<hex>'"` to copy schema and rows from the plaintext source into a new encrypted target. On success, the plaintext file is replaced atomically (via `File.Move` after `SqliteConnection.ClearAllPools()` to release Windows file handles). On failure, the plaintext backup is restored from `agentx.db.plain.bak` and the incomplete encrypted temp is deleted.
+
+**Startup unlock sequence** (in `App.InitializeCoreServicesAsync`):
+1. Initialize SQLitePCL provider (`Batteries_V2.Init`)
+2. Check `IEncryptionStateFile.Exists()` — no DB access yet
+3. If marker present → derive/unwrap key per `storageMode`, set `IDatabaseKeyProvider.Current`
+4. Call `db.EnsureKeyApplied()` — opens the underlying connection and runs `PRAGMA key` once
+5. Run `IMigrationRunner.RunAsync()` — now sees a keyed connection
+6. Continue with FTS5 / AI service init
+
+**Tests covering the chain** — 26 xUnit tests across `DatabaseKeyServiceTests` (6), `EncryptedConnectionFactoryTests` (4), `DatabaseEncryptionMigratorTests` (4), `EncryptionStateFileTests` (7), `MigrationRunnerTests` (5 — includes the pre-C13-schema adoption test).
+
 ### 7.2 Entity Relationship Model
 
 ```mermaid

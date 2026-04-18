@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using AgentX.Core.Data;
 using AgentX.Core.Services.Settings;
 using AgentX.Core.Services.Workspaces.Models;
 using Microsoft.Data.Sqlite;
@@ -45,6 +46,7 @@ public sealed class WorkspaceService : IWorkspaceService
     private readonly string _appDataRoot;
     private readonly string _metadataFilePath;
     private readonly string _workspacesRoot;
+    private readonly IEncryptedConnectionFactory _connectionFactory;
 
     // ------------------------------------------------------------------
     // Internal persistence model
@@ -84,9 +86,14 @@ public sealed class WorkspaceService : IWorkspaceService
     /// Provides access to <see cref="AppSettings.StoragePath"/>, which is
     /// used as the root for all workspace data.
     /// </param>
-    public WorkspaceService(ISettingsService settingsService)
+    /// <param name="connectionFactory">
+    /// Encrypted connection factory — required so PRAGMA key is applied when the
+    /// service opens per-workspace SQLite connections (e.g. stats queries).
+    /// </param>
+    public WorkspaceService(ISettingsService settingsService, IEncryptedConnectionFactory connectionFactory)
     {
         ArgumentNullException.ThrowIfNull(settingsService);
+        _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
 
         // Resolve storage root synchronously from the already-cached settings
         // value. We use GetAwaiter().GetResult() only here in the constructor
@@ -540,16 +547,10 @@ public sealed class WorkspaceService : IWorkspaceService
 
         try
         {
-            // Open a read-only connection to avoid any locking interference
-            // with an active AgentXDbContext on the same file.
-            var connectionString = new SqliteConnectionStringBuilder
-            {
-                DataSource = dbPath,
-                Mode = SqliteOpenMode.ReadOnly,
-            }.ToString();
-
-            await using var connection = new SqliteConnection(connectionString);
-            await connection.OpenAsync().ConfigureAwait(false);
+            // Open the workspace DB via the encrypted connection factory so PRAGMA key
+            // is applied when encryption is enabled. The factory opens read/write; the
+            // stats queries below are strictly SELECT so no writes occur.
+            await using var connection = _connectionFactory.OpenKeyed(dbPath);
 
             var documentCount = await QueryTableCountAsync(connection, "documents")
                 .ConfigureAwait(false);

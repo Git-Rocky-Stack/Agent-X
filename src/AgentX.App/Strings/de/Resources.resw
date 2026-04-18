@@ -204,4 +204,6 @@
   <data name="Annotations_ExportMarkdown" xml:space="preserve"><value>Als Markdown exportieren</value></data>
   <data name="Annotations_Empty" xml:space="preserve"><value>Noch keine Anmerkungen</value></data>
   <data name="Annotations_EmptyHint" xml:space="preserve"><value>Markieren Sie Text in Ihren Dokumenten, um Anmerkungen zu erstellen.</value></data>
+  <data name="Encryption_SectionHeader.Text" xml:space="preserve"><value>Database Encryption</value></data>
+  <data name="Encryption_Description.Text" xml:space="preserve"><value>Encrypt your knowledge vault with AES-256 (SQLCipher). Ultimate tier uses a passphrase you enter on each launch; other tiers use an automatic key tied to your Windows account.</value></data>
 </root>
