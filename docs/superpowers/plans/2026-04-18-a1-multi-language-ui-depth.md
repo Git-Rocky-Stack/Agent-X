@@ -218,6 +218,13 @@ Before starting Task 1:
   <ItemGroup>
     <PackageReference Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
+  <!-- TEMPORARY during Tasks 1-4: Program.cs references types (XamlUidExtractor, -->
+  <!-- CSharpGetStringExtractor, ReswReader, CoverageReport) that don't exist yet. -->
+  <!-- Excluding it lets the test project's ProjectReference compile cleanly so -->
+  <!-- tests can run red/green as each type lands. Task 5 Step 5 removes this block. -->
+  <ItemGroup>
+    <Compile Remove="Program.cs" />
+  </ItemGroup>
 </Project>
 ```
 
@@ -1131,6 +1138,34 @@ public sealed class CoverageReport
 
 Run: `dotnet test tests/LocaleAudit.Tests/LocaleAudit.Tests.csproj`
 Expected: all 21 tests pass (5 XamlUidExtractor + 7 CSharpGetStringExtractor + 3 ReswReader + 6 CoverageReport).
+
+- [ ] **Step 5: Remove the temporary `Program.cs` exclusion**
+
+Open `tools/LocaleAudit/LocaleAudit.Tool.csproj` and DELETE the temporary block added in Task 1 Step 1:
+
+```xml
+<!-- DELETE THESE 5 LINES: -->
+<!-- TEMPORARY during Tasks 1-4: Program.cs references types ... -->
+<ItemGroup>
+  <Compile Remove="Program.cs" />
+</ItemGroup>
+```
+
+- [ ] **Step 6: Verify full build + full test suite**
+
+```bash
+dotnet build tools/LocaleAudit/LocaleAudit.Tool.csproj
+dotnet test tests/LocaleAudit.Tests/LocaleAudit.Tests.csproj
+```
+
+Expected: tool builds clean (0W/0E), all 21 tests still pass. `Program.cs` now compiles against all four now-existing types.
+
+- [ ] **Step 7: Commit the exclusion removal**
+
+```bash
+git add tools/LocaleAudit/LocaleAudit.Tool.csproj
+git commit -m "build(a1): remove temporary Program.cs exclusion (all types now exist)"
+```
 
 - [ ] **Step 5: Verify Program.cs builds**
 
