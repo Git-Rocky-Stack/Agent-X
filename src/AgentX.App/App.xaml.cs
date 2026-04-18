@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Xaml;
 using Serilog;
+using SQLitePCL;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.AI.Routing;
@@ -88,6 +89,7 @@ public partial class App : Application
     /// </summary>
     private static async void InitializeCoreServicesAsync()
     {
+        Batteries_V2.Init();
         // 1. Ensure the database schema is at the latest migration
         try
         {
