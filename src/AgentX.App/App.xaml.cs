@@ -165,12 +165,23 @@ public partial class App : Application
         services.AddSingleton<Serilog.ILogger>(_ => Log.Logger);
 
         // ── Data Layer ─────────────────────────────────────────
-        services.AddSingleton<AgentXDbContext>();
+        services.AddSingleton<AgentXDbContext>(sp =>
+        {
+            var options = new Microsoft.EntityFrameworkCore.DbContextOptionsBuilder<AgentXDbContext>().Options;
+            var factory = sp.GetRequiredService<AgentX.Core.Data.IEncryptedConnectionFactory>();
+            return new AgentXDbContext(options, factory);
+        });
         services.AddSingleton<AgentX.Core.Data.MigrationRunner.IMigrationRunner,
                              AgentX.Core.Data.MigrationRunner.MigrationRunner>();
 
         // ── Security ──────────────────────────────────────────
         services.AddSingleton<IDpapiEncryptionService, DpapiEncryptionService>();
+        services.AddSingleton<AgentX.Core.Services.Security.IDatabaseKeyProvider,
+                             AgentX.Core.Services.Security.DatabaseKeyProvider>();
+        services.AddSingleton<AgentX.Core.Data.IEncryptedConnectionFactory,
+                             AgentX.Core.Data.EncryptedConnectionFactory>();
+        services.AddSingleton<AgentX.Core.Services.Security.IDatabaseKeyService,
+                             AgentX.Core.Services.Security.DatabaseKeyService>();
         services.AddSingleton<ISecurityStatusService, SecurityStatusService>();
 
         // ── OAuth ──────────────────────────────────────────────
