@@ -7,6 +7,8 @@ public sealed record UidReference(string Uid, string SourceFile, int LineNumber)
 public static class XamlUidExtractor
 {
     // Captures x:Uid="SomeValue"; tolerates single or double quotes.
+    // NOTE: Requires at least one character (`+`) inside the quotes — empty `x:Uid=""`
+    // attributes are intentionally excluded since they have no locale value to check.
     private static readonly Regex UidRegex = new(
         @"x:Uid\s*=\s*[""']([^""']+)[""']",
         RegexOptions.Compiled);

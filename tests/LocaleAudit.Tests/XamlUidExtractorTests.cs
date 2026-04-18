@@ -12,11 +12,16 @@ public class XamlUidExtractorTests
     {
         var xaml = """<Button x:Uid="MyButton" />""";
         var tmp = WriteTempXaml(xaml);
+        try
+        {
+            var result = XamlUidExtractor.ExtractFromFile(tmp);
 
-        var result = XamlUidExtractor.ExtractFromFile(tmp);
-
-        result.Should().ContainSingle().Which.Uid.Should().Be("MyButton");
-        File.Delete(tmp);
+            result.Should().ContainSingle().Which.Uid.Should().Be("MyButton");
+        }
+        finally
+        {
+            File.Delete(tmp);
+        }
     }
 
     [Fact]
@@ -30,11 +35,16 @@ public class XamlUidExtractorTests
             </StackPanel>
             """;
         var tmp = WriteTempXaml(xaml);
+        try
+        {
+            var result = XamlUidExtractor.ExtractFromFile(tmp);
 
-        var result = XamlUidExtractor.ExtractFromFile(tmp);
-
-        result.Select(u => u.Uid).Should().BeEquivalentTo("BtnOk", "BtnCancel", "LblStatus");
-        File.Delete(tmp);
+            result.Select(u => u.Uid).Should().BeEquivalentTo("BtnOk", "BtnCancel", "LblStatus");
+        }
+        finally
+        {
+            File.Delete(tmp);
+        }
     }
 
     [Fact]
@@ -45,11 +55,16 @@ public class XamlUidExtractorTests
         Directory.CreateDirectory(sub);
         File.WriteAllText(Path.Combine(tmpRoot, "Root.xaml"), """<Button x:Uid="Root" />""");
         File.WriteAllText(Path.Combine(sub, "Nested.xaml"), """<Button x:Uid="Nested" />""");
+        try
+        {
+            var result = XamlUidExtractor.ExtractAll(tmpRoot);
 
-        var result = XamlUidExtractor.ExtractAll(tmpRoot);
-
-        result.Select(u => u.Uid).Should().Contain(new[] { "Root", "Nested" });
-        Directory.Delete(tmpRoot, recursive: true);
+            result.Select(u => u.Uid).Should().Contain(new[] { "Root", "Nested" });
+        }
+        finally
+        {
+            Directory.Delete(tmpRoot, recursive: true);
+        }
     }
 
     [Fact]
@@ -62,11 +77,16 @@ public class XamlUidExtractorTests
             </StackPanel>
             """;
         var tmp = WriteTempXaml(xaml);
+        try
+        {
+            var result = XamlUidExtractor.ExtractFromFile(tmp);
 
-        var result = XamlUidExtractor.ExtractFromFile(tmp);
-
-        result.Select(u => u.Uid).Should().BeEquivalentTo("NewButton");
-        File.Delete(tmp);
+            result.Select(u => u.Uid).Should().BeEquivalentTo("NewButton");
+        }
+        finally
+        {
+            File.Delete(tmp);
+        }
     }
 
     [Fact]
@@ -74,11 +94,16 @@ public class XamlUidExtractorTests
     {
         var xaml = """<Button x:Uid="MyButton" />""";
         var tmp = WriteTempXaml(xaml);
+        try
+        {
+            var result = XamlUidExtractor.ExtractFromFile(tmp);
 
-        var result = XamlUidExtractor.ExtractFromFile(tmp);
-
-        result.Single().SourceFile.Should().EndWith(Path.GetFileName(tmp));
-        File.Delete(tmp);
+            result.Single().SourceFile.Should().EndWith(Path.GetFileName(tmp));
+        }
+        finally
+        {
+            File.Delete(tmp);
+        }
     }
 
     private static string WriteTempXaml(string content)
