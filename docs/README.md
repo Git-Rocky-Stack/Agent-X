@@ -6,7 +6,7 @@ Agent-X is a native Windows desktop application that transforms your personal do
 
 Built on .NET 8.0 and WinUI 3 (Windows App SDK 1.6), Agent-X delivers an enterprise-grade document intelligence pipeline — chunking, embedding, vector search, retrieval-augmented generation, knowledge graph visualization, and AI memory — as a self-contained, privacy-first Windows application.
 
-> **Version:** 1.0.0
+> **Version:** 2.1.0-preview.1 ("Bedrock" data-layer hardening — see [`CHANGELOG.md`](../CHANGELOG.md))
 > **Publisher:** Rocky Stack
 > **Platform:** Windows 10 19041+ (x64)
 > **License:** Proprietary — see [License Tiers](#license-tiers)
@@ -283,7 +283,7 @@ The portable class library. Responsibilities:
 - **Search and RAG** (`Search/`): Vector cosine similarity search (`ISemanticSearchService`), SQLite FTS5 keyword search (`IKeywordSearchService`), hybrid orchestration with RRF fusion (`IHybridSearchOrchestrator`), source citation extraction (`ICitationService`), LLM-based reranking (`IRagReranker`), and the full RAG pipeline (`IRagPipeline`).
 - **Intelligence Services** (`Services/Intelligence/`): Document summarization (`ISummaryService`), duplicate detection via SHA-256 and semantic similarity (`IDuplicateDetectionService`), organization suggestions (`IOrganizationSuggestionService`), knowledge graph construction with force-directed layout (`IKnowledgeGraphService`), and digest report generation (`IDigestService`).
 - **Collections and Tagging** (`Services/Collections/`, `Services/Tagging/`): Hierarchical collection management (`ICollectionService`) and AI-powered tag generation with confidence scoring (`IAutoTagService`).
-- **Data Layer** (`Data/`): Entity Framework Core DbContext with 16 entity types mapped to SQLite, vector embedding store (`SqliteVecStore`) implementing cosine similarity search in managed C# code, and EF Core migrations.
+- **Data Layer** (`Data/`): Entity Framework Core DbContext with 16 entity types mapped to SQLite, vector embedding store (`SqliteVecStore`) implementing cosine similarity search in managed C# code, `IMigrationRunner` applying EF Core migrations on startup with baseline-adoption for pre-B9 installs (v2.1 Bedrock B9), `IEncryptedConnectionFactory` + `IDatabaseKeyService` routing every `SqliteConnection` through SQLCipher `PRAGMA key` (v2.1 Bedrock C13), and `IDatabaseEncryptionMigrator` for atomic plaintext→encrypted conversion via `sqlcipher_export`.
 - **Settings and Licensing** (`Services/Settings/`, `Services/License/`): JSON-file settings persistence (`ISettingsService`) and offline HMAC-SHA256 license key validation with machine fingerprinting (`ILicenseService`).
 
 ### Dependency Injection Pattern
@@ -298,7 +298,7 @@ var aiService = App.GetService<IAiService>();
 ### Startup Sequence
 
 1. `App.OnLaunched` builds the `IHost` and calls `InitializeCoreServicesAsync`.
-2. `InitializeCoreServicesAsync` (fire-and-forget): ensures the SQLite schema exists via `EnsureCreatedAsync`, initializes FTS5 virtual tables, and calls `IAiService.InitializeAsync` to connect to Ollama.
+2. `InitializeCoreServicesAsync` (fire-and-forget): reads the `%LocalAppData%\AgentX\encryption.info.json` keystore (when present) and unlocks the database key via `IDatabaseKeyService` (DPAPI-wrap or PBKDF2-HMAC-SHA256 passphrase, per tier); applies pending EF Core migrations via `IMigrationRunner.RunAsync()` with baseline-adoption for pre-B9 installs; initializes FTS5 virtual tables; and calls `IAiService.InitializeAsync` to connect to Ollama.
 3. `MainWindow` is instantiated and shown immediately — initialization continues in the background.
 4. The main window checks onboarding status; if not completed, it hides the navigation pane and navigates to `OnboardingPage`.
 5. The status bar polling timer fires after a 5-second delay and every 30 seconds thereafter, updating the Ollama connection dot, active model name, indexing progress ring, and document count.
@@ -462,8 +462,12 @@ All persistent data lives under `%LocalAppData%\AgentX\`.
 
 ```
 %LocalAppData%\AgentX\
-├── agentx.db          -- SQLite database (EF Core + raw vector BLOB store)
-├── settings.json      -- User preferences (JSON)
+├── agentx.db               -- SQLite database (EF Core + raw vector BLOB store;
+│                              SQLCipher-encrypted at rest when encryption is enabled)
+├── settings.json           -- User preferences (JSON)
+├── encryption.info.json    -- Out-of-DB encryption keystore (DPAPI-wrapped database
+│                              key or PBKDF2 passphrase material; present only when
+│                              encryption is enabled — C13)
 └── Logs\
     ├── agentx-20260227.log
     └── agentx-20260226.log   (7-day rolling retention)
@@ -494,6 +498,21 @@ The `AgentXDbContext` maps 16 entity types to SQLite tables:
 | `vec_embeddings` | (raw SQL) | Float array BLOBs with pre-computed magnitude; managed outside EF Core |
 
 Key indexes are defined on all foreign keys, date columns used in range queries, and the `content_hash` column for O(1) duplicate detection.
+
+### At-Rest Encryption (v2.1 Bedrock C13)
+
+Starting with v2.1.0-preview.1, the entire `agentx.db` file can be encrypted at rest using **SQLCipher** (AES-256-CBC) via the `SQLitePCLRaw.bundle_e_sqlcipher` provider. Encryption is opt-in from **Settings → Database Encryption** and is applied atomically via `sqlcipher_export` — a `.plain.bak` backup of the plaintext database is retained only through the atomic-swap critical section and removed on success.
+
+**Key management is tier-aware:**
+
+| Tier | Key Derivation | User Experience |
+|---|---|---|
+| Trial / Starter / Professional | DPAPI-wrapped random 256-bit key | Transparent — enable the toggle and the vault is encrypted; Windows handles the unlock |
+| Ultimate | PBKDF2-HMAC-SHA256 (600,000 iterations) over a user-supplied passphrase | Passphrase dialog on enable and on every launch; the passphrase is never stored |
+
+**Key storage is OUT of the database.** The database key (or the salt + verifier material for passphrase mode) lives in `%LocalAppData%\AgentX\encryption.info.json`, a sibling file that is read before the `SqliteConnection` opens. This breaks the startup unlock ↔ migration chicken-and-egg and means the encryption state never depends on the encrypted vault. Losing `encryption.info.json` while the vault is encrypted means the database cannot be unlocked — back it up alongside `agentx.db` if you enable encryption.
+
+Every production `SqliteConnection` creation site is routed through `IEncryptedConnectionFactory`, which applies `PRAGMA key` uniformly before any schema or query operation.
 
 ---
 

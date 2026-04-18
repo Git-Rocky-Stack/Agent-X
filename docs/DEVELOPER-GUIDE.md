@@ -587,8 +587,9 @@ The application startup follows this sequence:
 1. `App()` constructor — `ConfigureLogging()` initializes Serilog, `ConfigureExceptionHandling()` hooks unhandled exception handlers
 2. `OnLaunched()` — builds the `IHost` (triggers `ConfigureServices()`), then calls `InitializeCoreServicesAsync()` as fire-and-forget
 3. `InitializeCoreServicesAsync()` — runs concurrently with window display:
-   - Calls `dbContext.Database.EnsureCreatedAsync()` — creates all EF Core tables
-   - Calls `keywordSearch.InitializeFtsAsync()` — creates FTS5 virtual table via raw ADO.NET
+   - If `%LocalAppData%\AgentX\encryption.info.json` is present, unlocks the database key via `IDatabaseKeyService` (DPAPI-wrap for Trial/Starter/Professional; PBKDF2-HMAC-SHA256 passphrase dialog for Ultimate) and caches it in `IDatabaseKeyProvider` so every `SqliteConnection` opened through `IEncryptedConnectionFactory` applies the same `PRAGMA key` (C13)
+   - Calls `IMigrationRunner.RunAsync()` — applies pending EF Core migrations (`InitialBaseline`, `AddEncryptionColumns`, `RemoveEncryptionColumns`, and any future migration); baseline-adopts pre-B9 installs by writing `InitialBaseline` to `__EFMigrationsHistory` without re-applying schema (B9)
+   - Calls `keywordSearch.InitializeFtsAsync()` — creates FTS5 virtual table via raw ADO.NET (runs through `IEncryptedConnectionFactory` when encryption is enabled)
    - Calls `aiService.InitializeAsync()` — registers providers, checks connection
 4. `MainWindow` constructor — sets up the `_pageMap`, `_navItemMap`, keyboard shortcuts, command palette callbacks, window configuration, title bar, backdrop, then navigates to `DashboardPage`
 5. `CheckOnboardingAsync()` — if `OnboardingCompleted` is false, hides the nav pane and navigates to `OnboardingPage`
@@ -1171,19 +1172,48 @@ entity.HasOne(e => e.TargetCollection)
     .IsRequired(false);
 ```
 
-### 6.3 Schema Creation — No Formal Migrations
+### 6.3 Schema Migrations — EF Core Migration Runner (B9)
 
-Agent-X uses `EnsureCreatedAsync()` rather than EF Core migrations. This is a deliberate design decision:
+**Superseded as of v2.1.0-preview.1.** The previous `EnsureCreatedAsync()` + manual `ALTER TABLE` pattern was replaced by a proper EF Core migrations runner in v2.1 Bedrock item B9. All schema changes now flow through tracked, deterministic migrations.
 
-- The app is deployed as a single-user desktop application
-- Schema upgrades between versions are handled by `EnsureCreatedAsync()` for new databases and by defensive queries for existing ones
-- Migration complexity is not justified for the distribution model
+**Runtime pipeline.** `IMigrationRunner.RunAsync()` executes during `InitializeCoreServicesAsync`:
 
-This means: if you add a new column to an entity, existing installations will not automatically get that column. Strategies for handling this:
+1. Checks `__EFMigrationsHistory` for applied migrations via `GetAppliedMigrationsAsync()`.
+2. **Baseline adoption:** if the table is missing (pre-B9 install that used `EnsureCreatedAsync`), writes the `InitialBaseline` row without re-applying schema. This preserves existing user data on upgrade.
+3. Compares applied vs. `DbContext.Database.GetPendingMigrations()`; if pending migrations exist, applies them in order via `MigrateAsync()`.
+4. Returns a `MigrationResult` reporting applied migration IDs. If EF Core throws `PendingModelChangesWarning` or the runner detects an inconsistent state, `PendingMigrationsException` is raised and startup halts with a log entry.
 
-1. Make the column nullable with a default value (EF Core will not fail to map it)
-2. Add a startup check that runs `ALTER TABLE ... ADD COLUMN ...` if the column doesn't exist
-3. For significant schema changes, increment a schema version stored in `user_settings` and run upgrade SQL at startup
+**Adding a new migration.**
+
+```powershell
+# From the repository root
+dotnet ef migrations add <MigrationName> `
+  --project src/AgentX.Core `
+  --startup-project src/AgentX.App `
+  --output-dir Data/Migrations
+```
+
+The design-time `AgentXDbContextFactory` supplies the provider so `dotnet ef` works outside the WinUI 3 host. Review the generated `<timestamp>_<MigrationName>.cs` and `.Designer.cs` files, commit them alongside the entity change, and the next launch applies the migration automatically.
+
+**Rollback.**
+
+```powershell
+# Remove the most recent un-applied migration
+dotnet ef migrations remove --project src/AgentX.Core --startup-project src/AgentX.App
+
+# Revert the database to a specific migration
+dotnet ef database update <PreviousMigrationName> --project src/AgentX.Core --startup-project src/AgentX.App
+```
+
+**Migrations that exist in the v2.1.0-preview.1 slice.**
+
+| Migration | Purpose |
+|---|---|
+| `20260417011607_InitialBaseline` | Captures the full schema as of the v2.0 ship (the baseline for adoption of pre-B9 installs) |
+| `20260418013814_AddEncryptionColumns` | Adds encryption-state columns to `user_settings` for the C13 enable flow |
+| `20260418041030_RemoveEncryptionColumns` | Drops the encryption-state columns from `user_settings` — the C13 hotfix moved all encryption state out of the DB to `%LocalAppData%\AgentX\encryption.info.json` |
+
+> **When adding a migration that touches encrypted data:** the migration executes under whatever key is currently active — if encryption is enabled, `IEncryptedConnectionFactory` is already applying `PRAGMA key` on the connection the migration uses, so `dotnet ef database update` from a developer machine requires the same key. Use `IDatabaseEncryptionMigrator` for the encryption enable/disable path; never attempt to toggle encryption inside a regular EF migration.
 
 ### 6.4 Indexing Status Lifecycle
 

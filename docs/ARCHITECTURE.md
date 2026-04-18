@@ -312,13 +312,17 @@ The DI container lifetime strategy is deliberate:
 
 ### 4.4 Fire-and-Forget Startup Initialization
 
-Three initialization tasks run as `async void` fire-and-forget during `App.OnLaunched`:
+Three initialization tasks run as `async void` fire-and-forget during `App.OnLaunched` (after the synchronous encryption-unlock preamble described in §4.4a):
 
-1. `EnsureCreatedAsync()` — creates the SQLite schema if not present.
-2. `InitializeFtsAsync()` — creates the FTS5 virtual table for keyword search.
+1. `IMigrationRunner.RunAsync()` — applies pending EF Core migrations (v2.1 Bedrock B9). Baseline-adopts pre-B9 installs (which ran `EnsureCreatedAsync`) by writing the `InitialBaseline` row to `__EFMigrationsHistory` without re-applying schema, so existing user data is preserved on upgrade.
+2. `InitializeFtsAsync()` — creates the FTS5 virtual table for keyword search (routes through `IEncryptedConnectionFactory` so the correct `PRAGMA key` is applied when encryption is enabled).
 3. `IAiService.InitializeAsync()` — registers providers, tests Ollama connectivity.
 
 This pattern allows the window to appear immediately while initialization continues in the background. Background errors are logged but do not crash the application, which falls back to an offline/disconnected state gracefully.
+
+#### 4.4a Encryption Unlock Preamble (C13)
+
+Before fire-and-forget initialization runs, `App.OnLaunched` checks for `%LocalAppData%\AgentX\encryption.info.json` via `IEncryptionStateFile`. If the marker is present, the database key is unlocked via `IDatabaseKeyService` — DPAPI-unwrap for Trial/Starter/Professional tiers, or PBKDF2-HMAC-SHA256 passphrase prompt (600,000 iterations, SHA-256) for Ultimate — and cached in `IDatabaseKeyProvider` so every downstream `SqliteConnection` opened through `IEncryptedConnectionFactory` applies the same `PRAGMA key`. The keystore lives outside the encrypted vault deliberately: it breaks the migration ↔ unlock chicken-and-egg, and it means startup has no read dependency on the encrypted database before the key is available.
 
 ### 4.5 Channel-Based Background Queue
 
@@ -1536,9 +1540,15 @@ sequenceDiagram
     MW->>MW: InitializeStatusBar() [start 30s poll timer]
     MW-->>OS: Window visible to user
 
+    Note over APP: Encryption unlock preamble (C13) runs before fire-and-forget
+    APP->>APP: Read %LocalAppData%\AgentX\encryption.info.json
+    APP->>APP: IDatabaseKeyService.UnlockAsync() — DPAPI or PBKDF2 passphrase
+    APP->>APP: Cache key in IDatabaseKeyProvider
+
     Note over APP: Background initialization continues concurrently
-    APP->>DB: EnsureCreatedAsync() — create schema if absent
-    DB-->>APP: Schema ready
+    APP->>DB: IMigrationRunner.RunAsync() — apply EF migrations (B9)
+    Note over DB: Baseline-adopts pre-B9 installs by writing InitialBaseline row<br/>to __EFMigrationsHistory without re-applying schema
+    DB-->>APP: MigrationResult (applied migration IDs)
     APP->>KWD: InitializeFtsAsync() — create FTS5 virtual table
     KWD-->>APP: FTS5 ready
     APP->>AIS: InitializeAsync() — register providers, test connection
