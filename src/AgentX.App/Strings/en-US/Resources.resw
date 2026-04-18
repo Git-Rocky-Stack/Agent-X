@@ -206,4 +206,6 @@
   <data name="Sync_EncryptionKey" xml:space="preserve"><value>Encryption Key</value></data>
   <data name="Sync_Conflicts" xml:space="preserve"><value>Conflicts</value></data>
   <data name="Sync_History" xml:space="preserve"><value>Sync History</value></data>
+  <data name="Encryption_SectionHeader.Text" xml:space="preserve"><value>Database Encryption</value></data>
+  <data name="Encryption_Description.Text" xml:space="preserve"><value>Encrypt your knowledge vault with AES-256 (SQLCipher). Ultimate tier uses a passphrase you enter on each launch; other tiers use an automatic key tied to your Windows account.</value></data>
 </root>
