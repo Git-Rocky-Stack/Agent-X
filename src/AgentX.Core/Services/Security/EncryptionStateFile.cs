@@ -8,7 +8,7 @@ namespace AgentX.Core.Services.Security;
 
 public sealed class EncryptionStateFile : IEncryptionStateFile
 {
-    private const int CurrentVersion = 1;
+    public const int CurrentVersion = 1;
 
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
@@ -41,13 +41,10 @@ public sealed class EncryptionStateFile : IEncryptionStateFile
         return info;
     }
 
-    public async Task WriteAsync(KeyStorageMode mode)
+    public async Task WriteAsync(EncryptionStateInfo info)
     {
+        if (info is null) throw new ArgumentNullException(nameof(info));
         Directory.CreateDirectory(Path.GetDirectoryName(_filePath)!);
-        var info = new EncryptionStateInfo(
-            Version: CurrentVersion,
-            StorageMode: mode,
-            EnabledAt: DateTimeOffset.UtcNow);
         var json = JsonSerializer.Serialize(info, JsonOpts);
         await File.WriteAllTextAsync(_filePath, json);
     }

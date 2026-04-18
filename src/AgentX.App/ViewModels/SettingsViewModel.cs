@@ -630,6 +630,12 @@ public partial class SettingsViewModel : ObservableObject
         {
             EncryptionStatus = "Encrypting…";
 
+            // Provisioning writes the marker file (containing the DPAPI-wrapped key or
+            // the PBKDF2 salt) as part of GetOrCreateKeyAsync — no separate marker write
+            // is needed. If MigrateToEncryptedAsync fails below, the marker will be
+            // present but the DB unencrypted; the next launch will detect the mismatch
+            // and prompt the user. This is acceptable for v2.1 (disable-encryption flow
+            // is a future feature).
             var key = await _databaseKeyService.GetOrCreateKeyAsync(mode, passphrase);
             var dbPath = System.IO.Path.Combine(
                 System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
@@ -641,9 +647,6 @@ public partial class SettingsViewModel : ObservableObject
             // Activate the key for THIS session so subsequent DB opens see it.
             if (_databaseKeyProvider is DatabaseKeyProvider provider)
                 provider.Set(key);
-
-            // Marker LAST — signals startup that DB is encrypted and which unlock path to use.
-            await _encryptionStateFile.WriteAsync(mode);
 
             EncryptionStatus = mode == KeyStorageMode.UserPassphrase
                 ? "Encrypted with your passphrase. You'll be prompted on next launch."
