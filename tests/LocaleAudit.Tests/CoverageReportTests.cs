@@ -147,4 +147,27 @@ public class CoverageReportTests
             if (File.Exists(path)) File.Delete(path);
         }
     }
+
+    [Fact]
+    public void PrintSummary_threshold_controls_OK_vs_LOW_status()
+    {
+        var report = new CoverageReport
+        {
+            TotalKeys = 100,
+            PerLocale = new Dictionary<string, LocaleCoverage>
+            {
+                ["en-US"] = new() { Locale = "en-US", Covered = 97, CoveragePercent = 97.0 },
+            },
+        };
+
+        // At threshold=98, 97% is LOW.
+        var lowWriter = new StringWriter();
+        CoverageReport.PrintSummary(report, lowWriter, threshold: 98.0);
+        lowWriter.ToString().Should().Contain("[LOW]");
+
+        // At threshold=95, same 97% is OK.
+        var okWriter = new StringWriter();
+        CoverageReport.PrintSummary(report, okWriter, threshold: 95.0);
+        okWriter.ToString().Should().Contain("[OK]");
+    }
 }

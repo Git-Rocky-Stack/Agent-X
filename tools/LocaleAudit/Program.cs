@@ -25,7 +25,7 @@ try
     var locales = ReswReader.ReadAllLocales(stringsRoot);
     var report = CoverageReport.Build(xamlUids, codeKeys, locales);
     CoverageReport.WriteJson(report, outputPath);
-    CoverageReport.PrintSummary(report, Console.Out);
+    CoverageReport.PrintSummary(report, Console.Out, failBelow);
 
     return report.ShouldFail(failBelow) ? 1 : 0;
 }

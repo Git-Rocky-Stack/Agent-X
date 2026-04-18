@@ -71,12 +71,12 @@ public sealed class CoverageReport
         File.WriteAllText(path, json);
     }
 
-    public static void PrintSummary(CoverageReport report, TextWriter writer)
+    public static void PrintSummary(CoverageReport report, TextWriter writer, double threshold = 98.0)
     {
         writer.WriteLine($"LocaleAudit — {report.TotalKeys} unique localization keys (XAML + C# union)");
         foreach (var (locale, c) in report.PerLocale.OrderBy(kv => kv.Key))
         {
-            var status = c.CoveragePercent >= 98.0 ? "OK" : "LOW";
+            var status = c.CoveragePercent >= threshold ? "OK" : "LOW";
             writer.WriteLine($"  [{status}] {locale,-6} {c.CoveragePercent,6:F2}% ({c.Covered}/{report.TotalKeys})  missing: {c.MissingKeys.Count}");
         }
     }
