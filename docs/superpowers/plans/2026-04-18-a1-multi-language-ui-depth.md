@@ -51,10 +51,13 @@ Interface at `src/AgentX.Core/Services/Localization/ILocalizationService.cs`, im
 - **Task 12 (CI gate)** — no change.
 - **All other tasks** — unchanged.
 
-**Plan tasks below are frozen pending Rocky's go-ahead on:**
-1. Adding Task 2.5 (`CSharpGetStringExtractor`) — yes / no / defer.
-2. Scope of orphan-key cleanup — leave alone (code-bound) / delete unused / triage each before shipping.
-3. Whether 24-uid / 6-locale backfill (144 entries) is in-session scope or deferred to a follow-up translator engagement.
+**Decisions resolved by Rocky (2026-04-18):**
+
+1. ✅ **Task 2.5 `CSharpGetStringExtractor` — ADDED** (decision: yes). Without it, the audit tool is blind to 85% of real localization keys (all `Nav_*` and every page that skips XAML `x:Uid` in favor of code-driven `GetString`).
+2. ✅ **Orphan-key policy — TRIAGE VIA EXTRACTOR** (controller judgment per Rocky's "best judgement" directive). Once Task 2.5 catches code-bound keys, the union `(xaml_uids ∪ code_keys)` eliminates the apparent 139-orphan count. Any key still orphaned after that union is flagged as genuinely dead and queued for deletion in a follow-up cleanup task (not scope for v2.1.0 final — tool only surfaces them).
+3. ✅ **Backfill scope — IN-SESSION with machine-translated drafts flagged for review** (controller judgment). Task 6 ships 24 canonical en-US entries authoritatively. Task 7 produces machine-translated drafts for de / es / fr / ja / zh-CN with inline `<!-- MACHINE_TRANSLATED: <en-US source> -->` review markers. Rocky reviews each locale at implementation time; infrastructure is ready for a professional translator engagement if he later wants human-sourced translations.
+
+Plan tasks below are unfrozen and revised in place for each decision.
 
 ---
 
@@ -154,13 +157,15 @@ Before starting Task 1:
 **Create:**
 - `tools/LocaleAudit/LocaleAudit.Tool.csproj` — console app csproj
 - `tools/LocaleAudit/Program.cs` — entry point
-- `tools/LocaleAudit/XamlUidExtractor.cs` — XAML parser
+- `tools/LocaleAudit/XamlUidExtractor.cs` — XAML parser (x:Uid references)
+- `tools/LocaleAudit/CSharpGetStringExtractor.cs` — C# source parser (`GetString("key")` invocations) — **added per Decision 1**
 - `tools/LocaleAudit/ReswReader.cs` — `.resw` parser
-- `tools/LocaleAudit/CoverageReport.cs` — report DTO + writer
-- `tools/LocaleAudit/baseline.json` — captured baseline after Task 3
+- `tools/LocaleAudit/CoverageReport.cs` — report DTO + writer (consumes the union of both extractors)
+- `tools/LocaleAudit/baseline.json` — captured baseline after Task 5
 - `tools/LocaleAudit/README.md` — tool usage docs
 - `tests/LocaleAudit.Tests/LocaleAudit.Tests.csproj`
 - `tests/LocaleAudit.Tests/XamlUidExtractorTests.cs`
+- `tests/LocaleAudit.Tests/CSharpGetStringExtractorTests.cs` — **added**
 - `tests/LocaleAudit.Tests/ReswReaderTests.cs`
 - `tests/LocaleAudit.Tests/CoverageReportTests.cs`
 - `src/AgentX.Core/Services/Localization/IPluralRuleProvider.cs`
@@ -218,25 +223,29 @@ Before starting Task 1:
 
 - [ ] **Step 2: Write minimal `Program.cs` entry point**
 
+Note: per Decision 1, the tool consumes BOTH XAML `x:Uid` references AND C# `GetString("key")` invocations. Both extractors feed into a unified `CoverageReport.Build`.
+
 ```csharp
 using LocaleAudit;
 
-if (args.Length < 2)
+if (args.Length < 3)
 {
-    Console.Error.WriteLine("Usage: LocaleAudit.Tool <app-xaml-root> <strings-root> [--output report.json] [--fail-below 98]");
+    Console.Error.WriteLine("Usage: LocaleAudit.Tool <app-xaml-root> <app-csharp-root> <strings-root> [--output report.json] [--fail-below 98]");
     return 2;
 }
 
 var xamlRoot = args[0];
-var stringsRoot = args[1];
+var csharpRoot = args[1];
+var stringsRoot = args[2];
 var outputPath = ParseArg(args, "--output") ?? "audit-report.json";
 var failBelow = double.TryParse(ParseArg(args, "--fail-below"), out var t) ? t : 98.0;
 
 try
 {
-    var uids = XamlUidExtractor.ExtractAll(xamlRoot);
+    var xamlUids = XamlUidExtractor.ExtractAll(xamlRoot);
+    var codeKeys = CSharpGetStringExtractor.ExtractAll(csharpRoot);
     var locales = ReswReader.ReadAllLocales(stringsRoot);
-    var report = CoverageReport.Build(uids, locales);
+    var report = CoverageReport.Build(xamlUids, codeKeys, locales);
     CoverageReport.WriteJson(report, outputPath);
     CoverageReport.PrintSummary(report, Console.Out);
 
@@ -262,13 +271,13 @@ static string? ParseArg(string[] args, string name)
 dotnet sln AgentX.sln add tools/LocaleAudit/LocaleAudit.Tool.csproj
 ```
 
-- [ ] **Step 4: Build — expect compile fails** (missing types `XamlUidExtractor`, `ReswReader`, `CoverageReport`)
+- [ ] **Step 4: Build — expect compile fails** (missing types `XamlUidExtractor`, `CSharpGetStringExtractor`, `ReswReader`, `CoverageReport`)
 
 ```bash
 dotnet build tools/LocaleAudit/LocaleAudit.Tool.csproj
 ```
 
-Expected: 3 `CS0103: The name '...' does not exist` errors. This is intentional — Tasks 2–4 add the types.
+Expected: 4 `CS0103: The name '...' does not exist` errors. This is intentional — Tasks 2, 2.5, 3, and 4 add the types.
 
 - [ ] **Step 5: Commit**
 
@@ -487,6 +496,242 @@ git commit -m "feat(a1): XamlUidExtractor with x:Uid parsing"
 
 ---
 
+### Task 2.5: `CSharpGetStringExtractor` — parse `GetString("key")` from C# source
+
+**Added per Decision 1.** Agent-X uses `ILocalizationService.GetString(key)` directly from C# in ~85% of localization call sites (confirmed by Spike 0 — 139 orphan resw keys per locale are code-bound, not XAML-bound). The audit tool must scan C# source to discover these keys so coverage is computed against the union `(xaml_uids ∪ code_keys)`.
+
+**Files:**
+- Create: `tools/LocaleAudit/CSharpGetStringExtractor.cs`
+- Create: `tests/LocaleAudit.Tests/CSharpGetStringExtractorTests.cs`
+
+- [ ] **Step 1: Write failing tests**
+
+```csharp
+using System.IO;
+using FluentAssertions;
+using LocaleAudit;
+using Xunit;
+
+namespace LocaleAudit.Tests;
+
+public class CSharpGetStringExtractorTests
+{
+    [Fact]
+    public void Extract_finds_direct_GetString_string_literal()
+    {
+        var cs = """
+            public class Foo
+            {
+                public string Bar() => _localization.GetString("Nav_Dashboard");
+            }
+            """;
+        var tmp = WriteTempCs(cs);
+
+        var result = CSharpGetStringExtractor.ExtractFromFile(tmp);
+
+        result.Select(r => r.Key).Should().BeEquivalentTo("Nav_Dashboard");
+        File.Delete(tmp);
+    }
+
+    [Fact]
+    public void Extract_finds_multiple_distinct_keys_in_one_file()
+    {
+        var cs = """
+            public class Foo
+            {
+                public void Run()
+                {
+                    var a = _localization.GetString("Nav_Dashboard");
+                    var b = _localization.GetString("Nav_Chat");
+                    var c = localizationService.GetString("Nav_Settings");
+                }
+            }
+            """;
+        var tmp = WriteTempCs(cs);
+
+        var result = CSharpGetStringExtractor.ExtractFromFile(tmp);
+
+        result.Select(r => r.Key).Should().BeEquivalentTo("Nav_Dashboard", "Nav_Chat", "Nav_Settings");
+        File.Delete(tmp);
+    }
+
+    [Fact]
+    public void Extract_finds_GetString_with_format_args()
+    {
+        var cs = """
+            var msg = _localization.GetString("Search_ResultCount", count);
+            """;
+        var tmp = WriteTempCs(cs);
+
+        var result = CSharpGetStringExtractor.ExtractFromFile(tmp);
+
+        result.Select(r => r.Key).Should().BeEquivalentTo("Search_ResultCount");
+        File.Delete(tmp);
+    }
+
+    [Fact]
+    public void Extract_ignores_non_literal_args()
+    {
+        var cs = """
+            var a = _localization.GetString(dynamicKey);
+            var b = _localization.GetString(GetKey());
+            var c = _localization.GetString(someVar + "Suffix");
+            """;
+        var tmp = WriteTempCs(cs);
+
+        var result = CSharpGetStringExtractor.ExtractFromFile(tmp);
+
+        result.Should().BeEmpty();
+        File.Delete(tmp);
+    }
+
+    [Fact]
+    public void Extract_ignores_single_line_commented_out_calls()
+    {
+        var cs = """
+            public class Foo
+            {
+                public void Run()
+                {
+                    // var old = _localization.GetString("Legacy_Key");
+                    var n = _localization.GetString("Active_Key");
+                }
+            }
+            """;
+        var tmp = WriteTempCs(cs);
+
+        var result = CSharpGetStringExtractor.ExtractFromFile(tmp);
+
+        result.Select(r => r.Key).Should().BeEquivalentTo("Active_Key");
+        File.Delete(tmp);
+    }
+
+    [Fact]
+    public void ExtractAll_recurses_subdirectories()
+    {
+        var tmpRoot = Directory.CreateTempSubdirectory("cs-audit-test").FullName;
+        var sub = Path.Combine(tmpRoot, "Services");
+        Directory.CreateDirectory(sub);
+        File.WriteAllText(Path.Combine(tmpRoot, "Root.cs"),
+            "class R { void M() => _l.GetString(\"K_Root\"); }");
+        File.WriteAllText(Path.Combine(sub, "Nested.cs"),
+            "class N { void M() => _l.GetString(\"K_Nested\"); }");
+
+        var result = CSharpGetStringExtractor.ExtractAll(tmpRoot);
+
+        result.Select(r => r.Key).Should().Contain(new[] { "K_Root", "K_Nested" });
+        Directory.Delete(tmpRoot, recursive: true);
+    }
+
+    [Fact]
+    public void Extract_does_not_pick_up_unrelated_string_literals()
+    {
+        var cs = """
+            var label = "Nav_Dashboard"; // this is NOT a GetString call
+            var r = _localization.GetString("Nav_Real");
+            """;
+        var tmp = WriteTempCs(cs);
+
+        var result = CSharpGetStringExtractor.ExtractFromFile(tmp);
+
+        result.Select(r => r.Key).Should().BeEquivalentTo("Nav_Real");
+        File.Delete(tmp);
+    }
+
+    private static string WriteTempCs(string content)
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"cs-audit-{Guid.NewGuid():N}.cs");
+        File.WriteAllText(path, content);
+        return path;
+    }
+}
+```
+
+- [ ] **Step 2: Run — expect compile fail** (`CSharpGetStringExtractor` missing)
+
+```bash
+dotnet test tests/LocaleAudit.Tests/LocaleAudit.Tests.csproj --filter "FullyQualifiedName~CSharpGetStringExtractorTests"
+```
+
+- [ ] **Step 3: Write the extractor**
+
+```csharp
+using System.Text.RegularExpressions;
+
+namespace LocaleAudit;
+
+public sealed record CodeKeyReference(string Key, string SourceFile, int LineNumber);
+
+public static class CSharpGetStringExtractor
+{
+    // Match: (anything).GetString("<literal>") possibly followed by , ...extra args... )
+    // Captures the literal key only. Non-literal args (identifiers, interpolated strings,
+    // concatenations) are intentionally excluded because the audit cannot verify them.
+    private static readonly Regex GetStringRegex = new(
+        @"\.GetString\s*\(\s*""([^""\\]*(?:\\.[^""\\]*)*)""\s*(?:,\s*[^)]*)?\)",
+        RegexOptions.Compiled);
+
+    // Strip C# single-line comments before matching — blockcomments are rare enough
+    // in Agent-X to defer; can be added if Spike 0 later finds a false-positive.
+    private static readonly Regex SingleLineCommentRegex = new(
+        @"//[^\n]*",
+        RegexOptions.Compiled);
+
+    public static IReadOnlyList<CodeKeyReference> ExtractAll(string rootDirectory)
+    {
+        if (!Directory.Exists(rootDirectory))
+            throw new DirectoryNotFoundException($"C# root not found: {rootDirectory}");
+
+        var results = new List<CodeKeyReference>();
+        foreach (var path in Directory.EnumerateFiles(rootDirectory, "*.cs", SearchOption.AllDirectories))
+        {
+            // Skip auto-generated files — they pollute results and typically don't call GetString.
+            if (path.Contains("obj" + Path.DirectorySeparatorChar, StringComparison.Ordinal)) continue;
+            if (path.Contains("bin" + Path.DirectorySeparatorChar, StringComparison.Ordinal)) continue;
+            if (path.EndsWith(".g.cs", StringComparison.Ordinal)) continue;
+            if (path.EndsWith(".g.i.cs", StringComparison.Ordinal)) continue;
+
+            results.AddRange(ExtractFromFile(path));
+        }
+        return results;
+    }
+
+    public static IReadOnlyList<CodeKeyReference> ExtractFromFile(string path)
+    {
+        var raw = File.ReadAllText(path);
+        var stripped = SingleLineCommentRegex.Replace(raw, string.Empty);
+
+        var results = new List<CodeKeyReference>();
+        foreach (Match m in GetStringRegex.Matches(stripped))
+        {
+            var key = m.Groups[1].Value;
+            // Unescape any `\"` inside the key literal.
+            key = key.Replace("\\\"", "\"");
+            var line = stripped.Substring(0, m.Index).Count(c => c == '\n') + 1;
+            results.Add(new CodeKeyReference(key, path, line));
+        }
+        return results;
+    }
+}
+```
+
+- [ ] **Step 4: Run — expect pass**
+
+```bash
+dotnet test tests/LocaleAudit.Tests/LocaleAudit.Tests.csproj --filter "FullyQualifiedName~CSharpGetStringExtractorTests"
+```
+
+Expected: all 7 tests pass.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add tools/LocaleAudit/CSharpGetStringExtractor.cs tests/LocaleAudit.Tests/CSharpGetStringExtractorTests.cs
+git commit -m "feat(a1): CSharpGetStringExtractor for code-bound localization keys"
+```
+
+---
+
 ### Task 3: `ReswReader` — parse `Resources.resw` per locale
 
 **Files:**
@@ -667,6 +912,7 @@ public class CoverageReportTests
             new("BtnCancel", "x.xaml", 2),
             new("Greeting", "y.xaml", 1),
         };
+        var codeKeys = new List<CodeKeyReference>(); // none in this test
         // en-US has all 3, fr has 2 (missing Greeting), ja has 1 (BtnOk only).
         var locales = new Dictionary<string, IReadOnlyDictionary<string, string>>
         {
@@ -687,13 +933,54 @@ public class CoverageReportTests
             },
         };
 
-        var report = CoverageReport.Build(uids, locales);
+        var report = CoverageReport.Build(uids, codeKeys, locales);
 
         report.PerLocale["en-US"].CoveragePercent.Should().Be(100.0);
         report.PerLocale["fr"].CoveragePercent.Should().BeApproximately(66.67, 0.1);
         report.PerLocale["ja"].CoveragePercent.Should().BeApproximately(33.33, 0.1);
-        report.PerLocale["fr"].MissingUids.Should().BeEquivalentTo("Greeting");
-        report.PerLocale["ja"].MissingUids.Should().BeEquivalentTo("BtnCancel", "Greeting");
+        report.PerLocale["fr"].MissingKeys.Should().BeEquivalentTo("Greeting");
+        report.PerLocale["ja"].MissingKeys.Should().BeEquivalentTo("BtnCancel", "Greeting");
+    }
+
+    [Fact]
+    public void Build_unions_xaml_uids_with_csharp_code_keys()
+    {
+        var uids = new List<UidReference> { new("BtnOk", "x.xaml", 1) };
+        var codeKeys = new List<CodeKeyReference>
+        {
+            new("Nav_Dashboard", "N.cs", 10),
+            new("Nav_Chat", "N.cs", 11),
+        };
+        // en-US has ALL three — total unique keys should be 3 (union).
+        var locales = new Dictionary<string, IReadOnlyDictionary<string, string>>
+        {
+            ["en-US"] = new Dictionary<string, string>
+            {
+                ["BtnOk.Content"] = "OK",
+                ["Nav_Dashboard"] = "Dashboard",
+                ["Nav_Chat"] = "Chat",
+            },
+        };
+
+        var report = CoverageReport.Build(uids, codeKeys, locales);
+
+        report.TotalKeys.Should().Be(3);
+        report.PerLocale["en-US"].CoveragePercent.Should().Be(100.0);
+    }
+
+    [Fact]
+    public void Build_dedupes_when_same_key_appears_in_both_xaml_and_code()
+    {
+        var uids = new List<UidReference> { new("BtnOk", "x.xaml", 1) };
+        var codeKeys = new List<CodeKeyReference> { new("BtnOk", "y.cs", 1) };
+        var locales = new Dictionary<string, IReadOnlyDictionary<string, string>>
+        {
+            ["en-US"] = new Dictionary<string, string> { ["BtnOk.Content"] = "OK" },
+        };
+
+        var report = CoverageReport.Build(uids, codeKeys, locales);
+
+        report.TotalKeys.Should().Be(1); // deduped
     }
 
     [Fact]
@@ -701,7 +988,7 @@ public class CoverageReportTests
     {
         var report = new CoverageReport
         {
-            TotalUids = 100,
+            TotalKeys = 100,
             PerLocale = new Dictionary<string, LocaleCoverage>
             {
                 ["en-US"] = new() { Locale = "en-US", Covered = 100, CoveragePercent = 100.0 },
@@ -717,7 +1004,7 @@ public class CoverageReportTests
     {
         var report = new CoverageReport
         {
-            TotalUids = 100,
+            TotalKeys = 100,
             PerLocale = new Dictionary<string, LocaleCoverage>
             {
                 ["en-US"] = new() { Locale = "en-US", Covered = 100, CoveragePercent = 100.0 },
@@ -733,7 +1020,7 @@ public class CoverageReportTests
     {
         var report = new CoverageReport
         {
-            TotalUids = 10,
+            TotalKeys = 10,
             PerLocale = new Dictionary<string, LocaleCoverage>
             {
                 ["en-US"] = new() { Locale = "en-US", Covered = 10, CoveragePercent = 100.0 },
@@ -744,7 +1031,7 @@ public class CoverageReportTests
         CoverageReport.WriteJson(report, path);
 
         var json = File.ReadAllText(path);
-        json.Should().Contain("\"totalUids\": 10");
+        json.Should().Contain("\"totalKeys\": 10");
         json.Should().Contain("\"en-US\"");
         File.Delete(path);
     }
@@ -769,38 +1056,45 @@ public sealed class LocaleCoverage
     public string Locale { get; set; } = string.Empty;
     public int Covered { get; set; }
     public double CoveragePercent { get; set; }
-    public List<string> MissingUids { get; set; } = new();
+    public List<string> MissingKeys { get; set; } = new();
 }
 
 public sealed class CoverageReport
 {
-    public int TotalUids { get; set; }
+    public int TotalKeys { get; set; }
     public Dictionary<string, LocaleCoverage> PerLocale { get; set; } = new();
 
     /// <summary>
-    /// Resolves a uid-to-resw-key lookup. A uid may have multiple property suffixes in resw
-    /// (e.g., "BtnOk.Content" or "BtnOk.Text"); we count the uid as covered if ANY "<uid>.*"
-    /// entry exists for that locale.
+    /// Coverage is computed over the UNION of XAML x:Uid references and C# GetString("key")
+    /// call sites. A key counts as "covered" in a locale if EITHER:
+    ///   (a) the locale has an entry whose name starts with "<key>." (XAML-style, e.g. "BtnOk.Content"), OR
+    ///   (b) the locale has an entry whose name equals "<key>" exactly (code-style, e.g. "Nav_Dashboard").
+    /// This matches Agent-X's mixed naming convention (Spike 3 finding).
     /// </summary>
     public static CoverageReport Build(
-        IReadOnlyList<UidReference> uids,
+        IReadOnlyList<UidReference> xamlUids,
+        IReadOnlyList<CodeKeyReference> codeKeys,
         IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> locales)
     {
-        var uniqueUids = uids.Select(u => u.Uid).Distinct(StringComparer.Ordinal).ToList();
-        var report = new CoverageReport { TotalUids = uniqueUids.Count };
+        var unionKeys = xamlUids.Select(u => u.Uid)
+            .Concat(codeKeys.Select(c => c.Key))
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+        var report = new CoverageReport { TotalKeys = unionKeys.Count };
 
         foreach (var (locale, entries) in locales)
         {
             var coverage = new LocaleCoverage { Locale = locale };
-            foreach (var uid in uniqueUids)
+            foreach (var key in unionKeys)
             {
-                var hasEntry = entries.Keys.Any(k => k.StartsWith(uid + ".", StringComparison.Ordinal));
-                if (hasEntry) coverage.Covered++;
-                else coverage.MissingUids.Add(uid);
+                var hasXamlStyle = entries.Keys.Any(k => k.StartsWith(key + ".", StringComparison.Ordinal));
+                var hasCodeStyle = entries.ContainsKey(key);
+                if (hasXamlStyle || hasCodeStyle) coverage.Covered++;
+                else coverage.MissingKeys.Add(key);
             }
-            coverage.CoveragePercent = uniqueUids.Count == 0
+            coverage.CoveragePercent = unionKeys.Count == 0
                 ? 100.0
-                : Math.Round(coverage.Covered * 100.0 / uniqueUids.Count, 2);
+                : Math.Round(coverage.Covered * 100.0 / unionKeys.Count, 2);
             report.PerLocale[locale] = coverage;
         }
         return report;
@@ -823,11 +1117,11 @@ public sealed class CoverageReport
 
     public static void PrintSummary(CoverageReport report, TextWriter writer)
     {
-        writer.WriteLine($"LocaleAudit — {report.TotalUids} unique x:Uid references");
+        writer.WriteLine($"LocaleAudit — {report.TotalKeys} unique localization keys (XAML + C# union)");
         foreach (var (locale, c) in report.PerLocale.OrderBy(kv => kv.Key))
         {
             var status = c.CoveragePercent >= 98.0 ? "OK" : "LOW";
-            writer.WriteLine($"  [{status}] {locale,-6} {c.CoveragePercent,6:F2}% ({c.Covered}/{report.TotalUids})  missing: {c.MissingUids.Count}");
+            writer.WriteLine($"  [{status}] {locale,-6} {c.CoveragePercent,6:F2}% ({c.Covered}/{report.TotalKeys})  missing: {c.MissingKeys.Count}");
         }
     }
 }
@@ -836,7 +1130,7 @@ public sealed class CoverageReport
 - [ ] **Step 4: Run — expect pass**
 
 Run: `dotnet test tests/LocaleAudit.Tests/LocaleAudit.Tests.csproj`
-Expected: all 12 tests pass (5 XamlUidExtractor + 3 ReswReader + 4 CoverageReport).
+Expected: all 21 tests pass (5 XamlUidExtractor + 7 CSharpGetStringExtractor + 3 ReswReader + 6 CoverageReport).
 
 - [ ] **Step 5: Verify Program.cs builds**
 
@@ -866,12 +1160,15 @@ git commit -m "feat(a1): CoverageReport with per-locale calculation"
 ```bash
 dotnet run --project tools/LocaleAudit/LocaleAudit.Tool.csproj -- \
   src/AgentX.App \
+  src \
   src/AgentX.App/Strings \
   --output tools/LocaleAudit/baseline.json \
   --fail-below 0
 ```
 
-Expected: `baseline.json` written. Summary printed to stdout shows per-locale coverage — copy/paste into a scratchpad for reference.
+Note: three positional args are now `<xaml-root> <csharp-root> <strings-root>`. The C# root is `src` (covers both `src/AgentX.App` and `src/AgentX.Core` — Task 2.5's extractor recurses and skips `bin/` + `obj/` + generated files).
+
+Expected: `baseline.json` written. Summary printed to stdout shows per-locale coverage across the unified XAML + C# key set — copy/paste into a scratchpad for reference. Per Spike 0 findings, **expect ~163 total keys** (24 XAML uids + ~140 code-bound keys, deduped), with per-locale coverage approaching ~90–95% (most code-bound keys already have resw entries; the 24 XAML-bound uids are the big gap).
 
 Note: `--fail-below 0` lets this pass even at low coverage — we're capturing the starting point, not enforcing it yet. Task 12 enables the gate at 98%.
 
@@ -895,13 +1192,13 @@ Open `tools/LocaleAudit/baseline.json`. Expected shape:
 ```markdown
 # LocaleAudit.Tool
 
-Console tool that measures locale-coverage of `x:Uid` references across `src/AgentX.App/` XAML vs each `Strings/<locale>/Resources.resw`.
+Console tool that measures locale-coverage of localization keys — the union of XAML `x:Uid` references in `src/AgentX.App/` and C# `GetString("key")` invocations across `src/` — against each `Strings/<locale>/Resources.resw`.
 
 ## Usage
 
 ```bash
 dotnet run --project tools/LocaleAudit/LocaleAudit.Tool.csproj -- \
-    <app-xaml-root> <strings-root> \
+    <app-xaml-root> <csharp-root> <strings-root> \
     [--output audit-report.json] \
     [--fail-below 98]
 ```
@@ -917,7 +1214,13 @@ dotnet run --project tools/LocaleAudit/LocaleAudit.Tool.csproj -- \
 
 ## How coverage is counted
 
-A `x:Uid="Foo"` reference is considered covered by a locale if ANY key of the form `Foo.*` exists in that locale's `Resources.resw` (typically `Foo.Text`, `Foo.Content`, `Foo.Header`, `Foo.PlaceholderText`).
+A localization key is considered covered by a locale if EITHER:
+- **XAML-style** — any resw entry of the form `<key>.*` exists (e.g., `BtnOk.Content` covers `BtnOk`), OR
+- **Code-style** — an exact-match resw entry `<key>` exists (e.g., `Nav_Dashboard` covers itself).
+
+The total key count is the union of:
+- All unique `x:Uid="..."` values across `src/AgentX.App/**/*.xaml`.
+- All unique literal string arguments passed to `.GetString("...")` across `src/**/*.cs`.
 ```
 
 - [ ] **Step 4: Commit**
@@ -931,14 +1234,19 @@ git commit -m "docs(a1): capture LocaleAudit baseline and tool usage docs"
 
 ### Task 6: Extract missing canonical strings to `en-US/Resources.resw`
 
-Using the `missingUids` list from `baseline.json` for locale `en-US`, add entries to the en-US resw. Every `x:Uid` in `src/AgentX.App/` must have a matching `<Uid>.<Property>` entry in en-US — en-US is the canonical source that other locales translate FROM.
+Using the `missingKeys` list from `baseline.json` for locale `en-US`, add entries to the en-US resw. Every `x:Uid` in `src/AgentX.App/` (24 uids per Spike 0) must have a matching `<Uid>.<Property>` entry in en-US — en-US is the canonical source that other locales translate FROM.
+
+Per Spike 0 findings, the 24 missing uids are fully enumerated:
+
+- **From `Views/PluginManagerPage.xaml` (17 uids — sample)**: `Plugin_Manager`, `Plugin_Active`, `Plugin_Configuration`, `Plugin_NoPlugins`, `Plugin_Refresh`, `Plugin_SelectPlugin`, `Plugin_Install`, `Plugin_Installed`, `Plugin_Uninstall`, + 8 more (full list from `baseline.json`).
+- **From `Views/SettingsPage.xaml` (7 uids — sample)**: `Encryption_SectionHeader`, `Encryption_Description`, + 5 more.
 
 **Files:**
 - Modify: `src/AgentX.App/Strings/en-US/Resources.resw`
 
-- [ ] **Step 1: Open `baseline.json` and filter to `perLocale["en-US"].missingUids`**
+- [ ] **Step 1: Open `baseline.json` and filter to `perLocale["en-US"].missingKeys`**
 
-This is the workset for Step 2.
+This is the workset for Step 2. Expected size: 24 keys (per Spike 0) — all from the two identified XAML files.
 
 - [ ] **Step 2: For each missing uid, open the XAML file that references it (from `XamlUidExtractor` output, also in the report)**
 
@@ -1008,7 +1316,7 @@ git commit -m "feat(a1): backfill canonical en-US Resources.resw to ≥98% cover
 - Modify: `src/AgentX.App/Strings/ja/Resources.resw`
 - Modify: `src/AgentX.App/Strings/zh-CN/Resources.resw`
 
-Workflow: for each locale, use the `missingUids` diff against en-US as the translation workset. Rocky must review every translation — do NOT ship raw machine output without human verification.
+Workflow per Decision 3 (in-session with machine-translated drafts + review markers): for each locale, use the `missingKeys` diff against en-US as the translation workset. Draft translations may come from a machine translation service (DeepL preferred for de/es/fr/ja; Google Translate for zh-CN). Every machine-drafted entry MUST carry an inline `<!-- MACHINE_TRANSLATED: <en-US source> -->` review-marker comment so Rocky can spot-check before shipping. Rocky reviews each locale at implementation time — do NOT remove the review markers until Rocky signs off on that locale.
 
 - [ ] **Step 1: Generate missing-keys diff per locale**
 
@@ -1034,26 +1342,29 @@ Per locale, pattern:
 
 - [ ] **Step 3: German (de) backfill**
 
-Add to `src/AgentX.App/Strings/de/Resources.resw`. Example:
+Add to `src/AgentX.App/Strings/de/Resources.resw`. Each machine-translated entry gets a `<!-- MACHINE_TRANSLATED: ... -->` review marker. Example:
 
 ```xml
+<!-- MACHINE_TRANSLATED: OK -->
 <data name="BtnOk.Content" xml:space="preserve">
   <value>OK</value>
 </data>
+<!-- MACHINE_TRANSLATED: Search documents… -->
 <data name="SearchBox.PlaceholderText" xml:space="preserve">
   <value>Dokumente durchsuchen…</value>
 </data>
+<!-- MACHINE_TRANSLATED: Documents -->
 <data name="NavDocuments.Content" xml:space="preserve">
   <value>Dokumente</value>
 </data>
 ```
 
-Commit: `git commit -m "feat(a1): backfill de Resources.resw to ≥98% coverage"`
+Once Rocky reviews and approves a locale, strip the review markers in a follow-up commit `docs(a1): approve <locale> translations (markers removed)`. Commit the initial backfill with: `git commit -m "feat(a1): backfill de Resources.resw (machine-translated, awaiting review)"`
 
-- [ ] **Step 4: Spanish (es) backfill** — same pattern. Commit: `feat(a1): backfill es Resources.resw to ≥98% coverage`
-- [ ] **Step 5: French (fr) backfill** — same pattern. Commit: `feat(a1): backfill fr Resources.resw to ≥98% coverage`
-- [ ] **Step 6: Japanese (ja) backfill** — same pattern. Note: punctuation differs ("…" is "…"/"。" depending on context). Commit: `feat(a1): backfill ja Resources.resw to ≥98% coverage`
-- [ ] **Step 7: Simplified Chinese (zh-CN) backfill** — same pattern. Commit: `feat(a1): backfill zh-CN Resources.resw to ≥98% coverage`
+- [ ] **Step 4: Spanish (es) backfill** — same pattern with review markers. Commit: `feat(a1): backfill es Resources.resw (machine-translated, awaiting review)`
+- [ ] **Step 5: French (fr) backfill** — same pattern with review markers. Commit: `feat(a1): backfill fr Resources.resw (machine-translated, awaiting review)`
+- [ ] **Step 6: Japanese (ja) backfill** — same pattern with review markers. Note: punctuation differs ("…" is "…"/"。" depending on context). Commit: `feat(a1): backfill ja Resources.resw (machine-translated, awaiting review)`
+- [ ] **Step 7: Simplified Chinese (zh-CN) backfill** — same pattern with review markers. Commit: `feat(a1): backfill zh-CN Resources.resw (machine-translated, awaiting review)`
 
 - [ ] **Step 8: Verify all locales ≥98%**
 
@@ -1457,29 +1768,38 @@ public class PerPageLocaleSnapshotTests
     // Point these at the real app/strings roots from the test's working directory.
     // Adjust relative path if the test project runs from a different base.
     private const string AppXamlRoot = "../../../../../src/AgentX.App";
+    private const string CSharpRoot  = "../../../../../src";
     private const string StringsRoot = "../../../../../src/AgentX.App/Strings";
 
     private static readonly string[] RequiredLocales =
         { "de", "en-US", "es", "fr", "ja", "zh-CN" };
 
     [Fact]
-    public void Every_referenced_uid_resolves_to_non_empty_value_in_every_locale()
+    public void Every_referenced_key_resolves_to_non_empty_value_in_every_locale()
     {
-        var uids = XamlUidExtractor.ExtractAll(AppXamlRoot);
+        var xamlUids = XamlUidExtractor.ExtractAll(AppXamlRoot);
+        var codeKeys = CSharpGetStringExtractor.ExtractAll(CSharpRoot);
         var locales = ReswReader.ReadAllLocales(StringsRoot);
+
+        var unionKeys = xamlUids.Select(u => u.Uid)
+            .Concat(codeKeys.Select(c => c.Key))
+            .Distinct(StringComparer.Ordinal);
 
         foreach (var locale in RequiredLocales)
         {
             locales.Should().ContainKey(locale, $"locale folder missing for '{locale}'");
-            foreach (var uid in uids.Select(u => u.Uid).Distinct())
+            foreach (var key in unionKeys)
             {
-                var hasEntry = locales[locale].Keys.Any(k => k.StartsWith(uid + ".", StringComparison.Ordinal));
-                hasEntry.Should().BeTrue($"'{uid}' is missing from '{locale}/Resources.resw'");
-                // Non-empty value check — at least one "<uid>.*" entry must have a non-whitespace value.
-                var anyNonEmpty = locales[locale]
-                    .Where(kv => kv.Key.StartsWith(uid + ".", StringComparison.Ordinal))
-                    .Any(kv => !string.IsNullOrWhiteSpace(kv.Value));
-                anyNonEmpty.Should().BeTrue($"'{uid}' is present but blank in '{locale}/Resources.resw'");
+                // A key is covered if the locale has either an XAML-style "<key>.*" entry
+                // or a code-style exact "<key>" entry.
+                var xamlStyle = locales[locale].Where(kv => kv.Key.StartsWith(key + ".", StringComparison.Ordinal)).ToList();
+                var codeStyle = locales[locale].TryGetValue(key, out var codeVal) ? codeVal : null;
+                var hasAny = xamlStyle.Count > 0 || codeStyle is not null;
+                hasAny.Should().BeTrue($"'{key}' is missing from '{locale}/Resources.resw'");
+
+                var anyNonEmpty = xamlStyle.Any(kv => !string.IsNullOrWhiteSpace(kv.Value))
+                                  || !string.IsNullOrWhiteSpace(codeStyle);
+                anyNonEmpty.Should().BeTrue($"'{key}' is present but blank in '{locale}/Resources.resw'");
             }
         }
     }
@@ -1517,6 +1837,7 @@ on:
   pull_request:
     paths:
       - 'src/AgentX.App/**/*.xaml'
+      - 'src/**/*.cs'
       - 'src/AgentX.App/Strings/**/*.resw'
       - 'tools/LocaleAudit/**'
   push:
@@ -1540,6 +1861,7 @@ jobs:
         run: |
           dotnet run --project tools/LocaleAudit/LocaleAudit.Tool.csproj -- `
             src/AgentX.App `
+            src `
             src/AgentX.App/Strings `
             --output locale-audit-report.json `
             --fail-below 98
@@ -1707,7 +2029,7 @@ In `docs/DEVELOPER-GUIDE.md`:
 
 4. **Run locale audit locally** before pushing:
    ```bash
-   dotnet run --project tools/LocaleAudit/LocaleAudit.Tool.csproj -- src/AgentX.App src/AgentX.App/Strings
+   dotnet run --project tools/LocaleAudit/LocaleAudit.Tool.csproj -- src/AgentX.App src src/AgentX.App/Strings
    ```
 
 5. **CI gate** (`.github/workflows/locale-audit.yml`) will block the PR if any locale falls below 98% coverage.
@@ -1731,7 +2053,7 @@ Append to `docs/v2.1.0-RELEASE-NOTES.md`:
 
 ```bash
 dotnet build && dotnet test
-dotnet run --project tools/LocaleAudit/LocaleAudit.Tool.csproj -- src/AgentX.App src/AgentX.App/Strings --fail-below 98
+dotnet run --project tools/LocaleAudit/LocaleAudit.Tool.csproj -- src/AgentX.App src src/AgentX.App/Strings --fail-below 98
 ```
 
 Expected: build 0W/0E, all tests pass, LocaleAudit exit 0.
@@ -1748,14 +2070,15 @@ git commit -m "docs(a1): architecture + user + developer + release notes for mul
 ## Self-Review Summary
 
 - **Spec coverage:**
-  - String-extraction audit → Task 1 (scaffold) + Task 2 (XamlUidExtractor) + Task 3 (ReswReader) + Task 4 (CoverageReport)
-  - ≥98% coverage per locale → Task 5 baseline + Task 6 en-US + Task 7 other-locales + Task 12 CI gate
+  - String-extraction audit → Task 1 (scaffold) + Task 2 (XamlUidExtractor) + **Task 2.5 (CSharpGetStringExtractor — per Decision 1)** + Task 3 (ReswReader) + Task 4 (CoverageReport — consumes union)
+  - ≥98% coverage per locale → Task 5 baseline + Task 6 en-US (24 canonical entries) + Task 7 other-locales (machine-translated with review markers) + Task 12 CI gate
   - Pluralization rules → Task 8 (`FormatPlural`) + Task 9 tests
   - RTL safety → Task 10 (`FlowDirectionHelper` + root binding)
-  - Per-page locale QA → Task 11 snapshot test + Task 13 manual smoke
+  - Per-page locale QA → Task 11 snapshot test (union of XAML uids + C# keys) + Task 13 manual smoke
   - Locale-coverage CI gate → Task 12 GitHub Actions workflow
-- **Placeholder scan:** every code step contains complete code. Task 7's translation entries are spec'd as `fill with human-reviewed translations` because machine-generating ~100 real translations in this plan is out-of-scope; each step tells the engineer exactly how to source them.
-- **Type consistency:** `UidReference`, `LocaleCoverage`, `CoverageReport`, `IPluralRuleProvider`, `CldrPluralRuleProvider`, `FlowDirectionHelper`, `ILocalizationService.FormatPlural` — all names consistent across tasks. `XamlUidExtractor.ExtractAll` / `.ExtractFromFile`, `ReswReader.ReadFile` / `.ReadAllLocales`, `CoverageReport.Build` / `.WriteJson` / `.PrintSummary` / `.ShouldFail` — methods called from `Program.cs` all match their definitions.
+  - Orphan-key triage (Decision 2) → handled naturally by Task 4's union-coverage algorithm; keys still orphan after union are flagged in the report for a follow-up cleanup task (out-of-scope for v2.1.0 final)
+- **Placeholder scan:** every code step contains complete code. Task 7's translation entries ship as machine-translated drafts with `<!-- MACHINE_TRANSLATED: ... -->` inline review markers; Rocky strips markers in follow-up commits after review.
+- **Type consistency:** `UidReference`, `CodeKeyReference`, `LocaleCoverage`, `CoverageReport`, `IPluralRuleProvider`, `CldrPluralRuleProvider`, `FlowDirectionHelper`, `ILocalizationService.FormatPlural` — all names consistent across tasks. `XamlUidExtractor.ExtractAll` / `.ExtractFromFile`, `CSharpGetStringExtractor.ExtractAll` / `.ExtractFromFile`, `ReswReader.ReadFile` / `.ReadAllLocales`, `CoverageReport.Build(uids, codeKeys, locales)` / `.WriteJson` / `.PrintSummary` / `.ShouldFail`, `TotalKeys` / `MissingKeys` — methods called from `Program.cs` all match their definitions.
 
 ## Follow-up (not in this plan)
 
