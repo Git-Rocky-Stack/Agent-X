@@ -1,26 +1,34 @@
 using System;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using AgentX.Core.Data;
-using Microsoft.EntityFrameworkCore;
 
 namespace AgentX.Core.Services.Security;
 
+/// <summary>
+/// Provisions, wraps/derives, and unwraps/re-derives the 32-byte SQLCipher database key.
+/// All persistent state (mode, DPAPI-wrapped key, PBKDF2 salt, enabledAt) lives in the
+/// sibling <see cref="IEncryptionStateFile"/> marker — OUTSIDE the encrypted database —
+/// because the encrypted DB cannot be opened until we already have the key.
+/// </summary>
+/// <remarks>
+/// This service intentionally does NOT depend on <c>AgentXDbContext</c>. Storing
+/// encryption state inside the DB created a chicken-and-egg deadlock on startup and
+/// also collided with the key-value convention used by <c>UserSettings</c>.
+/// </remarks>
 public sealed class DatabaseKeyService : IDatabaseKeyService
 {
     private const int KeyLengthBytes = 32;        // 256-bit key for SQLCipher
     private const int SaltLengthBytes = 16;
     private const int Pbkdf2Iterations = 600_000; // OWASP 2023 recommendation for PBKDF2-HMAC-SHA256
 
-    private readonly AgentXDbContext _db;
+    private readonly IEncryptionStateFile _stateFile;
     private readonly IDpapiEncryptionService _dpapi;
 
-    public DatabaseKeyService(AgentXDbContext db, IDpapiEncryptionService dpapi)
+    public DatabaseKeyService(IEncryptionStateFile stateFile, IDpapiEncryptionService dpapi)
     {
-        _db = db;
-        _dpapi = dpapi;
+        _stateFile = stateFile ?? throw new ArgumentNullException(nameof(stateFile));
+        _dpapi = dpapi ?? throw new ArgumentNullException(nameof(dpapi));
     }
 
     public async Task<DatabaseKeyMaterial> GetOrCreateKeyAsync(KeyStorageMode mode, string? passphrase = null)
@@ -28,88 +36,81 @@ public sealed class DatabaseKeyService : IDatabaseKeyService
         if (mode == KeyStorageMode.UserPassphrase && string.IsNullOrEmpty(passphrase))
             throw new ArgumentException("Passphrase required for UserPassphrase mode.", nameof(passphrase));
 
-        var settings = await EnsureSettingsRowAsync();
-
-        if (settings.EncryptionEnabled && !string.IsNullOrEmpty(settings.EncryptionKeyStorageMode))
+        var existing = _stateFile.Read();
+        if (existing is not null)
         {
-            var existingMode = Enum.Parse<KeyStorageMode>(settings.EncryptionKeyStorageMode);
-            return existingMode switch
+            return existing.StorageMode switch
             {
-                KeyStorageMode.DpapiWrapped => UnwrapDpapiKey(settings.DpapiWrappedKey!),
-                KeyStorageMode.UserPassphrase => DerivePassphraseKey(passphrase!, Convert.FromBase64String(settings.EncryptionSaltBase64!)),
-                _ => throw new InvalidOperationException($"Unknown mode: {existingMode}")
+                KeyStorageMode.DpapiWrapped => UnwrapDpapiKey(
+                    existing.DpapiWrappedKey
+                        ?? throw new InvalidOperationException("Encryption state marker is in DpapiWrapped mode but DpapiWrappedKey is missing.")),
+                KeyStorageMode.UserPassphrase => DerivePassphraseKey(
+                    passphrase!,
+                    Convert.FromBase64String(
+                        existing.SaltBase64
+                            ?? throw new InvalidOperationException("Encryption state marker is in UserPassphrase mode but SaltBase64 is missing."))),
+                _ => throw new InvalidOperationException($"Unknown mode: {existing.StorageMode}")
             };
         }
 
-        // First-time provisioning
+        // First-time provisioning — marker does not yet exist.
         return mode switch
         {
-            KeyStorageMode.DpapiWrapped => await ProvisionDpapiWrappedAsync(settings),
-            KeyStorageMode.UserPassphrase => await ProvisionPassphraseAsync(settings, passphrase!),
+            KeyStorageMode.DpapiWrapped => await ProvisionDpapiWrappedAsync(),
+            KeyStorageMode.UserPassphrase => await ProvisionPassphraseAsync(passphrase!),
             _ => throw new InvalidOperationException($"Unknown mode: {mode}")
         };
     }
 
-    public async Task<DatabaseKeyMaterial> UnlockWithPassphraseAsync(string passphrase)
+    public Task<DatabaseKeyMaterial> UnlockWithPassphraseAsync(string passphrase)
     {
-        var settings = await _db.UserSettings.FirstOrDefaultAsync();
-        if (settings is null || !settings.EncryptionEnabled || string.IsNullOrEmpty(settings.EncryptionSaltBase64))
-            throw new InvalidOperationException("Database encryption is not provisioned in UserPassphrase mode.");
-        if (settings.EncryptionKeyStorageMode != nameof(KeyStorageMode.UserPassphrase))
+        if (string.IsNullOrEmpty(passphrase))
+            throw new ArgumentException("Passphrase must not be null or empty.", nameof(passphrase));
+
+        var existing = _stateFile.Read()
+            ?? throw new InvalidOperationException("Database encryption is not provisioned.");
+        if (existing.StorageMode != KeyStorageMode.UserPassphrase)
             throw new InvalidOperationException("Provisioned mode is not UserPassphrase.");
+        if (string.IsNullOrEmpty(existing.SaltBase64))
+            throw new InvalidOperationException("Encryption state marker is in UserPassphrase mode but SaltBase64 is missing.");
 
-        return DerivePassphraseKey(passphrase, Convert.FromBase64String(settings.EncryptionSaltBase64));
+        var salt = Convert.FromBase64String(existing.SaltBase64);
+        return Task.FromResult(DerivePassphraseKey(passphrase, salt));
     }
 
-    public async Task<bool> IsProvisionedAsync()
-    {
-        var settings = await _db.UserSettings.FirstOrDefaultAsync();
-        return settings is not null && settings.EncryptionEnabled;
-    }
+    public Task<bool> IsProvisionedAsync() => Task.FromResult(_stateFile.Exists());
 
-    public async Task<KeyStorageMode?> GetProvisionedModeAsync()
-    {
-        var settings = await _db.UserSettings.FirstOrDefaultAsync();
-        if (settings is null || !settings.EncryptionEnabled || string.IsNullOrEmpty(settings.EncryptionKeyStorageMode))
-            return null;
-        return Enum.Parse<KeyStorageMode>(settings.EncryptionKeyStorageMode);
-    }
+    public Task<KeyStorageMode?> GetProvisionedModeAsync() =>
+        Task.FromResult<KeyStorageMode?>(_stateFile.Read()?.StorageMode);
 
-    private async Task<Data.Entities.UserSettingsEntity> EnsureSettingsRowAsync()
-    {
-        var settings = await _db.UserSettings.FirstOrDefaultAsync();
-        if (settings is null)
-        {
-            settings = new Data.Entities.UserSettingsEntity();
-            _db.UserSettings.Add(settings);
-        }
-        return settings;
-    }
-
-    private async Task<DatabaseKeyMaterial> ProvisionDpapiWrappedAsync(Data.Entities.UserSettingsEntity settings)
+    private async Task<DatabaseKeyMaterial> ProvisionDpapiWrappedAsync()
     {
         var keyBytes = RandomNumberGenerator.GetBytes(KeyLengthBytes);
         var hexKey = Convert.ToHexString(keyBytes);
         var wrapped = _dpapi.Encrypt(hexKey);
 
-        settings.EncryptionEnabled = true;
-        settings.EncryptionKeyStorageMode = nameof(KeyStorageMode.DpapiWrapped);
-        settings.DpapiWrappedKey = wrapped;
-        settings.EncryptionSaltBase64 = null;
-        await _db.SaveChangesAsync();
+        var info = new EncryptionStateInfo(
+            Version: EncryptionStateFile.CurrentVersion,
+            StorageMode: KeyStorageMode.DpapiWrapped,
+            EnabledAt: DateTimeOffset.UtcNow,
+            DpapiWrappedKey: wrapped,
+            SaltBase64: null);
+        await _stateFile.WriteAsync(info);
 
         return DatabaseKeyMaterial.FromBytes(keyBytes, KeyStorageMode.DpapiWrapped);
     }
 
-    private async Task<DatabaseKeyMaterial> ProvisionPassphraseAsync(Data.Entities.UserSettingsEntity settings, string passphrase)
+    private async Task<DatabaseKeyMaterial> ProvisionPassphraseAsync(string passphrase)
     {
         var salt = RandomNumberGenerator.GetBytes(SaltLengthBytes);
 
-        settings.EncryptionEnabled = true;
-        settings.EncryptionKeyStorageMode = nameof(KeyStorageMode.UserPassphrase);
-        settings.EncryptionSaltBase64 = Convert.ToBase64String(salt);
-        settings.DpapiWrappedKey = null;
-        await _db.SaveChangesAsync();
+        var info = new EncryptionStateInfo(
+            Version: EncryptionStateFile.CurrentVersion,
+            StorageMode: KeyStorageMode.UserPassphrase,
+            EnabledAt: DateTimeOffset.UtcNow,
+            DpapiWrappedKey: null,
+            SaltBase64: Convert.ToBase64String(salt));
+        await _stateFile.WriteAsync(info);
 
         return DerivePassphraseKey(passphrase, salt);
     }
