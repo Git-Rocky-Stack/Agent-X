@@ -182,6 +182,8 @@ public partial class App : Application
                              AgentX.Core.Data.EncryptedConnectionFactory>();
         services.AddSingleton<AgentX.Core.Services.Security.IDatabaseKeyService,
                              AgentX.Core.Services.Security.DatabaseKeyService>();
+        services.AddSingleton<AgentX.Core.Services.Security.IEncryptionStateFile,
+                             AgentX.Core.Services.Security.EncryptionStateFile>();
         services.AddSingleton<ISecurityStatusService, SecurityStatusService>();
 
         // ── OAuth ──────────────────────────────────────────────
