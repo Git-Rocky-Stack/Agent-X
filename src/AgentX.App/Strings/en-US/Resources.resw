@@ -118,14 +118,6 @@
   <data name="Backup_RestoreComplete" xml:space="preserve"><value>Restore Complete</value></data>
 
   <!-- Annotations -->
-  <data name="Annotations_Title" xml:space="preserve"><value>Annotations</value></data>
-  <data name="Annotations_Highlights" xml:space="preserve"><value>highlights</value></data>
-  <data name="Annotations_SearchPlaceholder" xml:space="preserve"><value>Search annotations...</value></data>
-  <data name="Annotations_FilterByColor" xml:space="preserve"><value>FILTER BY COLOR</value></data>
-  <data name="Annotations_Distribution" xml:space="preserve"><value>DISTRIBUTION</value></data>
-  <data name="Annotations_ExportMarkdown" xml:space="preserve"><value>Export as Markdown</value></data>
-  <data name="Annotations_Empty" xml:space="preserve"><value>No annotations yet</value></data>
-  <data name="Annotations_EmptyHint" xml:space="preserve"><value>Highlight text in your documents to create annotations.</value></data>
 
   <!-- Settings -->
   <data name="Settings_Title" xml:space="preserve"><value>Settings</value></data>

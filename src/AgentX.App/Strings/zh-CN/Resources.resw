@@ -177,14 +177,6 @@
   <data name="Backup_RestoreComplete" xml:space="preserve"><value>&#24674;&#22797;&#23436;&#25104;</value></data>
 
   <!-- Annotations -->
-  <data name="Annotations_Title" xml:space="preserve"><value>&#27880;&#37322;</value></data>
-  <data name="Annotations_Highlights" xml:space="preserve"><value>&#39640;&#20142;&#26631;&#27880;</value></data>
-  <data name="Annotations_SearchPlaceholder" xml:space="preserve"><value>&#25628;&#32034;&#27880;&#37322;...</value></data>
-  <data name="Annotations_FilterByColor" xml:space="preserve"><value>&#25353;&#39068;&#33394;&#31579;&#36873;</value></data>
-  <data name="Annotations_Distribution" xml:space="preserve"><value>&#20998;&#24067;</value></data>
-  <data name="Annotations_ExportMarkdown" xml:space="preserve"><value>&#23548;&#20986;&#20026; Markdown</value></data>
-  <data name="Annotations_Empty" xml:space="preserve"><value>&#26242;&#26080;&#27880;&#37322;</value></data>
-  <data name="Annotations_EmptyHint" xml:space="preserve"><value>&#22312;&#25991;&#26723;&#20013;&#39640;&#20142;&#26631;&#35760;&#25991;&#26412;&#20197;&#21019;&#24314;&#27880;&#37322;&#12290;</value></data>
   <data name="Encryption_SectionHeader.Text" xml:space="preserve"><value>Database Encryption</value></data>
   <data name="Encryption_Description.Text" xml:space="preserve"><value>Encrypt your knowledge vault with AES-256 (SQLCipher). Ultimate tier uses a passphrase you enter on each launch; other tiers use an automatic key tied to your Windows account.</value></data>
 </root>

@@ -177,14 +177,6 @@
   <data name="Backup_RestoreComplete" xml:space="preserve"><value>Restauration termin&#233;e</value></data>
 
   <!-- Annotations -->
-  <data name="Annotations_Title" xml:space="preserve"><value>Annotations</value></data>
-  <data name="Annotations_Highlights" xml:space="preserve"><value>surlignages</value></data>
-  <data name="Annotations_SearchPlaceholder" xml:space="preserve"><value>Rechercher des annotations...</value></data>
-  <data name="Annotations_FilterByColor" xml:space="preserve"><value>FILTRER PAR COULEUR</value></data>
-  <data name="Annotations_Distribution" xml:space="preserve"><value>R&#201;PARTITION</value></data>
-  <data name="Annotations_ExportMarkdown" xml:space="preserve"><value>Exporter en Markdown</value></data>
-  <data name="Annotations_Empty" xml:space="preserve"><value>Aucune annotation pour le moment</value></data>
-  <data name="Annotations_EmptyHint" xml:space="preserve"><value>Surlignez du texte dans vos documents pour cr&#233;er des annotations.</value></data>
   <data name="Encryption_SectionHeader.Text" xml:space="preserve"><value>Database Encryption</value></data>
   <data name="Encryption_Description.Text" xml:space="preserve"><value>Encrypt your knowledge vault with AES-256 (SQLCipher). Ultimate tier uses a passphrase you enter on each launch; other tiers use an automatic key tied to your Windows account.</value></data>
 </root>
