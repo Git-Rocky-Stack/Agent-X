@@ -121,10 +121,11 @@ public sealed partial class MainWindow : Window
         // Initialize keyboard shortcut service and register default shortcuts
         _keyboardShortcutService = App.GetService<KeyboardShortcutService>();
         RegisterDefaultShortcuts();
-        _shortcutRegistry = BuildLegacyShortcutRegistry();
+        _shortcutRegistry = App.GetService<AgentX.Core.Services.Shortcuts.IShortcutRegistry>();
+        SeedLegacyShortcutRegistry();
         _shortcutInputRouter = new ShortcutInputRouter(
             _shortcutRegistry,
-            new ChordStateMachine(1000, () => DateTime.UtcNow),
+            App.GetService<ChordStateMachine>(),
             GetActiveScopeName,
             ShowCommandPaletteAsync,
             ShowJumpToDialogAsync,
@@ -367,9 +368,8 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private AgentX.Core.Services.Shortcuts.ShortcutRegistry BuildLegacyShortcutRegistry()
+    private void SeedLegacyShortcutRegistry()
     {
-        var registry = new AgentX.Core.Services.Shortcuts.ShortcutRegistry();
         foreach (var shortcut in _keyboardShortcutService.GetAllShortcuts())
         {
             var key = ShortcutInputRouter.MapVirtualKey(shortcut.Key);
@@ -383,7 +383,7 @@ public sealed partial class MainWindow : Window
             if (shortcut.Shift) modifiers |= KeyModifiers.Shift;
             if (shortcut.Alt) modifiers |= KeyModifiers.Alt;
 
-            registry.Register(new AgentX.Core.Services.Shortcuts.ShortcutDescriptor(
+            _shortcutRegistry.Register(new AgentX.Core.Services.Shortcuts.ShortcutDescriptor(
                 shortcut.Id,
                 shortcut.DisplayName,
                 ShortcutScope.Global,
@@ -395,8 +395,6 @@ public sealed partial class MainWindow : Window
                 },
                 shortcut.Category));
         }
-
-        return registry;
     }
 
     private string? GetActiveScopeName() => ContentFrame.CurrentSourcePageType?.Name;

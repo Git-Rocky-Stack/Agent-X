@@ -1,7 +1,10 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Navigation;
+using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
+using AgentX.Core.Services.Shortcuts;
 using AgentX.Core.Services.Chat.Models;
 using Serilog;
 using Windows.System;
@@ -15,6 +18,8 @@ namespace AgentX.App.Views;
 /// </summary>
 public sealed partial class ChatPage : Page
 {
+    private readonly IShortcutRegistry _shortcutRegistry;
+    private IDisposable? _shortcutScope;
     private DispatcherTimer? _cursorBlinkTimer;
     private bool _cursorVisible = true;
 
@@ -23,10 +28,42 @@ public sealed partial class ChatPage : Page
     public ChatPage()
     {
         ViewModel = App.GetService<ChatViewModel>();
+        _shortcutRegistry = App.GetService<IShortcutRegistry>();
         InitializeComponent();
 
         Loaded += OnPageLoaded;
         Unloaded += OnPageUnloaded;
+    }
+
+    protected override void OnNavigatedTo(NavigationEventArgs e)
+    {
+        base.OnNavigatedTo(e);
+        _shortcutScope = _shortcutRegistry.RegisterShortcuts(
+            new AgentX.Core.Services.Shortcuts.ShortcutDescriptor(
+                "chat.new",
+                "New conversation",
+                new ShortcutScope(nameof(ChatPage)),
+                new[] { new KeyChord(KeyModifiers.Ctrl | KeyModifiers.Shift, VirtualKeyCode.N) },
+                _ => ViewModel.NewConversationCommand.ExecuteAsync(null),
+                "Chat"),
+            new AgentX.Core.Services.Shortcuts.ShortcutDescriptor(
+                "chat.toggle-pane",
+                "Toggle conversation pane",
+                new ShortcutScope(nameof(ChatPage)),
+                new[] { new KeyChord(KeyModifiers.Ctrl, VirtualKeyCode.B) },
+                _ =>
+                {
+                    ViewModel.ToggleConversationPaneCommand.Execute(null);
+                    return Task.CompletedTask;
+                },
+                "Chat"));
+    }
+
+    protected override void OnNavigatedFrom(NavigationEventArgs e)
+    {
+        base.OnNavigatedFrom(e);
+        _shortcutScope?.Dispose();
+        _shortcutScope = null;
     }
 
     // ═══════════════════════════════════════════════════════════════

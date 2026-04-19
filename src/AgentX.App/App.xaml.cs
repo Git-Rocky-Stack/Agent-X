@@ -18,6 +18,7 @@ using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Indexing;
 using AgentX.Core.Services.License;
 using AgentX.Core.Services.Settings;
+using AgentX.Core.Services.Shortcuts;
 using AgentX.Core.Services.Tagging;
 using AgentX.Core.Search;
 using AgentX.Core.Services.Intelligence;
@@ -293,6 +294,8 @@ public partial class App : Application
 
         // ── App Services (UI layer) ──────────────────────────────
         services.AddSingleton<KeyboardShortcutService>();
+        services.AddSingleton<IShortcutRegistry, ShortcutRegistry>();
+        services.AddSingleton(_ => new ChordStateMachine(1000, () => DateTime.UtcNow));
         services.AddSingleton<IThemeService, ThemeService>();
 
         // ── AI Services ────────────────────────────────────────

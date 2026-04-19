@@ -51,5 +51,7 @@
     <Compile Include="..\..\src\AgentX.App\ViewModels\CheatsheetViewModel.cs" Link="ViewModels\CheatsheetViewModel.cs" />
     <!-- ShortcutInputRouter dispatch core is pure; WinUI attach lives in a separate file. -->
     <Compile Include="..\..\src\AgentX.App\Services\ShortcutInputRouter.cs" Link="Services\ShortcutInputRouter.cs" />
+    <!-- ShortcutRegistrationExtensions is pure registry composition for page-scoped shortcuts. -->
+    <Compile Include="..\..\src\AgentX.App\Helpers\ShortcutRegistrationExtensions.cs" Link="Helpers\ShortcutRegistrationExtensions.cs" />
   </ItemGroup>
 </Project>

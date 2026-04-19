@@ -1690,15 +1690,18 @@ git commit -m "feat(a2): ShortcutInputRouter hooks MainWindow for palette/jump/c
 
 ### Task 9: Per-page shortcut registration pattern
 
-Each existing page (e.g., `DocumentsPage`, `ChatPage`, `SettingsPage`) registers its scope-local shortcuts in `OnNavigatedTo` and unregisters in `OnNavigatedFrom`.
+Each existing page (e.g., `KnowledgeVaultPage`, `ChatPage`, `SettingsPage`) registers its scope-local shortcuts in `OnNavigatedTo` and unregisters in `OnNavigatedFrom`.
 
 **Files:**
-- Modify: `src/AgentX.App/Views/DocumentsPage.xaml.cs` — example; repeat for each page
+- Create: `src/AgentX.App/Helpers/ShortcutRegistrationExtensions.cs`
+- Create: `tests/AgentX.Tests/Services/ShortcutRegistrationExtensionsTests.cs`
+- Modify: `src/AgentX.App/App.xaml.cs` — shared Core shortcut registry DI, pulled forward from Task 11 so pages register into the same registry as MainWindow
+- Modify: `src/AgentX.App/Views/KnowledgeVaultPage.xaml.cs` — Agent-X's document page
 - Modify: `src/AgentX.App/Views/ChatPage.xaml.cs`
 - Modify: `src/AgentX.App/Views/SettingsPage.xaml.cs`
 - Modify: any other page Rocky chooses to make shortcut-aware
 
-- [ ] **Step 1: Add a `PageScope` base class or extension**
+- [x] **Step 1: Add a `PageScope` base class or extension**
 
 ```csharp
 // src/AgentX.App/Helpers/ShortcutPageExtensions.cs
@@ -1730,7 +1733,7 @@ public static class ShortcutPageExtensions
 }
 ```
 
-- [ ] **Step 2: Use in `DocumentsPage.xaml.cs`**
+- [x] **Step 2: Use in `KnowledgeVaultPage.xaml.cs`**
 
 ```csharp
 using AgentX.App.Helpers;
@@ -1780,11 +1783,11 @@ public sealed partial class DocumentsPage : Page
 }
 ```
 
-- [ ] **Step 3: Repeat pattern for `ChatPage`, `SettingsPage`, `AuditLogPage` (if v2.1.5 has landed)**
+- [x] **Step 3: Repeat pattern for `ChatPage`, `SettingsPage`, `AuditLogPage` (if v2.1.5 has landed)**
 
 Each page's descriptors are listed in Task 10's catalog spec.
 
-- [ ] **Step 4: Commit per page**
+- [x] **Step 4: Commit per page**
 
 ```bash
 git commit -m "feat(a2): register per-page shortcuts in DocumentsPage"
@@ -2166,7 +2169,7 @@ dotnet build AgentX.sln -c Debug
 dotnet test tests/AgentX.Tests/AgentX.Tests.csproj --blame-hang-timeout 60s
 ```
 
-Expected: build 0W/0E, all tests pass. A2 has 45 tests after Task 8.
+Expected: build 0W/0E, all tests pass. A2 has 47 tests after Task 9.
 
 - [ ] **Step 6: Final commit**
 
