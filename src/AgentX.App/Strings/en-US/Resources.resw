@@ -69,10 +69,6 @@
   <data name="Status_Success" xml:space="preserve"><value>Success</value></data>
 
   <!-- Error Messages -->
-  <data name="Error_Generic" xml:space="preserve"><value>An unexpected error occurred. Please try again.</value></data>
-  <data name="Error_Network" xml:space="preserve"><value>Network error. Please check your connection and try again.</value></data>
-  <data name="Error_NotFound" xml:space="preserve"><value>The requested item was not found.</value></data>
-  <data name="Error_Permission" xml:space="preserve"><value>You do not have permission to perform this action.</value></data>
 
   <!-- Validation Messages -->
   <data name="Validation_Required" xml:space="preserve"><value>This field is required.</value></data>

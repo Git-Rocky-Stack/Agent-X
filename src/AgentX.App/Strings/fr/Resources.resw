@@ -148,10 +148,6 @@
   <data name="Validation_TooLong" xml:space="preserve"><value>Ne doit pas d&#233;passer {0} caract&#232;res</value></data>
 
   <!-- Errors -->
-  <data name="Error_Generic" xml:space="preserve"><value>Une erreur inattendue s'est produite. Veuillez r&#233;essayer.</value></data>
-  <data name="Error_Network" xml:space="preserve"><value>Erreur r&#233;seau. V&#233;rifiez votre connexion et r&#233;essayez.</value></data>
-  <data name="Error_NotFound" xml:space="preserve"><value>L'&#233;l&#233;ment demand&#233; est introuvable.</value></data>
-  <data name="Error_Permission" xml:space="preserve"><value>Vous n'avez pas la permission d'effectuer cette action.</value></data>
 
   <!-- Backup & Restore -->
 
