@@ -25,22 +25,6 @@
   <!-- Common Actions -->
 
   <!-- Status Messages -->
-  <data name="Status_Loading" xml:space="preserve"><value>Cargando...</value></data>
-  <data name="Status_Connected" xml:space="preserve"><value>Conectado</value></data>
-  <data name="Status_Disconnected" xml:space="preserve"><value>Desconectado</value></data>
-  <data name="Status_Initializing" xml:space="preserve"><value>Inicializando...</value></data>
-  <data name="Status_Ready" xml:space="preserve"><value>Listo</value></data>
-  <data name="Status_Saving" xml:space="preserve"><value>Guardando...</value></data>
-  <data name="Status_Syncing" xml:space="preserve"><value>Sincronizando...</value></data>
-  <data name="Status_Indexing" xml:space="preserve"><value>Indexando...</value></data>
-  <data name="Status_Active" xml:space="preserve"><value>Activo</value></data>
-  <data name="Status_Disabled" xml:space="preserve"><value>Desactivado</value></data>
-  <data name="Status_EmptyState" xml:space="preserve"><value>No hay elementos para mostrar</value></data>
-  <data name="Status_Error" xml:space="preserve"><value>Ocurri&#243; un error</value></data>
-  <data name="Status_Failed" xml:space="preserve"><value>Fallido</value></data>
-  <data name="Status_NoResults" xml:space="preserve"><value>Sin resultados</value></data>
-  <data name="Status_Pending" xml:space="preserve"><value>Pendiente</value></data>
-  <data name="Status_Success" xml:space="preserve"><value>Exitoso</value></data>
 
   <!-- Error Messages -->
 

@@ -25,22 +25,6 @@
   <!-- Common Actions -->
 
   <!-- Status Messages -->
-  <data name="Status_Loading" xml:space="preserve"><value>Wird geladen...</value></data>
-  <data name="Status_Saving" xml:space="preserve"><value>Wird gespeichert...</value></data>
-  <data name="Status_Syncing" xml:space="preserve"><value>Wird synchronisiert...</value></data>
-  <data name="Status_Indexing" xml:space="preserve"><value>Wird indexiert...</value></data>
-  <data name="Status_Ready" xml:space="preserve"><value>Bereit</value></data>
-  <data name="Status_Connected" xml:space="preserve"><value>Verbunden</value></data>
-  <data name="Status_Disconnected" xml:space="preserve"><value>Getrennt</value></data>
-  <data name="Status_Error" xml:space="preserve"><value>Fehler</value></data>
-  <data name="Status_Success" xml:space="preserve"><value>Erfolgreich</value></data>
-  <data name="Status_Failed" xml:space="preserve"><value>Fehlgeschlagen</value></data>
-  <data name="Status_Pending" xml:space="preserve"><value>Ausstehend</value></data>
-  <data name="Status_Active" xml:space="preserve"><value>Aktiv</value></data>
-  <data name="Status_Disabled" xml:space="preserve"><value>Deaktiviert</value></data>
-  <data name="Status_NoResults" xml:space="preserve"><value>Keine Ergebnisse gefunden</value></data>
-  <data name="Status_EmptyState" xml:space="preserve"><value>Noch nichts vorhanden</value></data>
-  <data name="Status_Initializing" xml:space="preserve"><value>Wird initialisiert...</value></data>
 
   <!-- Chat -->
 

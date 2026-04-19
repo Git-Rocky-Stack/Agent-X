@@ -25,22 +25,6 @@
   <!-- Common Actions -->
 
   <!-- Status Messages -->
-  <data name="Status_Loading" xml:space="preserve"><value>&#35501;&#12415;&#36796;&#12415;&#20013;...</value></data>
-  <data name="Status_Saving" xml:space="preserve"><value>&#20445;&#23384;&#20013;...</value></data>
-  <data name="Status_Syncing" xml:space="preserve"><value>&#21516;&#26399;&#20013;...</value></data>
-  <data name="Status_Indexing" xml:space="preserve"><value>&#12452;&#12531;&#12487;&#12483;&#12463;&#12473;&#20316;&#25104;&#20013;...</value></data>
-  <data name="Status_Ready" xml:space="preserve"><value>&#28310;&#20633;&#23436;&#20102;</value></data>
-  <data name="Status_Connected" xml:space="preserve"><value>&#25509;&#32154;&#28168;&#12415;</value></data>
-  <data name="Status_Disconnected" xml:space="preserve"><value>&#20999;&#26029;</value></data>
-  <data name="Status_Error" xml:space="preserve"><value>&#12456;&#12521;&#12540;</value></data>
-  <data name="Status_Success" xml:space="preserve"><value>&#25104;&#21151;</value></data>
-  <data name="Status_Failed" xml:space="preserve"><value>&#22833;&#25943;</value></data>
-  <data name="Status_Pending" xml:space="preserve"><value>&#20445;&#30041;&#20013;</value></data>
-  <data name="Status_Active" xml:space="preserve"><value>&#12450;&#12463;&#12486;&#12451;&#12502;</value></data>
-  <data name="Status_Disabled" xml:space="preserve"><value>&#28961;&#21177;</value></data>
-  <data name="Status_NoResults" xml:space="preserve"><value>&#32080;&#26524;&#12364;&#35211;&#12388;&#12363;&#12426;&#12414;&#12379;&#12435;</value></data>
-  <data name="Status_EmptyState" xml:space="preserve"><value>&#12414;&#12384;&#20309;&#12418;&#12354;&#12426;&#12414;&#12379;&#12435;</value></data>
-  <data name="Status_Initializing" xml:space="preserve"><value>&#21021;&#26399;&#21270;&#20013;...</value></data>
 
   <!-- Chat -->
 
