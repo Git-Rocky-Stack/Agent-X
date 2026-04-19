@@ -60,11 +60,6 @@
   <!-- Settings -->
 
   <!-- Validation -->
-  <data name="Validation_Required" xml:space="preserve"><value>Dieses Feld ist erforderlich</value></data>
-  <data name="Validation_InvalidRange" xml:space="preserve"><value>Der Wert muss zwischen {0} und {1} liegen</value></data>
-  <data name="Validation_InvalidFormat" xml:space="preserve"><value>Ung&#252;ltiges Format</value></data>
-  <data name="Validation_TooShort" xml:space="preserve"><value>Mindestens {0} Zeichen erforderlich</value></data>
-  <data name="Validation_TooLong" xml:space="preserve"><value>Maximal {0} Zeichen erlaubt</value></data>
 
   <!-- Errors -->
 

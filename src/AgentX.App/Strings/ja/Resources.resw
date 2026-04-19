@@ -60,11 +60,6 @@
   <!-- Settings -->
 
   <!-- Validation -->
-  <data name="Validation_Required" xml:space="preserve"><value>&#12371;&#12398;&#12501;&#12451;&#12540;&#12523;&#12489;&#12399;&#24517;&#38920;&#12391;&#12377;</value></data>
-  <data name="Validation_InvalidRange" xml:space="preserve"><value>&#20516;&#12399; {0} &#12363;&#12425; {1} &#12398;&#38291;&#12391;&#12394;&#12369;&#12428;&#12400;&#12394;&#12426;&#12414;&#12379;&#12435;</value></data>
-  <data name="Validation_InvalidFormat" xml:space="preserve"><value>&#28961;&#21177;&#12394;&#24418;&#24335;&#12391;&#12377;</value></data>
-  <data name="Validation_TooShort" xml:space="preserve"><value>{0} &#25991;&#23383;&#20197;&#19978;&#24517;&#35201;&#12391;&#12377;</value></data>
-  <data name="Validation_TooLong" xml:space="preserve"><value>{0} &#25991;&#23383;&#20197;&#20869;&#12391;&#20837;&#21147;&#12375;&#12390;&#12367;&#12384;&#12373;&#12356;</value></data>
 
   <!-- Errors -->
 

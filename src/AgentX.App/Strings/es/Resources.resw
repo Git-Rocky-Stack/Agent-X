@@ -29,11 +29,6 @@
   <!-- Error Messages -->
 
   <!-- Validation Messages -->
-  <data name="Validation_Required" xml:space="preserve"><value>Este campo es obligatorio.</value></data>
-  <data name="Validation_InvalidFormat" xml:space="preserve"><value>Formato inv&#225;lido.</value></data>
-  <data name="Validation_TooShort" xml:space="preserve"><value>El valor es demasiado corto.</value></data>
-  <data name="Validation_TooLong" xml:space="preserve"><value>El valor es demasiado largo.</value></data>
-  <data name="Validation_InvalidRange" xml:space="preserve"><value>El valor est&#225; fuera del rango.</value></data>
 
   <!-- Chat -->
 
