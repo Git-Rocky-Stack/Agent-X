@@ -21,10 +21,6 @@
   <!-- Navigation -->
 
   <!-- Section Headers -->
-  <data name="Section_Intelligence" xml:space="preserve"><value>INTELLIGENCE</value></data>
-  <data name="Section_Knowledge" xml:space="preserve"><value>CONNAISSANCES</value></data>
-  <data name="Section_System" xml:space="preserve"><value>SYST&#200;ME</value></data>
-  <data name="Section_Support" xml:space="preserve"><value>SUPPORT</value></data>
 
   <!-- Common Actions -->
 
