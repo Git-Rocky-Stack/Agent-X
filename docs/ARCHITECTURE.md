@@ -1815,6 +1815,18 @@ The union of both surfaces defines *coverage*. A resw entry that matches neither
 | CI gate | `.github/workflows/locale-audit.yml` |
 | Smoke checklist | `docs/a1-locale-smoke-checklist.md` |
 
+### Keyboard Power Mode (A2)
+
+Agent-X's keyboard power mode centers on an `IShortcutRegistry` singleton that owns every shortcut in the app as a `ShortcutDescriptor`. Descriptors are scoped `Global` or per-page. Three built-in dialogs consume the registry:
+
+- **Command Palette** (`Ctrl+Shift+P`) — fuzzy search over all registered shortcuts. Execute by pressing `Enter`.
+- **Jump-To** (`Ctrl+P`) — fuzzy search over documents, conversations, and pages.
+- **Cheatsheet** (`F1` or `Ctrl+Shift+?`) — grouped read-only listing of every shortcut available in the current scope.
+
+`ShortcutInputRouter` attaches to `MainWindow.RootGrid.PreviewKeyDown` and dispatches key events to the registry. A `ChordStateMachine` tracks timed multi-key chords (not seeded in v2.1.0 final — future expansion). `ShortcutCatalog` seeds 12 default global shortcuts at startup.
+
+Pages register scope-local shortcuts via `ShortcutRegistrationExtensions.RegisterPageShortcuts()`, called in the page's `OnNavigatedTo` handler.
+
 ---
 
 *This document reflects the Agent-X codebase as of version 1.0, build date 2026-02-27. All file paths are relative to the solution root at `src/AgentX.App/` and `src/AgentX.Core/` respectively.*

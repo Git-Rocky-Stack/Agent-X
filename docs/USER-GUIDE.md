@@ -1183,6 +1183,22 @@ Agent-X displays its user interface in the language you have chosen for Windows,
 
 **Reporting translation issues.** If you spot an awkward phrase, missing string, or text that overflows a button, please file an issue with the page name, the language, and a screenshot. Translations are versioned alongside the app so fixes ship on the next release.
 
+## Keyboard Shortcuts
+
+### Command Palette (Ctrl+Shift+P)
+Search for any command or action. Start typing to fuzzy-match across all registered shortcuts. Use arrow keys to navigate, Enter to execute.
+
+### Jump-To (Ctrl+P)
+Quickly navigate to any document, conversation, or page. Start typing to filter results.
+
+### Cheatsheet (F1 or Ctrl+Shift+?)
+View all available keyboard shortcuts grouped by category. Shortcuts for the current page appear under a "Current Page" section.
+
+### Navigation Shortcuts
+- `Ctrl+Shift+D1` — Go to Documents (Knowledge Vault)
+- `Ctrl+Shift+D2` — Go to Chat
+- `Ctrl+Shift+D3` — Go to Settings
+
 ---
 
 *Agent-X is developed by Rocky Stack / Strategia. For support, feature requests, or bug reports, please contact the development team.*

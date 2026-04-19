@@ -38,7 +38,6 @@
   <data name="Cheatsheet_Dialog.Title" xml:space="preserve"><value>Atajos de teclado</value></data>
 
   <!-- Command Palette -->
-  <data name="CommandPalette_QueryBox.PlaceholderText" xml:space="preserve"><value>Escribe un comando o busca...</value></data>
 
   <!-- Plugin Manager -->
   <data name="Plugin_Manager.Text" xml:space="preserve"><value>Plugins</value></data>
@@ -66,14 +65,7 @@
   <data name="Plugin_ByAuthor.Text" xml:space="preserve"><value>por</value></data>
 
   <!-- Jump-To dialog -->
-  <data name="JumpTo_QueryBox.PlaceholderText" xml:space="preserve"><value>Ir a un documento, conversaci&#243;n o p&#225;gina...</value></data>
-
-  <!-- Shortcut categories (used in Cheatsheet grouping) -->
-  <data name="ShortcutCategory_Chat" xml:space="preserve"><value>Chat</value></data>
-  <data name="ShortcutCategory_Documents" xml:space="preserve"><value>Documentos</value></data>
-  <data name="ShortcutCategory_Help" xml:space="preserve"><value>Ayuda</value></data>
-  <data name="ShortcutCategory_Navigation" xml:space="preserve"><value>Navegaci&#243;n</value></data>
-  <data name="ShortcutCategory_Window" xml:space="preserve"><value>Ventana</value></data>
+  <data name="JumpTo_Title.Title" xml:space="preserve"><value>Ir a</value></data>
 
   <!-- Backup & Restore -->
 

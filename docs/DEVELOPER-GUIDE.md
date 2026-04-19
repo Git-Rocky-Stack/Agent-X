@@ -2148,6 +2148,19 @@ Exit code 0 = all locales ≥ 98% covered, no orphans created. Exit code 1 = gat
 
 **Never hard-code user-visible strings.** A quick sniff test on a draft PR: `grep -n '"\w.*\w"' src/AgentX.App/Views/*.xaml.cs` — any user-visible literal is a bug that should route through `ILocalizationService` or XAML `x:Uid` instead.
 
+### Adding Keyboard Shortcuts
+
+To add a new global shortcut, add a descriptor in `ShortcutCatalog.SeedDefaults()`. To add a page-scoped shortcut, call `RegisterPageShortcuts(registry, scopeName, descriptors)` in your page's `OnNavigatedTo` handler and `UnregisterScope(scopeName)` in `OnNavigatedFrom`.
+
+Each `ShortcutDescriptor` requires:
+- `Chord` — the key combination (e.g., `KeyChord.From("Ctrl+Shift+P")`)
+- `Scope` — `ShortcutScope.Global` or `ShortcutScope.Page("PageName")`
+- `Label` — human-readable name (localized via Resources.resw)
+- `Category` — grouping for cheatsheet display
+- `Handler` — `Func<Task>` to execute when triggered
+
+Shortcut labels must be added to all 6 locale `.resw` files. The locale coverage gate enforces >=98% parity.
+
 ---
 
 *This developer guide reflects the Agent-X codebase as of version 1.0.0 (February 2026). For architecture decisions and high-level system design, refer to `docs/ARCHITECTURE.md`. For the public API reference, refer to `docs/API-REFERENCE.md`.*
