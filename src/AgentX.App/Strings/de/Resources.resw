@@ -19,28 +19,6 @@
   </xsd:schema>
 
   <!-- Navigation -->
-  <data name="Nav_Dashboard" xml:space="preserve"><value>&#220;bersicht</value></data>
-  <data name="Nav_Chat" xml:space="preserve"><value>KI-Chat</value></data>
-  <data name="Nav_AskFiles" xml:space="preserve"><value>Dateien befragen</value></data>
-  <data name="Nav_QuickActions" xml:space="preserve"><value>Schnellaktionen</value></data>
-  <data name="Nav_Search" xml:space="preserve"><value>Semantische Suche</value></data>
-  <data name="Nav_KnowledgeVault" xml:space="preserve"><value>Wissensspeicher</value></data>
-  <data name="Nav_Collections" xml:space="preserve"><value>Sammlungen</value></data>
-  <data name="Nav_Workflows" xml:space="preserve"><value>Arbeitsabl&#228;ufe</value></data>
-  <data name="Nav_KnowledgeGraph" xml:space="preserve"><value>Wissensgraph</value></data>
-  <data name="Nav_WebImport" xml:space="preserve"><value>Web-Import</value></data>
-  <data name="Nav_Settings" xml:space="preserve"><value>Einstellungen</value></data>
-  <data name="Nav_PluginManager" xml:space="preserve"><value>Plugin-Verwaltung</value></data>
-  <data name="Nav_SyncSettings" xml:space="preserve"><value>Synchronisierungseinstellungen</value></data>
-  <data name="Nav_Backup" xml:space="preserve"><value>Sicherung &amp; Wiederherstellung</value></data>
-  <data name="Nav_Annotations" xml:space="preserve"><value>Anmerkungen</value></data>
-  <data name="Nav_Inbox" xml:space="preserve"><value>Posteingang</value></data>
-  <data name="Nav_Comparison" xml:space="preserve"><value>Vergleich</value></data>
-  <data name="Nav_Workspaces" xml:space="preserve"><value>Arbeitsbereiche</value></data>
-  <data name="Nav_ModelManager" xml:space="preserve"><value>Modellverwaltung</value></data>
-  <data name="Nav_HardwareAdvisor" xml:space="preserve"><value>Hardware-Berater</value></data>
-  <data name="Nav_BackupRestore" xml:space="preserve"><value>Sicherung &amp; Wiederherstellung</value></data>
-  <data name="Nav_Digest" xml:space="preserve"><value>Wochenbericht</value></data>
 
   <!-- Section Headers -->
   <data name="Section_Intelligence" xml:space="preserve"><value>INTELLIGENZ</value></data>

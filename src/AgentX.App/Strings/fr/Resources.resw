@@ -19,28 +19,6 @@
   </xsd:schema>
 
   <!-- Navigation -->
-  <data name="Nav_Dashboard" xml:space="preserve"><value>Tableau de bord</value></data>
-  <data name="Nav_Chat" xml:space="preserve"><value>Chat IA</value></data>
-  <data name="Nav_AskFiles" xml:space="preserve"><value>Interroger vos fichiers</value></data>
-  <data name="Nav_QuickActions" xml:space="preserve"><value>Actions rapides</value></data>
-  <data name="Nav_Search" xml:space="preserve"><value>Recherche s&#233;mantique</value></data>
-  <data name="Nav_KnowledgeVault" xml:space="preserve"><value>Coffre de connaissances</value></data>
-  <data name="Nav_Collections" xml:space="preserve"><value>Collections</value></data>
-  <data name="Nav_Workflows" xml:space="preserve"><value>Flux de travail</value></data>
-  <data name="Nav_KnowledgeGraph" xml:space="preserve"><value>Graphe de connaissances</value></data>
-  <data name="Nav_WebImport" xml:space="preserve"><value>Import Web</value></data>
-  <data name="Nav_Settings" xml:space="preserve"><value>Param&#232;tres</value></data>
-  <data name="Nav_PluginManager" xml:space="preserve"><value>Gestionnaire de plugins</value></data>
-  <data name="Nav_SyncSettings" xml:space="preserve"><value>Param&#232;tres de synchronisation</value></data>
-  <data name="Nav_Backup" xml:space="preserve"><value>Sauvegarde et restauration</value></data>
-  <data name="Nav_Annotations" xml:space="preserve"><value>Annotations</value></data>
-  <data name="Nav_Inbox" xml:space="preserve"><value>Bo&#238;te de r&#233;ception</value></data>
-  <data name="Nav_Comparison" xml:space="preserve"><value>Comparaison</value></data>
-  <data name="Nav_Workspaces" xml:space="preserve"><value>Espaces de travail</value></data>
-  <data name="Nav_ModelManager" xml:space="preserve"><value>Gestionnaire de mod&#232;les</value></data>
-  <data name="Nav_HardwareAdvisor" xml:space="preserve"><value>Conseiller mat&#233;riel</value></data>
-  <data name="Nav_BackupRestore" xml:space="preserve"><value>Sauvegarde et restauration</value></data>
-  <data name="Nav_Digest" xml:space="preserve"><value>R&#233;sum&#233; hebdomadaire</value></data>
 
   <!-- Section Headers -->
   <data name="Section_Intelligence" xml:space="preserve"><value>INTELLIGENCE</value></data>

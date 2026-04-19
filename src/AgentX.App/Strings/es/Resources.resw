@@ -19,28 +19,6 @@
   </xsd:schema>
 
   <!-- Navigation -->
-  <data name="Nav_Dashboard" xml:space="preserve"><value>Panel</value></data>
-  <data name="Nav_Chat" xml:space="preserve"><value>Chat IA</value></data>
-  <data name="Nav_AskFiles" xml:space="preserve"><value>Consultar Archivos</value></data>
-  <data name="Nav_QuickActions" xml:space="preserve"><value>Acciones R&#225;pidas</value></data>
-  <data name="Nav_Workflows" xml:space="preserve"><value>Flujos de Trabajo</value></data>
-  <data name="Nav_KnowledgeVault" xml:space="preserve"><value>B&#243;veda de Conocimiento</value></data>
-  <data name="Nav_WebImport" xml:space="preserve"><value>Importar Web</value></data>
-  <data name="Nav_Collections" xml:space="preserve"><value>Colecciones</value></data>
-  <data name="Nav_Search" xml:space="preserve"><value>B&#250;squeda Sem&#225;ntica</value></data>
-  <data name="Nav_KnowledgeGraph" xml:space="preserve"><value>Grafo de Conocimiento</value></data>
-  <data name="Nav_ModelManager" xml:space="preserve"><value>Gestor de Modelos</value></data>
-  <data name="Nav_HardwareAdvisor" xml:space="preserve"><value>Asesor de Hardware</value></data>
-  <data name="Nav_Settings" xml:space="preserve"><value>Configuraci&#243;n</value></data>
-  <data name="Nav_BackupRestore" xml:space="preserve"><value>Copia de Seguridad</value></data>
-  <data name="Nav_Annotations" xml:space="preserve"><value>Anotaciones</value></data>
-  <data name="Nav_Digest" xml:space="preserve"><value>Resumen Semanal</value></data>
-  <data name="Nav_PluginManager" xml:space="preserve"><value>Gesti&#243;n de Plugins</value></data>
-  <data name="Nav_SyncSettings" xml:space="preserve"><value>Ajustes de Sincronizaci&#243;n</value></data>
-  <data name="Nav_Backup" xml:space="preserve"><value>Copia de Seguridad y Restauraci&#243;n</value></data>
-  <data name="Nav_Inbox" xml:space="preserve"><value>Bandeja Inteligente</value></data>
-  <data name="Nav_Comparison" xml:space="preserve"><value>Comparaci&#243;n</value></data>
-  <data name="Nav_Workspaces" xml:space="preserve"><value>Espacios de Trabajo</value></data>
 
   <!-- Section Headers -->
   <data name="Section_Intelligence" xml:space="preserve"><value>INTELIGENCIA</value></data>

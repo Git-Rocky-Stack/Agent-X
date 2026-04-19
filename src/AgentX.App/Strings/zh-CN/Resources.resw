@@ -19,28 +19,6 @@
   </xsd:schema>
 
   <!-- Navigation -->
-  <data name="Nav_Dashboard" xml:space="preserve"><value>&#20202;&#34920;&#30424;</value></data>
-  <data name="Nav_Chat" xml:space="preserve"><value>AI &#23545;&#35805;</value></data>
-  <data name="Nav_AskFiles" xml:space="preserve"><value>&#25991;&#20214;&#38382;&#31572;</value></data>
-  <data name="Nav_QuickActions" xml:space="preserve"><value>&#24555;&#25463;&#25805;&#20316;</value></data>
-  <data name="Nav_Search" xml:space="preserve"><value>&#35821;&#20041;&#25628;&#32034;</value></data>
-  <data name="Nav_KnowledgeVault" xml:space="preserve"><value>&#30693;&#35782;&#24211;</value></data>
-  <data name="Nav_Collections" xml:space="preserve"><value>&#38598;&#21512;</value></data>
-  <data name="Nav_Workflows" xml:space="preserve"><value>&#24037;&#20316;&#27969;</value></data>
-  <data name="Nav_KnowledgeGraph" xml:space="preserve"><value>&#30693;&#35782;&#22270;&#35889;</value></data>
-  <data name="Nav_WebImport" xml:space="preserve"><value>&#32593;&#39029;&#23548;&#20837;</value></data>
-  <data name="Nav_Settings" xml:space="preserve"><value>&#35774;&#32622;</value></data>
-  <data name="Nav_PluginManager" xml:space="preserve"><value>&#25554;&#20214;&#31649;&#29702;</value></data>
-  <data name="Nav_SyncSettings" xml:space="preserve"><value>&#21516;&#27493;&#35774;&#32622;</value></data>
-  <data name="Nav_Backup" xml:space="preserve"><value>&#22791;&#20221;&#19982;&#24674;&#22797;</value></data>
-  <data name="Nav_Annotations" xml:space="preserve"><value>&#27880;&#37322;</value></data>
-  <data name="Nav_Inbox" xml:space="preserve"><value>&#25910;&#20214;&#31665;</value></data>
-  <data name="Nav_Comparison" xml:space="preserve"><value>&#23545;&#27604;</value></data>
-  <data name="Nav_Workspaces" xml:space="preserve"><value>&#24037;&#20316;&#21306;</value></data>
-  <data name="Nav_ModelManager" xml:space="preserve"><value>&#27169;&#22411;&#31649;&#29702;</value></data>
-  <data name="Nav_HardwareAdvisor" xml:space="preserve"><value>&#30828;&#20214;&#39038;&#38382;</value></data>
-  <data name="Nav_BackupRestore" xml:space="preserve"><value>&#22791;&#20221;&#19982;&#24674;&#22797;</value></data>
-  <data name="Nav_Digest" xml:space="preserve"><value>&#21608;&#25253;</value></data>
 
   <!-- Section Headers -->
   <data name="Section_Intelligence" xml:space="preserve"><value>&#26234;&#33021;</value></data>

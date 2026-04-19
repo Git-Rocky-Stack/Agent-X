@@ -19,28 +19,6 @@
   </xsd:schema>
 
   <!-- Navigation -->
-  <data name="Nav_Dashboard" xml:space="preserve"><value>Dashboard</value></data>
-  <data name="Nav_Chat" xml:space="preserve"><value>AI Chat</value></data>
-  <data name="Nav_AskFiles" xml:space="preserve"><value>Ask Your Files</value></data>
-  <data name="Nav_QuickActions" xml:space="preserve"><value>Quick Actions</value></data>
-  <data name="Nav_Workflows" xml:space="preserve"><value>Workflows</value></data>
-  <data name="Nav_KnowledgeVault" xml:space="preserve"><value>Knowledge Vault</value></data>
-  <data name="Nav_WebImport" xml:space="preserve"><value>Web Import</value></data>
-  <data name="Nav_Collections" xml:space="preserve"><value>Collections</value></data>
-  <data name="Nav_Search" xml:space="preserve"><value>Semantic Search</value></data>
-  <data name="Nav_KnowledgeGraph" xml:space="preserve"><value>Knowledge Graph</value></data>
-  <data name="Nav_ModelManager" xml:space="preserve"><value>Model Manager</value></data>
-  <data name="Nav_HardwareAdvisor" xml:space="preserve"><value>Hardware Advisor</value></data>
-  <data name="Nav_Settings" xml:space="preserve"><value>Settings</value></data>
-  <data name="Nav_BackupRestore" xml:space="preserve"><value>Backup &amp; Restore</value></data>
-  <data name="Nav_Annotations" xml:space="preserve"><value>Annotations</value></data>
-  <data name="Nav_Digest" xml:space="preserve"><value>Weekly Digest</value></data>
-  <data name="Nav_PluginManager" xml:space="preserve"><value>Plugin Manager</value></data>
-  <data name="Nav_SyncSettings" xml:space="preserve"><value>Sync Settings</value></data>
-  <data name="Nav_Backup" xml:space="preserve"><value>Backup &amp; Restore</value></data>
-  <data name="Nav_Inbox" xml:space="preserve"><value>Smart Inbox</value></data>
-  <data name="Nav_Comparison" xml:space="preserve"><value>Comparison</value></data>
-  <data name="Nav_Workspaces" xml:space="preserve"><value>Workspaces</value></data>
 
   <!-- Section Headers -->
   <data name="Section_Intelligence" xml:space="preserve"><value>INTELLIGENCE</value></data>
