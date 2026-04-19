@@ -518,7 +518,7 @@ Every production `SqliteConnection` creation site is routed through `IEncryptedC
 
 ## Keyboard Shortcuts
 
-Current shipped shortcuts are registered in `MainWindow.RegisterDefaultShortcuts()` via the legacy `KeyboardShortcutService`. The v2.1 Bedrock A2 work is migrating shortcuts to `IShortcutRegistry` + `ShortcutCatalog` so the command palette, jump-to dialog, cheatsheet, and page-scoped shortcut help all read from one registry. Both paths use the root `Grid` `PreviewKeyDown` mechanism to intercept before child controls consume the event.
+Current shipped shortcuts are seeded by `ShortcutCatalog` into `IShortcutRegistry`, then routed by `ShortcutInputRouter` from the root `Grid` `PreviewKeyDown` event. The command palette, jump-to dialog, cheatsheet, and page-scoped shortcut help all read from the same descriptor registry.
 
 | Shortcut | Action |
 |---|---|
@@ -568,7 +568,7 @@ Agent-X/
 │   │   ├── Controls/                  -- Reusable XAML controls (CommandPalette, etc.)
 │   │   ├── Converters/                -- IValueConverter implementations
 │   │   ├── Helpers/                   -- UI helper utilities
-│   │   ├── Services/                  -- UI-layer services (legacy KeyboardShortcutService, A2 router work)
+│   │   ├── Services/                  -- UI-layer services (ShortcutCatalog, ShortcutInputRouter, theme/localization)
 │   │   ├── Styles/                    -- Global XAML resource dictionaries and theme overrides
 │   │   ├── ViewModels/                -- 13 ObservableObject ViewModels
 │   │   └── Views/                     -- 16 XAML pages and code-behind files

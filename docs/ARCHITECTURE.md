@@ -85,7 +85,7 @@ Agent-X/
 │   │   ├── Controls/                   # CommandPalette, MarkdownMessageControl
 │   │   ├── Converters/                 # 12 IValueConverter implementations
 │   │   ├── Helpers/                    # UI utility helpers
-│   │   ├── Services/                   # Legacy KeyboardShortcutService + A2 input router work
+│   │   ├── Services/                   # ShortcutCatalog, ShortcutInputRouter, UI services
 │   │   ├── Styles/                     # 6 XAML Resource Dictionaries
 │   │   └── Assets/                     # Images and application icons
 │   └── AgentX.Core/                    # .NET 8 Class Library (Service + Data Layer)
@@ -148,7 +148,7 @@ graph TB
         VMS[13 ViewModels<br/>CommunityToolkit.Mvvm]
         CTRL[Custom Controls<br/>CommandPalette · MarkdownMessageControl]
         CONV[12 Value Converters]
-        KBS[KeyboardShortcutService<br/>legacy until A2 migration]
+        KBS[IShortcutRegistry<br/>ShortcutCatalog + ShortcutInputRouter]
         STYLES[XAML Resource Dictionaries<br/>Colors · Typography · Controls<br/>Navigation · Chat · Documents]
 
         NAV --> VIEWS
@@ -467,9 +467,9 @@ Six resource dictionaries in `Styles/` form the design system:
 
 The application runs exclusively in dark mode. Light mode support was deferred. The `MicaBackdrop` or `DesktopAcrylicBackdrop` system backdrop provides the underlying material effect behind the XAML content.
 
-### 5.7 Keyboard Shortcut Service
+### 5.7 Keyboard Shortcut System
 
-`KeyboardShortcutService` (`Services/KeyboardShortcutService.cs`) is the current legacy registry mapping `(VirtualKey, ctrl, shift, alt)` tuples to `Action` callbacks. Shortcuts are registered by `MainWindow` on construction. The v2.1 Bedrock A2 branch is migrating this surface to `AgentX.Core.Services.Shortcuts.IShortcutRegistry`, `ShortcutCatalog`, and `ShortcutInputRouter` so command palette, jump-to, cheatsheet, and page-scoped help all read from the same descriptor model.
+`IShortcutRegistry` (`AgentX.Core.Services.Shortcuts`) is the current registry for global and page-scoped keyboard shortcuts. `ShortcutCatalog` seeds global descriptors at `MainWindow` startup, pages register scope-local descriptors during navigation, and `ShortcutInputRouter` dispatches `RootGrid.PreviewKeyDown` events through the registry.
 
 | Shortcut | Action |
 |---|---|
@@ -1380,7 +1380,7 @@ graph TD
 
     SHELL["MainWindow.ContentFrame\nFrame-based navigation"]
     CP["CommandPalette\nCtrl+K overlay"]
-    KBS["KeyboardShortcutService (legacy)\nCtrl+N, Ctrl+I, Ctrl+F, Ctrl+comma"]
+    KBS["IShortcutRegistry\nShortcutCatalog + page scopes"]
     OB["OnboardingPage\n(first run only)\nHides NavView pane"]
 
     NavView -->|"SelectionChanged"| SHELL
@@ -1406,7 +1406,7 @@ graph TD
     SHELL --> OB
 ```
 
-All 16 page types are registered in the `_pageMap` dictionary. Navigation can be triggered by three independent mechanisms: NavigationView item selection, keyboard shortcut (currently via legacy `KeyboardShortcutService`, migrating to `IShortcutRegistry` in A2), or command palette action. All three paths converge on `MainWindow.NavigateToPage(pageTag)`, which calls `ContentFrame.Navigate(pageType)` and synchronizes `NavView.SelectedItem` to keep the visual indicator consistent.
+All 16 page types are registered in the `_pageMap` dictionary. Navigation can be triggered by three independent mechanisms: NavigationView item selection, keyboard shortcut via `IShortcutRegistry`, or command palette action. All three paths converge on `MainWindow.NavigateToPage(pageTag)`, which calls `ContentFrame.Navigate(pageType)` and synchronizes `NavView.SelectedItem` to keep the visual indicator consistent.
 
 The `_suppressNavigation` flag prevents re-entrancy when onboarding setup programmatically modifies `NavView.SelectedItem` (clearing it to null and hiding the pane). Without this guard, the `SelectionChanged` event would trigger a navigation to `null` page type.
 
@@ -1422,7 +1422,9 @@ All service registrations are in `App.xaml.cs` `ConfigureServices()`. The comple
 | `AgentXDbContext` | — | `AgentXDbContext` | Singleton |
 | `ISettingsService` | `ISettingsService` | `SettingsService` | Singleton |
 | `ILicenseService` | `ILicenseService` | `LicenseService` | Singleton |
-| `KeyboardShortcutService` | — | `KeyboardShortcutService` | Singleton (legacy until A2 Task 10/11 migration) |
+| `IShortcutRegistry` | `IShortcutRegistry` | `ShortcutRegistry` | Singleton |
+| `ShortcutCatalog` | — | `ShortcutCatalog` | Singleton |
+| `ChordStateMachine` | — | `ChordStateMachine` | Singleton |
 | `IAiService` | `IAiService` | `AiService` | Singleton |
 | `ICostTracker` | `ICostTracker` | `CostTracker` | Singleton |
 | `IModelManager` | `IModelManager` | `ModelManager` | Singleton |
@@ -1535,7 +1537,7 @@ sequenceDiagram
     MW->>MW: ConfigureWindow() — 1440×900, centered
     MW->>MW: ConfigureTitleBar() — extend content, dark colors
     MW->>MW: ConfigureBackdrop() — Mica Alt / Acrylic / solid fallback
-    MW->>MW: RegisterDefaultShortcuts()
+    MW->>MW: ShortcutCatalog.SeedDefaults()
     MW->>MW: ConfigureCommandPalette()
     MW->>MW: ContentFrame.Navigate(DashboardPage) [initial page]
     MW->>MW: CheckOnboardingAsync() [async check]
