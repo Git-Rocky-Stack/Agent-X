@@ -14,4 +14,12 @@ public interface IDatabaseEncryptionMigrator
     /// values through PBKDF2 KDF and would produce a different derived key).
     /// </summary>
     Task MigrateToEncryptedAsync(string dbPath, DatabaseKeyMaterial key);
+
+    /// <summary>
+    /// Detects and recovers from an interrupted encryption migration.
+    /// If a plaintext backup exists but the main DB is missing, restores the backup.
+    /// Always cleans up orphaned .enc.tmp files.
+    /// Call this at app startup before any DB access.
+    /// </summary>
+    void RecoverIfNeeded(string dbPath);
 }

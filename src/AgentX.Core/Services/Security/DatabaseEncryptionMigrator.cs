@@ -7,6 +7,21 @@ namespace AgentX.Core.Services.Security;
 
 public sealed class DatabaseEncryptionMigrator : IDatabaseEncryptionMigrator
 {
+    public void RecoverIfNeeded(string dbPath)
+    {
+        var backupPath = dbPath + ".plain.bak";
+        var tempPath = dbPath + ".enc.tmp";
+
+        // Kill-window recovery: main DB missing, backup exists → restore.
+        if (!File.Exists(dbPath) && File.Exists(backupPath))
+        {
+            File.Move(backupPath, dbPath);
+        }
+
+        // Clean up orphaned temp from any prior interrupted attempt.
+        SafeDelete(tempPath);
+    }
+
     public async Task MigrateToEncryptedAsync(string dbPath, DatabaseKeyMaterial key)
     {
         if (string.IsNullOrWhiteSpace(key.HexKey))

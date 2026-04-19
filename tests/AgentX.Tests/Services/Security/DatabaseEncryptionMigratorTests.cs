@@ -12,6 +12,24 @@ namespace AgentX.Tests.Services.Security;
 [Collection("SqlCipher")]
 public class DatabaseEncryptionMigratorTests
 {
+    /// <summary>
+    /// Creates a temporary directory that is automatically deleted on disposal.
+    /// </summary>
+    private sealed class TempDirectory : IDisposable
+    {
+        public string Path { get; }
+
+        public TempDirectory()
+        {
+            Path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"agentx-test-{Guid.NewGuid():N}");
+            Directory.CreateDirectory(Path);
+        }
+
+        public void Dispose()
+        {
+            try { Directory.Delete(Path, recursive: true); } catch { }
+        }
+    }
     [Fact]
     public async Task MigrateToEncryptedAsync_converts_plaintext_db_to_encrypted_preserving_data()
     {
@@ -197,5 +215,56 @@ public class DatabaseEncryptionMigratorTests
         {
             if (File.Exists(dbPath)) File.Delete(dbPath);
         }
+    }
+
+    [Fact]
+    public void RecoverIfNeeded_restores_plaintext_backup_when_no_main_db()
+    {
+        using var dir = new TempDirectory();
+        var dbPath = Path.Combine(dir.Path, "test.db");
+        var backupPath = dbPath + ".plain.bak";
+
+        // Simulate kill-window: only the backup exists, main db is missing.
+        File.WriteAllText(dbPath, "fake-sqlite-content");
+        File.Move(dbPath, backupPath);
+
+        var migrator = new DatabaseEncryptionMigrator();
+        migrator.RecoverIfNeeded(dbPath);
+
+        Assert.True(File.Exists(dbPath));
+        Assert.False(File.Exists(backupPath));
+        Assert.Equal("fake-sqlite-content", File.ReadAllText(dbPath));
+    }
+
+    [Fact]
+    public void RecoverIfNeeded_removes_orphaned_temp_when_main_db_intact()
+    {
+        using var dir = new TempDirectory();
+        var dbPath = Path.Combine(dir.Path, "test.db");
+        var tempPath = dbPath + ".enc.tmp";
+
+        // Main DB intact, orphaned temp from a prior failed attempt.
+        File.WriteAllText(dbPath, "real-content");
+        File.WriteAllText(tempPath, "stale-temp");
+
+        var migrator = new DatabaseEncryptionMigrator();
+        migrator.RecoverIfNeeded(dbPath);
+
+        Assert.True(File.Exists(dbPath));
+        Assert.Equal("real-content", File.ReadAllText(dbPath));
+        Assert.False(File.Exists(tempPath));
+    }
+
+    [Fact]
+    public void RecoverIfNeeded_is_noop_when_no_artifacts()
+    {
+        using var dir = new TempDirectory();
+        var dbPath = Path.Combine(dir.Path, "test.db");
+        File.WriteAllText(dbPath, "normal-content");
+
+        var migrator = new DatabaseEncryptionMigrator();
+        migrator.RecoverIfNeeded(dbPath);
+
+        Assert.Equal("normal-content", File.ReadAllText(dbPath));
     }
 }
