@@ -92,12 +92,6 @@
   <data name="Plugin_UninstallButton.Text" xml:space="preserve"><value>Uninstall Plugin</value></data>
   <data name="Plugin_Documentation.Text" xml:space="preserve"><value>Documentation</value></data>
   <data name="Plugin_ByAuthor.Text" xml:space="preserve"><value>by</value></data>
-  <data name="Plugin_Author" xml:space="preserve"><value>Author</value></data>
-  <data name="Plugin_Version" xml:space="preserve"><value>Version</value></data>
-  <data name="Plugin_Enable" xml:space="preserve"><value>Enable</value></data>
-  <data name="Plugin_Disable" xml:space="preserve"><value>Disable</value></data>
-  <data name="Plugin_MultiSelect" xml:space="preserve"><value>Multi-Select</value></data>
-  <data name="Plugin_BatchActions" xml:space="preserve"><value>Batch Actions</value></data>
 
   <!-- Backup & Restore -->
 

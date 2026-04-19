@@ -83,12 +83,6 @@
   <data name="Plugin_UninstallButton.Text" xml:space="preserve"><value>&#12503;&#12521;&#12464;&#12452;&#12531;&#12434;&#12450;&#12531;&#12452;&#12531;&#12473;&#12488;&#12540;&#12523;</value></data>
   <data name="Plugin_Documentation.Text" xml:space="preserve"><value>&#12489;&#12461;&#12517;&#12513;&#12531;&#12488;</value></data>
   <data name="Plugin_ByAuthor.Text" xml:space="preserve"><value>&#20316;&#32773;</value></data>
-  <data name="Plugin_Enable" xml:space="preserve"><value>&#26377;&#21177;&#12395;&#12377;&#12427;</value></data>
-  <data name="Plugin_Disable" xml:space="preserve"><value>&#28961;&#21177;&#12395;&#12377;&#12427;</value></data>
-  <data name="Plugin_Version" xml:space="preserve"><value>&#12496;&#12540;&#12472;&#12519;&#12531; {0}</value></data>
-  <data name="Plugin_Author" xml:space="preserve"><value>&#20316;&#32773;: {0}</value></data>
-  <data name="Plugin_MultiSelect" xml:space="preserve"><value>&#35079;&#25968;&#36984;&#25246;</value></data>
-  <data name="Plugin_BatchActions" xml:space="preserve"><value>&#19968;&#25324;&#25805;&#20316;</value></data>
 
   <!-- Sync -->
   <data name="Sync_Settings" xml:space="preserve"><value>&#21516;&#26399;&#35373;&#23450;</value></data>
