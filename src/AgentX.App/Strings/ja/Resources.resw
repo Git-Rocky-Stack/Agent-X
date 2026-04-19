@@ -49,15 +49,6 @@
   <!-- Chat -->
 
   <!-- Search -->
-  <data name="Search_Placeholder" xml:space="preserve"><value>&#12490;&#12524;&#12483;&#12472;&#12505;&#12540;&#12473;&#12434;&#26908;&#32034;...</value></data>
-  <data name="Search_Semantic" xml:space="preserve"><value>&#12475;&#12510;&#12531;&#12486;&#12451;&#12483;&#12463;</value></data>
-  <data name="Search_Keyword" xml:space="preserve"><value>&#12461;&#12540;&#12527;&#12540;&#12489;</value></data>
-  <data name="Search_Hybrid" xml:space="preserve"><value>&#12495;&#12452;&#12502;&#12522;&#12483;&#12489;</value></data>
-  <data name="Search_NoResults" xml:space="preserve"><value>&#12463;&#12456;&#12522;&#12395;&#19968;&#33268;&#12377;&#12427;&#32080;&#26524;&#12399;&#12354;&#12426;&#12414;&#12379;&#12435;</value></data>
-  <data name="Search_ResultCount" xml:space="preserve"><value>{0} &#20214;&#12398;&#32080;&#26524;</value></data>
-  <data name="Search_SaveFilter" xml:space="preserve"><value>&#12501;&#12451;&#12523;&#12479;&#12540;&#12434;&#20445;&#23384;</value></data>
-  <data name="Search_SavedFilters" xml:space="preserve"><value>&#20445;&#23384;&#28168;&#12415;&#12501;&#12451;&#12523;&#12479;&#12540;</value></data>
-  <data name="Search_ClearFilters" xml:space="preserve"><value>&#12501;&#12451;&#12523;&#12479;&#12540;&#12434;&#12463;&#12522;&#12450;</value></data>
 
   <!-- Plugin Manager (x:Uid format matching en-US) -->
   <data name="Plugin_Manager.Text" xml:space="preserve"><value>&#12503;&#12521;&#12464;&#12452;&#12531;&#31649;&#29702;</value></data>

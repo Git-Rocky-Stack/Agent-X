@@ -49,15 +49,6 @@
   <!-- Chat -->
 
   <!-- Search -->
-  <data name="Search_Placeholder" xml:space="preserve"><value>Wissensdatenbank durchsuchen...</value></data>
-  <data name="Search_Semantic" xml:space="preserve"><value>Semantisch</value></data>
-  <data name="Search_Keyword" xml:space="preserve"><value>Stichwort</value></data>
-  <data name="Search_Hybrid" xml:space="preserve"><value>Hybrid</value></data>
-  <data name="Search_NoResults" xml:space="preserve"><value>Keine Ergebnisse f&#252;r Ihre Anfrage</value></data>
-  <data name="Search_ResultCount" xml:space="preserve"><value>{0} Ergebnisse gefunden</value></data>
-  <data name="Search_SaveFilter" xml:space="preserve"><value>Filter speichern</value></data>
-  <data name="Search_SavedFilters" xml:space="preserve"><value>Gespeicherte Filter</value></data>
-  <data name="Search_ClearFilters" xml:space="preserve"><value>Filter zur&#252;cksetzen</value></data>
 
   <!-- Plugin Manager (x:Uid format matching en-US) -->
   <data name="Plugin_Manager.Text" xml:space="preserve"><value>Plugin-Verwaltung</value></data>

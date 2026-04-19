@@ -58,15 +58,6 @@
   <!-- Chat -->
 
   <!-- Search -->
-  <data name="Search_Placeholder" xml:space="preserve"><value>Search your knowledge base...</value></data>
-  <data name="Search_Semantic" xml:space="preserve"><value>Semantic</value></data>
-  <data name="Search_Keyword" xml:space="preserve"><value>Keyword</value></data>
-  <data name="Search_Hybrid" xml:space="preserve"><value>Hybrid</value></data>
-  <data name="Search_NoResults" xml:space="preserve"><value>No results found</value></data>
-  <data name="Search_ResultCount" xml:space="preserve"><value>{0} results</value></data>
-  <data name="Search_SaveFilter" xml:space="preserve"><value>Save Filter</value></data>
-  <data name="Search_SavedFilters" xml:space="preserve"><value>Saved Filters</value></data>
-  <data name="Search_ClearFilters" xml:space="preserve"><value>Clear Filters</value></data>
 
   <!-- Plugin Manager -->
   <data name="Plugin_Manager.Text" xml:space="preserve"><value>Plugins</value></data>

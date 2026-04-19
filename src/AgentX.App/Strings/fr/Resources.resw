@@ -49,15 +49,6 @@
   <!-- Chat -->
 
   <!-- Search -->
-  <data name="Search_Placeholder" xml:space="preserve"><value>Rechercher dans votre base de connaissances...</value></data>
-  <data name="Search_Semantic" xml:space="preserve"><value>S&#233;mantique</value></data>
-  <data name="Search_Keyword" xml:space="preserve"><value>Mot-cl&#233;</value></data>
-  <data name="Search_Hybrid" xml:space="preserve"><value>Hybride</value></data>
-  <data name="Search_NoResults" xml:space="preserve"><value>Aucun r&#233;sultat pour votre requ&#234;te</value></data>
-  <data name="Search_ResultCount" xml:space="preserve"><value>{0} r&#233;sultats trouv&#233;s</value></data>
-  <data name="Search_SaveFilter" xml:space="preserve"><value>Enregistrer le filtre</value></data>
-  <data name="Search_SavedFilters" xml:space="preserve"><value>Filtres enregistr&#233;s</value></data>
-  <data name="Search_ClearFilters" xml:space="preserve"><value>Effacer les filtres</value></data>
 
   <!-- Plugin Manager (x:Uid format matching en-US) -->
   <data name="Plugin_Manager.Text" xml:space="preserve"><value>Gestionnaire de plugins</value></data>
