@@ -8,6 +8,15 @@ namespace AgentX.Core.Services.Localization;
 public interface ILocalizationService
 {
     /// <summary>
+    /// Asynchronously initializes the service: reads the persisted language override,
+    /// applies it to <see cref="Windows.Globalization.ApplicationLanguages"/>, and
+    /// constructs the underlying WinUI ResourceLoader. Must be awaited during app
+    /// startup before any <see cref="GetString(string)"/> or <see cref="FormatPlural"/>
+    /// call to avoid racing against a null loader. Safe to call multiple times.
+    /// </summary>
+    Task InitializeAsync();
+
+    /// <summary>
     /// Gets the current language code (e.g., "en-US", "es", "de", "fr", "ja", "zh-CN").
     /// </summary>
     string CurrentLanguage { get; }
