@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Transform Agent-X from a global-hotkey-only experience (Win+Shift+A Quick Chat) into a true keyboard-first power mode featuring a fuzzy-searchable **command palette** (Ctrl+Shift+P), **jump-to-anything** navigation (Ctrl+P) across documents / conversations / pages, an in-app **cheatsheet** (`?`) grouped by scope, a pluggable `IShortcutRegistry` that owns every chord in the app, multi-step **chord** support (e.g., Ctrl+K then D), and per-page shortcut help.
+**Goal:** Transform Agent-X from a global-hotkey-only experience (Win+Shift+A Quick Chat) into a true keyboard-first power mode featuring a fuzzy-searchable **command palette** (`Ctrl+K` and `Ctrl+Shift+P`), **jump-to-anything** navigation (`Ctrl+P`) across documents / conversations / pages, an in-app **cheatsheet** (`F1` and `Ctrl+Shift+?`) grouped by scope, a pluggable `IShortcutRegistry` that owns every shortcut in the app, multi-step **chord** infrastructure for future releases, and per-page shortcut help.
 
-**Architecture:** A central `IShortcutRegistry` singleton stores immutable `ShortcutDescriptor` records keyed by scope (`Global` or `<PageName>`). Each descriptor carries the key combo, human-readable label, scope, handler delegate, and optional chord continuation. Pages register their scope-local shortcuts during `OnNavigatedTo` and unregister during `OnNavigatedFrom`. A shared `FuzzyMatcher` (inline VS-Code-style subsequence scoring — **no new NuGet**) powers the palette and jump-to dialogs. A `ChordStateMachine` with a 1-second window handles multi-step chords via `MainWindow`'s `CoreWindow.KeyDown` hook. Three new `ContentDialog`s — `CommandPaletteDialog`, `JumpToDialog`, `CheatsheetDialog` — share a common virtualized `ListView` + `TextBox` layout.
+**Architecture:** A central `IShortcutRegistry` singleton stores immutable `ShortcutDescriptor` records keyed by scope (`Global` or `<PageName>`). Each descriptor carries the key combo, human-readable label, scope, handler delegate, and optional chord continuation. Pages register their scope-local shortcuts during `OnNavigatedTo` and unregister during `OnNavigatedFrom`. A shared `FuzzyMatcher` (inline VS-Code-style subsequence scoring — **no new NuGet**) powers the existing command palette and jump-to dialog. A `ChordStateMachine` with a 1-second window is available for future multi-step chords, but v2.1.0 final seeds no multi-step chord because `Ctrl+K` remains the command-palette trigger. App-wide input uses the existing `RootGrid.PreviewKeyDown` path in `MainWindow`; do not add a parallel `CoreWindow.KeyDown` hook.
 
-**Tech Stack:** .NET 8, WinUI 3 (`ContentDialog`, `KeyboardAccelerator`, `CoreWindow.KeyDown`), CommunityToolkit.Mvvm (`[ObservableProperty]`, `[RelayCommand]`), xUnit + FluentAssertions for test coverage, no new NuGet dependencies.
+**Tech Stack:** .NET 8, WinUI 3 (`ContentDialog`, `FrameworkElement.PreviewKeyDown`, `InputKeyboardSource.GetKeyStateForCurrentThread`), CommunityToolkit.Mvvm (`[ObservableProperty]`, `[RelayCommand]`), xUnit + FluentAssertions for test coverage, no new NuGet dependencies.
 
 **Prerequisites:** None from other A/B/C items. This plan may run in parallel with A1 (multi-language UI) and B1–B7 (monolith splits). Assumes the existing global hotkey (Win+Shift+A Quick Chat) and `QuickActionsPage` remain — this plan extends, does not replace.
 
@@ -172,11 +172,11 @@ Before starting Task 1:
 - `tests/AgentX.Tests/ViewModels/JumpToViewModelTests.cs`
 
 **Modify (extend existing, don't replace):**
-- `src/AgentX.App/Services/KeyboardShortcutService.cs` — **renamed to `ShortcutRegistry`** (per Conflict 1 decision); existing public API preserved, new scope + descriptor APIs added; implements `IShortcutRegistry`
-- `src/AgentX.App/Views/CommandPalette.xaml` + `.xaml.cs` — **extend existing** (per Conflict 2 decision): bind to `IShortcutRegistry`, add fuzzy search over the full registry, preserve existing behavior for narrower Quick Actions mode. New `CommandPaletteViewModel` goes in the existing file's ViewModel partner (see Task 5 revision).
+- `src/AgentX.Core/Services/Shortcuts/ShortcutRegistry.cs` — new `IShortcutRegistry` implementation (already landed additively); `src/AgentX.App/Services/KeyboardShortcutService.cs` remains legacy until Task 10/11 migration
+- `src/AgentX.App/Controls/CommandPalette.xaml` + `.xaml.cs` — **extend existing** (per Conflict 2 decision): bind to `IShortcutRegistry`, add fuzzy search over the full registry, preserve existing behavior for narrower Quick Actions mode. New `CommandPaletteViewModel` goes in the existing file's ViewModel partner (see Task 5 revision).
 - `src/AgentX.App/ViewModels/CommandPaletteViewModel.cs` — may already exist; if so, extend; if not, create
 - `src/AgentX.App/MainWindow.xaml.cs` — wire router attach at **line 121** (one-line change per Spike 3); drop redundant `RegisterDefaultShortcuts()` calls that migrate into `ShortcutCatalog.SeedDefaults()`; replace existing `Ctrl+Shift+?` shortcuts-overlay invocation with new `CheatsheetDialog`
-- `src/AgentX.App/App.xaml.cs` — DI: rename `services.AddSingleton<KeyboardShortcutService>()` → `services.AddSingleton<IShortcutRegistry, ShortcutRegistry>()` + register new services + run `ShortcutCatalog.SeedDefaults` at startup
+- `src/AgentX.App/App.xaml.cs` — DI: replace `services.AddSingleton<KeyboardShortcutService>()` with `services.AddSingleton<IShortcutRegistry, AgentX.Core.Services.Shortcuts.ShortcutRegistry>()` + register new services + run `ShortcutCatalog.SeedDefaults` at startup
 - `src/AgentX.App/Strings/*/Resources.resw` — 6 locales — dialog + shortcut labels (feeds A1 coverage)
 - `src/AgentX.App/Views/**/*.xaml.cs` — pages add `OnNavigatedTo` / `OnNavigatedFrom` hooks registering scope-local shortcuts (replacement for existing per-page registration pattern)
 - `docs/ARCHITECTURE.md` — new "Keyboard Power Mode (A2)" section
@@ -206,7 +206,7 @@ namespace AgentX.Core.Services.Shortcuts;
 
 /// <summary>
 /// An immutable representation of a keyboard combo (modifiers + a single key).
-/// Supports multi-step chords: e.g., "Ctrl+K, D" is two KeyChord values chained.
+/// Supports multi-step chords: e.g., "Ctrl+;, D" is two KeyChord values chained.
 /// </summary>
 public sealed record KeyChord(
     KeyModifiers Modifiers,
@@ -365,14 +365,13 @@ git commit -m "feat(a2): KeyChord + ShortcutScope + ShortcutDescriptor value-obj
 
 ### Task 2: Evolve `KeyboardShortcutService` → `IShortcutRegistry` / `ShortcutRegistry`
 
-**Per Conflict 1 decision:** this task EVOLVES the existing `KeyboardShortcutService` rather than creating a parallel registry. Renaming is surgical — existing call sites in `MainWindow.xaml.cs:113` + `RegisterDefaultShortcuts()` (lines 141–225) get updated in-place. The evolved service implements a new `IShortcutRegistry` interface so future callers go through the interface and DI.
+**Current implementation note (after Tasks 1-6):** Task 2 landed as an additive Core registry (`AgentX.Core.Services.Shortcuts.IShortcutRegistry` + `ShortcutRegistry`) while the legacy `AgentX.App.Services.KeyboardShortcutService` remains in place. Do not re-investigate this; Task 10/11 performs the actual migration from legacy shortcut seeding to `ShortcutCatalog` + DI.
 
 **Files:**
 - Create: `src/AgentX.Core/Services/Shortcuts/IShortcutRegistry.cs` (new interface)
-- Rename + evolve: `src/AgentX.App/Services/KeyboardShortcutService.cs` → `src/AgentX.App/Services/ShortcutRegistry.cs` (same file, renamed, implements new interface, existing public surface preserved)
-- Modify: `src/AgentX.App/MainWindow.xaml.cs:113` — `App.GetService<KeyboardShortcutService>()` → `App.GetService<IShortcutRegistry>()`
-- Modify: `src/AgentX.App/App.xaml.cs:280` — `services.AddSingleton<KeyboardShortcutService>()` → `services.AddSingleton<IShortcutRegistry, ShortcutRegistry>()`
-- Modify: ALL other call sites found via `grep -rn 'KeyboardShortcutService' src/` — update type references
+- Existing implementation path: `src/AgentX.Core/Services/Shortcuts/ShortcutRegistry.cs` implements `IShortcutRegistry` additively.
+- Legacy path retained until Task 10/11: `src/AgentX.App/Services/KeyboardShortcutService.cs`
+- Task 10/11 migration target: replace legacy seeding/DI with `IShortcutRegistry` + `ShortcutCatalog`, then remove or retire legacy call sites found via `grep -rn 'KeyboardShortcutService' src/`.
 - Create: `tests/AgentX.Tests/Services/Shortcuts/ShortcutRegistryTests.cs`
 
 **Pre-Task audit (run first):**
@@ -877,7 +876,7 @@ public enum ChordResultKind
 public sealed record ChordResult(ChordResultKind Kind, IReadOnlyList<KeyChord>? CompletedChord = null);
 
 /// <summary>
-/// Tracks multi-step chord state ("Ctrl+K, D"). Registered prefixes are known upfront;
+/// Tracks multi-step chord state ("Ctrl+;, D"). Registered prefixes are known upfront;
 /// the first keypress arms a prefix and starts a timer window; a subsequent key within
 /// the window completes the chord.
 /// </summary>
@@ -949,16 +948,16 @@ git commit -m "feat(a2): ChordStateMachine with timed multi-step chord tracking"
 
 ### Task 5: Extend existing `CommandPalette.xaml.cs` with registry-driven fuzzy search
 
-**Per Conflict 2 decision:** this task EXTENDS the existing `src/AgentX.App/Views/CommandPalette.xaml.cs` (and its ViewModel partner) rather than creating a new `CommandPaletteDialog`. The existing palette already handles keyboard navigation (Down/Up/Enter/Escape/Tab — Spike 0 finding). We add: (a) `IShortcutRegistry` data binding, (b) `FuzzyMatcher`-ranked results, (c) `Ctrl+Shift+P` as a second trigger alongside existing `Ctrl+K`.
+**Per Conflict 2 decision:** this task EXTENDS the existing `src/AgentX.App/Controls/CommandPalette.xaml.cs` (and its ViewModel partner) rather than creating a new `CommandPaletteDialog`. The existing palette already handles keyboard navigation (Down/Up/Enter/Escape/Tab — Spike 0 finding). We add: (a) `IShortcutRegistry` data binding, (b) `FuzzyMatcher`-ranked results, (c) `Ctrl+Shift+P` as a second trigger alongside existing `Ctrl+K`.
 
 **Files:**
-- Modify: `src/AgentX.App/Views/CommandPalette.xaml` (existing) — bind `ItemsSource` to new registry-backed VM
-- Modify: `src/AgentX.App/Views/CommandPalette.xaml.cs` (existing) — wire to new VM; preserve existing key handling
+- Modify: `src/AgentX.App/Controls/CommandPalette.xaml` (existing) — bind `ItemsSource` to new registry-backed VM
+- Modify: `src/AgentX.App/Controls/CommandPalette.xaml.cs` (existing) — wire to new VM; preserve existing key handling
 - Modify: `src/AgentX.App/ViewModels/CommandPaletteViewModel.cs` (existing OR create if absent — check first) — swap data source to `IShortcutRegistry`, add fuzzy filter
 - Create: `tests/AgentX.Tests/ViewModels/CommandPaletteViewModelTests.cs`
 
 **Pre-Task audit (run first):**
-Open `src/AgentX.App/Views/CommandPalette.xaml` + `.xaml.cs` and document:
+Open `src/AgentX.App/Controls/CommandPalette.xaml` + `.xaml.cs` and document:
 - Current ViewModel type (if any)
 - Current data source (`ObservableCollection<T>` of what?)
 - Current trigger code path (how is `Ctrl+K` wired today?)
@@ -1093,7 +1092,7 @@ public partial class CommandPaletteViewModel : ObservableObject
 
 - [ ] **Step 4: Extend existing `CommandPalette.xaml` binding**
 
-Modify the existing `src/AgentX.App/Views/CommandPalette.xaml`. The exact edits depend on what's in the file today (establish via Pre-Task audit). The goal: the ListView's `ItemsSource` must bind to `ViewModel.Results` (the registry-ranked list). If the file currently hard-codes a list of Quick Actions, replace with the VM binding.
+Modify the existing `src/AgentX.App/Controls/CommandPalette.xaml`. The exact edits depend on what's in the file today (establish via Pre-Task audit). The goal: the result surface must bind to `ViewModel.Results` (the registry-ranked list). If the file currently hard-codes a list of Quick Actions, replace or adapt that rendering to the VM-backed source in Task 10 when the catalog is seeded.
 
 Target shape (adapt to existing XAML structure — do NOT replace the file wholesale):
 
@@ -1176,8 +1175,8 @@ Expected: 3 tests pass.
 
 ```bash
 git add src/AgentX.App/ViewModels/CommandPaletteViewModel.cs \
-        src/AgentX.App/Views/CommandPalette.xaml \
-        src/AgentX.App/Views/CommandPalette.xaml.cs \
+        src/AgentX.App/Controls/CommandPalette.xaml \
+        src/AgentX.App/Controls/CommandPalette.xaml.cs \
         tests/AgentX.Tests/ViewModels/CommandPaletteViewModelTests.cs
 git commit -m "feat(a2): extend CommandPalette with registry-driven fuzzy search (Ctrl+K + Ctrl+Shift+P)"
 ```
@@ -1468,7 +1467,7 @@ public sealed partial class CheatsheetDialog : ContentDialog
 
 ```bash
 git add src/AgentX.App/ViewModels/CheatsheetViewModel.cs src/AgentX.App/Views/Dialogs/CheatsheetDialog.*
-git commit -m "feat(a2): CheatsheetDialog (?) with grouped shortcut help"
+git commit -m "feat(a2): CheatsheetDialog with grouped shortcut help"
 ```
 
 ---
@@ -1605,13 +1604,11 @@ public sealed class ShortcutInputRouter
         if (key == VirtualKeyCode.None) return null;
 
         var mods = KeyModifiers.None;
-        var coreWindow = Microsoft.UI.Xaml.Window.Current?.CoreWindow
-                         ?? Windows.UI.Core.CoreWindow.GetForCurrentThread();
-        if ((coreWindow.GetKeyState(VirtualKey.Control) & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down)
+        if ((Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control) & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down)
             mods |= KeyModifiers.Ctrl;
-        if ((coreWindow.GetKeyState(VirtualKey.Shift)   & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down)
+        if ((Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Shift) & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down)
             mods |= KeyModifiers.Shift;
-        if ((coreWindow.GetKeyState(VirtualKey.Menu)    & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down)
+        if ((Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Menu) & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down)
             mods |= KeyModifiers.Alt;
 
         return new KeyChord(mods, key);
@@ -1664,7 +1661,7 @@ Existing ctor shape (from Spike 3):
 
 Revised ctor:
 ```csharp
-// After Task 2 renames KeyboardShortcutService → IShortcutRegistry:
+// After Task 10/11 migrates KeyboardShortcutService → IShortcutRegistry:
 _shortcutRegistry = App.GetService<IShortcutRegistry>();      // line 113 rewired
 
 // After Task 10 migrates RegisterDefaultShortcuts() into ShortcutCatalog:
@@ -1916,12 +1913,12 @@ git commit -m "feat(a2): ShortcutCatalog seeds 12 default global shortcuts"
 
 - [ ] **Step 1: Register everything**
 
-At `src/AgentX.App/App.xaml.cs:280`, REPLACE the existing `services.AddSingleton<KeyboardShortcutService>()` line with the interface registration below (the `ShortcutRegistry` class already resolves per Task 2's rename). Add the remaining lines in the same DI block.
+At `src/AgentX.App/App.xaml.cs:280`, REPLACE the existing `services.AddSingleton<KeyboardShortcutService>()` line with the Core registry registration below. Add the remaining lines in the same DI block.
 
 ```csharp
 // REPLACES: services.AddSingleton<KeyboardShortcutService>();
 services.AddSingleton<AgentX.Core.Services.Shortcuts.IShortcutRegistry,
-                     AgentX.App.Services.ShortcutRegistry>();
+                     AgentX.Core.Services.Shortcuts.ShortcutRegistry>();
 
 // Infrastructure — no multi-step chord prefix seeded in v2.1.0 final (per Conflict 3:
 // Ctrl+K belongs to the Command Palette, not to a chord prefix).
@@ -1934,9 +1931,9 @@ services.AddTransient<AgentX.App.ViewModels.CommandPaletteViewModel>();
 services.AddTransient<AgentX.App.ViewModels.JumpToViewModel>();
 services.AddTransient<AgentX.App.ViewModels.CheatsheetViewModel>();
 
-// CommandPalette is the existing view — keep its current DI registration
+// CommandPalette is the existing control — keep its current DI registration
 // (if any); if not DI-registered today, add:
-services.AddTransient<AgentX.App.Views.CommandPalette>();
+services.AddTransient<AgentX.App.Controls.CommandPalette>();
 services.AddTransient<AgentX.App.Views.Dialogs.JumpToDialog>();
 services.AddTransient<AgentX.App.Views.Dialogs.CheatsheetDialog>();
 
@@ -1946,7 +1943,7 @@ services.AddSingleton<AgentX.App.Services.ShortcutInputRouter>(sp =>
         registry: sp.GetRequiredService<AgentX.Core.Services.Shortcuts.IShortcutRegistry>(),
         chords: sp.GetRequiredService<AgentX.Core.Services.Shortcuts.ChordStateMachine>(),
         activeScopeProvider: () => sp.GetRequiredService<INavigationService>().CurrentPageKey,
-        paletteFactory: () => sp.GetRequiredService<AgentX.App.Views.CommandPalette>(),
+        paletteFactory: () => sp.GetRequiredService<AgentX.App.Controls.CommandPalette>(),
         jumpToFactory: () => sp.GetRequiredService<AgentX.App.Views.Dialogs.JumpToDialog>(),
         cheatsheetFactory: () => sp.GetRequiredService<AgentX.App.Views.Dialogs.CheatsheetDialog>()));
 ```
@@ -1984,11 +1981,11 @@ Press in sequence:
 3. Press `↓` / `↑` / `Enter` → selected item executes and palette closes.
 4. `Ctrl+P` → Jump-To opens with documents + conversations + pages listed.
 5. Type a document name → candidates filter; `Enter` opens that document.
-6. `?` (no modifiers) → Cheatsheet opens showing all shortcuts grouped by category.
+6. `F1` and `Ctrl+Shift+?` → Cheatsheet opens showing all shortcuts grouped by category.
 7. `Ctrl+Shift+D1` → Navigate to Documents.
 8. `Ctrl+Shift+D2` → Navigate to Chat.
 9. `F5` on Documents page → Refreshes list (page-scoped shortcut).
-10. `Ctrl+K` then within 1 second `D` → Future chord target (seeds in Task 11 DI); confirm ChordStateMachine arms on `Ctrl+K` (no-op handler) and resets after the window.
+10. Confirm no multi-step chord is seeded in v2.1.0 final; `Ctrl+K` must continue to open the Command Palette.
 
 - [ ] **Step 3: Revert any debugging-only changes**
 
@@ -2028,6 +2025,7 @@ Follow the A1 plan's translation backfill workflow (Task 7 of A1). If A1 hasn't 
 ```bash
 dotnet run --project tools/LocaleAudit/LocaleAudit.Tool.csproj -- \
   src/AgentX.App \
+  src \
   src/AgentX.App/Strings \
   --fail-below 98
 ```
@@ -2064,7 +2062,7 @@ Agent-X's keyboard power mode centers on an `IShortcutRegistry` singleton that o
 - **Jump-To** (`Ctrl+P`) — fuzzy search over documents, conversations, and pages.
 - **Cheatsheet** (`?`) — grouped read-only listing of every shortcut available in the current scope.
 
-A `ShortcutInputRouter` hooks `MainWindow`'s `KeyDown` event once, translates WinUI `VirtualKey` → `KeyChord`, and dispatches via the registry. A `ChordStateMachine` with a 1-second window tracks multi-step chords (e.g., `Ctrl+K, D`).
+A `ShortcutInputRouter` hooks `MainWindow`'s existing `RootGrid.PreviewKeyDown` event, translates WinUI `VirtualKey` → `KeyChord`, and dispatches via the registry. A `ChordStateMachine` with a 1-second window is available for future multi-step chords; v2.1.0 final seeds no multi-step chord because `Ctrl+K` belongs to the Command Palette.
 
 Pages register scope-local shortcuts in `OnNavigatedTo` via `RegisterPageShortcuts` and unregister in `OnNavigatedFrom` via the returned `IDisposable`. This keeps the registry always consistent with the current navigation frame.
 
@@ -2139,7 +2137,7 @@ new ShortcutDescriptor(
 
 ### Multi-step chords
 
-To add a chord like `Ctrl+K, D`, register the prefix in `ChordStateMachine` DI setup (see `App.xaml.cs`) and supply a descriptor whose `Chord` has two `KeyChord` entries.
+To add a chord like `Ctrl+;, D`, register the prefix in `ChordStateMachine` DI setup (see `App.xaml.cs`) and supply a descriptor whose `Chord` has two `KeyChord` entries. Do not use `Ctrl+K` as a chord prefix in v2.1 because it is reserved for the Command Palette.
 ```
 
 - [ ] **Step 4: Release notes**
@@ -2162,10 +2160,11 @@ Append to `docs/v2.1.0-RELEASE-NOTES.md`:
 - [ ] **Step 5: Full build + test gate**
 
 ```bash
-dotnet build && dotnet test
+dotnet build AgentX.sln -c Debug
+dotnet test tests/AgentX.Tests/AgentX.Tests.csproj --blame-hang-timeout 60s
 ```
 
-Expected: build 0W/0E, all tests pass (~22 new tests added from Tasks 1–7: KeyChord 7, ShortcutRegistry 6, FuzzyMatcher 7, ChordStateMachine 4, CommandPaletteViewModel 3, JumpToViewModel 2 = 29 A2-only tests; baseline 868 → 897).
+Expected: build 0W/0E, all tests pass. A2 has 36 tests after Task 6; Task 7 may add VM coverage if the implementation introduces behavior beyond simple grouping.
 
 - [ ] **Step 6: Final commit**
 
@@ -2197,5 +2196,5 @@ git commit -m "docs(a2): architecture + user + developer + release notes for key
 2. **Plugin API integration** — expose `IShortcutRegistry` on the plugin SDK (v2.2 Phase 2) so plugins register their own actions.
 3. **Macro recorder** — record a sequence of palette commands as a named macro + bind to a chord.
 4. **MRU ordering in palette** — track command execution frequency and surface recently/frequently used commands at the top.
-5. **Multi-key chord completion hint** — after `Ctrl+K` is pressed, show a transient toast "Ctrl+K, D = Duplicate document…" to teach users the continuation options.
+5. **Multi-key chord completion hint** — after a future chord prefix is pressed, show a transient toast such as "Ctrl+;, D = Duplicate document…" to teach users the continuation options.
 6. **Gamepad navigation** — WinUI 3 supports gamepad input; map `B/A/X/Y` → palette navigation for accessibility.

@@ -85,7 +85,7 @@ Agent-X/
 │   │   ├── Controls/                   # CommandPalette, MarkdownMessageControl
 │   │   ├── Converters/                 # 12 IValueConverter implementations
 │   │   ├── Helpers/                    # UI utility helpers
-│   │   ├── Services/                   # KeyboardShortcutService (UI layer only)
+│   │   ├── Services/                   # Legacy KeyboardShortcutService + A2 input router work
 │   │   ├── Styles/                     # 6 XAML Resource Dictionaries
 │   │   └── Assets/                     # Images and application icons
 │   └── AgentX.Core/                    # .NET 8 Class Library (Service + Data Layer)
@@ -95,7 +95,7 @@ Agent-X/
 │       ├── Data/                       # EF Core DbContext, entities, migrations, vector DB
 │       │   ├── Entities/               # 16 entity classes
 │       │   ├── Migrations/             # EF Core migration history
-│       │   └── VectorDb/               # SqliteVecStore, IVectorStore, VectorSearchResult
+│       │   └── VectorDb/               # IVectorStore, HnswVectorStore, SqliteVecStore, VectorSearchResult
 │       ├── Documents/                  # Document import, chunking, processors
 │       │   ├── Processors/             # PDF, DOCX, TXT, MD, Code, Image
 │       │   └── Models/                 # ProcessedDocument, DocumentMetadata, TextChunk
@@ -148,7 +148,7 @@ graph TB
         VMS[13 ViewModels<br/>CommunityToolkit.Mvvm]
         CTRL[Custom Controls<br/>CommandPalette · MarkdownMessageControl]
         CONV[12 Value Converters]
-        KBS[KeyboardShortcutService]
+        KBS[KeyboardShortcutService<br/>legacy until A2 migration]
         STYLES[XAML Resource Dictionaries<br/>Colors · Typography · Controls<br/>Navigation · Chat · Documents]
 
         NAV --> VIEWS
@@ -212,7 +212,7 @@ graph TB
 
         subgraph DATA["Data Layer"]
             DB[AgentXDbContext<br/>EF Core · SQLite]
-            VEC[SqliteVecStore<br/>Cosine Similarity BLOB store]
+            VEC[IVectorStore<br/>HNSW or SQLite cosine fallback]
             ENT[16 Entity Types]
         end
 
@@ -307,7 +307,7 @@ The DI container lifetime strategy is deliberate:
 |---|---|---|
 | All Core Services | Singleton | Services are stateful (DB connection, AI provider, indexing queue) and expensive to construct. Sharing a single instance across the app avoids redundant initialization. |
 | `AgentXDbContext` | Singleton | A single long-lived EF Core context avoids connection pool overhead. SQLite WAL mode supports concurrent access. |
-| `SqliteVecStore` | Singleton | Maintains a persistent `SqliteConnection` for the vec_embeddings table. Must not be recreated. |
+| `IVectorStore` | Singleton | Created by `VectorStoreFactory`. Uses `HnswVectorStore` when enabled, with SQLite persistence and linear-scan fallback; otherwise uses `SqliteVecStore`. Must not be recreated. |
 | Views and ViewModels | Transient | New instances are created on each navigation, ensuring clean state. The `Frame` caches page instances at the WinUI 3 level, so navigation back does not necessarily trigger reconstruction unless the page was evicted. |
 
 ### 4.4 Fire-and-Forget Startup Initialization
@@ -469,7 +469,7 @@ The application runs exclusively in dark mode. Light mode support was deferred. 
 
 ### 5.7 Keyboard Shortcut Service
 
-`KeyboardShortcutService` (`Services/KeyboardShortcutService.cs`) provides a simple registry mapping `(VirtualKey, ctrl, shift, alt)` tuples to `Action` callbacks. Shortcuts are registered by `MainWindow` on construction:
+`KeyboardShortcutService` (`Services/KeyboardShortcutService.cs`) is the current legacy registry mapping `(VirtualKey, ctrl, shift, alt)` tuples to `Action` callbacks. Shortcuts are registered by `MainWindow` on construction. The v2.1 Bedrock A2 branch is migrating this surface to `AgentX.Core.Services.Shortcuts.IShortcutRegistry`, `ShortcutCatalog`, and `ShortcutInputRouter` so command palette, jump-to, cheatsheet, and page-scoped help all read from the same descriptor model.
 
 | Shortcut | Action |
 |---|---|
@@ -637,7 +637,7 @@ sequenceDiagram
     participant PROC as IDocumentProcessor
     participant CS as ChunkingService
     participant ES as EmbeddingService
-    participant VS as SqliteVecStore
+    participant VS as IVectorStore
     participant KWD as KeywordSearchService
     participant TAG as AutoTagService
     participant DB as AgentXDbContext
@@ -689,7 +689,7 @@ The `IndexingService` handles crash recovery on startup: it resets any `Indexing
 
 `SemanticSearchService.SearchAsync(query)`:
 1. Calls `EmbeddingService.EmbedAsync(query.QueryText)` to produce a 384-dim query vector.
-2. Calls `SqliteVecStore.SearchAsync(queryEmbedding, topK, minSimilarity=0.3)` to retrieve the most similar chunk IDs via full-scan cosine similarity.
+2. Calls `IVectorStore.SearchAsync(queryEmbedding, topK, minSimilarity=0.3)` to retrieve the most similar chunk IDs. When HNSW is enabled this uses the ANN index for large collections; otherwise it falls back to SQLite-backed linear cosine similarity.
 3. Loads the corresponding `DocumentChunkEntity` and `DocumentEntity` records from EF Core.
 4. Applies optional filters (collection, file type, date range) in SQL.
 5. Returns `SearchResult` objects with matched text, excerpts, scores, and collection memberships.
@@ -1116,7 +1116,7 @@ erDiagram
 
 ### 7.3 Vector Store Implementation
 
-`SqliteVecStore` stores embeddings in a separate table within the same `agentx.db` file:
+`IVectorStore` stores embeddings in a separate table within the same `agentx.db` file. `VectorStoreFactory` selects `HnswVectorStore` when `EnableHnswIndex` is enabled and `SqliteVecStore` otherwise. `HnswVectorStore` keeps SQLite as the source of truth and uses a persisted HNSW index for accelerated large-collection search, falling back to linear scan below the configured threshold:
 
 ```sql
 CREATE TABLE IF NOT EXISTS vec_embeddings (
@@ -1141,6 +1141,8 @@ Pre-computed magnitudes avoid square root recalculation per comparison. Results 
 **Design rationale:** This approach was chosen over the `sqlite-vec` native extension to ensure portability across all Windows machines without requiring native library deployment. The installer does not need to ship additional DLLs or register extension modules.
 
 **Relevant files:**
+- `src/AgentX.Core/Data/VectorDb/VectorStoreFactory.cs`
+- `src/AgentX.Core/Data/VectorDb/HnswVectorStore.cs`
 - `src/AgentX.Core/Data/VectorDb/SqliteVecStore.cs`
 - `src/AgentX.Core/Data/VectorDb/IVectorStore.cs`
 - `src/AgentX.Core/Data/VectorDb/VectorSearchResult.cs`
@@ -1176,7 +1178,7 @@ flowchart TD
         R --> S["ChunkingService.ChunkDocument()\n512 tokens, 50 overlap"]
         S --> T["Save DocumentChunkEntity records\nIsEmbedded = false"]
         T --> U["EmbeddingService.EmbedBatchAsync()\nbatch size = 16 chunks"]
-        U --> V["SqliteVecStore.InsertEmbeddingAsync()\nStore BLOB + magnitude"]
+        U --> V["IVectorStore.InsertEmbeddingAsync()\nStore BLOB + optional HNSW index"]
         V --> W["Update chunk: VectorRowId, IsEmbedded=true"]
         W --> X{"More\nbatches?"}
         X -->|"Yes"| U
@@ -1246,7 +1248,7 @@ flowchart TD
     B --> C["Step 1: Semantic Search\nSearchQuery{topK=8, minScore=0.25}"]
     C --> D["SemanticSearchService.SearchAsync()"]
     D --> E["EmbeddingService.EmbedAsync(question)"]
-    E --> F["SqliteVecStore.SearchAsync(queryVector, topK=8, minSim=0.3)"]
+    E --> F["IVectorStore.SearchAsync(queryVector, topK=8, minSim=0.3)"]
     F --> G["Load DocumentChunk + Document metadata from EF Core"]
     G --> H["Filter: score >= 0.25"]
 
@@ -1280,7 +1282,7 @@ flowchart TD
 
     subgraph SEM_PATH["Semantic Path"]
         S1["EmbeddingService.EmbedAsync(query)"]
-        S2["SqliteVecStore.SearchAsync()\nFull scan cosine similarity"]
+        S2["IVectorStore.SearchAsync()\nHNSW or full-scan fallback"]
         S3["Load chunks + docs from EF Core\nApply SQL filters"]
         S4["Enrich with collection names"]
         S1 --> S2 --> S3 --> S4
@@ -1378,7 +1380,7 @@ graph TD
 
     SHELL["MainWindow.ContentFrame\nFrame-based navigation"]
     CP["CommandPalette\nCtrl+K overlay"]
-    KBS["KeyboardShortcutService\nCtrl+N, Ctrl+I, Ctrl+F, Ctrl+comma"]
+    KBS["KeyboardShortcutService (legacy)\nCtrl+N, Ctrl+I, Ctrl+F, Ctrl+comma"]
     OB["OnboardingPage\n(first run only)\nHides NavView pane"]
 
     NavView -->|"SelectionChanged"| SHELL
@@ -1404,7 +1406,7 @@ graph TD
     SHELL --> OB
 ```
 
-All 16 page types are registered in the `_pageMap` dictionary. Navigation can be triggered by three independent mechanisms: NavigationView item selection, keyboard shortcut (via `KeyboardShortcutService`), or command palette action. All three paths converge on `MainWindow.NavigateToPage(pageTag)`, which calls `ContentFrame.Navigate(pageType)` and synchronizes `NavView.SelectedItem` to keep the visual indicator consistent.
+All 16 page types are registered in the `_pageMap` dictionary. Navigation can be triggered by three independent mechanisms: NavigationView item selection, keyboard shortcut (currently via legacy `KeyboardShortcutService`, migrating to `IShortcutRegistry` in A2), or command palette action. All three paths converge on `MainWindow.NavigateToPage(pageTag)`, which calls `ContentFrame.Navigate(pageType)` and synchronizes `NavView.SelectedItem` to keep the visual indicator consistent.
 
 The `_suppressNavigation` flag prevents re-entrancy when onboarding setup programmatically modifies `NavView.SelectedItem` (clearing it to null and hiding the pane). Without this guard, the `SelectionChanged` event would trigger a navigation to `null` page type.
 
@@ -1420,7 +1422,7 @@ All service registrations are in `App.xaml.cs` `ConfigureServices()`. The comple
 | `AgentXDbContext` | — | `AgentXDbContext` | Singleton |
 | `ISettingsService` | `ISettingsService` | `SettingsService` | Singleton |
 | `ILicenseService` | `ILicenseService` | `LicenseService` | Singleton |
-| `KeyboardShortcutService` | — | `KeyboardShortcutService` | Singleton |
+| `KeyboardShortcutService` | — | `KeyboardShortcutService` | Singleton (legacy until A2 Task 10/11 migration) |
 | `IAiService` | `IAiService` | `AiService` | Singleton |
 | `ICostTracker` | `ICostTracker` | `CostTracker` | Singleton |
 | `IModelManager` | `IModelManager` | `ModelManager` | Singleton |
@@ -1428,7 +1430,7 @@ All service registrations are in `App.xaml.cs` `ConfigureServices()`. The comple
 | `IEmbeddingService` | `IEmbeddingService` | `EmbeddingService` | Singleton |
 | `IContextWindowManager` | `IContextWindowManager` | `ContextWindowManager` | Singleton |
 | `IRetryPolicy` | `IRetryPolicy` | `ExponentialBackoffRetryPolicy` | Singleton |
-| `IVectorStore` | `IVectorStore` | `SqliteVecStore` | Singleton |
+| `IVectorStore` | `IVectorStore` | `VectorStoreFactory` (`HnswVectorStore` or `SqliteVecStore`) | Singleton |
 | `IConversationService` | `IConversationService` | `ConversationService` | Singleton |
 | `ISystemPromptService` | `ISystemPromptService` | `SystemPromptService` | Singleton |
 | `IConversationMemoryService` | `IConversationMemoryService` | `ConversationMemoryService` | Singleton |
@@ -1634,7 +1636,7 @@ The `AgentX.Tests` project uses xUnit and mirrors the `AgentX.Core` namespace st
 ```
 tests/AgentX.Tests/
 ├── AI/                    # AiService, EmbeddingService, provider unit tests
-├── Data/                  # SqliteVecStore serialization and cosine similarity tests
+├── Data/                  # Vector-store serialization, HNSW, and cosine similarity tests
 ├── Documents/             # ChunkingService, processor output tests
 ├── Helpers/               # HashHelper tests
 ├── Search/                # HybridSearchOrchestrator, RRF algorithm tests
@@ -1642,7 +1644,7 @@ tests/AgentX.Tests/
 ```
 
 Key testing strategies:
-- `SqliteVecStore` tests use an in-memory SQLite connection (`DataSource=:memory:`).
+- Vector-store tests use temporary or in-memory SQLite connections depending on whether the path exercises `SqliteVecStore` or `HnswVectorStore`.
 - `AiService` tests use mock `IAiProvider` implementations that return predictable token streams.
 - `HybridSearchOrchestrator` tests verify RRF score calculation with known ranked inputs.
 - `ChunkingService` tests verify chunk boundaries, overlap, and page number propagation.
@@ -1719,7 +1721,7 @@ The application is distributed as a self-contained Windows installer built with 
 
 **Input Validation:**
 - All SQL queries use Entity Framework Core parameterized queries. No dynamic SQL string concatenation occurs in EF Core model operations.
-- The `SqliteVecStore` uses parameterized `IN` clauses for bulk deletes.
+- The vector-store implementations use parameterized SQL for bulk deletes and lookup paths.
 - The `KeywordSearchService` FTS5 queries use `MATCH` with parameterized values, preventing FTS5 injection.
 - File paths accepted from the user are validated for existence before processing. Content hash computation occurs before any AI processing.
 
@@ -1760,7 +1762,8 @@ The application is distributed as a self-contained Windows installer built with 
 | **RAG** | Retrieval-Augmented Generation — the technique of retrieving relevant document chunks via semantic search and injecting them as context into an AI prompt to produce grounded answers. |
 | **RRF** | Reciprocal Rank Fusion — the algorithm for combining ranked lists from multiple search backends, scoring each item as `Σ 1/(k+rank_i)`. |
 | **Serilog** | A structured logging library for .NET, used throughout `AgentX.Core` and `AgentX.App`. |
-| **SqliteVecStore** | The `AgentX.Core` implementation of `IVectorStore` that stores embedding BLOBs in SQLite and computes cosine similarity in C#. |
+| **HnswVectorStore** | The HNSW-accelerated `IVectorStore` implementation. SQLite remains the source of truth; the HNSW index accelerates large-collection search and falls back to linear scan below the configured threshold. |
+| **SqliteVecStore** | The linear-scan `IVectorStore` fallback that stores embedding BLOBs in SQLite and computes cosine similarity in C#. |
 | **SSE** | Server-Sent Events — the HTTP streaming format used by OpenAI and Anthropic APIs to deliver generated tokens incrementally (`data: {...}` lines). |
 | **Temperature** | An AI inference parameter (0.0–2.0) controlling response randomness. Default 0.7 for chat; 0.3 for RAG queries. |
 | **VectorRowId** | The `chunk_id` foreign key stored on `DocumentChunkEntity` that links a chunk to its row in `vec_embeddings`. |

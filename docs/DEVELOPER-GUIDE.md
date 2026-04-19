@@ -199,7 +199,7 @@ AgentX.App/
     DispatcherQueueExtensions.cs    # TryEnqueue helper for cross-thread UI updates
     MarkdownParser.cs               # Lightweight markdown-to-segment parser
   Services/
-    KeyboardShortcutService.cs      # Global keyboard shortcut registry
+    KeyboardShortcutService.cs      # Legacy global keyboard shortcut registry
   Styles/                  # XAML resource dictionaries
     Chat.xaml              # Chat bubble and message styles
     Colors.xaml            # Color palette and brush resources
@@ -260,7 +260,9 @@ AgentX.Core/
       WatchFolderEntity.cs
     VectorDb/
       IVectorStore.cs
-      SqliteVecStore.cs          # Custom cosine similarity over SQLite BLOBs
+      VectorStoreFactory.cs      # Chooses HNSW or SQLite linear-scan vector store
+      HnswVectorStore.cs         # HNSW ANN search with SQLite persistence
+      SqliteVecStore.cs          # Linear-scan fallback over SQLite BLOBs
       VectorSearchResult.cs
   Documents/
     IDocumentProcessor.cs        # Per-format text extraction interface
@@ -534,7 +536,7 @@ private readonly Dictionary<string, NavigationViewItem> _navItemMap = new()
 **Navigation is initiated from three places:**
 
 1. User clicks a `NavigationViewItem` — handled by `NavView_SelectionChanged`
-2. Keyboard shortcut fires — routes through `KeyboardShortcutService.HandleKeyDown` -> `NavigateToPage()`
+2. Keyboard shortcut fires — current shipped shortcuts route through `KeyboardShortcutService.HandleKeyDown` -> `NavigateToPage()`; v2.1 A2 migrates this path to `IShortcutRegistry` + `ShortcutInputRouter`.
 3. Command palette selection — routes through `CommandPalette.ExecuteSelected` -> `NavigateToPageRequested` callback -> `NavigateToPage()`
 
 The `NavigateToPage(string pageTag)` method is the single canonical navigation function:
@@ -559,7 +561,7 @@ internal void NavigateToPage(string pageTag)
 
 ### 4.4 Keyboard Shortcuts
 
-`KeyboardShortcutService` is a Singleton registered in DI. It maintains a dictionary keyed by `(VirtualKey, Ctrl, Shift, Alt)` tuples. Registration happens in `MainWindow.RegisterDefaultShortcuts()`:
+`KeyboardShortcutService` is the legacy Singleton registered in DI. It maintains a dictionary keyed by `(VirtualKey, Ctrl, Shift, Alt)` tuples. Registration happens in `MainWindow.RegisterDefaultShortcuts()`. The v2.1 A2 branch is migrating this to `AgentX.Core.Services.Shortcuts.IShortcutRegistry`, `ShortcutCatalog`, and `ShortcutInputRouter`; do not add new feature shortcuts to the legacy service unless you are deliberately working outside A2.
 
 ```csharp
 _keyboardShortcutService.RegisterShortcut(
@@ -1344,7 +1346,7 @@ SearchQuery (mode: Semantic | Keyword | Hybrid)
     |
     v
 HybridSearchOrchestrator
-    |-- Semantic only --> SemanticSearchService --> SqliteVecStore (cosine similarity)
+    |-- Semantic only --> SemanticSearchService --> IVectorStore (HNSW when enabled, SQLite linear scan fallback)
     |-- Keyword only  --> KeywordSearchService  --> FTS5 (BM25 ranking)
     |-- Hybrid        --> Both in parallel --> Reciprocal Rank Fusion --> merged results
 ```
@@ -1420,7 +1422,7 @@ When a document is imported, `IndexingService.IndexDocumentAsync()` enqueues its
 6. Delete any existing chunks and embeddings (for re-indexing)
 7. Save new `DocumentChunkEntity` records to EF Core
 8. Generate embeddings in batches of 16 via `EmbeddingService.EmbedBatchAsync()`
-9. Store each embedding in `SqliteVecStore.InsertEmbeddingAsync()`
+9. Store each embedding through `IVectorStore.InsertEmbeddingAsync()`
 10. Update document status to `completed`
 11. Run `AutoTagService.ApplyAutoTagsAsync()` (non-fatal)
 12. Run `KeywordSearchService.IndexDocumentChunksAsync()` to populate FTS5 (non-fatal)
@@ -1618,7 +1620,7 @@ From Visual Studio: open Test Explorer (`Ctrl+E, T`) and run all or selected tes
 Focus unit tests on:
 
 - **Pure business logic**: `ChunkingService`, `HybridSearchOrchestrator` (RRF algorithm), `MarkdownParser`, `LicenseService` (key validation), `AiService` (tag parsing, message preparation)
-- **Vector math**: `SqliteVecStore.CosineSimilarity()`, `SerializeEmbedding()`/`DeserializeEmbedding()` round-trips
+- **Vector math**: `SqliteVecStore.CosineSimilarity()`, `SerializeEmbedding()`/`DeserializeEmbedding()` round-trips, plus `HnswVectorStore` indexing/fallback behavior
 - **Document processors**: text extraction from sample files
 - **Search orchestration**: correct delegation based on `SearchMode`, RRF merge correctness
 
