@@ -49,5 +49,7 @@
     <Compile Include="..\..\src\AgentX.App\ViewModels\JumpToViewModel.cs" Link="ViewModels\JumpToViewModel.cs" />
     <!-- CheatsheetViewModel is pure registry grouping logic; link it for A2 unit tests. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\CheatsheetViewModel.cs" Link="ViewModels\CheatsheetViewModel.cs" />
+    <!-- ShortcutInputRouter dispatch core is pure; WinUI attach lives in a separate file. -->
+    <Compile Include="..\..\src\AgentX.App\Services\ShortcutInputRouter.cs" Link="Services\ShortcutInputRouter.cs" />
   </ItemGroup>
 </Project>

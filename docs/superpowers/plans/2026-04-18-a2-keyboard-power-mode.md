@@ -1478,8 +1478,9 @@ git commit -m "feat(a2): CheatsheetDialog with grouped shortcut help"
 **Files:**
 - Create: `src/AgentX.App/Services/ShortcutInputRouter.cs`
 - Modify: `src/AgentX.App/MainWindow.xaml.cs` — one-line attach
+- Create: `tests/AgentX.Tests/Services/ShortcutInputRouterTests.cs`
 
-- [ ] **Step 1: Write router**
+- [x] **Step 1: Write router**
 
 ```csharp
 using System;
@@ -1648,7 +1649,7 @@ public sealed class ShortcutInputRouter
 }
 ```
 
-- [ ] **Step 2: Hook into `MainWindow.xaml.cs` at line 121**
+- [x] **Step 2: Hook into `MainWindow.xaml.cs` at line 121**
 
 Per Spike 3, the optimal insertion point is **line 121**, immediately after the existing `RootGrid.PreviewKeyDown += RootGrid_PreviewKeyDown;` line at line 120.
 
@@ -1678,7 +1679,7 @@ Note: `_shortcutRouter.Attach(this)` internally wires `RootGrid.PreviewKeyDown +
 
 Alternative (tighter refactor): migrate the contents of `RootGrid_PreviewKeyDown` (lines 315–335) into `ShortcutInputRouter.OnKeyDown` so there's only one handler. This is optional and should be deferred if the existing handler is doing non-shortcut work.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/AgentX.App/Services/ShortcutInputRouter.cs src/AgentX.App/MainWindow.xaml.cs
@@ -2165,7 +2166,7 @@ dotnet build AgentX.sln -c Debug
 dotnet test tests/AgentX.Tests/AgentX.Tests.csproj --blame-hang-timeout 60s
 ```
 
-Expected: build 0W/0E, all tests pass. A2 has 40 tests after Task 7.
+Expected: build 0W/0E, all tests pass. A2 has 45 tests after Task 8.
 
 - [ ] **Step 6: Final commit**
 
