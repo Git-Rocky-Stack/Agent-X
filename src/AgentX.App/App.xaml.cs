@@ -497,12 +497,18 @@ public partial class App : Application
         // Keyboard Power Mode ViewModels — registered for testability.
         // MainWindow constructs them directly with runtime scope/callback values;
         // these factory registrations allow DI resolution with global-scope defaults.
+        // Note: CommandPalette (UserControl), JumpToDialog, and CheatsheetDialog (ContentDialogs)
+        // are NOT registered here — WinUI dialogs/controls are constructed on demand by the view,
+        // not resolved from DI. Adding them would create an unused registration path.
         services.AddTransient<ViewModels.CommandPaletteViewModel>(sp =>
             new ViewModels.CommandPaletteViewModel(
                 sp.GetRequiredService<IShortcutRegistry>(),
                 activeScopeName: null));
         services.AddTransient<ViewModels.JumpToViewModel>(_ =>
             new ViewModels.JumpToViewModel(
+                // CAUTION: factory returns empty candidates — for DI testability only.
+                // MainWindow constructs JumpToViewModel with real document/conversation/page loaders.
+                // Do NOT resolve from DI at runtime expecting populated results.
                 loadCandidates: _ => System.Threading.Tasks.Task.FromResult<
                     System.Collections.Generic.IReadOnlyList<ViewModels.JumpToItem>>(
                     Array.Empty<ViewModels.JumpToItem>())));
