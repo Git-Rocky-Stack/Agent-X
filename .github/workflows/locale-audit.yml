@@ -1,0 +1,122 @@
+name: LocaleAudit
+
+on:
+  pull_request:
+    paths:
+      - 'src/AgentX.App/**/*.xaml'
+      - 'src/**/*.cs'
+      - 'src/AgentX.App/Strings/**/*.resw'
+      - 'tools/LocaleAudit/**'
+      - 'tests/LocaleAudit.Tests/**'
+  push:
+    branches: [main]
+
+jobs:
+  coverage-gate:
+    name: Locale coverage >= 98%
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore LocaleAudit.Tool
+        run: dotnet restore tools/LocaleAudit/LocaleAudit.Tool.csproj
+
+      - name: Build LocaleAudit.Tool
+        run: dotnet build tools/LocaleAudit/LocaleAudit.Tool.csproj --configuration Release --no-restore
+
+      - name: Run LocaleAudit (fail-below 98%)
+        run: |
+          dotnet run --project tools/LocaleAudit/LocaleAudit.Tool.csproj --configuration Release --no-build -- \
+            src/AgentX.App \
+            src \
+            src/AgentX.App/Strings \
+            --output locale-audit-report.json \
+            --fail-below 98
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: locale-audit-report
+          path: locale-audit-report.json
+
+      - name: Comment coverage on PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            if (!fs.existsSync('locale-audit-report.json')) {
+              core.info('No locale-audit-report.json — skipping PR comment.');
+              return;
+            }
+            const report = JSON.parse(fs.readFileSync('locale-audit-report.json', 'utf8'));
+            const total = report.totalKeys;
+            const rows = Object.entries(report.perLocale)
+              .sort(([a], [b]) => a.localeCompare(b))
+              .map(([locale, data]) => {
+                const pct = data.coveragePercent.toFixed(2);
+                const status = data.coveragePercent >= 98 ? '✅' : '❌';
+                return `| ${status} ${locale} | ${pct}% | ${data.covered}/${total} | ${data.missingKeys.length} | ${data.orphanKeys.length} |`;
+              })
+              .join('\n');
+            const body = [
+              '### 🌐 LocaleAudit Report',
+              '',
+              `**${total} unique localization keys** (XAML \`x:Uid\` ∪ C# \`GetString\` union)`,
+              '',
+              '| Locale | Coverage | Covered | Missing | Orphan |',
+              '|---|---:|---:|---:|---:|',
+              rows,
+              '',
+              '_Gate: coverage must be ≥ 98% per locale. Missing = referenced key with no resw entry. Orphan = resw entry with no code/XAML reference._'
+            ].join('\n');
+            const existing = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const prior = existing.data.find(c =>
+              c.user?.type === 'Bot' && c.body?.startsWith('### 🌐 LocaleAudit Report'));
+            if (prior) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: prior.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+  snapshot-tests:
+    name: Locale snapshot tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore tests/LocaleAudit.Tests/LocaleAudit.Tests.csproj
+
+      - name: Build
+        run: dotnet build tests/LocaleAudit.Tests/LocaleAudit.Tests.csproj --configuration Release --no-restore
+
+      - name: Run LocaleAudit.Tests (extractors + report + per-page snapshot)
+        run: dotnet test tests/LocaleAudit.Tests/LocaleAudit.Tests.csproj --configuration Release --no-build --logger "console;verbosity=normal"
