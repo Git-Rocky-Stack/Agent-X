@@ -165,16 +165,6 @@
   <data name="Error_Permission" xml:space="preserve"><value>Vous n'avez pas la permission d'effectuer cette action.</value></data>
 
   <!-- Backup & Restore -->
-  <data name="Backup_Title" xml:space="preserve"><value>Sauvegarde et restauration</value></data>
-  <data name="Backup_Subtitle" xml:space="preserve"><value>Prot&#233;gez votre base de connaissances avec des sauvegardes chiffr&#233;es et une restauration en un clic.</value></data>
-  <data name="Backup_CreateBackup" xml:space="preserve"><value>Cr&#233;er une sauvegarde</value></data>
-  <data name="Backup_RestoreFromBackup" xml:space="preserve"><value>Restaurer depuis une sauvegarde</value></data>
-  <data name="Backup_History" xml:space="preserve"><value>Historique des sauvegardes</value></data>
-  <data name="Backup_Destination" xml:space="preserve"><value>Dossier de destination</value></data>
-  <data name="Backup_Encrypt" xml:space="preserve"><value>Chiffrer la sauvegarde (AES-256)</value></data>
-  <data name="Backup_IncludeDocs" xml:space="preserve"><value>Inclure les documents index&#233;s</value></data>
-  <data name="Backup_Success" xml:space="preserve"><value>Sauvegarde cr&#233;&#233;e avec succ&#232;s</value></data>
-  <data name="Backup_RestoreComplete" xml:space="preserve"><value>Restauration termin&#233;e</value></data>
 
   <!-- Annotations -->
   <data name="Encryption_SectionHeader.Text" xml:space="preserve"><value>Database Encryption</value></data>

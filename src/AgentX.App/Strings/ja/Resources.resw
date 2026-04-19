@@ -165,16 +165,6 @@
   <data name="Error_Permission" xml:space="preserve"><value>&#12371;&#12398;&#25805;&#20316;&#12434;&#23455;&#34892;&#12377;&#12427;&#27177;&#38480;&#12364;&#12354;&#12426;&#12414;&#12379;&#12435;&#12290;</value></data>
 
   <!-- Backup & Restore -->
-  <data name="Backup_Title" xml:space="preserve"><value>&#12496;&#12483;&#12463;&#12450;&#12483;&#12503;&#12392;&#24489;&#20803;</value></data>
-  <data name="Backup_Subtitle" xml:space="preserve"><value>&#26263;&#21495;&#21270;&#12496;&#12483;&#12463;&#12450;&#12483;&#12503;&#12392;&#12527;&#12531;&#12463;&#12522;&#12483;&#12463;&#24489;&#20803;&#12391;&#12490;&#12524;&#12483;&#12472;&#12505;&#12540;&#12473;&#12434;&#20445;&#35703;&#12375;&#12414;&#12377;&#12290;</value></data>
-  <data name="Backup_CreateBackup" xml:space="preserve"><value>&#12496;&#12483;&#12463;&#12450;&#12483;&#12503;&#12434;&#20316;&#25104;</value></data>
-  <data name="Backup_RestoreFromBackup" xml:space="preserve"><value>&#12496;&#12483;&#12463;&#12450;&#12483;&#12503;&#12363;&#12425;&#24489;&#20803;</value></data>
-  <data name="Backup_History" xml:space="preserve"><value>&#12496;&#12483;&#12463;&#12450;&#12483;&#12503;&#23653;&#27508;</value></data>
-  <data name="Backup_Destination" xml:space="preserve"><value>&#20445;&#23384;&#20808;&#12501;&#12457;&#12523;&#12480;&#12540;</value></data>
-  <data name="Backup_Encrypt" xml:space="preserve"><value>&#12496;&#12483;&#12463;&#12450;&#12483;&#12503;&#12434;&#26263;&#21495;&#21270; (AES-256)</value></data>
-  <data name="Backup_IncludeDocs" xml:space="preserve"><value>&#12452;&#12531;&#12487;&#12483;&#12463;&#12473;&#28168;&#12415;&#12489;&#12461;&#12517;&#12513;&#12531;&#12488;&#12434;&#21547;&#12417;&#12427;</value></data>
-  <data name="Backup_Success" xml:space="preserve"><value>&#12496;&#12483;&#12463;&#12450;&#12483;&#12503;&#12364;&#27491;&#24120;&#12395;&#20316;&#25104;&#12373;&#12428;&#12414;&#12375;&#12383;</value></data>
-  <data name="Backup_RestoreComplete" xml:space="preserve"><value>&#24489;&#20803;&#23436;&#20102;</value></data>
 
   <!-- Annotations -->
   <data name="Encryption_SectionHeader.Text" xml:space="preserve"><value>Database Encryption</value></data>

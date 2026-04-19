@@ -137,16 +137,6 @@
   <data name="Plugin_BatchActions" xml:space="preserve"><value>Acciones por Lotes</value></data>
 
   <!-- Backup & Restore -->
-  <data name="Backup_Title" xml:space="preserve"><value>Copia de Seguridad y Restauraci&#243;n</value></data>
-  <data name="Backup_Subtitle" xml:space="preserve"><value>Protege tu base de conocimiento con copias de seguridad cifradas y restauraci&#243;n con un clic.</value></data>
-  <data name="Backup_CreateBackup" xml:space="preserve"><value>Crear Copia de Seguridad</value></data>
-  <data name="Backup_RestoreFromBackup" xml:space="preserve"><value>Restaurar desde Copia</value></data>
-  <data name="Backup_History" xml:space="preserve"><value>Historial de Copias</value></data>
-  <data name="Backup_Destination" xml:space="preserve"><value>Carpeta de Destino</value></data>
-  <data name="Backup_Encrypt" xml:space="preserve"><value>Cifrar copia (AES-256)</value></data>
-  <data name="Backup_IncludeDocs" xml:space="preserve"><value>Incluir documentos indexados</value></data>
-  <data name="Backup_Success" xml:space="preserve"><value>Copia de seguridad creada exitosamente</value></data>
-  <data name="Backup_RestoreComplete" xml:space="preserve"><value>Restauraci&#243;n Completa</value></data>
 
   <!-- Annotations -->
 

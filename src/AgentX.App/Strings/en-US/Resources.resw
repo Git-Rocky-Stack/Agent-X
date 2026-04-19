@@ -106,16 +106,6 @@
   <data name="Search_ClearFilters" xml:space="preserve"><value>Clear Filters</value></data>
 
   <!-- Backup & Restore -->
-  <data name="Backup_Title" xml:space="preserve"><value>Backup &amp; Restore</value></data>
-  <data name="Backup_Subtitle" xml:space="preserve"><value>Protect your knowledge base with encrypted backups and one-click restore.</value></data>
-  <data name="Backup_CreateBackup" xml:space="preserve"><value>Create Backup</value></data>
-  <data name="Backup_RestoreFromBackup" xml:space="preserve"><value>Restore from Backup</value></data>
-  <data name="Backup_History" xml:space="preserve"><value>Backup History</value></data>
-  <data name="Backup_Destination" xml:space="preserve"><value>Destination Folder</value></data>
-  <data name="Backup_Encrypt" xml:space="preserve"><value>Encrypt backup (AES-256)</value></data>
-  <data name="Backup_IncludeDocs" xml:space="preserve"><value>Include indexed documents</value></data>
-  <data name="Backup_Success" xml:space="preserve"><value>Backup created successfully</value></data>
-  <data name="Backup_RestoreComplete" xml:space="preserve"><value>Restore Complete</value></data>
 
   <!-- Annotations -->
 

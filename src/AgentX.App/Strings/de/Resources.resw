@@ -165,16 +165,6 @@
   <data name="Error_Permission" xml:space="preserve"><value>Sie haben keine Berechtigung, diese Aktion auszuf&#252;hren.</value></data>
 
   <!-- Backup & Restore -->
-  <data name="Backup_Title" xml:space="preserve"><value>Sicherung &amp; Wiederherstellung</value></data>
-  <data name="Backup_Subtitle" xml:space="preserve"><value>Sch&#252;tzen Sie Ihre Wissensdatenbank mit verschl&#252;sselten Sicherungen und Wiederherstellung per Mausklick.</value></data>
-  <data name="Backup_CreateBackup" xml:space="preserve"><value>Sicherung erstellen</value></data>
-  <data name="Backup_RestoreFromBackup" xml:space="preserve"><value>Aus Sicherung wiederherstellen</value></data>
-  <data name="Backup_History" xml:space="preserve"><value>Sicherungsverlauf</value></data>
-  <data name="Backup_Destination" xml:space="preserve"><value>Zielordner</value></data>
-  <data name="Backup_Encrypt" xml:space="preserve"><value>Sicherung verschl&#252;sseln (AES-256)</value></data>
-  <data name="Backup_IncludeDocs" xml:space="preserve"><value>Indexierte Dokumente einschlie&#223;en</value></data>
-  <data name="Backup_Success" xml:space="preserve"><value>Sicherung erfolgreich erstellt</value></data>
-  <data name="Backup_RestoreComplete" xml:space="preserve"><value>Wiederherstellung abgeschlossen</value></data>
 
   <!-- Annotations -->
   <data name="Encryption_SectionHeader.Text" xml:space="preserve"><value>Database Encryption</value></data>

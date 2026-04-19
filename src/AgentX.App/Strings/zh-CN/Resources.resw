@@ -165,16 +165,6 @@
   <data name="Error_Permission" xml:space="preserve"><value>&#24744;&#27809;&#26377;&#26435;&#38480;&#25191;&#34892;&#27492;&#25805;&#20316;&#12290;</value></data>
 
   <!-- Backup & Restore -->
-  <data name="Backup_Title" xml:space="preserve"><value>&#22791;&#20221;&#19982;&#24674;&#22797;</value></data>
-  <data name="Backup_Subtitle" xml:space="preserve"><value>&#20351;&#29992;&#21152;&#23494;&#22791;&#20221;&#21644;&#19968;&#38190;&#24674;&#22797;&#20445;&#25252;&#24744;&#30340;&#30693;&#35782;&#24211;&#12290;</value></data>
-  <data name="Backup_CreateBackup" xml:space="preserve"><value>&#21019;&#24314;&#22791;&#20221;</value></data>
-  <data name="Backup_RestoreFromBackup" xml:space="preserve"><value>&#20174;&#22791;&#20221;&#24674;&#22797;</value></data>
-  <data name="Backup_History" xml:space="preserve"><value>&#22791;&#20221;&#21382;&#21490;</value></data>
-  <data name="Backup_Destination" xml:space="preserve"><value>&#30446;&#26631;&#25991;&#20214;&#22841;</value></data>
-  <data name="Backup_Encrypt" xml:space="preserve"><value>&#21152;&#23494;&#22791;&#20221; (AES-256)</value></data>
-  <data name="Backup_IncludeDocs" xml:space="preserve"><value>&#21253;&#21547;&#24050;&#32034;&#24341;&#25991;&#26723;</value></data>
-  <data name="Backup_Success" xml:space="preserve"><value>&#22791;&#20221;&#21019;&#24314;&#25104;&#21151;</value></data>
-  <data name="Backup_RestoreComplete" xml:space="preserve"><value>&#24674;&#22797;&#23436;&#25104;</value></data>
 
   <!-- Annotations -->
   <data name="Encryption_SectionHeader.Text" xml:space="preserve"><value>Database Encryption</value></data>
