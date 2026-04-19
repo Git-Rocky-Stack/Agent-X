@@ -1,3 +1,4 @@
+using System.Globalization;
 using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Settings;
 using Serilog;
@@ -14,6 +15,7 @@ namespace AgentX.App.Services;
 public sealed class LocalizationService : ILocalizationService
 {
     private readonly ISettingsService _settingsService;
+    private readonly IPluralRuleProvider _pluralRules;
     private ResourceLoader? _resourceLoader;
     private string _currentLanguage;
 
@@ -30,9 +32,10 @@ public sealed class LocalizationService : ILocalizationService
     public string CurrentLanguage => _currentLanguage;
     public IReadOnlyList<LanguageOption> SupportedLanguages => _supportedLanguages;
 
-    public LocalizationService(ISettingsService settingsService)
+    public LocalizationService(ISettingsService settingsService, IPluralRuleProvider pluralRules)
     {
         _settingsService = settingsService;
+        _pluralRules = pluralRules;
         _currentLanguage = "en-US";
         InitializeLanguage();
     }
@@ -133,6 +136,55 @@ public sealed class LocalizationService : ILocalizationService
             return string.Format(template, args);
         }
         catch
+        {
+            return template;
+        }
+    }
+
+    /// <summary>
+    /// True-miss-aware variant of <see cref="GetString(string)"/>. Returns the resource
+    /// value only when the loader produced a non-empty string; returns null when the key
+    /// is absent or the loader is unavailable. This avoids confusing "key present whose
+    /// value equals the key" with "key absent" (which <see cref="GetString(string)"/> can't
+    /// distinguish because it returns the key itself on miss).
+    /// </summary>
+    private string? TryGetString(string resourceKey)
+    {
+        try
+        {
+            if (_resourceLoader is not null)
+            {
+                var value = _resourceLoader.GetString(resourceKey);
+                if (!string.IsNullOrEmpty(value))
+                    return value;
+            }
+        }
+        catch
+        {
+            // Loader failure treated as miss.
+        }
+        return null;
+    }
+
+    public string FormatPlural(string baseKey, double count, params object[] args)
+    {
+        // GetString returns the resource key itself on miss, which cannot be distinguished
+        // from a legitimate "present resource equal to its key" lookup. We use a private
+        // TryGetString helper that returns null on miss so the fallback ladder is unambiguous.
+        var culture = CultureInfo.CurrentUICulture;
+        var category = _pluralRules.GetCategory(culture, count);
+        var specificKey = $"{baseKey}_{category}";
+
+        var template = TryGetString(specificKey)
+                       ?? TryGetString($"{baseKey}_other")
+                       ?? throw new KeyNotFoundException(
+                           $"No plural resource for '{baseKey}' in category '{category}' or '_other' fallback.");
+
+        try
+        {
+            return string.Format(culture, template, args);
+        }
+        catch (FormatException)
         {
             return template;
         }

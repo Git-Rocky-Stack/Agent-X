@@ -404,6 +404,7 @@ public partial class App : Application
         services.AddSingleton<IAnnotationService, AnnotationService>();
 
         // ── Localization ────────────────────────────────────
+        services.AddSingleton<IPluralRuleProvider, CldrPluralRuleProvider>();
         services.AddSingleton<ILocalizationService, LocalizationService>();
 
         // ── Inbox (Smart Triage) ──────────────────────────────
