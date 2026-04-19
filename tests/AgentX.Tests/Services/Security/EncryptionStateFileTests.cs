@@ -189,4 +189,28 @@ public class EncryptionStateFileTests
 
         await act.Should().ThrowAsync<ArgumentNullException>();
     }
+
+    [Fact]
+    public async Task WriteAsync_restricts_file_permissions_to_current_user()
+    {
+        var path = NewTempPath();
+        try
+        {
+            var sut = new EncryptionStateFile(path);
+
+            await sut.WriteAsync(NewDpapiInfo());
+
+            // On Windows, verify the file has restricted ACL (only current user).
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                var acl = new System.IO.FileInfo(path).GetAccessControl();
+                var rules = acl.GetAccessRules(true, true, typeof(System.Security.Principal.NTAccount));
+                Assert.Single(rules);
+            }
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
 }

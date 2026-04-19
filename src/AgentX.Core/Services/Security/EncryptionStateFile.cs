@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -47,6 +49,20 @@ public sealed class EncryptionStateFile : IEncryptionStateFile
         Directory.CreateDirectory(Path.GetDirectoryName(_filePath)!);
         var json = JsonSerializer.Serialize(info, JsonOpts);
         await File.WriteAllTextAsync(_filePath, json);
+
+        // Restrict file ACL to current user only on Windows.
+        if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+        {
+            var acl = new FileSecurity();
+            var currentUser = WindowsIdentity.GetCurrent().Owner;
+            acl.SetOwner(currentUser);
+            acl.AddAccessRule(new FileSystemAccessRule(
+                currentUser,
+                FileSystemRights.FullControl,
+                AccessControlType.Allow));
+            acl.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
+            new FileInfo(_filePath).SetAccessControl(acl);
+        }
     }
 
     public void Delete()
