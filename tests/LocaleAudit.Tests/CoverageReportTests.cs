@@ -188,8 +188,9 @@ public class CoverageReportTests
 
         var report = CoverageReport.Build(uids, codeKeys, locales);
 
-        report.PerLocale["en-US"].OrphanKeys.Should().BeEquivalentTo(
-            new[] { "AnotherDead.Content", "DeadKey.Text" });
+        // Order-sensitive Equal locks in the StringComparer.Ordinal sort contract.
+        report.PerLocale["en-US"].OrphanKeys.Should().Equal(
+            "AnotherDead.Content", "DeadKey.Text");
     }
 
     [Fact]

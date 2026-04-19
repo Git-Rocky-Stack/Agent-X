@@ -57,11 +57,12 @@ public sealed class CoverageReport
             }
             // Orphan = resw entry whose base-name (before any first dot) is NOT in the union.
             // Handles both XAML-style ("Foo.Content" → base "Foo") and code-style ("Nav_Bar" → base "Nav_Bar").
+            // A leading '.' (dotIndex == 0) would yield an empty baseName; we treat such malformed keys
+            // as orphans by keeping the full key for lookup (guaranteed miss against the non-empty union).
             foreach (var reswKey in entries.Keys)
             {
-                var baseName = reswKey.Contains('.', StringComparison.Ordinal)
-                    ? reswKey.Substring(0, reswKey.IndexOf('.', StringComparison.Ordinal))
-                    : reswKey;
+                var dotIndex = reswKey.IndexOf('.', StringComparison.Ordinal);
+                var baseName = dotIndex > 0 ? reswKey.Substring(0, dotIndex) : reswKey;
                 if (!unionKeySet.Contains(baseName))
                     coverage.OrphanKeys.Add(reswKey);
             }
