@@ -13,6 +13,7 @@ using Windows.System;
 using Windows.UI;
 using Windows.UI.Core;
 using WinRT.Interop;
+using AgentX.App.Helpers;
 using AgentX.App.Services;
 using AgentX.App.ViewModels;
 using AgentX.App.Views;
@@ -46,6 +47,10 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        // A1 — Bind root FlowDirection to the current UI culture so ar-SA / he-IL / fa-IR
+        // render right-to-left once their resw bundles ship. LTR locales are unaffected.
+        RootGrid.FlowDirection = FlowDirectionHelper.Current();
 
         _pageMap = new Dictionary<string, Type>
         {
