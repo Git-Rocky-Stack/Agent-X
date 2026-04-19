@@ -420,6 +420,7 @@ public partial class App : Application
 
         // ── Localization ────────────────────────────────────
         services.AddSingleton<IPluralRuleProvider, CldrPluralRuleProvider>();
+        services.AddSingleton<IResourceLoaderAdapter, WinUIResourceLoaderAdapter>();
         services.AddSingleton<ILocalizationService, LocalizationService>();
 
         // ── Inbox (Smart Triage) ──────────────────────────────

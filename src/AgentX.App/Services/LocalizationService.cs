@@ -2,21 +2,21 @@ using System.Globalization;
 using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Settings;
 using Serilog;
-using Windows.ApplicationModel.Resources;
-using Windows.Globalization;
 
 namespace AgentX.App.Services;
 
 /// <summary>
-/// WinUI 3 implementation of <see cref="ILocalizationService"/> using
-/// <see cref="ResourceLoader"/> and .resw resource files.
-/// Supports language override via AppSettings, falling back to OS locale.
+/// Default <see cref="ILocalizationService"/> implementation. All platform
+/// resource-loading and language-override calls are delegated to
+/// <see cref="IResourceLoaderAdapter"/> so this class carries zero WinUI 3
+/// dependencies and is fully unit-testable. In production the adapter is
+/// <c>WinUIResourceLoaderAdapter</c>; in tests it is a pre-populated fake.
 /// </summary>
 public sealed class LocalizationService : ILocalizationService
 {
     private readonly ISettingsService _settingsService;
     private readonly IPluralRuleProvider _pluralRules;
-    private ResourceLoader? _resourceLoader;
+    private readonly IResourceLoaderAdapter _resourceLoader;
     private string _currentLanguage;
 
     private static readonly List<LanguageOption> _supportedLanguages = new()
@@ -32,10 +32,14 @@ public sealed class LocalizationService : ILocalizationService
     public string CurrentLanguage => _currentLanguage;
     public IReadOnlyList<LanguageOption> SupportedLanguages => _supportedLanguages;
 
-    public LocalizationService(ISettingsService settingsService, IPluralRuleProvider pluralRules)
+    public LocalizationService(
+        ISettingsService settingsService,
+        IPluralRuleProvider pluralRules,
+        IResourceLoaderAdapter resourceLoader)
     {
         _settingsService = settingsService;
         _pluralRules = pluralRules;
+        _resourceLoader = resourceLoader;
         _currentLanguage = "en-US";
     }
 
@@ -55,22 +59,14 @@ public sealed class LocalizationService : ILocalizationService
             if (!string.IsNullOrEmpty(languageOverride))
             {
                 _currentLanguage = languageOverride;
-                ApplicationLanguages.PrimaryLanguageOverride = languageOverride;
+                _resourceLoader.SetLanguageOverride(languageOverride);
             }
             else
             {
-                _currentLanguage = ApplicationLanguages.Languages.FirstOrDefault() ?? "en-US";
+                _currentLanguage = _resourceLoader.GetActiveLanguage();
             }
 
-            try
-            {
-                _resourceLoader = new ResourceLoader();
-            }
-            catch
-            {
-                // Resource files may not exist yet — that's OK during initial setup
-                Log.Warning("ResourceLoader initialization failed — using fallback strings");
-            }
+            _resourceLoader.Initialize();
 
             Log.Information("Localization initialized: {Language}", _currentLanguage);
         }
@@ -87,12 +83,12 @@ public sealed class LocalizationService : ILocalizationService
         {
             if (string.IsNullOrEmpty(languageCode))
             {
-                ApplicationLanguages.PrimaryLanguageOverride = string.Empty;
-                _currentLanguage = ApplicationLanguages.Languages.FirstOrDefault() ?? "en-US";
+                _resourceLoader.SetLanguageOverride(null);
+                _currentLanguage = _resourceLoader.GetActiveLanguage();
             }
             else
             {
-                ApplicationLanguages.PrimaryLanguageOverride = languageCode;
+                _resourceLoader.SetLanguageOverride(languageCode);
                 _currentLanguage = languageCode;
             }
 
@@ -114,23 +110,12 @@ public sealed class LocalizationService : ILocalizationService
 
     public string GetString(string resourceKey)
     {
-        try
-        {
-            if (_resourceLoader is not null)
-            {
-                var value = _resourceLoader.GetString(resourceKey);
-                if (!string.IsNullOrEmpty(value))
-                    return value;
-            }
-        }
-        catch
-        {
-            // Fall through to return the key itself
-        }
-
+        var value = _resourceLoader.GetString(resourceKey);
         // Fallback: return the resource key as-is (useful during development
-        // before all .resw files are populated)
-        return resourceKey;
+        // before all .resw files are populated). The adapter returns null on
+        // miss, so !IsNullOrEmpty preserves the previous WinUI-behavior where
+        // the empty-string miss also triggered the fallback.
+        return string.IsNullOrEmpty(value) ? resourceKey : value;
     }
 
     public string GetString(string resourceKey, params object[] args)
@@ -155,20 +140,8 @@ public sealed class LocalizationService : ILocalizationService
     /// </summary>
     private string? TryGetString(string resourceKey)
     {
-        try
-        {
-            if (_resourceLoader is not null)
-            {
-                var value = _resourceLoader.GetString(resourceKey);
-                if (!string.IsNullOrEmpty(value))
-                    return value;
-            }
-        }
-        catch
-        {
-            // Loader failure treated as miss.
-        }
-        return null;
+        var value = _resourceLoader.GetString(resourceKey);
+        return string.IsNullOrEmpty(value) ? null : value;
     }
 
     public string FormatPlural(string baseKey, double count, params object[] args)
