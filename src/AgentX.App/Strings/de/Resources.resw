@@ -49,25 +49,6 @@
   <data name="Section_Support" xml:space="preserve"><value>SUPPORT</value></data>
 
   <!-- Common Actions -->
-  <data name="Action_Save" xml:space="preserve"><value>Speichern</value></data>
-  <data name="Action_Cancel" xml:space="preserve"><value>Abbrechen</value></data>
-  <data name="Action_Delete" xml:space="preserve"><value>L&#246;schen</value></data>
-  <data name="Action_Edit" xml:space="preserve"><value>Bearbeiten</value></data>
-  <data name="Action_Create" xml:space="preserve"><value>Erstellen</value></data>
-  <data name="Action_Export" xml:space="preserve"><value>Exportieren</value></data>
-  <data name="Action_Import" xml:space="preserve"><value>Importieren</value></data>
-  <data name="Action_Refresh" xml:space="preserve"><value>Aktualisieren</value></data>
-  <data name="Action_Search" xml:space="preserve"><value>Suchen</value></data>
-  <data name="Action_Clear" xml:space="preserve"><value>Leeren</value></data>
-  <data name="Action_Enable" xml:space="preserve"><value>Aktivieren</value></data>
-  <data name="Action_Disable" xml:space="preserve"><value>Deaktivieren</value></data>
-  <data name="Action_Install" xml:space="preserve"><value>Installieren</value></data>
-  <data name="Action_Uninstall" xml:space="preserve"><value>Deinstallieren</value></data>
-  <data name="Action_SelectAll" xml:space="preserve"><value>Alle ausw&#228;hlen</value></data>
-  <data name="Action_SelectNone" xml:space="preserve"><value>Auswahl aufheben</value></data>
-  <data name="Action_Close" xml:space="preserve"><value>Schlie&#223;en</value></data>
-  <data name="Action_Copy" xml:space="preserve"><value>Kopieren</value></data>
-  <data name="Action_Browse" xml:space="preserve"><value>Durchsuchen</value></data>
 
   <!-- Status Messages -->
   <data name="Status_Loading" xml:space="preserve"><value>Wird geladen...</value></data>

@@ -49,25 +49,6 @@
   <data name="Section_Support" xml:space="preserve"><value>SUPPORT</value></data>
 
   <!-- Common Actions -->
-  <data name="Action_Save" xml:space="preserve"><value>Enregistrer</value></data>
-  <data name="Action_Cancel" xml:space="preserve"><value>Annuler</value></data>
-  <data name="Action_Delete" xml:space="preserve"><value>Supprimer</value></data>
-  <data name="Action_Edit" xml:space="preserve"><value>Modifier</value></data>
-  <data name="Action_Create" xml:space="preserve"><value>Cr&#233;er</value></data>
-  <data name="Action_Export" xml:space="preserve"><value>Exporter</value></data>
-  <data name="Action_Import" xml:space="preserve"><value>Importer</value></data>
-  <data name="Action_Refresh" xml:space="preserve"><value>Actualiser</value></data>
-  <data name="Action_Search" xml:space="preserve"><value>Rechercher</value></data>
-  <data name="Action_Clear" xml:space="preserve"><value>Effacer</value></data>
-  <data name="Action_Enable" xml:space="preserve"><value>Activer</value></data>
-  <data name="Action_Disable" xml:space="preserve"><value>D&#233;sactiver</value></data>
-  <data name="Action_Install" xml:space="preserve"><value>Installer</value></data>
-  <data name="Action_Uninstall" xml:space="preserve"><value>D&#233;sinstaller</value></data>
-  <data name="Action_SelectAll" xml:space="preserve"><value>Tout s&#233;lectionner</value></data>
-  <data name="Action_SelectNone" xml:space="preserve"><value>Tout d&#233;s&#233;lectionner</value></data>
-  <data name="Action_Close" xml:space="preserve"><value>Fermer</value></data>
-  <data name="Action_Copy" xml:space="preserve"><value>Copier</value></data>
-  <data name="Action_Browse" xml:space="preserve"><value>Parcourir</value></data>
 
   <!-- Status Messages -->
   <data name="Status_Loading" xml:space="preserve"><value>Chargement...</value></data>

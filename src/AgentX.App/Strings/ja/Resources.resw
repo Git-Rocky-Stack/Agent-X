@@ -49,25 +49,6 @@
   <data name="Section_Support" xml:space="preserve"><value>&#12469;&#12509;&#12540;&#12488;</value></data>
 
   <!-- Common Actions -->
-  <data name="Action_Save" xml:space="preserve"><value>&#20445;&#23384;</value></data>
-  <data name="Action_Cancel" xml:space="preserve"><value>&#12461;&#12515;&#12531;&#12475;&#12523;</value></data>
-  <data name="Action_Delete" xml:space="preserve"><value>&#21066;&#38500;</value></data>
-  <data name="Action_Edit" xml:space="preserve"><value>&#32232;&#38598;</value></data>
-  <data name="Action_Create" xml:space="preserve"><value>&#20316;&#25104;</value></data>
-  <data name="Action_Export" xml:space="preserve"><value>&#12456;&#12463;&#12473;&#12509;&#12540;&#12488;</value></data>
-  <data name="Action_Import" xml:space="preserve"><value>&#12452;&#12531;&#12509;&#12540;&#12488;</value></data>
-  <data name="Action_Refresh" xml:space="preserve"><value>&#26356;&#26032;</value></data>
-  <data name="Action_Search" xml:space="preserve"><value>&#26908;&#32034;</value></data>
-  <data name="Action_Clear" xml:space="preserve"><value>&#12463;&#12522;&#12450;</value></data>
-  <data name="Action_Enable" xml:space="preserve"><value>&#26377;&#21177;&#12395;&#12377;&#12427;</value></data>
-  <data name="Action_Disable" xml:space="preserve"><value>&#28961;&#21177;&#12395;&#12377;&#12427;</value></data>
-  <data name="Action_Install" xml:space="preserve"><value>&#12452;&#12531;&#12473;&#12488;&#12540;&#12523;</value></data>
-  <data name="Action_Uninstall" xml:space="preserve"><value>&#12450;&#12531;&#12452;&#12531;&#12473;&#12488;&#12540;&#12523;</value></data>
-  <data name="Action_SelectAll" xml:space="preserve"><value>&#12377;&#12409;&#12390;&#36984;&#25246;</value></data>
-  <data name="Action_SelectNone" xml:space="preserve"><value>&#36984;&#25246;&#35299;&#38500;</value></data>
-  <data name="Action_Close" xml:space="preserve"><value>&#38281;&#12376;&#12427;</value></data>
-  <data name="Action_Copy" xml:space="preserve"><value>&#12467;&#12500;&#12540;</value></data>
-  <data name="Action_Browse" xml:space="preserve"><value>&#21442;&#29031;</value></data>
 
   <!-- Status Messages -->
   <data name="Status_Loading" xml:space="preserve"><value>&#35501;&#12415;&#36796;&#12415;&#20013;...</value></data>
