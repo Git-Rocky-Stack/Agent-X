@@ -1805,8 +1805,9 @@ git commit -m "feat(a2): register per-page shortcuts in SettingsPage"
 - Create: `src/AgentX.App/Services/ShortcutCatalog.cs`
 - Modify: `src/AgentX.App/App.xaml.cs` — call `ShortcutCatalog.SeedDefaults` after DI is ready
 - Modify: `src/AgentX.App/MainWindow.xaml.cs` — DELETE `RegisterDefaultShortcuts()` method (lines 141–225) and the call at line 114–117 (the seeding moves to `ShortcutCatalog.SeedDefaults`)
+- Create: `tests/AgentX.Tests/Services/ShortcutCatalogTests.cs`
 
-- [ ] **Step 1: Write the catalog**
+- [x] **Step 1: Write the catalog**
 
 ```csharp
 using System;
@@ -1893,7 +1894,7 @@ public interface IWindowCommands
 
 > If existing `INavigationService` / `IWindowCommands` already exist (Spike 0 grep), delete these stubs and wire the real ones.
 
-- [ ] **Step 2: Seed at startup in `App.xaml.cs`**
+- [x] **Step 2: Seed at startup in `App.xaml.cs`**
 
 Find the post-DI-ready hook (after `Host.Services` is built). Add:
 
@@ -1902,7 +1903,7 @@ var catalog = Host.Services.GetRequiredService<ShortcutCatalog>();
 catalog.SeedDefaults();
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/AgentX.App/Services/ShortcutCatalog.cs src/AgentX.App/App.xaml.cs
@@ -2156,7 +2157,7 @@ Append to `docs/v2.1.0-RELEASE-NOTES.md`:
 - **Jump To** (`Ctrl+P`) — go to any document, conversation, or page instantly
 - **Cheatsheet** (`F1` or `Ctrl+Shift+?`) — grouped live listing of shortcuts for your current page
 - **12+ global shortcuts** seeded by default — navigation, window management, help
-- **`KeyboardShortcutService` evolved** into `IShortcutRegistry` / `ShortcutRegistry` — existing shortcuts preserved, scope-aware lookup added
+- **`KeyboardShortcutService` removed from the active path** — existing shortcuts are preserved in `ShortcutCatalog` and dispatched via `IShortcutRegistry` / `ShortcutInputRouter`
 - **`ChordStateMachine`** infrastructure ready for multi-step chords in future releases (no multi-step chord seeded in v2.1.0)
 - **Per-page shortcut help** — every page contributes its own shortcuts, visible in Cheatsheet under its own group
 - **`IShortcutRegistry`** public API for plugins to register their own shortcuts (v2.2 plugin API hookup)
@@ -2169,7 +2170,7 @@ dotnet build AgentX.sln -c Debug
 dotnet test tests/AgentX.Tests/AgentX.Tests.csproj --blame-hang-timeout 60s
 ```
 
-Expected: build 0W/0E, all tests pass. A2 has 47 tests after Task 9.
+Expected: build 0W/0E, all tests pass. A2 has 51 tests after Task 10.
 
 - [ ] **Step 6: Final commit**
 

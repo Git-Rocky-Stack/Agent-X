@@ -53,5 +53,7 @@
     <Compile Include="..\..\src\AgentX.App\Services\ShortcutInputRouter.cs" Link="Services\ShortcutInputRouter.cs" />
     <!-- ShortcutRegistrationExtensions is pure registry composition for page-scoped shortcuts. -->
     <Compile Include="..\..\src\AgentX.App\Helpers\ShortcutRegistrationExtensions.cs" Link="Helpers\ShortcutRegistrationExtensions.cs" />
+    <!-- ShortcutCatalog is pure global shortcut seeding logic. -->
+    <Compile Include="..\..\src\AgentX.App\Services\ShortcutCatalog.cs" Link="Services\ShortcutCatalog.cs" />
   </ItemGroup>
 </Project>

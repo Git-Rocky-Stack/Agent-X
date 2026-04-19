@@ -199,7 +199,8 @@ AgentX.App/
     DispatcherQueueExtensions.cs    # TryEnqueue helper for cross-thread UI updates
     MarkdownParser.cs               # Lightweight markdown-to-segment parser
   Services/
-    KeyboardShortcutService.cs      # Legacy global keyboard shortcut registry
+    ShortcutCatalog.cs              # Global shortcut descriptors seeded into IShortcutRegistry
+    ShortcutInputRouter.cs          # Registry-backed keyboard dispatch
   Styles/                  # XAML resource dictionaries
     Chat.xaml              # Chat bubble and message styles
     Colors.xaml            # Color palette and brush resources
@@ -536,7 +537,7 @@ private readonly Dictionary<string, NavigationViewItem> _navItemMap = new()
 **Navigation is initiated from three places:**
 
 1. User clicks a `NavigationViewItem` — handled by `NavView_SelectionChanged`
-2. Keyboard shortcut fires — current shipped shortcuts route through `KeyboardShortcutService.HandleKeyDown` -> `NavigateToPage()`; v2.1 A2 migrates this path to `IShortcutRegistry` + `ShortcutInputRouter`.
+2. Keyboard shortcut fires — `ShortcutInputRouter` maps WinUI keys to `KeyChord`, looks up `IShortcutRegistry`, then invokes the descriptor handler.
 3. Command palette selection — routes through `CommandPalette.ExecuteSelected` -> `NavigateToPageRequested` callback -> `NavigateToPage()`
 
 The `NavigateToPage(string pageTag)` method is the single canonical navigation function:
@@ -561,15 +562,19 @@ internal void NavigateToPage(string pageTag)
 
 ### 4.4 Keyboard Shortcuts
 
-`KeyboardShortcutService` is the legacy Singleton registered in DI. It maintains a dictionary keyed by `(VirtualKey, Ctrl, Shift, Alt)` tuples. Registration happens in `MainWindow.RegisterDefaultShortcuts()`. The v2.1 A2 branch is migrating this to `AgentX.Core.Services.Shortcuts.IShortcutRegistry`, `ShortcutCatalog`, and `ShortcutInputRouter`; do not add new feature shortcuts to the legacy service unless you are deliberately working outside A2.
+Global shortcuts are seeded by `ShortcutCatalog` into the Singleton `AgentX.Core.Services.Shortcuts.IShortcutRegistry`. `ShortcutInputRouter` hooks `RootGrid.PreviewKeyDown`, maps `VirtualKey` + modifiers to `KeyChord`, and dispatches either built-in surfaces (`Ctrl+K`, `Ctrl+Shift+P`, `Ctrl+P`, `F1`, `Ctrl+Shift+?`) or registry descriptors.
 
 ```csharp
-_keyboardShortcutService.RegisterShortcut(
-    VirtualKey.K, ctrl: true, shift: false, alt: false,
-    () => CommandPalette.Toggle());
+_registry.Register(new ShortcutDescriptor(
+    "nav.chat",
+    "New Conversation",
+    ShortcutScope.Global,
+    new[] { new KeyChord(KeyModifiers.Ctrl, VirtualKeyCode.N) },
+    _ => NavigateAsync("Chat"),
+    "Navigation"));
 ```
 
-The `RootGrid.PreviewKeyDown` handler in `MainWindow` calls `HandleKeyDown()` for every key press at the window root level, marking the event as handled if a shortcut fires.
+Page-scoped shortcuts use `ShortcutRegistrationExtensions.RegisterShortcuts(...)` from `OnNavigatedTo` and dispose the returned token from `OnNavigatedFrom`.
 
 **Default shortcuts:**
 

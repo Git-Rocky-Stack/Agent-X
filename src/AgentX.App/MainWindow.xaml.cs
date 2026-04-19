@@ -1,7 +1,6 @@
 using System.Linq;
 using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
-using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -11,7 +10,6 @@ using Serilog;
 using Windows.Graphics;
 using Windows.System;
 using Windows.UI;
-using Windows.UI.Core;
 using WinRT.Interop;
 using AgentX.App.Helpers;
 using AgentX.App.Services;
@@ -31,7 +29,6 @@ namespace AgentX.App;
 public sealed partial class MainWindow : Window
 {
     private readonly Dictionary<string, Type> _pageMap;
-    private readonly KeyboardShortcutService _keyboardShortcutService;
     private readonly AgentX.Core.Services.Shortcuts.IShortcutRegistry _shortcutRegistry;
     private readonly ShortcutInputRouter _shortcutInputRouter;
     private SystemTrayService _systemTrayService = null!;
@@ -118,11 +115,16 @@ public sealed partial class MainWindow : Window
             ["TermsOfService"] = NavTermsOfService,
         };
 
-        // Initialize keyboard shortcut service and register default shortcuts
-        _keyboardShortcutService = App.GetService<KeyboardShortcutService>();
-        RegisterDefaultShortcuts();
         _shortcutRegistry = App.GetService<AgentX.Core.Services.Shortcuts.IShortcutRegistry>();
-        SeedLegacyShortcutRegistry();
+        App.GetService<ShortcutCatalog>().SeedDefaults(new ShortcutCatalogActions(
+            (pageTag, _) =>
+            {
+                NavigateToPage(pageTag);
+                return Task.CompletedTask;
+            },
+            _ => ShowCommandPaletteAsync(),
+            _ => ShowJumpToDialogAsync(),
+            _ => ShowCheatsheetDialogAsync()));
         _shortcutInputRouter = new ShortcutInputRouter(
             _shortcutRegistry,
             App.GetService<ChordStateMachine>(),
@@ -157,197 +159,13 @@ public sealed partial class MainWindow : Window
     //  KEYBOARD SHORTCUTS
     // ═══════════════════════════════════════════════════════════════════
 
-    private void RegisterDefaultShortcuts()
-    {
-        // ── Navigation Shortcuts ──────────────────────────────────
-        _keyboardShortcutService.RegisterShortcut(
-            VirtualKey.K, ctrl: true, shift: false, alt: false,
-            () => CommandPalette.Toggle(),
-            "cmd.palette", "Command Palette", "Navigation");
-
-        _keyboardShortcutService.RegisterShortcut(
-            VirtualKey.N, ctrl: true, shift: false, alt: false,
-            () => NavigateToPage("Chat"),
-            "nav.chat", "New Conversation", "Navigation");
-
-        _keyboardShortcutService.RegisterShortcut(
-            VirtualKey.I, ctrl: true, shift: false, alt: false,
-            () => NavigateToPage("KnowledgeVault"),
-            "nav.vault", "Knowledge Vault", "Navigation");
-
-        _keyboardShortcutService.RegisterShortcut(
-            VirtualKey.F, ctrl: true, shift: false, alt: false,
-            () => NavigateToPage("Search"),
-            "nav.search", "Semantic Search", "Navigation");
-
-        _keyboardShortcutService.RegisterShortcut(
-            VirtualKey.F, ctrl: true, shift: true, alt: false,
-            () => NavigateToPage("Search"),
-            "nav.search.alt", "Semantic Search", "Navigation");
-
-        _keyboardShortcutService.RegisterShortcut(
-            (VirtualKey)188, ctrl: true, shift: false, alt: false,
-            () => NavigateToPage("Settings"),
-            "nav.settings", "Settings", "Navigation");
-
-        // ── Page Quick-Access (Ctrl+1 through Ctrl+9) ─────────────
-        var pageOrder = new[] { "Dashboard", "Chat", "AskFiles", "Search", "KnowledgeVault", "Collections", "Workflows", "ModelManager", "Settings" };
-        for (int i = 0; i < pageOrder.Length; i++)
-        {
-            var pageTag = pageOrder[i];
-            var num = i + 1;
-            _keyboardShortcutService.RegisterShortcut(
-                (VirtualKey)(num + 48), ctrl: true, shift: false, alt: false,
-                () => NavigateToPage(pageTag),
-                $"nav.page{num}", $"{pageTag} (Ctrl+{num})", "Quick Access");
-        }
-
-        // ── App Actions ───────────────────────────────────────────
-        _keyboardShortcutService.RegisterShortcut(
-            VirtualKey.W, ctrl: true, shift: true, alt: false,
-            () => NavigateToPage("Workflows"),
-            "nav.workflows", "Workflows", "Actions");
-
-        _keyboardShortcutService.RegisterShortcut(
-            VirtualKey.E, ctrl: true, shift: true, alt: false,
-            () => NavigateToPage("WebImport"),
-            "nav.webimport", "Web Import", "Actions");
-
-        _keyboardShortcutService.RegisterShortcut(
-            VirtualKey.D, ctrl: true, shift: false, alt: false,
-            () => NavigateToPage("Dashboard"),
-            "nav.dashboard", "Dashboard", "Actions");
-
-        _keyboardShortcutService.RegisterShortcut(
-            VirtualKey.G, ctrl: true, shift: false, alt: false,
-            () => NavigateToPage("KnowledgeGraph"),
-            "nav.graph", "Knowledge Graph", "Actions");
-
-        // ── Keyboard Shortcuts Help (Ctrl+?) ──────────────────────
-        _keyboardShortcutService.RegisterShortcut(
-            (VirtualKey)191, ctrl: true, shift: true, alt: false,
-            () => ShowShortcutsOverlay(),
-            "help.shortcuts", "Show Keyboard Shortcuts", "Help");
-
-        // ── Escape — Close Command Palette ────────────────────────
-        _keyboardShortcutService.RegisterShortcut(
-            VirtualKey.Escape, ctrl: false, shift: false, alt: false,
-            () =>
-            {
-                if (CommandPalette.IsOpen)
-                {
-                    CommandPalette.Hide();
-                }
-            });
-
-        Log.Information("Registered {Count} default keyboard shortcuts", _keyboardShortcutService.RegisteredCount);
-    }
-
-    private async void ShowShortcutsOverlay()
-    {
-        var shortcuts = _keyboardShortcutService.GetAllShortcuts();
-        var categories = _keyboardShortcutService.GetCategories();
-
-        var content = new StackPanel { Spacing = 16 };
-        foreach (var category in categories)
-        {
-            var catShortcuts = shortcuts.Where(s => s.Category == category).ToList();
-            if (catShortcuts.Count == 0) continue;
-
-            content.Children.Add(new Microsoft.UI.Xaml.Controls.TextBlock
-            {
-                Text = category.ToUpperInvariant(),
-                FontSize = 11,
-                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-                Opacity = 0.5,
-                Margin = new Thickness(0, 4, 0, 0)
-            });
-
-            foreach (var shortcut in catShortcuts)
-            {
-                var row = new Grid { Margin = new Thickness(0, 2, 0, 2) };
-                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-
-                var nameBlock = new Microsoft.UI.Xaml.Controls.TextBlock
-                {
-                    Text = shortcut.DisplayName,
-                    FontSize = 13,
-                    VerticalAlignment = VerticalAlignment.Center
-                };
-                Grid.SetColumn(nameBlock, 0);
-                row.Children.Add(nameBlock);
-
-                var keyBorder = new Microsoft.UI.Xaml.Controls.Border
-                {
-                    Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["InputBackgroundBrush"],
-                    BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["BorderSubtleBrush"],
-                    BorderThickness = new Thickness(1),
-                    CornerRadius = new CornerRadius(4),
-                    Padding = new Thickness(8, 2, 8, 2)
-                };
-                var keyBlock = new Microsoft.UI.Xaml.Controls.TextBlock
-                {
-                    Text = shortcut.KeyCombo,
-                    FontSize = 12,
-                    FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Consolas"),
-                    Opacity = 0.7
-                };
-                keyBorder.Child = keyBlock;
-                Grid.SetColumn(keyBorder, 1);
-                row.Children.Add(keyBorder);
-
-                content.Children.Add(row);
-            }
-        }
-
-        var scrollViewer = new Microsoft.UI.Xaml.Controls.ScrollViewer
-        {
-            Content = content,
-            MaxHeight = 500,
-            HorizontalScrollBarVisibility = Microsoft.UI.Xaml.Controls.ScrollBarVisibility.Disabled
-        };
-
-        // Use the current theme for the dialog instead of hardcoding Dark
-        var currentTheme = Microsoft.UI.Xaml.ElementTheme.Dark;
-        try
-        {
-            var themeService = App.GetService<IThemeService>();
-            currentTheme = themeService.CurrentTheme;
-        }
-        catch (Exception ex)
-        {
-            Log.Debug(ex, "Could not resolve theme service for shortcuts dialog, defaulting to Dark");
-        }
-
-        var dialog = new Microsoft.UI.Xaml.Controls.ContentDialog
-        {
-            Title = "Keyboard Shortcuts",
-            Content = scrollViewer,
-            CloseButtonText = "Close",
-            XamlRoot = Content.XamlRoot,
-            RequestedTheme = currentTheme
-        };
-
-        await dialog.ShowAsync();
-    }
-
     private void RootGrid_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
     {
-        // Determine modifier key states
-        var ctrlState = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control);
-        var shiftState = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Shift);
-        var altState = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Menu);
-
-        bool ctrl = (ctrlState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
-        bool shift = (shiftState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
-        bool alt = (altState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
-
         // If the command palette is open and the user presses Escape without modifiers,
         // let the command palette handle it through its own KeyDown handler to avoid
         // double-processing. Only handle Escape at the root level when the palette
         // search box does not have focus.
-        if (e.Key == VirtualKey.Escape && !ctrl && !shift && !alt && CommandPalette.IsOpen)
+        if (e.Key == VirtualKey.Escape && CommandPalette.IsOpen)
         {
             // The command palette's SearchInput_KeyDown handler will process this.
             // We only handle Escape here if it somehow reaches the root without
@@ -360,40 +178,6 @@ public sealed partial class MainWindow : Window
                 return;
             }
             return;
-        }
-
-        if (_keyboardShortcutService.HandleKeyDown(e.Key, ctrl, shift, alt))
-        {
-            e.Handled = true;
-        }
-    }
-
-    private void SeedLegacyShortcutRegistry()
-    {
-        foreach (var shortcut in _keyboardShortcutService.GetAllShortcuts())
-        {
-            var key = ShortcutInputRouter.MapVirtualKey(shortcut.Key);
-            if (key == VirtualKeyCode.None)
-            {
-                continue;
-            }
-
-            var modifiers = KeyModifiers.None;
-            if (shortcut.Ctrl) modifiers |= KeyModifiers.Ctrl;
-            if (shortcut.Shift) modifiers |= KeyModifiers.Shift;
-            if (shortcut.Alt) modifiers |= KeyModifiers.Alt;
-
-            _shortcutRegistry.Register(new AgentX.Core.Services.Shortcuts.ShortcutDescriptor(
-                shortcut.Id,
-                shortcut.DisplayName,
-                ShortcutScope.Global,
-                new[] { new KeyChord(modifiers, key) },
-                _ =>
-                {
-                    _keyboardShortcutService.HandleKeyDown(shortcut.Key, shortcut.Ctrl, shortcut.Shift, shortcut.Alt);
-                    return Task.CompletedTask;
-                },
-                shortcut.Category));
         }
     }
 

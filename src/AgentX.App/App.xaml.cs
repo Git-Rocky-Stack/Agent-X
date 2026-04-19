@@ -293,9 +293,9 @@ public partial class App : Application
         services.AddSingleton<IFeatureFlagService, FeatureFlagService>();
 
         // ── App Services (UI layer) ──────────────────────────────
-        services.AddSingleton<KeyboardShortcutService>();
         services.AddSingleton<IShortcutRegistry, ShortcutRegistry>();
         services.AddSingleton(_ => new ChordStateMachine(1000, () => DateTime.UtcNow));
+        services.AddSingleton<ShortcutCatalog>();
         services.AddSingleton<IThemeService, ThemeService>();
 
         // ── AI Services ────────────────────────────────────────
