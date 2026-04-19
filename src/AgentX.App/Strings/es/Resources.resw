@@ -82,17 +82,6 @@
   <data name="Validation_InvalidRange" xml:space="preserve"><value>El valor est&#225; fuera del rango.</value></data>
 
   <!-- Chat -->
-  <data name="Chat_Placeholder" xml:space="preserve"><value>Pregunta lo que quieras...</value></data>
-  <data name="Chat_Send" xml:space="preserve"><value>Enviar</value></data>
-  <data name="Chat_Stop" xml:space="preserve"><value>Detener</value></data>
-  <data name="Chat_Regenerate" xml:space="preserve"><value>Regenerar</value></data>
-  <data name="Chat_NewConversation" xml:space="preserve"><value>Nueva Conversaci&#243;n</value></data>
-  <data name="Chat_SystemPrompt" xml:space="preserve"><value>Prompt del Sistema</value></data>
-  <data name="Chat_ModelSelector" xml:space="preserve"><value>Seleccionar Modelo</value></data>
-  <data name="Chat_TokenCount" xml:space="preserve"><value>Tokens</value></data>
-  <data name="Chat_Thinking" xml:space="preserve"><value>Pensando...</value></data>
-  <data name="Chat_CopyMessage" xml:space="preserve"><value>Copiar Mensaje</value></data>
-  <data name="Chat_ExportChat" xml:space="preserve"><value>Exportar Chat</value></data>
 
   <!-- Search -->
   <data name="Search_Placeholder" xml:space="preserve"><value>Buscar en tu base de conocimiento...</value></data>

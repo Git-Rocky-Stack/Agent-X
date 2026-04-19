@@ -69,17 +69,6 @@
   <data name="Status_Initializing" xml:space="preserve"><value>Initialisation...</value></data>
 
   <!-- Chat -->
-  <data name="Chat_NewConversation" xml:space="preserve"><value>Nouvelle conversation</value></data>
-  <data name="Chat_Send" xml:space="preserve"><value>Envoyer</value></data>
-  <data name="Chat_Stop" xml:space="preserve"><value>Arr&#234;ter</value></data>
-  <data name="Chat_Regenerate" xml:space="preserve"><value>R&#233;g&#233;n&#233;rer</value></data>
-  <data name="Chat_CopyMessage" xml:space="preserve"><value>Copier le message</value></data>
-  <data name="Chat_ExportChat" xml:space="preserve"><value>Exporter la conversation</value></data>
-  <data name="Chat_Placeholder" xml:space="preserve"><value>Saisissez un message...</value></data>
-  <data name="Chat_Thinking" xml:space="preserve"><value>R&#233;flexion...</value></data>
-  <data name="Chat_ModelSelector" xml:space="preserve"><value>S&#233;lectionner un mod&#232;le</value></data>
-  <data name="Chat_SystemPrompt" xml:space="preserve"><value>Invite syst&#232;me</value></data>
-  <data name="Chat_TokenCount" xml:space="preserve"><value>{0} jetons</value></data>
 
   <!-- Search -->
   <data name="Search_Placeholder" xml:space="preserve"><value>Rechercher dans votre base de connaissances...</value></data>

@@ -69,17 +69,6 @@
   <data name="Status_Initializing" xml:space="preserve"><value>&#21021;&#26399;&#21270;&#20013;...</value></data>
 
   <!-- Chat -->
-  <data name="Chat_NewConversation" xml:space="preserve"><value>&#26032;&#12375;&#12356;&#20250;&#35441;</value></data>
-  <data name="Chat_Send" xml:space="preserve"><value>&#36865;&#20449;</value></data>
-  <data name="Chat_Stop" xml:space="preserve"><value>&#20572;&#27490;</value></data>
-  <data name="Chat_Regenerate" xml:space="preserve"><value>&#20877;&#29983;&#25104;</value></data>
-  <data name="Chat_CopyMessage" xml:space="preserve"><value>&#12513;&#12483;&#12475;&#12540;&#12472;&#12434;&#12467;&#12500;&#12540;</value></data>
-  <data name="Chat_ExportChat" xml:space="preserve"><value>&#12481;&#12515;&#12483;&#12488;&#12434;&#12456;&#12463;&#12473;&#12509;&#12540;&#12488;</value></data>
-  <data name="Chat_Placeholder" xml:space="preserve"><value>&#12513;&#12483;&#12475;&#12540;&#12472;&#12434;&#20837;&#21147;...</value></data>
-  <data name="Chat_Thinking" xml:space="preserve"><value>&#24605;&#32771;&#20013;...</value></data>
-  <data name="Chat_ModelSelector" xml:space="preserve"><value>&#12514;&#12487;&#12523;&#12434;&#36984;&#25246;</value></data>
-  <data name="Chat_SystemPrompt" xml:space="preserve"><value>&#12471;&#12473;&#12486;&#12512;&#12503;&#12525;&#12531;&#12503;&#12488;</value></data>
-  <data name="Chat_TokenCount" xml:space="preserve"><value>{0} &#12488;&#12540;&#12463;&#12531;</value></data>
 
   <!-- Search -->
   <data name="Search_Placeholder" xml:space="preserve"><value>&#12490;&#12524;&#12483;&#12472;&#12505;&#12540;&#12473;&#12434;&#26908;&#32034;...</value></data>
