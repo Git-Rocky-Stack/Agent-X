@@ -61,6 +61,25 @@ Plan tasks below are unfrozen and revised in place for each decision.
 
 ---
 
+## 🚨 Mid-Implementation Scope Revision (2026-04-18, post-Task 4)
+
+After Task 4 shipped the functional tool, running it against real Agent-X sources returned **24 keys, 100% coverage in every locale** — contradicting Spike 0's claim that the 24 `x:Uid`s were unlocalized (Spike 0's "679% coverage" math was misread). A follow-up QA investigation (P1 severity) confirmed the ground truth:
+
+- **0** literal `GetString("...")` calls in Agent-X's C#
+- **0** constant-based `GetString(ID)` calls
+- **0** non-`x:Uid` XAML binding paths to localization
+- **139 orphan keys per locale × 6 locales = 834 dead resw entries** with no references anywhere in the codebase
+
+This collapses the original backfill/translation workload to zero and surfaces a real P1 data-quality issue. **Per Rocky's Iron Rule ("deal with issues head-on, no deferrals") — 2026-04-18**, the plan was revised:
+
+- **Task 6 rewritten** — extend `CoverageReport` with `OrphanKeys` tracking so the tool surfaces dead entries + the CI gate prevents future accretion. (Original Task 6 "en-US backfill" preserved below as a no-op historical record.)
+- **Task 7 rewritten** — multi-channel audit of 139 orphan keys across all branches, exhaustive greps, dynamic-resolution patterns, and git-recency, then surgical batch deletion of 834 confirmed-dead entries. (Original Task 7 "translation backfill" preserved below as no-op.)
+- **Task 8+ unchanged.**
+
+This revision adds roughly 10–15 commits to A1 (3 new CoverageReport tests + audit script + audit evidence + ~7 batch-cleanup commits + final baseline capture + README update) but delivers a clean, dead-code-free localization data layer.
+
+---
+
 ## Pre-Implementation Spikes (REQUIRED — run first)
 
 Every spike records a concrete finding. If a spike invalidates any implementation task below, the plan is revised **in place** and committed before the first implementation task starts.
@@ -1278,17 +1297,167 @@ git commit -m "docs(a1): capture LocaleAudit baseline and tool usage docs"
 
 ---
 
-### Task 6: Extract missing canonical strings to `en-US/Resources.resw`
+### Task 6 (REVISED 2026-04-18): Extend `CoverageReport` with orphan-key tracking
 
-Using the `missingKeys` list from `baseline.json` for locale `en-US`, add entries to the en-US resw. Every `x:Uid` in `src/AgentX.App/` (24 uids per Spike 0) must have a matching `<Uid>.<Property>` entry in en-US — en-US is the canonical source that other locales translate FROM.
+> **History:** Original Task 6 called for a 24-entry en-US backfill. After Task 5 ran the tool against real sources, we discovered all 24 `x:Uid` keys are already 100% covered in every locale — the backfill was a no-op. Meanwhile, a QA investigation confirmed **139 orphan keys per locale × 6 locales = 834 dead resw entries** with zero references anywhere in the codebase (P1 data-quality finding). Per Rocky's Iron Rule ("deal with issues head-on, no deferrals"), Task 6 is rewritten to extend the tool with orphan detection, and Task 7 executes the cleanup.
 
-Per Spike 0 findings, the 24 missing uids are fully enumerated:
-
-- **From `Views/PluginManagerPage.xaml` (17 uids — sample)**: `Plugin_Manager`, `Plugin_Active`, `Plugin_Configuration`, `Plugin_NoPlugins`, `Plugin_Refresh`, `Plugin_SelectPlugin`, `Plugin_Install`, `Plugin_Installed`, `Plugin_Uninstall`, + 8 more (full list from `baseline.json`).
-- **From `Views/SettingsPage.xaml` (7 uids — sample)**: `Encryption_SectionHeader`, `Encryption_Description`, + 5 more.
+**Goal:** Add `OrphanKeys` tracking to `CoverageReport.Build` so it surfaces resw entries that no XAML `x:Uid` or C# `GetString` literal references. This makes the CI gate more useful (prevents future accretion of dead entries) AND provides the authoritative deletion list for Task 7.
 
 **Files:**
-- Modify: `src/AgentX.App/Strings/en-US/Resources.resw`
+- Modify: `tools/LocaleAudit/CoverageReport.cs` — add `OrphanKeys` to `LocaleCoverage`; compute in `Build`
+- Modify: `tests/LocaleAudit.Tests/CoverageReportTests.cs` — 3 new tests
+
+- [ ] **Step 1: Add `OrphanKeys` property to `LocaleCoverage`**
+
+```csharp
+public sealed class LocaleCoverage
+{
+    public string Locale { get; set; } = string.Empty;
+    public int Covered { get; set; }
+    public double CoveragePercent { get; set; }
+    public List<string> MissingKeys { get; set; } = new();
+    /// <summary>
+    /// Keys present in this locale's resw but NOT referenced by any XAML x:Uid or
+    /// C# GetString literal. These are dead entries — likely historical cruft from
+    /// removed UI. Use to drive cleanup (see plan Task 7).
+    /// </summary>
+    public List<string> OrphanKeys { get; set; } = new();
+}
+```
+
+- [ ] **Step 2: Compute orphans in `Build`**
+
+After the existing coverage-counting loop inside the `foreach (var (locale, entries) in locales)` block, add:
+
+```csharp
+// Orphan = resw entry whose base-name (before any first dot) is NOT in the union.
+// Handles both XAML-style (`Foo.Content` → base `Foo`) and code-style (`Nav_Bar` → base `Nav_Bar`).
+foreach (var reswKey in entries.Keys)
+{
+    var baseName = reswKey.Contains('.', StringComparison.Ordinal)
+        ? reswKey.Substring(0, reswKey.IndexOf('.', StringComparison.Ordinal))
+        : reswKey;
+    if (!unionKeys.Contains(baseName))
+        coverage.OrphanKeys.Add(reswKey);
+}
+```
+
+Keep orphan sorted deterministically:
+
+```csharp
+coverage.OrphanKeys.Sort(StringComparer.Ordinal);
+```
+
+- [ ] **Step 3: Update `PrintSummary` to show orphan count**
+
+Change the summary line to include orphan count:
+
+```csharp
+writer.WriteLine($"  [{status}] {locale,-6} {c.CoveragePercent,6:F2}% ({c.Covered}/{report.TotalKeys})  missing: {c.MissingKeys.Count}  orphan: {c.OrphanKeys.Count}");
+```
+
+- [ ] **Step 4: Write 3 new tests in `CoverageReportTests.cs`**
+
+```csharp
+[Fact]
+public void Build_identifies_orphan_resw_entries_with_xaml_style_base_names()
+{
+    var uids = new List<UidReference> { new("BtnOk", "x.xaml", 1) };
+    var codeKeys = new List<CodeKeyReference>();
+    var locales = new Dictionary<string, IReadOnlyDictionary<string, string>>
+    {
+        ["en-US"] = new Dictionary<string, string>
+        {
+            ["BtnOk.Content"] = "OK",
+            ["DeadKey.Text"] = "stale",          // orphan: base "DeadKey" not in union
+            ["AnotherDead.Content"] = "stale",   // orphan
+        },
+    };
+
+    var report = CoverageReport.Build(uids, codeKeys, locales);
+
+    report.PerLocale["en-US"].OrphanKeys.Should().BeEquivalentTo(
+        new[] { "AnotherDead.Content", "DeadKey.Text" });
+}
+
+[Fact]
+public void Build_identifies_orphan_resw_entries_with_code_style_flat_names()
+{
+    var uids = new List<UidReference>();
+    var codeKeys = new List<CodeKeyReference> { new("Nav_Real", "N.cs", 1) };
+    var locales = new Dictionary<string, IReadOnlyDictionary<string, string>>
+    {
+        ["en-US"] = new Dictionary<string, string>
+        {
+            ["Nav_Real"] = "Real",
+            ["Nav_Dead"] = "Dead",     // orphan: flat name not in union
+        },
+    };
+
+    var report = CoverageReport.Build(uids, codeKeys, locales);
+
+    report.PerLocale["en-US"].OrphanKeys.Should().BeEquivalentTo(new[] { "Nav_Dead" });
+}
+
+[Fact]
+public void Build_orphan_list_is_empty_when_all_resw_keys_are_referenced()
+{
+    var uids = new List<UidReference> { new("BtnOk", "x.xaml", 1) };
+    var codeKeys = new List<CodeKeyReference> { new("Nav_Home", "N.cs", 1) };
+    var locales = new Dictionary<string, IReadOnlyDictionary<string, string>>
+    {
+        ["en-US"] = new Dictionary<string, string>
+        {
+            ["BtnOk.Content"] = "OK",
+            ["Nav_Home"] = "Home",
+        },
+    };
+
+    var report = CoverageReport.Build(uids, codeKeys, locales);
+
+    report.PerLocale["en-US"].OrphanKeys.Should().BeEmpty();
+}
+```
+
+- [ ] **Step 5: Run — expect 30 tests pass** (27 previous + 3 new)
+
+```bash
+dotnet test tests/LocaleAudit.Tests/LocaleAudit.Tests.csproj
+```
+
+- [ ] **Step 6: Run tool against Agent-X sources — capture baseline with orphans visible**
+
+```bash
+dotnet run --project tools/LocaleAudit/LocaleAudit.Tool.csproj -- \
+  src/AgentX.App \
+  src \
+  src/AgentX.App/Strings \
+  --output tools/LocaleAudit/baseline-with-orphans.json \
+  --fail-below 0
+```
+
+Expected output (per QA investigation):
+```
+LocaleAudit — 24 unique localization keys (XAML + C# union)
+  [OK] de     100.00% (24/24)  missing: 0  orphan: 139
+  [OK] en-US  100.00% (24/24)  missing: 0  orphan: 139
+  ... (same for es, fr, ja, zh-CN)
+```
+
+The 139×6 = 834 orphan entries become the Task 7 deletion list.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add tools/LocaleAudit/CoverageReport.cs tests/LocaleAudit.Tests/CoverageReportTests.cs tools/LocaleAudit/baseline-with-orphans.json
+git commit -m "feat(a1): add OrphanKeys tracking to CoverageReport + capture baseline"
+```
+
+---
+
+### Task 6 (original): Extract missing canonical strings — NO LONGER APPLICABLE
+
+Original scope assumed 24 uids needed en-US entries. QA verification confirmed all 24 are already 100% covered. Original Task 6 is a documented no-op — see revised Task 6 above for the replacement scope.
 
 - [ ] **Step 1: Open `baseline.json` and filter to `perLocale["en-US"].missingKeys`**
 
@@ -1353,7 +1522,211 @@ git commit -m "feat(a1): backfill canonical en-US Resources.resw to ≥98% cover
 
 ---
 
-### Task 7: Backfill translations per locale (de, es, fr, ja, zh-CN)
+### Task 7 (REVISED 2026-04-18): Audit + clean up 834 dead resw entries
+
+> **History:** Original Task 7 called for machine-translated backfill of 120 new entries. After Task 5 + QA investigation, all 24 keys are already 100% translated in every locale — nothing to backfill. The real problem is 139 orphan keys per locale × 6 locales = **834 confirmed dead entries** (P1). Per the Iron Rule, this task executes the cleanup head-on.
+
+**Goal:** Remove 834 confirmed-dead resw entries across the 6 locales, verify LocaleAudit coverage stays at 100% after each batch, and commit in surgical batches so each deletion is reversible.
+
+**CRITICAL Safety: don't delete anything that might be alive.** The QA investigation verified via grep on `phase1-bedrock` only. Before deletion, every candidate key must pass the multi-channel audit in Step 1. Any key that fails audit (has a reference anywhere) is REMOVED from the deletion list.
+
+**Files:**
+- Create: `tools/LocaleAudit/orphan-audit.json` — per-key audit results
+- Modify: all 6 `src/AgentX.App/Strings/<locale>/Resources.resw`
+
+- [ ] **Step 1: Multi-channel orphan audit (per key — one-time, locale-independent since keys are identical across locales)**
+
+For each of the 139 orphan keys (from Task 6's `baseline-with-orphans.json`), verify zero references via FOUR independent channels:
+
+1. **All-branches grep** (catches in-flight feature branches):
+   ```bash
+   git log --all --source -- '*.cs' '*.xaml' '*.json' '*.xml' | head -200
+   # For each orphan key, grep the union of touched files across all branches
+   git grep -nE '<KEY_NAME>' $(git rev-list --all) 2>/dev/null | head -5
+   ```
+
+2. **Exhaustive file-type grep on phase1-bedrock**:
+   ```bash
+   grep -rn '<KEY_NAME>' src --include='*.cs' --include='*.xaml' \
+     --include='*.json' --include='*.yaml' --include='*.xml' --include='*.md'
+   ```
+   Also check `plugins/` and any `.manifest.json` / `appxmanifest.xml`.
+
+3. **Dynamic-resolution scan** (catches string-interpolation patterns):
+   ```bash
+   # Look for string-concat patterns that might build the key at runtime
+   grep -rnE '"<PREFIX>_"\s*\+' src --include='*.cs'   # e.g., "Nav_" + name
+   grep -rnE 'string\.Format.*GetString' src --include='*.cs'
+   grep -rnE '\$"{.*}.*"' src --include='*.cs' | grep -i getstring
+   ```
+
+4. **Git log recency check** (don't delete keys added in the last 90 days — might be for in-flight features):
+   ```bash
+   git log --all --since='90 days ago' -- '*Resources.resw' | head -40
+   # Any orphan added by a commit in this window → KEEP for now; investigate.
+   ```
+
+Record per-key result into `tools/LocaleAudit/orphan-audit.json`:
+```json
+{
+  "keyName": "Nav_Dashboard",
+  "channel_all_branches": "0 refs",
+  "channel_exhaustive_grep": "0 refs",
+  "channel_dynamic": "0 suspicious patterns",
+  "channel_recency": "last touched 2026-03-14 (over 90 days, safe)",
+  "verdict": "DELETE"
+}
+```
+
+Any key with `verdict != "DELETE"` is removed from the cleanup list and logged with the reason for retention.
+
+- [ ] **Step 2: Implement audit as an automated script**
+
+Given 139 keys × 4 channels = 556 checks, manual execution is infeasible. Create a helper script:
+
+**File:** `tools/LocaleAudit/Scripts/AuditOrphans.ps1` (PowerShell for Windows dev env)
+
+```powershell
+# Usage: .\AuditOrphans.ps1 -RepoRoot ..\.. -OrphansFile ..\baseline-with-orphans.json -Output ..\orphan-audit.json
+param(
+    [Parameter(Mandatory)][string]$RepoRoot,
+    [Parameter(Mandatory)][string]$OrphansFile,
+    [Parameter(Mandatory)][string]$Output
+)
+
+$ErrorActionPreference = "Stop"
+Set-Location $RepoRoot
+
+$orphansJson = Get-Content $OrphansFile | ConvertFrom-Json
+# All locales have the same 139 orphan keys — use en-US as source of truth.
+$orphanKeys = ($orphansJson.perLocale.'en-US'.orphanKeys |
+    ForEach-Object { if ($_ -match '^([^.]+)') { $Matches[1] } }) | Select-Object -Unique
+
+$results = @()
+$cutoff = (Get-Date).AddDays(-90)
+
+foreach ($key in $orphanKeys) {
+    $channelGrep = (git grep -l $key -- '*.cs' '*.xaml' '*.json' '*.yaml' '*.xml' '*.md' 2>$null) -ne $null
+    $channelAllBranches = (git log --all --grep=$key --oneline 2>$null) -ne $null
+    $channelDynamic = (Select-String -Path "src\**\*.cs" -Pattern "[`"]$($key.Substring(0,[math]::min($key.Length,6)))[`"]\s*\+" -SimpleMatch:$false -Quiet) -eq $true
+    $lastTouchRaw = git log -1 --format='%ad' --date=short -- "src/AgentX.App/Strings/en-US/Resources.resw"
+    $recencyOk = ([datetime]::Parse($lastTouchRaw) -lt $cutoff)
+
+    $verdict = if ($channelGrep -or $channelAllBranches -or $channelDynamic -or -not $recencyOk) { "KEEP" } else { "DELETE" }
+
+    $results += [ordered]@{
+        keyName = $key
+        channel_exhaustive_grep = if ($channelGrep) { "refs_found" } else { "0_refs" }
+        channel_all_branches = if ($channelAllBranches) { "refs_found" } else { "0_refs" }
+        channel_dynamic = if ($channelDynamic) { "suspicious_pattern" } else { "0_suspicious" }
+        channel_recency = if ($recencyOk) { "safe" } else { "recent_touch" }
+        verdict = $verdict
+    }
+}
+
+$results | ConvertTo-Json -Depth 4 | Set-Content $Output
+Write-Host "Audited $($results.Count) keys. DELETE: $(($results | Where-Object { $_.verdict -eq 'DELETE' }).Count), KEEP: $(($results | Where-Object { $_.verdict -eq 'KEEP' }).Count)"
+```
+
+Run:
+```bash
+cd tools/LocaleAudit/Scripts
+pwsh ./AuditOrphans.ps1 -RepoRoot ../../.. -OrphansFile ../baseline-with-orphans.json -Output ../orphan-audit.json
+```
+
+- [ ] **Step 3: Review the audit output**
+
+Open `tools/LocaleAudit/orphan-audit.json`. Expected: most entries show `verdict: DELETE`; any `verdict: KEEP` entries are explicitly flagged with the channel(s) that kept them alive.
+
+**Gate:** if fewer than 120 of the 139 keys are `DELETE`, something is suspicious — re-examine the `KEEP` pile before proceeding. If over 120 `DELETE`, proceed to Step 4.
+
+- [ ] **Step 4: Commit the audit evidence**
+
+```bash
+git add tools/LocaleAudit/Scripts/ tools/LocaleAudit/orphan-audit.json
+git commit -m "chore(a1): audit 139 resw orphan keys across 4 channels"
+```
+
+- [ ] **Step 5: Execute cleanup in surgical batches — group by naming prefix**
+
+For each prefix group (e.g., `Nav_`, `Action_`, `Plugin_`, `Chat_`, `Settings_`, `Backup_`, `Sync_`), create one commit that removes the confirmed-dead entries across ALL 6 locales for that group. This keeps each commit easy to review and revert.
+
+Example commit sequence (actual prefixes depend on the 139 orphan list):
+```
+git add src/AgentX.App/Strings/*/Resources.resw
+git commit -m "chore(a1): remove dead Nav_* resw entries (15 keys × 6 locales = 90 entries)"
+
+git add src/AgentX.App/Strings/*/Resources.resw
+git commit -m "chore(a1): remove dead Action_* resw entries (N keys × 6 locales)"
+
+# ... one commit per prefix group ...
+```
+
+For each batch, the workflow is:
+1. Identify all `verdict: DELETE` keys in the prefix (e.g., `Nav_Dashboard`, `Nav_Chat`, `Nav_Settings`, …)
+2. For each of the 6 locale files, locate and delete the full `<data>…</data>` block for each key (respect `xml:space="preserve"` and whitespace)
+3. Run `dotnet build src/AgentX.App` to confirm no XAML or C# reference breaks (there won't be — they're audited dead)
+4. Run `dotnet run --project tools/LocaleAudit/LocaleAudit.Tool.csproj -- src/AgentX.App src src/AgentX.App/Strings --fail-below 98` — coverage MUST stay at 100% (since we only removed orphans, the 24 live keys still match). Orphan count must decrease by exactly `keys-in-batch × 6`.
+5. Commit with the specific count in the message.
+
+- [ ] **Step 6: Final cleanup verification**
+
+After all batch commits land:
+
+```bash
+dotnet run --project tools/LocaleAudit/LocaleAudit.Tool.csproj -- \
+  src/AgentX.App \
+  src \
+  src/AgentX.App/Strings \
+  --output tools/LocaleAudit/baseline-post-cleanup.json \
+  --fail-below 98
+```
+
+Expected:
+```
+LocaleAudit — 24 unique localization keys (XAML + C# union)
+  [OK] de     100.00% (24/24)  missing: 0  orphan: 0
+  [OK] en-US  100.00% (24/24)  missing: 0  orphan: 0
+  ... (orphan: 0 for all 6 locales, assuming every DELETE key was removed)
+```
+
+If any locale shows non-zero orphans, those are the `KEEP`-verdict entries — document in release notes.
+
+- [ ] **Step 7: Commit the final baseline**
+
+```bash
+git add tools/LocaleAudit/baseline-post-cleanup.json
+git commit -m "chore(a1): capture post-cleanup baseline — 834 dead entries removed, 100% coverage preserved"
+```
+
+- [ ] **Step 8: Update `tools/LocaleAudit/README.md` with the cleanup outcome**
+
+Append a new section to the README:
+
+```markdown
+## Cleanup History
+
+A1 (v2.1.0) removed 834 dead resw entries (139 unique keys × 6 locales) that were
+historical cruft from UI iterations that never shipped. Post-cleanup state:
+- **24 live localization keys** referenced by XAML `x:Uid` attributes
+- **0 orphan keys** across all 6 locales
+- **100% coverage** — acceptance gate met for every locale
+
+If any orphan keys reappear in the future (accidentally re-added), the CI gate
+(`.github/workflows/locale-audit.yml`) will surface them on the next PR.
+```
+
+Commit:
+```bash
+git add tools/LocaleAudit/README.md
+git commit -m "docs(a1): record cleanup outcome in LocaleAudit README"
+```
+
+---
+
+### Task 7 (original): Backfill translations per locale — NO LONGER APPLICABLE
+
+Original scope assumed 120 new translations needed. QA verification confirmed all 24 keys × 6 locales are already populated. Original Task 7 is a documented no-op — see revised Task 7 above for the replacement scope (dead-key cleanup).
 
 **Files:**
 - Modify: `src/AgentX.App/Strings/de/Resources.resw`
