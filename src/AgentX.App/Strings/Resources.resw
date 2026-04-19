@@ -71,15 +71,4 @@
   <!-- Settings -->
 
   <!-- Sync -->
-  <data name="Sync_Settings" xml:space="preserve"><value>Sync Settings</value></data>
-  <data name="Sync_NotConfigured" xml:space="preserve"><value>Sync is not configured</value></data>
-  <data name="Sync_Configured" xml:space="preserve"><value>Sync is configured</value></data>
-  <data name="Sync_AutoSync" xml:space="preserve"><value>Auto Sync</value></data>
-  <data name="Sync_Interval" xml:space="preserve"><value>Sync Interval</value></data>
-  <data name="Sync_LastSync" xml:space="preserve"><value>Last Synced</value></data>
-  <data name="Sync_SyncNow" xml:space="preserve"><value>Sync Now</value></data>
-  <data name="Sync_FolderPath" xml:space="preserve"><value>Folder Path</value></data>
-  <data name="Sync_EncryptionKey" xml:space="preserve"><value>Encryption Key</value></data>
-  <data name="Sync_Conflicts" xml:space="preserve"><value>Conflicts</value></data>
-  <data name="Sync_History" xml:space="preserve"><value>Sync History</value></data>
 </root>

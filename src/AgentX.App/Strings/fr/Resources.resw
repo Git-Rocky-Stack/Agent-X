@@ -56,17 +56,6 @@
   <data name="Plugin_ByAuthor.Text" xml:space="preserve"><value>par</value></data>
 
   <!-- Sync -->
-  <data name="Sync_Settings" xml:space="preserve"><value>Param&#232;tres de synchronisation</value></data>
-  <data name="Sync_FolderPath" xml:space="preserve"><value>Dossier de synchronisation</value></data>
-  <data name="Sync_EncryptionKey" xml:space="preserve"><value>Cl&#233; de chiffrement</value></data>
-  <data name="Sync_Interval" xml:space="preserve"><value>Intervalle de synchronisation</value></data>
-  <data name="Sync_AutoSync" xml:space="preserve"><value>Synchronisation automatique</value></data>
-  <data name="Sync_SyncNow" xml:space="preserve"><value>Synchroniser maintenant</value></data>
-  <data name="Sync_History" xml:space="preserve"><value>Historique de synchronisation</value></data>
-  <data name="Sync_LastSync" xml:space="preserve"><value>Derni&#232;re synchronisation : {0}</value></data>
-  <data name="Sync_Configured" xml:space="preserve"><value>Configur&#233;</value></data>
-  <data name="Sync_NotConfigured" xml:space="preserve"><value>Non configur&#233;</value></data>
-  <data name="Sync_Conflicts" xml:space="preserve"><value>{0} conflit(s) d&#233;tect&#233;(s)</value></data>
 
   <!-- Settings -->
 

@@ -56,17 +56,6 @@
   <data name="Plugin_ByAuthor.Text" xml:space="preserve"><value>&#20316;&#32773;</value></data>
 
   <!-- Sync -->
-  <data name="Sync_Settings" xml:space="preserve"><value>&#21516;&#27493;&#35774;&#32622;</value></data>
-  <data name="Sync_FolderPath" xml:space="preserve"><value>&#21516;&#27493;&#25991;&#20214;&#22841;&#36335;&#24452;</value></data>
-  <data name="Sync_EncryptionKey" xml:space="preserve"><value>&#21152;&#23494;&#23494;&#38053;</value></data>
-  <data name="Sync_Interval" xml:space="preserve"><value>&#21516;&#27493;&#38388;&#38548;</value></data>
-  <data name="Sync_AutoSync" xml:space="preserve"><value>&#33258;&#21160;&#21516;&#27493;</value></data>
-  <data name="Sync_SyncNow" xml:space="preserve"><value>&#31435;&#21363;&#21516;&#27493;</value></data>
-  <data name="Sync_History" xml:space="preserve"><value>&#21516;&#27493;&#21382;&#21490;</value></data>
-  <data name="Sync_LastSync" xml:space="preserve"><value>&#19978;&#27425;&#21516;&#27493;: {0}</value></data>
-  <data name="Sync_Configured" xml:space="preserve"><value>&#24050;&#37197;&#32622;</value></data>
-  <data name="Sync_NotConfigured" xml:space="preserve"><value>&#26410;&#37197;&#32622;</value></data>
-  <data name="Sync_Conflicts" xml:space="preserve"><value>&#26816;&#27979;&#21040; {0} &#20010;&#20914;&#31361;</value></data>
 
   <!-- Settings -->
 

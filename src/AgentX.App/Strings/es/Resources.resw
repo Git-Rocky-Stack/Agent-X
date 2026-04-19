@@ -71,17 +71,6 @@
   <!-- Settings -->
 
   <!-- Sync -->
-  <data name="Sync_Settings" xml:space="preserve"><value>Ajustes de Sincronizaci&#243;n</value></data>
-  <data name="Sync_NotConfigured" xml:space="preserve"><value>La sincronizaci&#243;n no est&#225; configurada</value></data>
-  <data name="Sync_Configured" xml:space="preserve"><value>La sincronizaci&#243;n est&#225; configurada</value></data>
-  <data name="Sync_AutoSync" xml:space="preserve"><value>Sincronizaci&#243;n Autom&#225;tica</value></data>
-  <data name="Sync_Interval" xml:space="preserve"><value>Intervalo de Sincronizaci&#243;n</value></data>
-  <data name="Sync_LastSync" xml:space="preserve"><value>&#218;ltima Sincronizaci&#243;n</value></data>
-  <data name="Sync_SyncNow" xml:space="preserve"><value>Sincronizar Ahora</value></data>
-  <data name="Sync_FolderPath" xml:space="preserve"><value>Ruta de Carpeta</value></data>
-  <data name="Sync_EncryptionKey" xml:space="preserve"><value>Clave de Cifrado</value></data>
-  <data name="Sync_Conflicts" xml:space="preserve"><value>Conflictos</value></data>
-  <data name="Sync_History" xml:space="preserve"><value>Historial de Sincronizaci&#243;n</value></data>
   <data name="Encryption_SectionHeader.Text" xml:space="preserve"><value>Database Encryption</value></data>
   <data name="Encryption_Description.Text" xml:space="preserve"><value>Encrypt your knowledge vault with AES-256 (SQLCipher). Ultimate tier uses a passphrase you enter on each launch; other tiers use an automatic key tied to your Windows account.</value></data>
 </root>
