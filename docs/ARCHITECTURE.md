@@ -1770,4 +1770,46 @@ The application is distributed as a self-contained Windows installer built with 
 
 ---
 
+## 20. Localization (A1)
+
+Agent-X ships six UI locales — **German (de)**, **English (en-US, canonical)**, **Spanish (es)**, **French (fr)**, **Japanese (ja)**, **Simplified Chinese (zh-CN)** — with a data-layer enforcement pipeline that blocks regressions before merge.
+
+**Key surfaces.** Localized strings are referenced two ways in Agent-X:
+
+1. **XAML `x:Uid`** — WinUI 3 resource attachment. `Views/SettingsPage.xaml` and `Views/PluginManagerPage.xaml` use this path; resw keys follow the `<Uid>.<Property>` convention (e.g., `Encryption_Toggle.Text`).
+2. **C# `ILocalizationService.GetString("key")`** — code-driven lookup used by the nav menu, status bar, dialog captions, etc. Keys are flat (e.g., `Nav_Dashboard`) with no dot.
+
+The union of both surfaces defines *coverage*. A resw entry that matches neither is an **orphan** (dead code).
+
+**Coverage enforcement.** `tools/LocaleAudit/LocaleAudit.Tool.csproj` is a net8.0 console tool that:
+
+- Scans every `*.xaml` under `src/AgentX.App/` for `x:Uid` references (`XamlUidExtractor`)
+- Scans every `*.cs` under `src/` for literal-argument `GetString("...")` calls (`CSharpGetStringExtractor`)
+- Parses every `Strings/<locale>/Resources.resw` (`ReswReader`)
+- Builds a per-locale `CoverageReport` that counts covered / missing / orphan keys and emits camelCase JSON
+
+`.github/workflows/locale-audit.yml` runs the tool with `--fail-below 98` on every PR touching XAML, C#, resw, or the tool itself. The workflow posts (and updates) a per-locale coverage table as a PR comment and uploads the report as an artifact.
+
+**Pluralization.** `ILocalizationService.FormatPlural(baseKey, count, args)` delegates to `CldrPluralRuleProvider` to resolve the correct CLDR plural category (`one`, `other`, plus locale-specific `zero` / `two` / `few` / `many`) and looks up `<baseKey>_<category>` in resw. Missing categories fall back to `<baseKey>_other`; absent fallback throws `KeyNotFoundException` so the defect is caught in tests rather than leaking to the UI.
+
+**RTL readiness.** `RtlDetector` (in `AgentX.Core`) returns a `bool` for any `CultureInfo`. `FlowDirectionHelper` (in `AgentX.App`) wraps it and exposes the WinUI 3 `FlowDirection` enum. `MainWindow.xaml.cs` binds `RootGrid.FlowDirection` to `FlowDirectionHelper.Current()` in the constructor. Agent-X has no RTL locale today, but ar-SA / he-IL / fa-IR can be added with no XAML change — drop a new resw bundle and the detector + helper handle the rest.
+
+**Fallback behavior.** When a key is missing in the current locale, `LocalizationService.GetString` returns the **literal key string** (e.g., `Plugin_Manager`). This is a visible failure — which is why the CI gate at 98% is load-bearing, not advisory.
+
+**Files.**
+
+| Layer | Path |
+|---|---|
+| Core detector | `src/AgentX.Core/Services/Localization/RtlDetector.cs` |
+| Core pluralization | `src/AgentX.Core/Services/Localization/CldrPluralRuleProvider.cs` |
+| Service interface | `src/AgentX.Core/Services/Localization/ILocalizationService.cs` |
+| Service impl | `src/AgentX.App/Services/LocalizationService.cs` |
+| WinUI shim | `src/AgentX.App/Helpers/FlowDirectionHelper.cs` |
+| Audit tool | `tools/LocaleAudit/` |
+| Tests | `tests/LocaleAudit.Tests/`, `tests/AgentX.Tests/Services/Localization/` |
+| CI gate | `.github/workflows/locale-audit.yml` |
+| Smoke checklist | `docs/a1-locale-smoke-checklist.md` |
+
+---
+
 *This document reflects the Agent-X codebase as of version 1.0, build date 2026-02-27. All file paths are relative to the solution root at `src/AgentX.App/` and `src/AgentX.Core/` respectively.*

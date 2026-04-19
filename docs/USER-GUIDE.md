@@ -1160,4 +1160,29 @@ Once encryption is enabled, every file Agent-X writes to its vault — documents
 
 ---
 
+## Language Selection
+
+Agent-X displays its user interface in the language you have chosen for Windows, and ships translations for six languages out of the box:
+
+- **English (United States)** — canonical
+- **Deutsch** — German
+- **Español** — Spanish
+- **Français** — French
+- **日本語** — Japanese
+- **简体中文** — Simplified Chinese
+
+**Changing your display language.** Agent-X follows your Windows display language automatically. To switch:
+
+1. Open **Windows Settings → Time & language → Language & region**.
+2. Set your preferred display language at the top.
+3. Restart Agent-X. The next launch picks up the new locale.
+
+**Regional formatting** (dates, numbers, document counts in the status bar) also follows your Windows regional settings. If you prefer English UI but German number formatting, configure them independently in Windows.
+
+**Documentation language.** In-app help, this User Guide, and release notes are currently English-only. Future releases will expand documentation coverage.
+
+**Reporting translation issues.** If you spot an awkward phrase, missing string, or text that overflows a button, please file an issue with the page name, the language, and a screenshot. Translations are versioned alongside the app so fixes ship on the next release.
+
+---
+
 *Agent-X is developed by Rocky Stack / Strategia. For support, feature requests, or bug reports, please contact the development team.*
