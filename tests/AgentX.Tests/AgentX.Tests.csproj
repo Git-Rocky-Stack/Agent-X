@@ -45,5 +45,7 @@
     <!-- CommandPaletteViewModel depends only on AgentX.Core.Services.Shortcuts
          and CommunityToolkit.Mvvm — no Windows.* deps — so it links cleanly. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\CommandPaletteViewModel.cs" Link="ViewModels\CommandPaletteViewModel.cs" />
+    <!-- JumpToViewModel follows the same pure-VM shape as CommandPaletteViewModel. -->
+    <Compile Include="..\..\src\AgentX.App\ViewModels\JumpToViewModel.cs" Link="ViewModels\JumpToViewModel.cs" />
   </ItemGroup>
 </Project>

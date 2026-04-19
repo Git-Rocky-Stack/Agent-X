@@ -1194,7 +1194,7 @@ Similar shape to command palette — but the candidate list comes from `IDocumen
 - Create: `src/AgentX.App/Views/Dialogs/JumpToDialog.xaml.cs`
 - Create: `tests/AgentX.Tests/ViewModels/JumpToViewModelTests.cs`
 
-- [ ] **Step 1: Write `JumpToItem` record + ViewModel**
+- [x] **Step 1: Write `JumpToItem` record + ViewModel**
 
 ```csharp
 using System;
@@ -1262,7 +1262,7 @@ public partial class JumpToViewModel : ObservableObject
 }
 ```
 
-- [ ] **Step 2: Write tests**
+- [x] **Step 2: Write tests**
 
 ```csharp
 using System.Collections.Generic;
@@ -1309,7 +1309,7 @@ public class JumpToViewModelTests
 }
 ```
 
-- [ ] **Step 3: Write `JumpToDialog.xaml` + `.xaml.cs`**
+- [x] **Step 3: Write `JumpToDialog.xaml` + `.xaml.cs`**
 
 Nearly identical to `CommandPaletteDialog`, but:
 - DataTemplate shows `Kind` as an icon (`"Page" = FontIcon E8A5`, `"Document" = E8A5`, `"Conversation" = E90A`)
@@ -1332,7 +1332,7 @@ Pattern:
 
 Code-behind mirrors `CommandPaletteDialog.xaml.cs` with ViewModel type swapped.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 ```bash
 dotnet test --filter "FullyQualifiedName~JumpToViewModelTests"
@@ -1340,7 +1340,7 @@ dotnet test --filter "FullyQualifiedName~JumpToViewModelTests"
 
 Expected: 2 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/AgentX.App/ViewModels/JumpToViewModel.cs src/AgentX.App/Views/Dialogs/JumpToDialog.* tests/AgentX.Tests/ViewModels/JumpToViewModelTests.cs
