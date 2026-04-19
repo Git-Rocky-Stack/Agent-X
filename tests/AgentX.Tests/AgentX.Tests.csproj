@@ -37,5 +37,10 @@
     <!-- QuickChatViewModel is linked from AgentX.App because the WinUI 3 app project
          cannot be referenced directly (WindowsAppSDKSelfContained requires a RID). -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\QuickChatViewModel.cs" Link="ViewModels\QuickChatViewModel.cs" />
+    <!-- LocalizationService is linked (same WinUI 3 RID constraint). The A1
+         IResourceLoaderAdapter seam means the service itself has no Windows.*
+         dependencies, so linking compiles cleanly against AgentX.Core alone.
+         AppSettingsExtended travels with the file (same compilation unit). -->
+    <Compile Include="..\..\src\AgentX.App\Services\LocalizationService.cs" Link="Services\LocalizationService.cs" />
   </ItemGroup>
 </Project>

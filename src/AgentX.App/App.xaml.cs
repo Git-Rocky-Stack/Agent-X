@@ -194,6 +194,21 @@ public partial class App : Application
             Log.Warning(ex, "Feature flag initialization failed — using defaults");
         }
 
+        // 3b. Initialize localization (reads persisted language override and
+        //     constructs the ResourceLoader). Must be awaited BEFORE any UI
+        //     renders — otherwise GetString/FormatPlural can race against a
+        //     null loader and return fallback keys instead of localized text.
+        try
+        {
+            var localization = GetService<ILocalizationService>();
+            await localization.InitializeAsync();
+            Log.Information("Localization initialized: {Language}", localization.CurrentLanguage);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Localization initialization failed — UI will use resource keys as fallback");
+        }
+
         // 4. Initialize theme from user preferences
         try
         {
@@ -404,6 +419,8 @@ public partial class App : Application
         services.AddSingleton<IAnnotationService, AnnotationService>();
 
         // ── Localization ────────────────────────────────────
+        services.AddSingleton<IPluralRuleProvider, CldrPluralRuleProvider>();
+        services.AddSingleton<IResourceLoaderAdapter, WinUIResourceLoaderAdapter>();
         services.AddSingleton<ILocalizationService, LocalizationService>();
 
         // ── Inbox (Smart Triage) ──────────────────────────────

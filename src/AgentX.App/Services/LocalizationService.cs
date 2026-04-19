@@ -1,20 +1,22 @@
+using System.Globalization;
 using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Settings;
 using Serilog;
-using Windows.ApplicationModel.Resources;
-using Windows.Globalization;
 
 namespace AgentX.App.Services;
 
 /// <summary>
-/// WinUI 3 implementation of <see cref="ILocalizationService"/> using
-/// <see cref="ResourceLoader"/> and .resw resource files.
-/// Supports language override via AppSettings, falling back to OS locale.
+/// Default <see cref="ILocalizationService"/> implementation. All platform
+/// resource-loading and language-override calls are delegated to
+/// <see cref="IResourceLoaderAdapter"/> so this class carries zero WinUI 3
+/// dependencies and is fully unit-testable. In production the adapter is
+/// <c>WinUIResourceLoaderAdapter</c>; in tests it is a pre-populated fake.
 /// </summary>
 public sealed class LocalizationService : ILocalizationService
 {
     private readonly ISettingsService _settingsService;
-    private ResourceLoader? _resourceLoader;
+    private readonly IPluralRuleProvider _pluralRules;
+    private readonly IResourceLoaderAdapter _resourceLoader;
     private string _currentLanguage;
 
     private static readonly List<LanguageOption> _supportedLanguages = new()
@@ -30,15 +32,25 @@ public sealed class LocalizationService : ILocalizationService
     public string CurrentLanguage => _currentLanguage;
     public IReadOnlyList<LanguageOption> SupportedLanguages => _supportedLanguages;
 
-    public LocalizationService(ISettingsService settingsService)
+    public LocalizationService(
+        ISettingsService settingsService,
+        IPluralRuleProvider pluralRules,
+        IResourceLoaderAdapter resourceLoader)
     {
         _settingsService = settingsService;
+        _pluralRules = pluralRules;
+        _resourceLoader = resourceLoader;
         _currentLanguage = "en-US";
-        InitializeLanguage();
     }
 
-    private async void InitializeLanguage()
+    /// <inheritdoc />
+    public async Task InitializeAsync()
     {
+        // Awaited by InitializeCoreServicesAsync during app startup so no caller can
+        // observe a half-initialized service. Replaces the old fire-and-forget ctor
+        // race (the ctor used to kick off an `async void` that set _resourceLoader
+        // and _currentLanguage on a thread-pool thread — UI thread reads could
+        // therefore see a null loader and the wrong language on cold start).
         try
         {
             var settings = await _settingsService.GetSettingsAsync();
@@ -47,22 +59,14 @@ public sealed class LocalizationService : ILocalizationService
             if (!string.IsNullOrEmpty(languageOverride))
             {
                 _currentLanguage = languageOverride;
-                ApplicationLanguages.PrimaryLanguageOverride = languageOverride;
+                _resourceLoader.SetLanguageOverride(languageOverride);
             }
             else
             {
-                _currentLanguage = ApplicationLanguages.Languages.FirstOrDefault() ?? "en-US";
+                _currentLanguage = _resourceLoader.GetActiveLanguage();
             }
 
-            try
-            {
-                _resourceLoader = new ResourceLoader();
-            }
-            catch
-            {
-                // Resource files may not exist yet — that's OK during initial setup
-                Log.Warning("ResourceLoader initialization failed — using fallback strings");
-            }
+            _resourceLoader.Initialize();
 
             Log.Information("Localization initialized: {Language}", _currentLanguage);
         }
@@ -79,12 +83,12 @@ public sealed class LocalizationService : ILocalizationService
         {
             if (string.IsNullOrEmpty(languageCode))
             {
-                ApplicationLanguages.PrimaryLanguageOverride = string.Empty;
-                _currentLanguage = ApplicationLanguages.Languages.FirstOrDefault() ?? "en-US";
+                _resourceLoader.SetLanguageOverride(null);
+                _currentLanguage = _resourceLoader.GetActiveLanguage();
             }
             else
             {
-                ApplicationLanguages.PrimaryLanguageOverride = languageCode;
+                _resourceLoader.SetLanguageOverride(languageCode);
                 _currentLanguage = languageCode;
             }
 
@@ -106,23 +110,12 @@ public sealed class LocalizationService : ILocalizationService
 
     public string GetString(string resourceKey)
     {
-        try
-        {
-            if (_resourceLoader is not null)
-            {
-                var value = _resourceLoader.GetString(resourceKey);
-                if (!string.IsNullOrEmpty(value))
-                    return value;
-            }
-        }
-        catch
-        {
-            // Fall through to return the key itself
-        }
-
+        var value = _resourceLoader.GetString(resourceKey);
         // Fallback: return the resource key as-is (useful during development
-        // before all .resw files are populated)
-        return resourceKey;
+        // before all .resw files are populated). The adapter returns null on
+        // miss, so !IsNullOrEmpty preserves the previous WinUI-behavior where
+        // the empty-string miss also triggered the fallback.
+        return string.IsNullOrEmpty(value) ? resourceKey : value;
     }
 
     public string GetString(string resourceKey, params object[] args)
@@ -134,6 +127,48 @@ public sealed class LocalizationService : ILocalizationService
         }
         catch
         {
+            return template;
+        }
+    }
+
+    /// <summary>
+    /// True-miss-aware variant of <see cref="GetString(string)"/>. Returns the resource
+    /// value only when the loader produced a non-empty string; returns null when the key
+    /// is absent or the loader is unavailable. This avoids confusing "key present whose
+    /// value equals the key" with "key absent" (which <see cref="GetString(string)"/> can't
+    /// distinguish because it returns the key itself on miss).
+    /// </summary>
+    private string? TryGetString(string resourceKey)
+    {
+        var value = _resourceLoader.GetString(resourceKey);
+        return string.IsNullOrEmpty(value) ? null : value;
+    }
+
+    public string FormatPlural(string baseKey, double count, params object[] args)
+    {
+        // GetString returns the resource key itself on miss, which cannot be distinguished
+        // from a legitimate "present resource equal to its key" lookup. We use a private
+        // TryGetString helper that returns null on miss so the fallback ladder is unambiguous.
+        var culture = CultureInfo.CurrentUICulture;
+        var category = _pluralRules.GetCategory(culture, count);
+        var specificKey = $"{baseKey}_{category}";
+
+        var template = TryGetString(specificKey)
+                       ?? TryGetString($"{baseKey}_other")
+                       ?? throw new KeyNotFoundException(
+                           $"No plural resource for '{baseKey}' in category '{category}' or '_other' fallback (culture '{culture.Name}').");
+
+        try
+        {
+            return string.Format(culture, template, args);
+        }
+        catch (FormatException ex)
+        {
+            // Malformed format string in the .resw template — surface the issue so
+            // mis-authored placeholders don't silently render garbled to the user.
+            Log.Warning(ex,
+                "FormatPlural template for '{BaseKey}' (category '{Category}', culture '{Culture}') had an invalid format string; returning raw template.",
+                baseKey, category, culture.Name);
             return template;
         }
     }
