@@ -60,11 +60,6 @@
   <!-- Annotations -->
 
   <!-- Settings -->
-  <data name="Settings_Title" xml:space="preserve"><value>Settings</value></data>
-  <data name="Settings_Language" xml:space="preserve"><value>Language</value></data>
-  <data name="Settings_LanguageHint" xml:space="preserve"><value>Changes take effect after restart</value></data>
-  <data name="Settings_SystemDefault" xml:space="preserve"><value>System Default</value></data>
-  <data name="Settings_KeyboardShortcuts" xml:space="preserve"><value>Keyboard Shortcuts</value></data>
 
   <!-- Plugin Manager -->
   <data name="Plugin_Manager.Text" xml:space="preserve"><value>Plugins</value></data>
@@ -92,14 +87,6 @@
   <data name="Plugin_ByAuthor.Text" xml:space="preserve"><value>by</value></data>
 
   <!-- Settings (additional) -->
-  <data name="Settings_General" xml:space="preserve"><value>General</value></data>
-  <data name="Settings_Appearance" xml:space="preserve"><value>Appearance</value></data>
-  <data name="Settings_AIProvider" xml:space="preserve"><value>AI Provider</value></data>
-  <data name="Settings_License" xml:space="preserve"><value>License</value></data>
-  <data name="Settings_About" xml:space="preserve"><value>About</value></data>
-  <data name="Settings_Temperature" xml:space="preserve"><value>Temperature</value></data>
-  <data name="Settings_MaxTokens" xml:space="preserve"><value>Max Tokens</value></data>
-  <data name="Settings_ContextWindow" xml:space="preserve"><value>Context Window</value></data>
 
   <!-- Sync -->
   <data name="Sync_Settings" xml:space="preserve"><value>Sync Settings</value></data>

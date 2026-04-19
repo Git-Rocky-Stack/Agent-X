@@ -85,19 +85,6 @@
   <!-- Annotations -->
 
   <!-- Settings -->
-  <data name="Settings_Title" xml:space="preserve"><value>Configuraci&#243;n</value></data>
-  <data name="Settings_Language" xml:space="preserve"><value>Idioma</value></data>
-  <data name="Settings_LanguageHint" xml:space="preserve"><value>Los cambios surten efecto despu&#233;s de reiniciar</value></data>
-  <data name="Settings_SystemDefault" xml:space="preserve"><value>Predeterminado del Sistema</value></data>
-  <data name="Settings_KeyboardShortcuts" xml:space="preserve"><value>Atajos de Teclado</value></data>
-  <data name="Settings_General" xml:space="preserve"><value>General</value></data>
-  <data name="Settings_Appearance" xml:space="preserve"><value>Apariencia</value></data>
-  <data name="Settings_AIProvider" xml:space="preserve"><value>Proveedor de IA</value></data>
-  <data name="Settings_License" xml:space="preserve"><value>Licencia</value></data>
-  <data name="Settings_About" xml:space="preserve"><value>Acerca de</value></data>
-  <data name="Settings_Temperature" xml:space="preserve"><value>Temperatura</value></data>
-  <data name="Settings_MaxTokens" xml:space="preserve"><value>M&#225;ximo de Tokens</value></data>
-  <data name="Settings_ContextWindow" xml:space="preserve"><value>Ventana de Contexto</value></data>
 
   <!-- Sync -->
   <data name="Sync_Settings" xml:space="preserve"><value>Ajustes de Sincronizaci&#243;n</value></data>

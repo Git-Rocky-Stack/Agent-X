@@ -85,19 +85,6 @@
   <data name="Sync_Conflicts" xml:space="preserve"><value>{0} Konflikt(e) erkannt</value></data>
 
   <!-- Settings -->
-  <data name="Settings_Title" xml:space="preserve"><value>Einstellungen</value></data>
-  <data name="Settings_General" xml:space="preserve"><value>Allgemein</value></data>
-  <data name="Settings_AIProvider" xml:space="preserve"><value>KI-Anbieter</value></data>
-  <data name="Settings_Appearance" xml:space="preserve"><value>Erscheinungsbild</value></data>
-  <data name="Settings_License" xml:space="preserve"><value>Lizenz</value></data>
-  <data name="Settings_About" xml:space="preserve"><value>&#220;ber</value></data>
-  <data name="Settings_Temperature" xml:space="preserve"><value>Temperatur</value></data>
-  <data name="Settings_MaxTokens" xml:space="preserve"><value>Maximale Token</value></data>
-  <data name="Settings_ContextWindow" xml:space="preserve"><value>Kontextfenster</value></data>
-  <data name="Settings_Language" xml:space="preserve"><value>Sprache</value></data>
-  <data name="Settings_LanguageHint" xml:space="preserve"><value>&#196;nderungen werden nach einem Neustart wirksam</value></data>
-  <data name="Settings_SystemDefault" xml:space="preserve"><value>Systemstandard</value></data>
-  <data name="Settings_KeyboardShortcuts" xml:space="preserve"><value>Tastaturk&#252;rzel</value></data>
 
   <!-- Validation -->
   <data name="Validation_Required" xml:space="preserve"><value>Dieses Feld ist erforderlich</value></data>

@@ -85,19 +85,6 @@
   <data name="Sync_Conflicts" xml:space="preserve"><value>{0} conflit(s) d&#233;tect&#233;(s)</value></data>
 
   <!-- Settings -->
-  <data name="Settings_Title" xml:space="preserve"><value>Param&#232;tres</value></data>
-  <data name="Settings_General" xml:space="preserve"><value>G&#233;n&#233;ral</value></data>
-  <data name="Settings_AIProvider" xml:space="preserve"><value>Fournisseur d'IA</value></data>
-  <data name="Settings_Appearance" xml:space="preserve"><value>Apparence</value></data>
-  <data name="Settings_License" xml:space="preserve"><value>Licence</value></data>
-  <data name="Settings_About" xml:space="preserve"><value>&#192; propos</value></data>
-  <data name="Settings_Temperature" xml:space="preserve"><value>Temp&#233;rature</value></data>
-  <data name="Settings_MaxTokens" xml:space="preserve"><value>Jetons maximum</value></data>
-  <data name="Settings_ContextWindow" xml:space="preserve"><value>Fen&#234;tre de contexte</value></data>
-  <data name="Settings_Language" xml:space="preserve"><value>Langue</value></data>
-  <data name="Settings_LanguageHint" xml:space="preserve"><value>Les modifications prennent effet apr&#232;s le red&#233;marrage</value></data>
-  <data name="Settings_SystemDefault" xml:space="preserve"><value>Par d&#233;faut du syst&#232;me</value></data>
-  <data name="Settings_KeyboardShortcuts" xml:space="preserve"><value>Raccourcis clavier</value></data>
 
   <!-- Validation -->
   <data name="Validation_Required" xml:space="preserve"><value>Ce champ est obligatoire</value></data>

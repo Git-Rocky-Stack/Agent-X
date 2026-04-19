@@ -85,19 +85,6 @@
   <data name="Sync_Conflicts" xml:space="preserve"><value>&#26816;&#27979;&#21040; {0} &#20010;&#20914;&#31361;</value></data>
 
   <!-- Settings -->
-  <data name="Settings_Title" xml:space="preserve"><value>&#35774;&#32622;</value></data>
-  <data name="Settings_General" xml:space="preserve"><value>&#24120;&#35268;</value></data>
-  <data name="Settings_AIProvider" xml:space="preserve"><value>AI &#25552;&#20379;&#21830;</value></data>
-  <data name="Settings_Appearance" xml:space="preserve"><value>&#22806;&#35266;</value></data>
-  <data name="Settings_License" xml:space="preserve"><value>&#35768;&#21487;&#35777;</value></data>
-  <data name="Settings_About" xml:space="preserve"><value>&#20851;&#20110;</value></data>
-  <data name="Settings_Temperature" xml:space="preserve"><value>&#28201;&#24230;</value></data>
-  <data name="Settings_MaxTokens" xml:space="preserve"><value>&#26368;&#22823;&#20196;&#29260;&#25968;</value></data>
-  <data name="Settings_ContextWindow" xml:space="preserve"><value>&#19978;&#19979;&#25991;&#31383;&#21475;</value></data>
-  <data name="Settings_Language" xml:space="preserve"><value>&#35821;&#35328;</value></data>
-  <data name="Settings_LanguageHint" xml:space="preserve"><value>&#26356;&#25913;&#22312;&#37325;&#26032;&#21551;&#21160;&#21518;&#29983;&#25928;</value></data>
-  <data name="Settings_SystemDefault" xml:space="preserve"><value>&#31995;&#32479;&#40664;&#35748;</value></data>
-  <data name="Settings_KeyboardShortcuts" xml:space="preserve"><value>&#38190;&#30424;&#24555;&#25463;&#38190;</value></data>
 
   <!-- Validation -->
   <data name="Validation_Required" xml:space="preserve"><value>&#27492;&#23383;&#27573;&#20026;&#24517;&#22635;&#39033;</value></data>
