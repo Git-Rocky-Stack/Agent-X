@@ -42,5 +42,8 @@
          dependencies, so linking compiles cleanly against AgentX.Core alone.
          AppSettingsExtended travels with the file (same compilation unit). -->
     <Compile Include="..\..\src\AgentX.App\Services\LocalizationService.cs" Link="Services\LocalizationService.cs" />
+    <!-- CommandPaletteViewModel depends only on AgentX.Core.Services.Shortcuts
+         and CommunityToolkit.Mvvm — no Windows.* deps — so it links cleanly. -->
+    <Compile Include="..\..\src\AgentX.App\ViewModels\CommandPaletteViewModel.cs" Link="ViewModels\CommandPaletteViewModel.cs" />
   </ItemGroup>
 </Project>
