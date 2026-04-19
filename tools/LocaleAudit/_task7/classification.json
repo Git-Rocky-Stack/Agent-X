@@ -1,0 +1,1244 @@
+[
+  {
+    "key": "Action_Browse",
+    "baseName": "Action_Browse",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Action_Cancel",
+    "baseName": "Action_Cancel",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Action_Clear",
+    "baseName": "Action_Clear",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Action_Close",
+    "baseName": "Action_Close",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Action_Copy",
+    "baseName": "Action_Copy",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Action_Create",
+    "baseName": "Action_Create",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Action_Delete",
+    "baseName": "Action_Delete",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Action_Disable",
+    "baseName": "Action_Disable",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Action_Edit",
+    "baseName": "Action_Edit",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Action_Enable",
+    "baseName": "Action_Enable",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Action_Export",
+    "baseName": "Action_Export",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Action_Import",
+    "baseName": "Action_Import",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Action_Install",
+    "baseName": "Action_Install",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Action_Refresh",
+    "baseName": "Action_Refresh",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Action_Save",
+    "baseName": "Action_Save",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Action_Search",
+    "baseName": "Action_Search",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Action_SelectAll",
+    "baseName": "Action_SelectAll",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Action_SelectNone",
+    "baseName": "Action_SelectNone",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Action_Uninstall",
+    "baseName": "Action_Uninstall",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Annotations_Distribution",
+    "baseName": "Annotations_Distribution",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Annotations_Empty",
+    "baseName": "Annotations_Empty",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Annotations_EmptyHint",
+    "baseName": "Annotations_EmptyHint",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Annotations_ExportMarkdown",
+    "baseName": "Annotations_ExportMarkdown",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Annotations_FilterByColor",
+    "baseName": "Annotations_FilterByColor",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Annotations_Highlights",
+    "baseName": "Annotations_Highlights",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Annotations_SearchPlaceholder",
+    "baseName": "Annotations_SearchPlaceholder",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Annotations_Title",
+    "baseName": "Annotations_Title",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Backup_CreateBackup",
+    "baseName": "Backup_CreateBackup",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Backup_Destination",
+    "baseName": "Backup_Destination",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Backup_Encrypt",
+    "baseName": "Backup_Encrypt",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Backup_History",
+    "baseName": "Backup_History",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Backup_IncludeDocs",
+    "baseName": "Backup_IncludeDocs",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Backup_RestoreComplete",
+    "baseName": "Backup_RestoreComplete",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Backup_RestoreFromBackup",
+    "baseName": "Backup_RestoreFromBackup",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Backup_Subtitle",
+    "baseName": "Backup_Subtitle",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Backup_Success",
+    "baseName": "Backup_Success",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Backup_Title",
+    "baseName": "Backup_Title",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Chat_CopyMessage",
+    "baseName": "Chat_CopyMessage",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Chat_ExportChat",
+    "baseName": "Chat_ExportChat",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Chat_ModelSelector",
+    "baseName": "Chat_ModelSelector",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Chat_NewConversation",
+    "baseName": "Chat_NewConversation",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Chat_Placeholder",
+    "baseName": "Chat_Placeholder",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Chat_Regenerate",
+    "baseName": "Chat_Regenerate",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Chat_Send",
+    "baseName": "Chat_Send",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Chat_Stop",
+    "baseName": "Chat_Stop",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Chat_SystemPrompt",
+    "baseName": "Chat_SystemPrompt",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Chat_Thinking",
+    "baseName": "Chat_Thinking",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Chat_TokenCount",
+    "baseName": "Chat_TokenCount",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Error_Generic",
+    "baseName": "Error_Generic",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Error_Network",
+    "baseName": "Error_Network",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Error_NotFound",
+    "baseName": "Error_NotFound",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Error_Permission",
+    "baseName": "Error_Permission",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Nav_Annotations",
+    "baseName": "Nav_Annotations",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Nav_AskFiles",
+    "baseName": "Nav_AskFiles",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Nav_Backup",
+    "baseName": "Nav_Backup",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Nav_BackupRestore",
+    "baseName": "Nav_BackupRestore",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Nav_Chat",
+    "baseName": "Nav_Chat",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Nav_Collections",
+    "baseName": "Nav_Collections",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Nav_Comparison",
+    "baseName": "Nav_Comparison",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Nav_Dashboard",
+    "baseName": "Nav_Dashboard",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Nav_Digest",
+    "baseName": "Nav_Digest",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Nav_HardwareAdvisor",
+    "baseName": "Nav_HardwareAdvisor",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Nav_Inbox",
+    "baseName": "Nav_Inbox",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Nav_KnowledgeGraph",
+    "baseName": "Nav_KnowledgeGraph",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Nav_KnowledgeVault",
+    "baseName": "Nav_KnowledgeVault",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Nav_ModelManager",
+    "baseName": "Nav_ModelManager",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Nav_PluginManager",
+    "baseName": "Nav_PluginManager",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Nav_QuickActions",
+    "baseName": "Nav_QuickActions",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Nav_Search",
+    "baseName": "Nav_Search",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Nav_Settings",
+    "baseName": "Nav_Settings",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Nav_SyncSettings",
+    "baseName": "Nav_SyncSettings",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Nav_WebImport",
+    "baseName": "Nav_WebImport",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Nav_Workflows",
+    "baseName": "Nav_Workflows",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Nav_Workspaces",
+    "baseName": "Nav_Workspaces",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Plugin_Author",
+    "baseName": "Plugin_Author",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Plugin_BatchActions",
+    "baseName": "Plugin_BatchActions",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Plugin_Disable",
+    "baseName": "Plugin_Disable",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Plugin_Enable",
+    "baseName": "Plugin_Enable",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Plugin_MultiSelect",
+    "baseName": "Plugin_MultiSelect",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Plugin_Version",
+    "baseName": "Plugin_Version",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Search_ClearFilters",
+    "baseName": "Search_ClearFilters",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Search_Hybrid",
+    "baseName": "Search_Hybrid",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Search_Keyword",
+    "baseName": "Search_Keyword",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Search_NoResults",
+    "baseName": "Search_NoResults",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Search_Placeholder",
+    "baseName": "Search_Placeholder",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Search_ResultCount",
+    "baseName": "Search_ResultCount",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Search_SaveFilter",
+    "baseName": "Search_SaveFilter",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Search_SavedFilters",
+    "baseName": "Search_SavedFilters",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Search_Semantic",
+    "baseName": "Search_Semantic",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Section_Intelligence",
+    "baseName": "Section_Intelligence",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Section_Knowledge",
+    "baseName": "Section_Knowledge",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Section_Support",
+    "baseName": "Section_Support",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Section_System",
+    "baseName": "Section_System",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Settings_AIProvider",
+    "baseName": "Settings_AIProvider",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Settings_About",
+    "baseName": "Settings_About",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Settings_Appearance",
+    "baseName": "Settings_Appearance",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Settings_ContextWindow",
+    "baseName": "Settings_ContextWindow",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Settings_General",
+    "baseName": "Settings_General",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Settings_KeyboardShortcuts",
+    "baseName": "Settings_KeyboardShortcuts",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Settings_Language",
+    "baseName": "Settings_Language",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Settings_LanguageHint",
+    "baseName": "Settings_LanguageHint",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Settings_License",
+    "baseName": "Settings_License",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Settings_MaxTokens",
+    "baseName": "Settings_MaxTokens",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Settings_SystemDefault",
+    "baseName": "Settings_SystemDefault",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Settings_Temperature",
+    "baseName": "Settings_Temperature",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Settings_Title",
+    "baseName": "Settings_Title",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Status_Active",
+    "baseName": "Status_Active",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Status_Connected",
+    "baseName": "Status_Connected",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Status_Disabled",
+    "baseName": "Status_Disabled",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Status_Disconnected",
+    "baseName": "Status_Disconnected",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Status_EmptyState",
+    "baseName": "Status_EmptyState",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Status_Error",
+    "baseName": "Status_Error",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Status_Failed",
+    "baseName": "Status_Failed",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Status_Indexing",
+    "baseName": "Status_Indexing",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Status_Initializing",
+    "baseName": "Status_Initializing",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Status_Loading",
+    "baseName": "Status_Loading",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Status_NoResults",
+    "baseName": "Status_NoResults",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Status_Pending",
+    "baseName": "Status_Pending",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Status_Ready",
+    "baseName": "Status_Ready",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Status_Saving",
+    "baseName": "Status_Saving",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Status_Success",
+    "baseName": "Status_Success",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Status_Syncing",
+    "baseName": "Status_Syncing",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Sync_AutoSync",
+    "baseName": "Sync_AutoSync",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Sync_Configured",
+    "baseName": "Sync_Configured",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Sync_Conflicts",
+    "baseName": "Sync_Conflicts",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Sync_EncryptionKey",
+    "baseName": "Sync_EncryptionKey",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Sync_FolderPath",
+    "baseName": "Sync_FolderPath",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Sync_History",
+    "baseName": "Sync_History",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Sync_Interval",
+    "baseName": "Sync_Interval",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Sync_LastSync",
+    "baseName": "Sync_LastSync",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Sync_NotConfigured",
+    "baseName": "Sync_NotConfigured",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Sync_Settings",
+    "baseName": "Sync_Settings",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Sync_SyncNow",
+    "baseName": "Sync_SyncNow",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Validation_InvalidFormat",
+    "baseName": "Validation_InvalidFormat",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Validation_InvalidRange",
+    "baseName": "Validation_InvalidRange",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Validation_Required",
+    "baseName": "Validation_Required",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Validation_TooLong",
+    "baseName": "Validation_TooLong",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  },
+  {
+    "key": "Validation_TooShort",
+    "baseName": "Validation_TooShort",
+    "hits": {
+      "directString": [],
+      "prefixDynamic": [],
+      "binding": []
+    }
+  }
+]
