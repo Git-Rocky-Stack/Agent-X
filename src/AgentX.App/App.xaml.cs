@@ -296,6 +296,10 @@ public partial class App : Application
         services.AddSingleton<IShortcutRegistry, ShortcutRegistry>();
         services.AddSingleton(_ => new ChordStateMachine(1000, () => DateTime.UtcNow));
         services.AddSingleton<ShortcutCatalog>();
+        // ShortcutInputRouter is constructed manually in MainWindow because it requires
+        // UI-callback delegates (show palette, show jump-to, show cheatsheet) that are
+        // instance methods on the window. Registering in DI would force an unnecessary
+        // abstraction layer over callbacks that belong to the view.
         services.AddSingleton<IThemeService, ThemeService>();
 
         // ── AI Services ────────────────────────────────────────
@@ -490,6 +494,22 @@ public partial class App : Application
         services.AddTransient<ViewModels.EmailSettingsViewModel>();
         services.AddTransient<ViewModels.AnalyticsViewModel>();
         services.AddTransient<ViewModels.QuickChatViewModel>();
+        // Keyboard Power Mode ViewModels — registered for testability.
+        // MainWindow constructs them directly with runtime scope/callback values;
+        // these factory registrations allow DI resolution with global-scope defaults.
+        services.AddTransient<ViewModels.CommandPaletteViewModel>(sp =>
+            new ViewModels.CommandPaletteViewModel(
+                sp.GetRequiredService<IShortcutRegistry>(),
+                activeScopeName: null));
+        services.AddTransient<ViewModels.JumpToViewModel>(_ =>
+            new ViewModels.JumpToViewModel(
+                loadCandidates: _ => System.Threading.Tasks.Task.FromResult<
+                    System.Collections.Generic.IReadOnlyList<ViewModels.JumpToItem>>(
+                    Array.Empty<ViewModels.JumpToItem>())));
+        services.AddTransient<ViewModels.CheatsheetViewModel>(sp =>
+            new ViewModels.CheatsheetViewModel(
+                sp.GetRequiredService<IShortcutRegistry>(),
+                activeScopeName: null));
 
         // ── Views (Transient) ──────────────────────────────────
         services.AddTransient<Views.DashboardPage>();
