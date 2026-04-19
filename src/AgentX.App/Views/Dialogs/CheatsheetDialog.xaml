@@ -1,0 +1,65 @@
+<ContentDialog
+    x:Class="AgentX.App.Views.Dialogs.CheatsheetDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:shortcuts="using:AgentX.Core.Services.Shortcuts"
+    xmlns:vm="using:AgentX.App.ViewModels"
+    x:Uid="Cheatsheet_Dialog"
+    Title="Keyboard Shortcuts"
+    CloseButtonText="Close"
+    DefaultButton="Close">
+
+    <ScrollViewer MaxHeight="640" MinWidth="560">
+        <ItemsControl ItemsSource="{x:Bind ViewModel.Groups, Mode=OneWay}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:CheatsheetGroup">
+                    <StackPanel Padding="0,12,0,4" Spacing="8">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                Text="{x:Bind Header}"
+                                FontSize="16"
+                                FontWeight="SemiBold" />
+                            <TextBlock
+                                Grid.Column="1"
+                                Text="{x:Bind CurrentScopeLabel}"
+                                FontSize="12"
+                                Opacity="0.75" />
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{x:Bind Items}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="shortcuts:ShortcutDescriptor">
+                                    <Grid Padding="0,4" ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock
+                                            Text="{x:Bind Label}"
+                                            TextTrimming="CharacterEllipsis" />
+                                        <Border
+                                            Grid.Column="1"
+                                            Padding="6,2"
+                                            Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                            CornerRadius="4">
+                                            <TextBlock
+                                                Text="{x:Bind DisplayChord}"
+                                                FontFamily="Consolas"
+                                                FontSize="12" />
+                                        </Border>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </ScrollViewer>
+</ContentDialog>

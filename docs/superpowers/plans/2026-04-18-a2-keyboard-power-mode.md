@@ -1355,8 +1355,9 @@ The cheatsheet groups registered shortcuts by **Category** (secondary grouping) 
 **Files:**
 - Create: `src/AgentX.App/ViewModels/CheatsheetViewModel.cs`
 - Create: `src/AgentX.App/Views/Dialogs/CheatsheetDialog.xaml` + `.xaml.cs`
+- Create: `tests/AgentX.Tests/ViewModels/CheatsheetViewModelTests.cs`
 
-- [ ] **Step 1: Write `CheatsheetViewModel`**
+- [x] **Step 1: Write `CheatsheetViewModel`**
 
 ```csharp
 using System.Collections.Generic;
@@ -1395,7 +1396,7 @@ public partial class CheatsheetViewModel : ObservableObject
 }
 ```
 
-- [ ] **Step 2: Write `CheatsheetDialog.xaml`**
+- [x] **Step 2: Write `CheatsheetDialog.xaml`**
 
 ```xml
 <ContentDialog
@@ -1443,7 +1444,7 @@ public partial class CheatsheetViewModel : ObservableObject
 </ContentDialog>
 ```
 
-- [ ] **Step 3: Write `CheatsheetDialog.xaml.cs`**
+- [x] **Step 3: Write `CheatsheetDialog.xaml.cs`**
 
 ```csharp
 using AgentX.App.ViewModels;
@@ -1463,7 +1464,7 @@ public sealed partial class CheatsheetDialog : ContentDialog
 }
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/AgentX.App/ViewModels/CheatsheetViewModel.cs src/AgentX.App/Views/Dialogs/CheatsheetDialog.*
@@ -2060,7 +2061,7 @@ Agent-X's keyboard power mode centers on an `IShortcutRegistry` singleton that o
 
 - **Command Palette** (`Ctrl+Shift+P`) — fuzzy search over all registered shortcuts. Execute by pressing `Enter`.
 - **Jump-To** (`Ctrl+P`) — fuzzy search over documents, conversations, and pages.
-- **Cheatsheet** (`?`) — grouped read-only listing of every shortcut available in the current scope.
+- **Cheatsheet** (`F1` or `Ctrl+Shift+?`) — grouped read-only listing of every shortcut available in the current scope.
 
 A `ShortcutInputRouter` hooks `MainWindow`'s existing `RootGrid.PreviewKeyDown` event, translates WinUI `VirtualKey` → `KeyChord`, and dispatches via the registry. A `ChordStateMachine` with a 1-second window is available for future multi-step chords; v2.1.0 final seeds no multi-step chord because `Ctrl+K` belongs to the Command Palette.
 
@@ -2164,7 +2165,7 @@ dotnet build AgentX.sln -c Debug
 dotnet test tests/AgentX.Tests/AgentX.Tests.csproj --blame-hang-timeout 60s
 ```
 
-Expected: build 0W/0E, all tests pass. A2 has 36 tests after Task 6; Task 7 may add VM coverage if the implementation introduces behavior beyond simple grouping.
+Expected: build 0W/0E, all tests pass. A2 has 40 tests after Task 7.
 
 - [ ] **Step 6: Final commit**
 
