@@ -30,6 +30,12 @@
 
   <!-- Search -->
 
+  <!-- Cheatsheet -->
+  <data name="Cheatsheet_Dialog.Title" xml:space="preserve"><value>&#38190;&#30424;&#24555;&#25463;&#38190;</value></data>
+
+  <!-- Command Palette -->
+  <data name="CommandPalette_QueryBox.PlaceholderText" xml:space="preserve"><value>&#36755;&#20837;&#21629;&#20196;&#25110;&#25628;&#32034;...</value></data>
+
   <!-- Plugin Manager (x:Uid format matching en-US) -->
   <data name="Plugin_Manager.Text" xml:space="preserve"><value>&#25554;&#20214;&#31649;&#29702;</value></data>
   <data name="Plugin_Install.ToolTipService.ToolTip" xml:space="preserve"><value>&#20174;&#25991;&#20214;&#23433;&#35013;&#25554;&#20214;</value></data>
@@ -54,6 +60,16 @@
   <data name="Plugin_UninstallButton.Text" xml:space="preserve"><value>&#21368;&#36733;&#25554;&#20214;</value></data>
   <data name="Plugin_Documentation.Text" xml:space="preserve"><value>&#25991;&#26723;</value></data>
   <data name="Plugin_ByAuthor.Text" xml:space="preserve"><value>&#20316;&#32773;</value></data>
+
+  <!-- Jump-To dialog -->
+  <data name="JumpTo_QueryBox.PlaceholderText" xml:space="preserve"><value>&#36339;&#36716;&#21040;&#25991;&#26723;&#12289;&#23545;&#35805;&#25110;&#39029;&#38754;...</value></data>
+
+  <!-- Shortcut categories (used in Cheatsheet grouping) -->
+  <data name="ShortcutCategory_Chat" xml:space="preserve"><value>&#32852;&#22825;</value></data>
+  <data name="ShortcutCategory_Documents" xml:space="preserve"><value>&#25991;&#26723;</value></data>
+  <data name="ShortcutCategory_Help" xml:space="preserve"><value>&#24110;&#21161;</value></data>
+  <data name="ShortcutCategory_Navigation" xml:space="preserve"><value>&#23548;&#33322;</value></data>
+  <data name="ShortcutCategory_Window" xml:space="preserve"><value>&#31383;&#21475;</value></data>
 
   <!-- Sync -->
 

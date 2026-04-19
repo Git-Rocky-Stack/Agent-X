@@ -30,6 +30,12 @@
 
   <!-- Search -->
 
+  <!-- Cheatsheet -->
+  <data name="Cheatsheet_Dialog.Title" xml:space="preserve"><value>&#12461;&#12540;&#12508;&#12540;&#12489;&#12471;&#12519;&#12540;&#12488;&#12459;&#12483;&#12488;</value></data>
+
+  <!-- Command Palette -->
+  <data name="CommandPalette_QueryBox.PlaceholderText" xml:space="preserve"><value>&#12467;&#12510;&#12531;&#12489;&#12434;&#20837;&#21147;&#12375;&#12383;&#12375;&#12289;&#26908;&#32034;...</value></data>
+
   <!-- Plugin Manager (x:Uid format matching en-US) -->
   <data name="Plugin_Manager.Text" xml:space="preserve"><value>&#12503;&#12521;&#12464;&#12452;&#12531;&#31649;&#29702;</value></data>
   <data name="Plugin_Install.ToolTipService.ToolTip" xml:space="preserve"><value>&#12501;&#12449;&#12452;&#12523;&#12363;&#12425;&#12503;&#12521;&#12464;&#12452;&#12531;&#12434;&#12452;&#12531;&#12473;&#12488;&#12540;&#12523;</value></data>
@@ -54,6 +60,16 @@
   <data name="Plugin_UninstallButton.Text" xml:space="preserve"><value>&#12503;&#12521;&#12464;&#12452;&#12531;&#12434;&#12450;&#12531;&#12452;&#12531;&#12473;&#12488;&#12540;&#12523;</value></data>
   <data name="Plugin_Documentation.Text" xml:space="preserve"><value>&#12489;&#12461;&#12517;&#12513;&#12531;&#12488;</value></data>
   <data name="Plugin_ByAuthor.Text" xml:space="preserve"><value>&#20316;&#32773;</value></data>
+
+  <!-- Jump-To dialog -->
+  <data name="JumpTo_QueryBox.PlaceholderText" xml:space="preserve"><value>&#12489;&#12461;&#12517;&#12513;&#12531;&#12488;&#12289;&#12371;&#12392;&#12400;&#12398;&#29872;&#12363;&#12506;&#12540;&#12472;&#12395;&#12472;&#12515;&#12531;&#12503;...</value></data>
+
+  <!-- Shortcut categories (used in Cheatsheet grouping) -->
+  <data name="ShortcutCategory_Chat" xml:space="preserve"><value>&#12481;&#12515;&#12483;&#12488;</value></data>
+  <data name="ShortcutCategory_Documents" xml:space="preserve"><value>&#12489;&#12461;&#12517;&#12513;&#12531;&#12488;</value></data>
+  <data name="ShortcutCategory_Help" xml:space="preserve"><value>&#12504;&#12523;&#12503;</value></data>
+  <data name="ShortcutCategory_Navigation" xml:space="preserve"><value>&#12490;&#12532;&#12451;&#12466;&#12540;&#12471;&#12519;&#12531;</value></data>
+  <data name="ShortcutCategory_Window" xml:space="preserve"><value>&#12454;&#12451;&#12531;&#12489;&#12454;</value></data>
 
   <!-- Sync -->
 

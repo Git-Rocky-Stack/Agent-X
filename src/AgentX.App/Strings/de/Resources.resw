@@ -30,6 +30,12 @@
 
   <!-- Search -->
 
+  <!-- Cheatsheet -->
+  <data name="Cheatsheet_Dialog.Title" xml:space="preserve"><value>Tastenkombinationen</value></data>
+
+  <!-- Command Palette -->
+  <data name="CommandPalette_QueryBox.PlaceholderText" xml:space="preserve"><value>Befehl eingeben oder suchen...</value></data>
+
   <!-- Plugin Manager (x:Uid format matching en-US) -->
   <data name="Plugin_Manager.Text" xml:space="preserve"><value>Plugin-Verwaltung</value></data>
   <data name="Plugin_Install.ToolTipService.ToolTip" xml:space="preserve"><value>Plugin installieren</value></data>
@@ -54,6 +60,16 @@
   <data name="Plugin_UninstallButton.Text" xml:space="preserve"><value>Plugin deinstallieren</value></data>
   <data name="Plugin_Documentation.Text" xml:space="preserve"><value>Dokumentation</value></data>
   <data name="Plugin_ByAuthor.Text" xml:space="preserve"><value>von</value></data>
+
+  <!-- Jump-To dialog -->
+  <data name="JumpTo_QueryBox.PlaceholderText" xml:space="preserve"><value>Zu einem Dokument, einer Konversation oder Seite springen...</value></data>
+
+  <!-- Shortcut categories (used in Cheatsheet grouping) -->
+  <data name="ShortcutCategory_Chat" xml:space="preserve"><value>Chat</value></data>
+  <data name="ShortcutCategory_Documents" xml:space="preserve"><value>Dokumente</value></data>
+  <data name="ShortcutCategory_Help" xml:space="preserve"><value>Hilfe</value></data>
+  <data name="ShortcutCategory_Navigation" xml:space="preserve"><value>Navigation</value></data>
+  <data name="ShortcutCategory_Window" xml:space="preserve"><value>Fenster</value></data>
 
   <!-- Sync -->
 
