@@ -283,7 +283,7 @@ The portable class library. Responsibilities:
 - **Search and RAG** (`Search/`): Vector cosine similarity search (`ISemanticSearchService`), SQLite FTS5 keyword search (`IKeywordSearchService`), hybrid orchestration with RRF fusion (`IHybridSearchOrchestrator`), source citation extraction (`ICitationService`), LLM-based reranking (`IRagReranker`), and the full RAG pipeline (`IRagPipeline`).
 - **Intelligence Services** (`Services/Intelligence/`): Document summarization (`ISummaryService`), duplicate detection via SHA-256 and semantic similarity (`IDuplicateDetectionService`), organization suggestions (`IOrganizationSuggestionService`), knowledge graph construction with force-directed layout (`IKnowledgeGraphService`), and digest report generation (`IDigestService`).
 - **Collections and Tagging** (`Services/Collections/`, `Services/Tagging/`): Hierarchical collection management (`ICollectionService`) and AI-powered tag generation with confidence scoring (`IAutoTagService`).
-- **Data Layer** (`Data/`): Entity Framework Core DbContext with 16 entity types mapped to SQLite, vector embedding store (`SqliteVecStore`) implementing cosine similarity search in managed C# code, `IMigrationRunner` applying EF Core migrations on startup with baseline-adoption for pre-B9 installs (v2.1 Bedrock B9), `IEncryptedConnectionFactory` + `IDatabaseKeyService` routing every `SqliteConnection` through SQLCipher `PRAGMA key` (v2.1 Bedrock C13), and `IDatabaseEncryptionMigrator` for atomic plaintext→encrypted conversion via `sqlcipher_export`.
+- **Data Layer** (`Data/`): Entity Framework Core DbContext with 16 entity types mapped to SQLite, vector embedding storage via `IVectorStore` (`HnswVectorStore` when enabled, `SqliteVecStore` fallback for small/disabled indexes), `IMigrationRunner` applying EF Core migrations on startup with baseline-adoption for pre-B9 installs (v2.1 Bedrock B9), `IEncryptedConnectionFactory` + `IDatabaseKeyService` routing every `SqliteConnection` through SQLCipher `PRAGMA key` (v2.1 Bedrock C13), and `IDatabaseEncryptionMigrator` for atomic plaintext→encrypted conversion via `sqlcipher_export`.
 - **Settings and Licensing** (`Services/Settings/`, `Services/License/`): JSON-file settings persistence (`ISettingsService`) and offline HMAC-SHA256 license key validation with machine fingerprinting (`ILicenseService`).
 
 ### Dependency Injection Pattern
@@ -372,7 +372,7 @@ The Ollama connection check uses a 3-second timeout so the status bar never bloc
 
 The `HybridSearchOrchestrator` accepts a `SearchQuery` with a `SearchMode` discriminant:
 
-- **Semantic:** Delegates directly to `SemanticSearchService`, which queries the `SqliteVecStore` using cosine similarity.
+- **Semantic:** Delegates directly to `SemanticSearchService`, which queries `IVectorStore`. When HNSW indexing is enabled this uses `HnswVectorStore`; otherwise it falls back to `SqliteVecStore` linear cosine search.
 - **Keyword:** Delegates directly to `KeywordSearchService`, which queries the SQLite FTS5 virtual table.
 - **Hybrid:** Executes both searches in parallel with a 3x-expanded `TopK` to give RRF a larger candidate pool, then merges results using Reciprocal Rank Fusion with k=60.
 
@@ -386,7 +386,7 @@ Normalized scores are clamped to [0, 1] using the theoretical maximum (result ra
 
 ### Vector Store
 
-`SqliteVecStore` stores embeddings as BLOBs in a dedicated `vec_embeddings` table within the main SQLite database file. Embeddings are serialized as little-endian IEEE 754 float arrays using `Buffer.BlockCopy`. The pre-computed L2 magnitude is stored alongside each embedding to avoid recomputing it during every similarity comparison.
+`IVectorStore` stores embeddings as BLOBs in a dedicated `vec_embeddings` table within the main SQLite database file. `VectorStoreFactory` chooses `HnswVectorStore` when `EnableHnswIndex` is enabled, with built-in linear-scan fallback below the configured threshold; otherwise it uses `SqliteVecStore`. Embeddings are serialized as little-endian IEEE 754 float arrays using `Buffer.BlockCopy`. The pre-computed L2 magnitude is stored alongside each embedding to avoid recomputing it during fallback similarity comparison.
 
 Search is a full table scan with cosine similarity computed in managed C#:
 
@@ -404,7 +404,7 @@ When a file is imported, the following pipeline executes:
 2. The appropriate `IDocumentProcessor` is selected by file extension and extracts raw text and metadata.
 3. `IChunkingService` splits the text into overlapping chunks of the configured size.
 4. `IIndexingQueueService` enqueues the document for background indexing.
-5. `IIndexingService` (background consumer) generates embeddings for each chunk via `IEmbeddingService` and writes them to `SqliteVecStore`.
+5. `IIndexingService` (background consumer) generates embeddings for each chunk via `IEmbeddingService` and writes them through `IVectorStore`.
 6. `IAutoTagService` calls the AI to generate confidence-scored tags and persists them to the tag graph.
 
 Supported file types and their processors:
@@ -518,7 +518,7 @@ Every production `SqliteConnection` creation site is routed through `IEncryptedC
 
 ## Keyboard Shortcuts
 
-All shortcuts are registered in `MainWindow.RegisterDefaultShortcuts()` via `KeyboardShortcutService`. They are handled at the root `Grid` level using `PreviewKeyDown` to intercept before child controls consume the event.
+Current shipped shortcuts are registered in `MainWindow.RegisterDefaultShortcuts()` via the legacy `KeyboardShortcutService`. The v2.1 Bedrock A2 work is migrating shortcuts to `IShortcutRegistry` + `ShortcutCatalog` so the command palette, jump-to dialog, cheatsheet, and page-scoped shortcut help all read from one registry. Both paths use the root `Grid` `PreviewKeyDown` mechanism to intercept before child controls consume the event.
 
 | Shortcut | Action |
 |---|---|
@@ -568,7 +568,7 @@ Agent-X/
 │   │   ├── Controls/                  -- Reusable XAML controls (CommandPalette, etc.)
 │   │   ├── Converters/                -- IValueConverter implementations
 │   │   ├── Helpers/                   -- UI helper utilities
-│   │   ├── Services/                  -- UI-layer services (KeyboardShortcutService)
+│   │   ├── Services/                  -- UI-layer services (legacy KeyboardShortcutService, A2 router work)
 │   │   ├── Styles/                    -- Global XAML resource dictionaries and theme overrides
 │   │   ├── ViewModels/                -- 13 ObservableObject ViewModels
 │   │   └── Views/                     -- 16 XAML pages and code-behind files
@@ -580,7 +580,7 @@ Agent-X/
 │       ├── Data/                      -- EF Core DbContext, entities, migrations, vector store
 │       │   ├── Entities/              -- 16 EF Core entity classes
 │       │   ├── Migrations/            -- EF Core database migrations
-│       │   └── VectorDb/              -- SqliteVecStore (BLOB-based cosine similarity)
+│       │   └── VectorDb/              -- IVectorStore, HnswVectorStore, SqliteVecStore fallback
 │       ├── Documents/                 -- Document processing pipeline
 │       │   └── Processors/            -- PdfProcessor, DocxProcessor, TextProcessor, etc.
 │       ├── Helpers/                   -- HashHelper, shared utilities
@@ -660,7 +660,7 @@ The following conventions apply to all code in this repository:
 **Data access:**
 - Use `AsNoTracking()` on all read-only EF Core queries.
 - Prefer async EF Core methods (`ToListAsync`, `FirstOrDefaultAsync`, `SaveChangesAsync`).
-- Raw ADO.NET is acceptable only in `SqliteVecStore` and `KeywordSearchService` where FTS5 or vector operations require it.
+- Raw ADO.NET is acceptable only in vector-store implementations (`HnswVectorStore`, `SqliteVecStore`) and `KeywordSearchService` where FTS5 or vector operations require it.
 
 **UI and ViewModel:**
 - ViewModels must extend `ObservableObject` from CommunityToolkit.Mvvm.

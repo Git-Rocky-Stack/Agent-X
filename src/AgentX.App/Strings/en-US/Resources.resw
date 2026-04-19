@@ -19,139 +19,26 @@
   </xsd:schema>
 
   <!-- Navigation -->
-  <data name="Nav_Dashboard" xml:space="preserve"><value>Dashboard</value></data>
-  <data name="Nav_Chat" xml:space="preserve"><value>AI Chat</value></data>
-  <data name="Nav_AskFiles" xml:space="preserve"><value>Ask Your Files</value></data>
-  <data name="Nav_QuickActions" xml:space="preserve"><value>Quick Actions</value></data>
-  <data name="Nav_Workflows" xml:space="preserve"><value>Workflows</value></data>
-  <data name="Nav_KnowledgeVault" xml:space="preserve"><value>Knowledge Vault</value></data>
-  <data name="Nav_WebImport" xml:space="preserve"><value>Web Import</value></data>
-  <data name="Nav_Collections" xml:space="preserve"><value>Collections</value></data>
-  <data name="Nav_Search" xml:space="preserve"><value>Semantic Search</value></data>
-  <data name="Nav_KnowledgeGraph" xml:space="preserve"><value>Knowledge Graph</value></data>
-  <data name="Nav_ModelManager" xml:space="preserve"><value>Model Manager</value></data>
-  <data name="Nav_HardwareAdvisor" xml:space="preserve"><value>Hardware Advisor</value></data>
-  <data name="Nav_Settings" xml:space="preserve"><value>Settings</value></data>
-  <data name="Nav_BackupRestore" xml:space="preserve"><value>Backup &amp; Restore</value></data>
-  <data name="Nav_Annotations" xml:space="preserve"><value>Annotations</value></data>
-  <data name="Nav_Digest" xml:space="preserve"><value>Weekly Digest</value></data>
-  <data name="Nav_PluginManager" xml:space="preserve"><value>Plugin Manager</value></data>
-  <data name="Nav_SyncSettings" xml:space="preserve"><value>Sync Settings</value></data>
-  <data name="Nav_Backup" xml:space="preserve"><value>Backup &amp; Restore</value></data>
-  <data name="Nav_Inbox" xml:space="preserve"><value>Smart Inbox</value></data>
-  <data name="Nav_Comparison" xml:space="preserve"><value>Comparison</value></data>
-  <data name="Nav_Workspaces" xml:space="preserve"><value>Workspaces</value></data>
 
   <!-- Section Headers -->
-  <data name="Section_Intelligence" xml:space="preserve"><value>INTELLIGENCE</value></data>
-  <data name="Section_Knowledge" xml:space="preserve"><value>KNOWLEDGE</value></data>
-  <data name="Section_System" xml:space="preserve"><value>SYSTEM</value></data>
-  <data name="Section_Support" xml:space="preserve"><value>SUPPORT</value></data>
 
   <!-- Common Actions -->
-  <data name="Action_Save" xml:space="preserve"><value>Save</value></data>
-  <data name="Action_Cancel" xml:space="preserve"><value>Cancel</value></data>
-  <data name="Action_Delete" xml:space="preserve"><value>Delete</value></data>
-  <data name="Action_Export" xml:space="preserve"><value>Export</value></data>
-  <data name="Action_Import" xml:space="preserve"><value>Import</value></data>
-  <data name="Action_Search" xml:space="preserve"><value>Search</value></data>
-  <data name="Action_Create" xml:space="preserve"><value>Create</value></data>
-  <data name="Action_Edit" xml:space="preserve"><value>Edit</value></data>
-  <data name="Action_Close" xml:space="preserve"><value>Close</value></data>
-  <data name="Action_Browse" xml:space="preserve"><value>Browse</value></data>
-  <data name="Action_Copy" xml:space="preserve"><value>Copy</value></data>
-  <data name="Action_Refresh" xml:space="preserve"><value>Refresh</value></data>
-  <data name="Action_Clear" xml:space="preserve"><value>Clear</value></data>
-  <data name="Action_Enable" xml:space="preserve"><value>Enable</value></data>
-  <data name="Action_Disable" xml:space="preserve"><value>Disable</value></data>
-  <data name="Action_Install" xml:space="preserve"><value>Install</value></data>
-  <data name="Action_Uninstall" xml:space="preserve"><value>Uninstall</value></data>
-  <data name="Action_SelectAll" xml:space="preserve"><value>Select All</value></data>
-  <data name="Action_SelectNone" xml:space="preserve"><value>Select None</value></data>
 
   <!-- Status Messages -->
-  <data name="Status_Loading" xml:space="preserve"><value>Loading...</value></data>
-  <data name="Status_Connected" xml:space="preserve"><value>Connected</value></data>
-  <data name="Status_Disconnected" xml:space="preserve"><value>Disconnected</value></data>
-  <data name="Status_Initializing" xml:space="preserve"><value>Initializing...</value></data>
-  <data name="Status_Ready" xml:space="preserve"><value>Ready</value></data>
-  <data name="Status_Saving" xml:space="preserve"><value>Saving...</value></data>
-  <data name="Status_Syncing" xml:space="preserve"><value>Syncing...</value></data>
-  <data name="Status_Indexing" xml:space="preserve"><value>Indexing...</value></data>
-  <data name="Status_Active" xml:space="preserve"><value>Active</value></data>
-  <data name="Status_Disabled" xml:space="preserve"><value>Disabled</value></data>
-  <data name="Status_EmptyState" xml:space="preserve"><value>No items to display</value></data>
-  <data name="Status_Error" xml:space="preserve"><value>An error occurred</value></data>
-  <data name="Status_Failed" xml:space="preserve"><value>Failed</value></data>
-  <data name="Status_NoResults" xml:space="preserve"><value>No results found</value></data>
-  <data name="Status_Pending" xml:space="preserve"><value>Pending</value></data>
-  <data name="Status_Success" xml:space="preserve"><value>Success</value></data>
 
   <!-- Error Messages -->
-  <data name="Error_Generic" xml:space="preserve"><value>An unexpected error occurred. Please try again.</value></data>
-  <data name="Error_Network" xml:space="preserve"><value>Network error. Please check your connection and try again.</value></data>
-  <data name="Error_NotFound" xml:space="preserve"><value>The requested item was not found.</value></data>
-  <data name="Error_Permission" xml:space="preserve"><value>You do not have permission to perform this action.</value></data>
 
   <!-- Validation Messages -->
-  <data name="Validation_Required" xml:space="preserve"><value>This field is required.</value></data>
-  <data name="Validation_InvalidFormat" xml:space="preserve"><value>Invalid format.</value></data>
-  <data name="Validation_TooShort" xml:space="preserve"><value>Value is too short.</value></data>
-  <data name="Validation_TooLong" xml:space="preserve"><value>Value is too long.</value></data>
-  <data name="Validation_InvalidRange" xml:space="preserve"><value>Value is out of range.</value></data>
 
   <!-- Chat -->
-  <data name="Chat_Placeholder" xml:space="preserve"><value>Ask anything...</value></data>
-  <data name="Chat_Send" xml:space="preserve"><value>Send</value></data>
-  <data name="Chat_Stop" xml:space="preserve"><value>Stop</value></data>
-  <data name="Chat_Regenerate" xml:space="preserve"><value>Regenerate</value></data>
-  <data name="Chat_NewConversation" xml:space="preserve"><value>New Conversation</value></data>
-  <data name="Chat_SystemPrompt" xml:space="preserve"><value>System Prompt</value></data>
-  <data name="Chat_ModelSelector" xml:space="preserve"><value>Select Model</value></data>
-  <data name="Chat_TokenCount" xml:space="preserve"><value>Tokens</value></data>
-  <data name="Chat_Thinking" xml:space="preserve"><value>Thinking...</value></data>
-  <data name="Chat_CopyMessage" xml:space="preserve"><value>Copy Message</value></data>
-  <data name="Chat_ExportChat" xml:space="preserve"><value>Export Chat</value></data>
 
   <!-- Search -->
-  <data name="Search_Placeholder" xml:space="preserve"><value>Search your knowledge base...</value></data>
-  <data name="Search_Semantic" xml:space="preserve"><value>Semantic</value></data>
-  <data name="Search_Keyword" xml:space="preserve"><value>Keyword</value></data>
-  <data name="Search_Hybrid" xml:space="preserve"><value>Hybrid</value></data>
-  <data name="Search_NoResults" xml:space="preserve"><value>No results found</value></data>
-  <data name="Search_ResultCount" xml:space="preserve"><value>{0} results</value></data>
-  <data name="Search_SaveFilter" xml:space="preserve"><value>Save Filter</value></data>
-  <data name="Search_SavedFilters" xml:space="preserve"><value>Saved Filters</value></data>
-  <data name="Search_ClearFilters" xml:space="preserve"><value>Clear Filters</value></data>
 
   <!-- Backup & Restore -->
-  <data name="Backup_Title" xml:space="preserve"><value>Backup &amp; Restore</value></data>
-  <data name="Backup_Subtitle" xml:space="preserve"><value>Protect your knowledge base with encrypted backups and one-click restore.</value></data>
-  <data name="Backup_CreateBackup" xml:space="preserve"><value>Create Backup</value></data>
-  <data name="Backup_RestoreFromBackup" xml:space="preserve"><value>Restore from Backup</value></data>
-  <data name="Backup_History" xml:space="preserve"><value>Backup History</value></data>
-  <data name="Backup_Destination" xml:space="preserve"><value>Destination Folder</value></data>
-  <data name="Backup_Encrypt" xml:space="preserve"><value>Encrypt backup (AES-256)</value></data>
-  <data name="Backup_IncludeDocs" xml:space="preserve"><value>Include indexed documents</value></data>
-  <data name="Backup_Success" xml:space="preserve"><value>Backup created successfully</value></data>
-  <data name="Backup_RestoreComplete" xml:space="preserve"><value>Restore Complete</value></data>
 
   <!-- Annotations -->
-  <data name="Annotations_Title" xml:space="preserve"><value>Annotations</value></data>
-  <data name="Annotations_Highlights" xml:space="preserve"><value>highlights</value></data>
-  <data name="Annotations_SearchPlaceholder" xml:space="preserve"><value>Search annotations...</value></data>
-  <data name="Annotations_FilterByColor" xml:space="preserve"><value>FILTER BY COLOR</value></data>
-  <data name="Annotations_Distribution" xml:space="preserve"><value>DISTRIBUTION</value></data>
-  <data name="Annotations_ExportMarkdown" xml:space="preserve"><value>Export as Markdown</value></data>
-  <data name="Annotations_Empty" xml:space="preserve"><value>No annotations yet</value></data>
-  <data name="Annotations_EmptyHint" xml:space="preserve"><value>Highlight text in your documents to create annotations.</value></data>
 
   <!-- Settings -->
-  <data name="Settings_Title" xml:space="preserve"><value>Settings</value></data>
-  <data name="Settings_Language" xml:space="preserve"><value>Language</value></data>
-  <data name="Settings_LanguageHint" xml:space="preserve"><value>Changes take effect after restart</value></data>
-  <data name="Settings_SystemDefault" xml:space="preserve"><value>System Default</value></data>
-  <data name="Settings_KeyboardShortcuts" xml:space="preserve"><value>Keyboard Shortcuts</value></data>
 
   <!-- Plugin Manager -->
   <data name="Plugin_Manager.Text" xml:space="preserve"><value>Plugins</value></data>
@@ -177,35 +64,10 @@
   <data name="Plugin_UninstallButton.Text" xml:space="preserve"><value>Uninstall Plugin</value></data>
   <data name="Plugin_Documentation.Text" xml:space="preserve"><value>Documentation</value></data>
   <data name="Plugin_ByAuthor.Text" xml:space="preserve"><value>by</value></data>
-  <data name="Plugin_Author" xml:space="preserve"><value>Author</value></data>
-  <data name="Plugin_Version" xml:space="preserve"><value>Version</value></data>
-  <data name="Plugin_Enable" xml:space="preserve"><value>Enable</value></data>
-  <data name="Plugin_Disable" xml:space="preserve"><value>Disable</value></data>
-  <data name="Plugin_MultiSelect" xml:space="preserve"><value>Multi-Select</value></data>
-  <data name="Plugin_BatchActions" xml:space="preserve"><value>Batch Actions</value></data>
 
   <!-- Settings (additional) -->
-  <data name="Settings_General" xml:space="preserve"><value>General</value></data>
-  <data name="Settings_Appearance" xml:space="preserve"><value>Appearance</value></data>
-  <data name="Settings_AIProvider" xml:space="preserve"><value>AI Provider</value></data>
-  <data name="Settings_License" xml:space="preserve"><value>License</value></data>
-  <data name="Settings_About" xml:space="preserve"><value>About</value></data>
-  <data name="Settings_Temperature" xml:space="preserve"><value>Temperature</value></data>
-  <data name="Settings_MaxTokens" xml:space="preserve"><value>Max Tokens</value></data>
-  <data name="Settings_ContextWindow" xml:space="preserve"><value>Context Window</value></data>
 
   <!-- Sync -->
-  <data name="Sync_Settings" xml:space="preserve"><value>Sync Settings</value></data>
-  <data name="Sync_NotConfigured" xml:space="preserve"><value>Sync is not configured</value></data>
-  <data name="Sync_Configured" xml:space="preserve"><value>Sync is configured</value></data>
-  <data name="Sync_AutoSync" xml:space="preserve"><value>Auto Sync</value></data>
-  <data name="Sync_Interval" xml:space="preserve"><value>Sync Interval</value></data>
-  <data name="Sync_LastSync" xml:space="preserve"><value>Last Synced</value></data>
-  <data name="Sync_SyncNow" xml:space="preserve"><value>Sync Now</value></data>
-  <data name="Sync_FolderPath" xml:space="preserve"><value>Folder Path</value></data>
-  <data name="Sync_EncryptionKey" xml:space="preserve"><value>Encryption Key</value></data>
-  <data name="Sync_Conflicts" xml:space="preserve"><value>Conflicts</value></data>
-  <data name="Sync_History" xml:space="preserve"><value>Sync History</value></data>
   <data name="Encryption_SectionHeader.Text" xml:space="preserve"><value>Database Encryption</value></data>
   <data name="Encryption_Description.Text" xml:space="preserve"><value>Encrypt your knowledge vault with AES-256 (SQLCipher). Ultimate tier uses a passphrase you enter on each launch; other tiers use an automatic key tied to your Windows account.</value></data>
 </root>

@@ -1,0 +1,47 @@
+{
+  "totalKeys": 24,
+  "perLocale": {
+    "de": {
+      "locale": "de",
+      "covered": 24,
+      "coveragePercent": 100,
+      "missingKeys": [],
+      "orphanKeys": []
+    },
+    "en-US": {
+      "locale": "en-US",
+      "covered": 24,
+      "coveragePercent": 100,
+      "missingKeys": [],
+      "orphanKeys": []
+    },
+    "es": {
+      "locale": "es",
+      "covered": 24,
+      "coveragePercent": 100,
+      "missingKeys": [],
+      "orphanKeys": []
+    },
+    "fr": {
+      "locale": "fr",
+      "covered": 24,
+      "coveragePercent": 100,
+      "missingKeys": [],
+      "orphanKeys": []
+    },
+    "ja": {
+      "locale": "ja",
+      "covered": 24,
+      "coveragePercent": 100,
+      "missingKeys": [],
+      "orphanKeys": []
+    },
+    "zh-CN": {
+      "locale": "zh-CN",
+      "covered": 24,
+      "coveragePercent": 100,
+      "missingKeys": [],
+      "orphanKeys": []
+    }
+  }
+}

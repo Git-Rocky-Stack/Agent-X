@@ -1,11 +1,16 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Navigation;
+using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
+using AgentX.Core.Services.Shortcuts;
 
 namespace AgentX.App.Views;
 
 public sealed partial class SettingsPage : Page
 {
+    private readonly IShortcutRegistry _shortcutRegistry;
+    private IDisposable? _shortcutScope;
     private bool _isLoaded;
 
     public SettingsViewModel ViewModel { get; }
@@ -13,6 +18,7 @@ public sealed partial class SettingsPage : Page
     public SettingsPage()
     {
         ViewModel = App.GetService<SettingsViewModel>();
+        _shortcutRegistry = App.GetService<IShortcutRegistry>();
         InitializeComponent();
         Loaded += async (_, _) =>
         {
@@ -20,6 +26,26 @@ public sealed partial class SettingsPage : Page
             await ViewModel.LoadEncryptionStatusAsync();
             _isLoaded = true;
         };
+    }
+
+    protected override void OnNavigatedTo(NavigationEventArgs e)
+    {
+        base.OnNavigatedTo(e);
+        _shortcutScope = _shortcutRegistry.RegisterShortcuts(
+            new AgentX.Core.Services.Shortcuts.ShortcutDescriptor(
+                "settings.save",
+                "Save settings",
+                new ShortcutScope(nameof(SettingsPage)),
+                new[] { new KeyChord(KeyModifiers.Ctrl, VirtualKeyCode.S) },
+                _ => ViewModel.SaveSettingsCommand.ExecuteAsync(null),
+                "Settings"));
+    }
+
+    protected override void OnNavigatedFrom(NavigationEventArgs e)
+    {
+        base.OnNavigatedFrom(e);
+        _shortcutScope?.Dispose();
+        _shortcutScope = null;
     }
 
     private async void EncryptionToggle_Toggled(object sender, RoutedEventArgs e)

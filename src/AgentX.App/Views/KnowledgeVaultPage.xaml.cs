@@ -1,6 +1,9 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Navigation;
+using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
+using AgentX.Core.Services.Shortcuts;
 using Serilog;
 using Windows.Storage.Pickers;
 using Windows.Storage;
@@ -15,13 +18,37 @@ namespace AgentX.App.Views;
 /// </summary>
 public sealed partial class KnowledgeVaultPage : Page
 {
+    private readonly IShortcutRegistry _shortcutRegistry;
+    private IDisposable? _shortcutScope;
+
     public KnowledgeVaultViewModel ViewModel { get; }
 
     public KnowledgeVaultPage()
     {
         ViewModel = App.GetService<KnowledgeVaultViewModel>();
+        _shortcutRegistry = App.GetService<IShortcutRegistry>();
         InitializeComponent();
         Loaded += async (_, _) => await ViewModel.InitializeAsync();
+    }
+
+    protected override void OnNavigatedTo(NavigationEventArgs e)
+    {
+        base.OnNavigatedTo(e);
+        _shortcutScope = _shortcutRegistry.RegisterShortcuts(
+            new AgentX.Core.Services.Shortcuts.ShortcutDescriptor(
+                "vault.refresh",
+                "Refresh documents",
+                new ShortcutScope(nameof(KnowledgeVaultPage)),
+                new[] { new KeyChord(KeyModifiers.None, VirtualKeyCode.F5) },
+                _ => ViewModel.RefreshCommand.ExecuteAsync(null),
+                "Documents"));
+    }
+
+    protected override void OnNavigatedFrom(NavigationEventArgs e)
+    {
+        base.OnNavigatedFrom(e);
+        _shortcutScope?.Dispose();
+        _shortcutScope = null;
     }
 
     // ═══════════════════════════════════════════════════════════════

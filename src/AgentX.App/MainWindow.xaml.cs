@@ -13,14 +13,17 @@ using Windows.System;
 using Windows.UI;
 using Windows.UI.Core;
 using WinRT.Interop;
+using AgentX.App.Helpers;
 using AgentX.App.Services;
 using AgentX.App.ViewModels;
 using AgentX.App.Views;
 using AgentX.Core.AI;
 using AgentX.Core.Documents;
+using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Indexing;
 using AgentX.Core.Constants;
 using AgentX.Core.Services.Settings;
+using AgentX.Core.Services.Shortcuts;
 using H.NotifyIcon;
 
 namespace AgentX.App;
@@ -29,6 +32,8 @@ public sealed partial class MainWindow : Window
 {
     private readonly Dictionary<string, Type> _pageMap;
     private readonly KeyboardShortcutService _keyboardShortcutService;
+    private readonly AgentX.Core.Services.Shortcuts.IShortcutRegistry _shortcutRegistry;
+    private readonly ShortcutInputRouter _shortcutInputRouter;
     private SystemTrayService _systemTrayService = null!;
     private AppWindow _appWindow = null!;
     private DispatcherTimer? _statusTimer;
@@ -46,6 +51,10 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        // A1 — Bind root FlowDirection to the current UI culture so ar-SA / he-IL / fa-IR
+        // render right-to-left once their resw bundles ship. LTR locales are unaffected.
+        RootGrid.FlowDirection = FlowDirectionHelper.Current();
 
         _pageMap = new Dictionary<string, Type>
         {
@@ -112,12 +121,22 @@ public sealed partial class MainWindow : Window
         // Initialize keyboard shortcut service and register default shortcuts
         _keyboardShortcutService = App.GetService<KeyboardShortcutService>();
         RegisterDefaultShortcuts();
+        _shortcutRegistry = App.GetService<AgentX.Core.Services.Shortcuts.IShortcutRegistry>();
+        SeedLegacyShortcutRegistry();
+        _shortcutInputRouter = new ShortcutInputRouter(
+            _shortcutRegistry,
+            App.GetService<ChordStateMachine>(),
+            GetActiveScopeName,
+            ShowCommandPaletteAsync,
+            ShowJumpToDialogAsync,
+            ShowCheatsheetDialogAsync);
 
         // Wire up command palette callbacks
         ConfigureCommandPalette();
 
         // Attach keyboard handler to the root content element
         RootGrid.PreviewKeyDown += RootGrid_PreviewKeyDown;
+        _shortcutInputRouter.Attach(RootGrid);
 
         ConfigureWindow();
         ConfigureSystemTray();
@@ -347,6 +366,160 @@ public sealed partial class MainWindow : Window
         {
             e.Handled = true;
         }
+    }
+
+    private void SeedLegacyShortcutRegistry()
+    {
+        foreach (var shortcut in _keyboardShortcutService.GetAllShortcuts())
+        {
+            var key = ShortcutInputRouter.MapVirtualKey(shortcut.Key);
+            if (key == VirtualKeyCode.None)
+            {
+                continue;
+            }
+
+            var modifiers = KeyModifiers.None;
+            if (shortcut.Ctrl) modifiers |= KeyModifiers.Ctrl;
+            if (shortcut.Shift) modifiers |= KeyModifiers.Shift;
+            if (shortcut.Alt) modifiers |= KeyModifiers.Alt;
+
+            _shortcutRegistry.Register(new AgentX.Core.Services.Shortcuts.ShortcutDescriptor(
+                shortcut.Id,
+                shortcut.DisplayName,
+                ShortcutScope.Global,
+                new[] { new KeyChord(modifiers, key) },
+                _ =>
+                {
+                    _keyboardShortcutService.HandleKeyDown(shortcut.Key, shortcut.Ctrl, shortcut.Shift, shortcut.Alt);
+                    return Task.CompletedTask;
+                },
+                shortcut.Category));
+        }
+    }
+
+    private string? GetActiveScopeName() => ContentFrame.CurrentSourcePageType?.Name;
+
+    private Task ShowCommandPaletteAsync()
+    {
+        CommandPalette.Show();
+        return Task.CompletedTask;
+    }
+
+    private async Task ShowJumpToDialogAsync()
+    {
+        var dialog = new Views.Dialogs.JumpToDialog(new JumpToViewModel(LoadJumpToCandidatesAsync))
+        {
+            XamlRoot = Content.XamlRoot,
+            RequestedTheme = GetDialogTheme()
+        };
+
+        await dialog.ShowAsync();
+    }
+
+    private async Task ShowCheatsheetDialogAsync()
+    {
+        var dialog = new Views.Dialogs.CheatsheetDialog(new CheatsheetViewModel(_shortcutRegistry, GetActiveScopeName()))
+        {
+            XamlRoot = Content.XamlRoot,
+            RequestedTheme = GetDialogTheme()
+        };
+
+        await dialog.ShowAsync();
+    }
+
+    private async Task<IReadOnlyList<JumpToItem>> LoadJumpToCandidatesAsync(CancellationToken ct)
+    {
+        var items = new List<JumpToItem>();
+
+        foreach (var page in _pageMap.OrderBy(p => p.Key))
+        {
+            var pageTag = page.Key;
+            items.Add(new JumpToItem(
+                $"page.{pageTag}",
+                ToDisplayName(pageTag),
+                "Page",
+                JumpToItemKind.Page,
+                _ =>
+                {
+                    NavigateToPage(pageTag);
+                    return Task.CompletedTask;
+                }));
+        }
+
+        try
+        {
+            var documentService = App.GetService<IDocumentService>();
+            var documents = await documentService.GetAllDocumentsAsync(ct: ct);
+            foreach (var document in documents.Take(50))
+            {
+                var label = string.IsNullOrWhiteSpace(document.ExtractedTitle)
+                    ? document.FileName
+                    : document.ExtractedTitle;
+                items.Add(new JumpToItem(
+                    $"document.{document.Id}",
+                    label,
+                    "Document",
+                    JumpToItemKind.Document,
+                    _ =>
+                    {
+                        NavigateToPage("KnowledgeVault");
+                        return Task.CompletedTask;
+                    }));
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Unable to load documents for Jump-To candidates");
+        }
+
+        try
+        {
+            var conversationService = App.GetService<IConversationService>();
+            var conversations = await conversationService.GetAllConversationsAsync();
+            foreach (var conversation in conversations.Take(50))
+            {
+                items.Add(new JumpToItem(
+                    $"conversation.{conversation.Id}",
+                    string.IsNullOrWhiteSpace(conversation.Title) ? "Untitled Conversation" : conversation.Title,
+                    "Conversation",
+                    JumpToItemKind.Conversation,
+                    _ =>
+                    {
+                        NavigateToPage("Chat");
+                        return Task.CompletedTask;
+                    }));
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Unable to load conversations for Jump-To candidates");
+        }
+
+        return items;
+    }
+
+    private ElementTheme GetDialogTheme()
+    {
+        try
+        {
+            return App.GetService<IThemeService>().CurrentTheme;
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Could not resolve theme service for keyboard dialog, defaulting to Dark");
+            return ElementTheme.Dark;
+        }
+    }
+
+    private static string ToDisplayName(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return value;
+        }
+
+        return string.Concat(value.Select((c, i) =>
+            i > 0 && char.IsUpper(c) && !char.IsUpper(value[i - 1]) ? " " + c : c.ToString()));
     }
 
     // ═══════════════════════════════════════════════════════════════════
