@@ -13,6 +13,12 @@ public sealed class LocaleCoverage
     public int Covered { get; set; }
     public double CoveragePercent { get; set; }
     public List<string> MissingKeys { get; set; } = new();
+    /// <summary>
+    /// Keys present in this locale's resw but NOT referenced by any XAML x:Uid or
+    /// C# GetString literal. These are dead entries — likely historical cruft from
+    /// removed UI. Use to drive cleanup (see plan Task 7).
+    /// </summary>
+    public List<string> OrphanKeys { get; set; } = new();
 }
 
 public sealed class CoverageReport
@@ -38,6 +44,7 @@ public sealed class CoverageReport
             .ToList();
         var report = new CoverageReport { TotalKeys = unionKeys.Count };
 
+        var unionKeySet = new HashSet<string>(unionKeys, StringComparer.Ordinal);
         foreach (var (locale, entries) in locales)
         {
             var coverage = new LocaleCoverage { Locale = locale };
@@ -48,6 +55,17 @@ public sealed class CoverageReport
                 if (hasXamlStyle || hasCodeStyle) coverage.Covered++;
                 else coverage.MissingKeys.Add(key);
             }
+            // Orphan = resw entry whose base-name (before any first dot) is NOT in the union.
+            // Handles both XAML-style ("Foo.Content" → base "Foo") and code-style ("Nav_Bar" → base "Nav_Bar").
+            foreach (var reswKey in entries.Keys)
+            {
+                var baseName = reswKey.Contains('.', StringComparison.Ordinal)
+                    ? reswKey.Substring(0, reswKey.IndexOf('.', StringComparison.Ordinal))
+                    : reswKey;
+                if (!unionKeySet.Contains(baseName))
+                    coverage.OrphanKeys.Add(reswKey);
+            }
+            coverage.OrphanKeys.Sort(StringComparer.Ordinal);
             coverage.CoveragePercent = unionKeys.Count == 0
                 ? 100.0
                 : Math.Round(coverage.Covered * 100.0 / unionKeys.Count, 2);
@@ -77,7 +95,7 @@ public sealed class CoverageReport
         foreach (var (locale, c) in report.PerLocale.OrderBy(kv => kv.Key))
         {
             var status = c.CoveragePercent >= threshold ? "OK" : "LOW";
-            writer.WriteLine($"  [{status}] {locale,-6} {c.CoveragePercent,6:F2}% ({c.Covered}/{report.TotalKeys})  missing: {c.MissingKeys.Count}");
+            writer.WriteLine($"  [{status}] {locale,-6} {c.CoveragePercent,6:F2}% ({c.Covered}/{report.TotalKeys})  missing: {c.MissingKeys.Count}  orphan: {c.OrphanKeys.Count}");
         }
     }
 }

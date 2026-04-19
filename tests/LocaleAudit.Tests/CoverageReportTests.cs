@@ -170,4 +170,63 @@ public class CoverageReportTests
         CoverageReport.PrintSummary(report, okWriter, threshold: 95.0);
         okWriter.ToString().Should().Contain("[OK]");
     }
+
+    [Fact]
+    public void Build_identifies_orphan_resw_entries_with_xaml_style_base_names()
+    {
+        var uids = new List<UidReference> { new("BtnOk", "x.xaml", 1) };
+        var codeKeys = new List<CodeKeyReference>();
+        var locales = new Dictionary<string, IReadOnlyDictionary<string, string>>
+        {
+            ["en-US"] = new Dictionary<string, string>
+            {
+                ["BtnOk.Content"] = "OK",
+                ["DeadKey.Text"] = "stale",
+                ["AnotherDead.Content"] = "stale",
+            },
+        };
+
+        var report = CoverageReport.Build(uids, codeKeys, locales);
+
+        report.PerLocale["en-US"].OrphanKeys.Should().BeEquivalentTo(
+            new[] { "AnotherDead.Content", "DeadKey.Text" });
+    }
+
+    [Fact]
+    public void Build_identifies_orphan_resw_entries_with_code_style_flat_names()
+    {
+        var uids = new List<UidReference>();
+        var codeKeys = new List<CodeKeyReference> { new("Nav_Real", "N.cs", 1) };
+        var locales = new Dictionary<string, IReadOnlyDictionary<string, string>>
+        {
+            ["en-US"] = new Dictionary<string, string>
+            {
+                ["Nav_Real"] = "Real",
+                ["Nav_Dead"] = "Dead",
+            },
+        };
+
+        var report = CoverageReport.Build(uids, codeKeys, locales);
+
+        report.PerLocale["en-US"].OrphanKeys.Should().BeEquivalentTo(new[] { "Nav_Dead" });
+    }
+
+    [Fact]
+    public void Build_orphan_list_is_empty_when_all_resw_keys_are_referenced()
+    {
+        var uids = new List<UidReference> { new("BtnOk", "x.xaml", 1) };
+        var codeKeys = new List<CodeKeyReference> { new("Nav_Home", "N.cs", 1) };
+        var locales = new Dictionary<string, IReadOnlyDictionary<string, string>>
+        {
+            ["en-US"] = new Dictionary<string, string>
+            {
+                ["BtnOk.Content"] = "OK",
+                ["Nav_Home"] = "Home",
+            },
+        };
+
+        var report = CoverageReport.Build(uids, codeKeys, locales);
+
+        report.PerLocale["en-US"].OrphanKeys.Should().BeEmpty();
+    }
 }
