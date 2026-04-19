@@ -130,6 +130,57 @@ public class DatabaseEncryptionMigratorTests
     }
 
     [Fact]
+    public async Task MigrateToEncryptedAsync_checkpoints_wal_before_export()
+    {
+        var dbPath = Path.Combine(Path.GetTempPath(), $"agentx-mig-wal-{Guid.NewGuid():N}.db");
+        var hexKey = new string('A', 64);
+
+        try
+        {
+            // Create DB in WAL mode, insert a row, deliberately skip checkpoint.
+            using (var conn = new SqliteConnection($"Data Source={dbPath}"))
+            {
+                await conn.OpenAsync();
+                using var walCmd = conn.CreateCommand();
+                walCmd.CommandText = "PRAGMA journal_mode=WAL";
+                await walCmd.ExecuteScalarAsync();
+
+                using var tableCmd = conn.CreateCommand();
+                tableCmd.CommandText = "CREATE TABLE t(id INTEGER PRIMARY KEY, v TEXT); INSERT INTO t VALUES(1,'wal-data')";
+                await tableCmd.ExecuteNonQueryAsync();
+
+                // Do NOT checkpoint — data sits in WAL.
+            }
+
+            SqliteConnection.ClearAllPools();
+
+            var key = new DatabaseKeyMaterial(hexKey, KeyStorageMode.DpapiWrapped);
+            var migrator = new DatabaseEncryptionMigrator();
+            await migrator.MigrateToEncryptedAsync(dbPath, key);
+
+            // Verify encrypted DB has the WAL-originated row.
+            SqliteConnection.ClearAllPools();
+            using (var verify = new SqliteConnection($"Data Source={dbPath}"))
+            {
+                await verify.OpenAsync();
+                using var k = verify.CreateCommand();
+                k.CommandText = $@"PRAGMA key = ""x'{hexKey}'"";";
+                await k.ExecuteNonQueryAsync();
+
+                using var probe = verify.CreateCommand();
+                probe.CommandText = "SELECT v FROM t WHERE id=1";
+                var result = await probe.ExecuteScalarAsync();
+                Assert.Equal("wal-data", result);
+            }
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
     public async Task MigrateToEncryptedAsync_throws_ArgumentException_when_key_empty()
     {
         var dbPath = Path.Combine(Path.GetTempPath(), $"agentx-mig-{Guid.NewGuid():N}.db");

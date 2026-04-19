@@ -29,6 +29,12 @@ public sealed class DatabaseEncryptionMigrator : IDatabaseEncryptionMigrator
             {
                 await source.OpenAsync();
 
+                // Ensure WAL is flushed to the main DB file before export.
+                // Without this, uncommitted WAL pages could be lost during encryption migration.
+                using var checkpointCmd = source.CreateCommand();
+                checkpointCmd.CommandText = "PRAGMA wal_checkpoint(FULL)";
+                await checkpointCmd.ExecuteNonQueryAsync();
+
                 using var cmd = source.CreateCommand();
                 cmd.CommandText = $@"
                     ATTACH DATABASE '{EscapeSingleQuotes(tempEncryptedPath)}' AS encrypted KEY ""x'{key.HexKey}'"";
