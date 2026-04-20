@@ -402,6 +402,23 @@ public partial class App : Application
         services.AddSingleton<IDigestService, DigestService>();
 
         // ── Export Services ──────────────────────────────────
+        // Formatters registered first so ExportService can resolve them via IEnumerable<IExportFormatter>
+        services.AddSingleton<AgentX.Core.Services.Export.Formatters.IExportFormatter,
+                             AgentX.Core.Services.Export.Formatters.MarkdownFormatter>();
+        services.AddSingleton<AgentX.Core.Services.Export.Formatters.IExportFormatter,
+                             AgentX.Core.Services.Export.Formatters.PlainTextFormatter>();
+        services.AddSingleton<AgentX.Core.Services.Export.Formatters.IExportFormatter,
+                             AgentX.Core.Services.Export.Formatters.CsvFormatter>();
+        services.AddSingleton<AgentX.Core.Services.Export.Formatters.IExportFormatter,
+                             AgentX.Core.Services.Export.Formatters.HtmlFormatter>();
+        services.AddSingleton<AgentX.Core.Services.Export.Formatters.IExportFormatter,
+                             AgentX.Core.Services.Export.Formatters.JsonFormatter>();
+        services.AddSingleton<AgentX.Core.Services.Export.Formatters.IExportFormatter,
+                             AgentX.Core.Services.Export.Formatters.PdfFormatter>();
+        services.AddSingleton<AgentX.Core.Services.Export.Formatters.IExportFormatter,
+                             AgentX.Core.Services.Export.Formatters.DocxFormatter>();
+        services.AddSingleton<AgentX.Core.Services.Export.Formatters.IExportFormatter,
+                             AgentX.Core.Services.Export.Formatters.PptxFormatter>();
         services.AddSingleton<IExportService, ExportService>();
         services.AddSingleton<IExportTemplateService, ExportTemplateService>();
 

@@ -2,6 +2,7 @@ using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Export;
+using AgentX.Core.Services.Export.Formatters;
 using AgentX.Core.Services.Export.Models;
 using AgentX.Core.Services.License;
 using AgentX.Core.Services.Settings;
@@ -15,8 +16,9 @@ namespace AgentX.Tests.Services.Export;
 
 /// <summary>
 /// Unit tests for <see cref="ExportService"/>.
-/// Tests the main export orchestrator functionality including license gating,
-/// format selection, and file I/O.
+/// Tests the thin orchestrator that delegates formatting to <see cref="IExportFormatter"/>
+/// implementations while handling file I/O, license gating, and special-case exports
+/// (search results, collections) inline.
 /// </summary>
 public sealed class ExportServiceTests : IDisposable
 {
@@ -68,18 +70,35 @@ public sealed class ExportServiceTests : IDisposable
         }
     }
 
+    /// <summary>
+    /// Creates all 8 formatters for testing. Each formatter is a real instance
+    /// so the orchestrator tests exercise the full formatter pipeline.
+    /// </summary>
+    private static IEnumerable<IExportFormatter> CreateFormatters() =>
+    [
+        new MarkdownFormatter(),
+        new PlainTextFormatter(),
+        new CsvFormatter(),
+        new HtmlFormatter(),
+        new JsonFormatter(),
+        new PdfFormatter(),
+        new DocxFormatter(),
+        new PptxFormatter(),
+    ];
+
     private ExportService CreateService() => new(
         _conversationServiceMock.Object,
         _documentServiceMock.Object,
         _collectionServiceMock.Object,
         _settingsServiceMock.Object,
         _licenseServiceMock.Object,
-        _loggerMock.Object
+        _loggerMock.Object,
+        CreateFormatters()
     );
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  ExportConversationAsync - Basic Functionality
-    // ══════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public async Task ExportConversationAsync_WithValidData_ReturnsSuccessResult()
@@ -367,9 +386,9 @@ public sealed class ExportServiceTests : IDisposable
         result.ErrorMessage.Should().Contain("Unsupported export format");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  License Gating Tests
-    // ══════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public async Task ExportConversationAsync_WithMarkdownFormat_AndTrialLicense_ReturnsFailureResult()
@@ -584,9 +603,9 @@ public sealed class ExportServiceTests : IDisposable
         result.ErrorMessage.Should().Contain("PDF/Markdown/HTML export requires Professional or Ultimate license");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  ExportConversationsAsync - Batch Export
-    // ══════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public async Task ExportConversationsAsync_WithEmptyList_ReturnsFailureResult()
@@ -682,9 +701,9 @@ public sealed class ExportServiceTests : IDisposable
         File.Exists(result.FilePath).Should().BeTrue();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  ExportSearchResultsAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public async Task ExportSearchResultsAsync_WithEmptyQuery_ReturnsFailureResult()
@@ -754,9 +773,9 @@ public sealed class ExportServiceTests : IDisposable
         File.Exists(result.FilePath).Should().BeTrue();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  ExportCollectionAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public async Task ExportCollectionAsync_WithNotFoundCollection_ReturnsFailureResult()
@@ -861,9 +880,9 @@ public sealed class ExportServiceTests : IDisposable
         File.Exists(result.FilePath).Should().BeTrue();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  Format As Markdown/Html (In-Memory)
-    // ══════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public async Task FormatConversationAsMarkdown_WithValidConversation_ReturnsMarkdownString()
@@ -971,9 +990,9 @@ public sealed class ExportServiceTests : IDisposable
         html.Should().BeNullOrEmpty();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  Cancellation Support
-    // ══════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public async Task ExportConversationAsync_WithCancelledToken_ReturnsFailureResult()
