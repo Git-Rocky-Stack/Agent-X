@@ -1,4 +1,4 @@
-using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -33,7 +33,10 @@ using AgentX.Core.Services.Workspace;
 using AgentX.Core.Services.Plugins;
 using AgentX.Core.Services.Audio;
 using AgentX.Core.Services.Sync;
+using AgentX.Core.Services.Sync.Codec;
+using AgentX.Core.Services.Sync.ConflictResolution;
 using AgentX.Core.Services.Sync.Models;
+using AgentX.Core.Services.Sync.Transport;
 using AgentX.Core.Services.Search;
 using AgentX.Core.Services.FeatureFlags;
 using AgentX.Core.Services.Analytics;
@@ -475,8 +478,17 @@ public partial class App : Application
         // ── Voice / Audio ──────────────────────────────────────
         services.AddSingleton<ITranscriptionService, TranscriptionService>();
 
-        // ── Collaborative Sync ─────────────────────────────────
-        services.AddSingleton<ISyncService, SyncService>();
+        // ── Collaborative Sync (sub-services registered before orchestrator) ──
+        services.AddSingleton<ISyncTransport, SyncTransport>();
+        services.AddSingleton<ISyncPackageCodec, SyncPackageCodec>();
+        services.AddSingleton<ISyncConflictResolver, SyncConflictResolver>();
+        services.AddSingleton<ISyncService>(sp =>
+            new SyncService(
+                sp.GetRequiredService<AgentXDbContext>(),
+                sp.GetRequiredService<Serilog.ILogger>(),
+                sp.GetRequiredService<ISyncTransport>(),
+                sp.GetRequiredService<ISyncPackageCodec>(),
+                sp.GetRequiredService<ISyncConflictResolver>()));
 
         // ── Analytics ────────────────────────────────────────────
         services.AddSingleton<IAnalyticsService, AnalyticsService>();

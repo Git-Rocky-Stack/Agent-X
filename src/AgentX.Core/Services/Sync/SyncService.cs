@@ -1,29 +1,24 @@
 using System.Diagnostics;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
-using AgentX.Core.Constants;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Services.Sync.Codec;
+using AgentX.Core.Services.Sync.ConflictResolution;
 using AgentX.Core.Services.Sync.Models;
+using AgentX.Core.Services.Sync.Transport;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 namespace AgentX.Core.Services.Sync;
 
 /// <summary>
-/// Production implementation of <see cref="ISyncService"/>.
+/// Thin orchestrator implementation of <see cref="ISyncService"/>.
+/// Delegates file I/O to <see cref="ISyncTransport"/>, serialisation and
+/// encryption to <see cref="ISyncPackageCodec"/>, and conflict detection
+/// and resolution to <see cref="ISyncConflictResolver"/>.
 ///
 /// Sync file layout on disk:
 ///   {SyncFolder}/agentx-sync-{deviceId}-{timestamp:yyyyMMddHHmmssffff}.axs
-///
-/// Each .axs file is an AES-256-GCM authenticated-encryption blob. Byte layout:
-///   [0 ..7 ]  magic "AXSYNC\0\0" (8 bytes)           — format guard
-///   [8 ..9 ]  format version uint16 LE                — forward-compat
-///   [10..25]  PBKDF2 salt (16 bytes)                  — unique per file
-///   [26..37]  AES-GCM nonce (12 bytes)                — unique per file
-///   [38..53]  AES-GCM authentication tag (16 bytes)   — tamper detection
-///   [54..  ]  AES-256-GCM ciphertext (UTF-8 JSON)
 ///
 /// Configuration is stored in the <c>user_settings</c> table as two key-value rows:
 ///   Key = "SyncConfiguration"  →  JSON-serialised <see cref="SyncConfiguration"/>
@@ -41,39 +36,21 @@ public sealed class SyncService : ISyncService
 
     private const string SyncConfigKey = "SyncConfiguration";
     private const string DeviceIdKey   = "SyncDeviceId";
-    private const string SyncFileExtension = ".axs";
-    private const string SyncFilePrefix    = "agentx-sync-";
-
-    /// <summary>Monotonically increasing wire-format version written into every .axs header.</summary>
-    private const ushort FormatVersion = 1;
-
-    // AES-256-GCM parameters (centralized in AppConstants)
-    private const int AesKeyBytes   = AppConstants.AesKeyBytes;   // 256 bits
-    private const int GcmNonceBytes = AppConstants.GcmNonceBytes; // 96-bit nonce — optimal for GCM
-    private const int GcmTagBytes   = AppConstants.GcmTagBytes;   // 128-bit authentication tag
-
-    // PBKDF2 parameters (centralized in AppConstants)
-    private const int Pbkdf2Iterations = AppConstants.Pbkdf2Iterations;
-    private const int SaltBytes        = AppConstants.PbkdfSaltBytes;
-
-    // File header offsets and sizes
-    private static readonly byte[] SyncMagic       = "AXSYNC\0\0"u8.ToArray(); // 8 bytes
-    private const int MagicLen   = 8;
-    private const int VersionLen = 2;   // uint16 LE
-    private const int HeaderLen  = MagicLen + VersionLen + SaltBytes + GcmNonceBytes + GcmTagBytes;
-    // = 8 + 2 + 16 + 12 + 16 = 54 bytes
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
-        WriteIndented            = false,
-        PropertyNamingPolicy     = JsonNamingPolicy.CamelCase,
-        DefaultIgnoreCondition   = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+        WriteIndented          = false,
+        PropertyNamingPolicy   = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
     };
 
     // ── Fields ────────────────────────────────────────────────────────────────
 
-    private readonly AgentXDbContext _db;
-    private readonly ILogger         _log;
+    private readonly AgentXDbContext       _db;
+    private readonly ILogger               _log;
+    private readonly ISyncTransport        _transport;
+    private readonly ISyncPackageCodec     _codec;
+    private readonly ISyncConflictResolver _conflictResolver;
 
     /// <summary>Current sync status — mutated only through <see cref="SetStatus"/>.</summary>
     private SyncStatus _status = new();
@@ -96,18 +73,27 @@ public sealed class SyncService : ISyncService
     // ── Constructor ───────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Initialises a new <see cref="SyncService"/> backed by the given database context.
+    /// Initialises a new <see cref="SyncService"/> backed by the given database context
+    /// and composed sub-services.
     /// </summary>
     /// <param name="dbContext">The EF Core context for the AgentX SQLite database.</param>
-    /// <param name="logger">
-    /// Root Serilog logger; the service creates a sub-context via
-    /// <see cref="Log.ForContext{T}"/> so all messages carry the type name.
-    /// </param>
-    public SyncService(AgentXDbContext dbContext, ILogger logger)
+    /// <param name="logger">Root Serilog logger.</param>
+    /// <param name="transport">File-system transport for .axs files.</param>
+    /// <param name="codec">Serialisation and encryption codec.</param>
+    /// <param name="conflictResolver">Conflict detection and resolution engine.</param>
+    public SyncService(
+        AgentXDbContext dbContext,
+        ILogger logger,
+        ISyncTransport transport,
+        ISyncPackageCodec codec,
+        ISyncConflictResolver conflictResolver)
     {
-        _db  = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-        _log = (logger  ?? throw new ArgumentNullException(nameof(logger)))
-               .ForContext<SyncService>();
+        _db               = dbContext    ?? throw new ArgumentNullException(nameof(dbContext));
+        _log              = (logger      ?? throw new ArgumentNullException(nameof(logger)))
+                           .ForContext<SyncService>();
+        _transport        = transport        ?? throw new ArgumentNullException(nameof(transport));
+        _codec            = codec            ?? throw new ArgumentNullException(nameof(codec));
+        _conflictResolver = conflictResolver ?? throw new ArgumentNullException(nameof(conflictResolver));
 
         _log.Information("SyncService initialised");
     }
@@ -213,41 +199,39 @@ public sealed class SyncService : ISyncService
                 DeviceId   = deviceId,
                 ExportedAt = DateTime.UtcNow,
                 Changes    = changes,
-                Version    = FormatVersion,
+                Version    = 1,
             };
 
             _log.Information(
                 "SyncService.ExportChangesAsync: collected {Count} change(s)",
                 changes.Count);
 
-            // ── Ensure the sync folder is accessible ──────────────────────────
-            EnsureSyncFolderExists(config.SyncFolderPath);
+            // ── Serialise → encrypt → write .axs file via codec + transport ──
+            _transport.EnsureFolderExists(config.SyncFolderPath);
 
-            // ── Serialise → encrypt (AES-256-GCM) → write .axs file ──────────
-            var plaintext = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(changeSet, JsonOptions));
-            var encrypted = EncryptGcm(plaintext, config.EncryptionKey);
+            var plaintext = _codec.Serialise(changeSet);
+            var encrypted = _codec.Encrypt(plaintext, config.EncryptionKey);
 
-            var fileName = BuildSyncFileName(deviceId, changeSet.ExportedAt);
-            var filePath = Path.Combine(config.SyncFolderPath, fileName);
-
-            await File.WriteAllBytesAsync(filePath, encrypted, ct).ConfigureAwait(false);
+            var filePath = await _transport.WriteSyncFileAsync(
+                config.SyncFolderPath, deviceId, changeSet.ExportedAt, encrypted, ct)
+                .ConfigureAwait(false);
 
             sw.Stop();
 
             _log.Information(
-                "SyncService.ExportChangesAsync: complete. File={FileName} Changes={Count} Duration={DurationMs:F1} ms",
-                fileName, changes.Count, sw.Elapsed.TotalMilliseconds);
+                "SyncService.ExportChangesAsync: complete. File={Path} Changes={Count} Duration={DurationMs:F1} ms",
+                Path.GetFileName(filePath), changes.Count, sw.Elapsed.TotalMilliseconds);
 
             // ── Persist audit log ─────────────────────────────────────────────
             await PersistLogAsync(new SyncLogEntity
             {
-                SyncedAt           = DateTime.UtcNow,
-                Direction          = "export",
-                ChangesApplied     = changes.Count,
-                ConflictsDetected  = 0,
-                ConflictsResolved  = 0,
-                DurationMs         = sw.Elapsed.TotalMilliseconds,
-                IsSuccess          = true,
+                SyncedAt          = DateTime.UtcNow,
+                Direction         = "export",
+                ChangesApplied    = changes.Count,
+                ConflictsDetected = 0,
+                ConflictsResolved = 0,
+                DurationMs        = sw.Elapsed.TotalMilliseconds,
+                IsSuccess         = true,
             }, CancellationToken.None).ConfigureAwait(false);
 
             SetStatus(s =>
@@ -270,11 +254,11 @@ public sealed class SyncService : ISyncService
 
             await PersistLogAsync(new SyncLogEntity
             {
-                SyncedAt      = DateTime.UtcNow,
-                Direction     = "export",
-                DurationMs    = sw.Elapsed.TotalMilliseconds,
-                ErrorMessage  = "Export was cancelled.",
-                IsSuccess     = false,
+                SyncedAt     = DateTime.UtcNow,
+                Direction    = "export",
+                DurationMs   = sw.Elapsed.TotalMilliseconds,
+                ErrorMessage = "Export was cancelled.",
+                IsSuccess    = false,
             }, CancellationToken.None).ConfigureAwait(false);
 
             SetStatus(s =>
@@ -294,11 +278,11 @@ public sealed class SyncService : ISyncService
 
             await PersistLogAsync(new SyncLogEntity
             {
-                SyncedAt      = DateTime.UtcNow,
-                Direction     = "export",
-                DurationMs    = sw.Elapsed.TotalMilliseconds,
-                ErrorMessage  = ex.Message,
-                IsSuccess     = false,
+                SyncedAt     = DateTime.UtcNow,
+                Direction    = "export",
+                DurationMs   = sw.Elapsed.TotalMilliseconds,
+                ErrorMessage = ex.Message,
+                IsSuccess    = false,
             }, CancellationToken.None).ConfigureAwait(false);
 
             SetStatus(s =>
@@ -339,7 +323,13 @@ public sealed class SyncService : ISyncService
         try
         {
             // ── Detect conflicts before touching the database ─────────────────
-            var conflicts        = await DetectConflictsAsync(changeSet).ConfigureAwait(false);
+            var localDeviceId = await GetOrCreateDeviceIdAsync().ConfigureAwait(false);
+            var conflicts     = await _conflictResolver.DetectConflictsAsync(
+                changeSet,
+                Status.LastSyncAt,
+                localDeviceId,
+                GetLocalModifiedAtAsync).ConfigureAwait(false);
+
             var conflictEntities = conflicts
                 .Select(c => (c.EntityType, c.EntityId))
                 .ToHashSet();
@@ -472,76 +462,13 @@ public sealed class SyncService : ISyncService
     {
         ArgumentNullException.ThrowIfNull(incoming);
 
-        _log.Debug(
-            "SyncService.DetectConflictsAsync: checking {Count} incoming change(s)",
-            incoming.Changes.Count);
-
-        var conflicts   = new List<SyncConflict>();
-        var lastSyncAt  = Status.LastSyncAt;
-
-        // Without a prior sync baseline we have no way to distinguish "new to us"
-        // from "independently modified on both sides" — treat all changes as new.
-        if (lastSyncAt is null)
-        {
-            _log.Debug(
-                "SyncService.DetectConflictsAsync: no prior sync baseline — skipping conflict detection");
-            return conflicts;
-        }
-
         var localDeviceId = await GetOrCreateDeviceIdAsync().ConfigureAwait(false);
 
-        // Loop-back guard: never conflict with our own exported files.
-        if (string.Equals(incoming.DeviceId, localDeviceId, StringComparison.OrdinalIgnoreCase))
-        {
-            _log.Debug(
-                "SyncService.DetectConflictsAsync: change set originates from this device — skipping");
-            return conflicts;
-        }
-
-        foreach (var remoteChange in incoming.Changes)
-        {
-            // Query the local modification timestamp for this entity.
-            var localTs = await GetLocalModifiedAtAsync(
-                remoteChange.EntityType, remoteChange.EntityId).ConfigureAwait(false);
-
-            if (localTs is null)
-                continue; // entity does not exist locally — nothing to conflict with
-
-            if (localTs.Value <= lastSyncAt.Value)
-                continue; // local version not touched since last sync — clean apply
-
-            // Both the local install and the remote device modified the same entity
-            // after the most recent sync timestamp → genuine conflict.
-            var localChange = new SyncChange
-            {
-                EntityType     = remoteChange.EntityType,
-                EntityId       = remoteChange.EntityId,
-                ChangeType     = SyncChangeType.Updated,
-                Timestamp      = localTs.Value,
-                SerializedData = null, // serialised lazily only if the user selects KeepLocal
-            };
-
-            conflicts.Add(new SyncConflict
-            {
-                EntityType   = remoteChange.EntityType,
-                EntityId     = remoteChange.EntityId,
-                LocalChange  = localChange,
-                RemoteChange = remoteChange,
-                Resolution   = SyncResolution.Pending,
-            });
-
-            _log.Debug(
-                "SyncService.DetectConflictsAsync: conflict on {EntityType} Id={EntityId} " +
-                "— local={LocalTs} remote={RemoteTs}",
-                remoteChange.EntityType, remoteChange.EntityId,
-                localTs.Value.ToString("O"), remoteChange.Timestamp.ToString("O"));
-        }
-
-        _log.Information(
-            "SyncService.DetectConflictsAsync: found {Count} conflict(s)",
-            conflicts.Count);
-
-        return conflicts;
+        return await _conflictResolver.DetectConflictsAsync(
+            incoming,
+            Status.LastSyncAt,
+            localDeviceId,
+            GetLocalModifiedAtAsync).ConfigureAwait(false);
     }
 
     // ── ISyncService: ResolveConflictAsync ───────────────────────────────────
@@ -559,45 +486,12 @@ public sealed class SyncService : ISyncService
             "SyncService.ResolveConflictAsync: resolving {EntityType} Id={EntityId} as {Resolution}",
             conflict.EntityType, conflict.EntityId, resolution);
 
-        conflict.Resolution = resolution;
+        var changeToApply = _conflictResolver.ResolveConflict(conflict, resolution);
 
-        switch (resolution)
+        if (changeToApply is not null)
         {
-            case SyncResolution.KeepLocal:
-                // The local database already contains the desired state — nothing to write.
-                _log.Debug(
-                    "SyncService.ResolveConflictAsync: KeepLocal — no database update for " +
-                    "{EntityType} Id={EntityId}",
-                    conflict.EntityType, conflict.EntityId);
-                break;
-
-            case SyncResolution.KeepRemote:
-                // Overwrite the local entity with the remote payload.
-                await ApplyChangeAsync(conflict.RemoteChange, CancellationToken.None)
-                    .ConfigureAwait(false);
-                await _db.SaveChangesAsync().ConfigureAwait(false);
-
-                _log.Debug(
-                    "SyncService.ResolveConflictAsync: KeepRemote — remote change applied for " +
-                    "{EntityType} Id={EntityId}",
-                    conflict.EntityType, conflict.EntityId);
-                break;
-
-            case SyncResolution.Merged:
-                // The caller is responsible for populating RemoteChange.SerializedData with
-                // the merged JSON representation before invoking this method.
-                if (!string.IsNullOrWhiteSpace(conflict.RemoteChange.SerializedData))
-                {
-                    await ApplyChangeAsync(conflict.RemoteChange, CancellationToken.None)
-                        .ConfigureAwait(false);
-                    await _db.SaveChangesAsync().ConfigureAwait(false);
-                }
-
-                _log.Debug(
-                    "SyncService.ResolveConflictAsync: Merged — merged payload applied for " +
-                    "{EntityType} Id={EntityId}",
-                    conflict.EntityType, conflict.EntityId);
-                break;
+            await ApplyChangeAsync(changeToApply, CancellationToken.None).ConfigureAwait(false);
+            await _db.SaveChangesAsync().ConfigureAwait(false);
         }
 
         // Decrement the pending-changes counter and clear the Conflict state once
@@ -640,7 +534,6 @@ public sealed class SyncService : ISyncService
     /// <inheritdoc />
     public async Task StartAutoSyncAsync(CancellationToken ct = default)
     {
-        // Always stop the existing loop first so we get a clean restart.
         await StopAutoSyncAsync().ConfigureAwait(false);
 
         var config = await GetConfigurationAsync().ConfigureAwait(false);
@@ -663,11 +556,8 @@ public sealed class SyncService : ISyncService
 
         lock (_loopLock)
         {
-            // Build a linked CTS so both the external ct and StopAutoSyncAsync can halt the loop.
             _autoSyncCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             var loopCt = _autoSyncCts.Token;
-
-            // Fire-and-forget — the loop runs on the thread pool and handles its own errors.
             _ = Task.Run(() => RunAutoSyncLoopAsync(intervalMinutes, loopCt), loopCt);
         }
 
@@ -696,15 +586,10 @@ public sealed class SyncService : ISyncService
         return Task.CompletedTask;
     }
 
-    // ── Private: auto-sync loop ───────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  PRIVATE: AUTO-SYNC LOOP
+    // ═══════════════════════════════════════════════════════════════════════════
 
-    /// <summary>
-    /// Background polling loop driven by <see cref="PeriodicTimer"/>.
-    /// On each tick: exports local changes since the last sync, then scans the sync
-    /// folder for peer files and imports any it finds.
-    /// Exits cleanly when <paramref name="ct"/> is cancelled.
-    /// A single-cycle failure is logged and swallowed so the loop continues.
-    /// </summary>
     private async Task RunAutoSyncLoopAsync(int intervalMinutes, CancellationToken ct)
     {
         var interval = TimeSpan.FromMinutes(intervalMinutes);
@@ -725,20 +610,15 @@ public sealed class SyncService : ISyncService
                 try
                 {
                     var lastSync = Status.LastSyncAt;
-
-                    // Export local changes accumulated since the last successful sync.
                     await ExportChangesAsync(lastSync, ct).ConfigureAwait(false);
-
-                    // Import any .axs files that peer devices deposited in the sync folder.
                     await ImportPeerFilesAsync(ct).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
-                    throw; // propagate to exit the outer while loop
+                    throw;
                 }
                 catch (Exception ex)
                 {
-                    // Cycle-level failures must not crash the loop — log and continue.
                     _log.Error(ex,
                         "SyncService: unhandled error in auto-sync cycle — loop continues");
                 }
@@ -750,118 +630,71 @@ public sealed class SyncService : ISyncService
         }
     }
 
-    // ── Private: peer file import scan ────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  PRIVATE: PEER FILE IMPORT (uses Transport + Codec)
+    // ═══════════════════════════════════════════════════════════════════════════
 
-    /// <summary>
-    /// Enumerates all <c>.axs</c> files in the configured sync folder, skips files
-    /// written by this device, decrypts and imports each peer file, then renames it
-    /// to <c>.axs.imported</c> to prevent re-processing on the next cycle.
-    /// </summary>
     private async Task ImportPeerFilesAsync(CancellationToken ct)
     {
         var config        = await GetRequiredConfigurationAsync().ConfigureAwait(false);
         var localDeviceId = await GetOrCreateDeviceIdAsync().ConfigureAwait(false);
 
-        if (!Directory.Exists(config.SyncFolderPath))
-        {
-            _log.Warning(
-                "SyncService.ImportPeerFilesAsync: sync folder does not exist — skipping. Path={Path}",
-                config.SyncFolderPath);
-            return;
-        }
+        var peerFiles = await _transport.ReadPeerFilesAsync(
+            config.SyncFolderPath, localDeviceId, ct).ConfigureAwait(false);
 
-        var files = Directory
-            .EnumerateFiles(
-                config.SyncFolderPath,
-                $"{SyncFilePrefix}*{SyncFileExtension}")
-            .ToList();
-
-        _log.Debug(
-            "SyncService.ImportPeerFilesAsync: found {Count} .axs file(s)",
-            files.Count);
-
-        foreach (var filePath in files)
+        foreach (var peer in peerFiles)
         {
             ct.ThrowIfCancellationRequested();
-
-            var fileName = Path.GetFileNameWithoutExtension(filePath);
-
-            // Skip files this device produced.
-            if (fileName.Contains(localDeviceId, StringComparison.OrdinalIgnoreCase))
-            {
-                _log.Debug(
-                    "SyncService.ImportPeerFilesAsync: skipping own file {FileName}",
-                    fileName);
-                continue;
-            }
 
             try
             {
                 _log.Information(
                     "SyncService.ImportPeerFilesAsync: processing peer file {FileName}",
-                    fileName);
+                    peer.FileName);
 
-                var encrypted = await File.ReadAllBytesAsync(filePath, ct).ConfigureAwait(false);
-
-                if (!IsValidSyncFileHeader(encrypted))
+                if (!_codec.IsValidHeader(peer.Data))
                 {
                     _log.Warning(
                         "SyncService.ImportPeerFilesAsync: {FileName} has an invalid header — skipping",
-                        fileName);
+                        peer.FileName);
                     continue;
                 }
 
-                var plaintext = DecryptGcm(encrypted, config.EncryptionKey);
-                var json      = Encoding.UTF8.GetString(plaintext);
-
-                var changeSet = JsonSerializer.Deserialize<SyncChangeSet>(json, JsonOptions);
-
-                if (changeSet is null)
-                {
-                    _log.Warning(
-                        "SyncService.ImportPeerFilesAsync: could not deserialise {FileName} — skipping",
-                        fileName);
-                    continue;
-                }
+                var plaintext = _codec.Decrypt(peer.Data, config.EncryptionKey);
+                var changeSet = _codec.Deserialise(plaintext);
 
                 await ImportChangesAsync(changeSet, ct).ConfigureAwait(false);
 
-                // Rename so it is not re-imported on the next cycle.
-                var processedPath = filePath + ".imported";
-                File.Move(filePath, processedPath, overwrite: true);
+                await _transport.MarkFileImportedAsync(peer.FilePath).ConfigureAwait(false);
 
                 _log.Information(
                     "SyncService.ImportPeerFilesAsync: {FileName} processed → renamed to .imported",
-                    fileName);
+                    peer.FileName);
             }
             catch (OperationCanceledException)
             {
                 throw;
             }
-            catch (CryptographicException ex)
+            catch (System.Security.Cryptography.CryptographicException ex)
             {
                 _log.Warning(ex,
                     "SyncService.ImportPeerFilesAsync: decryption failed for {FileName} " +
                     "— wrong passphrase or corrupted file",
-                    fileName);
+                    peer.FileName);
             }
             catch (Exception ex)
             {
                 _log.Error(ex,
                     "SyncService.ImportPeerFilesAsync: unexpected error processing {FileName}",
-                    fileName);
+                    peer.FileName);
             }
         }
     }
 
-    // ── Private: change collection ────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  PRIVATE: CHANGE COLLECTION & APPLICATION
+    // ═══════════════════════════════════════════════════════════════════════════
 
-    /// <summary>
-    /// Queries all syncable entity types and returns a flat list of
-    /// <see cref="SyncChange"/> instances for entities modified after <paramref name="since"/>.
-    /// When <paramref name="config"/> specifies <see cref="SyncScope.SelectedCollections"/> the
-    /// document query is narrowed to only those collections.
-    /// </summary>
     private async Task<List<SyncChange>> CollectChangesAsync(
         DateTime? since,
         SyncConfiguration config,
@@ -870,7 +703,6 @@ public sealed class SyncService : ISyncService
         var changes = new List<SyncChange>();
         var cutoff  = since ?? DateTime.MinValue;
 
-        // Resolve the collection-ID allow-list for scoped syncs.
         HashSet<long>? allowedCollectionIds = null;
 
         if (config.SyncScope == SyncScope.SelectedCollections
@@ -884,19 +716,12 @@ public sealed class SyncService : ISyncService
         }
 
         // ── Documents ─────────────────────────────────────────────────────────
-        var docsQuery = _db.Documents
-            .AsNoTracking()
-            .Where(d => d.ImportedAt > cutoff);
+        var docsQuery = _db.Documents.AsNoTracking().Where(d => d.ImportedAt > cutoff);
 
         if (allowedCollectionIds is not null)
-        {
-            docsQuery = docsQuery.Where(d =>
-                d.DocumentCollections.Any(dc => allowedCollectionIds.Contains(dc.CollectionId)));
-        }
+            docsQuery = docsQuery.Where(d => d.DocumentCollections.Any(dc => allowedCollectionIds.Contains(dc.CollectionId)));
 
-        var documents = await docsQuery.ToListAsync(ct).ConfigureAwait(false);
-
-        foreach (var doc in documents)
+        foreach (var doc in await docsQuery.ToListAsync(ct).ConfigureAwait(false))
         {
             changes.Add(new SyncChange
             {
@@ -909,16 +734,11 @@ public sealed class SyncService : ISyncService
         }
 
         // ── Collections ───────────────────────────────────────────────────────
-        var colQuery = _db.Collections
-            .AsNoTracking()
-            .Where(c => c.UpdatedAt > cutoff);
-
+        var colQuery = _db.Collections.AsNoTracking().Where(c => c.UpdatedAt > cutoff);
         if (allowedCollectionIds is not null)
             colQuery = colQuery.Where(c => allowedCollectionIds.Contains(c.Id));
 
-        var collections = await colQuery.ToListAsync(ct).ConfigureAwait(false);
-
-        foreach (var col in collections)
+        foreach (var col in await colQuery.ToListAsync(ct).ConfigureAwait(false))
         {
             changes.Add(new SyncChange
             {
@@ -931,13 +751,7 @@ public sealed class SyncService : ISyncService
         }
 
         // ── Tags ──────────────────────────────────────────────────────────────
-        var tags = await _db.Tags
-            .AsNoTracking()
-            .Where(t => t.CreatedAt > cutoff)
-            .ToListAsync(ct)
-            .ConfigureAwait(false);
-
-        foreach (var tag in tags)
+        foreach (var tag in await _db.Tags.AsNoTracking().Where(t => t.CreatedAt > cutoff).ToListAsync(ct).ConfigureAwait(false))
         {
             changes.Add(new SyncChange
             {
@@ -950,13 +764,7 @@ public sealed class SyncService : ISyncService
         }
 
         // ── Conversations ─────────────────────────────────────────────────────
-        var conversations = await _db.Conversations
-            .AsNoTracking()
-            .Where(c => c.UpdatedAt > cutoff)
-            .ToListAsync(ct)
-            .ConfigureAwait(false);
-
-        foreach (var conv in conversations)
+        foreach (var conv in await _db.Conversations.AsNoTracking().Where(c => c.UpdatedAt > cutoff).ToListAsync(ct).ConfigureAwait(false))
         {
             changes.Add(new SyncChange
             {
@@ -969,13 +777,7 @@ public sealed class SyncService : ISyncService
         }
 
         // ── Annotations ───────────────────────────────────────────────────────
-        var annotations = await _db.Annotations
-            .AsNoTracking()
-            .Where(a => a.UpdatedAt > cutoff)
-            .ToListAsync(ct)
-            .ConfigureAwait(false);
-
-        foreach (var ann in annotations)
+        foreach (var ann in await _db.Annotations.AsNoTracking().Where(a => a.UpdatedAt > cutoff).ToListAsync(ct).ConfigureAwait(false))
         {
             changes.Add(new SyncChange
             {
@@ -988,13 +790,7 @@ public sealed class SyncService : ISyncService
         }
 
         // ── System prompts ────────────────────────────────────────────────────
-        var systemPrompts = await _db.SystemPrompts
-            .AsNoTracking()
-            .Where(sp => sp.UpdatedAt > cutoff)
-            .ToListAsync(ct)
-            .ConfigureAwait(false);
-
-        foreach (var prompt in systemPrompts)
+        foreach (var prompt in await _db.SystemPrompts.AsNoTracking().Where(sp => sp.UpdatedAt > cutoff).ToListAsync(ct).ConfigureAwait(false))
         {
             changes.Add(new SyncChange
             {
@@ -1006,22 +802,11 @@ public sealed class SyncService : ISyncService
             });
         }
 
-        _log.Debug(
-            "SyncService.CollectChangesAsync: docs={Docs} collections={Cols} tags={Tags} " +
-            "conversations={Convs} annotations={Anns} systemPrompts={Prompts}",
-            documents.Count, collections.Count, tags.Count,
-            conversations.Count, annotations.Count, systemPrompts.Count);
+        _log.Debug("SyncService.CollectChangesAsync: collected {Count} change(s)", changes.Count);
 
         return changes;
     }
 
-    // ── Private: applying individual changes ──────────────────────────────────
-
-    /// <summary>
-    /// Deserialises a <see cref="SyncChange"/> and upserts or removes the entity in
-    /// the local database.  Changes are staged on the EF change tracker — the caller
-    /// must call <c>SaveChangesAsync</c> to flush them.
-    /// </summary>
     private async Task ApplyChangeAsync(SyncChange change, CancellationToken ct)
     {
         if (change.ChangeType == SyncChangeType.Deleted)
@@ -1043,27 +828,21 @@ public sealed class SyncService : ISyncService
             case nameof(DocumentEntity):
                 await UpsertEntityAsync<DocumentEntity>(change, _db.Documents).ConfigureAwait(false);
                 break;
-
             case nameof(CollectionEntity):
                 await UpsertEntityAsync<CollectionEntity>(change, _db.Collections).ConfigureAwait(false);
                 break;
-
             case nameof(TagEntity):
                 await UpsertEntityAsync<TagEntity>(change, _db.Tags).ConfigureAwait(false);
                 break;
-
             case nameof(ConversationEntity):
                 await UpsertEntityAsync<ConversationEntity>(change, _db.Conversations).ConfigureAwait(false);
                 break;
-
             case nameof(AnnotationEntity):
                 await UpsertEntityAsync<AnnotationEntity>(change, _db.Annotations).ConfigureAwait(false);
                 break;
-
             case nameof(SystemPromptEntity):
                 await UpsertEntityAsync<SystemPromptEntity>(change, _db.SystemPrompts).ConfigureAwait(false);
                 break;
-
             default:
                 _log.Warning(
                     "SyncService.ApplyChangeAsync: unrecognised entity type '{EntityType}' — skipped",
@@ -1072,16 +851,6 @@ public sealed class SyncService : ISyncService
         }
     }
 
-    /// <summary>
-    /// Deserialises the incoming entity from <see cref="SyncChange.SerializedData"/> and either:
-    /// <list type="bullet">
-    ///   <item>Adds it to <paramref name="dbSet"/> when it does not exist locally.</item>
-    ///   <item>Overwrites all scalar properties on the existing tracked entry via
-    ///         <c>CurrentValues.SetValues</c> when it does exist.</item>
-    /// </list>
-    /// Navigation properties are excluded because EF's <c>SetValues</c> only copies
-    /// scalar columns, and cross-device foreign keys may not be valid on the receiving side.
-    /// </summary>
     private async Task UpsertEntityAsync<TEntity>(SyncChange change, DbSet<TEntity> dbSet)
         where TEntity : class
     {
@@ -1099,55 +868,27 @@ public sealed class SyncService : ISyncService
 
         if (existing is null)
         {
-            // Detach to prevent EF from tracking the deserialised instance as Modified.
             _db.Entry(incoming).State = EntityState.Detached;
             dbSet.Add(incoming);
-
-            _log.Debug(
-                "SyncService.UpsertEntityAsync: adding {EntityType} Id={EntityId}",
-                change.EntityType, change.EntityId);
         }
         else
         {
-            // Overwrite all scalar columns, leaving navigation properties intact.
             _db.Entry(existing).CurrentValues.SetValues(incoming);
-
-            _log.Debug(
-                "SyncService.UpsertEntityAsync: updating {EntityType} Id={EntityId}",
-                change.EntityType, change.EntityId);
         }
     }
 
-    /// <summary>
-    /// Removes the entity referenced by <paramref name="change"/> from the database
-    /// if it exists locally, staging the deletion on the EF change tracker.
-    /// </summary>
     private async Task ApplyDeletionAsync(SyncChange change)
     {
         switch (change.EntityType)
         {
-            case nameof(DocumentEntity):
-                await RemoveByIdAsync(_db.Documents, change.EntityId).ConfigureAwait(false);
-                break;
-            case nameof(CollectionEntity):
-                await RemoveByIdAsync(_db.Collections, change.EntityId).ConfigureAwait(false);
-                break;
-            case nameof(TagEntity):
-                await RemoveByIdAsync(_db.Tags, change.EntityId).ConfigureAwait(false);
-                break;
-            case nameof(ConversationEntity):
-                await RemoveByIdAsync(_db.Conversations, change.EntityId).ConfigureAwait(false);
-                break;
-            case nameof(AnnotationEntity):
-                await RemoveByIdAsync(_db.Annotations, change.EntityId).ConfigureAwait(false);
-                break;
-            case nameof(SystemPromptEntity):
-                await RemoveByIdAsync(_db.SystemPrompts, change.EntityId).ConfigureAwait(false);
-                break;
+            case nameof(DocumentEntity):     await RemoveByIdAsync(_db.Documents, change.EntityId).ConfigureAwait(false); break;
+            case nameof(CollectionEntity):   await RemoveByIdAsync(_db.Collections, change.EntityId).ConfigureAwait(false); break;
+            case nameof(TagEntity):          await RemoveByIdAsync(_db.Tags, change.EntityId).ConfigureAwait(false); break;
+            case nameof(ConversationEntity): await RemoveByIdAsync(_db.Conversations, change.EntityId).ConfigureAwait(false); break;
+            case nameof(AnnotationEntity):   await RemoveByIdAsync(_db.Annotations, change.EntityId).ConfigureAwait(false); break;
+            case nameof(SystemPromptEntity): await RemoveByIdAsync(_db.SystemPrompts, change.EntityId).ConfigureAwait(false); break;
             default:
-                _log.Warning(
-                    "SyncService.ApplyDeletionAsync: unrecognised entity type '{EntityType}' — skipped",
-                    change.EntityType);
+                _log.Warning("SyncService.ApplyDeletionAsync: unrecognised entity type '{EntityType}' — skipped", change.EntityType);
                 break;
         }
     }
@@ -1156,74 +897,32 @@ public sealed class SyncService : ISyncService
         where TEntity : class
     {
         var entity = await dbSet.FindAsync(id).ConfigureAwait(false);
-
         if (entity is not null)
-        {
             dbSet.Remove(entity);
-            _log.Debug(
-                "SyncService.RemoveByIdAsync: staged deletion of {EntityType} Id={Id}",
-                typeof(TEntity).Name, id);
-        }
     }
 
-    // ── Private: local timestamp resolution ──────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  PRIVATE: LOCAL TIMESTAMP RESOLUTION
+    // ═══════════════════════════════════════════════════════════════════════════
 
-    /// <summary>
-    /// Returns the modification timestamp for <paramref name="entityId"/> in the local
-    /// database, or <see langword="null"/> if the entity does not exist.
-    /// Each entity type uses its canonical "last changed" column.
-    /// </summary>
     private async Task<DateTime?> GetLocalModifiedAtAsync(string entityType, long entityId)
     {
         return entityType switch
         {
-            nameof(DocumentEntity) => await _db.Documents
-                .Where(d => d.Id == entityId)
-                .Select(d => (DateTime?)d.ImportedAt)
-                .FirstOrDefaultAsync()
-                .ConfigureAwait(false),
-
-            nameof(CollectionEntity) => await _db.Collections
-                .Where(c => c.Id == entityId)
-                .Select(c => (DateTime?)c.UpdatedAt)
-                .FirstOrDefaultAsync()
-                .ConfigureAwait(false),
-
-            nameof(TagEntity) => await _db.Tags
-                .Where(t => t.Id == entityId)
-                .Select(t => (DateTime?)t.CreatedAt)
-                .FirstOrDefaultAsync()
-                .ConfigureAwait(false),
-
-            nameof(ConversationEntity) => await _db.Conversations
-                .Where(c => c.Id == entityId)
-                .Select(c => (DateTime?)c.UpdatedAt)
-                .FirstOrDefaultAsync()
-                .ConfigureAwait(false),
-
-            nameof(AnnotationEntity) => await _db.Annotations
-                .Where(a => a.Id == entityId)
-                .Select(a => (DateTime?)a.UpdatedAt)
-                .FirstOrDefaultAsync()
-                .ConfigureAwait(false),
-
-            nameof(SystemPromptEntity) => await _db.SystemPrompts
-                .Where(sp => sp.Id == entityId)
-                .Select(sp => (DateTime?)sp.UpdatedAt)
-                .FirstOrDefaultAsync()
-                .ConfigureAwait(false),
-
+            nameof(DocumentEntity) => await _db.Documents.Where(d => d.Id == entityId).Select(d => (DateTime?)d.ImportedAt).FirstOrDefaultAsync().ConfigureAwait(false),
+            nameof(CollectionEntity) => await _db.Collections.Where(c => c.Id == entityId).Select(c => (DateTime?)c.UpdatedAt).FirstOrDefaultAsync().ConfigureAwait(false),
+            nameof(TagEntity) => await _db.Tags.Where(t => t.Id == entityId).Select(t => (DateTime?)t.CreatedAt).FirstOrDefaultAsync().ConfigureAwait(false),
+            nameof(ConversationEntity) => await _db.Conversations.Where(c => c.Id == entityId).Select(c => (DateTime?)c.UpdatedAt).FirstOrDefaultAsync().ConfigureAwait(false),
+            nameof(AnnotationEntity) => await _db.Annotations.Where(a => a.Id == entityId).Select(a => (DateTime?)a.UpdatedAt).FirstOrDefaultAsync().ConfigureAwait(false),
+            nameof(SystemPromptEntity) => await _db.SystemPrompts.Where(sp => sp.Id == entityId).Select(sp => (DateTime?)sp.UpdatedAt).FirstOrDefaultAsync().ConfigureAwait(false),
             _ => null,
         };
     }
 
-    // ── Private: device ID ────────────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  PRIVATE: DEVICE ID & SETTINGS
+    // ═══════════════════════════════════════════════════════════════════════════
 
-    /// <summary>
-    /// Returns the stable UUID for this installation.  On first call the ID is
-    /// generated, persisted in <c>user_settings</c> under <c>SyncDeviceId</c>, and
-    /// cached in-process for the lifetime of this service instance.
-    /// </summary>
     private async Task<string> GetOrCreateDeviceIdAsync()
     {
         if (_cachedDeviceId is not null)
@@ -1237,22 +936,15 @@ public sealed class SyncService : ISyncService
             return _cachedDeviceId;
         }
 
-        // First run on this installation — generate a new stable ID.
-        var newId = Guid.NewGuid().ToString("N"); // 32-char hex, no hyphens
+        var newId = Guid.NewGuid().ToString("N");
         await UpsertSettingAsync(DeviceIdKey, newId).ConfigureAwait(false);
-
         _cachedDeviceId = newId;
 
-        _log.Information(
-            "SyncService.GetOrCreateDeviceIdAsync: generated new device ID {DeviceId}",
-            newId);
+        _log.Information("SyncService.GetOrCreateDeviceIdAsync: generated new device ID {DeviceId}", newId);
 
         return _cachedDeviceId;
     }
 
-    // ── Private: UserSettings key-value helpers ───────────────────────────────
-
-    /// <summary>Reads a single value from <c>user_settings</c> by key.</summary>
     private async Task<string?> GetSettingAsync(string key)
     {
         var entity = await _db.UserSettings
@@ -1263,10 +955,6 @@ public sealed class SyncService : ISyncService
         return entity?.Value;
     }
 
-    /// <summary>
-    /// Inserts or updates a row in <c>user_settings</c> for <paramref name="key"/>
-    /// and immediately flushes to the database.
-    /// </summary>
     private async Task UpsertSettingAsync(string key, string value)
     {
         var entity = await _db.UserSettings
@@ -1293,12 +981,6 @@ public sealed class SyncService : ISyncService
         await _db.SaveChangesAsync().ConfigureAwait(false);
     }
 
-    // ── Private: configuration guard ─────────────────────────────────────────
-
-    /// <summary>
-    /// Loads and validates the sync configuration, throwing
-    /// <see cref="InvalidOperationException"/> if it is absent or incomplete.
-    /// </summary>
     private async Task<SyncConfiguration> GetRequiredConfigurationAsync()
     {
         var config = await GetConfigurationAsync().ConfigureAwait(false);
@@ -1309,22 +991,18 @@ public sealed class SyncService : ISyncService
                 "Call ConfigureAsync before performing sync operations.");
 
         if (string.IsNullOrWhiteSpace(config.SyncFolderPath))
-            throw new InvalidOperationException(
-                "SyncFolderPath is not set in the sync configuration.");
+            throw new InvalidOperationException("SyncFolderPath is not set in the sync configuration.");
 
         if (string.IsNullOrWhiteSpace(config.EncryptionKey))
-            throw new InvalidOperationException(
-                "EncryptionKey is not set in the sync configuration.");
+            throw new InvalidOperationException("EncryptionKey is not set in the sync configuration.");
 
         return config;
     }
 
-    // ── Private: sync log persistence ────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  PRIVATE: SYNC LOG & STATUS
+    // ═══════════════════════════════════════════════════════════════════════════
 
-    /// <summary>
-    /// Persists a <see cref="SyncLogEntity"/> audit record.
-    /// Failures are swallowed and logged so they never surface to the caller.
-    /// </summary>
     private async Task PersistLogAsync(SyncLogEntity entry, CancellationToken ct)
     {
         try
@@ -1338,14 +1016,6 @@ public sealed class SyncService : ISyncService
         }
     }
 
-    // ── Private: status mutation ──────────────────────────────────────────────
-
-    /// <summary>
-    /// Atomically applies <paramref name="mutate"/> to <see cref="_status"/> under
-    /// <see cref="_statusLock"/>, then raises <see cref="StatusChanged"/> with a
-    /// shallow copy of the updated status on the calling thread.
-    /// Exceptions thrown by subscribers are caught and logged.
-    /// </summary>
     private void SetStatus(Action<SyncStatus> mutate)
     {
         SyncStatus snapshot;
@@ -1354,8 +1024,6 @@ public sealed class SyncService : ISyncService
         {
             mutate(_status);
 
-            // Produce an immutable snapshot for the event payload so subscribers
-            // cannot modify the internal status object.
             snapshot = new SyncStatus
             {
                 LastSyncAt         = _status.LastSyncAt,
@@ -1374,145 +1042,5 @@ public sealed class SyncService : ISyncService
         {
             _log.Warning(ex, "SyncService.SetStatus: exception in StatusChanged subscriber");
         }
-    }
-
-    // ── Private: file-system helpers ──────────────────────────────────────────
-
-    private static void EnsureSyncFolderExists(string path)
-    {
-        try
-        {
-            Directory.CreateDirectory(path);
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException(
-                $"Cannot create or access the sync folder at '{path}'.", ex);
-        }
-    }
-
-    /// <summary>
-    /// Builds the canonical sync file name:
-    /// <c>agentx-sync-{deviceId}-{exportedAt:yyyyMMddHHmmssffff}.axs</c>
-    /// The sub-second component avoids collisions when multiple exports occur within
-    /// the same second (e.g. during rapid testing).
-    /// </summary>
-    private static string BuildSyncFileName(string deviceId, DateTime exportedAt) =>
-        $"{SyncFilePrefix}{deviceId}-{exportedAt:yyyyMMddHHmmssffff}{SyncFileExtension}";
-
-    // ── Private: AES-256-GCM encryption ──────────────────────────────────────
-
-    // .axs file byte layout (54-byte header + variable ciphertext):
-    //
-    //   Offset  Length  Field
-    //   ------  ------  ---------------------------------------------------
-    //    0       8      Magic: "AXSYNC\0\0"
-    //    8       2      Format version (uint16 little-endian)
-    //   10      16      PBKDF2 salt     (fresh random bytes per file)
-    //   26      12      AES-GCM nonce   (fresh random bytes per file)
-    //   38      16      AES-GCM authentication tag
-    //   54       *      AES-256-GCM ciphertext (UTF-8 JSON of SyncChangeSet)
-
-    /// <summary>
-    /// Encrypts <paramref name="plaintext"/> with AES-256-GCM using a key derived
-    /// from <paramref name="passphrase"/> via PBKDF2-SHA256.  Returns the full
-    /// header + ciphertext byte array.
-    /// </summary>
-    private static byte[] EncryptGcm(byte[] plaintext, string passphrase)
-    {
-        var salt  = RandomNumberGenerator.GetBytes(SaltBytes);
-        var nonce = RandomNumberGenerator.GetBytes(GcmNonceBytes);
-        var key   = DeriveKey(passphrase, salt);
-
-        var ciphertext = new byte[plaintext.Length];
-        var tag        = new byte[GcmTagBytes];
-
-        using var gcm = new AesGcm(key, GcmTagBytes);
-        gcm.Encrypt(nonce, plaintext, ciphertext, tag);
-
-        // Layout: magic(8) + version(2) + salt(16) + nonce(12) + tag(16) + ciphertext
-        var result = new byte[HeaderLen + ciphertext.Length];
-        var span   = result.AsSpan();
-        var offset = 0;
-
-        SyncMagic.CopyTo(span[offset..]);
-        offset += MagicLen;
-
-        // Format version as uint16 LE
-        BitConverter.TryWriteBytes(span[offset..], FormatVersion);
-        offset += VersionLen;
-
-        salt.CopyTo(span[offset..]);
-        offset += SaltBytes;
-
-        nonce.CopyTo(span[offset..]);
-        offset += GcmNonceBytes;
-
-        tag.CopyTo(span[offset..]);
-        offset += GcmTagBytes;
-
-        ciphertext.CopyTo(span[offset..]);
-
-        return result;
-    }
-
-    /// <summary>
-    /// Decrypts an AES-256-GCM encrypted .axs file produced by <see cref="EncryptGcm"/>.
-    /// Throws <see cref="CryptographicException"/> if the authentication tag does not
-    /// match (wrong key, corrupted data, or tampered file).
-    /// </summary>
-    private static byte[] DecryptGcm(byte[] cipherData, string passphrase)
-    {
-        if (cipherData.Length < HeaderLen)
-            throw new InvalidOperationException(
-                "Data is too short to be a valid .axs sync file.");
-
-        // Parse header fields using index ranges for zero-copy slicing.
-        var offset    = MagicLen + VersionLen; // skip magic and version — already validated
-        var salt      = cipherData[offset..(offset + SaltBytes)];
-        offset       += SaltBytes;
-        var nonce     = cipherData[offset..(offset + GcmNonceBytes)];
-        offset       += GcmNonceBytes;
-        var tag       = cipherData[offset..(offset + GcmTagBytes)];
-        offset       += GcmTagBytes;
-        var ciphertext = cipherData[offset..];
-
-        var key       = DeriveKey(passphrase, salt);
-        var plaintext = new byte[ciphertext.Length];
-
-        using var gcm = new AesGcm(key, GcmTagBytes);
-
-        // AesGcm.Decrypt throws CryptographicException on tag mismatch.
-        gcm.Decrypt(nonce, ciphertext, tag, plaintext);
-
-        return plaintext;
-    }
-
-    /// <summary>
-    /// Derives a 256-bit AES key from <paramref name="passphrase"/> and
-    /// <paramref name="salt"/> using PBKDF2-HMAC-SHA256 with
-    /// <see cref="Pbkdf2Iterations"/> iterations.
-    /// </summary>
-    private static byte[] DeriveKey(string passphrase, byte[] salt)
-    {
-        using var kdf = new Rfc2898DeriveBytes(
-            passphrase,
-            salt,
-            Pbkdf2Iterations,
-            HashAlgorithmName.SHA256);
-
-        return kdf.GetBytes(AesKeyBytes); // 32 bytes = 256 bits
-    }
-
-    /// <summary>
-    /// Returns <see langword="true"/> when <paramref name="data"/> begins with the
-    /// expected magic bytes and is long enough to contain a complete header.
-    /// </summary>
-    private static bool IsValidSyncFileHeader(byte[] data)
-    {
-        if (data.Length < HeaderLen)
-            return false;
-
-        return data[..MagicLen].SequenceEqual(SyncMagic);
     }
 }
