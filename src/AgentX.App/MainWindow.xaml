@@ -60,7 +60,6 @@
                         OpenPaneLength="260"
                         CompactPaneLength="48"
                         IsPaneOpen="True"
-                        SelectionChanged="NavView_SelectionChanged"
                         Background="Transparent"
                         IsTabStop="False">
 

@@ -1,13 +1,20 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using H.NotifyIcon;
+using Microsoft.UI;
+using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml;
 using Serilog;
+using Windows.Graphics;
+using WinRT.Interop;
 
 namespace AgentX.App.Services;
 
 /// <summary>
-/// Manages system tray icon presence using H.NotifyIcon library and provides
-/// minimize-to-tray functionality with a global hotkey (Win+Shift+A).
+/// Manages system tray icon presence using H.NotifyIcon library, provides
+/// minimize-to-tray functionality with a global hotkey (Win+Shift+A), and
+/// orchestrates window lifecycle (hide/show/close) for the minimize-to-tray pattern.
 /// </summary>
 public sealed class SystemTrayService : IDisposable
 {
@@ -24,6 +31,11 @@ public sealed class SystemTrayService : IDisposable
     private IntPtr _oldWndProc;
     private bool _hotkeyRegistered;
     private bool _disposed;
+
+    // ── Window lifecycle state ──────────────────────────────────
+    private Window? _window;
+    private AppWindow? _appWindow;
+    private bool _isReallyClosing;
 
     // Keep delegate alive to prevent GC during window subclass
     private WndProcDelegate? _wndProc;
@@ -231,6 +243,100 @@ public sealed class SystemTrayService : IDisposable
     /// "Settings" context menu item is clicked.
     /// </summary>
     public void InvokeSettingsRequested() => SettingsRequested?.Invoke();
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  WINDOW LIFECYCLE (minimize-to-tray, restore, close)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Configures the system tray for a specific window. Wires up the tray icon,
+    /// global hotkey, and the window closing event for minimize-to-tray behavior.
+    /// The <paramref name="doubleClickCommand"/> is wired to the tray icon's
+    /// DoubleClickCommand (e.g., a DelegateCommand that calls <see cref="RestoreFromTray"/>).
+    /// </summary>
+    public void ConfigureTray(Window window, TaskbarIcon trayIcon, System.Windows.Input.ICommand? doubleClickCommand = null)
+    {
+        _window = window ?? throw new ArgumentNullException(nameof(window));
+        _trayIcon = trayIcon ?? throw new ArgumentNullException(nameof(trayIcon));
+
+        var hwnd = WindowNative.GetWindowHandle(window);
+        var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
+        _appWindow = AppWindow.GetFromWindowId(windowId);
+
+        Initialize(hwnd, trayIcon);
+        ShowTrayIcon();
+        RegisterGlobalHotkey();
+
+        if (doubleClickCommand != null)
+            trayIcon.DoubleClickCommand = doubleClickCommand;
+
+        // Intercept window closing to minimize to tray instead of exiting
+        _appWindow.Closing += OnWindowClosing;
+
+        Log.Information("System tray integration configured with window lifecycle");
+    }
+
+    /// <summary>
+    /// Intercepts the window close event. If <see cref="MinimizeToTray"/> is enabled
+    /// and the user hasn't explicitly chosen "Exit", hides the window instead of closing.
+    /// </summary>
+    public void OnWindowClosing(AppWindow sender, AppWindowClosingEventArgs args)
+    {
+        if (MinimizeToTray && !_isReallyClosing)
+        {
+            args.Cancel = true;
+
+            // Use H.NotifyIcon's WindowExtensions.Hide for Windows 11 Efficiency Mode
+            _window!.Hide(enableEfficiencyMode: true);
+
+            Log.Information("Window hidden to system tray (minimize-to-tray)");
+        }
+    }
+
+    /// <summary>
+    /// Restores the main window from the system tray.
+    /// Shows the window, brings it to the foreground, and deactivates Efficiency Mode.
+    /// </summary>
+    public void RestoreFromTray()
+    {
+        if (_window == null || _appWindow == null)
+        {
+            Log.Warning("Cannot restore window: not configured");
+            return;
+        }
+
+        // Use H.NotifyIcon's WindowExtensions.Show to restore with Efficiency Mode disabled
+        _window.Show(disableEfficiencyMode: true);
+        _window.Activate();
+
+        // If the window was minimized before hiding, restore it to its previous state
+        if (_appWindow.Presenter is OverlappedPresenter presenter
+            && presenter.State == OverlappedPresenterState.Minimized)
+        {
+            presenter.Restore();
+        }
+
+        Log.Information("Window restored from system tray");
+    }
+
+    /// <summary>
+    /// Actually closes the application. Sets the flag so <see cref="OnWindowClosing"/>
+    /// doesn't cancel the close, hides the tray icon, and disposes resources.
+    /// </summary>
+    public void CloseAppForReal()
+    {
+        _isReallyClosing = true;
+
+        // Clean up tray resources before closing
+        HideTrayIcon();
+        UnregisterGlobalHotkey();
+
+        // Hide the window first to avoid visual artifacts during teardown
+        _appWindow?.Hide();
+        _window?.Close();
+
+        Log.Information("Application exiting via tray Exit command");
+    }
 
     public void Dispose()
     {

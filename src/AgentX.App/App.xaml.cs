@@ -508,6 +508,12 @@ public partial class App : Application
         // ── System Tray ───────────────────────────────────────
         services.AddSingleton<SystemTrayService>();
 
+        // ── Window Services (extracted from MainWindow) ──────────
+        services.AddSingleton<IAppNavigationService, AppNavigationService>();
+        services.AddSingleton<IStatusBarService, StatusBarService>();
+        services.AddSingleton<IOnboardingService, OnboardingService>();
+        services.AddSingleton<IChromeService, ChromeService>();
+
         // ── ViewModels (Transient) ─────────────────────────────
         services.AddTransient<ViewModels.DashboardViewModel>();
         services.AddTransient<ViewModels.SettingsViewModel>();

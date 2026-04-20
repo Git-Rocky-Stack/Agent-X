@@ -67,5 +67,8 @@
     <Compile Include="..\..\src\AgentX.App\ViewModels\Coordinators\VoiceCoordinator.cs" Link="ViewModels\Coordinators\VoiceCoordinator.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\Coordinators\IBranchingCoordinator.cs" Link="ViewModels\Coordinators\IBranchingCoordinator.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\Coordinators\BranchingCoordinator.cs" Link="ViewModels\Coordinators\BranchingCoordinator.cs" />
+    <!-- StatusBarService is pure (no WinUI deps) — uses IServiceProvider and Core services only. -->
+    <Compile Include="..\..\src\AgentX.App\Services\IStatusBarService.cs" Link="Services\IStatusBarService.cs" />
+    <Compile Include="..\..\src\AgentX.App\Services\StatusBarService.cs" Link="Services\StatusBarService.cs" />
   </ItemGroup>
 </Project>

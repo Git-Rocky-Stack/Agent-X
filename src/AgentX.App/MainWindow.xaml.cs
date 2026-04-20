@@ -1,158 +1,105 @@
-using System.Linq;
-using Microsoft.UI;
-using Microsoft.UI.Composition.SystemBackdrops;
-using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Serilog;
-using Windows.Graphics;
 using Windows.System;
-using Windows.UI;
-using WinRT.Interop;
 using AgentX.App.Helpers;
 using AgentX.App.Services;
 using AgentX.App.ViewModels;
 using AgentX.App.Views;
-using AgentX.Core.AI;
-using AgentX.Core.Documents;
-using AgentX.Core.Services.Chat;
-using AgentX.Core.Services.Indexing;
-using AgentX.Core.Constants;
-using AgentX.Core.Services.Settings;
+using AgentX.App.Views.Dialogs;
 using AgentX.Core.Services.Shortcuts;
-using H.NotifyIcon;
 
 namespace AgentX.App;
 
 public sealed partial class MainWindow : Window
 {
-    private readonly Dictionary<string, Type> _pageMap;
-    private readonly AgentX.Core.Services.Shortcuts.IShortcutRegistry _shortcutRegistry;
-    private readonly ShortcutInputRouter _shortcutInputRouter;
-    private SystemTrayService _systemTrayService = null!;
-    private AppWindow _appWindow = null!;
-    private DispatcherTimer? _statusTimer;
-    private bool _lastConnectionState;
-    private bool _suppressNavigation;
-    private bool _isReallyClosing;
+    private readonly IAppNavigationService _navigationService;
+    private readonly IStatusBarService _statusBarService;
+    private readonly IOnboardingService _onboardingService;
+    private readonly IChromeService _chromeService;
+    private readonly SystemTrayService _systemTrayService;
+    private readonly IShortcutRegistry _shortcutRegistry;
+    private ShortcutInputRouter _shortcutInputRouter = null!;
     private QuickChatWindow? _quickChatWindow;
 
-    /// <summary>
-    /// Map from page tags to their corresponding NavigationViewItem controls.
-    /// Used to programmatically select nav items when navigating via command palette or shortcuts.
-    /// </summary>
+    private static readonly Dictionary<string, Type> PageMap = new()
+    {
+        ["Dashboard"] = typeof(Views.DashboardPage),
+        ["Digest"] = typeof(Views.DigestPage),
+        ["Settings"] = typeof(Views.SettingsPage),
+        ["Chat"] = typeof(Views.ChatPage),
+        ["AskFiles"] = typeof(Views.AskFilesPage),
+        ["QuickActions"] = typeof(Views.QuickActionsPage),
+        ["Workflows"] = typeof(Views.WorkflowBuilderPage),
+        ["KnowledgeVault"] = typeof(Views.KnowledgeVaultPage),
+        ["WebImport"] = typeof(Views.WebImportPage),
+        ["Collections"] = typeof(Views.CollectionManagerPage),
+        ["Search"] = typeof(Views.SearchPage),
+        ["KnowledgeGraph"] = typeof(Views.KnowledgeGraphPage),
+        ["ModelManager"] = typeof(Views.ModelManagerPage),
+        ["HardwareAdvisor"] = typeof(Views.HardwareAdvisorPage),
+        ["BackupRestore"] = typeof(Views.BackupRestorePage),
+        ["Annotations"] = typeof(Views.AnnotationsPage),
+        ["Inbox"] = typeof(Views.InboxPage),
+        ["Comparison"] = typeof(Views.ComparisonPage),
+        ["WorkspaceProfiles"] = typeof(Views.WorkspaceProfilePage),
+        ["PluginManager"] = typeof(Views.PluginManagerPage),
+        ["SyncSettings"] = typeof(Views.SyncSettingsPage),
+        ["CalendarSettings"] = typeof(Views.CalendarSettingsPage),
+        ["EmailSettings"] = typeof(Views.EmailSettingsPage),
+        ["Analytics"] = typeof(Views.AnalyticsPage),
+        ["Onboarding"] = typeof(Views.OnboardingPage),
+        ["UserGuide"] = typeof(Views.UserGuidePage),
+        ["PrivacyPolicy"] = typeof(Views.PrivacyPolicyPage),
+        ["TermsOfService"] = typeof(Views.TermsOfServicePage),
+    };
+
     private readonly Dictionary<string, NavigationViewItem> _navItemMap;
 
     public MainWindow()
     {
         InitializeComponent();
 
-        // A1 — Bind root FlowDirection to the current UI culture so ar-SA / he-IL / fa-IR
-        // render right-to-left once their resw bundles ship. LTR locales are unaffected.
+        // A1 — Bind root FlowDirection to the current UI culture
         RootGrid.FlowDirection = FlowDirectionHelper.Current();
 
-        _pageMap = new Dictionary<string, Type>
-        {
-            ["Dashboard"] = typeof(Views.DashboardPage),
-            ["Digest"] = typeof(Views.DigestPage),
-            ["Settings"] = typeof(Views.SettingsPage),
-            ["Chat"] = typeof(Views.ChatPage),
-            ["AskFiles"] = typeof(Views.AskFilesPage),
-            ["QuickActions"] = typeof(Views.QuickActionsPage),
-            ["Workflows"] = typeof(Views.WorkflowBuilderPage),
-            ["KnowledgeVault"] = typeof(Views.KnowledgeVaultPage),
-            ["WebImport"] = typeof(Views.WebImportPage),
-            ["Collections"] = typeof(Views.CollectionManagerPage),
-            ["Search"] = typeof(Views.SearchPage),
-            ["KnowledgeGraph"] = typeof(Views.KnowledgeGraphPage),
-            ["ModelManager"] = typeof(Views.ModelManagerPage),
-            ["HardwareAdvisor"] = typeof(Views.HardwareAdvisorPage),
-            ["BackupRestore"] = typeof(Views.BackupRestorePage),
-            ["Annotations"] = typeof(Views.AnnotationsPage),
-            ["Inbox"] = typeof(Views.InboxPage),
-            ["Comparison"] = typeof(Views.ComparisonPage),
-            ["WorkspaceProfiles"] = typeof(Views.WorkspaceProfilePage),
-            ["PluginManager"] = typeof(Views.PluginManagerPage),
-            ["SyncSettings"] = typeof(Views.SyncSettingsPage),
-            ["CalendarSettings"] = typeof(Views.CalendarSettingsPage),
-            ["EmailSettings"] = typeof(Views.EmailSettingsPage),
-            ["Analytics"] = typeof(Views.AnalyticsPage),
-            ["Onboarding"] = typeof(Views.OnboardingPage),
-            ["UserGuide"] = typeof(Views.UserGuidePage),
-            ["PrivacyPolicy"] = typeof(Views.PrivacyPolicyPage),
-            ["TermsOfService"] = typeof(Views.TermsOfServicePage),
-        };
+        // Resolve services from DI
+        _navigationService = App.GetService<IAppNavigationService>();
+        _statusBarService = App.GetService<IStatusBarService>();
+        _onboardingService = App.GetService<IOnboardingService>();
+        _chromeService = App.GetService<IChromeService>();
+        _systemTrayService = App.GetService<SystemTrayService>();
+        _shortcutRegistry = App.GetService<IShortcutRegistry>();
 
-        _navItemMap = new Dictionary<string, NavigationViewItem>
-        {
-            ["Dashboard"] = NavDashboard,
-            ["Digest"] = NavDigest,
-            ["Chat"] = NavChat,
-            ["AskFiles"] = NavAskFiles,
-            ["QuickActions"] = NavQuickActions,
-            ["Workflows"] = NavWorkflows,
-            ["KnowledgeVault"] = NavVault,
-            ["WebImport"] = NavWebImport,
-            ["Collections"] = NavCollections,
-            ["Search"] = NavSearch,
-            ["KnowledgeGraph"] = NavKnowledgeGraph,
-            ["ModelManager"] = NavModels,
-            ["HardwareAdvisor"] = NavHardware,
-            ["BackupRestore"] = NavBackupRestore,
-            ["Annotations"] = NavAnnotations,
-            ["Inbox"] = NavInbox,
-            ["Comparison"] = NavComparison,
-            ["WorkspaceProfiles"] = NavWorkspaceProfiles,
-            ["PluginManager"] = NavPluginManager,
-            ["SyncSettings"] = NavSyncSettings,
-            ["CalendarSettings"] = NavCalendarSettings,
-            ["EmailSettings"] = NavEmailSettings,
-            ["Settings"] = NavSettings,
-            ["UserGuide"] = NavUserGuide,
-            ["PrivacyPolicy"] = NavPrivacyPolicy,
-            ["TermsOfService"] = NavTermsOfService,
-        };
+        _navItemMap = BuildNavItemMap();
 
-        _shortcutRegistry = App.GetService<AgentX.Core.Services.Shortcuts.IShortcutRegistry>();
-        App.GetService<ShortcutCatalog>().SeedDefaults(new ShortcutCatalogActions(
-            (pageTag, _) =>
-            {
-                NavigateToPage(pageTag);
-                return Task.CompletedTask;
-            },
-            _ => ShowCommandPaletteAsync(),
-            _ => ShowJumpToDialogAsync(),
-            _ => ShowCheatsheetDialogAsync()));
-        _shortcutInputRouter = new ShortcutInputRouter(
-            _shortcutRegistry,
-            App.GetService<ChordStateMachine>(),
-            GetActiveScopeName,
-            ShowCommandPaletteAsync,
-            ShowJumpToDialogAsync,
-            ShowCheatsheetDialogAsync);
+        // Initialize navigation service with XAML control references
+        _navigationService.Initialize(PageMap, _navItemMap, ContentFrame, NavView);
+
+        // Configure keyboard shortcuts
+        ConfigureShortcuts();
 
         // Wire up command palette callbacks
-        ConfigureCommandPalette();
+        CommandPalette.NavigateToPageRequested = _navigationService.NavigateToPage;
+        CommandPalette.ExecuteActionRequested = _navigationService.ExecuteAction;
 
-        // Attach keyboard handler to the root content element
+        // Attach keyboard handler
         RootGrid.PreviewKeyDown += RootGrid_PreviewKeyDown;
         _shortcutInputRouter.Attach(RootGrid);
 
-        ConfigureWindow();
+        // Configure window chrome, tray, and status bar
+        _chromeService.ConfigureWindow(this);
+        _chromeService.ConfigureTitleBar(this);
+        _chromeService.ConfigureBackdrop(this);
+
         ConfigureSystemTray();
-        ConfigureTitleBar();
-        ConfigureBackdrop();
+        ConfigureStatusBar();
 
         // Navigate to Dashboard on launch (onboarding check may override this)
         ContentFrame.Navigate(typeof(Views.DashboardPage));
 
         // Check if onboarding is needed (first run)
-        CheckOnboardingAsync();
-
-        // Wire up live status bar polling
-        InitializeStatusBar();
+        _ = CheckOnboardingAsync();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -161,736 +108,72 @@ public sealed partial class MainWindow : Window
 
     private void RootGrid_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
     {
-        // If the command palette is open and the user presses Escape without modifiers,
-        // let the command palette handle it through its own KeyDown handler to avoid
-        // double-processing. Only handle Escape at the root level when the palette
-        // search box does not have focus.
         if (e.Key == VirtualKey.Escape && CommandPalette.IsOpen)
         {
-            // The command palette's SearchInput_KeyDown handler will process this.
-            // We only handle Escape here if it somehow reaches the root without
-            // being caught by the palette (e.g., focus is elsewhere).
-            // Check if the command palette search box has focus:
-            if (FocusManager.GetFocusedElement(Content.XamlRoot) is not Microsoft.UI.Xaml.Controls.TextBox)
+            if (FocusManager.GetFocusedElement(Content.XamlRoot) is not TextBox)
             {
                 CommandPalette.Hide();
                 e.Handled = true;
-                return;
             }
-            return;
         }
     }
 
-    private string? GetActiveScopeName() => ContentFrame.CurrentSourcePageType?.Name;
-
-    private Task ShowCommandPaletteAsync()
+    private void ConfigureShortcuts()
     {
-        CommandPalette.Show();
-        return Task.CompletedTask;
+        App.GetService<ShortcutCatalog>().SeedDefaults(new ShortcutCatalogActions(
+            (pageTag, _) => { _navigationService.NavigateToPage(pageTag); return Task.CompletedTask; },
+            _ => ShowCommandPaletteAsync(),
+            _ => ShowJumpToDialogAsync(),
+            _ => ShowCheatsheetDialogAsync()));
+
+        _shortcutInputRouter = new ShortcutInputRouter(
+            _shortcutRegistry,
+            App.GetService<ChordStateMachine>(),
+            () => ContentFrame.CurrentSourcePageType?.Name,
+            ShowCommandPaletteAsync,
+            ShowJumpToDialogAsync,
+            ShowCheatsheetDialogAsync);
     }
+
+    private Task ShowCommandPaletteAsync() { CommandPalette.Show(); return Task.CompletedTask; }
 
     private async Task ShowJumpToDialogAsync()
     {
-        var dialog = new Views.Dialogs.JumpToDialog(new JumpToViewModel(LoadJumpToCandidatesAsync))
+        var dialog = new JumpToDialog(new JumpToViewModel(LoadJumpToCandidatesAsync))
         {
             XamlRoot = Content.XamlRoot,
             RequestedTheme = GetDialogTheme()
         };
-
         await dialog.ShowAsync();
     }
 
     private async Task ShowCheatsheetDialogAsync()
     {
-        var dialog = new Views.Dialogs.CheatsheetDialog(new CheatsheetViewModel(_shortcutRegistry, GetActiveScopeName()))
+        var dialog = new CheatsheetDialog(new CheatsheetViewModel(_shortcutRegistry, ContentFrame.CurrentSourcePageType?.Name))
         {
             XamlRoot = Content.XamlRoot,
             RequestedTheme = GetDialogTheme()
         };
-
         await dialog.ShowAsync();
     }
 
-    private async Task<IReadOnlyList<JumpToItem>> LoadJumpToCandidatesAsync(CancellationToken ct)
+    private Dictionary<string, NavigationViewItem> BuildNavItemMap() => new()
     {
-        var items = new List<JumpToItem>();
-
-        foreach (var page in _pageMap.OrderBy(p => p.Key))
-        {
-            var pageTag = page.Key;
-            items.Add(new JumpToItem(
-                $"page.{pageTag}",
-                ToDisplayName(pageTag),
-                "Page",
-                JumpToItemKind.Page,
-                _ =>
-                {
-                    NavigateToPage(pageTag);
-                    return Task.CompletedTask;
-                }));
-        }
-
-        try
-        {
-            var documentService = App.GetService<IDocumentService>();
-            var documents = await documentService.GetAllDocumentsAsync(ct: ct);
-            foreach (var document in documents.Take(50))
-            {
-                var label = string.IsNullOrWhiteSpace(document.ExtractedTitle)
-                    ? document.FileName
-                    : document.ExtractedTitle;
-                items.Add(new JumpToItem(
-                    $"document.{document.Id}",
-                    label,
-                    "Document",
-                    JumpToItemKind.Document,
-                    _ =>
-                    {
-                        NavigateToPage("KnowledgeVault");
-                        return Task.CompletedTask;
-                    }));
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Debug(ex, "Unable to load documents for Jump-To candidates");
-        }
-
-        try
-        {
-            var conversationService = App.GetService<IConversationService>();
-            var conversations = await conversationService.GetAllConversationsAsync();
-            foreach (var conversation in conversations.Take(50))
-            {
-                items.Add(new JumpToItem(
-                    $"conversation.{conversation.Id}",
-                    string.IsNullOrWhiteSpace(conversation.Title) ? "Untitled Conversation" : conversation.Title,
-                    "Conversation",
-                    JumpToItemKind.Conversation,
-                    _ =>
-                    {
-                        NavigateToPage("Chat");
-                        return Task.CompletedTask;
-                    }));
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Debug(ex, "Unable to load conversations for Jump-To candidates");
-        }
-
-        return items;
-    }
-
-    private ElementTheme GetDialogTheme()
-    {
-        try
-        {
-            return App.GetService<IThemeService>().CurrentTheme;
-        }
-        catch (Exception ex)
-        {
-            Log.Debug(ex, "Could not resolve theme service for keyboard dialog, defaulting to Dark");
-            return ElementTheme.Dark;
-        }
-    }
-
-    private static string ToDisplayName(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return value;
-        }
-
-        return string.Concat(value.Select((c, i) =>
-            i > 0 && char.IsUpper(c) && !char.IsUpper(value[i - 1]) ? " " + c : c.ToString()));
-    }
-
-    // ═══════════════════════════════════════════════════════════════════
-    //  COMMAND PALETTE INTEGRATION
-    // ═══════════════════════════════════════════════════════════════════
-
-    private void ConfigureCommandPalette()
-    {
-        // Wire page navigation: when the command palette selects a page, navigate to it
-        CommandPalette.NavigateToPageRequested = NavigateToPage;
-
-        // Wire action execution: when the command palette selects an action, execute it
-        CommandPalette.ExecuteActionRequested = ExecuteAction;
-    }
+        ["Dashboard"] = NavDashboard, ["Digest"] = NavDigest, ["Chat"] = NavChat,
+        ["AskFiles"] = NavAskFiles, ["QuickActions"] = NavQuickActions, ["Workflows"] = NavWorkflows,
+        ["KnowledgeVault"] = NavVault, ["WebImport"] = NavWebImport, ["Collections"] = NavCollections,
+        ["Search"] = NavSearch, ["KnowledgeGraph"] = NavKnowledgeGraph, ["ModelManager"] = NavModels,
+        ["HardwareAdvisor"] = NavHardware, ["BackupRestore"] = NavBackupRestore, ["Annotations"] = NavAnnotations,
+        ["Inbox"] = NavInbox, ["Comparison"] = NavComparison, ["WorkspaceProfiles"] = NavWorkspaceProfiles,
+        ["PluginManager"] = NavPluginManager, ["SyncSettings"] = NavSyncSettings,
+        ["CalendarSettings"] = NavCalendarSettings, ["EmailSettings"] = NavEmailSettings,
+        ["Settings"] = NavSettings, ["UserGuide"] = NavUserGuide,
+        ["PrivacyPolicy"] = NavPrivacyPolicy, ["TermsOfService"] = NavTermsOfService,
+    };
 
     /// <summary>
-    /// Navigates to a page by its tag name, updating both the content frame and
-    /// the NavigationView selection indicator to keep them in sync.
+    /// Public navigation entry point used by pages (e.g., DashboardPage) that
+    /// need to navigate to other pages. Delegates to the navigation service.
     /// </summary>
-    internal void NavigateToPage(string pageTag)
-    {
-        if (_pageMap.TryGetValue(pageTag, out var pageType))
-        {
-            ContentFrame.Navigate(pageType);
-
-            // Sync the NavigationView selection to reflect the new page
-            if (_navItemMap.TryGetValue(pageTag, out var navItem))
-            {
-                NavView.SelectedItem = navItem;
-            }
-
-            Log.Debug("Navigated to {Page} via shortcut/command palette", pageTag);
-        }
-        else
-        {
-            Log.Debug("Attempted to navigate to unknown page: {Page}", pageTag);
-        }
-    }
-
-    /// <summary>
-    /// Executes a non-navigation action from the command palette.
-    /// </summary>
-    private void ExecuteAction(string actionId)
-    {
-        switch (actionId)
-        {
-            case "NewConversation":
-                NavigateToPage("Chat");
-                break;
-
-            case "ImportFiles":
-                NavigateToPage("KnowledgeVault");
-                break;
-
-            case "RefreshDashboard":
-                // Navigate to dashboard, which triggers a fresh data load
-                NavigateToPage("Dashboard");
-                break;
-
-            case "ToggleTheme":
-                try
-                {
-                    var themeService = App.GetService<IThemeService>();
-                    var newTheme = themeService.CurrentTheme == Microsoft.UI.Xaml.ElementTheme.Dark
-                        ? Microsoft.UI.Xaml.ElementTheme.Light
-                        : Microsoft.UI.Xaml.ElementTheme.Dark;
-                    _ = themeService.SetThemeAsync(newTheme);
-                    Log.Information("Theme toggled to {Theme} via command palette", newTheme);
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning(ex, "Failed to toggle theme");
-                }
-                break;
-
-            default:
-                Log.Warning("Unknown command palette action: {Action}", actionId);
-                break;
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════════════
-    //  ONBOARDING
-    // ═══════════════════════════════════════════════════════════════════
-
-    /// <summary>
-    /// Checks if onboarding has been completed. If not, navigates to the
-    /// onboarding wizard and hides the navigation pane for a focused experience.
-    /// Includes robust error recovery — if anything fails, the nav pane stays visible
-    /// and the user lands on the Dashboard.
-    /// </summary>
-    private async void CheckOnboardingAsync()
-    {
-        try
-        {
-            var settingsService = App.GetService<ISettingsService>();
-            var settings = await settingsService.GetSettingsAsync();
-            if (!settings.OnboardingCompleted)
-            {
-                try
-                {
-                    // Suppress NavView_SelectionChanged from re-navigating to Dashboard
-                    // when we clear the selected item and hide the pane.
-                    _suppressNavigation = true;
-
-                    var navigated = ContentFrame.Navigate(typeof(Views.OnboardingPage));
-                    if (navigated)
-                    {
-                        NavView.SelectedItem = null;
-                        NavView.IsPaneVisible = false;
-                        Log.Information("First run detected — navigating to Onboarding wizard");
-                    }
-                    else
-                    {
-                        Log.Error("Frame.Navigate returned false for OnboardingPage, skipping onboarding");
-                        EnsureNavPaneVisible();
-                        settings.OnboardingCompleted = true;
-                        await settingsService.SaveSettingsAsync(settings);
-                    }
-                }
-                catch (Exception navEx)
-                {
-                    Log.Error(navEx, "OnboardingPage failed to load, skipping onboarding");
-                    EnsureNavPaneVisible();
-                    ContentFrame.Navigate(typeof(Views.DashboardPage));
-                    settings.OnboardingCompleted = true;
-                    await settingsService.SaveSettingsAsync(settings);
-                }
-                finally
-                {
-                    _suppressNavigation = false;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to check onboarding status, proceeding to Dashboard");
-            EnsureNavPaneVisible();
-        }
-    }
-
-    /// <summary>
-    /// Called by the OnboardingViewModel when onboarding is complete.
-    /// Restores the navigation pane and navigates to the Dashboard.
-    /// </summary>
-    public void CompleteOnboarding()
-    {
-        EnsureNavPaneVisible();
-        NavView.SelectedItem = NavDashboard;
-        ContentFrame.Navigate(typeof(Views.DashboardPage));
-        Log.Information("Onboarding completed, navigated to Dashboard");
-    }
-
-    /// <summary>
-    /// Ensures the NavigationView pane is visible and open.
-    /// Called as a safety net after onboarding completes or fails.
-    /// </summary>
-    private void EnsureNavPaneVisible()
-    {
-        NavView.IsPaneVisible = true;
-        NavView.IsPaneOpen = true;
-    }
-
-    // ═══════════════════════════════════════════════════════════════════
-    //  STATUS BAR — Live Ollama connection, indexing, and document count
-    // ═══════════════════════════════════════════════════════════════════
-
-    /// <summary>
-    /// Initializes the status bar polling timer. Delays the first check by 5 seconds
-    /// to let the UI render first, then polls every 30 seconds to keep the status bar current.
-    /// </summary>
-    private void InitializeStatusBar()
-    {
-        _statusTimer = new DispatcherTimer { Interval = AppConstants.StatusBarPollInterval };
-        _statusTimer.Tick += async (s, e) => await UpdateStatusBarAsync();
-        _statusTimer.Start();
-
-        // Delay the initial status check to let the UI render first.
-        // The DashboardPage and App initialization already check the connection;
-        // no need to pile on a third concurrent check at startup.
-        _ = DelayedInitialStatusCheckAsync();
-    }
-
-    private async Task DelayedInitialStatusCheckAsync()
-    {
-        try
-        {
-            await Task.Delay(AppConstants.InitialStatusCheckDelay);
-            await UpdateStatusBarAsync();
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Initial delayed status check failed");
-        }
-    }
-
-    /// <summary>
-    /// Polls the AI service, indexing service, and document service to update the
-    /// status bar indicators (connection dot, model name, indexing progress, doc count).
-    /// </summary>
-    private async Task UpdateStatusBarAsync()
-    {
-        // Safety net: if nav pane is hidden but we're not on the onboarding page, restore it.
-        // This catches edge cases where the pane got stuck hidden.
-        if (!NavView.IsPaneVisible && ContentFrame.Content is not Views.OnboardingPage)
-        {
-            EnsureNavPaneVisible();
-            Log.Warning("Nav pane was hidden outside of onboarding — restored");
-        }
-
-        // Track values across try/catch blocks for tray tooltip update
-        var trayAiStatus = "Disconnected";
-        var trayModel = string.Empty;
-        var trayDocCount = 0L;
-
-        // --- Connection status ---
-        try
-        {
-            var aiService = App.GetService<IAiService>();
-            var connected = await aiService.ActiveProvider.CheckConnectionAsync();
-
-            StatusIndicator.Fill = connected
-                ? (SolidColorBrush)Application.Current.Resources["OnlineBrush"]
-                : (SolidColorBrush)Application.Current.Resources["OfflineBrush"];
-
-            if (connected)
-            {
-                var modelId = aiService.ActiveModelId;
-                StatusText.Text = !string.IsNullOrEmpty(modelId)
-                    ? $"Connected \u2014 {modelId}"
-                    : "Connected to Ollama";
-                trayAiStatus = "Connected";
-                trayModel = modelId ?? string.Empty;
-            }
-            else
-            {
-                StatusText.Text = "Ollama not detected";
-            }
-
-            _lastConnectionState = connected;
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Status bar connection check failed");
-            StatusIndicator.Fill = (SolidColorBrush)Application.Current.Resources["OfflineBrush"];
-            StatusText.Text = "Connection check failed";
-        }
-
-        // --- Indexing status ---
-        try
-        {
-            var indexingService = App.GetService<IIndexingService>();
-            if (indexingService.IsProcessing)
-            {
-                var queueLength = await indexingService.GetQueueLengthAsync();
-                IndexingRing.IsActive = true;
-                IndexingText.Text = $"Indexing ({queueLength} remaining)";
-            }
-            else
-            {
-                IndexingRing.IsActive = false;
-                IndexingText.Text = "";
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Debug(ex, "Indexing status check failed");
-        }
-
-        // --- Document count ---
-        try
-        {
-            var docService = App.GetService<IDocumentService>();
-            var docCount = await docService.GetTotalDocumentCountAsync();
-            DocCountText.Text = docCount > 0 ? $"{docCount} docs" : "";
-            trayDocCount = docCount;
-        }
-        catch (Exception ex)
-        {
-            Log.Debug(ex, "Document count check failed");
-        }
-
-        // --- Update tray tooltip with dynamic status ---
-        try
-        {
-            _systemTrayService.UpdateTooltip(trayAiStatus, trayModel, trayDocCount);
-        }
-        catch (Exception ex)
-        {
-            Log.Debug(ex, "Tray tooltip update failed");
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════════════
-    //  WINDOW CONFIGURATION
-    // ═══════════════════════════════════════════════════════════════════
-
-    private void ConfigureWindow()
-    {
-        // Set window size and center on screen
-        var hwnd = WindowNative.GetWindowHandle(this);
-        var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
-        _appWindow = AppWindow.GetFromWindowId(windowId);
-
-        _appWindow.Resize(new SizeInt32(1440, 900));
-
-        // Center the window
-        if (_appWindow.Presenter is OverlappedPresenter presenter)
-        {
-            presenter.IsResizable = true;
-            presenter.IsMaximizable = true;
-            presenter.IsMinimizable = true;
-        }
-
-        // Set minimum size
-        var displayArea = DisplayArea.GetFromWindowId(windowId, DisplayAreaFallback.Primary);
-        if (displayArea != null)
-        {
-            var centerX = (displayArea.WorkArea.Width - 1440) / 2;
-            var centerY = (displayArea.WorkArea.Height - 900) / 2;
-            _appWindow.Move(new PointInt32(centerX, centerY));
-        }
-
-        Title = "Agent-X \u2014 Intelligence Hub";
-        Log.Information("Window configured: 1440x900");
-    }
-
-    // ═══════════════════════════════════════════════════════════════════
-    //  SYSTEM TRAY INTEGRATION
-    // ═══════════════════════════════════════════════════════════════════
-
-    /// <summary>
-    /// Initializes the system tray icon, global hotkey, and context menu.
-    /// Subscribes to tray events for restore, quit, quick chat, and settings.
-    /// Hooks the AppWindow.Closing event to minimize-to-tray instead of exiting.
-    /// Wires DoubleClickCommand on the TaskbarIcon for restore-on-double-click.
-    /// </summary>
-    private void ConfigureSystemTray()
-    {
-        _systemTrayService = App.GetService<SystemTrayService>();
-
-        var hwnd = WindowNative.GetWindowHandle(this);
-        _systemTrayService.Initialize(hwnd, TrayIcon);
-        _systemTrayService.ShowTrayIcon();
-        _systemTrayService.RegisterGlobalHotkey();
-
-        // Wire double-click on tray icon to restore the window
-        // (H.NotifyIcon WinRT events are disabled by default, so we use DoubleClickCommand)
-        TrayIcon.DoubleClickCommand = new DelegateCommand(RestoreFromTray);
-
-        // Subscribe to tray events (raised by global hotkey)
-        _systemTrayService.RestoreRequested += RestoreFromTray;
-        _systemTrayService.QuitRequested += CloseAppForReal;
-        _systemTrayService.QuickChatRequested += OpenQuickChat;
-        _systemTrayService.SettingsRequested += OnTraySettingsRequested;
-
-        // Intercept window closing to minimize to tray instead of exiting
-        _appWindow.Closing += OnWindowClosing;
-
-        Log.Information("System tray integration configured");
-    }
-
-    /// <summary>
-    /// Intercepts the window close event. If MinimizeToTray is enabled and the
-    /// user hasn't explicitly chosen "Exit", hides the window instead of closing.
-    /// </summary>
-    private void OnWindowClosing(AppWindow sender, AppWindowClosingEventArgs args)
-    {
-        if (_systemTrayService.MinimizeToTray && !_isReallyClosing)
-        {
-            args.Cancel = true;
-
-            // Use H.NotifyIcon's WindowExtensions.Hide for Windows 11 Efficiency Mode
-            this.Hide(enableEfficiencyMode: true);
-
-            Log.Information("Window hidden to system tray (minimize-to-tray)");
-        }
-    }
-
-    /// <summary>
-    /// Restores the main window from the system tray.
-    /// Shows the window, brings it to the foreground, and deactivates Efficiency Mode.
-    /// </summary>
-    private void RestoreFromTray()
-    {
-        // Use H.NotifyIcon's WindowExtensions.Show to restore with Efficiency Mode disabled
-        this.Show(disableEfficiencyMode: true);
-        Activate();
-
-        // If the window was minimized before hiding, restore it to its previous state
-        if (_appWindow.Presenter is OverlappedPresenter presenter
-            && presenter.State == OverlappedPresenterState.Minimized)
-        {
-            presenter.Restore();
-        }
-
-        Log.Information("Window restored from system tray");
-    }
-
-    /// <summary>
-    /// Actually closes the application. Sets the flag so AppWindow.Closing
-    /// doesn't cancel the close, hides the tray icon, and disposes resources.
-    /// </summary>
-    private void CloseAppForReal()
-    {
-        _isReallyClosing = true;
-
-        // Clean up tray resources before closing
-        _systemTrayService.HideTrayIcon();
-        _systemTrayService.UnregisterGlobalHotkey();
-
-        // Hide the window first to avoid visual artifacts during teardown
-        _appWindow.Hide();
-        Close();
-
-        Log.Information("Application exiting via tray Exit command");
-    }
-
-    /// <summary>
-    /// Opens the Quick Chat overlay window. Creates a singleton instance on first
-    /// invocation; subsequent calls activate (bring to front) the existing window.
-    /// The overlay is always-on-top, positioned at the top-center of the screen.
-    /// </summary>
-    private void OpenQuickChat()
-    {
-        Log.Information("Quick Chat requested — opening overlay window");
-
-        if (_quickChatWindow != null)
-        {
-            // Window already exists — bring it to front
-            try
-            {
-                _quickChatWindow.Activate();
-                return;
-            }
-            catch (Exception ex)
-            {
-                Log.Debug(ex, "Existing Quick Chat window could not be activated — creating new instance");
-                _quickChatWindow = null;
-            }
-        }
-
-        try
-        {
-            var viewModel = App.GetService<QuickChatViewModel>();
-            _quickChatWindow = new QuickChatWindow(viewModel);
-            _quickChatWindow.Closed += (s, e) => _quickChatWindow = null;
-            _quickChatWindow.Activate();
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to create Quick Chat overlay window");
-        }
-    }
-
-    /// <summary>
-    /// Handles the "Settings" context menu item from the tray icon.
-    /// Restores the window and navigates to the Settings page.
-    /// </summary>
-    private void OnTraySettingsRequested()
-    {
-        RestoreFromTray();
-        NavigateToPage("Settings");
-        Log.Information("Navigated to Settings via tray context menu");
-    }
-
-    // ── XAML Click Handlers for Tray Context Menu ────────────
-
-    private void TrayMenu_OpenAgentX(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
-    {
-        RestoreFromTray();
-    }
-
-    private void TrayMenu_QuickChat(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
-    {
-        OpenQuickChat();
-    }
-
-    private void TrayMenu_Settings(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
-    {
-        OnTraySettingsRequested();
-    }
-
-    private void TrayMenu_Exit(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
-    {
-        CloseAppForReal();
-    }
-
-    private void ConfigureTitleBar()
-    {
-        // Extend content into title bar for seamless look
-        ExtendsContentIntoTitleBar = true;
-
-        if (AppWindowTitleBar.IsCustomizationSupported())
-        {
-            var titleBar = AppWindow.TitleBar;
-            titleBar.ExtendsContentIntoTitleBar = true;
-
-            // Make title bar buttons blend with dark theme
-            titleBar.ButtonBackgroundColor = Colors.Transparent;
-            titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
-            titleBar.ButtonHoverBackgroundColor = Color.FromArgb(30, 255, 255, 255);
-            titleBar.ButtonPressedBackgroundColor = Color.FromArgb(20, 255, 255, 255);
-
-            // Button foreground
-            titleBar.ButtonForegroundColor = Color.FromArgb(200, 255, 255, 255);
-            titleBar.ButtonInactiveForegroundColor = Color.FromArgb(100, 255, 255, 255);
-            titleBar.ButtonHoverForegroundColor = Colors.White;
-            titleBar.ButtonPressedForegroundColor = Color.FromArgb(160, 255, 255, 255);
-
-            // Close button with subtle red on hover
-            titleBar.ButtonHoverBackgroundColor = Color.FromArgb(25, 255, 255, 255);
-        }
-
-        Log.Debug("Title bar configured with custom dark theme colors");
-    }
-
-    private void ConfigureBackdrop()
-    {
-        // Try Mica Alt first (deepest material), fall back to Mica, then Acrylic
-        if (MicaController.IsSupported())
-        {
-            SystemBackdrop = new MicaBackdrop
-            {
-                Kind = MicaKind.BaseAlt
-            };
-            Log.Debug("Backdrop: Mica Alt applied");
-        }
-        else if (DesktopAcrylicController.IsSupported())
-        {
-            SystemBackdrop = new DesktopAcrylicBackdrop();
-            Log.Debug("Backdrop: Desktop Acrylic applied");
-        }
-        else
-        {
-            // Fallback: solid dark background (already set in XAML)
-            Log.Debug("Backdrop: Solid fallback (no system backdrop support)");
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════════════
-    //  NAVIGATION VIEW EVENT HANDLER
-    // ═══════════════════════════════════════════════════════════════════
-
-    private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
-    {
-        // Guard: don't navigate when onboarding setup is modifying NavView state
-        if (_suppressNavigation) return;
-
-        if (args.SelectedItemContainer is NavigationViewItem selectedItem)
-        {
-            var tag = selectedItem.Tag?.ToString();
-            if (tag != null && _pageMap.TryGetValue(tag, out var pageType))
-            {
-                ContentFrame.Navigate(pageType);
-                Log.Debug("Navigated to {Page}", tag);
-            }
-            else if (tag != null)
-            {
-                // Page not yet implemented — show placeholder
-                Log.Debug("Page not yet implemented: {Page}", tag);
-            }
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════════════
-    //  NESTED: DelegateCommand (simple ICommand for tray icon commands)
-    // ═══════════════════════════════════════════════════════════════════
-
-    /// <summary>
-    /// Minimal ICommand implementation for wiring H.NotifyIcon's
-    /// DoubleClickCommand and similar command properties.
-    /// </summary>
-    private sealed class DelegateCommand : System.Windows.Input.ICommand
-    {
-        private readonly Action _execute;
-
-        public DelegateCommand(Action execute)
-        {
-            _execute = execute;
-        }
-
-        public bool CanExecute(object? parameter) => true;
-
-        public void Execute(object? parameter) => _execute();
-
-        // Intentionally empty — CanExecute always returns true, no need for change notifications
-        public event EventHandler? CanExecuteChanged { add { } remove { } }
-    }
+    internal void NavigateToPage(string pageTag) => _navigationService.NavigateToPage(pageTag);
 }
