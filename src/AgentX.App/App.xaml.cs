@@ -333,6 +333,16 @@ public partial class App : Application
         services.AddSingleton<IConversationMemoryService, ConversationMemoryService>();
         services.AddSingleton<IChatService, ChatService>();
 
+        // ── Chat Coordinators (orchestrate chat operations for ChatViewModel) ──
+        services.AddSingleton<ViewModels.Coordinators.IConversationCoordinator,
+                             ViewModels.Coordinators.ConversationCoordinator>();
+        services.AddSingleton<ViewModels.Coordinators.IMessagingCoordinator,
+                             ViewModels.Coordinators.MessagingCoordinator>();
+        services.AddSingleton<ViewModels.Coordinators.IVoiceCoordinator,
+                             ViewModels.Coordinators.VoiceCoordinator>();
+        services.AddSingleton<ViewModels.Coordinators.IBranchingCoordinator,
+                             ViewModels.Coordinators.BranchingCoordinator>();
+
         // ── Screen Awareness ─────────────────────────────────────
         services.AddSingleton<IScreenCaptureService, ScreenCaptureService>();
 

@@ -31,6 +31,8 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+    <!-- NAudio required by VoiceCoordinator linked source -->
+    <PackageReference Include="NAudio" Version="2.2.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -56,5 +58,14 @@
     <Compile Include="..\..\src\AgentX.App\Helpers\ShortcutRegistrationExtensions.cs" Link="Helpers\ShortcutRegistrationExtensions.cs" />
     <!-- ShortcutCatalog is pure global shortcut seeding logic. -->
     <Compile Include="..\..\src\AgentX.App\Services\ShortcutCatalog.cs" Link="Services\ShortcutCatalog.cs" />
+    <!-- Coordinators: pure service-orchestration logic with no WinUI dependencies. -->
+    <Compile Include="..\..\src\AgentX.App\ViewModels\Coordinators\IConversationCoordinator.cs" Link="ViewModels\Coordinators\IConversationCoordinator.cs" />
+    <Compile Include="..\..\src\AgentX.App\ViewModels\Coordinators\ConversationCoordinator.cs" Link="ViewModels\Coordinators\ConversationCoordinator.cs" />
+    <Compile Include="..\..\src\AgentX.App\ViewModels\Coordinators\IMessagingCoordinator.cs" Link="ViewModels\Coordinators\IMessagingCoordinator.cs" />
+    <Compile Include="..\..\src\AgentX.App\ViewModels\Coordinators\MessagingCoordinator.cs" Link="ViewModels\Coordinators\MessagingCoordinator.cs" />
+    <Compile Include="..\..\src\AgentX.App\ViewModels\Coordinators\IVoiceCoordinator.cs" Link="ViewModels\Coordinators\IVoiceCoordinator.cs" />
+    <Compile Include="..\..\src\AgentX.App\ViewModels\Coordinators\VoiceCoordinator.cs" Link="ViewModels\Coordinators\VoiceCoordinator.cs" />
+    <Compile Include="..\..\src\AgentX.App\ViewModels\Coordinators\IBranchingCoordinator.cs" Link="ViewModels\Coordinators\IBranchingCoordinator.cs" />
+    <Compile Include="..\..\src\AgentX.App\ViewModels\Coordinators\BranchingCoordinator.cs" Link="ViewModels\Coordinators\BranchingCoordinator.cs" />
   </ItemGroup>
 </Project>

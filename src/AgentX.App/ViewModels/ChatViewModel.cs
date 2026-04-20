@@ -13,6 +13,7 @@ using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Services.Feedback;
 using AgentX.App.Helpers;
 using AgentX.App.Services;
+using AgentX.App.ViewModels.Coordinators;
 using AgentX.App.Views;
 using NAudio.Wave;
 using Serilog;
@@ -20,11 +21,15 @@ using Serilog;
 namespace AgentX.App.ViewModels;
 
 // ═══════════════════════════════════════════════════════════════════════════
-// CHAT VIEW MODEL — Comprehensive ViewModel for the AI Chat experience.
+// CHAT VIEW MODEL — Thin orchestrator that delegates to 4 coordinators.
 //
-// Accepts IChatService, IConversationService, IAiService, IModelManager,
-// and ISystemPromptService via DI. Falls back to offline/demo state
-// gracefully when services encounter errors.
+// ConversationCoordinator — CRUD, pinning, folders, search
+// MessagingCoordinator   — send, stream, stop, feedback, delete messages
+// VoiceCoordinator       — recording, transcription
+// BranchingCoordinator   — branch, merge, delete branches
+//
+// The ViewModel retains UI state (ObservableProperties, Collections) and
+// subscribes to coordinator events for synchronization.
 // ═══════════════════════════════════════════════════════════════════════════
 
 public partial class ChatViewModel : ObservableObject, IDisposable
@@ -58,9 +63,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         set
         {
             if (SetProperty(ref _isResearchMode, value))
-            {
                 OnPropertyChanged(nameof(ResearchModeTooltip));
-            }
         }
     }
 
@@ -69,10 +72,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         : "Research Mode OFF — local vault only";
 
     [RelayCommand]
-    private void ToggleResearchMode()
-    {
-        IsResearchMode = !IsResearchMode;
-    }
+    private void ToggleResearchMode() => IsResearchMode = !IsResearchMode;
 
     // ── Search ─────────────────────────────────────────────────
     [ObservableProperty] private string _conversationSearchQuery = string.Empty;
@@ -108,7 +108,6 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     }
 
     public bool HasBranches => _branchTree?.TotalBranchCount > 0;
-
     public ObservableCollection<ConversationBranchTree> ActiveBranches { get; } = new();
 
     // ── Computed Properties ────────────────────────────────────
@@ -118,49 +117,173 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     public bool CanSend => !string.IsNullOrWhiteSpace(UserInput) && !IsGenerating;
     public bool IsVoiceActive => IsRecording || IsTranscribing;
 
-    // ── Services ──────────────────────────────────────────────
-    private readonly IChatService _chatService;
-    private readonly IConversationService _conversationService;
+    // ── Coordinators ──────────────────────────────────────────
+    private readonly IConversationCoordinator _conversationCoordinator;
+    private readonly IMessagingCoordinator _messagingCoordinator;
+    private readonly IVoiceCoordinator _voiceCoordinator;
+    private readonly IBranchingCoordinator _branchingCoordinator;
+
+    // ── Services (retained for model/prompt/connection operations) ──
     private readonly IAiService _aiService;
     private readonly IModelManager _modelManager;
     private readonly ISystemPromptService _systemPromptService;
     private readonly IConversationMemoryService _memoryService;
-    private readonly IFeedbackService _feedbackService;
     private readonly INotificationService _notificationService;
-    private readonly ITranscriptionService _transcriptionService;
-    private readonly IConversationBranchService _branchService;
 
-    private CancellationTokenSource? _generationCts;
-
-    // ── Voice Recording Resources ──────────────────────────────
-    private WaveInEvent? _waveIn;
-    private WaveFileWriter? _waveWriter;
-    private string? _currentRecordingPath;
-    private TaskCompletionSource? _recordingStopTcs;
+    // ── Streaming assistant message (for token-by-token updates) ──
+    private ChatMessageItem? _streamingAssistantMessage;
 
     public ChatViewModel(
-        IChatService chatService,
-        IConversationService conversationService,
+        IConversationCoordinator conversationCoordinator,
+        IMessagingCoordinator messagingCoordinator,
+        IVoiceCoordinator voiceCoordinator,
+        IBranchingCoordinator branchingCoordinator,
         IAiService aiService,
         IModelManager modelManager,
         ISystemPromptService systemPromptService,
         IConversationMemoryService memoryService,
-        IFeedbackService feedbackService,
-        INotificationService notificationService,
-        ITranscriptionService transcriptionService,
-        IConversationBranchService branchService)
+        INotificationService notificationService)
     {
-        _chatService = chatService;
-        _conversationService = conversationService;
+        _conversationCoordinator = conversationCoordinator;
+        _messagingCoordinator = messagingCoordinator;
+        _voiceCoordinator = voiceCoordinator;
+        _branchingCoordinator = branchingCoordinator;
         _aiService = aiService;
         _modelManager = modelManager;
         _systemPromptService = systemPromptService;
         _memoryService = memoryService;
-        _feedbackService = feedbackService;
         _notificationService = notificationService;
-        _transcriptionService = transcriptionService;
-        _branchService = branchService;
-        Log.Debug("ChatViewModel created with services");
+
+        SubscribeToCoordinatorEvents();
+        Log.Debug("ChatViewModel created with coordinators");
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // COORDINATOR EVENT SUBSCRIPTIONS
+    // ═══════════════════════════════════════════════════════════════
+
+    private void SubscribeToCoordinatorEvents()
+    {
+        // ── MessagingCoordinator ─────────────────────────────────
+        _messagingCoordinator.TokenReceived += OnTokenReceived;
+        _messagingCoordinator.StreamingCompleted += OnStreamingCompleted;
+        _messagingCoordinator.GenerationError += OnGenerationError;
+        _messagingCoordinator.NotificationRequested += OnMessagingNotification;
+
+        // ── VoiceCoordinator ─────────────────────────────────────
+        _voiceCoordinator.RecordingStateChanged += (s, isRec) => IsRecording = isRec;
+        _voiceCoordinator.TranscribingStateChanged += (s, isTrans) => IsTranscribing = isTrans;
+        _voiceCoordinator.StatusChanged += (s, msg) => VoiceStatusMessage = msg;
+        _voiceCoordinator.NotificationRequested += OnVoiceNotification;
+
+        // ── BranchingCoordinator ─────────────────────────────────
+        _branchingCoordinator.BranchTreeChanged += OnBranchTreeChanged;
+        _branchingCoordinator.NotificationRequested += OnBranchingNotification;
+    }
+
+    private void OnTokenReceived(object? sender, string token)
+    {
+        if (_streamingAssistantMessage is not null)
+        {
+            _streamingAssistantMessage.Content += token;
+            CurrentStreamingResponse = _streamingAssistantMessage.Content;
+            OnPropertyChanged(nameof(Messages));
+        }
+    }
+
+    private void OnStreamingCompleted(object? sender, StreamingCompletedEventArgs e)
+    {
+        if (_streamingAssistantMessage is not null)
+        {
+            _streamingAssistantMessage.IsStreaming = false;
+            _streamingAssistantMessage.TokenCount = e.TokenCount;
+            _streamingAssistantMessage.GenerationTimeMs = e.GenerationTimeMs;
+        }
+
+        TokenCount += e.TokenCount;
+        GenerationTimeMs = e.GenerationTimeMs;
+        IsGenerating = false;
+        CurrentStreamingResponse = string.Empty;
+
+        // Update conversation ID if newly created
+        if (e.ConversationId.HasValue && ActiveConversationId != e.ConversationId)
+        {
+            ActiveConversationId = e.ConversationId;
+            ActiveConversationTitle = e.ConversationTitle ?? ActiveConversationTitle;
+
+            Conversations.Insert(0, new ConversationListItem
+            {
+                Id = e.ConversationId.Value,
+                Title = ActiveConversationTitle,
+                LastMessage = e.ResponseContent.Length > 80
+                    ? e.ResponseContent[..80] + "..."
+                    : e.ResponseContent,
+                UpdatedAt = DateTime.UtcNow,
+                IsPinned = false,
+                MessageCount = 0
+            });
+            OnPropertyChanged(nameof(HasNoConversations));
+        }
+
+        // Update sidebar last message
+        if (ActiveConversationId.HasValue)
+        {
+            var convItem = Conversations.FirstOrDefault(c => c.Id == ActiveConversationId);
+            if (convItem is not null && !string.IsNullOrEmpty(e.ResponseContent))
+            {
+                convItem.LastMessage = e.ResponseContent.Length > 80
+                    ? e.ResponseContent[..80] + "..."
+                    : e.ResponseContent;
+            }
+        }
+
+        _streamingAssistantMessage = null;
+
+        // Load follow-ups and update memory (non-blocking)
+        _ = InitializePostSendAsync();
+    }
+
+    private void OnGenerationError(object? sender, string errorMsg)
+    {
+        if (_streamingAssistantMessage is not null)
+        {
+            _streamingAssistantMessage.Content = errorMsg;
+            _streamingAssistantMessage.IsStreaming = false;
+        }
+        IsGenerating = false;
+        CurrentStreamingResponse = string.Empty;
+        _streamingAssistantMessage = null;
+    }
+
+    private void OnMessagingNotification(object? sender, NotificationRequestEventArgs e)
+        => ForwardNotification(e);
+
+    private void OnVoiceNotification(object? sender, NotificationRequestEventArgs e)
+        => ForwardNotification(e);
+
+    private void OnBranchingNotification(object? sender, NotificationRequestEventArgs e)
+        => ForwardNotification(e);
+
+    private void OnBranchTreeChanged(object? sender, long conversationId)
+    {
+        if (ActiveConversationId == conversationId || ActiveConversationId.HasValue)
+            _ = RefreshBranchTreeAsync();
+    }
+
+    private void ForwardNotification(NotificationRequestEventArgs e)
+    {
+        switch (e.Level)
+        {
+            case "error":
+                _notificationService.ShowError(e.Title, e.Message);
+                break;
+            case "info":
+                _notificationService.ShowInfo(e.Title, e.Message);
+                break;
+            default:
+                _notificationService.Show(e.Title, e.Message);
+                break;
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -170,7 +293,6 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     public async Task InitializeAsync()
     {
         Log.Information("ChatViewModel initializing...");
-
         try
         {
             await LoadConversationsAsync();
@@ -178,43 +300,21 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             await LoadAvailableModelsAsync();
             await LoadSystemPromptsAsync();
             await UpdateMemoryCountAsync();
-            await LoadFolderNamesAsync();
+            await RefreshFolderNamesAsync();
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to initialize ChatViewModel");
         }
-
         Log.Information("ChatViewModel initialized");
     }
 
     private async Task LoadConversationsAsync()
     {
+        var summaries = await _conversationCoordinator.LoadConversationsAsync();
         Conversations.Clear();
-
-        try
-        {
-            var conversations = await _conversationService.GetAllConversationsAsync();
-            foreach (var conv in conversations)
-            {
-                var lastMsg = conv.Messages?.OrderByDescending(m => m.SortOrder).FirstOrDefault();
-                Conversations.Add(new ConversationListItem
-                {
-                    Id = conv.Id,
-                    Title = conv.Title,
-                    LastMessage = lastMsg?.Content ?? string.Empty,
-                    UpdatedAt = conv.UpdatedAt,
-                    IsPinned = conv.IsPinned,
-                    MessageCount = conv.MessageCount,
-                    FolderName = conv.FolderName
-                });
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to load conversations from service");
-        }
-
+        foreach (var s in summaries)
+            Conversations.Add(MapToConversationListItem(s));
         OnPropertyChanged(nameof(HasNoConversations));
     }
 
@@ -225,15 +325,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             var connected = await _aiService.ActiveProvider.CheckConnectionAsync();
             IsConnected = connected;
             ConnectionStatus = connected ? "Connected" : "Disconnected";
-
-            if (connected && !string.IsNullOrEmpty(_aiService.ActiveModelId))
-            {
-                ActiveModelName = _aiService.ActiveModelId;
-            }
-            else
-            {
-                ActiveModelName = "No model selected";
-            }
+            ActiveModelName = connected && !string.IsNullOrEmpty(_aiService.ActiveModelId)
+                ? _aiService.ActiveModelId
+                : "No model selected";
         }
         catch (Exception ex)
         {
@@ -247,48 +341,60 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private async Task LoadAvailableModelsAsync()
     {
         AvailableModels.Clear();
-
         try
         {
             var models = await _modelManager.GetInstalledModelsAsync();
-            foreach (var model in models)
-            {
-                AvailableModels.Add(model);
-            }
+            foreach (var model in models) AvailableModels.Add(model);
         }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to load available models");
-        }
+        catch (Exception ex) { Log.Warning(ex, "Failed to load available models"); }
     }
 
     private async Task LoadSystemPromptsAsync()
     {
         SystemPrompts.Clear();
-
         try
         {
-            // Ensure built-in prompts exist
             await _systemPromptService.SeedBuiltInPromptsAsync();
-
             var prompts = await _systemPromptService.GetAllPromptsAsync();
-            foreach (var prompt in prompts)
-            {
+            foreach (var p in prompts)
                 SystemPrompts.Add(new SystemPromptItem
                 {
-                    Id = prompt.Id,
-                    Name = prompt.Name,
-                    Content = prompt.Content,
-                    Category = prompt.Category,
-                    IsBuiltIn = prompt.IsBuiltIn,
-                    IsFavorite = prompt.IsFavorite
+                    Id = p.Id, Name = p.Name, Content = p.Content,
+                    Category = p.Category, IsBuiltIn = p.IsBuiltIn, IsFavorite = p.IsFavorite
                 });
-            }
         }
-        catch (Exception ex)
+        catch (Exception ex) { Log.Warning(ex, "Failed to load system prompts"); }
+    }
+
+    private async Task UpdateMemoryCountAsync()
+    {
+        try { MemoryCount = await _memoryService.GetMemoryCountAsync(); }
+        catch (Exception ex) { Log.Warning(ex, "Failed to update memory count"); }
+    }
+
+    private async Task RefreshFolderNamesAsync()
+    {
+        var names = await _conversationCoordinator.LoadFolderNamesAsync();
+        FolderNames.Clear();
+        foreach (var f in names) FolderNames.Add(f);
+    }
+
+    private async Task InitializePostSendAsync()
+    {
+        await LoadSuggestedQuestionsAsync();
+        await UpdateMemoryCountAsync();
+    }
+
+    private async Task LoadSuggestedQuestionsAsync()
+    {
+        if (ActiveConversationId is null) return;
+        try
         {
-            Log.Warning(ex, "Failed to load system prompts");
+            var questions = await _memoryService.GetSuggestedQuestionsAsync(ActiveConversationId.Value);
+            SuggestedQuestions.Clear();
+            foreach (var q in questions) SuggestedQuestions.Add(q);
         }
+        catch (Exception ex) { Log.Warning(ex, "Failed to load suggested questions"); }
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -315,59 +421,16 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     }
 
     partial void OnIsTranscribingChanged(bool value)
-    {
-        OnPropertyChanged(nameof(IsVoiceActive));
-    }
+        => OnPropertyChanged(nameof(IsVoiceActive));
 
     partial void OnActiveSystemPromptNameChanged(string? value)
-    {
-        OnPropertyChanged(nameof(HasActiveSystemPrompt));
-    }
+        => OnPropertyChanged(nameof(HasActiveSystemPrompt));
 
     partial void OnConversationSearchQueryChanged(string value)
-    {
-        _ = FilterConversationsAsync(value);
-    }
-
-    private async Task FilterConversationsAsync(string query)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(query))
-            {
-                // Reload all conversations
-                await LoadConversationsAsync();
-                return;
-            }
-
-            var results = await _conversationService.SearchConversationsAsync(query.Trim());
-            Conversations.Clear();
-
-            foreach (var conv in results)
-            {
-                var lastMsg = conv.Messages?.OrderByDescending(m => m.SortOrder).FirstOrDefault();
-                Conversations.Add(new ConversationListItem
-                {
-                    Id = conv.Id,
-                    Title = conv.Title,
-                    LastMessage = lastMsg?.Content ?? string.Empty,
-                    UpdatedAt = conv.UpdatedAt,
-                    IsPinned = conv.IsPinned,
-                    MessageCount = conv.MessageCount,
-                    FolderName = conv.FolderName
-                });
-            }
-
-            OnPropertyChanged(nameof(HasNoConversations));
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to search conversations");
-        }
-    }
+        => _ = FilterConversationsAsync(value);
 
     // ═══════════════════════════════════════════════════════════════
-    // COMMANDS
+    // COMMANDS — Messaging
     // ═══════════════════════════════════════════════════════════════
 
     [RelayCommand(CanExecute = nameof(CanSend))]
@@ -379,200 +442,50 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         UserInput = string.Empty;
 
         Log.Debug("Sending message: {MessagePreview}", userContent.Length > 50
-            ? userContent[..50] + "..."
-            : userContent);
+            ? userContent[..50] + "..." : userContent);
 
-        // Add user message to the message list
-        var userMessage = new ChatMessageItem
+        // Add user message to UI
+        Messages.Add(new ChatMessageItem
         {
-            Role = "user",
-            Content = userContent,
-            Timestamp = DateTime.UtcNow,
-            IsUser = true,
-            IsAssistant = false,
-            IsSystem = false,
-            IsStreaming = false
-        };
-        Messages.Add(userMessage);
+            Role = "user", Content = userContent, Timestamp = DateTime.UtcNow,
+            IsUser = true, IsAssistant = false, IsSystem = false, IsStreaming = false
+        });
         OnPropertyChanged(nameof(HasNoMessages));
 
-        // Create a placeholder for the streaming assistant response
-        var assistantMessage = new ChatMessageItem
+        // Create streaming placeholder
+        _streamingAssistantMessage = new ChatMessageItem
         {
-            Role = "assistant",
-            Content = "",
-            Timestamp = DateTime.UtcNow,
-            IsUser = false,
-            IsAssistant = true,
-            IsSystem = false,
-            IsStreaming = true
+            Role = "assistant", Content = "", Timestamp = DateTime.UtcNow,
+            IsUser = false, IsAssistant = true, IsSystem = false, IsStreaming = true
         };
-        Messages.Add(assistantMessage);
+        Messages.Add(_streamingAssistantMessage);
 
         IsGenerating = true;
-        _generationCts = new CancellationTokenSource();
 
-        try
-        {
-            // Ensure we have a conversation to send messages in
-            if (ActiveConversationId is null)
-            {
-                try
-                {
-                    var newConv = await _conversationService.CreateConversationAsync(
-                        title: userContent.Length > 60 ? userContent[..60] + "..." : userContent,
-                        systemPrompt: ActiveSystemPrompt,
-                        modelId: _aiService.ActiveModelId);
-                    ActiveConversationId = newConv.Id;
-                    ActiveConversationTitle = newConv.Title;
+        // Delegate to messaging coordinator
+        var result = await _messagingCoordinator.SendMessageAsync(
+            userContent, ActiveConversationId, ActiveSystemPrompt,
+            _aiService.ActiveModelId, IsResearchMode);
 
-                    // Add to the conversation sidebar
-                    Conversations.Insert(0, new ConversationListItem
-                    {
-                        Id = newConv.Id,
-                        Title = newConv.Title,
-                        LastMessage = userContent,
-                        UpdatedAt = DateTime.UtcNow,
-                        IsPinned = false,
-                        MessageCount = 0
-                    });
-                    OnPropertyChanged(nameof(HasNoConversations));
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning(ex, "Failed to create conversation, streaming without persistence");
-                }
-            }
+        // Handle cancellation/error inline responses
+        if (result.WasCancelled && _streamingAssistantMessage is not null)
+            _streamingAssistantMessage.Content += "\n\n[Generation stopped]";
 
-            // Try streaming via IChatService (which persists and streams)
-            if (ActiveConversationId is not null && IsConnected)
-            {
-                var sw = System.Diagnostics.Stopwatch.StartNew();
-                int tokCount = 0;
-
-                await foreach (var token in _chatService.SendMessageAsync(
-                    ActiveConversationId.Value, userContent, _generationCts.Token))
-                {
-                    assistantMessage.Content += token;
-                    CurrentStreamingResponse = assistantMessage.Content;
-                    OnPropertyChanged(nameof(Messages));
-                    tokCount++;
-                }
-
-                sw.Stop();
-                assistantMessage.TokenCount = tokCount;
-                assistantMessage.GenerationTimeMs = sw.Elapsed.TotalMilliseconds;
-                TokenCount += tokCount;
-                GenerationTimeMs = sw.Elapsed.TotalMilliseconds;
-
-                // Update sidebar
-                var convItem = Conversations.FirstOrDefault(c => c.Id == ActiveConversationId);
-                if (convItem is not null)
-                {
-                    convItem.LastMessage = assistantMessage.Content.Length > 80
-                        ? assistantMessage.Content[..80] + "..."
-                        : assistantMessage.Content;
-                }
-            }
-            else
-            {
-                // Fallback: use IAiService.StreamChatAsync directly (no persistence)
-                await StreamDirectResponseAsync(assistantMessage, userContent, _generationCts.Token);
-            }
-
-            // Load suggested follow-up questions and update memory count (non-blocking)
-            await LoadSuggestedQuestionsAsync();
-            await UpdateMemoryCountAsync();
-        }
-        catch (OperationCanceledException)
-        {
-            Log.Debug("Generation cancelled by user");
-            assistantMessage.Content += "\n\n[Generation stopped]";
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error during message generation");
-            assistantMessage.Content = "An error occurred while generating a response. Please check that Ollama is running and a model is loaded.";
-            _notificationService.ShowError("Generation Failed",
-                "Could not generate a response. Check your AI connection in Settings.");
-        }
-        finally
-        {
-            assistantMessage.IsStreaming = false;
-            IsGenerating = false;
-            CurrentStreamingResponse = string.Empty;
-            _generationCts?.Dispose();
-            _generationCts = null;
-        }
-    }
-
-    /// <summary>
-    /// Streams a response directly via IAiService when no conversation context is available.
-    /// </summary>
-    private async Task StreamDirectResponseAsync(ChatMessageItem assistantMessage, string userContent, CancellationToken ct)
-    {
-        try
-        {
-            var chatMessages = new List<ChatMessage>();
-            // Include existing message history (excluding the streaming placeholder)
-            foreach (var msg in Messages.Where(m => !m.IsStreaming))
-            {
-                chatMessages.Add(new ChatMessage { Role = msg.Role, Content = msg.Content });
-            }
-
-            var sw = System.Diagnostics.Stopwatch.StartNew();
-            int tokCount = 0;
-
-            await foreach (var token in _aiService.StreamChatAsync(
-                chatMessages, ActiveSystemPrompt, ct: ct))
-            {
-                assistantMessage.Content += token;
-                CurrentStreamingResponse = assistantMessage.Content;
-                OnPropertyChanged(nameof(Messages));
-                tokCount++;
-            }
-
-            sw.Stop();
-            assistantMessage.TokenCount = tokCount;
-            assistantMessage.GenerationTimeMs = sw.Elapsed.TotalMilliseconds;
-            TokenCount += tokCount;
-            GenerationTimeMs = sw.Elapsed.TotalMilliseconds;
-        }
-        catch (Exception) when (!ct.IsCancellationRequested)
-        {
-            // If streaming fails (e.g. no Ollama), show a helpful offline message
-            if (string.IsNullOrEmpty(assistantMessage.Content))
-            {
-                assistantMessage.Content =
-                    "Unable to generate a response. Please ensure:\n\n" +
-                    "1. **Ollama is installed and running** on your machine\n" +
-                    "2. **A model is downloaded** (use the Model Manager page)\n" +
-                    "3. **The endpoint** is correct in Settings (default: http://localhost:11434)\n\n" +
-                    "Once connected, Agent-X will stream AI responses directly from your hardware.";
-            }
-            else
-            {
-                throw; // Re-throw if we had partial content
-            }
-        }
+        if (result.HadError && _streamingAssistantMessage is not null)
+            _streamingAssistantMessage.Content = result.ResponseContent;
     }
 
     [RelayCommand]
     private async Task StopGenerationAsync()
-    {
-        Log.Debug("Stop generation requested");
+        => await _messagingCoordinator.StopGenerationAsync();
 
-        if (_generationCts is not null)
-        {
-            await _generationCts.CancelAsync();
-        }
-    }
+    // ═══════════════════════════════════════════════════════════════
+    // COMMANDS — Conversation
+    // ═══════════════════════════════════════════════════════════════
 
     [RelayCommand]
     private async Task NewConversationAsync()
     {
-        Log.Debug("New conversation requested");
-
         ActiveConversationId = null;
         ActiveConversationTitle = "New Conversation";
         ActiveSystemPrompt = null;
@@ -582,139 +495,96 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         Messages.Clear();
         SuggestedQuestions.Clear();
         OnPropertyChanged(nameof(HasNoMessages));
-
         await Task.CompletedTask;
     }
 
     [RelayCommand]
     private async Task DeleteConversationAsync(long conversationId)
     {
-        Log.Debug("Delete conversation requested: {ConversationId}", conversationId);
-
-        try
-        {
-            await _conversationService.DeleteConversationAsync(conversationId);
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to delete conversation from service");
-        }
-
+        await _conversationCoordinator.DeleteConversationAsync(conversationId);
         var item = Conversations.FirstOrDefault(c => c.Id == conversationId);
         if (item is not null)
         {
             Conversations.Remove(item);
             OnPropertyChanged(nameof(HasNoConversations));
-
-            // If the active conversation was deleted, clear it
             if (ActiveConversationId == conversationId)
-            {
                 await NewConversationAsync();
-            }
         }
     }
 
     [RelayCommand]
     private async Task SelectConversationAsync(long conversationId)
     {
-        Log.Debug("Select conversation: {ConversationId}", conversationId);
-
         var item = Conversations.FirstOrDefault(c => c.Id == conversationId);
         if (item is null) return;
 
         ActiveConversationId = conversationId;
         ActiveConversationTitle = item.Title;
-
         Messages.Clear();
 
-        try
-        {
-            var messages = await _conversationService.GetMessagesAsync(conversationId);
-            foreach (var msg in messages)
-            {
-                var chatItem = new ChatMessageItem
-                {
-                    MessageId = msg.Id,
-                    ConversationId = msg.ConversationId,
-                    SortOrder = msg.SortOrder,
-                    Role = msg.Role,
-                    Content = msg.Content,
-                    Timestamp = msg.Timestamp,
-                    IsUser = msg.Role == "user",
-                    IsAssistant = msg.Role == "assistant",
-                    IsSystem = msg.Role == "system",
-                    TokenCount = msg.TokenCount,
-                    GenerationTimeMs = msg.GenerationTimeMs ?? 0
-                };
-
-                // Load existing feedback rating for assistant messages
-                if (msg.Role == "assistant" && msg.Id > 0)
-                {
-                    try
-                    {
-                        var feedback = await _feedbackService.GetFeedbackForMessageAsync(msg.Id);
-                        if (feedback is not null)
-                        {
-                            chatItem.FeedbackRating = feedback.Rating;
-                        }
-                    }
-                    catch { /* non-critical */ }
-                }
-
-                Messages.Add(chatItem);
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to load messages for conversation {ConversationId}", conversationId);
-        }
+        var messageSummaries = await _conversationCoordinator.LoadMessagesAsync(conversationId);
+        foreach (var ms in messageSummaries)
+            Messages.Add(MapToChatMessageItem(ms));
 
         OnPropertyChanged(nameof(HasNoMessages));
-        await LoadBranchTreeAsync();
+        await RefreshBranchTreeAsync();
     }
 
     [RelayCommand]
     private async Task TogglePinAsync(long conversationId)
     {
-        Log.Debug("Toggle pin: {ConversationId}", conversationId);
-
+        await _conversationCoordinator.TogglePinAsync(conversationId);
         var item = Conversations.FirstOrDefault(c => c.Id == conversationId);
-        if (item is not null)
-        {
-            item.IsPinned = !item.IsPinned;
-        }
-
-        try
-        {
-            await _conversationService.TogglePinAsync(conversationId);
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to toggle pin state for conversation {ConversationId}", conversationId);
-        }
+        if (item is not null) item.IsPinned = !item.IsPinned;
     }
+
+    [RelayCommand]
+    private async Task SetConversationFolderAsync(string? folderName)
+    {
+        if (ActiveConversationId is null) return;
+        await _conversationCoordinator.SetConversationFolderAsync(ActiveConversationId.Value, folderName);
+        var item = Conversations.FirstOrDefault(c => c.Id == ActiveConversationId);
+        if (item is not null) item.FolderName = folderName;
+        await RefreshFolderNamesAsync();
+    }
+
+    [RelayCommand]
+    private async Task FilterByFolderAsync(string? folderName)
+    {
+        ActiveFolderFilter = folderName;
+        if (string.IsNullOrEmpty(folderName)) { await LoadConversationsAsync(); return; }
+
+        var summaries = await _conversationCoordinator.LoadConversationsByFolderAsync(folderName);
+        Conversations.Clear();
+        foreach (var s in summaries) Conversations.Add(MapToConversationListItem(s));
+        OnPropertyChanged(nameof(HasNoConversations));
+    }
+
+    private async Task FilterConversationsAsync(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query)) { await LoadConversationsAsync(); return; }
+
+        var results = await _conversationCoordinator.SearchConversationsAsync(query);
+        Conversations.Clear();
+        foreach (var s in results) Conversations.Add(MapToConversationListItem(s));
+        OnPropertyChanged(nameof(HasNoConversations));
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // COMMANDS — Model & Prompt Selection
+    // ═══════════════════════════════════════════════════════════════
 
     [RelayCommand]
     private void SelectModel(string modelId)
     {
-        Log.Debug("Select model: {ModelId}", modelId);
-
         var model = AvailableModels.FirstOrDefault(m => m.Id == modelId);
         if (model is not null)
         {
             ActiveModelName = model.Name;
-
-            // Persist the active model selection
             _ = Task.Run(async () =>
             {
-                try
-                {
-                    await _aiService.SetActiveModelAsync(modelId);
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning(ex, "Failed to persist active model selection");
-                }
+                try { await _aiService.SetActiveModelAsync(modelId); }
+                catch (Exception ex) { Log.Warning(ex, "Failed to persist active model selection"); }
             });
         }
     }
@@ -722,205 +592,29 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void SelectSystemPrompt(SystemPromptItem? prompt)
     {
-        if (prompt is null)
-        {
-            ActiveSystemPrompt = null;
-            ActiveSystemPromptName = null;
-            Log.Debug("System prompt cleared");
-        }
+        if (prompt is null) { ActiveSystemPrompt = null; ActiveSystemPromptName = null; }
         else
         {
             ActiveSystemPrompt = prompt.Content;
             ActiveSystemPromptName = prompt.Name;
-            Log.Debug("System prompt selected: {PromptName}", prompt.Name);
-
-            // Track usage
             _ = Task.Run(async () =>
             {
-                try
-                {
-                    await _systemPromptService.IncrementUsageAsync(prompt.Id);
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning(ex, "Failed to increment system prompt usage");
-                }
+                try { await _systemPromptService.IncrementUsageAsync(prompt.Id); }
+                catch (Exception ex) { Log.Warning(ex, "Failed to increment system prompt usage"); }
             });
         }
-
         ShowSystemPromptPicker = false;
     }
 
-    [RelayCommand]
-    private void ToggleConversationPane()
-    {
-        IsConversationPaneOpen = !IsConversationPaneOpen;
-        Log.Debug("Conversation pane toggled: {IsOpen}", IsConversationPaneOpen);
-    }
-
-    [RelayCommand]
-    private async Task ClearConversationAsync()
-    {
-        Log.Debug("Clear conversation requested");
-
-        Messages.Clear();
-        TokenCount = 0;
-        GenerationTimeMs = 0;
-        CurrentStreamingResponse = string.Empty;
-        OnPropertyChanged(nameof(HasNoMessages));
-
-        await Task.CompletedTask;
-    }
-
-    [RelayCommand]
-    private void CopyMessage(string? content)
-    {
-        if (string.IsNullOrEmpty(content)) return;
-
-        Log.Debug("Copy message to clipboard ({Length} chars)", content.Length);
-
-        try
-        {
-            var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
-            dataPackage.SetText(content);
-            Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to copy to clipboard");
-        }
-    }
-
-    [RelayCommand]
-    private void ExportConversationToClipboard()
-    {
-        if (Messages.Count == 0)
-        {
-            Log.Debug("Export to clipboard: no messages to export");
-            return;
-        }
-
-        try
-        {
-            var markdown = BuildConversationMarkdown();
-            var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
-            dataPackage.SetText(markdown);
-            Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
-            Log.Information("Conversation exported to clipboard ({Length} chars)", markdown.Length);
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to export conversation to clipboard");
-        }
-    }
-
-    [RelayCommand]
-    private async Task ExportConversationToFileAsync()
-    {
-        if (Messages.Count == 0)
-        {
-            Log.Debug("Export to file: no messages to export");
-            return;
-        }
-
-        try
-        {
-            var markdown = BuildConversationMarkdown();
-
-            var picker = new Windows.Storage.Pickers.FileSavePicker();
-            picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
-            picker.FileTypeChoices.Add("Markdown", new List<string> { ".md" });
-            picker.FileTypeChoices.Add("Text", new List<string> { ".txt" });
-            picker.SuggestedFileName = SanitizeFileName(ActiveConversationTitle);
-
-            // WinUI 3 requires the window handle
-            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
-            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-
-            var file = await picker.PickSaveFileAsync();
-            if (file != null)
-            {
-                await Windows.Storage.FileIO.WriteTextAsync(file, markdown);
-                Log.Information("Conversation exported to {Path}", file.Path);
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to export conversation to file");
-        }
-    }
-
-    [RelayCommand]
-    private async Task RegenerateAsync()
-    {
-        Log.Debug("Regenerate last response requested");
-
-        if (Messages.Count < 2) return;
-
-        // Remove the last assistant message
-        var lastMessage = Messages.LastOrDefault();
-        if (lastMessage is { IsAssistant: true })
-        {
-            Messages.Remove(lastMessage);
-        }
-
-        // Find the last user message content and re-send
-        var lastUserMessage = Messages.LastOrDefault(m => m.IsUser);
-        if (lastUserMessage is not null)
-        {
-            // Re-send the last user message
-            UserInput = lastUserMessage.Content;
-            Messages.Remove(lastUserMessage);
-            OnPropertyChanged(nameof(HasNoMessages));
-            await SendMessageAsync();
-        }
-    }
-
-    [RelayCommand]
-    private async Task RefreshConnectionAsync()
-    {
-        Log.Debug("Refresh connection requested");
-
-        ConnectionStatus = "Checking...";
-
-        await CheckConnectionStatusAsync();
-        await LoadAvailableModelsAsync();
-    }
-
-    [RelayCommand]
-    private void UseSuggestedQuestion(string question)
-    {
-        if (!string.IsNullOrWhiteSpace(question))
-        {
-            UserInput = question;
-            SuggestedQuestions.Clear();
-        }
-    }
-
     // ═══════════════════════════════════════════════════════════════
-    // PER-MESSAGE ACTIONS (#18)
+    // COMMANDS — Per-Message Actions
     // ═══════════════════════════════════════════════════════════════
 
     [RelayCommand]
     private async Task DeleteMessageAsync(ChatMessageItem? message)
     {
         if (message is null) return;
-
-        Log.Debug("Delete message requested: {MessageId}", message.MessageId);
-
-        // Delete from database if persisted
-        if (message.MessageId > 0)
-        {
-            try
-            {
-                await _conversationService.DeleteMessageAsync(message.MessageId);
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "Failed to delete message {MessageId} from database", message.MessageId);
-            }
-        }
-
+        await _messagingCoordinator.DeleteMessageAsync(message.MessageId);
         Messages.Remove(message);
         OnPropertyChanged(nameof(HasNoMessages));
         _notificationService.ShowInfo("Message deleted", "The message has been removed.");
@@ -930,128 +624,56 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private async Task SubmitFeedbackAsync(ChatMessageItem? message)
     {
         if (message is null || !message.IsAssistant || message.MessageId <= 0) return;
-
-        // Toggle: if already positive → negative → none → positive
         var newRating = message.FeedbackRating switch
         {
-            "positive" => "negative",
-            "negative" => "none",
-            _ => "positive"
+            "positive" => "negative", "negative" => "none", _ => "positive"
         };
-
-        Log.Debug("Submit feedback for message {MessageId}: {Rating}", message.MessageId, newRating);
-
         message.FeedbackRating = newRating;
-
-        try
-        {
-            await _feedbackService.SubmitFeedbackAsync(
-                message.MessageId,
-                ActiveConversationId ?? 0,
-                newRating);
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to submit feedback for message {MessageId}", message.MessageId);
-        }
+        await _messagingCoordinator.SubmitFeedbackAsync(message.MessageId, ActiveConversationId ?? 0, newRating);
     }
 
     [RelayCommand]
     private async Task ThumbsUpAsync(ChatMessageItem? message)
     {
         if (message is null || !message.IsAssistant || message.MessageId <= 0) return;
-
         var newRating = message.FeedbackRating == "positive" ? "none" : "positive";
         message.FeedbackRating = newRating;
-
-        Log.Debug("Thumbs up for message {MessageId}: {Rating}", message.MessageId, newRating);
-
-        try
-        {
-            await _feedbackService.SubmitFeedbackAsync(
-                message.MessageId, ActiveConversationId ?? 0, newRating);
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to submit thumbs up for message {MessageId}", message.MessageId);
-        }
+        await _messagingCoordinator.SubmitFeedbackAsync(message.MessageId, ActiveConversationId ?? 0, newRating);
     }
 
     [RelayCommand]
     private async Task ThumbsDownAsync(ChatMessageItem? message)
     {
         if (message is null || !message.IsAssistant || message.MessageId <= 0) return;
-
         var newRating = message.FeedbackRating == "negative" ? "none" : "negative";
         message.FeedbackRating = newRating;
-
-        Log.Debug("Thumbs down for message {MessageId}: {Rating}", message.MessageId, newRating);
-
-        try
-        {
-            await _feedbackService.SubmitFeedbackAsync(
-                message.MessageId, ActiveConversationId ?? 0, newRating);
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to submit thumbs down for message {MessageId}", message.MessageId);
-        }
+        await _messagingCoordinator.SubmitFeedbackAsync(message.MessageId, ActiveConversationId ?? 0, newRating);
     }
 
     [RelayCommand]
     private async Task RegenerateMessageAsync(ChatMessageItem? message)
     {
         if (message is null || !message.IsAssistant) return;
-
-        Log.Debug("Regenerate specific message requested: {MessageId}", message.MessageId);
-
-        // Find the user message just before this assistant message
         var msgIndex = Messages.IndexOf(message);
         if (msgIndex < 1) return;
-
         var userMessage = Messages[msgIndex - 1];
         if (!userMessage.IsUser) return;
 
-        // Remove the assistant message
         Messages.Remove(message);
-
-        // Delete from DB if persisted
         if (message.MessageId > 0)
-        {
-            try
-            {
-                await _conversationService.DeleteMessageAsync(message.MessageId);
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "Failed to delete message for regeneration");
-            }
-        }
+            await _messagingCoordinator.DeleteMessageAsync(message.MessageId);
 
-        // Re-send using the user message content
         UserInput = userMessage.Content;
         Messages.Remove(userMessage);
         OnPropertyChanged(nameof(HasNoMessages));
         await SendMessageAsync();
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // MESSAGE EDITING (#19)
-    // ═══════════════════════════════════════════════════════════════
-
     [RelayCommand]
     private void StartEditMessage(ChatMessageItem? message)
     {
         if (message is null || !message.IsUser) return;
-
-        Log.Debug("Start editing message {MessageId}", message.MessageId);
-
-        // Cancel any other edit in progress
-        foreach (var msg in Messages.Where(m => m.IsEditing))
-        {
-            msg.IsEditing = false;
-        }
-
+        foreach (var msg in Messages.Where(m => m.IsEditing)) msg.IsEditing = false;
         message.EditContent = message.Content;
         message.IsEditing = true;
     }
@@ -1068,141 +690,276 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private async Task SaveEditMessageAsync(ChatMessageItem? message)
     {
         if (message is null || !message.IsUser || string.IsNullOrWhiteSpace(message.EditContent)) return;
-
         var newContent = message.EditContent.Trim();
         message.IsEditing = false;
-
-        Log.Debug("Save edited message {MessageId}", message.MessageId);
-
-        // Update the message content
         message.Content = newContent;
 
-        // Update in database
         if (message.MessageId > 0)
         {
-            try
-            {
-                await _conversationService.UpdateMessageContentAsync(message.MessageId, newContent);
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "Failed to update message content in database");
-            }
+            try { await _conversationCoordinator.UpdateMessageContentAsync(message.MessageId, newContent); }
+            catch (Exception ex) { Log.Warning(ex, "Failed to update message content in database"); }
         }
 
-        // Remove all messages after this one (they are now stale)
         var msgIndex = Messages.IndexOf(message);
-        if (msgIndex >= 0 && ActiveConversationId is not null)
+        if (msgIndex >= 0 && ActiveConversationId is not null && message.SortOrder >= 0)
         {
-            // Delete subsequent messages from DB
-            if (message.SortOrder >= 0)
-            {
-                try
-                {
-                    await _conversationService.DeleteMessagesAfterAsync(
-                        ActiveConversationId.Value, message.SortOrder);
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning(ex, "Failed to delete subsequent messages");
-                }
-            }
-
-            // Remove from UI
-            while (Messages.Count > msgIndex + 1)
-            {
-                Messages.RemoveAt(Messages.Count - 1);
-            }
+            try { await _conversationCoordinator.DeleteMessagesAfterAsync(ActiveConversationId.Value, message.SortOrder); }
+            catch (Exception ex) { Log.Warning(ex, "Failed to delete subsequent messages"); }
+            while (Messages.Count > msgIndex + 1) Messages.RemoveAt(Messages.Count - 1);
         }
 
-        // Re-generate assistant response
         UserInput = newContent;
         Messages.Remove(message);
         OnPropertyChanged(nameof(HasNoMessages));
         await SendMessageAsync();
     }
 
-    /// <summary>
-    /// Loads AI-generated follow-up question suggestions based on the
-    /// current conversation and persisted user memories.
-    /// </summary>
-    private async Task LoadSuggestedQuestionsAsync()
+    [RelayCommand]
+    private async Task RegenerateAsync()
+    {
+        if (Messages.Count < 2) return;
+        var lastMessage = Messages.LastOrDefault();
+        if (lastMessage is { IsAssistant: true }) Messages.Remove(lastMessage);
+        var lastUserMessage = Messages.LastOrDefault(m => m.IsUser);
+        if (lastUserMessage is not null)
+        {
+            UserInput = lastUserMessage.Content;
+            Messages.Remove(lastUserMessage);
+            OnPropertyChanged(nameof(HasNoMessages));
+            await SendMessageAsync();
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // COMMANDS — Voice
+    // ═══════════════════════════════════════════════════════════════
+
+    [RelayCommand]
+    private async Task ToggleVoiceRecordingAsync()
+    {
+        var transcription = await _voiceCoordinator.ToggleRecordingAsync();
+        if (!string.IsNullOrWhiteSpace(transcription))
+            UserInput = transcription;
+    }
+
+    [RelayCommand]
+    private async Task PickAudioFileAsync()
+    {
+        var picker = new Windows.Storage.Pickers.FileOpenPicker();
+        picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.MusicLibrary;
+        foreach (var ext in _voiceCoordinator.SupportedFormats) picker.FileTypeFilter.Add(ext);
+
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+        var file = await picker.PickSingleFileAsync();
+        if (file is null) return;
+
+        var transcription = await _voiceCoordinator.TranscribeFileAsync(file.Path);
+        if (!string.IsNullOrWhiteSpace(transcription))
+            UserInput = transcription;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // COMMANDS — Branching
+    // ═══════════════════════════════════════════════════════════════
+
+    [RelayCommand]
+    private async Task BranchFromMessageAsync(long messageId)
     {
         if (ActiveConversationId is null) return;
-        try
+        var label = PendingBranchLabel;
+        PendingBranchLabel = null;
+        var result = await _branchingCoordinator.BranchFromMessageAsync(ActiveConversationId.Value, messageId, label);
+        if (result is not null)
         {
-            var questions = await _memoryService.GetSuggestedQuestionsAsync(ActiveConversationId.Value);
-            SuggestedQuestions.Clear();
-            foreach (var q in questions) SuggestedQuestions.Add(q);
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to load suggested questions");
+            await RefreshBranchTreeAsync();
+            _notificationService.ShowInfo("Branch Created", $"Created branch: {result.Title}");
         }
     }
 
-    /// <summary>
-    /// Updates the memory count for display in the UI.
-    /// </summary>
-    private async Task UpdateMemoryCountAsync()
+    [RelayCommand]
+    private async Task LoadBranchTreeAsync()
+        => await RefreshBranchTreeAsync();
+
+    [RelayCommand]
+    private async Task SwitchToBranchAsync(long branchConversationId)
+        => await SelectConversationCommand.ExecuteAsync(branchConversationId);
+
+    [RelayCommand]
+    private async Task MergeToMainAsync(MergeBranchRequest request)
     {
-        try
+        await _branchingCoordinator.MergeToMainAsync(request);
+        if (request is not null)
+            await SelectConversationCommand.ExecuteAsync(request.TargetConversationId);
+    }
+
+    [RelayCommand]
+    private async Task DeleteBranchAsync(long branchConversationId)
+    {
+        await _branchingCoordinator.DeleteBranchAsync(branchConversationId);
+        await RefreshBranchTreeAsync();
+    }
+
+    [RelayCommand]
+    private void CompareBranches()
+    {
+        if (BranchTree is null || BranchTree.Children.Count < 1) return;
+        var window = new Views.BranchCompareWindow(
+            BranchTree, BranchTree.Children[0], "Main Thread",
+            BranchTree.Children[0].BranchLabel ?? "Branch");
+        window.Activate();
+    }
+
+    private async Task RefreshBranchTreeAsync()
+    {
+        if (ActiveConversationId is null) return;
+        BranchTree = await _branchingCoordinator.LoadBranchTreeAsync(ActiveConversationId.Value);
+        OnPropertyChanged(nameof(HasBranches));
+        ActiveBranches.Clear();
+        if (BranchTree is not null)
         {
-            MemoryCount = await _memoryService.GetMemoryCountAsync();
+            foreach (var child in BranchTree.Children) ActiveBranches.Add(child);
         }
-        catch (Exception ex)
+        MarkBranchPoints();
+    }
+
+    private void MarkBranchPoints()
+    {
+        foreach (var msg in Messages) { msg.IsBranchPoint = false; msg.BranchCountAtPoint = 0; }
+        if (BranchTree is null) return;
+
+        void MarkFromNode(ConversationBranchTree node)
         {
-            Log.Warning(ex, "Failed to update memory count");
+            foreach (var child in node.Children)
+            {
+                if (child.BranchPointMessageId is not null)
+                {
+                    var msg = Messages.FirstOrDefault(m => m.MessageId == child.BranchPointMessageId.Value);
+                    if (msg is not null) { msg.IsBranchPoint = true; msg.BranchCountAtPoint += 1; }
+                }
+                MarkFromNode(child);
+            }
         }
+        MarkFromNode(BranchTree);
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // PRIVATE HELPERS
+    // COMMANDS — UI Helpers
     // ═══════════════════════════════════════════════════════════════
+
+    [RelayCommand]
+    private void ToggleConversationPane()
+        => IsConversationPaneOpen = !IsConversationPaneOpen;
+
+    [RelayCommand]
+    private async Task ClearConversationAsync()
+    {
+        Messages.Clear(); TokenCount = 0; GenerationTimeMs = 0;
+        CurrentStreamingResponse = string.Empty;
+        OnPropertyChanged(nameof(HasNoMessages));
+        await Task.CompletedTask;
+    }
+
+    [RelayCommand]
+    private void CopyMessage(string? content)
+    {
+        if (string.IsNullOrEmpty(content)) return;
+        try
+        {
+            var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+            dataPackage.SetText(content);
+            Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+        }
+        catch (Exception ex) { Log.Error(ex, "Failed to copy to clipboard"); }
+    }
+
+    [RelayCommand]
+    private void ExportConversationToClipboard()
+    {
+        if (Messages.Count == 0) return;
+        try
+        {
+            var markdown = BuildConversationMarkdown();
+            var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+            dataPackage.SetText(markdown);
+            Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+        }
+        catch (Exception ex) { Log.Error(ex, "Failed to export conversation to clipboard"); }
+    }
+
+    [RelayCommand]
+    private async Task ExportConversationToFileAsync()
+    {
+        if (Messages.Count == 0) return;
+        try
+        {
+            var markdown = BuildConversationMarkdown();
+            var picker = new Windows.Storage.Pickers.FileSavePicker();
+            picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
+            picker.FileTypeChoices.Add("Markdown", new List<string> { ".md" });
+            picker.FileTypeChoices.Add("Text", new List<string> { ".txt" });
+            picker.SuggestedFileName = SanitizeFileName(ActiveConversationTitle);
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+            var file = await picker.PickSaveFileAsync();
+            if (file != null) await Windows.Storage.FileIO.WriteTextAsync(file, markdown);
+        }
+        catch (Exception ex) { Log.Error(ex, "Failed to export conversation to file"); }
+    }
+
+    [RelayCommand]
+    private async Task RefreshConnectionAsync()
+    {
+        ConnectionStatus = "Checking...";
+        await CheckConnectionStatusAsync();
+        await LoadAvailableModelsAsync();
+    }
+
+    [RelayCommand]
+    private void UseSuggestedQuestion(string question)
+    {
+        if (!string.IsNullOrWhiteSpace(question)) { UserInput = question; SuggestedQuestions.Clear(); }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // MAPPING HELPERS
+    // ═══════════════════════════════════════════════════════════════
+
+    private static ConversationListItem MapToConversationListItem(ConversationSummary s) => new()
+    {
+        Id = s.Id, Title = s.Title, LastMessage = s.LastMessage,
+        UpdatedAt = s.UpdatedAt, IsPinned = s.IsPinned,
+        MessageCount = s.MessageCount, FolderName = s.FolderName
+    };
+
+    private static ChatMessageItem MapToChatMessageItem(MessageSummary ms) => new()
+    {
+        MessageId = ms.MessageId, ConversationId = ms.ConversationId,
+        SortOrder = ms.SortOrder, Role = ms.Role, Content = ms.Content,
+        Timestamp = ms.Timestamp, IsUser = ms.Role == "user",
+        IsAssistant = ms.Role == "assistant", IsSystem = ms.Role == "system",
+        TokenCount = ms.TokenCount, GenerationTimeMs = ms.GenerationTimeMs,
+        FeedbackRating = ms.FeedbackRating
+    };
 
     private string BuildConversationMarkdown()
     {
         var sb = new StringBuilder();
         sb.AppendLine($"# {ActiveConversationTitle}");
-        sb.AppendLine();
         sb.AppendLine($"*Exported from Agent-X on {DateTime.Now:MMMM d, yyyy 'at' h:mm tt}*");
         sb.AppendLine();
-
         if (!string.IsNullOrEmpty(ActiveSystemPromptName))
-        {
             sb.AppendLine($"**System Prompt:** {ActiveSystemPromptName}");
-            sb.AppendLine();
-        }
-
         sb.AppendLine("---");
-        sb.AppendLine();
-
         foreach (var msg in Messages)
         {
-            var roleLabel = msg.Role switch
-            {
-                "user" => "**You**",
-                "assistant" => "**Agent-X**",
-                "system" => "**System**",
-                _ => $"**{msg.Role}**"
-            };
-
-            sb.AppendLine($"### {roleLabel}");
-            sb.AppendLine($"*{msg.FormattedTime}*");
-            sb.AppendLine();
-            sb.AppendLine(msg.Content);
-            sb.AppendLine();
-
+            var roleLabel = msg.Role switch { "user" => "**You**", "assistant" => "**Agent-X**", _ => $"**{msg.Role}**" };
+            sb.AppendLine($"### {roleLabel}\n*{msg.FormattedTime}*\n\n{msg.Content}\n");
             if (msg.IsAssistant && msg.TokenCount > 0)
-            {
-                sb.AppendLine($"_{msg.FormattedTokens} | {msg.FormattedTokenSpeed}_");
-                sb.AppendLine();
-            }
-
+                sb.AppendLine($"_{msg.FormattedTokens} | {msg.FormattedTokenSpeed}_\n");
             sb.AppendLine("---");
-            sb.AppendLine();
         }
-
         return sb.ToString();
     }
 
@@ -1214,684 +971,12 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // FOLDER ORGANIZATION
-    // ═══════════════════════════════════════════════════════════════
-
-    [RelayCommand]
-    private async Task SetConversationFolderAsync(string? folderName)
-    {
-        if (ActiveConversationId is null) return;
-
-        Log.Debug("Set conversation folder: {Folder}", folderName ?? "(none)");
-
-        try
-        {
-            await _conversationService.SetConversationFolderAsync(ActiveConversationId.Value, folderName);
-            var item = Conversations.FirstOrDefault(c => c.Id == ActiveConversationId);
-            if (item is not null)
-            {
-                item.FolderName = folderName;
-            }
-            await LoadFolderNamesAsync();
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to set conversation folder");
-        }
-    }
-
-    [RelayCommand]
-    private async Task FilterByFolderAsync(string? folderName)
-    {
-        ActiveFolderFilter = folderName;
-        Log.Debug("Filter by folder: {Folder}", folderName ?? "All");
-
-        if (string.IsNullOrEmpty(folderName))
-        {
-            await LoadConversationsAsync();
-            return;
-        }
-
-        try
-        {
-            var conversations = await _conversationService.GetConversationsByFolderAsync(folderName);
-            Conversations.Clear();
-            foreach (var conv in conversations)
-            {
-                var lastMsg = conv.Messages?.OrderByDescending(m => m.SortOrder).FirstOrDefault();
-                Conversations.Add(new ConversationListItem
-                {
-                    Id = conv.Id,
-                    Title = conv.Title,
-                    LastMessage = lastMsg?.Content ?? string.Empty,
-                    UpdatedAt = conv.UpdatedAt,
-                    IsPinned = conv.IsPinned,
-                    MessageCount = conv.MessageCount,
-                    FolderName = conv.FolderName
-                });
-            }
-            OnPropertyChanged(nameof(HasNoConversations));
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to filter conversations by folder");
-        }
-    }
-
-    private async Task LoadFolderNamesAsync()
-    {
-        try
-        {
-            var folders = await _conversationService.GetAllFolderNamesAsync();
-            FolderNames.Clear();
-            foreach (var f in folders) FolderNames.Add(f);
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to load folder names");
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // VOICE INPUT & TRANSCRIPTION
-    // ═══════════════════════════════════════════════════════════════
-
-    [RelayCommand]
-    private async Task ToggleVoiceRecordingAsync()
-    {
-        if (IsRecording)
-        {
-            await StopRecordingAndTranscribeAsync();
-        }
-        else
-        {
-            StartRecording();
-        }
-    }
-
-    [RelayCommand]
-    private async Task PickAudioFileAsync()
-    {
-        var picker = new Windows.Storage.Pickers.FileOpenPicker();
-        picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.MusicLibrary;
-
-        foreach (var ext in _transcriptionService.SupportedFormats)
-            picker.FileTypeFilter.Add(ext);
-
-        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
-        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-
-        var file = await picker.PickSingleFileAsync();
-        if (file is null) return;
-
-        IsTranscribing = true;
-        VoiceStatusMessage = "Transcribing...";
-
-        try
-        {
-            var result = await _transcriptionService.TranscribeFileAsync(
-                file.Path,
-                new TranscriptionOptions { ModelSize = "base" },
-                progress: new Progress<TranscriptionProgress>(p => VoiceStatusMessage = p.CurrentPhase),
-                CancellationToken.None);
-
-            if (!string.IsNullOrWhiteSpace(result.FullText))
-            {
-                UserInput = result.FullText.Trim();
-            }
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("model", StringComparison.OrdinalIgnoreCase))
-        {
-            Log.Warning(ex, "Whisper model not available for file transcription");
-            _notificationService.ShowError("Model Required",
-                "Download a Whisper model first. Go to Settings > Voice to download one.");
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Audio file transcription failed");
-            _notificationService.ShowError("Transcription Failed",
-                $"Could not transcribe the selected file: {ex.Message}");
-        }
-        finally
-        {
-            IsTranscribing = false;
-            VoiceStatusMessage = string.Empty;
-        }
-    }
-
-    private void StartRecording()
-    {
-        try
-        {
-            _currentRecordingPath = Path.Combine(
-                Path.GetTempPath(),
-                $"agentx-voice-{Guid.NewGuid():N}.wav");
-
-            _recordingStopTcs = new TaskCompletionSource();
-
-            _waveIn = new WaveInEvent
-            {
-                WaveFormat = new WaveFormat(16000, 16, 1),
-                BufferMilliseconds = 100
-            };
-
-            _waveWriter = new WaveFileWriter(_currentRecordingPath, _waveIn.WaveFormat);
-
-            _waveIn.DataAvailable += OnRecordingDataAvailable;
-            _waveIn.RecordingStopped += OnRecordingStopped;
-
-            _waveIn.StartRecording();
-            IsRecording = true;
-            VoiceStatusMessage = "Recording...";
-
-            Log.Debug("Voice recording started: {Path}", _currentRecordingPath);
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to start voice recording");
-            CleanupRecording();
-            _notificationService.ShowError("Recording Failed",
-                "Could not start voice recording. Ensure a microphone is connected and permissions are granted.");
-        }
-    }
-
-    private void OnRecordingDataAvailable(object? sender, WaveInEventArgs e)
-    {
-        _waveWriter?.Write(e.Buffer, 0, e.BytesRecorded);
-    }
-
-    private void OnRecordingStopped(object? sender, StoppedEventArgs e)
-    {
-        _waveWriter?.Dispose();
-        _waveWriter = null;
-
-        _waveIn?.Dispose();
-        _waveIn = null;
-
-        _recordingStopTcs?.TrySetResult();
-
-        if (e.Exception is not null)
-        {
-            Log.Error(e.Exception, "Recording stopped with error");
-        }
-    }
-
-    private async Task StopRecordingAndTranscribeAsync()
-    {
-        if (_waveIn is null || _currentRecordingPath is null) return;
-
-        Log.Debug("Stopping voice recording for transcription");
-
-        _waveIn.StopRecording();
-        IsRecording = false;
-        IsTranscribing = true;
-        VoiceStatusMessage = "Transcribing...";
-
-        if (_recordingStopTcs is not null)
-            await _recordingStopTcs.Task;
-
-        try
-        {
-            if (File.Exists(_currentRecordingPath))
-            {
-                var fileInfo = new FileInfo(_currentRecordingPath);
-                if (fileInfo.Length > 44) // WAV header is 44 bytes minimum
-                {
-                    var result = await _transcriptionService.TranscribeFileAsync(
-                        _currentRecordingPath,
-                        new TranscriptionOptions { ModelSize = "base" },
-                        progress: new Progress<TranscriptionProgress>(p =>
-                        {
-                            VoiceStatusMessage = p.CurrentPhase;
-                        }),
-                        CancellationToken.None);
-
-                    if (!string.IsNullOrWhiteSpace(result.FullText))
-                    {
-                        UserInput = result.FullText.Trim();
-                        Log.Information("Voice transcription complete: {Length} chars, {Segments} segments",
-                            result.FullText.Length, result.Segments.Count);
-                    }
-                    else
-                    {
-                        _notificationService.ShowInfo("No Speech Detected",
-                            "Could not detect speech in the recording. Try again in a quieter environment.");
-                    }
-                }
-                else
-                {
-                    _notificationService.ShowInfo("Recording Too Short",
-                        "The recording was too short to transcribe. Hold the button longer while speaking.");
-                }
-            }
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("model", StringComparison.OrdinalIgnoreCase))
-        {
-            Log.Warning(ex, "Whisper model not available");
-            _notificationService.ShowError("Model Required",
-                "Download a Whisper model first. Go to Settings > Voice to download one.");
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Voice transcription failed");
-            _notificationService.ShowError("Transcription Failed",
-                $"Could not transcribe the recording: {ex.Message}");
-        }
-        finally
-        {
-            IsTranscribing = false;
-            VoiceStatusMessage = string.Empty;
-            CleanupRecording();
-        }
-    }
-
-    private void CleanupRecording()
-    {
-        _waveWriter?.Dispose();
-        _waveWriter = null;
-
-        if (_waveIn is not null)
-        {
-            _waveIn.DataAvailable -= OnRecordingDataAvailable;
-            _waveIn.RecordingStopped -= OnRecordingStopped;
-            _waveIn.Dispose();
-            _waveIn = null;
-        }
-
-        if (_currentRecordingPath is not null)
-        {
-            try { if (File.Exists(_currentRecordingPath)) File.Delete(_currentRecordingPath); }
-            catch { /* best effort */ }
-            _currentRecordingPath = null;
-        }
-
-        _recordingStopTcs = null;
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // CONVERSATION BRANCHING
-    // ═══════════════════════════════════════════════════════════════
-
-    [RelayCommand]
-    private async Task BranchFromMessageAsync(long messageId)
-    {
-        if (ActiveConversationId is null) return;
-        var label = PendingBranchLabel;
-        PendingBranchLabel = null;
-        try
-        {
-            var branch = await _branchService.BranchAtMessageAsync(
-                ActiveConversationId.Value, messageId, label);
-            await LoadBranchTreeAsync();
-            _notificationService.ShowInfo("Branch Created", $"Created branch: {branch.Title}");
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to create branch from message {MessageId}", messageId);
-            _notificationService.ShowError("Branch Failed", ex.Message);
-        }
-    }
-
-    [RelayCommand]
-    private async Task LoadBranchTreeAsync()
-    {
-        if (ActiveConversationId is null) return;
-        try
-        {
-            BranchTree = await _branchService.GetBranchTreeAsync(ActiveConversationId.Value);
-            OnPropertyChanged(nameof(HasBranches));
-            ActiveBranches.Clear();
-            if (BranchTree is not null)
-            {
-                foreach (var child in BranchTree.Children)
-                    ActiveBranches.Add(child);
-            }
-
-            MarkBranchPoints();
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to load branch tree for conversation {ConversationId}", ActiveConversationId);
-            _notificationService.ShowError("Branch Load Failed", $"Could not load branches: {ex.Message}");
-        }
-    }
-
-    [RelayCommand]
-    private async Task SwitchToBranchAsync(long branchConversationId)
-    {
-        await SelectConversationCommand.ExecuteAsync(branchConversationId);
-    }
-
-    [RelayCommand]
-    private async Task MergeToMainAsync(MergeBranchRequest request)
-    {
-        if (request is null) return;
-        try
-        {
-            var messageIds = request.MessageIds;
-            if (messageIds is null || messageIds.Count == 0)
-            {
-                // Load all messages from the source branch when no specific IDs provided
-                var messages = await _conversationService.GetMessagesAsync(request.SourceConversationId);
-                messageIds = messages.Select(m => m.Id).ToList();
-            }
-
-            await _branchService.MergeMessagesAsync(
-                request.SourceConversationId, messageIds, request.TargetConversationId);
-            _notificationService.ShowInfo("Merge Complete", "Merged insights to main thread");
-            await SelectConversationCommand.ExecuteAsync(request.TargetConversationId);
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to merge messages from {SourceId} to {TargetId}",
-                request.SourceConversationId, request.TargetConversationId);
-            _notificationService.ShowError("Merge Failed", ex.Message);
-        }
-    }
-
-    [RelayCommand]
-    private async Task DeleteBranchAsync(long branchConversationId)
-    {
-        try
-        {
-            await _branchService.DeleteBranchAsync(branchConversationId);
-            await LoadBranchTreeAsync();
-            _notificationService.ShowInfo("Branch Deleted", "The branch has been removed.");
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to delete branch {BranchId}", branchConversationId);
-            _notificationService.ShowError("Delete Failed", ex.Message);
-        }
-    }
-
-    [RelayCommand]
-    private void CompareBranches()
-    {
-        if (BranchTree is null || BranchTree.Children.Count < 1) return;
-
-        var mainBranch = BranchTree;
-        var compareBranch = BranchTree.Children[0];
-
-        var window = new Views.BranchCompareWindow(
-            mainBranch, compareBranch,
-            "Main Thread",
-            compareBranch.BranchLabel ?? "Branch");
-
-        window.Activate();
-    }
-
-    /// <summary>
-    /// Marks messages in the current conversation that are branch points
-    /// based on the loaded branch tree data.
-    /// </summary>
-    private void MarkBranchPoints()
-    {
-        // Reset all branch point markers
-        foreach (var msg in Messages)
-        {
-            msg.IsBranchPoint = false;
-            msg.BranchCountAtPoint = 0;
-        }
-
-        if (BranchTree is null) return;
-
-        void MarkFromNode(ConversationBranchTree node)
-        {
-            foreach (var child in node.Children)
-            {
-                if (child.BranchPointMessageId is not null)
-                {
-                    var msg = Messages.FirstOrDefault(m => m.MessageId == child.BranchPointMessageId.Value);
-                    if (msg is not null)
-                    {
-                        msg.IsBranchPoint = true;
-                        msg.BranchCountAtPoint += 1;
-                    }
-                }
-                MarkFromNode(child);
-            }
-        }
-
-        MarkFromNode(BranchTree);
-    }
-
-    // ═══════════════════════════════════════════════════════════════
     // DISPOSAL
     // ═══════════════════════════════════════════════════════════════
 
     public void Dispose()
     {
-        if (_waveIn is not null && IsRecording)
-        {
-            _waveIn.StopRecording();
-        }
-        CleanupRecording();
-        _generationCts?.Cancel();
-        _generationCts?.Dispose();
+        if (_voiceCoordinator is IDisposable voiceDisposable) voiceDisposable.Dispose();
         Log.Debug("ChatViewModel disposed");
     }
 }
-
-// ═══════════════════════════════════════════════════════════════════════════
-// VIEW MODEL ITEM CLASSES
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// <summary>
-/// Represents a single chat message displayed in the UI.
-/// </summary>
-public class ChatMessageItem : ObservableObject
-{
-    private string _content = string.Empty;
-    private bool _isStreaming;
-    private string _feedbackRating = "none";
-    private bool _isEditing;
-    private string _editContent = string.Empty;
-
-    /// <summary>Database primary key. 0 if not yet persisted.</summary>
-    public long MessageId { get; set; }
-
-    /// <summary>Conversation this message belongs to.</summary>
-    public long ConversationId { get; set; }
-
-    /// <summary>Sort order within the conversation.</summary>
-    public int SortOrder { get; set; }
-
-    public string Role { get; set; } = string.Empty;
-
-    public string Content
-    {
-        get => _content;
-        set
-        {
-            if (SetProperty(ref _content, value))
-            {
-                OnPropertyChanged(nameof(ContentSegments));
-            }
-        }
-    }
-
-    /// <summary>
-    /// Parsed markdown segments for rich rendering of assistant messages.
-    /// Re-computed whenever Content changes.
-    /// </summary>
-    public List<MarkdownSegment> ContentSegments => MarkdownParser.Parse(Content);
-
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-    public bool IsUser { get; set; }
-    public bool IsAssistant { get; set; }
-    public bool IsSystem { get; set; }
-    public int TokenCount { get; set; }
-    public double GenerationTimeMs { get; set; }
-
-    public bool IsStreaming
-    {
-        get => _isStreaming;
-        set => SetProperty(ref _isStreaming, value);
-    }
-
-    /// <summary>
-    /// Feedback rating for assistant messages: "positive", "negative", or "none".
-    /// </summary>
-    public string FeedbackRating
-    {
-        get => _feedbackRating;
-        set
-        {
-            if (SetProperty(ref _feedbackRating, value))
-            {
-                OnPropertyChanged(nameof(IsThumbsUp));
-                OnPropertyChanged(nameof(IsThumbsDown));
-            }
-        }
-    }
-
-    public bool IsThumbsUp => FeedbackRating == "positive";
-    public bool IsThumbsDown => FeedbackRating == "negative";
-
-    /// <summary>Whether this user message is in inline edit mode.</summary>
-    public bool IsEditing
-    {
-        get => _isEditing;
-        set
-        {
-            if (SetProperty(ref _isEditing, value))
-            {
-                OnPropertyChanged(nameof(IsNotEditing));
-            }
-        }
-    }
-
-    public bool IsNotEditing => !IsEditing;
-
-    /// <summary>Content of the edit TextBox while editing.</summary>
-    public string EditContent
-    {
-        get => _editContent;
-        set => SetProperty(ref _editContent, value);
-    }
-
-    public string FormattedTime => Timestamp.ToLocalTime().ToString("h:mm tt");
-
-    public string FormattedTokens => TokenCount > 0
-        ? $"{TokenCount} tokens"
-        : string.Empty;
-
-    public string FormattedGenerationTime => GenerationTimeMs > 0
-        ? $"{GenerationTimeMs:F0}ms"
-        : string.Empty;
-
-    public string FormattedTokenSpeed => TokenCount > 0 && GenerationTimeMs > 0
-        ? $"{TokenCount / (GenerationTimeMs / 1000.0):F1} tok/s"
-        : string.Empty;
-
-    /// <summary>Whether this message is a point where one or more branches diverge.</summary>
-    private bool _isBranchPoint;
-    public bool IsBranchPoint
-    {
-        get => _isBranchPoint;
-        set => SetProperty(ref _isBranchPoint, value);
-    }
-
-    /// <summary>Number of branches diverging from this message.</summary>
-    private int _branchCountAtPoint;
-    public int BranchCountAtPoint
-    {
-        get => _branchCountAtPoint;
-        set => SetProperty(ref _branchCountAtPoint, value);
-    }
-
-    /// <summary>Web citations associated with this message (from Deep Research Mode).</summary>
-    public IReadOnlyList<WebCitation>? WebCitations { get; set; }
-
-    /// <summary>Whether this message has web citations to display.</summary>
-    public bool HasWebCitations => WebCitations?.Count > 0;
-}
-
-/// <summary>
-/// Represents a conversation entry in the sidebar list.
-/// </summary>
-public class ConversationListItem : ObservableObject
-{
-    private bool _isPinned;
-    private string _lastMessage = string.Empty;
-    private string? _folderName;
-
-    public long Id { get; set; }
-    public string Title { get; set; } = string.Empty;
-
-    public string LastMessage
-    {
-        get => _lastMessage;
-        set => SetProperty(ref _lastMessage, value);
-    }
-
-    public DateTime UpdatedAt { get; set; }
-
-    public bool IsPinned
-    {
-        get => _isPinned;
-        set => SetProperty(ref _isPinned, value);
-    }
-
-    public string? FolderName
-    {
-        get => _folderName;
-        set => SetProperty(ref _folderName, value);
-    }
-
-    public int MessageCount { get; set; }
-
-    public string FormattedTime
-    {
-        get
-        {
-            var span = DateTime.UtcNow - UpdatedAt;
-            return span.TotalMinutes < 1 ? "now"
-                : span.TotalMinutes < 60 ? $"{(int)span.TotalMinutes}m ago"
-                : span.TotalHours < 24 ? $"{(int)span.TotalHours}h ago"
-                : span.TotalDays < 7 ? $"{(int)span.TotalDays}d ago"
-                : UpdatedAt.ToLocalTime().ToString("MMM d");
-        }
-    }
-}
-
-/// <summary>
-/// Represents a system prompt for selection in the UI.
-/// </summary>
-public class SystemPromptItem : ObservableObject
-{
-    private bool _isFavorite;
-
-    public long Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Content { get; set; } = string.Empty;
-    public string Category { get; set; } = "General";
-
-    public bool IsFavorite
-    {
-        get => _isFavorite;
-        set => SetProperty(ref _isFavorite, value);
-    }
-
-    public bool IsBuiltIn { get; set; }
-
-    public string CategoryIcon => Category switch
-    {
-        "General" => "\uE8BD",
-        "Code" => "\uE943",
-        "Writing" => "\uE70F",
-        "Analysis" => "\uE9D9",
-        "Creative" => "\uE790",
-        _ => "\uE8BD"
-    };
-}
-
-/// <summary>
-/// Parameter object for the merge-branch command, since [RelayCommand]
-/// only supports a single parameter.
-/// </summary>
-public record MergeBranchRequest(
-    long SourceConversationId,
-    long TargetConversationId,
-    IReadOnlyList<long>? MessageIds = null);

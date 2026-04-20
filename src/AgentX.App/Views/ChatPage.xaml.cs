@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
 using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
+using AgentX.App.ViewModels.Coordinators;
 using AgentX.Core.Services.Shortcuts;
 using AgentX.Core.Services.Chat.Models;
 using Serilog;
