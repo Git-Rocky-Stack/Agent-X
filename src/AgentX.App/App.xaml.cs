@@ -427,6 +427,9 @@ public partial class App : Application
         services.AddSingleton<IWorkflowEngine, WorkflowEngine>();
 
         // ── Web Services ─────────────────────────────────────
+        services.AddSingleton<IWebContentFetcher, WebContentFetcher>();
+        services.AddSingleton<IHtmlParser, HtmlParser>();
+        services.AddSingleton<IStructuredDataExtractor, StructuredDataExtractor>();
         services.AddSingleton<IWebScraperService, WebScraperService>();
         services.AddSingleton<IWebImportService, WebImportService>();
         services.AddSingleton<IFeedService, FeedService>();
