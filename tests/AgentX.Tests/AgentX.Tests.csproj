@@ -70,5 +70,8 @@
     <!-- StatusBarService is pure (no WinUI deps) — uses IServiceProvider and Core services only. -->
     <Compile Include="..\..\src\AgentX.App\Services\IStatusBarService.cs" Link="Services\IStatusBarService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\StatusBarService.cs" Link="Services\StatusBarService.cs" />
+    <!-- UserGuideViewModel is pure (no WinUI deps) — only ObservableCollection and Models. -->
+    <Compile Include="..\..\src\AgentX.App\ViewModels\UserGuideViewModel.cs" Link="ViewModels\UserGuideViewModel.cs" />
+    <Compile Include="..\..\src\AgentX.App\Models\UserGuideSection.cs" Link="Models\UserGuideSection.cs" />
   </ItemGroup>
 </Project>
