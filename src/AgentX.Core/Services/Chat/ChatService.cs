@@ -21,6 +21,7 @@ public class ChatService : IChatService
     private readonly ISettingsService _settingsService;
     private readonly IContextWindowManager _contextWindowManager;
     private readonly IConversationMemoryService _memoryService;
+    private readonly ISemanticMemoryService? _semanticMemoryService;
     private readonly IModelRouterService? _modelRouterService;
     private readonly ILogger _log;
 
@@ -56,7 +57,8 @@ public class ChatService : IChatService
         IContextWindowManager contextWindowManager,
         IConversationMemoryService memoryService,
         ILogger logger,
-        IModelRouterService? modelRouterService = null)
+        IModelRouterService? modelRouterService = null,
+        ISemanticMemoryService? semanticMemoryService = null)
     {
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
         _conversationService = conversationService ?? throw new ArgumentNullException(nameof(conversationService));
@@ -66,6 +68,7 @@ public class ChatService : IChatService
         _log = logger?.ForContext<ChatService>()
                ?? throw new ArgumentNullException(nameof(logger));
         _modelRouterService = modelRouterService;
+        _semanticMemoryService = semanticMemoryService;
     }
 
     /// <inheritdoc />
@@ -115,10 +118,23 @@ public class ChatService : IChatService
             // 4. Get system prompt from conversation entity
             var systemPrompt = conversation.SystemPrompt;
 
-            // 4b. Enrich system prompt with user memories
+            // 4b. Enrich system prompt with user memories (semantic retrieval when available)
             try
             {
-                var memoryContext = await _memoryService.GetMemoryContextAsync(8, linkedCts.Token);
+                string memoryContext;
+                if (_semanticMemoryService is not null)
+                {
+                    // Use semantic memory retrieval with the user's message as query
+                    var relevantMemories = await _semanticMemoryService.RetrieveRelevantMemoriesAsync(
+                        userMessage, maxMemories: 8, minSimilarity: 0.65f, linkedCts.Token);
+                    memoryContext = FormatMemoriesAsContext(relevantMemories);
+                }
+                else
+                {
+                    // Fallback to simple importance-based retrieval
+                    memoryContext = await _memoryService.GetMemoryContextAsync(8, linkedCts.Token);
+                }
+
                 if (!string.IsNullOrEmpty(memoryContext))
                 {
                     systemPrompt = (systemPrompt ?? "") + memoryContext;
@@ -204,10 +220,20 @@ public class ChatService : IChatService
                     "Completed streaming response for conversation {ConversationId}: {TokenCount} tokens in {ElapsedMs:F0}ms",
                     conversationId, tokenCount, stopwatch.Elapsed.TotalMilliseconds);
 
-                // Extract memories from this conversation (non-blocking)
+                // Extract memories from this conversation (non-blocking, prefer semantic service)
                 _ = Task.Run(async () =>
                 {
-                    try { await _memoryService.ExtractMemoriesAsync(conversationId); }
+                    try
+                    {
+                        if (_semanticMemoryService is not null)
+                        {
+                            await _semanticMemoryService.ExtractMemoriesAsync(conversationId);
+                        }
+                        else
+                        {
+                            await _memoryService.ExtractMemoriesAsync(conversationId);
+                        }
+                    }
                     catch (Exception ex) { _log.Warning(ex, "Background memory extraction failed for conversation {ConversationId}", conversationId); }
                 });
             }
@@ -424,5 +450,43 @@ public class ChatService : IChatService
             _log.Warning(ex, "Failed to build chat options from settings, using defaults");
             return null;
         }
+    }
+
+    /// <summary>
+    /// Formats semantic memory results as a context block for system prompts.
+    /// </summary>
+    private static string FormatMemoriesAsContext(IReadOnlyList<Data.Entities.MemoryEntity> memories)
+    {
+        if (memories.Count == 0) return string.Empty;
+
+        var sb = new StringBuilder();
+        sb.AppendLine();
+        sb.AppendLine("[User Memory Context - Use these to personalize responses]");
+
+        foreach (var m in memories)
+        {
+            var label = m.Category switch
+            {
+                "user_preference" or "preference" => "Preference",
+                "user_instruction" or "instruction" => "Instruction",
+                "interaction_style" => "Interaction Style",
+                "communication_preference" => "Communication Preference",
+                "domain_expertise" => "Expertise",
+                "technical_preference" => "Technical Preference",
+                "project_context" => "Project Context",
+                "correction" => "Correction",
+                "affirmation" => "Affirmation",
+                "learning" => "Learning",
+                "requirement" => "Requirement",
+                "constraint" => "Constraint",
+                "user_topic" or "topic" => "Topic of Interest",
+                "episodic_event" => "Event",
+                "user_fact" or "fact" => "Known Fact",
+                _ => "Memory"
+            };
+            sb.AppendLine($"- {label}: {m.Content}");
+        }
+
+        return sb.ToString();
     }
 }

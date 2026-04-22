@@ -35,6 +35,46 @@ public class ChatMessage
     public string Role { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Tool calls made by the assistant in this message (for role="assistant").
+    /// </summary>
+    public List<ToolCall>? ToolCalls { get; set; }
+
+    /// <summary>
+    /// The ID of the tool call this message is responding to (for role="tool").
+    /// </summary>
+    public string? ToolCallId { get; set; }
+
+    /// <summary>
+    /// Creates a user message.
+    /// </summary>
+    public static ChatMessage User(string content) =>
+        new() { Role = "user", Content = content };
+
+    /// <summary>
+    /// Creates an assistant message.
+    /// </summary>
+    public static ChatMessage Assistant(string content) =>
+        new() { Role = "assistant", Content = content };
+
+    /// <summary>
+    /// Creates an assistant message with tool calls.
+    /// </summary>
+    public static ChatMessage AssistantWithTools(List<ToolCall> toolCalls) =>
+        new() { Role = "assistant", ToolCalls = toolCalls };
+
+    /// <summary>
+    /// Creates a system message.
+    /// </summary>
+    public static ChatMessage System(string content) =>
+        new() { Role = "system", Content = content };
+
+    /// <summary>
+    /// Creates a tool result message.
+    /// </summary>
+    public static ChatMessage ToolResult(string toolCallId, string content) =>
+        new() { Role = "tool", Content = content, ToolCallId = toolCallId };
 }
 
 public class HardwareCapability

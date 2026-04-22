@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml;
 using Serilog;
 using SQLitePCL;
 using AgentX.Core.AI;
+using AgentX.Core.AI.Agents;
 using AgentX.Core.AI.Models;
 using AgentX.Core.AI.Routing;
 using AgentX.Core.Data;
@@ -334,7 +335,15 @@ public partial class App : Application
         services.AddSingleton<IConversationService, ConversationService>();
         services.AddSingleton<ISystemPromptService, SystemPromptService>();
         services.AddSingleton<IConversationMemoryService, ConversationMemoryService>();
+        services.AddSingleton<ISemanticMemoryService, SemanticMemoryService>();
         services.AddSingleton<IChatService, ChatService>();
+
+        // ── Agent Orchestration (Phase 3) ───────────────────────
+        services.AddSingleton<IToolRegistry, ToolRegistry>();
+        services.AddSingleton<IReActAgent, ReActAgent>();
+        services.AddSingleton<IReflectionService, ReflectionService>();
+        services.AddSingleton<IReasoningService, ReasoningService>();
+        services.AddSingleton<IMultiAgentOrchestrator, MultiAgentOrchestrator>();
 
         // ── Chat Coordinators (orchestrate chat operations for ChatViewModel) ──
         services.AddSingleton<ViewModels.Coordinators.IConversationCoordinator,

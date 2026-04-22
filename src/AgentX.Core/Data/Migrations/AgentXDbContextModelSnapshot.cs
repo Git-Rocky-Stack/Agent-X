@@ -693,6 +693,19 @@ namespace AgentX.Core.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<double>("Confidence")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("REAL")
+                        .HasDefaultValue(0.8);
+
+                    b.Property<double>("DecayRate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("REAL")
+                        .HasDefaultValue(0.01);
+
+                    b.Property<string>("Embedding")
+                        .HasColumnType("TEXT");
+
                     b.Property<double>("Importance")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("REAL")
@@ -706,8 +719,14 @@ namespace AgentX.Core.Data.Migrations
                     b.Property<DateTime>("LastUsedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<long?>("LinkedMemoryId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<long?>("SourceConversationId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Tags")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("UsageCount")
                         .HasColumnType("INTEGER");
@@ -720,7 +739,23 @@ namespace AgentX.Core.Data.Migrations
 
                     b.HasIndex("IsActive");
 
+                    b.HasIndex("LastUsedAt");
+
+                    b.HasIndex("LinkedMemoryId");
+
+                    b.HasIndex("CreatedAt");
+
                     b.ToTable("memories", (string)null);
+                });
+
+            modelBuilder.Entity("AgentX.Core.Data.Entities.MemoryEntity", b =>
+                {
+                    b.HasOne("AgentX.Core.Data.Entities.MemoryEntity", "LinkedMemory")
+                        .WithMany()
+                        .HasForeignKey("LinkedMemoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("LinkedMemory");
                 });
 
             modelBuilder.Entity("AgentX.Core.Data.Entities.MessageEntity", b =>

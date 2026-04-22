@@ -466,10 +466,26 @@ public class AgentXDbContext : DbContext
             entity.Property(m => m.Importance).HasDefaultValue(0.5);
             entity.Property(m => m.IsActive).HasDefaultValue(true);
 
+            // Semantic Memory 2.0 properties
+            entity.Property(m => m.Embedding).IsRequired(false);
+            entity.Property(m => m.DecayRate).HasDefaultValue(0.01);
+            entity.Property(m => m.Confidence).HasDefaultValue(0.8);
+            entity.Property(m => m.Tags).IsRequired(false);
+
+            // Self-referencing relationship for associative memory links
+            entity.HasOne(m => m.LinkedMemory)
+                .WithMany()
+                .HasForeignKey(m => m.LinkedMemoryId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
             // Indexes for efficient querying
             entity.HasIndex(m => m.Category);
             entity.HasIndex(m => m.IsActive);
             entity.HasIndex(m => m.Importance);
+            entity.HasIndex(m => m.LinkedMemoryId);
+            entity.HasIndex(m => m.LastUsedAt);
+            entity.HasIndex(m => m.CreatedAt);
         });
     }
 

@@ -72,4 +72,23 @@ public class ChatOptions
     /// the model is constrained to produce valid JSON output.
     /// </summary>
     public ResponseFormat ResponseFormat { get; set; } = ResponseFormat.Text;
+
+    /// <summary>
+    /// Tools/functions that the model can call during inference.
+    /// When provided, the model may request tool calls instead of generating text directly.
+    /// </summary>
+    public IReadOnlyList<ToolDefinition>? Tools { get; set; }
+
+    /// <summary>
+    /// When true, the model must call one of the provided tools.
+    /// When false, the model may choose between generating text or calling a tool.
+    /// </summary>
+    public bool ForceToolCall { get; set; }
+
+    /// <summary>
+    /// Optional specific tool name that must be called.
+    /// When set, the model will only call this specific tool.
+    /// Requires <see cref="ForceToolCall"/> to be true.
+    /// </summary>
+    public string? ForceToolName { get; set; }
 }
