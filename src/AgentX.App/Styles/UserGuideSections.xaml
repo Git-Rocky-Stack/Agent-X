@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:selectors="using:AgentX.App.Selectors">
 
     <!--
     ╔══════════════════════════════════════════════════════════════════╗
@@ -15,5 +16,28 @@
         <ResourceDictionary Source="Styles/UserGuideSections.Features.xaml" />
         <ResourceDictionary Source="Styles/UserGuideSections.Advanced.xaml" />
     </ResourceDictionary.MergedDictionaries>
+
+    <!-- DataTemplateSelector for UserGuide sections -->
+    <selectors:UserGuideSectionSelector x:Key="SectionSelector"
+                                         WelcomeTemplate="{StaticResource WelcomeTemplate}"
+                                         GettingStartedTemplate="{StaticResource GettingStartedTemplate}"
+                                         DashboardTemplate="{StaticResource DashboardTemplate}"
+                                         AiChatTemplate="{StaticResource AiChatTemplate}"
+                                         AskYourFilesTemplate="{StaticResource AskYourFilesTemplate}"
+                                         QuickActionsTemplate="{StaticResource QuickActionsTemplate}"
+                                         KnowledgeVaultTemplate="{StaticResource KnowledgeVaultTemplate}"
+                                         CollectionsTemplate="{StaticResource CollectionsTemplate}"
+                                         KnowledgeGraphTemplate="{StaticResource KnowledgeGraphTemplate}"
+                                         WeeklyDigestTemplate="{StaticResource WeeklyDigestTemplate}"
+                                         SemanticSearchTemplate="{StaticResource SemanticSearchTemplate}"
+                                         ModelManagerTemplate="{StaticResource ModelManagerTemplate}"
+                                         HardwareAdvisorTemplate="{StaticResource HardwareAdvisorTemplate}"
+                                         SettingsTemplate="{StaticResource SettingsTemplate}"
+                                         KeyboardShortcutsTemplate="{StaticResource KeyboardShortcutsTemplate}"
+                                         CommandPaletteTemplate="{StaticResource CommandPaletteTemplate}"
+                                         SupportedFileFormatsTemplate="{StaticResource SupportedFileFormatsTemplate}"
+                                         TroubleshootingTemplate="{StaticResource TroubleshootingTemplate}"
+                                         PrivacyAndSecurityTemplate="{StaticResource PrivacyAndSecurityTemplate}"
+                                         GettingHelpTemplate="{StaticResource GettingHelpTemplate}" />
 
 </ResourceDictionary>

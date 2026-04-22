@@ -84,8 +84,8 @@
        ========================================================== -->
 
   <!-- UserGuide: Page Header -->
-  <data name="UserGuide_PageHeader.Title" xml:space="preserve"><value>User Guide</value></data>
-  <data name="UserGuide_PageHeader.Description" xml:space="preserve"><value>Everything you need to know to get the most out of Agent-X.</value></data>
+  <data name="UserGuide_PageHeaderTitle.Text" xml:space="preserve"><value>User Guide</value></data>
+  <data name="UserGuide_PageHeaderDescription.Text" xml:space="preserve"><value>Everything you need to know to get the most out of Agent-X.</value></data>
 
   <!-- UserGuide: Welcome (Row 1) -->
   <data name="UserGuide_Welcome_Title.Text" xml:space="preserve"><value>Welcome to Agent-X</value></data>
