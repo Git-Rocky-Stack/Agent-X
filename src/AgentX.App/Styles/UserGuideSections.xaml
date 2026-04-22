@@ -1,0 +1,19 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+    ╔══════════════════════════════════════════════════════════════════╗
+    ║              USER GUIDE SECTION DATATEMPLATES                    ║
+    ║                                                                  ║
+    ║  DataTemplates for UserGuidePage sections. Each section is      ║
+    ║  extracted into a reusable template with x:Uid localization.    ║
+    ╚══════════════════════════════════════════════════════════════════╝
+    -->
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Styles/UserGuideSections.Core.xaml" />
+        <ResourceDictionary Source="Styles/UserGuideSections.Features.xaml" />
+        <ResourceDictionary Source="Styles/UserGuideSections.Advanced.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+</ResourceDictionary>

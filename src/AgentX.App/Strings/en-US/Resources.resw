@@ -78,4 +78,269 @@
   <!-- Sync -->
   <data name="Encryption_SectionHeader.Text" xml:space="preserve"><value>Database Encryption</value></data>
   <data name="Encryption_Description.Text" xml:space="preserve"><value>Encrypt your knowledge vault with AES-256 (SQLCipher). Ultimate tier uses a passphrase you enter on each launch; other tiers use an automatic key tied to your Windows account.</value></data>
+
+  <!-- ==========================================================
+       USER GUIDE LOCALIZATION
+       ========================================================== -->
+
+  <!-- UserGuide: Page Header -->
+  <data name="UserGuide_PageHeader.Title" xml:space="preserve"><value>User Guide</value></data>
+  <data name="UserGuide_PageHeader.Description" xml:space="preserve"><value>Everything you need to know to get the most out of Agent-X.</value></data>
+
+  <!-- UserGuide: Welcome (Row 1) -->
+  <data name="UserGuide_Welcome_Title.Text" xml:space="preserve"><value>Welcome to Agent-X</value></data>
+  <data name="UserGuide_Welcome_Description1.Text" xml:space="preserve"><value>Agent-X is your local-first AI personal intelligence hub. All processing happens on your machine — your data never leaves your device.</value></data>
+  <data name="UserGuide_Welcome_Description2.Text" xml:space="preserve"><value>Agent-X supports multiple AI providers: Ollama for local inference with open-source models, and optional cloud providers including OpenAI and Anthropic Claude for users who want access to frontier models. Chat with AI models, ask questions about your own documents using Retrieval-Augmented Generation (RAG), manage a local knowledge vault, run pre-built AI actions, and search your files using semantic vector search — all with a local-first architecture that keeps your data on your device.</value></data>
+  <data name="UserGuide_Welcome_Description3.Text" xml:space="preserve"><value>This guide covers every feature in detail so you can unlock the full power of your local AI setup.</value></data>
+
+  <!-- UserGuide: Getting Started (Row 2) -->
+  <data name="UserGuide_GettingStarted_Title.Text" xml:space="preserve"><value>Getting Started</value></data>
+  <data name="UserGuide_GettingStarted_Prerequisites_Title.Text" xml:space="preserve"><value>Prerequisites</value></data>
+  <data name="UserGuide_GettingStarted_Prereq1.Text" xml:space="preserve"><value>Install Ollama — Download and install Ollama from ollama.com. Ollama is the local AI runtime that powers all inference in Agent-X.</value></data>
+  <data name="UserGuide_GettingStarted_Prereq2_Title.Text" xml:space="preserve"><value>Pull at least one model — Open a terminal and run</value></data>
+  <data name="UserGuide_GettingStarted_Prereq2_Description.Text" xml:space="preserve"><value>This downloads a chat model. For document embeddings, also pull an embedding model:</value></data>
+  <data name="UserGuide_GettingStarted_Prereq3_Title.Text" xml:space="preserve"><value>Ensure Ollama is running — Ollama must be actively serving before launching Agent-X. You can verify by running</value></data>
+  <data name="UserGuide_GettingStarted_FirstLaunch_Title.Text" xml:space="preserve"><value>First Launch &amp; Onboarding</value></data>
+  <data name="UserGuide_GettingStarted_FirstLaunch_Description.Text" xml:space="preserve"><value>When you first open Agent-X, the onboarding wizard will guide you through initial setup. It will automatically detect your Ollama installation, verify the connection, help you select default chat and embedding models, and optionally import your first documents into the Knowledge Vault.</value></data>
+  <data name="UserGuide_GettingStarted_FirstLaunch_Tip.Text" xml:space="preserve"><value>You can re-run the setup at any time from the Dashboard using the Setup AI button.</value></data>
+
+  <!-- UserGuide: Dashboard (Row 3) -->
+  <data name="UserGuide_Dashboard_Title.Text" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="UserGuide_Dashboard_Description.Text" xml:space="preserve"><value>The Dashboard is your home base in Agent-X. It provides a high-level overview of your entire system at a glance.</value></data>
+  <data name="UserGuide_Dashboard_Features_Title.Text" xml:space="preserve"><value>What you will find on the Dashboard:</value></data>
+  <data name="UserGuide_Dashboard_Feature1.Text" xml:space="preserve"><value>System Status Cards — Live indicators showing whether Ollama is connected, your active chat and embedding models, and total indexed documents.</value></data>
+  <data name="UserGuide_Dashboard_Feature2.Text" xml:space="preserve"><value>Document Statistics — Total documents imported, total chunks indexed, and storage usage metrics for your Knowledge Vault.</value></data>
+  <data name="UserGuide_Dashboard_Feature3.Text" xml:space="preserve"><value>Recent Activity — A timeline of your latest actions: recent chats, document imports, search queries, and quick action results.</value></data>
+  <data name="UserGuide_Dashboard_Feature4.Text" xml:space="preserve"><value>AI Connection Status — A real-time health check showing Ollama connectivity, the loaded model, and response latency.</value></data>
+  <data name="UserGuide_Dashboard_QuickActions_Title.Text" xml:space="preserve"><value>Quick-Action Buttons</value></data>
+  <data name="UserGuide_Dashboard_QuickActions_Description.Text" xml:space="preserve"><value>The Dashboard features four prominent quick-action buttons for the most common workflows:</value></data>
+  <data name="UserGuide_Dashboard_QuickAction1_Title.Text" xml:space="preserve"><value>Setup AI</value></data>
+  <data name="UserGuide_Dashboard_QuickAction1_Description.Text" xml:space="preserve"><value>Re-run the onboarding wizard to reconfigure Ollama and models.</value></data>
+  <data name="UserGuide_Dashboard_QuickAction2_Title.Text" xml:space="preserve"><value>Import Documents</value></data>
+  <data name="UserGuide_Dashboard_QuickAction2_Description.Text" xml:space="preserve"><value>Add files to your Knowledge Vault for AI-powered analysis.</value></data>
+  <data name="UserGuide_Dashboard_QuickAction3_Title.Text" xml:space="preserve"><value>Start Chat</value></data>
+  <data name="UserGuide_Dashboard_QuickAction3_Description.Text" xml:space="preserve"><value>Open a new AI conversation with your selected model.</value></data>
+  <data name="UserGuide_Dashboard_QuickAction4_Title.Text" xml:space="preserve"><value>Semantic Search</value></data>
+  <data name="UserGuide_Dashboard_QuickAction4_Description.Text" xml:space="preserve"><value>Search your documents by meaning, not just keywords.</value></data>
+
+  <!-- UserGuide: AI Chat (Row 4) -->
+  <data name="UserGuide_AiChat_Title.Text" xml:space="preserve"><value>AI Chat</value></data>
+  <data name="UserGuide_AiChat_Description.Text" xml:space="preserve"><value>The AI Chat page lets you have natural language conversations with locally-running open-source language models. It functions like a private, offline version of ChatGPT.</value></data>
+  <data name="UserGuide_AiChat_Using_Title.Text" xml:space="preserve"><value>Using AI Chat</value></data>
+  <data name="UserGuide_AiChat_Step1.Text" xml:space="preserve"><value>Select a model — Choose from your installed Ollama models using the model selector dropdown at the top of the chat. Different models have different capabilities and sizes.</value></data>
+  <data name="UserGuide_AiChat_Step2.Text" xml:space="preserve"><value>Type your message — Enter your prompt in the input field at the bottom. Press Enter to send, or Shift+Enter for a new line.</value></data>
+  <data name="UserGuide_AiChat_Step3.Text" xml:space="preserve"><value>Watch the response stream — Responses stream in token-by-token in real time, rendered with full Markdown formatting including headings, lists, code blocks, and inline code.</value></data>
+  <data name="UserGuide_AiChat_Conversation_Title.Text" xml:space="preserve"><value>Conversation Management</value></data>
+  <data name="UserGuide_AiChat_Conversation1.Text" xml:space="preserve"><value>Conversations are automatically saved to a local SQLite database on your device. You can return to any previous conversation from the sidebar history.</value></data>
+  <data name="UserGuide_AiChat_Conversation2.Text" xml:space="preserve"><value>Use Ctrl+N to start a new chat at any time. Each conversation maintains its own context window, so the AI remembers what was discussed within the same session.</value></data>
+  <data name="UserGuide_AiChat_Conversation3.Text" xml:space="preserve"><value>You can delete individual conversations or clear your entire chat history from the conversation sidebar.</value></data>
+  <data name="UserGuide_AiChat_Advanced_Title.Text" xml:space="preserve"><value>Advanced Chat Features</value></data>
+  <data name="UserGuide_AiChat_Advanced1.Text" xml:space="preserve"><value>Conversation Export — Export chat conversations to text or markdown files for archiving, sharing, or reference outside of Agent-X.</value></data>
+  <data name="UserGuide_AiChat_Advanced2.Text" xml:space="preserve"><value>Rich Code Rendering — Code blocks are rendered with syntax highlighting and include a copy-to-clipboard button for easy code extraction from AI responses.</value></data>
+  <data name="UserGuide_AiChat_Advanced3.Text" xml:space="preserve"><value>Conversation Memory — The AI remembers key facts across conversations, including people, projects, preferences, decisions, and technical notes, building a persistent understanding of your context over time.</value></data>
+  <data name="UserGuide_AiChat_Advanced4.Text" xml:space="preserve"><value>Suggested Questions — After each AI response, suggested follow-up questions are generated to help you explore topics more deeply and discover related areas of inquiry.</value></data>
+
+  <!-- UserGuide: Ask Your Files (Row 5) -->
+  <data name="UserGuide_AskYourFiles_Title.Text" xml:space="preserve"><value>Ask Your Files (RAG)</value></data>
+  <data name="UserGuide_AskYourFiles_Description.Text" xml:space="preserve"><value>Retrieval-Augmented Generation (RAG) is the core intelligence feature of Agent-X. It allows you to ask natural language questions about your own documents and receive AI-generated answers grounded in your actual data.</value></data>
+  <data name="UserGuide_AskYourFiles_HowItWorks_Title.Text" xml:space="preserve"><value>How It Works</value></data>
+  <data name="UserGuide_AskYourFiles_Step1.Text" xml:space="preserve"><value>Select documents — Choose one or more documents from your Knowledge Vault to query against. You can select individual files or entire collections.</value></data>
+  <data name="UserGuide_AskYourFiles_Step2.Text" xml:space="preserve"><value>Ask a question — Type a natural language question about the content of your selected documents.</value></data>
+  <data name="UserGuide_AskYourFiles_Step3.Text" xml:space="preserve"><value>Semantic retrieval — Agent-X converts your question into a vector embedding, then searches the indexed chunks of your documents for the most semantically relevant passages.</value></data>
+  <data name="UserGuide_AskYourFiles_Step4.Text" xml:space="preserve"><value>AI-generated answer — The retrieved passages are fed to the chat model as context, and the AI generates a comprehensive answer with citations referencing the source document and chunk.</value></data>
+  <data name="UserGuide_AskYourFiles_Citations_Title.Text" xml:space="preserve"><value>The Citation System</value></data>
+  <data name="UserGuide_AskYourFiles_Citations_Description.Text" xml:space="preserve"><value>Every RAG answer includes numbered citations that map directly to the source chunks used to generate the response. Each citation shows the document name, page or chunk number, and a preview of the retrieved passage. You can click any citation to view the full context of that source passage.</value></data>
+
+  <!-- UserGuide: Quick Actions (Row 6) -->
+  <data name="UserGuide_QuickActions_Title.Text" xml:space="preserve"><value>Quick Actions</value></data>
+  <data name="UserGuide_QuickActions_Description.Text" xml:space="preserve"><value>Quick Actions are pre-built AI workflows that perform common document intelligence tasks with a single click. Select one or more documents, choose an action, and Agent-X handles the rest.</value></data>
+  <data name="UserGuide_QuickActions_Available_Title.Text" xml:space="preserve"><value>Available Actions</value></data>
+  <data name="UserGuide_QuickActions_Action1_Title.Text" xml:space="preserve"><value>Summarize</value></data>
+  <data name="UserGuide_QuickActions_Action1_Description.Text" xml:space="preserve"><value>Generate a concise summary of the selected document, capturing the key themes, arguments, and conclusions.</value></data>
+  <data name="UserGuide_QuickActions_Action2_Title.Text" xml:space="preserve"><value>Extract Key Points</value></data>
+  <data name="UserGuide_QuickActions_Action2_Description.Text" xml:space="preserve"><value>Pull out the most important facts, figures, arguments, and takeaways as structured bullet points.</value></data>
+  <data name="UserGuide_QuickActions_Action3_Title.Text" xml:space="preserve"><value>Translate</value></data>
+  <data name="UserGuide_QuickActions_Action3_Description.Text" xml:space="preserve"><value>Translate the document content into another language while preserving meaning and formatting.</value></data>
+  <data name="UserGuide_QuickActions_Action4_Title.Text" xml:space="preserve"><value>Rewrite</value></data>
+  <data name="UserGuide_QuickActions_Action4_Description.Text" xml:space="preserve"><value>Rewrite the document content in a different tone, style, or complexity level — simplify, formalize, or make it more concise.</value></data>
+  <data name="UserGuide_QuickActions_Action5_Title.Text" xml:space="preserve"><value>Explain</value></data>
+  <data name="UserGuide_QuickActions_Action5_Description.Text" xml:space="preserve"><value>Get a clear, detailed explanation of complex topics, technical jargon, or dense material within the document.</value></data>
+  <data name="UserGuide_QuickActions_Action6_Title.Text" xml:space="preserve"><value>Q&amp;A Generation</value></data>
+  <data name="UserGuide_QuickActions_Action6_Description.Text" xml:space="preserve"><value>Automatically generate question-and-answer pairs from the document — ideal for study guides, quizzes, or knowledge checks.</value></data>
+  <data name="UserGuide_QuickActions_Usage.Text" xml:space="preserve"><value>To use a Quick Action, navigate to the Quick Actions page, select one or more documents from your Knowledge Vault, choose the desired action tab, and click Run. The output appears in the results panel and can be copied to the clipboard.</value></data>
+
+  <!-- UserGuide: Knowledge Vault (Row 7) -->
+  <data name="UserGuide_KnowledgeVault_Title.Text" xml:space="preserve"><value>Knowledge Vault</value></data>
+  <data name="UserGuide_KnowledgeVault_Description.Text" xml:space="preserve"><value>The Knowledge Vault is your centralized document repository. All files imported into Agent-X are stored, indexed, and made searchable through the Knowledge Vault.</value></data>
+  <data name="UserGuide_KnowledgeVault_Importing_Title.Text" xml:space="preserve"><value>Importing Documents</value></data>
+  <data name="UserGuide_KnowledgeVault_Importing_Description.Text" xml:space="preserve"><value>There are three ways to add documents to your Knowledge Vault:</value></data>
+  <data name="UserGuide_KnowledgeVault_Import1.Text" xml:space="preserve"><value>Drag and drop — Drag files or folders directly onto the Knowledge Vault page. Agent-X will import all supported file types.</value></data>
+  <data name="UserGuide_KnowledgeVault_Import2.Text" xml:space="preserve"><value>File picker — Click the Import button and select individual files from the system file picker dialog.</value></data>
+  <data name="UserGuide_KnowledgeVault_Import3.Text" xml:space="preserve"><value>Folder import — Select an entire folder to recursively import all supported files. Subfolders are scanned automatically.</value></data>
+  <data name="UserGuide_KnowledgeVault_Managing_Title.Text" xml:space="preserve"><value>Managing Documents</value></data>
+  <data name="UserGuide_KnowledgeVault_Managing_Description.Text" xml:space="preserve"><value>Each document in the vault shows its file name, format, size, import date, chunk count, and indexing status. You can:</value></data>
+  <data name="UserGuide_KnowledgeVault_Manage1.Text" xml:space="preserve"><value>View document details including full text preview, metadata, and chunk breakdown.</value></data>
+  <data name="UserGuide_KnowledgeVault_Manage2.Text" xml:space="preserve"><value>Re-index a document if you change embedding models or chunking settings.</value></data>
+  <data name="UserGuide_KnowledgeVault_Manage3.Text" xml:space="preserve"><value>Delete documents you no longer need. This removes the file and all associated embeddings from the local database.</value></data>
+  <data name="UserGuide_KnowledgeVault_Advanced_Title.Text" xml:space="preserve"><value>Advanced Features</value></data>
+  <data name="UserGuide_KnowledgeVault_Advanced1.Text" xml:space="preserve"><value>Auto-Tagging — AI automatically generates semantic tags when documents are imported, categorizing content by topic, domain, and key concepts without manual effort.</value></data>
+  <data name="UserGuide_KnowledgeVault_Advanced2.Text" xml:space="preserve"><value>Duplicate Detection — Smart duplicate and near-duplicate detection during import using content hashing and cosine similarity, preventing redundant documents from cluttering your vault.</value></data>
+  <data name="UserGuide_KnowledgeVault_Advanced3.Text" xml:space="preserve"><value>Batch Operations — Select multiple documents for bulk operations including delete, re-index, or tag assignment, saving time when managing large document collections.</value></data>
+  <data name="UserGuide_KnowledgeVault_Advanced4.Text" xml:space="preserve"><value>Advanced Filtering — Filter documents by collection, date range, and sort by name, date, size, or file type to quickly locate specific files in your vault.</value></data>
+  <data name="UserGuide_KnowledgeVault_Advanced5.Text" xml:space="preserve"><value>Document Preview Panel — A side panel showing document details, tags, chunks, and metadata at a glance without navigating away from the document list.</value></data>
+  <data name="UserGuide_KnowledgeVault_Advanced6.Text" xml:space="preserve"><value>AI-Generated Titles — Generate descriptive, meaningful titles for documents using AI analysis of their content, replacing generic file names with informative labels.</value></data>
+
+  <!-- UserGuide: Collections (Row 8) -->
+  <data name="UserGuide_Collections_Title.Text" xml:space="preserve"><value>Collections</value></data>
+  <data name="UserGuide_Collections_Description.Text" xml:space="preserve"><value>Collections let you organize your documents into logical groups. Think of them as folders or tags for your Knowledge Vault — a single document can belong to multiple collections.</value></data>
+  <data name="UserGuide_Collections_Working_Title.Text" xml:space="preserve"><value>Working with Collections</value></data>
+  <data name="UserGuide_Collections_Working1.Text" xml:space="preserve"><value>Creating collections — Navigate to the Collections page and click New Collection. Give it a descriptive name and optional description.</value></data>
+  <data name="UserGuide_Collections_Working2.Text" xml:space="preserve"><value>Adding documents — Open a collection and use the Add Documents button to select files from your Knowledge Vault. Documents can belong to multiple collections simultaneously.</value></data>
+  <data name="UserGuide_Collections_Working3.Text" xml:space="preserve"><value>Collection-scoped search — When using Semantic Search or Ask Your Files, you can scope your query to a specific collection to narrow results to only the relevant documents.</value></data>
+  <data name="UserGuide_Collections_Working4.Text" xml:space="preserve"><value>Managing collections — Rename, edit descriptions, remove documents, or delete entire collections. Deleting a collection does not delete the documents themselves — only the grouping.</value></data>
+
+  <!-- UserGuide: Knowledge Graph (Row 9) -->
+  <data name="UserGuide_KnowledgeGraph_Title.Text" xml:space="preserve"><value>Knowledge Graph</value></data>
+  <data name="UserGuide_KnowledgeGraph_Description.Text" xml:space="preserve"><value>The Knowledge Graph provides an interactive, force-directed graph visualization showing the relationships between your documents, collections, and tags. It transforms your Knowledge Vault into a visual network you can explore.</value></data>
+  <data name="UserGuide_KnowledgeGraph_Elements_Title.Text" xml:space="preserve"><value>Graph Elements</value></data>
+  <data name="UserGuide_KnowledgeGraph_Element1.Text" xml:space="preserve"><value>Document Nodes — Represented as blue circles, each document in your vault appears as a node in the graph, sized proportionally to its content volume.</value></data>
+  <data name="UserGuide_KnowledgeGraph_Element2.Text" xml:space="preserve"><value>Collection Nodes — Represented as purple circles, collections act as hub nodes connecting all their member documents visually.</value></data>
+  <data name="UserGuide_KnowledgeGraph_Element3.Text" xml:space="preserve"><value>Tag Nodes — Represented as amber circles, tags show semantic connections between documents that share common topics or themes.</value></data>
+  <data name="UserGuide_KnowledgeGraph_Element4.Text" xml:space="preserve"><value>Edge Connections — Lines between nodes represent relationships such as collection membership and tag associations, revealing how your documents are interconnected.</value></data>
+  <data name="UserGuide_KnowledgeGraph_Interaction_Title.Text" xml:space="preserve"><value>Interaction</value></data>
+  <data name="UserGuide_KnowledgeGraph_Interaction1.Text" xml:space="preserve"><value>Click to Navigate — Click any document or collection node to navigate directly to that item, seamlessly bridging visual exploration and detailed content access.</value></data>
+  <data name="UserGuide_KnowledgeGraph_Interaction2.Text" xml:space="preserve"><value>Zoom and Pan — Use mouse wheel to zoom in and out, and click-drag on the background to pan across the graph. Navigate large knowledge bases with ease.</value></data>
+  <data name="UserGuide_KnowledgeGraph_Interaction3.Text" xml:space="preserve"><value>Physics Simulation — The graph uses a force-directed layout algorithm that naturally positions related nodes closer together, making clusters and relationships visually intuitive.</value></data>
+
+  <!-- UserGuide: Weekly Digest (Row 10) -->
+  <data name="UserGuide_WeeklyDigest_Title.Text" xml:space="preserve"><value>Weekly Digest</value></data>
+  <data name="UserGuide_WeeklyDigest_Description.Text" xml:space="preserve"><value>The Weekly Digest generates AI-powered activity reports that summarize your usage of Agent-X over a configurable reporting period, giving you insights into your knowledge management workflow.</value></data>
+  <data name="UserGuide_WeeklyDigest_Features_Title.Text" xml:space="preserve"><value>Digest Features</value></data>
+  <data name="UserGuide_WeeklyDigest_Feature1.Text" xml:space="preserve"><value>AI-Generated Reports — Comprehensive weekly activity reports generated by AI that synthesize your usage patterns into clear, readable summaries.</value></data>
+  <data name="UserGuide_WeeklyDigest_Feature2.Text" xml:space="preserve"><value>Activity Summary — Tracks and summarizes document imports, chat conversations, and search activity over the reporting period, giving you a complete picture of your workflow.</value></data>
+  <data name="UserGuide_WeeklyDigest_Feature3.Text" xml:space="preserve"><value>Configurable Period — Adjust the reporting period to match your preferred cadence, whether you want daily snapshots, weekly overviews, or longer-range summaries.</value></data>
+  <data name="UserGuide_WeeklyDigest_Feature4.Text" xml:space="preserve"><value>Export Reports — Export digest reports for record-keeping, sharing with team members, or integrating with your existing productivity workflows.</value></data>
+  <data name="UserGuide_WeeklyDigest_Feature5.Text" xml:space="preserve"><value>Automatic Insights — AI analyzes your usage patterns to surface trends, highlight frequently accessed topics, and suggest areas where your knowledge base could be expanded.</value></data>
+
+  <!-- UserGuide: Semantic Search (Row 11) -->
+  <data name="UserGuide_SemanticSearch_Title.Text" xml:space="preserve"><value>Semantic Search</value></data>
+  <data name="UserGuide_SemanticSearch_Description.Text" xml:space="preserve"><value>Semantic Search goes beyond traditional keyword matching. Instead of searching for exact words, it understands the meaning behind your query and finds passages with similar concepts — even if they use completely different vocabulary.</value></data>
+  <data name="UserGuide_SemanticSearch_HowItWorks_Title.Text" xml:space="preserve"><value>How Vector Search Works</value></data>
+  <data name="UserGuide_SemanticSearch_HowItWorks_Description.Text" xml:space="preserve"><value>When you import a document, Agent-X splits it into chunks and converts each chunk into a high-dimensional vector embedding using your selected embedding model. When you search, your query is also converted into an embedding, and the system finds the chunks whose embeddings are most similar using cosine similarity scoring.</value></data>
+  <data name="UserGuide_SemanticSearch_Using_Title.Text" xml:space="preserve"><value>Using Semantic Search</value></data>
+  <data name="UserGuide_SemanticSearch_Using1.Text" xml:space="preserve"><value>Natural language queries — Type your question or topic naturally, such as "How does the authentication system work?" or "Annual revenue figures for 2024."</value></data>
+  <data name="UserGuide_SemanticSearch_Using2.Text" xml:space="preserve"><value>Similarity scoring — Each result displays a relevance score from 0 to 1, indicating how closely the passage matches your query semantically.</value></data>
+  <data name="UserGuide_SemanticSearch_Using3.Text" xml:space="preserve"><value>Filtering — Narrow results by collection, tag, or file type to focus on the most relevant subset of your Knowledge Vault.</value></data>
+  <data name="UserGuide_SemanticSearch_Using4.Text" xml:space="preserve"><value>Result previews — Each search result shows a text snippet with the matching passage highlighted, along with the source document name and chunk location.</value></data>
+  <data name="UserGuide_SemanticSearch_Using5.Text" xml:space="preserve"><value>Hybrid Search — Three search modes are available: Semantic (vector-based similarity), Keyword (FTS5 full-text search), and Hybrid which combines both using Reciprocal Rank Fusion (k=60) for the most comprehensive results.</value></data>
+  <data name="UserGuide_SemanticSearch_Using6.Text" xml:space="preserve"><value>Search History — Your search queries are saved in a persistent search history that persists across sessions, allowing you to quickly re-run previous searches or review your research trail.</value></data>
+
+  <!-- UserGuide: Model Manager (Row 12) -->
+  <data name="UserGuide_ModelManager_Title.Text" xml:space="preserve"><value>Model Manager</value></data>
+  <data name="UserGuide_ModelManager_Description.Text" xml:space="preserve"><value>The Model Manager provides a visual interface for managing all Ollama models installed on your system. You can browse, download, inspect, and remove models without using the command line.</value></data>
+  <data name="UserGuide_ModelManager_Capabilities_Title.Text" xml:space="preserve"><value>Capabilities</value></data>
+  <data name="UserGuide_ModelManager_Capability1.Text" xml:space="preserve"><value>View installed models — See all models currently available on your system with their name, size, parameter count, and quantization level (e.g., Q4_0, Q5_K_M).</value></data>
+  <data name="UserGuide_ModelManager_Capability2.Text" xml:space="preserve"><value>Model details — Click any model to see detailed information: family, format, parameter size, quantization type, context window, license, and system prompt template.</value></data>
+  <data name="UserGuide_ModelManager_Capability3.Text" xml:space="preserve"><value>Pull new models — Enter a model name (e.g., mistral, codellama, phi3) and click Pull to download it directly. A real-time progress bar tracks the download.</value></data>
+  <data name="UserGuide_ModelManager_Capability4.Text" xml:space="preserve"><value>Delete models — Remove models you no longer need to free up disk space. Agent-X will confirm before deletion.</value></data>
+  <data name="UserGuide_ModelManager_Capability5.Text" xml:space="preserve"><value>Set default models — Assign a default chat model and a default embedding model. These are used as the system-wide defaults in Chat, RAG, and Quick Actions.</value></data>
+
+  <!-- UserGuide: Hardware Advisor (Row 13) -->
+  <data name="UserGuide_HardwareAdvisor_Title.Text" xml:space="preserve"><value>Hardware Advisor</value></data>
+  <data name="UserGuide_HardwareAdvisor_Description.Text" xml:space="preserve"><value>The Hardware Advisor scans your system to determine your AI capabilities and recommends the best models for your specific hardware configuration.</value></data>
+  <data name="UserGuide_HardwareAdvisor_Detects_Title.Text" xml:space="preserve"><value>What It Detects</value></data>
+  <data name="UserGuide_HardwareAdvisor_Detect1.Text" xml:space="preserve"><value>GPU detection — Identifies your graphics card(s), whether NVIDIA (CUDA), AMD (ROCm), or Intel (oneAPI), and reports the GPU model name.</value></data>
+  <data name="UserGuide_HardwareAdvisor_Detect2.Text" xml:space="preserve"><value>VRAM analysis — Reports total and available video memory, which directly determines the maximum model size you can run.</value></data>
+  <data name="UserGuide_HardwareAdvisor_Detect3.Text" xml:space="preserve"><value>Recommended model sizes — Based on your available VRAM and system RAM, the advisor suggests which model sizes (3B, 7B, 13B, 30B, 70B) will run well on your machine.</value></data>
+  <data name="UserGuide_HardwareAdvisor_Detect4.Text" xml:space="preserve"><value>Performance tips — Actionable recommendations for maximizing inference speed, such as using quantized models, reducing context length, or offloading layers to GPU.</value></data>
+
+  <!-- UserGuide: Settings (Row 14) -->
+  <data name="UserGuide_Settings_Title.Text" xml:space="preserve"><value>Settings</value></data>
+  <data name="UserGuide_Settings_Description.Text" xml:space="preserve"><value>The Settings page gives you fine-grained control over every aspect of Agent-X. All settings are persisted locally.</value></data>
+  <data name="UserGuide_Settings_Group1_Title.Text" xml:space="preserve"><value>AI Provider</value></data>
+  <data name="UserGuide_Settings_Group1_Description.Text" xml:space="preserve"><value>Multi-provider configuration: Ollama endpoint URL (default: http://localhost:11434), OpenAI API key and model selection, Anthropic Claude API key and model selection. Per-provider settings and API key management.</value></data>
+  <data name="UserGuide_Settings_Group2_Title.Text" xml:space="preserve"><value>Inference</value></data>
+  <data name="UserGuide_Settings_Group2_Description.Text" xml:space="preserve"><value>Temperature (creativity), max tokens (response length), and context window size for conversation memory.</value></data>
+  <data name="UserGuide_Settings_Group3_Title.Text" xml:space="preserve"><value>Knowledge Vault</value></data>
+  <data name="UserGuide_Settings_Group3_Description.Text" xml:space="preserve"><value>Chunk size, chunk overlap, and top-K results for retrieval. Controls how documents are split and how many chunks are retrieved per query.</value></data>
+  <data name="UserGuide_Settings_Group4_Title.Text" xml:space="preserve"><value>License</value></data>
+  <data name="UserGuide_Settings_Group4_Description.Text" xml:space="preserve"><value>View your license tier, activate a license key, check document limits, and manage your subscription status.</value></data>
+  <data name="UserGuide_Settings_Group5_Title.Text" xml:space="preserve"><value>Cost Tracking</value></data>
+  <data name="UserGuide_Settings_Group5_Description.Text" xml:space="preserve"><value>Monitor and track cloud API usage costs for OpenAI and Anthropic providers. View per-session and cumulative spending with detailed breakdowns.</value></data>
+  <data name="UserGuide_Settings_Shortcut.Text" xml:space="preserve"><value>Use Ctrl+, to quickly jump to Settings from anywhere in the app.</value></data>
+
+  <!-- UserGuide: Keyboard Shortcuts (Row 15) -->
+  <data name="UserGuide_KeyboardShortcuts_Title.Text" xml:space="preserve"><value>Keyboard Shortcuts</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Description.Text" xml:space="preserve"><value>Agent-X supports keyboard shortcuts for rapid navigation and common actions. Master these to dramatically speed up your workflow.</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Table_Shortcut.Text" xml:space="preserve"><value>SHORTCUT</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Table_Action.Text" xml:space="preserve"><value>ACTION</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action1.Text" xml:space="preserve"><value>Open Command Palette</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action2.Text" xml:space="preserve"><value>New Chat</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action3.Text" xml:space="preserve"><value>Knowledge Vault</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action4.Text" xml:space="preserve"><value>Semantic Search</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action5.Text" xml:space="preserve"><value>Search (alternate)</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action6.Text" xml:space="preserve"><value>Settings</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action7.Text" xml:space="preserve"><value>Close Command Palette</value></data>
+
+  <!-- UserGuide: Command Palette (Row 16) -->
+  <data name="UserGuide_CommandPalette_Title.Text" xml:space="preserve"><value>Command Palette</value></data>
+  <data name="UserGuide_CommandPalette_Description.Text" xml:space="preserve"><value>The Command Palette is the fastest way to navigate Agent-X. Inspired by VS Code and Spotlight, it provides instant access to every page and action through a single search interface.</value></data>
+  <data name="UserGuide_CommandPalette_HowToUse_Title.Text" xml:space="preserve"><value>How to Use</value></data>
+  <data name="UserGuide_CommandPalette_Step1.Text" xml:space="preserve"><value>Press Ctrl+K from anywhere in the app to open the Command Palette overlay.</value></data>
+  <data name="UserGuide_CommandPalette_Step2.Text" xml:space="preserve"><value>Start typing to filter available pages and actions. Results update instantly as you type.</value></data>
+  <data name="UserGuide_CommandPalette_Step3.Text" xml:space="preserve"><value>Use the arrow keys to navigate through results, then press Enter to go to the selected page. Press Escape to close the palette without navigating.</value></data>
+  <data name="UserGuide_CommandPalette_Coverage.Text" xml:space="preserve"><value>The Command Palette searches across all pages including Dashboard, Chat, Knowledge Vault, Search, Collections, Quick Actions, Model Manager, Hardware Advisor, Settings, and this User Guide.</value></data>
+
+  <!-- UserGuide: Supported File Formats (Row 17) -->
+  <data name="UserGuide_FileFormats_Title.Text" xml:space="preserve"><value>Supported File Formats</value></data>
+  <data name="UserGuide_FileFormats_Description.Text" xml:space="preserve"><value>Agent-X can ingest a wide variety of file formats into the Knowledge Vault. Each format has a specialized parser that extracts text content optimally.</value></data>
+  <data name="UserGuide_FileFormats_Table_Format.Text" xml:space="preserve"><value>FORMAT</value></data>
+  <data name="UserGuide_FileFormats_Table_Extension.Text" xml:space="preserve"><value>EXTENSION</value></data>
+  <data name="UserGuide_FileFormats_Table_Extraction.Text" xml:space="preserve"><value>EXTRACTION METHOD</value></data>
+  <data name="UserGuide_FileFormats_PDF.Text" xml:space="preserve"><value>PDF</value></data>
+  <data name="UserGuide_FileFormats_PDF_Extraction.Text" xml:space="preserve"><value>Full text extraction with page tracking and structural analysis.</value></data>
+  <data name="UserGuide_FileFormats_Word.Text" xml:space="preserve"><value>Word Document</value></data>
+  <data name="UserGuide_FileFormats_Word_Extraction.Text" xml:space="preserve"><value>Paragraph and table extraction with formatting preservation.</value></data>
+  <data name="UserGuide_FileFormats_Text.Text" xml:space="preserve"><value>Plain Text</value></data>
+  <data name="UserGuide_FileFormats_Text_Extraction.Text" xml:space="preserve"><value>Direct text ingestion with line-break aware chunking.</value></data>
+  <data name="UserGuide_FileFormats_Markdown.Text" xml:space="preserve"><value>Markdown</value></data>
+  <data name="UserGuide_FileFormats_Markdown_Extraction.Text" xml:space="preserve"><value>Parsed with heading-level structure preservation and section awareness.</value></data>
+  <data name="UserGuide_FileFormats_Code.Text" xml:space="preserve"><value>Code Files</value></data>
+  <data name="UserGuide_FileFormats_Code_Extraction.Text" xml:space="preserve"><value>Syntax-aware chunking that respects function, class, and block boundaries.</value></data>
+  <data name="UserGuide_FileFormats_Images.Text" xml:space="preserve"><value>Images</value></data>
+  <data name="UserGuide_FileFormats_Images_Extraction.Text" xml:space="preserve"><value>OCR (Optical Character Recognition) text extraction from image content.</value></data>
+  <data name="UserGuide_FileFormats_CodeList.Text" xml:space="preserve"><value>Code file support includes .cs, .py, .js, .ts, .cpp, .c, .java, .go, .rs, .rb, .php, .swift, .kt, and more. Any plain-text-based source file can be imported.</value></data>
+
+  <!-- UserGuide: Troubleshooting (Row 18) -->
+  <data name="UserGuide_Troubleshooting_Title.Text" xml:space="preserve"><value>Troubleshooting</value></data>
+  <data name="UserGuide_Troubleshooting_Description.Text" xml:space="preserve"><value>If you encounter issues, check the common problems and solutions below before reaching out for support.</value></data>
+  <data name="UserGuide_Troubleshooting_Issue1_Title.Text" xml:space="preserve"><value>"Ollama not detected"</value></data>
+  <data name="UserGuide_Troubleshooting_Issue1_Description.Text" xml:space="preserve"><value>Ensure Ollama is running on your system. Open a terminal and run ollama serve to start the Ollama server. If you are using a custom endpoint, verify the URL is correct in Settings. The default endpoint is http://localhost:11434.</value></data>
+  <data name="UserGuide_Troubleshooting_Issue2_Title.Text" xml:space="preserve"><value>Slow responses</value></data>
+  <data name="UserGuide_Troubleshooting_Issue2_Description.Text" xml:space="preserve"><value>Try switching to a smaller model (e.g., 3B or 7B parameters instead of 13B or larger). Check the Hardware Advisor page to see which models are recommended for your VRAM. Using quantized models (Q4 or Q5) significantly reduces memory usage and improves speed.</value></data>
+  <data name="UserGuide_Troubleshooting_Issue3_Title.Text" xml:space="preserve"><value>Documents not indexing</value></data>
+  <data name="UserGuide_Troubleshooting_Issue3_Description.Text" xml:space="preserve"><value>Verify the file format is supported (see Supported File Formats above). Ensure an embedding model is configured in Settings — documents cannot be indexed without one. If you recently changed embedding models, you may need to re-index existing documents from the Knowledge Vault.</value></data>
+  <data name="UserGuide_Troubleshooting_Issue4_Title.Text" xml:space="preserve"><value>High memory usage</value></data>
+  <data name="UserGuide_Troubleshooting_Issue4_Description.Text" xml:space="preserve"><value>Reduce the context window size in Settings (lower values use less RAM). Switch to a quantized model variant (e.g., Q4_0 instead of FP16). Close other memory-intensive applications while running large models. The Hardware Advisor can help identify optimal settings for your system.</value></data>
+  <data name="UserGuide_Troubleshooting_Issue5_Title.Text" xml:space="preserve"><value>Search returns no results</value></data>
+  <data name="UserGuide_Troubleshooting_Issue5_Description.Text" xml:space="preserve"><value>Ensure your documents have been fully indexed (check indexing status in the Knowledge Vault). Try rephrasing your query using different terminology. Semantic search works on meaning, so broader or more descriptive queries often yield better results than very specific technical terms.</value></data>
+
+  <!-- UserGuide: Privacy & Security (Row 19) -->
+  <data name="UserGuide_Privacy_Title.Text" xml:space="preserve"><value>Privacy &amp; Security</value></data>
+  <data name="UserGuide_Privacy_Description.Text" xml:space="preserve"><value>Agent-X is designed from the ground up to be a fully local-first application. Your privacy is not a feature — it is the architecture.</value></data>
+  <data name="UserGuide_Privacy_Point1.Text" xml:space="preserve"><value>All data stored locally — Documents, embeddings, conversations, and settings are stored in a local SQLite database on your machine.</value></data>
+  <data name="UserGuide_Privacy_Point2.Text" xml:space="preserve"><value>Local-first by default — All AI inference defaults to running locally through Ollama. No data is sent to external services unless you explicitly opt into cloud providers.</value></data>
+  <data name="UserGuide_Privacy_Point3.Text" xml:space="preserve"><value>No telemetry — Agent-X does not collect usage analytics, crash reports, or any form of telemetry. Your activity stays on your device.</value></data>
+  <data name="UserGuide_Privacy_Point4.Text" xml:space="preserve"><value>Your data, your control — Documents and conversations are never shared, uploaded, or used for training. You can delete any data at any time from within the app.</value></data>
+  <data name="UserGuide_Privacy_Point5.Text" xml:space="preserve"><value>Cloud provider notice — If you opt into cloud providers (OpenAI, Anthropic), queries sent to those services are subject to their respective privacy policies. Agent-X clearly indicates when a cloud provider is active so you always know where your data is being processed.</value></data>
+
+  <!-- UserGuide: Getting Help (Row 20) -->
+  <data name="UserGuide_GettingHelp_Title.Text" xml:space="preserve"><value>Getting Help</value></data>
+  <data name="UserGuide_GettingHelp_Description.Text" xml:space="preserve"><value>If you need assistance beyond what this guide covers, we are here to help.</value></data>
+  <data name="UserGuide_GettingHelp_Email_Title.Text" xml:space="preserve"><value>Email Support</value></data>
+  <data name="UserGuide_GettingHelp_Email_Description.Text" xml:space="preserve"><value>For bug reports, feature requests, or general questions.</value></data>
+  <data name="UserGuide_GettingHelp_Docs_Title.Text" xml:space="preserve"><value>Documentation</value></data>
+  <data name="UserGuide_GettingHelp_Docs_Description.Text" xml:space="preserve"><value>Full online documentation, tutorials, and API reference.</value></data>
+  <data name="UserGuide_GettingHelp_Footer1.Text" xml:space="preserve"><value>Agent-X by Strategia</value></data>
+  <data name="UserGuide_GettingHelp_Footer2.Text" xml:space="preserve"><value>Local-first AI for everyone</value></data>
 </root>

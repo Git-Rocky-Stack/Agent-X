@@ -1,0 +1,913 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+    ╔══════════════════════════════════════════════════════════════════╗
+    ║          USER GUIDE FEATURES SECTIONS (BATCH 2)                  ║
+    ║                                                                  ║
+    ║  AiChatTemplate, AskYourFilesTemplate, QuickActionsTemplate,     ║
+    ║  KnowledgeVaultTemplate, CollectionsTemplate,                   ║
+    ║  KnowledgeGraphTemplate, WeeklyDigestTemplate                   ║
+    ╚══════════════════════════════════════════════════════════════════╝
+    -->
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         ROW 4: AI CHAT
+         ═══════════════════════════════════════════════════════════════ -->
+    <DataTemplate x:Key="AiChatTemplate">
+        <Border Style="{StaticResource CardStyle}">
+            <StackPanel Spacing="16">
+                <!-- Section Header -->
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE8BD;"
+                              FontFamily="Segoe MDL2 Assets"
+                              FontSize="20"
+                              Foreground="{StaticResource TextAccentBrush}" />
+                    <TextBlock Grid.Column="1"
+                               x:Uid="UserGuide_AiChat_Title"
+                               Style="{StaticResource HeadingMediumStyle}" />
+                </Grid>
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_AiChat_Description" />
+
+                <!-- How to use -->
+                <TextBlock x:Uid="UserGuide_AiChat_Using_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <StackPanel Spacing="10">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Background="{StaticResource AccentSubtleBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <TextBlock Text="1"
+                                       FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
+                                   x:Uid="UserGuide_AiChat_Step1" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Background="{StaticResource AccentSubtleBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <TextBlock Text="2"
+                                       FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
+                                   x:Uid="UserGuide_AiChat_Step2" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Background="{StaticResource AccentSubtleBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <TextBlock Text="3"
+                                       FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
+                                   x:Uid="UserGuide_AiChat_Step3" />
+                    </Grid>
+                </StackPanel>
+
+                <Border Style="{StaticResource SeparatorStyle}" />
+
+                <TextBlock x:Uid="UserGuide_AiChat_Conversation_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <StackPanel Spacing="8">
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_AiChat_Conversation1" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_AiChat_Conversation2" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_AiChat_Conversation3" />
+                    </Grid>
+                </StackPanel>
+
+                <Border Style="{StaticResource SeparatorStyle}" />
+
+                <TextBlock x:Uid="UserGuide_AiChat_Advanced_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <StackPanel Spacing="8">
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_AiChat_Advanced1" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_AiChat_Advanced2" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_AiChat_Advanced3" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_AiChat_Advanced4" />
+                    </Grid>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </DataTemplate>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         ROW 5: ASK YOUR FILES (RAG)
+         ═══════════════════════════════════════════════════════════════ -->
+    <DataTemplate x:Key="AskYourFilesTemplate">
+        <Border Style="{StaticResource CardStyle}">
+            <StackPanel Spacing="16">
+                <!-- Section Header -->
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE82D;"
+                              FontFamily="Segoe MDL2 Assets"
+                              FontSize="20"
+                              Foreground="{StaticResource TextAccentBrush}" />
+                    <TextBlock Grid.Column="1"
+                               x:Uid="UserGuide_AskYourFiles_Title"
+                               Style="{StaticResource HeadingMediumStyle}" />
+                </Grid>
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_AskYourFiles_Description" />
+
+                <!-- How RAG Works -->
+                <TextBlock x:Uid="UserGuide_AskYourFiles_HowItWorks_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <StackPanel Spacing="10">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Background="{StaticResource AccentSubtleBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <TextBlock Text="1"
+                                       FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
+                                   x:Uid="UserGuide_AskYourFiles_Step1" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Background="{StaticResource AccentSubtleBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <TextBlock Text="2"
+                                       FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
+                                   x:Uid="UserGuide_AskYourFiles_Step2" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Background="{StaticResource AccentSubtleBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <TextBlock Text="3"
+                                       FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
+                                   x:Uid="UserGuide_AskYourFiles_Step3" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Background="{StaticResource AccentSubtleBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <TextBlock Text="4"
+                                       FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
+                                   x:Uid="UserGuide_AskYourFiles_Step4" />
+                    </Grid>
+                </StackPanel>
+
+                <Border Style="{StaticResource SeparatorStyle}" />
+
+                <!-- Citations -->
+                <TextBlock x:Uid="UserGuide_AskYourFiles_Citations_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_AskYourFiles_Citations_Description" />
+            </StackPanel>
+        </Border>
+    </DataTemplate>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         ROW 6: QUICK ACTIONS
+         ═══════════════════════════════════════════════════════════════ -->
+    <DataTemplate x:Key="QuickActionsTemplate">
+        <Border Style="{StaticResource CardStyle}">
+            <StackPanel Spacing="16">
+                <!-- Section Header -->
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE945;"
+                              FontFamily="Segoe MDL2 Assets"
+                              FontSize="20"
+                              Foreground="{StaticResource TextAccentBrush}" />
+                    <TextBlock Grid.Column="1"
+                               x:Uid="UserGuide_QuickActions_Title"
+                               Style="{StaticResource HeadingMediumStyle}" />
+                </Grid>
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_QuickActions_Description" />
+
+                <!-- Actions List -->
+                <TextBlock x:Uid="UserGuide_QuickActions_Available_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <StackPanel Spacing="10">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock x:Uid="UserGuide_QuickActions_Action1_Title"
+                                           Style="{StaticResource AccentBodyStyle}" />
+                                <TextBlock x:Uid="UserGuide_QuickActions_Action1_Description"
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8FD;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock x:Uid="UserGuide_QuickActions_Action2_Title"
+                                           Style="{StaticResource AccentBodyStyle}" />
+                                <TextBlock x:Uid="UserGuide_QuickActions_Action2_Description"
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8C1;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock x:Uid="UserGuide_QuickActions_Action3_Title"
+                                           Style="{StaticResource AccentBodyStyle}" />
+                                <TextBlock x:Uid="UserGuide_QuickActions_Action3_Description"
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE70F;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock x:Uid="UserGuide_QuickActions_Action4_Title"
+                                           Style="{StaticResource AccentBodyStyle}" />
+                                <TextBlock x:Uid="UserGuide_QuickActions_Action4_Description"
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE7BE;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock x:Uid="UserGuide_QuickActions_Action5_Title"
+                                           Style="{StaticResource AccentBodyStyle}" />
+                                <TextBlock x:Uid="UserGuide_QuickActions_Action5_Description"
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE9CE;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock x:Uid="UserGuide_QuickActions_Action6_Title"
+                                           Style="{StaticResource AccentBodyStyle}" />
+                                <TextBlock x:Uid="UserGuide_QuickActions_Action6_Description"
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+
+                <TextBlock Style="{StaticResource BodySecondaryStyle}"
+                           x:Uid="UserGuide_QuickActions_Usage" />
+            </StackPanel>
+        </Border>
+    </DataTemplate>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         ROW 7: KNOWLEDGE VAULT
+         ═══════════════════════════════════════════════════════════════ -->
+    <DataTemplate x:Key="KnowledgeVaultTemplate">
+        <Border Style="{StaticResource CardStyle}">
+            <StackPanel Spacing="16">
+                <!-- Section Header -->
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE8F1;"
+                              FontFamily="Segoe MDL2 Assets"
+                              FontSize="20"
+                              Foreground="{StaticResource TextAccentBrush}" />
+                    <TextBlock Grid.Column="1"
+                               x:Uid="UserGuide_KnowledgeVault_Title"
+                               Style="{StaticResource HeadingMediumStyle}" />
+                </Grid>
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_KnowledgeVault_Description" />
+
+                <!-- Importing -->
+                <TextBlock x:Uid="UserGuide_KnowledgeVault_Importing_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_KnowledgeVault_Importing_Description" />
+
+                <StackPanel Spacing="8">
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_KnowledgeVault_Import1" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_KnowledgeVault_Import2" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_KnowledgeVault_Import3" />
+                    </Grid>
+                </StackPanel>
+
+                <Border Style="{StaticResource SeparatorStyle}" />
+
+                <!-- Managing Documents -->
+                <TextBlock x:Uid="UserGuide_KnowledgeVault_Managing_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_KnowledgeVault_Managing_Description" />
+
+                <StackPanel Spacing="8">
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_KnowledgeVault_Manage1" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_KnowledgeVault_Manage2" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_KnowledgeVault_Manage3" />
+                    </Grid>
+                </StackPanel>
+
+                <Border Style="{StaticResource SeparatorStyle}" />
+
+                <!-- Advanced Features -->
+                <TextBlock x:Uid="UserGuide_KnowledgeVault_Advanced_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <StackPanel Spacing="8">
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_KnowledgeVault_Advanced1" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_KnowledgeVault_Advanced2" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_KnowledgeVault_Advanced3" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_KnowledgeVault_Advanced4" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_KnowledgeVault_Advanced5" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_KnowledgeVault_Advanced6" />
+                    </Grid>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </DataTemplate>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         ROW 8: COLLECTIONS
+         ═══════════════════════════════════════════════════════════════ -->
+    <DataTemplate x:Key="CollectionsTemplate">
+        <Border Style="{StaticResource CardStyle}">
+            <StackPanel Spacing="16">
+                <!-- Section Header -->
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE8B7;"
+                              FontFamily="Segoe MDL2 Assets"
+                              FontSize="20"
+                              Foreground="{StaticResource TextAccentBrush}" />
+                    <TextBlock Grid.Column="1"
+                               x:Uid="UserGuide_Collections_Title"
+                               Style="{StaticResource HeadingMediumStyle}" />
+                </Grid>
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_Collections_Description" />
+
+                <!-- Using Collections -->
+                <TextBlock x:Uid="UserGuide_Collections_Working_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <StackPanel Spacing="8">
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_Collections_Working1" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_Collections_Working2" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_Collections_Working3" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_Collections_Working4" />
+                    </Grid>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </DataTemplate>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         ROW 9: KNOWLEDGE GRAPH
+         ═══════════════════════════════════════════════════════════════ -->
+    <DataTemplate x:Key="KnowledgeGraphTemplate">
+        <Border Style="{StaticResource CardStyle}">
+            <StackPanel Spacing="16">
+                <!-- Section Header -->
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE9D9;"
+                              FontFamily="Segoe MDL2 Assets"
+                              FontSize="20"
+                              Foreground="{StaticResource TextAccentBrush}" />
+                    <TextBlock Grid.Column="1"
+                               x:Uid="UserGuide_KnowledgeGraph_Title"
+                               Style="{StaticResource HeadingMediumStyle}" />
+                </Grid>
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_KnowledgeGraph_Description" />
+
+                <!-- Features -->
+                <TextBlock x:Uid="UserGuide_KnowledgeGraph_Elements_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <StackPanel Spacing="8">
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_KnowledgeGraph_Element1" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_KnowledgeGraph_Element2" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_KnowledgeGraph_Element3" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_KnowledgeGraph_Element4" />
+                    </Grid>
+                </StackPanel>
+
+                <Border Style="{StaticResource SeparatorStyle}" />
+
+                <TextBlock x:Uid="UserGuide_KnowledgeGraph_Interaction_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <StackPanel Spacing="8">
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_KnowledgeGraph_Interaction1" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_KnowledgeGraph_Interaction2" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_KnowledgeGraph_Interaction3" />
+                    </Grid>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </DataTemplate>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         ROW 10: WEEKLY DIGEST
+         ═══════════════════════════════════════════════════════════════ -->
+    <DataTemplate x:Key="WeeklyDigestTemplate">
+        <Border Style="{StaticResource CardStyle}">
+            <StackPanel Spacing="16">
+                <!-- Section Header -->
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE9D2;"
+                              FontFamily="Segoe MDL2 Assets"
+                              FontSize="20"
+                              Foreground="{StaticResource TextAccentBrush}" />
+                    <TextBlock Grid.Column="1"
+                               x:Uid="UserGuide_WeeklyDigest_Title"
+                               Style="{StaticResource HeadingMediumStyle}" />
+                </Grid>
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_WeeklyDigest_Description" />
+
+                <!-- Features -->
+                <TextBlock x:Uid="UserGuide_WeeklyDigest_Features_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <StackPanel Spacing="8">
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_WeeklyDigest_Feature1" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_WeeklyDigest_Feature2" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_WeeklyDigest_Feature3" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_WeeklyDigest_Feature4" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_WeeklyDigest_Feature5" />
+                    </Grid>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </DataTemplate>
+
+</ResourceDictionary>

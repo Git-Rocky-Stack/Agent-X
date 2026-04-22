@@ -1,0 +1,309 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+    ╔══════════════════════════════════════════════════════════════════╗
+    ║            USER GUIDE CORE SECTIONS (BATCH 1)                    ║
+    ║                                                                  ║
+    ║  WelcomeTemplate, GettingStartedTemplate, DashboardTemplate      ║
+    ╚══════════════════════════════════════════════════════════════════╝
+    -->
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         ROW 1: WELCOME TO AGENT-X
+         ═══════════════════════════════════════════════════════════════ -->
+    <DataTemplate x:Key="WelcomeTemplate">
+        <Border Style="{StaticResource CardAccentStyle}">
+            <StackPanel Spacing="16">
+                <!-- Section Header -->
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE80F;"
+                              FontFamily="Segoe MDL2 Assets"
+                              FontSize="22"
+                              Foreground="{StaticResource TextAccentBrush}" />
+                    <TextBlock Grid.Column="1"
+                               x:Uid="UserGuide_Welcome_Title"
+                               Style="{StaticResource HeadingMediumStyle}" />
+                </Grid>
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_Welcome_Description1" />
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_Welcome_Description2" />
+
+                <TextBlock Style="{StaticResource BodySecondaryStyle}"
+                           x:Uid="UserGuide_Welcome_Description3" />
+            </StackPanel>
+        </Border>
+    </DataTemplate>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         ROW 2: GETTING STARTED
+         ═══════════════════════════════════════════════════════════════ -->
+    <DataTemplate x:Key="GettingStartedTemplate">
+        <Border Style="{StaticResource CardStyle}">
+            <StackPanel Spacing="16">
+                <!-- Section Header -->
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE7B5;"
+                              FontFamily="Segoe MDL2 Assets"
+                              FontSize="20"
+                              Foreground="{StaticResource TextAccentBrush}" />
+                    <TextBlock Grid.Column="1"
+                               x:Uid="UserGuide_GettingStarted_Title"
+                               Style="{StaticResource HeadingMediumStyle}" />
+                </Grid>
+
+                <!-- Prerequisites -->
+                <TextBlock x:Uid="UserGuide_GettingStarted_Prerequisites_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <StackPanel Spacing="10">
+                    <!-- Prereq 1 -->
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Background="{StaticResource AccentSubtleBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <TextBlock Text="1"
+                                       FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       x:Uid="UserGuide_GettingStarted_Prereq1" />
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Prereq 2 -->
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Background="{StaticResource AccentSubtleBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <TextBlock Text="2"
+                                       FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       x:Uid="UserGuide_GettingStarted_Prereq2_Title" />
+                            <Border Background="{StaticResource InputBackgroundBrush}"
+                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="{StaticResource RadiusSM}"
+                                    Padding="12,6" Margin="0,4,0,0">
+                                <TextBlock Text="ollama pull llama3.2"
+                                           Style="{StaticResource MonoStyle}" />
+                            </Border>
+                            <TextBlock Style="{StaticResource BodySecondaryStyle}"
+                                       x:Uid="UserGuide_GettingStarted_Prereq2_Description"
+                                       Margin="0,4,0,0" />
+                            <Border Background="{StaticResource InputBackgroundBrush}"
+                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="{StaticResource RadiusSM}"
+                                    Padding="12,6" Margin="0,4,0,0">
+                                <TextBlock Text="ollama pull all-minilm"
+                                           Style="{StaticResource MonoStyle}" />
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Prereq 3 -->
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Background="{StaticResource AccentSubtleBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <TextBlock Text="3"
+                                       FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Style="{StaticResource BodyStyle}"
+                                       x:Uid="UserGuide_GettingStarted_Prereq3_Title" />
+                            <Border Background="{StaticResource InputBackgroundBrush}"
+                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="{StaticResource RadiusSM}"
+                                    Padding="12,6" Margin="0,4,0,0">
+                                <TextBlock Text="ollama serve"
+                                           Style="{StaticResource MonoStyle}" />
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+
+                <Border Style="{StaticResource SeparatorStyle}" />
+
+                <!-- First Launch -->
+                <TextBlock x:Uid="UserGuide_GettingStarted_FirstLaunch_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_GettingStarted_FirstLaunch_Description" />
+
+                <TextBlock Style="{StaticResource BodySecondaryStyle}"
+                           x:Uid="UserGuide_GettingStarted_FirstLaunch_Tip" />
+            </StackPanel>
+        </Border>
+    </DataTemplate>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         ROW 3: DASHBOARD
+         ═══════════════════════════════════════════════════════════════ -->
+    <DataTemplate x:Key="DashboardTemplate">
+        <Border Style="{StaticResource CardStyle}">
+            <StackPanel Spacing="16">
+                <!-- Section Header -->
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE80F;"
+                              FontFamily="Segoe MDL2 Assets"
+                              FontSize="20"
+                              Foreground="{StaticResource TextAccentBrush}" />
+                    <TextBlock Grid.Column="1"
+                               x:Uid="UserGuide_Dashboard_Title"
+                               Style="{StaticResource HeadingMediumStyle}" />
+                </Grid>
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_Dashboard_Description" />
+
+                <!-- Feature list -->
+                <TextBlock x:Uid="UserGuide_Dashboard_Features_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <StackPanel Spacing="10">
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_Dashboard_Feature1" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_Dashboard_Feature2" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_Dashboard_Feature3" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_Dashboard_Feature4" />
+                    </Grid>
+                </StackPanel>
+
+                <Border Style="{StaticResource SeparatorStyle}" />
+
+                <TextBlock x:Uid="UserGuide_Dashboard_QuickActions_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_Dashboard_QuickActions_Description" />
+
+                <Grid ColumnSpacing="12" RowSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource CardInsetStyle}">
+                        <StackPanel Spacing="4">
+                            <TextBlock x:Uid="UserGuide_Dashboard_QuickAction1_Title"
+                                       Style="{StaticResource AccentBodyStyle}" />
+                            <TextBlock x:Uid="UserGuide_Dashboard_QuickAction1_Description"
+                                       Style="{StaticResource BodySmallStyle}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource CardInsetStyle}">
+                        <StackPanel Spacing="4">
+                            <TextBlock x:Uid="UserGuide_Dashboard_QuickAction2_Title"
+                                       Style="{StaticResource AccentBodyStyle}" />
+                            <TextBlock x:Uid="UserGuide_Dashboard_QuickAction2_Description"
+                                       Style="{StaticResource BodySmallStyle}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource CardInsetStyle}">
+                        <StackPanel Spacing="4">
+                            <TextBlock x:Uid="UserGuide_Dashboard_QuickAction3_Title"
+                                       Style="{StaticResource AccentBodyStyle}" />
+                            <TextBlock x:Uid="UserGuide_Dashboard_QuickAction3_Description"
+                                       Style="{StaticResource BodySmallStyle}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CardInsetStyle}">
+                        <StackPanel Spacing="4">
+                            <TextBlock x:Uid="UserGuide_Dashboard_QuickAction4_Title"
+                                       Style="{StaticResource AccentBodyStyle}" />
+                            <TextBlock x:Uid="UserGuide_Dashboard_QuickAction4_Description"
+                                       Style="{StaticResource BodySmallStyle}" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </StackPanel>
+        </Border>
+    </DataTemplate>
+
+</ResourceDictionary>

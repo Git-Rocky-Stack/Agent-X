@@ -12,6 +12,7 @@
                 <ResourceDictionary Source="Styles/Navigation.xaml" />
                 <ResourceDictionary Source="Styles/Chat.xaml" />
                 <ResourceDictionary Source="Styles/Documents.xaml" />
+                <ResourceDictionary Source="Styles/UserGuideSections.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
