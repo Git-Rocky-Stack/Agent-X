@@ -147,6 +147,30 @@
                     </Grid>
                 </Border>
 
+                <Border Background="{StaticResource AccentSubtleBrush}"
+                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                        BorderThickness="1"
+                        CornerRadius="{StaticResource RadiusMD}"
+                        Padding="10,8,10,8"
+                        Margin="8,6,24,0"
+                        Visibility="{x:Bind HasInlineContextNote, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Context Used"
+                                   Style="{StaticResource CaptionStyle}"
+                                   Foreground="{StaticResource TextAccentBrush}" />
+                        <TextBlock Text="{x:Bind InlineContextStoryText, Mode=OneWay}"
+                                   Style="{StaticResource CaptionStyle}"
+                                   TextWrapping="WrapWholeWords" />
+                        <ItemsRepeater ItemsSource="{x:Bind InlineContextStorySourceChips, Mode=OneWay}"
+                                       ItemTemplate="{StaticResource InlineContextStoryChipTemplate}"
+                                       Visibility="{x:Bind HasInlineContextStorySourceChips, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Orientation="Horizontal" Spacing="6" />
+                            </ItemsRepeater.Layout>
+                        </ItemsRepeater>
+                    </StackPanel>
+                </Border>
+
                 <!-- Meta row: timestamp, tokens, generation time -->
                 <Grid Margin="4,4,0,0">
                     <Grid.ColumnDefinitions>
@@ -222,6 +246,19 @@
                 <TextBlock Text="{x:Bind Label}"
                            Style="{StaticResource CaptionStyle}"
                            Foreground="{StaticResource TextSecondaryBrush}" />
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate x:Key="InlineContextStoryChipTemplate" x:DataType="x:String">
+            <Border Background="{StaticResource InputBackgroundBrush}"
+                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{StaticResource RadiusRound}"
+                    Padding="7,3,7,3">
+                <TextBlock Text="{x:Bind}"
+                           Style="{StaticResource CaptionStyle}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           FontSize="11" />
             </Border>
         </DataTemplate>
 

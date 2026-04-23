@@ -32,6 +32,9 @@ public class MessagingCoordinatorTests
         _aiService.SetupGet(s => s.ActiveProvider).Returns(_provider.Object);
         _provider.Setup(p => p.CheckConnectionAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
+        _conversationService
+            .Setup(s => s.GetMessagesAsync(It.IsAny<long>()))
+            .ReturnsAsync(Array.Empty<MessageEntity>());
 
         _coordinator = new MessagingCoordinator(
             _chatService.Object,
@@ -231,6 +234,46 @@ public class MessagingCoordinatorTests
         completedArgs!.ResponseContent.Should().Be("Response");
         completedArgs.ConversationId.Should().Be(1);
         completedArgs.ContextInspection.Should().BeSameAs(snapshot);
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_ResolvesAssistantMessageId_WhenPersistedAssistantMessageExists()
+    {
+        var snapshot = CreateInspectionSnapshot(1);
+
+        _chatService
+            .Setup(s => s.SendMessageAsync(1, "Test", It.IsAny<CancellationToken>()))
+            .Returns(CreateTokenStream("Response"));
+        _chatService
+            .Setup(s => s.GetLatestContextInspection(1))
+            .Returns(snapshot);
+        _conversationService
+            .Setup(s => s.GetMessagesAsync(1))
+            .ReturnsAsync(
+            [
+                new MessageEntity
+                {
+                    Id = 10,
+                    ConversationId = 1,
+                    Role = "user",
+                    Content = "Test",
+                    SortOrder = 0,
+                    Timestamp = DateTime.UtcNow.AddMinutes(-1)
+                },
+                new MessageEntity
+                {
+                    Id = 55,
+                    ConversationId = 1,
+                    Role = "assistant",
+                    Content = "Response",
+                    SortOrder = 1,
+                    Timestamp = DateTime.UtcNow
+                }
+            ]);
+
+        var result = await _coordinator.SendMessageAsync("Test", 1, null, null, false);
+
+        result.AssistantMessageId.Should().Be(55);
     }
 
     // ── NotificationRequested event ────────────────────────────────
