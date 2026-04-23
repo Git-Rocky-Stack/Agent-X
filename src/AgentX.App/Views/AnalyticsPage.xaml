@@ -437,6 +437,140 @@
                             </DataTemplate>
                         </ItemsRepeater.ItemTemplate>
                     </ItemsRepeater>
+
+                    <Border Style="{StaticResource SeparatorStyle}" />
+
+                    <StackPanel Spacing="12">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Semantic Recall Probe"
+                                       Style="{StaticResource HeadingSmallStyle}" />
+                            <TextBlock Text="Durable message embeddings let you probe semantically similar past turns across conversations without relying on transient chat memory."
+                                       Style="{StaticResource BodySecondaryStyle}" />
+                        </StackPanel>
+
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0"
+                                    Background="{StaticResource InputBackgroundBrush}"
+                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="{StaticResource RadiusMD}"
+                                    Padding="16,12,16,12">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="EMBEDDED MESSAGES" Style="{StaticResource OverlineStyle}" />
+                                    <TextBlock Text="{x:Bind ViewModel.EmbeddedMessages, Mode=OneWay}"
+                                               Style="{StaticResource MetricSmallStyle}" />
+                                    <TextBlock Text="Messages currently recall-ready"
+                                               Style="{StaticResource CaptionStyle}" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="1"
+                                    Background="{StaticResource InputBackgroundBrush}"
+                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="{StaticResource RadiusMD}"
+                                    Padding="16,12,16,12">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="PENDING EMBEDDINGS" Style="{StaticResource OverlineStyle}" />
+                                    <TextBlock Text="{x:Bind ViewModel.PendingMessageEmbeddings, Mode=OneWay}"
+                                               Style="{StaticResource MetricSmallStyle}" />
+                                    <TextBlock Text="Eligible messages still waiting for durable embeddings"
+                                               Style="{StaticResource CaptionStyle}" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="2"
+                                    Background="{StaticResource AccentSubtleBrush}"
+                                    BorderBrush="{StaticResource BorderAccentGradientBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="{StaticResource RadiusMD}"
+                                    Padding="16,12,16,12">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="RECALL-READY CONVERSATIONS" Style="{StaticResource OverlineStyle}" />
+                                    <TextBlock Text="{x:Bind ViewModel.RecallReadyConversations, Mode=OneWay}"
+                                               Style="{StaticResource MetricSmallStyle}"
+                                               Foreground="{StaticResource TextAccentBrush}" />
+                                    <TextBlock Text="{x:Bind ViewModel.LastMessageEmbeddingRefresh, Mode=OneWay}"
+                                               Style="{StaticResource CaptionStyle}" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox Grid.Column="0"
+                                     PlaceholderText="Try: product roadmap drift, pricing discussion, dashboard analytics, summary refresh"
+                                     Text="{x:Bind ViewModel.RecallQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <Button Grid.Column="1"
+                                    Command="{x:Bind ViewModel.RunConversationRecallCommand}"
+                                    Content="Search Recall"
+                                    MinWidth="140" />
+                        </Grid>
+
+                        <TextBlock Text="{x:Bind ViewModel.RecallStatusMessage, Mode=OneWay}"
+                                   Style="{StaticResource CaptionStyle}" />
+
+                        <TextBlock Text="No recall matches yet. Run a probe query after chats have been embedded."
+                                   Style="{StaticResource BodySecondaryStyle}"
+                                   Visibility="{x:Bind ViewModel.HasConversationRecallResults, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}" />
+
+                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.ConversationRecallResults, Mode=OneWay}"
+                                       Visibility="{x:Bind ViewModel.HasConversationRecallResults, Converter={StaticResource BoolToVis}, Mode=OneWay}">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Orientation="Vertical" Spacing="12" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="vm:AnalyticsConversationRecallItem">
+                                    <Border Background="{StaticResource InputBackgroundBrush}"
+                                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusMD}"
+                                            Padding="16">
+                                        <StackPanel Spacing="10">
+                                            <Grid ColumnSpacing="12">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <StackPanel Spacing="4">
+                                                    <TextBlock Text="{x:Bind ConversationLabel}"
+                                                               Style="{StaticResource HeadingSmallStyle}"
+                                                               TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock Text="{x:Bind TimestampLabel}"
+                                                               Style="{StaticResource CaptionStyle}" />
+                                                </StackPanel>
+
+                                                <Border Grid.Column="1"
+                                                        Style="{StaticResource BadgeDefaultStyle}"
+                                                        HorizontalAlignment="Right"
+                                                        VerticalAlignment="Top">
+                                                    <TextBlock Text="{x:Bind SimilarityLabel}"
+                                                               Style="{StaticResource CaptionStyle}"
+                                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                                </Border>
+                                            </Grid>
+
+                                            <TextBlock Text="{x:Bind PreviewText}"
+                                                       Style="{StaticResource BodyStyle}"
+                                                       TextWrapping="WrapWholeWords" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </StackPanel>
                 </StackPanel>
             </Border>
 

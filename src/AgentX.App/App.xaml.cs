@@ -337,6 +337,7 @@ public partial class App : Application
 
         // ── Chat Services ──────────────────────────────────────
         services.AddSingleton<IConversationService, ConversationService>();
+        services.AddSingleton<IConversationRecallService, ConversationRecallService>();
         services.AddSingleton<IConversationSummaryService, ConversationSummaryService>();
         services.AddSingleton<ISystemPromptService, SystemPromptService>();
         services.AddSingleton<IConversationMemoryService, ConversationMemoryService>();

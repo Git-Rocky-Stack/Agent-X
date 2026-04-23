@@ -56,4 +56,9 @@ public interface IAnalyticsService
     Task<ConversationIntelligenceOverview> GetConversationIntelligenceAsync(
         int maxRecent = 6,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Returns durable message-embedding coverage metrics for semantic recall.
+    /// </summary>
+    Task<ConversationRecallOverview> GetConversationRecallOverviewAsync(CancellationToken ct = default);
 }

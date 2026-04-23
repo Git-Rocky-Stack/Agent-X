@@ -400,6 +400,51 @@ public sealed class AnalyticsService : IAnalyticsService
         }
     }
 
+    /// <inheritdoc />
+    public async Task<ConversationRecallOverview> GetConversationRecallOverviewAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            var embeddedMessagesTask = _db.Messages.AsNoTracking()
+                .CountAsync(m => (m.Role == "user" || m.Role == "assistant") && m.Embedding != null, ct);
+
+            var pendingEmbeddingsTask = _db.Messages.AsNoTracking()
+                .CountAsync(m =>
+                    (m.Role == "user" || m.Role == "assistant")
+                    && m.Content != string.Empty
+                    && m.Embedding == null, ct);
+
+            var recallReadyConversationsTask = _db.Messages.AsNoTracking()
+                .Where(m => (m.Role == "user" || m.Role == "assistant") && m.Embedding != null)
+                .Select(m => m.ConversationId)
+                .Distinct()
+                .CountAsync(ct);
+
+            var lastEmbeddedAtTask = _db.Messages.AsNoTracking()
+                .Where(m => (m.Role == "user" || m.Role == "assistant") && m.EmbeddedAt != null)
+                .MaxAsync(m => (DateTime?)m.EmbeddedAt, ct);
+
+            await Task.WhenAll(
+                embeddedMessagesTask,
+                pendingEmbeddingsTask,
+                recallReadyConversationsTask,
+                lastEmbeddedAtTask);
+
+            return new ConversationRecallOverview
+            {
+                EmbeddedMessages = await embeddedMessagesTask,
+                PendingMessageEmbeddings = await pendingEmbeddingsTask,
+                RecallReadyConversations = await recallReadyConversationsTask,
+                LastEmbeddedAt = await lastEmbeddedAtTask
+            };
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to load conversation recall overview");
+            return new ConversationRecallOverview();
+        }
+    }
+
     // ── Private Helpers ──────────────────────────────────────────────────────
 
     /// <summary>

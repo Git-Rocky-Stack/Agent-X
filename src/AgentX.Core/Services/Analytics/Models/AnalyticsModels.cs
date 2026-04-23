@@ -154,3 +154,14 @@ public sealed record ConversationSummaryMetric
     public bool HasRefreshError { get; init; }
     public string? LastError { get; init; }
 }
+
+/// <summary>
+/// Durable message-embedding coverage metrics for cross-conversation recall.
+/// </summary>
+public sealed record ConversationRecallOverview
+{
+    public int EmbeddedMessages { get; init; }
+    public int PendingMessageEmbeddings { get; init; }
+    public int RecallReadyConversations { get; init; }
+    public DateTime? LastEmbeddedAt { get; init; }
+}

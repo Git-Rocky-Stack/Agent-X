@@ -870,6 +870,15 @@ namespace AgentX.Core.Data.Migrations
                     b.Property<long>("ConversationId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Embedding")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("EmbeddedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EmbeddingModel")
+                        .HasColumnType("TEXT");
+
                     b.Property<double?>("GenerationTimeMs")
                         .HasColumnType("REAL");
 
@@ -890,6 +899,8 @@ namespace AgentX.Core.Data.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("EmbeddedAt");
 
                     b.HasIndex("ConversationId", "SortOrder");
 

@@ -12,6 +12,9 @@ public class MessageEntity
     public string? ModelId { get; set; }
     public string? CitationsJson { get; set; } // JSON array of Citation objects
     public int SortOrder { get; set; }
+    public string? Embedding { get; set; }
+    public string? EmbeddingModel { get; set; }
+    public DateTime? EmbeddedAt { get; set; }
 
     // Navigation
     public ConversationEntity Conversation { get; set; } = null!;

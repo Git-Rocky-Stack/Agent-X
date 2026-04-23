@@ -12,15 +12,18 @@ namespace AgentX.Core.Services.Chat;
 public class ConversationService : IConversationService
 {
     private readonly AgentXDbContext _db;
+    private readonly IConversationRecallService? _conversationRecallService;
     private readonly IConversationSummaryService? _conversationSummaryService;
     private readonly ILogger _log;
 
     public ConversationService(
         AgentXDbContext db,
         ILogger logger,
+        IConversationRecallService? conversationRecallService = null,
         IConversationSummaryService? conversationSummaryService = null)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
+        _conversationRecallService = conversationRecallService;
         _conversationSummaryService = conversationSummaryService;
         _log = logger?.ForContext<ConversationService>()
                ?? throw new ArgumentNullException(nameof(logger));
@@ -377,6 +380,7 @@ public class ConversationService : IConversationService
             conversation.UpdatedAt = DateTime.UtcNow;
 
             await _db.SaveChangesAsync();
+            await TryRefreshMessageEmbeddingAsync(message.Id).ConfigureAwait(false);
             await TryMarkSummaryStaleAsync(conversationId);
 
             _log.Debug(
@@ -488,7 +492,11 @@ public class ConversationService : IConversationService
 
             message.Content = newContent;
             message.Timestamp = DateTime.UtcNow;
+            message.Embedding = null;
+            message.EmbeddingModel = null;
+            message.EmbeddedAt = null;
             await _db.SaveChangesAsync();
+            await TryRefreshMessageEmbeddingAsync(message.Id, forceRefresh: true).ConfigureAwait(false);
             await TryMarkSummaryStaleAsync(message.ConversationId, forceFullRefresh: true);
 
             _log.Information("Updated content of message {MessageId}", messageId);
@@ -731,6 +739,28 @@ public class ConversationService : IConversationService
                 ex,
                 "Failed to update conversation summary state for conversation {ConversationId}",
                 conversationId);
+        }
+    }
+
+    private async Task TryRefreshMessageEmbeddingAsync(long messageId, bool forceRefresh = false)
+    {
+        if (_conversationRecallService is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _conversationRecallService
+                .RefreshMessageEmbeddingAsync(messageId, forceRefresh)
+                .ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(
+                ex,
+                "Failed to refresh message embedding for message {MessageId}",
+                messageId);
         }
     }
 }

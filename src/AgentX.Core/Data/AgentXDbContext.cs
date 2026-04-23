@@ -168,6 +168,9 @@ public class AgentXDbContext : DbContext
             entity.Property(e => e.Role).IsRequired();
             entity.Property(e => e.Content).IsRequired();
             entity.Property(e => e.Timestamp).IsRequired();
+            entity.Property(e => e.Embedding).IsRequired(false);
+            entity.Property(e => e.EmbeddingModel).IsRequired(false);
+            entity.Property(e => e.EmbeddedAt).IsRequired(false);
 
             // Relationship: Message belongs to Conversation
             entity.HasOne(e => e.Conversation)
@@ -177,6 +180,7 @@ public class AgentXDbContext : DbContext
 
             // Indexes
             entity.HasIndex(e => new { e.ConversationId, e.SortOrder });
+            entity.HasIndex(e => e.EmbeddedAt);
         });
     }
 

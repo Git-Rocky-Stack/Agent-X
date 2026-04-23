@@ -12,6 +12,7 @@ namespace AgentX.App.ViewModels;
 public partial class AnalyticsViewModel : ObservableObject, IDisposable
 {
     private readonly IAnalyticsService _analyticsService;
+    private readonly IConversationRecallService _conversationRecallService;
     private readonly IConversationSummaryService _conversationSummaryService;
     private readonly ILogger _log;
 
@@ -81,6 +82,19 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _hasConversationIntelligence;
     [ObservableProperty] private bool _hasRecentConversationSummaries;
 
+    // ── Conversation Recall ─────────────────────────────────────────────────
+
+    [ObservableProperty] private string _embeddedMessages = "0";
+    [ObservableProperty] private string _pendingMessageEmbeddings = "0";
+    [ObservableProperty] private string _recallReadyConversations = "0";
+    [ObservableProperty] private string _lastMessageEmbeddingRefresh = "No embeddings yet";
+    [ObservableProperty] private string _recallQuery = string.Empty;
+    [ObservableProperty] private bool _isRecallRunning;
+    [ObservableProperty] private string _recallStatusMessage = "Semantic recall searches durable message embeddings across past conversations.";
+    [ObservableProperty] private ObservableCollection<AnalyticsConversationRecallItem> _conversationRecallResults = new();
+    [ObservableProperty] private bool _hasConversationRecallCoverage;
+    [ObservableProperty] private bool _hasConversationRecallResults;
+
     // ── Computed Insights ────────────────────────────────────────────────────
 
     /// <summary>Formatted tokens per conversation (TotalTokens / TotalConversations).</summary>
@@ -88,10 +102,12 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
 
     public AnalyticsViewModel(
         IAnalyticsService analyticsService,
+        IConversationRecallService conversationRecallService,
         IConversationSummaryService conversationSummaryService,
         ILogger logger)
     {
         _analyticsService = analyticsService ?? throw new ArgumentNullException(nameof(analyticsService));
+        _conversationRecallService = conversationRecallService ?? throw new ArgumentNullException(nameof(conversationRecallService));
         _conversationSummaryService = conversationSummaryService ?? throw new ArgumentNullException(nameof(conversationSummaryService));
         _log = logger?.ForContext<AnalyticsViewModel>()
                ?? throw new ArgumentNullException(nameof(logger));
@@ -109,6 +125,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             _log.Information("Analytics: loading all metrics");
 
             await RefreshConversationSummariesAsync(ct);
+            await RefreshConversationRecallCoverageAsync(ct);
 
             await Task.WhenAll(
                 LoadSummaryAsync(ct),
@@ -116,7 +133,8 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
                 LoadModelUsageAsync(ct),
                 LoadFileTypeDistributionAsync(ct),
                 LoadPerformanceAsync(ct),
-                LoadConversationIntelligenceAsync(ct));
+                LoadConversationIntelligenceAsync(ct),
+                LoadConversationRecallAsync(ct));
 
             _log.Information("Analytics: all metrics loaded");
         }
@@ -326,6 +344,22 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         }
     }
 
+    private async Task RefreshConversationRecallCoverageAsync(CancellationToken ct)
+    {
+        try
+        {
+            var refreshed = await _conversationRecallService
+                .RefreshRecentConversationEmbeddingsAsync(4, ct)
+                .ConfigureAwait(false);
+
+            _log.Debug("Analytics: refreshed {Count} durable message embeddings", refreshed);
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Analytics: durable message embedding refresh failed");
+        }
+    }
+
     private async Task LoadConversationIntelligenceAsync(CancellationToken ct)
     {
         try
@@ -370,13 +404,109 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         }
     }
 
+    private async Task LoadConversationRecallAsync(CancellationToken ct)
+    {
+        try
+        {
+            var overview = await _analyticsService.GetConversationRecallOverviewAsync(ct);
+
+            EmbeddedMessages = FormatNumber(overview.EmbeddedMessages);
+            PendingMessageEmbeddings = FormatNumber(overview.PendingMessageEmbeddings);
+            RecallReadyConversations = FormatNumber(overview.RecallReadyConversations);
+            LastMessageEmbeddingRefresh = overview.LastEmbeddedAt.HasValue
+                ? BuildRelativeTimeLabel(overview.LastEmbeddedAt.Value)
+                : "No embeddings yet";
+
+            HasConversationRecallCoverage = overview.EmbeddedMessages > 0
+                || overview.PendingMessageEmbeddings > 0
+                || overview.RecallReadyConversations > 0;
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Analytics: failed to load conversation recall overview");
+            HasConversationRecallCoverage = false;
+            LastMessageEmbeddingRefresh = "No embeddings yet";
+        }
+    }
+
     // ── Commands ─────────────────────────────────────────────────────────────
+
+    partial void OnRecallQueryChanged(string value)
+    {
+        RunConversationRecallCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnIsRecallRunningChanged(bool value)
+    {
+        RunConversationRecallCommand.NotifyCanExecuteChanged();
+    }
 
     [RelayCommand]
     private async Task RefreshAsync()
     {
         _log.Debug("Analytics: manual refresh requested");
         await LoadDataAsync();
+    }
+
+    private bool CanRunConversationRecall() =>
+        !IsRecallRunning && !string.IsNullOrWhiteSpace(RecallQuery);
+
+    [RelayCommand(CanExecute = nameof(CanRunConversationRecall))]
+    private async Task RunConversationRecallAsync(CancellationToken ct = default)
+    {
+        if (!CanRunConversationRecall())
+        {
+            return;
+        }
+
+        IsRecallRunning = true;
+        RecallStatusMessage = "Refreshing recent message embeddings and running recall...";
+
+        try
+        {
+            await _conversationRecallService
+                .RefreshRecentConversationEmbeddingsAsync(6, ct)
+                .ConfigureAwait(false);
+
+            var results = await _conversationRecallService
+                .SearchRelevantMessagesAsync(RecallQuery, maxResults: 6, minSimilarity: 0.68f, ct: ct)
+                .ConfigureAwait(false);
+
+            ConversationRecallResults = new ObservableCollection<AnalyticsConversationRecallItem>(
+                results.Select(result => new AnalyticsConversationRecallItem
+                {
+                    ConversationId = result.ConversationId,
+                    MessageId = result.MessageId,
+                    ConversationTitle = result.ConversationTitle,
+                    Role = result.Role,
+                    RoleLabel = result.Role == "assistant" ? "Assistant" : "User",
+                    PreviewText = result.ContentPreview,
+                    Similarity = result.Similarity,
+                    SimilarityLabel = $"{Math.Round(result.Similarity * 100)}% match",
+                    Timestamp = result.Timestamp,
+                    TimestampLabel = BuildRelativeTimeLabel(result.Timestamp)
+                }));
+
+            HasConversationRecallResults = ConversationRecallResults.Count > 0;
+            RecallStatusMessage = ConversationRecallResults.Count == 0
+                ? "No durable recall matches cleared the current similarity threshold."
+                : ConversationRecallResults.Count == 1
+                    ? "1 durable recall match found."
+                    : $"{ConversationRecallResults.Count} durable recall matches found.";
+
+            await LoadConversationRecallAsync(ct).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Analytics: conversation recall query failed");
+            ConversationRecallResults = new ObservableCollection<AnalyticsConversationRecallItem>();
+            HasConversationRecallResults = false;
+            RecallStatusMessage = "Conversation recall failed. Check embedding availability and try again.";
+        }
+        finally
+        {
+            IsRecallRunning = false;
+        }
     }
 
     // ── Private Helpers ──────────────────────────────────────────────────────
@@ -539,6 +669,24 @@ public sealed class AnalyticsConversationSummaryItem
     public string CoverageLabel => CoveredMessageCount == 1
         ? "1 message covered"
         : $"{CoveredMessageCount} messages covered";
+}
+
+/// <summary>
+/// Represents one semantic recall match across persisted conversation messages.
+/// </summary>
+public sealed class AnalyticsConversationRecallItem
+{
+    public long ConversationId { get; init; }
+    public long MessageId { get; init; }
+    public string ConversationTitle { get; init; } = string.Empty;
+    public string Role { get; init; } = string.Empty;
+    public string RoleLabel { get; init; } = string.Empty;
+    public string PreviewText { get; init; } = string.Empty;
+    public float Similarity { get; init; }
+    public string SimilarityLabel { get; init; } = string.Empty;
+    public DateTime Timestamp { get; init; }
+    public string TimestampLabel { get; init; } = string.Empty;
+    public string ConversationLabel => $"{ConversationTitle} · {RoleLabel}";
 }
 
 // ─── Task tuple extension ────────────────────────────────────────────────────

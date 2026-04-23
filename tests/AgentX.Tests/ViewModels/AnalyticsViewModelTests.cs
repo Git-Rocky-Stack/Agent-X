@@ -12,6 +12,7 @@ namespace AgentX.Tests.ViewModels;
 public sealed class AnalyticsViewModelTests
 {
     private readonly Mock<IAnalyticsService> _analyticsService = new();
+    private readonly Mock<IConversationRecallService> _conversationRecallService = new();
     private readonly Mock<IConversationSummaryService> _conversationSummaryService = new();
     private readonly ILogger _logger = Log.ForContext<AnalyticsViewModelTests>();
 
@@ -21,6 +22,9 @@ public sealed class AnalyticsViewModelTests
         _conversationSummaryService
             .Setup(service => service.RefreshStaleSummariesAsync(4, It.IsAny<CancellationToken>()))
             .ReturnsAsync(2);
+        _conversationRecallService
+            .Setup(service => service.RefreshRecentConversationEmbeddingsAsync(4, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(3);
 
         _analyticsService
             .Setup(service => service.GetSummaryAsync(It.IsAny<CancellationToken>()))
@@ -75,9 +79,19 @@ public sealed class AnalyticsViewModelTests
                     }
                 ]
             });
+        _analyticsService
+            .Setup(service => service.GetConversationRecallOverviewAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ConversationRecallOverview
+            {
+                EmbeddedMessages = 8,
+                PendingMessageEmbeddings = 2,
+                RecallReadyConversations = 3,
+                LastEmbeddedAt = DateTime.UtcNow.AddMinutes(-5)
+            });
 
         var viewModel = new AnalyticsViewModel(
             _analyticsService.Object,
+            _conversationRecallService.Object,
             _conversationSummaryService.Object,
             _logger);
 
@@ -86,13 +100,72 @@ public sealed class AnalyticsViewModelTests
         _conversationSummaryService.Verify(
             service => service.RefreshStaleSummariesAsync(4, It.IsAny<CancellationToken>()),
             Times.Once);
+        _conversationRecallService.Verify(
+            service => service.RefreshRecentConversationEmbeddingsAsync(4, It.IsAny<CancellationToken>()),
+            Times.Once);
 
         viewModel.SummarizedConversations.Should().Be("2");
         viewModel.CurrentSummarySnapshots.Should().Be("3");
+        viewModel.EmbeddedMessages.Should().Be("8");
+        viewModel.PendingMessageEmbeddings.Should().Be("2");
         viewModel.HasRecentConversationSummaries.Should().BeTrue();
         viewModel.RecentConversationSummaries.Should().ContainSingle();
         viewModel.RecentConversationSummaries[0].Title.Should().Be("Persistent memory rollout");
         viewModel.RecentConversationSummaries[0].KeyPointsPreview.Should().Contain("Analytics is the inspection surface.");
         viewModel.RecentConversationSummaries[0].StatusLabel.Should().Be("Current");
+    }
+
+    [Fact]
+    public async Task RunConversationRecallAsync_maps_recall_results_and_status_message()
+    {
+        _conversationRecallService
+            .Setup(service => service.RefreshRecentConversationEmbeddingsAsync(6, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
+        _conversationRecallService
+            .Setup(service => service.SearchRelevantMessagesAsync(
+                "dashboard analytics",
+                6,
+                0.68f,
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+            [
+                new AgentX.Core.Services.Chat.Models.ConversationRecallResult
+                {
+                    ConversationId = 7,
+                    MessageId = 71,
+                    ConversationTitle = "Analytics roadmap",
+                    Role = "assistant",
+                    ContentPreview = "The dashboard should surface analytics and recall health together.",
+                    Timestamp = DateTime.UtcNow.AddMinutes(-10),
+                    Similarity = 0.91f
+                }
+            ]);
+        _analyticsService
+            .Setup(service => service.GetConversationRecallOverviewAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ConversationRecallOverview
+            {
+                EmbeddedMessages = 9,
+                PendingMessageEmbeddings = 1,
+                RecallReadyConversations = 4,
+                LastEmbeddedAt = DateTime.UtcNow.AddMinutes(-2)
+            });
+
+        var viewModel = new AnalyticsViewModel(
+            _analyticsService.Object,
+            _conversationRecallService.Object,
+            _conversationSummaryService.Object,
+            _logger)
+        {
+            RecallQuery = "dashboard analytics"
+        };
+
+        await viewModel.RunConversationRecallCommand.ExecuteAsync(null);
+
+        viewModel.HasConversationRecallResults.Should().BeTrue();
+        viewModel.ConversationRecallResults.Should().ContainSingle();
+        viewModel.ConversationRecallResults[0].ConversationTitle.Should().Be("Analytics roadmap");
+        viewModel.ConversationRecallResults[0].RoleLabel.Should().Be("Assistant");
+        viewModel.RecallStatusMessage.Should().Be("1 durable recall match found.");
     }
 }
