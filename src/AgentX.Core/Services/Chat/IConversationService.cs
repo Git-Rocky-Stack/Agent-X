@@ -28,6 +28,15 @@ public interface IConversationService
     Task<IReadOnlyList<ConversationEntity>> GetAllConversationsAsync(bool includeArchived = false);
 
     /// <summary>
+    /// Returns the most recently updated conversations ordered newest first.
+    /// Used by overview surfaces that only need a small recent slice.
+    /// </summary>
+    Task<IReadOnlyList<ConversationEntity>> GetRecentConversationsAsync(
+        int limit = 5,
+        bool includeArchived = false,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Searches conversations by title or message content matching the query.
     /// </summary>
     Task<IReadOnlyList<ConversationEntity>> SearchConversationsAsync(string query);

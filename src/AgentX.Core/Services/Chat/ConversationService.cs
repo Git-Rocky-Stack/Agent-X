@@ -94,7 +94,7 @@ public class ConversationService : IConversationService
     {
         try
         {
-            var query = _db.Conversations.AsQueryable();
+            var query = _db.Conversations.AsNoTracking().AsQueryable();
 
             if (!includeArchived)
             {
@@ -115,6 +115,40 @@ public class ConversationService : IConversationService
         catch (Exception ex)
         {
             _log.Error(ex, "Failed to get all conversations");
+            throw;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<ConversationEntity>> GetRecentConversationsAsync(
+        int limit = 5,
+        bool includeArchived = false,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var normalizedLimit = Math.Max(1, limit);
+            var query = _db.Conversations.AsNoTracking().AsQueryable();
+
+            if (!includeArchived)
+            {
+                query = query.Where(c => !c.IsArchived);
+            }
+
+            var conversations = await query
+                .OrderByDescending(c => c.UpdatedAt)
+                .Take(normalizedLimit)
+                .ToListAsync(ct);
+
+            _log.Debug(
+                "Retrieved {Count} recent conversations (includeArchived={IncludeArchived}, limit={Limit})",
+                conversations.Count, includeArchived, normalizedLimit);
+
+            return conversations;
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to get recent conversations");
             throw;
         }
     }

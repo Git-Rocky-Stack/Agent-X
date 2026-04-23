@@ -86,6 +86,12 @@ public interface IDocumentService
     Task<IReadOnlyList<DocumentEntity>> GetDocumentsByCollectionAsync(long collectionId);
 
     /// <summary>
+    /// Retrieves the most recently imported documents, ordered newest first.
+    /// Used by overview surfaces that only need a small recent slice.
+    /// </summary>
+    Task<IReadOnlyList<DocumentEntity>> GetRecentDocumentsAsync(int limit = 5, CancellationToken ct = default);
+
+    /// <summary>
     /// Deletes a document, its chunks, and any associated vector embeddings.
     /// </summary>
     Task DeleteDocumentAsync(long documentId);

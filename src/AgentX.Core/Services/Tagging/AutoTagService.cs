@@ -457,6 +457,53 @@ public class AutoTagService : IAutoTagService
         }
     }
 
+    /// <inheritdoc />
+    public async Task<IReadOnlyDictionary<long, IReadOnlyList<TagEntity>>> GetTagsForDocumentsAsync(
+        IReadOnlyList<long> documentIds)
+    {
+        try
+        {
+            if (documentIds is null || documentIds.Count == 0)
+            {
+                return new Dictionary<long, IReadOnlyList<TagEntity>>();
+            }
+
+            var normalizedIds = documentIds
+                .Distinct()
+                .ToArray();
+
+            var rows = await _db.DocumentTags
+                .AsNoTracking()
+                .Where(dt => normalizedIds.Contains(dt.DocumentId))
+                .Include(dt => dt.Tag)
+                .OrderBy(dt => dt.DocumentId)
+                .ThenBy(dt => dt.Tag.Name)
+                .ToListAsync();
+
+            var grouped = rows
+                .GroupBy(row => row.DocumentId)
+                .ToDictionary(
+                    group => group.Key,
+                    group => (IReadOnlyList<TagEntity>)group.Select(row => row.Tag).ToList());
+
+            foreach (var documentId in normalizedIds)
+            {
+                grouped.TryAdd(documentId, Array.Empty<TagEntity>());
+            }
+
+            _log.Debug(
+                "Retrieved tags for {DocumentCount} documents in one batch",
+                normalizedIds.Length);
+
+            return grouped;
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to get tags for documents in batch");
+            throw;
+        }
+    }
+
     // ----------------------------------------------------------------
     // Private helpers
     // ----------------------------------------------------------------

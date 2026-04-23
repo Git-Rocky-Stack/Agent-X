@@ -46,20 +46,12 @@ public sealed class DashboardViewModelTests
         _documentService.Setup(service => service.GetTotalStorageBytesAsync()).ReturnsAsync(2_048L);
         _documentService.Setup(service => service.GetFileTypeDistributionAsync())
             .ReturnsAsync(new Dictionary<string, int>());
-        _documentService.Setup(service => service.GetAllDocumentsAsync(
-                It.IsAny<string?>(),
-                It.IsAny<string?>(),
-                It.IsAny<string?>(),
-                It.IsAny<long?>(),
-                It.IsAny<DateTime?>(),
-                It.IsAny<DateTime?>(),
-                It.IsAny<string?>(),
-                It.IsAny<CancellationToken>()))
+        _documentService.Setup(service => service.GetRecentDocumentsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Array.Empty<DocumentEntity>());
 
         _conversationService.Setup(service => service.GetConversationCountAsync()).ReturnsAsync(4);
         _conversationService.Setup(service => service.GetTotalTokensUsedAsync()).ReturnsAsync(1600L);
-        _conversationService.Setup(service => service.GetAllConversationsAsync(It.IsAny<bool>()))
+        _conversationService.Setup(service => service.GetRecentConversationsAsync(It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Array.Empty<ConversationEntity>());
 
         _hardwareDetector.Setup(detector => detector.DetectAsync(It.IsAny<CancellationToken>()))
@@ -134,6 +126,9 @@ public sealed class DashboardViewModelTests
         var viewModel = CreateViewModel();
 
         await viewModel.InitializeAsync();
+
+        _documentService.Verify(service => service.GetRecentDocumentsAsync(5, It.IsAny<CancellationToken>()), Times.Once);
+        _conversationService.Verify(service => service.GetRecentConversationsAsync(5, false, It.IsAny<CancellationToken>()), Times.Once);
 
         viewModel.ConversationIntelligenceHeadline.Should().Be("5");
         viewModel.ConversationIntelligenceStatus.Should().Be("Durable recall current");

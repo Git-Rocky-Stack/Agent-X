@@ -67,4 +67,11 @@ public interface IAutoTagService
     /// </summary>
     /// <param name="documentId">The ID of the document.</param>
     Task<IReadOnlyList<TagEntity>> GetTagsForDocumentAsync(long documentId);
+
+    /// <summary>
+    /// Retrieves assigned tags for multiple documents in one call, keyed by document ID.
+    /// Used by list surfaces to avoid N+1 tag loading.
+    /// </summary>
+    Task<IReadOnlyDictionary<long, IReadOnlyList<TagEntity>>> GetTagsForDocumentsAsync(
+        IReadOnlyList<long> documentIds);
 }

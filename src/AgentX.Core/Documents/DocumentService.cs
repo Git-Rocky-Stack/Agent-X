@@ -317,7 +317,7 @@ public sealed class DocumentService : IDocumentService
         string? sortBy = null,
         CancellationToken ct = default)
     {
-        IQueryable<DocumentEntity> query = _db.Documents;
+        IQueryable<DocumentEntity> query = _db.Documents.AsNoTracking();
 
         // File type filter
         if (!string.IsNullOrWhiteSpace(fileTypeFilter))
@@ -380,6 +380,18 @@ public sealed class DocumentService : IDocumentService
             .Select(dc => dc.Document)
             .OrderByDescending(d => d.ImportedAt)
             .ToListAsync();
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<DocumentEntity>> GetRecentDocumentsAsync(int limit = 5, CancellationToken ct = default)
+    {
+        var normalizedLimit = Math.Max(1, limit);
+
+        return await _db.Documents
+            .AsNoTracking()
+            .OrderByDescending(d => d.ImportedAt)
+            .Take(normalizedLimit)
+            .ToListAsync(ct);
     }
 
     /// <inheritdoc />

@@ -227,8 +227,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     {
         try
         {
-            // Load last 5 documents (GetAllDocumentsAsync returns newest first)
-            var docs = await _documentService.GetAllDocumentsAsync();
+            var docs = await _documentService.GetRecentDocumentsAsync(5);
             var recentDocs = docs.Take(5).Select(d => new DashboardRecentDocumentItem
             {
                 Id = d.Id,
@@ -241,8 +240,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             RecentDocuments = new ObservableCollection<DashboardRecentDocumentItem>(recentDocs);
             HasRecentDocuments = RecentDocuments.Count > 0;
 
-            // Load last 5 conversations (GetAllConversationsAsync returns newest first)
-            var conversations = await _conversationService.GetAllConversationsAsync();
+            var conversations = await _conversationService.GetRecentConversationsAsync(5);
             var recentConvos = conversations.Take(5).Select(c => new DashboardRecentConversationItem
             {
                 Id = c.Id,

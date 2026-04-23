@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
 using AgentX.Core.Services.Collections;
@@ -126,10 +127,11 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
             ClearError();
 
             await LoadDocumentsAsync();
-            await LoadStatsAsync();
-            await CheckIndexingStatusAsync();
-            await LoadTagsAsync();
-            await LoadCollectionsAsync();
+            await Task.WhenAll(
+                LoadStatsAsync(),
+                CheckIndexingStatusAsync(),
+                LoadTagsAsync(),
+                LoadCollectionsAsync());
         }
         catch (Exception ex)
         {
@@ -159,6 +161,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
                 importedBefore: DateBeforeFilter,
                 sortBy: SortBy);
 
+            var filteredDocs = new List<AgentX.Core.Data.Entities.DocumentEntity>();
             foreach (var doc in docs)
             {
                 // If a search query is active, filter locally by file name
@@ -168,20 +171,33 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
                     continue;
                 }
 
-                var displayItem = MapDocumentToDisplay(doc);
+                filteredDocs.Add(doc);
+            }
 
-                // Load tags for this document
+            IReadOnlyDictionary<long, IReadOnlyList<TagEntity>> tagMap = new Dictionary<long, IReadOnlyList<TagEntity>>();
+            if (filteredDocs.Count > 0)
+            {
                 try
                 {
-                    var tags = await _autoTagService.GetTagsForDocumentAsync(doc.Id);
+                    tagMap = await _autoTagService.GetTagsForDocumentsAsync(
+                        filteredDocs.Select(doc => doc.Id).ToArray());
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Failed to batch-load tags for visible vault documents");
+                }
+            }
+
+            foreach (var doc in filteredDocs)
+            {
+                var displayItem = MapDocumentToDisplay(doc);
+
+                if (tagMap.TryGetValue(doc.Id, out var tags))
+                {
                     foreach (var tag in tags)
                     {
                         displayItem.Tags.Add(tag.Name);
                     }
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning(ex, "Failed to load tags for document {DocumentId}", doc.Id);
                 }
 
                 Documents.Add(displayItem);
