@@ -366,6 +366,237 @@ public sealed class ChatServiceContextAssemblyTests
         sut.GetLatestContextInspection(42)!.CurrentQuery.Should().Be("Retry the last answer");
     }
 
+    [Fact]
+    public async Task RefreshConversationSummaryInspectionAsync_UpdatesCachedSummaryInspection()
+    {
+        _settingsService
+            .Setup(service => service.GetSettingsAsync())
+            .ReturnsAsync(new AppSettings());
+
+        _memoryService
+            .Setup(service => service.GetMemoryContextAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(string.Empty);
+        _memoryService
+            .Setup(service => service.ExtractMemoriesAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _conversationSummaryService
+            .Setup(service => service.GetConversationSummaryContextAsync(42, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(string.Empty);
+
+        var initialInspection = new ConversationSummaryInspection
+        {
+            ConversationId = 42,
+            PreviewText = "Initial durable summary",
+            SummaryText = "Initial summary text",
+            KeyPoints = ["Initial point"],
+            GeneratedAt = DateTime.UtcNow.AddMinutes(-8),
+            LastRefreshedAt = DateTime.UtcNow.AddMinutes(-7),
+            IsStale = true,
+            PendingMessageCount = 2
+        };
+        var refreshedInspection = initialInspection with
+        {
+            PreviewText = "Refreshed durable summary",
+            SummaryText = "Refreshed summary text",
+            KeyPoints = ["Refreshed point", "Another point"],
+            GeneratedAt = DateTime.UtcNow.AddMinutes(-1),
+            LastRefreshedAt = DateTime.UtcNow,
+            IsStale = false,
+            PendingMessageCount = 0
+        };
+
+        _conversationSummaryService
+            .SetupSequence(service => service.GetConversationSummaryInspectionAsync(42, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(initialInspection)
+            .ReturnsAsync(refreshedInspection);
+        _conversationSummaryService
+            .Setup(service => service.RefreshConversationSummaryAsync(42, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var conversation = new ConversationEntity
+        {
+            Id = 42,
+            SystemPrompt = "Original prompt",
+            Messages =
+            [
+                new MessageEntity
+                {
+                    Id = 1,
+                    ConversationId = 42,
+                    Role = "user",
+                    Content = "Why is startup failing?",
+                    SortOrder = 1,
+                    Timestamp = DateTime.UtcNow
+                }
+            ]
+        };
+
+        _conversationService
+            .Setup(service => service.AddMessageAsync(
+                It.IsAny<long>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<int?>(),
+                It.IsAny<double?>()))
+            .Returns(Task.CompletedTask);
+        _conversationService
+            .Setup(service => service.GetConversationAsync(42))
+            .ReturnsAsync(conversation);
+
+        _contextAssemblyService
+            .Setup(service => service.AssembleAsync(
+                It.IsAny<ContextAssemblyRequest>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ContextAssemblyResult
+            {
+                Messages = [ChatMessage.User("Selected context message")],
+                SystemPrompt = "Assembled prompt",
+                Diagnostics = new ContextAssemblyDiagnostics
+                {
+                    SelectedMessageCount = 1,
+                    EstimatedMessageTokens = 32,
+                    EstimatedPromptTokens = 96
+                }
+            });
+
+        _aiService
+            .Setup(service => service.StreamChatAsync(
+                It.IsAny<IReadOnlyList<ChatMessage>>(),
+                It.IsAny<string?>(),
+                It.IsAny<ChatOptions?>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(StreamTokens("Hello"));
+
+        var sut = new AgentX.Core.Services.Chat.ChatService(
+            _aiService.Object,
+            _conversationService.Object,
+            _settingsService.Object,
+            _contextAssemblyService.Object,
+            _memoryService.Object,
+            _logger,
+            conversationSummaryService: _conversationSummaryService.Object);
+
+        await sut.SendMessageAndWaitAsync(42, "Why is startup failing?");
+
+        var result = await sut.RefreshConversationSummaryInspectionAsync(42);
+
+        result.Succeeded.Should().BeTrue();
+        result.Snapshot.Should().NotBeNull();
+        result.Snapshot!.Summary.Should().BeEquivalentTo(refreshedInspection);
+        sut.GetLatestContextInspection(42)!.Summary.Should().BeEquivalentTo(refreshedInspection);
+    }
+
+    [Fact]
+    public async Task RefreshConversationSummaryInspectionAsync_FailurePreservesPriorSnapshot()
+    {
+        _settingsService
+            .Setup(service => service.GetSettingsAsync())
+            .ReturnsAsync(new AppSettings());
+
+        _memoryService
+            .Setup(service => service.GetMemoryContextAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(string.Empty);
+        _memoryService
+            .Setup(service => service.ExtractMemoriesAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _conversationSummaryService
+            .Setup(service => service.GetConversationSummaryContextAsync(42, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(string.Empty);
+
+        var initialInspection = new ConversationSummaryInspection
+        {
+            ConversationId = 42,
+            PreviewText = "Initial durable summary",
+            SummaryText = "Initial summary text",
+            KeyPoints = ["Initial point"],
+            GeneratedAt = DateTime.UtcNow.AddMinutes(-8),
+            LastRefreshedAt = DateTime.UtcNow.AddMinutes(-7),
+            IsStale = true,
+            PendingMessageCount = 2
+        };
+
+        _conversationSummaryService
+            .Setup(service => service.GetConversationSummaryInspectionAsync(42, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(initialInspection);
+        _conversationSummaryService
+            .Setup(service => service.RefreshConversationSummaryAsync(42, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        var conversation = new ConversationEntity
+        {
+            Id = 42,
+            SystemPrompt = "Original prompt",
+            Messages =
+            [
+                new MessageEntity
+                {
+                    Id = 1,
+                    ConversationId = 42,
+                    Role = "user",
+                    Content = "Why is startup failing?",
+                    SortOrder = 1,
+                    Timestamp = DateTime.UtcNow
+                }
+            ]
+        };
+
+        _conversationService
+            .Setup(service => service.AddMessageAsync(
+                It.IsAny<long>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<int?>(),
+                It.IsAny<double?>()))
+            .Returns(Task.CompletedTask);
+        _conversationService
+            .Setup(service => service.GetConversationAsync(42))
+            .ReturnsAsync(conversation);
+
+        _contextAssemblyService
+            .Setup(service => service.AssembleAsync(
+                It.IsAny<ContextAssemblyRequest>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ContextAssemblyResult
+            {
+                Messages = [ChatMessage.User("Selected context message")],
+                SystemPrompt = "Assembled prompt",
+                Diagnostics = new ContextAssemblyDiagnostics
+                {
+                    SelectedMessageCount = 1,
+                    EstimatedMessageTokens = 32,
+                    EstimatedPromptTokens = 96
+                }
+            });
+
+        _aiService
+            .Setup(service => service.StreamChatAsync(
+                It.IsAny<IReadOnlyList<ChatMessage>>(),
+                It.IsAny<string?>(),
+                It.IsAny<ChatOptions?>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(StreamTokens("Hello"));
+
+        var sut = new AgentX.Core.Services.Chat.ChatService(
+            _aiService.Object,
+            _conversationService.Object,
+            _settingsService.Object,
+            _contextAssemblyService.Object,
+            _memoryService.Object,
+            _logger,
+            conversationSummaryService: _conversationSummaryService.Object);
+
+        await sut.SendMessageAndWaitAsync(42, "Why is startup failing?");
+        var originalSnapshot = sut.GetLatestContextInspection(42);
+
+        var result = await sut.RefreshConversationSummaryInspectionAsync(42);
+
+        result.Succeeded.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("Keeping the previous summary state");
+        result.Snapshot.Should().BeSameAs(originalSnapshot);
+        sut.GetLatestContextInspection(42).Should().BeSameAs(originalSnapshot);
+        sut.GetLatestContextInspection(42)!.Summary.Should().BeEquivalentTo(initialInspection);
+    }
+
     private static async IAsyncEnumerable<string> StreamTokens(
         params string[] tokens)
     {

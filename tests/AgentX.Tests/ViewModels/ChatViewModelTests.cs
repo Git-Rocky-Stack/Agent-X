@@ -74,6 +74,7 @@ public sealed class ChatViewModelTests
         viewModel.HasConversationIntelligenceStrip.Should().BeTrue();
         viewModel.ConversationIntelligenceBadgeText.Should().Be("Current");
         viewModel.ConversationIntelligenceStatusText.Should().Be("Summary current • 2 key points available");
+        viewModel.ShowConversationSummaryRefreshAction.Should().BeFalse();
         viewModel.HasContextInspection.Should().BeTrue();
         viewModel.ContextAssemblyMode.Should().Be("Structured context assembly");
         viewModel.ContextSelectedMessages.Should().Be("3");
@@ -173,6 +174,7 @@ public sealed class ChatViewModelTests
         viewModel.ConversationIntelligenceBadgeText.Should().Be("Stale");
         viewModel.ConversationIntelligenceIsStale.Should().BeTrue();
         viewModel.ConversationIntelligenceStatusText.Should().Be("Summary stale • 3 newer messages not folded in");
+        viewModel.ShowConversationSummaryRefreshAction.Should().BeTrue();
     }
 
     [Fact]
@@ -199,6 +201,7 @@ public sealed class ChatViewModelTests
         viewModel.ConversationIntelligenceIsUnavailable.Should().BeTrue();
         viewModel.ConversationIntelligenceBadgeText.Should().Be("Unavailable");
         viewModel.ConversationIntelligenceStatusText.Should().Be("No conversation context captured yet");
+        viewModel.ShowConversationSummaryRefreshAction.Should().BeTrue();
     }
 
     [Fact]
@@ -210,6 +213,80 @@ public sealed class ChatViewModelTests
         viewModel.HasConversationIntelligenceStrip.Should().BeFalse();
         viewModel.ConversationIntelligenceBadgeText.Should().BeEmpty();
         viewModel.ConversationIntelligenceStatusText.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task RefreshConversationSummaryAsync_SuccessUpdatesSnapshotState()
+    {
+        var staleSnapshot = CreateInspectionSnapshot(42, isSummaryStale: true, pendingMessageCount: 2);
+        var refreshedSnapshot = CreateInspectionSnapshot(42);
+
+        _conversationCoordinator
+            .Setup(service => service.LoadMessagesAsync(42))
+            .ReturnsAsync(Array.Empty<MessageSummary>());
+        _chatService
+            .Setup(service => service.GetLatestContextInspection(42))
+            .Returns(staleSnapshot);
+        _chatService
+            .Setup(service => service.RefreshConversationSummaryInspectionAsync(42, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ConversationSummaryRefreshResult.Success(refreshedSnapshot));
+
+        var viewModel = CreateViewModel();
+        viewModel.Conversations.Add(new ConversationListItem
+        {
+            Id = 42,
+            Title = "Startup Investigation",
+            UpdatedAt = DateTime.UtcNow
+        });
+
+        await viewModel.SelectConversationCommand.ExecuteAsync(42L);
+        await viewModel.RefreshConversationSummaryCommand.ExecuteAsync(null);
+
+        viewModel.IsRefreshingConversationSummary.Should().BeFalse();
+        viewModel.HasConversationSummaryRefreshError.Should().BeFalse();
+        viewModel.ConversationIntelligenceIsCurrent.Should().BeTrue();
+        viewModel.ConversationIntelligenceBadgeText.Should().Be("Current");
+        viewModel.ConversationIntelligenceStatusText.Should().Be("Summary current • 2 key points available");
+        viewModel.ShowConversationSummaryRefreshAction.Should().BeFalse();
+        viewModel.ContextSummaryPreview.Should().Be("Focused on startup retries and backoff behavior.");
+    }
+
+    [Fact]
+    public async Task RefreshConversationSummaryAsync_FailurePreservesStateAndShowsRetryMessage()
+    {
+        var staleSnapshot = CreateInspectionSnapshot(42, isSummaryStale: true, pendingMessageCount: 2);
+
+        _conversationCoordinator
+            .Setup(service => service.LoadMessagesAsync(42))
+            .ReturnsAsync(Array.Empty<MessageSummary>());
+        _chatService
+            .Setup(service => service.GetLatestContextInspection(42))
+            .Returns(staleSnapshot);
+        _chatService
+            .Setup(service => service.RefreshConversationSummaryInspectionAsync(42, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ConversationSummaryRefreshResult.Failure(
+                staleSnapshot,
+                "Summary refresh failed. Keeping the previous summary state."));
+
+        var viewModel = CreateViewModel();
+        viewModel.Conversations.Add(new ConversationListItem
+        {
+            Id = 42,
+            Title = "Startup Investigation",
+            UpdatedAt = DateTime.UtcNow
+        });
+
+        await viewModel.SelectConversationCommand.ExecuteAsync(42L);
+        await viewModel.RefreshConversationSummaryCommand.ExecuteAsync(null);
+
+        viewModel.IsRefreshingConversationSummary.Should().BeFalse();
+        viewModel.HasConversationSummaryRefreshError.Should().BeTrue();
+        viewModel.ConversationSummaryRefreshStatusText.Should().Be("Summary refresh failed. Keeping the previous summary state.");
+        viewModel.ConversationIntelligenceIsStale.Should().BeTrue();
+        viewModel.ConversationIntelligenceStatusText.Should().Be("Summary refresh failed. Keeping the previous summary state.");
+        viewModel.ShowConversationSummaryRefreshAction.Should().BeTrue();
+        viewModel.ConversationSummaryRefreshActionText.Should().Be("Retry Summary");
+        viewModel.ContextSummaryPreview.Should().Be("Focused on startup retries and backoff behavior.");
     }
 
     private ChatViewModel CreateViewModel() =>

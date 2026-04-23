@@ -66,3 +66,31 @@ public sealed record ChatContextRecallInspectionItem
     public DateTime Timestamp { get; init; }
     public float Similarity { get; init; }
 }
+
+/// <summary>
+/// Result of a user-triggered durable summary refresh for one conversation.
+/// Carries the latest cached inspection snapshot when available.
+/// </summary>
+public sealed record ConversationSummaryRefreshResult
+{
+    public bool Succeeded { get; init; }
+    public ChatContextInspectionSnapshot? Snapshot { get; init; }
+    public string? ErrorMessage { get; init; }
+
+    public static ConversationSummaryRefreshResult Success(ChatContextInspectionSnapshot snapshot) =>
+        new()
+        {
+            Succeeded = true,
+            Snapshot = snapshot
+        };
+
+    public static ConversationSummaryRefreshResult Failure(
+        ChatContextInspectionSnapshot? snapshot,
+        string errorMessage) =>
+        new()
+        {
+            Succeeded = false,
+            Snapshot = snapshot,
+            ErrorMessage = errorMessage
+        };
+}

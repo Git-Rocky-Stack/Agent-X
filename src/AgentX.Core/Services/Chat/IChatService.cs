@@ -51,6 +51,14 @@ public interface IChatService
     ChatContextInspectionSnapshot? GetLatestContextInspection(long conversationId);
 
     /// <summary>
+    /// Refreshes the durable summary for one conversation and updates the latest
+    /// cached inspection snapshot when possible.
+    /// </summary>
+    Task<ConversationSummaryRefreshResult> RefreshConversationSummaryInspectionAsync(
+        long conversationId,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Cancels any in-progress generation.
     /// </summary>
     Task StopGenerationAsync();

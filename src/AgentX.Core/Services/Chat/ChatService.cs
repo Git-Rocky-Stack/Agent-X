@@ -62,6 +62,84 @@ public class ChatService : IChatService
             ? snapshot
             : null;
 
+    /// <inheritdoc />
+    public async Task<ConversationSummaryRefreshResult> RefreshConversationSummaryInspectionAsync(
+        long conversationId,
+        CancellationToken ct = default)
+    {
+        var existingSnapshot = GetLatestContextInspection(conversationId);
+
+        if (_conversationSummaryService is null)
+        {
+            return ConversationSummaryRefreshResult.Failure(
+                existingSnapshot,
+                "Summary refresh is unavailable in this app configuration.");
+        }
+
+        try
+        {
+            var refreshed = await _conversationSummaryService
+                .RefreshConversationSummaryAsync(conversationId, ct)
+                .ConfigureAwait(false);
+
+            if (!refreshed)
+            {
+                return ConversationSummaryRefreshResult.Failure(
+                    existingSnapshot,
+                    "Summary refresh failed. Keeping the previous summary state.");
+            }
+
+            var summaryInspection = await _conversationSummaryService
+                .GetConversationSummaryInspectionAsync(conversationId, ct)
+                .ConfigureAwait(false);
+
+            if (summaryInspection is null)
+            {
+                return ConversationSummaryRefreshResult.Failure(
+                    existingSnapshot,
+                    "Summary refresh completed, but no updated summary was available.");
+            }
+
+            ChatContextInspectionSnapshot updatedSnapshot;
+            if (existingSnapshot is not null)
+            {
+                updatedSnapshot = existingSnapshot with
+                {
+                    Summary = summaryInspection
+                };
+            }
+            else
+            {
+                updatedSnapshot = new ChatContextInspectionSnapshot
+                {
+                    ConversationId = conversationId,
+                    CapturedAt = DateTime.UtcNow,
+                    CurrentQuery = string.Empty,
+                    Summary = summaryInspection,
+                    HasLimitedVisibility = true,
+                    LimitedVisibilityReason = "summary_only_refresh",
+                    AssemblyExplanation = "A durable summary was refreshed without a newly captured response context.",
+                    CompressionExplanation = "Compression details are unavailable until a response has been assembled in chat.",
+                    RecallExplanation = "Durable recall details are unavailable until a response has been assembled in chat."
+                };
+            }
+
+            _latestContextInspections[conversationId] = updatedSnapshot;
+            return ConversationSummaryRefreshResult.Success(updatedSnapshot);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Failed to refresh summary inspection for conversation {ConversationId}", conversationId);
+            return ConversationSummaryRefreshResult.Failure(
+                existingSnapshot,
+                "Summary refresh failed. Keeping the previous summary state.");
+        }
+    }
+
     public ChatService(
         IAiService aiService,
         IConversationService conversationService,

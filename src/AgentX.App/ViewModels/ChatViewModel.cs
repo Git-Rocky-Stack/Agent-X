@@ -106,6 +106,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [ObservableProperty] private ObservableCollection<string> _contextSummaryKeyPoints = new();
     [ObservableProperty] private bool _hasContextSummary;
     [ObservableProperty] private bool _hasContextSummaryKeyPoints;
+    [ObservableProperty] private bool _isRefreshingConversationSummary;
+    [ObservableProperty] private string _conversationSummaryRefreshError = string.Empty;
     [ObservableProperty] private string _contextRecallStatus = "No durable recall context captured yet.";
     [ObservableProperty] private ObservableCollection<ChatContextRecallDisplayItem> _contextRecallItems = new();
     [ObservableProperty] private bool _hasContextRecallItems;
@@ -178,6 +180,16 @@ public partial class ChatViewModel : ObservableObject, IDisposable
                 return string.Empty;
             }
 
+            if (IsRefreshingConversationSummary)
+            {
+                return "Refreshing durable summary...";
+            }
+
+            if (HasConversationSummaryRefreshError)
+            {
+                return ConversationSummaryRefreshError;
+            }
+
             if (ConversationIntelligenceIsCurrent)
             {
                 var keyPointCount = _latestContextInspection?.Summary?.KeyPoints.Count ?? 0;
@@ -220,6 +232,29 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         !ConversationIntelligenceIsCurrent &&
         !ConversationIntelligenceIsStale &&
         !ConversationIntelligenceIsPending;
+    public bool ShowConversationSummaryRefreshAction =>
+        ActiveConversationId.HasValue &&
+        (ConversationIntelligenceIsStale
+         || ConversationIntelligenceIsPending
+         || ConversationIntelligenceIsUnavailable
+         || IsRefreshingConversationSummary
+         || HasConversationSummaryRefreshError);
+    public bool HasConversationSummaryRefreshError =>
+        !string.IsNullOrWhiteSpace(ConversationSummaryRefreshError);
+    public bool HasConversationSummaryRefreshStatus =>
+        IsRefreshingConversationSummary || HasConversationSummaryRefreshError;
+    public string ConversationSummaryRefreshStatusText =>
+        IsRefreshingConversationSummary
+            ? "Refreshing durable summary..."
+            : ConversationSummaryRefreshError;
+    public string ConversationSummaryRefreshActionText =>
+        IsRefreshingConversationSummary
+            ? "Refreshing..."
+            : ConversationIntelligenceIsUnavailable || HasConversationSummaryRefreshError
+                ? "Retry Summary"
+                : "Refresh Summary";
+    public bool CanRefreshConversationSummary =>
+        ActiveConversationId.HasValue && !IsRefreshingConversationSummary;
 
     // ── Coordinators ──────────────────────────────────────────
     private readonly IConversationCoordinator _conversationCoordinator;
@@ -536,7 +571,17 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         => OnPropertyChanged(nameof(HasActiveSystemPrompt));
 
     partial void OnActiveConversationIdChanged(long? value)
-        => NotifyConversationIntelligenceStripChanged();
+    {
+        ConversationSummaryRefreshError = string.Empty;
+        NotifyConversationIntelligenceStripChanged();
+        NotifyConversationSummaryRefreshStateChanged();
+    }
+
+    partial void OnIsRefreshingConversationSummaryChanged(bool value)
+        => NotifyConversationSummaryRefreshStateChanged();
+
+    partial void OnConversationSummaryRefreshErrorChanged(string value)
+        => NotifyConversationSummaryRefreshStateChanged();
 
     partial void OnConversationSearchQueryChanged(string value)
         => _ = FilterConversationsAsync(value);
@@ -611,6 +656,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         GenerationTimeMs = 0;
         Messages.Clear();
         SuggestedQuestions.Clear();
+        ConversationSummaryRefreshError = string.Empty;
         ResetContextInspection();
         OnPropertyChanged(nameof(HasNoMessages));
         await Task.CompletedTask;
@@ -639,6 +685,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         ActiveConversationId = conversationId;
         ActiveConversationTitle = item.Title;
         Messages.Clear();
+        ConversationSummaryRefreshError = string.Empty;
 
         var messageSummaries = await _conversationCoordinator.LoadMessagesAsync(conversationId);
         foreach (var ms in messageSummaries)
@@ -975,6 +1022,47 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private void ToggleContextInspector()
         => IsContextInspectorOpen = !IsContextInspectorOpen;
 
+    [RelayCommand(CanExecute = nameof(CanRefreshConversationSummary))]
+    private async Task RefreshConversationSummaryAsync()
+    {
+        if (!ActiveConversationId.HasValue)
+        {
+            return;
+        }
+
+        IsRefreshingConversationSummary = true;
+        ConversationSummaryRefreshError = string.Empty;
+
+        try
+        {
+            var result = await _chatService
+                .RefreshConversationSummaryInspectionAsync(ActiveConversationId.Value);
+
+            if (result.Succeeded && result.Snapshot is not null)
+            {
+                ApplyContextInspection(result.Snapshot);
+                return;
+            }
+
+            ConversationSummaryRefreshError = string.IsNullOrWhiteSpace(result.ErrorMessage)
+                ? "Summary refresh failed. Keeping the previous summary state."
+                : result.ErrorMessage;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to refresh conversation summary for conversation {ConversationId}", ActiveConversationId.Value);
+            ConversationSummaryRefreshError = "Summary refresh failed. Keeping the previous summary state.";
+        }
+        finally
+        {
+            IsRefreshingConversationSummary = false;
+        }
+    }
+
     [RelayCommand]
     private async Task ClearConversationAsync()
     {
@@ -1228,6 +1316,21 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(ConversationIntelligenceIsStale));
         OnPropertyChanged(nameof(ConversationIntelligenceIsPending));
         OnPropertyChanged(nameof(ConversationIntelligenceIsUnavailable));
+        OnPropertyChanged(nameof(ShowConversationSummaryRefreshAction));
+        OnPropertyChanged(nameof(ConversationSummaryRefreshActionText));
+        RefreshConversationSummaryCommand.NotifyCanExecuteChanged();
+    }
+
+    private void NotifyConversationSummaryRefreshStateChanged()
+    {
+        OnPropertyChanged(nameof(HasConversationSummaryRefreshError));
+        OnPropertyChanged(nameof(HasConversationSummaryRefreshStatus));
+        OnPropertyChanged(nameof(ConversationSummaryRefreshStatusText));
+        OnPropertyChanged(nameof(ConversationSummaryRefreshActionText));
+        OnPropertyChanged(nameof(ConversationIntelligenceStatusText));
+        OnPropertyChanged(nameof(ShowConversationSummaryRefreshAction));
+        OnPropertyChanged(nameof(CanRefreshConversationSummary));
+        RefreshConversationSummaryCommand.NotifyCanExecuteChanged();
     }
 
     // ═══════════════════════════════════════════════════════════════
