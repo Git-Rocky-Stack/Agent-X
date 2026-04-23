@@ -35,6 +35,7 @@ public sealed class ComparisonService : IComparisonService
     private readonly IAiService _aiService;
     private readonly IDocumentService _documentService;
     private readonly ISemanticSearchService _searchService;
+    private readonly IDocumentSynthesisService _documentSynthesisService;
     private readonly ILogger _log;
 
     // ── Constants ────────────────────────────────────────────────────────────
@@ -85,11 +86,13 @@ public sealed class ComparisonService : IComparisonService
         IAiService aiService,
         IDocumentService documentService,
         ISemanticSearchService searchService,
-        ILogger logger)
+        ILogger logger,
+        IDocumentSynthesisService? documentSynthesisService = null)
     {
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
         _documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
         _searchService = searchService ?? throw new ArgumentNullException(nameof(searchService));
+        _documentSynthesisService = documentSynthesisService ?? new DocumentSynthesisService(aiService, logger);
         _log = logger?.ForContext<ComparisonService>()
                ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -205,38 +208,27 @@ public sealed class ComparisonService : IComparisonService
 
         Report(progress, "Building analysis prompt…");
 
-        var systemPrompt = BuildSystemPrompt(options);
-        var userPrompt = BuildUserPrompt(contentByDoc, options);
-        var promptMessages = new List<ChatMessage>
+        var synthesisRequest = new ComparisonSynthesisRequest
         {
-            new() { Role = "user", Content = userPrompt }
+            ContentByDocument = contentByDoc,
+            Options = options
         };
 
-        long promptTokenEstimate = EstimateTokens(systemPrompt + userPrompt);
-
         _log.Information(
-            "Sending comparison prompt to AI: ~{Tokens} prompt tokens, {DocCount} document(s)",
-            promptTokenEstimate, contentByDoc.Count);
+            "Sending comparison prompt to AI for {DocCount} document(s)",
+            contentByDoc.Count);
 
         // ── Step 4: Call AI and stream response ──────────────────────────────
 
         Report(progress, "Running AI analysis — this may take a moment…");
 
-        var responseBuilder = new StringBuilder(4096);
+        ComparisonSynthesisResult synthesisResult;
 
         try
         {
-            await foreach (var token in _aiService
-                               .StreamChatAsync(
-                                   promptMessages,
-                                   systemPrompt: systemPrompt,
-                                   options: AnalysisChatOptions,
-                                   ct: ct)
-                               .WithCancellation(ct)
-                               .ConfigureAwait(false))
-            {
-                responseBuilder.Append(token);
-            }
+            synthesisResult = await _documentSynthesisService
+                .SynthesizeComparisonAsync(synthesisRequest, ct)
+                .ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -250,13 +242,13 @@ public sealed class ComparisonService : IComparisonService
                 "Verify that a model is loaded and connected, then try again.", ex);
         }
 
-        var rawResponse = responseBuilder.ToString().Trim();
+        var rawResponse = synthesisResult.RawResponse;
 
         _log.Debug(
             "AI response received: {Chars} chars, estimated ~{Tokens} completion tokens",
             rawResponse.Length, EstimateTokens(rawResponse));
 
-        long totalTokens = promptTokenEstimate + EstimateTokens(rawResponse);
+        long totalTokens = synthesisResult.EstimatedPromptTokens + EstimateTokens(rawResponse);
 
         // ── Step 5: Parse the AI response into a ComparisonReport ────────────
 

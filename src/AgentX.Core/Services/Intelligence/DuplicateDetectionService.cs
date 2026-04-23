@@ -17,6 +17,7 @@ public class DuplicateDetectionService : IDuplicateDetectionService
     private readonly AgentXDbContext _db;
     private readonly IVectorStore _vectorStore;
     private readonly ILogger _log;
+    private readonly IDuplicateEvidenceService _duplicateEvidenceService;
     private readonly IFeatureFlagService? _featureFlags;
 
     /// <summary>
@@ -25,12 +26,18 @@ public class DuplicateDetectionService : IDuplicateDetectionService
     /// </summary>
     private const int MaxNearDuplicateScanDocuments = 500;
 
-    public DuplicateDetectionService(AgentXDbContext db, IVectorStore vectorStore, ILogger logger, IFeatureFlagService? featureFlags = null)
+    public DuplicateDetectionService(
+        AgentXDbContext db,
+        IVectorStore vectorStore,
+        ILogger logger,
+        IDuplicateEvidenceService? duplicateEvidenceService = null,
+        IFeatureFlagService? featureFlags = null)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
         _vectorStore = vectorStore ?? throw new ArgumentNullException(nameof(vectorStore));
         _log = logger?.ForContext<DuplicateDetectionService>()
                ?? throw new ArgumentNullException(nameof(logger));
+        _duplicateEvidenceService = duplicateEvidenceService ?? new DuplicateEvidenceService(logger);
         _featureFlags = featureFlags;
     }
 
@@ -213,10 +220,13 @@ public class DuplicateDetectionService : IDuplicateDetectionService
                     .ConfigureAwait(false);
 
                 // Map matching chunk IDs back to document IDs and deduplicate
-                var matchedDocIds = results
-                    .Where(r => chunkToDocument.ContainsKey(r.ChunkId))
-                    .Select(r => chunkToDocument[r.ChunkId])
-                    .Where(id => id != doc.Id && !assigned.Contains(id))
+                var evidence = _duplicateEvidenceService
+                    .BuildEvidence(results, chunkToDocument)
+                    .Where(item => item.DocumentId != doc.Id && !assigned.Contains(item.DocumentId))
+                    .ToList();
+
+                var matchedDocIds = evidence
+                    .Select(item => item.DocumentId)
                     .Distinct()
                     .ToList();
 
@@ -253,8 +263,8 @@ public class DuplicateDetectionService : IDuplicateDetectionService
 
                     _log.Debug(
                         "Found near-duplicate group: reference document {DocumentId} '{FileName}' " +
-                        "with {MatchCount} similar documents",
-                        doc.Id, doc.FileName, matchedDocIds.Count);
+                        "with {MatchCount} similar documents (top confidence: {TopConfidence:F2})",
+                        doc.Id, doc.FileName, matchedDocIds.Count, evidence.FirstOrDefault()?.Confidence ?? 0);
                 }
 
                 assigned.Add(doc.Id);

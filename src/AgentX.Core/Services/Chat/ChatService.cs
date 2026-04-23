@@ -1,9 +1,11 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using AgentX.Core.AI.Context;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.AI.Routing;
+using AgentX.Core.Constants;
 using AgentX.Core.Services.Settings;
 using Serilog;
 
@@ -19,7 +21,7 @@ public class ChatService : IChatService
     private readonly IAiService _aiService;
     private readonly IConversationService _conversationService;
     private readonly ISettingsService _settingsService;
-    private readonly IContextWindowManager _contextWindowManager;
+    private readonly IContextAssemblyService _contextAssemblyService;
     private readonly IConversationMemoryService _memoryService;
     private readonly ISemanticMemoryService? _semanticMemoryService;
     private readonly IModelRouterService? _modelRouterService;
@@ -54,7 +56,7 @@ public class ChatService : IChatService
         IAiService aiService,
         IConversationService conversationService,
         ISettingsService settingsService,
-        IContextWindowManager contextWindowManager,
+        IContextAssemblyService contextAssemblyService,
         IConversationMemoryService memoryService,
         ILogger logger,
         IModelRouterService? modelRouterService = null,
@@ -63,7 +65,7 @@ public class ChatService : IChatService
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
         _conversationService = conversationService ?? throw new ArgumentNullException(nameof(conversationService));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-        _contextWindowManager = contextWindowManager ?? throw new ArgumentNullException(nameof(contextWindowManager));
+        _contextAssemblyService = contextAssemblyService ?? throw new ArgumentNullException(nameof(contextAssemblyService));
         _memoryService = memoryService ?? throw new ArgumentNullException(nameof(memoryService));
         _log = logger?.ForContext<ChatService>()
                ?? throw new ArgumentNullException(nameof(logger));
@@ -118,33 +120,6 @@ public class ChatService : IChatService
             // 4. Get system prompt from conversation entity
             var systemPrompt = conversation.SystemPrompt;
 
-            // 4b. Enrich system prompt with user memories (semantic retrieval when available)
-            try
-            {
-                string memoryContext;
-                if (_semanticMemoryService is not null)
-                {
-                    // Use semantic memory retrieval with the user's message as query
-                    var relevantMemories = await _semanticMemoryService.RetrieveRelevantMemoriesAsync(
-                        userMessage, maxMemories: 8, minSimilarity: 0.65f, linkedCts.Token);
-                    memoryContext = FormatMemoriesAsContext(relevantMemories);
-                }
-                else
-                {
-                    // Fallback to simple importance-based retrieval
-                    memoryContext = await _memoryService.GetMemoryContextAsync(8, linkedCts.Token);
-                }
-
-                if (!string.IsNullOrEmpty(memoryContext))
-                {
-                    systemPrompt = (systemPrompt ?? "") + memoryContext;
-                }
-            }
-            catch (Exception ex)
-            {
-                _log.Warning(ex, "Failed to load memory context for conversation {ConversationId}", conversationId);
-            }
-
             // 5. Build chat options from settings
             var options = await BuildChatOptionsAsync();
 
@@ -180,12 +155,21 @@ public class ChatService : IChatService
                 }
             }
 
-            // 6. Trim context to fit within model's context window
-            var contextWindow = _contextWindowManager.GetEffectiveContextWindow(
-                options?.ContextWindow ?? 0);
-            var fittedMessages = await _contextWindowManager.FitToContextWindowAsync(
-                chatMessages.ToList(), contextWindow, reserveForResponse: 1024, linkedCts.Token);
-            chatMessages = fittedMessages;
+            // 6. Assemble context with semantic selection and graceful fallback
+            var memoryContext = await LoadMemoryContextAsync(conversationId, userMessage, linkedCts.Token);
+            var assembledContext = await _contextAssemblyService.AssembleAsync(
+                new ContextAssemblyRequest
+                {
+                    CurrentQuery = userMessage,
+                    SystemPrompt = systemPrompt,
+                    MemoryContext = memoryContext,
+                    ConversationMessages = chatMessages.ToList(),
+                    ContextWindow = options?.ContextWindow ?? 0,
+                    ReserveForResponse = AppConstants.ContextWindowTokenReserve
+                },
+                linkedCts.Token);
+            chatMessages = assembledContext.Messages;
+            systemPrompt = assembledContext.SystemPrompt;
 
             // 7. Stream the AI response
             _log.Debug(
@@ -323,11 +307,19 @@ public class ChatService : IChatService
             // Build chat options from settings
             var options = await BuildChatOptionsAsync();
 
-            // Trim context to fit within model's context window
-            var contextWindow = _contextWindowManager.GetEffectiveContextWindow(
-                options?.ContextWindow ?? 0);
-            var chatMessages = await _contextWindowManager.FitToContextWindowAsync(
-                rawMessages.ToList(), contextWindow, reserveForResponse: 1024, ct);
+            var memoryContext = await LoadMemoryContextAsync(conversationId, lastUserMessage.Content, ct);
+            var assembledContext = await _contextAssemblyService.AssembleAsync(
+                new ContextAssemblyRequest
+                {
+                    CurrentQuery = lastUserMessage.Content,
+                    SystemPrompt = conversation.SystemPrompt,
+                    MemoryContext = memoryContext,
+                    ConversationMessages = rawMessages.ToList(),
+                    ContextWindow = options?.ContextWindow ?? 0,
+                    ReserveForResponse = AppConstants.ContextWindowTokenReserve
+                },
+                ct);
+            var chatMessages = assembledContext.Messages;
 
             // Create a linked cancellation token for stop support
             CancellationTokenSource linkedCts;
@@ -349,7 +341,7 @@ public class ChatService : IChatService
                 var tokenCount = 0;
 
                 await foreach (var token in _aiService.StreamChatAsync(
-                    chatMessages, conversation.SystemPrompt, options, linkedCts.Token))
+                    chatMessages, assembledContext.SystemPrompt, options, linkedCts.Token))
                 {
                     responseBuilder.Append(token);
                     tokenCount++;
@@ -449,6 +441,29 @@ public class ChatService : IChatService
         {
             _log.Warning(ex, "Failed to build chat options from settings, using defaults");
             return null;
+        }
+    }
+
+    private async Task<string> LoadMemoryContextAsync(
+        long conversationId,
+        string query,
+        CancellationToken ct)
+    {
+        try
+        {
+            if (_semanticMemoryService is not null)
+            {
+                var relevantMemories = await _semanticMemoryService.RetrieveRelevantMemoriesAsync(
+                    query, maxMemories: 8, minSimilarity: 0.65f, ct).ConfigureAwait(false);
+                return FormatMemoriesAsContext(relevantMemories);
+            }
+
+            return await _memoryService.GetMemoryContextAsync(8, ct).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Failed to load memory context for conversation {ConversationId}", conversationId);
+            return string.Empty;
         }
     }
 

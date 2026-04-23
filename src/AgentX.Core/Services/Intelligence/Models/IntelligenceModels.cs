@@ -57,6 +57,19 @@ public class DuplicateDocument
 }
 
 /// <summary>
+/// Aggregated semantic evidence supporting a near-duplicate relationship
+/// between a reference document and another candidate document.
+/// </summary>
+public class DuplicateEvidence
+{
+    public long DocumentId { get; init; }
+    public int SupportingChunkCount { get; init; }
+    public double MaxSimilarity { get; init; }
+    public double AverageSimilarity { get; init; }
+    public double Confidence { get; init; }
+}
+
+/// <summary>
 /// Represents an AI-generated suggestion for organizing an uncategorized document
 /// into a collection with appropriate tags.
 /// </summary>

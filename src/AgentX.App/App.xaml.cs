@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml;
 using Serilog;
 using SQLitePCL;
 using AgentX.Core.AI;
+using AgentX.Core.AI.Context;
 using AgentX.Core.AI.Agents;
 using AgentX.Core.AI.Models;
 using AgentX.Core.AI.Routing;
@@ -313,6 +314,9 @@ public partial class App : Application
         services.AddSingleton<IHardwareDetector, HardwareDetector>();
         services.AddSingleton<IEmbeddingService, EmbeddingService>();
         services.AddSingleton<IContextWindowManager, ContextWindowManager>();
+        services.AddSingleton<ISemanticContextSelector, SemanticContextSelector>();
+        services.AddSingleton<IConversationCompressionService, ConversationCompressionService>();
+        services.AddSingleton<IContextAssemblyService, ContextAssemblyService>();
         services.AddSingleton<IRetryPolicy, ExponentialBackoffRetryPolicy>();
 
         // ── AI Routing ────────────────────────────────────────
@@ -417,6 +421,9 @@ public partial class App : Application
         services.AddSingleton<IValidator<PluginManifest>, PluginManifestValidator>();
 
         // ── Intelligence Services ──────────────────────────────
+        services.AddSingleton<IHierarchicalSummaryService, HierarchicalSummaryService>();
+        services.AddSingleton<IDuplicateEvidenceService, DuplicateEvidenceService>();
+        services.AddSingleton<IDocumentSynthesisService, DocumentSynthesisService>();
         services.AddSingleton<ISummaryService, SummaryService>();
         services.AddSingleton<IDuplicateDetectionService, DuplicateDetectionService>();
         services.AddSingleton<IOrganizationSuggestionService, OrganizationSuggestionService>();

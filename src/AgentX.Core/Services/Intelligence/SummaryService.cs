@@ -17,6 +17,7 @@ public class SummaryService : ISummaryService
 {
     private readonly IAiService _aiService;
     private readonly AgentXDbContext _db;
+    private readonly IHierarchicalSummaryService _hierarchicalSummaryService;
     private readonly ILogger _log;
 
     /// <summary>
@@ -39,10 +40,15 @@ public class SummaryService : ISummaryService
         MaxTokens = 2048,
     };
 
-    public SummaryService(IAiService aiService, AgentXDbContext db, ILogger logger)
+    public SummaryService(
+        IAiService aiService,
+        AgentXDbContext db,
+        ILogger logger,
+        IHierarchicalSummaryService? hierarchicalSummaryService = null)
     {
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
         _db = db ?? throw new ArgumentNullException(nameof(db));
+        _hierarchicalSummaryService = hierarchicalSummaryService ?? new HierarchicalSummaryService(aiService, logger);
         _log = logger?.ForContext<SummaryService>()
                ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -52,16 +58,10 @@ public class SummaryService : ISummaryService
     {
         _log.Information("Starting document summarization for document {DocumentId}", documentId);
 
-        var (document, text) = await LoadDocumentTextAsync(documentId, ct).ConfigureAwait(false);
-
-        var prompt = $"Summarize the following document concisely. Focus on the main topics, key findings, and conclusions.\n\nDOCUMENT TITLE: {document.FileName}\n\n{text}";
-
-        var messages = new List<ChatMessage>
-        {
-            new() { Role = "user", Content = prompt }
-        };
-
-        var summary = await StreamToStringAsync(messages, ct).ConfigureAwait(false);
+        var document = await LoadDocumentAsync(documentId, ct).ConfigureAwait(false);
+        var summary = await _hierarchicalSummaryService
+            .SummarizeAsync(document.FileName, GetDocumentSections(document), ct)
+            .ConfigureAwait(false);
 
         _log.Information(
             "Completed summarization for document {DocumentId} '{FileName}' ({SummaryLength} chars)",
@@ -75,18 +75,10 @@ public class SummaryService : ISummaryService
     {
         _log.Information("Starting key-point extraction for document {DocumentId}", documentId);
 
-        var (document, text) = await LoadDocumentTextAsync(documentId, ct).ConfigureAwait(false);
-
-        var prompt = $"Extract the key points from the following document as a numbered list. Each point should be one concise sentence.\n\nDOCUMENT: {document.FileName}\n\n{text}";
-
-        var messages = new List<ChatMessage>
-        {
-            new() { Role = "user", Content = prompt }
-        };
-
-        var response = await StreamToStringAsync(messages, ct).ConfigureAwait(false);
-
-        var keyPoints = ParseKeyPoints(response);
+        var document = await LoadDocumentAsync(documentId, ct).ConfigureAwait(false);
+        var keyPoints = await _hierarchicalSummaryService
+            .ExtractKeyPointsAsync(document.FileName, GetDocumentSections(document), ct)
+            .ConfigureAwait(false);
 
         _log.Information(
             "Extracted {Count} key points from document {DocumentId} '{FileName}'",
@@ -147,7 +139,7 @@ public class SummaryService : ISummaryService
     /// up to <see cref="MaxDocumentChars"/>, and returns the document entity with
     /// the concatenated text.
     /// </summary>
-    private async Task<(Data.Entities.DocumentEntity Document, string Text)> LoadDocumentTextAsync(
+    private async Task<Data.Entities.DocumentEntity> LoadDocumentAsync(
         long documentId, CancellationToken ct)
     {
         var document = await _db.Documents
@@ -173,38 +165,29 @@ public class SummaryService : ISummaryService
                 "Please ensure the document has been fully indexed before requesting a summary.");
         }
 
-        // Concatenate chunk text, respecting the character limit
+        return document;
+    }
+
+    private static IReadOnlyList<string> GetDocumentSections(Data.Entities.DocumentEntity document)
+    {
         var sb = new StringBuilder(MaxDocumentChars);
-        foreach (var chunk in document.Chunks)
+        var sections = new List<string>(document.Chunks.Count);
+
+        foreach (var chunk in document.Chunks.OrderBy(c => c.ChunkIndex))
         {
             if (sb.Length >= MaxDocumentChars)
                 break;
 
             var remaining = MaxDocumentChars - sb.Length;
-            if (chunk.Content.Length <= remaining)
-            {
-                sb.Append(chunk.Content);
-            }
-            else
-            {
-                sb.Append(chunk.Content, 0, remaining);
-            }
+            var chunkText = chunk.Content.Length <= remaining
+                ? chunk.Content
+                : chunk.Content[..remaining];
 
-            // Add a space between chunks to prevent words from merging
-            if (sb.Length < MaxDocumentChars)
-            {
-                sb.Append(' ');
-            }
+            sections.Add(chunkText);
+            sb.Append(chunkText);
         }
 
-        var text = sb.ToString().TrimEnd();
-
-        _log.Debug(
-            "Loaded {ChunkCount} chunks for document {DocumentId} '{FileName}', " +
-            "concatenated to {TextLength} chars (max {MaxChars})",
-            document.Chunks.Count, documentId, document.FileName, text.Length, MaxDocumentChars);
-
-        return (document, text);
+        return sections;
     }
 
     /// <summary>
