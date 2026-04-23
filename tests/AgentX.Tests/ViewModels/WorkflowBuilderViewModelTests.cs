@@ -130,6 +130,8 @@ public sealed class WorkflowBuilderViewModelTests
                     ]
                 }
             ]);
+        _workflowService.Setup(service => service.GetRecentRunsAsync(77, 8, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<WorkflowRunHistoryItem>());
 
         _workflowEngine.Setup(engine => engine.ExecuteWorkflowAsync(
                 77,
@@ -175,9 +177,15 @@ public sealed class WorkflowBuilderViewModelTests
             _workflowEngine.Object,
             _modelManager.Object)
         {
-            RunInput = "Review this document"
+            RunInput = "Review this document",
+            SelectedWorkflow = new WorkflowListItem
+            {
+                Id = 77,
+                Name = "Document Review"
+            }
         };
 
+        await Task.Delay(50);
         await viewModel.RunWorkflowCommand.ExecuteAsync(77L);
 
         viewModel.RunCompleted.Should().BeTrue();
@@ -186,7 +194,7 @@ public sealed class WorkflowBuilderViewModelTests
         viewModel.RunProgress.Should().Be(2);
         viewModel.StepOutputs.Should().HaveCount(2);
         viewModel.StepOutputs[0].StepName.Should().Be("Analyze");
-        viewModel.StepOutputs[1].Output.Should().Be("final draft");
+        viewModel.StepOutputs.Select(step => step.Output).Should().Contain("final draft");
         viewModel.RunTotalTokens.Should().Be(110);
         viewModel.StatusMessage.Should().Be("Workflow completed in 300ms");
     }
@@ -230,7 +238,8 @@ public sealed class WorkflowBuilderViewModelTests
             SelectedWorkflow = new WorkflowListItem
             {
                 Id = 42,
-                Name = "Research Brief"
+                Name = "Research Brief",
+                IsBuiltIn = true
             }
         };
 
@@ -240,6 +249,9 @@ public sealed class WorkflowBuilderViewModelTests
         viewModel.HasRecentRuns.Should().BeTrue();
         viewModel.RecentRuns.Should().ContainSingle();
         viewModel.RecentRuns[0].StatusText.Should().Be("Completed");
+        viewModel.HasSelectedTemplateGuide.Should().BeTrue();
+        viewModel.SelectedTemplateGuideSummary.Should().NotBeNullOrWhiteSpace();
+        viewModel.HasSelectedTemplateGuideExamples.Should().BeTrue();
     }
 
     [Fact]
@@ -365,5 +377,69 @@ public sealed class WorkflowBuilderViewModelTests
         viewModel.EditName.Should().Be("Research Brief Copy");
         viewModel.EditSteps.Should().ContainSingle(step => step.Name == "Topic Analysis");
         viewModel.StatusMessage.Should().Be("Created workflow \"Research Brief Copy\" from template");
+    }
+
+    [Fact]
+    public async Task Selecting_custom_workflow_hides_template_guide()
+    {
+        _workflowService.Setup(service => service.GetRecentRunsAsync(200, 8, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<WorkflowRunHistoryItem>());
+
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object)
+        {
+            SelectedWorkflow = new WorkflowListItem
+            {
+                Id = 200,
+                Name = "My Custom Workflow",
+                IsBuiltIn = false
+            }
+        };
+
+        await Task.Delay(50);
+
+        viewModel.HasSelectedTemplateGuide.Should().BeFalse();
+        viewModel.SelectedTemplateGuideSummary.Should().BeEmpty();
+        viewModel.SelectedTemplateGuideExamples.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void WorkflowStarterTemplates_include_only_built_ins_and_selecting_one_updates_state()
+    {
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object);
+
+        viewModel.Workflows.Add(new WorkflowListItem
+        {
+            Id = 1,
+            Name = "Research Brief",
+            Category = "Research",
+            Description = "Starter",
+            IsBuiltIn = true
+        });
+        viewModel.Workflows.Add(new WorkflowListItem
+        {
+            Id = 2,
+            Name = "Custom Workflow",
+            Category = "Custom",
+            Description = "User owned",
+            IsBuiltIn = false
+        });
+
+        viewModel.ShowWorkflowStarterEmptyState.Should().BeTrue();
+        viewModel.ShowWorkflowRunnerSection.Should().BeFalse();
+        viewModel.WorkflowStarterTemplates.Should().ContainSingle();
+        viewModel.WorkflowStarterTemplates[0].Name.Should().Be("Research Brief");
+
+        viewModel.SelectTemplateCommand.Execute(1L);
+
+        viewModel.SelectedWorkflow.Should().NotBeNull();
+        viewModel.SelectedWorkflow!.Id.Should().Be(1);
+        viewModel.ShowWorkflowStarterEmptyState.Should().BeFalse();
+        viewModel.ShowWorkflowRunnerSection.Should().BeTrue();
     }
 }

@@ -328,10 +328,89 @@
                     <Border Grid.Row="2"
                             Style="{StaticResource CardStyle}"
                             Padding="24"
-                            Visibility="{x:Bind ViewModel.IsEditing, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
+                            Visibility="{x:Bind ViewModel.ShowWorkflowRunnerSection, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <StackPanel Spacing="20">
                             <TextBlock Text="Run Workflow"
                                        Style="{StaticResource HeadingSmallStyle}" />
+
+                            <!-- Template Guide -->
+                            <Border Background="{StaticResource CardGradientSubtleBrush}"
+                                    CornerRadius="{StaticResource RadiusMD}"
+                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                    BorderThickness="1"
+                                    Padding="18"
+                                    Visibility="{x:Bind ViewModel.HasSelectedTemplateGuide, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                <StackPanel Spacing="14">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="Template Guide"
+                                                   Style="{StaticResource HeadingSmallStyle}" />
+                                        <TextBlock Text="{x:Bind ViewModel.SelectedTemplateGuideSummary, Mode=OneWay}"
+                                                   Style="{StaticResource BodySecondaryStyle}"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+
+                                    <Grid ColumnSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="Best For"
+                                                       Style="{StaticResource LabelStyle}" />
+                                            <TextBlock Text="{x:Bind ViewModel.SelectedTemplateGuideBestFor, Mode=OneWay}"
+                                                       Style="{StaticResource BodyStyle}"
+                                                       TextWrapping="Wrap"
+                                                       Opacity="0.85" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" Spacing="6">
+                                            <TextBlock Text="You'll Get"
+                                                       Style="{StaticResource LabelStyle}" />
+                                            <TextBlock Text="{x:Bind ViewModel.SelectedTemplateGuideOutcome, Mode=OneWay}"
+                                                       Style="{StaticResource BodyStyle}"
+                                                       TextWrapping="Wrap"
+                                                       Opacity="0.85" />
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <StackPanel Spacing="8"
+                                                Visibility="{x:Bind ViewModel.HasSelectedTemplateGuideExamples, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Text="Try It With"
+                                                   Style="{StaticResource LabelStyle}" />
+                                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.SelectedTemplateGuideExamples, Mode=OneWay}">
+                                            <ItemsRepeater.Layout>
+                                                <StackLayout Spacing="8" />
+                                            </ItemsRepeater.Layout>
+                                            <ItemsRepeater.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:WorkflowTemplateGuideExampleItem">
+                                                    <Grid ColumnSpacing="10">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <FontIcon Glyph="&#xE8FD;"
+                                                                  FontSize="12"
+                                                                  Foreground="{StaticResource AccentPrimaryBrush}"
+                                                                  VerticalAlignment="Top"
+                                                                  Margin="0,3,0,0" />
+                                                        <TextBlock Grid.Column="1"
+                                                                   Text="{x:Bind Text}"
+                                                                   Style="{StaticResource BodyStyle}"
+                                                                   TextWrapping="Wrap"
+                                                                   Opacity="0.85" />
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsRepeater.ItemTemplate>
+                                        </ItemsRepeater>
+                                    </StackPanel>
+
+                                    <TextBlock Text="Run the template as-is if it already fits. Use Template if you want to customize the steps before saving your own version."
+                                               Style="{StaticResource CaptionStyle}"
+                                               Opacity="0.65"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
 
                             <!-- Input -->
                             <StackPanel Spacing="6">
@@ -582,20 +661,96 @@
                                Visibility="{x:Bind ViewModel.StatusMessage, Mode=OneWay, Converter={StaticResource StringToVis}}" />
 
                     <!-- ═══ EMPTY STATE ═══ -->
-                    <StackPanel Grid.Row="1"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Spacing="12"
-                                Margin="0,60,0,0"
-                                Visibility="{x:Bind ViewModel.IsEditing, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
-                        <FontIcon Glyph="&#xE945;"
-                                  FontSize="48"
-                                  Foreground="{StaticResource TextTertiaryBrush}"
-                                  HorizontalAlignment="Center" />
-                        <TextBlock Text="Select a workflow to run or create a new one"
-                                   Style="{StaticResource BodySecondaryStyle}"
-                                   HorizontalAlignment="Center" />
-                    </StackPanel>
+                    <Border Grid.Row="2"
+                            Style="{StaticResource CardStyle}"
+                            Padding="28"
+                            Visibility="{x:Bind ViewModel.ShowWorkflowStarterEmptyState, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                        <StackPanel Spacing="20">
+                            <StackPanel Spacing="8">
+                                <FontIcon Glyph="&#xE945;"
+                                          FontSize="42"
+                                          Foreground="{StaticResource AccentPrimaryBrush}" />
+                                <TextBlock Text="Start with a template"
+                                           Style="{StaticResource DisplaySmallStyle}" />
+                                <TextBlock Text="Workflows help you turn one block of input into a repeatable multi-step result. Pick a starter template below, then run it as-is or customize it later."
+                                           Style="{StaticResource BodySecondaryStyle}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <ItemsRepeater ItemsSource="{x:Bind ViewModel.WorkflowStarterTemplates, Mode=OneWay}"
+                                           Visibility="{x:Bind ViewModel.HasWorkflowStarterTemplates, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                <ItemsRepeater.Layout>
+                                    <StackLayout Spacing="12" />
+                                </ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:WorkflowStarterTemplateDisplayItem">
+                                        <Border Background="{StaticResource CardGradientSubtleBrush}"
+                                                BorderBrush="{StaticResource BorderSubtleBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="{StaticResource RadiusMD}"
+                                                Padding="18">
+                                            <StackPanel Spacing="10">
+                                                <Grid ColumnSpacing="12">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <StackPanel Spacing="6">
+                                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                                            <TextBlock Text="{x:Bind Name}"
+                                                                       Style="{StaticResource HeadingSmallStyle}" />
+                                                            <Border Background="{StaticResource AccentSubtleBrush}"
+                                                                    CornerRadius="{StaticResource RadiusSM}"
+                                                                    Padding="8,2">
+                                                                <TextBlock Text="{x:Bind Category}"
+                                                                           Style="{StaticResource CaptionStyle}"
+                                                                           Foreground="{StaticResource AccentPrimaryBrush}" />
+                                                            </Border>
+                                                        </StackPanel>
+                                                        <TextBlock Text="{x:Bind Summary}"
+                                                                   Style="{StaticResource BodyStyle}"
+                                                                   TextWrapping="Wrap"
+                                                                   Opacity="0.85" />
+                                                    </StackPanel>
+
+                                                    <Button Grid.Column="1"
+                                                            Content="Select Template"
+                                                            Command="{Binding ViewModel.SelectTemplateCommand, ElementName=WorkflowPage}"
+                                                            CommandParameter="{Binding Id}"
+                                                            Style="{StaticResource SecondaryButtonStyle}"
+                                                            VerticalAlignment="Top" />
+                                                </Grid>
+
+                                                <TextBlock Style="{StaticResource CaptionStyle}"
+                                                           Opacity="0.65"
+                                                           TextWrapping="Wrap">
+                                                    <Run Text="Best for: " />
+                                                    <Run Text="{x:Bind BestFor}" />
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+
+                            <TextBlock Text="No starter templates are available right now."
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       Visibility="{x:Bind ViewModel.HasWorkflowStarterTemplates, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
+
+                            <StackPanel Orientation="Horizontal"
+                                        Spacing="12">
+                                <Button Content="Create Blank Workflow"
+                                        Command="{x:Bind ViewModel.CreateWorkflowCommand}"
+                                        Style="{StaticResource AccentButtonStyle}" />
+                                <TextBlock Text="You can also build a workflow from scratch if none of the starters fit."
+                                           Style="{StaticResource CaptionStyle}"
+                                           Opacity="0.65"
+                                           VerticalAlignment="Center"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
                 </Grid>
             </ScrollViewer>
         </Grid>

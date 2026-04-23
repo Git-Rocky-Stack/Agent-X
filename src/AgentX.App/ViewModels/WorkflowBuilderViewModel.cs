@@ -12,6 +12,47 @@ namespace AgentX.App.ViewModels;
 
 public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
 {
+    private static readonly IReadOnlyDictionary<string, WorkflowTemplateGuideContent> TemplateGuideCatalog =
+        new Dictionary<string, WorkflowTemplateGuideContent>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Summarize & Act"] = new(
+                "Turn notes, transcripts, or rough source material into a short summary, key points, and actionable next steps.",
+                "Meeting notes, call transcripts, brainstorm dumps, and long documents you need to turn into clear follow-up work.",
+                "A concise overview, a distilled list of the main points, and a practical action-item list you can execute or share.",
+                [
+                    new WorkflowTemplateGuideExampleItem("Paste a meeting transcript and extract the follow-up actions."),
+                    new WorkflowTemplateGuideExampleItem("Drop in a long memo and turn it into key points for your team."),
+                    new WorkflowTemplateGuideExampleItem("Use rough brainstorming notes to produce a prioritized action list.")
+                ]),
+            ["Research Brief"] = new(
+                "Take a topic, question, or early research dump and turn it into a structured brief with balanced findings.",
+                "Exploring a new topic, preparing for a strategy discussion, or organizing a rough set of research notes.",
+                "An executive summary, background, key findings, opposing views, and a final synthesis you can build from.",
+                [
+                    new WorkflowTemplateGuideExampleItem("Paste a research question and ask for a balanced briefing."),
+                    new WorkflowTemplateGuideExampleItem("Use article notes to create a decision-ready summary."),
+                    new WorkflowTemplateGuideExampleItem("Turn a rough topic outline into a structured brief for review.")
+                ]),
+            ["Document Review"] = new(
+                "Review a document, surface what is working, and identify concrete improvements for the next draft.",
+                "Draft proposals, client documents, internal memos, landing-page copy, and other writing that needs critique.",
+                "A document summary, clear strengths and weaknesses, and a prioritized improvement list.",
+                [
+                    new WorkflowTemplateGuideExampleItem("Paste a proposal draft and get actionable revision guidance."),
+                    new WorkflowTemplateGuideExampleItem("Review internal documentation before sharing it widely."),
+                    new WorkflowTemplateGuideExampleItem("Use on marketing copy to find weak spots and tighten the message.")
+                ]),
+            ["Content Repurpose"] = new(
+                "Start from one core piece of content and reshape it into multiple publishable formats.",
+                "Source material you want to turn into social posts, email copy, and a longer written version.",
+                "A core-message extraction plus adapted outputs for a thread, a professional email, and a blog-style post.",
+                [
+                    new WorkflowTemplateGuideExampleItem("Paste a webinar transcript and generate multiple distribution formats."),
+                    new WorkflowTemplateGuideExampleItem("Turn a founder note into social, email, and blog content."),
+                    new WorkflowTemplateGuideExampleItem("Use a long-form write-up as the base for a repurposing pass.")
+                ])
+        };
+
     // ── Services ─────────────────────────────────────────────
     private readonly IWorkflowService _workflowService;
     private readonly IWorkflowEngine _workflowEngine;
@@ -60,12 +101,43 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     public long SelectedWorkflowId => SelectedWorkflow?.Id ?? 0;
     public string SelectedWorkflowName => SelectedWorkflow?.Name ?? string.Empty;
     public bool CanRunSelectedWorkflow => SelectedWorkflow is not null && !IsRunning;
+    public bool ShowWorkflowStarterEmptyState => !IsEditing && !HasSelectedWorkflow;
+    public bool ShowWorkflowRunnerSection => !IsEditing && HasSelectedWorkflow;
     public bool HasRecentRuns => RecentRuns.Count > 0;
     public bool ShowRecentRunsEmptyState => HasSelectedWorkflow && !HasRecentRuns;
     public bool HasStepOutputs => StepOutputs.Count > 0;
     public bool HasRunOutput => !string.IsNullOrWhiteSpace(RunOutput);
     public bool HasRunOutputOrError => HasRunOutput || !string.IsNullOrWhiteSpace(RunErrorMessage);
     public bool HasRunResultContextText => !string.IsNullOrWhiteSpace(RunResultContextText);
+    public bool HasSelectedTemplateGuide => SelectedTemplateGuide is not null;
+    public string SelectedTemplateGuideSummary => SelectedTemplateGuide?.Summary ?? string.Empty;
+    public string SelectedTemplateGuideBestFor => SelectedTemplateGuide?.BestFor ?? string.Empty;
+    public string SelectedTemplateGuideOutcome => SelectedTemplateGuide?.Outcome ?? string.Empty;
+    public IReadOnlyList<WorkflowTemplateGuideExampleItem> SelectedTemplateGuideExamples =>
+        SelectedTemplateGuide?.Examples ?? Array.Empty<WorkflowTemplateGuideExampleItem>();
+    public bool HasSelectedTemplateGuideExamples => SelectedTemplateGuideExamples.Count > 0;
+    public IReadOnlyList<WorkflowStarterTemplateDisplayItem> WorkflowStarterTemplates =>
+        Workflows
+            .Where(workflow => workflow.IsBuiltIn)
+            .Select(workflow =>
+            {
+                var summary = TemplateGuideCatalog.TryGetValue(workflow.Name, out var guide)
+                    ? guide.Summary
+                    : workflow.Description;
+
+                var bestFor = TemplateGuideCatalog.TryGetValue(workflow.Name, out guide)
+                    ? guide.BestFor
+                    : workflow.Category;
+
+                return new WorkflowStarterTemplateDisplayItem(
+                    workflow.Id,
+                    workflow.Name,
+                    workflow.Category,
+                    summary,
+                    bestFor);
+            })
+            .ToArray();
+    public bool HasWorkflowStarterTemplates => WorkflowStarterTemplates.Count > 0;
 
     private CancellationTokenSource? _runCts;
 
@@ -77,6 +149,12 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         _workflowService = workflowService;
         _workflowEngine = workflowEngine;
         _modelManager = modelManager;
+
+        Workflows.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(WorkflowStarterTemplates));
+            OnPropertyChanged(nameof(HasWorkflowStarterTemplates));
+        };
 
         RecentRuns.CollectionChanged += (_, _) =>
         {
@@ -269,6 +347,16 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         {
             Log.Error(ex, "Failed to use workflow template {Id}", workflowId);
             StatusMessage = "Failed to create workflow from template";
+        }
+    }
+
+    [RelayCommand]
+    private void SelectTemplate(long workflowId)
+    {
+        SelectedWorkflow = Workflows.FirstOrDefault(workflow => workflow.Id == workflowId && workflow.IsBuiltIn);
+        if (SelectedWorkflow is not null)
+        {
+            StatusMessage = $"Selected template \"{SelectedWorkflow.Name}\"";
         }
     }
 
@@ -571,7 +659,10 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedWorkflowId));
         OnPropertyChanged(nameof(SelectedWorkflowName));
         OnPropertyChanged(nameof(CanRunSelectedWorkflow));
+        OnPropertyChanged(nameof(ShowWorkflowStarterEmptyState));
+        OnPropertyChanged(nameof(ShowWorkflowRunnerSection));
         OnPropertyChanged(nameof(ShowRecentRunsEmptyState));
+        NotifySelectedTemplateGuideChanged();
 
         _ = LoadSelectedWorkflowRunsAsync(value);
     }
@@ -579,6 +670,12 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     partial void OnIsRunningChanged(bool value)
     {
         OnPropertyChanged(nameof(CanRunSelectedWorkflow));
+    }
+
+    partial void OnIsEditingChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ShowWorkflowStarterEmptyState));
+        OnPropertyChanged(nameof(ShowWorkflowRunnerSection));
     }
 
     partial void OnRunOutputChanged(string value)
@@ -636,6 +733,31 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         RunDurationMs = 0;
         RunResultContextText = string.Empty;
         StepOutputs.Clear();
+    }
+
+    private void NotifySelectedTemplateGuideChanged()
+    {
+        OnPropertyChanged(nameof(HasSelectedTemplateGuide));
+        OnPropertyChanged(nameof(SelectedTemplateGuideSummary));
+        OnPropertyChanged(nameof(SelectedTemplateGuideBestFor));
+        OnPropertyChanged(nameof(SelectedTemplateGuideOutcome));
+        OnPropertyChanged(nameof(SelectedTemplateGuideExamples));
+        OnPropertyChanged(nameof(HasSelectedTemplateGuideExamples));
+    }
+
+    private WorkflowTemplateGuideContent? SelectedTemplateGuide
+    {
+        get
+        {
+            if (SelectedWorkflow is not { IsBuiltIn: true })
+            {
+                return null;
+            }
+
+            return TemplateGuideCatalog.TryGetValue(SelectedWorkflow.Name, out var guide)
+                ? guide
+                : null;
+        }
     }
 
     private void ApplyHistoricalRun(WorkflowRunHistoryDisplayItem run)
@@ -791,4 +913,57 @@ public sealed class WorkflowRunHistoryDisplayItem
 
     public bool HasPreview => !string.IsNullOrWhiteSpace(PreviewText);
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
+}
+
+public sealed class WorkflowTemplateGuideContent
+{
+    public WorkflowTemplateGuideContent(
+        string summary,
+        string bestFor,
+        string outcome,
+        IReadOnlyList<WorkflowTemplateGuideExampleItem> examples)
+    {
+        Summary = summary;
+        BestFor = bestFor;
+        Outcome = outcome;
+        Examples = examples;
+    }
+
+    public string Summary { get; }
+    public string BestFor { get; }
+    public string Outcome { get; }
+    public IReadOnlyList<WorkflowTemplateGuideExampleItem> Examples { get; }
+}
+
+public sealed class WorkflowTemplateGuideExampleItem
+{
+    public WorkflowTemplateGuideExampleItem(string text)
+    {
+        Text = text;
+    }
+
+    public string Text { get; }
+}
+
+public sealed class WorkflowStarterTemplateDisplayItem
+{
+    public WorkflowStarterTemplateDisplayItem(
+        long id,
+        string name,
+        string category,
+        string summary,
+        string bestFor)
+    {
+        Id = id;
+        Name = name;
+        Category = category;
+        Summary = summary;
+        BestFor = bestFor;
+    }
+
+    public long Id { get; }
+    public string Name { get; }
+    public string Category { get; }
+    public string Summary { get; }
+    public string BestFor { get; }
 }
