@@ -213,6 +213,18 @@
             <TextBlock Style="{StaticResource BodyStyle}" />
         </DataTemplate>
 
+        <DataTemplate x:Key="ContextStoryChipTemplate" x:DataType="vm:ChatContextStorySourceDisplayItem">
+            <Border Background="{StaticResource InputBackgroundBrush}"
+                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{StaticResource RadiusRound}"
+                    Padding="8,4,8,4">
+                <TextBlock Text="{x:Bind Label}"
+                           Style="{StaticResource CaptionStyle}"
+                           Foreground="{StaticResource TextSecondaryBrush}" />
+            </Border>
+        </DataTemplate>
+
     </Page.Resources>
 
     <!-- ═══════════════════════════════════════════════════════════════
@@ -695,12 +707,27 @@
                         </Border>
                     </Grid>
 
-                    <TextBlock Grid.Column="1"
-                               Text="{x:Bind ViewModel.ConversationIntelligenceStatusText, Mode=OneWay}"
-                               Style="{StaticResource CaptionStyle}"
-                               VerticalAlignment="Center"
-                               TextTrimming="CharacterEllipsis"
-                               MaxLines="1" />
+                    <StackPanel Grid.Column="1"
+                                Spacing="4"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="{x:Bind ViewModel.ConversationIntelligenceStatusText, Mode=OneWay}"
+                                   Style="{StaticResource CaptionStyle}"
+                                   TextTrimming="CharacterEllipsis"
+                                   MaxLines="1" />
+                        <TextBlock Text="{x:Bind ViewModel.ContextStoryText, Mode=OneWay}"
+                                   Style="{StaticResource CaptionStyle}"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   TextTrimming="CharacterEllipsis"
+                                   MaxLines="2"
+                                   Visibility="{x:Bind ViewModel.HasContextStory, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.ContextStorySourceChips, Mode=OneWay}"
+                                       ItemTemplate="{StaticResource ContextStoryChipTemplate}"
+                                       Visibility="{x:Bind ViewModel.HasContextStorySourceChips, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Orientation="Horizontal" Spacing="6" />
+                            </ItemsRepeater.Layout>
+                        </ItemsRepeater>
+                    </StackPanel>
 
                     <StackPanel Grid.Column="2"
                                 Orientation="Horizontal"
@@ -1061,6 +1088,29 @@
                                 <TextBlock Text="{x:Bind ViewModel.ContextInspectionStatus, Mode=OneWay}"
                                            Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
+
+                            <Border Background="{StaticResource InputBackgroundBrush}"
+                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="{StaticResource RadiusMD}"
+                                    Padding="12"
+                                    Visibility="{x:Bind ViewModel.HasContextStory, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Context Story"
+                                               Style="{StaticResource CaptionStyle}"
+                                               Foreground="{StaticResource TextAccentBrush}" />
+                                    <TextBlock Text="{x:Bind ViewModel.ContextStoryText, Mode=OneWay}"
+                                               Style="{StaticResource CaptionStyle}"
+                                               TextWrapping="WrapWholeWords" />
+                                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.ContextStorySourceChips, Mode=OneWay}"
+                                                   ItemTemplate="{StaticResource ContextStoryChipTemplate}"
+                                                   Visibility="{x:Bind ViewModel.HasContextStorySourceChips, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                        <ItemsRepeater.Layout>
+                                            <StackLayout Orientation="Horizontal" Spacing="6" />
+                                        </ItemsRepeater.Layout>
+                                    </ItemsRepeater>
+                                </StackPanel>
+                            </Border>
 
                             <Grid ColumnSpacing="12" RowSpacing="12">
                                 <Grid.ColumnDefinitions>

@@ -251,6 +251,13 @@ public sealed class ChatServiceContextAssemblyTests
             match.MessageId == 77 &&
             match.ConversationId == 64 &&
             match.ConversationTitle == "Previous Startup Review");
+        snapshot.ContextStoryText.Should().Be("Using a current durable summary, 1 recalled message from another conversation, and compressed overflow context.");
+        snapshot.ContextStorySourceChips.Select(chip => chip.Label).Should().ContainInOrder(
+        [
+            "Current Summary",
+            "1 Recall Match",
+            "Compressed Overflow"
+        ]);
         snapshot.AssemblyExplanation.Should().NotBeEmpty();
         snapshot.CompressionExplanation.Should().Contain("compressed overflow summary");
         snapshot.RecallExplanation.Should().Contain("added 1 recalled message");

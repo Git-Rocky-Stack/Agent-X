@@ -76,6 +76,13 @@ public sealed class ChatViewModelTests
         viewModel.ConversationIntelligenceStatusText.Should().Be("Summary current • 2 key points available");
         viewModel.ShowConversationSummaryRefreshAction.Should().BeFalse();
         viewModel.HasContextInspection.Should().BeTrue();
+        viewModel.HasContextStory.Should().BeTrue();
+        viewModel.ContextStoryText.Should().Be("Using a current durable summary and 1 recalled message from another conversation.");
+        viewModel.ContextStorySourceChips.Select(chip => chip.Label).Should().ContainInOrder(
+        [
+            "Current Summary",
+            "1 Recall Match"
+        ]);
         viewModel.ContextAssemblyMode.Should().Be("Structured context assembly");
         viewModel.ContextSelectedMessages.Should().Be("3");
         viewModel.ContextSummaryPreview.Should().Be("Focused on startup retries and backoff behavior.");
@@ -114,6 +121,8 @@ public sealed class ChatViewModelTests
         viewModel.HasConversationIntelligenceStrip.Should().BeFalse();
         viewModel.HasContextInspection.Should().BeFalse();
         viewModel.ContextInspectionStatus.Should().Be("No generation context captured yet.");
+        viewModel.HasContextStory.Should().BeFalse();
+        viewModel.ContextStoryText.Should().BeEmpty();
         viewModel.ContextSummaryStatus.Should().Be("No durable summary captured yet.");
         viewModel.ContextRecallStatus.Should().Be("No durable recall context captured yet.");
         viewModel.ContextSummaryKeyPoints.Should().BeEmpty();
@@ -144,6 +153,7 @@ public sealed class ChatViewModelTests
         viewModel.GenerationTimeMs.Should().Be(48);
         viewModel.HasContextInspection.Should().BeTrue();
         viewModel.ContextInspectionStatus.Should().Be("Latest response context captured");
+        viewModel.ContextStoryText.Should().Be("Using a current durable summary and 1 recalled message from another conversation.");
         viewModel.ContextSummaryPreview.Should().Be("Focused on startup retries and backoff behavior.");
         viewModel.ContextRecallStatus.Should().Be("1 recalled message used");
         viewModel.Conversations.Should().ContainSingle(item => item.Id == 84 && item.Title == "Recovered Thread");
@@ -174,6 +184,8 @@ public sealed class ChatViewModelTests
         viewModel.ConversationIntelligenceBadgeText.Should().Be("Stale");
         viewModel.ConversationIntelligenceIsStale.Should().BeTrue();
         viewModel.ConversationIntelligenceStatusText.Should().Be("Summary stale • 3 newer messages not folded in");
+        viewModel.ContextStoryText.Should().Be("Using a stale durable summary with 3 newer messages still outside it and 1 recalled message from another conversation.");
+        viewModel.ContextStorySourceChips.Select(chip => chip.Label).Should().Contain("Stale Summary");
         viewModel.ShowConversationSummaryRefreshAction.Should().BeTrue();
     }
 
@@ -201,7 +213,39 @@ public sealed class ChatViewModelTests
         viewModel.ConversationIntelligenceIsUnavailable.Should().BeTrue();
         viewModel.ConversationIntelligenceBadgeText.Should().Be("Unavailable");
         viewModel.ConversationIntelligenceStatusText.Should().Be("No conversation context captured yet");
+        viewModel.ContextStoryText.Should().Be("No context story is available until Agent-X assembles a response for this conversation.");
+        viewModel.HasContextStorySourceChips.Should().BeFalse();
         viewModel.ShowConversationSummaryRefreshAction.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SelectConversationAsync_WithLimitedVisibilitySnapshot_ShowsReducedContextStory()
+    {
+        var snapshot = ChatContextInspectionSnapshot.CreateLimited(
+            42,
+            "How should I proceed?",
+            "provider_disconnected");
+
+        _conversationCoordinator
+            .Setup(service => service.LoadMessagesAsync(42))
+            .ReturnsAsync(Array.Empty<MessageSummary>());
+        _chatService
+            .Setup(service => service.GetLatestContextInspection(42))
+            .Returns(snapshot);
+
+        var viewModel = CreateViewModel();
+        viewModel.Conversations.Add(new ConversationListItem
+        {
+            Id = 42,
+            Title = "Startup Investigation",
+            UpdatedAt = DateTime.UtcNow
+        });
+
+        await viewModel.SelectConversationCommand.ExecuteAsync(42L);
+
+        viewModel.ConversationIntelligenceIsUnavailable.Should().BeTrue();
+        viewModel.ContextStoryText.Should().Be("This response used a limited-visibility path, so only partial chat context details are available.");
+        viewModel.ContextStorySourceChips.Select(chip => chip.Label).Should().ContainSingle().Which.Should().Be("Limited Visibility");
     }
 
     [Fact]

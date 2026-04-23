@@ -19,6 +19,8 @@ public sealed record ChatContextInspectionSnapshot
     public string RecallExplanation { get; init; } = string.Empty;
     public bool HasLimitedVisibility { get; init; }
     public string? LimitedVisibilityReason { get; init; }
+    public string ContextStoryText => BuildContextStoryText(this);
+    public IReadOnlyList<ChatContextStorySourceChip> ContextStorySourceChips => BuildContextStorySourceChips(this);
 
     public static ChatContextInspectionSnapshot CreateLimited(
         long conversationId,
@@ -35,6 +37,127 @@ public sealed record ChatContextInspectionSnapshot
             CompressionExplanation = "Compression details are unavailable for this response path.",
             RecallExplanation = "Durable recall details are unavailable for this response path."
         };
+
+    private static string BuildContextStoryText(ChatContextInspectionSnapshot snapshot)
+    {
+        if (snapshot.HasLimitedVisibility)
+        {
+            return snapshot.LimitedVisibilityReason switch
+            {
+                "summary_only_refresh" => "Showing a summary-only view because no newly assembled response context has been captured yet.",
+                _ => "This response used a limited-visibility path, so only partial chat context details are available."
+            };
+        }
+
+        if (snapshot.Diagnostics.UsedLegacyFallback)
+        {
+            return "This response used the legacy context path, so the assembled context story is only partially inspectable.";
+        }
+
+        if (snapshot.Diagnostics.UsedLexicalFallback)
+        {
+            return AppendContextIngredients(
+                "Agent-X selected thread context with lexical fallback",
+                snapshot);
+        }
+
+        var leadClause = snapshot.Summary switch
+        {
+            { IsStale: true, PendingMessageCount: > 0 } summary =>
+                $"Using a stale durable summary with {summary.PendingMessageCount} newer {Pluralize("message", summary.PendingMessageCount)} still outside it",
+            { IsStale: true } =>
+                "Using a stale durable summary while newer thread changes wait to be folded in",
+            not null =>
+                "Using a current durable summary",
+            _ =>
+                "Using live thread context without a durable summary snapshot"
+        };
+
+        return AppendContextIngredients(leadClause, snapshot);
+    }
+
+    private static IReadOnlyList<ChatContextStorySourceChip> BuildContextStorySourceChips(
+        ChatContextInspectionSnapshot snapshot)
+    {
+        var chips = new List<ChatContextStorySourceChip>(5);
+
+        if (snapshot.HasLimitedVisibility)
+        {
+            chips.Add(new ChatContextStorySourceChip { Label = "Limited Visibility" });
+            if (string.Equals(snapshot.LimitedVisibilityReason, "summary_only_refresh", StringComparison.Ordinal))
+            {
+                chips.Add(new ChatContextStorySourceChip { Label = "Summary Only" });
+            }
+        }
+
+        if (snapshot.Diagnostics.UsedLegacyFallback)
+        {
+            chips.Add(new ChatContextStorySourceChip { Label = "Legacy Fallback" });
+        }
+        else if (snapshot.Diagnostics.UsedLexicalFallback)
+        {
+            chips.Add(new ChatContextStorySourceChip { Label = "Lexical Fallback" });
+        }
+
+        if (snapshot.Summary is not null)
+        {
+            chips.Add(new ChatContextStorySourceChip
+            {
+                Label = snapshot.Summary.IsStale ? "Stale Summary" : "Current Summary"
+            });
+        }
+
+        if (snapshot.RecallMatches.Count > 0)
+        {
+            chips.Add(new ChatContextStorySourceChip
+            {
+                Label = snapshot.RecallMatches.Count == 1
+                    ? "1 Recall Match"
+                    : $"{snapshot.RecallMatches.Count} Recall Matches"
+            });
+        }
+
+        if (snapshot.Diagnostics.AddedOverflowSummary)
+        {
+            chips.Add(new ChatContextStorySourceChip { Label = "Compressed Overflow" });
+        }
+
+        return chips;
+    }
+
+    private static string AppendContextIngredients(
+        string leadClause,
+        ChatContextInspectionSnapshot snapshot)
+    {
+        var ingredients = new List<string>(2);
+
+        if (snapshot.RecallMatches.Count > 0)
+        {
+            ingredients.Add(snapshot.RecallMatches.Count == 1
+                ? "1 recalled message from another conversation"
+                : $"{snapshot.RecallMatches.Count} recalled messages from other conversations");
+        }
+
+        if (snapshot.Diagnostics.AddedOverflowSummary)
+        {
+            ingredients.Add("compressed overflow context");
+        }
+
+        return ingredients.Count switch
+        {
+            0 => $"{leadClause}.",
+            1 => $"{leadClause} and {ingredients[0]}.",
+            _ => $"{leadClause}, {ingredients[0]}, and {ingredients[1]}."
+        };
+    }
+
+    private static string Pluralize(string noun, int count) =>
+        count == 1 ? noun : $"{noun}s";
+}
+
+public sealed record ChatContextStorySourceChip
+{
+    public string Label { get; init; } = string.Empty;
 }
 
 /// <summary>

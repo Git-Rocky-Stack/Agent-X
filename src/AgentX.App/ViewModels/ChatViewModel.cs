@@ -91,6 +91,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _hasLimitedContextInspection;
     [ObservableProperty] private string _contextInspectionStatus = "No generation context captured yet.";
     [ObservableProperty] private string _contextCapturedAt = "No context captured";
+    [ObservableProperty] private string _contextStoryText = string.Empty;
+    [ObservableProperty] private ObservableCollection<ChatContextStorySourceDisplayItem> _contextStorySourceChips = new();
     [ObservableProperty] private string _contextSelectedMessages = "0";
     [ObservableProperty] private string _contextAnchorMessages = "0";
     [ObservableProperty] private string _contextOverflowMessages = "0";
@@ -144,6 +146,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     public bool CanSend => !string.IsNullOrWhiteSpace(UserInput) && !IsGenerating;
     public bool IsVoiceActive => IsRecording || IsTranscribing;
     public bool HasConversationIntelligenceStrip => ActiveConversationId.HasValue;
+    public bool HasContextStory => !string.IsNullOrWhiteSpace(ContextStoryText);
+    public bool HasContextStorySourceChips => ContextStorySourceChips.Count > 0;
     public string ConversationIntelligenceBadgeText
     {
         get
@@ -582,6 +586,12 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
     partial void OnConversationSummaryRefreshErrorChanged(string value)
         => NotifyConversationSummaryRefreshStateChanged();
+
+    partial void OnContextStoryTextChanged(string value)
+        => OnPropertyChanged(nameof(HasContextStory));
+
+    partial void OnContextStorySourceChipsChanged(ObservableCollection<ChatContextStorySourceDisplayItem> value)
+        => OnPropertyChanged(nameof(HasContextStorySourceChips));
 
     partial void OnConversationSearchQueryChanged(string value)
         => _ = FilterConversationsAsync(value);
@@ -1223,6 +1233,12 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             ? $"Limited visibility: {snapshot.LimitedVisibilityReason?.Replace('_', ' ') ?? "reduced path"}"
             : "Latest response context captured";
         ContextCapturedAt = BuildRelativeTimeLabel(snapshot.CapturedAt);
+        ContextStoryText = snapshot.ContextStoryText;
+        ContextStorySourceChips = new ObservableCollection<ChatContextStorySourceDisplayItem>(
+            snapshot.ContextStorySourceChips.Select(chip => new ChatContextStorySourceDisplayItem
+            {
+                Label = chip.Label
+            }));
         ContextSelectedMessages = snapshot.Diagnostics.SelectedMessageCount.ToString();
         ContextAnchorMessages = snapshot.Diagnostics.AnchorMessageCount.ToString();
         ContextOverflowMessages = snapshot.Diagnostics.OverflowMessageCount.ToString();
@@ -1286,6 +1302,10 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         HasLimitedContextInspection = false;
         ContextInspectionStatus = "No generation context captured yet.";
         ContextCapturedAt = "No context captured";
+        ContextStoryText = ActiveConversationId.HasValue
+            ? "No context story is available until Agent-X assembles a response for this conversation."
+            : string.Empty;
+        ContextStorySourceChips = new ObservableCollection<ChatContextStorySourceDisplayItem>();
         ContextSelectedMessages = "0";
         ContextAnchorMessages = "0";
         ContextOverflowMessages = "0";
@@ -1350,4 +1370,9 @@ public sealed class ChatContextRecallDisplayItem
     public string PreviewText { get; init; } = string.Empty;
     public string SimilarityLabel { get; init; } = string.Empty;
     public string TimestampLabel { get; init; } = string.Empty;
+}
+
+public sealed class ChatContextStorySourceDisplayItem
+{
+    public string Label { get; init; } = string.Empty;
 }
