@@ -13,6 +13,7 @@ public sealed partial class WorkflowBuilderPage : Page
     public WorkflowBuilderPage()
     {
         ViewModel = App.GetService<WorkflowBuilderViewModel>();
+        ViewModel.NavigateRequested = NavigateToPage;
         InitializeComponent();
 
         Loaded += OnPageLoaded;
@@ -24,6 +25,14 @@ public sealed partial class WorkflowBuilderPage : Page
         await ViewModel.InitializeAsync();
     }
 
+    private void NavigateToPage(string pageTag)
+    {
+        if (App.MainWindow is MainWindow mainWindow)
+        {
+            mainWindow.NavigateToPage(pageTag);
+        }
+    }
+
     private void CopyOutputToClipboard(object sender, RoutedEventArgs e)
     {
         if (!string.IsNullOrEmpty(ViewModel.RunOutput))
@@ -33,6 +42,95 @@ public sealed partial class WorkflowBuilderPage : Page
             Clipboard.SetContent(dataPackage);
             ViewModel.StatusMessage = "Output copied to clipboard";
         }
+    }
+
+    private async void ExportWorkflowToClipboard_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { Tag: long workflowId } || workflowId <= 0)
+        {
+            return;
+        }
+
+        var json = await ViewModel.GetWorkflowExportJsonAsync(workflowId);
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return;
+        }
+
+        var dataPackage = new DataPackage();
+        dataPackage.SetText(json);
+        Clipboard.SetContent(dataPackage);
+        ViewModel.StatusMessage = $"Workflow \"{ViewModel.SelectedWorkflowName}\" copied to clipboard";
+    }
+
+    private async void ImportWorkflow_Click(object sender, RoutedEventArgs e)
+    {
+        var importBox = new TextBox
+        {
+            AcceptsReturn = true,
+            TextWrapping = TextWrapping.Wrap,
+            MinHeight = 220,
+            MaxHeight = 420,
+            PlaceholderText = "Paste exported workflow JSON here"
+        };
+
+        var clipboardText = await TryGetClipboardTextAsync();
+        if (!string.IsNullOrWhiteSpace(clipboardText))
+        {
+            importBox.Text = clipboardText;
+        }
+
+        var dialog = new ContentDialog
+        {
+            Title = "Import Workflow",
+            PrimaryButtonText = "Import",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Primary,
+            IsPrimaryButtonEnabled = !string.IsNullOrWhiteSpace(importBox.Text),
+            XamlRoot = this.XamlRoot,
+            Content = new StackPanel
+            {
+                Spacing = 10,
+                MinWidth = 520,
+                Children =
+                {
+                    new TextBlock
+                    {
+                        Text = "Paste a workflow export below. Clipboard text is loaded automatically when available.",
+                        TextWrapping = TextWrapping.Wrap
+                    },
+                    importBox
+                }
+            }
+        };
+
+        importBox.TextChanged += (_, _) =>
+        {
+            dialog.IsPrimaryButtonEnabled = !string.IsNullOrWhiteSpace(importBox.Text);
+        };
+
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        {
+            await ViewModel.ImportWorkflowCommand.ExecuteAsync(importBox.Text);
+        }
+    }
+
+    private static async Task<string?> TryGetClipboardTextAsync()
+    {
+        try
+        {
+            var content = Clipboard.GetContent();
+            if (content.Contains(StandardDataFormats.Text))
+            {
+                return await content.GetTextAsync();
+            }
+        }
+        catch
+        {
+            // Clipboard access can fail in some edge cases; importing still works with manual paste.
+        }
+
+        return null;
     }
 
     /// <summary>

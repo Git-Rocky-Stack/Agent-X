@@ -6,6 +6,8 @@ using AgentX.Core.AI.Models;
 using AgentX.Core.Services.Workflows;
 using AgentX.Core.Services.Workflows.Models;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Documents;
+using AgentX.Core.Helpers;
 using Serilog;
 
 namespace AgentX.App.ViewModels;
@@ -57,6 +59,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     private readonly IWorkflowService _workflowService;
     private readonly IWorkflowEngine _workflowEngine;
     private readonly IModelManager _modelManager;
+    private readonly IDocumentService _documentService;
 
     // ── Page State ───────────────────────────────────────────
     [ObservableProperty] private string _pageTitle = "Prompt Workflows";
@@ -89,10 +92,12 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _runFailed;
     [ObservableProperty] private string _runErrorMessage = string.Empty;
     [ObservableProperty] private string _runResultContextText = string.Empty;
+    [ObservableProperty] private string _lastSavedWorkflowDocumentName = string.Empty;
     public ObservableCollection<StepOutputItem> StepOutputs { get; } = new();
 
     // ── Models ───────────────────────────────────────────────
     public ObservableCollection<AiModel> AvailableModels { get; } = new();
+    public Action<string>? NavigateRequested { get; set; }
 
     // ── Category Options ─────────────────────────────────────
     public List<string> Categories { get; } = new() { "Custom", "Research", "Writing", "Analysis", "Productivity" };
@@ -109,6 +114,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     public bool HasRunOutput => !string.IsNullOrWhiteSpace(RunOutput);
     public bool HasRunOutputOrError => HasRunOutput || !string.IsNullOrWhiteSpace(RunErrorMessage);
     public bool HasRunResultContextText => !string.IsNullOrWhiteSpace(RunResultContextText);
+    public bool CanSaveCurrentResultToVault => !IsRunning && !string.IsNullOrWhiteSpace(GetCurrentResultText());
     public bool HasSelectedTemplateGuide => SelectedTemplateGuide is not null;
     public string SelectedTemplateGuideSummary => SelectedTemplateGuide?.Summary ?? string.Empty;
     public string SelectedTemplateGuideBestFor => SelectedTemplateGuide?.BestFor ?? string.Empty;
@@ -144,11 +150,13 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     public WorkflowBuilderViewModel(
         IWorkflowService workflowService,
         IWorkflowEngine workflowEngine,
-        IModelManager modelManager)
+        IModelManager modelManager,
+        IDocumentService documentService)
     {
         _workflowService = workflowService;
         _workflowEngine = workflowEngine;
         _modelManager = modelManager;
+        _documentService = documentService;
 
         Workflows.CollectionChanged += (_, _) =>
         {
@@ -166,6 +174,67 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         {
             OnPropertyChanged(nameof(HasStepOutputs));
         };
+    }
+
+    [RelayCommand(CanExecute = nameof(CanSaveCurrentResultToVault))]
+    private async Task SaveCurrentResultToVaultAsync()
+    {
+        var resultText = GetCurrentResultText();
+        if (string.IsNullOrWhiteSpace(resultText))
+        {
+            StatusMessage = "No workflow result available to save";
+            return;
+        }
+
+        var document = await SaveWorkflowResultToVaultAsync(
+            workflowName: SelectedWorkflowName,
+            captureLabel: RunResultContextText,
+            resultText: resultText,
+            capturedAt: DateTime.UtcNow);
+
+        if (document is not null)
+        {
+            LastSavedWorkflowDocumentName = document.FileName;
+            StatusMessage = $"Saved workflow result to Knowledge Vault as \"{document.FileName}\"";
+        }
+    }
+
+    [RelayCommand]
+    private async Task SaveHistoricalRunToVaultAsync(WorkflowRunHistoryDisplayItem? run)
+    {
+        if (run is null)
+        {
+            return;
+        }
+
+        var resultText = run.GetSaveableContent();
+        if (string.IsNullOrWhiteSpace(resultText))
+        {
+            StatusMessage = "This stored run does not have result content to save";
+            return;
+        }
+
+        var workflowName = !string.IsNullOrWhiteSpace(SelectedWorkflowName)
+            ? SelectedWorkflowName
+            : "Workflow";
+
+        var document = await SaveWorkflowResultToVaultAsync(
+            workflowName: workflowName,
+            captureLabel: $"Stored run from {run.StartedAtText}",
+            resultText: resultText,
+            capturedAt: run.StartedAt);
+
+        if (document is not null)
+        {
+            LastSavedWorkflowDocumentName = document.FileName;
+            StatusMessage = $"Saved stored workflow result to Knowledge Vault as \"{document.FileName}\"";
+        }
+    }
+
+    [RelayCommand]
+    private void OpenKnowledgeVault()
+    {
+        NavigateRequested?.Invoke("KnowledgeVault");
     }
 
     public async Task InitializeAsync()
@@ -318,6 +387,20 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to edit workflow {Id}", workflowId);
+        }
+    }
+
+    public async Task<string?> GetWorkflowExportJsonAsync(long workflowId)
+    {
+        try
+        {
+            return await _workflowService.ExportWorkflowAsJsonAsync(workflowId);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to export workflow {Id}", workflowId);
+            StatusMessage = "Export failed";
+            return null;
         }
     }
 
@@ -604,16 +687,10 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task ExportWorkflowAsync(long workflowId)
     {
-        try
+        var json = await GetWorkflowExportJsonAsync(workflowId);
+        if (!string.IsNullOrWhiteSpace(json))
         {
-            var json = await _workflowService.ExportWorkflowAsJsonAsync(workflowId);
-            // Copy to clipboard — let the page handle the file picker
-            StatusMessage = "Workflow JSON copied to clipboard";
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to export workflow");
-            StatusMessage = "Export failed";
+            StatusMessage = "Workflow JSON ready to copy";
         }
     }
 
@@ -626,6 +703,8 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         {
             var workflow = await _workflowService.ImportWorkflowFromJsonAsync(json);
             await LoadWorkflowsAsync();
+            SelectedWorkflow = Workflows.FirstOrDefault(item => item.Id == workflow.Id);
+            IsEditing = false;
             StatusMessage = $"Imported workflow \"{workflow.Name}\"";
         }
         catch (Exception ex)
@@ -670,6 +749,8 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     partial void OnIsRunningChanged(bool value)
     {
         OnPropertyChanged(nameof(CanRunSelectedWorkflow));
+        OnPropertyChanged(nameof(CanSaveCurrentResultToVault));
+        SaveCurrentResultToVaultCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnIsEditingChanged(bool value)
@@ -682,11 +763,15 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     {
         OnPropertyChanged(nameof(HasRunOutput));
         OnPropertyChanged(nameof(HasRunOutputOrError));
+        OnPropertyChanged(nameof(CanSaveCurrentResultToVault));
+        SaveCurrentResultToVaultCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnRunErrorMessageChanged(string value)
     {
         OnPropertyChanged(nameof(HasRunOutputOrError));
+        OnPropertyChanged(nameof(CanSaveCurrentResultToVault));
+        SaveCurrentResultToVaultCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnRunResultContextTextChanged(string value)
@@ -758,6 +843,79 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
                 ? guide
                 : null;
         }
+    }
+
+    private string GetCurrentResultText()
+    {
+        if (!string.IsNullOrWhiteSpace(RunOutput))
+        {
+            return RunOutput;
+        }
+
+        return RunErrorMessage;
+    }
+
+    private async Task<DocumentEntity?> SaveWorkflowResultToVaultAsync(
+        string workflowName,
+        string captureLabel,
+        string resultText,
+        DateTime capturedAt)
+    {
+        try
+        {
+            var normalizedWorkflowName = string.IsNullOrWhiteSpace(workflowName)
+                ? "Workflow Result"
+                : workflowName.Trim();
+            var timestamp = capturedAt.ToLocalTime().ToString("yyyy-MM-dd_HHmmss");
+            var documentTitle = $"{normalizedWorkflowName} Result {timestamp}";
+
+            var tempDir = Path.Combine(PathHelper.GetTempPath(), "WorkflowResults");
+            Directory.CreateDirectory(tempDir);
+
+            var safeFileName = PathHelper.SanitizeFileName(documentTitle);
+            var tempFilePath = Path.Combine(tempDir, $"{safeFileName}.txt");
+
+            var fileContent = BuildWorkflowResultDocumentContent(
+                normalizedWorkflowName,
+                captureLabel,
+                capturedAt,
+                resultText);
+
+            await File.WriteAllTextAsync(tempFilePath, fileContent);
+
+            return await _documentService.ImportExternalContentAsync(
+                tempFilePath,
+                fileTypeOverride: "WorkflowResult",
+                displayName: $"{safeFileName}.txt",
+                sourceUrl: null,
+                collectionId: null,
+                ct: default);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to save workflow result to vault");
+            StatusMessage = "Failed to save workflow result to Knowledge Vault";
+            return null;
+        }
+    }
+
+    private static string BuildWorkflowResultDocumentContent(
+        string workflowName,
+        string captureLabel,
+        DateTime capturedAt,
+        string resultText)
+    {
+        return string.Join(
+            Environment.NewLine,
+            [
+                $"Workflow: {workflowName}",
+                $"Captured: {capturedAt.ToLocalTime():yyyy-MM-dd h:mm tt}",
+                $"Context: {captureLabel}",
+                string.Empty,
+                "Result",
+                "------",
+                resultText.Trim()
+            ]);
     }
 
     private void ApplyHistoricalRun(WorkflowRunHistoryDisplayItem run)
@@ -913,6 +1071,16 @@ public sealed class WorkflowRunHistoryDisplayItem
 
     public bool HasPreview => !string.IsNullOrWhiteSpace(PreviewText);
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
+
+    public string GetSaveableContent()
+    {
+        if (!string.IsNullOrWhiteSpace(FinalOutput))
+        {
+            return FinalOutput;
+        }
+
+        return ErrorMessage;
+    }
 }
 
 public sealed class WorkflowTemplateGuideContent

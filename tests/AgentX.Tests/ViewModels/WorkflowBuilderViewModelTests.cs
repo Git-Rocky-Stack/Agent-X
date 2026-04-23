@@ -2,6 +2,7 @@ using AgentX.App.ViewModels;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Documents;
 using AgentX.Core.Services.Workflows;
 using AgentX.Core.Services.Workflows.Models;
 using FluentAssertions;
@@ -15,6 +16,7 @@ public sealed class WorkflowBuilderViewModelTests
     private readonly Mock<IWorkflowService> _workflowService = new();
     private readonly Mock<IWorkflowEngine> _workflowEngine = new();
     private readonly Mock<IModelManager> _modelManager = new();
+    private readonly Mock<IDocumentService> _documentService = new();
 
     [Fact]
     public async Task InitializeAsync_seeds_and_loads_workflows_and_models()
@@ -48,7 +50,8 @@ public sealed class WorkflowBuilderViewModelTests
         var viewModel = new WorkflowBuilderViewModel(
             _workflowService.Object,
             _workflowEngine.Object,
-            _modelManager.Object);
+            _modelManager.Object,
+            _documentService.Object);
 
         await viewModel.InitializeAsync();
 
@@ -77,7 +80,8 @@ public sealed class WorkflowBuilderViewModelTests
         var viewModel = new WorkflowBuilderViewModel(
             _workflowService.Object,
             _workflowEngine.Object,
-            _modelManager.Object);
+            _modelManager.Object,
+            _documentService.Object);
 
         viewModel.CreateWorkflowCommand.Execute(null);
         viewModel.EditSteps.Should().ContainSingle();
@@ -175,7 +179,8 @@ public sealed class WorkflowBuilderViewModelTests
         var viewModel = new WorkflowBuilderViewModel(
             _workflowService.Object,
             _workflowEngine.Object,
-            _modelManager.Object)
+            _modelManager.Object,
+            _documentService.Object)
         {
             RunInput = "Review this document",
             SelectedWorkflow = new WorkflowListItem
@@ -193,7 +198,7 @@ public sealed class WorkflowBuilderViewModelTests
         viewModel.RunOutput.Should().Be("final draft");
         viewModel.RunProgress.Should().Be(2);
         viewModel.StepOutputs.Should().HaveCount(2);
-        viewModel.StepOutputs[0].StepName.Should().Be("Analyze");
+        viewModel.StepOutputs.Select(step => step.StepName).Should().BeEquivalentTo(["Analyze", "Draft"]);
         viewModel.StepOutputs.Select(step => step.Output).Should().Contain("final draft");
         viewModel.RunTotalTokens.Should().Be(110);
         viewModel.StatusMessage.Should().Be("Workflow completed in 300ms");
@@ -233,7 +238,8 @@ public sealed class WorkflowBuilderViewModelTests
         var viewModel = new WorkflowBuilderViewModel(
             _workflowService.Object,
             _workflowEngine.Object,
-            _modelManager.Object)
+            _modelManager.Object,
+            _documentService.Object)
         {
             SelectedWorkflow = new WorkflowListItem
             {
@@ -260,7 +266,8 @@ public sealed class WorkflowBuilderViewModelTests
         var viewModel = new WorkflowBuilderViewModel(
             _workflowService.Object,
             _workflowEngine.Object,
-            _modelManager.Object);
+            _modelManager.Object,
+            _documentService.Object);
 
         var startedAt = new DateTime(2026, 4, 23, 16, 0, 0, DateTimeKind.Utc);
         var historicalRun = new WorkflowRunHistoryDisplayItem(
@@ -368,7 +375,8 @@ public sealed class WorkflowBuilderViewModelTests
         var viewModel = new WorkflowBuilderViewModel(
             _workflowService.Object,
             _workflowEngine.Object,
-            _modelManager.Object);
+            _modelManager.Object,
+            _documentService.Object);
 
         await viewModel.UseTemplateCommand.ExecuteAsync(42L);
 
@@ -380,6 +388,69 @@ public sealed class WorkflowBuilderViewModelTests
     }
 
     [Fact]
+    public async Task GetWorkflowExportJsonAsync_returns_serialized_workflow_json()
+    {
+        _workflowService.Setup(service => service.ExportWorkflowAsJsonAsync(42))
+            .ReturnsAsync("{\"name\":\"Research Brief\"}");
+
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object);
+
+        var json = await viewModel.GetWorkflowExportJsonAsync(42);
+
+        json.Should().Be("{\"name\":\"Research Brief\"}");
+    }
+
+    [Fact]
+    public async Task ImportWorkflowAsync_selects_imported_workflow_after_reload()
+    {
+        const string workflowJson = "{\"name\":\"Imported Workflow\"}";
+
+        _workflowService.Setup(service => service.ImportWorkflowFromJsonAsync(workflowJson))
+            .ReturnsAsync(new WorkflowEntity
+            {
+                Id = 88,
+                Name = "Imported Workflow",
+                Description = "Imported from JSON",
+                Category = "Custom",
+                IsBuiltIn = false
+            });
+        _workflowService.Setup(service => service.GetAllWorkflowsAsync(It.IsAny<bool>()))
+            .ReturnsAsync(
+            [
+                new WorkflowEntity
+                {
+                    Id = 88,
+                    Name = "Imported Workflow",
+                    Description = "Imported from JSON",
+                    Category = "Custom",
+                    IsBuiltIn = false
+                }
+            ]);
+        _workflowService.Setup(service => service.GetRecentRunsAsync(88, 8, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<WorkflowRunHistoryItem>());
+
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object);
+
+        await viewModel.ImportWorkflowCommand.ExecuteAsync(workflowJson);
+        await Task.Delay(50);
+
+        _workflowService.Verify(service => service.ImportWorkflowFromJsonAsync(workflowJson), Times.Once);
+        viewModel.SelectedWorkflow.Should().NotBeNull();
+        viewModel.SelectedWorkflow!.Id.Should().Be(88);
+        viewModel.SelectedWorkflow.Name.Should().Be("Imported Workflow");
+        viewModel.ShowWorkflowRunnerSection.Should().BeTrue();
+        viewModel.StatusMessage.Should().Be("Imported workflow \"Imported Workflow\"");
+    }
+
+    [Fact]
     public async Task Selecting_custom_workflow_hides_template_guide()
     {
         _workflowService.Setup(service => service.GetRecentRunsAsync(200, 8, It.IsAny<CancellationToken>()))
@@ -388,7 +459,8 @@ public sealed class WorkflowBuilderViewModelTests
         var viewModel = new WorkflowBuilderViewModel(
             _workflowService.Object,
             _workflowEngine.Object,
-            _modelManager.Object)
+            _modelManager.Object,
+            _documentService.Object)
         {
             SelectedWorkflow = new WorkflowListItem
             {
@@ -411,7 +483,8 @@ public sealed class WorkflowBuilderViewModelTests
         var viewModel = new WorkflowBuilderViewModel(
             _workflowService.Object,
             _workflowEngine.Object,
-            _modelManager.Object);
+            _modelManager.Object,
+            _documentService.Object);
 
         viewModel.Workflows.Add(new WorkflowListItem
         {
@@ -441,5 +514,143 @@ public sealed class WorkflowBuilderViewModelTests
         viewModel.SelectedWorkflow!.Id.Should().Be(1);
         viewModel.ShowWorkflowStarterEmptyState.Should().BeFalse();
         viewModel.ShowWorkflowRunnerSection.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SaveCurrentResultToVaultAsync_imports_wrapped_workflow_result()
+    {
+        var savedDocument = new DocumentEntity
+        {
+            Id = 501,
+            FileName = "Document Review Result 2026-04-23_090000.txt",
+            FilePath = Path.Combine(Path.GetTempPath(), "workflow-result.txt"),
+            FileType = "WorkflowResult"
+        };
+
+        string? importedPath = null;
+        string? importedText = null;
+
+        _documentService.Setup(service => service.ImportExternalContentAsync(
+                It.IsAny<string>(),
+                "WorkflowResult",
+                It.IsAny<string>(),
+                null,
+                null,
+                It.IsAny<CancellationToken>()))
+            .Callback<string, string, string, string?, long?, CancellationToken>((path, _, _, _, _, _) =>
+            {
+                importedPath = path;
+                importedText = File.ReadAllText(path);
+            })
+            .ReturnsAsync(savedDocument);
+
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object)
+        {
+            SelectedWorkflow = new WorkflowListItem
+            {
+                Id = 77,
+                Name = "Document Review"
+            },
+            RunOutput = "final draft",
+            RunResultContextText = "Showing latest execution result"
+        };
+
+        await viewModel.SaveCurrentResultToVaultCommand.ExecuteAsync(null);
+
+        _documentService.Verify(service => service.ImportExternalContentAsync(
+            It.IsAny<string>(),
+            "WorkflowResult",
+            It.IsAny<string>(),
+            null,
+            null,
+            It.IsAny<CancellationToken>()), Times.Once);
+        importedPath.Should().NotBeNullOrWhiteSpace();
+        File.Exists(importedPath!).Should().BeTrue();
+        importedText.Should().Contain("Workflow: Document Review");
+        importedText.Should().Contain("Context: Showing latest execution result");
+        importedText.Should().Contain("final draft");
+        viewModel.StatusMessage.Should().Contain("Saved workflow result to Knowledge Vault");
+    }
+
+    [Fact]
+    public async Task SaveHistoricalRunToVaultAsync_imports_selected_run_content()
+    {
+        var savedDocument = new DocumentEntity
+        {
+            Id = 601,
+            FileName = "Research Brief Result 2026-04-23_093000.txt",
+            FilePath = Path.Combine(Path.GetTempPath(), "workflow-history-result.txt"),
+            FileType = "WorkflowResult"
+        };
+
+        string? importedText = null;
+
+        _documentService.Setup(service => service.ImportExternalContentAsync(
+                It.IsAny<string>(),
+                "WorkflowResult",
+                It.IsAny<string>(),
+                null,
+                null,
+                It.IsAny<CancellationToken>()))
+            .Callback<string, string, string, string?, long?, CancellationToken>((path, _, _, _, _, _) =>
+            {
+                importedText = File.ReadAllText(path);
+            })
+            .ReturnsAsync(savedDocument);
+
+        var run = new WorkflowRunHistoryDisplayItem(
+            new WorkflowRunHistoryItem
+            {
+                RunId = 12,
+                WorkflowId = 42,
+                Status = "completed",
+                StartedAt = new DateTime(2026, 4, 23, 16, 30, 0, DateTimeKind.Utc),
+                StepsCompleted = 2,
+                TotalSteps = 2,
+                FinalOutput = "brief summary"
+            });
+
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object)
+        {
+            SelectedWorkflow = new WorkflowListItem
+            {
+                Id = 42,
+                Name = "Research Brief"
+            }
+        };
+
+        await viewModel.SaveHistoricalRunToVaultCommand.ExecuteAsync(run);
+
+        importedText.Should().Contain("Workflow: Research Brief");
+        importedText.Should().Contain("Context: Stored run from");
+        importedText.Should().Contain("brief summary");
+        viewModel.StatusMessage.Should().Contain("Saved stored workflow result to Knowledge Vault");
+    }
+
+    [Fact]
+    public void OpenKnowledgeVaultCommand_navigates_to_vault()
+    {
+        string? navigatedPage = null;
+
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object)
+        {
+            NavigateRequested = page => navigatedPage = page
+        };
+
+        viewModel.OpenKnowledgeVaultCommand.Execute(null);
+
+        navigatedPage.Should().Be("KnowledgeVault");
     }
 }

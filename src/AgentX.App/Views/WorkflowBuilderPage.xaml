@@ -46,13 +46,26 @@
                                Opacity="0.5" />
                 </StackPanel>
 
-                <!-- New Workflow Button -->
-                <Button Grid.Row="1"
-                        Content="New Workflow"
-                        Command="{x:Bind ViewModel.CreateWorkflowCommand}"
-                        Style="{StaticResource AccentButtonStyle}"
-                        HorizontalAlignment="Stretch"
-                        Margin="16,0,16,12" />
+                <!-- Workflow Actions -->
+                <Grid Grid.Row="1"
+                      Margin="16,0,16,12"
+                      ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0"
+                            Content="New Workflow"
+                            Command="{x:Bind ViewModel.CreateWorkflowCommand}"
+                            Style="{StaticResource AccentButtonStyle}"
+                            HorizontalAlignment="Stretch" />
+
+                    <Button Grid.Column="1"
+                            Content="Import Workflow"
+                            Click="ImportWorkflow_Click"
+                            Style="{StaticResource SecondaryButtonStyle}" />
+                </Grid>
 
                 <!-- Workflow List -->
                 <ListView Grid.Row="2"
@@ -330,8 +343,27 @@
                             Padding="24"
                             Visibility="{x:Bind ViewModel.ShowWorkflowRunnerSection, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <StackPanel Spacing="20">
-                            <TextBlock Text="Run Workflow"
-                                       Style="{StaticResource HeadingSmallStyle}" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Run Workflow"
+                                               Style="{StaticResource HeadingSmallStyle}" />
+                                    <TextBlock Text="{x:Bind ViewModel.SelectedWorkflowName, Mode=OneWay}"
+                                               Style="{StaticResource CaptionStyle}"
+                                               Opacity="0.55" />
+                                </StackPanel>
+
+                                <Button Grid.Column="1"
+                                        Content="Export JSON"
+                                        Click="ExportWorkflowToClipboard_Click"
+                                        Tag="{x:Bind ViewModel.SelectedWorkflowId, Mode=OneWay}"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        VerticalAlignment="Center" />
+                            </Grid>
 
                             <!-- Template Guide -->
                             <Border Background="{StaticResource CardGradientSubtleBrush}"
@@ -505,11 +537,17 @@
                                                                    Opacity="0.55" />
                                                     </StackPanel>
 
-                                                    <Button Grid.Column="1"
-                                                            Content="Open Result"
-                                                            Command="{Binding ViewModel.OpenHistoricalRunCommand, ElementName=WorkflowPage}"
-                                                            CommandParameter="{Binding}"
-                                                            Style="{StaticResource SecondaryButtonStyle}" />
+                                                    <StackPanel Grid.Column="1"
+                                                                Spacing="8">
+                                                        <Button Content="Open Result"
+                                                                Command="{Binding ViewModel.OpenHistoricalRunCommand, ElementName=WorkflowPage}"
+                                                                CommandParameter="{Binding}"
+                                                                Style="{StaticResource SecondaryButtonStyle}" />
+                                                        <Button Content="Save as Document"
+                                                                Command="{Binding ViewModel.SaveHistoricalRunToVaultCommand, ElementName=WorkflowPage}"
+                                                                CommandParameter="{Binding}"
+                                                                Style="{StaticResource GhostButtonStyle}" />
+                                                    </StackPanel>
                                                 </Grid>
 
                                                 <TextBlock Text="{x:Bind DetailText}"
@@ -646,9 +684,19 @@
                                      TextWrapping="Wrap"
                                      MinHeight="120"
                                      Style="{StaticResource InputTextBoxStyle}" />
-                            <Button Content="Copy to Clipboard"
-                                    Click="CopyOutputToClipboard"
-                                    Style="{StaticResource SecondaryButtonStyle}" />
+                            <StackPanel Orientation="Horizontal"
+                                        Spacing="12">
+                                <Button Content="Copy to Clipboard"
+                                        Click="CopyOutputToClipboard"
+                                        Style="{StaticResource SecondaryButtonStyle}" />
+                                <Button Content="Save as Document"
+                                        Command="{x:Bind ViewModel.SaveCurrentResultToVaultCommand}"
+                                        IsEnabled="{x:Bind ViewModel.CanSaveCurrentResultToVault, Mode=OneWay}"
+                                        Style="{StaticResource AccentButtonStyle}" />
+                                <Button Content="Open Vault"
+                                        Command="{x:Bind ViewModel.OpenKnowledgeVaultCommand}"
+                                        Style="{StaticResource GhostButtonStyle}" />
+                            </StackPanel>
                         </StackPanel>
                     </Border>
 
