@@ -2,6 +2,7 @@ using AgentX.App.ViewModels;
 using AgentX.Core.Services.Analytics;
 using AgentX.Core.Services.Analytics.Models;
 using AgentX.Core.Services.Chat;
+using AgentX.Core.Services.Intelligence;
 using FluentAssertions;
 using Moq;
 using Serilog;
@@ -14,6 +15,7 @@ public sealed class AnalyticsViewModelTests
     private readonly Mock<IAnalyticsService> _analyticsService = new();
     private readonly Mock<IConversationRecallService> _conversationRecallService = new();
     private readonly Mock<IConversationSummaryService> _conversationSummaryService = new();
+    private readonly Mock<IConversationThemeClusterService> _conversationThemeClusterService = new();
     private readonly ILogger _logger = Log.ForContext<AnalyticsViewModelTests>();
 
     [Fact]
@@ -25,6 +27,9 @@ public sealed class AnalyticsViewModelTests
         _conversationRecallService
             .Setup(service => service.RefreshRecentConversationEmbeddingsAsync(4, It.IsAny<CancellationToken>()))
             .ReturnsAsync(3);
+        _conversationThemeClusterService
+            .Setup(service => service.RefreshStaleClustersAsync(4, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(2);
 
         _analyticsService
             .Setup(service => service.GetSummaryAsync(It.IsAny<CancellationToken>()))
@@ -88,11 +93,37 @@ public sealed class AnalyticsViewModelTests
                 RecallReadyConversations = 3,
                 LastEmbeddedAt = DateTime.UtcNow.AddMinutes(-5)
             });
+        _analyticsService
+            .Setup(service => service.GetConversationThemeOverviewAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ConversationThemeOverview
+            {
+                ActiveThemeClusters = 2,
+                ClusteredConversations = 3,
+                NewThemes7d = 1,
+                LastMaterializedAt = DateTime.UtcNow.AddMinutes(-3),
+                Clusters =
+                [
+                    new ConversationThemeClusterMetric
+                    {
+                        ClusterId = 9,
+                        Label = "Analytics dashboard",
+                        PreviewText = "Analytics and recall health are converging.",
+                        KeyPoints = ["Analytics dashboard", "Recall health"],
+                        ConversationCount = 3,
+                        ActiveConversationCount7d = 3,
+                        ActiveConversationCount30d = 3,
+                        LastActiveAt = DateTime.UtcNow.AddMinutes(-4),
+                        MaterializedAt = DateTime.UtcNow.AddMinutes(-3),
+                        RecentConversationTitles = ["Persistent memory rollout", "Analytics roadmap"]
+                    }
+                ]
+            });
 
         var viewModel = new AnalyticsViewModel(
             _analyticsService.Object,
             _conversationRecallService.Object,
             _conversationSummaryService.Object,
+            _conversationThemeClusterService.Object,
             _logger);
 
         await viewModel.LoadDataAsync();
@@ -103,11 +134,20 @@ public sealed class AnalyticsViewModelTests
         _conversationRecallService.Verify(
             service => service.RefreshRecentConversationEmbeddingsAsync(4, It.IsAny<CancellationToken>()),
             Times.Once);
+        _conversationThemeClusterService.Verify(
+            service => service.RefreshStaleClustersAsync(4, It.IsAny<CancellationToken>()),
+            Times.Once);
 
         viewModel.SummarizedConversations.Should().Be("2");
         viewModel.CurrentSummarySnapshots.Should().Be("3");
         viewModel.EmbeddedMessages.Should().Be("8");
         viewModel.PendingMessageEmbeddings.Should().Be("2");
+        viewModel.ActiveThemeClusters.Should().Be("2");
+        viewModel.ClusteredThemeConversations.Should().Be("3");
+        viewModel.HasConversationThemeClusters.Should().BeTrue();
+        viewModel.ConversationThemeClusters.Should().ContainSingle();
+        viewModel.ConversationThemeClusters[0].Label.Should().Be("Analytics dashboard");
+        viewModel.ConversationThemeClusters[0].RecentConversationsPreview.Should().Contain("Analytics roadmap");
         viewModel.HasRecentConversationSummaries.Should().BeTrue();
         viewModel.RecentConversationSummaries.Should().ContainSingle();
         viewModel.RecentConversationSummaries[0].Title.Should().Be("Persistent memory rollout");
@@ -155,6 +195,7 @@ public sealed class AnalyticsViewModelTests
             _analyticsService.Object,
             _conversationRecallService.Object,
             _conversationSummaryService.Object,
+            _conversationThemeClusterService.Object,
             _logger)
         {
             RecallQuery = "dashboard analytics"

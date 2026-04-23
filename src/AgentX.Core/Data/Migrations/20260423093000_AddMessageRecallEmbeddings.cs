@@ -1,10 +1,13 @@
 using System;
+using AgentX.Core.Data;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace AgentX.Core.Data.Migrations
 {
+    [DbContext(typeof(AgentXDbContext))]
     [Migration("20260423093000_AddMessageRecallEmbeddings")]
     public partial class AddMessageRecallEmbeddings : Migration
     {

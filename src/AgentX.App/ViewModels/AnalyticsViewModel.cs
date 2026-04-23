@@ -5,6 +5,7 @@ using AgentX.Core.Helpers;
 using AgentX.Core.Services.Analytics;
 using AgentX.Core.Services.Analytics.Models;
 using AgentX.Core.Services.Chat;
+using AgentX.Core.Services.Intelligence;
 using Serilog;
 
 namespace AgentX.App.ViewModels;
@@ -14,6 +15,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     private readonly IAnalyticsService _analyticsService;
     private readonly IConversationRecallService _conversationRecallService;
     private readonly IConversationSummaryService _conversationSummaryService;
+    private readonly IConversationThemeClusterService _conversationThemeClusterService;
     private readonly ILogger _log;
 
     // ── Loading State ────────────────────────────────────────────────────────
@@ -95,6 +97,16 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _hasConversationRecallCoverage;
     [ObservableProperty] private bool _hasConversationRecallResults;
 
+    // ── Conversation Themes ─────────────────────────────────────────────────
+
+    [ObservableProperty] private string _activeThemeClusters = "0";
+    [ObservableProperty] private string _clusteredThemeConversations = "0";
+    [ObservableProperty] private string _newThemeClusters7d = "0";
+    [ObservableProperty] private string _lastThemeMaterialized = "No clusters yet";
+    [ObservableProperty] private ObservableCollection<AnalyticsConversationThemeItem> _conversationThemeClusters = new();
+    [ObservableProperty] private bool _hasConversationThemes;
+    [ObservableProperty] private bool _hasConversationThemeClusters;
+
     // ── Computed Insights ────────────────────────────────────────────────────
 
     /// <summary>Formatted tokens per conversation (TotalTokens / TotalConversations).</summary>
@@ -104,11 +116,13 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         IAnalyticsService analyticsService,
         IConversationRecallService conversationRecallService,
         IConversationSummaryService conversationSummaryService,
+        IConversationThemeClusterService conversationThemeClusterService,
         ILogger logger)
     {
         _analyticsService = analyticsService ?? throw new ArgumentNullException(nameof(analyticsService));
         _conversationRecallService = conversationRecallService ?? throw new ArgumentNullException(nameof(conversationRecallService));
         _conversationSummaryService = conversationSummaryService ?? throw new ArgumentNullException(nameof(conversationSummaryService));
+        _conversationThemeClusterService = conversationThemeClusterService ?? throw new ArgumentNullException(nameof(conversationThemeClusterService));
         _log = logger?.ForContext<AnalyticsViewModel>()
                ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -126,6 +140,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
 
             await RefreshConversationSummariesAsync(ct);
             await RefreshConversationRecallCoverageAsync(ct);
+            await RefreshConversationThemesAsync(ct);
 
             await Task.WhenAll(
                 LoadSummaryAsync(ct),
@@ -134,7 +149,8 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
                 LoadFileTypeDistributionAsync(ct),
                 LoadPerformanceAsync(ct),
                 LoadConversationIntelligenceAsync(ct),
-                LoadConversationRecallAsync(ct));
+                LoadConversationRecallAsync(ct),
+                LoadConversationThemesAsync(ct));
 
             _log.Information("Analytics: all metrics loaded");
         }
@@ -360,6 +376,22 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         }
     }
 
+    private async Task RefreshConversationThemesAsync(CancellationToken ct)
+    {
+        try
+        {
+            var refreshed = await _conversationThemeClusterService
+                .RefreshStaleClustersAsync(4, ct)
+                .ConfigureAwait(false);
+
+            _log.Debug("Analytics: refreshed {Count} durable conversation theme clusters", refreshed);
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Analytics: durable conversation theme refresh failed");
+        }
+    }
+
     private async Task LoadConversationIntelligenceAsync(CancellationToken ct)
     {
         try
@@ -426,6 +458,48 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             _log.Warning(ex, "Analytics: failed to load conversation recall overview");
             HasConversationRecallCoverage = false;
             LastMessageEmbeddingRefresh = "No embeddings yet";
+        }
+    }
+
+    private async Task LoadConversationThemesAsync(CancellationToken ct)
+    {
+        try
+        {
+            var overview = await _analyticsService.GetConversationThemeOverviewAsync(ct: ct);
+
+            ActiveThemeClusters = FormatNumber(overview.ActiveThemeClusters);
+            ClusteredThemeConversations = FormatNumber(overview.ClusteredConversations);
+            NewThemeClusters7d = FormatNumber(overview.NewThemes7d);
+            LastThemeMaterialized = overview.LastMaterializedAt.HasValue
+                ? BuildRelativeTimeLabel(overview.LastMaterializedAt.Value)
+                : "No clusters yet";
+
+            ConversationThemeClusters = new ObservableCollection<AnalyticsConversationThemeItem>(
+                overview.Clusters.Select(cluster => new AnalyticsConversationThemeItem
+                {
+                    ClusterId = cluster.ClusterId,
+                    Label = cluster.Label,
+                    PreviewText = cluster.PreviewText,
+                    KeyPoints = cluster.KeyPoints.ToList(),
+                    ConversationCount = cluster.ConversationCount,
+                    ActiveConversationCount7d = cluster.ActiveConversationCount7d,
+                    ActiveConversationCount30d = cluster.ActiveConversationCount30d,
+                    LastActiveAtLabel = BuildRelativeTimeLabel(cluster.LastActiveAt),
+                    RecentConversationTitles = cluster.RecentConversationTitles.ToList()
+                }));
+
+            HasConversationThemeClusters = ConversationThemeClusters.Count > 0;
+            HasConversationThemes = overview.ActiveThemeClusters > 0
+                || overview.ClusteredConversations > 0
+                || overview.NewThemes7d > 0;
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Analytics: failed to load conversation themes");
+            ConversationThemeClusters = new ObservableCollection<AnalyticsConversationThemeItem>();
+            HasConversationThemeClusters = false;
+            HasConversationThemes = false;
+            LastThemeMaterialized = "No clusters yet";
         }
     }
 
@@ -687,6 +761,27 @@ public sealed class AnalyticsConversationRecallItem
     public DateTime Timestamp { get; init; }
     public string TimestampLabel { get; init; } = string.Empty;
     public string ConversationLabel => $"{ConversationTitle} · {RoleLabel}";
+}
+
+/// <summary>
+/// Represents one durable conversation theme cluster for Analytics.
+/// </summary>
+public sealed class AnalyticsConversationThemeItem
+{
+    public long ClusterId { get; init; }
+    public string Label { get; init; } = string.Empty;
+    public string PreviewText { get; init; } = string.Empty;
+    public IReadOnlyList<string> KeyPoints { get; init; } = Array.Empty<string>();
+    public int ConversationCount { get; init; }
+    public int ActiveConversationCount7d { get; init; }
+    public int ActiveConversationCount30d { get; init; }
+    public string LastActiveAtLabel { get; init; } = string.Empty;
+    public IReadOnlyList<string> RecentConversationTitles { get; init; } = Array.Empty<string>();
+    public bool HasKeyPoints => KeyPoints.Count > 0;
+    public bool HasRecentConversations => RecentConversationTitles.Count > 0;
+    public string KeyPointsPreview => string.Join(" · ", KeyPoints);
+    public string RecentConversationsPreview => string.Join(" · ", RecentConversationTitles);
+    public string ActivityLabel => $"{ConversationCount} conversations · {ActiveConversationCount7d} active / 7d · {ActiveConversationCount30d} active / 30d";
 }
 
 // ─── Task tuple extension ────────────────────────────────────────────────────

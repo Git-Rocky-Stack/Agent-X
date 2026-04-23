@@ -570,6 +570,148 @@
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>
                         </ItemsRepeater>
+
+                        <Border Style="{StaticResource SeparatorStyle}" />
+
+                        <StackPanel Spacing="12">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Conversation Themes"
+                                           Style="{StaticResource HeadingSmallStyle}" />
+                                <TextBlock Text="Materialized cross-conversation clusters built from durable summaries. This is the first persistent theme layer above stored summaries and recall."
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+
+                            <Grid ColumnSpacing="16" RowSpacing="16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0"
+                                        Background="{StaticResource InputBackgroundBrush}"
+                                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="{StaticResource RadiusMD}"
+                                        Padding="16,12,16,12">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="ACTIVE THEME CLUSTERS" Style="{StaticResource OverlineStyle}" />
+                                        <TextBlock Text="{x:Bind ViewModel.ActiveThemeClusters, Mode=OneWay}"
+                                                   Style="{StaticResource MetricSmallStyle}" />
+                                        <TextBlock Text="Persisted conversation themes currently materialized"
+                                                   Style="{StaticResource CaptionStyle}" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Column="1"
+                                        Background="{StaticResource InputBackgroundBrush}"
+                                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="{StaticResource RadiusMD}"
+                                        Padding="16,12,16,12">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="CLUSTERED CONVERSATIONS" Style="{StaticResource OverlineStyle}" />
+                                        <TextBlock Text="{x:Bind ViewModel.ClusteredThemeConversations, Mode=OneWay}"
+                                                   Style="{StaticResource MetricSmallStyle}" />
+                                        <TextBlock Text="Conversations with a current durable theme assignment"
+                                                   Style="{StaticResource CaptionStyle}" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Column="2"
+                                        Background="{StaticResource InputBackgroundBrush}"
+                                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="{StaticResource RadiusMD}"
+                                        Padding="16,12,16,12">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="NEW THEMES (7D)" Style="{StaticResource OverlineStyle}" />
+                                        <TextBlock Text="{x:Bind ViewModel.NewThemeClusters7d, Mode=OneWay}"
+                                                   Style="{StaticResource MetricSmallStyle}" />
+                                        <TextBlock Text="Theme clusters first seen during the last 7 days"
+                                                   Style="{StaticResource CaptionStyle}" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Column="3"
+                                        Background="{StaticResource AccentSubtleBrush}"
+                                        BorderBrush="{StaticResource BorderAccentGradientBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="{StaticResource RadiusMD}"
+                                        Padding="16,12,16,12">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="LAST MATERIALIZED" Style="{StaticResource OverlineStyle}" />
+                                        <TextBlock Text="{x:Bind ViewModel.LastThemeMaterialized, Mode=OneWay}"
+                                                   Style="{StaticResource MetricSmallStyle}"
+                                                   Foreground="{StaticResource TextAccentBrush}" />
+                                        <TextBlock Text="Latest durable cluster recomputation"
+                                                   Style="{StaticResource CaptionStyle}" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+
+                            <TextBlock Text="No conversation themes yet. Once durable summaries accumulate, Analytics will surface the first cross-conversation clusters here."
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       Visibility="{x:Bind ViewModel.HasConversationThemeClusters, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}" />
+
+                            <ItemsRepeater ItemsSource="{x:Bind ViewModel.ConversationThemeClusters, Mode=OneWay}"
+                                           Visibility="{x:Bind ViewModel.HasConversationThemeClusters, Converter={StaticResource BoolToVis}, Mode=OneWay}">
+                                <ItemsRepeater.Layout>
+                                    <StackLayout Orientation="Vertical" Spacing="12" />
+                                </ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:AnalyticsConversationThemeItem">
+                                        <Border Background="{StaticResource InputBackgroundBrush}"
+                                                BorderBrush="{StaticResource BorderSubtleBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="{StaticResource RadiusMD}"
+                                                Padding="16">
+                                            <StackPanel Spacing="10">
+                                                <Grid ColumnSpacing="12">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <StackPanel Spacing="4">
+                                                        <TextBlock Text="{x:Bind Label}"
+                                                                   Style="{StaticResource HeadingSmallStyle}"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock Text="{x:Bind ActivityLabel}"
+                                                                   Style="{StaticResource CaptionStyle}"
+                                                                   TextWrapping="WrapWholeWords" />
+                                                    </StackPanel>
+
+                                                    <Border Grid.Column="1"
+                                                            Style="{StaticResource BadgeDefaultStyle}"
+                                                            HorizontalAlignment="Right"
+                                                            VerticalAlignment="Top">
+                                                        <TextBlock Text="{x:Bind LastActiveAtLabel}"
+                                                                   Style="{StaticResource CaptionStyle}"
+                                                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                                                    </Border>
+                                                </Grid>
+
+                                                <TextBlock Text="{x:Bind PreviewText}"
+                                                           Style="{StaticResource BodyStyle}"
+                                                           TextWrapping="WrapWholeWords" />
+
+                                                <TextBlock Text="{x:Bind KeyPointsPreview}"
+                                                           Style="{StaticResource CaptionStyle}"
+                                                           TextWrapping="WrapWholeWords"
+                                                           Visibility="{x:Bind HasKeyPoints, Converter={StaticResource BoolToVis}, Mode=OneWay}" />
+
+                                                <TextBlock Text="{x:Bind RecentConversationsPreview}"
+                                                           Style="{StaticResource CaptionStyle}"
+                                                           TextWrapping="WrapWholeWords"
+                                                           Visibility="{x:Bind HasRecentConversations, Converter={StaticResource BoolToVis}, Mode=OneWay}" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </StackPanel>
                     </StackPanel>
                 </StackPanel>
             </Border>

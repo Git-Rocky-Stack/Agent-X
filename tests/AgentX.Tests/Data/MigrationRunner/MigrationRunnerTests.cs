@@ -35,6 +35,19 @@ public class MigrationRunnerTests
             result.AppliedMigrations.Should().NotBeEmpty();
             result.AppliedMigrations.Should().Contain(m => m.EndsWith("_InitialBaseline"));
             File.Exists(dbPath).Should().BeTrue();
+
+            await using var cmd = ctx.Database.GetDbConnection().CreateCommand();
+            await ctx.Database.OpenConnectionAsync();
+            try
+            {
+                cmd.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('conversation_theme_clusters','conversation_theme_memberships');";
+                var tableCount = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+                tableCount.Should().Be(2);
+            }
+            finally
+            {
+                await ctx.Database.CloseConnectionAsync();
+            }
         }
         finally
         {
@@ -125,6 +138,12 @@ public class MigrationRunnerTests
             await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS __EFMigrationsHistory;");
             await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS conversation_summary_states;");
             await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS conversation_summary_snapshots;");
+            await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS conversation_theme_memberships;");
+            await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS conversation_theme_clusters;");
+            await ctx.Database.ExecuteSqlRawAsync("DROP INDEX IF EXISTS IX_messages_EmbeddedAt;");
+            await ctx.Database.ExecuteSqlRawAsync("ALTER TABLE messages DROP COLUMN Embedding;");
+            await ctx.Database.ExecuteSqlRawAsync("ALTER TABLE messages DROP COLUMN EmbeddedAt;");
+            await ctx.Database.ExecuteSqlRawAsync("ALTER TABLE messages DROP COLUMN EmbeddingModel;");
 
             IMigrationRunner runner = new Core.Data.MigrationRunner.MigrationRunner(ctx);
 

@@ -61,4 +61,11 @@ public interface IAnalyticsService
     /// Returns durable message-embedding coverage metrics for semantic recall.
     /// </summary>
     Task<ConversationRecallOverview> GetConversationRecallOverviewAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Returns durable materialized conversation theme metrics plus top theme rows.
+    /// </summary>
+    Task<ConversationThemeOverview> GetConversationThemeOverviewAsync(
+        int maxClusters = 6,
+        CancellationToken ct = default);
 }

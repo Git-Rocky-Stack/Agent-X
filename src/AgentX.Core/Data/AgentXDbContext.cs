@@ -12,6 +12,8 @@ public class AgentXDbContext : DbContext
     public DbSet<MessageEntity> Messages => Set<MessageEntity>();
     public DbSet<ConversationSummarySnapshotEntity> ConversationSummarySnapshots => Set<ConversationSummarySnapshotEntity>();
     public DbSet<ConversationSummaryStateEntity> ConversationSummaryStates => Set<ConversationSummaryStateEntity>();
+    public DbSet<ConversationThemeClusterEntity> ConversationThemeClusters => Set<ConversationThemeClusterEntity>();
+    public DbSet<ConversationThemeMembershipEntity> ConversationThemeMemberships => Set<ConversationThemeMembershipEntity>();
     public DbSet<DocumentEntity> Documents => Set<DocumentEntity>();
     public DbSet<DocumentChunkEntity> DocumentChunks => Set<DocumentChunkEntity>();
     public DbSet<CollectionEntity> Collections => Set<CollectionEntity>();
@@ -101,6 +103,8 @@ public class AgentXDbContext : DbContext
         ConfigureMessage(modelBuilder);
         ConfigureConversationSummarySnapshot(modelBuilder);
         ConfigureConversationSummaryState(modelBuilder);
+        ConfigureConversationThemeCluster(modelBuilder);
+        ConfigureConversationThemeMembership(modelBuilder);
         ConfigureDocument(modelBuilder);
         ConfigureDocumentChunk(modelBuilder);
         ConfigureCollection(modelBuilder);
@@ -200,6 +204,9 @@ public class AgentXDbContext : DbContext
             entity.Property(e => e.GeneratedAt).IsRequired();
             entity.Property(e => e.SourceConversationUpdatedAt).IsRequired();
             entity.Property(e => e.IsIncremental).IsRequired();
+            entity.Property(e => e.Embedding).IsRequired(false);
+            entity.Property(e => e.EmbeddingModel).IsRequired(false);
+            entity.Property(e => e.EmbeddedAt).IsRequired(false);
 
             entity.HasOne(e => e.Conversation)
                 .WithMany(c => c.SummarySnapshots)
@@ -209,6 +216,7 @@ public class AgentXDbContext : DbContext
             entity.HasIndex(e => new { e.ConversationId, e.SnapshotVersion }).IsUnique();
             entity.HasIndex(e => e.GeneratedAt);
             entity.HasIndex(e => e.ConversationId);
+            entity.HasIndex(e => e.EmbeddedAt);
         });
     }
 
@@ -240,6 +248,63 @@ public class AgentXDbContext : DbContext
             entity.HasIndex(e => e.IsStale);
             entity.HasIndex(e => e.LastRefreshedAt);
             entity.HasIndex(e => e.LatestSnapshotId);
+        });
+    }
+
+    private static void ConfigureConversationThemeCluster(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ConversationThemeClusterEntity>(entity =>
+        {
+            entity.ToTable("conversation_theme_clusters");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Label).IsRequired();
+            entity.Property(e => e.PreviewText).IsRequired();
+            entity.Property(e => e.KeyPointsJson).IsRequired().HasDefaultValue("[]");
+            entity.Property(e => e.ConversationCount).IsRequired();
+            entity.Property(e => e.ActiveConversationCount7d).IsRequired();
+            entity.Property(e => e.ActiveConversationCount30d).IsRequired();
+            entity.Property(e => e.FirstSeenAt).IsRequired();
+            entity.Property(e => e.LastActiveAt).IsRequired();
+            entity.Property(e => e.MaterializedAt).IsRequired();
+
+            entity.HasIndex(e => e.LastActiveAt);
+            entity.HasIndex(e => e.MaterializedAt);
+            entity.HasIndex(e => e.FirstSeenAt);
+        });
+    }
+
+    private static void ConfigureConversationThemeMembership(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ConversationThemeMembershipEntity>(entity =>
+        {
+            entity.ToTable("conversation_theme_memberships");
+            entity.HasKey(e => e.ConversationId);
+
+            entity.Property(e => e.ConversationId).IsRequired();
+            entity.Property(e => e.SnapshotId).IsRequired();
+            entity.Property(e => e.ClusterId).IsRequired();
+            entity.Property(e => e.SimilarityScore).IsRequired();
+            entity.Property(e => e.AssignedAt).IsRequired();
+
+            entity.HasOne(e => e.Conversation)
+                .WithOne(c => c.ThemeMembership)
+                .HasForeignKey<ConversationThemeMembershipEntity>(e => e.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Snapshot)
+                .WithMany(s => s.ThemeMemberships)
+                .HasForeignKey(e => e.SnapshotId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Cluster)
+                .WithMany(c => c.Memberships)
+                .HasForeignKey(e => e.ClusterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.ClusterId);
+            entity.HasIndex(e => e.SnapshotId);
+            entity.HasIndex(e => e.AssignedAt);
         });
     }
 

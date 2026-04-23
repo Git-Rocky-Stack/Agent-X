@@ -16,6 +16,10 @@ public class ConversationSummarySnapshotEntity
     public DateTime GeneratedAt { get; set; }
     public DateTime SourceConversationUpdatedAt { get; set; }
     public bool IsIncremental { get; set; }
+    public string? Embedding { get; set; }
+    public string? EmbeddingModel { get; set; }
+    public DateTime? EmbeddedAt { get; set; }
 
     public ConversationEntity Conversation { get; set; } = null!;
+    public ICollection<ConversationThemeMembershipEntity> ThemeMemberships { get; set; } = new List<ConversationThemeMembershipEntity>();
 }

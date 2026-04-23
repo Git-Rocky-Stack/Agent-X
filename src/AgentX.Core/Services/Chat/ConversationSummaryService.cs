@@ -5,6 +5,7 @@ using AgentX.Core.AI.Models;
 using AgentX.Core.Constants;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Services.Intelligence;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -29,12 +30,18 @@ public sealed class ConversationSummaryService : IConversationSummaryService
 
     private readonly AgentXDbContext _db;
     private readonly IAiService _aiService;
+    private readonly IConversationThemeClusterService? _conversationThemeClusterService;
     private readonly ILogger _logger;
 
-    public ConversationSummaryService(AgentXDbContext db, IAiService aiService, ILogger logger)
+    public ConversationSummaryService(
+        AgentXDbContext db,
+        IAiService aiService,
+        ILogger logger,
+        IConversationThemeClusterService? conversationThemeClusterService = null)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
+        _conversationThemeClusterService = conversationThemeClusterService;
         _logger = logger?.ForContext<ConversationSummaryService>()
                   ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -256,6 +263,27 @@ public sealed class ConversationSummaryService : IConversationSummaryService
             state.ConsecutiveFailureCount = 0;
 
             await _db.SaveChangesAsync(ct).ConfigureAwait(false);
+
+            if (_conversationThemeClusterService is not null)
+            {
+                try
+                {
+                    await _conversationThemeClusterService
+                        .MaterializeConversationThemeAsync(conversation.Id, ct: ct)
+                        .ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.Warning(
+                        ex,
+                        "Failed to materialize conversation theme after summary refresh for conversation {ConversationId}",
+                        conversation.Id);
+                }
+            }
 
             _logger.Information(
                 "Refreshed durable summary for conversation {ConversationId} with snapshot {SnapshotId} v{Version}",

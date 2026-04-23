@@ -39,6 +39,7 @@ public class ConversationEntity
     public ICollection<MessageEntity> Messages { get; set; } = new List<MessageEntity>();
     public ICollection<ConversationTagEntity> ConversationTags { get; set; } = new List<ConversationTagEntity>();
     public ICollection<ConversationSummarySnapshotEntity> SummarySnapshots { get; set; } = new List<ConversationSummarySnapshotEntity>();
+    public ConversationThemeMembershipEntity? ThemeMembership { get; set; }
     public ConversationSummaryStateEntity? SummaryState { get; set; }
 
     /// <summary>

@@ -165,3 +165,33 @@ public sealed record ConversationRecallOverview
     public int RecallReadyConversations { get; init; }
     public DateTime? LastEmbeddedAt { get; init; }
 }
+
+/// <summary>
+/// Durable cluster/materialization metrics for cross-conversation themes.
+/// </summary>
+public sealed record ConversationThemeOverview
+{
+    public int ActiveThemeClusters { get; init; }
+    public int ClusteredConversations { get; init; }
+    public int NewThemes7d { get; init; }
+    public DateTime? LastMaterializedAt { get; init; }
+    public IReadOnlyList<ConversationThemeClusterMetric> Clusters { get; init; } = Array.Empty<ConversationThemeClusterMetric>();
+}
+
+/// <summary>
+/// Analytics-facing projection of one materialized conversation theme cluster.
+/// </summary>
+public sealed record ConversationThemeClusterMetric
+{
+    public long ClusterId { get; init; }
+    public string Label { get; init; } = string.Empty;
+    public string PreviewText { get; init; } = string.Empty;
+    public IReadOnlyList<string> KeyPoints { get; init; } = Array.Empty<string>();
+    public int ConversationCount { get; init; }
+    public int ActiveConversationCount7d { get; init; }
+    public int ActiveConversationCount30d { get; init; }
+    public DateTime FirstSeenAt { get; init; }
+    public DateTime LastActiveAt { get; init; }
+    public DateTime MaterializedAt { get; init; }
+    public IReadOnlyList<string> RecentConversationTitles { get; init; } = Array.Empty<string>();
+}

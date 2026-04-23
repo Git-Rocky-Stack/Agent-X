@@ -445,6 +445,113 @@ public sealed class AnalyticsService : IAnalyticsService
         }
     }
 
+    /// <inheritdoc />
+    public async Task<ConversationThemeOverview> GetConversationThemeOverviewAsync(
+        int maxClusters = 6,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
+
+            var activeThemeClustersTask = _db.ConversationThemeClusters.AsNoTracking()
+                .CountAsync(ct);
+
+            var clusteredConversationsTask = _db.ConversationThemeMemberships.AsNoTracking()
+                .CountAsync(ct);
+
+            var newThemesTask = _db.ConversationThemeClusters.AsNoTracking()
+                .CountAsync(cluster => cluster.FirstSeenAt >= sevenDaysAgo, ct);
+
+            var lastMaterializedTask = _db.ConversationThemeClusters.AsNoTracking()
+                .MaxAsync(cluster => (DateTime?)cluster.MaterializedAt, ct);
+
+            var clusterRows = await _db.ConversationThemeClusters.AsNoTracking()
+                .OrderByDescending(cluster => cluster.ActiveConversationCount7d)
+                .ThenByDescending(cluster => cluster.ConversationCount)
+                .ThenByDescending(cluster => cluster.LastActiveAt)
+                .Take(maxClusters)
+                .Select(cluster => new
+                {
+                    cluster.Id,
+                    cluster.Label,
+                    cluster.PreviewText,
+                    cluster.KeyPointsJson,
+                    cluster.ConversationCount,
+                    cluster.ActiveConversationCount7d,
+                    cluster.ActiveConversationCount30d,
+                    cluster.FirstSeenAt,
+                    cluster.LastActiveAt,
+                    cluster.MaterializedAt
+                })
+                .ToListAsync(ct);
+
+            var clusterIds = clusterRows.Select(cluster => cluster.Id).ToList();
+            var recentConversationRows = clusterIds.Count == 0
+                ? []
+                : await (
+                    from membership in _db.ConversationThemeMemberships.AsNoTracking()
+                    join conversation in _db.Conversations.AsNoTracking()
+                        on membership.ConversationId equals conversation.Id
+                    where clusterIds.Contains(membership.ClusterId)
+                    orderby conversation.UpdatedAt descending
+                    select new
+                    {
+                        membership.ClusterId,
+                        conversation.Title,
+                        conversation.UpdatedAt
+                    })
+                    .ToListAsync(ct);
+
+            await Task.WhenAll(
+                activeThemeClustersTask,
+                clusteredConversationsTask,
+                newThemesTask,
+                lastMaterializedTask);
+
+            var recentConversationLookup = recentConversationRows
+                .GroupBy(row => row.ClusterId)
+                .ToDictionary(
+                    group => group.Key,
+                    group => (IReadOnlyList<string>)group
+                        .Select(row => string.IsNullOrWhiteSpace(row.Title) ? "Untitled conversation" : row.Title)
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .Take(3)
+                        .ToList());
+
+            var clusters = clusterRows
+                .Select(cluster => new ConversationThemeClusterMetric
+                {
+                    ClusterId = cluster.Id,
+                    Label = cluster.Label,
+                    PreviewText = cluster.PreviewText,
+                    KeyPoints = ParseKeyPoints(cluster.KeyPointsJson),
+                    ConversationCount = cluster.ConversationCount,
+                    ActiveConversationCount7d = cluster.ActiveConversationCount7d,
+                    ActiveConversationCount30d = cluster.ActiveConversationCount30d,
+                    FirstSeenAt = cluster.FirstSeenAt,
+                    LastActiveAt = cluster.LastActiveAt,
+                    MaterializedAt = cluster.MaterializedAt,
+                    RecentConversationTitles = recentConversationLookup.GetValueOrDefault(cluster.Id, Array.Empty<string>())
+                })
+                .ToList();
+
+            return new ConversationThemeOverview
+            {
+                ActiveThemeClusters = await activeThemeClustersTask,
+                ClusteredConversations = await clusteredConversationsTask,
+                NewThemes7d = await newThemesTask,
+                LastMaterializedAt = await lastMaterializedTask,
+                Clusters = clusters
+            };
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to load conversation theme overview");
+            return new ConversationThemeOverview();
+        }
+    }
+
     // ── Private Helpers ──────────────────────────────────────────────────────
 
     /// <summary>

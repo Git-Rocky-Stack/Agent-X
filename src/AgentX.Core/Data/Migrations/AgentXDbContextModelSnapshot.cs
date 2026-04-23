@@ -227,6 +227,15 @@ namespace AgentX.Core.Data.Migrations
                     b.Property<int>("CoveredMessageCount")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Embedding")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("EmbeddedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EmbeddingModel")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("GeneratedAt")
                         .HasColumnType("TEXT");
 
@@ -256,6 +265,8 @@ namespace AgentX.Core.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ConversationId");
+
+                    b.HasIndex("EmbeddedAt");
 
                     b.HasIndex("GeneratedAt");
 
@@ -309,6 +320,83 @@ namespace AgentX.Core.Data.Migrations
                     b.HasIndex("LatestSnapshotId");
 
                     b.ToTable("conversation_summary_states", (string)null);
+                });
+
+            modelBuilder.Entity("AgentX.Core.Data.Entities.ConversationThemeClusterEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ActiveConversationCount30d")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ActiveConversationCount7d")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ConversationCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("FirstSeenAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("KeyPointsJson")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("[]");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("LastActiveAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("MaterializedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PreviewText")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FirstSeenAt");
+
+                    b.HasIndex("LastActiveAt");
+
+                    b.HasIndex("MaterializedAt");
+
+                    b.ToTable("conversation_theme_clusters", (string)null);
+                });
+
+            modelBuilder.Entity("AgentX.Core.Data.Entities.ConversationThemeMembershipEntity", b =>
+                {
+                    b.Property<long>("ConversationId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("ClusterId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<float>("SimilarityScore")
+                        .HasColumnType("REAL");
+
+                    b.Property<long>("SnapshotId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("ConversationId");
+
+                    b.HasIndex("AssignedAt");
+
+                    b.HasIndex("ClusterId");
+
+                    b.HasIndex("SnapshotId");
+
+                    b.ToTable("conversation_theme_memberships", (string)null);
                 });
 
             modelBuilder.Entity("AgentX.Core.Data.Entities.ConversationTagEntity", b =>
@@ -1500,6 +1588,33 @@ namespace AgentX.Core.Data.Migrations
                     b.Navigation("LatestSnapshot");
                 });
 
+            modelBuilder.Entity("AgentX.Core.Data.Entities.ConversationThemeMembershipEntity", b =>
+                {
+                    b.HasOne("AgentX.Core.Data.Entities.ConversationThemeClusterEntity", "Cluster")
+                        .WithMany("Memberships")
+                        .HasForeignKey("ClusterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgentX.Core.Data.Entities.ConversationEntity", "Conversation")
+                        .WithOne("ThemeMembership")
+                        .HasForeignKey("AgentX.Core.Data.Entities.ConversationThemeMembershipEntity", "ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgentX.Core.Data.Entities.ConversationSummarySnapshotEntity", "Snapshot")
+                        .WithMany("ThemeMemberships")
+                        .HasForeignKey("SnapshotId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Cluster");
+
+                    b.Navigation("Conversation");
+
+                    b.Navigation("Snapshot");
+                });
+
             modelBuilder.Entity("AgentX.Core.Data.Entities.ConversationTagEntity", b =>
                 {
                     b.HasOne("AgentX.Core.Data.Entities.ConversationEntity", "Conversation")
@@ -1650,7 +1765,19 @@ namespace AgentX.Core.Data.Migrations
 
                     b.Navigation("SummarySnapshots");
 
+                    b.Navigation("ThemeMembership");
+
                     b.Navigation("SummaryState");
+                });
+
+            modelBuilder.Entity("AgentX.Core.Data.Entities.ConversationSummarySnapshotEntity", b =>
+                {
+                    b.Navigation("ThemeMemberships");
+                });
+
+            modelBuilder.Entity("AgentX.Core.Data.Entities.ConversationThemeClusterEntity", b =>
+                {
+                    b.Navigation("Memberships");
                 });
 
             modelBuilder.Entity("AgentX.Core.Data.Entities.DocumentEntity", b =>
