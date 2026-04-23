@@ -141,6 +141,85 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     public bool HasActiveSystemPrompt => !string.IsNullOrEmpty(ActiveSystemPromptName);
     public bool CanSend => !string.IsNullOrWhiteSpace(UserInput) && !IsGenerating;
     public bool IsVoiceActive => IsRecording || IsTranscribing;
+    public bool HasConversationIntelligenceStrip => ActiveConversationId.HasValue;
+    public string ConversationIntelligenceBadgeText
+    {
+        get
+        {
+            if (!ActiveConversationId.HasValue)
+            {
+                return string.Empty;
+            }
+
+            if (ConversationIntelligenceIsCurrent)
+            {
+                return "Current";
+            }
+
+            if (ConversationIntelligenceIsStale)
+            {
+                return "Stale";
+            }
+
+            if (ConversationIntelligenceIsPending)
+            {
+                return "Pending";
+            }
+
+            return "Unavailable";
+        }
+    }
+    public string ConversationIntelligenceStatusText
+    {
+        get
+        {
+            if (!ActiveConversationId.HasValue)
+            {
+                return string.Empty;
+            }
+
+            if (ConversationIntelligenceIsCurrent)
+            {
+                var keyPointCount = _latestContextInspection?.Summary?.KeyPoints.Count ?? 0;
+                return keyPointCount > 0
+                    ? $"Summary current • {keyPointCount} key point{(keyPointCount == 1 ? string.Empty : "s")} available"
+                    : "Summary current • Ready for deeper inspection";
+            }
+
+            if (ConversationIntelligenceIsStale)
+            {
+                var pendingMessageCount = _latestContextInspection?.Summary?.PendingMessageCount ?? 0;
+                return pendingMessageCount > 0
+                    ? $"Summary stale • {pendingMessageCount} newer message{(pendingMessageCount == 1 ? string.Empty : "s")} not folded in"
+                    : "Summary stale • Waiting for the next refresh";
+            }
+
+            if (ConversationIntelligenceIsPending)
+            {
+                return "Summary refresh pending";
+            }
+
+            return _latestContextInspection?.HasLimitedVisibility == true
+                ? "Summary unavailable for this response path"
+                : "No conversation context captured yet";
+        }
+    }
+    public bool ConversationIntelligenceIsCurrent =>
+        ActiveConversationId.HasValue &&
+        _latestContextInspection?.Summary is { IsStale: false };
+    public bool ConversationIntelligenceIsStale =>
+        ActiveConversationId.HasValue &&
+        _latestContextInspection?.Summary is { IsStale: true };
+    public bool ConversationIntelligenceIsPending =>
+        ActiveConversationId.HasValue &&
+        _latestContextInspection is not null &&
+        !_latestContextInspection.HasLimitedVisibility &&
+        _latestContextInspection.Summary is null;
+    public bool ConversationIntelligenceIsUnavailable =>
+        HasConversationIntelligenceStrip &&
+        !ConversationIntelligenceIsCurrent &&
+        !ConversationIntelligenceIsStale &&
+        !ConversationIntelligenceIsPending;
 
     // ── Coordinators ──────────────────────────────────────────
     private readonly IConversationCoordinator _conversationCoordinator;
@@ -158,6 +237,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
     // ── Streaming assistant message (for token-by-token updates) ──
     private ChatMessageItem? _streamingAssistantMessage;
+    private ChatContextInspectionSnapshot? _latestContextInspection;
 
     public ChatViewModel(
         IConversationCoordinator conversationCoordinator,
@@ -454,6 +534,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
     partial void OnActiveSystemPromptNameChanged(string? value)
         => OnPropertyChanged(nameof(HasActiveSystemPrompt));
+
+    partial void OnActiveConversationIdChanged(long? value)
+        => NotifyConversationIntelligenceStripChanged();
 
     partial void OnConversationSearchQueryChanged(string value)
         => _ = FilterConversationsAsync(value);
@@ -1045,6 +1128,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             return;
         }
 
+        _latestContextInspection = snapshot;
         HasContextInspection = true;
         HasLimitedContextInspection = snapshot.HasLimitedVisibility;
         ContextInspectionStatus = snapshot.HasLimitedVisibility
@@ -1104,10 +1188,12 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         ContextRecallStatus = HasContextRecallItems
             ? $"{ContextRecallItems.Count} recalled message{(ContextRecallItems.Count == 1 ? string.Empty : "s")} used"
             : snapshot.RecallExplanation;
+        NotifyConversationIntelligenceStripChanged();
     }
 
     private void ResetContextInspection()
     {
+        _latestContextInspection = null;
         HasContextInspection = false;
         HasLimitedContextInspection = false;
         ContextInspectionStatus = "No generation context captured yet.";
@@ -1130,6 +1216,18 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         ContextRecallStatus = "No durable recall context captured yet.";
         ContextRecallItems = new ObservableCollection<ChatContextRecallDisplayItem>();
         HasContextRecallItems = false;
+        NotifyConversationIntelligenceStripChanged();
+    }
+
+    private void NotifyConversationIntelligenceStripChanged()
+    {
+        OnPropertyChanged(nameof(HasConversationIntelligenceStrip));
+        OnPropertyChanged(nameof(ConversationIntelligenceBadgeText));
+        OnPropertyChanged(nameof(ConversationIntelligenceStatusText));
+        OnPropertyChanged(nameof(ConversationIntelligenceIsCurrent));
+        OnPropertyChanged(nameof(ConversationIntelligenceIsStale));
+        OnPropertyChanged(nameof(ConversationIntelligenceIsPending));
+        OnPropertyChanged(nameof(ConversationIntelligenceIsUnavailable));
     }
 
     // ═══════════════════════════════════════════════════════════════

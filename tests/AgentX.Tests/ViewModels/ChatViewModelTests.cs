@@ -71,6 +71,9 @@ public sealed class ChatViewModelTests
         await viewModel.SelectConversationCommand.ExecuteAsync(42L);
 
         viewModel.ActiveConversationId.Should().Be(42);
+        viewModel.HasConversationIntelligenceStrip.Should().BeTrue();
+        viewModel.ConversationIntelligenceBadgeText.Should().Be("Current");
+        viewModel.ConversationIntelligenceStatusText.Should().Be("Summary current • 2 key points available");
         viewModel.HasContextInspection.Should().BeTrue();
         viewModel.ContextAssemblyMode.Should().Be("Structured context assembly");
         viewModel.ContextSelectedMessages.Should().Be("3");
@@ -107,6 +110,7 @@ public sealed class ChatViewModelTests
         await viewModel.NewConversationCommand.ExecuteAsync(null);
 
         viewModel.ActiveConversationId.Should().BeNull();
+        viewModel.HasConversationIntelligenceStrip.Should().BeFalse();
         viewModel.HasContextInspection.Should().BeFalse();
         viewModel.ContextInspectionStatus.Should().Be("No generation context captured yet.");
         viewModel.ContextSummaryStatus.Should().Be("No durable summary captured yet.");
@@ -144,6 +148,70 @@ public sealed class ChatViewModelTests
         viewModel.Conversations.Should().ContainSingle(item => item.Id == 84 && item.Title == "Recovered Thread");
     }
 
+    [Fact]
+    public async Task SelectConversationAsync_MapsStaleSummaryToStaleStrip()
+    {
+        var snapshot = CreateInspectionSnapshot(42, isSummaryStale: true, pendingMessageCount: 3);
+
+        _conversationCoordinator
+            .Setup(service => service.LoadMessagesAsync(42))
+            .ReturnsAsync(Array.Empty<MessageSummary>());
+        _chatService
+            .Setup(service => service.GetLatestContextInspection(42))
+            .Returns(snapshot);
+
+        var viewModel = CreateViewModel();
+        viewModel.Conversations.Add(new ConversationListItem
+        {
+            Id = 42,
+            Title = "Startup Investigation",
+            UpdatedAt = DateTime.UtcNow
+        });
+
+        await viewModel.SelectConversationCommand.ExecuteAsync(42L);
+
+        viewModel.ConversationIntelligenceBadgeText.Should().Be("Stale");
+        viewModel.ConversationIntelligenceIsStale.Should().BeTrue();
+        viewModel.ConversationIntelligenceStatusText.Should().Be("Summary stale • 3 newer messages not folded in");
+    }
+
+    [Fact]
+    public async Task SelectConversationAsync_WithoutSnapshot_ShowsUnavailableStrip()
+    {
+        _conversationCoordinator
+            .Setup(service => service.LoadMessagesAsync(42))
+            .ReturnsAsync(Array.Empty<MessageSummary>());
+        _chatService
+            .Setup(service => service.GetLatestContextInspection(42))
+            .Returns((ChatContextInspectionSnapshot?)null);
+
+        var viewModel = CreateViewModel();
+        viewModel.Conversations.Add(new ConversationListItem
+        {
+            Id = 42,
+            Title = "Startup Investigation",
+            UpdatedAt = DateTime.UtcNow
+        });
+
+        await viewModel.SelectConversationCommand.ExecuteAsync(42L);
+
+        viewModel.HasConversationIntelligenceStrip.Should().BeTrue();
+        viewModel.ConversationIntelligenceIsUnavailable.Should().BeTrue();
+        viewModel.ConversationIntelligenceBadgeText.Should().Be("Unavailable");
+        viewModel.ConversationIntelligenceStatusText.Should().Be("No conversation context captured yet");
+    }
+
+    [Fact]
+    public void ChatWithoutActiveConversation_HidesIntelligenceStrip()
+    {
+        var viewModel = CreateViewModel();
+
+        viewModel.ActiveConversationId.Should().BeNull();
+        viewModel.HasConversationIntelligenceStrip.Should().BeFalse();
+        viewModel.ConversationIntelligenceBadgeText.Should().BeEmpty();
+        viewModel.ConversationIntelligenceStatusText.Should().BeEmpty();
+    }
+
     private ChatViewModel CreateViewModel() =>
         new(
             _conversationCoordinator.Object,
@@ -157,12 +225,19 @@ public sealed class ChatViewModelTests
             _memoryService.Object,
             _notificationService.Object);
 
-    private static ChatContextInspectionSnapshot CreateInspectionSnapshot(long conversationId) =>
+    private static ChatContextInspectionSnapshot CreateInspectionSnapshot(
+        long conversationId,
+        bool isSummaryStale = false,
+        int pendingMessageCount = 0,
+        bool limitedVisibility = false,
+        string? limitedVisibilityReason = null) =>
         new()
         {
             ConversationId = conversationId,
             CapturedAt = DateTime.UtcNow.AddMinutes(-2),
             CurrentQuery = "How should I proceed?",
+            HasLimitedVisibility = limitedVisibility,
+            LimitedVisibilityReason = limitedVisibilityReason,
             Diagnostics = new ContextAssemblyDiagnostics
             {
                 SelectedMessageCount = 3,
@@ -179,8 +254,8 @@ public sealed class ChatViewModelTests
                 KeyPoints = ["Retry path", "Backoff window"],
                 GeneratedAt = DateTime.UtcNow.AddMinutes(-10),
                 LastRefreshedAt = DateTime.UtcNow.AddMinutes(-9),
-                IsStale = false,
-                PendingMessageCount = 0
+                IsStale = isSummaryStale,
+                PendingMessageCount = pendingMessageCount
             },
             RecallMatches =
             [
