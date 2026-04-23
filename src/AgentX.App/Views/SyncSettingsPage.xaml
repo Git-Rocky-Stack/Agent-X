@@ -248,6 +248,7 @@
                  - Auto-sync toggle (ToggleSwitch)
                  - Sync interval selector (ComboBox)
                  - Sync scope selector (ComboBox: All / Selected)
+                 - Selected collection picker when scoped sync is enabled
                  ======================================================= -->
             <Border Grid.Row="6" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="20">
@@ -361,16 +362,66 @@
                     <StackPanel Spacing="6">
                         <TextBlock Text="Sync Scope"
                                    Style="{StaticResource LabelStyle}" />
-                        <ComboBox x:Name="SyncScopeComboBox"
-                                  SelectedIndex="0"
+                        <ComboBox ItemsSource="{x:Bind ViewModel.SyncScopeOptions, Mode=OneWay}"
+                                  SelectedItem="{x:Bind ViewModel.SyncScope, Mode=TwoWay}"
                                   HorizontalAlignment="Stretch"
                                   MinWidth="240">
-                            <ComboBoxItem Content="All" Tag="All" />
-                            <ComboBoxItem Content="Selected Collections" Tag="SelectedCollections" />
                         </ComboBox>
                         <TextBlock Text="Choose whether to sync all data or only selected collections."
                                    Style="{StaticResource CaptionStyle}"
                                    Margin="0,2,0,0" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="10"
+                                Visibility="{x:Bind ViewModel.ShowSelectedCollectionsPicker, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Collections to Sync"
+                                       Style="{StaticResource LabelStyle}" />
+                            <TextBlock Text="{x:Bind ViewModel.SelectedCollectionSummary, Mode=OneWay}"
+                                       Style="{StaticResource CaptionStyle}" />
+                        </StackPanel>
+
+                        <Border Style="{StaticResource CardInsetStyle}" Padding="14">
+                            <Grid RowSpacing="10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Text="Only documents assigned to the selected collections will be included in sync exports."
+                                           Style="{StaticResource BodySecondaryStyle}"
+                                           TextWrapping="Wrap" />
+
+                                <ScrollViewer Grid.Row="1"
+                                              MaxHeight="220"
+                                              VerticalScrollBarVisibility="Auto"
+                                              Visibility="{x:Bind ViewModel.HasAvailableCollections, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.AvailableCollections, Mode=OneWay}">
+                                        <ItemsRepeater.Layout>
+                                            <StackLayout Spacing="8" />
+                                        </ItemsRepeater.Layout>
+                                        <ItemsRepeater.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:SyncCollectionSelectionItem">
+                                                <CheckBox IsChecked="{x:Bind IsSelected, Mode=TwoWay}">
+                                                    <StackPanel Spacing="2">
+                                                        <TextBlock Text="{x:Bind Name, Mode=OneWay}"
+                                                                   Style="{StaticResource BodyStyle}" />
+                                                        <TextBlock Text="{x:Bind DetailLabel, Mode=OneWay}"
+                                                                   Style="{StaticResource CaptionStyle}" />
+                                                    </StackPanel>
+                                                </CheckBox>
+                                            </DataTemplate>
+                                        </ItemsRepeater.ItemTemplate>
+                                    </ItemsRepeater>
+                                </ScrollViewer>
+
+                                <TextBlock Grid.Row="1"
+                                           Text="No collections are available yet. Create a collection before using selected-collection sync."
+                                           Style="{StaticResource CaptionStyle}"
+                                           TextWrapping="Wrap"
+                                           Visibility="{x:Bind ViewModel.HasAvailableCollections, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
+                            </Grid>
+                        </Border>
                     </StackPanel>
 
                 </StackPanel>

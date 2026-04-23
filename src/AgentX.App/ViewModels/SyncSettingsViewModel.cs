@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AgentX.Core.Helpers;
+using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Sync;
 using AgentX.Core.Services.Sync.Models;
 using AgentX.Core.Data.Entities;
@@ -32,6 +33,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
     // ── Services ──────────────────────────────────────────────────────────────
 
     private readonly ISyncService _syncService;
+    private readonly ICollectionService _collectionService;
 
     /// <summary>
     /// CancellationTokenSource for the running auto-sync loop.
@@ -122,6 +124,10 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
     /// </summary>
     [ObservableProperty] private int _selectedIntervalIndex = 1;
 
+    public List<string> SyncScopeOptions { get; } = new() { "All", "SelectedCollections" };
+
+    public ObservableCollection<SyncCollectionSelectionItem> AvailableCollections { get; } = new();
+
     // ── Sync History ──────────────────────────────────────────────────────────
 
     /// <summary>
@@ -163,6 +169,21 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
 
     /// <summary>True when the sync history collection contains at least one entry.</summary>
     public bool HasSyncHistory => SyncHistory.Count > 0;
+    public bool ShowSelectedCollectionsPicker => SyncScope == "SelectedCollections";
+    public bool HasAvailableCollections => AvailableCollections.Count > 0;
+    public string SelectedCollectionSummary
+    {
+        get
+        {
+            var selectedCount = AvailableCollections.Count(collection => collection.IsSelected);
+            return selectedCount switch
+            {
+                0 => "No collections selected",
+                1 => "1 collection selected",
+                _ => $"{selectedCount} collections selected"
+            };
+        }
+    }
 
     // ── Folder Picker Event ───────────────────────────────────────────────────
 
@@ -175,9 +196,10 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
 
     // ── Constructor ───────────────────────────────────────────────────────────
 
-    public SyncSettingsViewModel(ISyncService syncService)
+    public SyncSettingsViewModel(ISyncService syncService, ICollectionService collectionService)
     {
         _syncService = syncService;
+        _collectionService = collectionService;
         Log.Debug("SyncSettingsViewModel created");
     }
 
@@ -197,6 +219,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         try
         {
             await LoadConfigurationAsync();
+            await LoadAvailableCollectionsAsync();
             RefreshStatusFromService();
             await LoadHistoryAsync();
         }
@@ -263,6 +286,35 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         NotifyComputedProperties();
     }
 
+    private async Task LoadAvailableCollectionsAsync()
+    {
+        try
+        {
+            var collections = await _collectionService.GetAllCollectionsAsync();
+            var selectedIds = ParseSelectedCollectionIds(SelectedCollectionIds);
+
+            AvailableCollections.Clear();
+            foreach (var collection in collections.OrderBy(collection => collection.SortOrder).ThenBy(collection => collection.Name))
+            {
+                AvailableCollections.Add(new SyncCollectionSelectionItem(
+                    collection.Id,
+                    collection.Name,
+                    collection.DocumentCount,
+                    selectedIds.Contains(collection.Id),
+                    UpdateSelectedCollectionIdsFromSelections));
+            }
+
+            UpdateSelectedCollectionIdsFromSelections();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to load collections for sync scope selection");
+            AvailableCollections.Clear();
+            OnPropertyChanged(nameof(HasAvailableCollections));
+            OnPropertyChanged(nameof(SelectedCollectionSummary));
+        }
+    }
+
     // =========================================================================
     // REFRESH STATUS (private helper)
     // Reads the live SyncStatus from the service and updates all display fields.
@@ -315,6 +367,8 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task SaveConfigurationAsync()
     {
+        UpdateSelectedCollectionIdsFromSelections();
+
         if (string.IsNullOrWhiteSpace(SyncFolderPath))
         {
             SetError("A sync folder path is required. Use the Browse button to select one.");
@@ -348,7 +402,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         if (scope == AgentX.Core.Services.Sync.Models.SyncScope.SelectedCollections &&
             string.IsNullOrWhiteSpace(SelectedCollectionIds))
         {
-            SetError("At least one collection ID must be specified when Sync Scope is set to Selected Collections.");
+            SetError("Select at least one collection when Sync Scope is set to Selected Collections.");
             return;
         }
 
@@ -671,7 +725,19 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         // When the scope is switched back to "All", wipe any stale collection
         // ID filter so it cannot be accidentally persisted.
         if (value == "All")
+        {
+            foreach (var collection in AvailableCollections)
+                collection.IsSelected = false;
+
             SelectedCollectionIds = null;
+        }
+        else
+        {
+            UpdateSelectedCollectionIdsFromSelections();
+        }
+
+        OnPropertyChanged(nameof(ShowSelectedCollectionsPicker));
+        OnPropertyChanged(nameof(SelectedCollectionSummary));
     }
 
     // =========================================================================
@@ -734,6 +800,33 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         ErrorMessage      = entry.ErrorMessage
     };
 
+    private void UpdateSelectedCollectionIdsFromSelections()
+    {
+        var selected = AvailableCollections
+            .Where(collection => collection.IsSelected)
+            .Select(collection => collection.Id.ToString())
+            .ToArray();
+
+        SelectedCollectionIds = selected.Length > 0 ? string.Join(",", selected) : null;
+        OnPropertyChanged(nameof(SelectedCollectionSummary));
+        OnPropertyChanged(nameof(HasAvailableCollections));
+    }
+
+    private static HashSet<long> ParseSelectedCollectionIds(string? value)
+    {
+        var ids = new HashSet<long>();
+        if (string.IsNullOrWhiteSpace(value))
+            return ids;
+
+        foreach (var token in value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (long.TryParse(token, out var parsed))
+                ids.Add(parsed);
+        }
+
+        return ids;
+    }
+
     private void NotifyComputedProperties()
     {
         OnPropertyChanged(nameof(HasConfiguration));
@@ -744,6 +837,9 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SuccessMessage));
         OnPropertyChanged(nameof(LastSyncDuration));
         OnPropertyChanged(nameof(HasSyncHistory));
+        OnPropertyChanged(nameof(ShowSelectedCollectionsPicker));
+        OnPropertyChanged(nameof(HasAvailableCollections));
+        OnPropertyChanged(nameof(SelectedCollectionSummary));
         SyncNowCommand.NotifyCanExecuteChanged();
         SaveConfigurationCommand.NotifyCanExecuteChanged();
     }
@@ -789,4 +885,27 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         _autoSyncCts = null;
         Log.Debug("SyncSettingsViewModel disposed");
     }
+}
+
+public sealed partial class SyncCollectionSelectionItem : ObservableObject
+{
+    private readonly Action _selectionChanged;
+
+    public long Id { get; }
+    public string Name { get; }
+    public int DocumentCount { get; }
+    public string DetailLabel => DocumentCount == 1 ? "1 document" : $"{DocumentCount} documents";
+
+    [ObservableProperty] private bool _isSelected;
+
+    public SyncCollectionSelectionItem(long id, string name, int documentCount, bool isSelected, Action selectionChanged)
+    {
+        Id = id;
+        Name = name;
+        DocumentCount = documentCount;
+        _isSelected = isSelected;
+        _selectionChanged = selectionChanged;
+    }
+
+    partial void OnIsSelectedChanged(bool value) => _selectionChanged();
 }

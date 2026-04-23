@@ -56,6 +56,10 @@
     <Compile Include="..\..\src\AgentX.App\ViewModels\ComparisonViewModel.cs" Link="ViewModels\ComparisonViewModel.cs" />
     <!-- AnalyticsViewModel is pure orchestration/state logic over core services; link it for persistent intelligence UI tests. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\AnalyticsViewModel.cs" Link="ViewModels\AnalyticsViewModel.cs" />
+    <!-- SyncSettingsViewModel is pure sync orchestration/state logic; link it for selected-scope UI tests. -->
+    <Compile Include="..\..\src\AgentX.App\ViewModels\SyncSettingsViewModel.cs" Link="ViewModels\SyncSettingsViewModel.cs" />
+    <Compile Include="..\..\src\AgentX.App\ViewModels\Sync\SyncLogDisplayItem.cs" Link="ViewModels\Sync\SyncLogDisplayItem.cs" />
+    <Compile Include="..\..\src\AgentX.App\ViewModels\Sync\SyncHistoryItem.cs" Link="ViewModels\Sync\SyncHistoryItem.cs" />
     <!-- ShortcutInputRouter dispatch core is pure; WinUI attach lives in a separate file. -->
     <Compile Include="..\..\src\AgentX.App\Services\ShortcutInputRouter.cs" Link="Services\ShortcutInputRouter.cs" />
     <!-- ShortcutRegistrationExtensions is pure registry composition for page-scoped shortcuts. -->
