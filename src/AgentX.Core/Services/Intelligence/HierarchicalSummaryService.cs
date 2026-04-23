@@ -2,6 +2,7 @@ using System.Text;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Constants;
+using AgentX.Core.Services.Intelligence.Models;
 using Serilog;
 
 namespace AgentX.Core.Services.Intelligence;
@@ -23,6 +24,8 @@ public sealed class HierarchicalSummaryService : IHierarchicalSummaryService
         MaxTokens = 768
     };
 
+    private const int MaxSummarySections = 6;
+
     public HierarchicalSummaryService(IAiService aiService, ILogger logger)
     {
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
@@ -30,7 +33,7 @@ public sealed class HierarchicalSummaryService : IHierarchicalSummaryService
                   ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<string> SummarizeAsync(
+    public async Task<HierarchicalSummaryResult> BuildSummaryAsync(
         string documentTitle,
         IReadOnlyList<string> sections,
         CancellationToken ct = default)
@@ -38,36 +41,57 @@ public sealed class HierarchicalSummaryService : IHierarchicalSummaryService
         var normalizedSections = NormalizeSections(sections);
         if (normalizedSections.Count == 0)
         {
-            return string.Empty;
+            return new HierarchicalSummaryResult
+            {
+                DocumentTitle = documentTitle,
+                TotalSections = 0,
+                SectionsIncluded = 0
+            };
         }
 
-        if (normalizedSections.Count == 1)
-        {
-            return await SummarizeSectionAsync(documentTitle, normalizedSections[0], ct).ConfigureAwait(false);
-        }
+        var selectedSections = normalizedSections
+            .Take(MaxSummarySections)
+            .ToList();
 
-        var sectionSummaries = new List<string>(normalizedSections.Count);
-        foreach (var section in normalizedSections.Take(6))
+        var sectionSummaries = new List<string>(selectedSections.Count);
+        foreach (var section in selectedSections)
         {
             ct.ThrowIfCancellationRequested();
             sectionSummaries.Add(await SummarizeSectionAsync(documentTitle, section, ct).ConfigureAwait(false));
         }
 
-        var synthesisPrompt = $$"""
-                                Combine the following section summaries into one concise document summary.
-                                Focus on the main topics, findings, and conclusions.
+        var documentSummary = sectionSummaries.Count == 1
+            ? sectionSummaries[0]
+            : await SynthesizeDocumentSummaryAsync(documentTitle, sectionSummaries, ct).ConfigureAwait(false);
 
-                                DOCUMENT TITLE: {{documentTitle}}
+        var keyPointSource = sectionSummaries.Count == 1
+            ? selectedSections[0]
+            : string.Join(Environment.NewLine + Environment.NewLine,
+                sectionSummaries.Select((summary, index) => $"Section {index + 1}: {summary}"));
 
-                                SECTION SUMMARIES:
-                                {{string.Join(Environment.NewLine + Environment.NewLine, sectionSummaries)}}
-                                """;
+        var keyPoints = await ExtractKeyPointsFromContentAsync(documentTitle, keyPointSource, ct).ConfigureAwait(false);
 
-        return (await _aiService.ChatAsync(
-                [ChatMessage.User(synthesisPrompt)],
-                options: SummaryChatOptions,
-                ct: ct)
-            .ConfigureAwait(false)).Trim();
+        _logger.Debug(
+            "Built hierarchical summary for '{DocumentTitle}': {Included}/{Total} sections, {KeyPointCount} key points",
+            documentTitle, selectedSections.Count, normalizedSections.Count, keyPoints.Count);
+
+        return new HierarchicalSummaryResult
+        {
+            DocumentTitle = documentTitle,
+            SectionSummaries = sectionSummaries,
+            DocumentSummary = documentSummary,
+            KeyPoints = keyPoints.ToList(),
+            TotalSections = normalizedSections.Count,
+            SectionsIncluded = selectedSections.Count
+        };
+    }
+
+    public async Task<string> SummarizeAsync(
+        string documentTitle,
+        IReadOnlyList<string> sections,
+        CancellationToken ct = default)
+    {
+        return (await BuildSummaryAsync(documentTitle, sections, ct).ConfigureAwait(false)).DocumentSummary;
     }
 
     public async Task<IReadOnlyList<string>> ExtractKeyPointsAsync(
@@ -75,33 +99,7 @@ public sealed class HierarchicalSummaryService : IHierarchicalSummaryService
         IReadOnlyList<string> sections,
         CancellationToken ct = default)
     {
-        var normalizedSections = NormalizeSections(sections);
-        if (normalizedSections.Count == 0)
-        {
-            return Array.Empty<string>();
-        }
-
-        var synthesisInput = normalizedSections.Count == 1
-            ? normalizedSections[0]
-            : string.Join(Environment.NewLine + Environment.NewLine,
-                normalizedSections.Take(6).Select((section, index) => $"Section {index + 1}: {section}"));
-
-        var prompt = $$"""
-                       Extract the key points from the following document content as a numbered list.
-                       Each point should be one concise sentence.
-
-                       DOCUMENT TITLE: {{documentTitle}}
-
-                       CONTENT:
-                       {{synthesisInput}}
-                       """;
-
-        var response = await _aiService.ChatAsync(
-            [ChatMessage.User(prompt)],
-            options: KeyPointChatOptions,
-            ct: ct).ConfigureAwait(false);
-
-        return ParseKeyPoints(response);
+        return (await BuildSummaryAsync(documentTitle, sections, ct).ConfigureAwait(false)).KeyPoints;
     }
 
     private async Task<string> SummarizeSectionAsync(string documentTitle, string section, CancellationToken ct)
@@ -121,6 +119,51 @@ public sealed class HierarchicalSummaryService : IHierarchicalSummaryService
                 options: SummaryChatOptions,
                 ct: ct)
             .ConfigureAwait(false)).Trim();
+    }
+
+    private async Task<string> SynthesizeDocumentSummaryAsync(
+        string documentTitle,
+        IReadOnlyList<string> sectionSummaries,
+        CancellationToken ct)
+    {
+        var synthesisPrompt = $$"""
+                                Combine the following section summaries into one concise document summary.
+                                Focus on the main topics, findings, and conclusions.
+
+                                DOCUMENT TITLE: {{documentTitle}}
+
+                                SECTION SUMMARIES:
+                                {{string.Join(Environment.NewLine + Environment.NewLine, sectionSummaries)}}
+                                """;
+
+        return (await _aiService.ChatAsync(
+                [ChatMessage.User(synthesisPrompt)],
+                options: SummaryChatOptions,
+                ct: ct)
+            .ConfigureAwait(false)).Trim();
+    }
+
+    private async Task<IReadOnlyList<string>> ExtractKeyPointsFromContentAsync(
+        string documentTitle,
+        string content,
+        CancellationToken ct)
+    {
+        var prompt = $$"""
+                       Extract the key points from the following document content as a numbered list.
+                       Each point should be one concise sentence.
+
+                       DOCUMENT TITLE: {{documentTitle}}
+
+                       CONTENT:
+                       {{content}}
+                       """;
+
+        var response = await _aiService.ChatAsync(
+            [ChatMessage.User(prompt)],
+            options: KeyPointChatOptions,
+            ct: ct).ConfigureAwait(false);
+
+        return ParseKeyPoints(response);
     }
 
     private static List<string> NormalizeSections(IReadOnlyList<string> sections)

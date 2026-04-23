@@ -1,5 +1,16 @@
 namespace AgentX.Core.Services.Intelligence.Models;
 
+public class HierarchicalSummaryResult
+{
+    public string DocumentTitle { get; init; } = string.Empty;
+    public List<string> SectionSummaries { get; init; } = new();
+    public string DocumentSummary { get; init; } = string.Empty;
+    public List<string> KeyPoints { get; init; } = new();
+    public int TotalSections { get; init; }
+    public int SectionsIncluded { get; init; }
+    public bool WasSectionLimitApplied => SectionsIncluded < TotalSections;
+}
+
 public enum DuplicateMatchKind
 {
     Exact,

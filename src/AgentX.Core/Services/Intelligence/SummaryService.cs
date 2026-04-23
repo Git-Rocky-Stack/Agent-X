@@ -59,15 +59,16 @@ public class SummaryService : ISummaryService
         _log.Information("Starting document summarization for document {DocumentId}", documentId);
 
         var document = await LoadDocumentAsync(documentId, ct).ConfigureAwait(false);
-        var summary = await _hierarchicalSummaryService
-            .SummarizeAsync(document.FileName, GetDocumentSections(document), ct)
+        var summaryResult = await _hierarchicalSummaryService
+            .BuildSummaryAsync(document.FileName, GetDocumentSections(document), ct)
             .ConfigureAwait(false);
 
         _log.Information(
-            "Completed summarization for document {DocumentId} '{FileName}' ({SummaryLength} chars)",
-            documentId, document.FileName, summary.Length);
+            "Completed summarization for document {DocumentId} '{FileName}' ({SummaryLength} chars, {IncludedSections}/{TotalSections} sections)",
+            documentId, document.FileName, summaryResult.DocumentSummary.Length,
+            summaryResult.SectionsIncluded, summaryResult.TotalSections);
 
-        return summary;
+        return summaryResult.DocumentSummary;
     }
 
     /// <inheritdoc />
@@ -76,15 +77,15 @@ public class SummaryService : ISummaryService
         _log.Information("Starting key-point extraction for document {DocumentId}", documentId);
 
         var document = await LoadDocumentAsync(documentId, ct).ConfigureAwait(false);
-        var keyPoints = await _hierarchicalSummaryService
-            .ExtractKeyPointsAsync(document.FileName, GetDocumentSections(document), ct)
+        var summaryResult = await _hierarchicalSummaryService
+            .BuildSummaryAsync(document.FileName, GetDocumentSections(document), ct)
             .ConfigureAwait(false);
 
         _log.Information(
             "Extracted {Count} key points from document {DocumentId} '{FileName}'",
-            keyPoints.Count, documentId, document.FileName);
+            summaryResult.KeyPoints.Count, documentId, document.FileName);
 
-        return keyPoints;
+        return summaryResult.KeyPoints;
     }
 
     /// <inheritdoc />
