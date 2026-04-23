@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -277,6 +278,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     // ── Streaming assistant message (for token-by-token updates) ──
     private ChatMessageItem? _streamingAssistantMessage;
     private ChatContextInspectionSnapshot? _latestContextInspection;
+    private readonly Dictionary<long, ChatContextInspectionSnapshot> _assistantMessageContextSnapshots = new();
 
     public ChatViewModel(
         IConversationCoordinator conversationCoordinator,
@@ -345,6 +347,16 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             _streamingAssistantMessage.IsStreaming = false;
             _streamingAssistantMessage.TokenCount = e.TokenCount;
             _streamingAssistantMessage.GenerationTimeMs = e.GenerationTimeMs;
+            if (e.AssistantMessageId.HasValue)
+            {
+                _streamingAssistantMessage.MessageId = e.AssistantMessageId.Value;
+            }
+
+            ApplyInlineContextNote(_streamingAssistantMessage, e.ContextInspection);
+            if (e.AssistantMessageId.HasValue && e.ContextInspection is not null)
+            {
+                _assistantMessageContextSnapshots[e.AssistantMessageId.Value] = e.ContextInspection;
+            }
         }
 
         TokenCount += e.TokenCount;
@@ -699,7 +711,11 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
         var messageSummaries = await _conversationCoordinator.LoadMessagesAsync(conversationId);
         foreach (var ms in messageSummaries)
-            Messages.Add(MapToChatMessageItem(ms));
+        {
+            var messageItem = MapToChatMessageItem(ms);
+            ReapplyInlineContextNote(messageItem);
+            Messages.Add(messageItem);
+        }
 
         OnPropertyChanged(nameof(HasNoMessages));
         LoadContextInspectionForConversation(conversationId);
@@ -791,6 +807,10 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     {
         if (message is null) return;
         await _messagingCoordinator.DeleteMessageAsync(message.MessageId);
+        if (message.MessageId > 0)
+        {
+            _assistantMessageContextSnapshots.Remove(message.MessageId);
+        }
         Messages.Remove(message);
         OnPropertyChanged(nameof(HasNoMessages));
         _notificationService.ShowInfo("Message deleted", "The message has been removed.");
@@ -837,7 +857,10 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
         Messages.Remove(message);
         if (message.MessageId > 0)
+        {
+            _assistantMessageContextSnapshots.Remove(message.MessageId);
             await _messagingCoordinator.DeleteMessageAsync(message.MessageId);
+        }
 
         UserInput = userMessage.Content;
         Messages.Remove(userMessage);
@@ -1163,6 +1186,45 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         TokenCount = ms.TokenCount, GenerationTimeMs = ms.GenerationTimeMs,
         FeedbackRating = ms.FeedbackRating
     };
+
+    private void ReapplyInlineContextNote(ChatMessageItem message)
+    {
+        if (!message.IsAssistant || message.MessageId <= 0)
+        {
+            ClearInlineContextNote(message);
+            return;
+        }
+
+        if (_assistantMessageContextSnapshots.TryGetValue(message.MessageId, out var snapshot))
+        {
+            ApplyInlineContextNote(message, snapshot);
+            return;
+        }
+
+        ClearInlineContextNote(message);
+    }
+
+    private static void ApplyInlineContextNote(
+        ChatMessageItem message,
+        ChatContextInspectionSnapshot? snapshot)
+    {
+        if (!message.IsAssistant || snapshot is null)
+        {
+            ClearInlineContextNote(message);
+            return;
+        }
+
+        message.InlineContextStoryText = snapshot.ContextStoryText;
+        message.InlineContextStorySourceChips = snapshot.ContextStorySourceChips
+            .Select(chip => chip.Label)
+            .ToArray();
+    }
+
+    private static void ClearInlineContextNote(ChatMessageItem message)
+    {
+        message.InlineContextStoryText = string.Empty;
+        message.InlineContextStorySourceChips = Array.Empty<string>();
+    }
 
     private string BuildConversationMarkdown()
     {

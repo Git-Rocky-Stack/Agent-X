@@ -14,6 +14,8 @@ public class ChatMessageItem : ObservableObject
     private string _feedbackRating = "none";
     private bool _isEditing;
     private string _editContent = string.Empty;
+    private string _inlineContextStoryText = string.Empty;
+    private IReadOnlyList<string> _inlineContextStorySourceChips = Array.Empty<string>();
 
     /// <summary>Database primary key. 0 if not yet persisted.</summary>
     public long MessageId { get; set; }
@@ -54,8 +56,45 @@ public class ChatMessageItem : ObservableObject
     public bool IsStreaming
     {
         get => _isStreaming;
-        set => SetProperty(ref _isStreaming, value);
+        set
+        {
+            if (SetProperty(ref _isStreaming, value))
+            {
+                OnPropertyChanged(nameof(HasInlineContextNote));
+            }
+        }
     }
+
+    public string InlineContextStoryText
+    {
+        get => _inlineContextStoryText;
+        set
+        {
+            if (SetProperty(ref _inlineContextStoryText, value))
+            {
+                OnPropertyChanged(nameof(HasInlineContextNote));
+            }
+        }
+    }
+
+    public IReadOnlyList<string> InlineContextStorySourceChips
+    {
+        get => _inlineContextStorySourceChips;
+        set
+        {
+            if (SetProperty(ref _inlineContextStorySourceChips, value))
+            {
+                OnPropertyChanged(nameof(HasInlineContextStorySourceChips));
+            }
+        }
+    }
+
+    public bool HasInlineContextNote =>
+        IsAssistant &&
+        !IsStreaming &&
+        !string.IsNullOrWhiteSpace(InlineContextStoryText);
+
+    public bool HasInlineContextStorySourceChips => InlineContextStorySourceChips.Count > 0;
 
     /// <summary>
     /// Feedback rating for assistant messages: "positive", "negative", or "none".

@@ -55,6 +55,7 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
         long? activeConvId = conversationId;
         string? convTitle = null;
         ChatContextInspectionSnapshot? contextInspection = null;
+        long? assistantMessageId = null;
 
         _generationCts = new CancellationTokenSource();
 
@@ -104,6 +105,9 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
                     }
 
                     contextInspection = _chatService.GetLatestContextInspection(activeConvId.Value);
+                    assistantMessageId = await ResolveAssistantMessageIdAsync(
+                        activeConvId.Value,
+                        responseBuilder.ToString());
                 }
                 else
                 {
@@ -141,7 +145,8 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
                 TokenCount = tokCount,
                 GenerationTimeMs = sw.Elapsed.TotalMilliseconds,
                 ConversationTitle = convTitle,
-                ContextInspection = contextInspection
+                ContextInspection = contextInspection,
+                AssistantMessageId = assistantMessageId
             };
             StreamingCompleted?.Invoke(this, completedArgs);
 
@@ -152,7 +157,8 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
                 TokenCount = tokCount,
                 GenerationTimeMs = sw.Elapsed.TotalMilliseconds,
                 ConversationTitle = convTitle,
-                ContextInspection = contextInspection
+                ContextInspection = contextInspection,
+                AssistantMessageId = assistantMessageId
             };
         }
         catch (OperationCanceledException)
@@ -207,6 +213,29 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
         {
             _generationCts?.Dispose();
             _generationCts = null;
+        }
+    }
+
+    private async Task<long?> ResolveAssistantMessageIdAsync(
+        long conversationId,
+        string finalContent)
+    {
+        if (string.IsNullOrWhiteSpace(finalContent))
+        {
+            return null;
+        }
+
+        try
+        {
+            var messages = await _conversationService.GetMessagesAsync(conversationId);
+            return messages
+                .LastOrDefault(message => string.Equals(message.Role, "assistant", StringComparison.OrdinalIgnoreCase))
+                ?.Id;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to resolve assistant message id for conversation {ConversationId}", conversationId);
+            return null;
         }
     }
 

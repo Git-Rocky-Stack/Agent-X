@@ -99,6 +99,9 @@ public sealed class SendMessageResult
 
     /// <summary>The latest context inspection snapshot captured during this send path.</summary>
     public ChatContextInspectionSnapshot? ContextInspection { get; init; }
+
+    /// <summary>The persisted assistant message ID when one was created.</summary>
+    public long? AssistantMessageId { get; init; }
 }
 
 /// <summary>
@@ -112,6 +115,7 @@ public sealed class StreamingCompletedEventArgs : EventArgs
     public double GenerationTimeMs { get; init; }
     public string? ConversationTitle { get; init; }
     public ChatContextInspectionSnapshot? ContextInspection { get; init; }
+    public long? AssistantMessageId { get; init; }
 }
 
 /// <summary>
