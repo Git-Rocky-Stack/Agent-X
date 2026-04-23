@@ -424,6 +424,7 @@ public partial class App : Application
         services.AddSingleton<IHierarchicalSummaryService, HierarchicalSummaryService>();
         services.AddSingleton<IDuplicateEvidenceService, DuplicateEvidenceService>();
         services.AddSingleton<IDocumentSynthesisService, DocumentSynthesisService>();
+        services.AddSingleton<IDigestInsightService, DigestInsightService>();
         services.AddSingleton<ISummaryService, SummaryService>();
         services.AddSingleton<IDuplicateDetectionService, DuplicateDetectionService>();
         services.AddSingleton<IOrganizationSuggestionService, OrganizationSuggestionService>();

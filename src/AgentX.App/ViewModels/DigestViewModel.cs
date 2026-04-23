@@ -251,18 +251,28 @@ public class TopSearchItem
 {
     public string Query { get; set; } = string.Empty;
     public int Count { get; set; }
+    public int PreviousCount { get; set; }
+    public int DeltaCount { get; set; }
+    public string Trend { get; set; } = string.Empty;
 }
 
 public class TopCollectionItem
 {
     public string Name { get; set; } = string.Empty;
-    public int DocumentCount { get; set; }
+    public int Count { get; set; }
+    public int DocumentCount => Count;
+    public int PreviousCount { get; set; }
+    public int DeltaCount { get; set; }
+    public string Trend { get; set; } = string.Empty;
 }
 
 public class FileTypeItem
 {
     public string Type { get; set; } = string.Empty;
     public int Count { get; set; }
+    public int PreviousCount { get; set; }
+    public int DeltaCount { get; set; }
+    public string Trend { get; set; } = string.Empty;
 }
 
 public class HighlightItem

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Services.Intelligence.Models;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -14,11 +15,16 @@ namespace AgentX.Core.Services.Intelligence;
 public sealed class DigestService : IDigestService
 {
     private readonly AgentXDbContext _db;
+    private readonly IDigestInsightService _digestInsightService;
     private readonly ILogger _logger;
 
-    public DigestService(AgentXDbContext db, ILogger logger)
+    public DigestService(
+        AgentXDbContext db,
+        ILogger logger,
+        IDigestInsightService? digestInsightService = null)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
+        _digestInsightService = digestInsightService ?? new DigestInsightService(db, logger);
         _logger = (logger ?? throw new ArgumentNullException(nameof(logger)))
             .ForContext<DigestService>();
     }
@@ -51,29 +57,10 @@ public sealed class DigestService : IDigestService
             .Where(m => m.Timestamp >= start && m.Timestamp <= end && m.TokenCount > 0)
             .SumAsync(m => m.TokenCount, ct);
 
-        // ── Top search queries ──────────────────────────────────
-        var topSearches = await _db.SearchHistory
-            .Where(s => s.SearchedAt >= start && s.SearchedAt <= end)
-            .GroupBy(s => s.Query)
-            .Select(g => new { Query = g.Key, Count = g.Count() })
-            .OrderByDescending(x => x.Count)
-            .Take(5)
-            .ToListAsync(ct);
-
-        // ── Top collections by document count ───────────────────
-        var topCollections = await _db.Collections
-            .OrderByDescending(c => c.DocumentCount)
-            .Take(5)
-            .Select(c => new { c.Name, c.DocumentCount })
-            .ToListAsync(ct);
-
-        // ── File type breakdown for new documents ───────────────
-        var fileTypes = await _db.Documents
-            .Where(d => d.ImportedAt >= start && d.ImportedAt <= end)
-            .GroupBy(d => d.FileType)
-            .Select(g => new { Type = g.Key, Count = g.Count() })
-            .OrderByDescending(x => x.Count)
-            .ToListAsync(ct);
+        // ── Period-over-period trend details ────────────────────
+        var topSearches = await _digestInsightService.BuildSearchTrendsAsync(start, end, ct);
+        var topCollections = await _digestInsightService.BuildCollectionTrendsAsync(start, end, ct);
+        var fileTypes = await _digestInsightService.BuildFileTypeTrendsAsync(start, end, ct);
 
         // ── Storage delta ───────────────────────────────────────
         long storageDelta = 0;
