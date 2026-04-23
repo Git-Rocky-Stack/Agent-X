@@ -113,6 +113,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <!-- Header -->
@@ -256,11 +257,84 @@
                     </Border>
 
                     <!-- Export -->
-                    <Button Grid.Row="6"
-                            Content="Export Report"
-                            Command="{x:Bind ViewModel.ExportReportCommand}"
-                            Visibility="{x:Bind ViewModel.HasReport, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                            Style="{StaticResource SecondaryButtonStyle}" />
+                    <Border Grid.Row="6"
+                            Style="{StaticResource CardStyle}"
+                            Padding="24"
+                            Visibility="{x:Bind ViewModel.HasReport, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="Unique Points by Document"
+                                       Style="{StaticResource HeadingSmallStyle}" />
+
+                            <TextBlock Text="No document-specific unique points were identified in this comparison."
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       Visibility="{x:Bind ViewModel.HasUniquePoints, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
+
+                            <ItemsRepeater ItemsSource="{x:Bind ViewModel.UniquePoints, Mode=OneWay}"
+                                           Visibility="{x:Bind ViewModel.HasUniquePoints, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                <ItemsRepeater.Layout>
+                                    <StackLayout Spacing="12" />
+                                </ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:UniquePointGroup">
+                                        <Border Style="{StaticResource CardInsetStyle}"
+                                                Padding="16">
+                                            <StackPanel Spacing="10">
+                                                <StackPanel Orientation="Horizontal"
+                                                            Spacing="8">
+                                                    <FontIcon Glyph="&#xE8FD;"
+                                                              FontSize="14"
+                                                              Foreground="{StaticResource TextAccentBrush}" />
+                                                    <TextBlock Text="{x:Bind DocumentName}"
+                                                               Style="{StaticResource BodyStyle}"
+                                                               FontWeight="SemiBold" />
+                                                </StackPanel>
+
+                                                <ItemsRepeater ItemsSource="{x:Bind Points}">
+                                                    <ItemsRepeater.Layout>
+                                                        <StackLayout Spacing="6" />
+                                                    </ItemsRepeater.Layout>
+                                                    <ItemsRepeater.ItemTemplate>
+                                                        <DataTemplate x:DataType="x:String">
+                                                            <Grid ColumnSpacing="8">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                    <ColumnDefinition Width="*" />
+                                                                </Grid.ColumnDefinitions>
+                                                                <FontIcon Grid.Column="0"
+                                                                          Glyph="&#xE73E;"
+                                                                          FontSize="12"
+                                                                          Foreground="{StaticResource AccentPrimaryBrush}"
+                                                                          VerticalAlignment="Top"
+                                                                          Margin="0,3,0,0" />
+                                                                <TextBlock Grid.Column="1"
+                                                                           Text="{x:Bind}"
+                                                                           Style="{StaticResource BodyStyle}"
+                                                                           TextWrapping="Wrap"
+                                                                           Opacity="0.8" />
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </ItemsRepeater.ItemTemplate>
+                                                </ItemsRepeater>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel Grid.Row="7"
+                                Spacing="8">
+                        <Button Content="Export Report"
+                                Command="{x:Bind ViewModel.ExportReportCommand}"
+                                Visibility="{x:Bind ViewModel.HasReport, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                Style="{StaticResource SecondaryButtonStyle}" />
+
+                        <!-- Status -->
+                        <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                                   Style="{StaticResource CaptionStyle}"
+                                   Opacity="0.5" />
+                    </StackPanel>
 
                     <!-- Empty State -->
                     <StackPanel Grid.Row="2"
@@ -276,12 +350,6 @@
                                    Style="{StaticResource BodySecondaryStyle}"
                                    HorizontalAlignment="Center" />
                     </StackPanel>
-
-                    <!-- Status -->
-                    <TextBlock Grid.Row="6"
-                               Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
-                               Style="{StaticResource CaptionStyle}"
-                               Opacity="0.5" />
                 </Grid>
             </ScrollViewer>
         </Grid>

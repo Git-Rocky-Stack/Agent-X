@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AgentX.Core.Services.Intelligence;
@@ -34,6 +35,7 @@ public partial class ComparisonViewModel : ObservableObject
     public ObservableCollection<string> Differences { get; } = new();
     public ObservableCollection<string> Contradictions { get; } = new();
     public ObservableCollection<UniquePointGroup> UniquePoints { get; } = new();
+    public bool HasUniquePoints => UniquePoints.Count > 0;
     [ObservableProperty] private long _reportTokensUsed;
     [ObservableProperty] private double _reportDurationMs;
 
@@ -54,17 +56,24 @@ public partial class ComparisonViewModel : ObservableObject
         try
         {
             var docs = await _documentService.GetAllDocumentsAsync();
+            ResetAvailableDocuments();
             AvailableDocuments.Clear();
+            SelectedDocuments.Clear();
             foreach (var doc in docs)
             {
-                AvailableDocuments.Add(new DocumentSelectItem
+                var item = new DocumentSelectItem
                 {
                     Id = doc.Id,
                     FileName = doc.FileName,
                     FileType = doc.FileType,
                     IsSelected = false
-                });
+                };
+
+                item.PropertyChanged += OnDocumentSelectionChanged;
+                AvailableDocuments.Add(item);
             }
+
+            StatusMessage = $"{AvailableDocuments.Count} documents available";
         }
         catch (Exception ex)
         {
@@ -91,6 +100,8 @@ public partial class ComparisonViewModel : ObservableObject
     [RelayCommand]
     private async Task CompareDocumentsAsync()
     {
+        SyncSelectedDocuments();
+
         if (SelectedDocuments.Count < 2)
         {
             StatusMessage = "Select at least 2 documents to compare";
@@ -142,6 +153,7 @@ public partial class ComparisonViewModel : ObservableObject
                     Points = new ObservableCollection<string>(kvp.Value)
                 });
             }
+            OnPropertyChanged(nameof(HasUniquePoints));
 
             HasReport = true;
             StatusMessage = $"Comparison complete in {report.DurationMs:F0}ms";
@@ -184,6 +196,31 @@ public partial class ComparisonViewModel : ObservableObject
     private void CancelComparison()
     {
         _compareCts?.Cancel();
+    }
+
+    private void OnDocumentSelectionChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(DocumentSelectItem.IsSelected))
+        {
+            SyncSelectedDocuments();
+        }
+    }
+
+    private void SyncSelectedDocuments()
+    {
+        SelectedDocuments.Clear();
+        foreach (var item in AvailableDocuments.Where(item => item.IsSelected))
+        {
+            SelectedDocuments.Add(item);
+        }
+    }
+
+    private void ResetAvailableDocuments()
+    {
+        foreach (var item in AvailableDocuments)
+        {
+            item.PropertyChanged -= OnDocumentSelectionChanged;
+        }
     }
 }
 

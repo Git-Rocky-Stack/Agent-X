@@ -52,6 +52,8 @@
     <Compile Include="..\..\src\AgentX.App\ViewModels\JumpToViewModel.cs" Link="ViewModels\JumpToViewModel.cs" />
     <!-- CheatsheetViewModel is pure registry grouping logic; link it for A2 unit tests. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\CheatsheetViewModel.cs" Link="ViewModels\CheatsheetViewModel.cs" />
+    <!-- ComparisonViewModel is pure orchestration/state logic; link it for Phase 5 UI sync tests. -->
+    <Compile Include="..\..\src\AgentX.App\ViewModels\ComparisonViewModel.cs" Link="ViewModels\ComparisonViewModel.cs" />
     <!-- ShortcutInputRouter dispatch core is pure; WinUI attach lives in a separate file. -->
     <Compile Include="..\..\src\AgentX.App\Services\ShortcutInputRouter.cs" Link="Services\ShortcutInputRouter.cs" />
     <!-- ShortcutRegistrationExtensions is pure registry composition for page-scoped shortcuts. -->
