@@ -1,3 +1,5 @@
+using AgentX.Core.Services.Chat.Models;
+
 namespace AgentX.App.ViewModels.Coordinators;
 
 /// <summary>
@@ -94,6 +96,9 @@ public sealed class SendMessageResult
 
     /// <summary>The conversation title (may be new/updated).</summary>
     public string? ConversationTitle { get; init; }
+
+    /// <summary>The latest context inspection snapshot captured during this send path.</summary>
+    public ChatContextInspectionSnapshot? ContextInspection { get; init; }
 }
 
 /// <summary>
@@ -106,6 +111,7 @@ public sealed class StreamingCompletedEventArgs : EventArgs
     public int TokenCount { get; init; }
     public double GenerationTimeMs { get; init; }
     public string? ConversationTitle { get; init; }
+    public ChatContextInspectionSnapshot? ContextInspection { get; init; }
 }
 
 /// <summary>

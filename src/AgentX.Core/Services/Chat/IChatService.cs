@@ -1,3 +1,5 @@
+using AgentX.Core.Services.Chat.Models;
+
 namespace AgentX.Core.Services.Chat;
 
 /// <summary>
@@ -41,6 +43,12 @@ public interface IChatService
     Task RegenerateLastResponseAsync(
         long conversationId,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Returns the latest in-memory context inspection snapshot captured for the
+    /// specified conversation, or null when none exists.
+    /// </summary>
+    ChatContextInspectionSnapshot? GetLatestContextInspection(long conversationId);
 
     /// <summary>
     /// Cancels any in-progress generation.

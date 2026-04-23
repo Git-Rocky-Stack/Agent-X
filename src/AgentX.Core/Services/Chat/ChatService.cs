@@ -1,11 +1,13 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Collections.Concurrent;
 using AgentX.Core.AI.Context;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.AI.Routing;
 using AgentX.Core.Constants;
+using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Services.Settings;
 using Serilog;
 
@@ -30,6 +32,7 @@ public class ChatService : IChatService
 
     private CancellationTokenSource? _generationCts;
     private readonly object _generationLock = new();
+    private readonly ConcurrentDictionary<long, ChatContextInspectionSnapshot> _latestContextInspections = new();
     private bool _isGenerating;
 
     /// <inheritdoc />
@@ -52,6 +55,12 @@ public class ChatService : IChatService
     /// Null when routing is disabled or not configured.
     /// </summary>
     public event EventHandler<RoutingDecision>? RoutingDecisionMade;
+
+    /// <inheritdoc />
+    public ChatContextInspectionSnapshot? GetLatestContextInspection(long conversationId) =>
+        _latestContextInspections.TryGetValue(conversationId, out var snapshot)
+            ? snapshot
+            : null;
 
     public ChatService(
         IAiService aiService,
@@ -174,6 +183,12 @@ public class ChatService : IChatService
                 linkedCts.Token);
             chatMessages = assembledContext.Messages;
             systemPrompt = assembledContext.SystemPrompt;
+
+            await CaptureLatestContextInspectionAsync(
+                conversationId,
+                userMessage,
+                assembledContext,
+                linkedCts.Token).ConfigureAwait(false);
 
             // 7. Stream the AI response
             _log.Debug(
@@ -325,6 +340,12 @@ public class ChatService : IChatService
                 },
                 ct);
             var chatMessages = assembledContext.Messages;
+
+            await CaptureLatestContextInspectionAsync(
+                conversationId,
+                lastUserMessage.Content,
+                assembledContext,
+                ct).ConfigureAwait(false);
 
             // Create a linked cancellation token for stop support
             CancellationTokenSource linkedCts;
@@ -511,6 +532,112 @@ public class ChatService : IChatService
         return contextParts.Count == 0
             ? string.Empty
             : string.Join(Environment.NewLine + Environment.NewLine, contextParts);
+    }
+
+    private async Task CaptureLatestContextInspectionAsync(
+        long conversationId,
+        string currentQuery,
+        ContextAssemblyResult assembledContext,
+        CancellationToken ct)
+    {
+        ConversationSummaryInspection? summaryInspection = null;
+
+        if (_conversationSummaryService is not null)
+        {
+            try
+            {
+                summaryInspection = await _conversationSummaryService
+                    .GetConversationSummaryInspectionAsync(conversationId, ct)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _log.Warning(ex, "Failed to load durable summary inspection for conversation {ConversationId}", conversationId);
+            }
+        }
+
+        var snapshot = new ChatContextInspectionSnapshot
+        {
+            ConversationId = conversationId,
+            CapturedAt = DateTime.UtcNow,
+            CurrentQuery = currentQuery,
+            Diagnostics = assembledContext.Diagnostics,
+            Summary = summaryInspection,
+            RecallMatches = assembledContext.DurableRecallResults
+                .Select(result => new ChatContextRecallInspectionItem
+                {
+                    ConversationId = result.ConversationId,
+                    MessageId = result.MessageId,
+                    ConversationTitle = result.ConversationTitle,
+                    Role = result.Role,
+                    ContentPreview = result.ContentPreview,
+                    Timestamp = result.Timestamp,
+                    Similarity = result.Similarity
+                })
+                .ToList(),
+            AssemblyExplanation = BuildAssemblyExplanation(assembledContext.Diagnostics),
+            CompressionExplanation = BuildCompressionExplanation(assembledContext.Diagnostics),
+            RecallExplanation = BuildRecallExplanation(assembledContext.Diagnostics)
+        };
+
+        _latestContextInspections[conversationId] = snapshot;
+    }
+
+    private static string BuildAssemblyExplanation(ContextAssemblyDiagnostics diagnostics)
+    {
+        if (diagnostics.UsedLegacyFallback)
+        {
+            return "Agent-X used the legacy context fitting path for this response.";
+        }
+
+        if (diagnostics.UsedLexicalFallback)
+        {
+            return "Agent-X used lexical fallback while selecting message context for this response.";
+        }
+
+        return diagnostics.OverflowMessageCount > 0
+            ? "Agent-X selected a bounded subset of the thread and evaluated overflow context against the remaining budget."
+            : "Agent-X fit the active thread without needing to trim or fall back.";
+    }
+
+    private static string BuildCompressionExplanation(ContextAssemblyDiagnostics diagnostics)
+    {
+        if (diagnostics.AddedOverflowSummary)
+        {
+            return "Agent-X added a compressed overflow summary to preserve older context within the available budget.";
+        }
+
+        return diagnostics.CompressionSkipReason switch
+        {
+            "history_fit_without_recall" => "The active history fit inside the available budget, so no overflow summary was needed.",
+            "compression_error" => "Overflow compression was skipped because compression failed.",
+            "summary_exceeded_unused_budget" => "Overflow compression was generated but exceeded the remaining token budget.",
+            null or "" => "No overflow summary was added for this response.",
+            _ => $"No overflow summary was added ({diagnostics.CompressionSkipReason.Replace('_', ' ')})."
+        };
+    }
+
+    private static string BuildRecallExplanation(ContextAssemblyDiagnostics diagnostics)
+    {
+        if (diagnostics.AddedDurableRecall)
+        {
+            return diagnostics.RecalledMessageCount == 1
+                ? "Agent-X added 1 recalled message from another conversation as supporting context."
+                : $"Agent-X added {diagnostics.RecalledMessageCount} recalled messages from other conversations as supporting context.";
+        }
+
+        return diagnostics.DurableRecallSkipReason switch
+        {
+            "no_recall_matches" => "Durable recall found no relevant cross-conversation matches for this response.",
+            "duplicate_to_selected_context" => "Durable recall found matches, but they duplicated the already selected context.",
+            "insufficient_recall_budget" => "Durable recall was skipped because too little token budget remained after core context selection.",
+            "recall_budget_exceeded" => "Durable recall found useful matches, but adding them would have exceeded the remaining token budget.",
+            "legacy_fallback" => "Durable recall details are unavailable because the legacy context fallback path was used.",
+            "recall_service_unavailable" => "Durable recall was unavailable for this response.",
+            "no_conversation_id" => "Durable recall was unavailable because the response was not tied to a persisted conversation.",
+            null or "" => "Durable recall was not added for this response.",
+            _ => $"Durable recall was not added ({diagnostics.DurableRecallSkipReason.Replace('_', ' ')})."
+        };
     }
 
     /// <summary>

@@ -150,6 +150,7 @@ public sealed class ContextAssemblyService : IContextAssemblyService
         string? durableRecallBlock = null;
         var durableRecallMatchCount = 0;
         string? durableRecallSkipReason = null;
+        IReadOnlyList<ConversationRecallResult> durableRecallResults = Array.Empty<ConversationRecallResult>();
         var augmentationTokensUsed = 0;
         var unusedBudget = Math.Max(0, availableMessageBudget - selectedMessageTokens);
 
@@ -236,6 +237,7 @@ public sealed class ContextAssemblyService : IContextAssemblyService
                     {
                         durableRecallBlock = candidateRecallBlock;
                         durableRecallMatchCount = filteredRecallResults.Count;
+                        durableRecallResults = filteredRecallResults;
                         augmentationTokensUsed += recallTokens;
                     }
                     else
@@ -274,6 +276,7 @@ public sealed class ContextAssemblyService : IContextAssemblyService
         {
             Messages = selectedMessages,
             SystemPrompt = augmentedSystemPrompt,
+            DurableRecallResults = durableRecallResults,
             Diagnostics = new ContextAssemblyDiagnostics
             {
                 OriginalMessageCount = request.ConversationMessages.Count,

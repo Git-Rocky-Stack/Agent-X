@@ -54,6 +54,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     // ── Panel State ────────────────────────────────────────────
     [ObservableProperty] private bool _isConversationPaneOpen = true;
     [ObservableProperty] private bool _showSystemPromptPicker;
+    [ObservableProperty] private bool _isContextInspectorOpen;
 
     // ── Research Mode ──────────────────────────────────────────
     private bool _isResearchMode;
@@ -84,6 +85,30 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _isRecording;
     [ObservableProperty] private bool _isTranscribing;
     [ObservableProperty] private string _voiceStatusMessage = string.Empty;
+
+    // ── Context Inspector ─────────────────────────────────────
+    [ObservableProperty] private bool _hasContextInspection;
+    [ObservableProperty] private bool _hasLimitedContextInspection;
+    [ObservableProperty] private string _contextInspectionStatus = "No generation context captured yet.";
+    [ObservableProperty] private string _contextCapturedAt = "No context captured";
+    [ObservableProperty] private string _contextSelectedMessages = "0";
+    [ObservableProperty] private string _contextAnchorMessages = "0";
+    [ObservableProperty] private string _contextOverflowMessages = "0";
+    [ObservableProperty] private string _contextEstimatedPromptTokens = "0";
+    [ObservableProperty] private string _contextEstimatedMessageTokens = "0";
+    [ObservableProperty] private string _contextAssemblyMode = "No context available";
+    [ObservableProperty] private string _contextAssemblyExplanation = string.Empty;
+    [ObservableProperty] private string _contextCompressionExplanation = string.Empty;
+    [ObservableProperty] private string _contextRecallExplanation = string.Empty;
+    [ObservableProperty] private string _contextSummaryStatus = "No durable summary captured yet.";
+    [ObservableProperty] private string _contextSummaryPreview = string.Empty;
+    [ObservableProperty] private string _contextSummaryFreshness = string.Empty;
+    [ObservableProperty] private ObservableCollection<string> _contextSummaryKeyPoints = new();
+    [ObservableProperty] private bool _hasContextSummary;
+    [ObservableProperty] private bool _hasContextSummaryKeyPoints;
+    [ObservableProperty] private string _contextRecallStatus = "No durable recall context captured yet.";
+    [ObservableProperty] private ObservableCollection<ChatContextRecallDisplayItem> _contextRecallItems = new();
+    [ObservableProperty] private bool _hasContextRecallItems;
 
     // ── Branching ─────────────────────────────────────────────────
     [ObservableProperty] private string? _pendingBranchLabel;
@@ -125,6 +150,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
     // ── Services (retained for model/prompt/connection operations) ──
     private readonly IAiService _aiService;
+    private readonly IChatService _chatService;
     private readonly IModelManager _modelManager;
     private readonly ISystemPromptService _systemPromptService;
     private readonly IConversationMemoryService _memoryService;
@@ -139,6 +165,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         IVoiceCoordinator voiceCoordinator,
         IBranchingCoordinator branchingCoordinator,
         IAiService aiService,
+        IChatService chatService,
         IModelManager modelManager,
         ISystemPromptService systemPromptService,
         IConversationMemoryService memoryService,
@@ -149,6 +176,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         _voiceCoordinator = voiceCoordinator;
         _branchingCoordinator = branchingCoordinator;
         _aiService = aiService;
+        _chatService = chatService;
         _modelManager = modelManager;
         _systemPromptService = systemPromptService;
         _memoryService = memoryService;
@@ -238,6 +266,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         }
 
         _streamingAssistantMessage = null;
+        ApplyContextInspection(e.ContextInspection);
 
         // Load follow-ups and update memory (non-blocking)
         _ = InitializePostSendAsync();
@@ -467,6 +496,11 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             userContent, ActiveConversationId, ActiveSystemPrompt,
             _aiService.ActiveModelId, IsResearchMode);
 
+        if (result.ContextInspection is not null)
+        {
+            ApplyContextInspection(result.ContextInspection);
+        }
+
         // Handle cancellation/error inline responses
         if (result.WasCancelled && _streamingAssistantMessage is not null)
             _streamingAssistantMessage.Content += "\n\n[Generation stopped]";
@@ -494,6 +528,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         GenerationTimeMs = 0;
         Messages.Clear();
         SuggestedQuestions.Clear();
+        ResetContextInspection();
         OnPropertyChanged(nameof(HasNoMessages));
         await Task.CompletedTask;
     }
@@ -527,6 +562,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             Messages.Add(MapToChatMessageItem(ms));
 
         OnPropertyChanged(nameof(HasNoMessages));
+        LoadContextInspectionForConversation(conversationId);
         await RefreshBranchTreeAsync();
     }
 
@@ -853,6 +889,10 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         => IsConversationPaneOpen = !IsConversationPaneOpen;
 
     [RelayCommand]
+    private void ToggleContextInspector()
+        => IsContextInspectorOpen = !IsContextInspectorOpen;
+
+    [RelayCommand]
     private async Task ClearConversationAsync()
     {
         Messages.Clear(); TokenCount = 0; GenerationTimeMs = 0;
@@ -970,6 +1010,128 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         return string.IsNullOrWhiteSpace(sanitized) ? "conversation" : sanitized;
     }
 
+    private static string BuildRelativeTimeLabel(DateTime timestamp)
+    {
+        var elapsed = DateTime.UtcNow - timestamp;
+        if (elapsed < TimeSpan.FromMinutes(1))
+        {
+            return "just now";
+        }
+
+        if (elapsed < TimeSpan.FromHours(1))
+        {
+            return $"{Math.Max(1, (int)elapsed.TotalMinutes)} min ago";
+        }
+
+        if (elapsed < TimeSpan.FromDays(1))
+        {
+            return $"{Math.Max(1, (int)elapsed.TotalHours)} hr ago";
+        }
+
+        var days = Math.Max(1, (int)elapsed.TotalDays);
+        return days == 1 ? "1 day ago" : $"{days} days ago";
+    }
+
+    private void LoadContextInspectionForConversation(long conversationId)
+    {
+        ApplyContextInspection(_chatService.GetLatestContextInspection(conversationId));
+    }
+
+    private void ApplyContextInspection(ChatContextInspectionSnapshot? snapshot)
+    {
+        if (snapshot is null)
+        {
+            ResetContextInspection();
+            return;
+        }
+
+        HasContextInspection = true;
+        HasLimitedContextInspection = snapshot.HasLimitedVisibility;
+        ContextInspectionStatus = snapshot.HasLimitedVisibility
+            ? $"Limited visibility: {snapshot.LimitedVisibilityReason?.Replace('_', ' ') ?? "reduced path"}"
+            : "Latest response context captured";
+        ContextCapturedAt = BuildRelativeTimeLabel(snapshot.CapturedAt);
+        ContextSelectedMessages = snapshot.Diagnostics.SelectedMessageCount.ToString();
+        ContextAnchorMessages = snapshot.Diagnostics.AnchorMessageCount.ToString();
+        ContextOverflowMessages = snapshot.Diagnostics.OverflowMessageCount.ToString();
+        ContextEstimatedPromptTokens = snapshot.Diagnostics.EstimatedPromptTokens.ToString();
+        ContextEstimatedMessageTokens = snapshot.Diagnostics.EstimatedMessageTokens.ToString();
+        ContextAssemblyMode = snapshot.HasLimitedVisibility
+            ? "Limited visibility"
+            : snapshot.Diagnostics.UsedLegacyFallback
+                ? "Legacy fallback"
+                : snapshot.Diagnostics.UsedLexicalFallback
+                    ? "Lexical fallback"
+                    : "Structured context assembly";
+        ContextAssemblyExplanation = snapshot.AssemblyExplanation;
+        ContextCompressionExplanation = snapshot.CompressionExplanation;
+        ContextRecallExplanation = snapshot.RecallExplanation;
+
+        if (snapshot.Summary is null)
+        {
+            HasContextSummary = false;
+            HasContextSummaryKeyPoints = false;
+            ContextSummaryStatus = "No durable summary snapshot was available for this response.";
+            ContextSummaryPreview = string.Empty;
+            ContextSummaryFreshness = string.Empty;
+            ContextSummaryKeyPoints = new ObservableCollection<string>();
+        }
+        else
+        {
+            HasContextSummary = true;
+            ContextSummaryStatus = snapshot.Summary.IsStale
+                ? "Durable summary exists but may lag behind the latest thread."
+                : "Durable summary was current when this response was assembled.";
+            ContextSummaryPreview = string.IsNullOrWhiteSpace(snapshot.Summary.PreviewText)
+                ? snapshot.Summary.SummaryText
+                : snapshot.Summary.PreviewText;
+            ContextSummaryFreshness = snapshot.Summary.IsStale && snapshot.Summary.PendingMessageCount > 0
+                ? $"{snapshot.Summary.PendingMessageCount} newer message{(snapshot.Summary.PendingMessageCount == 1 ? string.Empty : "s")} not yet folded in"
+                : $"Captured {BuildRelativeTimeLabel(snapshot.Summary.GeneratedAt)}";
+            ContextSummaryKeyPoints = new ObservableCollection<string>(snapshot.Summary.KeyPoints);
+            HasContextSummaryKeyPoints = ContextSummaryKeyPoints.Count > 0;
+        }
+
+        ContextRecallItems = new ObservableCollection<ChatContextRecallDisplayItem>(
+            snapshot.RecallMatches.Select(match => new ChatContextRecallDisplayItem
+            {
+                ConversationLabel = $"{match.ConversationTitle} · {(match.Role == "assistant" ? "Assistant" : "User")}",
+                PreviewText = match.ContentPreview,
+                SimilarityLabel = $"{Math.Round(match.Similarity * 100)}% match",
+                TimestampLabel = BuildRelativeTimeLabel(match.Timestamp)
+            }));
+        HasContextRecallItems = ContextRecallItems.Count > 0;
+        ContextRecallStatus = HasContextRecallItems
+            ? $"{ContextRecallItems.Count} recalled message{(ContextRecallItems.Count == 1 ? string.Empty : "s")} used"
+            : snapshot.RecallExplanation;
+    }
+
+    private void ResetContextInspection()
+    {
+        HasContextInspection = false;
+        HasLimitedContextInspection = false;
+        ContextInspectionStatus = "No generation context captured yet.";
+        ContextCapturedAt = "No context captured";
+        ContextSelectedMessages = "0";
+        ContextAnchorMessages = "0";
+        ContextOverflowMessages = "0";
+        ContextEstimatedPromptTokens = "0";
+        ContextEstimatedMessageTokens = "0";
+        ContextAssemblyMode = "No context available";
+        ContextAssemblyExplanation = string.Empty;
+        ContextCompressionExplanation = string.Empty;
+        ContextRecallExplanation = string.Empty;
+        ContextSummaryStatus = "No durable summary captured yet.";
+        ContextSummaryPreview = string.Empty;
+        ContextSummaryFreshness = string.Empty;
+        ContextSummaryKeyPoints = new ObservableCollection<string>();
+        HasContextSummary = false;
+        HasContextSummaryKeyPoints = false;
+        ContextRecallStatus = "No durable recall context captured yet.";
+        ContextRecallItems = new ObservableCollection<ChatContextRecallDisplayItem>();
+        HasContextRecallItems = false;
+    }
+
     // ═══════════════════════════════════════════════════════════════
     // DISPOSAL
     // ═══════════════════════════════════════════════════════════════
@@ -979,4 +1141,12 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         if (_voiceCoordinator is IDisposable voiceDisposable) voiceDisposable.Dispose();
         Log.Debug("ChatViewModel disposed");
     }
+}
+
+public sealed class ChatContextRecallDisplayItem
+{
+    public string ConversationLabel { get; init; } = string.Empty;
+    public string PreviewText { get; init; } = string.Empty;
+    public string SimilarityLabel { get; init; } = string.Empty;
+    public string TimestampLabel { get; init; } = string.Empty;
 }

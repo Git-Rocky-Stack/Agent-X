@@ -2,6 +2,7 @@ using System.Diagnostics;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Services.Chat;
+using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Services.Feedback;
 using Serilog;
 
@@ -51,15 +52,14 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
         var responseBuilder = new System.Text.StringBuilder();
         int tokCount = 0;
         var sw = Stopwatch.StartNew();
+        long? activeConvId = conversationId;
+        string? convTitle = null;
+        ChatContextInspectionSnapshot? contextInspection = null;
 
         _generationCts = new CancellationTokenSource();
 
         try
         {
-            // Ensure we have a conversation
-            long? activeConvId = conversationId;
-            string? convTitle = null;
-
             if (activeConvId is null)
             {
                 try
@@ -102,17 +102,33 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
                         tokCount++;
                         TokenReceived?.Invoke(this, token);
                     }
+
+                    contextInspection = _chatService.GetLatestContextInspection(activeConvId.Value);
                 }
                 else
                 {
                     // Fallback: direct streaming without persistence
                     await StreamDirectAsync(responseBuilder, userContent, systemPrompt, _generationCts.Token);
+                    if (activeConvId.HasValue)
+                    {
+                        contextInspection = ChatContextInspectionSnapshot.CreateLimited(
+                            activeConvId.Value,
+                            userContent,
+                            "provider_disconnected");
+                    }
                 }
             }
             else
             {
                 // Fallback: direct streaming without persistence
                 await StreamDirectAsync(responseBuilder, userContent, systemPrompt, _generationCts.Token);
+                if (activeConvId.HasValue)
+                {
+                    contextInspection = ChatContextInspectionSnapshot.CreateLimited(
+                        activeConvId.Value,
+                        userContent,
+                        "no_active_provider");
+                }
             }
 
             sw.Stop();
@@ -124,7 +140,8 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
                 ResponseContent = finalContent,
                 TokenCount = tokCount,
                 GenerationTimeMs = sw.Elapsed.TotalMilliseconds,
-                ConversationTitle = convTitle
+                ConversationTitle = convTitle,
+                ContextInspection = contextInspection
             };
             StreamingCompleted?.Invoke(this, completedArgs);
 
@@ -134,7 +151,8 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
                 ResponseContent = finalContent,
                 TokenCount = tokCount,
                 GenerationTimeMs = sw.Elapsed.TotalMilliseconds,
-                ConversationTitle = convTitle
+                ConversationTitle = convTitle,
+                ContextInspection = contextInspection
             };
         }
         catch (OperationCanceledException)
@@ -142,14 +160,19 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
             sw.Stop();
             var partialContent = responseBuilder.ToString() + "\n\n[Generation stopped]";
             Log.Debug("Generation cancelled by user");
+            if (contextInspection is null && activeConvId.HasValue)
+            {
+                contextInspection = _chatService.GetLatestContextInspection(activeConvId.Value);
+            }
 
             return new SendMessageResult
             {
-                ConversationId = conversationId,
+                ConversationId = activeConvId,
                 ResponseContent = partialContent,
                 TokenCount = tokCount,
                 GenerationTimeMs = sw.Elapsed.TotalMilliseconds,
-                WasCancelled = true
+                WasCancelled = true,
+                ContextInspection = contextInspection
             };
         }
         catch (Exception ex)
@@ -164,15 +187,20 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
                 Title = "Generation Failed",
                 Message = "Could not generate a response. Check your AI connection in Settings."
             });
+            if (contextInspection is null && activeConvId.HasValue)
+            {
+                contextInspection = _chatService.GetLatestContextInspection(activeConvId.Value);
+            }
 
             return new SendMessageResult
             {
-                ConversationId = conversationId,
+                ConversationId = activeConvId,
                 ResponseContent = errorMsg,
                 TokenCount = tokCount,
                 GenerationTimeMs = sw.Elapsed.TotalMilliseconds,
                 HadError = true,
-                ErrorMessage = errorMsg
+                ErrorMessage = errorMsg,
+                ContextInspection = contextInspection
             };
         }
         finally

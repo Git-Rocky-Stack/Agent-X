@@ -13,6 +13,14 @@ public interface IConversationSummaryService
     Task<string> GetConversationSummaryContextAsync(long conversationId, CancellationToken ct = default);
 
     /// <summary>
+    /// Returns structured durable-summary inspection data for chat-side context
+    /// visibility. Returns null when no current snapshot exists.
+    /// </summary>
+    Task<Models.ConversationSummaryInspection?> GetConversationSummaryInspectionAsync(
+        long conversationId,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Marks the conversation summary state as stale after a message mutation.
     /// When <paramref name="forceFullRefresh"/> is true, prior coverage is reset so
     /// the next refresh rebuilds from the full current transcript.

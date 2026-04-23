@@ -5,6 +5,7 @@ using AgentX.Core.AI.Models;
 using AgentX.Core.Constants;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Services.Intelligence;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -99,6 +100,42 @@ public sealed class ConversationSummaryService : IConversationSummaryService
         }
 
         return builder.ToString().Trim();
+    }
+
+    public async Task<ConversationSummaryInspection?> GetConversationSummaryInspectionAsync(
+        long conversationId,
+        CancellationToken ct = default)
+    {
+        var summaryData = await _db.ConversationSummaryStates
+            .AsNoTracking()
+            .Where(state => state.ConversationId == conversationId && state.LatestSnapshotId != null)
+            .Select(state => new
+            {
+                state.ConversationId,
+                state.IsStale,
+                state.PendingMessageCount,
+                state.LastRefreshedAt,
+                Snapshot = state.LatestSnapshot!
+            })
+            .FirstOrDefaultAsync(ct)
+            .ConfigureAwait(false);
+
+        if (summaryData?.Snapshot is null)
+        {
+            return null;
+        }
+
+        return new ConversationSummaryInspection
+        {
+            ConversationId = summaryData.ConversationId,
+            PreviewText = summaryData.Snapshot.PreviewText,
+            SummaryText = summaryData.Snapshot.SummaryText,
+            KeyPoints = ParseKeyPoints(summaryData.Snapshot.KeyPointsJson),
+            GeneratedAt = summaryData.Snapshot.GeneratedAt,
+            LastRefreshedAt = summaryData.LastRefreshedAt,
+            IsStale = summaryData.IsStale,
+            PendingMessageCount = summaryData.PendingMessageCount
+        };
     }
 
     public async Task MarkConversationStaleAsync(

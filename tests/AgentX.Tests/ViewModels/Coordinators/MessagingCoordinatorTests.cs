@@ -3,6 +3,7 @@ using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Chat;
+using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Services.Feedback;
 using FluentAssertions;
 using Moq;
@@ -131,6 +132,10 @@ public class MessagingCoordinatorTests
         _chatService
             .Setup(s => s.SendMessageAsync(99, "Hello", It.IsAny<CancellationToken>()))
             .Returns(CreateTokenStream("World"));
+        var snapshot = CreateInspectionSnapshot(99);
+        _chatService
+            .Setup(s => s.GetLatestContextInspection(99))
+            .Returns(snapshot);
 
         // Act
         var result = await _coordinator.SendMessageAsync("Hello", null, null, "model1", false);
@@ -138,6 +143,7 @@ public class MessagingCoordinatorTests
         // Assert
         result.ConversationId.Should().Be(99);
         result.ConversationTitle.Should().Be("Test message");
+        result.ContextInspection.Should().BeSameAs(snapshot);
         result.WasCancelled.Should().BeFalse();
         result.HadError.Should().BeFalse();
     }
@@ -208,10 +214,14 @@ public class MessagingCoordinatorTests
         // Arrange
         StreamingCompletedEventArgs? completedArgs = null;
         _coordinator.StreamingCompleted += (s, e) => completedArgs = e;
+        var snapshot = CreateInspectionSnapshot(1);
 
         _chatService
             .Setup(s => s.SendMessageAsync(1, "Test", It.IsAny<CancellationToken>()))
             .Returns(CreateTokenStream("Response"));
+        _chatService
+            .Setup(s => s.GetLatestContextInspection(1))
+            .Returns(snapshot);
 
         // Act
         await _coordinator.SendMessageAsync("Test", 1, null, null, false);
@@ -220,6 +230,7 @@ public class MessagingCoordinatorTests
         completedArgs.Should().NotBeNull();
         completedArgs!.ResponseContent.Should().Be("Response");
         completedArgs.ConversationId.Should().Be(1);
+        completedArgs.ContextInspection.Should().BeSameAs(snapshot);
     }
 
     // ── NotificationRequested event ────────────────────────────────
@@ -263,6 +274,9 @@ public class MessagingCoordinatorTests
         // Assert
         result.ResponseContent.Should().Be("Fallback");
         result.HadError.Should().BeFalse();
+        result.ContextInspection.Should().NotBeNull();
+        result.ContextInspection!.HasLimitedVisibility.Should().BeTrue();
+        result.ContextInspection.LimitedVisibilityReason.Should().Be("provider_disconnected");
     }
 
     [Fact]
@@ -281,6 +295,9 @@ public class MessagingCoordinatorTests
         // Assert
         result.ResponseContent.Should().Be("Direct");
         result.HadError.Should().BeFalse();
+        result.ContextInspection.Should().NotBeNull();
+        result.ContextInspection!.HasLimitedVisibility.Should().BeTrue();
+        result.ContextInspection.LimitedVisibilityReason.Should().Be("no_active_provider");
     }
 
     // ── IsGenerating ───────────────────────────────────────────────
@@ -301,4 +318,22 @@ public class MessagingCoordinatorTests
             yield return token;
         }
     }
+
+    private static ChatContextInspectionSnapshot CreateInspectionSnapshot(long conversationId) =>
+        new()
+        {
+            ConversationId = conversationId,
+            CapturedAt = DateTime.UtcNow,
+            CurrentQuery = "How should I proceed?",
+            Diagnostics = new AgentX.Core.AI.Context.ContextAssemblyDiagnostics
+            {
+                SelectedMessageCount = 3,
+                AnchorMessageCount = 1,
+                EstimatedMessageTokens = 72,
+                EstimatedPromptTokens = 180
+            },
+            AssemblyExplanation = "Structured context assembly completed.",
+            CompressionExplanation = "No overflow summary was needed.",
+            RecallExplanation = "Durable recall found no relevant cross-conversation matches for this response."
+        };
 }

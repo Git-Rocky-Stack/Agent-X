@@ -4,6 +4,7 @@ using AgentX.Core.AI.Context;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Chat;
+using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Services.Settings;
 using FluentAssertions;
 using Moq;
@@ -116,6 +117,146 @@ public sealed class ChatServiceContextAssemblyTests
     }
 
     [Fact]
+    public async Task SendMessageAndWaitAsync_CapturesLatestContextInspectionSnapshot()
+    {
+        _settingsService
+            .Setup(service => service.GetSettingsAsync())
+            .ReturnsAsync(new AppSettings());
+
+        _memoryService
+            .Setup(service => service.GetMemoryContextAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("[Personal memory]");
+        _memoryService
+            .Setup(service => service.ExtractMemoriesAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _conversationSummaryService
+            .Setup(service => service.GetConversationSummaryContextAsync(42, It.IsAny<CancellationToken>()))
+            .ReturnsAsync("[Durable Conversation Summary]\nStored summary");
+
+        var summaryInspection = new ConversationSummaryInspection
+        {
+            ConversationId = 42,
+            PreviewText = "Investigating startup failures and retry strategies.",
+            SummaryText = "Longer durable summary",
+            KeyPoints = ["Startup path", "Retry strategy"],
+            GeneratedAt = DateTime.UtcNow.AddMinutes(-5),
+            LastRefreshedAt = DateTime.UtcNow.AddMinutes(-4),
+            IsStale = false,
+            PendingMessageCount = 0
+        };
+
+        _conversationSummaryService
+            .Setup(service => service.GetConversationSummaryInspectionAsync(42, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(summaryInspection);
+
+        var conversation = new ConversationEntity
+        {
+            Id = 42,
+            SystemPrompt = "Original prompt",
+            Messages =
+            [
+                new MessageEntity
+                {
+                    Id = 1,
+                    ConversationId = 42,
+                    Role = "user",
+                    Content = "Why is startup failing?",
+                    SortOrder = 1,
+                    Timestamp = DateTime.UtcNow
+                }
+            ]
+        };
+
+        _conversationService
+            .Setup(service => service.AddMessageAsync(
+                It.IsAny<long>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<int?>(),
+                It.IsAny<double?>()))
+            .Returns(Task.CompletedTask);
+        _conversationService
+            .Setup(service => service.GetConversationAsync(42))
+            .ReturnsAsync(conversation);
+
+        var assembledMessages = new List<ChatMessage>
+        {
+            ChatMessage.User("Selected context message")
+        };
+        var durableRecallResults = new List<ConversationRecallResult>
+        {
+            new()
+            {
+                MessageId = 77,
+                ConversationId = 64,
+                ConversationTitle = "Previous Startup Review",
+                Role = "assistant",
+                ContentPreview = "You previously traced this to the retry backoff window.",
+                Timestamp = DateTime.UtcNow.AddHours(-3),
+                SortOrder = 5,
+                Similarity = 0.91f
+            }
+        };
+
+        _contextAssemblyService
+            .Setup(service => service.AssembleAsync(
+                It.IsAny<ContextAssemblyRequest>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ContextAssemblyResult
+            {
+                Messages = assembledMessages,
+                SystemPrompt = "Assembled prompt",
+                DurableRecallResults = durableRecallResults,
+                Diagnostics = new ContextAssemblyDiagnostics
+                {
+                    SelectedMessageCount = 1,
+                    AnchorMessageCount = 1,
+                    OverflowMessageCount = 3,
+                    EstimatedMessageTokens = 96,
+                    EstimatedPromptTokens = 244,
+                    AddedOverflowSummary = true,
+                    AddedDurableRecall = true,
+                    RecalledMessageCount = 1
+                }
+            });
+
+        _aiService
+            .Setup(service => service.StreamChatAsync(
+                It.IsAny<IReadOnlyList<ChatMessage>>(),
+                It.IsAny<string?>(),
+                It.IsAny<ChatOptions?>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(StreamTokens("Hello", " world"));
+
+        var sut = new AgentX.Core.Services.Chat.ChatService(
+            _aiService.Object,
+            _conversationService.Object,
+            _settingsService.Object,
+            _contextAssemblyService.Object,
+            _memoryService.Object,
+            _logger,
+            conversationSummaryService: _conversationSummaryService.Object);
+
+        await sut.SendMessageAndWaitAsync(42, "Why is startup failing?");
+
+        var snapshot = sut.GetLatestContextInspection(42);
+
+        snapshot.Should().NotBeNull();
+        snapshot!.ConversationId.Should().Be(42);
+        snapshot.CurrentQuery.Should().Be("Why is startup failing?");
+        snapshot.Diagnostics.SelectedMessageCount.Should().Be(1);
+        snapshot.Diagnostics.OverflowMessageCount.Should().Be(3);
+        snapshot.Summary.Should().BeEquivalentTo(summaryInspection);
+        snapshot.RecallMatches.Should().ContainSingle(match =>
+            match.MessageId == 77 &&
+            match.ConversationId == 64 &&
+            match.ConversationTitle == "Previous Startup Review");
+        snapshot.AssemblyExplanation.Should().NotBeEmpty();
+        snapshot.CompressionExplanation.Should().Contain("compressed overflow summary");
+        snapshot.RecallExplanation.Should().Contain("added 1 recalled message");
+    }
+
+    [Fact]
     public async Task RegenerateLastResponseAsync_PassesConversationIdIntoContextAssembly()
     {
         _settingsService
@@ -125,6 +266,12 @@ public sealed class ChatServiceContextAssemblyTests
         _memoryService
             .Setup(service => service.GetMemoryContextAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(string.Empty);
+        _conversationSummaryService
+            .Setup(service => service.GetConversationSummaryContextAsync(42, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(string.Empty);
+        _conversationSummaryService
+            .Setup(service => service.GetConversationSummaryInspectionAsync(42, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ConversationSummaryInspection?)null);
 
         var existingMessages = new List<MessageEntity>
         {
@@ -184,7 +331,13 @@ public sealed class ChatServiceContextAssemblyTests
             .ReturnsAsync(new ContextAssemblyResult
             {
                 Messages = [ChatMessage.User("Retry the last answer")],
-                SystemPrompt = "Assembled prompt"
+                SystemPrompt = "Assembled prompt",
+                Diagnostics = new ContextAssemblyDiagnostics
+                {
+                    SelectedMessageCount = 1,
+                    EstimatedMessageTokens = 24,
+                    EstimatedPromptTokens = 84
+                }
             });
 
         _aiService
@@ -201,13 +354,16 @@ public sealed class ChatServiceContextAssemblyTests
             _settingsService.Object,
             _contextAssemblyService.Object,
             _memoryService.Object,
-            _logger);
+            _logger,
+            conversationSummaryService: _conversationSummaryService.Object);
 
         await sut.RegenerateLastResponseAsync(42);
 
         _contextAssemblyService.Verify(service => service.AssembleAsync(
             It.Is<ContextAssemblyRequest>(request => request.ConversationId == 42),
             It.IsAny<CancellationToken>()), Times.Once);
+        sut.GetLatestContextInspection(42).Should().NotBeNull();
+        sut.GetLatestContextInspection(42)!.CurrentQuery.Should().Be("Retry the last answer");
     }
 
     private static async IAsyncEnumerable<string> StreamTokens(

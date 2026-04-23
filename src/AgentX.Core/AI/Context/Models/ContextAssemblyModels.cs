@@ -1,4 +1,5 @@
 using AgentX.Core.AI.Models;
+using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Constants;
 
 namespace AgentX.Core.AI.Context;
@@ -21,6 +22,7 @@ public sealed class ContextAssemblyResult
 {
     public IReadOnlyList<ChatMessage> Messages { get; init; } = Array.Empty<ChatMessage>();
     public string? SystemPrompt { get; init; }
+    public IReadOnlyList<ConversationRecallResult> DurableRecallResults { get; init; } = Array.Empty<ConversationRecallResult>();
     public ContextAssemblyDiagnostics Diagnostics { get; init; } = new();
 }
 

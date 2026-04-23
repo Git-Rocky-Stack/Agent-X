@@ -948,10 +948,177 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
+                    <Border Grid.Row="0"
+                            Visibility="{x:Bind ViewModel.IsContextInspectorOpen, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
+                            Margin="0,0,0,12"
+                            Background="{StaticResource SurfaceElevatedBrush}"
+                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                            BorderThickness="1"
+                            CornerRadius="{StaticResource RadiusLG}"
+                            Padding="16">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Context Inspection"
+                                           Style="{StaticResource BodyStyle}"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Text="{x:Bind ViewModel.ContextInspectionStatus, Mode=OneWay}"
+                                           Style="{StaticResource CaptionStyle}" />
+                            </StackPanel>
+
+                            <Grid ColumnSpacing="12" RowSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0"
+                                        Background="{StaticResource InputBackgroundBrush}"
+                                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="{StaticResource RadiusMD}"
+                                        Padding="12">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="Assembly Overview"
+                                                   Style="{StaticResource CaptionStyle}"
+                                                   Foreground="{StaticResource TextAccentBrush}" />
+                                        <TextBlock Style="{StaticResource CaptionStyle}">
+                                            <Run Text="Mode: " />
+                                            <Run Text="{x:Bind ViewModel.ContextAssemblyMode, Mode=OneWay}" />
+                                        </TextBlock>
+                                        <TextBlock Style="{StaticResource CaptionStyle}">
+                                            <Run Text="Selected: " />
+                                            <Run Text="{x:Bind ViewModel.ContextSelectedMessages, Mode=OneWay}" />
+                                            <Run Text=" · Anchors: " />
+                                            <Run Text="{x:Bind ViewModel.ContextAnchorMessages, Mode=OneWay}" />
+                                        </TextBlock>
+                                        <TextBlock Style="{StaticResource CaptionStyle}">
+                                            <Run Text="Overflow: " />
+                                            <Run Text="{x:Bind ViewModel.ContextOverflowMessages, Mode=OneWay}" />
+                                            <Run Text=" · Prompt est: " />
+                                            <Run Text="{x:Bind ViewModel.ContextEstimatedPromptTokens, Mode=OneWay}" />
+                                        </TextBlock>
+                                        <TextBlock Text="{x:Bind ViewModel.ContextAssemblyExplanation, Mode=OneWay}"
+                                                   Style="{StaticResource CaptionStyle}"
+                                                   TextWrapping="WrapWholeWords" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Column="1"
+                                        Background="{StaticResource InputBackgroundBrush}"
+                                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="{StaticResource RadiusMD}"
+                                        Padding="12">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="Durable Summary"
+                                                   Style="{StaticResource CaptionStyle}"
+                                                   Foreground="{StaticResource TextAccentBrush}" />
+                                        <TextBlock Text="{x:Bind ViewModel.ContextSummaryStatus, Mode=OneWay}"
+                                                   Style="{StaticResource CaptionStyle}"
+                                                   TextWrapping="WrapWholeWords" />
+                                        <TextBlock Text="{x:Bind ViewModel.ContextSummaryFreshness, Mode=OneWay}"
+                                                   Style="{StaticResource CaptionStyle}"
+                                                   TextWrapping="WrapWholeWords"
+                                                   Visibility="{x:Bind ViewModel.HasContextSummary, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                                        <TextBlock Text="{x:Bind ViewModel.ContextSummaryPreview, Mode=OneWay}"
+                                                   Style="{StaticResource CaptionStyle}"
+                                                   TextWrapping="WrapWholeWords"
+                                                   Visibility="{x:Bind ViewModel.HasContextSummary, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.ContextSummaryKeyPoints, Mode=OneWay}"
+                                                       Visibility="{x:Bind ViewModel.HasContextSummaryKeyPoints, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                            <ItemsRepeater.Layout>
+                                                <StackLayout Orientation="Vertical" Spacing="4" />
+                                            </ItemsRepeater.Layout>
+                                            <ItemsRepeater.ItemTemplate>
+                                                <DataTemplate x:DataType="x:String">
+                                                    <TextBlock Style="{StaticResource CaptionStyle}"
+                                                               TextWrapping="WrapWholeWords">
+                                                        <Run Text="• " />
+                                                        <Run Text="{x:Bind}" />
+                                                    </TextBlock>
+                                                </DataTemplate>
+                                            </ItemsRepeater.ItemTemplate>
+                                        </ItemsRepeater>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Column="2"
+                                        Background="{StaticResource InputBackgroundBrush}"
+                                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="{StaticResource RadiusMD}"
+                                        Padding="12">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="Durable Recall"
+                                                   Style="{StaticResource CaptionStyle}"
+                                                   Foreground="{StaticResource TextAccentBrush}" />
+                                        <TextBlock Text="{x:Bind ViewModel.ContextRecallStatus, Mode=OneWay}"
+                                                   Style="{StaticResource CaptionStyle}"
+                                                   TextWrapping="WrapWholeWords" />
+                                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.ContextRecallItems, Mode=OneWay}"
+                                                       Visibility="{x:Bind ViewModel.HasContextRecallItems, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                            <ItemsRepeater.Layout>
+                                                <StackLayout Orientation="Vertical" Spacing="8" />
+                                            </ItemsRepeater.Layout>
+                                            <ItemsRepeater.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:ChatContextRecallDisplayItem">
+                                                    <Border Background="{StaticResource AccentSubtleBrush}"
+                                                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="{StaticResource RadiusMD}"
+                                                            Padding="10">
+                                                        <StackPanel Spacing="4">
+                                                            <TextBlock Text="{x:Bind ConversationLabel}"
+                                                                       Style="{StaticResource CaptionStyle}"
+                                                                       FontWeight="SemiBold"
+                                                                       TextWrapping="WrapWholeWords" />
+                                                            <TextBlock Text="{x:Bind PreviewText}"
+                                                                       Style="{StaticResource CaptionStyle}"
+                                                                       TextWrapping="WrapWholeWords" />
+                                                            <TextBlock Style="{StaticResource CaptionStyle}">
+                                                                <Run Text="{x:Bind SimilarityLabel}" />
+                                                                <Run Text=" · " />
+                                                                <Run Text="{x:Bind TimestampLabel}" />
+                                                            </TextBlock>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsRepeater.ItemTemplate>
+                                        </ItemsRepeater>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+
+                            <Border Background="{StaticResource InputBackgroundBrush}"
+                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="{StaticResource RadiusMD}"
+                                    Padding="12">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="Why This Context"
+                                               Style="{StaticResource CaptionStyle}"
+                                               Foreground="{StaticResource TextAccentBrush}" />
+                                    <TextBlock Text="{x:Bind ViewModel.ContextCompressionExplanation, Mode=OneWay}"
+                                               Style="{StaticResource CaptionStyle}"
+                                               TextWrapping="WrapWholeWords" />
+                                    <TextBlock Text="{x:Bind ViewModel.ContextRecallExplanation, Mode=OneWay}"
+                                               Style="{StaticResource CaptionStyle}"
+                                               TextWrapping="WrapWholeWords" />
+                                    <TextBlock Style="{StaticResource CaptionStyle}">
+                                        <Run Text="Captured " />
+                                        <Run Text="{x:Bind ViewModel.ContextCapturedAt, Mode=OneWay}" />
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
                     <!-- Suggested Follow-up Questions -->
-                    <ItemsRepeater Grid.Row="0"
+                    <ItemsRepeater Grid.Row="1"
                                    ItemsSource="{x:Bind ViewModel.SuggestedQuestions, Mode=OneWay}"
                                    Margin="0,0,0,8"
                                    Visibility="{x:Bind ViewModel.SuggestedQuestions.Count, Mode=OneWay, Converter={StaticResource CountToVisibility}}">
@@ -976,7 +1143,7 @@
                     </ItemsRepeater>
 
                     <!-- Active system prompt indicator -->
-                    <Border Grid.Row="1"
+                    <Border Grid.Row="2"
                             Visibility="{x:Bind ViewModel.HasActiveSystemPrompt, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
                             Margin="0,0,0,8">
                         <Border Style="{StaticResource BadgeAccentStyle}"
@@ -994,9 +1161,10 @@
                     </Border>
 
                     <!-- Input row -->
-                    <Grid Grid.Row="2" ColumnSpacing="8">
+                    <Grid Grid.Row="3" ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -1072,8 +1240,19 @@
                                       Foreground="{StaticResource TextSecondaryBrush}" />
                         </ToggleButton>
 
+                        <ToggleButton Grid.Column="3"
+                                      Style="{StaticResource GhostButtonStyle}"
+                                      Padding="10,10,10,10"
+                                      MinHeight="44"
+                                      MinWidth="44"
+                                      IsChecked="{x:Bind ViewModel.IsContextInspectorOpen, Mode=TwoWay}"
+                                      ToolTipService.ToolTip="Inspect the latest assembled chat context">
+                            <FontIcon Glyph="&#xE8F1;" FontSize="16"
+                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                        </ToggleButton>
+
                         <!-- Action buttons stack -->
-                        <StackPanel Grid.Column="3"
+                        <StackPanel Grid.Column="4"
                                     Spacing="4"
                                     VerticalAlignment="Bottom"
                                     Margin="0,0,0,2">
