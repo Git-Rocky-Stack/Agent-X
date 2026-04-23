@@ -7,6 +7,12 @@ namespace AgentX.Core.Services.Chat;
 public interface IConversationSummaryService
 {
     /// <summary>
+    /// Returns a formatted durable-summary context block for reuse in prompt assembly.
+    /// Returns an empty string when no current snapshot exists.
+    /// </summary>
+    Task<string> GetConversationSummaryContextAsync(long conversationId, CancellationToken ct = default);
+
+    /// <summary>
     /// Marks the conversation summary state as stale after a message mutation.
     /// When <paramref name="forceFullRefresh"/> is true, prior coverage is reset so
     /// the next refresh rebuilds from the full current transcript.

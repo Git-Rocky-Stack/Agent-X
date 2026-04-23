@@ -19,6 +19,7 @@ public sealed class ChatServiceContextAssemblyTests
     private readonly Mock<ISettingsService> _settingsService = new();
     private readonly Mock<IContextAssemblyService> _contextAssemblyService = new();
     private readonly Mock<IConversationMemoryService> _memoryService = new();
+    private readonly Mock<IConversationSummaryService> _conversationSummaryService = new();
     private readonly ILogger _logger = Log.ForContext<AgentX.Core.Services.Chat.ChatService>();
 
     [Fact]
@@ -30,10 +31,13 @@ public sealed class ChatServiceContextAssemblyTests
 
         _memoryService
             .Setup(service => service.GetMemoryContextAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(string.Empty);
+            .ReturnsAsync("[Personal memory]");
         _memoryService
             .Setup(service => service.ExtractMemoriesAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+        _conversationSummaryService
+            .Setup(service => service.GetConversationSummaryContextAsync(42, It.IsAny<CancellationToken>()))
+            .ReturnsAsync("[Durable Conversation Summary]\nStored summary");
 
         var conversation = new ConversationEntity
         {
@@ -72,7 +76,10 @@ public sealed class ChatServiceContextAssemblyTests
 
         _contextAssemblyService
             .Setup(service => service.AssembleAsync(
-                It.IsAny<ContextAssemblyRequest>(),
+                It.Is<ContextAssemblyRequest>(request =>
+                    request.MemoryContext != null &&
+                    request.MemoryContext.Contains("[Personal memory]", StringComparison.Ordinal) &&
+                    request.MemoryContext.Contains("[Durable Conversation Summary]", StringComparison.Ordinal)),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ContextAssemblyResult
             {
@@ -94,7 +101,8 @@ public sealed class ChatServiceContextAssemblyTests
             _settingsService.Object,
             _contextAssemblyService.Object,
             _memoryService.Object,
-            _logger);
+            _logger,
+            conversationSummaryService: _conversationSummaryService.Object);
 
         var result = await sut.SendMessageAndWaitAsync(42, "Why is startup failing?");
 

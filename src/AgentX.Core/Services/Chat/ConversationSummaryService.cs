@@ -39,6 +39,61 @@ public sealed class ConversationSummaryService : IConversationSummaryService
                   ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    public async Task<string> GetConversationSummaryContextAsync(long conversationId, CancellationToken ct = default)
+    {
+        var summaryData = await _db.ConversationSummaryStates
+            .AsNoTracking()
+            .Where(state => state.ConversationId == conversationId && state.LatestSnapshotId != null)
+            .Select(state => new
+            {
+                state.IsStale,
+                state.PendingMessageCount,
+                state.LastRefreshedAt,
+                Snapshot = state.LatestSnapshot!
+            })
+            .FirstOrDefaultAsync(ct)
+            .ConfigureAwait(false);
+
+        if (summaryData?.Snapshot is null || string.IsNullOrWhiteSpace(summaryData.Snapshot.SummaryText))
+        {
+            return string.Empty;
+        }
+
+        var builder = new StringBuilder();
+        builder.AppendLine("[Durable Conversation Summary]");
+        builder.AppendLine(summaryData.Snapshot.SummaryText.Trim());
+
+        var keyPoints = ParseKeyPoints(summaryData.Snapshot.KeyPointsJson);
+        if (keyPoints.Count > 0)
+        {
+            builder.AppendLine();
+            builder.AppendLine("Key points:");
+            foreach (var keyPoint in keyPoints.Take(AppConstants.MaxConversationSummaryKeyPoints))
+            {
+                builder.Append("- ");
+                builder.AppendLine(keyPoint);
+            }
+        }
+
+        if (summaryData.IsStale)
+        {
+            builder.AppendLine();
+            builder.Append("Freshness note: this snapshot may lag behind the latest thread");
+            if (summaryData.PendingMessageCount > 0)
+            {
+                builder.Append($" ({summaryData.PendingMessageCount} newer message");
+                if (summaryData.PendingMessageCount != 1)
+                {
+                    builder.Append('s');
+                }
+                builder.Append(" not yet folded in)");
+            }
+            builder.AppendLine(".");
+        }
+
+        return builder.ToString().Trim();
+    }
+
     public async Task MarkConversationStaleAsync(
         long conversationId,
         bool forceFullRefresh = false,
@@ -386,6 +441,26 @@ public sealed class ConversationSummaryService : IConversationSummaryService
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .Take(AppConstants.MaxConversationSummaryKeyPoints)
             .ToList();
+    }
+
+    private static IReadOnlyList<string> ParseKeyPoints(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return Array.Empty<string>();
+        }
+
+        try
+        {
+            var points = JsonSerializer.Deserialize<List<string>>(json, JsonOptions);
+            return points is null
+                ? Array.Empty<string>()
+                : points.Where(point => !string.IsNullOrWhiteSpace(point)).ToList();
+        }
+        catch (JsonException)
+        {
+            return Array.Empty<string>();
+        }
     }
 
     private static string SerializeKeyPoints(IReadOnlyList<string> keyPoints)

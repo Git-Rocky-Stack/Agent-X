@@ -23,6 +23,7 @@ public class ChatService : IChatService
     private readonly ISettingsService _settingsService;
     private readonly IContextAssemblyService _contextAssemblyService;
     private readonly IConversationMemoryService _memoryService;
+    private readonly IConversationSummaryService? _conversationSummaryService;
     private readonly ISemanticMemoryService? _semanticMemoryService;
     private readonly IModelRouterService? _modelRouterService;
     private readonly ILogger _log;
@@ -60,13 +61,15 @@ public class ChatService : IChatService
         IConversationMemoryService memoryService,
         ILogger logger,
         IModelRouterService? modelRouterService = null,
-        ISemanticMemoryService? semanticMemoryService = null)
+        ISemanticMemoryService? semanticMemoryService = null,
+        IConversationSummaryService? conversationSummaryService = null)
     {
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
         _conversationService = conversationService ?? throw new ArgumentNullException(nameof(conversationService));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _contextAssemblyService = contextAssemblyService ?? throw new ArgumentNullException(nameof(contextAssemblyService));
         _memoryService = memoryService ?? throw new ArgumentNullException(nameof(memoryService));
+        _conversationSummaryService = conversationSummaryService;
         _log = logger?.ForContext<ChatService>()
                ?? throw new ArgumentNullException(nameof(logger));
         _modelRouterService = modelRouterService;
@@ -449,22 +452,63 @@ public class ChatService : IChatService
         string query,
         CancellationToken ct)
     {
+        var contextParts = new List<string>(2);
+
         try
         {
             if (_semanticMemoryService is not null)
             {
                 var relevantMemories = await _semanticMemoryService.RetrieveRelevantMemoriesAsync(
                     query, maxMemories: 8, minSimilarity: 0.65f, ct).ConfigureAwait(false);
-                return FormatMemoriesAsContext(relevantMemories);
+                var semanticMemoryContext = FormatMemoriesAsContext(relevantMemories);
+                if (!string.IsNullOrWhiteSpace(semanticMemoryContext))
+                {
+                    contextParts.Add(semanticMemoryContext);
+                }
             }
-
-            return await _memoryService.GetMemoryContextAsync(8, ct).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             _log.Warning(ex, "Failed to load memory context for conversation {ConversationId}", conversationId);
-            return string.Empty;
         }
+
+        if (_semanticMemoryService is null)
+        {
+            try
+            {
+                var memoryContext = await _memoryService.GetMemoryContextAsync(8, ct).ConfigureAwait(false);
+                if (!string.IsNullOrWhiteSpace(memoryContext))
+                {
+                    contextParts.Add(memoryContext);
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.Warning(ex, "Failed to load memory context for conversation {ConversationId}", conversationId);
+            }
+        }
+
+        if (_conversationSummaryService is not null)
+        {
+            try
+            {
+                var summaryContext = await _conversationSummaryService
+                    .GetConversationSummaryContextAsync(conversationId, ct)
+                    .ConfigureAwait(false);
+                if (!string.IsNullOrWhiteSpace(summaryContext))
+                {
+                    contextParts.Add(summaryContext);
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.Warning(ex, "Failed to load durable summary context for conversation {ConversationId}", conversationId);
+            }
+        }
+
+        return contextParts.Count == 0
+            ? string.Empty
+            : string.Join(Environment.NewLine + Environment.NewLine, contextParts);
     }
 
     /// <summary>

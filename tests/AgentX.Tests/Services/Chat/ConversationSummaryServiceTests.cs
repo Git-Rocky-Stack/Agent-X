@@ -169,6 +169,52 @@ public sealed class ConversationSummaryServiceTests : IDisposable
         snapshotCount.Should().Be(1);
     }
 
+    [Fact]
+    public async Task GetConversationSummaryContextAsync_returns_summary_key_points_and_stale_note()
+    {
+        using var db = _dbFactory.CreateContext();
+        var conversation = await SeedConversationAsync(db, "Context reuse");
+
+        var snapshot = new ConversationSummarySnapshotEntity
+        {
+            ConversationId = conversation.Id,
+            SnapshotVersion = 1,
+            SummaryText = "The thread is focused on durable memory reuse in chat.",
+            PreviewText = "Durable memory reuse.",
+            KeyPointsJson = """["Use stored summary context.","Keep stale state visible."]""",
+            CoveredMessageCount = 4,
+            GeneratedAt = new DateTime(2026, 4, 22, 10, 0, 0, DateTimeKind.Utc),
+            SourceConversationUpdatedAt = conversation.UpdatedAt,
+            IsIncremental = false
+        };
+
+        db.ConversationSummarySnapshots.Add(snapshot);
+        await db.SaveChangesAsync();
+
+        db.ConversationSummaryStates.Add(new ConversationSummaryStateEntity
+        {
+            ConversationId = conversation.Id,
+            LatestSnapshotId = snapshot.Id,
+            LatestSnapshotVersion = 1,
+            LastCoveredMessageCount = 4,
+            PendingMessageCount = 2,
+            IsStale = true,
+            LastRefreshedAt = snapshot.GeneratedAt
+        });
+        await db.SaveChangesAsync();
+
+        var sut = new ConversationSummaryService(db, _aiService.Object, _logger);
+
+        var context = await sut.GetConversationSummaryContextAsync(conversation.Id);
+
+        context.Should().Contain("[Durable Conversation Summary]");
+        context.Should().Contain("durable memory reuse in chat");
+        context.Should().Contain("Key points:");
+        context.Should().Contain("Use stored summary context.");
+        context.Should().Contain("Freshness note");
+        context.Should().Contain("2 newer messages");
+    }
+
     private static async Task<ConversationEntity> SeedConversationAsync(AgentX.Core.Data.AgentXDbContext db, string title)
     {
         var conversation = new ConversationEntity
