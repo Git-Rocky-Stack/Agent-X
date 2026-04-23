@@ -26,6 +26,7 @@ public class ShortcutCatalogTests
             "nav.vault",
             "nav.search",
             "nav.settings",
+            "nav.analytics",
             "nav.page1",
             "nav.page9",
             "nav.workflows",
@@ -33,6 +34,7 @@ public class ShortcutCatalogTests
             "nav.dashboard",
             "nav.graph",
             "help.shortcuts",
+            "help.cheatsheet",
             "help.jump",
         });
     }
@@ -79,6 +81,29 @@ public class ShortcutCatalogTests
         await shortcut!.Handler(CancellationToken.None);
 
         cheatsheetCalls.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task SeedDefaults_analytics_shortcut_invokes_configured_navigation_action()
+    {
+        var registry = new ShortcutRegistry();
+        var navigatedTo = string.Empty;
+        var catalog = new ShortcutCatalog(registry);
+
+        catalog.SeedDefaults(NoopActions(navigateAsync: (page, _) =>
+        {
+            navigatedTo = page;
+            return Task.CompletedTask;
+        }));
+
+        var shortcut = registry.FindByPrimaryKey(
+            new KeyChord(KeyModifiers.Ctrl | KeyModifiers.Shift, VirtualKeyCode.A),
+            null);
+
+        shortcut.Should().NotBeNull();
+        await shortcut!.Handler(CancellationToken.None);
+
+        navigatedTo.Should().Be("Analytics");
     }
 
     [Fact]

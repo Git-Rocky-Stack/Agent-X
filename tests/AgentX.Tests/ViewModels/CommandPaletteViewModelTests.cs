@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using AgentX.App.Services;
 using AgentX.App.ViewModels;
 using AgentX.Core.Services.Shortcuts;
 using FluentAssertions;
@@ -65,6 +66,24 @@ public class CommandPaletteViewModelTests
         registry.Register(Desc("new", "New", ShortcutScope.Global));
 
         sut.Results.Should().ContainSingle(r => r.Id == "new");
+    }
+
+    [Fact]
+    public void Seeded_global_navigation_entries_include_analytics_in_command_palette_results()
+    {
+        var registry = new ShortcutRegistry();
+        var catalog = new ShortcutCatalog(registry);
+        catalog.SeedDefaults(new ShortcutCatalogActions(
+            (_, _) => Task.CompletedTask,
+            _ => Task.CompletedTask,
+            _ => Task.CompletedTask,
+            _ => Task.CompletedTask));
+
+        var sut = new CommandPaletteViewModel(registry, activeScopeName: null);
+
+        sut.Results.Should().Contain(result => result.Id == "nav.analytics" && result.Label == "Analytics");
+        sut.Results.Should().Contain(result => result.Id == "nav.dashboard");
+        sut.Results.Should().Contain(result => result.Id == "nav.workflows");
     }
 
     private static ShortcutDescriptor Desc(string id, string label, ShortcutScope scope)
