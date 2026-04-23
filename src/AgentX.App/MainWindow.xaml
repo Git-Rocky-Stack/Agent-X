@@ -131,6 +131,15 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
+                <NavigationViewItem x:Name="NavAnalytics"
+                                    Content="Analytics"
+                                    Tag="Analytics"
+                                    Style="{StaticResource AgentXNavItemStyle}">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE9D2;" FontSize="16" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
                 <NavigationViewItem x:Name="NavChat"
                                     Content="AI Chat"
                                     Tag="Chat"

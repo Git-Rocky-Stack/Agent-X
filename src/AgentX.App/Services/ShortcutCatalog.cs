@@ -39,6 +39,7 @@ public sealed class ShortcutCatalog
         Global("nav.search", "Semantic Search", KeyModifiers.Ctrl, VirtualKeyCode.F, Navigate(actions, "Search"), "Navigation");
         Global("nav.search.alt", "Semantic Search", KeyModifiers.Ctrl | KeyModifiers.Shift, VirtualKeyCode.F, Navigate(actions, "Search"), "Navigation");
         Global("nav.settings", "Settings", KeyModifiers.Ctrl, VirtualKeyCode.OemComma, Navigate(actions, "Settings"), "Navigation");
+        Global("nav.analytics", "Analytics", KeyModifiers.Ctrl | KeyModifiers.Shift, VirtualKeyCode.A, Navigate(actions, "Analytics"), "Navigation");
 
         var pageOrder = new[]
         {

@@ -159,7 +159,7 @@ public sealed partial class MainWindow : Window
 
     private Dictionary<string, NavigationViewItem> BuildNavItemMap() => new()
     {
-        ["Dashboard"] = NavDashboard, ["Digest"] = NavDigest, ["Chat"] = NavChat,
+        ["Dashboard"] = NavDashboard, ["Digest"] = NavDigest, ["Analytics"] = NavAnalytics, ["Chat"] = NavChat,
         ["AskFiles"] = NavAskFiles, ["QuickActions"] = NavQuickActions, ["Workflows"] = NavWorkflows,
         ["KnowledgeVault"] = NavVault, ["WebImport"] = NavWebImport, ["Collections"] = NavCollections,
         ["Search"] = NavSearch, ["KnowledgeGraph"] = NavKnowledgeGraph, ["ModelManager"] = NavModels,

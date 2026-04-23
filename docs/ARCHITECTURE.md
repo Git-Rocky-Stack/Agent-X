@@ -1,7 +1,7 @@
 # Agent-X Architecture Documentation
 
-**Version:** 1.1
-**Last Updated:** 2026-02-27
+**Version:** 2.1.0-preview.1
+**Last Updated:** 2026-04-22
 **Platform:** Windows 10/11 (x64, x86, ARM64)
 **Runtime:** .NET 8.0 / WinUI 3 (Windows App SDK 1.6)
 
@@ -60,7 +60,7 @@ Agent-X is a Windows desktop application built with WinUI 3 and .NET 8 that func
 
 The application is architected as a clean, three-layer system:
 
-- **Presentation Layer** (`AgentX.App`): A WinUI 3 application hosting 16 pages across a NavigationView shell, with 13 ViewModels following the MVVM pattern using `CommunityToolkit.Mvvm`.
+- **Presentation Layer** (`AgentX.App`): A WinUI 3 application hosting a broad NavigationView shell across intelligence, knowledge, triage, system, onboarding, help, and legal surfaces, with page and support ViewModels following the MVVM pattern using `CommunityToolkit.Mvvm`.
 - **Service Layer** (`AgentX.Core`): A .NET 8 class library containing all business logic — AI provider orchestration, document processing, vector search, RAG, conversation memory, knowledge graph, and intelligence services.
 - **Data Layer** (`AgentX.Core/Data`): SQLite via Entity Framework Core with 16 entity types, plus a pure-C# vector similarity store writing embeddings as BLOBs to the same SQLite database file.
 
@@ -80,8 +80,8 @@ Agent-X/
 │   ├── AgentX.App/                     # WinUI 3 Presentation Layer
 │   │   ├── App.xaml / App.xaml.cs      # Application entry point and DI host
 │   │   ├── MainWindow.xaml/.cs         # Navigation shell, status bar, shortcuts
-│   │   ├── Views/                      # 16 XAML pages with code-behind
-│   │   ├── ViewModels/                 # 13 ViewModels (CommunityToolkit.Mvvm)
+│   │   ├── Views/                      # XAML pages, dialogs, and supporting views
+│   │   ├── ViewModels/                 # Page and support ViewModels (CommunityToolkit.Mvvm)
 │   │   ├── Controls/                   # CommandPalette, MarkdownMessageControl
 │   │   ├── Converters/                 # 12 IValueConverter implementations
 │   │   ├── Helpers/                    # UI utility helpers
@@ -144,8 +144,8 @@ graph TB
     subgraph Presentation["AgentX.App — Presentation Layer (WinUI 3)"]
         direction TB
         NAV[NavigationView Shell<br/>MainWindow.xaml.cs]
-        VIEWS[16 Pages / Views<br/>XAML + Code-Behind]
-        VMS[13 ViewModels<br/>CommunityToolkit.Mvvm]
+        VIEWS[Views / Pages<br/>XAML + Code-Behind]
+        VMS[ViewModels<br/>CommunityToolkit.Mvvm]
         CTRL[Custom Controls<br/>CommandPalette · MarkdownMessageControl]
         CONV[12 Value Converters]
         KBS[IShortcutRegistry<br/>ShortcutCatalog + ShortcutInputRouter]
@@ -398,23 +398,31 @@ Navigation is driven by `NavigationView.SelectionChanged`, which reads the `Tag`
 
 ### 5.3 MVVM Implementation
 
-The 13 ViewModels correspond to the navigable pages (all pages except `UserGuidePage`, `PrivacyPolicyPage`, and `TermsOfServicePage`, which are static content and do not need ViewModels):
+The presentation layer now uses page-specific ViewModels plus supporting dialog and coordinator ViewModels. Representative page ViewModels include:
 
 | ViewModel | Primary Responsibilities |
 |---|---|
 | `DashboardViewModel` | Aggregate stats: doc count, conversation count, recent activity |
+| `AnalyticsViewModel` | Usage, performance, file-type, indexing, and conversation-intelligence metrics |
 | `ChatViewModel` | Conversation management, streaming token display, suggested questions |
 | `AskFilesViewModel` | RAG queries against the Knowledge Vault, citation display |
 | `KnowledgeVaultViewModel` | Document list, import, delete, reindex, bulk operations |
 | `CollectionManagerViewModel` | Collection CRUD, document assignment |
 | `SearchViewModel` | Hybrid/semantic/keyword search, result display, search history |
 | `KnowledgeGraphViewModel` | Graph data loading, Canvas-based force-directed rendering |
+| `ComparisonViewModel` | Multi-document comparison selection, synthesis, and report display |
+| `InboxViewModel` | Inbox triage queue review, accept/reject/defer flows |
+| `PluginManagerViewModel` | Plugin install/enable/disable/uninstall flows |
+| `SyncSettingsViewModel` | Sync configuration, status, and history surfaces |
+| `WorkflowBuilderViewModel` | Workflow authoring, execution, and step-result inspection |
 | `ModelManagerViewModel` | Ollama model list, pull, delete, active model selection |
 | `HardwareAdvisorViewModel` | Hardware detection, model recommendations |
 | `QuickActionsViewModel` | AI summarize, auto-tag, duplicate scan on selected documents |
 | `DigestViewModel` | Weekly digest report generation and display |
 | `SettingsViewModel` | Settings read/write, provider switching, test connection |
 | `OnboardingViewModel` | Multi-step wizard state, provider setup, completion callback |
+
+Additional support ViewModels such as `CommandPaletteViewModel`, `JumpToViewModel`, `CheatsheetViewModel`, `QuickChatViewModel`, and the coordinator layer used by `ChatViewModel` keep non-page logic testable without moving UI responsibilities into code-behind.
 
 ### 5.4 Custom Controls
 
@@ -784,7 +792,7 @@ The RAG system prompt instructs the AI to answer using only the numbered context
 
 **`SummaryService`**: Calls `IAiService.ChatAsync()` with a focused summarization system prompt. Returns a 2–3 paragraph summary. Used by `QuickActionsPage` for per-document and multi-document summarization.
 
-**`DuplicateDetectionService`**: Queries `DocumentService.CheckForDuplicateAsync()` for exact SHA-256 hash matches. A future near-duplicate detection pass (embedding cosine similarity above a threshold) is scaffolded but not yet activated.
+**`DuplicateDetectionService`**: Combines exact SHA-256 hash detection with semantic near-duplicate grouping. Recent work also surfaces duplicate evidence details so exact and semantic matches can be explained in the UI rather than treated as opaque groups.
 
 **`OrganizationSuggestionService`**: Analyzes document metadata, tags, and collection memberships to generate AI-powered suggestions for how to organize the vault (collection merges, tag consolidation).
 
@@ -1461,8 +1469,8 @@ All service registrations are in `App.xaml.cs` `ConfigureServices()`. The comple
 | `IOrganizationSuggestionService` | `IOrganizationSuggestionService` | `OrganizationSuggestionService` | Singleton |
 | `IKnowledgeGraphService` | `IKnowledgeGraphService` | `KnowledgeGraphService` | Singleton |
 | `IDigestService` | `IDigestService` | `DigestService` | Singleton |
-| All 13 ViewModels | — | concrete types | Transient |
-| All 16 Views/Pages | — | concrete types | Transient |
+| Page, dialog, and support ViewModels | — | concrete types | Transient |
+| Views and Pages | — | concrete types | Transient |
 
 `IDocumentProcessor` is registered six times — one per concrete type — as the same interface. `DocumentService` receives `IEnumerable<IDocumentProcessor>` which the DI container resolves as all registered implementations. Processors are tried in registration order, stopping at the first that returns `true` from `CanProcess()`.
 
@@ -1652,7 +1660,7 @@ Key testing strategies:
 - `ChunkingService` tests verify chunk boundaries, overlap, and page number propagation.
 - `HashHelper` tests verify SHA-256 output consistency and file-not-found behavior.
 
-ViewModels and Views are not unit tested directly due to WinUI 3's requirement for a live HWND for most operations. Integration testing of the UI layer is done via manual test procedures documented in `docs/DEVELOPER-GUIDE.md`.
+Pure rendering surfaces still rely on manual or integration verification where a live HWND is required, but the codebase now includes focused tests for a growing set of ViewModels and coordinators where UI-thread or picker dependencies are not required. The highest-leverage UI logic is increasingly verified at the ViewModel/service boundary instead of only through manual runs.
 
 ---
 
@@ -1751,7 +1759,7 @@ The application is distributed as a self-contained Windows installer built with 
 | **Chunk** | A fixed-size fragment of a document's text (default 512 tokens, 50-token overlap) stored as a `DocumentChunkEntity` and embedded as a vector. |
 | **CommunityToolkit.Mvvm** | A Microsoft-maintained .NET MVVM library providing source generators for `[ObservableProperty]`, `[RelayCommand]`, and `ObservableObject`. |
 | **Cosine Similarity** | A measure of angle between two vectors in high-dimensional space, computed as `dot(a,b) / (|a| × |b|)`, ranging from -1 to 1. Used for semantic similarity. |
-| **DPAPI** | Windows Data Protection API — a Windows-level symmetric encryption facility tied to the user account. Not yet used; planned for API key encryption. |
+| **DPAPI** | Windows Data Protection API — a Windows-level symmetric encryption facility tied to the user account. Used in Agent-X to wrap database-key material for transparent vault encryption on non-passphrase tiers; still a candidate for future API-key protection in settings. |
 | **EF Core** | Entity Framework Core — Microsoft's ORM for .NET, used here with the SQLite provider. |
 | **FTS5** | Full-Text Search version 5 — SQLite's built-in full-text search engine using the BM25 ranking algorithm. |
 | **IAiProvider** | The core interface implemented by `OllamaProvider`, `OpenAiProvider`, and `AnthropicProvider`, defining the contract for chat, embedding, and model management. |
@@ -1823,10 +1831,10 @@ Agent-X's keyboard power mode centers on an `IShortcutRegistry` singleton that o
 - **Jump-To** (`Ctrl+P`) — fuzzy search over documents, conversations, and pages.
 - **Cheatsheet** (`F1` or `Ctrl+Shift+?`) — grouped read-only listing of every shortcut available in the current scope.
 
-`ShortcutInputRouter` attaches to `MainWindow.RootGrid.PreviewKeyDown` and dispatches key events to the registry. A `ChordStateMachine` tracks timed multi-key chords (not seeded in v2.1.0 final — future expansion). `ShortcutCatalog` seeds 12 default global shortcuts at startup.
+`ShortcutInputRouter` attaches to `MainWindow.RootGrid.PreviewKeyDown` and dispatches key events to the registry. A `ChordStateMachine` tracks timed multi-key chords (not seeded in v2.1.0 final — future expansion). `ShortcutCatalog` seeds a curated set of default global shortcuts at startup.
 
 Pages register scope-local shortcuts via `ShortcutRegistrationExtensions.RegisterPageShortcuts()`, called in the page's `OnNavigatedTo` handler.
 
 ---
 
-*This document reflects the Agent-X codebase as of version 1.0, build date 2026-02-27. All file paths are relative to the solution root at `src/AgentX.App/` and `src/AgentX.Core/` respectively.*
+*This document reflects the Agent-X codebase as of version 2.1.0-preview.1, updated 2026-04-22. All file paths are relative to the solution root at `src/AgentX.App/` and `src/AgentX.Core/` respectively.*

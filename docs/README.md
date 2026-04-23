@@ -34,7 +34,7 @@ Built on .NET 8.0 and WinUI 3 (Windows App SDK 1.6), Agent-X delivers an enterpr
 
 ## Feature Overview
 
-Agent-X ships fifteen discrete features organized across three delivery tiers. All tiers run entirely offline; cloud AI providers (OpenAI, Anthropic) are optional and user-configured.
+Agent-X now spans a broader product surface than a simple feature checklist. The tables below highlight representative capabilities across core productivity, intelligence, and premium local-first workflows. All tiers run offline first; cloud AI providers (OpenAI, Anthropic) are optional and user-configured.
 
 ### Tier 1 — Core Productivity
 
@@ -62,9 +62,10 @@ Agent-X ships fifteen discrete features organized across three delivery tiers. A
 |---|---|
 | Knowledge Graph Visualization | Interactive force-directed graph (spring-electric algorithm, 100 iterations) renders documents, collections, and tags as typed nodes with weighted edges showing shared membership; rendered on a WinUI 3 Canvas |
 | Multi-Provider LLM Support | Unified AI service abstraction over Ollama (local), OpenAI (GPT-4o and family), and Anthropic (Claude family) with per-provider cost tracking |
-| Conversation Memory | AI extracts facts, preferences, instructions, and topics of interest from conversations; stores them as importance-weighted memory entities; injects the top memories into system prompts for personalized future interactions; and generates three suggested follow-up questions after each assistant reply |
+| Conversation Memory | AI extracts facts, preferences, instructions, and topics of interest from conversations; stores them as importance-weighted memory entities; injects the top memories into system prompts for personalized future interactions; generates suggested follow-up questions; and now persists durable conversation-summary snapshots for longer-lived context |
 | Semantic Deduplication | SHA-256 hash check on every import detects exact duplicates before incurring any AI cost; near-duplicate detection uses vector embedding similarity for semantic overlap identification |
 | Scheduled Digest Reports | Weekly activity summaries aggregate new document counts, conversation activity, top searches, file type distribution, storage delta, and token consumption into persisted digest reports |
+| Analytics & Conversation Intelligence | Analytics aggregates usage, performance, file-type, and durable conversation-intelligence metrics, including summary freshness and recent summary previews |
 
 ---
 
@@ -267,8 +268,8 @@ The application host project. Responsibilities:
 
 - **Dependency Injection Composition Root:** `App.xaml.cs` builds the `IHost` using `Microsoft.Extensions.Hosting`, registers every service and view model as singleton or transient, and resolves the dependency graph before the main window is shown.
 - **Main Window Shell:** `MainWindow.xaml.cs` manages the `NavigationView`, `Frame`, command palette overlay, keyboard shortcut dispatch, live status bar (Ollama connection state, indexing progress, document count), and system backdrop (Mica Alt with Acrylic fallback).
-- **Views:** 16 XAML pages, each paired with a code-behind that resolves its ViewModel from the DI container.
-- **ViewModels:** 13 ViewModels inheriting from `CommunityToolkit.Mvvm.ComponentModel.ObservableObject`, using `[ObservableProperty]` source generation and `[RelayCommand]` for command binding.
+- **Views:** WinUI 3 pages span intelligence, knowledge, triage, system, onboarding, help, and legal surfaces, each resolved through the DI container.
+- **ViewModels:** Page-specific, dialog, and support ViewModels use `CommunityToolkit.Mvvm.ComponentModel.ObservableObject`, `[ObservableProperty]`, and `[RelayCommand]` source generation.
 - **Onboarding Flow:** First-run detection hides the navigation pane and presents a focused onboarding wizard; navigation is restored and Dashboard is loaded on completion.
 - **Controls:** Reusable XAML controls including the Command Palette overlay.
 
@@ -311,21 +312,33 @@ Agent-X uses Mica Alt (`MicaKind.BaseAlt`) on supported systems for a deep, mate
 
 ## Pages and Navigation
 
-Navigation is managed by a `NavigationView` in `MainWindow.xaml`. The `ContentFrame` loads pages as transient instances. The command palette and keyboard shortcuts can navigate to any page without using the nav rail.
+Navigation is managed by a `NavigationView` in `MainWindow.xaml`. The `ContentFrame` loads pages as transient instances. The nav rail carries the primary product map, while the command palette and keyboard shortcuts expose a curated set of high-frequency destinations and actions.
 
 | Page | Nav Tag | Description |
 |---|---|---|
 | Dashboard | `Dashboard` | Activity summary with statistics cards: total documents, conversations, searches, and storage. Quick-access cards link to frequently used pages. |
 | Weekly Digest | `Digest` | Reads and displays the most recent `DigestReportEntity`. Shows document import counts, conversation highlights, top search queries, file type distribution, storage delta, and token consumption for the selected 7-day period. |
+| Analytics | `Analytics` | Aggregates usage, performance, indexing, model, file-type, and conversation-intelligence metrics, including durable summary freshness and recent summary previews. |
 | AI Chat | `Chat` | Full-featured chat interface. Streams responses token-by-token from the active provider. Supports multiple conversations, pinning, system prompt selection, model switching, conversation export (clipboard and `.md` file), and conversation search sidebar filter. Renders markdown with syntax-highlighted code blocks. |
 | Ask Your Files | `AskFiles` | RAG-powered question answering against the document vault. Retrieves relevant document chunks via hybrid search, reranks them, injects them into a context-aware prompt, and streams a grounded answer with source citations. |
-| Quick Actions | `QuickActions` | One-click shortcut panel for the most common tasks: new conversation, import files, run semantic search, generate a digest, and open settings. |
+| Quick Actions | `QuickActions` | One-click document intelligence surface for layered summaries, exact duplicate scans, semantic near-duplicate evidence, and organization actions. |
+| Workflows | `Workflows` | Multi-step prompt workflow builder and runner for repeatable AI-powered document or text-processing sequences. |
 | Knowledge Vault | `KnowledgeVault` | Document library with list/grid view toggle, multi-select for batch operations (delete, re-index, assign to collection), advanced filter panel (file type, collection, date range, status, sort), and 360 px document preview panel. |
+| Web Import | `WebImport` | Imports articles, feeds, and scraped web content into the vault for later search, RAG, and analysis. |
 | Collections | `Collections` | Hierarchical collection manager. Create, rename, delete, and nest collections. Drag documents between collections. |
 | Semantic Search | `Search` | Unified search page with mode toggle (Semantic / Keyword / Hybrid). Displays results with relevance scores, source excerpts, and citation links. Persistent search history displayed as chips. |
 | Knowledge Graph | `KnowledgeGraph` | Interactive Canvas-rendered force-directed graph. Nodes are color-coded by type (blue = document, purple = collection, amber = tag). Edges indicate collection membership, tag assignment, and shared-connection relationships. Supports pan and zoom. |
+| Compare Documents | `Comparison` | Multi-document comparison surface for shared themes, unique points, and AI-generated synthesis reports. |
+| Smart Inbox | `Inbox` | Review queue for externally sourced or watch-folder content before it enters the vault. Supports accept, reject, defer, and batch operations. |
 | Model Manager | `ModelManager` | Lists all locally installed Ollama models. Pull new models with a download progress bar. Delete models. Set active chat and embedding models. |
 | Hardware Advisor | `HardwareAdvisor` | Reads CPU, RAM, and GPU specifications via `System.Management` and provides model size recommendations (e.g., "Your hardware supports up to 13B parameter models at 4-bit quantization"). |
+| Backup & Restore | `BackupRestore` | Creates encrypted or plaintext backup packages and restores application state for migration and recovery workflows. |
+| Workspace Profiles | `WorkspaceProfiles` | Creates isolated workspaces for different contexts with separate vault and conversation settings. |
+| Plugin Manager | `PluginManager` | Installs, enables, disables, and removes plugin packages that extend ingestion, provider, workflow, or UI capabilities. |
+| Collaborative Sync | `SyncSettings` | Configures encrypted sync packages, auto-sync scheduling, sync history, and conflict-aware synchronization settings. |
+| Calendar | `CalendarSettings` | Configures calendar connectors and related ingestion behavior for event-driven inbox flows. |
+| Email | `EmailSettings` | Configures email connectors and related ingestion behavior for inbox-driven knowledge capture. |
+| Annotations | `Annotations` | Displays and manages user annotations attached to documents and intelligence outputs. |
 | Settings | `Settings` | Full settings editor: AI provider selection and API keys, Ollama endpoint, model selection, chunking parameters, UI theme, storage path, watch folders, and license activation/deactivation. |
 | Onboarding | `Onboarding` | First-run wizard shown on initial launch with navigation pane hidden. Steps through Ollama connection check, model selection, and a brief feature tour. |
 | User Guide | `UserGuide` | In-app reference documentation rendered as styled rich text. |
@@ -523,21 +536,24 @@ Current shipped shortcuts are seeded by `ShortcutCatalog` into `IShortcutRegistr
 | Shortcut | Action |
 |---|---|
 | `Ctrl+K` | Toggle the Command Palette overlay |
+| `Ctrl+Shift+P` | Open the Command Palette overlay |
 | `Ctrl+N` | Navigate to AI Chat (new conversation) |
 | `Ctrl+I` | Navigate to Knowledge Vault (import documents) |
 | `Ctrl+F` | Navigate to Semantic Search |
 | `Ctrl+Shift+F` | Navigate to Semantic Search (alternate) |
+| `Ctrl+Shift+A` | Navigate to Analytics |
+| `Ctrl+D` | Navigate to Dashboard |
+| `Ctrl+Shift+W` | Navigate to Workflows |
+| `Ctrl+Shift+E` | Navigate to Web Import |
+| `Ctrl+G` | Navigate to Knowledge Graph |
+| `Ctrl+P` | Open Jump To |
+| `F1` | Open Keyboard Shortcuts / Cheatsheet |
 | `Ctrl+,` | Navigate to Settings |
 | `Esc` | Close the Command Palette (when open) |
 
 ### Command Palette
 
-The Command Palette (`Ctrl+K`) provides keyboard-first access to all 16 pages and common actions. Type to filter the command list. Press `Enter` to execute the selected command or `Esc` to dismiss. Actions available from the palette include:
-
-- Navigate to any application page
-- Start a new conversation
-- Import files (opens Knowledge Vault)
-- Refresh the Dashboard
+The Command Palette (`Ctrl+K` or `Ctrl+Shift+P`) provides keyboard-first access to the app's registered navigation shortcuts and actions. Type to filter the command list. Press `Enter` to execute the selected command or `Esc` to dismiss. Registered destinations include Dashboard, Analytics, AI Chat, Ask Your Files, Knowledge Vault, Collections, Search, Workflows, Web Import, Knowledge Graph, Model Manager, and Settings, alongside actions such as Jump To and Keyboard Shortcuts.
 
 ---
 
@@ -570,8 +586,8 @@ Agent-X/
 │   │   ├── Helpers/                   -- UI helper utilities
 │   │   ├── Services/                  -- UI-layer services (ShortcutCatalog, ShortcutInputRouter, theme/localization)
 │   │   ├── Styles/                    -- Global XAML resource dictionaries and theme overrides
-│   │   ├── ViewModels/                -- 13 ObservableObject ViewModels
-│   │   └── Views/                     -- 16 XAML pages and code-behind files
+│   │   ├── ViewModels/                -- Page, dialog, coordinator, and helper ViewModels
+│   │   └── Views/                     -- Page XAML files, dialogs, and supporting views
 │   │
 │   └── AgentX.Core/                   -- Platform-independent business logic
 │       ├── AI/                        -- AI provider abstraction, embedding, context management

@@ -2,7 +2,7 @@
 
 **Agent-X -- Local-First AI Personal Intelligence Hub for Windows**
 
-Version 1.3.0 | Last Updated: April 2026
+Version 2.1.0-preview.1 | Last Updated: April 2026
 
 ---
 
@@ -25,12 +25,12 @@ Version 1.3.0 | Last Updated: April 2026
 15. [Command Palette](#15-command-palette)
 16. [Keyboard Shortcuts](#16-keyboard-shortcuts)
 17. [Status Bar](#17-status-bar)
-18. [Workspace Profiles](#18-workspace-profiles) *(v1.3.0)*
-19. [Smart Inbox](#19-smart-inbox) *(v1.3.0)*
-20. [Comparative Analysis](#20-comparative-analysis) *(v1.3.0)*
-21. [Voice Input](#21-voice-input) *(v1.3.0)*
-22. [Plugin Manager](#22-plugin-manager) *(v1.3.0)*
-23. [Sync Settings](#23-sync-settings) *(v1.3.0)*
+18. [Workspace Profiles](#18-workspace-profiles)
+19. [Smart Inbox](#19-smart-inbox)
+20. [Comparative Analysis](#20-comparative-analysis)
+21. [Voice Input](#21-voice-input)
+22. [Plugin Manager](#22-plugin-manager)
+23. [Sync Settings](#23-sync-settings)
 24. [Troubleshooting](#24-troubleshooting)
 25. [FAQ](#25-faq)
 26. [Appendix: Supported File Types](#26-appendix-supported-file-types)
@@ -39,7 +39,7 @@ Version 1.3.0 | Last Updated: April 2026
 
 ## 1. Introduction
 
-Agent-X is a local-first AI personal intelligence hub that runs entirely on your Windows machine. It connects to [Ollama](https://ollama.com) to power all AI features -- including chat, document analysis, semantic search, and retrieval-augmented generation (RAG) -- without sending any of your data to the cloud.
+Agent-X is a local-first AI personal intelligence hub that runs entirely on your Windows machine. It connects to [Ollama](https://ollama.com) to power chat, document analysis, semantic search, retrieval-augmented generation (RAG), summaries, duplicate analysis, and other intelligence features without sending your vault to the cloud. Optional OpenAI and Anthropic providers can be enabled from Settings when you want cloud-backed models.
 
 ### Key Principles
 
@@ -47,6 +47,16 @@ Agent-X is a local-first AI personal intelligence hub that runs entirely on your
 - **Powered by Ollama.** Agent-X uses Ollama as its AI backend, giving you access to hundreds of open-source language models (Llama, Mistral, Phi, DeepSeek, and many more).
 - **Knowledge management.** Import documents, organize them into collections, and ask questions across your entire knowledge base using semantic search and RAG.
 - **Hardware-aware.** Agent-X detects your GPU, CPU, RAM, and NPU to recommend the best models for your specific hardware.
+
+### Current Navigation Map
+
+This guide goes deep on the highest-traffic surfaces, but the current app shell is broader than the original v1.x guide.
+
+- **Intelligence:** Dashboard, Weekly Digest, Analytics, AI Chat, Ask Your Files, Quick Actions, Workflows
+- **Knowledge:** Knowledge Vault, Web Import, Collections, Semantic Search, Knowledge Graph, Compare Documents
+- **Triage:** Smart Inbox
+- **System:** Model Manager, Hardware Advisor, Backup & Restore, Workspace Profiles, Plugin Manager, Collaborative Sync, Calendar, Email, Annotations, Settings
+- **Supporting pages:** Onboarding, User Guide, Privacy Policy, Terms of Service
 
 ---
 
@@ -682,11 +692,11 @@ Settings are stored as JSON at `%LocalAppData%\AgentX\settings.json`.
 
 ## 15. Command Palette
 
-The Command Palette provides quick keyboard-driven access to every page and action in Agent-X.
+The Command Palette provides quick keyboard-driven access to Agent-X's registered high-frequency navigation commands and actions.
 
 ### Opening the Palette
 
-Press `Ctrl+K` from anywhere in the application. A floating search dialog appears at the top of the window.
+Press `Ctrl+K` or `Ctrl+Shift+P` from anywhere in the application. A floating search dialog appears at the top of the window.
 
 ### Using the Palette
 
@@ -702,14 +712,16 @@ Press `Ctrl+K` from anywhere in the application. A floating search dialog appear
 | Command             | Action                        |
 |---------------------|-------------------------------|
 | Dashboard           | Navigate to the Dashboard     |
+| Analytics           | Navigate to Analytics         |
 | AI Chat             | Navigate to AI Chat           |
 | Ask Files           | Navigate to Ask Your Files    |
-| Quick Actions       | Navigate to Quick Actions     |
 | Knowledge Vault     | Navigate to Knowledge Vault   |
 | Collections         | Navigate to Collections       |
 | Search              | Navigate to Semantic Search   |
+| Workflows           | Navigate to Workflows         |
+| Web Import          | Navigate to Web Import        |
+| Knowledge Graph     | Navigate to Knowledge Graph   |
 | Model Manager       | Navigate to Model Manager     |
-| Hardware Advisor    | Navigate to Hardware Advisor  |
 | Settings            | Navigate to Settings          |
 
 **Actions:**
@@ -717,9 +729,8 @@ Press `Ctrl+K` from anywhere in the application. A floating search dialog appear
 | Command             | Action                                    |
 |---------------------|-------------------------------------------|
 | New Conversation    | Opens AI Chat with a new conversation.    |
-| Import Files        | Navigates to Knowledge Vault for import.  |
-| Refresh Dashboard   | Reloads all Dashboard data.               |
-| Toggle Theme        | Opens Settings (theme toggle support).    |
+| Jump To             | Opens the Jump To dialog.                 |
+| Show Keyboard Shortcuts | Opens the cheatsheet dialog.          |
 
 ### Footer Hints
 
@@ -738,10 +749,18 @@ Agent-X provides keyboard shortcuts for fast navigation and common actions. All 
 | Shortcut          | Action                                     |
 |-------------------|--------------------------------------------|
 | `Ctrl+K`          | Open / toggle the Command Palette          |
+| `Ctrl+Shift+P`    | Open the Command Palette                   |
+| `Ctrl+P`          | Open Jump To                               |
+| `F1`              | Open Keyboard Shortcuts / Cheatsheet       |
 | `Ctrl+N`          | Navigate to AI Chat (new conversation)     |
 | `Ctrl+I`          | Navigate to Knowledge Vault (import files) |
 | `Ctrl+F`          | Navigate to Semantic Search                |
 | `Ctrl+Shift+F`    | Navigate to Semantic Search (alternate)    |
+| `Ctrl+Shift+A`    | Navigate to Analytics                      |
+| `Ctrl+Shift+W`    | Navigate to Workflows                      |
+| `Ctrl+Shift+E`    | Navigate to Web Import                     |
+| `Ctrl+D`          | Navigate to Dashboard                      |
+| `Ctrl+G`          | Navigate to Knowledge Graph                |
 | `Ctrl+,`          | Navigate to Settings                       |
 | `Escape`          | Close the Command Palette (when open)      |
 
@@ -950,7 +969,7 @@ The table below lists every file extension supported by Agent-X, its category, a
 
 ---
 
-## 18. Workspace Profiles *(v1.3.0)*
+## 18. Workspace Profiles
 
 Workspace Profiles let you create isolated environments for different projects or contexts. Each workspace has its own conversations, knowledge base, and AI settings.
 
@@ -973,7 +992,7 @@ Each workspace stores its data in a separate directory under `%LocalAppData%\Age
 
 ---
 
-## 19. Smart Inbox *(v1.3.0)*
+## 19. Smart Inbox
 
 The Smart Inbox automatically detects new files added to your watch folders and presents them for review before importing into your knowledge base.
 
@@ -994,7 +1013,7 @@ The Inbox can generate AI previews for all pending items. Click **Generate All P
 
 ---
 
-## 20. Comparative Analysis *(v1.3.0)*
+## 20. Comparative Analysis
 
 Comparative Analysis lets you select multiple documents and have AI analyze the similarities, differences, and patterns across them.
 
@@ -1019,7 +1038,7 @@ Use **Export as Markdown** to save the full comparison report for sharing or arc
 
 ---
 
-## 21. Voice Input *(v1.3.0)*
+## 21. Voice Input
 
 Voice Input lets you transcribe speech to text using local Whisper models. All processing happens on your machine — no audio data leaves your device.
 
@@ -1055,7 +1074,7 @@ Voice recording uses your microphone via NAudio (WaveIn 16kHz mono) and transcri
 
 ---
 
-## 22. Plugin Manager *(v1.3.0)*
+## 22. Plugin Manager
 
 The Plugin Manager lets you install, enable, disable, and uninstall third-party plugins that extend Agent-X's capabilities.
 
@@ -1091,7 +1110,7 @@ See the [Plugin Development Guide](PLUGIN-DEVELOPMENT-GUIDE.md) for detailed ins
 
 ---
 
-## 23. Sync Settings *(v1.3.0)*
+## 23. Sync Settings
 
 Sync Settings allow you to configure data synchronization between Agent-X instances or backup destinations.
 
