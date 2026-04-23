@@ -77,6 +77,7 @@ public sealed class ChatServiceContextAssemblyTests
         _contextAssemblyService
             .Setup(service => service.AssembleAsync(
                 It.Is<ContextAssemblyRequest>(request =>
+                    request.ConversationId == 42 &&
                     request.MemoryContext != null &&
                     request.MemoryContext.Contains("[Personal memory]", StringComparison.Ordinal) &&
                     request.MemoryContext.Contains("[Durable Conversation Summary]", StringComparison.Ordinal)),
@@ -111,6 +112,101 @@ public sealed class ChatServiceContextAssemblyTests
             It.Is<IReadOnlyList<ChatMessage>>(messages => ReferenceEquals(messages, assembledMessages) || messages.SequenceEqual(assembledMessages)),
             "Assembled prompt",
             It.IsAny<ChatOptions?>(),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task RegenerateLastResponseAsync_PassesConversationIdIntoContextAssembly()
+    {
+        _settingsService
+            .Setup(service => service.GetSettingsAsync())
+            .ReturnsAsync(new AppSettings());
+
+        _memoryService
+            .Setup(service => service.GetMemoryContextAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(string.Empty);
+
+        var existingMessages = new List<MessageEntity>
+        {
+            new()
+            {
+                Id = 10,
+                ConversationId = 42,
+                Role = "user",
+                Content = "Retry the last answer",
+                SortOrder = 0,
+                Timestamp = DateTime.UtcNow.AddMinutes(-2)
+            },
+            new()
+            {
+                Id = 11,
+                ConversationId = 42,
+                Role = "assistant",
+                Content = "Previous answer",
+                SortOrder = 1,
+                Timestamp = DateTime.UtcNow.AddMinutes(-1)
+            }
+        };
+
+        var updatedMessages = new List<MessageEntity>
+        {
+            existingMessages[0]
+        };
+
+        _conversationService
+            .Setup(service => service.GetMessagesAsync(42))
+            .ReturnsAsync(updatedMessages);
+        _conversationService
+            .Setup(service => service.DeleteLastAssistantMessageAsync(42))
+            .Returns(Task.CompletedTask);
+        _conversationService
+            .Setup(service => service.GetConversationAsync(42))
+            .ReturnsAsync(new ConversationEntity
+            {
+                Id = 42,
+                SystemPrompt = "Original prompt"
+            });
+        _conversationService
+            .Setup(service => service.AddMessageAsync(
+                42,
+                "assistant",
+                It.IsAny<string>(),
+                It.IsAny<int?>(),
+                It.IsAny<double?>()))
+            .Returns(Task.CompletedTask);
+
+        _contextAssemblyService
+            .Setup(service => service.AssembleAsync(
+                It.Is<ContextAssemblyRequest>(request =>
+                    request.ConversationId == 42 &&
+                    request.CurrentQuery == "Retry the last answer"),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ContextAssemblyResult
+            {
+                Messages = [ChatMessage.User("Retry the last answer")],
+                SystemPrompt = "Assembled prompt"
+            });
+
+        _aiService
+            .Setup(service => service.StreamChatAsync(
+                It.IsAny<IReadOnlyList<ChatMessage>>(),
+                It.IsAny<string?>(),
+                It.IsAny<ChatOptions?>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(StreamTokens("redo"));
+
+        var sut = new AgentX.Core.Services.Chat.ChatService(
+            _aiService.Object,
+            _conversationService.Object,
+            _settingsService.Object,
+            _contextAssemblyService.Object,
+            _memoryService.Object,
+            _logger);
+
+        await sut.RegenerateLastResponseAsync(42);
+
+        _contextAssemblyService.Verify(service => service.AssembleAsync(
+            It.Is<ContextAssemblyRequest>(request => request.ConversationId == 42),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 

@@ -7,6 +7,7 @@ public readonly record struct IndexedChatMessage(int Index, ChatMessage Message)
 
 public sealed class ContextAssemblyRequest
 {
+    public long? ConversationId { get; init; }
     public string CurrentQuery { get; init; } = string.Empty;
     public string? SystemPrompt { get; init; }
     public string? MemoryContext { get; init; }
@@ -32,9 +33,12 @@ public sealed class ContextAssemblyDiagnostics
     public int EstimatedMessageTokens { get; init; }
     public int EstimatedPromptTokens { get; init; }
     public bool AddedOverflowSummary { get; init; }
+    public bool AddedDurableRecall { get; init; }
     public bool UsedLegacyFallback { get; init; }
     public bool UsedLexicalFallback { get; init; }
+    public int RecalledMessageCount { get; init; }
     public string? CompressionSkipReason { get; init; }
+    public string? DurableRecallSkipReason { get; init; }
 }
 
 public sealed class ContextSelectionRequest

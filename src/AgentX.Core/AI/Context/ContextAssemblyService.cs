@@ -1,25 +1,34 @@
 using System.Text;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Services.Chat;
+using AgentX.Core.Services.Chat.Models;
 using Serilog;
 
 namespace AgentX.Core.AI.Context;
 
 public sealed class ContextAssemblyService : IContextAssemblyService
 {
+    private const int MaxRecallResults = 3;
+    private const float RecallMinSimilarity = 0.72f;
+    private const int MinRecallBudgetTokens = 48;
+
     private readonly IContextWindowManager _contextWindowManager;
     private readonly ISemanticContextSelector _semanticContextSelector;
     private readonly IConversationCompressionService _conversationCompressionService;
+    private readonly IConversationRecallService? _conversationRecallService;
     private readonly ILogger _logger;
 
     public ContextAssemblyService(
         IContextWindowManager contextWindowManager,
         ISemanticContextSelector semanticContextSelector,
         IConversationCompressionService conversationCompressionService,
-        ILogger logger)
+        ILogger logger,
+        IConversationRecallService? conversationRecallService = null)
     {
         _contextWindowManager = contextWindowManager ?? throw new ArgumentNullException(nameof(contextWindowManager));
         _semanticContextSelector = semanticContextSelector ?? throw new ArgumentNullException(nameof(semanticContextSelector));
         _conversationCompressionService = conversationCompressionService ?? throw new ArgumentNullException(nameof(conversationCompressionService));
+        _conversationRecallService = conversationRecallService;
         _logger = logger?.ForContext<ContextAssemblyService>()
                   ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -39,7 +48,7 @@ public sealed class ContextAssemblyService : IContextAssemblyService
             _logger.Warning(ex, "Context assembly failed. Falling back to legacy context fitting.");
             return await BuildLegacyFallbackAsync(
                 request,
-                ComposeSystemPrompt(request.SystemPrompt, request.MemoryContext, null),
+                ComposeSystemPrompt(request.SystemPrompt, request.MemoryContext, null, null),
                 "assembly_error",
                 ct).ConfigureAwait(false);
         }
@@ -50,7 +59,7 @@ public sealed class ContextAssemblyService : IContextAssemblyService
         CancellationToken ct)
     {
         var effectiveContextWindow = _contextWindowManager.GetEffectiveContextWindow(request.ContextWindow);
-        var baseSystemPrompt = ComposeSystemPrompt(request.SystemPrompt, request.MemoryContext, null);
+        var baseSystemPrompt = ComposeSystemPrompt(request.SystemPrompt, request.MemoryContext, null, null);
 
         if (request.ConversationMessages.Count == 0)
         {
@@ -59,7 +68,8 @@ public sealed class ContextAssemblyService : IContextAssemblyService
                 SystemPrompt = baseSystemPrompt,
                 Diagnostics = new ContextAssemblyDiagnostics
                 {
-                    EstimatedPromptTokens = _contextWindowManager.EstimateTokenCount(baseSystemPrompt ?? string.Empty)
+                    EstimatedPromptTokens = _contextWindowManager.EstimateTokenCount(baseSystemPrompt ?? string.Empty),
+                    DurableRecallSkipReason = "no_conversation_messages"
                 }
             };
         }
@@ -84,7 +94,8 @@ public sealed class ContextAssemblyService : IContextAssemblyService
                     SelectedMessageCount = request.ConversationMessages.Count,
                     AnchorMessageCount = Math.Min(request.ConversationMessages.Count, request.RecentAnchorCount),
                     EstimatedMessageTokens = originalMessageTokens,
-                    EstimatedPromptTokens = originalMessageTokens + systemPromptTokens
+                    EstimatedPromptTokens = originalMessageTokens + systemPromptTokens,
+                    DurableRecallSkipReason = "history_fit_without_recall"
                 }
             };
         }
@@ -135,7 +146,11 @@ public sealed class ContextAssemblyService : IContextAssemblyService
         }
 
         var compressionResult = ConversationCompressionResult.Skip("not_needed", selection.OverflowMessages.Count);
-        var augmentedSystemPrompt = baseSystemPrompt;
+        string? overflowSummary = null;
+        string? durableRecallBlock = null;
+        var durableRecallMatchCount = 0;
+        string? durableRecallSkipReason = null;
+        var augmentationTokensUsed = 0;
         var unusedBudget = Math.Max(0, availableMessageBudget - selectedMessageTokens);
 
         if (selection.OverflowMessages.Count > 0 && unusedBudget >= 32)
@@ -155,10 +170,8 @@ public sealed class ContextAssemblyService : IContextAssemblyService
                     !string.IsNullOrWhiteSpace(compressionResult.Summary) &&
                     compressionResult.EstimatedSummaryTokens <= unusedBudget)
                 {
-                    augmentedSystemPrompt = ComposeSystemPrompt(
-                        request.SystemPrompt,
-                        request.MemoryContext,
-                        compressionResult.Summary);
+                    overflowSummary = compressionResult.Summary;
+                    augmentationTokensUsed += compressionResult.EstimatedSummaryTokens;
                 }
                 else if (!compressionResult.WasSkipped)
                 {
@@ -176,16 +189,85 @@ public sealed class ContextAssemblyService : IContextAssemblyService
             }
         }
 
+        unusedBudget = Math.Max(0, availableMessageBudget - selectedMessageTokens - augmentationTokensUsed);
+
+        if (!request.ConversationId.HasValue)
+        {
+            durableRecallSkipReason = "no_conversation_id";
+        }
+        else if (_conversationRecallService is null)
+        {
+            durableRecallSkipReason = "recall_service_unavailable";
+        }
+        else if (string.IsNullOrWhiteSpace(request.CurrentQuery))
+        {
+            durableRecallSkipReason = "empty_query";
+        }
+        else if (unusedBudget < MinRecallBudgetTokens)
+        {
+            durableRecallSkipReason = "insufficient_recall_budget";
+        }
+        else
+        {
+            try
+            {
+                var recallResults = await _conversationRecallService
+                    .SearchRelevantMessagesAsync(
+                        request.CurrentQuery,
+                        maxResults: MaxRecallResults,
+                        minSimilarity: RecallMinSimilarity,
+                        excludeConversationId: request.ConversationId.Value,
+                        ct: ct)
+                    .ConfigureAwait(false);
+
+                var filteredRecallResults = FilterRecallResults(recallResults, selectedMessages);
+                if (filteredRecallResults.Count == 0)
+                {
+                    durableRecallSkipReason = recallResults.Count == 0
+                        ? "no_recall_matches"
+                        : "duplicate_to_selected_context";
+                }
+                else
+                {
+                    var candidateRecallBlock = BuildDurableRecallBlock(filteredRecallResults);
+                    var recallTokens = _contextWindowManager.EstimateTokenCount(candidateRecallBlock);
+
+                    if (recallTokens <= unusedBudget)
+                    {
+                        durableRecallBlock = candidateRecallBlock;
+                        durableRecallMatchCount = filteredRecallResults.Count;
+                        augmentationTokensUsed += recallTokens;
+                    }
+                    else
+                    {
+                        durableRecallSkipReason = "recall_budget_exceeded";
+                    }
+                }
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.Warning(ex, "Durable recall lookup failed. Continuing without recall augmentation.");
+                durableRecallSkipReason = "recall_error";
+            }
+        }
+
+        var augmentedSystemPrompt = ComposeSystemPrompt(
+            request.SystemPrompt,
+            request.MemoryContext,
+            overflowSummary,
+            durableRecallBlock);
+
         var estimatedPromptTokens = selectedMessageTokens +
                                     _contextWindowManager.EstimateTokenCount(augmentedSystemPrompt ?? string.Empty);
 
         _logger.Debug(
-            "Context assembled: original={OriginalCount}, selected={SelectedCount}, anchors={AnchorCount}, overflow={OverflowCount}, summary={AddedSummary}, lexicalFallback={LexicalFallback}",
+            "Context assembled: original={OriginalCount}, selected={SelectedCount}, anchors={AnchorCount}, overflow={OverflowCount}, summary={AddedSummary}, recall={RecallCount}, lexicalFallback={LexicalFallback}",
             request.ConversationMessages.Count,
             selectedMessages.Count,
             anchors.Count,
             selection.OverflowMessages.Count,
             !compressionResult.WasSkipped,
+            durableRecallMatchCount,
             selection.UsedLexicalFallback);
 
         return new ContextAssemblyResult
@@ -201,8 +283,11 @@ public sealed class ContextAssemblyService : IContextAssemblyService
                 EstimatedMessageTokens = selectedMessageTokens,
                 EstimatedPromptTokens = estimatedPromptTokens,
                 AddedOverflowSummary = !compressionResult.WasSkipped,
+                AddedDurableRecall = durableRecallMatchCount > 0,
                 UsedLexicalFallback = selection.UsedLexicalFallback,
-                CompressionSkipReason = compressionResult.SkipReason
+                RecalledMessageCount = durableRecallMatchCount,
+                CompressionSkipReason = compressionResult.SkipReason,
+                DurableRecallSkipReason = durableRecallSkipReason
             }
         };
     }
@@ -235,7 +320,8 @@ public sealed class ContextAssemblyService : IContextAssemblyService
                 EstimatedPromptTokens = _contextWindowManager.EstimateTokenCount(fittedMessages) +
                                         _contextWindowManager.EstimateTokenCount(systemPrompt ?? string.Empty),
                 UsedLegacyFallback = true,
-                CompressionSkipReason = reason
+                CompressionSkipReason = reason,
+                DurableRecallSkipReason = "legacy_fallback"
             }
         };
     }
@@ -243,7 +329,8 @@ public sealed class ContextAssemblyService : IContextAssemblyService
     private static string? ComposeSystemPrompt(
         string? baseSystemPrompt,
         string? memoryContext,
-        string? overflowSummary)
+        string? overflowSummary,
+        string? durableRecallBlock)
     {
         var parts = new List<string>(3);
 
@@ -265,8 +352,65 @@ public sealed class ContextAssemblyService : IContextAssemblyService
             parts.Add(builder.ToString().Trim());
         }
 
+        if (!string.IsNullOrWhiteSpace(durableRecallBlock))
+        {
+            parts.Add(durableRecallBlock.Trim());
+        }
+
         return parts.Count == 0
             ? null
             : string.Join(Environment.NewLine + Environment.NewLine, parts);
+    }
+
+    private static IReadOnlyList<ConversationRecallResult> FilterRecallResults(
+        IReadOnlyList<ConversationRecallResult> recallResults,
+        IReadOnlyList<ChatMessage> selectedMessages)
+    {
+        if (recallResults.Count == 0)
+        {
+            return Array.Empty<ConversationRecallResult>();
+        }
+
+        var selectedNormalized = selectedMessages
+            .Select(message => NormalizeText(message.Content))
+            .Where(text => !string.IsNullOrWhiteSpace(text))
+            .ToList();
+
+        return recallResults
+            .Where(result =>
+            {
+                var normalizedPreview = NormalizeText(result.ContentPreview);
+                return !selectedNormalized.Any(existing =>
+                    existing.Contains(normalizedPreview, StringComparison.OrdinalIgnoreCase) ||
+                    normalizedPreview.Contains(existing, StringComparison.OrdinalIgnoreCase));
+            })
+            .ToList();
+    }
+
+    private static string BuildDurableRecallBlock(IReadOnlyList<ConversationRecallResult> recallResults)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("[Durable Cross-Conversation Recall]");
+        builder.AppendLine("Use only when relevant as supporting context from prior conversations.");
+
+        foreach (var recall in recallResults)
+        {
+            var roleLabel = recall.Role == "assistant" ? "Assistant" : "User";
+            builder.Append("- ");
+            builder.Append(recall.ConversationTitle);
+            builder.Append(" / ");
+            builder.Append(roleLabel);
+            builder.Append(": ");
+            builder.AppendLine(recall.ContentPreview);
+        }
+
+        return builder.ToString().Trim();
+    }
+
+    private static string NormalizeText(string content)
+    {
+        return string.Join(
+            " ",
+            content.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
     }
 }

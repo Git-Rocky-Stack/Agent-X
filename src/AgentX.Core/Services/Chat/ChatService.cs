@@ -163,6 +163,7 @@ public class ChatService : IChatService
             var assembledContext = await _contextAssemblyService.AssembleAsync(
                 new ContextAssemblyRequest
                 {
+                    ConversationId = conversationId,
                     CurrentQuery = userMessage,
                     SystemPrompt = systemPrompt,
                     MemoryContext = memoryContext,
@@ -314,6 +315,7 @@ public class ChatService : IChatService
             var assembledContext = await _contextAssemblyService.AssembleAsync(
                 new ContextAssemblyRequest
                 {
+                    ConversationId = conversationId,
                     CurrentQuery = lastUserMessage.Content,
                     SystemPrompt = conversation.SystemPrompt,
                     MemoryContext = memoryContext,
