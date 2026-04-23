@@ -114,3 +114,43 @@ public sealed record PerformanceMetrics
     /// <summary>Average tokens generated per second (TotalTokens / TotalInferenceTimeSec).</summary>
     public double AverageTokensPerSecond { get; init; }
 }
+
+/// <summary>
+/// Durable conversation-summary coverage metrics plus recent summary previews
+/// for the Analytics surface.
+/// </summary>
+public sealed record ConversationIntelligenceOverview
+{
+    /// <summary>Distinct conversations that have at least one stored summary snapshot.</summary>
+    public int SummarizedConversations { get; init; }
+
+    /// <summary>Total immutable summary snapshots persisted across all conversations.</summary>
+    public int CurrentSnapshots { get; init; }
+
+    /// <summary>Conversations with an active snapshot that is now stale.</summary>
+    public int StaleConversations { get; init; }
+
+    /// <summary>Conversations that currently need a refresh or have never been summarized.</summary>
+    public int PendingRefreshes { get; init; }
+
+    /// <summary>Most recent conversation summaries for inspection.</summary>
+    public IReadOnlyList<ConversationSummaryMetric> RecentSummaries { get; init; } = Array.Empty<ConversationSummaryMetric>();
+}
+
+/// <summary>
+/// Analytics-facing projection of the latest stored summary for a conversation.
+/// </summary>
+public sealed record ConversationSummaryMetric
+{
+    public long ConversationId { get; init; }
+    public string Title { get; init; } = string.Empty;
+    public string PreviewText { get; init; } = string.Empty;
+    public IReadOnlyList<string> KeyPoints { get; init; } = Array.Empty<string>();
+    public DateTime GeneratedAt { get; init; }
+    public DateTime? LastRefreshedAt { get; init; }
+    public int CoveredMessageCount { get; init; }
+    public int PendingMessageCount { get; init; }
+    public bool IsStale { get; init; }
+    public bool HasRefreshError { get; init; }
+    public string? LastError { get; init; }
+}

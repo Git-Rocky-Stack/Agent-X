@@ -2,6 +2,7 @@ using AgentX.Core.Data;
 using AgentX.Core.Services.Analytics.Models;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using System.Text.Json;
 
 namespace AgentX.Core.Services.Analytics;
 
@@ -12,6 +13,11 @@ namespace AgentX.Core.Services.Analytics;
 /// </summary>
 public sealed class AnalyticsService : IAnalyticsService
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     private readonly AgentXDbContext _db;
     private readonly ILogger _log;
 
@@ -301,6 +307,99 @@ public sealed class AnalyticsService : IAnalyticsService
         }
     }
 
+    // ── Conversation Intelligence ──────────────────────────────────────────
+
+    /// <inheritdoc />
+    public async Task<ConversationIntelligenceOverview> GetConversationIntelligenceAsync(
+        int maxRecent = 6,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var summarizedConversationsTask = _db.ConversationSummarySnapshots.AsNoTracking()
+                .Select(s => s.ConversationId)
+                .Distinct()
+                .CountAsync(ct);
+
+            var currentSnapshotsTask = _db.ConversationSummarySnapshots.AsNoTracking()
+                .CountAsync(ct);
+
+            var staleConversationsTask = _db.ConversationSummaryStates.AsNoTracking()
+                .CountAsync(s => s.LatestSnapshotId != null && s.IsStale, ct);
+
+            var pendingRefreshesTask = (
+                from conversation in _db.Conversations.AsNoTracking()
+                join state in _db.ConversationSummaryStates.AsNoTracking()
+                    on conversation.Id equals state.ConversationId into stateGroup
+                from state in stateGroup.DefaultIfEmpty()
+                where conversation.MessageCount > 0
+                   && (state == null || state.LatestSnapshotId == null || state.IsStale)
+                select conversation.Id)
+                .CountAsync(ct);
+
+            var recentRowsTask = (
+                from state in _db.ConversationSummaryStates.AsNoTracking()
+                join conversation in _db.Conversations.AsNoTracking()
+                    on state.ConversationId equals conversation.Id
+                join snapshot in _db.ConversationSummarySnapshots.AsNoTracking()
+                    on state.LatestSnapshotId equals snapshot.Id
+                orderby snapshot.GeneratedAt descending
+                select new
+                {
+                    conversation.Id,
+                    conversation.Title,
+                    snapshot.PreviewText,
+                    snapshot.KeyPointsJson,
+                    snapshot.GeneratedAt,
+                    snapshot.CoveredMessageCount,
+                    state.PendingMessageCount,
+                    state.IsStale,
+                    state.LastRefreshedAt,
+                    state.LastError
+                })
+                .Take(maxRecent)
+                .ToListAsync(ct);
+
+            await Task.WhenAll(
+                summarizedConversationsTask,
+                currentSnapshotsTask,
+                staleConversationsTask,
+                pendingRefreshesTask,
+                recentRowsTask);
+
+            var recentSummaries = (await recentRowsTask)
+                .Select(row => new ConversationSummaryMetric
+                {
+                    ConversationId = row.Id,
+                    Title = string.IsNullOrWhiteSpace(row.Title) ? "Untitled conversation" : row.Title,
+                    PreviewText = row.PreviewText,
+                    KeyPoints = ParseKeyPoints(row.KeyPointsJson),
+                    GeneratedAt = row.GeneratedAt,
+                    LastRefreshedAt = row.LastRefreshedAt,
+                    CoveredMessageCount = row.CoveredMessageCount,
+                    PendingMessageCount = row.PendingMessageCount,
+                    IsStale = row.IsStale,
+                    HasRefreshError = !string.IsNullOrWhiteSpace(row.LastError),
+                    LastError = row.LastError
+                })
+                .ToList();
+
+            return new ConversationIntelligenceOverview
+            {
+                SummarizedConversations = await summarizedConversationsTask,
+                CurrentSnapshots = await currentSnapshotsTask,
+                StaleConversations = await staleConversationsTask,
+                PendingRefreshes = await pendingRefreshesTask,
+                RecentSummaries = recentSummaries
+            };
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to load conversation intelligence metrics");
+            return new ConversationIntelligenceOverview();
+        }
+    }
+
     // ── Private Helpers ──────────────────────────────────────────────────────
 
     /// <summary>
@@ -345,5 +444,25 @@ public sealed class AnalyticsService : IAnalyticsService
         var index = (int)Math.Ceiling(percentile / 100.0 * sortedValues.Count);
         index = Math.Clamp(index, 1, sortedValues.Count);
         return sortedValues[index - 1];
+    }
+
+    private static IReadOnlyList<string> ParseKeyPoints(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return Array.Empty<string>();
+        }
+
+        try
+        {
+            var points = JsonSerializer.Deserialize<List<string>>(json, JsonOptions);
+            return points is null
+                ? Array.Empty<string>()
+                : points.Where(point => !string.IsNullOrWhiteSpace(point)).ToList();
+        }
+        catch (JsonException)
+        {
+            return Array.Empty<string>();
+        }
     }
 }

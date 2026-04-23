@@ -38,6 +38,8 @@ public class ConversationEntity
     // Navigation
     public ICollection<MessageEntity> Messages { get; set; } = new List<MessageEntity>();
     public ICollection<ConversationTagEntity> ConversationTags { get; set; } = new List<ConversationTagEntity>();
+    public ICollection<ConversationSummarySnapshotEntity> SummarySnapshots { get; set; } = new List<ConversationSummarySnapshotEntity>();
+    public ConversationSummaryStateEntity? SummaryState { get; set; }
 
     /// <summary>
     /// The parent conversation this branch was forked from. Null for root conversations.

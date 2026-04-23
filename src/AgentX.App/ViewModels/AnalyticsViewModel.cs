@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using AgentX.Core.Helpers;
 using AgentX.Core.Services.Analytics;
 using AgentX.Core.Services.Analytics.Models;
+using AgentX.Core.Services.Chat;
 using Serilog;
 
 namespace AgentX.App.ViewModels;
@@ -11,6 +12,7 @@ namespace AgentX.App.ViewModels;
 public partial class AnalyticsViewModel : ObservableObject, IDisposable
 {
     private readonly IAnalyticsService _analyticsService;
+    private readonly IConversationSummaryService _conversationSummaryService;
     private readonly ILogger _log;
 
     // ── Loading State ────────────────────────────────────────────────────────
@@ -69,14 +71,28 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _perfTokensPerSecond = "—";
     [ObservableProperty] private bool _hasPerformanceData;
 
+    // ── Conversation Intelligence ───────────────────────────────────────────
+
+    [ObservableProperty] private string _summarizedConversations = "0";
+    [ObservableProperty] private string _currentSummarySnapshots = "0";
+    [ObservableProperty] private string _staleConversationSummaries = "0";
+    [ObservableProperty] private string _pendingSummaryRefreshes = "0";
+    [ObservableProperty] private ObservableCollection<AnalyticsConversationSummaryItem> _recentConversationSummaries = new();
+    [ObservableProperty] private bool _hasConversationIntelligence;
+    [ObservableProperty] private bool _hasRecentConversationSummaries;
+
     // ── Computed Insights ────────────────────────────────────────────────────
 
     /// <summary>Formatted tokens per conversation (TotalTokens / TotalConversations).</summary>
     [ObservableProperty] private string _tokensPerConversation = "0";
 
-    public AnalyticsViewModel(IAnalyticsService analyticsService, ILogger logger)
+    public AnalyticsViewModel(
+        IAnalyticsService analyticsService,
+        IConversationSummaryService conversationSummaryService,
+        ILogger logger)
     {
         _analyticsService = analyticsService ?? throw new ArgumentNullException(nameof(analyticsService));
+        _conversationSummaryService = conversationSummaryService ?? throw new ArgumentNullException(nameof(conversationSummaryService));
         _log = logger?.ForContext<AnalyticsViewModel>()
                ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -92,12 +108,15 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         {
             _log.Information("Analytics: loading all metrics");
 
+            await RefreshConversationSummariesAsync(ct);
+
             await Task.WhenAll(
                 LoadSummaryAsync(ct),
                 LoadDailyTrendsAsync(ct),
                 LoadModelUsageAsync(ct),
                 LoadFileTypeDistributionAsync(ct),
-                LoadPerformanceAsync(ct));
+                LoadPerformanceAsync(ct),
+                LoadConversationIntelligenceAsync(ct));
 
             _log.Information("Analytics: all metrics loaded");
         }
@@ -291,6 +310,66 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         }
     }
 
+    private async Task RefreshConversationSummariesAsync(CancellationToken ct)
+    {
+        try
+        {
+            var refreshed = await _conversationSummaryService
+                .RefreshStaleSummariesAsync(4, ct)
+                .ConfigureAwait(false);
+
+            _log.Debug("Analytics: refreshed {Count} durable conversation summaries", refreshed);
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Analytics: durable conversation summary refresh failed");
+        }
+    }
+
+    private async Task LoadConversationIntelligenceAsync(CancellationToken ct)
+    {
+        try
+        {
+            var overview = await _analyticsService.GetConversationIntelligenceAsync(ct: ct);
+
+            SummarizedConversations = FormatNumber(overview.SummarizedConversations);
+            CurrentSummarySnapshots = FormatNumber(overview.CurrentSnapshots);
+            StaleConversationSummaries = FormatNumber(overview.StaleConversations);
+            PendingSummaryRefreshes = FormatNumber(overview.PendingRefreshes);
+
+            RecentConversationSummaries = new ObservableCollection<AnalyticsConversationSummaryItem>(
+                overview.RecentSummaries.Select(summary => new AnalyticsConversationSummaryItem
+                {
+                    ConversationId = summary.ConversationId,
+                    Title = summary.Title,
+                    PreviewText = summary.PreviewText,
+                    KeyPoints = summary.KeyPoints.ToList(),
+                    CoveredMessageCount = summary.CoveredMessageCount,
+                    GeneratedAt = summary.GeneratedAt,
+                    StatusLabel = BuildConversationSummaryStatusLabel(summary),
+                    StatusColor = summary.HasRefreshError
+                        ? "#F59E0B"
+                        : summary.IsStale
+                            ? "#C41E3A"
+                            : "#22C55E",
+                    GeneratedAtLabel = BuildRelativeTimeLabel(summary.GeneratedAt)
+                }));
+
+            HasRecentConversationSummaries = RecentConversationSummaries.Count > 0;
+            HasConversationIntelligence = overview.SummarizedConversations > 0
+                || overview.CurrentSnapshots > 0
+                || overview.StaleConversations > 0
+                || overview.PendingRefreshes > 0;
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Analytics: failed to load conversation intelligence");
+            RecentConversationSummaries = new ObservableCollection<AnalyticsConversationSummaryItem>();
+            HasRecentConversationSummaries = false;
+            HasConversationIntelligence = false;
+        }
+    }
+
     // ── Commands ─────────────────────────────────────────────────────────────
 
     [RelayCommand]
@@ -343,6 +422,45 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         ms >= 60_000 ? $"{ms / 60_000.0:F1} min"
         : ms >= 1_000 ? $"{ms / 1_000.0:F2} s"
         : $"{ms:F0} ms";
+
+    private static string BuildConversationSummaryStatusLabel(ConversationSummaryMetric summary)
+    {
+        if (summary.HasRefreshError)
+        {
+            return "Refresh issue";
+        }
+
+        if (summary.IsStale && summary.PendingMessageCount > 0)
+        {
+            return summary.PendingMessageCount == 1
+                ? "1 new message"
+                : $"{summary.PendingMessageCount} new messages";
+        }
+
+        return "Current";
+    }
+
+    private static string BuildRelativeTimeLabel(DateTime generatedAt)
+    {
+        var elapsed = DateTime.UtcNow - generatedAt;
+        if (elapsed < TimeSpan.FromMinutes(1))
+        {
+            return "just now";
+        }
+
+        if (elapsed < TimeSpan.FromHours(1))
+        {
+            return $"{Math.Max(1, (int)elapsed.TotalMinutes)} min ago";
+        }
+
+        if (elapsed < TimeSpan.FromDays(1))
+        {
+            return $"{Math.Max(1, (int)elapsed.TotalHours)} hr ago";
+        }
+
+        var days = Math.Max(1, (int)elapsed.TotalDays);
+        return days == 1 ? "1 day ago" : $"{days} days ago";
+    }
 
     public void Dispose()
     {
@@ -400,6 +518,27 @@ public sealed class AnalyticsFileTypeItem
     public string Color             { get; init; } = "#3B82F6";
     public string PercentageLabel   { get; init; } = string.Empty;
     public string CountLabel        { get; init; } = string.Empty;
+}
+
+/// <summary>
+/// Represents one persisted conversation summary preview for the Analytics page.
+/// </summary>
+public sealed class AnalyticsConversationSummaryItem
+{
+    public long ConversationId { get; init; }
+    public string Title { get; init; } = string.Empty;
+    public string PreviewText { get; init; } = string.Empty;
+    public IReadOnlyList<string> KeyPoints { get; init; } = Array.Empty<string>();
+    public int CoveredMessageCount { get; init; }
+    public DateTime GeneratedAt { get; init; }
+    public string GeneratedAtLabel { get; init; } = string.Empty;
+    public string StatusLabel { get; init; } = string.Empty;
+    public string StatusColor { get; init; } = "#22C55E";
+    public bool HasKeyPoints => KeyPoints.Count > 0;
+    public string KeyPointsPreview => string.Join(" · ", KeyPoints);
+    public string CoverageLabel => CoveredMessageCount == 1
+        ? "1 message covered"
+        : $"{CoveredMessageCount} messages covered";
 }
 
 // ─── Task tuple extension ────────────────────────────────────────────────────

@@ -49,4 +49,11 @@ public interface IAnalyticsService
     /// Returns a zeroed-out <see cref="PerformanceMetrics"/> when no timed messages exist.
     /// </summary>
     Task<PerformanceMetrics> GetPerformanceMetricsAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Returns durable conversation-summary coverage metrics and recent summary previews.
+    /// </summary>
+    Task<ConversationIntelligenceOverview> GetConversationIntelligenceAsync(
+        int maxRecent = 6,
+        CancellationToken ct = default);
 }

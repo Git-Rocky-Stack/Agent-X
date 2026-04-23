@@ -10,6 +10,8 @@ public class AgentXDbContext : DbContext
     // DbSets for all entities
     public DbSet<ConversationEntity> Conversations => Set<ConversationEntity>();
     public DbSet<MessageEntity> Messages => Set<MessageEntity>();
+    public DbSet<ConversationSummarySnapshotEntity> ConversationSummarySnapshots => Set<ConversationSummarySnapshotEntity>();
+    public DbSet<ConversationSummaryStateEntity> ConversationSummaryStates => Set<ConversationSummaryStateEntity>();
     public DbSet<DocumentEntity> Documents => Set<DocumentEntity>();
     public DbSet<DocumentChunkEntity> DocumentChunks => Set<DocumentChunkEntity>();
     public DbSet<CollectionEntity> Collections => Set<CollectionEntity>();
@@ -97,6 +99,8 @@ public class AgentXDbContext : DbContext
 
         ConfigureConversation(modelBuilder);
         ConfigureMessage(modelBuilder);
+        ConfigureConversationSummarySnapshot(modelBuilder);
+        ConfigureConversationSummaryState(modelBuilder);
         ConfigureDocument(modelBuilder);
         ConfigureDocumentChunk(modelBuilder);
         ConfigureCollection(modelBuilder);
@@ -173,6 +177,65 @@ public class AgentXDbContext : DbContext
 
             // Indexes
             entity.HasIndex(e => new { e.ConversationId, e.SortOrder });
+        });
+    }
+
+    private static void ConfigureConversationSummarySnapshot(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ConversationSummarySnapshotEntity>(entity =>
+        {
+            entity.ToTable("conversation_summary_snapshots");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.ConversationId).IsRequired();
+            entity.Property(e => e.SnapshotVersion).IsRequired();
+            entity.Property(e => e.SummaryText).IsRequired();
+            entity.Property(e => e.PreviewText).IsRequired();
+            entity.Property(e => e.KeyPointsJson).IsRequired().HasDefaultValue("[]");
+            entity.Property(e => e.CoveredMessageCount).IsRequired();
+            entity.Property(e => e.GeneratedAt).IsRequired();
+            entity.Property(e => e.SourceConversationUpdatedAt).IsRequired();
+            entity.Property(e => e.IsIncremental).IsRequired();
+
+            entity.HasOne(e => e.Conversation)
+                .WithMany(c => c.SummarySnapshots)
+                .HasForeignKey(e => e.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => new { e.ConversationId, e.SnapshotVersion }).IsUnique();
+            entity.HasIndex(e => e.GeneratedAt);
+            entity.HasIndex(e => e.ConversationId);
+        });
+    }
+
+    private static void ConfigureConversationSummaryState(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ConversationSummaryStateEntity>(entity =>
+        {
+            entity.ToTable("conversation_summary_states");
+            entity.HasKey(e => e.ConversationId);
+
+            entity.Property(e => e.ConversationId).IsRequired();
+            entity.Property(e => e.LatestSnapshotVersion).IsRequired();
+            entity.Property(e => e.LastCoveredMessageCount).IsRequired();
+            entity.Property(e => e.PendingMessageCount).IsRequired();
+            entity.Property(e => e.IsStale).IsRequired();
+            entity.Property(e => e.ConsecutiveFailureCount).IsRequired();
+
+            entity.HasOne(e => e.Conversation)
+                .WithOne(c => c.SummaryState)
+                .HasForeignKey<ConversationSummaryStateEntity>(e => e.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.LatestSnapshot)
+                .WithMany()
+                .HasForeignKey(e => e.LatestSnapshotId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
+            entity.HasIndex(e => e.IsStale);
+            entity.HasIndex(e => e.LastRefreshedAt);
+            entity.HasIndex(e => e.LatestSnapshotId);
         });
     }
 

@@ -215,6 +215,102 @@ namespace AgentX.Core.Data.Migrations
                     b.ToTable("conversations", (string)null);
                 });
 
+            modelBuilder.Entity("AgentX.Core.Data.Entities.ConversationSummarySnapshotEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("ConversationId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CoveredMessageCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("GeneratedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsIncremental")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("KeyPointsJson")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("[]");
+
+                    b.Property<string>("PreviewText")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("SourceConversationUpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SnapshotVersion")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SummaryText")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId");
+
+                    b.HasIndex("GeneratedAt");
+
+                    b.HasIndex("ConversationId", "SnapshotVersion")
+                        .IsUnique();
+
+                    b.ToTable("conversation_summary_snapshots", (string)null);
+                });
+
+            modelBuilder.Entity("AgentX.Core.Data.Entities.ConversationSummaryStateEntity", b =>
+                {
+                    b.Property<long>("ConversationId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ConsecutiveFailureCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsStale")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("LastCoveredMessageCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("LastError")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LastRefreshAttemptedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LastRefreshRequestedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LastRefreshedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("LatestSnapshotId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("LatestSnapshotVersion")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PendingMessageCount")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("ConversationId");
+
+                    b.HasIndex("IsStale");
+
+                    b.HasIndex("LastRefreshedAt");
+
+                    b.HasIndex("LatestSnapshotId");
+
+                    b.ToTable("conversation_summary_states", (string)null);
+                });
+
             modelBuilder.Entity("AgentX.Core.Data.Entities.ConversationTagEntity", b =>
                 {
                     b.Property<long>("ConversationId")
@@ -1364,6 +1460,35 @@ namespace AgentX.Core.Data.Migrations
                     b.Navigation("ParentConversation");
                 });
 
+            modelBuilder.Entity("AgentX.Core.Data.Entities.ConversationSummarySnapshotEntity", b =>
+                {
+                    b.HasOne("AgentX.Core.Data.Entities.ConversationEntity", "Conversation")
+                        .WithMany("SummarySnapshots")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+                });
+
+            modelBuilder.Entity("AgentX.Core.Data.Entities.ConversationSummaryStateEntity", b =>
+                {
+                    b.HasOne("AgentX.Core.Data.Entities.ConversationEntity", "Conversation")
+                        .WithOne("SummaryState")
+                        .HasForeignKey("AgentX.Core.Data.Entities.ConversationSummaryStateEntity", "ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgentX.Core.Data.Entities.ConversationSummarySnapshotEntity", "LatestSnapshot")
+                        .WithMany()
+                        .HasForeignKey("LatestSnapshotId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Conversation");
+
+                    b.Navigation("LatestSnapshot");
+                });
+
             modelBuilder.Entity("AgentX.Core.Data.Entities.ConversationTagEntity", b =>
                 {
                     b.HasOne("AgentX.Core.Data.Entities.ConversationEntity", "Conversation")
@@ -1511,6 +1636,10 @@ namespace AgentX.Core.Data.Migrations
                     b.Navigation("ConversationTags");
 
                     b.Navigation("Messages");
+
+                    b.Navigation("SummarySnapshots");
+
+                    b.Navigation("SummaryState");
                 });
 
             modelBuilder.Entity("AgentX.Core.Data.Entities.DocumentEntity", b =>

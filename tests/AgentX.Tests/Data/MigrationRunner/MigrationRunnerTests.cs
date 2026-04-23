@@ -117,13 +117,14 @@ public class MigrationRunnerTests
         {
             // Simulate pre-migration install: schema present, no __EFMigrationsHistory.
             // Baseline adoption must handle this case by stamping the initial baseline
-            // migration as applied without re-running its SQL. With the C13 key-storage
-            // hotfix, encryption state lives in a sibling marker file rather than as
-            // columns on user_settings — so the current model and the InitialBaseline
-            // schema are in sync, and no extra column-dropping is required to simulate
-            // a pre-migration install.
+            // migration as applied without re-running its SQL. The fixture starts from
+            // the current model via EnsureCreated(), so we drop any tables introduced
+            // after the initial baseline to mimic an older pre-migration install before
+            // invoking the runner.
             await ctx.Database.EnsureCreatedAsync();
             await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS __EFMigrationsHistory;");
+            await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS conversation_summary_states;");
+            await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS conversation_summary_snapshots;");
 
             IMigrationRunner runner = new Core.Data.MigrationRunner.MigrationRunner(ctx);
 

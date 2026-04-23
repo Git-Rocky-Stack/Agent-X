@@ -52,6 +52,11 @@ public static class AppConstants
     public const int MaxBranchDepth = 100;
     public const int MaxBranchIterations = 100;
     public const int ContextWindowTokenReserve = 1024;
+    public const int MaxConversationSummarySourceChars = 12_000;
+    public const int MaxConversationSummaryTailChars = 6_000;
+    public const int MaxConversationSummaryPreviewChars = 220;
+    public const int MaxConversationSummaryKeyPoints = 5;
+    public const int MaxConversationSummaryRecentItems = 6;
 
     // ── Timeouts ──────────────────────────────────────────────────
     public static readonly TimeSpan StatusBarPollInterval = TimeSpan.FromSeconds(30);
