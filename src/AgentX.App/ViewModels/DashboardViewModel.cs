@@ -5,9 +5,15 @@ using AgentX.Core.AI;
 using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
 using AgentX.Core.Search;
+using AgentX.Core.Services.Analytics;
+using AgentX.Core.Services.Analytics.Models;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Collections;
+using AgentX.Core.Services.Inbox;
 using AgentX.Core.Services.Indexing;
+using AgentX.Core.Services.Sync;
+using AgentX.Core.Services.Sync.Models;
+using AgentX.Core.Services.Workflows;
 using Serilog;
 
 namespace AgentX.App.ViewModels;
@@ -22,6 +28,10 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     private readonly ICollectionService _collectionService;
     private readonly IIndexingService _indexingService;
     private readonly IRagPipeline _ragPipeline;
+    private readonly IAnalyticsService _analyticsService;
+    private readonly IInboxService _inboxService;
+    private readonly ISyncService _syncService;
+    private readonly IWorkflowService _workflowService;
 
     // ── AI Status ───────────────────────────────────────────
     [ObservableProperty] private bool _isOllamaConnected;
@@ -46,6 +56,20 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _appVersion = "1.0.0";
     [ObservableProperty] private string _totalRamInfo = "-- GB total";
     [ObservableProperty] private string _gpuVramInfo = "-- VRAM";
+
+    // ── Operations Overview ───────────────────────────────────
+    [ObservableProperty] private string _conversationIntelligenceHeadline = "0";
+    [ObservableProperty] private string _conversationIntelligenceStatus = "Durable recall inactive";
+    [ObservableProperty] private string _conversationIntelligenceDetail = "No stored conversation summaries yet.";
+    [ObservableProperty] private string _syncHealthHeadline = "Not configured";
+    [ObservableProperty] private string _syncHealthStatus = "Collaborative sync is off";
+    [ObservableProperty] private string _syncHealthDetail = "Configure a shared folder to synchronize multiple installations.";
+    [ObservableProperty] private string _inboxHeadline = "0";
+    [ObservableProperty] private string _inboxStatus = "Queue clear";
+    [ObservableProperty] private string _inboxDetail = "No items awaiting triage.";
+    [ObservableProperty] private string _workflowHeadline = "0";
+    [ObservableProperty] private string _workflowStatus = "Ready to automate";
+    [ObservableProperty] private string _workflowDetail = "No workflows available yet.";
 
     // ── Indexing ─────────────────────────────────────────────
     [ObservableProperty] private int _indexedPercent;
@@ -78,7 +102,11 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         IHardwareDetector hardwareDetector,
         ICollectionService collectionService,
         IIndexingService indexingService,
-        IRagPipeline ragPipeline)
+        IRagPipeline ragPipeline,
+        IAnalyticsService analyticsService,
+        IInboxService inboxService,
+        ISyncService syncService,
+        IWorkflowService workflowService)
     {
         _aiService = aiService;
         _conversationService = conversationService;
@@ -87,6 +115,10 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         _collectionService = collectionService;
         _indexingService = indexingService;
         _ragPipeline = ragPipeline;
+        _analyticsService = analyticsService;
+        _inboxService = inboxService;
+        _syncService = syncService;
+        _workflowService = workflowService;
         Log.Debug("DashboardViewModel created with services");
     }
 
@@ -102,7 +134,8 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             LoadSystemInfoAsync(),
             LoadRecentActivityAsync(),
             LoadInsightsAsync(),
-            LoadIndexingStatusAsync());
+            LoadIndexingStatusAsync(),
+            LoadOperationsOverviewAsync());
 
         Log.Information("Dashboard initialized");
     }
@@ -313,6 +346,46 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         }
     }
 
+    private async Task LoadOperationsOverviewAsync()
+    {
+        try
+        {
+            var analyticsSummaryTask = _analyticsService.GetSummaryAsync();
+            var conversationIntelligenceTask = _analyticsService.GetConversationIntelligenceAsync(maxRecent: 3);
+            var pendingInboxTask = _inboxService.GetPendingCountAsync();
+            var workflowsTask = _workflowService.GetAllWorkflowsAsync();
+            var syncConfigTask = _syncService.GetConfigurationAsync();
+
+            await Task.WhenAll(
+                analyticsSummaryTask,
+                conversationIntelligenceTask,
+                pendingInboxTask,
+                workflowsTask,
+                syncConfigTask);
+
+            ApplyConversationIntelligence(await conversationIntelligenceTask);
+            ApplyInboxBacklog(await pendingInboxTask);
+            ApplyWorkflowActivity(await analyticsSummaryTask, await workflowsTask);
+            ApplySyncHealth(await syncConfigTask, _syncService.Status);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to load dashboard operations overview");
+            ConversationIntelligenceHeadline = "0";
+            ConversationIntelligenceStatus = "Durable recall inactive";
+            ConversationIntelligenceDetail = "Open Analytics to inspect summary coverage.";
+            InboxHeadline = "0";
+            InboxStatus = "Queue clear";
+            InboxDetail = "No items awaiting triage.";
+            WorkflowHeadline = "0";
+            WorkflowStatus = "Ready to automate";
+            WorkflowDetail = "Open Workflows to create or run automations.";
+            SyncHealthHeadline = "Unavailable";
+            SyncHealthStatus = "Sync status unavailable";
+            SyncHealthDetail = "Open Collaborative Sync for details.";
+        }
+    }
+
     // ── Commands ─────────────────────────────────────────────
 
     [RelayCommand]
@@ -365,6 +438,34 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
+    private void NavigateToAnalytics()
+    {
+        Log.Debug("Navigate to Analytics requested from Dashboard");
+        NavigateRequested?.Invoke("Analytics");
+    }
+
+    [RelayCommand]
+    private void NavigateToInbox()
+    {
+        Log.Debug("Navigate to Smart Inbox requested from Dashboard");
+        NavigateRequested?.Invoke("Inbox");
+    }
+
+    [RelayCommand]
+    private void NavigateToWorkflows()
+    {
+        Log.Debug("Navigate to Workflows requested from Dashboard");
+        NavigateRequested?.Invoke("Workflows");
+    }
+
+    [RelayCommand]
+    private void NavigateToSyncSettings()
+    {
+        Log.Debug("Navigate to Collaborative Sync requested from Dashboard");
+        NavigateRequested?.Invoke("SyncSettings");
+    }
+
+    [RelayCommand]
     private Task QuickSearchAsync()
     {
         if (string.IsNullOrWhiteSpace(QuickSearchQuery)) return Task.CompletedTask;
@@ -372,6 +473,110 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         NavigateRequested?.Invoke("Search");
         return Task.CompletedTask;
     }
+
+    private void ApplyConversationIntelligence(ConversationIntelligenceOverview overview)
+    {
+        ConversationIntelligenceHeadline = FormatCompactNumber(overview.SummarizedConversations);
+
+        ConversationIntelligenceStatus = overview.PendingRefreshes switch
+        {
+            > 1 => $"{overview.PendingRefreshes} refreshes pending",
+            1 => "1 refresh pending",
+            _ when overview.StaleConversations > 1 => $"{overview.StaleConversations} stale summaries",
+            _ when overview.StaleConversations == 1 => "1 stale summary",
+            _ when overview.SummarizedConversations > 0 => "Durable recall current",
+            _ => "Durable recall inactive"
+        };
+
+        var latestSummary = overview.RecentSummaries.FirstOrDefault();
+        ConversationIntelligenceDetail = latestSummary is null
+            ? "Open Analytics to inspect summary coverage and recent snapshots."
+            : $"{FormatCompactNumber(overview.CurrentSnapshots)} stored snapshots · latest {FormatHelper.TimeAgoWithMonths(latestSummary.GeneratedAt)}";
+    }
+
+    private void ApplyInboxBacklog(int pendingCount)
+    {
+        InboxHeadline = FormatCompactNumber(pendingCount);
+        InboxStatus = pendingCount switch
+        {
+            > 1 => $"{pendingCount} items awaiting triage",
+            1 => "1 item awaiting triage",
+            _ => "Queue clear"
+        };
+        InboxDetail = pendingCount > 0
+            ? "Open Smart Inbox to accept, defer, or reject pending items."
+            : "Watched folders and connector imports will surface here.";
+    }
+
+    private void ApplyWorkflowActivity(AnalyticsSummary summary, IReadOnlyList<Core.Data.Entities.WorkflowEntity> workflows)
+    {
+        WorkflowHeadline = FormatCompactNumber(summary.TotalWorkflowRuns);
+
+        var enabledCount = workflows.Count(workflow => workflow.IsEnabled);
+        var topWorkflow = workflows
+            .Where(workflow => workflow.RunCount > 0)
+            .OrderByDescending(workflow => workflow.RunCount)
+            .FirstOrDefault();
+
+        WorkflowStatus = summary.TotalWorkflowRuns switch
+        {
+            > 1 => $"{FormatCompactNumber(summary.TotalWorkflowRuns)} runs recorded",
+            1 => "1 run recorded",
+            _ => "Ready to automate"
+        };
+
+        WorkflowDetail = topWorkflow is not null
+            ? $"{FormatCompactNumber(enabledCount)} workflows available · top: {topWorkflow.Name}"
+            : enabledCount switch
+            {
+                > 1 => $"{FormatCompactNumber(enabledCount)} workflows available in the builder.",
+                1 => "1 workflow available in the builder.",
+                _ => "Create or enable a workflow to start automating multi-step tasks."
+            };
+    }
+
+    private void ApplySyncHealth(SyncConfiguration? config, SyncStatus status)
+    {
+        if (config is null || string.IsNullOrWhiteSpace(config.SyncFolderPath))
+        {
+            SyncHealthHeadline = "Not configured";
+            SyncHealthStatus = "Collaborative sync is off";
+            SyncHealthDetail = "Configure a shared folder to keep multiple installations aligned.";
+            return;
+        }
+
+        SyncHealthHeadline = status.SyncState switch
+        {
+            SyncState.Syncing => "Syncing now",
+            SyncState.Conflict => "Conflict detected",
+            SyncState.Error => "Needs attention",
+            _ when status.LastSyncAt.HasValue => FormatHelper.TimeAgoWithMonths(status.LastSyncAt.Value),
+            _ => "Configured"
+        };
+
+        SyncHealthStatus = status.SyncState switch
+        {
+            SyncState.Syncing => "Exchange in progress",
+            SyncState.Conflict => "Resolve sync conflicts",
+            SyncState.Error => "Review sync health",
+            _ when status.PendingChanges > 1 => $"{status.PendingChanges} local changes pending",
+            _ when status.PendingChanges == 1 => "1 local change pending",
+            _ => "Standing by"
+        };
+
+        SyncHealthDetail = !string.IsNullOrWhiteSpace(status.ErrorMessage)
+            ? status.ErrorMessage
+            : config.SyncScope == SyncScope.SelectedCollections
+                ? "Scoped to selected collections."
+                : "Syncing the full workspace.";
+    }
+
+    private static string FormatCompactNumber(int value) => FormatCompactNumber((long)value);
+
+    private static string FormatCompactNumber(long value) =>
+        value >= 1_000_000 ? $"{value / 1_000_000.0:F1}M"
+        : value >= 1_000 ? $"{value / 1_000.0:F1}K"
+        : value.ToString();
 
     public void Dispose()
     {

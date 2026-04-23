@@ -56,6 +56,8 @@
     <Compile Include="..\..\src\AgentX.App\ViewModels\ComparisonViewModel.cs" Link="ViewModels\ComparisonViewModel.cs" />
     <!-- AnalyticsViewModel is pure orchestration/state logic over core services; link it for persistent intelligence UI tests. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\AnalyticsViewModel.cs" Link="ViewModels\AnalyticsViewModel.cs" />
+    <!-- DashboardViewModel is pure orchestration/state logic; link it for dashboard cohesion tests. -->
+    <Compile Include="..\..\src\AgentX.App\ViewModels\DashboardViewModel.cs" Link="ViewModels\DashboardViewModel.cs" />
     <!-- SyncSettingsViewModel is pure sync orchestration/state logic; link it for selected-scope UI tests. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\SyncSettingsViewModel.cs" Link="ViewModels\SyncSettingsViewModel.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\Sync\SyncLogDisplayItem.cs" Link="ViewModels\Sync\SyncLogDisplayItem.cs" />

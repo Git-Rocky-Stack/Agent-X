@@ -27,6 +27,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <!-- ==========================================================
@@ -258,9 +259,175 @@
             </Grid>
 
             <!-- ==========================================================
-                 ROW 4: RECENT ACTIVITY (2 columns)
+                 ROW 4: OPERATIONS OVERVIEW
                  ========================================================== -->
-            <Grid Grid.Row="4" ColumnSpacing="16">
+            <StackPanel Grid.Row="4" Spacing="16">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Operations Overview"
+                               Style="{StaticResource HeadingMediumStyle}" />
+                    <TextBlock Text="Conversation intelligence, sync posture, inbox backlog, and workflow activity from one surface."
+                               Style="{StaticResource BodySecondaryStyle}"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+
+                <Grid ColumnSpacing="16" RowSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Style="{StaticResource CardStyle}" MinHeight="196">
+                        <Grid RowSpacing="16">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Spacing="10">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE9D2;" FontSize="14"
+                                              Foreground="{StaticResource TextAccentBrush}" />
+                                    <TextBlock Text="CONVERSATION INTELLIGENCE"
+                                               Style="{StaticResource OverlineStyle}" />
+                                </StackPanel>
+                                <TextBlock Text="{x:Bind ViewModel.ConversationIntelligenceHeadline, Mode=OneWay}"
+                                           Style="{StaticResource HeadingSmallStyle}" />
+                                <TextBlock Text="{x:Bind ViewModel.ConversationIntelligenceStatus, Mode=OneWay}"
+                                           Style="{StaticResource BodyStyle}"
+                                           FontWeight="SemiBold"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Text="{x:Bind ViewModel.ConversationIntelligenceDetail, Mode=OneWay}"
+                                           Style="{StaticResource CaptionStyle}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <Button Grid.Row="2"
+                                    Content="Open Analytics"
+                                    Style="{StaticResource GhostButtonStyle}"
+                                    HorizontalAlignment="Left"
+                                    Padding="8,4"
+                                    FontSize="12"
+                                    Command="{x:Bind ViewModel.NavigateToAnalyticsCommand}" />
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Column="1" Style="{StaticResource CardStyle}" MinHeight="196">
+                        <Grid RowSpacing="16">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Spacing="10">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE895;" FontSize="14"
+                                              Foreground="{StaticResource InfoBrush}" />
+                                    <TextBlock Text="SYNC HEALTH"
+                                               Style="{StaticResource OverlineStyle}" />
+                                </StackPanel>
+                                <TextBlock Text="{x:Bind ViewModel.SyncHealthHeadline, Mode=OneWay}"
+                                           Style="{StaticResource HeadingSmallStyle}" />
+                                <TextBlock Text="{x:Bind ViewModel.SyncHealthStatus, Mode=OneWay}"
+                                           Style="{StaticResource BodyStyle}"
+                                           FontWeight="SemiBold"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Text="{x:Bind ViewModel.SyncHealthDetail, Mode=OneWay}"
+                                           Style="{StaticResource CaptionStyle}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <Button Grid.Row="2"
+                                    Content="Open Sync"
+                                    Style="{StaticResource GhostButtonStyle}"
+                                    HorizontalAlignment="Left"
+                                    Padding="8,4"
+                                    FontSize="12"
+                                    Command="{x:Bind ViewModel.NavigateToSyncSettingsCommand}" />
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Column="2" Style="{StaticResource CardStyle}" MinHeight="196">
+                        <Grid RowSpacing="16">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Spacing="10">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE8B7;" FontSize="14"
+                                              Foreground="{StaticResource WarningBrush}" />
+                                    <TextBlock Text="SMART INBOX"
+                                               Style="{StaticResource OverlineStyle}" />
+                                </StackPanel>
+                                <TextBlock Text="{x:Bind ViewModel.InboxHeadline, Mode=OneWay}"
+                                           Style="{StaticResource HeadingSmallStyle}" />
+                                <TextBlock Text="{x:Bind ViewModel.InboxStatus, Mode=OneWay}"
+                                           Style="{StaticResource BodyStyle}"
+                                           FontWeight="SemiBold"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Text="{x:Bind ViewModel.InboxDetail, Mode=OneWay}"
+                                           Style="{StaticResource CaptionStyle}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <Button Grid.Row="2"
+                                    Content="Open Inbox"
+                                    Style="{StaticResource GhostButtonStyle}"
+                                    HorizontalAlignment="Left"
+                                    Padding="8,4"
+                                    FontSize="12"
+                                    Command="{x:Bind ViewModel.NavigateToInboxCommand}" />
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Column="3" Style="{StaticResource CardStyle}" MinHeight="196">
+                        <Grid RowSpacing="16">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Spacing="10">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE8C7;" FontSize="14"
+                                              Foreground="{StaticResource SuccessBrush}" />
+                                    <TextBlock Text="WORKFLOW ACTIVITY"
+                                               Style="{StaticResource OverlineStyle}" />
+                                </StackPanel>
+                                <TextBlock Text="{x:Bind ViewModel.WorkflowHeadline, Mode=OneWay}"
+                                           Style="{StaticResource HeadingSmallStyle}" />
+                                <TextBlock Text="{x:Bind ViewModel.WorkflowStatus, Mode=OneWay}"
+                                           Style="{StaticResource BodyStyle}"
+                                           FontWeight="SemiBold"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Text="{x:Bind ViewModel.WorkflowDetail, Mode=OneWay}"
+                                           Style="{StaticResource CaptionStyle}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <Button Grid.Row="2"
+                                    Content="Open Workflows"
+                                    Style="{StaticResource GhostButtonStyle}"
+                                    HorizontalAlignment="Left"
+                                    Padding="8,4"
+                                    FontSize="12"
+                                    Command="{x:Bind ViewModel.NavigateToWorkflowsCommand}" />
+                        </Grid>
+                    </Border>
+                </Grid>
+            </StackPanel>
+
+            <!-- ==========================================================
+                 ROW 5: RECENT ACTIVITY (2 columns)
+                 ========================================================== -->
+            <Grid Grid.Row="5" ColumnSpacing="16">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
@@ -469,9 +636,9 @@
             </Grid>
 
             <!-- ==========================================================
-                 ROW 5: KNOWLEDGE INSIGHTS (2 columns)
+                 ROW 6: KNOWLEDGE INSIGHTS (2 columns)
                  ========================================================== -->
-            <Grid Grid.Row="5" ColumnSpacing="16">
+            <Grid Grid.Row="6" ColumnSpacing="16">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
@@ -618,9 +785,9 @@
             </Grid>
 
             <!-- ==========================================================
-                 ROW 6: QUICK ACTIONS BAR (4 action buttons)
+                 ROW 7: QUICK ACTIONS BAR (4 action buttons)
                  ========================================================== -->
-            <Grid Grid.Row="6" ColumnSpacing="12">
+            <Grid Grid.Row="7" ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
@@ -698,9 +865,9 @@
             </Grid>
 
             <!-- ==========================================================
-                 ROW 7: SYSTEM INFO (compact horizontal bar)
+                 ROW 8: SYSTEM INFO (compact horizontal bar)
                  ========================================================== -->
-            <Border Grid.Row="7" Style="{StaticResource CardStyle}">
+            <Border Grid.Row="8" Style="{StaticResource CardStyle}">
                 <Grid ColumnSpacing="24">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -769,9 +936,9 @@
             </Border>
 
             <!-- ==========================================================
-                 ROW 8: PRIVACY FOOTER
+                 ROW 9: PRIVACY FOOTER
                  ========================================================== -->
-            <Border Grid.Row="8"
+            <Border Grid.Row="9"
                     Style="{StaticResource CardInsetStyle}"
                     Padding="20,14">
                 <StackPanel Orientation="Horizontal" Spacing="12">
