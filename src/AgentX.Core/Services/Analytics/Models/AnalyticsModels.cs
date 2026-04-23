@@ -195,3 +195,41 @@ public sealed record ConversationThemeClusterMetric
     public DateTime MaterializedAt { get; init; }
     public IReadOnlyList<string> RecentConversationTitles { get; init; } = Array.Empty<string>();
 }
+
+/// <summary>
+/// Durable daily trend overview for materialized conversation themes.
+/// </summary>
+public sealed record ConversationThemeTrendOverview
+{
+    public int TrendingThemes { get; init; }
+    public int NewThemeEntries7d { get; init; }
+    public string MostActiveThemeLabel { get; init; } = string.Empty;
+    public DateTime? LastTrendRefresh { get; init; }
+    public IReadOnlyList<ConversationThemeTrendMetric> Trends { get; init; } = Array.Empty<ConversationThemeTrendMetric>();
+}
+
+/// <summary>
+/// Analytics-facing projection of one durable theme's recent daily movement.
+/// </summary>
+public sealed record ConversationThemeTrendMetric
+{
+    public long ClusterId { get; init; }
+    public string Label { get; init; } = string.Empty;
+    public string PreviewText { get; init; } = string.Empty;
+    public int Recent7DayActivity { get; init; }
+    public int Previous7DayActivity { get; init; }
+    public int Recent7DayNewEntries { get; init; }
+    public DateTime LastActiveAt { get; init; }
+    public IReadOnlyList<ConversationThemeDailyPoint> DailySeries { get; init; } = Array.Empty<ConversationThemeDailyPoint>();
+}
+
+/// <summary>
+/// One persisted daily point for a durable conversation theme.
+/// </summary>
+public sealed record ConversationThemeDailyPoint
+{
+    public DateTime Date { get; init; }
+    public int ActiveConversationCount { get; init; }
+    public int NewConversationCount { get; init; }
+    public int SnapshotRefreshCount { get; init; }
+}

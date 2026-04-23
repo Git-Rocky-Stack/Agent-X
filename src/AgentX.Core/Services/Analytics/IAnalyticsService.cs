@@ -68,4 +68,13 @@ public interface IAnalyticsService
     Task<ConversationThemeOverview> GetConversationThemeOverviewAsync(
         int maxClusters = 6,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Returns durable daily trend metrics for conversation themes plus a
+    /// bounded list of top trend rows for Analytics.
+    /// </summary>
+    Task<ConversationThemeTrendOverview> GetConversationThemeTrendOverviewAsync(
+        int maxThemes = 5,
+        int days = 30,
+        CancellationToken ct = default);
 }

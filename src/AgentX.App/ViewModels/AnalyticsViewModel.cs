@@ -16,6 +16,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     private readonly IConversationRecallService _conversationRecallService;
     private readonly IConversationSummaryService _conversationSummaryService;
     private readonly IConversationThemeClusterService _conversationThemeClusterService;
+    private readonly IConversationThemeTrendService _conversationThemeTrendService;
     private readonly ILogger _log;
 
     // ── Loading State ────────────────────────────────────────────────────────
@@ -107,6 +108,15 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _hasConversationThemes;
     [ObservableProperty] private bool _hasConversationThemeClusters;
 
+    // ── Theme Trends ────────────────────────────────────────────────────────
+
+    [ObservableProperty] private string _trendingThemes = "0";
+    [ObservableProperty] private string _newThemeEntries7d = "0";
+    [ObservableProperty] private string _mostActiveTheme = "No trend data yet";
+    [ObservableProperty] private string _lastThemeTrendRefresh = "No trends yet";
+    [ObservableProperty] private ObservableCollection<AnalyticsConversationThemeTrendItem> _conversationThemeTrends = new();
+    [ObservableProperty] private bool _hasConversationThemeTrends;
+
     // ── Computed Insights ────────────────────────────────────────────────────
 
     /// <summary>Formatted tokens per conversation (TotalTokens / TotalConversations).</summary>
@@ -117,12 +127,14 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         IConversationRecallService conversationRecallService,
         IConversationSummaryService conversationSummaryService,
         IConversationThemeClusterService conversationThemeClusterService,
+        IConversationThemeTrendService conversationThemeTrendService,
         ILogger logger)
     {
         _analyticsService = analyticsService ?? throw new ArgumentNullException(nameof(analyticsService));
         _conversationRecallService = conversationRecallService ?? throw new ArgumentNullException(nameof(conversationRecallService));
         _conversationSummaryService = conversationSummaryService ?? throw new ArgumentNullException(nameof(conversationSummaryService));
         _conversationThemeClusterService = conversationThemeClusterService ?? throw new ArgumentNullException(nameof(conversationThemeClusterService));
+        _conversationThemeTrendService = conversationThemeTrendService ?? throw new ArgumentNullException(nameof(conversationThemeTrendService));
         _log = logger?.ForContext<AnalyticsViewModel>()
                ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -141,6 +153,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             await RefreshConversationSummariesAsync(ct);
             await RefreshConversationRecallCoverageAsync(ct);
             await RefreshConversationThemesAsync(ct);
+            await RefreshConversationThemeTrendsAsync(ct);
 
             await Task.WhenAll(
                 LoadSummaryAsync(ct),
@@ -150,7 +163,8 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
                 LoadPerformanceAsync(ct),
                 LoadConversationIntelligenceAsync(ct),
                 LoadConversationRecallAsync(ct),
-                LoadConversationThemesAsync(ct));
+                LoadConversationThemesAsync(ct),
+                LoadConversationThemeTrendsAsync(ct));
 
             _log.Information("Analytics: all metrics loaded");
         }
@@ -392,6 +406,22 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         }
     }
 
+    private async Task RefreshConversationThemeTrendsAsync(CancellationToken ct)
+    {
+        try
+        {
+            var refreshed = await _conversationThemeTrendService
+                .RefreshRecentClusterTrendsAsync(4, 30, ct)
+                .ConfigureAwait(false);
+
+            _log.Debug("Analytics: refreshed {Count} durable conversation theme trend windows", refreshed);
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Analytics: durable conversation theme trend refresh failed");
+        }
+    }
+
     private async Task LoadConversationIntelligenceAsync(CancellationToken ct)
     {
         try
@@ -503,6 +533,50 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         }
     }
 
+    private async Task LoadConversationThemeTrendsAsync(CancellationToken ct)
+    {
+        try
+        {
+            var overview = await _analyticsService.GetConversationThemeTrendOverviewAsync(ct: ct);
+
+            TrendingThemes = FormatNumber(overview.TrendingThemes);
+            NewThemeEntries7d = FormatNumber(overview.NewThemeEntries7d);
+            MostActiveTheme = string.IsNullOrWhiteSpace(overview.MostActiveThemeLabel)
+                ? "No trend data yet"
+                : overview.MostActiveThemeLabel;
+            LastThemeTrendRefresh = overview.LastTrendRefresh.HasValue
+                ? BuildRelativeTimeLabel(overview.LastTrendRefresh.Value)
+                : "No trends yet";
+
+            ConversationThemeTrends = new ObservableCollection<AnalyticsConversationThemeTrendItem>(
+                overview.Trends.Select(metric =>
+                {
+                    var recent30DayActivity = metric.DailySeries.Sum(point => point.ActiveConversationCount);
+                    return new AnalyticsConversationThemeTrendItem
+                    {
+                        ClusterId = metric.ClusterId,
+                        Label = metric.Label,
+                        PreviewText = metric.PreviewText,
+                        ActivitySummary = $"{metric.Recent7DayActivity} active / 7d · {recent30DayActivity} active / 30d",
+                        MomentumLabel = BuildThemeTrendMomentumLabel(metric.Recent7DayActivity, metric.Previous7DayActivity),
+                        NewEntriesLabel = BuildThemeTrendNewEntriesLabel(metric.Recent7DayNewEntries),
+                        LastActiveAtLabel = BuildRelativeTimeLabel(metric.LastActiveAt),
+                        Bars = BuildThemeTrendBars(metric.DailySeries)
+                    };
+                }));
+
+            HasConversationThemeTrends = ConversationThemeTrends.Count > 0;
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Analytics: failed to load conversation theme trends");
+            ConversationThemeTrends = new ObservableCollection<AnalyticsConversationThemeTrendItem>();
+            HasConversationThemeTrends = false;
+            MostActiveTheme = "No trend data yet";
+            LastThemeTrendRefresh = "No trends yet";
+        }
+    }
+
     // ── Commands ─────────────────────────────────────────────────────────────
 
     partial void OnRecallQueryChanged(string value)
@@ -608,6 +682,64 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
                 // Clamp minimum bar height so zero days are visually distinguishable
                 BarHeight        = m.Count > 0 ? Math.Max(2.0, m.Count * 60.0 / max) : 1.0,
             }));
+    }
+
+    private static IReadOnlyList<AnalyticsConversationThemeTrendBarItem> BuildThemeTrendBars(
+        IReadOnlyList<ConversationThemeDailyPoint> points)
+    {
+        if (points.Count == 0)
+        {
+            return Array.Empty<AnalyticsConversationThemeTrendBarItem>();
+        }
+
+        var totals = points
+            .Select(point => point.ActiveConversationCount + point.NewConversationCount + point.SnapshotRefreshCount)
+            .ToList();
+        var max = Math.Max(1, totals.Max());
+
+        return points.Select(point =>
+        {
+            var total = point.ActiveConversationCount + point.NewConversationCount + point.SnapshotRefreshCount;
+            return new AnalyticsConversationThemeTrendBarItem
+            {
+                Date = point.Date,
+                BarHeight = total > 0 ? Math.Max(4.0, total * 44.0 / max) : 2.0,
+                Tooltip = $"{point.Date:MMM d}: {point.ActiveConversationCount} active, {point.NewConversationCount} new, {point.SnapshotRefreshCount} snapshots"
+            };
+        }).ToList();
+    }
+
+    private static string BuildThemeTrendMomentumLabel(int recent7DayActivity, int previous7DayActivity)
+    {
+        var delta = recent7DayActivity - previous7DayActivity;
+        if (recent7DayActivity == 0 && previous7DayActivity == 0)
+        {
+            return "No recent movement";
+        }
+
+        if (delta > 0)
+        {
+            return $"+{delta} vs prior 7d";
+        }
+
+        if (delta < 0)
+        {
+            return $"{delta} vs prior 7d";
+        }
+
+        return "Flat vs prior 7d";
+    }
+
+    private static string BuildThemeTrendNewEntriesLabel(int recent7DayNewEntries)
+    {
+        if (recent7DayNewEntries <= 0)
+        {
+            return string.Empty;
+        }
+
+        return recent7DayNewEntries == 1
+            ? "1 new theme entry this week"
+            : $"{recent7DayNewEntries} new theme entries this week";
     }
 
     private static string FormatNumber(long value) =>
@@ -782,6 +914,32 @@ public sealed class AnalyticsConversationThemeItem
     public string KeyPointsPreview => string.Join(" · ", KeyPoints);
     public string RecentConversationsPreview => string.Join(" · ", RecentConversationTitles);
     public string ActivityLabel => $"{ConversationCount} conversations · {ActiveConversationCount7d} active / 7d · {ActiveConversationCount30d} active / 30d";
+}
+
+/// <summary>
+/// Represents one durable theme trend row for Analytics.
+/// </summary>
+public sealed class AnalyticsConversationThemeTrendItem
+{
+    public long ClusterId { get; init; }
+    public string Label { get; init; } = string.Empty;
+    public string PreviewText { get; init; } = string.Empty;
+    public string ActivitySummary { get; init; } = string.Empty;
+    public string MomentumLabel { get; init; } = string.Empty;
+    public string NewEntriesLabel { get; init; } = string.Empty;
+    public string LastActiveAtLabel { get; init; } = string.Empty;
+    public IReadOnlyList<AnalyticsConversationThemeTrendBarItem> Bars { get; init; } = Array.Empty<AnalyticsConversationThemeTrendBarItem>();
+    public bool HasNewEntries => !string.IsNullOrWhiteSpace(NewEntriesLabel);
+}
+
+/// <summary>
+/// Represents one bar in the persisted 30-day theme trend strip.
+/// </summary>
+public sealed class AnalyticsConversationThemeTrendBarItem
+{
+    public DateTime Date { get; init; }
+    public double BarHeight { get; init; }
+    public string Tooltip { get; init; } = string.Empty;
 }
 
 // ─── Task tuple extension ────────────────────────────────────────────────────

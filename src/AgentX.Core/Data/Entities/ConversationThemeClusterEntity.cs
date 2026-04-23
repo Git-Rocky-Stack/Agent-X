@@ -18,4 +18,5 @@ public class ConversationThemeClusterEntity
     public DateTime MaterializedAt { get; set; }
 
     public ICollection<ConversationThemeMembershipEntity> Memberships { get; set; } = new List<ConversationThemeMembershipEntity>();
+    public ICollection<ConversationThemeDailyMetricEntity> DailyMetrics { get; set; } = new List<ConversationThemeDailyMetricEntity>();
 }

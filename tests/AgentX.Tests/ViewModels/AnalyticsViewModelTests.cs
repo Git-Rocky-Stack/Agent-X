@@ -16,6 +16,7 @@ public sealed class AnalyticsViewModelTests
     private readonly Mock<IConversationRecallService> _conversationRecallService = new();
     private readonly Mock<IConversationSummaryService> _conversationSummaryService = new();
     private readonly Mock<IConversationThemeClusterService> _conversationThemeClusterService = new();
+    private readonly Mock<IConversationThemeTrendService> _conversationThemeTrendService = new();
     private readonly ILogger _logger = Log.ForContext<AnalyticsViewModelTests>();
 
     [Fact]
@@ -29,6 +30,9 @@ public sealed class AnalyticsViewModelTests
             .ReturnsAsync(3);
         _conversationThemeClusterService
             .Setup(service => service.RefreshStaleClustersAsync(4, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(2);
+        _conversationThemeTrendService
+            .Setup(service => service.RefreshRecentClusterTrendsAsync(4, 30, It.IsAny<CancellationToken>()))
             .ReturnsAsync(2);
 
         _analyticsService
@@ -118,12 +122,44 @@ public sealed class AnalyticsViewModelTests
                     }
                 ]
             });
+        _analyticsService
+            .Setup(service => service.GetConversationThemeTrendOverviewAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ConversationThemeTrendOverview
+            {
+                TrendingThemes = 1,
+                NewThemeEntries7d = 2,
+                MostActiveThemeLabel = "Analytics dashboard",
+                LastTrendRefresh = DateTime.UtcNow.AddMinutes(-1),
+                Trends =
+                [
+                    new ConversationThemeTrendMetric
+                    {
+                        ClusterId = 9,
+                        Label = "Analytics dashboard",
+                        PreviewText = "Activity is accelerating around analytics and recall.",
+                        Recent7DayActivity = 5,
+                        Previous7DayActivity = 2,
+                        Recent7DayNewEntries = 2,
+                        LastActiveAt = DateTime.UtcNow.AddMinutes(-4),
+                        DailySeries = Enumerable.Range(0, 30)
+                            .Select(offset => new ConversationThemeDailyPoint
+                            {
+                                Date = DateTime.UtcNow.Date.AddDays(offset - 29),
+                                ActiveConversationCount = offset >= 25 ? 1 : 0,
+                                NewConversationCount = offset == 28 ? 1 : 0,
+                                SnapshotRefreshCount = offset >= 27 ? 1 : 0
+                            })
+                            .ToList()
+                    }
+                ]
+            });
 
         var viewModel = new AnalyticsViewModel(
             _analyticsService.Object,
             _conversationRecallService.Object,
             _conversationSummaryService.Object,
             _conversationThemeClusterService.Object,
+            _conversationThemeTrendService.Object,
             _logger);
 
         await viewModel.LoadDataAsync();
@@ -137,6 +173,9 @@ public sealed class AnalyticsViewModelTests
         _conversationThemeClusterService.Verify(
             service => service.RefreshStaleClustersAsync(4, It.IsAny<CancellationToken>()),
             Times.Once);
+        _conversationThemeTrendService.Verify(
+            service => service.RefreshRecentClusterTrendsAsync(4, 30, It.IsAny<CancellationToken>()),
+            Times.Once);
 
         viewModel.SummarizedConversations.Should().Be("2");
         viewModel.CurrentSummarySnapshots.Should().Be("3");
@@ -148,6 +187,13 @@ public sealed class AnalyticsViewModelTests
         viewModel.ConversationThemeClusters.Should().ContainSingle();
         viewModel.ConversationThemeClusters[0].Label.Should().Be("Analytics dashboard");
         viewModel.ConversationThemeClusters[0].RecentConversationsPreview.Should().Contain("Analytics roadmap");
+        viewModel.TrendingThemes.Should().Be("1");
+        viewModel.NewThemeEntries7d.Should().Be("2");
+        viewModel.MostActiveTheme.Should().Be("Analytics dashboard");
+        viewModel.HasConversationThemeTrends.Should().BeTrue();
+        viewModel.ConversationThemeTrends.Should().ContainSingle();
+        viewModel.ConversationThemeTrends[0].MomentumLabel.Should().Be("+3 vs prior 7d");
+        viewModel.ConversationThemeTrends[0].HasNewEntries.Should().BeTrue();
         viewModel.HasRecentConversationSummaries.Should().BeTrue();
         viewModel.RecentConversationSummaries.Should().ContainSingle();
         viewModel.RecentConversationSummaries[0].Title.Should().Be("Persistent memory rollout");
@@ -196,6 +242,7 @@ public sealed class AnalyticsViewModelTests
             _conversationRecallService.Object,
             _conversationSummaryService.Object,
             _conversationThemeClusterService.Object,
+            _conversationThemeTrendService.Object,
             _logger)
         {
             RecallQuery = "dashboard analytics"

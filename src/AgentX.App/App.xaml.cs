@@ -432,6 +432,7 @@ public partial class App : Application
         services.AddSingleton<IOrganizationSuggestionService, OrganizationSuggestionService>();
         services.AddSingleton<IKnowledgeGraphService, KnowledgeGraphService>();
         services.AddSingleton<IDigestService, DigestService>();
+        services.AddSingleton<IConversationThemeTrendService, ConversationThemeTrendService>();
         services.AddSingleton<IConversationThemeClusterService, ConversationThemeClusterService>();
 
         // ── Export Services ──────────────────────────────────

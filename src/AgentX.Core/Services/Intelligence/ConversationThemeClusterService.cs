@@ -29,15 +29,18 @@ public sealed class ConversationThemeClusterService : IConversationThemeClusterS
 
     private readonly AgentXDbContext _db;
     private readonly IEmbeddingService _embeddingService;
+    private readonly IConversationThemeTrendService? _trendService;
     private readonly ILogger _logger;
 
     public ConversationThemeClusterService(
         AgentXDbContext db,
         IEmbeddingService embeddingService,
-        ILogger logger)
+        ILogger logger,
+        IConversationThemeTrendService? trendService = null)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
         _embeddingService = embeddingService ?? throw new ArgumentNullException(nameof(embeddingService));
+        _trendService = trendService;
         _logger = logger?.ForContext<ConversationThemeClusterService>()
                   ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -168,6 +171,7 @@ public sealed class ConversationThemeClusterService : IConversationThemeClusterS
         foreach (var clusterId in affectedClusterIds)
         {
             await RecomputeClusterAsync(clusterId, ct).ConfigureAwait(false);
+            await RefreshClusterTrendAsync(clusterId, ct).ConfigureAwait(false);
         }
 
         _logger.Information(
@@ -176,6 +180,32 @@ public sealed class ConversationThemeClusterService : IConversationThemeClusterS
             targetCluster.Id);
 
         return true;
+    }
+
+    private async Task RefreshClusterTrendAsync(long clusterId, CancellationToken ct)
+    {
+        if (_trendService is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _trendService
+                .RefreshClusterTrendWindowAsync(clusterId, ct: ct)
+                .ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(
+                ex,
+                "Failed to refresh durable theme trends for cluster {ClusterId}",
+                clusterId);
+        }
     }
 
     public async Task<int> RefreshStaleClustersAsync(

@@ -711,6 +711,172 @@
                                     </DataTemplate>
                                 </ItemsRepeater.ItemTemplate>
                             </ItemsRepeater>
+
+                            <Border Style="{StaticResource SeparatorStyle}" />
+
+                            <StackPanel Spacing="12">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Theme Trends"
+                                               Style="{StaticResource HeadingSmallStyle}" />
+                                    <TextBlock Text="Daily persisted activity windows for the materialized theme layer. Analytics reads only stored rows here, so trend cards stay stable and cheap to load."
+                                               Style="{StaticResource BodySecondaryStyle}" />
+                                </StackPanel>
+
+                                <Grid ColumnSpacing="16" RowSpacing="16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Border Grid.Column="0"
+                                            Background="{StaticResource InputBackgroundBrush}"
+                                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusMD}"
+                                            Padding="16,12,16,12">
+                                        <StackPanel Spacing="4">
+                                            <TextBlock Text="TRENDING THEMES" Style="{StaticResource OverlineStyle}" />
+                                            <TextBlock Text="{x:Bind ViewModel.TrendingThemes, Mode=OneWay}"
+                                                       Style="{StaticResource MetricSmallStyle}" />
+                                            <TextBlock Text="Themes with stronger 7-day activity than the prior 7-day window"
+                                                       Style="{StaticResource CaptionStyle}" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Grid.Column="1"
+                                            Background="{StaticResource InputBackgroundBrush}"
+                                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusMD}"
+                                            Padding="16,12,16,12">
+                                        <StackPanel Spacing="4">
+                                            <TextBlock Text="NEW THEME ENTRIES (7D)" Style="{StaticResource OverlineStyle}" />
+                                            <TextBlock Text="{x:Bind ViewModel.NewThemeEntries7d, Mode=OneWay}"
+                                                       Style="{StaticResource MetricSmallStyle}" />
+                                            <TextBlock Text="Current cluster assignments first materialized during the last 7 days"
+                                                       Style="{StaticResource CaptionStyle}" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Grid.Column="2"
+                                            Background="{StaticResource InputBackgroundBrush}"
+                                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusMD}"
+                                            Padding="16,12,16,12">
+                                        <StackPanel Spacing="4">
+                                            <TextBlock Text="MOST ACTIVE THEME" Style="{StaticResource OverlineStyle}" />
+                                            <TextBlock Text="{x:Bind ViewModel.MostActiveTheme, Mode=OneWay}"
+                                                       Style="{StaticResource HeadingSmallStyle}"
+                                                       TextWrapping="WrapWholeWords"
+                                                       MaxLines="2" />
+                                            <TextBlock Text="Highest persisted 7-day activity total across the theme layer"
+                                                       Style="{StaticResource CaptionStyle}" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Grid.Column="3"
+                                            Background="{StaticResource AccentSubtleBrush}"
+                                            BorderBrush="{StaticResource BorderAccentGradientBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusMD}"
+                                            Padding="16,12,16,12">
+                                        <StackPanel Spacing="4">
+                                            <TextBlock Text="LAST TREND REFRESH" Style="{StaticResource OverlineStyle}" />
+                                            <TextBlock Text="{x:Bind ViewModel.LastThemeTrendRefresh, Mode=OneWay}"
+                                                       Style="{StaticResource MetricSmallStyle}"
+                                                       Foreground="{StaticResource TextAccentBrush}" />
+                                            <TextBlock Text="Latest persisted theme-trend materialization"
+                                                       Style="{StaticResource CaptionStyle}" />
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+
+                                <TextBlock Text="No durable theme trend rows yet. Once clusters are refreshed, Analytics will surface their daily activity windows here."
+                                           Style="{StaticResource BodySecondaryStyle}"
+                                           Visibility="{x:Bind ViewModel.HasConversationThemeTrends, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}" />
+
+                                <ItemsRepeater ItemsSource="{x:Bind ViewModel.ConversationThemeTrends, Mode=OneWay}"
+                                               Visibility="{x:Bind ViewModel.HasConversationThemeTrends, Converter={StaticResource BoolToVis}, Mode=OneWay}">
+                                    <ItemsRepeater.Layout>
+                                        <StackLayout Orientation="Vertical" Spacing="12" />
+                                    </ItemsRepeater.Layout>
+                                    <ItemsRepeater.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:AnalyticsConversationThemeTrendItem">
+                                            <Border Background="{StaticResource InputBackgroundBrush}"
+                                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="{StaticResource RadiusMD}"
+                                                    Padding="16">
+                                                <StackPanel Spacing="12">
+                                                    <Grid ColumnSpacing="12">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <StackPanel Spacing="4">
+                                                            <TextBlock Text="{x:Bind Label}"
+                                                                       Style="{StaticResource HeadingSmallStyle}"
+                                                                       TextTrimming="CharacterEllipsis" />
+                                                            <TextBlock Text="{x:Bind ActivitySummary}"
+                                                                       Style="{StaticResource CaptionStyle}"
+                                                                       TextWrapping="WrapWholeWords" />
+                                                        </StackPanel>
+
+                                                        <StackPanel Grid.Column="1"
+                                                                    Spacing="4"
+                                                                    HorizontalAlignment="Right">
+                                                            <Border Style="{StaticResource BadgeDefaultStyle}"
+                                                                    HorizontalAlignment="Right">
+                                                                <TextBlock Text="{x:Bind MomentumLabel}"
+                                                                           Style="{StaticResource CaptionStyle}"
+                                                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                                                            </Border>
+                                                            <TextBlock Text="{x:Bind LastActiveAtLabel}"
+                                                                       Style="{StaticResource CaptionStyle}"
+                                                                       HorizontalAlignment="Right" />
+                                                        </StackPanel>
+                                                    </Grid>
+
+                                                    <TextBlock Text="{x:Bind PreviewText}"
+                                                               Style="{StaticResource BodyStyle}"
+                                                               TextWrapping="WrapWholeWords" />
+
+                                                    <TextBlock Text="{x:Bind NewEntriesLabel}"
+                                                               Style="{StaticResource CaptionStyle}"
+                                                               Visibility="{x:Bind HasNewEntries, Converter={StaticResource BoolToVis}, Mode=OneWay}" />
+
+                                                    <ItemsRepeater ItemsSource="{x:Bind Bars, Mode=OneWay}">
+                                                        <ItemsRepeater.Layout>
+                                                            <StackLayout Orientation="Horizontal" Spacing="3" />
+                                                        </ItemsRepeater.Layout>
+                                                        <ItemsRepeater.ItemTemplate>
+                                                            <DataTemplate x:DataType="vm:AnalyticsConversationThemeTrendBarItem">
+                                                                <Border Width="7"
+                                                                        Height="48"
+                                                                        Background="{StaticResource AccentSubtleBrush}"
+                                                                        CornerRadius="3"
+                                                                        VerticalAlignment="Bottom"
+                                                                        ToolTipService.ToolTip="{x:Bind Tooltip}">
+                                                                    <Grid VerticalAlignment="Stretch">
+                                                                        <Border Height="{x:Bind BarHeight}"
+                                                                                Background="{StaticResource TextAccentBrush}"
+                                                                                CornerRadius="3"
+                                                                                VerticalAlignment="Bottom" />
+                                                                    </Grid>
+                                                                </Border>
+                                                            </DataTemplate>
+                                                        </ItemsRepeater.ItemTemplate>
+                                                    </ItemsRepeater>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsRepeater.ItemTemplate>
+                                </ItemsRepeater>
+                            </StackPanel>
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>

@@ -371,6 +371,35 @@ namespace AgentX.Core.Data.Migrations
                     b.ToTable("conversation_theme_clusters", (string)null);
                 });
 
+            modelBuilder.Entity("AgentX.Core.Data.Entities.ConversationThemeDailyMetricEntity", b =>
+                {
+                    b.Property<long>("ClusterId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ActiveConversationCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("MaterializedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("NewConversationCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SnapshotRefreshCount")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("ClusterId", "Date");
+
+                    b.HasIndex("Date");
+
+                    b.HasIndex("MaterializedAt");
+
+                    b.ToTable("conversation_theme_daily_metrics", (string)null);
+                });
+
             modelBuilder.Entity("AgentX.Core.Data.Entities.ConversationThemeMembershipEntity", b =>
                 {
                     b.Property<long>("ConversationId")
@@ -1615,6 +1644,17 @@ namespace AgentX.Core.Data.Migrations
                     b.Navigation("Snapshot");
                 });
 
+            modelBuilder.Entity("AgentX.Core.Data.Entities.ConversationThemeDailyMetricEntity", b =>
+                {
+                    b.HasOne("AgentX.Core.Data.Entities.ConversationThemeClusterEntity", "Cluster")
+                        .WithMany("DailyMetrics")
+                        .HasForeignKey("ClusterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cluster");
+                });
+
             modelBuilder.Entity("AgentX.Core.Data.Entities.ConversationTagEntity", b =>
                 {
                     b.HasOne("AgentX.Core.Data.Entities.ConversationEntity", "Conversation")
@@ -1777,6 +1817,8 @@ namespace AgentX.Core.Data.Migrations
 
             modelBuilder.Entity("AgentX.Core.Data.Entities.ConversationThemeClusterEntity", b =>
                 {
+                    b.Navigation("DailyMetrics");
+
                     b.Navigation("Memberships");
                 });
 

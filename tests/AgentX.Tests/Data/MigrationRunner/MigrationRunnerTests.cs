@@ -40,9 +40,9 @@ public class MigrationRunnerTests
             await ctx.Database.OpenConnectionAsync();
             try
             {
-                cmd.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('conversation_theme_clusters','conversation_theme_memberships');";
+                cmd.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('conversation_theme_clusters','conversation_theme_memberships','conversation_theme_daily_metrics');";
                 var tableCount = Convert.ToInt32(await cmd.ExecuteScalarAsync());
-                tableCount.Should().Be(2);
+                tableCount.Should().Be(3);
             }
             finally
             {
@@ -140,6 +140,7 @@ public class MigrationRunnerTests
             await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS conversation_summary_snapshots;");
             await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS conversation_theme_memberships;");
             await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS conversation_theme_clusters;");
+            await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS conversation_theme_daily_metrics;");
             await ctx.Database.ExecuteSqlRawAsync("DROP INDEX IF EXISTS IX_messages_EmbeddedAt;");
             await ctx.Database.ExecuteSqlRawAsync("ALTER TABLE messages DROP COLUMN Embedding;");
             await ctx.Database.ExecuteSqlRawAsync("ALTER TABLE messages DROP COLUMN EmbeddedAt;");

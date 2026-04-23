@@ -14,11 +14,15 @@ public sealed class ConversationThemeClusterServiceTests : IDisposable
 {
     private readonly TestDbContextFactory _dbFactory = new();
     private readonly Mock<IEmbeddingService> _embeddingService = new();
+    private readonly Mock<IConversationThemeTrendService> _trendService = new();
     private readonly ILogger _logger = Log.ForContext<ConversationThemeClusterServiceTests>();
 
     public ConversationThemeClusterServiceTests()
     {
         _embeddingService.SetupGet(service => service.ModelName).Returns("all-minilm");
+        _trendService
+            .Setup(service => service.RefreshClusterTrendWindowAsync(It.IsAny<long>(), 30, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(30);
     }
 
     public void Dispose()
@@ -57,7 +61,7 @@ public sealed class ConversationThemeClusterServiceTests : IDisposable
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync([1f, 0f, 0f]);
 
-        var sut = new ConversationThemeClusterService(db, _embeddingService.Object, _logger);
+        var sut = new ConversationThemeClusterService(db, _embeddingService.Object, _logger, _trendService.Object);
 
         (await sut.MaterializeConversationThemeAsync(analytics.Id)).Should().BeTrue();
         (await sut.MaterializeConversationThemeAsync(recall.Id)).Should().BeTrue();
@@ -79,6 +83,9 @@ public sealed class ConversationThemeClusterServiceTests : IDisposable
         clusters[0].ActiveConversationCount30d.Should().Be(2);
         clusters[0].Label.Should().NotBeNullOrWhiteSpace();
         clusters[0].PreviewText.Should().ContainEquivalentOf("analytics");
+        _trendService.Verify(
+            service => service.RefreshClusterTrendWindowAsync(clusters[0].Id, 30, It.IsAny<CancellationToken>()),
+            Times.Exactly(2));
     }
 
     [Fact]
@@ -118,7 +125,7 @@ public sealed class ConversationThemeClusterServiceTests : IDisposable
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync([0f, 1f, 0f]);
 
-        var sut = new ConversationThemeClusterService(db, _embeddingService.Object, _logger);
+        var sut = new ConversationThemeClusterService(db, _embeddingService.Object, _logger, _trendService.Object);
 
         await sut.MaterializeConversationThemeAsync(analytics.Id);
         await sut.MaterializeConversationThemeAsync(sync.Id);

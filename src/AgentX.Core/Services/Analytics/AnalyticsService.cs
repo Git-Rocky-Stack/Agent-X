@@ -552,6 +552,120 @@ public sealed class AnalyticsService : IAnalyticsService
         }
     }
 
+    /// <inheritdoc />
+    public async Task<ConversationThemeTrendOverview> GetConversationThemeTrendOverviewAsync(
+        int maxThemes = 5,
+        int days = 30,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            if (maxThemes <= 0 || days <= 0)
+            {
+                return new ConversationThemeTrendOverview();
+            }
+
+            var windowStart = DateTime.UtcNow.Date.AddDays(-(days - 1));
+
+            var clusters = await _db.ConversationThemeClusters.AsNoTracking()
+                .Select(cluster => new
+                {
+                    cluster.Id,
+                    cluster.Label,
+                    cluster.PreviewText,
+                    cluster.LastActiveAt
+                })
+                .ToListAsync(ct);
+
+            if (clusters.Count == 0)
+            {
+                return new ConversationThemeTrendOverview();
+            }
+
+            var clusterIds = clusters.Select(cluster => cluster.Id).ToList();
+            var rows = await _db.ConversationThemeDailyMetrics.AsNoTracking()
+                .Where(metric => clusterIds.Contains(metric.ClusterId)
+                              && metric.Date >= windowStart)
+                .Select(metric => new ThemeTrendRow
+                {
+                    ClusterId = metric.ClusterId,
+                    Date = metric.Date,
+                    ActiveConversationCount = metric.ActiveConversationCount,
+                    NewConversationCount = metric.NewConversationCount,
+                    SnapshotRefreshCount = metric.SnapshotRefreshCount,
+                    MaterializedAt = metric.MaterializedAt
+                })
+                .ToListAsync(ct);
+
+            var materializedClusterIds = rows
+                .Select(row => row.ClusterId)
+                .ToHashSet();
+            if (materializedClusterIds.Count == 0)
+            {
+                return new ConversationThemeTrendOverview();
+            }
+
+            var metrics = clusters
+                .Where(cluster => materializedClusterIds.Contains(cluster.Id))
+                .Select(cluster =>
+                {
+                    var series = BuildThemeTrendSeries(
+                        rows.Where(row => row.ClusterId == cluster.Id),
+                        windowStart,
+                        days);
+                    var recent7 = series.TakeLast(Math.Min(7, series.Count)).Sum(point => point.ActiveConversationCount);
+                    var previous7 = series.Count <= 7
+                        ? 0
+                        : series.Skip(Math.Max(0, series.Count - 14)).Take(7).Sum(point => point.ActiveConversationCount);
+                    var recent7NewEntries = series.TakeLast(Math.Min(7, series.Count)).Sum(point => point.NewConversationCount);
+
+                    return new ConversationThemeTrendMetric
+                    {
+                        ClusterId = cluster.Id,
+                        Label = cluster.Label,
+                        PreviewText = cluster.PreviewText,
+                        Recent7DayActivity = recent7,
+                        Previous7DayActivity = previous7,
+                        Recent7DayNewEntries = recent7NewEntries,
+                        LastActiveAt = cluster.LastActiveAt,
+                        DailySeries = series
+                    };
+                })
+                .OrderByDescending(metric => metric.Recent7DayActivity)
+                .ThenByDescending(metric => metric.Recent7DayNewEntries)
+                .ThenByDescending(metric => metric.LastActiveAt)
+                .ToList();
+
+            var trendingThemes = metrics.Count(metric =>
+                metric.Recent7DayActivity > 0
+                && metric.Recent7DayActivity > metric.Previous7DayActivity);
+            var newThemeEntries7d = metrics.Sum(metric => metric.Recent7DayNewEntries);
+            var mostActiveTheme = metrics
+                .OrderByDescending(metric => metric.Recent7DayActivity)
+                .ThenByDescending(metric => metric.LastActiveAt)
+                .Select(metric => metric.Label)
+                .FirstOrDefault()
+                ?? string.Empty;
+            var lastTrendRefresh = rows.Count == 0
+                ? (DateTime?)null
+                : rows.Max(row => row.MaterializedAt);
+
+            return new ConversationThemeTrendOverview
+            {
+                TrendingThemes = trendingThemes,
+                NewThemeEntries7d = newThemeEntries7d,
+                MostActiveThemeLabel = mostActiveTheme,
+                LastTrendRefresh = lastTrendRefresh,
+                Trends = metrics.Take(maxThemes).ToList()
+            };
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to load conversation theme trend overview");
+            return new ConversationThemeTrendOverview();
+        }
+    }
+
     // ── Private Helpers ──────────────────────────────────────────────────────
 
     /// <summary>
@@ -581,6 +695,47 @@ public sealed class AnalyticsService : IAnalyticsService
         }
 
         return result;
+    }
+
+    private static IReadOnlyList<ConversationThemeDailyPoint> BuildThemeTrendSeries(
+        IEnumerable<ThemeTrendRow> rows,
+        DateTime windowStart,
+        int days)
+    {
+        var lookup = rows.ToDictionary(
+            row => row.Date.Date,
+            row => new ConversationThemeDailyPoint
+            {
+                Date = row.Date.Date,
+                ActiveConversationCount = row.ActiveConversationCount,
+                NewConversationCount = row.NewConversationCount,
+                SnapshotRefreshCount = row.SnapshotRefreshCount
+            });
+
+        var series = new List<ConversationThemeDailyPoint>(days);
+        for (var offset = 0; offset < days; offset++)
+        {
+            var date = windowStart.AddDays(offset);
+            series.Add(lookup.GetValueOrDefault(date, new ConversationThemeDailyPoint
+            {
+                Date = date,
+                ActiveConversationCount = 0,
+                NewConversationCount = 0,
+                SnapshotRefreshCount = 0
+            }));
+        }
+
+        return series;
+    }
+
+    private sealed record ThemeTrendRow
+    {
+        public long ClusterId { get; init; }
+        public DateTime Date { get; init; }
+        public int ActiveConversationCount { get; init; }
+        public int NewConversationCount { get; init; }
+        public int SnapshotRefreshCount { get; init; }
+        public DateTime MaterializedAt { get; init; }
     }
 
     /// <summary>

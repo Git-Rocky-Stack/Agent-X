@@ -13,6 +13,7 @@ public class AgentXDbContext : DbContext
     public DbSet<ConversationSummarySnapshotEntity> ConversationSummarySnapshots => Set<ConversationSummarySnapshotEntity>();
     public DbSet<ConversationSummaryStateEntity> ConversationSummaryStates => Set<ConversationSummaryStateEntity>();
     public DbSet<ConversationThemeClusterEntity> ConversationThemeClusters => Set<ConversationThemeClusterEntity>();
+    public DbSet<ConversationThemeDailyMetricEntity> ConversationThemeDailyMetrics => Set<ConversationThemeDailyMetricEntity>();
     public DbSet<ConversationThemeMembershipEntity> ConversationThemeMemberships => Set<ConversationThemeMembershipEntity>();
     public DbSet<DocumentEntity> Documents => Set<DocumentEntity>();
     public DbSet<DocumentChunkEntity> DocumentChunks => Set<DocumentChunkEntity>();
@@ -104,6 +105,7 @@ public class AgentXDbContext : DbContext
         ConfigureConversationSummarySnapshot(modelBuilder);
         ConfigureConversationSummaryState(modelBuilder);
         ConfigureConversationThemeCluster(modelBuilder);
+        ConfigureConversationThemeDailyMetric(modelBuilder);
         ConfigureConversationThemeMembership(modelBuilder);
         ConfigureDocument(modelBuilder);
         ConfigureDocumentChunk(modelBuilder);
@@ -271,6 +273,30 @@ public class AgentXDbContext : DbContext
             entity.HasIndex(e => e.LastActiveAt);
             entity.HasIndex(e => e.MaterializedAt);
             entity.HasIndex(e => e.FirstSeenAt);
+        });
+    }
+
+    private static void ConfigureConversationThemeDailyMetric(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ConversationThemeDailyMetricEntity>(entity =>
+        {
+            entity.ToTable("conversation_theme_daily_metrics");
+            entity.HasKey(e => new { e.ClusterId, e.Date });
+
+            entity.Property(e => e.ClusterId).IsRequired();
+            entity.Property(e => e.Date).IsRequired();
+            entity.Property(e => e.ActiveConversationCount).IsRequired();
+            entity.Property(e => e.NewConversationCount).IsRequired();
+            entity.Property(e => e.SnapshotRefreshCount).IsRequired();
+            entity.Property(e => e.MaterializedAt).IsRequired();
+
+            entity.HasOne(e => e.Cluster)
+                .WithMany(c => c.DailyMetrics)
+                .HasForeignKey(e => e.ClusterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.Date);
+            entity.HasIndex(e => e.MaterializedAt);
         });
     }
 
