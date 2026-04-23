@@ -206,6 +206,12 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             var workflow = await _workflowService.GetWorkflowAsync(workflowId);
             if (workflow is null) return;
 
+            if (workflow.IsBuiltIn)
+            {
+                StatusMessage = "Use Template to customize built-in workflows";
+                return;
+            }
+
             EditName = workflow.Name;
             EditDescription = workflow.Description ?? string.Empty;
             EditCategory = workflow.Category;
@@ -234,6 +240,35 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to edit workflow {Id}", workflowId);
+        }
+    }
+
+    [RelayCommand]
+    private async Task UseTemplateAsync(long workflowId)
+    {
+        try
+        {
+            var workflow = await _workflowService.GetWorkflowAsync(workflowId);
+            if (workflow is null)
+            {
+                return;
+            }
+
+            if (!workflow.IsBuiltIn)
+            {
+                await EditWorkflowAsync(workflowId);
+                return;
+            }
+
+            var clonedWorkflow = await _workflowService.CreateWorkflowFromTemplateAsync(workflowId);
+            await LoadWorkflowsAsync();
+            await EditWorkflowAsync(clonedWorkflow.Id);
+            StatusMessage = $"Created workflow \"{clonedWorkflow.Name}\" from template";
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to use workflow template {Id}", workflowId);
+            StatusMessage = "Failed to create workflow from template";
         }
     }
 

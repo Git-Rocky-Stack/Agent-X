@@ -196,6 +196,85 @@ public class WorkflowService : IWorkflowService
     }
 
     /// <inheritdoc />
+    public async Task<WorkflowEntity> CreateWorkflowFromTemplateAsync(
+        long sourceWorkflowId,
+        string? nameOverride = null,
+        CancellationToken ct = default)
+    {
+        if (sourceWorkflowId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(sourceWorkflowId));
+        }
+
+        try
+        {
+            var source = await _db.Workflows
+                .AsNoTracking()
+                .Include(workflow => workflow.Steps.OrderBy(step => step.StepOrder))
+                .FirstOrDefaultAsync(workflow => workflow.Id == sourceWorkflowId, ct);
+
+            if (source is null)
+            {
+                throw new InvalidOperationException($"Workflow {sourceWorkflowId} not found.");
+            }
+
+            var clonedName = string.IsNullOrWhiteSpace(nameOverride)
+                ? await GenerateCopyNameAsync(source.Name, ct)
+                : nameOverride.Trim();
+            var now = DateTime.UtcNow;
+
+            var clonedWorkflow = new WorkflowEntity
+            {
+                Name = clonedName,
+                Description = source.Description,
+                Icon = source.Icon,
+                Category = source.Category,
+                IsBuiltIn = false,
+                IsEnabled = true,
+                CreatedAt = now,
+                UpdatedAt = now,
+                RunCount = 0
+            };
+
+            foreach (var step in source.Steps.OrderBy(step => step.StepOrder))
+            {
+                clonedWorkflow.Steps.Add(new WorkflowStepEntity
+                {
+                    StepOrder = step.StepOrder,
+                    Name = step.Name,
+                    StepType = step.StepType,
+                    PromptTemplate = step.PromptTemplate,
+                    ModelOverride = step.ModelOverride,
+                    TemperatureOverride = step.TemperatureOverride,
+                    MaxTokensOverride = step.MaxTokensOverride,
+                    ConfigJson = step.ConfigJson
+                });
+            }
+
+            _db.Workflows.Add(clonedWorkflow);
+            await _db.SaveChangesAsync(ct);
+
+            _log.Information(
+                "Cloned workflow {SourceWorkflowId} '{SourceName}' into {WorkflowId} '{ClonedName}'",
+                source.Id,
+                source.Name,
+                clonedWorkflow.Id,
+                clonedWorkflow.Name);
+
+            return clonedWorkflow;
+        }
+        catch (InvalidOperationException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to clone workflow {WorkflowId}", sourceWorkflowId);
+            throw;
+        }
+    }
+
+    /// <inheritdoc />
     public async Task UpdateWorkflowAsync(WorkflowEntity workflow)
     {
         try
@@ -671,6 +750,36 @@ public class WorkflowService : IWorkflowService
         {
             _log.Warning(ex, "Failed to deserialize workflow step outputs");
             return Array.Empty<WorkflowStepResult>();
+        }
+    }
+
+    private async Task<string> GenerateCopyNameAsync(string sourceName, CancellationToken ct)
+    {
+        var baseName = string.IsNullOrWhiteSpace(sourceName)
+            ? "Workflow Copy"
+            : $"{sourceName.Trim()} Copy";
+
+        var existingNames = await _db.Workflows
+            .AsNoTracking()
+            .Where(workflow => workflow.Name.StartsWith(baseName))
+            .Select(workflow => workflow.Name)
+            .ToListAsync(ct);
+
+        if (!existingNames.Contains(baseName, StringComparer.OrdinalIgnoreCase))
+        {
+            return baseName;
+        }
+
+        var index = 2;
+        while (true)
+        {
+            var candidate = $"{baseName} {index}";
+            if (!existingNames.Contains(candidate, StringComparer.OrdinalIgnoreCase))
+            {
+                return candidate;
+            }
+
+            index++;
         }
     }
 

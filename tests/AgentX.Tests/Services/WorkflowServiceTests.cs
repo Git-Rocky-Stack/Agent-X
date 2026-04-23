@@ -138,6 +138,92 @@ public sealed class WorkflowServiceTests : IDisposable
         runs[0].StepResults.Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task CreateWorkflowFromTemplateAsync_clones_steps_into_editable_copy()
+    {
+        using var db = _dbFactory.CreateContext();
+
+        var template = new WorkflowEntity
+        {
+            Name = "Research Brief",
+            Description = "Starter template",
+            Icon = "\uE82D",
+            Category = "Research",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            IsBuiltIn = true,
+            IsEnabled = true,
+            Steps =
+            [
+                new WorkflowStepEntity
+                {
+                    StepOrder = 0,
+                    Name = "Analyze",
+                    StepType = "AiPrompt",
+                    PromptTemplate = "{{input}}"
+                },
+                new WorkflowStepEntity
+                {
+                    StepOrder = 1,
+                    Name = "Draft",
+                    StepType = "AiPrompt",
+                    PromptTemplate = "{{previous_output}}",
+                    TemperatureOverride = 0.7
+                }
+            ]
+        };
+
+        db.Workflows.Add(template);
+        await db.SaveChangesAsync();
+
+        var sut = new WorkflowService(db, Log.ForContext<WorkflowServiceTests>());
+
+        var cloned = await sut.CreateWorkflowFromTemplateAsync(template.Id);
+
+        cloned.Id.Should().NotBe(template.Id);
+        cloned.Name.Should().Be("Research Brief Copy");
+        cloned.IsBuiltIn.Should().BeFalse();
+        cloned.RunCount.Should().Be(0);
+        cloned.Steps.Should().HaveCount(2);
+        var clonedSteps = cloned.Steps.OrderBy(step => step.StepOrder).ToArray();
+        clonedSteps[1].Name.Should().Be("Draft");
+        clonedSteps[1].TemperatureOverride.Should().Be(0.7);
+    }
+
+    [Fact]
+    public async Task CreateWorkflowFromTemplateAsync_increments_copy_name_when_needed()
+    {
+        using var db = _dbFactory.CreateContext();
+
+        db.Workflows.AddRange(
+            new WorkflowEntity
+            {
+                Name = "Research Brief",
+                Category = "Research",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                IsBuiltIn = true,
+                IsEnabled = true
+            },
+            new WorkflowEntity
+            {
+                Name = "Research Brief Copy",
+                Category = "Research",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                IsBuiltIn = false,
+                IsEnabled = true
+            });
+        await db.SaveChangesAsync();
+
+        var source = await db.Workflows.AsNoTracking().SingleAsync(workflow => workflow.IsBuiltIn);
+        var sut = new WorkflowService(db, Log.ForContext<WorkflowServiceTests>());
+
+        var cloned = await sut.CreateWorkflowFromTemplateAsync(source.Id);
+
+        cloned.Name.Should().Be("Research Brief Copy 2");
+    }
+
     private static string SerializeSteps(IReadOnlyList<WorkflowStepResult> steps)
     {
         return JsonSerializer.Serialize(steps, new JsonSerializerOptions

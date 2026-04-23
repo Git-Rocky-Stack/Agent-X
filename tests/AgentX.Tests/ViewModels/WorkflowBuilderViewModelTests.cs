@@ -290,4 +290,80 @@ public sealed class WorkflowBuilderViewModelTests
         viewModel.StepOutputs[0].StepName.Should().Be("Analyze");
         viewModel.RunResultContextText.Should().Contain("Showing stored run from");
     }
+
+    [Fact]
+    public async Task UseTemplateAsync_clones_built_in_workflow_and_opens_editor_for_copy()
+    {
+        _workflowService.Setup(service => service.GetWorkflowAsync(42))
+            .ReturnsAsync(new WorkflowEntity
+            {
+                Id = 42,
+                Name = "Research Brief",
+                Description = "Starter template",
+                Category = "Research",
+                IsBuiltIn = true
+            });
+        _workflowService.Setup(service => service.CreateWorkflowFromTemplateAsync(42, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WorkflowEntity
+            {
+                Id = 100,
+                Name = "Research Brief Copy",
+                Description = "Starter template",
+                Category = "Research",
+                IsBuiltIn = false
+            });
+        _workflowService.Setup(service => service.GetAllWorkflowsAsync(It.IsAny<bool>()))
+            .ReturnsAsync(
+            [
+                new WorkflowEntity
+                {
+                    Id = 42,
+                    Name = "Research Brief",
+                    Description = "Starter template",
+                    Category = "Research",
+                    IsBuiltIn = true
+                },
+                new WorkflowEntity
+                {
+                    Id = 100,
+                    Name = "Research Brief Copy",
+                    Description = "Starter template",
+                    Category = "Research",
+                    IsBuiltIn = false
+                }
+            ]);
+        _workflowService.Setup(service => service.GetWorkflowAsync(100))
+            .ReturnsAsync(new WorkflowEntity
+            {
+                Id = 100,
+                Name = "Research Brief Copy",
+                Description = "Starter template",
+                Category = "Research",
+                IsBuiltIn = false,
+                Steps =
+                [
+                    new WorkflowStepEntity
+                    {
+                        Id = 1,
+                        StepOrder = 1,
+                        Name = "Topic Analysis",
+                        StepType = "AiPrompt",
+                        PromptTemplate = "{{input}}"
+                    }
+                ]
+            });
+
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object);
+
+        await viewModel.UseTemplateCommand.ExecuteAsync(42L);
+
+        _workflowService.Verify(service => service.CreateWorkflowFromTemplateAsync(42, null, It.IsAny<CancellationToken>()), Times.Once);
+        viewModel.IsEditing.Should().BeTrue();
+        viewModel.EditName.Should().Be("Research Brief Copy");
+        viewModel.EditSteps.Should().ContainSingle(step => step.Name == "Topic Analysis");
+        viewModel.StatusMessage.Should().Be("Created workflow \"Research Brief Copy\" from template");
+    }
 }

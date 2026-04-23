@@ -47,6 +47,18 @@ public interface IWorkflowService
         CancellationToken ct = default);
 
     /// <summary>
+    /// Creates a new editable workflow by cloning an existing workflow and all of its steps.
+    /// Intended for turning built-in starter templates into user-owned workflows.
+    /// </summary>
+    /// <param name="sourceWorkflowId">The workflow to clone.</param>
+    /// <param name="nameOverride">Optional name override for the new workflow.</param>
+    /// <param name="ct">Cancellation token.</param>
+    Task<WorkflowEntity> CreateWorkflowFromTemplateAsync(
+        long sourceWorkflowId,
+        string? nameOverride = null,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Updates an existing workflow's metadata (name, description, category, icon, enabled state).
     /// Does not modify the workflow's steps; use step-specific methods for that.
     /// </summary>
