@@ -220,6 +220,59 @@ public sealed class ExportServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task ExportTextArtifactAsync_WithMarkdownFormat_CreatesMarkdownFile()
+    {
+        var sut = CreateService();
+        var outputPath = Path.Combine(_tempExportDir, "workflow-result.md");
+        var artifact = new TextArtifactExportItem
+        {
+            Title = "Workflow Result",
+            Content = "final draft",
+            Metadata = new Dictionary<string, string>
+            {
+                ["Workflow"] = "Document Review",
+                ["Context"] = "Showing latest execution result"
+            }
+        };
+        var options = new ExportOptions
+        {
+            Format = ExportFormat.Markdown,
+            OutputPath = outputPath,
+            IncludeMetadata = true
+        };
+
+        var result = await sut.ExportTextArtifactAsync(artifact, options);
+
+        result.Success.Should().BeTrue();
+        File.Exists(outputPath).Should().BeTrue();
+        var content = await File.ReadAllTextAsync(outputPath);
+        content.Should().Contain("# Workflow Result");
+        content.Should().Contain("**Workflow:** Document Review");
+        content.Should().Contain("final draft");
+    }
+
+    [Fact]
+    public async Task ExportTextArtifactAsync_WithUnsupportedPdfFormat_ReturnsFailureResult()
+    {
+        var sut = CreateService();
+        var artifact = new TextArtifactExportItem
+        {
+            Title = "Workflow Result",
+            Content = "final draft"
+        };
+        var options = new ExportOptions
+        {
+            Format = ExportFormat.Pdf,
+            OutputPath = Path.Combine(_tempExportDir, "workflow-result.pdf")
+        };
+
+        var result = await sut.ExportTextArtifactAsync(artifact, options);
+
+        result.Success.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("Unsupported export format");
+    }
+
+    [Fact]
     public async Task ExportConversationAsync_HtmlFormat_CreatesHtmlFile()
     {
         // Arrange

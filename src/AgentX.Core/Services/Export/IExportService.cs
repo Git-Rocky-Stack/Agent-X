@@ -63,6 +63,19 @@ public interface IExportService
         CancellationToken ct = default);
 
     /// <summary>
+    /// Exports a standalone titled text artifact, such as a workflow result,
+    /// to a text-based file format.
+    /// </summary>
+    /// <param name="artifact">The titled text artifact to export.</param>
+    /// <param name="options">Export configuration (format, output path, metadata flags).</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>An <see cref="ExportResult"/> indicating success or failure.</returns>
+    Task<ExportResult> ExportTextArtifactAsync(
+        TextArtifactExportItem artifact,
+        ExportOptions options,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Formats a single conversation as a Markdown string without writing to disk.
     /// Useful for clipboard copy or preview operations.
     /// </summary>

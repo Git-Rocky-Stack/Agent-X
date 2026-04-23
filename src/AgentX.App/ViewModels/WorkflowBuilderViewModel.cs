@@ -8,6 +8,8 @@ using AgentX.Core.Services.Workflows.Models;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
+using AgentX.Core.Services.Export;
+using AgentX.Core.Services.Export.Models;
 using Serilog;
 
 namespace AgentX.App.ViewModels;
@@ -60,6 +62,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     private readonly IWorkflowEngine _workflowEngine;
     private readonly IModelManager _modelManager;
     private readonly IDocumentService _documentService;
+    private readonly IExportService? _exportService;
 
     // ── Page State ───────────────────────────────────────────
     [ObservableProperty] private string _pageTitle = "Prompt Workflows";
@@ -151,12 +154,14 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         IWorkflowService workflowService,
         IWorkflowEngine workflowEngine,
         IModelManager modelManager,
-        IDocumentService documentService)
+        IDocumentService documentService,
+        IExportService? exportService = null)
     {
         _workflowService = workflowService;
         _workflowEngine = workflowEngine;
         _modelManager = modelManager;
         _documentService = documentService;
+        _exportService = exportService;
 
         Workflows.CollectionChanged += (_, _) =>
         {
@@ -235,6 +240,55 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     private void OpenKnowledgeVault()
     {
         NavigateRequested?.Invoke("KnowledgeVault");
+    }
+
+    public async Task<ExportResult> ExportCurrentResultAsync(ExportOptions options)
+    {
+        var artifact = BuildCurrentResultArtifact();
+        if (artifact is null)
+        {
+            return ExportResult.Fail("No workflow result available to export.");
+        }
+
+        var result = await ExportWorkflowResultAsync(artifact, options);
+        if (result.Success)
+        {
+            StatusMessage = $"Exported workflow result to {Path.GetFileName(result.FilePath)}";
+        }
+        else if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
+        {
+            StatusMessage = result.ErrorMessage;
+        }
+
+        return result;
+    }
+
+    public async Task<ExportResult> ExportHistoricalRunAsync(
+        WorkflowRunHistoryDisplayItem? run,
+        ExportOptions options)
+    {
+        if (run is null)
+        {
+            return ExportResult.Fail("No workflow run selected for export.");
+        }
+
+        var artifact = BuildHistoricalRunArtifact(run);
+        if (artifact is null)
+        {
+            return ExportResult.Fail("This stored run does not have result content to export.");
+        }
+
+        var result = await ExportWorkflowResultAsync(artifact, options);
+        if (result.Success)
+        {
+            StatusMessage = $"Exported stored workflow result to {Path.GetFileName(result.FilePath)}";
+        }
+        else if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
+        {
+            StatusMessage = result.ErrorMessage;
+        }
+
+        return result;
     }
 
     public async Task InitializeAsync()
@@ -855,6 +909,86 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         return RunErrorMessage;
     }
 
+    private TextArtifactExportItem? BuildCurrentResultArtifact()
+    {
+        var resultText = GetCurrentResultText();
+        if (string.IsNullOrWhiteSpace(resultText))
+        {
+            return null;
+        }
+
+        return BuildWorkflowResultArtifact(
+            workflowName: SelectedWorkflowName,
+            captureLabel: RunResultContextText,
+            resultText: resultText,
+            capturedAt: DateTime.UtcNow,
+            status: RunFailed ? "Failed" : "Completed",
+            totalTokensUsed: RunTotalTokens,
+            durationMs: RunDurationMs);
+    }
+
+    private TextArtifactExportItem? BuildHistoricalRunArtifact(WorkflowRunHistoryDisplayItem run)
+    {
+        var resultText = run.GetSaveableContent();
+        if (string.IsNullOrWhiteSpace(resultText))
+        {
+            return null;
+        }
+
+        var workflowName = !string.IsNullOrWhiteSpace(SelectedWorkflowName)
+            ? SelectedWorkflowName
+            : "Workflow";
+
+        return BuildWorkflowResultArtifact(
+            workflowName: workflowName,
+            captureLabel: $"Stored run from {run.StartedAtText}",
+            resultText: resultText,
+            capturedAt: run.StartedAt,
+            status: run.StatusText,
+            totalTokensUsed: run.TotalTokensUsed,
+            durationMs: run.DurationMs);
+    }
+
+    private static TextArtifactExportItem BuildWorkflowResultArtifact(
+        string workflowName,
+        string captureLabel,
+        string resultText,
+        DateTime capturedAt,
+        string status,
+        long totalTokensUsed,
+        double? durationMs)
+    {
+        var normalizedWorkflowName = string.IsNullOrWhiteSpace(workflowName)
+            ? "Workflow Result"
+            : workflowName.Trim();
+        var timestamp = capturedAt.ToLocalTime().ToString("yyyy-MM-dd_HHmmss");
+
+        var metadata = new Dictionary<string, string>
+        {
+            ["Workflow"] = normalizedWorkflowName,
+            ["Captured"] = capturedAt.ToLocalTime().ToString("yyyy-MM-dd h:mm tt"),
+            ["Context"] = string.IsNullOrWhiteSpace(captureLabel) ? "Workflow result" : captureLabel,
+            ["Status"] = status
+        };
+
+        if (totalTokensUsed > 0)
+        {
+            metadata["Tokens"] = totalTokensUsed.ToString();
+        }
+
+        if (durationMs is double duration && duration > 0)
+        {
+            metadata["DurationMs"] = $"{duration:F0}";
+        }
+
+        return new TextArtifactExportItem
+        {
+            Title = $"{normalizedWorkflowName} Result {timestamp}",
+            Content = resultText.Trim(),
+            Metadata = metadata
+        };
+    }
+
     private async Task<DocumentEntity?> SaveWorkflowResultToVaultAsync(
         string workflowName,
         string captureLabel,
@@ -866,20 +1000,22 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             var normalizedWorkflowName = string.IsNullOrWhiteSpace(workflowName)
                 ? "Workflow Result"
                 : workflowName.Trim();
-            var timestamp = capturedAt.ToLocalTime().ToString("yyyy-MM-dd_HHmmss");
-            var documentTitle = $"{normalizedWorkflowName} Result {timestamp}";
+            var artifact = BuildWorkflowResultArtifact(
+                normalizedWorkflowName,
+                captureLabel,
+                resultText,
+                capturedAt,
+                status: "Saved",
+                totalTokensUsed: 0,
+                durationMs: null);
 
             var tempDir = Path.Combine(PathHelper.GetTempPath(), "WorkflowResults");
             Directory.CreateDirectory(tempDir);
 
-            var safeFileName = PathHelper.SanitizeFileName(documentTitle);
+            var safeFileName = PathHelper.SanitizeFileName(artifact.Title);
             var tempFilePath = Path.Combine(tempDir, $"{safeFileName}.txt");
 
-            var fileContent = BuildWorkflowResultDocumentContent(
-                normalizedWorkflowName,
-                captureLabel,
-                capturedAt,
-                resultText);
+            var fileContent = BuildWorkflowResultDocumentContent(artifact);
 
             await File.WriteAllTextAsync(tempFilePath, fileContent);
 
@@ -899,23 +1035,34 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         }
     }
 
-    private static string BuildWorkflowResultDocumentContent(
-        string workflowName,
-        string captureLabel,
-        DateTime capturedAt,
-        string resultText)
+    private async Task<ExportResult> ExportWorkflowResultAsync(
+        TextArtifactExportItem artifact,
+        ExportOptions options)
     {
+        if (_exportService is null)
+        {
+            return ExportResult.Fail("Export service unavailable.");
+        }
+
+        return await _exportService.ExportTextArtifactAsync(artifact, options);
+    }
+
+    private static string BuildWorkflowResultDocumentContent(TextArtifactExportItem artifact)
+    {
+        var metadataLines = artifact.Metadata?
+            .Select(pair => $"{pair.Key}: {pair.Value}")
+            .ToArray() ?? Array.Empty<string>();
+
         return string.Join(
             Environment.NewLine,
-            [
-                $"Workflow: {workflowName}",
-                $"Captured: {capturedAt.ToLocalTime():yyyy-MM-dd h:mm tt}",
-                $"Context: {captureLabel}",
-                string.Empty,
-                "Result",
-                "------",
-                resultText.Trim()
-            ]);
+            metadataLines
+                .Concat(
+                [
+                    string.Empty,
+                    "Result",
+                    "------",
+                    artifact.Content
+                ]));
     }
 
     private void ApplyHistoricalRun(WorkflowRunHistoryDisplayItem run)

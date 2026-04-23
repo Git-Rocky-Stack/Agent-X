@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using AgentX.App.ViewModels;
+using AgentX.Core.Services.Export.Models;
 using Serilog;
 using Windows.ApplicationModel.DataTransfer;
 
@@ -8,6 +9,14 @@ namespace AgentX.App.Views;
 
 public sealed partial class WorkflowBuilderPage : Page
 {
+    private static readonly ExportFormat[] WorkflowResultExportFormats =
+    [
+        ExportFormat.Markdown,
+        ExportFormat.PlainText,
+        ExportFormat.Html,
+        ExportFormat.Json
+    ];
+
     public WorkflowBuilderViewModel ViewModel { get; }
 
     public WorkflowBuilderPage()
@@ -112,6 +121,86 @@ public sealed partial class WorkflowBuilderPage : Page
         if (await dialog.ShowAsync() == ContentDialogResult.Primary)
         {
             await ViewModel.ImportWorkflowCommand.ExecuteAsync(importBox.Text);
+        }
+    }
+
+    private async void ExportCurrentResult_Click(object sender, RoutedEventArgs e)
+    {
+        await ShowWorkflowResultExportDialogAsync(
+            "Export Workflow Result",
+            options => ViewModel.ExportCurrentResultAsync(options));
+    }
+
+    private async void ExportHistoricalRun_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { Tag: WorkflowRunHistoryDisplayItem run })
+        {
+            return;
+        }
+
+        await ShowWorkflowResultExportDialogAsync(
+            $"Export Stored Run ({run.StartedAtText})",
+            options => ViewModel.ExportHistoricalRunAsync(run, options));
+    }
+
+    private async Task ShowWorkflowResultExportDialogAsync(
+        string title,
+        Func<ExportOptions, Task<ExportResult>> exportAction)
+    {
+        var formatCombo = new ComboBox
+        {
+            ItemsSource = WorkflowResultExportFormats,
+            SelectedItem = ExportFormat.Markdown,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
+
+        var includeMetadataToggle = new ToggleSwitch
+        {
+            Header = "Include metadata",
+            IsOn = true
+        };
+
+        var dialog = new ContentDialog
+        {
+            Title = title,
+            PrimaryButtonText = "Export",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = this.XamlRoot,
+            Content = new StackPanel
+            {
+                Spacing = 12,
+                MinWidth = 420,
+                Children =
+                {
+                    new TextBlock
+                    {
+                        Text = "Export this workflow result to the default Agent-X export directory.",
+                        TextWrapping = TextWrapping.Wrap
+                    },
+                    new StackPanel
+                    {
+                        Spacing = 6,
+                        Children =
+                        {
+                            new TextBlock { Text = "Format" },
+                            formatCombo
+                        }
+                    },
+                    includeMetadataToggle
+                }
+            }
+        };
+
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        {
+            var options = new ExportOptions
+            {
+                Format = (ExportFormat)formatCombo.SelectedItem!,
+                IncludeMetadata = includeMetadataToggle.IsOn
+            };
+
+            await exportAction(options);
         }
     }
 

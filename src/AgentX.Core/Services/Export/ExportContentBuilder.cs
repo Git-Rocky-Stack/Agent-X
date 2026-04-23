@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -20,6 +21,137 @@ internal static class ExportContentBuilder
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
+
+    // ════════════════════════════════════════════════════════════════
+    //  Text artifact export — format dispatcher
+    // ════════════════════════════════════════════════════════════════
+
+    internal static string? BuildTextArtifactContent(
+        TextArtifactExportItem artifact,
+        ExportOptions options)
+    {
+        return options.Format switch
+        {
+            ExportFormat.Markdown => BuildTextArtifactMarkdown(artifact, options),
+            ExportFormat.PlainText => BuildTextArtifactPlainText(artifact, options),
+            ExportFormat.Html => BuildTextArtifactHtml(artifact, options),
+            ExportFormat.Json => BuildTextArtifactJson(artifact),
+            _ => null
+        };
+    }
+
+    private static string BuildTextArtifactMarkdown(
+        TextArtifactExportItem artifact,
+        ExportOptions options)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"# {EscapeMarkdown(artifact.Title)}");
+        sb.AppendLine();
+
+        if (options.IncludeMetadata && artifact.Metadata?.Count > 0)
+        {
+            foreach (var pair in artifact.Metadata)
+            {
+                sb.AppendLine($"**{EscapeMarkdown(pair.Key)}:** {EscapeMarkdown(pair.Value)}");
+            }
+
+            sb.AppendLine();
+        }
+
+        sb.AppendLine(artifact.Content.Trim());
+        sb.AppendLine();
+        sb.AppendLine("---");
+        sb.AppendLine($"*Exported from Agent-X on {DateTime.Now:yyyy-MM-dd HH:mm:ss}*");
+        return sb.ToString();
+    }
+
+    private static string BuildTextArtifactPlainText(
+        TextArtifactExportItem artifact,
+        ExportOptions options)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine(artifact.Title);
+        sb.AppendLine(new string('=', Math.Min(artifact.Title.Length, 80)));
+        sb.AppendLine();
+
+        if (options.IncludeMetadata && artifact.Metadata?.Count > 0)
+        {
+            foreach (var pair in artifact.Metadata)
+            {
+                sb.AppendLine($"{pair.Key}: {pair.Value}");
+            }
+
+            sb.AppendLine();
+        }
+
+        sb.AppendLine(artifact.Content.Trim());
+        sb.AppendLine();
+        sb.AppendLine(new string('-', 40));
+        sb.AppendLine($"Exported from Agent-X on {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+        return sb.ToString();
+    }
+
+    private static string BuildTextArtifactHtml(
+        TextArtifactExportItem artifact,
+        ExportOptions options)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("<!DOCTYPE html>");
+        sb.AppendLine("<html lang=\"en\">");
+        sb.AppendLine("<head>");
+        sb.AppendLine("  <meta charset=\"utf-8\" />");
+        sb.AppendLine($"  <title>{WebUtility.HtmlEncode(artifact.Title)}</title>");
+        sb.AppendLine("  <style>");
+        sb.AppendLine("    body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; margin: 40px; color: #1d1d1f; }");
+        sb.AppendLine("    h1 { margin-bottom: 8px; }");
+        sb.AppendLine("    dl { margin: 0 0 24px 0; display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; }");
+        sb.AppendLine("    dt { font-weight: 600; }");
+        sb.AppendLine("    dd { margin: 0; }");
+        sb.AppendLine("    .content { white-space: pre-wrap; border-top: 1px solid #d0d7de; padding-top: 18px; }");
+        sb.AppendLine("    .footer { margin-top: 24px; color: #6b7280; font-size: 0.9rem; }");
+        sb.AppendLine("  </style>");
+        sb.AppendLine("</head>");
+        sb.AppendLine("<body>");
+        sb.AppendLine($"  <h1>{WebUtility.HtmlEncode(artifact.Title)}</h1>");
+
+        if (options.IncludeMetadata && artifact.Metadata?.Count > 0)
+        {
+            sb.AppendLine("  <dl>");
+            foreach (var pair in artifact.Metadata)
+            {
+                sb.AppendLine($"    <dt>{WebUtility.HtmlEncode(pair.Key)}</dt><dd>{WebUtility.HtmlEncode(pair.Value)}</dd>");
+            }
+            sb.AppendLine("  </dl>");
+        }
+
+        sb.AppendLine($"  <div class=\"content\">{WebUtility.HtmlEncode(artifact.Content.Trim())}</div>");
+        sb.AppendLine($"  <div class=\"footer\">Exported from Agent-X on {DateTime.Now:yyyy-MM-dd HH:mm:ss}</div>");
+        sb.AppendLine("</body>");
+        sb.AppendLine("</html>");
+        return sb.ToString();
+    }
+
+    private static string BuildTextArtifactJson(TextArtifactExportItem artifact)
+    {
+        var export = new
+        {
+            exportMetadata = new
+            {
+                title = artifact.Title,
+                exportedAt = DateTime.UtcNow,
+                exportedBy = "Agent-X",
+                format = "json",
+            },
+            artifact = new
+            {
+                title = artifact.Title,
+                content = artifact.Content,
+                metadata = artifact.Metadata
+            }
+        };
+
+        return JsonSerializer.Serialize(export, JsonOptions);
+    }
 
     // ════════════════════════════════════════════════════════════════
     //  Search results — format dispatcher

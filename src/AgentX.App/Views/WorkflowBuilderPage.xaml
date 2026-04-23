@@ -547,6 +547,10 @@
                                                                 Command="{Binding ViewModel.SaveHistoricalRunToVaultCommand, ElementName=WorkflowPage}"
                                                                 CommandParameter="{Binding}"
                                                                 Style="{StaticResource GhostButtonStyle}" />
+                                                        <Button Content="Export Result"
+                                                                Click="ExportHistoricalRun_Click"
+                                                                Tag="{x:Bind}"
+                                                                Style="{StaticResource GhostButtonStyle}" />
                                                     </StackPanel>
                                                 </Grid>
 
@@ -693,6 +697,9 @@
                                         Command="{x:Bind ViewModel.SaveCurrentResultToVaultCommand}"
                                         IsEnabled="{x:Bind ViewModel.CanSaveCurrentResultToVault, Mode=OneWay}"
                                         Style="{StaticResource AccentButtonStyle}" />
+                                <Button Content="Export Result"
+                                        Click="ExportCurrentResult_Click"
+                                        Style="{StaticResource SecondaryButtonStyle}" />
                                 <Button Content="Open Vault"
                                         Command="{x:Bind ViewModel.OpenKnowledgeVaultCommand}"
                                         Style="{StaticResource GhostButtonStyle}" />

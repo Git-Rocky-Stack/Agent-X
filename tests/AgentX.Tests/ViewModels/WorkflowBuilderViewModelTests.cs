@@ -3,6 +3,8 @@ using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
+using AgentX.Core.Services.Export;
+using AgentX.Core.Services.Export.Models;
 using AgentX.Core.Services.Workflows;
 using AgentX.Core.Services.Workflows.Models;
 using FluentAssertions;
@@ -17,6 +19,7 @@ public sealed class WorkflowBuilderViewModelTests
     private readonly Mock<IWorkflowEngine> _workflowEngine = new();
     private readonly Mock<IModelManager> _modelManager = new();
     private readonly Mock<IDocumentService> _documentService = new();
+    private readonly Mock<IExportService> _exportService = new();
 
     [Fact]
     public async Task InitializeAsync_seeds_and_loads_workflows_and_models()
@@ -192,6 +195,7 @@ public sealed class WorkflowBuilderViewModelTests
 
         await Task.Delay(50);
         await viewModel.RunWorkflowCommand.ExecuteAsync(77L);
+        await WaitForAsync(() => viewModel.StepOutputs.Count == 2, TimeSpan.FromSeconds(1));
 
         viewModel.RunCompleted.Should().BeTrue();
         viewModel.RunFailed.Should().BeFalse();
@@ -636,6 +640,113 @@ public sealed class WorkflowBuilderViewModelTests
     }
 
     [Fact]
+    public async Task ExportCurrentResultAsync_sends_workflow_artifact_to_export_service()
+    {
+        TextArtifactExportItem? capturedArtifact = null;
+
+        _exportService.Setup(service => service.ExportTextArtifactAsync(
+                It.IsAny<TextArtifactExportItem>(),
+                It.IsAny<ExportOptions>(),
+                It.IsAny<CancellationToken>()))
+            .Callback<TextArtifactExportItem, ExportOptions, CancellationToken>((artifact, _, _) =>
+            {
+                capturedArtifact = artifact;
+            })
+            .ReturnsAsync(ExportResult.Ok(@"C:\exports\workflow-result.md", 128));
+
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object,
+            _exportService.Object)
+        {
+            SelectedWorkflow = new WorkflowListItem
+            {
+                Id = 77,
+                Name = "Document Review"
+            },
+            RunOutput = "final draft",
+            RunResultContextText = "Showing latest execution result",
+            RunTotalTokens = 110,
+            RunDurationMs = 300
+        };
+
+        var result = await viewModel.ExportCurrentResultAsync(new ExportOptions
+        {
+            Format = ExportFormat.Markdown,
+            IncludeMetadata = true
+        });
+
+        result.Success.Should().BeTrue();
+        capturedArtifact.Should().NotBeNull();
+        capturedArtifact!.Title.Should().Contain("Document Review Result");
+        capturedArtifact.Content.Should().Be("final draft");
+        capturedArtifact.Metadata.Should().ContainKey("Workflow");
+        capturedArtifact.Metadata!["Workflow"].Should().Be("Document Review");
+        capturedArtifact.Metadata["Context"].Should().Be("Showing latest execution result");
+        viewModel.StatusMessage.Should().Be("Exported workflow result to workflow-result.md");
+    }
+
+    [Fact]
+    public async Task ExportHistoricalRunAsync_sends_stored_run_artifact_to_export_service()
+    {
+        TextArtifactExportItem? capturedArtifact = null;
+
+        _exportService.Setup(service => service.ExportTextArtifactAsync(
+                It.IsAny<TextArtifactExportItem>(),
+                It.IsAny<ExportOptions>(),
+                It.IsAny<CancellationToken>()))
+            .Callback<TextArtifactExportItem, ExportOptions, CancellationToken>((artifact, _, _) =>
+            {
+                capturedArtifact = artifact;
+            })
+            .ReturnsAsync(ExportResult.Ok(@"C:\exports\workflow-history.json", 256));
+
+        var run = new WorkflowRunHistoryDisplayItem(
+            new WorkflowRunHistoryItem
+            {
+                RunId = 12,
+                WorkflowId = 42,
+                Status = "completed",
+                StartedAt = new DateTime(2026, 4, 23, 16, 30, 0, DateTimeKind.Utc),
+                StepsCompleted = 2,
+                TotalSteps = 2,
+                TotalTokensUsed = 180,
+                DurationMs = 42000,
+                FinalOutput = "brief summary"
+            });
+
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object,
+            _exportService.Object)
+        {
+            SelectedWorkflow = new WorkflowListItem
+            {
+                Id = 42,
+                Name = "Research Brief"
+            }
+        };
+
+        var result = await viewModel.ExportHistoricalRunAsync(run, new ExportOptions
+        {
+            Format = ExportFormat.Json,
+            IncludeMetadata = true
+        });
+
+        result.Success.Should().BeTrue();
+        capturedArtifact.Should().NotBeNull();
+        capturedArtifact!.Content.Should().Be("brief summary");
+        capturedArtifact.Metadata.Should().ContainKey("Status");
+        capturedArtifact.Metadata!["Status"].Should().Be("Completed");
+        capturedArtifact.Metadata["Workflow"].Should().Be("Research Brief");
+        viewModel.StatusMessage.Should().Be("Exported stored workflow result to workflow-history.json");
+    }
+
+    [Fact]
     public void OpenKnowledgeVaultCommand_navigates_to_vault()
     {
         string? navigatedPage = null;
@@ -652,5 +763,21 @@ public sealed class WorkflowBuilderViewModelTests
         viewModel.OpenKnowledgeVaultCommand.Execute(null);
 
         navigatedPage.Should().Be("KnowledgeVault");
+    }
+
+    private static async Task WaitForAsync(Func<bool> condition, TimeSpan timeout)
+    {
+        var startedAt = DateTime.UtcNow;
+        while (DateTime.UtcNow - startedAt < timeout)
+        {
+            if (condition())
+            {
+                return;
+            }
+
+            await Task.Delay(20);
+        }
+
+        throw new TimeoutException("Condition was not met within the expected time.");
     }
 }

@@ -289,6 +289,66 @@ public class ExportService : IExportService
         }
     }
 
+    // IExportService -- Standalone text artifact export
+
+    /// <inheritdoc />
+    public async Task<ExportResult> ExportTextArtifactAsync(
+        TextArtifactExportItem artifact,
+        ExportOptions options,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            ct.ThrowIfCancellationRequested();
+
+            if (artifact is null)
+                return ExportResult.Fail("No export artifact provided.");
+
+            if (string.IsNullOrWhiteSpace(artifact.Title))
+                return ExportResult.Fail("Export artifact title must not be empty.");
+
+            if (string.IsNullOrWhiteSpace(artifact.Content))
+                return ExportResult.Fail("Export artifact content must not be empty.");
+
+            var gatedResult = await CheckLicenseGateAsync(options.Format);
+            if (gatedResult is not null) return gatedResult;
+
+            var title = options.Title ?? artifact.Title;
+            var outputPath = await ExportPathUtility.ResolveOutputPathAsync(options, title, options.Format, _settingsService);
+            ExportPathUtility.EnsureDirectoryExists(outputPath);
+
+            var exportArtifact = new TextArtifactExportItem
+            {
+                Title = title,
+                Content = artifact.Content,
+                Metadata = artifact.Metadata
+            };
+
+            var content = ExportContentBuilder.BuildTextArtifactContent(exportArtifact, options);
+            if (content is null)
+                return ExportResult.Fail($"Unsupported export format for text artifact: {options.Format}");
+
+            await File.WriteAllTextAsync(outputPath, content, Encoding.UTF8, ct);
+
+            var fileInfo = new FileInfo(outputPath);
+            _log.Information(
+                "Exported text artifact '{Title}' to {Format} at '{Path}' ({Size} bytes)",
+                title, options.Format, outputPath, fileInfo.Length);
+
+            return ExportResult.Ok(outputPath, fileInfo.Length);
+        }
+        catch (OperationCanceledException)
+        {
+            _log.Information("Text artifact export was cancelled");
+            return ExportResult.Fail("Export was cancelled.");
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to export text artifact '{Title}'", artifact?.Title);
+            return ExportResult.Fail($"Export failed: {ex.Message}");
+        }
+    }
+
     // IExportService -- In-memory formatting helpers
 
     /// <inheritdoc />
