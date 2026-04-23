@@ -254,6 +254,7 @@ public class TopSearchItem
     public int PreviousCount { get; set; }
     public int DeltaCount { get; set; }
     public string Trend { get; set; } = string.Empty;
+    public string TrendLabel => DigestTrendFormatter.FormatTrendLabel(Trend, DeltaCount, PreviousCount);
 }
 
 public class TopCollectionItem
@@ -264,6 +265,7 @@ public class TopCollectionItem
     public int PreviousCount { get; set; }
     public int DeltaCount { get; set; }
     public string Trend { get; set; } = string.Empty;
+    public string TrendLabel => DigestTrendFormatter.FormatTrendLabel(Trend, DeltaCount, PreviousCount);
 }
 
 public class FileTypeItem
@@ -273,6 +275,22 @@ public class FileTypeItem
     public int PreviousCount { get; set; }
     public int DeltaCount { get; set; }
     public string Trend { get; set; } = string.Empty;
+    public string TrendLabel => DigestTrendFormatter.FormatTrendLabel(Trend, DeltaCount, PreviousCount);
+}
+
+internal static class DigestTrendFormatter
+{
+    public static string FormatTrendLabel(string trend, int deltaCount, int previousCount)
+    {
+        return trend switch
+        {
+            "new" => "new this period",
+            "up" => $"+{deltaCount} vs prior period",
+            "down" => $"{deltaCount} vs prior period",
+            _ when previousCount > 0 => "flat vs prior period",
+            _ => string.Empty
+        };
+    }
 }
 
 public class HighlightItem

@@ -287,9 +287,14 @@
                                                         <ColumnDefinition Width="*" />
                                                         <ColumnDefinition Width="Auto" />
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{x:Bind Query}"
-                                                               Style="{StaticResource BodyStyle}"
-                                                               TextTrimming="CharacterEllipsis" />
+                                                    <StackPanel Spacing="2">
+                                                        <TextBlock Text="{x:Bind Query}"
+                                                                   Style="{StaticResource BodyStyle}"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock Text="{x:Bind TrendLabel}"
+                                                                   Style="{StaticResource CaptionStyle}"
+                                                                   Opacity="0.55" />
+                                                    </StackPanel>
                                                     <Border Grid.Column="1"
                                                             Style="{StaticResource BadgeAccentStyle}"
                                                             Padding="8,2">
@@ -342,9 +347,14 @@
                                                         <ColumnDefinition Width="*" />
                                                         <ColumnDefinition Width="Auto" />
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{x:Bind Name}"
-                                                               Style="{StaticResource BodyStyle}"
-                                                               TextTrimming="CharacterEllipsis" />
+                                                    <StackPanel Spacing="2">
+                                                        <TextBlock Text="{x:Bind Name}"
+                                                                   Style="{StaticResource BodyStyle}"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock Text="{x:Bind TrendLabel}"
+                                                                   Style="{StaticResource CaptionStyle}"
+                                                                   Opacity="0.55" />
+                                                    </StackPanel>
                                                     <TextBlock Grid.Column="1"
                                                                Style="{StaticResource CaptionStyle}"
                                                                Opacity="0.6">
@@ -414,6 +424,11 @@
                                                                    FontWeight="SemiBold"
                                                                    CharacterSpacing="40" />
                                                     </Border>
+                                                    <TextBlock Grid.Column="1"
+                                                               Text="{x:Bind TrendLabel}"
+                                                               Style="{StaticResource CaptionStyle}"
+                                                               Opacity="0.55"
+                                                               VerticalAlignment="Center" />
                                                     <TextBlock Grid.Column="2"
                                                                Style="{StaticResource BodyStyle}">
                                                         <Run Text="{x:Bind Count}" />
