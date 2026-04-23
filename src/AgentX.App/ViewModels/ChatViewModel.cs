@@ -147,6 +147,20 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     public bool CanSend => !string.IsNullOrWhiteSpace(UserInput) && !IsGenerating;
     public bool IsVoiceActive => IsRecording || IsTranscribing;
     public bool HasConversationIntelligenceStrip => ActiveConversationId.HasValue;
+    public string ConversationIntelligenceStoryText =>
+        !ActiveConversationId.HasValue
+            ? string.Empty
+            : _latestContextInspection?.ContextStoryText
+                ?? "No context story is available until Agent-X assembles a response for this conversation.";
+    public IReadOnlyList<ChatContextStorySourceDisplayItem> ConversationIntelligenceStorySourceChips =>
+        _latestContextInspection?.ContextStorySourceChips
+            .Select(chip => new ChatContextStorySourceDisplayItem { Label = chip.Label })
+            .ToArray()
+        ?? Array.Empty<ChatContextStorySourceDisplayItem>();
+    public bool HasConversationIntelligenceStory =>
+        !string.IsNullOrWhiteSpace(ConversationIntelligenceStoryText);
+    public bool HasConversationIntelligenceStorySourceChips =>
+        ConversationIntelligenceStorySourceChips.Count > 0;
     public bool HasContextStory => !string.IsNullOrWhiteSpace(ContextStoryText);
     public bool HasContextStorySourceChips => ContextStorySourceChips.Count > 0;
     public string ConversationIntelligenceBadgeText
@@ -1053,7 +1067,40 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
     [RelayCommand]
     private void ToggleContextInspector()
-        => IsContextInspectorOpen = !IsContextInspectorOpen;
+    {
+        if (IsContextInspectorOpen)
+        {
+            IsContextInspectorOpen = false;
+            return;
+        }
+
+        if (ActiveConversationId.HasValue)
+        {
+            LoadContextInspectionForConversation(ActiveConversationId.Value);
+        }
+
+        IsContextInspectorOpen = true;
+    }
+
+    [RelayCommand]
+    private void InspectInlineContext(ChatMessageItem? message)
+    {
+        if (message is null || !message.IsAssistant || message.MessageId <= 0)
+        {
+            return;
+        }
+
+        if (!_assistantMessageContextSnapshots.TryGetValue(message.MessageId, out var snapshot))
+        {
+            return;
+        }
+
+        ApplyContextInspection(
+            snapshot,
+            updateLatestContextSnapshot: false,
+            selectedAssistantResponse: true);
+        IsContextInspectorOpen = true;
+    }
 
     [RelayCommand(CanExecute = nameof(CanRefreshConversationSummary))]
     private async Task RefreshConversationSummaryAsync()
@@ -1275,25 +1322,28 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         return days == 1 ? "1 day ago" : $"{days} days ago";
     }
 
-    private void LoadContextInspectionForConversation(long conversationId)
-    {
+    private void LoadContextInspectionForConversation(long conversationId) =>
         ApplyContextInspection(_chatService.GetLatestContextInspection(conversationId));
-    }
 
-    private void ApplyContextInspection(ChatContextInspectionSnapshot? snapshot)
+    private void ApplyContextInspection(
+        ChatContextInspectionSnapshot? snapshot,
+        bool updateLatestContextSnapshot = true,
+        bool selectedAssistantResponse = false)
     {
         if (snapshot is null)
         {
-            ResetContextInspection();
+            ResetContextInspection(updateLatestContextSnapshot);
             return;
         }
 
-        _latestContextInspection = snapshot;
+        if (updateLatestContextSnapshot)
+        {
+            _latestContextInspection = snapshot;
+        }
+
         HasContextInspection = true;
         HasLimitedContextInspection = snapshot.HasLimitedVisibility;
-        ContextInspectionStatus = snapshot.HasLimitedVisibility
-            ? $"Limited visibility: {snapshot.LimitedVisibilityReason?.Replace('_', ' ') ?? "reduced path"}"
-            : "Latest response context captured";
+        ContextInspectionStatus = BuildContextInspectionStatus(snapshot, selectedAssistantResponse);
         ContextCapturedAt = BuildRelativeTimeLabel(snapshot.CapturedAt);
         ContextStoryText = snapshot.ContextStoryText;
         ContextStorySourceChips = new ObservableCollection<ChatContextStorySourceDisplayItem>(
@@ -1357,9 +1407,13 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         NotifyConversationIntelligenceStripChanged();
     }
 
-    private void ResetContextInspection()
+    private void ResetContextInspection(bool updateLatestContextSnapshot = true)
     {
-        _latestContextInspection = null;
+        if (updateLatestContextSnapshot)
+        {
+            _latestContextInspection = null;
+        }
+
         HasContextInspection = false;
         HasLimitedContextInspection = false;
         ContextInspectionStatus = "No generation context captured yet.";
@@ -1389,11 +1443,33 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         NotifyConversationIntelligenceStripChanged();
     }
 
+    private static string BuildContextInspectionStatus(
+        ChatContextInspectionSnapshot snapshot,
+        bool selectedAssistantResponse)
+    {
+        if (snapshot.HasLimitedVisibility)
+        {
+            var limitedVisibilityLabel =
+                $"limited visibility: {snapshot.LimitedVisibilityReason?.Replace('_', ' ') ?? "reduced path"}";
+            return selectedAssistantResponse
+                ? $"Context captured for the selected assistant response ({limitedVisibilityLabel})."
+                : $"Limited visibility: {snapshot.LimitedVisibilityReason?.Replace('_', ' ') ?? "reduced path"}";
+        }
+
+        return selectedAssistantResponse
+            ? "Context captured for the selected assistant response."
+            : "Latest response context captured";
+    }
+
     private void NotifyConversationIntelligenceStripChanged()
     {
         OnPropertyChanged(nameof(HasConversationIntelligenceStrip));
         OnPropertyChanged(nameof(ConversationIntelligenceBadgeText));
         OnPropertyChanged(nameof(ConversationIntelligenceStatusText));
+        OnPropertyChanged(nameof(ConversationIntelligenceStoryText));
+        OnPropertyChanged(nameof(ConversationIntelligenceStorySourceChips));
+        OnPropertyChanged(nameof(HasConversationIntelligenceStory));
+        OnPropertyChanged(nameof(HasConversationIntelligenceStorySourceChips));
         OnPropertyChanged(nameof(ConversationIntelligenceIsCurrent));
         OnPropertyChanged(nameof(ConversationIntelligenceIsStale));
         OnPropertyChanged(nameof(ConversationIntelligenceIsPending));

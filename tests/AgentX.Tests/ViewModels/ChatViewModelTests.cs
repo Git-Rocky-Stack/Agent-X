@@ -379,6 +379,149 @@ public sealed class ChatViewModelTests
     }
 
     [Fact]
+    public async Task InspectInlineContextAsync_OpensInspectorForSelectedMessageWithoutChangingStripState()
+    {
+        var olderSnapshot = CreateInspectionSnapshot(42, isSummaryStale: true, pendingMessageCount: 2);
+        var latestSnapshot = CreateInspectionSnapshot(42);
+
+        _messagingCoordinator
+            .Setup(service => service.SendMessageAsync("How should I proceed?", 42, null, null, false))
+            .Returns(async () =>
+            {
+                _messagingCoordinator.Raise(
+                    coordinator => coordinator.StreamingCompleted += null,
+                    new StreamingCompletedEventArgs
+                    {
+                        ConversationId = 42,
+                        ConversationTitle = "Startup Investigation",
+                        ResponseContent = "Earlier answer",
+                        TokenCount = 12,
+                        GenerationTimeMs = 48,
+                        ContextInspection = olderSnapshot,
+                        AssistantMessageId = 5001
+                    });
+
+                await Task.Yield();
+                return new SendMessageResult
+                {
+                    ConversationId = 42,
+                    ResponseContent = "Earlier answer",
+                    TokenCount = 12,
+                    GenerationTimeMs = 48,
+                    ContextInspection = olderSnapshot,
+                    AssistantMessageId = 5001
+                };
+            });
+
+        _conversationCoordinator
+            .Setup(service => service.LoadMessagesAsync(42))
+            .ReturnsAsync(
+            [
+                new MessageSummary
+                {
+                    MessageId = 1001,
+                    ConversationId = 42,
+                    SortOrder = 0,
+                    Role = "user",
+                    Content = "How should I proceed?",
+                    Timestamp = DateTime.UtcNow.AddMinutes(-2)
+                },
+                new MessageSummary
+                {
+                    MessageId = 5001,
+                    ConversationId = 42,
+                    SortOrder = 1,
+                    Role = "assistant",
+                    Content = "Earlier answer",
+                    Timestamp = DateTime.UtcNow.AddMinutes(-1)
+                }
+            ]);
+        _chatService
+            .Setup(service => service.GetLatestContextInspection(42))
+            .Returns(latestSnapshot);
+
+        var viewModel = CreateViewModel();
+        viewModel.ActiveConversationId = 42;
+        viewModel.UserInput = "How should I proceed?";
+
+        await viewModel.SendMessageCommand.ExecuteAsync(null);
+        await viewModel.NewConversationCommand.ExecuteAsync(null);
+
+        viewModel.Conversations.Add(new ConversationListItem
+        {
+            Id = 42,
+            Title = "Startup Investigation",
+            UpdatedAt = DateTime.UtcNow
+        });
+
+        await viewModel.SelectConversationCommand.ExecuteAsync(42L);
+        var assistantMessage = viewModel.Messages.Single(message => message.MessageId == 5001);
+
+        viewModel.ConversationIntelligenceBadgeText.Should().Be("Current");
+        viewModel.ConversationIntelligenceStoryText.Should().Be("Using a current durable summary and 1 recalled message from another conversation.");
+        viewModel.IsContextInspectorOpen.Should().BeFalse();
+
+        viewModel.InspectInlineContextCommand.Execute(assistantMessage);
+
+        viewModel.IsContextInspectorOpen.Should().BeTrue();
+        viewModel.ContextInspectionStatus.Should().Be("Context captured for the selected assistant response.");
+        viewModel.ContextStoryText.Should().Be("Using a stale durable summary with 2 newer messages still outside it and 1 recalled message from another conversation.");
+        viewModel.ConversationIntelligenceBadgeText.Should().Be("Current");
+        viewModel.ConversationIntelligenceStoryText.Should().Be("Using a current durable summary and 1 recalled message from another conversation.");
+    }
+
+    [Fact]
+    public async Task InspectInlineContextAsync_WithoutStoredSnapshot_DoesNothing()
+    {
+        var latestSnapshot = CreateInspectionSnapshot(42);
+
+        _conversationCoordinator
+            .Setup(service => service.LoadMessagesAsync(42))
+            .ReturnsAsync(
+            [
+                new MessageSummary
+                {
+                    MessageId = 1001,
+                    ConversationId = 42,
+                    SortOrder = 0,
+                    Role = "user",
+                    Content = "How should I proceed?",
+                    Timestamp = DateTime.UtcNow.AddMinutes(-2)
+                },
+                new MessageSummary
+                {
+                    MessageId = 7777,
+                    ConversationId = 42,
+                    SortOrder = 1,
+                    Role = "assistant",
+                    Content = "Answer without stored session context",
+                    Timestamp = DateTime.UtcNow.AddMinutes(-1)
+                }
+            ]);
+        _chatService
+            .Setup(service => service.GetLatestContextInspection(42))
+            .Returns(latestSnapshot);
+
+        var viewModel = CreateViewModel();
+        viewModel.Conversations.Add(new ConversationListItem
+        {
+            Id = 42,
+            Title = "Startup Investigation",
+            UpdatedAt = DateTime.UtcNow
+        });
+
+        await viewModel.SelectConversationCommand.ExecuteAsync(42L);
+        var assistantMessage = viewModel.Messages.Single(message => message.MessageId == 7777);
+
+        viewModel.InspectInlineContextCommand.Execute(assistantMessage);
+
+        viewModel.IsContextInspectorOpen.Should().BeFalse();
+        viewModel.ContextInspectionStatus.Should().Be("Latest response context captured");
+        viewModel.ContextStoryText.Should().Be("Using a current durable summary and 1 recalled message from another conversation.");
+        viewModel.ConversationIntelligenceStoryText.Should().Be("Using a current durable summary and 1 recalled message from another conversation.");
+    }
+
+    [Fact]
     public async Task SendMessageAsync_KeepsInlineContextNoteHiddenWhileAssistantMessageIsStreaming()
     {
         var completion = new TaskCompletionSource<SendMessageResult>();
@@ -435,6 +578,7 @@ public sealed class ChatViewModelTests
         viewModel.HasConversationIntelligenceStrip.Should().BeFalse();
         viewModel.ConversationIntelligenceBadgeText.Should().BeEmpty();
         viewModel.ConversationIntelligenceStatusText.Should().BeEmpty();
+        viewModel.ConversationIntelligenceStoryText.Should().BeEmpty();
     }
 
     [Fact]

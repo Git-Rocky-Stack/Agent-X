@@ -147,29 +147,38 @@
                     </Grid>
                 </Border>
 
-                <Border Background="{StaticResource AccentSubtleBrush}"
-                        BorderBrush="{StaticResource BorderSubtleBrush}"
-                        BorderThickness="1"
-                        CornerRadius="{StaticResource RadiusMD}"
-                        Padding="10,8,10,8"
+                <Button Style="{StaticResource GhostButtonStyle}"
+                        Padding="0"
+                        MinHeight="0"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
                         Margin="8,6,24,0"
+                        Click="OnInspectInlineContextClick"
+                        Tag="{x:Bind}"
+                        ToolTipService.ToolTip="Inspect the full context used for this response"
                         Visibility="{x:Bind HasInlineContextNote, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                    <StackPanel Spacing="6">
-                        <TextBlock Text="Context Used"
-                                   Style="{StaticResource CaptionStyle}"
-                                   Foreground="{StaticResource TextAccentBrush}" />
-                        <TextBlock Text="{x:Bind InlineContextStoryText, Mode=OneWay}"
-                                   Style="{StaticResource CaptionStyle}"
-                                   TextWrapping="WrapWholeWords" />
-                        <ItemsRepeater ItemsSource="{x:Bind InlineContextStorySourceChips, Mode=OneWay}"
-                                       ItemTemplate="{StaticResource InlineContextStoryChipTemplate}"
-                                       Visibility="{x:Bind HasInlineContextStorySourceChips, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                            <ItemsRepeater.Layout>
-                                <StackLayout Orientation="Horizontal" Spacing="6" />
-                            </ItemsRepeater.Layout>
-                        </ItemsRepeater>
-                    </StackPanel>
-                </Border>
+                    <Border Background="{StaticResource AccentSubtleBrush}"
+                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                            BorderThickness="1"
+                            CornerRadius="{StaticResource RadiusMD}"
+                            Padding="10,8,10,8">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Context Used"
+                                       Style="{StaticResource CaptionStyle}"
+                                       Foreground="{StaticResource TextAccentBrush}" />
+                            <TextBlock Text="{x:Bind InlineContextStoryText, Mode=OneWay}"
+                                       Style="{StaticResource CaptionStyle}"
+                                       TextWrapping="WrapWholeWords" />
+                            <ItemsRepeater ItemsSource="{x:Bind InlineContextStorySourceChips, Mode=OneWay}"
+                                           ItemTemplate="{StaticResource InlineContextStoryChipTemplate}"
+                                           Visibility="{x:Bind HasInlineContextStorySourceChips, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                <ItemsRepeater.Layout>
+                                    <StackLayout Orientation="Horizontal" Spacing="6" />
+                                </ItemsRepeater.Layout>
+                            </ItemsRepeater>
+                        </StackPanel>
+                    </Border>
+                </Button>
 
                 <!-- Meta row: timestamp, tokens, generation time -->
                 <Grid Margin="4,4,0,0">
@@ -751,15 +760,15 @@
                                    Style="{StaticResource CaptionStyle}"
                                    TextTrimming="CharacterEllipsis"
                                    MaxLines="1" />
-                        <TextBlock Text="{x:Bind ViewModel.ContextStoryText, Mode=OneWay}"
+                        <TextBlock Text="{x:Bind ViewModel.ConversationIntelligenceStoryText, Mode=OneWay}"
                                    Style="{StaticResource CaptionStyle}"
                                    Foreground="{StaticResource TextSecondaryBrush}"
                                    TextTrimming="CharacterEllipsis"
                                    MaxLines="2"
-                                   Visibility="{x:Bind ViewModel.HasContextStory, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
-                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.ContextStorySourceChips, Mode=OneWay}"
+                                   Visibility="{x:Bind ViewModel.HasConversationIntelligenceStory, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.ConversationIntelligenceStorySourceChips, Mode=OneWay}"
                                        ItemTemplate="{StaticResource ContextStoryChipTemplate}"
-                                       Visibility="{x:Bind ViewModel.HasContextStorySourceChips, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                       Visibility="{x:Bind ViewModel.HasConversationIntelligenceStorySourceChips, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                             <ItemsRepeater.Layout>
                                 <StackLayout Orientation="Horizontal" Spacing="6" />
                             </ItemsRepeater.Layout>
