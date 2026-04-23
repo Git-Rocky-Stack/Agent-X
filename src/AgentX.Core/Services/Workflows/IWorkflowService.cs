@@ -1,4 +1,5 @@
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Services.Workflows.Models;
 
 namespace AgentX.Core.Services.Workflows;
 
@@ -32,6 +33,18 @@ public interface IWorkflowService
     /// <param name="includeBuiltIn">When true (default), built-in workflows are included in results.</param>
     /// <returns>A read-only list of all matching workflows.</returns>
     Task<IReadOnlyList<WorkflowEntity>> GetAllWorkflowsAsync(bool includeBuiltIn = true);
+
+    /// <summary>
+    /// Returns recent persisted runs for a single workflow, newest first.
+    /// The results are shaped for read-only inspection in the UI.
+    /// </summary>
+    /// <param name="workflowId">The workflow whose recent runs should be returned.</param>
+    /// <param name="maxCount">Maximum number of runs to return. Defaults to 8.</param>
+    /// <param name="ct">Cancellation token.</param>
+    Task<IReadOnlyList<WorkflowRunHistoryItem>> GetRecentRunsAsync(
+        long workflowId,
+        int maxCount = 8,
+        CancellationToken ct = default);
 
     /// <summary>
     /// Updates an existing workflow's metadata (name, description, category, icon, enabled state).

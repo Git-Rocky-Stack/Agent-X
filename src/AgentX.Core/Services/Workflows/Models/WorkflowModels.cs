@@ -59,6 +59,52 @@ public record WorkflowRunResult
 }
 
 /// <summary>
+/// Read-only inspection model for a persisted workflow run.
+/// Used to surface recent run history and reopen stored results.
+/// </summary>
+public record WorkflowRunHistoryItem
+{
+    /// <summary>The persisted workflow run identifier.</summary>
+    public long RunId { get; init; }
+
+    /// <summary>The workflow that produced the run.</summary>
+    public long WorkflowId { get; init; }
+
+    /// <summary>The persisted run status.</summary>
+    public string Status { get; init; } = "pending";
+
+    /// <summary>The original input used to start the run.</summary>
+    public string InitialInput { get; init; } = string.Empty;
+
+    /// <summary>The final or latest available output for the run.</summary>
+    public string FinalOutput { get; init; } = string.Empty;
+
+    /// <summary>Error message if the run failed or was cancelled.</summary>
+    public string? ErrorMessage { get; init; }
+
+    /// <summary>UTC timestamp for when the run started.</summary>
+    public DateTime StartedAt { get; init; }
+
+    /// <summary>UTC timestamp for when the run completed, failed, or was cancelled.</summary>
+    public DateTime? CompletedAt { get; init; }
+
+    /// <summary>Successful steps completed before the run ended.</summary>
+    public int StepsCompleted { get; init; }
+
+    /// <summary>Total steps configured at execution time.</summary>
+    public int TotalSteps { get; init; }
+
+    /// <summary>Total token usage recorded for the run.</summary>
+    public long TotalTokensUsed { get; init; }
+
+    /// <summary>Computed duration in milliseconds when the run has completed.</summary>
+    public double? DurationMs { get; init; }
+
+    /// <summary>Persisted per-step results for inspection.</summary>
+    public IReadOnlyList<WorkflowStepResult> StepResults { get; init; } = Array.Empty<WorkflowStepResult>();
+}
+
+/// <summary>
 /// Provides factory methods that create pre-built workflow templates.
 /// These templates are used by <see cref="IWorkflowService.SeedBuiltInWorkflowsAsync"/>
 /// to populate the database with starter workflows.

@@ -132,6 +132,8 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <!-- ═══ PAGE HEADER ═══ -->
@@ -316,7 +318,9 @@
                             <!-- Run / Cancel Buttons -->
                             <StackPanel Orientation="Horizontal" Spacing="12">
                                 <Button Content="Run"
-                                        IsEnabled="{x:Bind ViewModel.IsRunning, Mode=OneWay, Converter={StaticResource InverseBool}}"
+                                        Command="{x:Bind ViewModel.RunWorkflowCommand}"
+                                        CommandParameter="{x:Bind ViewModel.SelectedWorkflowId, Mode=OneWay}"
+                                        IsEnabled="{x:Bind ViewModel.CanRunSelectedWorkflow, Mode=OneWay}"
                                         Style="{StaticResource AccentButtonStyle}" />
                                 <Button Content="Cancel"
                                         Command="{x:Bind ViewModel.CancelRunCommand}"
@@ -340,19 +344,112 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- ═══ STEP OUTPUTS ═══ -->
+                    <!-- ═══ RECENT RUNS ═══ -->
                     <Border Grid.Row="3"
                             Style="{StaticResource CardStyle}"
                             Padding="24"
-                            Visibility="{x:Bind ViewModel.RunCompleted, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                            Visibility="{x:Bind ViewModel.HasSelectedWorkflow, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <StackPanel Spacing="16">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="Step Outputs"
+                                <TextBlock Text="Recent Runs"
                                            Style="{StaticResource HeadingSmallStyle}" />
+                                <TextBlock Grid.Column="1"
+                                           Text="{x:Bind ViewModel.SelectedWorkflowName, Mode=OneWay}"
+                                           Style="{StaticResource CaptionStyle}"
+                                           Opacity="0.55"
+                                           VerticalAlignment="Center" />
+                            </Grid>
+
+                            <TextBlock Text="Stored workflow results you can reopen without rerunning."
+                                       Style="{StaticResource CaptionStyle}"
+                                       Opacity="0.6" />
+
+                            <ItemsRepeater ItemsSource="{x:Bind ViewModel.RecentRuns, Mode=OneWay}"
+                                           Visibility="{x:Bind ViewModel.HasRecentRuns, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                <ItemsRepeater.Layout>
+                                    <StackLayout Spacing="10" />
+                                </ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:WorkflowRunHistoryDisplayItem">
+                                        <Border Background="{StaticResource CardGradientSubtleBrush}"
+                                                CornerRadius="{StaticResource RadiusSM}"
+                                                Padding="16"
+                                                BorderBrush="{StaticResource BorderSubtleBrush}"
+                                                BorderThickness="1">
+                                            <StackPanel Spacing="10">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <StackPanel Spacing="4">
+                                                        <TextBlock Text="{x:Bind StatusText}"
+                                                                   Style="{StaticResource BodyStyle}"
+                                                                   FontWeight="SemiBold" />
+                                                        <TextBlock Text="{x:Bind StartedAtText}"
+                                                                   Style="{StaticResource CaptionStyle}"
+                                                                   Opacity="0.55" />
+                                                    </StackPanel>
+
+                                                    <Button Grid.Column="1"
+                                                            Content="Open Result"
+                                                            Command="{Binding ViewModel.OpenHistoricalRunCommand, ElementName=WorkflowPage}"
+                                                            CommandParameter="{Binding}"
+                                                            Style="{StaticResource SecondaryButtonStyle}" />
+                                                </Grid>
+
+                                                <TextBlock Text="{x:Bind DetailText}"
+                                                           Style="{StaticResource CaptionStyle}"
+                                                           Opacity="0.6" />
+
+                                                <TextBlock Text="{x:Bind PreviewText}"
+                                                           Style="{StaticResource BodyStyle}"
+                                                           TextWrapping="Wrap"
+                                                           MaxLines="3"
+                                                           Opacity="0.8"
+                                                           Visibility="{x:Bind HasPreview, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+
+                                                <TextBlock Text="{x:Bind ErrorMessage}"
+                                                           Style="{StaticResource CaptionStyle}"
+                                                           Foreground="{StaticResource ErrorBrush}"
+                                                           TextWrapping="Wrap"
+                                                           Visibility="{x:Bind HasError, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+
+                            <TextBlock Text="No runs recorded yet for the selected workflow."
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       Visibility="{x:Bind ViewModel.ShowRecentRunsEmptyState, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ═══ STEP OUTPUTS ═══ -->
+                    <Border Grid.Row="4"
+                            Style="{StaticResource CardStyle}"
+                            Padding="24"
+                            Visibility="{x:Bind ViewModel.HasStepOutputs, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                        <StackPanel Spacing="16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Step Outputs"
+                                               Style="{StaticResource HeadingSmallStyle}" />
+                                    <TextBlock Text="{x:Bind ViewModel.RunResultContextText, Mode=OneWay}"
+                                               Style="{StaticResource CaptionStyle}"
+                                               Opacity="0.55"
+                                               Visibility="{x:Bind ViewModel.HasRunResultContextText, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                                </StackPanel>
                                 <StackPanel Grid.Column="1"
                                             Orientation="Horizontal"
                                             Spacing="16">
@@ -422,13 +519,18 @@
                     </Border>
 
                     <!-- ═══ FINAL OUTPUT ═══ -->
-                    <Border Grid.Row="4"
+                    <Border Grid.Row="5"
                             Style="{StaticResource CardStyle}"
                             Padding="24"
-                            Visibility="{x:Bind ViewModel.RunCompleted, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                            Visibility="{x:Bind ViewModel.HasRunOutputOrError, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <StackPanel Spacing="12">
                             <TextBlock Text="Final Output"
                                        Style="{StaticResource HeadingSmallStyle}" />
+                            <TextBlock Text="{x:Bind ViewModel.RunErrorMessage, Mode=OneWay}"
+                                       Style="{StaticResource CaptionStyle}"
+                                       Foreground="{StaticResource ErrorBrush}"
+                                       TextWrapping="Wrap"
+                                       Visibility="{x:Bind ViewModel.RunErrorMessage, Mode=OneWay, Converter={StaticResource StringToVis}}" />
                             <TextBox Text="{x:Bind ViewModel.RunOutput, Mode=OneWay}"
                                      IsReadOnly="True"
                                      AcceptsReturn="True"
@@ -442,7 +544,7 @@
                     </Border>
 
                     <!-- ═══ STATUS MESSAGE ═══ -->
-                    <TextBlock Grid.Row="4"
+                    <TextBlock Grid.Row="6"
                                Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
                                Style="{StaticResource CaptionStyle}"
                                Opacity="0.5"

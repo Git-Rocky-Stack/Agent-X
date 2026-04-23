@@ -28,6 +28,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     public ObservableCollection<WorkflowListItem> Workflows { get; } = new();
     [ObservableProperty] private WorkflowListItem? _selectedWorkflow;
     [ObservableProperty] private bool _hasWorkflows;
+    public ObservableCollection<WorkflowRunHistoryDisplayItem> RecentRuns { get; } = new();
 
     // ── Editor State ─────────────────────────────────────────
     [ObservableProperty] private string _editName = string.Empty;
@@ -46,6 +47,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _runCompleted;
     [ObservableProperty] private bool _runFailed;
     [ObservableProperty] private string _runErrorMessage = string.Empty;
+    [ObservableProperty] private string _runResultContextText = string.Empty;
     public ObservableCollection<StepOutputItem> StepOutputs { get; } = new();
 
     // ── Models ───────────────────────────────────────────────
@@ -54,6 +56,16 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     // ── Category Options ─────────────────────────────────────
     public List<string> Categories { get; } = new() { "Custom", "Research", "Writing", "Analysis", "Productivity" };
     public List<string> StepTypes { get; } = new() { "AiPrompt", "DocumentLookup", "TextTransform" };
+    public bool HasSelectedWorkflow => SelectedWorkflow is not null;
+    public long SelectedWorkflowId => SelectedWorkflow?.Id ?? 0;
+    public string SelectedWorkflowName => SelectedWorkflow?.Name ?? string.Empty;
+    public bool CanRunSelectedWorkflow => SelectedWorkflow is not null && !IsRunning;
+    public bool HasRecentRuns => RecentRuns.Count > 0;
+    public bool ShowRecentRunsEmptyState => HasSelectedWorkflow && !HasRecentRuns;
+    public bool HasStepOutputs => StepOutputs.Count > 0;
+    public bool HasRunOutput => !string.IsNullOrWhiteSpace(RunOutput);
+    public bool HasRunOutputOrError => HasRunOutput || !string.IsNullOrWhiteSpace(RunErrorMessage);
+    public bool HasRunResultContextText => !string.IsNullOrWhiteSpace(RunResultContextText);
 
     private CancellationTokenSource? _runCts;
 
@@ -65,6 +77,17 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         _workflowService = workflowService;
         _workflowEngine = workflowEngine;
         _modelManager = modelManager;
+
+        RecentRuns.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(HasRecentRuns));
+            OnPropertyChanged(nameof(ShowRecentRunsEmptyState));
+        };
+
+        StepOutputs.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(HasStepOutputs));
+        };
     }
 
     public async Task InitializeAsync()
@@ -96,6 +119,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     {
         try
         {
+            var selectedWorkflowId = SelectedWorkflow?.Id;
             var workflows = await _workflowService.GetAllWorkflowsAsync();
             Workflows.Clear();
             foreach (var wf in workflows)
@@ -113,6 +137,15 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
                 });
             }
             HasWorkflows = Workflows.Count > 0;
+
+            if (selectedWorkflowId.HasValue)
+            {
+                SelectedWorkflow = Workflows.FirstOrDefault(workflow => workflow.Id == selectedWorkflowId.Value);
+            }
+            else if (Workflows.Count == 0)
+            {
+                SelectedWorkflow = null;
+            }
         }
         catch (Exception ex)
         {
@@ -364,6 +397,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         RunDurationMs = 0;
         RunProgress = 0;
         StepOutputs.Clear();
+        RunResultContextText = string.Empty;
         _runCts = new CancellationTokenSource();
 
         try
@@ -399,6 +433,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             RunDurationMs = result.TotalDurationMs;
             RunCompleted = result.Success;
             RunFailed = !result.Success;
+            RunResultContextText = "Showing latest execution result";
 
             if (!result.Success)
             {
@@ -408,12 +443,16 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             StatusMessage = result.Success
                 ? $"Workflow completed in {result.TotalDurationMs:F0}ms"
                 : "Workflow failed";
+
+            await LoadWorkflowsAsync();
         }
         catch (OperationCanceledException)
         {
             StatusMessage = "Workflow cancelled";
             RunFailed = true;
             RunErrorMessage = "Cancelled by user";
+            RunResultContextText = "Showing the cancelled execution result";
+            await LoadWorkflowsAsync();
         }
         catch (Exception ex)
         {
@@ -421,6 +460,8 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             StatusMessage = "Workflow execution failed";
             RunFailed = true;
             RunErrorMessage = ex.Message;
+            RunResultContextText = "Showing the failed execution result";
+            await LoadWorkflowsAsync();
         }
         finally
         {
@@ -476,6 +517,123 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         _runCts?.Cancel();
         _runCts?.Dispose();
     }
+
+    [RelayCommand]
+    private void OpenHistoricalRun(WorkflowRunHistoryDisplayItem? run)
+    {
+        if (run is null)
+        {
+            return;
+        }
+
+        ApplyHistoricalRun(run);
+        StatusMessage = $"Showing stored run from {run.StartedAtText}";
+    }
+
+    partial void OnSelectedWorkflowChanged(WorkflowListItem? value)
+    {
+        OnPropertyChanged(nameof(HasSelectedWorkflow));
+        OnPropertyChanged(nameof(SelectedWorkflowId));
+        OnPropertyChanged(nameof(SelectedWorkflowName));
+        OnPropertyChanged(nameof(CanRunSelectedWorkflow));
+        OnPropertyChanged(nameof(ShowRecentRunsEmptyState));
+
+        _ = LoadSelectedWorkflowRunsAsync(value);
+    }
+
+    partial void OnIsRunningChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanRunSelectedWorkflow));
+    }
+
+    partial void OnRunOutputChanged(string value)
+    {
+        OnPropertyChanged(nameof(HasRunOutput));
+        OnPropertyChanged(nameof(HasRunOutputOrError));
+    }
+
+    partial void OnRunErrorMessageChanged(string value)
+    {
+        OnPropertyChanged(nameof(HasRunOutputOrError));
+    }
+
+    partial void OnRunResultContextTextChanged(string value)
+    {
+        OnPropertyChanged(nameof(HasRunResultContextText));
+    }
+
+    private async Task LoadSelectedWorkflowRunsAsync(WorkflowListItem? workflow)
+    {
+        RecentRuns.Clear();
+
+        if (workflow is null)
+        {
+            ClearRunInspection();
+            return;
+        }
+
+        try
+        {
+            var runs = await _workflowService.GetRecentRunsAsync(workflow.Id);
+            foreach (var run in runs)
+            {
+                RecentRuns.Add(new WorkflowRunHistoryDisplayItem(run));
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to load recent runs for workflow {WorkflowId}", workflow.Id);
+            StatusMessage = "Failed to load recent workflow runs";
+        }
+    }
+
+    private void ClearRunInspection()
+    {
+        IsRunning = false;
+        RunCompleted = false;
+        RunFailed = false;
+        RunErrorMessage = string.Empty;
+        RunOutput = string.Empty;
+        RunProgress = 0;
+        RunTotalSteps = 0;
+        CurrentStepName = string.Empty;
+        RunTotalTokens = 0;
+        RunDurationMs = 0;
+        RunResultContextText = string.Empty;
+        StepOutputs.Clear();
+    }
+
+    private void ApplyHistoricalRun(WorkflowRunHistoryDisplayItem run)
+    {
+        IsRunning = false;
+        RunCompleted = string.Equals(run.Status, "completed", StringComparison.OrdinalIgnoreCase);
+        RunFailed = string.Equals(run.Status, "failed", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(run.Status, "cancelled", StringComparison.OrdinalIgnoreCase);
+        RunErrorMessage = run.ErrorMessage;
+        RunOutput = run.FinalOutput;
+        RunProgress = run.StepsCompleted;
+        RunTotalSteps = run.TotalSteps;
+        CurrentStepName = run.StepResults.LastOrDefault()?.StepName ?? string.Empty;
+        RunTotalTokens = run.TotalTokensUsed;
+        RunDurationMs = run.DurationMs ?? 0;
+        RunResultContextText = $"Showing stored run from {run.StartedAtText}";
+
+        StepOutputs.Clear();
+        foreach (var step in run.StepResults)
+        {
+            StepOutputs.Add(new StepOutputItem
+            {
+                StepOrder = step.StepOrder,
+                StepName = step.StepName,
+                Output = step.Output,
+                TokensUsed = step.TokensUsed,
+                DurationMs = step.DurationMs,
+                ModelUsed = step.ModelUsed ?? string.Empty,
+                Success = step.Success,
+                ErrorMessage = step.ErrorMessage
+            });
+        }
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -516,4 +674,86 @@ public partial class StepOutputItem : ObservableObject
     [ObservableProperty] private string _modelUsed = string.Empty;
     [ObservableProperty] private bool _success;
     [ObservableProperty] private string? _errorMessage;
+}
+
+public sealed class WorkflowRunHistoryDisplayItem
+{
+    public WorkflowRunHistoryDisplayItem(WorkflowRunHistoryItem run)
+    {
+        RunId = run.RunId;
+        Status = run.Status;
+        StartedAt = run.StartedAt;
+        StartedAtText = run.StartedAt.ToLocalTime().ToString("MMM d, h:mm tt");
+        FinalOutput = run.FinalOutput;
+        ErrorMessage = run.ErrorMessage ?? string.Empty;
+        StepsCompleted = run.StepsCompleted;
+        TotalSteps = run.TotalSteps;
+        TotalTokensUsed = run.TotalTokensUsed;
+        DurationMs = run.DurationMs;
+        StepResults = run.StepResults;
+    }
+
+    public long RunId { get; }
+    public string Status { get; }
+    public DateTime StartedAt { get; }
+    public string StartedAtText { get; }
+    public string FinalOutput { get; }
+    public string ErrorMessage { get; }
+    public int StepsCompleted { get; }
+    public int TotalSteps { get; }
+    public long TotalTokensUsed { get; }
+    public double? DurationMs { get; }
+    public IReadOnlyList<WorkflowStepResult> StepResults { get; }
+    public string StatusText => Status switch
+    {
+        "completed" => "Completed",
+        "failed" => "Failed",
+        "cancelled" => "Cancelled",
+        "running" => "Running",
+        _ => "Pending"
+    };
+
+    public string DetailText
+    {
+        get
+        {
+            var parts = new List<string>
+            {
+                $"{StepsCompleted}/{TotalSteps} steps"
+            };
+
+            if (TotalTokensUsed > 0)
+            {
+                parts.Add($"{TotalTokensUsed} tokens");
+            }
+
+            if (DurationMs is double durationMs && durationMs > 0)
+            {
+                parts.Add($"{durationMs:F0} ms");
+            }
+
+            return string.Join(" • ", parts);
+        }
+    }
+
+    public string PreviewText
+    {
+        get
+        {
+            var source = !string.IsNullOrWhiteSpace(FinalOutput)
+                ? FinalOutput
+                : ErrorMessage;
+
+            if (string.IsNullOrWhiteSpace(source))
+            {
+                return string.Empty;
+            }
+
+            source = source.Replace(Environment.NewLine, " ").Trim();
+            return source.Length <= 140 ? source : $"{source[..137]}...";
+        }
+    }
+
+    public bool HasPreview => !string.IsNullOrWhiteSpace(PreviewText);
+    public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
 }

@@ -25,6 +25,12 @@ public class WorkflowService : IWorkflowService
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
+    private static readonly JsonSerializerOptions _stepResultJsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
+    };
+
     public WorkflowService(AgentXDbContext db, ILogger logger)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
@@ -135,6 +141,56 @@ public class WorkflowService : IWorkflowService
         catch (Exception ex)
         {
             _log.Error(ex, "Failed to get all workflows");
+            throw;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<WorkflowRunHistoryItem>> GetRecentRunsAsync(
+        long workflowId,
+        int maxCount = 8,
+        CancellationToken ct = default)
+    {
+        if (workflowId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(workflowId));
+        }
+
+        var boundedCount = Math.Clamp(maxCount, 1, 25);
+
+        try
+        {
+            var runs = await _db.WorkflowRuns
+                .AsNoTracking()
+                .Where(run => run.WorkflowId == workflowId)
+                .OrderByDescending(run => run.StartedAt)
+                .Take(boundedCount)
+                .ToListAsync(ct);
+
+            return runs
+                .Select(run => new WorkflowRunHistoryItem
+                {
+                    RunId = run.Id,
+                    WorkflowId = run.WorkflowId,
+                    Status = run.Status,
+                    InitialInput = run.InitialInput ?? string.Empty,
+                    FinalOutput = run.FinalOutput ?? string.Empty,
+                    ErrorMessage = run.ErrorMessage,
+                    StartedAt = run.StartedAt,
+                    CompletedAt = run.CompletedAt,
+                    StepsCompleted = run.StepsCompleted,
+                    TotalSteps = run.TotalSteps,
+                    TotalTokensUsed = run.TotalTokensUsed,
+                    DurationMs = run.CompletedAt.HasValue
+                        ? Math.Max(0, (run.CompletedAt.Value - run.StartedAt).TotalMilliseconds)
+                        : null,
+                    StepResults = DeserializeStepResults(run.StepOutputsJson)
+                })
+                .ToArray();
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to get recent runs for workflow {WorkflowId}", workflowId);
             throw;
         }
     }
@@ -596,6 +652,25 @@ public class WorkflowService : IWorkflowService
         {
             _log.Error(ex, "Failed to import workflow from JSON");
             throw;
+        }
+    }
+
+    private IReadOnlyList<WorkflowStepResult> DeserializeStepResults(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return Array.Empty<WorkflowStepResult>();
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<WorkflowStepResult>>(json, _stepResultJsonOptions)
+                ?? new List<WorkflowStepResult>();
+        }
+        catch (JsonException ex)
+        {
+            _log.Warning(ex, "Failed to deserialize workflow step outputs");
+            return Array.Empty<WorkflowStepResult>();
         }
     }
 
