@@ -1,5 +1,11 @@
 namespace AgentX.Core.Services.Intelligence.Models;
 
+public enum DuplicateMatchKind
+{
+    Exact,
+    Semantic
+}
+
 /// <summary>
 /// Represents a group of documents that share identical or near-identical content.
 /// Used by the duplicate detection service to report exact-hash or semantic duplicates.
@@ -11,6 +17,11 @@ public class DuplicateGroup
     /// or the hash of the reference document (for near-duplicates).
     /// </summary>
     public string ContentHash { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Indicates whether this group was found via exact content hash or semantic similarity.
+    /// </summary>
+    public DuplicateMatchKind MatchKind { get; init; }
 
     /// <summary>
     /// The documents that belong to this duplicate group.
@@ -54,6 +65,12 @@ public class DuplicateDocument
     /// The timestamp when this document was imported into the knowledge vault.
     /// </summary>
     public DateTime ImportedAt { get; init; }
+
+    /// <summary>
+    /// Optional semantic evidence for near-duplicate matches.
+    /// Exact-hash duplicates leave this unset.
+    /// </summary>
+    public DuplicateEvidence? Evidence { get; init; }
 }
 
 /// <summary>

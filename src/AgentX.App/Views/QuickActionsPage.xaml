@@ -327,14 +327,21 @@
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="Duplicate Detection"
                                                Style="{StaticResource HeadingSmallStyle}" />
-                                    <TextBlock Text="Scan your knowledge vault for exact-match duplicate files by content hash. No AI cost."
+                                    <TextBlock Text="Run exact hash scans for identical files or semantic scans for near-duplicates using stored embeddings."
                                                Style="{StaticResource BodySecondaryStyle}" />
                                 </StackPanel>
 
-                                <Button Content="Scan for Duplicates"
-                                        Style="{StaticResource AccentButtonStyle}"
-                                        Command="{x:Bind ViewModel.FindDuplicatesCommand}"
-                                        IsEnabled="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource InverseBool}}" />
+                                <StackPanel Orientation="Horizontal"
+                                            Spacing="12">
+                                    <Button Content="Scan Exact Duplicates"
+                                            Style="{StaticResource AccentButtonStyle}"
+                                            Command="{x:Bind ViewModel.FindDuplicatesCommand}"
+                                            IsEnabled="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource InverseBool}}" />
+                                    <Button Content="Scan Semantic Near-Duplicates"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            Command="{x:Bind ViewModel.FindNearDuplicatesCommand}"
+                                            IsEnabled="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource InverseBool}}" />
+                                </StackPanel>
                             </StackPanel>
                         </Border>
 
@@ -378,13 +385,19 @@
                                                     </Grid.ColumnDefinitions>
 
                                                     <StackPanel Spacing="2">
-                                                        <TextBlock Text="{x:Bind GroupLabel}"
-                                                                   Style="{StaticResource BodyStyle}"
-                                                                   FontWeight="SemiBold" />
-                                                        <TextBlock Style="{StaticResource CaptionStyle}">
-                                                            <Run Text="Hash: " />
-                                                            <Run Text="{x:Bind ContentHash}" />
-                                                        </TextBlock>
+                                                        <StackPanel Orientation="Horizontal"
+                                                                    Spacing="8">
+                                                            <TextBlock Text="{x:Bind GroupLabel}"
+                                                                       Style="{StaticResource BodyStyle}"
+                                                                       FontWeight="SemiBold" />
+                                                            <Border Style="{StaticResource BadgeDefaultStyle}"
+                                                                    VerticalAlignment="Center">
+                                                                <TextBlock Text="{x:Bind MatchLabel}"
+                                                                           Style="{StaticResource BadgeStyle}" />
+                                                            </Border>
+                                                        </StackPanel>
+                                                        <TextBlock Text="{x:Bind DetailLabel}"
+                                                                   Style="{StaticResource CaptionStyle}" />
                                                     </StackPanel>
 
                                                     <Border Grid.Column="1"
@@ -431,6 +444,9 @@
                                                                             <Run Text=" · Imported " />
                                                                             <Run Text="{x:Bind ImportedAt}" />
                                                                         </TextBlock>
+                                                                        <TextBlock Text="{x:Bind EvidenceLabel}"
+                                                                                   Style="{StaticResource CaptionStyle}"
+                                                                                   Visibility="{x:Bind HasEvidence, Converter={StaticResource BoolToVis}}" />
                                                                     </StackPanel>
                                                                 </Grid>
                                                             </Border>

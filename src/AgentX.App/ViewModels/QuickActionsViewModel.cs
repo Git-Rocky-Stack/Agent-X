@@ -234,34 +234,18 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
         try
         {
             IsProcessing = true;
-            StatusMessage = "Scanning for duplicate documents...";
+            StatusMessage = "Scanning for exact duplicate documents...";
             DuplicateGroups.Clear();
             HasDuplicateResults = false;
 
             var groups = await _duplicateDetectionService.FindDuplicatesAsync();
-
-            var displayGroups = groups.Select(g => new QuickActionDuplicateGroupItem
-            {
-                ContentHash = g.ContentHash[..Math.Min(12, g.ContentHash.Length)] + "...",
-                Documents = new ObservableCollection<QuickActionDuplicateDocItem>(
-                    g.Documents.Select(d => new QuickActionDuplicateDocItem
-                    {
-                        DocumentId = d.DocumentId,
-                        FileName = d.FileName,
-                        FileSize = FormatHelper.FormatBytes(d.FileSizeBytes),
-                        ImportedAt = d.ImportedAt.ToString("yyyy-MM-dd HH:mm")
-                    })),
-                WastedStorage = FormatHelper.FormatBytes(g.WastedStorageBytes),
-                DocumentCount = g.Documents.Count
-            });
-
-            DuplicateGroups = new ObservableCollection<QuickActionDuplicateGroupItem>(displayGroups);
+            DuplicateGroups = BuildDuplicateDisplayGroups(groups);
             HasDuplicateResults = true;
 
             var totalWasted = groups.Sum(g => g.WastedStorageBytes);
             StatusMessage = groups.Count > 0
-                ? $"Found {groups.Count} duplicate groups ({FormatHelper.FormatBytes(totalWasted)} wasted)"
-                : "No duplicates found";
+                ? $"Found {groups.Count} exact duplicate groups ({FormatHelper.FormatBytes(totalWasted)} wasted)"
+                : "No exact duplicates found";
 
             _logger.Information("Duplicate scan: {GroupCount} groups, {WastedBytes} bytes wasted",
                 groups.Count, totalWasted);
@@ -270,6 +254,41 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
         {
             _logger.Error(ex, "Failed to scan for duplicates");
             StatusMessage = $"Duplicate scan failed: {ex.Message}";
+            DuplicateGroups.Clear();
+            HasDuplicateResults = false;
+        }
+        finally
+        {
+            IsProcessing = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task FindNearDuplicatesAsync()
+    {
+        try
+        {
+            IsProcessing = true;
+            StatusMessage = "Scanning for semantic near-duplicate documents...";
+            DuplicateGroups.Clear();
+            HasDuplicateResults = false;
+
+            var groups = await _duplicateDetectionService.FindNearDuplicatesAsync();
+            DuplicateGroups = BuildDuplicateDisplayGroups(groups);
+            HasDuplicateResults = true;
+
+            var totalWasted = groups.Sum(g => g.WastedStorageBytes);
+            StatusMessage = groups.Count > 0
+                ? $"Found {groups.Count} semantic near-duplicate groups ({FormatHelper.FormatBytes(totalWasted)} potentially redundant)"
+                : "No semantic near-duplicates found";
+
+            _logger.Information("Near-duplicate scan: {GroupCount} groups, {WastedBytes} bytes potentially redundant",
+                groups.Count, totalWasted);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Failed to scan for near-duplicates");
+            StatusMessage = $"Near-duplicate scan failed: {ex.Message}";
             DuplicateGroups.Clear();
             HasDuplicateResults = false;
         }
@@ -334,6 +353,60 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
     {
         _logger.Debug("QuickActionsViewModel disposed");
     }
+
+    private static ObservableCollection<QuickActionDuplicateGroupItem> BuildDuplicateDisplayGroups(
+        IReadOnlyList<DuplicateGroup> groups)
+    {
+        return new ObservableCollection<QuickActionDuplicateGroupItem>(
+            groups.Select(group =>
+            {
+                var topConfidence = group.Documents
+                    .Where(document => document.Evidence is not null)
+                    .Select(document => document.Evidence!.Confidence)
+                    .DefaultIfEmpty()
+                    .Max();
+
+                return new QuickActionDuplicateGroupItem
+                {
+                    ContentHash = TruncateHash(group.ContentHash),
+                    MatchKind = group.MatchKind,
+                    Documents = new ObservableCollection<QuickActionDuplicateDocItem>(
+                        group.Documents.Select(document => new QuickActionDuplicateDocItem
+                        {
+                            DocumentId = document.DocumentId,
+                            FileName = document.FileName,
+                            FileSize = FormatHelper.FormatBytes(document.FileSizeBytes),
+                            ImportedAt = document.ImportedAt.ToString("yyyy-MM-dd HH:mm"),
+                            EvidenceLabel = FormatEvidenceLabel(document.Evidence)
+                        })),
+                    WastedStorage = FormatHelper.FormatBytes(group.WastedStorageBytes),
+                    DocumentCount = group.Documents.Count,
+                    TopConfidencePercent = (int)Math.Round(topConfidence * 100)
+                };
+            }));
+    }
+
+    private static string TruncateHash(string contentHash)
+    {
+        if (string.IsNullOrWhiteSpace(contentHash))
+        {
+            return "n/a";
+        }
+
+        return contentHash.Length <= 12
+            ? contentHash
+            : $"{contentHash[..12]}...";
+    }
+
+    private static string FormatEvidenceLabel(DuplicateEvidence? evidence)
+    {
+        if (evidence is null)
+        {
+            return string.Empty;
+        }
+
+        return $"{(int)Math.Round(evidence.Confidence * 100)}% confidence from {evidence.SupportingChunkCount} matching chunk(s)";
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -361,10 +434,20 @@ public class QuickActionDocumentItem
 public class QuickActionDuplicateGroupItem
 {
     public string ContentHash { get; init; } = string.Empty;
+    public DuplicateMatchKind MatchKind { get; init; }
     public ObservableCollection<QuickActionDuplicateDocItem> Documents { get; init; } = new();
     public string WastedStorage { get; init; } = "0 B";
     public int DocumentCount { get; init; }
-    public string GroupLabel => $"{DocumentCount} files share identical content";
+    public int TopConfidencePercent { get; init; }
+    public string GroupLabel => MatchKind == DuplicateMatchKind.Semantic
+        ? $"{DocumentCount} files are semantically similar"
+        : $"{DocumentCount} files share identical content";
+    public string MatchLabel => MatchKind == DuplicateMatchKind.Semantic ? "Semantic" : "Exact";
+    public string DetailLabel => MatchKind == DuplicateMatchKind.Semantic
+        ? TopConfidencePercent > 0
+            ? $"Embedding evidence up to {TopConfidencePercent}% confidence"
+            : "Embedding-based near-duplicate group"
+        : $"Hash: {ContentHash}";
 }
 
 /// <summary>
@@ -376,6 +459,8 @@ public class QuickActionDuplicateDocItem
     public string FileName { get; init; } = string.Empty;
     public string FileSize { get; init; } = string.Empty;
     public string ImportedAt { get; init; } = string.Empty;
+    public string EvidenceLabel { get; init; } = string.Empty;
+    public bool HasEvidence => !string.IsNullOrWhiteSpace(EvidenceLabel);
 }
 
 /// <summary>

@@ -79,6 +79,7 @@ public class DuplicateDetectionService : IDuplicateDetectionService
                 .Select(g => new DuplicateGroup
                 {
                     ContentHash = g.Key,
+                    MatchKind = DuplicateMatchKind.Exact,
                     Documents = g
                         .OrderBy(d => d.ImportedAt) // Earliest import is the "original"
                         .Select(d => new DuplicateDocument
@@ -232,6 +233,8 @@ public class DuplicateDetectionService : IDuplicateDetectionService
 
                 if (matchedDocIds.Count > 0)
                 {
+                    var evidenceByDocumentId = evidence.ToDictionary(item => item.DocumentId);
+
                     // Create a group with this document as the reference
                     var groupDocIds = new List<long> { doc.Id };
                     groupDocIds.AddRange(matchedDocIds);
@@ -246,12 +249,14 @@ public class DuplicateDetectionService : IDuplicateDetectionService
                             FilePath = d.FilePath,
                             FileSizeBytes = d.FileSizeBytes,
                             ImportedAt = d.ImportedAt,
+                            Evidence = evidenceByDocumentId.GetValueOrDefault(d.Id),
                         })
                         .ToList();
 
                     nearDuplicateGroups.Add(new DuplicateGroup
                     {
                         ContentHash = doc.ContentHash, // Use the reference doc's hash for identification
+                        MatchKind = DuplicateMatchKind.Semantic,
                         Documents = groupDocuments,
                     });
 
