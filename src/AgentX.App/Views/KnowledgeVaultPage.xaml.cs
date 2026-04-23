@@ -26,6 +26,7 @@ public sealed partial class KnowledgeVaultPage : Page
     public KnowledgeVaultPage()
     {
         ViewModel = App.GetService<KnowledgeVaultViewModel>();
+        ViewModel.NavigateRequested = NavigateToPage;
         _shortcutRegistry = App.GetService<IShortcutRegistry>();
         InitializeComponent();
         Loaded += async (_, _) => await ViewModel.InitializeAsync();
@@ -49,6 +50,14 @@ public sealed partial class KnowledgeVaultPage : Page
         base.OnNavigatedFrom(e);
         _shortcutScope?.Dispose();
         _shortcutScope = null;
+    }
+
+    private void NavigateToPage(string pageTag)
+    {
+        if (App.MainWindow is MainWindow mainWindow)
+        {
+            mainWindow.NavigateToPage(pageTag);
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -334,6 +343,14 @@ public sealed partial class KnowledgeVaultPage : Page
         if (sender is Button button && button.Tag is string filePath)
         {
             ViewModel.OpenInExplorerCommand.Execute(filePath);
+        }
+    }
+
+    private async void OnLaunchDocumentInWorkflowClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is long id)
+        {
+            await ViewModel.LaunchDocumentInWorkflowCommand.ExecuteAsync(id);
         }
     }
 

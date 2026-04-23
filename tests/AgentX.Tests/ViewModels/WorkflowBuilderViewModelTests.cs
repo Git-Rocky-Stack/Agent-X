@@ -1,4 +1,5 @@
 using AgentX.App.ViewModels;
+using AgentX.App.Services;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Data.Entities;
@@ -20,6 +21,7 @@ public sealed class WorkflowBuilderViewModelTests
     private readonly Mock<IModelManager> _modelManager = new();
     private readonly Mock<IDocumentService> _documentService = new();
     private readonly Mock<IExportService> _exportService = new();
+    private readonly Mock<IWorkflowLaunchService> _workflowLaunchService = new();
 
     [Fact]
     public async Task InitializeAsync_seeds_and_loads_workflows_and_models()
@@ -744,6 +746,51 @@ public sealed class WorkflowBuilderViewModelTests
         capturedArtifact.Metadata!["Status"].Should().Be("Completed");
         capturedArtifact.Metadata["Workflow"].Should().Be("Research Brief");
         viewModel.StatusMessage.Should().Be("Exported stored workflow result to workflow-history.json");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_consumes_pending_workflow_launch_request()
+    {
+        _workflowService.Setup(service => service.SeedBuiltInWorkflowsAsync())
+            .Returns(Task.CompletedTask);
+        _workflowService.Setup(service => service.GetAllWorkflowsAsync(It.IsAny<bool>()))
+            .ReturnsAsync(
+            [
+                new WorkflowEntity
+                {
+                    Id = 10,
+                    Name = "Summarize & Act",
+                    Category = "Writing",
+                    IsBuiltIn = true
+                }
+            ]);
+        _modelManager.Setup(service => service.GetAvailableModelsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<AiModel>());
+        _workflowService.Setup(service => service.GetRecentRunsAsync(10, 8, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<WorkflowRunHistoryItem>());
+        _workflowLaunchService.Setup(service => service.ConsumePendingRequest())
+            .Returns(new WorkflowLaunchRequest
+            {
+                InputText = "Source: Knowledge Vault document",
+                SourceLabel = "Loaded document context from \"QuarterlyPlan.pdf\"",
+                RecommendedWorkflowName = "Summarize & Act"
+            });
+
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object,
+            exportService: null,
+            workflowLaunchService: _workflowLaunchService.Object);
+
+        await viewModel.InitializeAsync();
+        await WaitForAsync(() => viewModel.SelectedWorkflow?.Id == 10, TimeSpan.FromSeconds(1));
+
+        viewModel.RunInput.Should().Be("Source: Knowledge Vault document");
+        viewModel.SelectedWorkflow.Should().NotBeNull();
+        viewModel.SelectedWorkflow!.Name.Should().Be("Summarize & Act");
+        viewModel.StatusMessage.Should().Be("Loaded document context from \"QuarterlyPlan.pdf\"");
     }
 
     [Fact]

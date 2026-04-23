@@ -7,6 +7,7 @@ using AgentX.Core.Helpers;
 using AgentX.Core.Search;
 using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Collections;
+using AgentX.App.Services;
 using Serilog;
 
 namespace AgentX.App.ViewModels;
@@ -26,6 +27,7 @@ public partial class SearchViewModel : ObservableObject
     private readonly IDocumentService _documentService;
     private readonly ICollectionService _collectionService;
     private readonly ILogger _logger;
+    private readonly IWorkflowLaunchService? _workflowLaunchService;
 
     // ── Search Input & State ─────────────────────────────────────
     [ObservableProperty] private string _queryText = string.Empty;
@@ -62,6 +64,7 @@ public partial class SearchViewModel : ObservableObject
     // ── Internal history storage ─────────────────────────────────
     private readonly List<SearchHistoryItem> _historyStore = new();
     private long _historyIdCounter;
+    public Action<string>? NavigateRequested { get; set; }
 
     /// <summary>True when the current search mode is Semantic.</summary>
     public bool IsSemanticMode => SearchMode == SearchMode.Semantic;
@@ -77,13 +80,15 @@ public partial class SearchViewModel : ObservableObject
         IHybridSearchOrchestrator hybridSearchOrchestrator,
         IDocumentService documentService,
         ICollectionService collectionService,
-        ILogger logger)
+        ILogger logger,
+        IWorkflowLaunchService? workflowLaunchService = null)
     {
         _searchService = searchService;
         _hybridSearchOrchestrator = hybridSearchOrchestrator;
         _documentService = documentService;
         _collectionService = collectionService;
         _logger = logger;
+        _workflowLaunchService = workflowLaunchService;
         _logger.Debug("SearchViewModel created with services");
     }
 
@@ -533,6 +538,49 @@ public partial class SearchViewModel : ObservableObject
         {
             _logger.Error(ex, "Failed to open document {Id}", documentId);
         }
+    }
+
+    [RelayCommand]
+    private void LaunchResultIntoWorkflow(SearchResultItem? result)
+    {
+        if (_workflowLaunchService is null || result is null)
+        {
+            return;
+        }
+
+        var lines = new List<string>
+        {
+            "Source: Search result"
+        };
+
+        if (!string.IsNullOrWhiteSpace(QueryText))
+        {
+            lines.Add($"Query: {QueryText.Trim()}");
+        }
+
+        lines.Add($"Document: {result.FileName}");
+        lines.Add($"Relevance: {result.RelevancePercent}%");
+
+        if (result.PageNumber.HasValue)
+        {
+            lines.Add($"Page: {result.PageNumber.Value}");
+        }
+
+        lines.Add(string.Empty);
+        lines.Add("Excerpt");
+        lines.Add("-------");
+        lines.Add(string.IsNullOrWhiteSpace(result.Excerpt)
+            ? "No excerpt available."
+            : result.Excerpt.Trim());
+
+        _workflowLaunchService.StageRequest(new WorkflowLaunchRequest
+        {
+            InputText = string.Join(Environment.NewLine, lines),
+            SourceLabel = $"Loaded search context from \"{result.FileName}\"",
+            RecommendedWorkflowName = "Research Brief"
+        });
+
+        NavigateRequested?.Invoke("Workflows");
     }
 
     // =================================================================

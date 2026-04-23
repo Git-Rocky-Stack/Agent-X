@@ -525,6 +525,7 @@ public partial class App : Application
 
         // ── Notifications ────────────────────────────────────────
         services.AddSingleton<INotificationService, NotificationService>();
+        services.AddSingleton<IWorkflowLaunchService, WorkflowLaunchService>();
 
         // ── System Tray ───────────────────────────────────────
         services.AddSingleton<SystemTrayService>();

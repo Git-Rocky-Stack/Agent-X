@@ -1,4 +1,5 @@
 using AgentX.App.ViewModels;
+using AgentX.App.Services;
 using AgentX.Core.AI;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
@@ -18,6 +19,7 @@ public sealed class KnowledgeVaultViewModelTests
     private readonly Mock<IAiService> _aiService = new();
     private readonly Mock<IAutoTagService> _autoTagService = new();
     private readonly Mock<ICollectionService> _collectionService = new();
+    private readonly Mock<IWorkflowLaunchService> _workflowLaunchService = new();
 
     [Fact]
     public async Task InitializeAsync_batch_loads_tags_for_documents()
@@ -93,6 +95,52 @@ public sealed class KnowledgeVaultViewModelTests
         viewModel.AllTags.Single(tag => tag.Name == "research").DocumentCount.Should().Be(1);
         viewModel.AllTags.Single(tag => tag.Name == "policy").DocumentCount.Should().Be(1);
         viewModel.AllTags.Single(tag => tag.Name == "urgent").DocumentCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task LaunchDocumentInWorkflowAsync_stages_request_and_navigates()
+    {
+        WorkflowLaunchRequest? stagedRequest = null;
+        string? navigatedPage = null;
+
+        _documentService.Setup(service => service.GetDocumentAsync(7))
+            .ReturnsAsync(new DocumentEntity
+            {
+                Id = 7,
+                FileName = "QuarterlyPlan.pdf",
+                FilePath = @"C:\docs\QuarterlyPlan.pdf",
+                FileType = "pdf",
+                ContentHash = "hash-7",
+                ImportedAt = new DateTime(2026, 4, 23, 8, 0, 0, DateTimeKind.Utc),
+                FileModifiedAt = new DateTime(2026, 4, 23, 8, 0, 0, DateTimeKind.Utc),
+                IndexingStatus = "completed",
+                Summary = "Plan summary",
+                ExtractedTitle = "Quarterly Planning Overview"
+            });
+        _documentService.Setup(service => service.GetDocumentPreviewTextAsync(7, It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("Preview excerpt");
+        _workflowLaunchService.Setup(service => service.StageRequest(It.IsAny<WorkflowLaunchRequest>()))
+            .Callback<WorkflowLaunchRequest>(request => stagedRequest = request);
+
+        var viewModel = new KnowledgeVaultViewModel(
+            _documentService.Object,
+            _indexingService.Object,
+            _aiService.Object,
+            _autoTagService.Object,
+            _collectionService.Object,
+            _workflowLaunchService.Object)
+        {
+            NavigateRequested = page => navigatedPage = page
+        };
+
+        await viewModel.LaunchDocumentInWorkflowCommand.ExecuteAsync(7L);
+
+        stagedRequest.Should().NotBeNull();
+        stagedRequest!.InputText.Should().Contain("Source: Knowledge Vault document");
+        stagedRequest.InputText.Should().Contain("Document: QuarterlyPlan.pdf");
+        stagedRequest.InputText.Should().Contain("Plan summary");
+        stagedRequest.RecommendedWorkflowName.Should().Be("Summarize & Act");
+        navigatedPage.Should().Be("Workflows");
     }
 
     private static DocumentEntity CreateDocument(long id, string fileName)

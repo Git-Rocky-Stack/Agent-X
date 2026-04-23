@@ -60,6 +60,8 @@
     <Compile Include="..\..\src\AgentX.App\ViewModels\DashboardViewModel.cs" Link="ViewModels\DashboardViewModel.cs" />
     <!-- KnowledgeVaultViewModel is pure document-orchestration logic aside from an App.GetService seam stubbed in tests. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\KnowledgeVaultViewModel.cs" Link="ViewModels\KnowledgeVaultViewModel.cs" />
+    <!-- SearchViewModel is pure search orchestration/state logic. -->
+    <Compile Include="..\..\src\AgentX.App\ViewModels\SearchViewModel.cs" Link="ViewModels\SearchViewModel.cs" />
     <!-- PluginManagerViewModel is pure plugin-orchestration logic with no WinUI dependencies. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\PluginManagerViewModel.cs" Link="ViewModels\PluginManagerViewModel.cs" />
     <!-- WorkspaceProfileViewModel is pure workspace-profile orchestration/state logic. -->
@@ -94,6 +96,8 @@
     <Compile Include="..\..\src\AgentX.App\Services\IStatusBarService.cs" Link="Services\IStatusBarService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\StatusBarService.cs" Link="Services\StatusBarService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\NotificationService.cs" Link="Services\NotificationService.cs" />
+    <Compile Include="..\..\src\AgentX.App\Services\IWorkflowLaunchService.cs" Link="Services\IWorkflowLaunchService.cs" />
+    <Compile Include="..\..\src\AgentX.App\Services\WorkflowLaunchRequest.cs" Link="Services\WorkflowLaunchRequest.cs" />
     <Compile Include="..\..\src\AgentX.App\Helpers\MarkdownParser.cs" Link="Helpers\MarkdownParser.cs" />
     <!-- UserGuideViewModel is pure (no WinUI deps) — only ObservableCollection and Models. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\UserGuideViewModel.cs" Link="ViewModels\UserGuideViewModel.cs" />

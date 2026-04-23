@@ -10,6 +10,7 @@ using AgentX.Core.Helpers;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Indexing;
 using AgentX.Core.Services.Tagging;
+using AgentX.App.Services;
 using Serilog;
 
 namespace AgentX.App.ViewModels;
@@ -32,6 +33,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     private readonly IAiService _aiService;
     private readonly IAutoTagService _autoTagService;
     private readonly ICollectionService _collectionService;
+    private readonly IWorkflowLaunchService? _workflowLaunchService;
 
     // ── Page State ─────────────────────────────────────────────
     [ObservableProperty] private string _pageTitle = "Knowledge Vault";
@@ -97,19 +99,22 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         || SortBy != "date"
         || !string.IsNullOrEmpty(SearchQuery);
     public bool HasSelectedDocument => SelectedDocument is not null;
+    public Action<string>? NavigateRequested { get; set; }
 
     public KnowledgeVaultViewModel(
         IDocumentService documentService,
         IIndexingService indexingService,
         IAiService aiService,
         IAutoTagService autoTagService,
-        ICollectionService collectionService)
+        ICollectionService collectionService,
+        IWorkflowLaunchService? workflowLaunchService = null)
     {
         _documentService = documentService;
         _indexingService = indexingService;
         _aiService = aiService;
         _autoTagService = autoTagService;
         _collectionService = collectionService;
+        _workflowLaunchService = workflowLaunchService;
         Log.Debug("KnowledgeVaultViewModel created with services");
     }
 
@@ -699,6 +704,41 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
+    private async Task LaunchDocumentInWorkflowAsync(long id)
+    {
+        if (_workflowLaunchService is null)
+        {
+            SetError("Workflow launch service unavailable.");
+            return;
+        }
+
+        try
+        {
+            var document = await _documentService.GetDocumentAsync(id);
+            if (document is null)
+            {
+                SetError("Unable to prepare the selected document for workflows.");
+                return;
+            }
+
+            var previewText = await _documentService.GetDocumentPreviewTextAsync(id);
+            if (string.IsNullOrWhiteSpace(previewText) && string.IsNullOrWhiteSpace(document.Summary))
+            {
+                SetError("This document does not have enough indexed text to launch into a workflow yet.");
+                return;
+            }
+
+            _workflowLaunchService.StageRequest(BuildWorkflowLaunchRequest(document, previewText));
+            NavigateRequested?.Invoke("Workflows");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to launch document {DocumentId} into workflow", id);
+            SetError("Failed to prepare the document for workflows.");
+        }
+    }
+
+    [RelayCommand]
     private void FilterByType(string? type)
     {
         FileTypeFilter = type;
@@ -1037,6 +1077,49 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         "failed" => "#EF4444",
         _ => "#6B7280"
     };
+
+    private static WorkflowLaunchRequest BuildWorkflowLaunchRequest(
+        AgentX.Core.Data.Entities.DocumentEntity document,
+        string? previewText)
+    {
+        var lines = new List<string>
+        {
+            "Source: Knowledge Vault document",
+            $"Document: {document.FileName}"
+        };
+
+        if (!string.IsNullOrWhiteSpace(document.ExtractedTitle))
+        {
+            lines.Add($"Title: {document.ExtractedTitle.Trim()}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(document.Summary))
+        {
+            lines.Add(string.Empty);
+            lines.Add("Summary");
+            lines.Add("-------");
+            lines.Add(document.Summary.Trim());
+        }
+
+        if (!string.IsNullOrWhiteSpace(previewText)
+            && !string.Equals(
+                document.Summary?.Trim(),
+                previewText.Trim(),
+                StringComparison.Ordinal))
+        {
+            lines.Add(string.Empty);
+            lines.Add("Document Preview");
+            lines.Add("----------------");
+            lines.Add(previewText.Trim());
+        }
+
+        return new WorkflowLaunchRequest
+        {
+            InputText = string.Join(Environment.NewLine, lines),
+            SourceLabel = $"Loaded document context from \"{document.FileName}\"",
+            RecommendedWorkflowName = "Summarize & Act"
+        };
+    }
 
     private void SetError(string message)
     {

@@ -790,6 +790,21 @@
                                                 <TextBlock Text="Detail"
                                                            Style="{StaticResource CaptionStyle}"
                                                            Foreground="{StaticResource TextSecondaryBrush}" />
+                                                </StackPanel>
+                                        </Button>
+
+                                        <!-- Use in Workflow -->
+                                        <Button Style="{StaticResource GhostButtonStyle}"
+                                                Padding="8,6,8,6" MinHeight="32"
+                                                Tag="{x:Bind Id}"
+                                                Click="OnLaunchDocumentInWorkflowClick"
+                                                ToolTipService.ToolTip="Use this document in a workflow">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <FontIcon Glyph="&#xE945;" FontSize="12"
+                                                          Foreground="{StaticResource AccentPrimaryBrush}" />
+                                                <TextBlock Text="Workflow"
+                                                           Style="{StaticResource CaptionStyle}"
+                                                           Foreground="{StaticResource AccentPrimaryBrush}" />
                                             </StackPanel>
                                         </Button>
 

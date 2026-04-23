@@ -10,6 +10,7 @@ using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
 using AgentX.Core.Services.Export;
 using AgentX.Core.Services.Export.Models;
+using AgentX.App.Services;
 using Serilog;
 
 namespace AgentX.App.ViewModels;
@@ -63,6 +64,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     private readonly IModelManager _modelManager;
     private readonly IDocumentService _documentService;
     private readonly IExportService? _exportService;
+    private readonly IWorkflowLaunchService? _workflowLaunchService;
 
     // ── Page State ───────────────────────────────────────────
     [ObservableProperty] private string _pageTitle = "Prompt Workflows";
@@ -155,13 +157,15 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         IWorkflowEngine workflowEngine,
         IModelManager modelManager,
         IDocumentService documentService,
-        IExportService? exportService = null)
+        IExportService? exportService = null,
+        IWorkflowLaunchService? workflowLaunchService = null)
     {
         _workflowService = workflowService;
         _workflowEngine = workflowEngine;
         _modelManager = modelManager;
         _documentService = documentService;
         _exportService = exportService;
+        _workflowLaunchService = workflowLaunchService;
 
         Workflows.CollectionChanged += (_, _) =>
         {
@@ -304,6 +308,8 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
 
             // Load available models
             await LoadModelsAsync();
+
+            ApplyPendingWorkflowLaunchRequest();
         }
         catch (Exception ex)
         {
@@ -882,6 +888,35 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedTemplateGuideOutcome));
         OnPropertyChanged(nameof(SelectedTemplateGuideExamples));
         OnPropertyChanged(nameof(HasSelectedTemplateGuideExamples));
+    }
+
+    private void ApplyPendingWorkflowLaunchRequest()
+    {
+        var request = _workflowLaunchService?.ConsumePendingRequest();
+        if (request is null)
+        {
+            return;
+        }
+
+        IsEditing = false;
+        ClearRunInspection();
+        RunInput = request.InputText;
+
+        if (!string.IsNullOrWhiteSpace(request.RecommendedWorkflowName))
+        {
+            var recommendedWorkflow = Workflows.FirstOrDefault(workflow =>
+                string.Equals(
+                    workflow.Name,
+                    request.RecommendedWorkflowName,
+                    StringComparison.OrdinalIgnoreCase));
+
+            if (recommendedWorkflow is not null)
+            {
+                SelectedWorkflow = recommendedWorkflow;
+            }
+        }
+
+        StatusMessage = request.SourceLabel;
     }
 
     private WorkflowTemplateGuideContent? SelectedTemplateGuide

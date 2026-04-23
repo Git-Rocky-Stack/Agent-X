@@ -295,6 +295,43 @@ public sealed class DocumentService : IDocumentService
     }
 
     /// <inheritdoc />
+    public async Task<string?> GetDocumentPreviewTextAsync(long documentId, int maxChars = 1800, CancellationToken ct = default)
+    {
+        var boundedChars = Math.Clamp(maxChars, 200, 4000);
+
+        var summary = await _db.Documents
+            .AsNoTracking()
+            .Where(document => document.Id == documentId)
+            .Select(document => document.Summary)
+            .FirstOrDefaultAsync(ct);
+
+        if (!string.IsNullOrWhiteSpace(summary))
+        {
+            var trimmedSummary = summary.Trim();
+            return trimmedSummary.Length <= boundedChars
+                ? trimmedSummary
+                : $"{trimmedSummary[..boundedChars].TrimEnd()}...";
+        }
+
+        var chunkContent = await _db.DocumentChunks
+            .AsNoTracking()
+            .Where(chunk => chunk.DocumentId == documentId)
+            .OrderBy(chunk => chunk.ChunkIndex)
+            .Select(chunk => chunk.Content)
+            .FirstOrDefaultAsync(ct);
+
+        if (string.IsNullOrWhiteSpace(chunkContent))
+        {
+            return null;
+        }
+
+        var trimmedContent = chunkContent.Trim();
+        return trimmedContent.Length <= boundedChars
+            ? trimmedContent
+            : $"{trimmedContent[..boundedChars].TrimEnd()}...";
+    }
+
+    /// <inheritdoc />
     public Task<IReadOnlyList<DocumentEntity>> GetAllDocumentsAsync(
         string? fileTypeFilter = null,
         string? statusFilter = null)

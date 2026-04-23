@@ -59,6 +59,12 @@ public interface IDocumentService
     Task<DocumentEntity?> GetDocumentAsync(long documentId);
 
     /// <summary>
+    /// Returns a short text preview suitable for launching a workflow from a document.
+    /// Prefers the stored summary, then falls back to the first chunk of indexed content.
+    /// </summary>
+    Task<string?> GetDocumentPreviewTextAsync(long documentId, int maxChars = 1800, CancellationToken ct = default);
+
+    /// <summary>
     /// Retrieves all documents with optional filtering by file type and indexing status.
     /// Results are ordered by ImportedAt descending (newest first).
     /// </summary>

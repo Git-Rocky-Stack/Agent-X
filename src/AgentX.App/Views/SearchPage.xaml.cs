@@ -33,6 +33,7 @@ public sealed partial class SearchPage : Page
     public SearchPage()
     {
         ViewModel = App.GetService<SearchViewModel>();
+        ViewModel.NavigateRequested = NavigateToPage;
         InitializeComponent();
 
         Loaded += OnPageLoaded;
@@ -60,6 +61,14 @@ public sealed partial class SearchPage : Page
 
         // Focus the search input for immediate typing
         SearchInputBox.Focus(FocusState.Programmatic);
+    }
+
+    private void NavigateToPage(string pageTag)
+    {
+        if (App.MainWindow is MainWindow mainWindow)
+        {
+            mainWindow.NavigateToPage(pageTag);
+        }
     }
 
     // =================================================================
@@ -177,6 +186,17 @@ public sealed partial class SearchPage : Page
             if (ViewModel.OpenDocumentCommand.CanExecute(documentId))
             {
                 ViewModel.OpenDocumentCommand.Execute(documentId);
+            }
+        }
+    }
+
+    private void OnLaunchResultInWorkflowClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: SearchResultItem result })
+        {
+            if (ViewModel.LaunchResultIntoWorkflowCommand.CanExecute(result))
+            {
+                ViewModel.LaunchResultIntoWorkflowCommand.Execute(result);
             }
         }
     }

@@ -703,6 +703,20 @@
                                                                Foreground="{StaticResource TextSecondaryBrush}" />
                                                 </StackPanel>
                                             </Button>
+
+                                            <Button Style="{StaticResource GhostButtonStyle}"
+                                                    Padding="10,6,10,6" MinHeight="32"
+                                                    Tag="{x:Bind}"
+                                                    Click="OnLaunchResultInWorkflowClick"
+                                                    ToolTipService.ToolTip="Use this result in a workflow">
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <FontIcon Glyph="&#xE945;" FontSize="12"
+                                                              Foreground="{StaticResource AccentPrimaryBrush}" />
+                                                    <TextBlock Text="Workflow"
+                                                               Style="{StaticResource CaptionStyle}"
+                                                               Foreground="{StaticResource AccentPrimaryBrush}" />
+                                                </StackPanel>
+                                            </Button>
                                         </StackPanel>
                                     </Grid>
                                 </Border>
