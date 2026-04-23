@@ -62,6 +62,8 @@
     <Compile Include="..\..\src\AgentX.App\ViewModels\KnowledgeVaultViewModel.cs" Link="ViewModels\KnowledgeVaultViewModel.cs" />
     <!-- PluginManagerViewModel is pure plugin-orchestration logic with no WinUI dependencies. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\PluginManagerViewModel.cs" Link="ViewModels\PluginManagerViewModel.cs" />
+    <!-- WorkspaceProfileViewModel is pure workspace-profile orchestration/state logic. -->
+    <Compile Include="..\..\src\AgentX.App\ViewModels\WorkspaceProfileViewModel.cs" Link="ViewModels\WorkspaceProfileViewModel.cs" />
     <!-- WorkflowBuilderViewModel is pure workflow orchestration/state logic. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\WorkflowBuilderViewModel.cs" Link="ViewModels\WorkflowBuilderViewModel.cs" />
     <!-- SyncSettingsViewModel is pure sync orchestration/state logic; link it for selected-scope UI tests. -->
