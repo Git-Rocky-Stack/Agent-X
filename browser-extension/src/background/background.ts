@@ -5,7 +5,7 @@
  * requests to content scripts, then posts results to the AgentX API.
  */
 
-import { AgentXApi, ClipRequest, ExtensionHealthResponse } from '../api/agentx-api';
+import { AgentXApi, ClipRequest } from '../api/agentx-api';
 import { ExtractedPage } from '../content/extractors';
 
 const api = new AgentXApi();
@@ -22,8 +22,41 @@ interface RecentClip {
 
 const MAX_RECENT_CLIPS = 10;
 
+interface ExtractionErrorResponse {
+  error: string;
+}
+
+type ExtractPageResponse = ExtractedPage | ExtractionErrorResponse;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function isExtractedPage(value: unknown): value is ExtractedPage {
+  return isRecord(value)
+    && typeof value.title === 'string'
+    && (typeof value.author === 'string' || value.author === null)
+    && (typeof value.publishedDate === 'string' || value.publishedDate === null)
+    && typeof value.wordCount === 'number'
+    && typeof value.url === 'string'
+    && typeof value.content === 'string'
+    && (value.clipMode === 'full' || value.clipMode === 'selection' || value.clipMode === 'reader');
+}
+
+function isExtractionErrorResponse(value: unknown): value is ExtractionErrorResponse {
+  return isRecord(value) && typeof value.error === 'string';
+}
+
+function parseExtractPageResponse(value: unknown): ExtractPageResponse | undefined {
+  if (isExtractedPage(value) || isExtractionErrorResponse(value)) {
+    return value;
+  }
+
+  return undefined;
+}
+
 async function addRecentClip(clip: RecentClip): Promise<void> {
-  const stored = await chrome.storage.local.get('recentClips') as { recentClips?: RecentClip[] };
+  const stored = await chrome.storage.local.get<{ recentClips?: RecentClip[] }>('recentClips');
   const clips: RecentClip[] = stored.recentClips ?? [];
   clips.unshift(clip);
   if (clips.length > MAX_RECENT_CLIPS) clips.length = MAX_RECENT_CLIPS;
@@ -36,15 +69,15 @@ chrome.runtime.onMessage.addListener(
   (message: { action: string; mode?: string }, _sender: chrome.runtime.MessageSender, sendResponse: (response: unknown) => void) => {
     switch (message.action) {
       case 'clipPage':
-        handleClipPage(message.mode ?? 'selection', sendResponse);
+        void handleClipPage(message.mode ?? 'selection', sendResponse);
         return true; // async
 
       case 'checkConnection':
-        handleCheckConnection(sendResponse);
+        void handleCheckConnection(sendResponse);
         return true; // async
 
       case 'clipAllTabs':
-        handleClipAllTabs(sendResponse);
+        void handleClipAllTabs(sendResponse);
         return true; // async
 
       default:
@@ -64,14 +97,16 @@ async function handleClipPage(mode: string, sendResponse: (r: unknown) => void):
     }
 
     // Send extraction request to content script
-    const extraction = await chrome.tabs.sendMessage(tab.id, { action: 'extractPage', mode });
+    const extraction = parseExtractPageResponse(
+      await chrome.tabs.sendMessage(tab.id, { action: 'extractPage', mode }) as unknown
+    );
 
-    if (!extraction || extraction.error) {
+    if (!extraction || isExtractionErrorResponse(extraction)) {
       sendResponse({ success: false, error: extraction?.error ?? 'Extraction returned no data.' });
       return;
     }
 
-    const page = extraction as ExtractedPage;
+    const page = extraction;
 
     // Check for empty content
     if (!page.content || page.content.trim().length === 0) {
@@ -129,14 +164,20 @@ async function handleClipAllTabs(sendResponse: (r: unknown) => void): Promise<vo
       }
 
       try {
-        const extraction = await chrome.tabs.sendMessage(tab.id, { action: 'extractPage', mode: 'reader' });
+        const extraction = parseExtractPageResponse(
+          await chrome.tabs.sendMessage(tab.id, { action: 'extractPage', mode: 'reader' }) as unknown
+        );
 
-        if (!extraction || extraction.error || !extraction.content?.trim()) {
-          results.push({ title: tab.title ?? 'Untitled', url: tab.url, status: 'skipped', error: extraction?.error ?? 'Empty content' });
+        if (!extraction || isExtractionErrorResponse(extraction) || !extraction.content.trim()) {
+          const skippedError = isExtractionErrorResponse(extraction)
+            ? extraction.error
+            : 'Empty content';
+
+          results.push({ title: tab.title ?? 'Untitled', url: tab.url, status: 'skipped', error: skippedError });
           continue;
         }
 
-        const page = extraction as ExtractedPage;
+        const page = extraction;
 
         const clip: ClipRequest = {
           title: page.title,

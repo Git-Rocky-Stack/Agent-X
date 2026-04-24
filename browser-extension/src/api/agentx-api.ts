@@ -40,6 +40,49 @@ interface ApiResponse<T> {
   error?: string;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function isExtensionHealthResponse(value: unknown): value is ExtensionHealthResponse {
+  return isRecord(value)
+    && typeof value.connected === 'boolean'
+    && typeof value.version === 'string'
+    && typeof value.inboxEnabled === 'boolean'
+    && typeof value.provider === 'string';
+}
+
+function isClipResponse(value: unknown): value is ClipResponse {
+  return isRecord(value)
+    && typeof value.inboxItemId === 'number'
+    && typeof value.status === 'string'
+    && typeof value.message === 'string';
+}
+
+function parseApiResponse<T>(
+  value: unknown,
+  isData: (data: unknown) => data is T,
+  errorContext: string
+): ApiResponse<T> {
+  if (!isRecord(value) || typeof value.success !== 'boolean') {
+    throw new Error(`${errorContext} returned an invalid response envelope`);
+  }
+
+  if (value.error !== undefined && typeof value.error !== 'string') {
+    throw new Error(`${errorContext} returned an invalid error payload`);
+  }
+
+  if (value.data !== undefined && !isData(value.data)) {
+    throw new Error(`${errorContext} returned an invalid data payload`);
+  }
+
+  return {
+    success: value.success,
+    data: value.data,
+    error: value.error,
+  };
+}
+
 // ── Client ──────────────────────────────────────────────────────────────────
 
 export class AgentXApi {
@@ -55,10 +98,16 @@ export class AgentXApi {
     if (!response.ok) {
       throw new Error(`Health check failed: ${response.status} ${response.statusText}`);
     }
-    const envelope: ApiResponse<ExtensionHealthResponse> = await response.json();
+    const envelope = parseApiResponse(
+      await response.json() as unknown,
+      isExtensionHealthResponse,
+      'Health check'
+    );
+
     if (!envelope.success || !envelope.data) {
       throw new Error(envelope.error ?? 'Health check returned unsuccessful response');
     }
+
     return envelope.data;
   }
 
@@ -75,10 +124,16 @@ export class AgentXApi {
       throw new Error(`Clip failed: ${response.status} ${response.statusText}${errorBody ? ` — ${errorBody}` : ''}`);
     }
 
-    const envelope: ApiResponse<ClipResponse> = await response.json();
+    const envelope = parseApiResponse(
+      await response.json() as unknown,
+      isClipResponse,
+      'Clip request'
+    );
+
     if (!envelope.success || !envelope.data) {
       throw new Error(envelope.error ?? 'Clip request returned unsuccessful response');
     }
+
     return envelope.data;
   }
 }

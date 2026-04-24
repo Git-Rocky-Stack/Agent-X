@@ -19,10 +19,10 @@ export interface ExtractedPage {
 
 function getMetaContent(name: string): string | null {
   // Try <meta name="..."> first, then <meta property="..."> (Open Graph)
-  const byName = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
+  const byName = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
   if (byName?.content) return byName.content;
 
-  const byProperty = document.querySelector(`meta[property="${name}"]`) as HTMLMetaElement | null;
+  const byProperty = document.querySelector<HTMLMetaElement>(`meta[property="${name}"]`);
   if (byProperty?.content) return byProperty.content;
 
   return null;

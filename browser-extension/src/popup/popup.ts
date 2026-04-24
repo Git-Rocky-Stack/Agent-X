@@ -7,15 +7,15 @@
 
 // ── DOM References ──────────────────────────────────────────────────────────
 
-const statusDot = document.getElementById('statusDot') as HTMLSpanElement | null;
-const statusText = document.getElementById('statusText') as HTMLSpanElement | null;
-const feedbackArea = document.getElementById('feedbackArea') as HTMLDivElement | null;
-const clipList = document.getElementById('clipList') as HTMLUListElement | null;
+const statusDot = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+const feedbackArea = document.getElementById('feedbackArea');
+const clipList = document.getElementById('clipList');
 
-const clipFullBtn = document.getElementById('clipFull') as HTMLButtonElement | null;
-const clipSelectionBtn = document.getElementById('clipSelection') as HTMLButtonElement | null;
-const clipReaderBtn = document.getElementById('clipReader') as HTMLButtonElement | null;
-const clipAllTabsBtn = document.getElementById('clipAllTabs') as HTMLButtonElement | null;
+const clipFullBtn = getButton('clipFull');
+const clipSelectionBtn = getButton('clipSelection');
+const clipReaderBtn = getButton('clipReader');
+const clipAllTabsBtn = getButton('clipAllTabs');
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -30,8 +30,8 @@ interface RecentClip {
 // ── Initialization ──────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
-  checkConnection();
-  loadRecentClips();
+  void checkConnection();
+  void loadRecentClips();
   bindEvents();
 });
 
@@ -149,7 +149,7 @@ async function loadRecentClips(): Promise<void> {
   if (!clipList) return;
 
   try {
-    const stored = await chrome.storage.local.get('recentClips') as { recentClips?: RecentClip[] };
+    const stored = await chrome.storage.local.get<{ recentClips?: RecentClip[] }>('recentClips');
     const clips: RecentClip[] = stored.recentClips ?? [];
 
     // Clear existing items — using DOM APIs, never innerHTML
@@ -229,6 +229,11 @@ function setButtonsEnabled(enabled: boolean): void {
   for (const btn of buttons) {
     if (btn) btn.disabled = !enabled;
   }
+}
+
+function getButton(id: string): HTMLButtonElement | null {
+  const element = document.getElementById(id);
+  return element instanceof HTMLButtonElement ? element : null;
 }
 
 interface ExtensionResponse {
