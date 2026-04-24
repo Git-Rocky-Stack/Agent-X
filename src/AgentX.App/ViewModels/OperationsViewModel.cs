@@ -18,6 +18,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _errorMessage = string.Empty;
     [ObservableProperty] private bool _isEnablingConnector;
     [ObservableProperty] private bool _isGeneratingInboxPreviews;
+    [ObservableProperty] private bool _isReindexingImportedDocument;
     [ObservableProperty] private bool _isRefreshingConversationSummaries;
     [ObservableProperty] private bool _isRunningManualSync;
     [ObservableProperty] private bool _hasActionMessage;
@@ -124,6 +125,11 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     private bool CanRefreshConversationSummaries() =>
         !IsLoading && !IsRefreshingConversationSummaries;
 
+    private bool CanRetryImportedDocumentIndexing(OperationsImportedDocumentPreview? preview) =>
+        !IsLoading &&
+        !IsReindexingImportedDocument &&
+        preview is { CanRetryIndexingFromOperations: true };
+
     private bool CanRunManualSync() =>
         !IsLoading &&
         !IsRunningManualSync &&
@@ -194,6 +200,32 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         finally
         {
             IsEnablingConnector = false;
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanRetryImportedDocumentIndexing))]
+    private async Task RetryImportedDocumentIndexingAsync(OperationsImportedDocumentPreview? preview, CancellationToken ct = default)
+    {
+        if (preview is null || preview.DocumentId <= 0)
+        {
+            return;
+        }
+
+        IsReindexingImportedDocument = true;
+        ClearActionFeedback();
+
+        try
+        {
+            var result = await _operationsActionService
+                .ReindexImportedDocumentAsync(preview.DocumentId, ct)
+                .ConfigureAwait(false);
+
+            ApplyActionFeedback(result);
+            await LoadAsync(ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            IsReindexingImportedDocument = false;
         }
     }
 
@@ -340,6 +372,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     {
         EnableConnectorCommand.NotifyCanExecuteChanged();
         GenerateInboxPreviewsCommand.NotifyCanExecuteChanged();
+        RetryImportedDocumentIndexingCommand.NotifyCanExecuteChanged();
         RefreshConversationSummariesCommand.NotifyCanExecuteChanged();
         RunManualSyncCommand.NotifyCanExecuteChanged();
     }
@@ -349,6 +382,9 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
 
     partial void OnIsGeneratingInboxPreviewsChanged(bool value) =>
         GenerateInboxPreviewsCommand.NotifyCanExecuteChanged();
+
+    partial void OnIsReindexingImportedDocumentChanged(bool value) =>
+        RetryImportedDocumentIndexingCommand.NotifyCanExecuteChanged();
 
     partial void OnIsRefreshingConversationSummariesChanged(bool value) =>
         RefreshConversationSummariesCommand.NotifyCanExecuteChanged();
@@ -361,6 +397,9 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
 
     partial void OnConnectorPreviewsChanged(IReadOnlyList<OperationsConnectorPreview> value) =>
         EnableConnectorCommand.NotifyCanExecuteChanged();
+
+    partial void OnRecentImportedDocumentsChanged(IReadOnlyList<OperationsImportedDocumentPreview> value) =>
+        RetryImportedDocumentIndexingCommand.NotifyCanExecuteChanged();
 
     partial void OnSyncHealthChanged(OperationsCardSnapshot value) =>
         RunManualSyncCommand.NotifyCanExecuteChanged();
@@ -460,6 +499,16 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
             count++;
         }
 
+        if (NeedsImportedDocumentAttention(snapshot.RecentImportedDocuments))
+        {
+            count++;
+        }
+
+        if (NeedsConnectorAttention(snapshot.ConnectorPreviews))
+        {
+            count++;
+        }
+
         return count;
     }
 
@@ -472,6 +521,13 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         card.Status.Contains("conflict", StringComparison.OrdinalIgnoreCase) ||
         card.Status.Contains("attention", StringComparison.OrdinalIgnoreCase) ||
         card.Status.Contains("off", StringComparison.OrdinalIgnoreCase);
+
+    private static bool NeedsImportedDocumentAttention(IReadOnlyList<OperationsImportedDocumentPreview> previews) =>
+        previews.Any(preview => preview.DocumentId > 0 &&
+                                preview.HealthStatus.Equals("Needs Attention", StringComparison.OrdinalIgnoreCase));
+
+    private static bool NeedsConnectorAttention(IReadOnlyList<OperationsConnectorPreview> previews) =>
+        previews.Any(preview => preview.CanEnableFromOperations);
 
     private static string BuildAttentionSummary(OperationsOverviewSnapshot snapshot)
     {
@@ -490,6 +546,16 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         if (ParseCompactNumber(snapshot.IngestionBacklog.Headline) > 0)
         {
             items.Add(snapshot.IngestionBacklog.Status);
+        }
+
+        if (NeedsImportedDocumentAttention(snapshot.RecentImportedDocuments))
+        {
+            items.Add("Imported documents need indexing");
+        }
+
+        if (NeedsConnectorAttention(snapshot.ConnectorPreviews))
+        {
+            items.Add("Connectors can be enabled");
         }
 
         if (items.Count == 0)

@@ -1,4 +1,5 @@
 using AgentX.Core.Services.Chat;
+using AgentX.Core.Documents;
 using AgentX.Core.Services.Inbox;
 using AgentX.Core.Services.Plugins;
 using AgentX.Core.Services.Sync;
@@ -12,6 +13,7 @@ namespace AgentX.App.Services;
 public sealed class OperationsActionService : IOperationsActionService
 {
     private readonly IConversationSummaryService _conversationSummaryService;
+    private readonly IDocumentService _documentService;
     private readonly IInboxService _inboxService;
     private readonly IPluginService _pluginService;
     private readonly ISyncService _syncService;
@@ -19,12 +21,14 @@ public sealed class OperationsActionService : IOperationsActionService
 
     public OperationsActionService(
         IConversationSummaryService conversationSummaryService,
+        IDocumentService documentService,
         IInboxService inboxService,
         IPluginService pluginService,
         ISyncService syncService,
         ILogger logger)
     {
         _conversationSummaryService = conversationSummaryService ?? throw new ArgumentNullException(nameof(conversationSummaryService));
+        _documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
         _inboxService = inboxService ?? throw new ArgumentNullException(nameof(inboxService));
         _pluginService = pluginService ?? throw new ArgumentNullException(nameof(pluginService));
         _syncService = syncService ?? throw new ArgumentNullException(nameof(syncService));
@@ -99,6 +103,29 @@ public sealed class OperationsActionService : IOperationsActionService
         {
             _log.Warning(ex, "Operations: inbox preview generation failed");
             return new OperationsActionResult(false, $"Preview generation failed: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationsActionResult> ReindexImportedDocumentAsync(long documentId, CancellationToken ct = default)
+    {
+        try
+        {
+            if (documentId <= 0)
+            {
+                return new OperationsActionResult(false, "Select an imported document before retrying indexing.");
+            }
+
+            await _documentService.ReindexDocumentAsync(documentId, ct).ConfigureAwait(false);
+            return new OperationsActionResult(true, "Queued imported document for re-indexing.");
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Operations: imported document re-index failed for document {DocumentId}", documentId);
+            return new OperationsActionResult(false, $"Re-index failed: {ex.Message}");
         }
     }
 

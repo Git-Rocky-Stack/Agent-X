@@ -1,5 +1,6 @@
 using AgentX.App.Services;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Documents;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Inbox;
 using AgentX.Core.Services.Plugins;
@@ -15,6 +16,7 @@ namespace AgentX.Tests.Services;
 public sealed class OperationsActionServiceTests
 {
     private readonly Mock<IConversationSummaryService> _conversationSummaryService = new();
+    private readonly Mock<IDocumentService> _documentService = new();
     private readonly Mock<IInboxService> _inboxService = new();
     private readonly Mock<IPluginService> _pluginService = new();
     private readonly Mock<ISyncService> _syncService = new();
@@ -96,6 +98,34 @@ public sealed class OperationsActionServiceTests
     }
 
     [Fact]
+    public async Task ReindexImportedDocumentAsync_requeues_document_for_indexing()
+    {
+        _documentService
+            .Setup(service => service.ReindexDocumentAsync(501, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        var sut = CreateService();
+
+        var result = await sut.ReindexImportedDocumentAsync(501);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Message.Should().Be("Queued imported document for re-indexing.");
+        _documentService.Verify(service => service.ReindexDocumentAsync(501, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ReindexImportedDocumentAsync_returns_error_for_invalid_document()
+    {
+        var sut = CreateService();
+
+        var result = await sut.ReindexImportedDocumentAsync(0);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Message.Should().Contain("Select an imported document");
+        _documentService.Verify(service => service.ReindexDocumentAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task RefreshConversationSummariesAsync_returns_success_message_for_refreshed_count()
     {
         _conversationSummaryService
@@ -169,6 +199,7 @@ public sealed class OperationsActionServiceTests
     private OperationsActionService CreateService() =>
         new(
             _conversationSummaryService.Object,
+            _documentService.Object,
             _inboxService.Object,
             _pluginService.Object,
             _syncService.Object,

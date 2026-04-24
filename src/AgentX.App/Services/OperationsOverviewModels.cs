@@ -63,6 +63,9 @@ public sealed record OperationsImportedDocumentPreview
     public string HealthStatus { get; init; } = string.Empty;
     public string Detail { get; init; } = string.Empty;
     public bool HasHealthStatus => !string.IsNullOrWhiteSpace(HealthStatus);
+    public bool CanRetryIndexingFromOperations =>
+        DocumentId > 0 &&
+        HealthStatus.Equals("Needs Attention", StringComparison.OrdinalIgnoreCase);
 }
 
 public sealed record OperationsWorkflowRunPreview

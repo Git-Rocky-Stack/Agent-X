@@ -181,6 +181,78 @@ public sealed class OperationsViewModelTests
     }
 
     [Fact]
+    public async Task LoadAsync_flags_attention_for_imported_documents_and_disabled_connectors()
+    {
+        _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot
+                {
+                    Headline = "4",
+                    Status = "Durable recall current",
+                    Detail = "4 stored snapshots"
+                },
+                SyncHealth = new OperationsCardSnapshot
+                {
+                    Headline = "Configured",
+                    Status = "Standing by",
+                    Detail = "Ready"
+                },
+                IngestionBacklog = new OperationsCardSnapshot
+                {
+                    Headline = "0",
+                    Status = "Queue clear",
+                    Detail = "No pending items."
+                },
+                WorkflowActivity = new OperationsCardSnapshot
+                {
+                    Headline = "2",
+                    Status = "2 runs recorded",
+                    SupportingPrimary = "1 active / 30d",
+                    SupportingSecondary = "12s avg run",
+                    Detail = "Top workflow: Research Briefing"
+                },
+                Connectors = new OperationsCardSnapshot
+                {
+                    Headline = "1",
+                    Status = "1 plugin installed",
+                    Detail = "Open Plugin Manager to enable connectors."
+                },
+                RecentImportedDocuments =
+                [
+                    new OperationsImportedDocumentPreview
+                    {
+                        DocumentId = 501,
+                        Title = "Sprint planning email",
+                        Status = "Email Connector",
+                        HealthStatus = "Needs Attention",
+                        Detail = "Email Message · Embedding request failed."
+                    }
+                ],
+                ConnectorPreviews =
+                [
+                    new OperationsConnectorPreview
+                    {
+                        PluginId = 301,
+                        IsEnabled = false,
+                        CanEnableFromOperations = true,
+                        Title = "Email Connector",
+                        Status = "Disabled",
+                        Detail = "Connector · Brings inbox mail into Agent-X."
+                    }
+                ]
+            });
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.LoadAsync();
+
+        viewModel.SummaryHeadline.Should().Be("2 operational areas need attention");
+        viewModel.SummaryDetail.Should().Contain("Imported documents need indexing");
+        viewModel.SummaryDetail.Should().Contain("Connectors can be enabled");
+    }
+
+    [Fact]
     public async Task LoadAsync_uses_fallback_snapshot_when_service_fails()
     {
         _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
@@ -483,6 +555,95 @@ public sealed class OperationsViewModelTests
         viewModel.HasActionMessage.Should().BeTrue();
         viewModel.ActionMessage.Should().Be("Enabled Email Connector.");
         viewModel.ConnectorPreviews.Single().IsEnabled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task RetryImportedDocumentIndexingAsync_runs_action_and_reloads_snapshot()
+    {
+        _operationsOverviewService.SetupSequence(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot(),
+                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", Detail = "Ready" },
+                IngestionBacklog = new OperationsCardSnapshot(),
+                WorkflowActivity = new OperationsCardSnapshot(),
+                Connectors = new OperationsCardSnapshot(),
+                RecentImportedDocuments =
+                [
+                    new OperationsImportedDocumentPreview
+                    {
+                        DocumentId = 501,
+                        Title = "Sprint planning email",
+                        Status = "Email Connector",
+                        HealthStatus = "Needs Attention",
+                        Detail = "Email Message · Embedding request failed."
+                    }
+                ]
+            })
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot(),
+                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", Detail = "Ready" },
+                IngestionBacklog = new OperationsCardSnapshot(),
+                WorkflowActivity = new OperationsCardSnapshot(),
+                Connectors = new OperationsCardSnapshot(),
+                RecentImportedDocuments =
+                [
+                    new OperationsImportedDocumentPreview
+                    {
+                        DocumentId = 501,
+                        Title = "Sprint planning email",
+                        Status = "Email Connector",
+                        HealthStatus = "Processing",
+                        Detail = "Email Message · queued for indexing"
+                    }
+                ]
+            });
+        _operationsActionService.Setup(service => service.ReindexImportedDocumentAsync(501, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsActionResult(true, "Queued imported document for re-indexing."));
+
+        var viewModel = CreateViewModel();
+        await viewModel.LoadAsync();
+
+        var preview = viewModel.RecentImportedDocuments.Single();
+        viewModel.RetryImportedDocumentIndexingCommand.CanExecute(preview).Should().BeTrue();
+
+        await viewModel.RetryImportedDocumentIndexingCommand.ExecuteAsync(preview);
+
+        viewModel.RecentImportedDocuments.Single().HealthStatus.Should().Be("Processing");
+        viewModel.HasActionMessage.Should().BeTrue();
+        viewModel.ActionMessage.Should().Be("Queued imported document for re-indexing.");
+        _operationsActionService.Verify(service => service.ReindexImportedDocumentAsync(501, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task RetryImportedDocumentIndexingCommand_is_disabled_for_searchable_document()
+    {
+        _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot(),
+                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", Detail = "Ready" },
+                IngestionBacklog = new OperationsCardSnapshot(),
+                WorkflowActivity = new OperationsCardSnapshot(),
+                Connectors = new OperationsCardSnapshot(),
+                RecentImportedDocuments =
+                [
+                    new OperationsImportedDocumentPreview
+                    {
+                        DocumentId = 501,
+                        Title = "Sprint planning email",
+                        Status = "Email Connector",
+                        HealthStatus = "Searchable",
+                        Detail = "Email Message · searchable now"
+                    }
+                ]
+            });
+
+        var viewModel = CreateViewModel();
+        await viewModel.LoadAsync();
+
+        viewModel.RetryImportedDocumentIndexingCommand.CanExecute(viewModel.RecentImportedDocuments.Single()).Should().BeFalse();
     }
 
     [Fact]

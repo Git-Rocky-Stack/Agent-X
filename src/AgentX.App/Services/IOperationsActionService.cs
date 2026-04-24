@@ -11,6 +11,8 @@ public interface IOperationsActionService
 
     Task<OperationsActionResult> GenerateInboxPreviewsAsync(CancellationToken ct = default);
 
+    Task<OperationsActionResult> ReindexImportedDocumentAsync(long documentId, CancellationToken ct = default);
+
     Task<OperationsActionResult> RefreshConversationSummariesAsync(
         int maxConversations = 4,
         CancellationToken ct = default);
