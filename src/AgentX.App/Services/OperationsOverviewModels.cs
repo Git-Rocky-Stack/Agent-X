@@ -60,7 +60,9 @@ public sealed record OperationsImportedDocumentPreview
     public long DocumentId { get; init; }
     public string Title { get; init; } = string.Empty;
     public string Status { get; init; } = string.Empty;
+    public string HealthStatus { get; init; } = string.Empty;
     public string Detail { get; init; } = string.Empty;
+    public bool HasHealthStatus => !string.IsNullOrWhiteSpace(HealthStatus);
 }
 
 public sealed record OperationsWorkflowRunPreview

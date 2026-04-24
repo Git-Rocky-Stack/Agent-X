@@ -1,5 +1,6 @@
 using AgentX.App.Services;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Documents;
 using AgentX.Core.Services.Analytics;
 using AgentX.Core.Services.Analytics.Models;
 using AgentX.Core.Services.Inbox;
@@ -17,6 +18,7 @@ namespace AgentX.Tests.Services;
 public sealed class OperationsOverviewServiceTests
 {
     private readonly Mock<IAnalyticsService> _analyticsService = new();
+    private readonly Mock<IDocumentService> _documentService = new();
     private readonly Mock<IInboxService> _inboxService = new();
     private readonly Mock<IPluginService> _pluginService = new();
     private readonly Mock<ISyncService> _syncService = new();
@@ -122,8 +124,45 @@ public sealed class OperationsOverviewServiceTests
                     SourceType = "calendar-connector",
                     AddedAt = DateTime.UtcNow.AddMinutes(-20),
                     ProcessedAt = DateTime.UtcNow.AddMinutes(-18)
+                },
+                new InboxItemEntity
+                {
+                    Id = 32,
+                    DocumentId = 503,
+                    FileName = "Customer escalation thread",
+                    FileType = "EmailMessage",
+                    SourceType = "email-connector",
+                    AddedAt = DateTime.UtcNow.AddMinutes(-16),
+                    ProcessedAt = DateTime.UtcNow.AddMinutes(-14)
                 }
             ]);
+
+        _documentService.Setup(service => service.GetDocumentAsync(501))
+            .ReturnsAsync(new DocumentEntity
+            {
+                Id = 501,
+                FileName = "Sprint planning email",
+                IndexingStatus = "pending",
+                ChunkCount = 0
+            });
+        _documentService.Setup(service => service.GetDocumentAsync(502))
+            .ReturnsAsync(new DocumentEntity
+            {
+                Id = 502,
+                FileName = "Quarterly roadmap meeting",
+                IndexingStatus = "completed",
+                ChunkCount = 8,
+                LastIndexedAt = DateTime.UtcNow.AddMinutes(-12)
+            });
+        _documentService.Setup(service => service.GetDocumentAsync(503))
+            .ReturnsAsync(new DocumentEntity
+            {
+                Id = 503,
+                FileName = "Customer escalation thread",
+                IndexingStatus = "failed",
+                ChunkCount = 0,
+                IndexingError = "Embedding request failed."
+            });
 
         _syncService.SetupGet(service => service.Status)
             .Returns(new SyncStatus
@@ -202,6 +241,7 @@ public sealed class OperationsOverviewServiceTests
 
         var sut = new OperationsOverviewService(
             _analyticsService.Object,
+            _documentService.Object,
             _inboxService.Object,
             _pluginService.Object,
             _syncService.Object,
@@ -226,11 +266,16 @@ public sealed class OperationsOverviewServiceTests
         snapshot.PendingInboxItems.Should().ContainSingle();
         snapshot.PendingInboxItems[0].Title.Should().Be("Board update.docx");
         snapshot.PendingInboxItems[0].Status.Should().Be("Email Connector");
-        snapshot.RecentImportedDocuments.Should().HaveCount(2);
-        snapshot.RecentImportedDocuments[0].DocumentId.Should().Be(502);
-        snapshot.RecentImportedDocuments[0].Status.Should().Be("Calendar Connector");
-        snapshot.RecentImportedDocuments[1].DocumentId.Should().Be(501);
-        snapshot.RecentImportedDocuments[1].Status.Should().Be("Email Connector");
+        snapshot.RecentImportedDocuments.Should().HaveCount(3);
+        snapshot.RecentImportedDocuments[0].DocumentId.Should().Be(503);
+        snapshot.RecentImportedDocuments[0].Status.Should().Be("Email Connector");
+        snapshot.RecentImportedDocuments[0].HealthStatus.Should().Be("Needs Attention");
+        snapshot.RecentImportedDocuments[1].DocumentId.Should().Be(502);
+        snapshot.RecentImportedDocuments[1].Status.Should().Be("Calendar Connector");
+        snapshot.RecentImportedDocuments[1].HealthStatus.Should().Be("Searchable");
+        snapshot.RecentImportedDocuments[2].DocumentId.Should().Be(501);
+        snapshot.RecentImportedDocuments[2].Status.Should().Be("Email Connector");
+        snapshot.RecentImportedDocuments[2].HealthStatus.Should().Be("Processing");
 
         snapshot.Connectors.Headline.Should().Be("2");
         snapshot.Connectors.Status.Should().Be("2 connectors enabled");

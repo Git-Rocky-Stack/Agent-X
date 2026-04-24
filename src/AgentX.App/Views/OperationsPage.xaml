@@ -10,6 +10,7 @@
     <Page.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
         <converters:BoolToVisibilityConverter x:Key="InverseBoolToVis" IsInverted="True" />
+        <converters:StatusToColorConverter x:Key="StatusToColor" />
         <DataTemplate x:Key="OperationsPreviewTemplate">
             <Border Style="{StaticResource CardStyle}"
                     Padding="12,10"
@@ -40,15 +41,26 @@
                     Margin="0,0,0,8">
                 <Border Style="{StaticResource CardStyle}"
                         Padding="12,10">
-                    <StackPanel Spacing="4">
+                    <StackPanel Spacing="6">
                         <TextBlock Text="{Binding Title}"
                                    Style="{StaticResource BodyStyle}"
                                    FontWeight="SemiBold"
                                    TextWrapping="WrapWholeWords" />
-                        <TextBlock Text="{Binding Status}"
-                                   Style="{StaticResource CaptionStyle}"
-                                   Foreground="{StaticResource TextAccentBrush}"
-                                   TextWrapping="WrapWholeWords" />
+                        <StackPanel Orientation="Horizontal"
+                                    Spacing="8">
+                            <TextBlock Text="{Binding Status}"
+                                       Style="{StaticResource CaptionStyle}"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       TextWrapping="WrapWholeWords"
+                                       VerticalAlignment="Center" />
+                            <Border Style="{StaticResource BadgeDefaultStyle}"
+                                    Visibility="{Binding HasHealthStatus, Converter={StaticResource BoolToVis}}"
+                                    BorderBrush="{Binding HealthStatus, Converter={StaticResource StatusToColor}}">
+                                <TextBlock Text="{Binding HealthStatus}"
+                                           Style="{StaticResource CaptionStyle}"
+                                           Foreground="{Binding HealthStatus, Converter={StaticResource StatusToColor}}" />
+                            </Border>
+                        </StackPanel>
                         <TextBlock Text="{Binding Detail}"
                                    Style="{StaticResource CaptionStyle}"
                                    Foreground="{StaticResource TextSecondaryBrush}"

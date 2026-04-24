@@ -42,11 +42,11 @@ public sealed class StatusToColorConverter : IValueConverter
         {
             // Green statuses
             "connected" or "online" or "active" or "ready"
-                or "success" or "completed" or "healthy" => GreenBrush,
+                or "success" or "completed" or "healthy" or "searchable" => GreenBrush,
 
             // Red statuses
             "disconnected" or "offline" or "error" or "failed"
-                or "critical" or "unavailable" => RedBrush,
+                or "critical" or "unavailable" or "needs attention" => RedBrush,
 
             // Amber statuses
             "processing" or "loading" or "pending" or "syncing"

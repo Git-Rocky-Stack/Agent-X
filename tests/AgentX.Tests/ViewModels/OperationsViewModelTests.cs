@@ -72,6 +72,7 @@ public sealed class OperationsViewModelTests
                         DocumentId = 501,
                         Title = "Sprint planning email",
                         Status = "Email Connector",
+                        HealthStatus = "Searchable",
                         Detail = "Email Message · vaulted 28 minutes ago"
                     }
                 ],
@@ -121,6 +122,7 @@ public sealed class OperationsViewModelTests
         viewModel.ConversationIntelligence.Headline.Should().Be("5");
         viewModel.RecentConversationSummaries.Should().ContainSingle();
         viewModel.RecentImportedDocuments.Should().ContainSingle();
+        viewModel.RecentImportedDocuments.Single().HealthStatus.Should().Be("Searchable");
         viewModel.WorkflowActivity.SupportingPrimary.Should().Be("2 active / 30d");
         viewModel.RecentWorkflowRuns.Should().ContainSingle();
         viewModel.Connectors.Status.Should().Be("2 connectors enabled");

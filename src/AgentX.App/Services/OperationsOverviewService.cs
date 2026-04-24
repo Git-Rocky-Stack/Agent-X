@@ -1,4 +1,5 @@
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
 using AgentX.Core.Services.Analytics;
 using AgentX.Core.Services.Analytics.Models;
@@ -18,6 +19,7 @@ namespace AgentX.App.Services;
 public sealed class OperationsOverviewService : IOperationsOverviewService
 {
     private readonly IAnalyticsService _analyticsService;
+    private readonly IDocumentService _documentService;
     private readonly IInboxService _inboxService;
     private readonly IPluginService _pluginService;
     private readonly ISyncService _syncService;
@@ -26,6 +28,7 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
 
     public OperationsOverviewService(
         IAnalyticsService analyticsService,
+        IDocumentService documentService,
         IInboxService inboxService,
         IPluginService pluginService,
         ISyncService syncService,
@@ -33,6 +36,7 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
         ILogger logger)
     {
         _analyticsService = analyticsService ?? throw new ArgumentNullException(nameof(analyticsService));
+        _documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
         _inboxService = inboxService ?? throw new ArgumentNullException(nameof(inboxService));
         _pluginService = pluginService ?? throw new ArgumentNullException(nameof(pluginService));
         _syncService = syncService ?? throw new ArgumentNullException(nameof(syncService));
@@ -100,6 +104,7 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
         var pendingInbox = await inboxTask;
         var pendingItems = await pendingItemsTask;
         var importedItems = await importedItemsTask;
+        var importedDocumentPreviews = await BuildImportedDocumentPreviewsAsync(importedItems, ct).ConfigureAwait(false);
         var syncConfig = await syncConfigTask;
         var syncHistory = await syncHistoryTask;
         var plugins = await pluginTask;
@@ -122,7 +127,7 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             RecentConversationSummaries = BuildConversationPreviews(conversation),
             RecentSyncPasses = BuildSyncPreviews(syncHistory),
             PendingInboxItems = BuildInboxPreviews(pendingItems),
-            RecentImportedDocuments = BuildImportedDocumentPreviews(importedItems),
+            RecentImportedDocuments = importedDocumentPreviews,
             RecentWorkflowRuns = BuildWorkflowRunPreviews(workflow),
             ConnectorPreviews = BuildConnectorPreviews(plugins)
         };
@@ -323,31 +328,113 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             }];
     }
 
-    private static IReadOnlyList<OperationsImportedDocumentPreview> BuildImportedDocumentPreviews(IReadOnlyList<InboxItemEntity> items)
+    private async Task<IReadOnlyList<OperationsImportedDocumentPreview>> BuildImportedDocumentPreviewsAsync(
+        IReadOnlyList<InboxItemEntity> items,
+        CancellationToken ct)
     {
-        var previews = items
+        var candidates = items
             .Where(item => item.DocumentId.HasValue && item.DocumentId.Value > 0)
             .OrderByDescending(item => item.ProcessedAt ?? item.AddedAt)
             .Take(3)
-            .Select(item => new OperationsImportedDocumentPreview
-            {
-                DocumentId = item.DocumentId!.Value,
-                Title = string.IsNullOrWhiteSpace(item.FileName)
-                    ? "Imported document"
-                    : item.FileName,
-                Status = BuildInboxSourceLabel(item),
-                Detail = BuildImportedDocumentDetail(item)
-            })
             .ToArray();
 
-        return previews.Length > 0
-            ? previews
-            : [new OperationsImportedDocumentPreview
+        if (candidates.Length == 0)
+        {
+            return [new OperationsImportedDocumentPreview
             {
                 Title = "No recent imported documents",
                 Status = "Vault",
                 Detail = "Connector-sourced documents that bridge into the Knowledge Vault will appear here."
             }];
+        }
+
+        var previewTasks = candidates.Select(item => BuildImportedDocumentPreviewAsync(item, ct));
+        return await Task.WhenAll(previewTasks).ConfigureAwait(false);
+    }
+
+    private async Task<OperationsImportedDocumentPreview> BuildImportedDocumentPreviewAsync(
+        InboxItemEntity item,
+        CancellationToken ct)
+    {
+        DocumentEntity? document = null;
+
+        try
+        {
+            ct.ThrowIfCancellationRequested();
+            document = await _documentService.GetDocumentAsync(item.DocumentId!.Value).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Operations overview: failed to load imported document {DocumentId}", item.DocumentId!.Value);
+        }
+
+        var healthStatus = BuildImportedDocumentHealthStatus(document);
+
+        return new OperationsImportedDocumentPreview
+        {
+            DocumentId = item.DocumentId!.Value,
+            Title = string.IsNullOrWhiteSpace(item.FileName)
+                ? "Imported document"
+                : item.FileName,
+            Status = BuildInboxSourceLabel(item),
+            HealthStatus = healthStatus,
+            Detail = BuildImportedDocumentDetail(item, document, healthStatus)
+        };
+    }
+
+    private static string BuildImportedDocumentHealthStatus(DocumentEntity? document) =>
+        document switch
+        {
+            null => "Needs Attention",
+            { IndexingStatus: "completed", ChunkCount: > 0 } => "Searchable",
+            { IndexingStatus: "pending" } => "Processing",
+            { IndexingStatus: "processing" } => "Processing",
+            { IndexingStatus: "failed" } => "Needs Attention",
+            { IndexingStatus: "completed", ChunkCount: <= 0 } => "Needs Attention",
+            _ => "Needs Attention"
+        };
+
+    private static string BuildImportedDocumentHealthDetail(DocumentEntity? document, string healthStatus)
+    {
+        if (document is null)
+        {
+            return "review vault link";
+        }
+
+        return healthStatus switch
+        {
+            "Searchable" when document.LastIndexedAt.HasValue => $"searchable {FormatHelper.TimeAgoWithMonths(document.LastIndexedAt.Value)}",
+            "Searchable" => "searchable now",
+            "Processing" when string.Equals(document.IndexingStatus, "pending", StringComparison.OrdinalIgnoreCase) => "queued for indexing",
+            "Processing" => "indexing in progress",
+            "Needs Attention" when !string.IsNullOrWhiteSpace(document.IndexingError) => TrimForPreview(document.IndexingError, 72),
+            _ => "review indexing status"
+        };
+    }
+
+    private static string BuildImportedDocumentDetail(
+        InboxItemEntity item,
+        DocumentEntity? document,
+        string healthStatus)
+    {
+        var parts = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(item.FileType))
+        {
+            parts.Add(ToTitleCase(item.FileType));
+        }
+
+        if (!string.IsNullOrWhiteSpace(item.SuggestedCollectionName))
+        {
+            parts.Add($"to {item.SuggestedCollectionName}");
+        }
+
+        parts.Add(BuildImportedDocumentHealthDetail(document, healthStatus));
+        return string.Join(" · ", parts);
     }
 
     private static OperationsCardSnapshot BuildWorkflowCard(
@@ -529,24 +616,6 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             "pending" => "Pending",
             _ => ToTitleCase(status)
         };
-    }
-
-    private static string BuildImportedDocumentDetail(InboxItemEntity item)
-    {
-        var parts = new List<string>();
-
-        if (!string.IsNullOrWhiteSpace(item.FileType))
-        {
-            parts.Add(ToTitleCase(item.FileType));
-        }
-
-        if (!string.IsNullOrWhiteSpace(item.SuggestedCollectionName))
-        {
-            parts.Add($"to {item.SuggestedCollectionName}");
-        }
-
-        parts.Add($"vaulted {FormatHelper.TimeAgoWithMonths(item.ProcessedAt ?? item.AddedAt)}");
-        return string.Join(" · ", parts);
     }
 
     private static string BuildWorkflowTimingDetail(WorkflowRecentRunMetric run)
