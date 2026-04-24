@@ -66,6 +66,8 @@ public sealed record OperationsWorkflowRunPreview
 public sealed record OperationsConnectorPreview
 {
     public long PluginId { get; init; }
+    public bool IsEnabled { get; init; }
+    public bool CanEnableFromOperations { get; init; }
     public string Title { get; init; } = string.Empty;
     public string Status { get; init; } = string.Empty;
     public string Detail { get; init; } = string.Empty;

@@ -16,6 +16,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _hasError;
     [ObservableProperty] private string _errorMessage = string.Empty;
+    [ObservableProperty] private bool _isEnablingConnector;
     [ObservableProperty] private bool _isGeneratingInboxPreviews;
     [ObservableProperty] private bool _isRefreshingConversationSummaries;
     [ObservableProperty] private bool _isRunningManualSync;
@@ -113,6 +114,11 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         !IsGeneratingInboxPreviews &&
         !IngestionBacklog.Headline.Equals("0", StringComparison.OrdinalIgnoreCase);
 
+    private bool CanEnableConnector(OperationsConnectorPreview? preview) =>
+        !IsLoading &&
+        !IsEnablingConnector &&
+        preview is { PluginId: > 0, CanEnableFromOperations: true };
+
     private bool CanRefreshConversationSummaries() =>
         !IsLoading && !IsRefreshingConversationSummaries;
 
@@ -160,6 +166,32 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         finally
         {
             IsGeneratingInboxPreviews = false;
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanEnableConnector))]
+    private async Task EnableConnectorAsync(OperationsConnectorPreview? preview, CancellationToken ct = default)
+    {
+        if (preview is null || preview.PluginId <= 0)
+        {
+            return;
+        }
+
+        IsEnablingConnector = true;
+        ClearActionFeedback();
+
+        try
+        {
+            var result = await _operationsActionService
+                .EnableConnectorAsync(preview.PluginId, ct)
+                .ConfigureAwait(false);
+
+            ApplyActionFeedback(result);
+            await LoadAsync(ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            IsEnablingConnector = false;
         }
     }
 
@@ -285,10 +317,14 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
 
     partial void OnIsLoadingChanged(bool value)
     {
+        EnableConnectorCommand.NotifyCanExecuteChanged();
         GenerateInboxPreviewsCommand.NotifyCanExecuteChanged();
         RefreshConversationSummariesCommand.NotifyCanExecuteChanged();
         RunManualSyncCommand.NotifyCanExecuteChanged();
     }
+
+    partial void OnIsEnablingConnectorChanged(bool value) =>
+        EnableConnectorCommand.NotifyCanExecuteChanged();
 
     partial void OnIsGeneratingInboxPreviewsChanged(bool value) =>
         GenerateInboxPreviewsCommand.NotifyCanExecuteChanged();
@@ -301,6 +337,9 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
 
     partial void OnIngestionBacklogChanged(OperationsCardSnapshot value) =>
         GenerateInboxPreviewsCommand.NotifyCanExecuteChanged();
+
+    partial void OnConnectorPreviewsChanged(IReadOnlyList<OperationsConnectorPreview> value) =>
+        EnableConnectorCommand.NotifyCanExecuteChanged();
 
     partial void OnSyncHealthChanged(OperationsCardSnapshot value) =>
         RunManualSyncCommand.NotifyCanExecuteChanged();

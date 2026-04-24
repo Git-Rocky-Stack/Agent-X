@@ -153,6 +153,15 @@ public sealed class OperationsOverviewServiceTests
                 new PluginEntity
                 {
                     Id = 3,
+                    PluginId = "com.agentx.slack",
+                    Name = "Slack Connector",
+                    PluginType = "DataConnector",
+                    Description = "Brings team notifications into the workspace.",
+                    IsEnabled = false
+                },
+                new PluginEntity
+                {
+                    Id = 4,
                     PluginId = "com.agentx.workflowstep",
                     Name = "Workflow Step Kit",
                     PluginType = "WorkflowStep",
@@ -200,6 +209,11 @@ public sealed class OperationsOverviewServiceTests
         snapshot.Connectors.Detail.Should().Contain("Calendar Connector");
         snapshot.ConnectorPreviews.Should().HaveCount(3);
         snapshot.ConnectorPreviews[0].Title.Should().Be("Calendar Connector");
+        snapshot.ConnectorPreviews[0].IsEnabled.Should().BeTrue();
+        snapshot.ConnectorPreviews[0].CanEnableFromOperations.Should().BeFalse();
+        snapshot.ConnectorPreviews[2].Title.Should().Be("Slack Connector");
+        snapshot.ConnectorPreviews[2].Status.Should().Be("Disabled");
+        snapshot.ConnectorPreviews[2].CanEnableFromOperations.Should().BeTrue();
 
         snapshot.WorkflowActivity.Headline.Should().Be("7");
         snapshot.WorkflowActivity.Status.Should().Be("86% success rate");

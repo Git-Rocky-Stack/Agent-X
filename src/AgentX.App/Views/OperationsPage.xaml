@@ -139,15 +139,10 @@
             </Button>
         </DataTemplate>
         <DataTemplate x:Key="OperationsConnectorPreviewTemplate">
-            <Button Command="{Binding ViewModel.OpenConnectorPreviewCommand, ElementName=OperationsRoot}"
-                    CommandParameter="{Binding}"
-                    Style="{StaticResource GhostButtonStyle}"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Stretch"
-                    Padding="0"
+            <Border Style="{StaticResource CardStyle}"
+                    Padding="12,10"
                     Margin="0,0,0,8">
-                <Border Style="{StaticResource CardStyle}"
-                        Padding="12,10">
+                <StackPanel Spacing="10">
                     <StackPanel Spacing="4">
                         <TextBlock Text="{Binding Title}"
                                    Style="{StaticResource BodyStyle}"
@@ -162,8 +157,20 @@
                                    Foreground="{StaticResource TextSecondaryBrush}"
                                    TextWrapping="WrapWholeWords" />
                     </StackPanel>
-                </Border>
-            </Button>
+
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="Enable Connector"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Visibility="{Binding CanEnableFromOperations, Converter={StaticResource BoolToVis}}"
+                                Command="{Binding ViewModel.EnableConnectorCommand, ElementName=OperationsRoot}"
+                                CommandParameter="{Binding}" />
+                        <Button Content="Open Plugin"
+                                Style="{StaticResource GhostButtonStyle}"
+                                Command="{Binding ViewModel.OpenConnectorPreviewCommand, ElementName=OperationsRoot}"
+                                CommandParameter="{Binding}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
         </DataTemplate>
     </Page.Resources>
 

@@ -7,6 +7,8 @@ namespace AgentX.App.Services;
 /// </summary>
 public interface IOperationsActionService
 {
+    Task<OperationsActionResult> EnableConnectorAsync(long pluginId, CancellationToken ct = default);
+
     Task<OperationsActionResult> GenerateInboxPreviewsAsync(CancellationToken ct = default);
 
     Task<OperationsActionResult> RefreshConversationSummariesAsync(

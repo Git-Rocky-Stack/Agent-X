@@ -1,6 +1,8 @@
 using AgentX.App.Services;
+using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Inbox;
+using AgentX.Core.Services.Plugins;
 using AgentX.Core.Services.Sync;
 using AgentX.Core.Services.Sync.Models;
 using FluentAssertions;
@@ -14,7 +16,49 @@ public sealed class OperationsActionServiceTests
 {
     private readonly Mock<IConversationSummaryService> _conversationSummaryService = new();
     private readonly Mock<IInboxService> _inboxService = new();
+    private readonly Mock<IPluginService> _pluginService = new();
     private readonly Mock<ISyncService> _syncService = new();
+
+    [Fact]
+    public async Task EnableConnectorAsync_enables_disabled_connector()
+    {
+        _pluginService
+            .Setup(service => service.GetInstalledPluginsAsync())
+            .ReturnsAsync(
+            [
+                CreatePlugin(41, "Email Connector", "DataConnector", enabled: false)
+            ]);
+        _pluginService
+            .Setup(service => service.EnablePluginAsync(41))
+            .Returns(Task.CompletedTask);
+
+        var sut = CreateService();
+
+        var result = await sut.EnableConnectorAsync(41);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Message.Should().Be("Enabled Email Connector.");
+        _pluginService.Verify(service => service.EnablePluginAsync(41), Times.Once);
+    }
+
+    [Fact]
+    public async Task EnableConnectorAsync_rejects_non_connector_plugins()
+    {
+        _pluginService
+            .Setup(service => service.GetInstalledPluginsAsync())
+            .ReturnsAsync(
+            [
+                CreatePlugin(52, "Workflow Step Kit", "WorkflowStep", enabled: false)
+            ]);
+
+        var sut = CreateService();
+
+        var result = await sut.EnableConnectorAsync(52);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Message.Should().Contain("Plugin Manager");
+        _pluginService.Verify(service => service.EnablePluginAsync(It.IsAny<long>()), Times.Never);
+    }
 
     [Fact]
     public async Task GenerateInboxPreviewsAsync_returns_noop_message_when_backlog_is_clear()
@@ -126,6 +170,18 @@ public sealed class OperationsActionServiceTests
         new(
             _conversationSummaryService.Object,
             _inboxService.Object,
+            _pluginService.Object,
             _syncService.Object,
             Log.ForContext<OperationsActionServiceTests>());
+
+    private static PluginEntity CreatePlugin(long id, string name, string pluginType, bool enabled) =>
+        new()
+        {
+            Id = id,
+            PluginId = $"com.agentx.{name.Replace(" ", string.Empty).ToLowerInvariant()}",
+            Name = name,
+            PluginType = pluginType,
+            Version = "1.0.0",
+            IsEnabled = enabled
+        };
 }

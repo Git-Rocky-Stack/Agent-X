@@ -431,12 +431,16 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             .Select(plugin => new OperationsConnectorPreview
             {
                 PluginId = plugin.Id,
+                IsEnabled = plugin.IsEnabled,
+                CanEnableFromOperations = !plugin.IsEnabled && IsPluginType(plugin, PluginType.DataConnector),
                 Title = string.IsNullOrWhiteSpace(plugin.Name)
                     ? plugin.PluginId
                     : plugin.Name,
                 Status = plugin.IsEnabled
                     ? "Enabled"
-                    : "Installed",
+                    : IsPluginType(plugin, PluginType.DataConnector)
+                        ? "Disabled"
+                        : "Installed",
                 Detail = !string.IsNullOrWhiteSpace(plugin.Description)
                     ? $"{FormatPluginType(plugin.PluginType)} · {TrimForPreview(plugin.Description, 120)}"
                     : plugin.LastActivatedAt.HasValue

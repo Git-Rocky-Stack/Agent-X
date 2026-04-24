@@ -93,6 +93,8 @@ public sealed class OperationsViewModelTests
                     new OperationsConnectorPreview
                     {
                         PluginId = 301,
+                        IsEnabled = true,
+                        CanEnableFromOperations = false,
                         Title = "Email Connector",
                         Status = "Enabled",
                         Detail = "Connector · Brings inbox mail into Agent-X for triage and search."
@@ -377,6 +379,128 @@ public sealed class OperationsViewModelTests
         viewModel.IngestionBacklog.Headline.Should().Be("1");
         viewModel.HasActionMessage.Should().BeTrue();
         viewModel.ActionMessage.Should().Contain("Generated AI previews");
+    }
+
+    [Fact]
+    public async Task EnableConnectorAsync_runs_action_and_reloads_snapshot()
+    {
+        _operationsOverviewService.SetupSequence(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot(),
+                SyncHealth = new OperationsCardSnapshot
+                {
+                    Headline = "Configured",
+                    Status = "Standing by",
+                    Detail = "Ready"
+                },
+                IngestionBacklog = new OperationsCardSnapshot(),
+                WorkflowActivity = new OperationsCardSnapshot(),
+                Connectors = new OperationsCardSnapshot
+                {
+                    Headline = "0",
+                    Status = "1 plugin installed",
+                    Detail = "Open Plugin Manager to enable connectors and extensions."
+                },
+                ConnectorPreviews =
+                [
+                    new OperationsConnectorPreview
+                    {
+                        PluginId = 301,
+                        IsEnabled = false,
+                        CanEnableFromOperations = true,
+                        Title = "Email Connector",
+                        Status = "Disabled",
+                        Detail = "Connector · Brings inbox mail into Agent-X for triage and search."
+                    }
+                ]
+            })
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot(),
+                SyncHealth = new OperationsCardSnapshot
+                {
+                    Headline = "Configured",
+                    Status = "Standing by",
+                    Detail = "Ready"
+                },
+                IngestionBacklog = new OperationsCardSnapshot(),
+                WorkflowActivity = new OperationsCardSnapshot(),
+                Connectors = new OperationsCardSnapshot
+                {
+                    Headline = "1",
+                    Status = "1 connector enabled",
+                    Detail = "Email Connector"
+                },
+                ConnectorPreviews =
+                [
+                    new OperationsConnectorPreview
+                    {
+                        PluginId = 301,
+                        IsEnabled = true,
+                        CanEnableFromOperations = false,
+                        Title = "Email Connector",
+                        Status = "Enabled",
+                        Detail = "Connector · Brings inbox mail into Agent-X for triage and search."
+                    }
+                ]
+            });
+        _operationsActionService.Setup(service => service.EnableConnectorAsync(301, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsActionResult(true, "Enabled Email Connector."));
+
+        var viewModel = CreateViewModel();
+        await viewModel.LoadAsync();
+
+        var preview = viewModel.ConnectorPreviews.Single();
+        viewModel.EnableConnectorCommand.CanExecute(preview).Should().BeTrue();
+
+        await viewModel.EnableConnectorCommand.ExecuteAsync(preview);
+
+        viewModel.Connectors.Status.Should().Be("1 connector enabled");
+        viewModel.HasActionMessage.Should().BeTrue();
+        viewModel.ActionMessage.Should().Be("Enabled Email Connector.");
+        viewModel.ConnectorPreviews.Single().IsEnabled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task EnableConnectorCommand_is_disabled_for_enabled_preview()
+    {
+        _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot(),
+                SyncHealth = new OperationsCardSnapshot
+                {
+                    Headline = "Configured",
+                    Status = "Standing by",
+                    Detail = "Ready"
+                },
+                IngestionBacklog = new OperationsCardSnapshot(),
+                WorkflowActivity = new OperationsCardSnapshot(),
+                Connectors = new OperationsCardSnapshot
+                {
+                    Headline = "1",
+                    Status = "1 connector enabled",
+                    Detail = "Email Connector"
+                },
+                ConnectorPreviews =
+                [
+                    new OperationsConnectorPreview
+                    {
+                        PluginId = 301,
+                        IsEnabled = true,
+                        CanEnableFromOperations = false,
+                        Title = "Email Connector",
+                        Status = "Enabled",
+                        Detail = "Connector · Brings inbox mail into Agent-X for triage and search."
+                    }
+                ]
+            });
+
+        var viewModel = CreateViewModel();
+        await viewModel.LoadAsync();
+
+        viewModel.EnableConnectorCommand.CanExecute(viewModel.ConnectorPreviews.Single()).Should().BeFalse();
     }
 
     private OperationsViewModel CreateViewModel() =>

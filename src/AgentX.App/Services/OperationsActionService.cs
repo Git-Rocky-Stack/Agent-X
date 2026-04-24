@@ -1,5 +1,6 @@
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Inbox;
+using AgentX.Core.Services.Plugins;
 using AgentX.Core.Services.Sync;
 using Serilog;
 
@@ -12,20 +13,68 @@ public sealed class OperationsActionService : IOperationsActionService
 {
     private readonly IConversationSummaryService _conversationSummaryService;
     private readonly IInboxService _inboxService;
+    private readonly IPluginService _pluginService;
     private readonly ISyncService _syncService;
     private readonly ILogger _log;
 
     public OperationsActionService(
         IConversationSummaryService conversationSummaryService,
         IInboxService inboxService,
+        IPluginService pluginService,
         ISyncService syncService,
         ILogger logger)
     {
         _conversationSummaryService = conversationSummaryService ?? throw new ArgumentNullException(nameof(conversationSummaryService));
         _inboxService = inboxService ?? throw new ArgumentNullException(nameof(inboxService));
+        _pluginService = pluginService ?? throw new ArgumentNullException(nameof(pluginService));
         _syncService = syncService ?? throw new ArgumentNullException(nameof(syncService));
         _log = logger?.ForContext<OperationsActionService>()
                ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    public async Task<OperationsActionResult> EnableConnectorAsync(long pluginId, CancellationToken ct = default)
+    {
+        try
+        {
+            if (pluginId <= 0)
+            {
+                return new OperationsActionResult(false, "Select a connector before enabling it.");
+            }
+
+            var plugins = await _pluginService.GetInstalledPluginsAsync().ConfigureAwait(false);
+            var plugin = plugins.FirstOrDefault(candidate => candidate.Id == pluginId);
+            if (plugin is null)
+            {
+                return new OperationsActionResult(false, "That connector is no longer installed.");
+            }
+
+            var displayName = string.IsNullOrWhiteSpace(plugin.Name)
+                ? "Connector"
+                : plugin.Name;
+
+            if (!string.Equals(plugin.PluginType, PluginType.DataConnector.ToString(), StringComparison.OrdinalIgnoreCase))
+            {
+                return new OperationsActionResult(false, $"{displayName} can only be enabled from Plugin Manager.");
+            }
+
+            if (plugin.IsEnabled)
+            {
+                return new OperationsActionResult(true, $"{displayName} is already enabled.");
+            }
+
+            ct.ThrowIfCancellationRequested();
+            await _pluginService.EnablePluginAsync(pluginId).ConfigureAwait(false);
+            return new OperationsActionResult(true, $"Enabled {displayName}.");
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Operations: connector enable failed for plugin {PluginId}", pluginId);
+            return new OperationsActionResult(false, $"Connector enable failed: {ex.Message}");
+        }
     }
 
     public async Task<OperationsActionResult> GenerateInboxPreviewsAsync(CancellationToken ct = default)
