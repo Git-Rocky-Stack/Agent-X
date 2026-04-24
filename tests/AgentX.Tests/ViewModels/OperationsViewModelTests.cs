@@ -9,6 +9,7 @@ namespace AgentX.Tests.ViewModels;
 
 public sealed class OperationsViewModelTests
 {
+    private readonly Mock<IOperationsActionService> _operationsActionService = new();
     private readonly Mock<IOperationsDrillInService> _operationsDrillInService = new();
     private readonly Mock<IOperationsOverviewService> _operationsOverviewService = new();
 
@@ -28,6 +29,7 @@ public sealed class OperationsViewModelTests
                 [
                     new OperationsConversationPreview
                     {
+                        ConversationId = 42,
                         Title = "Durable memory rollout",
                         Status = "Current",
                         Detail = "Persistent summary coverage is catching the latest recall state."
@@ -223,6 +225,7 @@ public sealed class OperationsViewModelTests
         });
         viewModel.OpenConversationPreviewCommand.Execute(new OperationsConversationPreview
         {
+            ConversationId = 42,
             Title = "Durable memory rollout"
         });
         viewModel.OpenConnectorPreviewCommand.Execute(new OperationsConnectorPreview
@@ -244,6 +247,10 @@ public sealed class OperationsViewModelTests
             It.Is<OperationsSyncDrillInRequest>(request =>
                 request.SyncLogId == 9 &&
                 request.SourceLabel.Contains("Import sync"))), Times.Once);
+        _operationsDrillInService.Verify(service => service.StageConversationRequest(
+            It.Is<OperationsConversationDrillInRequest>(request =>
+                request.ConversationId == 42 &&
+                request.SourceLabel.Contains("Durable memory rollout"))), Times.Once);
         _operationsDrillInService.Verify(service => service.StagePluginRequest(
             It.Is<OperationsPluginDrillInRequest>(request =>
                 request.PluginId == 301 &&
@@ -252,8 +259,129 @@ public sealed class OperationsViewModelTests
         navigations.Should().Equal("Inbox", "Workflows", "SyncSettings", "Analytics", "PluginManager");
     }
 
+    [Fact]
+    public async Task RefreshConversationSummariesAsync_runs_action_and_reloads_snapshot()
+    {
+        _operationsOverviewService.SetupSequence(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot
+                {
+                    Headline = "3",
+                    Status = "1 refresh pending",
+                    Detail = "3 stored snapshots"
+                },
+                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", Detail = "Ready" },
+                IngestionBacklog = new OperationsCardSnapshot(),
+                WorkflowActivity = new OperationsCardSnapshot(),
+                Connectors = new OperationsCardSnapshot()
+            })
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot
+                {
+                    Headline = "4",
+                    Status = "Durable recall current",
+                    Detail = "4 stored snapshots"
+                },
+                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", Detail = "Ready" },
+                IngestionBacklog = new OperationsCardSnapshot(),
+                WorkflowActivity = new OperationsCardSnapshot(),
+                Connectors = new OperationsCardSnapshot()
+            });
+        _operationsActionService.Setup(service => service.RefreshConversationSummariesAsync(4, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsActionResult(true, "Refreshed 1 conversation summary."));
+
+        var viewModel = CreateViewModel();
+        await viewModel.LoadAsync();
+
+        await viewModel.RefreshConversationSummariesCommand.ExecuteAsync(null);
+
+        viewModel.ConversationIntelligence.Status.Should().Be("Durable recall current");
+        viewModel.HasActionMessage.Should().BeTrue();
+        viewModel.ActionMessage.Should().Contain("Refreshed 1 conversation summary");
+    }
+
+    [Fact]
+    public async Task RunManualSyncCommand_is_disabled_when_sync_is_not_configured()
+    {
+        _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot(),
+                SyncHealth = new OperationsCardSnapshot
+                {
+                    Headline = "Not configured",
+                    Status = "Collaborative sync is off",
+                    Detail = "Configure a shared folder."
+                },
+                IngestionBacklog = new OperationsCardSnapshot(),
+                WorkflowActivity = new OperationsCardSnapshot(),
+                Connectors = new OperationsCardSnapshot()
+            });
+
+        var viewModel = CreateViewModel();
+        await viewModel.LoadAsync();
+
+        viewModel.RunManualSyncCommand.CanExecute(null).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GenerateInboxPreviewsAsync_runs_action_and_reloads_snapshot()
+    {
+        _operationsOverviewService.SetupSequence(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot(),
+                SyncHealth = new OperationsCardSnapshot
+                {
+                    Headline = "Configured",
+                    Status = "Standing by",
+                    Detail = "Ready"
+                },
+                IngestionBacklog = new OperationsCardSnapshot
+                {
+                    Headline = "3",
+                    Status = "3 items awaiting triage",
+                    Detail = "Open Smart Inbox to triage imports."
+                },
+                WorkflowActivity = new OperationsCardSnapshot(),
+                Connectors = new OperationsCardSnapshot()
+            })
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot(),
+                SyncHealth = new OperationsCardSnapshot
+                {
+                    Headline = "Configured",
+                    Status = "Standing by",
+                    Detail = "Ready"
+                },
+                IngestionBacklog = new OperationsCardSnapshot
+                {
+                    Headline = "1",
+                    Status = "1 item awaiting triage",
+                    Detail = "Open Smart Inbox to triage imports."
+                },
+                WorkflowActivity = new OperationsCardSnapshot(),
+                Connectors = new OperationsCardSnapshot()
+            });
+        _operationsActionService.Setup(service => service.GenerateInboxPreviewsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsActionResult(true, "Generated AI previews for pending inbox items."));
+
+        var viewModel = CreateViewModel();
+        await viewModel.LoadAsync();
+
+        await viewModel.GenerateInboxPreviewsCommand.ExecuteAsync(null);
+
+        viewModel.IngestionBacklog.Headline.Should().Be("1");
+        viewModel.HasActionMessage.Should().BeTrue();
+        viewModel.ActionMessage.Should().Contain("Generated AI previews");
+    }
+
     private OperationsViewModel CreateViewModel() =>
         new(
+            _operationsActionService.Object,
             _operationsDrillInService.Object,
             _operationsOverviewService.Object,
             Log.ForContext<OperationsViewModelTests>());

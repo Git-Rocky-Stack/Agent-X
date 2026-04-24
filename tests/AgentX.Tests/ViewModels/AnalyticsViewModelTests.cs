@@ -1,4 +1,5 @@
 using AgentX.App.ViewModels;
+using AgentX.App.Services;
 using AgentX.Core.Services.Analytics;
 using AgentX.Core.Services.Analytics.Models;
 using AgentX.Core.Services.Chat;
@@ -17,6 +18,7 @@ public sealed class AnalyticsViewModelTests
     private readonly Mock<IConversationSummaryService> _conversationSummaryService = new();
     private readonly Mock<IConversationThemeClusterService> _conversationThemeClusterService = new();
     private readonly Mock<IConversationThemeTrendService> _conversationThemeTrendService = new();
+    private readonly Mock<IOperationsDrillInService> _operationsDrillInService = new();
     private readonly ILogger _logger = Log.ForContext<AnalyticsViewModelTests>();
 
     private AnalyticsViewModel CreateViewModel() =>
@@ -26,7 +28,8 @@ public sealed class AnalyticsViewModelTests
             _conversationSummaryService.Object,
             _conversationThemeClusterService.Object,
             _conversationThemeTrendService.Object,
-            _logger);
+            _logger,
+            _operationsDrillInService.Object);
 
     private void SetupDefaultLoadDataDependencies()
     {
@@ -388,6 +391,56 @@ public sealed class AnalyticsViewModelTests
         viewModel.RecentWorkflowRuns.Should().ContainSingle();
         viewModel.RecentWorkflowRuns[0].StatusLabel.Should().Be("Failed");
         viewModel.RecentWorkflowRuns[0].PreviewText.Should().Contain("timed out");
+    }
+
+    [Fact]
+    public async Task LoadDataAsync_consumes_pending_operations_conversation_request_and_focuses_summary()
+    {
+        SetupDefaultLoadDataDependencies();
+
+        _operationsDrillInService
+            .Setup(service => service.ConsumePendingConversationRequest())
+            .Returns(new OperationsConversationDrillInRequest(9, "Opened conversation summary \"Analytics roadmap\" from Operations"));
+        _analyticsService
+            .Setup(service => service.GetConversationIntelligenceAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ConversationIntelligenceOverview
+            {
+                SummarizedConversations = 2,
+                CurrentSnapshots = 2,
+                RecentSummaries =
+                [
+                    new ConversationSummaryMetric
+                    {
+                        ConversationId = 4,
+                        Title = "Persistent memory rollout",
+                        PreviewText = "Durable summaries are now visible in chat and analytics.",
+                        KeyPoints = ["Persistent memory", "Analytics surface"],
+                        GeneratedAt = DateTime.UtcNow.AddMinutes(-30),
+                        CoveredMessageCount = 5
+                    },
+                    new ConversationSummaryMetric
+                    {
+                        ConversationId = 9,
+                        Title = "Analytics roadmap",
+                        PreviewText = "Operations should deep-link the relevant summary card.",
+                        KeyPoints = ["Operations drill-in", "Focused summary"],
+                        GeneratedAt = DateTime.UtcNow.AddMinutes(-10),
+                        CoveredMessageCount = 6
+                    }
+                ]
+            });
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.LoadDataAsync();
+
+        viewModel.RecentConversationSummaries.Should().HaveCount(2);
+        viewModel.RecentConversationSummaries[0].ConversationId.Should().Be(9);
+        viewModel.RecentConversationSummaries[0].IsFocused.Should().BeTrue();
+        viewModel.RecentConversationSummaries[0].HasSourceLabel.Should().BeTrue();
+        viewModel.RecentConversationSummaries[0].SourceLabel.Should().Contain("Analytics roadmap");
+        viewModel.RecentConversationSummaries[1].ConversationId.Should().Be(4);
+        viewModel.RecentConversationSummaries[1].IsFocused.Should().BeFalse();
     }
 
     [Fact]

@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using AgentX.App.Services;
 using AgentX.Core.Helpers;
 using AgentX.Core.Services.Analytics;
 using AgentX.Core.Services.Analytics.Models;
@@ -17,6 +18,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     private readonly IConversationSummaryService _conversationSummaryService;
     private readonly IConversationThemeClusterService _conversationThemeClusterService;
     private readonly IConversationThemeTrendService _conversationThemeTrendService;
+    private readonly IOperationsDrillInService? _operationsDrillInService;
     private readonly ILogger _log;
 
     // ── Loading State ────────────────────────────────────────────────────────
@@ -143,13 +145,15 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         IConversationSummaryService conversationSummaryService,
         IConversationThemeClusterService conversationThemeClusterService,
         IConversationThemeTrendService conversationThemeTrendService,
-        ILogger logger)
+        ILogger logger,
+        IOperationsDrillInService? operationsDrillInService = null)
     {
         _analyticsService = analyticsService ?? throw new ArgumentNullException(nameof(analyticsService));
         _conversationRecallService = conversationRecallService ?? throw new ArgumentNullException(nameof(conversationRecallService));
         _conversationSummaryService = conversationSummaryService ?? throw new ArgumentNullException(nameof(conversationSummaryService));
         _conversationThemeClusterService = conversationThemeClusterService ?? throw new ArgumentNullException(nameof(conversationThemeClusterService));
         _conversationThemeTrendService = conversationThemeTrendService ?? throw new ArgumentNullException(nameof(conversationThemeTrendService));
+        _operationsDrillInService = operationsDrillInService;
         _log = logger?.ForContext<AnalyticsViewModel>()
                ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -526,8 +530,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             StaleConversationSummaries = FormatNumber(overview.StaleConversations);
             PendingSummaryRefreshes = FormatNumber(overview.PendingRefreshes);
 
-            RecentConversationSummaries = new ObservableCollection<AnalyticsConversationSummaryItem>(
-                overview.RecentSummaries.Select(summary => new AnalyticsConversationSummaryItem
+            var recentSummaries = overview.RecentSummaries.Select(summary => new AnalyticsConversationSummaryItem
                 {
                     ConversationId = summary.ConversationId,
                     Title = summary.Title,
@@ -542,7 +545,12 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
                             ? "#C41E3A"
                             : "#22C55E",
                     GeneratedAtLabel = BuildRelativeTimeLabel(summary.GeneratedAt)
-                }));
+                })
+                .ToList();
+
+            ApplyPendingConversationSummaryFocus(recentSummaries);
+
+            RecentConversationSummaries = new ObservableCollection<AnalyticsConversationSummaryItem>(recentSummaries);
 
             HasRecentConversationSummaries = RecentConversationSummaries.Count > 0;
             HasConversationIntelligence = overview.SummarizedConversations > 0
@@ -557,6 +565,41 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             HasRecentConversationSummaries = false;
             HasConversationIntelligence = false;
         }
+    }
+
+    private void ApplyPendingConversationSummaryFocus(List<AnalyticsConversationSummaryItem> items)
+    {
+        var request = _operationsDrillInService?.ConsumePendingConversationRequest();
+        if (request is null || request.ConversationId <= 0 || items.Count == 0)
+        {
+            return;
+        }
+
+        var index = items.FindIndex(item => item.ConversationId == request.ConversationId);
+        if (index < 0)
+        {
+            return;
+        }
+
+        var target = items[index];
+        items[index] = new AnalyticsConversationSummaryItem
+        {
+            ConversationId = target.ConversationId,
+            Title = target.Title,
+            PreviewText = target.PreviewText,
+            KeyPoints = target.KeyPoints,
+            CoveredMessageCount = target.CoveredMessageCount,
+            GeneratedAt = target.GeneratedAt,
+            GeneratedAtLabel = target.GeneratedAtLabel,
+            StatusLabel = target.StatusLabel,
+            StatusColor = target.StatusColor,
+            IsFocused = true,
+            SourceLabel = request.SourceLabel
+        };
+
+        var focused = items[index];
+        items.RemoveAt(index);
+        items.Insert(0, focused);
     }
 
     private async Task LoadConversationRecallAsync(CancellationToken ct)
@@ -1052,7 +1095,10 @@ public sealed class AnalyticsConversationSummaryItem
     public string GeneratedAtLabel { get; init; } = string.Empty;
     public string StatusLabel { get; init; } = string.Empty;
     public string StatusColor { get; init; } = "#22C55E";
+    public bool IsFocused { get; init; }
+    public string SourceLabel { get; init; } = string.Empty;
     public bool HasKeyPoints => KeyPoints.Count > 0;
+    public bool HasSourceLabel => !string.IsNullOrWhiteSpace(SourceLabel);
     public string KeyPointsPreview => string.Join(" · ", KeyPoints);
     public string CoverageLabel => CoveredMessageCount == 1
         ? "1 message covered"

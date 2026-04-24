@@ -6,6 +6,9 @@ namespace AgentX.App.Services;
 /// </summary>
 public interface IOperationsDrillInService
 {
+    void StageConversationRequest(OperationsConversationDrillInRequest request);
+    OperationsConversationDrillInRequest? ConsumePendingConversationRequest();
+
     void StageInboxRequest(OperationsInboxDrillInRequest request);
     OperationsInboxDrillInRequest? ConsumePendingInboxRequest();
 
@@ -18,6 +21,10 @@ public interface IOperationsDrillInService
     void StagePluginRequest(OperationsPluginDrillInRequest request);
     OperationsPluginDrillInRequest? ConsumePendingPluginRequest();
 }
+
+public sealed record OperationsConversationDrillInRequest(
+    long ConversationId,
+    string SourceLabel);
 
 public sealed record OperationsInboxDrillInRequest(
     long ItemId,

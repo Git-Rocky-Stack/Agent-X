@@ -99,7 +99,9 @@
     <Compile Include="..\..\src\AgentX.App\Services\IStatusBarService.cs" Link="Services\IStatusBarService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\StatusBarService.cs" Link="Services\StatusBarService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\NotificationService.cs" Link="Services\NotificationService.cs" />
+    <Compile Include="..\..\src\AgentX.App\Services\IOperationsActionService.cs" Link="Services\IOperationsActionService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\IOperationsDrillInService.cs" Link="Services\IOperationsDrillInService.cs" />
+    <Compile Include="..\..\src\AgentX.App\Services\OperationsActionService.cs" Link="Services\OperationsActionService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\OperationsDrillInService.cs" Link="Services\OperationsDrillInService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\IOperationsOverviewService.cs" Link="Services\IOperationsOverviewService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\OperationsOverviewModels.cs" Link="Services\OperationsOverviewModels.cs" />

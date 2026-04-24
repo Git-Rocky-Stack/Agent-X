@@ -8,6 +8,7 @@ namespace AgentX.App.ViewModels;
 
 public partial class OperationsViewModel : ObservableObject, IDisposable
 {
+    private readonly IOperationsActionService _operationsActionService;
     private readonly IOperationsDrillInService _operationsDrillInService;
     private readonly IOperationsOverviewService _operationsOverviewService;
     private readonly ILogger _log;
@@ -15,6 +16,13 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _hasError;
     [ObservableProperty] private string _errorMessage = string.Empty;
+    [ObservableProperty] private bool _isGeneratingInboxPreviews;
+    [ObservableProperty] private bool _isRefreshingConversationSummaries;
+    [ObservableProperty] private bool _isRunningManualSync;
+    [ObservableProperty] private bool _hasActionMessage;
+    [ObservableProperty] private string _actionMessage = string.Empty;
+    [ObservableProperty] private bool _hasActionError;
+    [ObservableProperty] private string _actionErrorMessage = string.Empty;
 
     [ObservableProperty] private string _summaryHeadline = "Operations ready";
     [ObservableProperty] private string _summaryDetail = "Unified status for conversation intelligence, sync posture, ingestion backlog, workflows, and connectors.";
@@ -33,10 +41,12 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     public Action<string>? NavigateRequested { get; set; }
 
     public OperationsViewModel(
+        IOperationsActionService operationsActionService,
         IOperationsDrillInService operationsDrillInService,
         IOperationsOverviewService operationsOverviewService,
         ILogger logger)
     {
+        _operationsActionService = operationsActionService ?? throw new ArgumentNullException(nameof(operationsActionService));
         _operationsDrillInService = operationsDrillInService ?? throw new ArgumentNullException(nameof(operationsDrillInService));
         _operationsOverviewService = operationsOverviewService ?? throw new ArgumentNullException(nameof(operationsOverviewService));
         _log = logger?.ForContext<OperationsViewModel>()
@@ -98,6 +108,82 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private Task RefreshAsync() => LoadAsync();
 
+    private bool CanGenerateInboxPreviews() =>
+        !IsLoading &&
+        !IsGeneratingInboxPreviews &&
+        !IngestionBacklog.Headline.Equals("0", StringComparison.OrdinalIgnoreCase);
+
+    private bool CanRefreshConversationSummaries() =>
+        !IsLoading && !IsRefreshingConversationSummaries;
+
+    private bool CanRunManualSync() =>
+        !IsLoading &&
+        !IsRunningManualSync &&
+        !SyncHealth.Headline.Equals("Not configured", StringComparison.OrdinalIgnoreCase);
+
+    [RelayCommand(CanExecute = nameof(CanRefreshConversationSummaries))]
+    private async Task RefreshConversationSummariesAsync(CancellationToken ct = default)
+    {
+        IsRefreshingConversationSummaries = true;
+        ClearActionFeedback();
+
+        try
+        {
+            var result = await _operationsActionService
+                .RefreshConversationSummariesAsync(ct: ct)
+                .ConfigureAwait(false);
+
+            ApplyActionFeedback(result);
+            await LoadAsync(ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            IsRefreshingConversationSummaries = false;
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanGenerateInboxPreviews))]
+    private async Task GenerateInboxPreviewsAsync(CancellationToken ct = default)
+    {
+        IsGeneratingInboxPreviews = true;
+        ClearActionFeedback();
+
+        try
+        {
+            var result = await _operationsActionService
+                .GenerateInboxPreviewsAsync(ct)
+                .ConfigureAwait(false);
+
+            ApplyActionFeedback(result);
+            await LoadAsync(ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            IsGeneratingInboxPreviews = false;
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanRunManualSync))]
+    private async Task RunManualSyncAsync(CancellationToken ct = default)
+    {
+        IsRunningManualSync = true;
+        ClearActionFeedback();
+
+        try
+        {
+            var result = await _operationsActionService
+                .RunManualSyncAsync(ct)
+                .ConfigureAwait(false);
+
+            ApplyActionFeedback(result);
+            await LoadAsync(ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            IsRunningManualSync = false;
+        }
+    }
+
     [RelayCommand]
     private void NavigateToDashboard() => NavigateRequested?.Invoke("Dashboard");
 
@@ -117,7 +203,20 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     private void NavigateToPluginManager() => NavigateRequested?.Invoke("PluginManager");
 
     [RelayCommand]
-    private void OpenConversationPreview(OperationsConversationPreview? preview) => NavigateRequested?.Invoke("Analytics");
+    private void OpenConversationPreview(OperationsConversationPreview? preview)
+    {
+        if (preview is null || preview.ConversationId <= 0)
+        {
+            NavigateRequested?.Invoke("Analytics");
+            return;
+        }
+
+        _operationsDrillInService.StageConversationRequest(
+            new OperationsConversationDrillInRequest(
+                preview.ConversationId,
+                $"Opened conversation summary \"{preview.Title}\" from Operations"));
+        NavigateRequested?.Invoke("Analytics");
+    }
 
     [RelayCommand]
     private void OpenInboxPreview(OperationsInboxPreview? preview)
@@ -184,9 +283,56 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         NavigateRequested?.Invoke("PluginManager");
     }
 
+    partial void OnIsLoadingChanged(bool value)
+    {
+        GenerateInboxPreviewsCommand.NotifyCanExecuteChanged();
+        RefreshConversationSummariesCommand.NotifyCanExecuteChanged();
+        RunManualSyncCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnIsGeneratingInboxPreviewsChanged(bool value) =>
+        GenerateInboxPreviewsCommand.NotifyCanExecuteChanged();
+
+    partial void OnIsRefreshingConversationSummariesChanged(bool value) =>
+        RefreshConversationSummariesCommand.NotifyCanExecuteChanged();
+
+    partial void OnIsRunningManualSyncChanged(bool value) =>
+        RunManualSyncCommand.NotifyCanExecuteChanged();
+
+    partial void OnIngestionBacklogChanged(OperationsCardSnapshot value) =>
+        GenerateInboxPreviewsCommand.NotifyCanExecuteChanged();
+
+    partial void OnSyncHealthChanged(OperationsCardSnapshot value) =>
+        RunManualSyncCommand.NotifyCanExecuteChanged();
+
     public void Dispose()
     {
         _log.Debug("OperationsViewModel disposed");
+    }
+
+    private void ApplyActionFeedback(OperationsActionResult result)
+    {
+        if (result.IsSuccess)
+        {
+            HasActionMessage = true;
+            ActionMessage = result.Message;
+            HasActionError = false;
+            ActionErrorMessage = string.Empty;
+            return;
+        }
+
+        HasActionError = true;
+        ActionErrorMessage = result.Message;
+        HasActionMessage = false;
+        ActionMessage = string.Empty;
+    }
+
+    private void ClearActionFeedback()
+    {
+        HasActionMessage = false;
+        ActionMessage = string.Empty;
+        HasActionError = false;
+        ActionErrorMessage = string.Empty;
     }
 
     private static OperationsOverviewSnapshot CreateFallbackSnapshot() => new()

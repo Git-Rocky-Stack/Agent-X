@@ -165,6 +165,7 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             .Take(3)
             .Select(summary => new OperationsConversationPreview
             {
+                ConversationId = summary.ConversationId,
                 Title = string.IsNullOrWhiteSpace(summary.Title)
                     ? "Untitled conversation"
                     : summary.Title,

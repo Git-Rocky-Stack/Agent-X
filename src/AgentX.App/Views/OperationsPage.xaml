@@ -171,15 +171,16 @@
                   HorizontalScrollBarVisibility="Disabled"
                   Padding="0">
 
-        <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="1200" HorizontalAlignment="Center">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+            <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="1200" HorizontalAlignment="Center">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
             <Grid Grid.Row="0">
                 <Grid.ColumnDefinitions>
@@ -285,13 +286,28 @@
                 </Grid>
             </Border>
 
-            <Border Grid.Row="3"
-                    Style="{StaticResource CardStyle}"
-                    Visibility="{x:Bind ViewModel.HasError, Converter={StaticResource BoolToVis}, Mode=OneWay}">
-                <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
-                           Style="{StaticResource BodySecondaryStyle}"
-                           TextWrapping="Wrap" />
-            </Border>
+            <StackPanel Grid.Row="3" Spacing="12">
+                <Border Style="{StaticResource CardStyle}"
+                        Visibility="{x:Bind ViewModel.HasError, Converter={StaticResource BoolToVis}, Mode=OneWay}">
+                    <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                               Style="{StaticResource BodySecondaryStyle}"
+                               TextWrapping="Wrap" />
+                </Border>
+
+                <Border Style="{StaticResource CardAccentStyle}"
+                        Visibility="{x:Bind ViewModel.HasActionMessage, Converter={StaticResource BoolToVis}, Mode=OneWay}">
+                    <TextBlock Text="{x:Bind ViewModel.ActionMessage, Mode=OneWay}"
+                               Style="{StaticResource BodySecondaryStyle}"
+                               TextWrapping="Wrap" />
+                </Border>
+
+                <Border Style="{StaticResource CardStyle}"
+                        Visibility="{x:Bind ViewModel.HasActionError, Converter={StaticResource BoolToVis}, Mode=OneWay}">
+                    <TextBlock Text="{x:Bind ViewModel.ActionErrorMessage, Mode=OneWay}"
+                               Style="{StaticResource BodySecondaryStyle}"
+                               TextWrapping="Wrap" />
+                </Border>
+            </StackPanel>
 
             <Grid Grid.Row="4"
                   ColumnSpacing="16"
@@ -339,11 +355,16 @@
                                           ItemTemplate="{StaticResource OperationsConversationPreviewTemplate}" />
                         </StackPanel>
 
-                        <Button Grid.Row="2"
-                                Content="Open Analytics"
-                                Style="{StaticResource GhostButtonStyle}"
-                                HorizontalAlignment="Left"
-                                Command="{x:Bind ViewModel.NavigateToAnalyticsCommand}" />
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
+                            <Button Content="Refresh Summaries"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    HorizontalAlignment="Left"
+                                    Command="{x:Bind ViewModel.RefreshConversationSummariesCommand}" />
+                            <Button Content="Open Analytics"
+                                    Style="{StaticResource GhostButtonStyle}"
+                                    HorizontalAlignment="Left"
+                                    Command="{x:Bind ViewModel.NavigateToAnalyticsCommand}" />
+                        </StackPanel>
                     </Grid>
                 </Border>
 
@@ -379,11 +400,16 @@
                                           ItemTemplate="{StaticResource OperationsSyncPreviewTemplate}" />
                         </StackPanel>
 
-                        <Button Grid.Row="2"
-                                Content="Open Sync"
-                                Style="{StaticResource GhostButtonStyle}"
-                                HorizontalAlignment="Left"
-                                Command="{x:Bind ViewModel.NavigateToSyncSettingsCommand}" />
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
+                            <Button Content="Sync Now"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    HorizontalAlignment="Left"
+                                    Command="{x:Bind ViewModel.RunManualSyncCommand}" />
+                            <Button Content="Open Sync"
+                                    Style="{StaticResource GhostButtonStyle}"
+                                    HorizontalAlignment="Left"
+                                    Command="{x:Bind ViewModel.NavigateToSyncSettingsCommand}" />
+                        </StackPanel>
                     </Grid>
                 </Border>
 
@@ -419,11 +445,16 @@
                                           ItemTemplate="{StaticResource OperationsInboxPreviewTemplate}" />
                         </StackPanel>
 
-                        <Button Grid.Row="2"
-                                Content="Open Inbox"
-                                Style="{StaticResource GhostButtonStyle}"
-                                HorizontalAlignment="Left"
-                                Command="{x:Bind ViewModel.NavigateToInboxCommand}" />
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
+                            <Button Content="Generate Previews"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    HorizontalAlignment="Left"
+                                    Command="{x:Bind ViewModel.GenerateInboxPreviewsCommand}" />
+                            <Button Content="Open Inbox"
+                                    Style="{StaticResource GhostButtonStyle}"
+                                    HorizontalAlignment="Left"
+                                    Command="{x:Bind ViewModel.NavigateToInboxCommand}" />
+                        </StackPanel>
                     </Grid>
                 </Border>
 

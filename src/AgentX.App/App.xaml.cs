@@ -527,6 +527,7 @@ public partial class App : Application
         services.AddSingleton<INotificationService, NotificationService>();
         services.AddSingleton<IWorkflowLaunchService, WorkflowLaunchService>();
         services.AddSingleton<IOperationsDrillInService, OperationsDrillInService>();
+        services.AddSingleton<IOperationsActionService, OperationsActionService>();
         services.AddSingleton<IOperationsOverviewService, OperationsOverviewService>();
 
         // ── System Tray ───────────────────────────────────────

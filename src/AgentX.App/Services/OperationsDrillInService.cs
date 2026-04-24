@@ -7,10 +7,31 @@ namespace AgentX.App.Services;
 public sealed class OperationsDrillInService : IOperationsDrillInService
 {
     private readonly object _gate = new();
+    private OperationsConversationDrillInRequest? _pendingConversationRequest;
     private OperationsInboxDrillInRequest? _pendingInboxRequest;
     private OperationsWorkflowRunDrillInRequest? _pendingWorkflowRunRequest;
     private OperationsSyncDrillInRequest? _pendingSyncRequest;
     private OperationsPluginDrillInRequest? _pendingPluginRequest;
+
+    public void StageConversationRequest(OperationsConversationDrillInRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        lock (_gate)
+        {
+            _pendingConversationRequest = request;
+        }
+    }
+
+    public OperationsConversationDrillInRequest? ConsumePendingConversationRequest()
+    {
+        lock (_gate)
+        {
+            var request = _pendingConversationRequest;
+            _pendingConversationRequest = null;
+            return request;
+        }
+    }
 
     public void StageInboxRequest(OperationsInboxDrillInRequest request)
     {

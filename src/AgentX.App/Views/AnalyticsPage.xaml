@@ -802,6 +802,14 @@
                                             CornerRadius="{StaticResource RadiusMD}"
                                             Padding="16">
                                         <StackPanel Spacing="10">
+                                            <Border Style="{StaticResource BadgeAccentStyle}"
+                                                    HorizontalAlignment="Left"
+                                                    Visibility="{Binding HasSourceLabel, Converter={StaticResource BoolToVis}}">
+                                                <TextBlock Text="{Binding SourceLabel}"
+                                                           Style="{StaticResource BadgeStyle}"
+                                                           Foreground="{StaticResource TextAccentBrush}" />
+                                            </Border>
+
                                             <Grid ColumnSpacing="12">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*" />
