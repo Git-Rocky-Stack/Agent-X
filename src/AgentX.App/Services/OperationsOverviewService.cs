@@ -242,6 +242,7 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             .Take(3)
             .Select(entry => new OperationsSyncPreview
             {
+                SyncLogId = entry.Id,
                 Title = $"{ToTitleCase(entry.Direction)} sync",
                 Status = !entry.IsSuccess
                     ? "Failed"
@@ -291,6 +292,7 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             .Take(3)
             .Select(item => new OperationsInboxPreview
             {
+                ItemId = item.Id,
                 Title = string.IsNullOrWhiteSpace(item.FileName)
                     ? "Untitled inbox item"
                     : item.FileName,
@@ -359,6 +361,8 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             .Take(3)
             .Select(run => new OperationsWorkflowRunPreview
             {
+                WorkflowId = run.WorkflowId,
+                RunId = run.WorkflowRunId,
                 Title = string.IsNullOrWhiteSpace(run.WorkflowName)
                     ? "Workflow run"
                     : run.WorkflowName,
@@ -425,6 +429,7 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             .Take(3)
             .Select(plugin => new OperationsConnectorPreview
             {
+                PluginId = plugin.Id,
                 Title = string.IsNullOrWhiteSpace(plugin.Name)
                     ? plugin.PluginId
                     : plugin.Name,

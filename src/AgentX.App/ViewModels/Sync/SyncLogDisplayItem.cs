@@ -25,6 +25,7 @@ public partial class SyncLogDisplayItem : ObservableObject
     [ObservableProperty] private string _syncedAtFormatted = string.Empty;
     [ObservableProperty] private string _durationFormatted = string.Empty;
     [ObservableProperty] private string? _errorMessage;
+    [ObservableProperty] private bool _isFocused;
 
     /// <summary>
     /// Full formatted timestamp for display, e.g. "Mar 7, 2026 3:45 PM".

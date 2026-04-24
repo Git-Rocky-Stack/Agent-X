@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using AgentX.App.ViewModels;
 using Serilog;
+using System.ComponentModel;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
 
@@ -47,12 +48,16 @@ public sealed partial class PluginManagerPage : Page
         Loaded += async (_, _) =>
         {
             Log.Debug("PluginManagerPage loaded");
+            ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+            ViewModel.PropertyChanged += OnViewModelPropertyChanged;
             await ViewModel.InitializeAsync();
+            SelectFocusedPluginFromViewModel();
         };
 
         Unloaded += (_, _) =>
         {
             ViewModel.FilePickerRequested -= OnFilePickerRequestedAsync;
+            ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
         };
     }
 
@@ -132,6 +137,7 @@ public sealed partial class PluginManagerPage : Page
         DetailIconGlyph.Glyph = plugin.TypeGlyph;
         DetailName.Text = plugin.Name;
         DetailAuthor.Text = plugin.Author;
+        UpdateOperationsBadge(plugin);
 
         // Badges
         DetailVersionBadge.Text = $"v{plugin.Version}";
@@ -208,6 +214,44 @@ public sealed partial class PluginManagerPage : Page
             DetailStatusText.Text = "DISABLED";
             DetailStatusText.Foreground = DisabledBadgeForeground;
         }
+    }
+
+    private void UpdateOperationsBadge(PluginDisplayItem plugin)
+    {
+        if (plugin.IsFocused && !string.IsNullOrWhiteSpace(ViewModel.FocusedPluginSourceLabel))
+        {
+            DetailOperationsBadgeText.Text = ViewModel.FocusedPluginSourceLabel;
+            DetailOperationsBadge.Visibility = Visibility.Visible;
+            return;
+        }
+
+        DetailOperationsBadge.Visibility = Visibility.Collapsed;
+        DetailOperationsBadgeText.Text = string.Empty;
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(PluginManagerViewModel.FocusedPluginId))
+        {
+            SelectFocusedPluginFromViewModel();
+        }
+    }
+
+    private void SelectFocusedPluginFromViewModel()
+    {
+        if (ViewModel.FocusedPluginId <= 0)
+        {
+            return;
+        }
+
+        var plugin = ViewModel.Plugins.FirstOrDefault(item => item.Id == ViewModel.FocusedPluginId);
+        if (plugin is null)
+        {
+            return;
+        }
+
+        PluginListView.SelectedItem = plugin;
+        PluginListView.ScrollIntoView(plugin);
     }
 
     // ═══════════════════════════════════════════════════════════════

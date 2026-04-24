@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using AgentX.App.Services;
 using AgentX.Core.Services.Inbox;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Data.Entities;
@@ -10,6 +11,7 @@ namespace AgentX.App.ViewModels;
 
 public partial class InboxViewModel : ObservableObject
 {
+    private readonly IOperationsDrillInService? _operationsDrillInService;
     private readonly IInboxService _inboxService;
     private readonly ICollectionService _collectionService;
 
@@ -23,6 +25,7 @@ public partial class InboxViewModel : ObservableObject
     public ObservableCollection<InboxDisplayItem> InboxItems { get; } = new();
     [ObservableProperty] private bool _hasItems;
     [ObservableProperty] private int _pendingCount;
+    [ObservableProperty] private long _focusedInboxItemId;
 
     // ── Collection Selection ─────────────────────────────────
     public ObservableCollection<CollectionEntity> Collections { get; } = new();
@@ -33,10 +36,14 @@ public partial class InboxViewModel : ObservableObject
 
     private CancellationTokenSource? _previewCts;
 
-    public InboxViewModel(IInboxService inboxService, ICollectionService collectionService)
+    public InboxViewModel(
+        IInboxService inboxService,
+        ICollectionService collectionService,
+        IOperationsDrillInService? operationsDrillInService = null)
     {
         _inboxService = inboxService;
         _collectionService = collectionService;
+        _operationsDrillInService = operationsDrillInService;
     }
 
     public async Task InitializeAsync()
@@ -47,6 +54,7 @@ public partial class InboxViewModel : ObservableObject
             await LoadCollectionsAsync();
             await LoadInboxItemsAsync();
             PendingCount = await _inboxService.GetPendingCountAsync();
+            await ApplyPendingOperationsRequestAsync();
         }
         catch (Exception ex)
         {
@@ -78,6 +86,7 @@ public partial class InboxViewModel : ObservableObject
     {
         try
         {
+            FocusedInboxItemId = 0;
             var filter = StatusFilter == "all" ? null : StatusFilter;
             var items = await _inboxService.GetAllItemsAsync(filter, 0, 100);
 
@@ -99,7 +108,8 @@ public partial class InboxViewModel : ObservableObject
                     HasPreview = !string.IsNullOrEmpty(item.Preview),
                     SourceType = item.SourceType ?? string.Empty,
                     SourceUrl = item.SourceUrl ?? string.Empty,
-                    IsBrowserClip = item.SourceType == "browser-extension"
+                    IsBrowserClip = item.SourceType == "browser-extension",
+                    IsFocused = false
                 });
             }
 
@@ -110,6 +120,43 @@ public partial class InboxViewModel : ObservableObject
         {
             Log.Error(ex, "Failed to load inbox items");
         }
+    }
+
+    private async Task ApplyPendingOperationsRequestAsync()
+    {
+        var request = _operationsDrillInService?.ConsumePendingInboxRequest();
+        if (request is null)
+        {
+            return;
+        }
+
+        var focusedItem = InboxItems.FirstOrDefault(item => item.Id == request.ItemId);
+        if (focusedItem is null && StatusFilter != "all")
+        {
+            StatusFilter = "all";
+            await LoadInboxItemsAsync();
+            focusedItem = InboxItems.FirstOrDefault(item => item.Id == request.ItemId);
+        }
+
+        if (focusedItem is null)
+        {
+            StatusMessage = "The requested inbox item is no longer available.";
+            return;
+        }
+
+        FocusedInboxItemId = request.ItemId;
+        foreach (var item in InboxItems)
+        {
+            item.IsFocused = item.Id == request.ItemId;
+        }
+
+        var currentIndex = InboxItems.IndexOf(focusedItem);
+        if (currentIndex > 0)
+        {
+            InboxItems.Move(currentIndex, 0);
+        }
+
+        StatusMessage = request.SourceLabel;
     }
 
     [RelayCommand]
@@ -256,4 +303,5 @@ public partial class InboxDisplayItem : ObservableObject
     [ObservableProperty] private string _sourceType = string.Empty;
     [ObservableProperty] private string _sourceUrl = string.Empty;
     [ObservableProperty] private bool _isBrowserClip;
+    [ObservableProperty] private bool _isFocused;
 }

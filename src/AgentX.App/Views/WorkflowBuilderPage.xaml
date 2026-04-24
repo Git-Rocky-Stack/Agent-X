@@ -522,6 +522,17 @@
                                                 BorderBrush="{StaticResource BorderSubtleBrush}"
                                                 BorderThickness="1">
                                             <StackPanel Spacing="10">
+                                                <Border Background="{StaticResource AccentSubtleBrush}"
+                                                        CornerRadius="{StaticResource RadiusSM}"
+                                                        Padding="10,4"
+                                                        HorizontalAlignment="Left"
+                                                        Visibility="{x:Bind IsFocused, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                                    <TextBlock Text="Opened from Operations"
+                                                               Style="{StaticResource CaptionStyle}"
+                                                               Foreground="{StaticResource AccentPrimaryBrush}"
+                                                               FontWeight="SemiBold" />
+                                                </Border>
+
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*" />

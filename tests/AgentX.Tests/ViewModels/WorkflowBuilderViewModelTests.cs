@@ -22,6 +22,7 @@ public sealed class WorkflowBuilderViewModelTests
     private readonly Mock<IDocumentService> _documentService = new();
     private readonly Mock<IExportService> _exportService = new();
     private readonly Mock<IWorkflowLaunchService> _workflowLaunchService = new();
+    private readonly Mock<IOperationsDrillInService> _operationsDrillInService = new();
 
     [Fact]
     public async Task InitializeAsync_seeds_and_loads_workflows_and_models()
@@ -197,7 +198,7 @@ public sealed class WorkflowBuilderViewModelTests
 
         await Task.Delay(50);
         await viewModel.RunWorkflowCommand.ExecuteAsync(77L);
-        await WaitForAsync(() => viewModel.StepOutputs.Count == 2, TimeSpan.FromSeconds(1));
+        await WaitForAsync(() => viewModel.StepOutputs.Count == 2 && viewModel.RunCompleted, TimeSpan.FromSeconds(1));
 
         viewModel.RunCompleted.Should().BeTrue();
         viewModel.RunFailed.Should().BeFalse();
@@ -810,6 +811,75 @@ public sealed class WorkflowBuilderViewModelTests
         viewModel.OpenKnowledgeVaultCommand.Execute(null);
 
         navigatedPage.Should().Be("KnowledgeVault");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_consumes_pending_operations_run_request_and_reopens_run()
+    {
+        _workflowService.Setup(service => service.SeedBuiltInWorkflowsAsync())
+            .Returns(Task.CompletedTask);
+        _workflowService.Setup(service => service.GetAllWorkflowsAsync(It.IsAny<bool>()))
+            .ReturnsAsync(
+            [
+                new WorkflowEntity
+                {
+                    Id = 42,
+                    Name = "Research Briefing",
+                    Category = "Research"
+                }
+            ]);
+        _modelManager.Setup(service => service.GetAvailableModelsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<AiModel>());
+        _workflowService.Setup(service => service.GetRecentRunsAsync(42, 8, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+            [
+                new WorkflowRunHistoryItem
+                {
+                    RunId = 77,
+                    WorkflowId = 42,
+                    Status = "completed",
+                    StartedAt = new DateTime(2026, 4, 23, 17, 0, 0, DateTimeKind.Utc),
+                    CompletedAt = new DateTime(2026, 4, 23, 17, 1, 0, DateTimeKind.Utc),
+                    StepsCompleted = 2,
+                    TotalSteps = 2,
+                    FinalOutput = "stored result",
+                    StepResults =
+                    [
+                        new WorkflowStepResult
+                        {
+                            StepName = "Analyze",
+                            StepOrder = 1,
+                            Output = "stored result",
+                            Success = true
+                        }
+                    ]
+                }
+            ]);
+        _operationsDrillInService.Setup(service => service.ConsumePendingWorkflowRunRequest())
+            .Returns(new OperationsWorkflowRunDrillInRequest(
+                42,
+                77,
+                "Opened stored workflow run for \"Research Briefing\" from Operations"));
+
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object,
+            exportService: null,
+            workflowLaunchService: null,
+            operationsDrillInService: _operationsDrillInService.Object);
+
+        await viewModel.InitializeAsync();
+        await WaitForAsync(() => viewModel.RecentRuns.Count == 1, TimeSpan.FromSeconds(1));
+
+        viewModel.SelectedWorkflow.Should().NotBeNull();
+        viewModel.SelectedWorkflow!.Id.Should().Be(42);
+        viewModel.RecentRuns[0].RunId.Should().Be(77);
+        viewModel.RecentRuns[0].IsFocused.Should().BeTrue();
+        viewModel.RunOutput.Should().Be("stored result");
+        viewModel.RunResultContextText.Should().Contain("Showing stored run from");
+        viewModel.StatusMessage.Should().Contain("Opened stored workflow run");
     }
 
     private static async Task WaitForAsync(Func<bool> condition, TimeSpan timeout)

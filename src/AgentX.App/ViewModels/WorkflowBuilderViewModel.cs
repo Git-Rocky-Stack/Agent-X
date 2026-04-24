@@ -65,6 +65,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     private readonly IDocumentService _documentService;
     private readonly IExportService? _exportService;
     private readonly IWorkflowLaunchService? _workflowLaunchService;
+    private readonly IOperationsDrillInService? _operationsDrillInService;
 
     // ── Page State ───────────────────────────────────────────
     [ObservableProperty] private string _pageTitle = "Prompt Workflows";
@@ -151,6 +152,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     public bool HasWorkflowStarterTemplates => WorkflowStarterTemplates.Count > 0;
 
     private CancellationTokenSource? _runCts;
+    private OperationsWorkflowRunDrillInRequest? _pendingOperationsRunRequest;
 
     public WorkflowBuilderViewModel(
         IWorkflowService workflowService,
@@ -158,7 +160,8 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         IModelManager modelManager,
         IDocumentService documentService,
         IExportService? exportService = null,
-        IWorkflowLaunchService? workflowLaunchService = null)
+        IWorkflowLaunchService? workflowLaunchService = null,
+        IOperationsDrillInService? operationsDrillInService = null)
     {
         _workflowService = workflowService;
         _workflowEngine = workflowEngine;
@@ -166,6 +169,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         _documentService = documentService;
         _exportService = exportService;
         _workflowLaunchService = workflowLaunchService;
+        _operationsDrillInService = operationsDrillInService;
 
         Workflows.CollectionChanged += (_, _) =>
         {
@@ -310,6 +314,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             await LoadModelsAsync();
 
             ApplyPendingWorkflowLaunchRequest();
+            ApplyPendingOperationsWorkflowRunRequest();
         }
         catch (Exception ex)
         {
@@ -856,6 +861,8 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             {
                 RecentRuns.Add(new WorkflowRunHistoryDisplayItem(run));
             }
+
+            ApplyPendingOperationsRunFocus(workflow.Id);
         }
         catch (Exception ex)
         {
@@ -917,6 +924,58 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         }
 
         StatusMessage = request.SourceLabel;
+    }
+
+    private void ApplyPendingOperationsWorkflowRunRequest()
+    {
+        var request = _operationsDrillInService?.ConsumePendingWorkflowRunRequest();
+        if (request is null)
+        {
+            return;
+        }
+
+        _pendingOperationsRunRequest = request;
+
+        var workflow = Workflows.FirstOrDefault(item => item.Id == request.WorkflowId);
+        if (workflow is null)
+        {
+            StatusMessage = "The requested workflow run is no longer available.";
+            _pendingOperationsRunRequest = null;
+            return;
+        }
+
+        SelectedWorkflow = workflow;
+    }
+
+    private void ApplyPendingOperationsRunFocus(long workflowId)
+    {
+        if (_pendingOperationsRunRequest is null || _pendingOperationsRunRequest.WorkflowId != workflowId)
+        {
+            return;
+        }
+
+        foreach (var run in RecentRuns)
+        {
+            run.IsFocused = run.RunId == _pendingOperationsRunRequest.RunId;
+        }
+
+        var focusedRun = RecentRuns.FirstOrDefault(run => run.RunId == _pendingOperationsRunRequest.RunId);
+        if (focusedRun is null)
+        {
+            StatusMessage = "The requested workflow run is no longer in recent history.";
+            _pendingOperationsRunRequest = null;
+            return;
+        }
+
+        var currentIndex = RecentRuns.IndexOf(focusedRun);
+        if (currentIndex > 0)
+        {
+            RecentRuns.Move(currentIndex, 0);
+        }
+
+        ApplyHistoricalRun(focusedRun);
+        StatusMessage = _pendingOperationsRunRequest.SourceLabel;
+        _pendingOperationsRunRequest = null;
     }
 
     private WorkflowTemplateGuideContent? SelectedTemplateGuide
@@ -1173,7 +1232,7 @@ public partial class StepOutputItem : ObservableObject
     [ObservableProperty] private string? _errorMessage;
 }
 
-public sealed class WorkflowRunHistoryDisplayItem
+public sealed partial class WorkflowRunHistoryDisplayItem : ObservableObject
 {
     public WorkflowRunHistoryDisplayItem(WorkflowRunHistoryItem run)
     {
@@ -1189,6 +1248,8 @@ public sealed class WorkflowRunHistoryDisplayItem
         DurationMs = run.DurationMs;
         StepResults = run.StepResults;
     }
+
+    [ObservableProperty] private bool _isFocused;
 
     public long RunId { get; }
     public string Status { get; }

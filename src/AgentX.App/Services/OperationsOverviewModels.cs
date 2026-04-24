@@ -39,6 +39,7 @@ public sealed record OperationsConversationPreview
 
 public sealed record OperationsSyncPreview
 {
+    public long SyncLogId { get; init; }
     public string Title { get; init; } = string.Empty;
     public string Status { get; init; } = string.Empty;
     public string Detail { get; init; } = string.Empty;
@@ -46,6 +47,7 @@ public sealed record OperationsSyncPreview
 
 public sealed record OperationsInboxPreview
 {
+    public long ItemId { get; init; }
     public string Title { get; init; } = string.Empty;
     public string Status { get; init; } = string.Empty;
     public string Detail { get; init; } = string.Empty;
@@ -53,6 +55,8 @@ public sealed record OperationsInboxPreview
 
 public sealed record OperationsWorkflowRunPreview
 {
+    public long WorkflowId { get; init; }
+    public long RunId { get; init; }
     public string Title { get; init; } = string.Empty;
     public string Status { get; init; } = string.Empty;
     public string Detail { get; init; } = string.Empty;
@@ -60,6 +64,7 @@ public sealed record OperationsWorkflowRunPreview
 
 public sealed record OperationsConnectorPreview
 {
+    public long PluginId { get; init; }
     public string Title { get; init; } = string.Empty;
     public string Status { get; init; } = string.Empty;
     public string Detail { get; init; } = string.Empty;

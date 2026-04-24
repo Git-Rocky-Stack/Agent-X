@@ -8,6 +8,7 @@ namespace AgentX.App.ViewModels;
 
 public partial class OperationsViewModel : ObservableObject, IDisposable
 {
+    private readonly IOperationsDrillInService _operationsDrillInService;
     private readonly IOperationsOverviewService _operationsOverviewService;
     private readonly ILogger _log;
 
@@ -32,9 +33,11 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     public Action<string>? NavigateRequested { get; set; }
 
     public OperationsViewModel(
+        IOperationsDrillInService operationsDrillInService,
         IOperationsOverviewService operationsOverviewService,
         ILogger logger)
     {
+        _operationsDrillInService = operationsDrillInService ?? throw new ArgumentNullException(nameof(operationsDrillInService));
         _operationsOverviewService = operationsOverviewService ?? throw new ArgumentNullException(nameof(operationsOverviewService));
         _log = logger?.ForContext<OperationsViewModel>()
                ?? throw new ArgumentNullException(nameof(logger));
@@ -112,6 +115,74 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
 
     [RelayCommand]
     private void NavigateToPluginManager() => NavigateRequested?.Invoke("PluginManager");
+
+    [RelayCommand]
+    private void OpenConversationPreview(OperationsConversationPreview? preview) => NavigateRequested?.Invoke("Analytics");
+
+    [RelayCommand]
+    private void OpenInboxPreview(OperationsInboxPreview? preview)
+    {
+        if (preview is null || preview.ItemId <= 0)
+        {
+            NavigateRequested?.Invoke("Inbox");
+            return;
+        }
+
+        _operationsDrillInService.StageInboxRequest(
+            new OperationsInboxDrillInRequest(
+                preview.ItemId,
+                $"Opened inbox item \"{preview.Title}\" from Operations"));
+        NavigateRequested?.Invoke("Inbox");
+    }
+
+    [RelayCommand]
+    private void OpenWorkflowRunPreview(OperationsWorkflowRunPreview? preview)
+    {
+        if (preview is null || preview.WorkflowId <= 0 || preview.RunId <= 0)
+        {
+            NavigateRequested?.Invoke("Workflows");
+            return;
+        }
+
+        _operationsDrillInService.StageWorkflowRunRequest(
+            new OperationsWorkflowRunDrillInRequest(
+                preview.WorkflowId,
+                preview.RunId,
+                $"Opened stored workflow run for \"{preview.Title}\" from Operations"));
+        NavigateRequested?.Invoke("Workflows");
+    }
+
+    [RelayCommand]
+    private void OpenSyncPreview(OperationsSyncPreview? preview)
+    {
+        if (preview is null || preview.SyncLogId <= 0)
+        {
+            NavigateRequested?.Invoke("SyncSettings");
+            return;
+        }
+
+        _operationsDrillInService.StageSyncRequest(
+            new OperationsSyncDrillInRequest(
+                preview.SyncLogId,
+                $"Opened sync history entry \"{preview.Title}\" from Operations"));
+        NavigateRequested?.Invoke("SyncSettings");
+    }
+
+    [RelayCommand]
+    private void OpenConnectorPreview(OperationsConnectorPreview? preview)
+    {
+        if (preview is null || preview.PluginId <= 0)
+        {
+            NavigateRequested?.Invoke("PluginManager");
+            return;
+        }
+
+        _operationsDrillInService.StagePluginRequest(
+            new OperationsPluginDrillInRequest(
+                preview.PluginId,
+                $"Opened connector \"{preview.Title}\" from Operations"));
+        NavigateRequested?.Invoke("PluginManager");
+    }
 
     public void Dispose()
     {

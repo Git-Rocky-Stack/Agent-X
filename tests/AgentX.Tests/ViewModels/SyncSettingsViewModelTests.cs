@@ -1,3 +1,4 @@
+using AgentX.App.Services;
 using AgentX.App.ViewModels;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Collections;
@@ -13,6 +14,7 @@ public sealed class SyncSettingsViewModelTests
 {
     private readonly Mock<ISyncService> _syncService = new();
     private readonly Mock<ICollectionService> _collectionService = new();
+    private readonly Mock<IOperationsDrillInService> _operationsDrillInService = new();
 
     public SyncSettingsViewModelTests()
     {
@@ -43,7 +45,7 @@ public sealed class SyncSettingsViewModelTests
                 new CollectionEntity { Id = 3, Name = "Gamma", DocumentCount = 7 }
             });
 
-        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object);
+        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, _operationsDrillInService.Object);
 
         await viewModel.InitializeAsync();
 
@@ -73,7 +75,7 @@ public sealed class SyncSettingsViewModelTests
                 new CollectionEntity { Id = 21, Name = "Operations", DocumentCount = 3, SortOrder = 2 }
             });
 
-        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object)
+        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, _operationsDrillInService.Object)
         {
             SyncFolderPath = @"C:\Sync",
             EncryptionKey = "secret",
@@ -105,7 +107,7 @@ public sealed class SyncSettingsViewModelTests
                 new CollectionEntity { Id = 10, Name = "Research", DocumentCount = 5 }
             });
 
-        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object)
+        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, _operationsDrillInService.Object)
         {
             SyncFolderPath = @"C:\Sync",
             EncryptionKey = "secret",
@@ -118,5 +120,49 @@ public sealed class SyncSettingsViewModelTests
         viewModel.HasError.Should().BeTrue();
         viewModel.ErrorMessage.Should().Contain("Select at least one collection");
         _syncService.Verify(service => service.ConfigureAsync(It.IsAny<SyncConfiguration>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_focuses_requested_sync_history_entry()
+    {
+        _syncService.Setup(service => service.GetConfigurationAsync())
+            .ReturnsAsync(new SyncConfiguration
+            {
+                SyncFolderPath = @"C:\Sync",
+                EncryptionKey = "secret"
+            });
+        _syncService.Setup(service => service.GetSyncHistoryAsync(It.IsAny<int>()))
+            .ReturnsAsync(
+            [
+                new SyncLogEntity
+                {
+                    Id = 3,
+                    Direction = "export",
+                    ChangesApplied = 2,
+                    IsSuccess = true,
+                    SyncedAt = DateTime.UtcNow.AddMinutes(-15),
+                    DurationMs = 1200
+                },
+                new SyncLogEntity
+                {
+                    Id = 9,
+                    Direction = "import",
+                    ChangesApplied = 12,
+                    IsSuccess = true,
+                    SyncedAt = DateTime.UtcNow.AddMinutes(-5),
+                    DurationMs = 2400
+                }
+            ]);
+        _operationsDrillInService.Setup(service => service.ConsumePendingSyncRequest())
+            .Returns(new OperationsSyncDrillInRequest(9, "Opened sync history entry \"Import sync\" from Operations"));
+
+        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, _operationsDrillInService.Object);
+
+        await viewModel.InitializeAsync();
+
+        viewModel.SyncHistory.Should().HaveCount(2);
+        viewModel.SyncHistory[0].Id.Should().Be(9);
+        viewModel.SyncHistory[0].IsFocused.Should().BeTrue();
+        viewModel.StatusMessage.Should().Contain("Opened sync history entry");
     }
 }

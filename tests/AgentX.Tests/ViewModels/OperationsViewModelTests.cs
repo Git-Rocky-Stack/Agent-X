@@ -9,6 +9,7 @@ namespace AgentX.Tests.ViewModels;
 
 public sealed class OperationsViewModelTests
 {
+    private readonly Mock<IOperationsDrillInService> _operationsDrillInService = new();
     private readonly Mock<IOperationsOverviewService> _operationsOverviewService = new();
 
     [Fact]
@@ -89,6 +90,7 @@ public sealed class OperationsViewModelTests
                 [
                     new OperationsConnectorPreview
                     {
+                        PluginId = 301,
                         Title = "Email Connector",
                         Status = "Enabled",
                         Detail = "Connector · Brings inbox mail into Agent-X for triage and search."
@@ -196,8 +198,63 @@ public sealed class OperationsViewModelTests
         navigations.Should().Equal("Dashboard", "Analytics", "SyncSettings", "Inbox", "Workflows", "PluginManager");
     }
 
+    [Fact]
+    public void Drill_in_preview_commands_stage_requests_and_navigate()
+    {
+        var viewModel = CreateViewModel();
+        var navigations = new List<string>();
+        viewModel.NavigateRequested = page => navigations.Add(page);
+
+        viewModel.OpenInboxPreviewCommand.Execute(new OperationsInboxPreview
+        {
+            ItemId = 22,
+            Title = "Board update.docx"
+        });
+        viewModel.OpenWorkflowRunPreviewCommand.Execute(new OperationsWorkflowRunPreview
+        {
+            WorkflowId = 42,
+            RunId = 77,
+            Title = "Research Briefing"
+        });
+        viewModel.OpenSyncPreviewCommand.Execute(new OperationsSyncPreview
+        {
+            SyncLogId = 9,
+            Title = "Import sync"
+        });
+        viewModel.OpenConversationPreviewCommand.Execute(new OperationsConversationPreview
+        {
+            Title = "Durable memory rollout"
+        });
+        viewModel.OpenConnectorPreviewCommand.Execute(new OperationsConnectorPreview
+        {
+            PluginId = 301,
+            Title = "Email Connector"
+        });
+
+        _operationsDrillInService.Verify(service => service.StageInboxRequest(
+            It.Is<OperationsInboxDrillInRequest>(request =>
+                request.ItemId == 22 &&
+                request.SourceLabel.Contains("Board update.docx"))), Times.Once);
+        _operationsDrillInService.Verify(service => service.StageWorkflowRunRequest(
+            It.Is<OperationsWorkflowRunDrillInRequest>(request =>
+                request.WorkflowId == 42 &&
+                request.RunId == 77 &&
+                request.SourceLabel.Contains("Research Briefing"))), Times.Once);
+        _operationsDrillInService.Verify(service => service.StageSyncRequest(
+            It.Is<OperationsSyncDrillInRequest>(request =>
+                request.SyncLogId == 9 &&
+                request.SourceLabel.Contains("Import sync"))), Times.Once);
+        _operationsDrillInService.Verify(service => service.StagePluginRequest(
+            It.Is<OperationsPluginDrillInRequest>(request =>
+                request.PluginId == 301 &&
+                request.SourceLabel.Contains("Email Connector"))), Times.Once);
+
+        navigations.Should().Equal("Inbox", "Workflows", "SyncSettings", "Analytics", "PluginManager");
+    }
+
     private OperationsViewModel CreateViewModel() =>
         new(
+            _operationsDrillInService.Object,
             _operationsOverviewService.Object,
             Log.ForContext<OperationsViewModelTests>());
 }

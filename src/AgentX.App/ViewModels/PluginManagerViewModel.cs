@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using AgentX.App.Services;
 using AgentX.Core.Helpers;
 using AgentX.Core.Services.Plugins;
 using AgentX.Core.Data.Entities;
@@ -12,6 +13,7 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
 {
     // -- Services ---------------------------------------------------------
     private readonly IPluginService _pluginService;
+    private readonly IOperationsDrillInService? _operationsDrillInService;
 
     // -- Page Properties --------------------------------------------------
     [ObservableProperty] private string _pageTitle = "Plugin Manager";
@@ -24,6 +26,8 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
     // -- Multi-Select State -----------------------------------------------
     [ObservableProperty] private bool _isMultiSelectMode;
     [ObservableProperty] private int _selectedCount;
+    [ObservableProperty] private long _focusedPluginId;
+    [ObservableProperty] private string _focusedPluginSourceLabel = string.Empty;
 
     public ObservableCollection<long> SelectedPluginIds { get; } = new();
 
@@ -36,9 +40,12 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
     public event Func<Task<string?>>? FilePickerRequested;
 
     // -- Constructor ------------------------------------------------------
-    public PluginManagerViewModel(IPluginService pluginService)
+    public PluginManagerViewModel(
+        IPluginService pluginService,
+        IOperationsDrillInService? operationsDrillInService = null)
     {
         _pluginService = pluginService;
+        _operationsDrillInService = operationsDrillInService;
         Log.Debug("PluginManagerViewModel created with services");
     }
 
@@ -70,6 +77,10 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
             StatusMessage = PluginCount > 0
                 ? $"{PluginCount} plugin{(PluginCount == 1 ? "" : "s")} installed"
                 : "No plugins installed";
+            FocusedPluginId = 0;
+            FocusedPluginSourceLabel = string.Empty;
+
+            ApplyPendingOperationsRequest();
 
             Log.Information("Loaded {Count} plugins", PluginCount);
         }
@@ -423,6 +434,38 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
         ReadmeContent = entity.ReadmeContent
     };
 
+    private void ApplyPendingOperationsRequest()
+    {
+        var request = _operationsDrillInService?.ConsumePendingPluginRequest();
+        if (request is null || request.PluginId <= 0)
+        {
+            return;
+        }
+
+        foreach (var plugin in Plugins)
+        {
+            plugin.IsFocused = false;
+        }
+
+        var target = Plugins.FirstOrDefault(plugin => plugin.Id == request.PluginId);
+        if (target is null)
+        {
+            FocusedPluginId = 0;
+            FocusedPluginSourceLabel = string.Empty;
+            return;
+        }
+
+        target.IsFocused = true;
+        FocusedPluginId = target.Id;
+        FocusedPluginSourceLabel = request.SourceLabel;
+        StatusMessage = request.SourceLabel;
+
+        if (Plugins.Remove(target))
+        {
+            Plugins.Insert(0, target);
+        }
+    }
+
     private void SetError(string message)
     {
         ErrorMessage = message;
@@ -465,6 +508,7 @@ public partial class PluginDisplayItem : ObservableObject
     [ObservableProperty] private string _lastActivatedAtFormatted = "Never";
     [ObservableProperty] private string? _settingsJson;
     [ObservableProperty] private string? _readmeContent;
+    [ObservableProperty] private bool _isFocused;
 
     /// <summary>
     /// Returns a Segoe Fluent Icons glyph string based on the plugin type.

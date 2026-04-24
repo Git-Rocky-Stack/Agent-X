@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using AgentX.App.Services;
 using AgentX.Core.Helpers;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Sync;
@@ -34,6 +35,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
 
     private readonly ISyncService _syncService;
     private readonly ICollectionService _collectionService;
+    private readonly IOperationsDrillInService? _operationsDrillInService;
 
     /// <summary>
     /// CancellationTokenSource for the running auto-sync loop.
@@ -196,10 +198,14 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
 
     // ── Constructor ───────────────────────────────────────────────────────────
 
-    public SyncSettingsViewModel(ISyncService syncService, ICollectionService collectionService)
+    public SyncSettingsViewModel(
+        ISyncService syncService,
+        ICollectionService collectionService,
+        IOperationsDrillInService? operationsDrillInService = null)
     {
         _syncService = syncService;
         _collectionService = collectionService;
+        _operationsDrillInService = operationsDrillInService;
         Log.Debug("SyncSettingsViewModel created");
     }
 
@@ -222,6 +228,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
             await LoadAvailableCollectionsAsync();
             RefreshStatusFromService();
             await LoadHistoryAsync();
+            ApplyPendingOperationsRequest();
         }
         catch (Exception ex)
         {
@@ -794,11 +801,41 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         ChangesApplied    = entry.ChangesApplied,
         ConflictsDetected = entry.ConflictsDetected,
         IsSuccess         = entry.IsSuccess,
+        IsFocused         = false,
         SyncedAtFormatted = FormatHelper.TimeAgoWithMonths(entry.SyncedAt),
         SyncedAtFull      = entry.SyncedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt"),
         DurationFormatted = FormatHelper.FormatDuration(entry.DurationMs),
         ErrorMessage      = entry.ErrorMessage
     };
+
+    private void ApplyPendingOperationsRequest()
+    {
+        var request = _operationsDrillInService?.ConsumePendingSyncRequest();
+        if (request is null)
+        {
+            return;
+        }
+
+        var focusedItem = SyncHistory.FirstOrDefault(item => item.Id == request.SyncLogId);
+        if (focusedItem is null)
+        {
+            SetStatus("The requested sync history entry is no longer available.");
+            return;
+        }
+
+        foreach (var item in SyncHistory)
+        {
+            item.IsFocused = item.Id == request.SyncLogId;
+        }
+
+        var currentIndex = SyncHistory.IndexOf(focusedItem);
+        if (currentIndex > 0)
+        {
+            SyncHistory.Move(currentIndex, 0);
+        }
+
+        SetStatus(request.SourceLabel);
+    }
 
     private void UpdateSelectedCollectionIdsFromSelections()
     {

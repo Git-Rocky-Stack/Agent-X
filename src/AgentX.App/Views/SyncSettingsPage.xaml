@@ -729,6 +729,12 @@
                                     <!-- Row 1, Col 1-2: Metadata badges -->
                                     <StackPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"
                                                 Orientation="Horizontal" Spacing="8">
+                                        <Border Style="{StaticResource BadgeAccentStyle}"
+                                                Visibility="{x:Bind IsFocused, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                            <TextBlock Text="Opened from Operations"
+                                                       Style="{StaticResource BadgeStyle}"
+                                                       Foreground="{StaticResource TextAccentBrush}" />
+                                        </Border>
 
                                         <!-- Changes applied badge -->
                                         <Border Style="{StaticResource BadgeDefaultStyle}">

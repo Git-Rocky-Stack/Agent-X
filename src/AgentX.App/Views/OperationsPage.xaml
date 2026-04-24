@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="using:AgentX.App.Converters"
+    x:Name="OperationsRoot"
     Background="Transparent"
     NavigationCacheMode="Enabled">
 
@@ -28,6 +29,141 @@
                                TextWrapping="WrapWholeWords" />
                 </StackPanel>
             </Border>
+        </DataTemplate>
+        <DataTemplate x:Key="OperationsConversationPreviewTemplate">
+            <Button Command="{Binding ViewModel.OpenConversationPreviewCommand, ElementName=OperationsRoot}"
+                    CommandParameter="{Binding}"
+                    Style="{StaticResource GhostButtonStyle}"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch"
+                    Padding="0"
+                    Margin="0,0,0,8">
+                <Border Style="{StaticResource CardStyle}"
+                        Padding="12,10">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{Binding Title}"
+                                   Style="{StaticResource BodyStyle}"
+                                   FontWeight="SemiBold"
+                                   TextWrapping="WrapWholeWords" />
+                        <TextBlock Text="{Binding Status}"
+                                   Style="{StaticResource CaptionStyle}"
+                                   Foreground="{StaticResource TextAccentBrush}"
+                                   TextWrapping="WrapWholeWords" />
+                        <TextBlock Text="{Binding Detail}"
+                                   Style="{StaticResource CaptionStyle}"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   TextWrapping="WrapWholeWords" />
+                    </StackPanel>
+                </Border>
+            </Button>
+        </DataTemplate>
+        <DataTemplate x:Key="OperationsInboxPreviewTemplate">
+            <Button Command="{Binding ViewModel.OpenInboxPreviewCommand, ElementName=OperationsRoot}"
+                    CommandParameter="{Binding}"
+                    Style="{StaticResource GhostButtonStyle}"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch"
+                    Padding="0"
+                    Margin="0,0,0,8">
+                <Border Style="{StaticResource CardStyle}"
+                        Padding="12,10">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{Binding Title}"
+                                   Style="{StaticResource BodyStyle}"
+                                   FontWeight="SemiBold"
+                                   TextWrapping="WrapWholeWords" />
+                        <TextBlock Text="{Binding Status}"
+                                   Style="{StaticResource CaptionStyle}"
+                                   Foreground="{StaticResource TextAccentBrush}"
+                                   TextWrapping="WrapWholeWords" />
+                        <TextBlock Text="{Binding Detail}"
+                                   Style="{StaticResource CaptionStyle}"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   TextWrapping="WrapWholeWords" />
+                    </StackPanel>
+                </Border>
+            </Button>
+        </DataTemplate>
+        <DataTemplate x:Key="OperationsSyncPreviewTemplate">
+            <Button Command="{Binding ViewModel.OpenSyncPreviewCommand, ElementName=OperationsRoot}"
+                    CommandParameter="{Binding}"
+                    Style="{StaticResource GhostButtonStyle}"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch"
+                    Padding="0"
+                    Margin="0,0,0,8">
+                <Border Style="{StaticResource CardStyle}"
+                        Padding="12,10">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{Binding Title}"
+                                   Style="{StaticResource BodyStyle}"
+                                   FontWeight="SemiBold"
+                                   TextWrapping="WrapWholeWords" />
+                        <TextBlock Text="{Binding Status}"
+                                   Style="{StaticResource CaptionStyle}"
+                                   Foreground="{StaticResource TextAccentBrush}"
+                                   TextWrapping="WrapWholeWords" />
+                        <TextBlock Text="{Binding Detail}"
+                                   Style="{StaticResource CaptionStyle}"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   TextWrapping="WrapWholeWords" />
+                    </StackPanel>
+                </Border>
+            </Button>
+        </DataTemplate>
+        <DataTemplate x:Key="OperationsWorkflowPreviewTemplate">
+            <Button Command="{Binding ViewModel.OpenWorkflowRunPreviewCommand, ElementName=OperationsRoot}"
+                    CommandParameter="{Binding}"
+                    Style="{StaticResource GhostButtonStyle}"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch"
+                    Padding="0"
+                    Margin="0,0,0,8">
+                <Border Style="{StaticResource CardStyle}"
+                        Padding="12,10">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{Binding Title}"
+                                   Style="{StaticResource BodyStyle}"
+                                   FontWeight="SemiBold"
+                                   TextWrapping="WrapWholeWords" />
+                        <TextBlock Text="{Binding Status}"
+                                   Style="{StaticResource CaptionStyle}"
+                                   Foreground="{StaticResource TextAccentBrush}"
+                                   TextWrapping="WrapWholeWords" />
+                        <TextBlock Text="{Binding Detail}"
+                                   Style="{StaticResource CaptionStyle}"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   TextWrapping="WrapWholeWords" />
+                    </StackPanel>
+                </Border>
+            </Button>
+        </DataTemplate>
+        <DataTemplate x:Key="OperationsConnectorPreviewTemplate">
+            <Button Command="{Binding ViewModel.OpenConnectorPreviewCommand, ElementName=OperationsRoot}"
+                    CommandParameter="{Binding}"
+                    Style="{StaticResource GhostButtonStyle}"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch"
+                    Padding="0"
+                    Margin="0,0,0,8">
+                <Border Style="{StaticResource CardStyle}"
+                        Padding="12,10">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{Binding Title}"
+                                   Style="{StaticResource BodyStyle}"
+                                   FontWeight="SemiBold"
+                                   TextWrapping="WrapWholeWords" />
+                        <TextBlock Text="{Binding Status}"
+                                   Style="{StaticResource CaptionStyle}"
+                                   Foreground="{StaticResource TextAccentBrush}"
+                                   TextWrapping="WrapWholeWords" />
+                        <TextBlock Text="{Binding Detail}"
+                                   Style="{StaticResource CaptionStyle}"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   TextWrapping="WrapWholeWords" />
+                    </StackPanel>
+                </Border>
+            </Button>
         </DataTemplate>
     </Page.Resources>
 
@@ -200,7 +336,7 @@
                                        Opacity="0.72"
                                        Margin="0,6,0,0" />
                             <ItemsControl ItemsSource="{x:Bind ViewModel.RecentConversationSummaries, Mode=OneWay}"
-                                          ItemTemplate="{StaticResource OperationsPreviewTemplate}" />
+                                          ItemTemplate="{StaticResource OperationsConversationPreviewTemplate}" />
                         </StackPanel>
 
                         <Button Grid.Row="2"
@@ -240,7 +376,7 @@
                                        Opacity="0.72"
                                        Margin="0,6,0,0" />
                             <ItemsControl ItemsSource="{x:Bind ViewModel.RecentSyncPasses, Mode=OneWay}"
-                                          ItemTemplate="{StaticResource OperationsPreviewTemplate}" />
+                                          ItemTemplate="{StaticResource OperationsSyncPreviewTemplate}" />
                         </StackPanel>
 
                         <Button Grid.Row="2"
@@ -280,7 +416,7 @@
                                        Opacity="0.72"
                                        Margin="0,6,0,0" />
                             <ItemsControl ItemsSource="{x:Bind ViewModel.PendingInboxItems, Mode=OneWay}"
-                                          ItemTemplate="{StaticResource OperationsPreviewTemplate}" />
+                                          ItemTemplate="{StaticResource OperationsInboxPreviewTemplate}" />
                         </StackPanel>
 
                         <Button Grid.Row="2"
@@ -332,7 +468,7 @@
                                        Opacity="0.72"
                                        Margin="0,6,0,0" />
                             <ItemsControl ItemsSource="{x:Bind ViewModel.RecentWorkflowRuns, Mode=OneWay}"
-                                          ItemTemplate="{StaticResource OperationsPreviewTemplate}" />
+                                          ItemTemplate="{StaticResource OperationsWorkflowPreviewTemplate}" />
                         </StackPanel>
 
                         <Button Grid.Row="2"
@@ -372,7 +508,7 @@
                                        Opacity="0.72"
                                        Margin="0,6,0,0" />
                             <ItemsControl ItemsSource="{x:Bind ViewModel.ConnectorPreviews, Mode=OneWay}"
-                                          ItemTemplate="{StaticResource OperationsPreviewTemplate}" />
+                                          ItemTemplate="{StaticResource OperationsConnectorPreviewTemplate}" />
                         </StackPanel>
 
                         <Button Grid.Row="2"

@@ -192,6 +192,12 @@
                                             <Run Text="v" /><Run Text="{x:Bind Version, Mode=OneWay}" />
                                         </TextBlock>
                                     </StackPanel>
+                                    <Border Style="{StaticResource BadgeAccentStyle}"
+                                            Visibility="{x:Bind IsFocused, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Text="Opened from Operations"
+                                                   Style="{StaticResource BadgeStyle}"
+                                                   Foreground="{StaticResource TextAccentBrush}" />
+                                    </Border>
                                 </StackPanel>
 
                                 <!-- Status dot: green = active, grey = disabled -->
@@ -370,6 +376,13 @@
                                            Style="{StaticResource BodyStyle}"
                                            FontWeight="SemiBold" />
                             </StackPanel>
+                            <Border x:Name="DetailOperationsBadge"
+                                    Style="{StaticResource BadgeAccentStyle}"
+                                    Visibility="Collapsed">
+                                <TextBlock x:Name="DetailOperationsBadgeText"
+                                           Style="{StaticResource BadgeStyle}"
+                                           Foreground="{StaticResource TextAccentBrush}" />
+                            </Border>
                         </StackPanel>
 
                         <!-- Enable/Disable toggle + Uninstall icon button -->

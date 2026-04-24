@@ -1,4 +1,5 @@
 using AgentX.App.ViewModels;
+using AgentX.App.Services;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Plugins;
 using FluentAssertions;
@@ -10,6 +11,7 @@ namespace AgentX.Tests.ViewModels;
 public sealed class PluginManagerViewModelTests
 {
     private readonly Mock<IPluginService> _pluginService = new();
+    private readonly Mock<IOperationsDrillInService> _operationsDrillInService = new();
 
     [Fact]
     public async Task InitializeAsync_loads_plugins_and_sets_status_message()
@@ -21,7 +23,7 @@ public sealed class PluginManagerViewModelTests
                 CreatePlugin(2, "Inbox Helper", enabled: false),
             ]);
 
-        var viewModel = new PluginManagerViewModel(_pluginService.Object);
+        var viewModel = CreateViewModel();
 
         await viewModel.InitializeAsync();
 
@@ -50,7 +52,7 @@ public sealed class PluginManagerViewModelTests
         _pluginService.Setup(service => service.EnablePluginAsync(It.IsAny<long>()))
             .Returns(Task.CompletedTask);
 
-        var viewModel = new PluginManagerViewModel(_pluginService.Object);
+        var viewModel = CreateViewModel();
         await viewModel.InitializeAsync();
 
         viewModel.ToggleMultiSelectCommand.Execute(null);
@@ -68,6 +70,33 @@ public sealed class PluginManagerViewModelTests
         viewModel.StatusMessage.Should().Be("Successfully enabled 2 plugins");
         viewModel.IsLoading.Should().BeFalse();
     }
+
+    [Fact]
+    public async Task InitializeAsync_consumes_pending_operations_plugin_request_and_focuses_plugin()
+    {
+        _pluginService.Setup(service => service.GetInstalledPluginsAsync())
+            .ReturnsAsync(
+            [
+                CreatePlugin(11, "Calendar Connector", enabled: false),
+                CreatePlugin(12, "Email Connector", enabled: true),
+            ]);
+        _operationsDrillInService.Setup(service => service.ConsumePendingPluginRequest())
+            .Returns(new OperationsPluginDrillInRequest(12, "Opened connector \"Email Connector\" from Operations"));
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.FocusedPluginId.Should().Be(12);
+        viewModel.FocusedPluginSourceLabel.Should().Contain("Email Connector");
+        viewModel.StatusMessage.Should().Contain("Email Connector");
+        viewModel.Plugins[0].Id.Should().Be(12);
+        viewModel.Plugins[0].IsFocused.Should().BeTrue();
+        viewModel.Plugins[1].IsFocused.Should().BeFalse();
+    }
+
+    private PluginManagerViewModel CreateViewModel() =>
+        new(_pluginService.Object, _operationsDrillInService.Object);
 
     private static PluginEntity CreatePlugin(long id, string name, bool enabled)
     {

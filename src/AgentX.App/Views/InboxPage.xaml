@@ -133,6 +133,17 @@
                                         BorderThickness="1"
                                         Padding="20">
                                     <StackPanel Spacing="12">
+                                        <Border Visibility="{x:Bind IsFocused, Converter={StaticResource BoolToVis}}"
+                                                CornerRadius="{StaticResource RadiusSM}"
+                                                Background="{StaticResource AccentSubtleBrush}"
+                                                Padding="10,4"
+                                                HorizontalAlignment="Left">
+                                            <TextBlock Text="Opened from Operations"
+                                                       Style="{StaticResource CaptionStyle}"
+                                                       Foreground="{StaticResource AccentPrimaryBrush}"
+                                                       FontWeight="SemiBold" />
+                                        </Border>
+
                                         <!-- File Header Row -->
                                         <Grid>
                                             <Grid.ColumnDefinitions>
