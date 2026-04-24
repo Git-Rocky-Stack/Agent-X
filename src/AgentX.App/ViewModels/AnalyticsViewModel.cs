@@ -75,6 +75,21 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _perfTokensPerSecond = "—";
     [ObservableProperty] private bool _hasPerformanceData;
 
+    // ── Workflow Intelligence ──────────────────────────────────────────────
+
+    [ObservableProperty] private string _workflowRunsTotal = "0";
+    [ObservableProperty] private string _workflowSuccessRate = "—";
+    [ObservableProperty] private string _workflowAverageRunDuration = "—";
+    [ObservableProperty] private string _workflowActiveRecently = "0";
+    [ObservableProperty] private string _workflowIntelligenceStatusMessage = "No workflow runs yet. Run a workflow to seed this section.";
+    [ObservableProperty] private ObservableCollection<AnalyticsDailyItem> _dailyWorkflowRuns = new();
+    [ObservableProperty] private ObservableCollection<AnalyticsWorkflowTopItem> _topWorkflows = new();
+    [ObservableProperty] private ObservableCollection<AnalyticsWorkflowRecentRunItem> _recentWorkflowRuns = new();
+    [ObservableProperty] private bool _hasWorkflowIntelligence;
+    [ObservableProperty] private bool _hasWorkflowTrendData;
+    [ObservableProperty] private bool _hasTopWorkflows;
+    [ObservableProperty] private bool _hasRecentWorkflowRuns;
+
     // ── Conversation Intelligence ───────────────────────────────────────────
 
     [ObservableProperty] private string _summarizedConversations = "0";
@@ -161,6 +176,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
                 LoadModelUsageAsync(ct),
                 LoadFileTypeDistributionAsync(ct),
                 LoadPerformanceAsync(ct),
+                LoadWorkflowIntelligenceAsync(ct),
                 LoadConversationIntelligenceAsync(ct),
                 LoadConversationRecallAsync(ct),
                 LoadConversationThemesAsync(ct),
@@ -354,7 +370,84 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             _log.Warning(ex, "Analytics: failed to load performance metrics");
             HasPerformanceData = false;
             PerfAverage = PerfMedian = PerfP95 = PerfFastest =
-                PerfSlowest = PerfTotalInference = PerfTokensPerSecond = "N/A";
+            PerfSlowest = PerfTotalInference = PerfTokensPerSecond = "N/A";
+        }
+    }
+
+    private async Task LoadWorkflowIntelligenceAsync(CancellationToken ct)
+    {
+        try
+        {
+            var overviewTask = _analyticsService.GetWorkflowIntelligenceOverviewAsync(ct: ct);
+            var dailyTask = _analyticsService.GetDailyWorkflowRunMetricsAsync(30, ct);
+
+            await Task.WhenAll(overviewTask, dailyTask);
+
+            var overview = await overviewTask;
+            var dailyMetrics = await dailyTask;
+            var completedOutcomes = overview.SuccessfulRuns + overview.FailedOrCancelledRuns;
+
+            WorkflowRunsTotal = FormatNumber(overview.TotalRuns);
+            WorkflowSuccessRate = completedOutcomes > 0
+                ? $"{overview.SuccessRate:F1}%"
+                : "—";
+            WorkflowAverageRunDuration = overview.AverageRunDurationMs > 0
+                ? FormatMs(overview.AverageRunDurationMs)
+                : "—";
+            WorkflowActiveRecently = FormatNumber(overview.ActiveWorkflowsRecently);
+
+            DailyWorkflowRuns = BuildDailyItems(dailyMetrics, "#F97316");
+            HasWorkflowTrendData = dailyMetrics.Any(metric => metric.Count > 0);
+
+            TopWorkflows = new ObservableCollection<AnalyticsWorkflowTopItem>(
+                overview.TopWorkflows.Select(workflow => new AnalyticsWorkflowTopItem
+                {
+                    WorkflowId = workflow.WorkflowId,
+                    WorkflowName = workflow.WorkflowName,
+                    Category = workflow.Category,
+                    RunVolumeLabel = BuildWorkflowRunVolumeLabel(workflow.RunCount),
+                    SuccessRateLabel = BuildWorkflowSuccessRateLabel(workflow.SuccessRate, workflow.SuccessfulRuns, workflow.FailedOrCancelledRuns),
+                    ReliabilityLabel = BuildWorkflowReliabilityLabel(workflow.SuccessfulRuns, workflow.FailedOrCancelledRuns),
+                    LastRunLabel = BuildRelativeTimeLabel(workflow.LastRunAt)
+                }));
+            HasTopWorkflows = TopWorkflows.Count > 0;
+
+            RecentWorkflowRuns = new ObservableCollection<AnalyticsWorkflowRecentRunItem>(
+                overview.RecentRuns.Select(run => new AnalyticsWorkflowRecentRunItem
+                {
+                    WorkflowRunId = run.WorkflowRunId,
+                    WorkflowId = run.WorkflowId,
+                    WorkflowName = run.WorkflowName,
+                    StatusLabel = BuildWorkflowStatusLabel(run.Status),
+                    StartedAtLabel = BuildRelativeTimeLabel(run.StartedAt),
+                    DurationLabel = BuildWorkflowRunDurationLabel(run.Status, run.DurationMs),
+                    PreviewText = run.PreviewText
+                }));
+            HasRecentWorkflowRuns = RecentWorkflowRuns.Count > 0;
+
+            HasWorkflowIntelligence = overview.TotalRuns > 0
+                || overview.TopWorkflows.Count > 0
+                || overview.RecentRuns.Count > 0;
+
+            WorkflowIntelligenceStatusMessage = HasWorkflowIntelligence
+                ? string.Empty
+                : "No workflow runs yet. Run a workflow to seed reliability, trend, and result analytics.";
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Analytics: failed to load workflow intelligence");
+            WorkflowRunsTotal = "0";
+            WorkflowSuccessRate = "—";
+            WorkflowAverageRunDuration = "—";
+            WorkflowActiveRecently = "0";
+            DailyWorkflowRuns = new ObservableCollection<AnalyticsDailyItem>();
+            TopWorkflows = new ObservableCollection<AnalyticsWorkflowTopItem>();
+            RecentWorkflowRuns = new ObservableCollection<AnalyticsWorkflowRecentRunItem>();
+            HasWorkflowTrendData = false;
+            HasTopWorkflows = false;
+            HasRecentWorkflowRuns = false;
+            HasWorkflowIntelligence = false;
+            WorkflowIntelligenceStatusMessage = "Workflow analytics are unavailable right now. Refresh and try again.";
         }
     }
 
@@ -742,6 +835,63 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             : $"{recent7DayNewEntries} new theme entries this week";
     }
 
+    private static string BuildWorkflowRunVolumeLabel(int runCount) =>
+        runCount == 1 ? "1 run" : $"{runCount} runs";
+
+    private static string BuildWorkflowSuccessRateLabel(
+        double successRate,
+        int successfulRuns,
+        int failedOrCancelledRuns)
+    {
+        var outcomeRuns = successfulRuns + failedOrCancelledRuns;
+        return outcomeRuns > 0
+            ? $"{successRate:F1}% success"
+            : "No completed outcomes yet";
+    }
+
+    private static string BuildWorkflowReliabilityLabel(int successfulRuns, int failedOrCancelledRuns)
+    {
+        var outcomeRuns = successfulRuns + failedOrCancelledRuns;
+        if (outcomeRuns == 0)
+        {
+            return "No completed outcomes yet";
+        }
+
+        if (failedOrCancelledRuns == 0)
+        {
+            return successfulRuns == 1
+                ? "1 successful run"
+                : $"{successfulRuns} successful runs";
+        }
+
+        return $"{successfulRuns} succeeded · {failedOrCancelledRuns} failed/cancelled";
+    }
+
+    private static string BuildWorkflowStatusLabel(string status) => status switch
+    {
+        "completed" => "Completed",
+        "failed" => "Failed",
+        "cancelled" => "Cancelled",
+        "running" => "Running",
+        "pending" => "Pending",
+        _ => "Unknown"
+    };
+
+    private static string BuildWorkflowRunDurationLabel(string status, long? durationMs)
+    {
+        if (durationMs.HasValue && durationMs.Value > 0)
+        {
+            return FormatMs(durationMs.Value);
+        }
+
+        return status switch
+        {
+            "running" => "In progress",
+            "pending" => "Queued",
+            _ => "No duration"
+        };
+    }
+
     private static string FormatNumber(long value) =>
         value >= 1_000_000 ? $"{value / 1_000_000.0:F1}M"
         : value >= 1_000   ? $"{value / 1_000.0:F1}K"
@@ -821,6 +971,38 @@ public sealed class AnalyticsDailyItem
     public double   BarHeight        { get; init; }
     public string   CountLabel       => Count.ToString("N0");
     public string   Tooltip          => $"{Label}: {Count:N0}";
+}
+
+/// <summary>
+/// Represents one workflow rollup row for the Analytics workflow intelligence section.
+/// </summary>
+public sealed class AnalyticsWorkflowTopItem
+{
+    public long WorkflowId { get; init; }
+    public string WorkflowName { get; init; } = string.Empty;
+    public string Category { get; init; } = string.Empty;
+    public string RunVolumeLabel { get; init; } = string.Empty;
+    public string SuccessRateLabel { get; init; } = string.Empty;
+    public string ReliabilityLabel { get; init; } = string.Empty;
+    public string LastRunLabel { get; init; } = string.Empty;
+    public bool HasCategory => !string.IsNullOrWhiteSpace(Category);
+}
+
+/// <summary>
+/// Represents one recent workflow run projection for the Analytics workflow intelligence section.
+/// </summary>
+public sealed class AnalyticsWorkflowRecentRunItem
+{
+    public long WorkflowRunId { get; init; }
+    public long WorkflowId { get; init; }
+    public string WorkflowName { get; init; } = string.Empty;
+    public string StatusLabel { get; init; } = string.Empty;
+    public string StartedAtLabel { get; init; } = string.Empty;
+    public string DurationLabel { get; init; } = string.Empty;
+    public string PreviewText { get; init; } = string.Empty;
+    public string TimelineLabel => string.IsNullOrWhiteSpace(DurationLabel)
+        ? StartedAtLabel
+        : $"{StartedAtLabel} · {DurationLabel}";
 }
 
 /// <summary>

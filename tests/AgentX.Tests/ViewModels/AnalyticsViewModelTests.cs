@@ -19,9 +19,76 @@ public sealed class AnalyticsViewModelTests
     private readonly Mock<IConversationThemeTrendService> _conversationThemeTrendService = new();
     private readonly ILogger _logger = Log.ForContext<AnalyticsViewModelTests>();
 
+    private AnalyticsViewModel CreateViewModel() =>
+        new(
+            _analyticsService.Object,
+            _conversationRecallService.Object,
+            _conversationSummaryService.Object,
+            _conversationThemeClusterService.Object,
+            _conversationThemeTrendService.Object,
+            _logger);
+
+    private void SetupDefaultLoadDataDependencies()
+    {
+        _conversationSummaryService
+            .Setup(service => service.RefreshStaleSummariesAsync(4, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(0);
+        _conversationRecallService
+            .Setup(service => service.RefreshRecentConversationEmbeddingsAsync(4, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(0);
+        _conversationThemeClusterService
+            .Setup(service => service.RefreshStaleClustersAsync(4, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(0);
+        _conversationThemeTrendService
+            .Setup(service => service.RefreshRecentClusterTrendsAsync(4, 30, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(0);
+
+        _analyticsService
+            .Setup(service => service.GetSummaryAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AnalyticsSummary());
+        _analyticsService
+            .Setup(service => service.GetDailyConversationMetricsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<DailyMetric>());
+        _analyticsService
+            .Setup(service => service.GetDailyDocumentMetricsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<DailyMetric>());
+        _analyticsService
+            .Setup(service => service.GetDailySearchMetricsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<DailyMetric>());
+        _analyticsService
+            .Setup(service => service.GetModelUsageAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<ModelUsageMetric>());
+        _analyticsService
+            .Setup(service => service.GetFileTypeDistributionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<FileTypeMetric>());
+        _analyticsService
+            .Setup(service => service.GetPerformanceMetricsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new PerformanceMetrics());
+        _analyticsService
+            .Setup(service => service.GetWorkflowIntelligenceOverviewAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WorkflowIntelligenceOverview());
+        _analyticsService
+            .Setup(service => service.GetDailyWorkflowRunMetricsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<DailyMetric>());
+        _analyticsService
+            .Setup(service => service.GetConversationIntelligenceAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ConversationIntelligenceOverview());
+        _analyticsService
+            .Setup(service => service.GetConversationRecallOverviewAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ConversationRecallOverview());
+        _analyticsService
+            .Setup(service => service.GetConversationThemeOverviewAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ConversationThemeOverview());
+        _analyticsService
+            .Setup(service => service.GetConversationThemeTrendOverviewAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ConversationThemeTrendOverview());
+    }
+
     [Fact]
     public async Task LoadDataAsync_refreshes_conversation_summaries_and_maps_recent_items()
     {
+        SetupDefaultLoadDataDependencies();
+
         _conversationSummaryService
             .Setup(service => service.RefreshStaleSummariesAsync(4, It.IsAny<CancellationToken>()))
             .ReturnsAsync(2);
@@ -48,23 +115,23 @@ public sealed class AnalyticsViewModelTests
             });
 
         _analyticsService
-            .Setup(service => service.GetDailyConversationMetricsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Array.Empty<DailyMetric>());
+            .Setup(service => service.GetWorkflowIntelligenceOverviewAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WorkflowIntelligenceOverview
+            {
+                TotalRuns = 3,
+                SuccessfulRuns = 2,
+                FailedOrCancelledRuns = 1,
+                SuccessRate = 66.7,
+                AverageRunDurationMs = 45000,
+                ActiveWorkflowsRecently = 2
+            });
         _analyticsService
-            .Setup(service => service.GetDailyDocumentMetricsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Array.Empty<DailyMetric>());
-        _analyticsService
-            .Setup(service => service.GetDailySearchMetricsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Array.Empty<DailyMetric>());
-        _analyticsService
-            .Setup(service => service.GetModelUsageAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Array.Empty<ModelUsageMetric>());
-        _analyticsService
-            .Setup(service => service.GetFileTypeDistributionAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Array.Empty<FileTypeMetric>());
-        _analyticsService
-            .Setup(service => service.GetPerformanceMetricsAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new PerformanceMetrics());
+            .Setup(service => service.GetDailyWorkflowRunMetricsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+            [
+                new DailyMetric { Date = DateTime.UtcNow.Date.AddDays(-1), Count = 1, Label = "Apr 22" },
+                new DailyMetric { Date = DateTime.UtcNow.Date, Count = 2, Label = "Apr 23" }
+            ]);
         _analyticsService
             .Setup(service => service.GetConversationIntelligenceAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ConversationIntelligenceOverview
@@ -154,13 +221,7 @@ public sealed class AnalyticsViewModelTests
                 ]
             });
 
-        var viewModel = new AnalyticsViewModel(
-            _analyticsService.Object,
-            _conversationRecallService.Object,
-            _conversationSummaryService.Object,
-            _conversationThemeClusterService.Object,
-            _conversationThemeTrendService.Object,
-            _logger);
+        var viewModel = CreateViewModel();
 
         await viewModel.LoadDataAsync();
 
@@ -183,6 +244,12 @@ public sealed class AnalyticsViewModelTests
         viewModel.PendingMessageEmbeddings.Should().Be("2");
         viewModel.ActiveThemeClusters.Should().Be("2");
         viewModel.ClusteredThemeConversations.Should().Be("3");
+        viewModel.WorkflowRunsTotal.Should().Be("3");
+        viewModel.WorkflowSuccessRate.Should().Be("66.7%");
+        viewModel.WorkflowAverageRunDuration.Should().Be("45.00 s");
+        viewModel.WorkflowActiveRecently.Should().Be("2");
+        viewModel.HasWorkflowIntelligence.Should().BeTrue();
+        viewModel.HasWorkflowTrendData.Should().BeTrue();
         viewModel.HasConversationThemeClusters.Should().BeTrue();
         viewModel.ConversationThemeClusters.Should().ContainSingle();
         viewModel.ConversationThemeClusters[0].Label.Should().Be("Analytics dashboard");
@@ -204,6 +271,8 @@ public sealed class AnalyticsViewModelTests
     [Fact]
     public async Task RunConversationRecallAsync_maps_recall_results_and_status_message()
     {
+        SetupDefaultLoadDataDependencies();
+
         _conversationRecallService
             .Setup(service => service.RefreshRecentConversationEmbeddingsAsync(6, It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
@@ -237,16 +306,8 @@ public sealed class AnalyticsViewModelTests
                 LastEmbeddedAt = DateTime.UtcNow.AddMinutes(-2)
             });
 
-        var viewModel = new AnalyticsViewModel(
-            _analyticsService.Object,
-            _conversationRecallService.Object,
-            _conversationSummaryService.Object,
-            _conversationThemeClusterService.Object,
-            _conversationThemeTrendService.Object,
-            _logger)
-        {
-            RecallQuery = "dashboard analytics"
-        };
+        var viewModel = CreateViewModel();
+        viewModel.RecallQuery = "dashboard analytics";
 
         await viewModel.RunConversationRecallCommand.ExecuteAsync(null);
 
@@ -255,5 +316,93 @@ public sealed class AnalyticsViewModelTests
         viewModel.ConversationRecallResults[0].ConversationTitle.Should().Be("Analytics roadmap");
         viewModel.ConversationRecallResults[0].RoleLabel.Should().Be("Assistant");
         viewModel.RecallStatusMessage.Should().Be("1 durable recall match found.");
+    }
+
+    [Fact]
+    public async Task LoadDataAsync_maps_workflow_intelligence_section()
+    {
+        SetupDefaultLoadDataDependencies();
+
+        _analyticsService
+            .Setup(service => service.GetWorkflowIntelligenceOverviewAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WorkflowIntelligenceOverview
+            {
+                TotalRuns = 4,
+                SuccessfulRuns = 3,
+                FailedOrCancelledRuns = 1,
+                SuccessRate = 75.0,
+                AverageRunDurationMs = 45000,
+                ActiveWorkflowsRecently = 2,
+                TopWorkflows =
+                [
+                    new WorkflowTopWorkflowMetric
+                    {
+                        WorkflowId = 7,
+                        WorkflowName = "Research Brief",
+                        Category = "Research",
+                        RunCount = 3,
+                        SuccessfulRuns = 2,
+                        FailedOrCancelledRuns = 1,
+                        SuccessRate = 66.7,
+                        LastRunAt = DateTime.UtcNow.AddHours(-2)
+                    }
+                ],
+                RecentRuns =
+                [
+                    new WorkflowRecentRunMetric
+                    {
+                        WorkflowRunId = 77,
+                        WorkflowId = 7,
+                        WorkflowName = "Research Brief",
+                        Status = "failed",
+                        StartedAt = DateTime.UtcNow.AddHours(-1),
+                        DurationMs = 30000,
+                        PreviewText = "Summarizer timed out during drafting.",
+                        HasErrorPreview = true
+                    }
+                ]
+            });
+        _analyticsService
+            .Setup(service => service.GetDailyWorkflowRunMetricsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+            [
+                new DailyMetric { Date = DateTime.UtcNow.Date.AddDays(-1), Count = 1, Label = "Apr 22" },
+                new DailyMetric { Date = DateTime.UtcNow.Date, Count = 2, Label = "Apr 23" }
+            ]);
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.LoadDataAsync();
+
+        viewModel.WorkflowRunsTotal.Should().Be("4");
+        viewModel.WorkflowSuccessRate.Should().Be("75.0%");
+        viewModel.WorkflowAverageRunDuration.Should().Be("45.00 s");
+        viewModel.WorkflowActiveRecently.Should().Be("2");
+        viewModel.HasWorkflowIntelligence.Should().BeTrue();
+        viewModel.HasWorkflowTrendData.Should().BeTrue();
+        viewModel.HasTopWorkflows.Should().BeTrue();
+        viewModel.HasRecentWorkflowRuns.Should().BeTrue();
+        viewModel.TopWorkflows.Should().ContainSingle();
+        viewModel.TopWorkflows[0].WorkflowName.Should().Be("Research Brief");
+        viewModel.TopWorkflows[0].SuccessRateLabel.Should().Be("66.7% success");
+        viewModel.RecentWorkflowRuns.Should().ContainSingle();
+        viewModel.RecentWorkflowRuns[0].StatusLabel.Should().Be("Failed");
+        viewModel.RecentWorkflowRuns[0].PreviewText.Should().Contain("timed out");
+    }
+
+    [Fact]
+    public async Task LoadDataAsync_leaves_workflow_section_in_empty_state_when_no_runs_exist()
+    {
+        SetupDefaultLoadDataDependencies();
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.LoadDataAsync();
+
+        viewModel.HasWorkflowIntelligence.Should().BeFalse();
+        viewModel.HasWorkflowTrendData.Should().BeFalse();
+        viewModel.HasTopWorkflows.Should().BeFalse();
+        viewModel.HasRecentWorkflowRuns.Should().BeFalse();
+        viewModel.WorkflowIntelligenceStatusMessage.Should().Be("No workflow runs yet. Run a workflow to seed reliability, trend, and result analytics.");
     }
 }

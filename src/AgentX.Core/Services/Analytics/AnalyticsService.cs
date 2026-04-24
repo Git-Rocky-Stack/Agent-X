@@ -307,6 +307,196 @@ public sealed class AnalyticsService : IAnalyticsService
         }
     }
 
+    // ── Workflow Intelligence ──────────────────────────────────────────────
+
+    /// <inheritdoc />
+    public async Task<WorkflowIntelligenceOverview> GetWorkflowIntelligenceOverviewAsync(
+        int maxRecentRuns = 6,
+        int maxTopWorkflows = 5,
+        int recentActivityDays = 30,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            maxRecentRuns = Math.Max(0, maxRecentRuns);
+            maxTopWorkflows = Math.Max(0, maxTopWorkflows);
+            recentActivityDays = Math.Max(1, recentActivityDays);
+
+            var recentCutoff = DateTime.UtcNow.Date.AddDays(-(recentActivityDays - 1));
+
+            var totalRunsTask = _db.WorkflowRuns.AsNoTracking()
+                .CountAsync(ct);
+
+            var successfulRunsTask = _db.WorkflowRuns.AsNoTracking()
+                .CountAsync(run => run.Status == "completed", ct);
+
+            var failedOrCancelledRunsTask = _db.WorkflowRuns.AsNoTracking()
+                .CountAsync(run => run.Status == "failed" || run.Status == "cancelled", ct);
+
+            var activeWorkflowsTask = _db.WorkflowRuns.AsNoTracking()
+                .Where(run => run.StartedAt >= recentCutoff)
+                .Select(run => run.WorkflowId)
+                .Distinct()
+                .CountAsync(ct);
+
+            var durationRowsTask = _db.WorkflowRuns.AsNoTracking()
+                .Where(run => run.CompletedAt != null && run.CompletedAt > run.StartedAt)
+                .Select(run => new
+                {
+                    run.StartedAt,
+                    CompletedAt = run.CompletedAt!.Value
+                })
+                .ToListAsync(ct);
+
+            var topWorkflowRowsTask = maxTopWorkflows == 0
+                ? Task.FromResult(new List<TopWorkflowAggregateRow>())
+                : (
+                    from run in _db.WorkflowRuns.AsNoTracking()
+                    join workflow in _db.Workflows.AsNoTracking()
+                        on run.WorkflowId equals workflow.Id
+                    group new { run, workflow } by new
+                    {
+                        run.WorkflowId,
+                        workflow.Name,
+                        workflow.Category
+                    }
+                    into grouped
+                    orderby grouped.Count() descending,
+                            grouped.Count(entry => entry.run.Status == "completed") descending,
+                            grouped.Max(entry => entry.run.StartedAt) descending
+                    select new TopWorkflowAggregateRow
+                    {
+                        WorkflowId = grouped.Key.WorkflowId,
+                        WorkflowName = grouped.Key.Name,
+                        Category = grouped.Key.Category,
+                        RunCount = grouped.Count(),
+                        SuccessfulRuns = grouped.Count(entry => entry.run.Status == "completed"),
+                        FailedOrCancelledRuns = grouped.Count(entry => entry.run.Status == "failed" || entry.run.Status == "cancelled"),
+                        LastRunAt = grouped.Max(entry => entry.run.StartedAt)
+                    })
+                .Take(maxTopWorkflows)
+                .ToListAsync(ct);
+
+            var recentRunRowsTask = maxRecentRuns == 0
+                ? Task.FromResult(new List<RecentWorkflowRunRow>())
+                : (
+                    from run in _db.WorkflowRuns.AsNoTracking()
+                    join workflow in _db.Workflows.AsNoTracking()
+                        on run.WorkflowId equals workflow.Id
+                    orderby run.StartedAt descending
+                    select new RecentWorkflowRunRow
+                    {
+                        WorkflowRunId = run.Id,
+                        WorkflowId = workflow.Id,
+                        WorkflowName = workflow.Name,
+                        Status = run.Status,
+                        StartedAt = run.StartedAt,
+                        CompletedAt = run.CompletedAt,
+                        FinalOutput = run.FinalOutput,
+                        ErrorMessage = run.ErrorMessage
+                    })
+                .Take(maxRecentRuns)
+                .ToListAsync(ct);
+
+            await Task.WhenAll(
+                totalRunsTask,
+                successfulRunsTask,
+                failedOrCancelledRunsTask,
+                activeWorkflowsTask,
+                durationRowsTask,
+                topWorkflowRowsTask,
+                recentRunRowsTask);
+
+            var successfulRuns = await successfulRunsTask;
+            var failedOrCancelledRuns = await failedOrCancelledRunsTask;
+            var finishedRuns = successfulRuns + failedOrCancelledRuns;
+            var durations = (await durationRowsTask)
+                .Select(row => (row.CompletedAt - row.StartedAt).TotalMilliseconds)
+                .Where(durationMs => durationMs > 0)
+                .ToList();
+
+            var topWorkflows = (await topWorkflowRowsTask)
+                .Select(row =>
+                {
+                    var outcomeRuns = row.SuccessfulRuns + row.FailedOrCancelledRuns;
+                    return new WorkflowTopWorkflowMetric
+                    {
+                        WorkflowId = row.WorkflowId,
+                        WorkflowName = NormalizeWorkflowName(row.WorkflowName),
+                        Category = row.Category ?? string.Empty,
+                        RunCount = row.RunCount,
+                        SuccessfulRuns = row.SuccessfulRuns,
+                        FailedOrCancelledRuns = row.FailedOrCancelledRuns,
+                        SuccessRate = outcomeRuns > 0
+                            ? Math.Round(row.SuccessfulRuns * 100.0 / outcomeRuns, 1)
+                            : 0.0,
+                        LastRunAt = row.LastRunAt
+                    };
+                })
+                .ToList();
+
+            var recentRuns = (await recentRunRowsTask)
+                .Select(row => new WorkflowRecentRunMetric
+                {
+                    WorkflowRunId = row.WorkflowRunId,
+                    WorkflowId = row.WorkflowId,
+                    WorkflowName = NormalizeWorkflowName(row.WorkflowName),
+                    Status = NormalizeWorkflowStatus(row.Status),
+                    StartedAt = row.StartedAt,
+                    CompletedAt = row.CompletedAt,
+                    DurationMs = ComputeDurationMs(row.StartedAt, row.CompletedAt),
+                    PreviewText = BuildWorkflowRunPreview(row.FinalOutput, row.ErrorMessage, row.Status),
+                    HasErrorPreview = !string.IsNullOrWhiteSpace(row.ErrorMessage)
+                })
+                .ToList();
+
+            return new WorkflowIntelligenceOverview
+            {
+                TotalRuns = await totalRunsTask,
+                SuccessfulRuns = successfulRuns,
+                FailedOrCancelledRuns = failedOrCancelledRuns,
+                SuccessRate = finishedRuns > 0
+                    ? Math.Round(successfulRuns * 100.0 / finishedRuns, 1)
+                    : 0.0,
+                AverageRunDurationMs = durations.Count > 0
+                    ? Math.Round(durations.Average(), 1)
+                    : 0.0,
+                ActiveWorkflowsRecently = await activeWorkflowsTask,
+                TopWorkflows = topWorkflows,
+                RecentRuns = recentRuns
+            };
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to load workflow intelligence overview");
+            return new WorkflowIntelligenceOverview();
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<DailyMetric>> GetDailyWorkflowRunMetricsAsync(
+        int days = 30,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var cutoff = DateTime.UtcNow.Date.AddDays(-(days - 1));
+
+            var raw = await _db.WorkflowRuns.AsNoTracking()
+                .Where(run => run.StartedAt >= cutoff)
+                .GroupBy(run => run.StartedAt.Date)
+                .Select(group => new { Date = group.Key, Count = group.Count() })
+                .ToListAsync(ct);
+
+            return FillGaps(raw.Select(row => (row.Date, row.Count)), days);
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to load daily workflow metrics");
+            return Array.Empty<DailyMetric>();
+        }
+    }
+
     // ── Conversation Intelligence ──────────────────────────────────────────
 
     /// <inheritdoc />
@@ -738,6 +928,29 @@ public sealed class AnalyticsService : IAnalyticsService
         public DateTime MaterializedAt { get; init; }
     }
 
+    private sealed record TopWorkflowAggregateRow
+    {
+        public long WorkflowId { get; init; }
+        public string? WorkflowName { get; init; }
+        public string? Category { get; init; }
+        public int RunCount { get; init; }
+        public int SuccessfulRuns { get; init; }
+        public int FailedOrCancelledRuns { get; init; }
+        public DateTime LastRunAt { get; init; }
+    }
+
+    private sealed record RecentWorkflowRunRow
+    {
+        public long WorkflowRunId { get; init; }
+        public long WorkflowId { get; init; }
+        public string? WorkflowName { get; init; }
+        public string Status { get; init; } = string.Empty;
+        public DateTime StartedAt { get; init; }
+        public DateTime? CompletedAt { get; init; }
+        public string? FinalOutput { get; init; }
+        public string? ErrorMessage { get; init; }
+    }
+
     /// <summary>
     /// Computes the <paramref name="percentile"/>-th percentile (0–100) from an ascending-sorted
     /// list using the nearest-rank method.
@@ -771,5 +984,53 @@ public sealed class AnalyticsService : IAnalyticsService
         {
             return Array.Empty<string>();
         }
+    }
+
+    private static string NormalizeWorkflowName(string? workflowName) =>
+        string.IsNullOrWhiteSpace(workflowName)
+            ? "Untitled workflow"
+            : workflowName.Trim();
+
+    private static string NormalizeWorkflowStatus(string status) =>
+        string.IsNullOrWhiteSpace(status)
+            ? "pending"
+            : status.Trim().ToLowerInvariant();
+
+    private static long? ComputeDurationMs(DateTime startedAt, DateTime? completedAt)
+    {
+        if (!completedAt.HasValue || completedAt <= startedAt)
+        {
+            return null;
+        }
+
+        return (long)Math.Round((completedAt.Value - startedAt).TotalMilliseconds);
+    }
+
+    private static string BuildWorkflowRunPreview(
+        string? finalOutput,
+        string? errorMessage,
+        string status)
+    {
+        var source = !string.IsNullOrWhiteSpace(errorMessage)
+            ? errorMessage
+            : !string.IsNullOrWhiteSpace(finalOutput)
+                ? finalOutput
+                : NormalizeWorkflowStatus(status) switch
+                {
+                    "running" => "Run still in progress.",
+                    "pending" => "Run queued and waiting to start.",
+                    "cancelled" => "Run was cancelled before a final output was stored.",
+                    _ => "No stored output preview."
+                };
+
+        var compact = source
+            .Replace("\r\n", " ", StringComparison.Ordinal)
+            .Replace('\n', ' ')
+            .Replace('\r', ' ')
+            .Trim();
+
+        return compact.Length <= 160
+            ? compact
+            : $"{compact[..159].TrimEnd()}…";
     }
 }

@@ -51,6 +51,22 @@ public interface IAnalyticsService
     Task<PerformanceMetrics> GetPerformanceMetricsAsync(CancellationToken ct = default);
 
     /// <summary>
+    /// Returns workflow execution coverage, reliability, and recent run projections
+    /// for the Analytics workflow intelligence section.
+    /// </summary>
+    Task<WorkflowIntelligenceOverview> GetWorkflowIntelligenceOverviewAsync(
+        int maxRecentRuns = 6,
+        int maxTopWorkflows = 5,
+        int recentActivityDays = 30,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Returns workflow run counts grouped by day for the specified number of trailing days.
+    /// Days with no workflow activity are included with a count of zero.
+    /// </summary>
+    Task<IReadOnlyList<DailyMetric>> GetDailyWorkflowRunMetricsAsync(int days = 30, CancellationToken ct = default);
+
+    /// <summary>
     /// Returns durable conversation-summary coverage metrics and recent summary previews.
     /// </summary>
     Task<ConversationIntelligenceOverview> GetConversationIntelligenceAsync(

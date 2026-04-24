@@ -116,6 +116,52 @@ public sealed record PerformanceMetrics
 }
 
 /// <summary>
+/// Workflow execution coverage and health metrics for the Analytics surface.
+/// </summary>
+public sealed record WorkflowIntelligenceOverview
+{
+    public int TotalRuns { get; init; }
+    public int SuccessfulRuns { get; init; }
+    public int FailedOrCancelledRuns { get; init; }
+    public double SuccessRate { get; init; }
+    public double AverageRunDurationMs { get; init; }
+    public int ActiveWorkflowsRecently { get; init; }
+    public IReadOnlyList<WorkflowTopWorkflowMetric> TopWorkflows { get; init; } = Array.Empty<WorkflowTopWorkflowMetric>();
+    public IReadOnlyList<WorkflowRecentRunMetric> RecentRuns { get; init; } = Array.Empty<WorkflowRecentRunMetric>();
+}
+
+/// <summary>
+/// Analytics-facing rollup for one workflow's recent execution footprint.
+/// </summary>
+public sealed record WorkflowTopWorkflowMetric
+{
+    public long WorkflowId { get; init; }
+    public string WorkflowName { get; init; } = string.Empty;
+    public string Category { get; init; } = string.Empty;
+    public int RunCount { get; init; }
+    public int SuccessfulRuns { get; init; }
+    public int FailedOrCancelledRuns { get; init; }
+    public double SuccessRate { get; init; }
+    public DateTime LastRunAt { get; init; }
+}
+
+/// <summary>
+/// Compact analytics projection of one historical workflow run.
+/// </summary>
+public sealed record WorkflowRecentRunMetric
+{
+    public long WorkflowRunId { get; init; }
+    public long WorkflowId { get; init; }
+    public string WorkflowName { get; init; } = string.Empty;
+    public string Status { get; init; } = string.Empty;
+    public DateTime StartedAt { get; init; }
+    public DateTime? CompletedAt { get; init; }
+    public long? DurationMs { get; init; }
+    public string PreviewText { get; init; } = string.Empty;
+    public bool HasErrorPreview { get; init; }
+}
+
+/// <summary>
 /// Durable conversation-summary coverage metrics plus recent summary previews
 /// for the Analytics surface.
 /// </summary>

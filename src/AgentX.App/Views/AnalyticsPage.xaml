@@ -24,11 +24,12 @@
                 <RowDefinition Height="Auto" /><!-- 1: Loading indicator   -->
                 <RowDefinition Height="Auto" /><!-- 2: Summary Cards       -->
                 <RowDefinition Height="Auto" /><!-- 3: Indexing progress   -->
-                <RowDefinition Height="Auto" /><!-- 4: Conversation Intel  -->
-                <RowDefinition Height="Auto" /><!-- 5: Activity Trends     -->
-                <RowDefinition Height="Auto" /><!-- 6: Model Usage         -->
-                <RowDefinition Height="Auto" /><!-- 7: Document Types      -->
-                <RowDefinition Height="Auto" /><!-- 8: Performance Metrics -->
+                <RowDefinition Height="Auto" /><!-- 4: Workflow Intel      -->
+                <RowDefinition Height="Auto" /><!-- 5: Conversation Intel  -->
+                <RowDefinition Height="Auto" /><!-- 6: Activity Trends     -->
+                <RowDefinition Height="Auto" /><!-- 7: Model Usage         -->
+                <RowDefinition Height="Auto" /><!-- 8: Document Types      -->
+                <RowDefinition Height="Auto" /><!-- 9: Performance Metrics -->
             </Grid.RowDefinitions>
 
             <!-- ================================================================
@@ -289,9 +290,272 @@
             </Border>
 
             <!-- ================================================================
-                 ROW 4: CONVERSATION INTELLIGENCE
+                 ROW 4: WORKFLOW INTELLIGENCE
                  ================================================================ -->
             <Border Grid.Row="4"
+                    Style="{StaticResource CardStyle}"
+                    Visibility="{x:Bind ViewModel.IsLoading, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}">
+                <StackPanel Spacing="20">
+
+                    <StackPanel Spacing="4">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE8AF;" FontSize="14"
+                                      Foreground="{StaticResource TextAccentBrush}" />
+                            <TextBlock Text="Workflow Intelligence"
+                                       Style="{StaticResource HeadingSmallStyle}" />
+                        </StackPanel>
+                        <TextBlock Text="Workflow adoption, reliability, and recent results derived from stored workflow-run history"
+                                   Style="{StaticResource BodySecondaryStyle}" />
+                    </StackPanel>
+
+                    <TextBlock Text="{x:Bind ViewModel.WorkflowIntelligenceStatusMessage, Mode=OneWay}"
+                               Style="{StaticResource BodySecondaryStyle}"
+                               Visibility="{x:Bind ViewModel.HasWorkflowIntelligence, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}" />
+
+                    <StackPanel Spacing="20"
+                                Visibility="{x:Bind ViewModel.HasWorkflowIntelligence, Converter={StaticResource BoolToVis}, Mode=OneWay}">
+
+                        <Grid ColumnSpacing="16" RowSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0"
+                                    Background="{StaticResource InputBackgroundBrush}"
+                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="{StaticResource RadiusMD}"
+                                    Padding="16,12,16,12">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="TOTAL RUNS" Style="{StaticResource OverlineStyle}" />
+                                    <TextBlock Text="{x:Bind ViewModel.WorkflowRunsTotal, Mode=OneWay}"
+                                               Style="{StaticResource MetricSmallStyle}" />
+                                    <TextBlock Text="All recorded workflow executions"
+                                               Style="{StaticResource CaptionStyle}" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="1"
+                                    Background="{StaticResource InputBackgroundBrush}"
+                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="{StaticResource RadiusMD}"
+                                    Padding="16,12,16,12">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="SUCCESS RATE" Style="{StaticResource OverlineStyle}" />
+                                    <TextBlock Text="{x:Bind ViewModel.WorkflowSuccessRate, Mode=OneWay}"
+                                               Style="{StaticResource MetricSmallStyle}" />
+                                    <TextBlock Text="Completed outcomes across finished runs"
+                                               Style="{StaticResource CaptionStyle}" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="2"
+                                    Background="{StaticResource InputBackgroundBrush}"
+                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="{StaticResource RadiusMD}"
+                                    Padding="16,12,16,12">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="AVG RUN DURATION" Style="{StaticResource OverlineStyle}" />
+                                    <TextBlock Text="{x:Bind ViewModel.WorkflowAverageRunDuration, Mode=OneWay}"
+                                               Style="{StaticResource MetricSmallStyle}" />
+                                    <TextBlock Text="Mean duration across completed workflow runs"
+                                               Style="{StaticResource CaptionStyle}" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="3"
+                                    Background="{StaticResource AccentSubtleBrush}"
+                                    BorderBrush="{StaticResource BorderAccentGradientBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="{StaticResource RadiusMD}"
+                                    Padding="16,12,16,12">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="ACTIVE WORKFLOWS (30D)" Style="{StaticResource OverlineStyle}" />
+                                    <TextBlock Text="{x:Bind ViewModel.WorkflowActiveRecently, Mode=OneWay}"
+                                               Style="{StaticResource MetricSmallStyle}"
+                                               Foreground="{StaticResource TextAccentBrush}" />
+                                    <TextBlock Text="Distinct workflows used during the recent 30-day window"
+                                               Style="{StaticResource CaptionStyle}" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <Border Style="{StaticResource SeparatorStyle}" />
+
+                        <StackPanel Spacing="10">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Ellipse Width="8" Height="8" Fill="#F97316" VerticalAlignment="Center" />
+                                <TextBlock Text="30-Day Workflow Run Trend" Style="{StaticResource LabelStyle}" />
+                            </StackPanel>
+
+                            <TextBlock Text="No workflow runs landed in the last 30 days yet."
+                                       Style="{StaticResource CaptionStyle}"
+                                       Visibility="{x:Bind ViewModel.HasWorkflowTrendData, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}" />
+
+                            <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                          VerticalScrollBarVisibility="Disabled"
+                                          Visibility="{x:Bind ViewModel.HasWorkflowTrendData, Converter={StaticResource BoolToVis}, Mode=OneWay}">
+                                <ItemsRepeater ItemsSource="{x:Bind ViewModel.DailyWorkflowRuns, Mode=OneWay}"
+                                               Height="64">
+                                    <ItemsRepeater.Layout>
+                                        <StackLayout Orientation="Horizontal" Spacing="2" />
+                                    </ItemsRepeater.Layout>
+                                    <ItemsRepeater.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:AnalyticsDailyItem">
+                                            <Grid Width="24" Height="64" VerticalAlignment="Bottom"
+                                                  ToolTipService.ToolTip="{x:Bind Tooltip}">
+                                                <Rectangle Width="20"
+                                                           Height="{x:Bind BarHeight}"
+                                                           Fill="#F97316"
+                                                           RadiusX="2" RadiusY="2"
+                                                           VerticalAlignment="Bottom"
+                                                           HorizontalAlignment="Center" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsRepeater.ItemTemplate>
+                                </ItemsRepeater>
+                            </ScrollViewer>
+                        </StackPanel>
+
+                        <Border Style="{StaticResource SeparatorStyle}" />
+
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Spacing="12">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Top Workflows"
+                                               Style="{StaticResource HeadingSmallStyle}" />
+                                    <TextBlock Text="Highest-volume workflows, ranked from actual run history rather than cached counters."
+                                               Style="{StaticResource BodySecondaryStyle}" />
+                                </StackPanel>
+
+                                <TextBlock Text="No workflow leaders yet."
+                                           Style="{StaticResource BodySecondaryStyle}"
+                                           Visibility="{x:Bind ViewModel.HasTopWorkflows, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}" />
+
+                                <ItemsRepeater ItemsSource="{x:Bind ViewModel.TopWorkflows, Mode=OneWay}"
+                                               Visibility="{x:Bind ViewModel.HasTopWorkflows, Converter={StaticResource BoolToVis}, Mode=OneWay}">
+                                    <ItemsRepeater.Layout>
+                                        <StackLayout Orientation="Vertical" Spacing="12" />
+                                    </ItemsRepeater.Layout>
+                                    <ItemsRepeater.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:AnalyticsWorkflowTopItem">
+                                            <Border Background="{StaticResource InputBackgroundBrush}"
+                                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="{StaticResource RadiusMD}"
+                                                    Padding="16">
+                                                <StackPanel Spacing="10">
+                                                    <Grid ColumnSpacing="12">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <StackPanel Spacing="4">
+                                                            <TextBlock Text="{x:Bind WorkflowName}"
+                                                                       Style="{StaticResource HeadingSmallStyle}"
+                                                                       TextTrimming="CharacterEllipsis" />
+                                                            <TextBlock Text="{x:Bind Category}"
+                                                                       Style="{StaticResource CaptionStyle}"
+                                                                       Visibility="{x:Bind HasCategory, Converter={StaticResource BoolToVis}, Mode=OneWay}" />
+                                                        </StackPanel>
+
+                                                        <TextBlock Grid.Column="1"
+                                                                   Text="{x:Bind LastRunLabel}"
+                                                                   Style="{StaticResource CaptionStyle}"
+                                                                   HorizontalAlignment="Right" />
+                                                    </Grid>
+
+                                                    <TextBlock Text="{x:Bind RunVolumeLabel}"
+                                                               Style="{StaticResource BodyStyle}" />
+                                                    <TextBlock Text="{x:Bind SuccessRateLabel}"
+                                                               Style="{StaticResource CaptionStyle}" />
+                                                    <TextBlock Text="{x:Bind ReliabilityLabel}"
+                                                               Style="{StaticResource CaptionStyle}" />
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsRepeater.ItemTemplate>
+                                </ItemsRepeater>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Spacing="12">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Recent Workflow Runs"
+                                               Style="{StaticResource HeadingSmallStyle}" />
+                                    <TextBlock Text="Latest stored outcomes, including short output or error previews for inspection."
+                                               Style="{StaticResource BodySecondaryStyle}" />
+                                </StackPanel>
+
+                                <TextBlock Text="No recent workflow runs yet."
+                                           Style="{StaticResource BodySecondaryStyle}"
+                                           Visibility="{x:Bind ViewModel.HasRecentWorkflowRuns, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}" />
+
+                                <ItemsRepeater ItemsSource="{x:Bind ViewModel.RecentWorkflowRuns, Mode=OneWay}"
+                                               Visibility="{x:Bind ViewModel.HasRecentWorkflowRuns, Converter={StaticResource BoolToVis}, Mode=OneWay}">
+                                    <ItemsRepeater.Layout>
+                                        <StackLayout Orientation="Vertical" Spacing="12" />
+                                    </ItemsRepeater.Layout>
+                                    <ItemsRepeater.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:AnalyticsWorkflowRecentRunItem">
+                                            <Border Background="{StaticResource InputBackgroundBrush}"
+                                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="{StaticResource RadiusMD}"
+                                                    Padding="16">
+                                                <StackPanel Spacing="10">
+                                                    <Grid ColumnSpacing="12">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <StackPanel Spacing="4">
+                                                            <TextBlock Text="{x:Bind WorkflowName}"
+                                                                       Style="{StaticResource HeadingSmallStyle}"
+                                                                       TextTrimming="CharacterEllipsis" />
+                                                            <TextBlock Text="{x:Bind TimelineLabel}"
+                                                                       Style="{StaticResource CaptionStyle}" />
+                                                        </StackPanel>
+
+                                                        <Border Grid.Column="1"
+                                                                Style="{StaticResource BadgeDefaultStyle}"
+                                                                HorizontalAlignment="Right"
+                                                                VerticalAlignment="Top">
+                                                            <TextBlock Text="{x:Bind StatusLabel}"
+                                                                       Style="{StaticResource CaptionStyle}"
+                                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                                        </Border>
+                                                    </Grid>
+
+                                                    <TextBlock Text="{x:Bind PreviewText}"
+                                                               Style="{StaticResource BodyStyle}"
+                                                               TextWrapping="WrapWholeWords" />
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsRepeater.ItemTemplate>
+                                </ItemsRepeater>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- ================================================================
+                 ROW 5: CONVERSATION INTELLIGENCE
+                 ================================================================ -->
+            <Border Grid.Row="5"
                     Style="{StaticResource CardStyle}"
                     Visibility="{x:Bind ViewModel.IsLoading, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}">
                 <StackPanel Spacing="20">
@@ -883,9 +1147,9 @@
             </Border>
 
             <!-- ================================================================
-                 ROW 5: ACTIVITY TRENDS (3 bar-chart panels)
+                 ROW 6: ACTIVITY TRENDS (3 bar-chart panels)
                  ================================================================ -->
-            <Border Grid.Row="5"
+            <Border Grid.Row="6"
                     Style="{StaticResource CardStyle}"
                     Visibility="{x:Bind ViewModel.IsLoading, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}">
                 <StackPanel Spacing="20">
@@ -1018,9 +1282,9 @@
             </Border>
 
             <!-- ================================================================
-                 ROW 6: MODEL USAGE (horizontal bars)
+                 ROW 7: MODEL USAGE (horizontal bars)
                  ================================================================ -->
-            <Border Grid.Row="6"
+            <Border Grid.Row="7"
                     Style="{StaticResource CardStyle}"
                     Visibility="{x:Bind ViewModel.IsLoading, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}">
                 <StackPanel Spacing="20">
@@ -1098,9 +1362,9 @@
             </Border>
 
             <!-- ================================================================
-                 ROW 7: DOCUMENT TYPES (horizontal bars)
+                 ROW 8: DOCUMENT TYPES (horizontal bars)
                  ================================================================ -->
-            <Border Grid.Row="7"
+            <Border Grid.Row="8"
                     Style="{StaticResource CardStyle}"
                     Visibility="{x:Bind ViewModel.IsLoading, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}">
                 <StackPanel Spacing="20">
@@ -1187,9 +1451,9 @@
             </Border>
 
             <!-- ================================================================
-                 ROW 8: PERFORMANCE METRICS
+                 ROW 9: PERFORMANCE METRICS
                  ================================================================ -->
-            <Border Grid.Row="8"
+            <Border Grid.Row="9"
                     Style="{StaticResource CardStyle}"
                     Margin="0,0,0,24"
                     Visibility="{x:Bind ViewModel.IsLoading, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}">
