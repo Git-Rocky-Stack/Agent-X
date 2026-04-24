@@ -526,6 +526,7 @@ public partial class App : Application
         // ── Notifications ────────────────────────────────────────
         services.AddSingleton<INotificationService, NotificationService>();
         services.AddSingleton<IWorkflowLaunchService, WorkflowLaunchService>();
+        services.AddSingleton<IOperationsOverviewService, OperationsOverviewService>();
 
         // ── System Tray ───────────────────────────────────────
         services.AddSingleton<SystemTrayService>();
@@ -538,6 +539,7 @@ public partial class App : Application
 
         // ── ViewModels (Transient) ─────────────────────────────
         services.AddTransient<ViewModels.DashboardViewModel>();
+        services.AddTransient<ViewModels.OperationsViewModel>();
         services.AddTransient<ViewModels.SettingsViewModel>();
         services.AddTransient<ViewModels.ChatViewModel>();
         services.AddTransient<ViewModels.AskFilesViewModel>();
@@ -589,6 +591,7 @@ public partial class App : Application
 
         // ── Views (Transient) ──────────────────────────────────
         services.AddTransient<Views.DashboardPage>();
+        services.AddTransient<Views.OperationsPage>();
         services.AddTransient<Views.SettingsPage>();
         services.AddTransient<Views.ChatPage>();
         services.AddTransient<Views.AskFilesPage>();

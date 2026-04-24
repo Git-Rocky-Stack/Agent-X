@@ -5,15 +5,10 @@ using AgentX.Core.AI;
 using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
 using AgentX.Core.Search;
-using AgentX.Core.Services.Analytics;
-using AgentX.Core.Services.Analytics.Models;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Collections;
-using AgentX.Core.Services.Inbox;
 using AgentX.Core.Services.Indexing;
-using AgentX.Core.Services.Sync;
-using AgentX.Core.Services.Sync.Models;
-using AgentX.Core.Services.Workflows;
+using AgentX.App.Services;
 using Serilog;
 
 namespace AgentX.App.ViewModels;
@@ -28,10 +23,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     private readonly ICollectionService _collectionService;
     private readonly IIndexingService _indexingService;
     private readonly IRagPipeline _ragPipeline;
-    private readonly IAnalyticsService _analyticsService;
-    private readonly IInboxService _inboxService;
-    private readonly ISyncService _syncService;
-    private readonly IWorkflowService _workflowService;
+    private readonly IOperationsOverviewService _operationsOverviewService;
 
     // ── AI Status ───────────────────────────────────────────
     [ObservableProperty] private bool _isOllamaConnected;
@@ -67,8 +59,13 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _inboxHeadline = "0";
     [ObservableProperty] private string _inboxStatus = "Queue clear";
     [ObservableProperty] private string _inboxDetail = "No items awaiting triage.";
+    [ObservableProperty] private string _connectorsHeadline = "0";
+    [ObservableProperty] private string _connectorsStatus = "No plugins installed";
+    [ObservableProperty] private string _connectorsDetail = "Install or enable plugins to bring external data and workflow extensions into the app.";
     [ObservableProperty] private string _workflowHeadline = "0";
     [ObservableProperty] private string _workflowStatus = "Ready to automate";
+    [ObservableProperty] private string _workflowRecentActivity = "No recent runs";
+    [ObservableProperty] private string _workflowAverageDuration = "Avg duration unavailable";
     [ObservableProperty] private string _workflowDetail = "No workflows available yet.";
 
     // ── Indexing ─────────────────────────────────────────────
@@ -103,10 +100,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         ICollectionService collectionService,
         IIndexingService indexingService,
         IRagPipeline ragPipeline,
-        IAnalyticsService analyticsService,
-        IInboxService inboxService,
-        ISyncService syncService,
-        IWorkflowService workflowService)
+        IOperationsOverviewService operationsOverviewService)
     {
         _aiService = aiService;
         _conversationService = conversationService;
@@ -115,10 +109,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         _collectionService = collectionService;
         _indexingService = indexingService;
         _ragPipeline = ragPipeline;
-        _analyticsService = analyticsService;
-        _inboxService = inboxService;
-        _syncService = syncService;
-        _workflowService = workflowService;
+        _operationsOverviewService = operationsOverviewService;
         Log.Debug("DashboardViewModel created with services");
     }
 
@@ -348,23 +339,29 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     {
         try
         {
-            var analyticsSummaryTask = _analyticsService.GetSummaryAsync();
-            var conversationIntelligenceTask = _analyticsService.GetConversationIntelligenceAsync(maxRecent: 3);
-            var pendingInboxTask = _inboxService.GetPendingCountAsync();
-            var workflowsTask = _workflowService.GetAllWorkflowsAsync();
-            var syncConfigTask = _syncService.GetConfigurationAsync();
+            var snapshot = await _operationsOverviewService.GetSnapshotAsync();
 
-            await Task.WhenAll(
-                analyticsSummaryTask,
-                conversationIntelligenceTask,
-                pendingInboxTask,
-                workflowsTask,
-                syncConfigTask);
+            ConversationIntelligenceHeadline = snapshot.ConversationIntelligence.Headline;
+            ConversationIntelligenceStatus = snapshot.ConversationIntelligence.Status;
+            ConversationIntelligenceDetail = snapshot.ConversationIntelligence.Detail;
 
-            ApplyConversationIntelligence(await conversationIntelligenceTask);
-            ApplyInboxBacklog(await pendingInboxTask);
-            ApplyWorkflowActivity(await analyticsSummaryTask, await workflowsTask);
-            ApplySyncHealth(await syncConfigTask, _syncService.Status);
+            SyncHealthHeadline = snapshot.SyncHealth.Headline;
+            SyncHealthStatus = snapshot.SyncHealth.Status;
+            SyncHealthDetail = snapshot.SyncHealth.Detail;
+
+            InboxHeadline = snapshot.IngestionBacklog.Headline;
+            InboxStatus = snapshot.IngestionBacklog.Status;
+            InboxDetail = snapshot.IngestionBacklog.Detail;
+
+            ConnectorsHeadline = snapshot.Connectors.Headline;
+            ConnectorsStatus = snapshot.Connectors.Status;
+            ConnectorsDetail = snapshot.Connectors.Detail;
+
+            WorkflowHeadline = snapshot.WorkflowActivity.Headline;
+            WorkflowStatus = snapshot.WorkflowActivity.Status;
+            WorkflowRecentActivity = snapshot.WorkflowActivity.SupportingPrimary;
+            WorkflowAverageDuration = snapshot.WorkflowActivity.SupportingSecondary;
+            WorkflowDetail = snapshot.WorkflowActivity.Detail;
         }
         catch (Exception ex)
         {
@@ -372,11 +369,16 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             ConversationIntelligenceHeadline = "0";
             ConversationIntelligenceStatus = "Durable recall inactive";
             ConversationIntelligenceDetail = "Open Analytics to inspect summary coverage.";
+            ConnectorsHeadline = "0";
+            ConnectorsStatus = "No plugins installed";
+            ConnectorsDetail = "Open Plugin Manager to enable connectors and extensions.";
             InboxHeadline = "0";
             InboxStatus = "Queue clear";
-            InboxDetail = "No items awaiting triage.";
+            InboxDetail = "Watch folders and enabled connectors will surface new items here.";
             WorkflowHeadline = "0";
             WorkflowStatus = "Ready to automate";
+            WorkflowRecentActivity = "No recent runs";
+            WorkflowAverageDuration = "Avg duration unavailable";
             WorkflowDetail = "Open Workflows to create or run automations.";
             SyncHealthHeadline = "Unavailable";
             SyncHealthStatus = "Sync status unavailable";
@@ -443,6 +445,20 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
+    private void NavigateToOperations()
+    {
+        Log.Debug("Navigate to Operations requested from Dashboard");
+        NavigateRequested?.Invoke("Operations");
+    }
+
+    [RelayCommand]
+    private void NavigateToPluginManager()
+    {
+        Log.Debug("Navigate to Plugin Manager requested from Dashboard");
+        NavigateRequested?.Invoke("PluginManager");
+    }
+
+    [RelayCommand]
     private void NavigateToInbox()
     {
         Log.Debug("Navigate to Smart Inbox requested from Dashboard");
@@ -470,103 +486,6 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         Log.Debug("Quick search: {Query}", QuickSearchQuery);
         NavigateRequested?.Invoke("Search");
         return Task.CompletedTask;
-    }
-
-    private void ApplyConversationIntelligence(ConversationIntelligenceOverview overview)
-    {
-        ConversationIntelligenceHeadline = FormatCompactNumber(overview.SummarizedConversations);
-
-        ConversationIntelligenceStatus = overview.PendingRefreshes switch
-        {
-            > 1 => $"{overview.PendingRefreshes} refreshes pending",
-            1 => "1 refresh pending",
-            _ when overview.StaleConversations > 1 => $"{overview.StaleConversations} stale summaries",
-            _ when overview.StaleConversations == 1 => "1 stale summary",
-            _ when overview.SummarizedConversations > 0 => "Durable recall current",
-            _ => "Durable recall inactive"
-        };
-
-        var latestSummary = overview.RecentSummaries.FirstOrDefault();
-        ConversationIntelligenceDetail = latestSummary is null
-            ? "Open Analytics to inspect summary coverage and recent snapshots."
-            : $"{FormatCompactNumber(overview.CurrentSnapshots)} stored snapshots · latest {FormatHelper.TimeAgoWithMonths(latestSummary.GeneratedAt)}";
-    }
-
-    private void ApplyInboxBacklog(int pendingCount)
-    {
-        InboxHeadline = FormatCompactNumber(pendingCount);
-        InboxStatus = pendingCount switch
-        {
-            > 1 => $"{pendingCount} items awaiting triage",
-            1 => "1 item awaiting triage",
-            _ => "Queue clear"
-        };
-        InboxDetail = pendingCount > 0
-            ? "Open Smart Inbox to accept, defer, or reject pending items."
-            : "Watched folders and connector imports will surface here.";
-    }
-
-    private void ApplyWorkflowActivity(AnalyticsSummary summary, IReadOnlyList<Core.Data.Entities.WorkflowEntity> workflows)
-    {
-        WorkflowHeadline = FormatCompactNumber(summary.TotalWorkflowRuns);
-
-        var enabledCount = workflows.Count(workflow => workflow.IsEnabled);
-        var topWorkflow = workflows
-            .Where(workflow => workflow.RunCount > 0)
-            .OrderByDescending(workflow => workflow.RunCount)
-            .FirstOrDefault();
-
-        WorkflowStatus = summary.TotalWorkflowRuns switch
-        {
-            > 1 => $"{FormatCompactNumber(summary.TotalWorkflowRuns)} runs recorded",
-            1 => "1 run recorded",
-            _ => "Ready to automate"
-        };
-
-        WorkflowDetail = topWorkflow is not null
-            ? $"{FormatCompactNumber(enabledCount)} workflows available · top: {topWorkflow.Name}"
-            : enabledCount switch
-            {
-                > 1 => $"{FormatCompactNumber(enabledCount)} workflows available in the builder.",
-                1 => "1 workflow available in the builder.",
-                _ => "Create or enable a workflow to start automating multi-step tasks."
-            };
-    }
-
-    private void ApplySyncHealth(SyncConfiguration? config, SyncStatus status)
-    {
-        if (config is null || string.IsNullOrWhiteSpace(config.SyncFolderPath))
-        {
-            SyncHealthHeadline = "Not configured";
-            SyncHealthStatus = "Collaborative sync is off";
-            SyncHealthDetail = "Configure a shared folder to keep multiple installations aligned.";
-            return;
-        }
-
-        SyncHealthHeadline = status.SyncState switch
-        {
-            SyncState.Syncing => "Syncing now",
-            SyncState.Conflict => "Conflict detected",
-            SyncState.Error => "Needs attention",
-            _ when status.LastSyncAt.HasValue => FormatHelper.TimeAgoWithMonths(status.LastSyncAt.Value),
-            _ => "Configured"
-        };
-
-        SyncHealthStatus = status.SyncState switch
-        {
-            SyncState.Syncing => "Exchange in progress",
-            SyncState.Conflict => "Resolve sync conflicts",
-            SyncState.Error => "Review sync health",
-            _ when status.PendingChanges > 1 => $"{status.PendingChanges} local changes pending",
-            _ when status.PendingChanges == 1 => "1 local change pending",
-            _ => "Standing by"
-        };
-
-        SyncHealthDetail = !string.IsNullOrWhiteSpace(status.ErrorMessage)
-            ? status.ErrorMessage
-            : config.SyncScope == SyncScope.SelectedCollections
-                ? "Scoped to selected collections."
-                : "Syncing the full workspace.";
     }
 
     private static string FormatCompactNumber(int value) => FormatCompactNumber((long)value);

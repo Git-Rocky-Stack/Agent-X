@@ -82,6 +82,7 @@ public class CommandPaletteViewModelTests
         var sut = new CommandPaletteViewModel(registry, activeScopeName: null);
 
         sut.Results.Should().Contain(result => result.Id == "nav.analytics" && result.Label == "Analytics");
+        sut.Results.Should().Contain(result => result.Id == "nav.operations" && result.Label == "Operations");
         sut.Results.Should().Contain(result => result.Id == "nav.dashboard");
         sut.Results.Should().Contain(result => result.Id == "nav.workflows");
     }

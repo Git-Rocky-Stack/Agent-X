@@ -262,23 +262,39 @@
                  ROW 4: OPERATIONS OVERVIEW
                  ========================================================== -->
             <StackPanel Grid.Row="4" Spacing="16">
-                <StackPanel Spacing="4">
-                    <TextBlock Text="Operations Overview"
-                               Style="{StaticResource HeadingMediumStyle}" />
-                    <TextBlock Text="Conversation intelligence, sync posture, inbox backlog, and workflow activity from one surface."
-                               Style="{StaticResource BodySecondaryStyle}"
-                               TextWrapping="Wrap" />
-                </StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Operations Overview"
+                                   Style="{StaticResource HeadingMediumStyle}" />
+                        <TextBlock Text="Conversation intelligence, sync posture, connectors, ingestion backlog, and workflow activity from one surface."
+                                   Style="{StaticResource BodySecondaryStyle}"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <Button Grid.Column="1"
+                            Content="Open Operations"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{x:Bind ViewModel.NavigateToOperationsCommand}"
+                            VerticalAlignment="Center" />
+                </Grid>
 
                 <Grid ColumnSpacing="16" RowSpacing="16">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
 
-                    <Border Grid.Column="0" Style="{StaticResource CardStyle}" MinHeight="196">
+                    <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource CardStyle}" MinHeight="196">
                         <Grid RowSpacing="16">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
@@ -314,7 +330,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Grid.Column="1" Style="{StaticResource CardStyle}" MinHeight="196">
+                    <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource CardStyle}" MinHeight="196">
                         <Grid RowSpacing="16">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
@@ -350,7 +366,43 @@
                         </Grid>
                     </Border>
 
-                    <Border Grid.Column="2" Style="{StaticResource CardStyle}" MinHeight="196">
+                    <Border Grid.Row="0" Grid.Column="2" Style="{StaticResource CardStyle}" MinHeight="196">
+                        <Grid RowSpacing="16">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Spacing="10">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE943;" FontSize="14"
+                                              Foreground="{StaticResource SuccessBrush}" />
+                                    <TextBlock Text="CONNECTORS &amp; PLUGINS"
+                                               Style="{StaticResource OverlineStyle}" />
+                                </StackPanel>
+                                <TextBlock Text="{x:Bind ViewModel.ConnectorsHeadline, Mode=OneWay}"
+                                           Style="{StaticResource HeadingSmallStyle}" />
+                                <TextBlock Text="{x:Bind ViewModel.ConnectorsStatus, Mode=OneWay}"
+                                           Style="{StaticResource BodyStyle}"
+                                           FontWeight="SemiBold"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Text="{x:Bind ViewModel.ConnectorsDetail, Mode=OneWay}"
+                                           Style="{StaticResource CaptionStyle}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <Button Grid.Row="2"
+                                    Content="Open Plugins"
+                                    Style="{StaticResource GhostButtonStyle}"
+                                    HorizontalAlignment="Left"
+                                    Padding="8,4"
+                                    FontSize="12"
+                                    Command="{x:Bind ViewModel.NavigateToPluginManagerCommand}" />
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource CardStyle}" MinHeight="196">
                         <Grid RowSpacing="16">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
@@ -362,7 +414,7 @@
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE8B7;" FontSize="14"
                                               Foreground="{StaticResource WarningBrush}" />
-                                    <TextBlock Text="SMART INBOX"
+                                    <TextBlock Text="INGESTION BACKLOG"
                                                Style="{StaticResource OverlineStyle}" />
                                 </StackPanel>
                                 <TextBlock Text="{x:Bind ViewModel.InboxHeadline, Mode=OneWay}"
@@ -386,7 +438,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Grid.Column="3" Style="{StaticResource CardStyle}" MinHeight="196">
+                    <Border Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource CardStyle}" MinHeight="196">
                         <Grid RowSpacing="16">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
@@ -407,6 +459,18 @@
                                            Style="{StaticResource BodyStyle}"
                                            FontWeight="SemiBold"
                                            TextWrapping="Wrap" />
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Border Style="{StaticResource BadgeDefaultStyle}">
+                                        <TextBlock Text="{x:Bind ViewModel.WorkflowRecentActivity, Mode=OneWay}"
+                                                   Style="{StaticResource CaptionStyle}"
+                                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                                    </Border>
+                                    <Border Style="{StaticResource BadgeDefaultStyle}">
+                                        <TextBlock Text="{x:Bind ViewModel.WorkflowAverageDuration, Mode=OneWay}"
+                                                   Style="{StaticResource CaptionStyle}"
+                                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                                    </Border>
+                                </StackPanel>
                                 <TextBlock Text="{x:Bind ViewModel.WorkflowDetail, Mode=OneWay}"
                                            Style="{StaticResource CaptionStyle}"
                                            TextWrapping="Wrap" />

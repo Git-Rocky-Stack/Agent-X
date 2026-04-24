@@ -27,6 +27,7 @@ public class ShortcutCatalogTests
             "nav.search",
             "nav.settings",
             "nav.analytics",
+            "nav.operations",
             "nav.page1",
             "nav.page9",
             "nav.workflows",
@@ -104,6 +105,29 @@ public class ShortcutCatalogTests
         await shortcut!.Handler(CancellationToken.None);
 
         navigatedTo.Should().Be("Analytics");
+    }
+
+    [Fact]
+    public async Task SeedDefaults_operations_shortcut_invokes_configured_navigation_action()
+    {
+        var registry = new ShortcutRegistry();
+        var navigatedTo = string.Empty;
+        var catalog = new ShortcutCatalog(registry);
+
+        catalog.SeedDefaults(NoopActions(navigateAsync: (page, _) =>
+        {
+            navigatedTo = page;
+            return Task.CompletedTask;
+        }));
+
+        var shortcut = registry.FindByPrimaryKey(
+            new KeyChord(KeyModifiers.Ctrl | KeyModifiers.Shift, VirtualKeyCode.O),
+            null);
+
+        shortcut.Should().NotBeNull();
+        await shortcut!.Handler(CancellationToken.None);
+
+        navigatedTo.Should().Be("Operations");
     }
 
     [Fact]

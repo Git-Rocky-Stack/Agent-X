@@ -15,7 +15,7 @@
     <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-$(Platform.ToLower())</RuntimeIdentifier>
     <WindowsPackageType>None</WindowsPackageType>
     <PublishReadyToRun>true</PublishReadyToRun>
-    <!-- <ApplicationIcon>app.ico</ApplicationIcon> -->
+    <ApplicationIcon>Assets\agent_x.ico</ApplicationIcon>
     <DefaultLanguage>en-US</DefaultLanguage>
   </PropertyGroup>
 

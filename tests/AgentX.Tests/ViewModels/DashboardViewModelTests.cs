@@ -1,18 +1,13 @@
+using AgentX.App.Services;
 using AgentX.App.ViewModels;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
 using AgentX.Core.Search;
-using AgentX.Core.Services.Analytics;
-using AgentX.Core.Services.Analytics.Models;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Indexing;
-using AgentX.Core.Services.Inbox;
-using AgentX.Core.Services.Sync;
-using AgentX.Core.Services.Sync.Models;
-using AgentX.Core.Services.Workflows;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -29,10 +24,7 @@ public sealed class DashboardViewModelTests
     private readonly Mock<ICollectionService> _collectionService = new();
     private readonly Mock<IIndexingService> _indexingService = new();
     private readonly Mock<IRagPipeline> _ragPipeline = new();
-    private readonly Mock<IAnalyticsService> _analyticsService = new();
-    private readonly Mock<IInboxService> _inboxService = new();
-    private readonly Mock<ISyncService> _syncService = new();
-    private readonly Mock<IWorkflowService> _workflowService = new();
+    private readonly Mock<IOperationsOverviewService> _operationsOverviewService = new();
 
     public DashboardViewModelTests()
     {
@@ -74,54 +66,46 @@ public sealed class DashboardViewModelTests
         _ragPipeline.Setup(pipeline => pipeline.GetIndexedChunkCountAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(120L);
 
-        _analyticsService.Setup(service => service.GetSummaryAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new AnalyticsSummary
+        _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsOverviewSnapshot
             {
-                TotalWorkflowRuns = 7
+                ConversationIntelligence = new OperationsCardSnapshot
+                {
+                    Headline = "5",
+                    Status = "Durable recall current",
+                    Detail = "6 stored snapshots · latest 10 minutes ago"
+                },
+                SyncHealth = new OperationsCardSnapshot
+                {
+                    Headline = "Configured",
+                    Status = "2 local changes pending",
+                    Detail = "Syncing the full workspace."
+                },
+                IngestionBacklog = new OperationsCardSnapshot
+                {
+                    Headline = "4",
+                    Status = "4 items awaiting triage",
+                    Detail = "Open Smart Inbox to triage connector and watch-folder imports."
+                },
+                Connectors = new OperationsCardSnapshot
+                {
+                    Headline = "2",
+                    Status = "2 connectors enabled",
+                    Detail = "Email Connector · Calendar Connector"
+                },
+                WorkflowActivity = new OperationsCardSnapshot
+                {
+                    Headline = "7",
+                    Status = "86% success rate",
+                    SupportingPrimary = "2 active / 30d",
+                    SupportingSecondary = "42s avg run",
+                    Detail = "Top workflow: Research Briefing · 4 runs"
+                }
             });
-
-        _analyticsService.Setup(service => service.GetConversationIntelligenceAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ConversationIntelligenceOverview
-            {
-                SummarizedConversations = 5,
-                CurrentSnapshots = 6,
-                RecentSummaries =
-                [
-                    new ConversationSummaryMetric
-                    {
-                        ConversationId = 101,
-                        Title = "Durable memory rollout",
-                        GeneratedAt = DateTime.UtcNow.AddMinutes(-10),
-                        CoveredMessageCount = 9
-                    }
-                ]
-            });
-
-        _inboxService.Setup(service => service.GetPendingCountAsync()).ReturnsAsync(4);
-
-        _syncService.SetupGet(service => service.Status).Returns(new SyncStatus
-        {
-            SyncState = SyncState.Idle,
-            PendingChanges = 2
-        });
-        _syncService.Setup(service => service.GetConfigurationAsync())
-            .ReturnsAsync(new SyncConfiguration
-            {
-                SyncFolderPath = @"C:\Sync",
-                EncryptionKey = "secret",
-                SyncScope = SyncScope.All
-            });
-
-        _workflowService.Setup(service => service.GetAllWorkflowsAsync(It.IsAny<bool>()))
-            .ReturnsAsync(
-            [
-                new WorkflowEntity { Id = 1, Name = "Research Briefing", IsEnabled = true, RunCount = 4 },
-                new WorkflowEntity { Id = 2, Name = "Inbox Cleanup", IsEnabled = true, RunCount = 1 },
-            ]);
     }
 
     [Fact]
-    public async Task InitializeAsync_maps_operations_overview_metrics()
+    public async Task InitializeAsync_maps_shared_operations_snapshot()
     {
         var viewModel = CreateViewModel();
 
@@ -134,16 +118,75 @@ public sealed class DashboardViewModelTests
         viewModel.ConversationIntelligenceStatus.Should().Be("Durable recall current");
         viewModel.ConversationIntelligenceDetail.Should().Contain("stored snapshots");
 
-        viewModel.InboxHeadline.Should().Be("4");
-        viewModel.InboxStatus.Should().Be("4 items awaiting triage");
-
-        viewModel.WorkflowHeadline.Should().Be("7");
-        viewModel.WorkflowStatus.Should().Be("7 runs recorded");
-        viewModel.WorkflowDetail.Should().Contain("Research Briefing");
-
         viewModel.SyncHealthHeadline.Should().Be("Configured");
         viewModel.SyncHealthStatus.Should().Be("2 local changes pending");
         viewModel.SyncHealthDetail.Should().Be("Syncing the full workspace.");
+
+        viewModel.InboxHeadline.Should().Be("4");
+        viewModel.InboxStatus.Should().Be("4 items awaiting triage");
+        viewModel.InboxDetail.Should().Contain("connector and watch-folder");
+
+        viewModel.ConnectorsHeadline.Should().Be("2");
+        viewModel.ConnectorsStatus.Should().Be("2 connectors enabled");
+        viewModel.ConnectorsDetail.Should().Contain("Email Connector");
+
+        viewModel.WorkflowHeadline.Should().Be("7");
+        viewModel.WorkflowStatus.Should().Be("86% success rate");
+        viewModel.WorkflowRecentActivity.Should().Be("2 active / 30d");
+        viewModel.WorkflowAverageDuration.Should().Be("42s avg run");
+        viewModel.WorkflowDetail.Should().Contain("Research Briefing");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_keeps_operations_cards_actionable_with_empty_snapshot()
+    {
+        _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot
+                {
+                    Headline = "0",
+                    Status = "Durable recall inactive",
+                    Detail = "Open Analytics to inspect summary coverage."
+                },
+                SyncHealth = new OperationsCardSnapshot
+                {
+                    Headline = "Not configured",
+                    Status = "Collaborative sync is off",
+                    Detail = "Configure a shared folder to keep multiple installations aligned."
+                },
+                IngestionBacklog = new OperationsCardSnapshot
+                {
+                    Headline = "0",
+                    Status = "Queue clear",
+                    Detail = "Watch folders and enabled connectors will surface new items here."
+                },
+                Connectors = new OperationsCardSnapshot
+                {
+                    Headline = "0",
+                    Status = "No plugins installed",
+                    Detail = "Install or enable plugins to bring external data and workflow extensions into the app."
+                },
+                WorkflowActivity = new OperationsCardSnapshot
+                {
+                    Headline = "0",
+                    Status = "Ready to automate",
+                    SupportingPrimary = "No recent runs",
+                    SupportingSecondary = "Avg duration unavailable",
+                    Detail = "Create or launch a workflow from Vault or Search to start automating multi-step tasks."
+                }
+            });
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.ConnectorsStatus.Should().Be("No plugins installed");
+        viewModel.InboxStatus.Should().Be("Queue clear");
+        viewModel.WorkflowStatus.Should().Be("Ready to automate");
+        viewModel.WorkflowRecentActivity.Should().Be("No recent runs");
+        viewModel.WorkflowAverageDuration.Should().Be("Avg duration unavailable");
+        viewModel.WorkflowDetail.Should().Contain("Vault or Search");
     }
 
     [Fact]
@@ -154,11 +197,13 @@ public sealed class DashboardViewModelTests
         viewModel.NavigateRequested = page => navigations.Add(page);
 
         viewModel.NavigateToAnalyticsCommand.Execute(null);
+        viewModel.NavigateToOperationsCommand.Execute(null);
         viewModel.NavigateToInboxCommand.Execute(null);
         viewModel.NavigateToSyncSettingsCommand.Execute(null);
         viewModel.NavigateToWorkflowsCommand.Execute(null);
+        viewModel.NavigateToPluginManagerCommand.Execute(null);
 
-        navigations.Should().Equal("Analytics", "Inbox", "SyncSettings", "Workflows");
+        navigations.Should().Equal("Analytics", "Operations", "Inbox", "SyncSettings", "Workflows", "PluginManager");
     }
 
     private DashboardViewModel CreateViewModel()
@@ -171,9 +216,6 @@ public sealed class DashboardViewModelTests
             _collectionService.Object,
             _indexingService.Object,
             _ragPipeline.Object,
-            _analyticsService.Object,
-            _inboxService.Object,
-            _syncService.Object,
-            _workflowService.Object);
+            _operationsOverviewService.Object);
     }
 }

@@ -25,6 +25,7 @@ public sealed partial class MainWindow : Window
     private static readonly Dictionary<string, Type> PageMap = new()
     {
         ["Dashboard"] = typeof(Views.DashboardPage),
+        ["Operations"] = typeof(Views.OperationsPage),
         ["Digest"] = typeof(Views.DigestPage),
         ["Settings"] = typeof(Views.SettingsPage),
         ["Chat"] = typeof(Views.ChatPage),
@@ -159,7 +160,7 @@ public sealed partial class MainWindow : Window
 
     private Dictionary<string, NavigationViewItem> BuildNavItemMap() => new()
     {
-        ["Dashboard"] = NavDashboard, ["Digest"] = NavDigest, ["Analytics"] = NavAnalytics, ["Chat"] = NavChat,
+        ["Dashboard"] = NavDashboard, ["Operations"] = NavOperations, ["Digest"] = NavDigest, ["Analytics"] = NavAnalytics, ["Chat"] = NavChat,
         ["AskFiles"] = NavAskFiles, ["QuickActions"] = NavQuickActions, ["Workflows"] = NavWorkflows,
         ["KnowledgeVault"] = NavVault, ["WebImport"] = NavWebImport, ["Collections"] = NavCollections,
         ["Search"] = NavSearch, ["KnowledgeGraph"] = NavKnowledgeGraph, ["ModelManager"] = NavModels,
