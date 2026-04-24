@@ -312,6 +312,89 @@ public sealed class OperationsViewModelTests
     }
 
     [Fact]
+    public async Task LoadAsync_summarizes_overflow_attention_areas()
+    {
+        _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot
+                {
+                    Headline = "4",
+                    Status = "1 refresh pending",
+                    Detail = "4 stored snapshots"
+                },
+                SyncHealth = new OperationsCardSnapshot
+                {
+                    Headline = "Not configured",
+                    Status = "Collaborative sync is off",
+                    Detail = "Configure a shared folder."
+                },
+                IngestionBacklog = new OperationsCardSnapshot
+                {
+                    Headline = "3",
+                    Status = "3 items awaiting triage",
+                    Detail = "Open Smart Inbox to triage imports."
+                },
+                RecentImportedDocuments =
+                [
+                    new OperationsImportedDocumentPreview
+                    {
+                        DocumentId = 501,
+                        Title = "Sprint planning email",
+                        Status = "Email Connector",
+                        HealthStatus = "Needs Attention",
+                        Detail = "Email Message · Embedding request failed."
+                    }
+                ],
+                ConnectorPreviews =
+                [
+                    new OperationsConnectorPreview
+                    {
+                        PluginId = 301,
+                        IsEnabled = false,
+                        CanEnableFromOperations = true,
+                        Title = "Email Connector",
+                        Status = "Disabled",
+                        Detail = "Connector · Brings inbox mail into Agent-X."
+                    }
+                ],
+                WorkflowActivity = new OperationsCardSnapshot
+                {
+                    Headline = "9",
+                    Status = "78% success rate",
+                    Detail = "Top workflow: Research Briefing"
+                },
+                RecentWorkflowRuns =
+                [
+                    new OperationsWorkflowRunPreview
+                    {
+                        WorkflowId = 42,
+                        RunId = 77,
+                        Title = "Research Briefing",
+                        Status = "Failed",
+                        Detail = "Step 2 failed while drafting the synthesis."
+                    }
+                ],
+                Connectors = new OperationsCardSnapshot
+                {
+                    Headline = "1",
+                    Status = "1 plugin installed",
+                    Detail = "Open Plugin Manager to enable connectors."
+                }
+            });
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.LoadAsync();
+
+        viewModel.SummaryHeadline.Should().Be("6 operational areas need attention");
+        viewModel.SummaryDetail.Should().Contain("1 refresh pending");
+        viewModel.SummaryDetail.Should().Contain("Collaborative sync is off");
+        viewModel.SummaryDetail.Should().Contain("3 items awaiting triage");
+        viewModel.SummaryDetail.Should().Contain("3 more");
+    }
+
+    [Fact]
     public async Task LoadAsync_uses_fallback_snapshot_when_service_fails()
     {
         _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))

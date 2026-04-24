@@ -578,7 +578,12 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
             items.Add(snapshot.WorkflowActivity.Status);
         }
 
-        return string.Join(" · ", items.Take(3));
+        if (items.Count <= 3)
+        {
+            return string.Join(" · ", items);
+        }
+
+        return string.Join(" · ", items.Take(3).Append($"{items.Count - 3} more"));
     }
 
     private static int ParseCompactNumber(string value)
