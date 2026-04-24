@@ -11,6 +11,11 @@ public sealed record OperationsOverviewSnapshot
     public OperationsCardSnapshot IngestionBacklog { get; init; } = new();
     public OperationsCardSnapshot WorkflowActivity { get; init; } = new();
     public OperationsCardSnapshot Connectors { get; init; } = new();
+    public IReadOnlyList<OperationsConversationPreview> RecentConversationSummaries { get; init; } = Array.Empty<OperationsConversationPreview>();
+    public IReadOnlyList<OperationsSyncPreview> RecentSyncPasses { get; init; } = Array.Empty<OperationsSyncPreview>();
+    public IReadOnlyList<OperationsInboxPreview> PendingInboxItems { get; init; } = Array.Empty<OperationsInboxPreview>();
+    public IReadOnlyList<OperationsWorkflowRunPreview> RecentWorkflowRuns { get; init; } = Array.Empty<OperationsWorkflowRunPreview>();
+    public IReadOnlyList<OperationsConnectorPreview> ConnectorPreviews { get; init; } = Array.Empty<OperationsConnectorPreview>();
 }
 
 /// <summary>
@@ -23,4 +28,39 @@ public sealed record OperationsCardSnapshot
     public string Detail { get; init; } = string.Empty;
     public string SupportingPrimary { get; init; } = string.Empty;
     public string SupportingSecondary { get; init; } = string.Empty;
+}
+
+public sealed record OperationsConversationPreview
+{
+    public string Title { get; init; } = string.Empty;
+    public string Status { get; init; } = string.Empty;
+    public string Detail { get; init; } = string.Empty;
+}
+
+public sealed record OperationsSyncPreview
+{
+    public string Title { get; init; } = string.Empty;
+    public string Status { get; init; } = string.Empty;
+    public string Detail { get; init; } = string.Empty;
+}
+
+public sealed record OperationsInboxPreview
+{
+    public string Title { get; init; } = string.Empty;
+    public string Status { get; init; } = string.Empty;
+    public string Detail { get; init; } = string.Empty;
+}
+
+public sealed record OperationsWorkflowRunPreview
+{
+    public string Title { get; init; } = string.Empty;
+    public string Status { get; init; } = string.Empty;
+    public string Detail { get; init; } = string.Empty;
+}
+
+public sealed record OperationsConnectorPreview
+{
+    public string Title { get; init; } = string.Empty;
+    public string Status { get; init; } = string.Empty;
+    public string Detail { get; init; } = string.Empty;
 }

@@ -9,6 +9,26 @@
     <Page.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
         <converters:BoolToVisibilityConverter x:Key="InverseBoolToVis" IsInverted="True" />
+        <DataTemplate x:Key="OperationsPreviewTemplate">
+            <Border Style="{StaticResource CardStyle}"
+                    Padding="12,10"
+                    Margin="0,0,0,8">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="{Binding Title}"
+                               Style="{StaticResource BodyStyle}"
+                               FontWeight="SemiBold"
+                               TextWrapping="WrapWholeWords" />
+                    <TextBlock Text="{Binding Status}"
+                               Style="{StaticResource CaptionStyle}"
+                               Foreground="{StaticResource TextAccentBrush}"
+                               TextWrapping="WrapWholeWords" />
+                    <TextBlock Text="{Binding Detail}"
+                               Style="{StaticResource CaptionStyle}"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               TextWrapping="WrapWholeWords" />
+                </StackPanel>
+            </Border>
+        </DataTemplate>
     </Page.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto"
@@ -175,6 +195,12 @@
                             <TextBlock Text="{x:Bind ViewModel.ConversationIntelligence.Detail, Mode=OneWay}"
                                        Style="{StaticResource CaptionStyle}"
                                        TextWrapping="Wrap" />
+                            <TextBlock Text="Recent summaries"
+                                       Style="{StaticResource CaptionStyle}"
+                                       Opacity="0.72"
+                                       Margin="0,6,0,0" />
+                            <ItemsControl ItemsSource="{x:Bind ViewModel.RecentConversationSummaries, Mode=OneWay}"
+                                          ItemTemplate="{StaticResource OperationsPreviewTemplate}" />
                         </StackPanel>
 
                         <Button Grid.Row="2"
@@ -209,6 +235,12 @@
                             <TextBlock Text="{x:Bind ViewModel.SyncHealth.Detail, Mode=OneWay}"
                                        Style="{StaticResource CaptionStyle}"
                                        TextWrapping="Wrap" />
+                            <TextBlock Text="Recent sync passes"
+                                       Style="{StaticResource CaptionStyle}"
+                                       Opacity="0.72"
+                                       Margin="0,6,0,0" />
+                            <ItemsControl ItemsSource="{x:Bind ViewModel.RecentSyncPasses, Mode=OneWay}"
+                                          ItemTemplate="{StaticResource OperationsPreviewTemplate}" />
                         </StackPanel>
 
                         <Button Grid.Row="2"
@@ -243,6 +275,12 @@
                             <TextBlock Text="{x:Bind ViewModel.IngestionBacklog.Detail, Mode=OneWay}"
                                        Style="{StaticResource CaptionStyle}"
                                        TextWrapping="Wrap" />
+                            <TextBlock Text="Pending items"
+                                       Style="{StaticResource CaptionStyle}"
+                                       Opacity="0.72"
+                                       Margin="0,6,0,0" />
+                            <ItemsControl ItemsSource="{x:Bind ViewModel.PendingInboxItems, Mode=OneWay}"
+                                          ItemTemplate="{StaticResource OperationsPreviewTemplate}" />
                         </StackPanel>
 
                         <Button Grid.Row="2"
@@ -289,6 +327,12 @@
                             <TextBlock Text="{x:Bind ViewModel.WorkflowActivity.Detail, Mode=OneWay}"
                                        Style="{StaticResource CaptionStyle}"
                                        TextWrapping="Wrap" />
+                            <TextBlock Text="Recent runs"
+                                       Style="{StaticResource CaptionStyle}"
+                                       Opacity="0.72"
+                                       Margin="0,6,0,0" />
+                            <ItemsControl ItemsSource="{x:Bind ViewModel.RecentWorkflowRuns, Mode=OneWay}"
+                                          ItemTemplate="{StaticResource OperationsPreviewTemplate}" />
                         </StackPanel>
 
                         <Button Grid.Row="2"
@@ -323,6 +367,12 @@
                             <TextBlock Text="{x:Bind ViewModel.Connectors.Detail, Mode=OneWay}"
                                        Style="{StaticResource CaptionStyle}"
                                        TextWrapping="Wrap" />
+                            <TextBlock Text="Connector preview"
+                                       Style="{StaticResource CaptionStyle}"
+                                       Opacity="0.72"
+                                       Margin="0,6,0,0" />
+                            <ItemsControl ItemsSource="{x:Bind ViewModel.ConnectorPreviews, Mode=OneWay}"
+                                          ItemTemplate="{StaticResource OperationsPreviewTemplate}" />
                         </StackPanel>
 
                         <Button Grid.Row="2"

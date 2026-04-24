@@ -23,18 +23,45 @@ public sealed class OperationsViewModelTests
                     Status = "Durable recall current",
                     Detail = "6 stored snapshots · latest 10 minutes ago"
                 },
+                RecentConversationSummaries =
+                [
+                    new OperationsConversationPreview
+                    {
+                        Title = "Durable memory rollout",
+                        Status = "Current",
+                        Detail = "Persistent summary coverage is catching the latest recall state."
+                    }
+                ],
                 SyncHealth = new OperationsCardSnapshot
                 {
                     Headline = "Configured",
                     Status = "Standing by",
                     Detail = "Syncing the full workspace."
                 },
+                RecentSyncPasses =
+                [
+                    new OperationsSyncPreview
+                    {
+                        Title = "Import sync",
+                        Status = "Success",
+                        Detail = "12 changes · 3s · 9 minutes ago"
+                    }
+                ],
                 IngestionBacklog = new OperationsCardSnapshot
                 {
                     Headline = "0",
                     Status = "Queue clear",
                     Detail = "Connector and watch-folder imports will surface here."
                 },
+                PendingInboxItems =
+                [
+                    new OperationsInboxPreview
+                    {
+                        Title = "Board update.docx",
+                        Status = "Email Connector",
+                        Detail = "Document · suggest Leadership · 12 minutes ago"
+                    }
+                ],
                 WorkflowActivity = new OperationsCardSnapshot
                 {
                     Headline = "7",
@@ -43,12 +70,30 @@ public sealed class OperationsViewModelTests
                     SupportingSecondary = "42s avg run",
                     Detail = "Top workflow: Research Briefing · 4 runs"
                 },
+                RecentWorkflowRuns =
+                [
+                    new OperationsWorkflowRunPreview
+                    {
+                        Title = "Research Briefing",
+                        Status = "Completed",
+                        Detail = "Executive summary and key findings generated successfully."
+                    }
+                ],
                 Connectors = new OperationsCardSnapshot
                 {
                     Headline = "2",
                     Status = "2 connectors enabled",
                     Detail = "Email Connector · Calendar Connector"
-                }
+                },
+                ConnectorPreviews =
+                [
+                    new OperationsConnectorPreview
+                    {
+                        Title = "Email Connector",
+                        Status = "Enabled",
+                        Detail = "Connector · Brings inbox mail into Agent-X for triage and search."
+                    }
+                ]
             });
 
         var viewModel = CreateViewModel();
@@ -58,8 +103,11 @@ public sealed class OperationsViewModelTests
         viewModel.SummaryHeadline.Should().Be("Operations running normally");
         viewModel.SummaryDetail.Should().Contain("Durable recall current");
         viewModel.ConversationIntelligence.Headline.Should().Be("5");
+        viewModel.RecentConversationSummaries.Should().ContainSingle();
         viewModel.WorkflowActivity.SupportingPrimary.Should().Be("2 active / 30d");
+        viewModel.RecentWorkflowRuns.Should().ContainSingle();
         viewModel.Connectors.Status.Should().Be("2 connectors enabled");
+        viewModel.ConnectorPreviews.Should().ContainSingle();
         viewModel.HasError.Should().BeFalse();
     }
 
@@ -127,6 +175,8 @@ public sealed class OperationsViewModelTests
         viewModel.SummaryHeadline.Should().Be("Operations unavailable");
         viewModel.ConversationIntelligence.Status.Should().Be("Durable recall inactive");
         viewModel.SyncHealth.Status.Should().Be("Collaborative sync is off");
+        viewModel.RecentConversationSummaries.Should().BeEmpty();
+        viewModel.RecentWorkflowRuns.Should().BeEmpty();
     }
 
     [Fact]

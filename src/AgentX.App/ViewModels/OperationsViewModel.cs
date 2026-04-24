@@ -23,6 +23,11 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private OperationsCardSnapshot _ingestionBacklog = CreateDefaultBacklogCard();
     [ObservableProperty] private OperationsCardSnapshot _workflowActivity = CreateDefaultWorkflowCard();
     [ObservableProperty] private OperationsCardSnapshot _connectors = CreateDefaultConnectorsCard();
+    [ObservableProperty] private IReadOnlyList<OperationsConversationPreview> _recentConversationSummaries = Array.Empty<OperationsConversationPreview>();
+    [ObservableProperty] private IReadOnlyList<OperationsSyncPreview> _recentSyncPasses = Array.Empty<OperationsSyncPreview>();
+    [ObservableProperty] private IReadOnlyList<OperationsInboxPreview> _pendingInboxItems = Array.Empty<OperationsInboxPreview>();
+    [ObservableProperty] private IReadOnlyList<OperationsWorkflowRunPreview> _recentWorkflowRuns = Array.Empty<OperationsWorkflowRunPreview>();
+    [ObservableProperty] private IReadOnlyList<OperationsConnectorPreview> _connectorPreviews = Array.Empty<OperationsConnectorPreview>();
 
     public Action<string>? NavigateRequested { get; set; }
 
@@ -68,6 +73,11 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         IngestionBacklog = snapshot.IngestionBacklog;
         WorkflowActivity = snapshot.WorkflowActivity;
         Connectors = snapshot.Connectors;
+        RecentConversationSummaries = snapshot.RecentConversationSummaries;
+        RecentSyncPasses = snapshot.RecentSyncPasses;
+        PendingInboxItems = snapshot.PendingInboxItems;
+        RecentWorkflowRuns = snapshot.RecentWorkflowRuns;
+        ConnectorPreviews = snapshot.ConnectorPreviews;
 
         var attentionAreas = CountAttentionAreas(snapshot);
         SummaryHeadline = attentionAreas switch

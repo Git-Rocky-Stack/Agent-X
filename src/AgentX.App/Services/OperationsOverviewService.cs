@@ -8,6 +8,7 @@ using AgentX.Core.Services.Sync;
 using AgentX.Core.Services.Sync.Models;
 using AgentX.Core.Services.Workflows;
 using Serilog;
+using System.Text;
 
 namespace AgentX.App.Services;
 
@@ -58,10 +59,18 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             () => _inboxService.GetPendingCountAsync(),
             0,
             "ingestion backlog");
+        var pendingItemsTask = SafeAsync(
+            () => _inboxService.GetAllItemsAsync(statusFilter: "pending", skip: 0, take: 3),
+            Array.Empty<InboxItemEntity>() as IReadOnlyList<InboxItemEntity>,
+            "pending inbox items");
         var syncConfigTask = SafeAsync(
             () => _syncService.GetConfigurationAsync(),
             null as SyncConfiguration,
             "sync configuration");
+        var syncHistoryTask = SafeAsync(
+            () => _syncService.GetSyncHistoryAsync(3),
+            Array.Empty<SyncLogEntity>() as IReadOnlyList<SyncLogEntity>,
+            "sync history");
         var pluginTask = SafeAsync(
             () => _pluginService.GetInstalledPluginsAsync(),
             Array.Empty<PluginEntity>() as IReadOnlyList<PluginEntity>,
@@ -75,14 +84,18 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             conversationTask,
             workflowTask,
             inboxTask,
+            pendingItemsTask,
             syncConfigTask,
+            syncHistoryTask,
             pluginTask,
             workflowListTask);
 
         var conversation = await conversationTask;
         var workflow = await workflowTask;
         var pendingInbox = await inboxTask;
+        var pendingItems = await pendingItemsTask;
         var syncConfig = await syncConfigTask;
+        var syncHistory = await syncHistoryTask;
         var plugins = await pluginTask;
         var workflows = await workflowListTask;
         var syncStatus = _syncService.Status;
@@ -99,7 +112,12 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             SyncHealth = BuildSyncHealthCard(syncConfig, syncStatus),
             IngestionBacklog = BuildIngestionBacklogCard(pendingInbox, enabledConnectorCount),
             WorkflowActivity = BuildWorkflowCard(workflow, workflows),
-            Connectors = BuildConnectorCard(plugins, enabledConnectors, enabledPluginCount)
+            Connectors = BuildConnectorCard(plugins, enabledConnectors, enabledPluginCount),
+            RecentConversationSummaries = BuildConversationPreviews(conversation),
+            RecentSyncPasses = BuildSyncPreviews(syncHistory),
+            PendingInboxItems = BuildInboxPreviews(pendingItems),
+            RecentWorkflowRuns = BuildWorkflowRunPreviews(workflow),
+            ConnectorPreviews = BuildConnectorPreviews(plugins)
         };
     }
 
@@ -139,6 +157,38 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             Status = status,
             Detail = detail
         };
+    }
+
+    private static IReadOnlyList<OperationsConversationPreview> BuildConversationPreviews(ConversationIntelligenceOverview overview)
+    {
+        var items = overview.RecentSummaries
+            .Take(3)
+            .Select(summary => new OperationsConversationPreview
+            {
+                Title = string.IsNullOrWhiteSpace(summary.Title)
+                    ? "Untitled conversation"
+                    : summary.Title,
+                Status = summary.HasRefreshError
+                    ? "Refresh error"
+                    : summary.IsStale
+                        ? "Stale"
+                        : summary.PendingMessageCount > 0
+                            ? $"{summary.PendingMessageCount} pending"
+                            : "Current",
+                Detail = !string.IsNullOrWhiteSpace(summary.PreviewText)
+                    ? $"{TrimForPreview(summary.PreviewText, 120)} · {FormatHelper.TimeAgoWithMonths(summary.GeneratedAt)}"
+                    : $"{FormatCompactNumber(summary.CoveredMessageCount)} messages covered · {FormatHelper.TimeAgoWithMonths(summary.GeneratedAt)}"
+            })
+            .ToArray();
+
+        return items.Length > 0
+            ? items
+            : [new OperationsConversationPreview
+            {
+                Title = "No stored summaries yet",
+                Status = "Analytics",
+                Detail = "Durable summary previews will appear here once conversations refresh."
+            }];
     }
 
     private static OperationsCardSnapshot BuildSyncHealthCard(SyncConfiguration? config, SyncStatus status)
@@ -186,6 +236,34 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
         };
     }
 
+    private static IReadOnlyList<OperationsSyncPreview> BuildSyncPreviews(IReadOnlyList<SyncLogEntity> history)
+    {
+        var items = history
+            .Take(3)
+            .Select(entry => new OperationsSyncPreview
+            {
+                Title = $"{ToTitleCase(entry.Direction)} sync",
+                Status = !entry.IsSuccess
+                    ? "Failed"
+                    : entry.ConflictsDetected > 0
+                        ? $"{entry.ConflictsDetected} conflicts"
+                        : "Success",
+                Detail = !entry.IsSuccess && !string.IsNullOrWhiteSpace(entry.ErrorMessage)
+                    ? TrimForPreview(entry.ErrorMessage, 120)
+                    : $"{FormatCompactNumber(entry.ChangesApplied)} changes · {FormatCompactDuration(entry.DurationMs)} · {FormatHelper.TimeAgoWithMonths(entry.SyncedAt)}"
+            })
+            .ToArray();
+
+        return items.Length > 0
+            ? items
+            : [new OperationsSyncPreview
+            {
+                Title = "No sync passes yet",
+                Status = "History",
+                Detail = "Recent import and export activity will appear here once sync runs."
+            }];
+    }
+
     private static OperationsCardSnapshot BuildIngestionBacklogCard(int pendingCount, int enabledConnectorCount)
     {
         var detail = pendingCount > 0
@@ -205,6 +283,34 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             },
             Detail = detail
         };
+    }
+
+    private static IReadOnlyList<OperationsInboxPreview> BuildInboxPreviews(IReadOnlyList<InboxItemEntity> items)
+    {
+        var previews = items
+            .Take(3)
+            .Select(item => new OperationsInboxPreview
+            {
+                Title = string.IsNullOrWhiteSpace(item.FileName)
+                    ? "Untitled inbox item"
+                    : item.FileName,
+                Status = BuildInboxSourceLabel(item),
+                Detail = item switch
+                {
+                    { SuggestedCollectionName: { Length: > 0 } } => $"{item.FileType} · suggest {item.SuggestedCollectionName} · {FormatHelper.TimeAgoWithMonths(item.AddedAt)}",
+                    _ => $"{item.FileType} · {FormatHelper.TimeAgoWithMonths(item.AddedAt)}"
+                }
+            })
+            .ToArray();
+
+        return previews.Length > 0
+            ? previews
+            : [new OperationsInboxPreview
+            {
+                Title = "Inbox clear",
+                Status = "Queue",
+                Detail = "Pending imports will appear here as watch folders and connectors bring in new items."
+            }];
     }
 
     private static OperationsCardSnapshot BuildWorkflowCard(
@@ -247,6 +353,32 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
         };
     }
 
+    private static IReadOnlyList<OperationsWorkflowRunPreview> BuildWorkflowRunPreviews(WorkflowIntelligenceOverview overview)
+    {
+        var items = overview.RecentRuns
+            .Take(3)
+            .Select(run => new OperationsWorkflowRunPreview
+            {
+                Title = string.IsNullOrWhiteSpace(run.WorkflowName)
+                    ? "Workflow run"
+                    : run.WorkflowName,
+                Status = NormalizeWorkflowStatus(run.Status),
+                Detail = !string.IsNullOrWhiteSpace(run.PreviewText)
+                    ? $"{TrimForPreview(run.PreviewText, 120)} · {FormatHelper.TimeAgoWithMonths(run.CompletedAt ?? run.StartedAt)}"
+                    : BuildWorkflowTimingDetail(run)
+            })
+            .ToArray();
+
+        return items.Length > 0
+            ? items
+            : [new OperationsWorkflowRunPreview
+            {
+                Title = "No recent workflow runs",
+                Status = "History",
+                Detail = "Stored run results will appear here after you execute or reopen workflows."
+            }];
+    }
+
     private static OperationsCardSnapshot BuildConnectorCard(
         IReadOnlyList<PluginEntity> plugins,
         IReadOnlyList<PluginEntity> enabledConnectors,
@@ -284,8 +416,148 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
         };
     }
 
+    private static IReadOnlyList<OperationsConnectorPreview> BuildConnectorPreviews(IReadOnlyList<PluginEntity> plugins)
+    {
+        var items = plugins
+            .OrderByDescending(plugin => plugin.IsEnabled)
+            .ThenByDescending(plugin => plugin.LastActivatedAt ?? plugin.InstalledAt)
+            .ThenBy(plugin => plugin.Name)
+            .Take(3)
+            .Select(plugin => new OperationsConnectorPreview
+            {
+                Title = string.IsNullOrWhiteSpace(plugin.Name)
+                    ? plugin.PluginId
+                    : plugin.Name,
+                Status = plugin.IsEnabled
+                    ? "Enabled"
+                    : "Installed",
+                Detail = !string.IsNullOrWhiteSpace(plugin.Description)
+                    ? $"{FormatPluginType(plugin.PluginType)} · {TrimForPreview(plugin.Description, 120)}"
+                    : plugin.LastActivatedAt.HasValue
+                        ? $"{FormatPluginType(plugin.PluginType)} · last active {FormatHelper.TimeAgoWithMonths(plugin.LastActivatedAt.Value)}"
+                        : $"{FormatPluginType(plugin.PluginType)} · v{plugin.Version}"
+            })
+            .ToArray();
+
+        return items.Length > 0
+            ? items
+            : [new OperationsConnectorPreview
+            {
+                Title = "No connectors installed",
+                Status = "Plugins",
+                Detail = "Install or enable plugins to bring external sources and extensions into the workspace."
+            }];
+    }
+
     private static bool IsPluginType(PluginEntity plugin, PluginType expectedType) =>
         string.Equals(plugin.PluginType, expectedType.ToString(), StringComparison.OrdinalIgnoreCase);
+
+    private static string BuildInboxSourceLabel(InboxItemEntity item)
+    {
+        if (!string.IsNullOrWhiteSpace(item.SourceCategory))
+        {
+            return ToTitleCase(item.SourceCategory);
+        }
+
+        if (!string.IsNullOrWhiteSpace(item.SourceType))
+        {
+            return ToTitleCase(item.SourceType);
+        }
+
+        return "Pending";
+    }
+
+    private static string NormalizeWorkflowStatus(string status)
+    {
+        if (string.IsNullOrWhiteSpace(status))
+        {
+            return "Run recorded";
+        }
+
+        return status.ToLowerInvariant() switch
+        {
+            "completed" => "Completed",
+            "success" => "Completed",
+            "failed" => "Failed",
+            "cancelled" => "Cancelled",
+            "canceled" => "Cancelled",
+            "running" => "Running",
+            "pending" => "Pending",
+            _ => ToTitleCase(status)
+        };
+    }
+
+    private static string BuildWorkflowTimingDetail(WorkflowRecentRunMetric run)
+    {
+        var detail = run.DurationMs.HasValue
+            ? FormatCompactDuration(run.DurationMs.Value)
+            : "Duration unavailable";
+
+        return $"{detail} · {FormatHelper.TimeAgoWithMonths(run.CompletedAt ?? run.StartedAt)}";
+    }
+
+    private static string FormatPluginType(string pluginType)
+    {
+        if (string.IsNullOrWhiteSpace(pluginType))
+        {
+            return "Plugin";
+        }
+
+        return pluginType switch
+        {
+            "DataConnector" => "Connector",
+            "WorkflowStep" => "Workflow step",
+            _ => ToTitleCase(pluginType)
+        };
+    }
+
+    private static string ToTitleCase(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        var normalized = value
+            .Replace('-', ' ')
+            .Replace('_', ' ');
+
+        var builder = new StringBuilder(normalized.Length + 8);
+        for (var i = 0; i < normalized.Length; i++)
+        {
+            var current = normalized[i];
+            var hasPrevious = i > 0;
+            var previous = hasPrevious ? normalized[i - 1] : '\0';
+            if (hasPrevious &&
+                char.IsUpper(current) &&
+                !char.IsWhiteSpace(previous) &&
+                !char.IsUpper(previous))
+            {
+                builder.Append(' ');
+            }
+
+            builder.Append(current);
+        }
+
+        return string.Join(
+            ' ',
+            builder.ToString()
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Select(word => char.ToUpperInvariant(word[0]) + word[1..].ToLowerInvariant()));
+    }
+
+    private static string TrimForPreview(string value, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        var normalized = value.ReplaceLineEndings(" ").Trim();
+        return normalized.Length <= maxLength
+            ? normalized
+            : $"{normalized[..Math.Max(0, maxLength - 3)].TrimEnd()}...";
+    }
 
     private static string FormatCompactNumber(int value) => FormatCompactNumber((long)value);
 
