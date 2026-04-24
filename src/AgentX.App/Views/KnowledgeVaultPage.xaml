@@ -683,6 +683,13 @@
                                                         </TextBlock.Foreground>
                                                     </TextBlock>
                                                 </Border>
+
+                                                <Border Style="{StaticResource BadgeDefaultStyle}"
+                                                        Visibility="{x:Bind HasFocusedSourceLabel, Converter={StaticResource BoolToVis}}">
+                                                    <TextBlock Text="{x:Bind FocusedSourceLabel}"
+                                                               Style="{StaticResource CaptionStyle}"
+                                                               Foreground="{StaticResource TextAccentBrush}" />
+                                                </Border>
                                             </StackPanel>
                                         </StackPanel>
                                     </Grid>
@@ -988,15 +995,21 @@
                                       VerticalAlignment="Center" />
                         </Border>
 
-                        <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
-                            <TextBlock Text="{x:Bind ViewModel.SelectedDocument.FileName, Mode=OneWay}"
-                                       Style="{StaticResource HeadingSmallStyle}"
-                                       MaxLines="2"
-                                       TextTrimming="CharacterEllipsis"
-                                       TextWrapping="WrapWholeWords" />
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <Border Style="{StaticResource FileTypeBadgeStyle}">
-                                    <TextBlock Text="{x:Bind ViewModel.SelectedDocument.FileTypeLabel, Mode=OneWay}"
+                            <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                                <TextBlock Text="{x:Bind ViewModel.SelectedDocument.FileName, Mode=OneWay}"
+                                           Style="{StaticResource HeadingSmallStyle}"
+                                           MaxLines="2"
+                                           TextTrimming="CharacterEllipsis"
+                                           TextWrapping="WrapWholeWords" />
+                                <Border Style="{StaticResource BadgeDefaultStyle}"
+                                        Visibility="{x:Bind ViewModel.SelectedDocument.HasFocusedSourceLabel, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Text="{x:Bind ViewModel.SelectedDocument.FocusedSourceLabel, Mode=OneWay}"
+                                               Style="{StaticResource CaptionStyle}"
+                                               Foreground="{StaticResource TextAccentBrush}" />
+                                </Border>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <Border Style="{StaticResource FileTypeBadgeStyle}">
+                                        <TextBlock Text="{x:Bind ViewModel.SelectedDocument.FileTypeLabel, Mode=OneWay}"
                                                FontSize="10"
                                                FontWeight="Bold"
                                                Foreground="{StaticResource TextAccentBrush}"

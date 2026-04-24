@@ -36,6 +36,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private IReadOnlyList<OperationsConversationPreview> _recentConversationSummaries = Array.Empty<OperationsConversationPreview>();
     [ObservableProperty] private IReadOnlyList<OperationsSyncPreview> _recentSyncPasses = Array.Empty<OperationsSyncPreview>();
     [ObservableProperty] private IReadOnlyList<OperationsInboxPreview> _pendingInboxItems = Array.Empty<OperationsInboxPreview>();
+    [ObservableProperty] private IReadOnlyList<OperationsImportedDocumentPreview> _recentImportedDocuments = Array.Empty<OperationsImportedDocumentPreview>();
     [ObservableProperty] private IReadOnlyList<OperationsWorkflowRunPreview> _recentWorkflowRuns = Array.Empty<OperationsWorkflowRunPreview>();
     [ObservableProperty] private IReadOnlyList<OperationsConnectorPreview> _connectorPreviews = Array.Empty<OperationsConnectorPreview>();
 
@@ -90,6 +91,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         RecentConversationSummaries = snapshot.RecentConversationSummaries;
         RecentSyncPasses = snapshot.RecentSyncPasses;
         PendingInboxItems = snapshot.PendingInboxItems;
+        RecentImportedDocuments = snapshot.RecentImportedDocuments;
         RecentWorkflowRuns = snapshot.RecentWorkflowRuns;
         ConnectorPreviews = snapshot.ConnectorPreviews;
 
@@ -229,6 +231,9 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     private void NavigateToInbox() => NavigateRequested?.Invoke("Inbox");
 
     [RelayCommand]
+    private void NavigateToKnowledgeVault() => NavigateRequested?.Invoke("KnowledgeVault");
+
+    [RelayCommand]
     private void NavigateToWorkflows() => NavigateRequested?.Invoke("Workflows");
 
     [RelayCommand]
@@ -264,6 +269,22 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
                 preview.ItemId,
                 $"Opened inbox item \"{preview.Title}\" from Operations"));
         NavigateRequested?.Invoke("Inbox");
+    }
+
+    [RelayCommand]
+    private void OpenImportedDocumentPreview(OperationsImportedDocumentPreview? preview)
+    {
+        if (preview is null || preview.DocumentId <= 0)
+        {
+            NavigateRequested?.Invoke("KnowledgeVault");
+            return;
+        }
+
+        _operationsDrillInService.StageDocumentRequest(
+            new OperationsDocumentDrillInRequest(
+                preview.DocumentId,
+                $"Opened imported document \"{preview.Title}\" from Operations"));
+        NavigateRequested?.Invoke("KnowledgeVault");
     }
 
     [RelayCommand]

@@ -20,6 +20,7 @@ public sealed class KnowledgeVaultViewModelTests
     private readonly Mock<IAutoTagService> _autoTagService = new();
     private readonly Mock<ICollectionService> _collectionService = new();
     private readonly Mock<IWorkflowLaunchService> _workflowLaunchService = new();
+    private readonly Mock<IOperationsDrillInService> _operationsDrillInService = new();
 
     [Fact]
     public async Task InitializeAsync_batch_loads_tags_for_documents()
@@ -141,6 +142,61 @@ public sealed class KnowledgeVaultViewModelTests
         stagedRequest.InputText.Should().Contain("Plan summary");
         stagedRequest.RecommendedWorkflowName.Should().Be("Summarize & Act");
         navigatedPage.Should().Be("Workflows");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_consumes_pending_operations_document_request_and_focuses_document()
+    {
+        _documentService
+            .Setup(service => service.GetAllDocumentsAsync(
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<long?>(),
+                It.IsAny<DateTime?>(),
+                It.IsAny<DateTime?>(),
+                It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+            [
+                CreateDocument(1, "alpha.md"),
+                CreateDocument(2, "beta.pdf")
+            ]);
+        _documentService.Setup(service => service.GetDocumentAsync(2))
+            .ReturnsAsync(CreateDocument(2, "beta.pdf"));
+        _documentService.Setup(service => service.GetTotalDocumentCountAsync()).ReturnsAsync(2L);
+        _documentService.Setup(service => service.GetTotalStorageBytesAsync()).ReturnsAsync(3_072L);
+
+        _indexingService.Setup(service => service.GetQueueLengthAsync()).ReturnsAsync(0);
+        _indexingService.SetupGet(service => service.IsProcessing).Returns(false);
+
+        _autoTagService.Setup(service => service.GetTagsForDocumentsAsync(It.IsAny<IReadOnlyList<long>>()))
+            .ReturnsAsync(new Dictionary<long, IReadOnlyList<TagEntity>>());
+        _autoTagService.Setup(service => service.GetAllTagsAsync())
+            .ReturnsAsync(Array.Empty<TagEntity>());
+        _collectionService.Setup(service => service.GetAllCollectionsAsync())
+            .ReturnsAsync(Array.Empty<CollectionEntity>());
+        _operationsDrillInService.Setup(service => service.ConsumePendingDocumentRequest())
+            .Returns(new OperationsDocumentDrillInRequest(2, "Opened imported document \"beta.pdf\" from Operations"));
+
+        var viewModel = new KnowledgeVaultViewModel(
+            _documentService.Object,
+            _indexingService.Object,
+            _aiService.Object,
+            _autoTagService.Object,
+            _collectionService.Object,
+            _workflowLaunchService.Object,
+            _operationsDrillInService.Object);
+
+        await viewModel.InitializeAsync();
+
+        viewModel.Documents[0].Id.Should().Be(2);
+        viewModel.Documents[0].HasFocusedSourceLabel.Should().BeTrue();
+        viewModel.Documents[0].FocusedSourceLabel.Should().Contain("beta.pdf");
+        viewModel.SelectedDocument.Should().NotBeNull();
+        viewModel.SelectedDocument!.Id.Should().Be(2);
+        viewModel.SelectedDocument.HasFocusedSourceLabel.Should().BeTrue();
+        viewModel.IsPreviewOpen.Should().BeTrue();
     }
 
     private static DocumentEntity CreateDocument(long id, string fileName)

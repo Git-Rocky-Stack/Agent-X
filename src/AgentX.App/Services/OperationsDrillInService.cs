@@ -9,6 +9,7 @@ public sealed class OperationsDrillInService : IOperationsDrillInService
     private readonly object _gate = new();
     private OperationsConversationDrillInRequest? _pendingConversationRequest;
     private OperationsInboxDrillInRequest? _pendingInboxRequest;
+    private OperationsDocumentDrillInRequest? _pendingDocumentRequest;
     private OperationsWorkflowRunDrillInRequest? _pendingWorkflowRunRequest;
     private OperationsSyncDrillInRequest? _pendingSyncRequest;
     private OperationsPluginDrillInRequest? _pendingPluginRequest;
@@ -49,6 +50,26 @@ public sealed class OperationsDrillInService : IOperationsDrillInService
         {
             var request = _pendingInboxRequest;
             _pendingInboxRequest = null;
+            return request;
+        }
+    }
+
+    public void StageDocumentRequest(OperationsDocumentDrillInRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        lock (_gate)
+        {
+            _pendingDocumentRequest = request;
+        }
+    }
+
+    public OperationsDocumentDrillInRequest? ConsumePendingDocumentRequest()
+    {
+        lock (_gate)
+        {
+            var request = _pendingDocumentRequest;
+            _pendingDocumentRequest = null;
             return request;
         }
     }

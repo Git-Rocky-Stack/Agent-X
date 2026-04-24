@@ -63,6 +63,10 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             () => _inboxService.GetAllItemsAsync(statusFilter: "pending", skip: 0, take: 3),
             Array.Empty<InboxItemEntity>() as IReadOnlyList<InboxItemEntity>,
             "pending inbox items");
+        var importedItemsTask = SafeAsync(
+            () => _inboxService.GetAllItemsAsync(statusFilter: "accepted", skip: 0, take: 8),
+            Array.Empty<InboxItemEntity>() as IReadOnlyList<InboxItemEntity>,
+            "recent imported documents");
         var syncConfigTask = SafeAsync(
             () => _syncService.GetConfigurationAsync(),
             null as SyncConfiguration,
@@ -85,6 +89,7 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             workflowTask,
             inboxTask,
             pendingItemsTask,
+            importedItemsTask,
             syncConfigTask,
             syncHistoryTask,
             pluginTask,
@@ -94,6 +99,7 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
         var workflow = await workflowTask;
         var pendingInbox = await inboxTask;
         var pendingItems = await pendingItemsTask;
+        var importedItems = await importedItemsTask;
         var syncConfig = await syncConfigTask;
         var syncHistory = await syncHistoryTask;
         var plugins = await pluginTask;
@@ -116,6 +122,7 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             RecentConversationSummaries = BuildConversationPreviews(conversation),
             RecentSyncPasses = BuildSyncPreviews(syncHistory),
             PendingInboxItems = BuildInboxPreviews(pendingItems),
+            RecentImportedDocuments = BuildImportedDocumentPreviews(importedItems),
             RecentWorkflowRuns = BuildWorkflowRunPreviews(workflow),
             ConnectorPreviews = BuildConnectorPreviews(plugins)
         };
@@ -316,6 +323,33 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             }];
     }
 
+    private static IReadOnlyList<OperationsImportedDocumentPreview> BuildImportedDocumentPreviews(IReadOnlyList<InboxItemEntity> items)
+    {
+        var previews = items
+            .Where(item => item.DocumentId.HasValue && item.DocumentId.Value > 0)
+            .OrderByDescending(item => item.ProcessedAt ?? item.AddedAt)
+            .Take(3)
+            .Select(item => new OperationsImportedDocumentPreview
+            {
+                DocumentId = item.DocumentId!.Value,
+                Title = string.IsNullOrWhiteSpace(item.FileName)
+                    ? "Imported document"
+                    : item.FileName,
+                Status = BuildInboxSourceLabel(item),
+                Detail = BuildImportedDocumentDetail(item)
+            })
+            .ToArray();
+
+        return previews.Length > 0
+            ? previews
+            : [new OperationsImportedDocumentPreview
+            {
+                Title = "No recent imported documents",
+                Status = "Vault",
+                Detail = "Connector-sourced documents that bridge into the Knowledge Vault will appear here."
+            }];
+    }
+
     private static OperationsCardSnapshot BuildWorkflowCard(
         WorkflowIntelligenceOverview overview,
         IReadOnlyList<WorkflowEntity> workflows)
@@ -495,6 +529,24 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             "pending" => "Pending",
             _ => ToTitleCase(status)
         };
+    }
+
+    private static string BuildImportedDocumentDetail(InboxItemEntity item)
+    {
+        var parts = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(item.FileType))
+        {
+            parts.Add(ToTitleCase(item.FileType));
+        }
+
+        if (!string.IsNullOrWhiteSpace(item.SuggestedCollectionName))
+        {
+            parts.Add($"to {item.SuggestedCollectionName}");
+        }
+
+        parts.Add($"vaulted {FormatHelper.TimeAgoWithMonths(item.ProcessedAt ?? item.AddedAt)}");
+        return string.Join(" · ", parts);
     }
 
     private static string BuildWorkflowTimingDetail(WorkflowRecentRunMetric run)

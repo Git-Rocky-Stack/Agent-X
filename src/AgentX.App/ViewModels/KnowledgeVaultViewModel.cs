@@ -34,6 +34,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     private readonly IAutoTagService _autoTagService;
     private readonly ICollectionService _collectionService;
     private readonly IWorkflowLaunchService? _workflowLaunchService;
+    private readonly IOperationsDrillInService? _operationsDrillInService;
 
     // ── Page State ─────────────────────────────────────────────
     [ObservableProperty] private string _pageTitle = "Knowledge Vault";
@@ -107,7 +108,8 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         IAiService aiService,
         IAutoTagService autoTagService,
         ICollectionService collectionService,
-        IWorkflowLaunchService? workflowLaunchService = null)
+        IWorkflowLaunchService? workflowLaunchService = null,
+        IOperationsDrillInService? operationsDrillInService = null)
     {
         _documentService = documentService;
         _indexingService = indexingService;
@@ -115,6 +117,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         _autoTagService = autoTagService;
         _collectionService = collectionService;
         _workflowLaunchService = workflowLaunchService;
+        _operationsDrillInService = operationsDrillInService;
         Log.Debug("KnowledgeVaultViewModel created with services");
     }
 
@@ -137,6 +140,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
                 CheckIndexingStatusAsync(),
                 LoadTagsAsync(),
                 LoadCollectionsAsync());
+            await ApplyPendingOperationsDocumentRequestAsync();
         }
         catch (Exception ex)
         {
@@ -1033,6 +1037,35 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         ShowDropZone = Documents.Count == 0;
     }
 
+    private async Task ApplyPendingOperationsDocumentRequestAsync()
+    {
+        var request = _operationsDrillInService?.ConsumePendingDocumentRequest();
+        if (request is null || request.DocumentId <= 0)
+        {
+            return;
+        }
+
+        foreach (var document in Documents)
+        {
+            document.FocusedSourceLabel = string.Empty;
+        }
+
+        var target = Documents.FirstOrDefault(document => document.Id == request.DocumentId);
+        if (target is null)
+        {
+            return;
+        }
+
+        target.FocusedSourceLabel = request.SourceLabel;
+
+        if (Documents.Remove(target))
+        {
+            Documents.Insert(0, target);
+        }
+
+        await SelectDocumentAsync(target.Id);
+    }
+
     private static DocumentDisplayItem MapDocumentToDisplay(AgentX.Core.Data.Entities.DocumentEntity doc)
     {
         return new DocumentDisplayItem
@@ -1157,6 +1190,7 @@ public class DocumentDisplayItem : ObservableObject
     private string _statusColor = "#3B82F6";
     private string? _indexingError;
     private bool _isSelected;
+    private string _focusedSourceLabel = string.Empty;
 
     public long Id { get; set; }
     public string FileName { get; set; } = string.Empty;
@@ -1217,6 +1251,20 @@ public class DocumentDisplayItem : ObservableObject
         get => _isSelected;
         set => SetProperty(ref _isSelected, value);
     }
+
+    public string FocusedSourceLabel
+    {
+        get => _focusedSourceLabel;
+        set
+        {
+            if (SetProperty(ref _focusedSourceLabel, value))
+            {
+                OnPropertyChanged(nameof(HasFocusedSourceLabel));
+            }
+        }
+    }
+
+    public bool HasFocusedSourceLabel => !string.IsNullOrWhiteSpace(FocusedSourceLabel);
 
     /// <summary>
     /// Formatted word count for display (e.g., "12.8K words").

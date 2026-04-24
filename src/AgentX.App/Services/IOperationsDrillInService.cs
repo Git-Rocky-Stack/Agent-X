@@ -12,6 +12,9 @@ public interface IOperationsDrillInService
     void StageInboxRequest(OperationsInboxDrillInRequest request);
     OperationsInboxDrillInRequest? ConsumePendingInboxRequest();
 
+    void StageDocumentRequest(OperationsDocumentDrillInRequest request);
+    OperationsDocumentDrillInRequest? ConsumePendingDocumentRequest();
+
     void StageWorkflowRunRequest(OperationsWorkflowRunDrillInRequest request);
     OperationsWorkflowRunDrillInRequest? ConsumePendingWorkflowRunRequest();
 
@@ -28,6 +31,10 @@ public sealed record OperationsConversationDrillInRequest(
 
 public sealed record OperationsInboxDrillInRequest(
     long ItemId,
+    string SourceLabel);
+
+public sealed record OperationsDocumentDrillInRequest(
+    long DocumentId,
     string SourceLabel);
 
 public sealed record OperationsWorkflowRunDrillInRequest(

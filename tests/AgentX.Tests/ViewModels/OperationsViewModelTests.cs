@@ -65,6 +65,16 @@ public sealed class OperationsViewModelTests
                         Detail = "Document · suggest Leadership · 12 minutes ago"
                     }
                 ],
+                RecentImportedDocuments =
+                [
+                    new OperationsImportedDocumentPreview
+                    {
+                        DocumentId = 501,
+                        Title = "Sprint planning email",
+                        Status = "Email Connector",
+                        Detail = "Email Message · vaulted 28 minutes ago"
+                    }
+                ],
                 WorkflowActivity = new OperationsCardSnapshot
                 {
                     Headline = "7",
@@ -110,6 +120,7 @@ public sealed class OperationsViewModelTests
         viewModel.SummaryDetail.Should().Contain("Durable recall current");
         viewModel.ConversationIntelligence.Headline.Should().Be("5");
         viewModel.RecentConversationSummaries.Should().ContainSingle();
+        viewModel.RecentImportedDocuments.Should().ContainSingle();
         viewModel.WorkflowActivity.SupportingPrimary.Should().Be("2 active / 30d");
         viewModel.RecentWorkflowRuns.Should().ContainSingle();
         viewModel.Connectors.Status.Should().Be("2 connectors enabled");
@@ -196,10 +207,11 @@ public sealed class OperationsViewModelTests
         viewModel.NavigateToAnalyticsCommand.Execute(null);
         viewModel.NavigateToSyncSettingsCommand.Execute(null);
         viewModel.NavigateToInboxCommand.Execute(null);
+        viewModel.NavigateToKnowledgeVaultCommand.Execute(null);
         viewModel.NavigateToWorkflowsCommand.Execute(null);
         viewModel.NavigateToPluginManagerCommand.Execute(null);
 
-        navigations.Should().Equal("Dashboard", "Analytics", "SyncSettings", "Inbox", "Workflows", "PluginManager");
+        navigations.Should().Equal("Dashboard", "Analytics", "SyncSettings", "Inbox", "KnowledgeVault", "Workflows", "PluginManager");
     }
 
     [Fact]
@@ -213,6 +225,11 @@ public sealed class OperationsViewModelTests
         {
             ItemId = 22,
             Title = "Board update.docx"
+        });
+        viewModel.OpenImportedDocumentPreviewCommand.Execute(new OperationsImportedDocumentPreview
+        {
+            DocumentId = 501,
+            Title = "Sprint planning email"
         });
         viewModel.OpenWorkflowRunPreviewCommand.Execute(new OperationsWorkflowRunPreview
         {
@@ -240,6 +257,10 @@ public sealed class OperationsViewModelTests
             It.Is<OperationsInboxDrillInRequest>(request =>
                 request.ItemId == 22 &&
                 request.SourceLabel.Contains("Board update.docx"))), Times.Once);
+        _operationsDrillInService.Verify(service => service.StageDocumentRequest(
+            It.Is<OperationsDocumentDrillInRequest>(request =>
+                request.DocumentId == 501 &&
+                request.SourceLabel.Contains("Sprint planning email"))), Times.Once);
         _operationsDrillInService.Verify(service => service.StageWorkflowRunRequest(
             It.Is<OperationsWorkflowRunDrillInRequest>(request =>
                 request.WorkflowId == 42 &&
@@ -258,7 +279,7 @@ public sealed class OperationsViewModelTests
                 request.PluginId == 301 &&
                 request.SourceLabel.Contains("Email Connector"))), Times.Once);
 
-        navigations.Should().Equal("Inbox", "Workflows", "SyncSettings", "Analytics", "PluginManager");
+        navigations.Should().Equal("Inbox", "KnowledgeVault", "Workflows", "SyncSettings", "Analytics", "PluginManager");
     }
 
     [Fact]

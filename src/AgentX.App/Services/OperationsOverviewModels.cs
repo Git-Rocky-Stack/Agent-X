@@ -14,6 +14,7 @@ public sealed record OperationsOverviewSnapshot
     public IReadOnlyList<OperationsConversationPreview> RecentConversationSummaries { get; init; } = Array.Empty<OperationsConversationPreview>();
     public IReadOnlyList<OperationsSyncPreview> RecentSyncPasses { get; init; } = Array.Empty<OperationsSyncPreview>();
     public IReadOnlyList<OperationsInboxPreview> PendingInboxItems { get; init; } = Array.Empty<OperationsInboxPreview>();
+    public IReadOnlyList<OperationsImportedDocumentPreview> RecentImportedDocuments { get; init; } = Array.Empty<OperationsImportedDocumentPreview>();
     public IReadOnlyList<OperationsWorkflowRunPreview> RecentWorkflowRuns { get; init; } = Array.Empty<OperationsWorkflowRunPreview>();
     public IReadOnlyList<OperationsConnectorPreview> ConnectorPreviews { get; init; } = Array.Empty<OperationsConnectorPreview>();
 }
@@ -49,6 +50,14 @@ public sealed record OperationsSyncPreview
 public sealed record OperationsInboxPreview
 {
     public long ItemId { get; init; }
+    public string Title { get; init; } = string.Empty;
+    public string Status { get; init; } = string.Empty;
+    public string Detail { get; init; } = string.Empty;
+}
+
+public sealed record OperationsImportedDocumentPreview
+{
+    public long DocumentId { get; init; }
     public string Title { get; init; } = string.Empty;
     public string Status { get; init; } = string.Empty;
     public string Detail { get; init; } = string.Empty;

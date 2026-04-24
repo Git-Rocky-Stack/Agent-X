@@ -100,6 +100,30 @@ public sealed class OperationsOverviewServiceTests
                     AddedAt = DateTime.UtcNow.AddMinutes(-12)
                 }
             ]);
+        _inboxService.Setup(service => service.GetAllItemsAsync("accepted", 0, 8))
+            .ReturnsAsync(
+            [
+                new InboxItemEntity
+                {
+                    Id = 30,
+                    DocumentId = 501,
+                    FileName = "Sprint planning email",
+                    FileType = "EmailMessage",
+                    SourceType = "email-connector",
+                    AddedAt = DateTime.UtcNow.AddMinutes(-30),
+                    ProcessedAt = DateTime.UtcNow.AddMinutes(-28)
+                },
+                new InboxItemEntity
+                {
+                    Id = 31,
+                    DocumentId = 502,
+                    FileName = "Quarterly roadmap meeting",
+                    FileType = "CalendarEvent",
+                    SourceType = "calendar-connector",
+                    AddedAt = DateTime.UtcNow.AddMinutes(-20),
+                    ProcessedAt = DateTime.UtcNow.AddMinutes(-18)
+                }
+            ]);
 
         _syncService.SetupGet(service => service.Status)
             .Returns(new SyncStatus
@@ -202,6 +226,11 @@ public sealed class OperationsOverviewServiceTests
         snapshot.PendingInboxItems.Should().ContainSingle();
         snapshot.PendingInboxItems[0].Title.Should().Be("Board update.docx");
         snapshot.PendingInboxItems[0].Status.Should().Be("Email Connector");
+        snapshot.RecentImportedDocuments.Should().HaveCount(2);
+        snapshot.RecentImportedDocuments[0].DocumentId.Should().Be(502);
+        snapshot.RecentImportedDocuments[0].Status.Should().Be("Calendar Connector");
+        snapshot.RecentImportedDocuments[1].DocumentId.Should().Be(501);
+        snapshot.RecentImportedDocuments[1].Status.Should().Be("Email Connector");
 
         snapshot.Connectors.Headline.Should().Be("2");
         snapshot.Connectors.Status.Should().Be("2 connectors enabled");
