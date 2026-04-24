@@ -73,10 +73,13 @@
                                    Style="{StaticResource BodyStyle}"
                                    FontWeight="SemiBold"
                                    TextWrapping="WrapWholeWords" />
-                        <TextBlock Text="{Binding Status}"
-                                   Style="{StaticResource CaptionStyle}"
-                                   Foreground="{StaticResource TextAccentBrush}"
-                                   TextWrapping="WrapWholeWords" />
+                        <Border Style="{StaticResource BadgeDefaultStyle}"
+                                HorizontalAlignment="Left"
+                                BorderBrush="{Binding Status, Converter={StaticResource StatusToColor}}">
+                            <TextBlock Text="{Binding Status}"
+                                       Style="{StaticResource CaptionStyle}"
+                                       Foreground="{Binding Status, Converter={StaticResource StatusToColor}}" />
+                        </Border>
                         <TextBlock Text="{Binding Detail}"
                                    Style="{StaticResource CaptionStyle}"
                                    Foreground="{StaticResource TextSecondaryBrush}"

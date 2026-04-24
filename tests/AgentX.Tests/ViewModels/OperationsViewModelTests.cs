@@ -253,6 +253,65 @@ public sealed class OperationsViewModelTests
     }
 
     [Fact]
+    public async Task LoadAsync_flags_attention_for_failed_workflow_runs()
+    {
+        _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot
+                {
+                    Headline = "4",
+                    Status = "Durable recall current",
+                    Detail = "4 stored snapshots"
+                },
+                SyncHealth = new OperationsCardSnapshot
+                {
+                    Headline = "Configured",
+                    Status = "Standing by",
+                    Detail = "Ready"
+                },
+                IngestionBacklog = new OperationsCardSnapshot
+                {
+                    Headline = "0",
+                    Status = "Queue clear",
+                    Detail = "No pending items."
+                },
+                WorkflowActivity = new OperationsCardSnapshot
+                {
+                    Headline = "9",
+                    Status = "78% success rate",
+                    SupportingPrimary = "2 active / 30d",
+                    SupportingSecondary = "34s avg run",
+                    Detail = "Top workflow: Research Briefing"
+                },
+                RecentWorkflowRuns =
+                [
+                    new OperationsWorkflowRunPreview
+                    {
+                        WorkflowId = 42,
+                        RunId = 77,
+                        Title = "Research Briefing",
+                        Status = "Failed",
+                        Detail = "Step 2 failed while drafting the synthesis."
+                    }
+                ],
+                Connectors = new OperationsCardSnapshot
+                {
+                    Headline = "2",
+                    Status = "2 connectors enabled",
+                    Detail = "Email Connector · Calendar Connector"
+                }
+            });
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.LoadAsync();
+
+        viewModel.SummaryHeadline.Should().Be("1 operational area needs attention");
+        viewModel.SummaryDetail.Should().Contain("Workflow runs need review");
+    }
+
+    [Fact]
     public async Task LoadAsync_uses_fallback_snapshot_when_service_fails()
     {
         _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))

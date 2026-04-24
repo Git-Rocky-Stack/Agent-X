@@ -509,6 +509,11 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
             count++;
         }
 
+        if (NeedsWorkflowRunAttention(snapshot.RecentWorkflowRuns))
+        {
+            count++;
+        }
+
         return count;
     }
 
@@ -528,6 +533,11 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
 
     private static bool NeedsConnectorAttention(IReadOnlyList<OperationsConnectorPreview> previews) =>
         previews.Any(preview => preview.CanEnableFromOperations);
+
+    private static bool NeedsWorkflowRunAttention(IReadOnlyList<OperationsWorkflowRunPreview> previews) =>
+        previews.Any(preview => preview.RunId > 0 &&
+                                (preview.Status.Equals("Failed", StringComparison.OrdinalIgnoreCase) ||
+                                 preview.Status.Equals("Cancelled", StringComparison.OrdinalIgnoreCase)));
 
     private static string BuildAttentionSummary(OperationsOverviewSnapshot snapshot)
     {
@@ -556,6 +566,11 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         if (NeedsConnectorAttention(snapshot.ConnectorPreviews))
         {
             items.Add("Connectors can be enabled");
+        }
+
+        if (NeedsWorkflowRunAttention(snapshot.RecentWorkflowRuns))
+        {
+            items.Add("Workflow runs need review");
         }
 
         if (items.Count == 0)
