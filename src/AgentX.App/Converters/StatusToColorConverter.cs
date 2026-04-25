@@ -1,6 +1,7 @@
 using Microsoft.UI;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
+using AgentX.App.Helpers;
 using Windows.UI;
 
 namespace AgentX.App.Converters;
@@ -36,31 +37,12 @@ public sealed class StatusToColorConverter : IValueConverter
 
     public object Convert(object value, Type targetType, object parameter, string language)
     {
-        var status = value?.ToString()?.Trim().ToLowerInvariant() ?? string.Empty;
-
-        return status switch
+        return StatusToneResolver.Resolve(value?.ToString()) switch
         {
-            // Green statuses
-            "connected" or "online" or "active" or "ready"
-                or "success" or "completed" or "healthy" or "searchable" => GreenBrush,
-
-            // Red statuses
-            "disconnected" or "offline" or "error" or "failed"
-                or "critical" or "unavailable" or "needs attention" => RedBrush,
-
-            // Amber statuses
-            "processing" or "loading" or "pending" or "syncing"
-                or "warning" or "busy" or "queued"
-                or "cancelled" or "canceled" => AmberBrush,
-
-            // Blue statuses
-            "info" or "downloading" or "indexing" or "updating"
-                or "installing" or "running" => BlueBrush,
-
-            // Gray / fallback
-            "idle" or "paused" or "disabled" or "unknown"
-                or "" => GrayBrush,
-
+            StatusTone.Success => GreenBrush,
+            StatusTone.Danger => RedBrush,
+            StatusTone.Warning => AmberBrush,
+            StatusTone.Info => BlueBrush,
             _ => GrayBrush
         };
     }

@@ -109,6 +109,7 @@
     <Compile Include="..\..\src\AgentX.App\Services\IWorkflowLaunchService.cs" Link="Services\IWorkflowLaunchService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\WorkflowLaunchRequest.cs" Link="Services\WorkflowLaunchRequest.cs" />
     <Compile Include="..\..\src\AgentX.App\Helpers\MarkdownParser.cs" Link="Helpers\MarkdownParser.cs" />
+    <Compile Include="..\..\src\AgentX.App\Helpers\StatusToneResolver.cs" Link="Helpers\StatusToneResolver.cs" />
     <!-- UserGuideViewModel is pure (no WinUI deps) — only ObservableCollection and Models. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\UserGuideViewModel.cs" Link="ViewModels\UserGuideViewModel.cs" />
     <Compile Include="..\..\src\AgentX.App\Models\UserGuideSection.cs" Link="Models\UserGuideSection.cs" />
