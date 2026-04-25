@@ -24,6 +24,8 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     private readonly IIndexingService _indexingService;
     private readonly IRagPipeline _ragPipeline;
     private readonly IOperationsOverviewService _operationsOverviewService;
+    private readonly IOperationsDrillInService? _operationsDrillInService;
+    private OperationsOverviewSnapshot _operationsSnapshot = new();
 
     // ── AI Status ───────────────────────────────────────────
     [ObservableProperty] private bool _isOllamaConnected;
@@ -74,6 +76,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
 
     // ── Quick Actions ───────────────────────────────────────
     [ObservableProperty] private string _quickSearchQuery = string.Empty;
+    [ObservableProperty] private ObservableCollection<DashboardRecommendedActionItem> _recommendedActions = new();
 
     // ── Recent Activity ─────────────────────────────────────
     [ObservableProperty] private ObservableCollection<DashboardRecentDocumentItem> _recentDocuments = new();
@@ -84,6 +87,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _hasRecentConversations;
     [ObservableProperty] private bool _hasFileTypeData;
     [ObservableProperty] private bool _hasCollectionData;
+    public bool HasRecommendedActions => RecommendedActions.Count > 0;
 
     // ── Knowledge Insights ──────────────────────────────────
     [ObservableProperty] private ObservableCollection<DashboardFileTypeBreakdownItem> _fileTypeBreakdown = new();
@@ -100,7 +104,8 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         ICollectionService collectionService,
         IIndexingService indexingService,
         IRagPipeline ragPipeline,
-        IOperationsOverviewService operationsOverviewService)
+        IOperationsOverviewService operationsOverviewService,
+        IOperationsDrillInService? operationsDrillInService = null)
     {
         _aiService = aiService;
         _conversationService = conversationService;
@@ -110,6 +115,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         _indexingService = indexingService;
         _ragPipeline = ragPipeline;
         _operationsOverviewService = operationsOverviewService;
+        _operationsDrillInService = operationsDrillInService;
         Log.Debug("DashboardViewModel created with services");
     }
 
@@ -127,6 +133,8 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             LoadInsightsAsync(),
             LoadIndexingStatusAsync(),
             LoadOperationsOverviewAsync());
+
+        BuildRecommendedActions();
 
         Log.Information("Dashboard initialized");
     }
@@ -340,6 +348,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         try
         {
             var snapshot = await _operationsOverviewService.GetSnapshotAsync();
+            _operationsSnapshot = snapshot;
 
             ConversationIntelligenceHeadline = snapshot.ConversationIntelligence.Headline;
             ConversationIntelligenceStatus = snapshot.ConversationIntelligence.Status;
@@ -366,6 +375,41 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to load dashboard operations overview");
+            _operationsSnapshot = new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot
+                {
+                    Headline = "0",
+                    Status = "Durable recall inactive",
+                    Detail = "Open Analytics to inspect summary coverage."
+                },
+                SyncHealth = new OperationsCardSnapshot
+                {
+                    Headline = "Unavailable",
+                    Status = "Sync status unavailable",
+                    Detail = "Open Collaborative Sync for details."
+                },
+                IngestionBacklog = new OperationsCardSnapshot
+                {
+                    Headline = "0",
+                    Status = "Queue clear",
+                    Detail = "Watch folders and enabled connectors will surface new items here."
+                },
+                Connectors = new OperationsCardSnapshot
+                {
+                    Headline = "0",
+                    Status = "No plugins installed",
+                    Detail = "Open Plugin Manager to enable connectors and extensions."
+                },
+                WorkflowActivity = new OperationsCardSnapshot
+                {
+                    Headline = "0",
+                    Status = "Ready to automate",
+                    SupportingPrimary = "No recent runs",
+                    SupportingSecondary = "Avg duration unavailable",
+                    Detail = "Open Workflows to create or run automations."
+                }
+            };
             ConversationIntelligenceHeadline = "0";
             ConversationIntelligenceStatus = "Durable recall inactive";
             ConversationIntelligenceDetail = "Open Analytics to inspect summary coverage.";
@@ -385,6 +429,198 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             SyncHealthDetail = "Open Collaborative Sync for details.";
         }
     }
+
+    private void BuildRecommendedActions()
+    {
+        var items = new List<DashboardRecommendedActionItem>();
+        var routes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var targetInboxItem = _operationsSnapshot.PendingInboxItems.FirstOrDefault(item => item.ItemId > 0);
+        var targetImportedDocument = _operationsSnapshot.RecentImportedDocuments.FirstOrDefault(preview =>
+            preview.DocumentId > 0 &&
+            preview.HealthStatus.Equals("Needs Attention", StringComparison.OrdinalIgnoreCase));
+        var targetConnector = _operationsSnapshot.ConnectorPreviews.FirstOrDefault(preview =>
+            preview.PluginId > 0 &&
+            preview.CanEnableFromOperations);
+        var targetWorkflowRun = _operationsSnapshot.RecentWorkflowRuns.FirstOrDefault(preview =>
+            preview.WorkflowId > 0 &&
+            preview.RunId > 0 &&
+            (preview.Status.Equals("Failed", StringComparison.OrdinalIgnoreCase) ||
+             preview.Status.Equals("Cancelled", StringComparison.OrdinalIgnoreCase)));
+
+        void AddAction(DashboardRecommendedActionItem item)
+        {
+            if (string.IsNullOrWhiteSpace(item.Route) || !routes.Add(item.Route))
+            {
+                return;
+            }
+
+            items.Add(item);
+        }
+
+        if (!IsOllamaConnected)
+        {
+            AddAction(new DashboardRecommendedActionItem
+            {
+                CategoryLabel = "Setup",
+                IconGlyph = "\uE8BD",
+                Title = "Finish local AI setup",
+                Detail = "Chat, semantic search, and document intelligence will create more value once a local model is connected.",
+                CommandText = "Setup AI",
+                Route = "Settings"
+            });
+        }
+
+        if (PendingIndexCount > 0)
+        {
+            AddAction(new DashboardRecommendedActionItem
+            {
+                CategoryLabel = "Attention",
+                IconGlyph = "\uE721",
+                Title = "Clear the indexing backlog",
+                Detail = $"{PendingIndexCount} imported item{(PendingIndexCount == 1 ? string.Empty : "s")} still need indexing review or retry handling.",
+                CommandText = targetImportedDocument is null ? "Open Operations" : "Review Document",
+                Route = targetImportedDocument is null ? "Operations" : "KnowledgeVault",
+                TargetId = targetImportedDocument?.DocumentId ?? 0
+            });
+        }
+
+        if (TryParsePositiveCount(InboxHeadline, out var inboxCount))
+        {
+            AddAction(new DashboardRecommendedActionItem
+            {
+                CategoryLabel = "Attention",
+                IconGlyph = "\uE8B7",
+                Title = "Triage new incoming content",
+                Detail = $"{inboxCount} Smart Inbox item{(inboxCount == 1 ? string.Empty : "s")} are waiting for classification, routing, or preview generation.",
+                CommandText = targetInboxItem is null ? "Open Inbox" : "Open Item",
+                Route = "Inbox",
+                TargetId = targetInboxItem?.ItemId ?? 0
+            });
+        }
+
+        if (SyncNeedsSetup())
+        {
+            AddAction(new DashboardRecommendedActionItem
+            {
+                CategoryLabel = "Setup",
+                IconGlyph = "\uE895",
+                Title = "Configure workspace sync",
+                Detail = "Collaborative sync is not fully ready. Configure it to keep multiple Agent-X installations aligned.",
+                CommandText = "Open Sync",
+                Route = "SyncSettings"
+            });
+        }
+
+        if (ConnectorsNeedSetup())
+        {
+            AddAction(new DashboardRecommendedActionItem
+            {
+                CategoryLabel = "Expansion",
+                IconGlyph = "\uE943",
+                Title = "Connect a live source",
+                Detail = "Enable plugins and connectors so fresh email, calendar, or external content can flow into the workspace.",
+                CommandText = targetConnector is null ? "Open Plugins" : "Open Connector",
+                Route = "PluginManager",
+                TargetId = targetConnector?.PluginId ?? 0
+            });
+        }
+
+        if (ConversationIntelligenceNeedsAttention())
+        {
+            AddAction(new DashboardRecommendedActionItem
+            {
+                CategoryLabel = "Memory",
+                IconGlyph = "\uE9D2",
+                Title = "Strengthen durable recall",
+                Detail = "Conversation summaries are not yet giving the app enough long-lived memory coverage.",
+                CommandText = "Open Analytics",
+                Route = "Analytics"
+            });
+        }
+
+        if (targetWorkflowRun is not null)
+        {
+            AddAction(new DashboardRecommendedActionItem
+            {
+                CategoryLabel = "Automation",
+                IconGlyph = "\uE8C7",
+                Title = $"Review {targetWorkflowRun.Title}",
+                Detail = "A recent workflow run failed or was cancelled. Review the run details before trusting that automation again.",
+                CommandText = "Review Run",
+                Route = "Workflows",
+                TargetId = targetWorkflowRun.WorkflowId,
+                SecondaryTargetId = targetWorkflowRun.RunId
+            });
+        }
+        else if (WorkflowNeedsSetup())
+        {
+            AddAction(new DashboardRecommendedActionItem
+            {
+                CategoryLabel = "Automation",
+                IconGlyph = "\uE8C7",
+                Title = "Create a repeatable workflow",
+                Detail = "Package a recurring task into an automation that can feed results back into the vault.",
+                CommandText = "Open Workflows",
+                Route = "Workflows"
+            });
+        }
+
+        if (items.Count < 3)
+        {
+            AddAction(new DashboardRecommendedActionItem
+            {
+                CategoryLabel = "Explore",
+                IconGlyph = IsOllamaConnected ? "\uE9D9" : "\uE8B5",
+                Title = IsOllamaConnected ? "Ask across your vault" : "Import more source material",
+                Detail = IsOllamaConnected
+                    ? "Use Ask Your Files to turn indexed knowledge into cross-document answers."
+                    : "Bring high-value files into the vault so the rest of the intelligence surfaces have more to work with.",
+                CommandText = IsOllamaConnected ? "Open Ask Your Files" : "Open Vault",
+                Route = IsOllamaConnected ? "AskFiles" : "KnowledgeVault"
+            });
+
+            AddAction(new DashboardRecommendedActionItem
+            {
+                CategoryLabel = "Review",
+                IconGlyph = "\uE946",
+                Title = "Review system-wide health",
+                Detail = "Open Operations for a single place to inspect sync, workflows, connectors, inbox pressure, and recall posture.",
+                CommandText = "Open Operations",
+                Route = "Operations"
+            });
+
+            AddAction(new DashboardRecommendedActionItem
+            {
+                CategoryLabel = "Insight",
+                IconGlyph = "\uE9D2",
+                Title = "Review intelligence trends",
+                Detail = "Use Analytics to inspect recall coverage, themes, and workflow momentum across the workspace.",
+                CommandText = "Open Analytics",
+                Route = "Analytics"
+            });
+        }
+
+        RecommendedActions = new ObservableCollection<DashboardRecommendedActionItem>(items.Take(3));
+        OnPropertyChanged(nameof(HasRecommendedActions));
+    }
+
+    private bool SyncNeedsSetup() =>
+        SyncHealthHeadline.Equals("Not configured", StringComparison.OrdinalIgnoreCase) ||
+        SyncHealthHeadline.Equals("Unavailable", StringComparison.OrdinalIgnoreCase) ||
+        ContainsAny(SyncHealthStatus, "off", "unavailable", "failed", "conflict", "stale");
+
+    private bool ConnectorsNeedSetup() =>
+        ConnectorsHeadline.Equals("0", StringComparison.OrdinalIgnoreCase) ||
+        ContainsAny(ConnectorsStatus, "no plugins installed", "no connectors", "disabled");
+
+    private bool ConversationIntelligenceNeedsAttention() =>
+        ConversationIntelligenceHeadline.Equals("0", StringComparison.OrdinalIgnoreCase) ||
+        ContainsAny(ConversationIntelligenceStatus, "inactive", "needs attention", "stale");
+
+    private bool WorkflowNeedsSetup() =>
+        WorkflowHeadline.Equals("0", StringComparison.OrdinalIgnoreCase) ||
+        WorkflowRecentActivity.Equals("No recent runs", StringComparison.OrdinalIgnoreCase) ||
+        ContainsAny(WorkflowStatus, "ready to automate");
 
     // ── Commands ─────────────────────────────────────────────
 
@@ -480,6 +716,19 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
+    private void OpenRecommendedAction(DashboardRecommendedActionItem? action)
+    {
+        if (action is null || string.IsNullOrWhiteSpace(action.Route))
+        {
+            return;
+        }
+
+        StageRecommendedActionDrillIn(action);
+        Log.Debug("Navigate to {Route} requested from Dashboard recommended actions", action.Route);
+        NavigateRequested?.Invoke(action.Route);
+    }
+
+    [RelayCommand]
     private Task QuickSearchAsync()
     {
         if (string.IsNullOrWhiteSpace(QuickSearchQuery)) return Task.CompletedTask;
@@ -490,10 +739,66 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
 
     private static string FormatCompactNumber(int value) => FormatCompactNumber((long)value);
 
+    private static bool TryParsePositiveCount(string value, out int count)
+    {
+        if (int.TryParse(value, out count) && count > 0)
+        {
+            return true;
+        }
+
+        count = 0;
+        return false;
+    }
+
+    private static bool ContainsAny(string value, params string[] needles)
+    {
+        foreach (var needle in needles)
+        {
+            if (value.Contains(needle, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static string FormatCompactNumber(long value) =>
         value >= 1_000_000 ? $"{value / 1_000_000.0:F1}M"
         : value >= 1_000 ? $"{value / 1_000.0:F1}K"
         : value.ToString();
+
+    private void StageRecommendedActionDrillIn(DashboardRecommendedActionItem action)
+    {
+        if (_operationsDrillInService is null)
+        {
+            return;
+        }
+
+        var sourceLabel = $"Opened dashboard recommendation \"{action.Title}\"";
+        switch (action.Route)
+        {
+            case "Inbox" when action.TargetId > 0:
+                _operationsDrillInService.StageInboxRequest(
+                    new OperationsInboxDrillInRequest(action.TargetId, sourceLabel));
+                break;
+
+            case "KnowledgeVault" when action.TargetId > 0:
+                _operationsDrillInService.StageDocumentRequest(
+                    new OperationsDocumentDrillInRequest(action.TargetId, sourceLabel));
+                break;
+
+            case "PluginManager" when action.TargetId > 0:
+                _operationsDrillInService.StagePluginRequest(
+                    new OperationsPluginDrillInRequest(action.TargetId, sourceLabel));
+                break;
+
+            case "Workflows" when action.TargetId > 0 && action.SecondaryTargetId > 0:
+                _operationsDrillInService.StageWorkflowRunRequest(
+                    new OperationsWorkflowRunDrillInRequest(action.TargetId, action.SecondaryTargetId, sourceLabel));
+                break;
+        }
+    }
 
     public void Dispose()
     {
@@ -562,4 +867,19 @@ public class DashboardTopCollectionItem
     public int DocumentCount { get; init; }
     public double BarWidthPercent { get; init; } // 0-100 relative to largest
     public string CountLabel => $"{DocumentCount} docs";
+}
+
+/// <summary>
+/// Represents a synthesized next-step recommendation shown on the dashboard.
+/// </summary>
+public class DashboardRecommendedActionItem
+{
+    public string CategoryLabel { get; init; } = string.Empty;
+    public string IconGlyph { get; init; } = string.Empty;
+    public string Title { get; init; } = string.Empty;
+    public string Detail { get; init; } = string.Empty;
+    public string CommandText { get; init; } = string.Empty;
+    public string Route { get; init; } = string.Empty;
+    public long TargetId { get; init; }
+    public long SecondaryTargetId { get; init; }
 }

@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using AgentX.App.ViewModels;
+using System.ComponentModel;
 
 namespace AgentX.App.Views;
 
@@ -11,8 +12,14 @@ public sealed partial class QuickActionsPage : Page
     public QuickActionsPage()
     {
         ViewModel = App.GetService<QuickActionsViewModel>();
+        ViewModel.NavigateRequested = NavigateToPage;
         InitializeComponent();
-        Loaded += async (_, _) => await ViewModel.InitializeAsync();
+        ViewModel.PropertyChanged += ViewModelOnPropertyChanged;
+        Loaded += async (_, _) =>
+        {
+            await ViewModel.InitializeAsync();
+            ApplySelectedTab(ViewModel.SelectedTabIndex);
+        };
     }
 
     // ── Tab switching via RadioButton Checked events ─────────
@@ -47,6 +54,16 @@ public sealed partial class QuickActionsPage : Page
         ViewModel.SelectedTabIndex = 4;
     }
 
+    private void ViewModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(QuickActionsViewModel.SelectedTabIndex))
+        {
+            return;
+        }
+
+        DispatcherQueue.TryEnqueue(() => ApplySelectedTab(ViewModel.SelectedTabIndex));
+    }
+
     /// <summary>
     /// Shows the specified panel and hides all others.
     /// </summary>
@@ -59,5 +76,69 @@ public sealed partial class QuickActionsPage : Page
         PanelOrganize.Visibility = Visibility.Collapsed;
 
         activePanel.Visibility = Visibility.Visible;
+    }
+
+    private void ApplySelectedTab(int tabIndex)
+    {
+        switch (tabIndex)
+        {
+            case 1:
+                if (TabKeyPoints.IsChecked != true)
+                {
+                    TabKeyPoints.IsChecked = true;
+                    return;
+                }
+
+                SetActivePanel(PanelKeyPoints);
+                break;
+
+            case 2:
+                if (TabTranslate.IsChecked != true)
+                {
+                    TabTranslate.IsChecked = true;
+                    return;
+                }
+
+                SetActivePanel(PanelTranslate);
+                break;
+
+            case 3:
+                if (TabDuplicates.IsChecked != true)
+                {
+                    TabDuplicates.IsChecked = true;
+                    return;
+                }
+
+                SetActivePanel(PanelDuplicates);
+                break;
+
+            case 4:
+                if (TabOrganize.IsChecked != true)
+                {
+                    TabOrganize.IsChecked = true;
+                    return;
+                }
+
+                SetActivePanel(PanelOrganize);
+                break;
+
+            default:
+                if (TabSummarize.IsChecked != true)
+                {
+                    TabSummarize.IsChecked = true;
+                    return;
+                }
+
+                SetActivePanel(PanelSummarize);
+                break;
+        }
+    }
+
+    private void NavigateToPage(string pageTag)
+    {
+        if (App.MainWindow is MainWindow mainWindow)
+        {
+            mainWindow.NavigateToPage(pageTag);
+        }
     }
 }

@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:AgentX.App.ViewModels"
     xmlns:converters="using:AgentX.App.Converters"
+    x:Name="QuickActionsRoot"
     Background="Transparent"
     NavigationCacheMode="Enabled">
 
@@ -27,6 +28,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
@@ -41,9 +43,120 @@
                 </StackPanel>
 
                 <!-- ==========================================================
-                     ROW 1: TAB NAVIGATION
+                     ROW 1: CONTEXTUAL ACTIONS
                      ========================================================== -->
-                <Border Grid.Row="1" Style="{StaticResource CardStyle}" Padding="4">
+                <Border Grid.Row="1"
+                        Style="{StaticResource CardStyle}"
+                        Visibility="{x:Bind ViewModel.HasRecommendedActions, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                    <StackPanel Spacing="16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Recommended For This Context"
+                                           Style="{StaticResource HeadingMediumStyle}" />
+                                <TextBlock Text="Use the selected document and current intake state to jump straight to the most useful next action."
+                                           Style="{StaticResource BodySecondaryStyle}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <Border Grid.Column="1"
+                                    Style="{StaticResource BadgeDefaultStyle}"
+                                    VerticalAlignment="Top">
+                                <TextBlock Text="{x:Bind ViewModel.RecommendedActions.Count, Mode=OneWay}"
+                                           Style="{StaticResource BadgeStyle}" />
+                            </Border>
+                        </Grid>
+
+                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.RecommendedActions, Mode=OneWay}">
+                            <ItemsRepeater.Layout>
+                                <UniformGridLayout MinItemWidth="250"
+                                                   MinItemHeight="0"
+                                                   MinColumnSpacing="12"
+                                                   MinRowSpacing="12"
+                                                   ItemsStretch="Fill" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="vm:QuickActionRecommendedItem">
+                                    <Border Style="{StaticResource CardInsetStyle}"
+                                            Padding="16,14">
+                                        <Grid RowSpacing="12">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="*" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <Border Width="36"
+                                                        Height="36"
+                                                        CornerRadius="{StaticResource RadiusMD}"
+                                                        Background="{StaticResource AccentSubtleBrush}">
+                                                    <FontIcon Glyph="{x:Bind IconGlyph}"
+                                                              FontSize="15"
+                                                              Foreground="{StaticResource TextAccentBrush}"
+                                                              HorizontalAlignment="Center"
+                                                              VerticalAlignment="Center" />
+                                                </Border>
+
+                                                <TextBlock Grid.Column="1"
+                                                           Text="{x:Bind Title}"
+                                                           Margin="12,0,0,0"
+                                                           Style="{StaticResource BodyStyle}"
+                                                           FontWeight="SemiBold"
+                                                           TextWrapping="WrapWholeWords"
+                                                           VerticalAlignment="Center" />
+
+                                                <Border Grid.Column="2"
+                                                        Style="{StaticResource BadgeDefaultStyle}"
+                                                        VerticalAlignment="Center">
+                                                    <TextBlock Text="{x:Bind CategoryLabel}"
+                                                               Style="{StaticResource BadgeStyle}" />
+                                                </Border>
+                                            </Grid>
+
+                                            <Border Grid.Row="1"
+                                                    Style="{StaticResource BadgeDefaultStyle}"
+                                                    HorizontalAlignment="Left">
+                                                <TextBlock Text="{x:Bind StatusLabel}"
+                                                           Style="{StaticResource CaptionStyle}" />
+                                            </Border>
+
+                                            <TextBlock Grid.Row="2"
+                                                       Text="{x:Bind Detail}"
+                                                       Style="{StaticResource BodySecondaryStyle}"
+                                                       TextWrapping="WrapWholeWords" />
+
+                                            <Button Grid.Row="3"
+                                                    Command="{Binding ViewModel.ExecuteRecommendedActionCommand, ElementName=QuickActionsRoot}"
+                                                    CommandParameter="{Binding}"
+                                                    Content="{x:Bind CommandText}"
+                                                    Style="{StaticResource SecondaryButtonStyle}"
+                                                    HorizontalAlignment="Left"
+                                                    Padding="12,8"
+                                                    FontSize="12" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </StackPanel>
+                </Border>
+
+                <!-- ==========================================================
+                     ROW 2: TAB NAVIGATION
+                     ========================================================== -->
+                <Border Grid.Row="2" Style="{StaticResource CardStyle}" Padding="4">
                     <Grid ColumnSpacing="4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -53,7 +166,8 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <RadioButton Grid.Column="0"
+                        <RadioButton x:Name="TabSummarize"
+                                     Grid.Column="0"
                                      GroupName="QuickActionTabs"
                                      IsChecked="True"
                                      Checked="Tab_Summarize_Checked"
@@ -65,7 +179,8 @@
                             </StackPanel>
                         </RadioButton>
 
-                        <RadioButton Grid.Column="1"
+                        <RadioButton x:Name="TabKeyPoints"
+                                     Grid.Column="1"
                                      GroupName="QuickActionTabs"
                                      Checked="Tab_KeyPoints_Checked"
                                      Style="{StaticResource TabRadioButtonStyle}">
@@ -76,7 +191,8 @@
                             </StackPanel>
                         </RadioButton>
 
-                        <RadioButton Grid.Column="2"
+                        <RadioButton x:Name="TabTranslate"
+                                     Grid.Column="2"
                                      GroupName="QuickActionTabs"
                                      Checked="Tab_Translate_Checked"
                                      Style="{StaticResource TabRadioButtonStyle}">
@@ -87,7 +203,8 @@
                             </StackPanel>
                         </RadioButton>
 
-                        <RadioButton Grid.Column="3"
+                        <RadioButton x:Name="TabDuplicates"
+                                     Grid.Column="3"
                                      GroupName="QuickActionTabs"
                                      Checked="Tab_Duplicates_Checked"
                                      Style="{StaticResource TabRadioButtonStyle}">
@@ -98,7 +215,8 @@
                             </StackPanel>
                         </RadioButton>
 
-                        <RadioButton Grid.Column="4"
+                        <RadioButton x:Name="TabOrganize"
+                                     Grid.Column="4"
                                      GroupName="QuickActionTabs"
                                      Checked="Tab_Organize_Checked"
                                      Style="{StaticResource TabRadioButtonStyle}">
@@ -112,9 +230,9 @@
                 </Border>
 
                 <!-- ==========================================================
-                     ROW 2: TAB CONTENT PANELS
+                     ROW 3: TAB CONTENT PANELS
                      ========================================================== -->
-                <Grid Grid.Row="2">
+                <Grid Grid.Row="3">
 
                     <!-- ======================================================
                          SUMMARIZE TAB

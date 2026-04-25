@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:AgentX.App.ViewModels"
     xmlns:converters="using:AgentX.App.Converters"
+    x:Name="DashboardRoot"
     Background="Transparent"
     NavigationCacheMode="Enabled">
 
@@ -849,84 +850,185 @@
             </Grid>
 
             <!-- ==========================================================
-                 ROW 7: QUICK ACTIONS BAR (4 action buttons)
+                 ROW 7: RECOMMENDED NEXT STEPS + QUICK LAUNCH
                  ========================================================== -->
-            <Grid Grid.Row="7" ColumnSpacing="12">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+            <StackPanel Grid.Row="7" Spacing="16">
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
 
-                <!-- New Chat -->
-                <Button Grid.Column="0"
-                        Style="{StaticResource SecondaryButtonStyle}"
-                        HorizontalAlignment="Stretch"
-                        Padding="16,14"
-                        Command="{x:Bind ViewModel.NavigateToChatCommand}">
-                    <StackPanel Orientation="Horizontal" Spacing="10"
-                                HorizontalAlignment="Center">
-                        <FontIcon Glyph="&#xE8BD;" FontSize="16"
-                                  Foreground="{StaticResource TextAccentBrush}" />
-                        <TextBlock Text="New Chat"
-                                   Style="{StaticResource BodyStyle}"
-                                   FontWeight="SemiBold"
-                                   VerticalAlignment="Center" />
-                    </StackPanel>
-                </Button>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Recommended Next Steps"
+                                           Style="{StaticResource HeadingMediumStyle}" />
+                                <TextBlock Text="The highest-leverage actions based on your current AI readiness, intake pressure, sync posture, and workflow momentum."
+                                           Style="{StaticResource BodySecondaryStyle}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
 
-                <!-- Import Files -->
-                <Button Grid.Column="1"
-                        Style="{StaticResource SecondaryButtonStyle}"
-                        HorizontalAlignment="Stretch"
-                        Padding="16,14"
-                        Command="{x:Bind ViewModel.NavigateToVaultCommand}">
-                    <StackPanel Orientation="Horizontal" Spacing="10"
-                                HorizontalAlignment="Center">
-                        <FontIcon Glyph="&#xE8B5;" FontSize="16"
-                                  Foreground="{StaticResource InfoBrush}" />
-                        <TextBlock Text="Import Files"
-                                   Style="{StaticResource BodyStyle}"
-                                   FontWeight="SemiBold"
-                                   VerticalAlignment="Center" />
-                    </StackPanel>
-                </Button>
+                            <Border Grid.Column="1"
+                                    Style="{StaticResource BadgeDefaultStyle}"
+                                    VerticalAlignment="Top"
+                                    Visibility="{x:Bind ViewModel.HasRecommendedActions, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="{x:Bind ViewModel.RecommendedActions.Count, Mode=OneWay}"
+                                           Style="{StaticResource BadgeStyle}" />
+                            </Border>
+                        </Grid>
 
-                <!-- Search -->
-                <Button Grid.Column="2"
-                        Style="{StaticResource SecondaryButtonStyle}"
-                        HorizontalAlignment="Stretch"
-                        Padding="16,14"
-                        Command="{x:Bind ViewModel.NavigateToSearchCommand}">
-                    <StackPanel Orientation="Horizontal" Spacing="10"
-                                HorizontalAlignment="Center">
-                        <FontIcon Glyph="&#xE721;" FontSize="16"
-                                  Foreground="{StaticResource SuccessBrush}" />
-                        <TextBlock Text="Search"
-                                   Style="{StaticResource BodyStyle}"
-                                   FontWeight="SemiBold"
-                                   VerticalAlignment="Center" />
-                    </StackPanel>
-                </Button>
+                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.RecommendedActions, Mode=OneWay}">
+                            <ItemsRepeater.Layout>
+                                <UniformGridLayout MinItemWidth="260"
+                                                   MinItemHeight="0"
+                                                   MinColumnSpacing="12"
+                                                   MinRowSpacing="12"
+                                                   ItemsStretch="Fill" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="vm:DashboardRecommendedActionItem">
+                                    <Border Style="{StaticResource CardInsetStyle}"
+                                            Padding="16,14">
+                                        <Grid RowSpacing="14">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="*" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
 
-                <!-- Ask Files -->
-                <Button Grid.Column="3"
-                        Style="{StaticResource SecondaryButtonStyle}"
-                        HorizontalAlignment="Stretch"
-                        Padding="16,14"
-                        Command="{x:Bind ViewModel.NavigateToAskFilesCommand}">
-                    <StackPanel Orientation="Horizontal" Spacing="10"
-                                HorizontalAlignment="Center">
-                        <FontIcon Glyph="&#xE9D9;" FontSize="16"
-                                  Foreground="{StaticResource WarningBrush}" />
-                        <TextBlock Text="Ask Files"
-                                   Style="{StaticResource BodyStyle}"
-                                   FontWeight="SemiBold"
-                                   VerticalAlignment="Center" />
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <Border Width="36"
+                                                        Height="36"
+                                                        CornerRadius="{StaticResource RadiusMD}"
+                                                        Background="{StaticResource AccentSubtleBrush}">
+                                                    <FontIcon Glyph="{x:Bind IconGlyph}"
+                                                              FontSize="15"
+                                                              Foreground="{StaticResource TextAccentBrush}"
+                                                              HorizontalAlignment="Center"
+                                                              VerticalAlignment="Center" />
+                                                </Border>
+
+                                                <TextBlock Grid.Column="1"
+                                                           Text="{x:Bind Title}"
+                                                           Style="{StaticResource BodyStyle}"
+                                                           FontWeight="SemiBold"
+                                                           Margin="12,0,0,0"
+                                                           VerticalAlignment="Center"
+                                                           TextWrapping="WrapWholeWords" />
+
+                                                <Border Grid.Column="2"
+                                                        Style="{StaticResource BadgeDefaultStyle}"
+                                                        VerticalAlignment="Center">
+                                                    <TextBlock Text="{x:Bind CategoryLabel}"
+                                                               Style="{StaticResource BadgeStyle}" />
+                                                </Border>
+                                            </Grid>
+
+                                            <TextBlock Grid.Row="1"
+                                                       Text="{x:Bind Detail}"
+                                                       Style="{StaticResource BodySecondaryStyle}"
+                                                       TextWrapping="WrapWholeWords" />
+
+                                            <Button Grid.Row="2"
+                                                    Command="{Binding ViewModel.OpenRecommendedActionCommand, ElementName=DashboardRoot}"
+                                                    CommandParameter="{Binding}"
+                                                    Content="{x:Bind CommandText}"
+                                                    Style="{StaticResource SecondaryButtonStyle}"
+                                                    HorizontalAlignment="Left"
+                                                    Padding="12,8"
+                                                    FontSize="12" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
                     </StackPanel>
-                </Button>
-            </Grid>
+                </Border>
+
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- New Chat -->
+                    <Button Grid.Column="0"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            HorizontalAlignment="Stretch"
+                            Padding="16,14"
+                            Command="{x:Bind ViewModel.NavigateToChatCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="10"
+                                    HorizontalAlignment="Center">
+                            <FontIcon Glyph="&#xE8BD;" FontSize="16"
+                                      Foreground="{StaticResource TextAccentBrush}" />
+                            <TextBlock Text="New Chat"
+                                       Style="{StaticResource BodyStyle}"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Import Files -->
+                    <Button Grid.Column="1"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            HorizontalAlignment="Stretch"
+                            Padding="16,14"
+                            Command="{x:Bind ViewModel.NavigateToVaultCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="10"
+                                    HorizontalAlignment="Center">
+                            <FontIcon Glyph="&#xE8B5;" FontSize="16"
+                                      Foreground="{StaticResource InfoBrush}" />
+                            <TextBlock Text="Import Files"
+                                       Style="{StaticResource BodyStyle}"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Search -->
+                    <Button Grid.Column="2"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            HorizontalAlignment="Stretch"
+                            Padding="16,14"
+                            Command="{x:Bind ViewModel.NavigateToSearchCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="10"
+                                    HorizontalAlignment="Center">
+                            <FontIcon Glyph="&#xE721;" FontSize="16"
+                                      Foreground="{StaticResource SuccessBrush}" />
+                            <TextBlock Text="Search"
+                                       Style="{StaticResource BodyStyle}"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Ask Files -->
+                    <Button Grid.Column="3"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            HorizontalAlignment="Stretch"
+                            Padding="16,14"
+                            Command="{x:Bind ViewModel.NavigateToAskFilesCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="10"
+                                    HorizontalAlignment="Center">
+                            <FontIcon Glyph="&#xE9D9;" FontSize="16"
+                                      Foreground="{StaticResource WarningBrush}" />
+                            <TextBlock Text="Ask Files"
+                                       Style="{StaticResource BodyStyle}"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </StackPanel>
 
             <!-- ==========================================================
                  ROW 8: SYSTEM INFO (compact horizontal bar)

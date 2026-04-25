@@ -127,7 +127,68 @@ public sealed class OperationsViewModelTests
         viewModel.RecentWorkflowRuns.Should().ContainSingle();
         viewModel.Connectors.Status.Should().Be("2 connectors enabled");
         viewModel.ConnectorPreviews.Should().ContainSingle();
+        viewModel.OverviewStatusTiles.Should().HaveCount(5);
+        viewModel.OverviewStatusTiles.Select(tile => tile.Title)
+            .Should().Equal("Conversation", "Sync", "Backlog", "Workflows", "Connectors");
+        viewModel.RecommendedActions.Should().HaveCount(3);
+        viewModel.RecommendedActions.Select(action => action.Kind)
+            .Should().Equal(
+                OperationsRecommendedActionKind.Navigate,
+                OperationsRecommendedActionKind.Navigate,
+                OperationsRecommendedActionKind.Navigate);
         viewModel.HasError.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task LoadAsync_builds_clickable_header_status_tiles_for_all_operations_surfaces()
+    {
+        _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot
+                {
+                    Headline = "5",
+                    Status = "Durable recall current",
+                    Detail = "Ready"
+                },
+                SyncHealth = new OperationsCardSnapshot
+                {
+                    Headline = "Configured",
+                    Status = "Standing by",
+                    Detail = "Ready"
+                },
+                IngestionBacklog = new OperationsCardSnapshot
+                {
+                    Headline = "2",
+                    Status = "2 items awaiting triage",
+                    Detail = "Inbox"
+                },
+                WorkflowActivity = new OperationsCardSnapshot
+                {
+                    Headline = "7",
+                    Status = "86% success rate",
+                    Detail = "Healthy"
+                },
+                Connectors = new OperationsCardSnapshot
+                {
+                    Headline = "2",
+                    Status = "2 connectors enabled",
+                    Detail = "Healthy"
+                }
+            });
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.LoadAsync();
+
+        viewModel.OverviewStatusTiles.Should().HaveCount(5);
+        viewModel.OverviewStatusTiles[0].Route.Should().Be("Analytics");
+        viewModel.OverviewStatusTiles[1].Route.Should().Be("SyncSettings");
+        viewModel.OverviewStatusTiles[2].Route.Should().Be("Inbox");
+        viewModel.OverviewStatusTiles[3].Route.Should().Be("Workflows");
+        viewModel.OverviewStatusTiles[4].Route.Should().Be("PluginManager");
+        viewModel.OverviewStatusTiles[2].Status.Should().Be("2 items awaiting triage");
+        viewModel.OverviewStatusTiles[4].NavigationLabel.Should().Be("Open Plugins");
     }
 
     [Fact]
@@ -178,6 +239,89 @@ public sealed class OperationsViewModelTests
         viewModel.SummaryDetail.Should().Contain("refresh pending");
         viewModel.SummaryDetail.Should().Contain("Collaborative sync is off");
         viewModel.SummaryDetail.Should().Contain("items awaiting triage");
+        viewModel.RecommendedActions.Select(action => action.Kind)
+            .Should().Equal(
+                OperationsRecommendedActionKind.RefreshConversationSummaries,
+                OperationsRecommendedActionKind.Navigate,
+                OperationsRecommendedActionKind.GenerateInboxPreviews,
+                OperationsRecommendedActionKind.Navigate);
+    }
+
+    [Fact]
+    public async Task LoadAsync_builds_guided_actions_for_direct_fixes_and_setup()
+    {
+        _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot
+                {
+                    Headline = "4",
+                    Status = "1 refresh pending",
+                    Detail = "4 stored snapshots"
+                },
+                SyncHealth = new OperationsCardSnapshot
+                {
+                    Headline = "Not configured",
+                    Status = "Collaborative sync is off",
+                    Detail = "Configure a shared folder."
+                },
+                IngestionBacklog = new OperationsCardSnapshot
+                {
+                    Headline = "3",
+                    Status = "3 items awaiting triage",
+                    Detail = "Open Smart Inbox to triage imports."
+                },
+                RecentImportedDocuments =
+                [
+                    new OperationsImportedDocumentPreview
+                    {
+                        DocumentId = 501,
+                        Title = "Sprint planning email",
+                        Status = "Email Connector",
+                        HealthStatus = "Needs Attention",
+                        Detail = "Email Message · Embedding request failed."
+                    }
+                ],
+                WorkflowActivity = new OperationsCardSnapshot
+                {
+                    Headline = "0",
+                    Status = "Ready to automate",
+                    SupportingPrimary = "No recent runs",
+                    SupportingSecondary = "Avg duration unavailable",
+                    Detail = "Create or launch a workflow."
+                },
+                Connectors = new OperationsCardSnapshot
+                {
+                    Headline = "1",
+                    Status = "1 plugin installed",
+                    Detail = "Open Plugin Manager to enable connectors."
+                },
+                ConnectorPreviews =
+                [
+                    new OperationsConnectorPreview
+                    {
+                        PluginId = 301,
+                        IsEnabled = false,
+                        CanEnableFromOperations = true,
+                        Title = "Email Connector",
+                        Status = "Disabled",
+                        Detail = "Connector · Brings inbox mail into Agent-X."
+                    }
+                ]
+            });
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.LoadAsync();
+
+        viewModel.RecommendedActions.Should().HaveCount(4);
+        viewModel.RecommendedActions[0].Kind.Should().Be(OperationsRecommendedActionKind.RefreshConversationSummaries);
+        viewModel.RecommendedActions[1].Kind.Should().Be(OperationsRecommendedActionKind.Navigate);
+        viewModel.RecommendedActions[1].Route.Should().Be("SyncSettings");
+        viewModel.RecommendedActions[2].Kind.Should().Be(OperationsRecommendedActionKind.GenerateInboxPreviews);
+        viewModel.RecommendedActions[3].Kind.Should().Be(OperationsRecommendedActionKind.RetryImportedDocumentIndexing);
+        viewModel.RecommendedActions[3].TargetId.Should().Be(501);
+        viewModel.HasRecommendedActions.Should().BeTrue();
     }
 
     [Fact]
@@ -428,6 +572,23 @@ public sealed class OperationsViewModelTests
         viewModel.NavigateToPluginManagerCommand.Execute(null);
 
         navigations.Should().Equal("Dashboard", "Analytics", "SyncSettings", "Inbox", "KnowledgeVault", "Workflows", "PluginManager");
+    }
+
+    [Fact]
+    public void OpenOverviewStatusTileCommand_routes_to_tile_destination()
+    {
+        var viewModel = CreateViewModel();
+        var navigations = new List<string>();
+        viewModel.NavigateRequested = page => navigations.Add(page);
+
+        viewModel.OpenOverviewStatusTileCommand.Execute(new OperationsOverviewStatusTile(
+            "Connectors",
+            "2",
+            "2 connectors enabled",
+            "PluginManager",
+            "Open Plugins"));
+
+        navigations.Should().Equal("PluginManager");
     }
 
     [Fact]
@@ -697,6 +858,73 @@ public sealed class OperationsViewModelTests
         viewModel.HasActionMessage.Should().BeTrue();
         viewModel.ActionMessage.Should().Be("Enabled Email Connector.");
         viewModel.ConnectorPreviews.Single().IsEnabled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ExecuteRecommendedActionAsync_dispatches_enable_connector_fix()
+    {
+        _operationsOverviewService.SetupSequence(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot(),
+                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", Detail = "Ready" },
+                IngestionBacklog = new OperationsCardSnapshot(),
+                WorkflowActivity = new OperationsCardSnapshot(),
+                Connectors = new OperationsCardSnapshot
+                {
+                    Headline = "1",
+                    Status = "1 plugin installed",
+                    Detail = "Open Plugin Manager to enable connectors."
+                },
+                ConnectorPreviews =
+                [
+                    new OperationsConnectorPreview
+                    {
+                        PluginId = 301,
+                        IsEnabled = false,
+                        CanEnableFromOperations = true,
+                        Title = "Email Connector",
+                        Status = "Disabled",
+                        Detail = "Connector · Brings inbox mail into Agent-X."
+                    }
+                ]
+            })
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot(),
+                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", Detail = "Ready" },
+                IngestionBacklog = new OperationsCardSnapshot(),
+                WorkflowActivity = new OperationsCardSnapshot(),
+                Connectors = new OperationsCardSnapshot
+                {
+                    Headline = "1",
+                    Status = "1 connector enabled",
+                    Detail = "Email Connector"
+                },
+                ConnectorPreviews =
+                [
+                    new OperationsConnectorPreview
+                    {
+                        PluginId = 301,
+                        IsEnabled = true,
+                        CanEnableFromOperations = false,
+                        Title = "Email Connector",
+                        Status = "Enabled",
+                        Detail = "Connector · Brings inbox mail into Agent-X."
+                    }
+                ]
+            });
+        _operationsActionService.Setup(service => service.EnableConnectorAsync(301, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsActionResult(true, "Enabled Email Connector."));
+
+        var viewModel = CreateViewModel();
+        await viewModel.LoadAsync();
+
+        var action = viewModel.RecommendedActions.Single(item => item.Kind == OperationsRecommendedActionKind.EnableConnector);
+        await viewModel.ExecuteRecommendedActionCommand.ExecuteAsync(action);
+
+        _operationsActionService.Verify(service => service.EnableConnectorAsync(301, It.IsAny<CancellationToken>()), Times.Once);
+        viewModel.ActionMessage.Should().Be("Enabled Email Connector.");
     }
 
     [Fact]

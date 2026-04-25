@@ -59,6 +59,7 @@
     <!-- DashboardViewModel is pure orchestration/state logic; link it for dashboard cohesion tests. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\DashboardViewModel.cs" Link="ViewModels\DashboardViewModel.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\OperationsViewModel.cs" Link="ViewModels\OperationsViewModel.cs" />
+    <Compile Include="..\..\src\AgentX.App\ViewModels\QuickActionsViewModel.cs" Link="ViewModels\QuickActionsViewModel.cs" />
     <!-- InboxViewModel is pure inbox orchestration/state logic. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\InboxViewModel.cs" Link="ViewModels\InboxViewModel.cs" />
     <!-- KnowledgeVaultViewModel is pure document-orchestration logic aside from an App.GetService seam stubbed in tests. -->

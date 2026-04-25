@@ -135,6 +135,8 @@ public sealed class DashboardViewModelTests
         viewModel.WorkflowRecentActivity.Should().Be("2 active / 30d");
         viewModel.WorkflowAverageDuration.Should().Be("42s avg run");
         viewModel.WorkflowDetail.Should().Contain("Research Briefing");
+        viewModel.RecommendedActions.Select(action => action.Route)
+            .Should().Equal("Operations", "Inbox", "AskFiles");
     }
 
     [Fact]
@@ -187,6 +189,80 @@ public sealed class DashboardViewModelTests
         viewModel.WorkflowRecentActivity.Should().Be("No recent runs");
         viewModel.WorkflowAverageDuration.Should().Be("Avg duration unavailable");
         viewModel.WorkflowDetail.Should().Contain("Vault or Search");
+        viewModel.RecommendedActions.Select(action => action.Route)
+            .Should().Equal("SyncSettings", "PluginManager", "Analytics");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_prioritizes_ai_setup_when_provider_is_unavailable()
+    {
+        _aiProvider.Setup(provider => provider.CheckConnectionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        _aiService.SetupGet(service => service.ActiveModelId).Returns(string.Empty);
+
+        _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot
+                {
+                    Headline = "0",
+                    Status = "Durable recall inactive",
+                    Detail = "Open Analytics to inspect summary coverage."
+                },
+                SyncHealth = new OperationsCardSnapshot
+                {
+                    Headline = "Not configured",
+                    Status = "Collaborative sync is off",
+                    Detail = "Configure a shared folder to keep multiple installations aligned."
+                },
+                IngestionBacklog = new OperationsCardSnapshot
+                {
+                    Headline = "0",
+                    Status = "Queue clear",
+                    Detail = "Watch folders and enabled connectors will surface new items here."
+                },
+                Connectors = new OperationsCardSnapshot
+                {
+                    Headline = "0",
+                    Status = "No plugins installed",
+                    Detail = "Install or enable plugins to bring external data and workflow extensions into the app."
+                },
+                WorkflowActivity = new OperationsCardSnapshot
+                {
+                    Headline = "0",
+                    Status = "Ready to automate",
+                    SupportingPrimary = "No recent runs",
+                    SupportingSecondary = "Avg duration unavailable",
+                    Detail = "Create or launch a workflow from Vault or Search to start automating multi-step tasks."
+                }
+            });
+
+        _indexingService.Setup(service => service.GetQueueLengthAsync()).ReturnsAsync(0);
+        _indexingService.Setup(service => service.GetProcessedCountAsync()).ReturnsAsync(0);
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.RecommendedActions.Select(action => action.Route)
+            .Should().Equal("Settings", "SyncSettings", "PluginManager");
+    }
+
+    [Fact]
+    public void Recommended_action_command_routes_to_target_page()
+    {
+        var viewModel = CreateViewModel();
+        var navigations = new List<string>();
+        viewModel.NavigateRequested = page => navigations.Add(page);
+
+        viewModel.OpenRecommendedActionCommand.Execute(new DashboardRecommendedActionItem
+        {
+            Title = "Review intelligence trends",
+            CommandText = "Open Analytics",
+            Route = "Analytics"
+        });
+
+        navigations.Should().Equal("Analytics");
     }
 
     [Fact]

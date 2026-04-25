@@ -28,6 +28,9 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
 
     [ObservableProperty] private string _summaryHeadline = "Operations ready";
     [ObservableProperty] private string _summaryDetail = "Unified status for conversation intelligence, sync posture, ingestion backlog, workflows, and connectors.";
+    [ObservableProperty] private IReadOnlyList<OperationsOverviewStatusTile> _overviewStatusTiles =
+        BuildOverviewStatusTiles(CreateFallbackSnapshot());
+    [ObservableProperty] private IReadOnlyList<OperationsRecommendedActionItem> _recommendedActions = Array.Empty<OperationsRecommendedActionItem>();
 
     [ObservableProperty] private OperationsCardSnapshot _conversationIntelligence = CreateDefaultConversationCard();
     [ObservableProperty] private OperationsCardSnapshot _syncHealth = CreateDefaultSyncCard();
@@ -40,6 +43,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private IReadOnlyList<OperationsImportedDocumentPreview> _recentImportedDocuments = Array.Empty<OperationsImportedDocumentPreview>();
     [ObservableProperty] private IReadOnlyList<OperationsWorkflowRunPreview> _recentWorkflowRuns = Array.Empty<OperationsWorkflowRunPreview>();
     [ObservableProperty] private IReadOnlyList<OperationsConnectorPreview> _connectorPreviews = Array.Empty<OperationsConnectorPreview>();
+    public bool HasRecommendedActions => RecommendedActions.Count > 0;
 
     public Action<string>? NavigateRequested { get; set; }
 
@@ -95,6 +99,8 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         RecentImportedDocuments = snapshot.RecentImportedDocuments;
         RecentWorkflowRuns = snapshot.RecentWorkflowRuns;
         ConnectorPreviews = snapshot.ConnectorPreviews;
+        OverviewStatusTiles = BuildOverviewStatusTiles(snapshot);
+        RecommendedActions = BuildRecommendedActions(snapshot);
 
         var attentionAreas = CountAttentionAreas(snapshot);
         SummaryHeadline = attentionAreas switch
@@ -272,6 +278,84 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     private void NavigateToPluginManager() => NavigateRequested?.Invoke("PluginManager");
 
     [RelayCommand]
+    private void OpenOverviewStatusTile(OperationsOverviewStatusTile? tile)
+    {
+        if (tile is null || string.IsNullOrWhiteSpace(tile.Route))
+        {
+            return;
+        }
+
+        NavigateRequested?.Invoke(tile.Route);
+    }
+
+    [RelayCommand]
+    private async Task ExecuteRecommendedActionAsync(OperationsRecommendedActionItem? action, CancellationToken ct = default)
+    {
+        if (action is null)
+        {
+            return;
+        }
+
+        switch (action.Kind)
+        {
+            case OperationsRecommendedActionKind.RefreshConversationSummaries:
+                await RefreshConversationSummariesAsync(ct).ConfigureAwait(false);
+                break;
+
+            case OperationsRecommendedActionKind.RunManualSync:
+                await RunManualSyncAsync(ct).ConfigureAwait(false);
+                break;
+
+            case OperationsRecommendedActionKind.GenerateInboxPreviews:
+                await GenerateInboxPreviewsAsync(ct).ConfigureAwait(false);
+                break;
+
+            case OperationsRecommendedActionKind.RetryImportedDocumentIndexing:
+            {
+                var preview = RecentImportedDocuments.FirstOrDefault(item => item.DocumentId == action.TargetId);
+                if (preview is not null && CanRetryImportedDocumentIndexing(preview))
+                {
+                    await RetryImportedDocumentIndexingAsync(preview, ct).ConfigureAwait(false);
+                    break;
+                }
+
+                if (!string.IsNullOrWhiteSpace(action.Route))
+                {
+                    NavigateRequested?.Invoke(action.Route);
+                }
+
+                break;
+            }
+
+            case OperationsRecommendedActionKind.EnableConnector:
+            {
+                var preview = ConnectorPreviews.FirstOrDefault(item => item.PluginId == action.TargetId);
+                if (preview is not null && CanEnableConnector(preview))
+                {
+                    await EnableConnectorAsync(preview, ct).ConfigureAwait(false);
+                    break;
+                }
+
+                if (!string.IsNullOrWhiteSpace(action.Route))
+                {
+                    NavigateRequested?.Invoke(action.Route);
+                }
+
+                break;
+            }
+
+            case OperationsRecommendedActionKind.Navigate:
+            default:
+                if (!string.IsNullOrWhiteSpace(action.Route))
+                {
+                    NavigateRequested?.Invoke(action.Route);
+                }
+
+                break;
+        }
+    }
+
+    [RelayCommand]
     private void OpenConversationPreview(OperationsConversationPreview? preview)
     {
         if (preview is null || preview.ConversationId <= 0)
@@ -404,6 +488,9 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     partial void OnSyncHealthChanged(OperationsCardSnapshot value) =>
         RunManualSyncCommand.NotifyCanExecuteChanged();
 
+    partial void OnRecommendedActionsChanged(IReadOnlyList<OperationsRecommendedActionItem> value) =>
+        OnPropertyChanged(nameof(HasRecommendedActions));
+
     public void Dispose()
     {
         _log.Debug("OperationsViewModel disposed");
@@ -479,6 +566,189 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         Status = "No plugins installed",
         Detail = "Install or enable plugins to bring external data and workflow extensions into the app."
     };
+
+    private static IReadOnlyList<OperationsOverviewStatusTile> BuildOverviewStatusTiles(OperationsOverviewSnapshot snapshot) =>
+    [
+        new OperationsOverviewStatusTile(
+            "Conversation",
+            snapshot.ConversationIntelligence.Headline,
+            snapshot.ConversationIntelligence.Status,
+            "Analytics",
+            "Open Analytics"),
+        new OperationsOverviewStatusTile(
+            "Sync",
+            snapshot.SyncHealth.Headline,
+            snapshot.SyncHealth.Status,
+            "SyncSettings",
+            "Open Sync"),
+        new OperationsOverviewStatusTile(
+            "Backlog",
+            snapshot.IngestionBacklog.Headline,
+            snapshot.IngestionBacklog.Status,
+            "Inbox",
+            "Open Inbox"),
+        new OperationsOverviewStatusTile(
+            "Workflows",
+            snapshot.WorkflowActivity.Headline,
+            snapshot.WorkflowActivity.Status,
+            "Workflows",
+            "Open Workflows"),
+        new OperationsOverviewStatusTile(
+            "Connectors",
+            snapshot.Connectors.Headline,
+            snapshot.Connectors.Status,
+            "PluginManager",
+            "Open Plugins")
+    ];
+
+    private static IReadOnlyList<OperationsRecommendedActionItem> BuildRecommendedActions(OperationsOverviewSnapshot snapshot)
+    {
+        var items = new List<OperationsRecommendedActionItem>();
+
+        var documentNeedingAttention = snapshot.RecentImportedDocuments.FirstOrDefault(preview =>
+            preview.DocumentId > 0 &&
+            preview.HealthStatus.Equals("Needs Attention", StringComparison.OrdinalIgnoreCase));
+        var connectorToEnable = snapshot.ConnectorPreviews.FirstOrDefault(preview => preview.CanEnableFromOperations);
+        var failedWorkflowRun = snapshot.RecentWorkflowRuns.FirstOrDefault(preview =>
+            preview.RunId > 0 &&
+            (preview.Status.Equals("Failed", StringComparison.OrdinalIgnoreCase) ||
+             preview.Status.Equals("Cancelled", StringComparison.OrdinalIgnoreCase)));
+
+        if (NeedsConversationAttention(snapshot.ConversationIntelligence))
+        {
+            items.Add(new OperationsRecommendedActionItem(
+                "Memory",
+                "\uE9D2",
+                "Refresh durable recall coverage",
+                "Conversation summaries are stale or incomplete. Refresh them so the rest of the app sees the latest memory state.",
+                snapshot.ConversationIntelligence.Status,
+                "Refresh Summaries",
+                "Analytics",
+                OperationsRecommendedActionKind.RefreshConversationSummaries));
+        }
+
+        if (NeedsSyncAttention(snapshot.SyncHealth))
+        {
+            var requiresSetup =
+                snapshot.SyncHealth.Headline.Equals("Not configured", StringComparison.OrdinalIgnoreCase) ||
+                snapshot.SyncHealth.Status.Contains("off", StringComparison.OrdinalIgnoreCase);
+
+            items.Add(new OperationsRecommendedActionItem(
+                requiresSetup ? "Setup" : "Sync",
+                "\uE895",
+                requiresSetup ? "Configure collaborative sync" : "Run a manual sync pass",
+                requiresSetup
+                    ? "Sync is not fully configured yet. Finish setup so multiple Agent-X installations can stay aligned."
+                    : "Sync needs a manual nudge to bring the workspace back into a clean state.",
+                snapshot.SyncHealth.Status,
+                requiresSetup ? "Open Sync" : "Run Sync Now",
+                "SyncSettings",
+                requiresSetup
+                    ? OperationsRecommendedActionKind.Navigate
+                    : OperationsRecommendedActionKind.RunManualSync));
+        }
+
+        if (ParseCompactNumber(snapshot.IngestionBacklog.Headline) > 0)
+        {
+            items.Add(new OperationsRecommendedActionItem(
+                "Backlog",
+                "\uE8B7",
+                "Generate AI previews for intake",
+                "Turn the current backlog into faster triage decisions by generating previews for the pending inbox items.",
+                snapshot.IngestionBacklog.Status,
+                "Generate Previews",
+                "Inbox",
+                OperationsRecommendedActionKind.GenerateInboxPreviews));
+        }
+
+        if (documentNeedingAttention is not null)
+        {
+            items.Add(new OperationsRecommendedActionItem(
+                "Indexing",
+                "\uE8B1",
+                $"Retry indexing {documentNeedingAttention.Title}",
+                "A recently imported document still needs attention before it becomes reliably searchable and reusable elsewhere in the app.",
+                documentNeedingAttention.HealthStatus,
+                "Retry Index",
+                "KnowledgeVault",
+                OperationsRecommendedActionKind.RetryImportedDocumentIndexing,
+                documentNeedingAttention.DocumentId));
+        }
+
+        if (connectorToEnable is not null)
+        {
+            items.Add(new OperationsRecommendedActionItem(
+                "Connector",
+                "\uE943",
+                $"Enable {connectorToEnable.Title}",
+                "Bring the connector online so new external content can start flowing into triage, search, and workflow surfaces.",
+                connectorToEnable.Status,
+                "Enable Connector",
+                "PluginManager",
+                OperationsRecommendedActionKind.EnableConnector,
+                connectorToEnable.PluginId));
+        }
+        else if (snapshot.Connectors.Headline.Equals("0", StringComparison.OrdinalIgnoreCase) ||
+                 snapshot.Connectors.Status.Contains("no plugins installed", StringComparison.OrdinalIgnoreCase) ||
+                 snapshot.Connectors.Status.Contains("no connectors", StringComparison.OrdinalIgnoreCase))
+        {
+            items.Add(new OperationsRecommendedActionItem(
+                "Expansion",
+                "\uE943",
+                "Connect a live source",
+                "Bring in fresh external content so the rest of the workspace has more real intake to triage, search, and automate.",
+                string.IsNullOrWhiteSpace(snapshot.Connectors.Status) ? "No connectors enabled" : snapshot.Connectors.Status,
+                "Open Plugins",
+                "PluginManager",
+                OperationsRecommendedActionKind.Navigate));
+        }
+
+        if (failedWorkflowRun is not null)
+        {
+            items.Add(new OperationsRecommendedActionItem(
+                "Workflow",
+                "\uE8C7",
+                $"Review {failedWorkflowRun.Title}",
+                "A recent workflow run needs review before the automation layer is fully healthy again.",
+                failedWorkflowRun.Status,
+                "Open Workflows",
+                "Workflows",
+                OperationsRecommendedActionKind.Navigate));
+        }
+
+        if (items.Count == 0)
+        {
+            items.Add(new OperationsRecommendedActionItem(
+                "Review",
+                "\uE9D2",
+                "Inspect durable recall coverage",
+                "Use Analytics to keep an eye on recall freshness, conversation themes, and workflow intelligence trends.",
+                snapshot.ConversationIntelligence.Status,
+                "Open Analytics",
+                "Analytics",
+                OperationsRecommendedActionKind.Navigate));
+            items.Add(new OperationsRecommendedActionItem(
+                "Review",
+                "\uE895",
+                "Review sync posture",
+                "Open Collaborative Sync to verify history, scope, and any local changes pending synchronization.",
+                snapshot.SyncHealth.Status,
+                "Open Sync",
+                "SyncSettings",
+                OperationsRecommendedActionKind.Navigate));
+            items.Add(new OperationsRecommendedActionItem(
+                "Review",
+                "\uE8C7",
+                "Review workflow momentum",
+                "Open Workflows to inspect recent runs, tune templates, and keep automation close to real work.",
+                snapshot.WorkflowActivity.Status,
+                "Open Workflows",
+                "Workflows",
+                OperationsRecommendedActionKind.Navigate));
+        }
+
+        return items.Take(4).ToArray();
+    }
 
     private static int CountAttentionAreas(OperationsOverviewSnapshot snapshot)
     {
@@ -615,3 +885,31 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
                 : 0;
     }
 }
+
+public sealed record OperationsOverviewStatusTile(
+    string Title,
+    string Headline,
+    string Status,
+    string Route,
+    string NavigationLabel);
+
+public enum OperationsRecommendedActionKind
+{
+    Navigate,
+    RefreshConversationSummaries,
+    RunManualSync,
+    GenerateInboxPreviews,
+    RetryImportedDocumentIndexing,
+    EnableConnector
+}
+
+public sealed record OperationsRecommendedActionItem(
+    string CategoryLabel,
+    string IconGlyph,
+    string Title,
+    string Detail,
+    string Status,
+    string CommandText,
+    string Route,
+    OperationsRecommendedActionKind Kind,
+    long TargetId = 0);

@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using AgentX.App.Services;
 using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
 using AgentX.Core.Services.Intelligence;
@@ -16,11 +17,14 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
     private readonly IDuplicateDetectionService _duplicateDetectionService;
     private readonly IOrganizationSuggestionService _organizationSuggestionService;
     private readonly IDocumentService _documentService;
+    private readonly IOperationsOverviewService _operationsOverviewService;
     private readonly ILogger _logger;
+    private OperationsOverviewSnapshot _operationsSnapshot = new();
 
     // ── Document Selection ───────────────────────────────────
     [ObservableProperty] private ObservableCollection<QuickActionDocumentItem> _availableDocuments = new();
     [ObservableProperty] private QuickActionDocumentItem? _selectedDocument;
+    [ObservableProperty] private ObservableCollection<QuickActionRecommendedItem> _recommendedActions = new();
 
     // ── Summarize Tab ────────────────────────────────────────
     [ObservableProperty] private string _summaryResult = string.Empty;
@@ -55,18 +59,22 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _hasTranslationOutput;
     [ObservableProperty] private bool _hasDuplicateResults;
     [ObservableProperty] private bool _hasSuggestionResults;
+    public bool HasRecommendedActions => RecommendedActions.Count > 0;
+    public Action<string>? NavigateRequested { get; set; }
 
     public QuickActionsViewModel(
         ISummaryService summaryService,
         IDuplicateDetectionService duplicateDetectionService,
         IOrganizationSuggestionService organizationSuggestionService,
         IDocumentService documentService,
+        IOperationsOverviewService operationsOverviewService,
         ILogger logger)
     {
         _summaryService = summaryService;
         _duplicateDetectionService = duplicateDetectionService;
         _organizationSuggestionService = organizationSuggestionService;
         _documentService = documentService;
+        _operationsOverviewService = operationsOverviewService;
         _logger = logger;
 
         _logger.Debug("QuickActionsViewModel created with services");
@@ -75,7 +83,10 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
     public async Task InitializeAsync()
     {
         _logger.Information("QuickActions initializing...");
-        await LoadAvailableDocumentsAsync();
+        await Task.WhenAll(
+            LoadAvailableDocumentsAsync(),
+            LoadOperationsContextAsync());
+        BuildRecommendedActions();
         _logger.Information("QuickActions initialized with {Count} documents", AvailableDocuments.Count);
     }
 
@@ -111,7 +122,234 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
         }
     }
 
+    private async Task LoadOperationsContextAsync()
+    {
+        try
+        {
+            _operationsSnapshot = await _operationsOverviewService.GetSnapshotAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Failed to load Operations context for Quick Actions");
+            _operationsSnapshot = new OperationsOverviewSnapshot();
+        }
+    }
+
+    private void BuildRecommendedActions()
+    {
+        var items = new List<QuickActionRecommendedItem>();
+        var routes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var selected = SelectedDocument;
+        var intakeCount = ParseCompactNumber(_operationsSnapshot.IngestionBacklog.Headline);
+        var selectedReady = selected is not null &&
+                            selected.IndexingStatus.Equals("completed", StringComparison.OrdinalIgnoreCase);
+        var selectedNeedsIndexing = selected is not null && !selectedReady;
+
+        void AddAction(QuickActionRecommendedItem item)
+        {
+            if (item.Kind == QuickActionRecommendedActionKind.Navigate)
+            {
+                if (string.IsNullOrWhiteSpace(item.Route) || !routes.Add(item.Route))
+                {
+                    return;
+                }
+            }
+
+            items.Add(item);
+        }
+
+        if (selected is null)
+        {
+            AddAction(new QuickActionRecommendedItem
+            {
+                CategoryLabel = "Setup",
+                IconGlyph = "\uE8B5",
+                Title = "Import high-value source material",
+                Detail = "Quick Actions becomes much more useful once the vault contains the documents you want to summarize, compare, and organize.",
+                StatusLabel = "No document selected",
+                CommandText = "Open Vault",
+                Route = "KnowledgeVault",
+                Kind = QuickActionRecommendedActionKind.Navigate
+            });
+        }
+        else if (selectedNeedsIndexing)
+        {
+            AddAction(new QuickActionRecommendedItem
+            {
+                CategoryLabel = "Readiness",
+                IconGlyph = "\uE8B1",
+                Title = $"Finish indexing {selected.FileName}",
+                Detail = "The selected document is not fully ready for the strongest content actions yet. Review it in the vault or operations surfaces first.",
+                StatusLabel = NormalizeStatusLabel(selected.IndexingStatus),
+                CommandText = "Open Vault",
+                Route = "KnowledgeVault",
+                Kind = QuickActionRecommendedActionKind.Navigate,
+                DocumentId = selected.Id
+            });
+        }
+        else
+        {
+            AddAction(new QuickActionRecommendedItem
+            {
+                CategoryLabel = "Document",
+                IconGlyph = "\uE8C8",
+                Title = $"Summarize {selected.FileName}",
+                Detail = "Generate a layered summary while the selected document is already searchable and ready for reduction.",
+                StatusLabel = "Searchable",
+                CommandText = "Run Summary",
+                Kind = QuickActionRecommendedActionKind.SummarizeSelectedDocument,
+                DocumentId = selected.Id
+            });
+        }
+
+        if (intakeCount > 0)
+        {
+            AddAction(new QuickActionRecommendedItem
+            {
+                CategoryLabel = "Inbox",
+                IconGlyph = "\uE8B7",
+                Title = "Triage new incoming content",
+                Detail = "The current intake backlog needs routing and review before it can turn into reliable knowledge or workflow input.",
+                StatusLabel = _operationsSnapshot.IngestionBacklog.Status,
+                CommandText = "Open Inbox",
+                Route = "Inbox",
+                Kind = QuickActionRecommendedActionKind.Navigate
+            });
+        }
+
+        if (selectedReady)
+        {
+            AddAction(new QuickActionRecommendedItem
+            {
+                CategoryLabel = "Document",
+                IconGlyph = "\uE8FD",
+                Title = $"Extract key points from {selected!.FileName}",
+                Detail = "Pull out the main points and action-oriented takeaways from the currently selected document.",
+                StatusLabel = "Searchable",
+                CommandText = "Extract Key Points",
+                Kind = QuickActionRecommendedActionKind.ExtractKeyPointsSelectedDocument,
+                DocumentId = selected.Id
+            });
+        }
+
+        if (ConnectorsNeedSetup(_operationsSnapshot))
+        {
+            AddAction(new QuickActionRecommendedItem
+            {
+                CategoryLabel = "Expansion",
+                IconGlyph = "\uE943",
+                Title = "Connect a live source",
+                Detail = "Bring in fresh email, calendar, or external content so Quick Actions has more real intake to work with.",
+                StatusLabel = string.IsNullOrWhiteSpace(_operationsSnapshot.Connectors.Status)
+                    ? "No connectors enabled"
+                    : _operationsSnapshot.Connectors.Status,
+                CommandText = "Open Plugins",
+                Route = "PluginManager",
+                Kind = QuickActionRecommendedActionKind.Navigate
+            });
+        }
+
+        if (selectedReady && AvailableDocuments.Count > 1)
+        {
+            AddAction(new QuickActionRecommendedItem
+            {
+                CategoryLabel = "Review",
+                IconGlyph = "\uE8C6",
+                Title = "Scan for semantic near-duplicates",
+                Detail = "Use the current document set to find redundant or overlapping content that should be consolidated.",
+                StatusLabel = $"{AvailableDocuments.Count} documents available",
+                CommandText = "Run Duplicate Scan",
+                Kind = QuickActionRecommendedActionKind.FindNearDuplicates
+            });
+        }
+
+        if (AvailableDocuments.Count > 0)
+        {
+            AddAction(new QuickActionRecommendedItem
+            {
+                CategoryLabel = "Organize",
+                IconGlyph = "\uE8B7",
+                Title = "Generate organization suggestions",
+                Detail = "Ask the app to suggest collections and tags for uncategorized or loosely organized content.",
+                StatusLabel = $"{AvailableDocuments.Count} documents available",
+                CommandText = "Suggest Organization",
+                Kind = QuickActionRecommendedActionKind.SuggestOrganization
+            });
+        }
+
+        if (items.Count == 0)
+        {
+            AddAction(new QuickActionRecommendedItem
+            {
+                CategoryLabel = "Explore",
+                IconGlyph = "\uE8C1",
+                Title = "Translate a selected excerpt",
+                Detail = "Use Quick Actions to adapt short content for another language without leaving the page.",
+                StatusLabel = "Ready",
+                CommandText = "Open Translate",
+                Kind = QuickActionRecommendedActionKind.SelectTranslateTab
+            });
+        }
+
+        RecommendedActions = new ObservableCollection<QuickActionRecommendedItem>(items.Take(4));
+        OnPropertyChanged(nameof(HasRecommendedActions));
+    }
+
     // ── Commands ─────────────────────────────────────────────
+
+    [RelayCommand]
+    private async Task ExecuteRecommendedActionAsync(QuickActionRecommendedItem? action)
+    {
+        if (action is null)
+        {
+            return;
+        }
+
+        if (action.DocumentId > 0 && SelectedDocument?.Id != action.DocumentId)
+        {
+            var matchingDocument = AvailableDocuments.FirstOrDefault(document => document.Id == action.DocumentId);
+            if (matchingDocument is not null)
+            {
+                SelectedDocument = matchingDocument;
+            }
+        }
+
+        switch (action.Kind)
+        {
+            case QuickActionRecommendedActionKind.SummarizeSelectedDocument:
+                SelectedTabIndex = 0;
+                await SummarizeAsync();
+                break;
+
+            case QuickActionRecommendedActionKind.ExtractKeyPointsSelectedDocument:
+                SelectedTabIndex = 1;
+                await ExtractKeyPointsAsync();
+                break;
+
+            case QuickActionRecommendedActionKind.FindNearDuplicates:
+                SelectedTabIndex = 3;
+                await FindNearDuplicatesAsync();
+                break;
+
+            case QuickActionRecommendedActionKind.SuggestOrganization:
+                SelectedTabIndex = 4;
+                await SuggestOrganizationAsync();
+                break;
+
+            case QuickActionRecommendedActionKind.SelectTranslateTab:
+                SelectedTabIndex = 2;
+                break;
+
+            case QuickActionRecommendedActionKind.Navigate:
+            default:
+                if (!string.IsNullOrWhiteSpace(action.Route))
+                {
+                    NavigateRequested?.Invoke(action.Route);
+                }
+
+                break;
+        }
+    }
 
     [RelayCommand]
     private async Task SummarizeAsync()
@@ -354,6 +592,11 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
         _logger.Debug("QuickActionsViewModel disposed");
     }
 
+    partial void OnSelectedDocumentChanged(QuickActionDocumentItem? value) => BuildRecommendedActions();
+
+    partial void OnRecommendedActionsChanged(ObservableCollection<QuickActionRecommendedItem> value) =>
+        OnPropertyChanged(nameof(HasRecommendedActions));
+
     private static ObservableCollection<QuickActionDuplicateGroupItem> BuildDuplicateDisplayGroups(
         IReadOnlyList<DuplicateGroup> groups)
     {
@@ -407,6 +650,49 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
 
         return $"{(int)Math.Round(evidence.Confidence * 100)}% confidence from {evidence.SupportingChunkCount} matching chunk(s)";
     }
+
+    private static int ParseCompactNumber(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return 0;
+        }
+
+        var normalized = value.Trim().ToUpperInvariant();
+        if (normalized.EndsWith("K", StringComparison.Ordinal))
+        {
+            return double.TryParse(normalized[..^1], out var thousands)
+                ? (int)Math.Round(thousands * 1_000)
+                : 0;
+        }
+
+        if (normalized.EndsWith("M", StringComparison.Ordinal))
+        {
+            return double.TryParse(normalized[..^1], out var millions)
+                ? (int)Math.Round(millions * 1_000_000)
+                : 0;
+        }
+
+        return int.TryParse(normalized, out var count)
+            ? count
+            : 0;
+    }
+
+    private static bool ConnectorsNeedSetup(OperationsOverviewSnapshot snapshot) =>
+        snapshot.Connectors.Headline.Equals("0", StringComparison.OrdinalIgnoreCase) ||
+        snapshot.Connectors.Status.Contains("no plugins installed", StringComparison.OrdinalIgnoreCase) ||
+        snapshot.Connectors.Status.Contains("no connectors", StringComparison.OrdinalIgnoreCase);
+
+    private static string NormalizeStatusLabel(string indexingStatus) =>
+        indexingStatus switch
+        {
+            "completed" => "Searchable",
+            "pending" => "Queued",
+            "processing" => "Processing",
+            "failed" => "Needs Attention",
+            _ when string.IsNullOrWhiteSpace(indexingStatus) => "Needs Review",
+            _ => indexingStatus
+        };
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -426,6 +712,29 @@ public class QuickActionDocumentItem
     public string DisplayLabel { get; init; } = string.Empty;
 
     public override string ToString() => DisplayLabel;
+}
+
+public enum QuickActionRecommendedActionKind
+{
+    Navigate,
+    SummarizeSelectedDocument,
+    ExtractKeyPointsSelectedDocument,
+    FindNearDuplicates,
+    SuggestOrganization,
+    SelectTranslateTab
+}
+
+public class QuickActionRecommendedItem
+{
+    public string CategoryLabel { get; init; } = string.Empty;
+    public string IconGlyph { get; init; } = string.Empty;
+    public string Title { get; init; } = string.Empty;
+    public string Detail { get; init; } = string.Empty;
+    public string StatusLabel { get; init; } = string.Empty;
+    public string CommandText { get; init; } = string.Empty;
+    public string Route { get; init; } = string.Empty;
+    public QuickActionRecommendedActionKind Kind { get; init; }
+    public long DocumentId { get; init; }
 }
 
 /// <summary>
