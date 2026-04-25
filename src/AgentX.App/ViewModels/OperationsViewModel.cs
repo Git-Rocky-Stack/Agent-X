@@ -319,10 +319,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
                     break;
                 }
 
-                if (!string.IsNullOrWhiteSpace(action.Route))
-                {
-                    NavigateRequested?.Invoke(action.Route);
-                }
+                NavigateToRecommendedAction(action);
 
                 break;
             }
@@ -336,20 +333,14 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
                     break;
                 }
 
-                if (!string.IsNullOrWhiteSpace(action.Route))
-                {
-                    NavigateRequested?.Invoke(action.Route);
-                }
+                NavigateToRecommendedAction(action);
 
                 break;
             }
 
             case OperationsRecommendedActionKind.Navigate:
             default:
-                if (!string.IsNullOrWhiteSpace(action.Route))
-                {
-                    NavigateRequested?.Invoke(action.Route);
-                }
+                NavigateToRecommendedAction(action);
 
                 break;
         }
@@ -519,6 +510,17 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         ActionMessage = string.Empty;
         HasActionError = false;
         ActionErrorMessage = string.Empty;
+    }
+
+    private void NavigateToRecommendedAction(OperationsRecommendedActionItem action)
+    {
+        if (string.IsNullOrWhiteSpace(action.Route))
+        {
+            return;
+        }
+
+        StageRecommendedActionDrillIn(action);
+        NavigateRequested?.Invoke(action.Route);
     }
 
     private static OperationsOverviewSnapshot CreateFallbackSnapshot() => new()
@@ -713,7 +715,9 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
                 failedWorkflowRun.Status,
                 "Open Workflows",
                 "Workflows",
-                OperationsRecommendedActionKind.Navigate));
+                OperationsRecommendedActionKind.Navigate,
+                failedWorkflowRun.WorkflowId,
+                failedWorkflowRun.RunId));
         }
 
         if (items.Count == 0)
@@ -808,6 +812,33 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         previews.Any(preview => preview.RunId > 0 &&
                                 (preview.Status.Equals("Failed", StringComparison.OrdinalIgnoreCase) ||
                                  preview.Status.Equals("Cancelled", StringComparison.OrdinalIgnoreCase)));
+
+    private void StageRecommendedActionDrillIn(OperationsRecommendedActionItem action)
+    {
+        var sourceLabel = $"Opened Operations recommendation \"{action.Title}\"";
+        switch (action.Route)
+        {
+            case "Inbox" when action.TargetId > 0:
+                _operationsDrillInService.StageInboxRequest(
+                    new OperationsInboxDrillInRequest(action.TargetId, sourceLabel));
+                break;
+
+            case "KnowledgeVault" when action.TargetId > 0:
+                _operationsDrillInService.StageDocumentRequest(
+                    new OperationsDocumentDrillInRequest(action.TargetId, sourceLabel));
+                break;
+
+            case "PluginManager" when action.TargetId > 0:
+                _operationsDrillInService.StagePluginRequest(
+                    new OperationsPluginDrillInRequest(action.TargetId, sourceLabel));
+                break;
+
+            case "Workflows" when action.TargetId > 0 && action.SecondaryTargetId > 0:
+                _operationsDrillInService.StageWorkflowRunRequest(
+                    new OperationsWorkflowRunDrillInRequest(action.TargetId, action.SecondaryTargetId, sourceLabel));
+                break;
+        }
+    }
 
     private static string BuildAttentionSummary(OperationsOverviewSnapshot snapshot)
     {
@@ -912,4 +943,5 @@ public sealed record OperationsRecommendedActionItem(
     string CommandText,
     string Route,
     OperationsRecommendedActionKind Kind,
-    long TargetId = 0);
+    long TargetId = 0,
+    long SecondaryTargetId = 0);

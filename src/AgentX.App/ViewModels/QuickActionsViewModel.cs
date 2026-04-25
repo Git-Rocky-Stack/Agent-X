@@ -18,6 +18,7 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
     private readonly IOrganizationSuggestionService _organizationSuggestionService;
     private readonly IDocumentService _documentService;
     private readonly IOperationsOverviewService _operationsOverviewService;
+    private readonly IOperationsDrillInService? _operationsDrillInService;
     private readonly ILogger _logger;
     private OperationsOverviewSnapshot _operationsSnapshot = new();
 
@@ -68,13 +69,15 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
         IOrganizationSuggestionService organizationSuggestionService,
         IDocumentService documentService,
         IOperationsOverviewService operationsOverviewService,
-        ILogger logger)
+        ILogger logger,
+        IOperationsDrillInService? operationsDrillInService = null)
     {
         _summaryService = summaryService;
         _duplicateDetectionService = duplicateDetectionService;
         _organizationSuggestionService = organizationSuggestionService;
         _documentService = documentService;
         _operationsOverviewService = operationsOverviewService;
+        _operationsDrillInService = operationsDrillInService;
         _logger = logger;
 
         _logger.Debug("QuickActionsViewModel created with services");
@@ -141,6 +144,10 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
         var routes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var selected = SelectedDocument;
         var intakeCount = ParseCompactNumber(_operationsSnapshot.IngestionBacklog.Headline);
+        var targetInboxItem = _operationsSnapshot.PendingInboxItems.FirstOrDefault(item => item.ItemId > 0);
+        var targetConnector = _operationsSnapshot.ConnectorPreviews.FirstOrDefault(preview =>
+            preview.PluginId > 0 &&
+            preview.CanEnableFromOperations);
         var selectedReady = selected is not null &&
                             selected.IndexingStatus.Equals("completed", StringComparison.OrdinalIgnoreCase);
         var selectedNeedsIndexing = selected is not null && !selectedReady;
@@ -181,7 +188,7 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
                 Title = $"Finish indexing {selected.FileName}",
                 Detail = "The selected document is not fully ready for the strongest content actions yet. Review it in the vault or operations surfaces first.",
                 StatusLabel = NormalizeStatusLabel(selected.IndexingStatus),
-                CommandText = "Open Vault",
+                CommandText = "Review Document",
                 Route = "KnowledgeVault",
                 Kind = QuickActionRecommendedActionKind.Navigate,
                 DocumentId = selected.Id
@@ -211,9 +218,10 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
                 Title = "Triage new incoming content",
                 Detail = "The current intake backlog needs routing and review before it can turn into reliable knowledge or workflow input.",
                 StatusLabel = _operationsSnapshot.IngestionBacklog.Status,
-                CommandText = "Open Inbox",
+                CommandText = targetInboxItem is null ? "Open Inbox" : "Open Item",
                 Route = "Inbox",
-                Kind = QuickActionRecommendedActionKind.Navigate
+                Kind = QuickActionRecommendedActionKind.Navigate,
+                TargetId = targetInboxItem?.ItemId ?? 0
             });
         }
 
@@ -243,9 +251,10 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
                 StatusLabel = string.IsNullOrWhiteSpace(_operationsSnapshot.Connectors.Status)
                     ? "No connectors enabled"
                     : _operationsSnapshot.Connectors.Status,
-                CommandText = "Open Plugins",
+                CommandText = targetConnector is null ? "Open Plugins" : "Open Connector",
                 Route = "PluginManager",
-                Kind = QuickActionRecommendedActionKind.Navigate
+                Kind = QuickActionRecommendedActionKind.Navigate,
+                TargetId = targetConnector?.PluginId ?? 0
             });
         }
 
@@ -344,6 +353,7 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
             default:
                 if (!string.IsNullOrWhiteSpace(action.Route))
                 {
+                    StageRecommendedActionDrillIn(action);
                     NavigateRequested?.Invoke(action.Route);
                 }
 
@@ -693,6 +703,33 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
             _ when string.IsNullOrWhiteSpace(indexingStatus) => "Needs Review",
             _ => indexingStatus
         };
+
+    private void StageRecommendedActionDrillIn(QuickActionRecommendedItem action)
+    {
+        if (_operationsDrillInService is null)
+        {
+            return;
+        }
+
+        var sourceLabel = $"Opened Quick Actions recommendation \"{action.Title}\"";
+        switch (action.Route)
+        {
+            case "KnowledgeVault" when action.DocumentId > 0:
+                _operationsDrillInService.StageDocumentRequest(
+                    new OperationsDocumentDrillInRequest(action.DocumentId, sourceLabel));
+                break;
+
+            case "Inbox" when action.TargetId > 0:
+                _operationsDrillInService.StageInboxRequest(
+                    new OperationsInboxDrillInRequest(action.TargetId, sourceLabel));
+                break;
+
+            case "PluginManager" when action.TargetId > 0:
+                _operationsDrillInService.StagePluginRequest(
+                    new OperationsPluginDrillInRequest(action.TargetId, sourceLabel));
+                break;
+        }
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -735,6 +772,7 @@ public class QuickActionRecommendedItem
     public string Route { get; init; } = string.Empty;
     public QuickActionRecommendedActionKind Kind { get; init; }
     public long DocumentId { get; init; }
+    public long TargetId { get; init; }
 }
 
 /// <summary>
