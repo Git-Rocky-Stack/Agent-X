@@ -128,20 +128,33 @@
                             BorderThickness="1"
                             CornerRadius="{StaticResource RadiusMD}"
                             Padding="16,14">
-                        <StackPanel Spacing="6">
-                            <TextBlock Text="Focused Inbox Item"
-                                       Style="{StaticResource BodyStyle}"
-                                       FontWeight="SemiBold"
-                                       Foreground="{StaticResource AccentPrimaryBrush}" />
-                            <TextBlock Text="{x:Bind ViewModel.FocusedInboxSourceLabel, Mode=OneWay}"
-                                       Style="{StaticResource BodySecondaryStyle}"
-                                       TextWrapping="Wrap" />
-                            <TextBlock Text="{x:Bind ViewModel.FocusedInboxVisibilityHint, Mode=OneWay}"
-                                       Style="{StaticResource CaptionStyle}"
-                                       Opacity="0.7"
-                                       TextWrapping="Wrap"
-                                       Visibility="{x:Bind ViewModel.FocusedInboxVisibilityHint, Mode=OneWay, Converter={StaticResource StringToVis}}" />
-                        </StackPanel>
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Focused Inbox Item"
+                                           Style="{StaticResource BodyStyle}"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource AccentPrimaryBrush}" />
+                                <TextBlock Text="{x:Bind ViewModel.FocusedInboxSourceLabel, Mode=OneWay}"
+                                           Style="{StaticResource BodySecondaryStyle}"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Text="{x:Bind ViewModel.FocusedInboxVisibilityHint, Mode=OneWay}"
+                                           Style="{StaticResource CaptionStyle}"
+                                           Opacity="0.7"
+                                           TextWrapping="Wrap"
+                                           Visibility="{x:Bind ViewModel.FocusedInboxVisibilityHint, Mode=OneWay, Converter={StaticResource StringToVis}}" />
+                            </StackPanel>
+
+                            <Button Grid.Column="1"
+                                    Content="Dismiss"
+                                    Command="{x:Bind ViewModel.DismissFocusedInboxLandingCommand}"
+                                    Style="{StaticResource GhostButtonStyle}"
+                                    VerticalAlignment="Top" />
+                        </Grid>
                     </Border>
 
                     <!-- Inbox Item List -->

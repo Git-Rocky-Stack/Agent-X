@@ -384,21 +384,34 @@
                                     Padding="12,10"
                                     MaxWidth="520"
                                     Visibility="Collapsed">
-                                <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <FontIcon Glyph="&#xE8A5;"
-                                              FontSize="14"
-                                              Foreground="{StaticResource AccentPrimaryBrush}"
-                                              VerticalAlignment="Top" />
-                                    <StackPanel Spacing="3">
-                                        <TextBlock Text="Focused Connector"
-                                                   Style="{StaticResource CaptionStyle}"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="{StaticResource AccentPrimaryBrush}" />
-                                        <TextBlock x:Name="DetailOperationsBadgeText"
-                                                   Style="{StaticResource BodySecondaryStyle}"
-                                                   TextWrapping="WrapWholeWords" />
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <FontIcon Glyph="&#xE8A5;"
+                                                  FontSize="14"
+                                                  Foreground="{StaticResource AccentPrimaryBrush}"
+                                                  VerticalAlignment="Top" />
+                                        <StackPanel Spacing="3">
+                                            <TextBlock Text="Focused Connector"
+                                                       Style="{StaticResource CaptionStyle}"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{StaticResource AccentPrimaryBrush}" />
+                                            <TextBlock x:Name="DetailOperationsBadgeText"
+                                                       Style="{StaticResource BodySecondaryStyle}"
+                                                       TextWrapping="WrapWholeWords" />
+                                        </StackPanel>
                                     </StackPanel>
-                                </StackPanel>
+
+                                    <Button Grid.Column="1"
+                                            Content="Dismiss"
+                                            Command="{x:Bind ViewModel.DismissFocusedPluginLandingCommand}"
+                                            Style="{StaticResource GhostButtonStyle}"
+                                            VerticalAlignment="Top" />
+                                </Grid>
                             </Border>
                         </StackPanel>
 

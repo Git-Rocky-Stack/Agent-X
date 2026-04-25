@@ -114,6 +114,11 @@ public sealed partial class PluginManagerPage : Page
     {
         if (PluginListView.SelectedItem is PluginDisplayItem plugin)
         {
+            if (_selectedPlugin?.IsFocused == true && _selectedPlugin.Id != plugin.Id)
+            {
+                ViewModel.DismissFocusedPluginLandingCommand.Execute(null);
+            }
+
             _selectedPlugin = plugin;
             PopulateDetailPanel(plugin);
             DetailPanel.Visibility = Visibility.Visible;
@@ -121,6 +126,11 @@ public sealed partial class PluginManagerPage : Page
         }
         else
         {
+            if (_selectedPlugin?.IsFocused == true)
+            {
+                ViewModel.DismissFocusedPluginLandingCommand.Execute(null);
+            }
+
             _selectedPlugin = null;
             DetailPanel.Visibility = Visibility.Collapsed;
             EmptyStatePanel.Visibility = Visibility.Visible;
@@ -231,9 +241,22 @@ public sealed partial class PluginManagerPage : Page
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(PluginManagerViewModel.FocusedPluginId))
+        if (e.PropertyName == nameof(PluginManagerViewModel.IsLoading))
+        {
+            if (!ViewModel.IsLoading)
+            {
+                SelectFocusedPluginFromViewModel();
+                RefreshSelectedPluginOperationsBadge();
+            }
+
+            return;
+        }
+
+        if (e.PropertyName == nameof(PluginManagerViewModel.FocusedPluginId)
+            || e.PropertyName == nameof(PluginManagerViewModel.FocusedPluginSourceLabel))
         {
             SelectFocusedPluginFromViewModel();
+            RefreshSelectedPluginOperationsBadge();
         }
     }
 
@@ -252,6 +275,18 @@ public sealed partial class PluginManagerPage : Page
 
         PluginListView.SelectedItem = plugin;
         PluginListView.ScrollIntoView(plugin);
+    }
+
+    private void RefreshSelectedPluginOperationsBadge()
+    {
+        if (_selectedPlugin is null)
+        {
+            return;
+        }
+
+        var currentPlugin = ViewModel.Plugins.FirstOrDefault(item => item.Id == _selectedPlugin.Id) ?? _selectedPlugin;
+        _selectedPlugin = currentPlugin;
+        UpdateOperationsBadge(currentPlugin);
     }
 
     // ═══════════════════════════════════════════════════════════════

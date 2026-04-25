@@ -417,9 +417,15 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         IsPreviewOpen = value is not null;
         OnPropertyChanged(nameof(HasSelectedDocument));
 
-        if (value is null || !value.HasFocusedSourceLabel)
+        if (value is null)
         {
-            FocusedDocumentVisibilityHint = string.Empty;
+            ClearFocusedDocumentLanding();
+            return;
+        }
+
+        if (!value.HasFocusedSourceLabel)
+        {
+            ClearFocusedDocumentLanding();
         }
     }
 
@@ -653,6 +659,12 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
             SelectedDocument.IsSelected = false;
         }
         SelectedDocument = null;
+    }
+
+    [RelayCommand]
+    private void DismissFocusedDocumentLanding()
+    {
+        ClearFocusedDocumentLanding();
     }
 
     [RelayCommand]
@@ -1092,11 +1104,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
             return;
         }
 
-        FocusedDocumentVisibilityHint = string.Empty;
-        foreach (var document in Documents)
-        {
-            document.FocusedSourceLabel = string.Empty;
-        }
+        ClearFocusedDocumentLanding();
 
         var target = Documents.FirstOrDefault(document => document.Id == request.DocumentId);
         if (target is null && HasActiveFilters)
@@ -1126,6 +1134,16 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         }
 
         await SelectDocumentAsync(target.Id);
+    }
+
+    private void ClearFocusedDocumentLanding()
+    {
+        FocusedDocumentVisibilityHint = string.Empty;
+
+        foreach (var document in Documents)
+        {
+            document.FocusedSourceLabel = string.Empty;
+        }
     }
 
     private bool ResetFiltersForOperationsDocumentRequest()

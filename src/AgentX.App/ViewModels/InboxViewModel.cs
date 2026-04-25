@@ -89,9 +89,6 @@ public partial class InboxViewModel : ObservableObject
     {
         try
         {
-            FocusedInboxItemId = 0;
-            FocusedInboxSourceLabel = string.Empty;
-            FocusedInboxVisibilityHint = string.Empty;
             var filter = StatusFilter == "all" ? null : StatusFilter;
             var items = await _inboxService.GetAllItemsAsync(filter, 0, 100);
 
@@ -118,6 +115,7 @@ public partial class InboxViewModel : ObservableObject
                 });
             }
 
+            ReapplyFocusedInboxItem();
             HasItems = InboxItems.Count > 0;
             PendingCount = await _inboxService.GetPendingCountAsync();
         }
@@ -169,6 +167,49 @@ public partial class InboxViewModel : ObservableObject
         }
 
         StatusMessage = request.SourceLabel;
+    }
+
+    private void ReapplyFocusedInboxItem()
+    {
+        if (FocusedInboxItemId <= 0 || string.IsNullOrWhiteSpace(FocusedInboxSourceLabel))
+        {
+            ClearInboxItemFocus();
+            return;
+        }
+
+        var focusedItem = InboxItems.FirstOrDefault(item => item.Id == FocusedInboxItemId);
+        if (focusedItem is null)
+        {
+            ClearFocusedInboxLanding();
+            return;
+        }
+
+        foreach (var item in InboxItems)
+        {
+            item.IsFocused = item.Id == FocusedInboxItemId;
+        }
+
+        var currentIndex = InboxItems.IndexOf(focusedItem);
+        if (currentIndex > 0)
+        {
+            InboxItems.Move(currentIndex, 0);
+        }
+    }
+
+    private void ClearInboxItemFocus()
+    {
+        foreach (var item in InboxItems)
+        {
+            item.IsFocused = false;
+        }
+    }
+
+    private void ClearFocusedInboxLanding()
+    {
+        FocusedInboxItemId = 0;
+        FocusedInboxSourceLabel = string.Empty;
+        FocusedInboxVisibilityHint = string.Empty;
+        ClearInboxItemFocus();
     }
 
     [RelayCommand]
@@ -296,6 +337,18 @@ public partial class InboxViewModel : ObservableObject
     private async Task RefreshAsync()
     {
         await LoadInboxItemsAsync();
+    }
+
+    [RelayCommand]
+    private void DismissFocusedInboxLanding()
+    {
+        var sourceLabel = FocusedInboxSourceLabel;
+        ClearFocusedInboxLanding();
+
+        if (string.Equals(StatusMessage, sourceLabel, StringComparison.Ordinal))
+        {
+            StatusMessage = string.Empty;
+        }
     }
 
     partial void OnFocusedInboxSourceLabelChanged(string value) =>

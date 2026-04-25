@@ -349,19 +349,32 @@
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Padding="16,14"
                                     Visibility="{x:Bind ViewModel.HasFocusedWorkflowRunLanding, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                                <StackPanel Spacing="6">
-                                    <TextBlock Text="Focused Workflow Run"
-                                               Style="{StaticResource BodyStyle}"
-                                               FontWeight="SemiBold"
-                                               Foreground="{StaticResource AccentPrimaryBrush}" />
-                                    <TextBlock Text="{x:Bind ViewModel.FocusedWorkflowRunSourceLabel, Mode=OneWay}"
-                                               Style="{StaticResource BodySecondaryStyle}"
-                                               TextWrapping="Wrap" />
-                                    <TextBlock Text="The matching workflow and stored result were brought to the top of the page for review."
-                                               Style="{StaticResource CaptionStyle}"
-                                               Opacity="0.7"
-                                               TextWrapping="Wrap" />
-                                </StackPanel>
+                                <Grid ColumnSpacing="16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="Focused Workflow Run"
+                                                   Style="{StaticResource BodyStyle}"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{StaticResource AccentPrimaryBrush}" />
+                                        <TextBlock Text="{x:Bind ViewModel.FocusedWorkflowRunSourceLabel, Mode=OneWay}"
+                                                   Style="{StaticResource BodySecondaryStyle}"
+                                                   TextWrapping="Wrap" />
+                                        <TextBlock Text="The matching workflow and stored result were brought to the top of the page for review."
+                                                   Style="{StaticResource CaptionStyle}"
+                                                   Opacity="0.7"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+
+                                    <Button Grid.Column="1"
+                                            Content="Dismiss"
+                                            Command="{x:Bind ViewModel.DismissFocusedWorkflowRunLandingCommand}"
+                                            Style="{StaticResource GhostButtonStyle}"
+                                            VerticalAlignment="Top" />
+                                </Grid>
                             </Border>
 
                             <Grid>

@@ -161,6 +161,103 @@ public sealed class SyncSettingsViewModelTests
         await viewModel.InitializeAsync();
 
         viewModel.SyncHistory.Should().HaveCount(2);
+        viewModel.FocusedSyncLogId.Should().Be(9);
+        viewModel.HasFocusedSyncLanding.Should().BeTrue();
+        viewModel.FocusedSyncSourceLabel.Should().Contain("Import sync");
+        viewModel.SyncHistory[0].Id.Should().Be(9);
+        viewModel.SyncHistory[0].IsFocused.Should().BeTrue();
+        viewModel.StatusMessage.Should().Contain("Opened sync history entry");
+    }
+
+    [Fact]
+    public async Task DismissFocusedSyncLandingCommand_clears_banner_row_focus_and_status()
+    {
+        _syncService.Setup(service => service.GetConfigurationAsync())
+            .ReturnsAsync(new SyncConfiguration
+            {
+                SyncFolderPath = @"C:\Sync",
+                EncryptionKey = "secret"
+            });
+        _syncService.Setup(service => service.GetSyncHistoryAsync(It.IsAny<int>()))
+            .ReturnsAsync(
+            [
+                new SyncLogEntity
+                {
+                    Id = 3,
+                    Direction = "export",
+                    ChangesApplied = 2,
+                    IsSuccess = true,
+                    SyncedAt = DateTime.UtcNow.AddMinutes(-15),
+                    DurationMs = 1200
+                },
+                new SyncLogEntity
+                {
+                    Id = 9,
+                    Direction = "import",
+                    ChangesApplied = 12,
+                    IsSuccess = true,
+                    SyncedAt = DateTime.UtcNow.AddMinutes(-5),
+                    DurationMs = 2400
+                }
+            ]);
+        _operationsDrillInService.Setup(service => service.ConsumePendingSyncRequest())
+            .Returns(new OperationsSyncDrillInRequest(9, "Opened sync history entry \"Import sync\" from Operations"));
+
+        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, _operationsDrillInService.Object);
+
+        await viewModel.InitializeAsync();
+        viewModel.DismissFocusedSyncLandingCommand.Execute(null);
+
+        viewModel.FocusedSyncLogId.Should().Be(0);
+        viewModel.HasFocusedSyncLanding.Should().BeFalse();
+        viewModel.FocusedSyncSourceLabel.Should().BeEmpty();
+        viewModel.HasStatusMessage.Should().BeFalse();
+        viewModel.StatusMessage.Should().BeEmpty();
+        viewModel.SyncHistory.Should().OnlyContain(item => !item.IsFocused);
+    }
+
+    [Fact]
+    public async Task RefreshCommand_preserves_focused_sync_landing_until_dismissed()
+    {
+        _syncService.Setup(service => service.GetConfigurationAsync())
+            .ReturnsAsync(new SyncConfiguration
+            {
+                SyncFolderPath = @"C:\Sync",
+                EncryptionKey = "secret"
+            });
+        _syncService.Setup(service => service.GetSyncHistoryAsync(It.IsAny<int>()))
+            .ReturnsAsync(
+            [
+                new SyncLogEntity
+                {
+                    Id = 3,
+                    Direction = "export",
+                    ChangesApplied = 2,
+                    IsSuccess = true,
+                    SyncedAt = DateTime.UtcNow.AddMinutes(-15),
+                    DurationMs = 1200
+                },
+                new SyncLogEntity
+                {
+                    Id = 9,
+                    Direction = "import",
+                    ChangesApplied = 12,
+                    IsSuccess = true,
+                    SyncedAt = DateTime.UtcNow.AddMinutes(-5),
+                    DurationMs = 2400
+                }
+            ]);
+        _operationsDrillInService.SetupSequence(service => service.ConsumePendingSyncRequest())
+            .Returns(new OperationsSyncDrillInRequest(9, "Opened sync history entry \"Import sync\" from Operations"))
+            .Returns((OperationsSyncDrillInRequest?)null);
+
+        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, _operationsDrillInService.Object);
+
+        await viewModel.InitializeAsync();
+        await viewModel.RefreshCommand.ExecuteAsync(null);
+
+        viewModel.HasFocusedSyncLanding.Should().BeTrue();
+        viewModel.FocusedSyncLogId.Should().Be(9);
         viewModel.SyncHistory[0].Id.Should().Be(9);
         viewModel.SyncHistory[0].IsFocused.Should().BeTrue();
         viewModel.StatusMessage.Should().Contain("Opened sync history entry");

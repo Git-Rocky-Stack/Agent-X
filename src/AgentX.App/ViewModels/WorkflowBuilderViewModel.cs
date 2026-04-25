@@ -661,7 +661,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             return;
         }
 
-        FocusedWorkflowRunSourceLabel = string.Empty;
+        ClearFocusedWorkflowRunLanding();
         IsRunning = true;
         RunCompleted = false;
         RunFailed = false;
@@ -796,9 +796,21 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             return;
         }
 
-        FocusedWorkflowRunSourceLabel = string.Empty;
+        ClearFocusedWorkflowRunLanding();
         ApplyHistoricalRun(run);
         StatusMessage = $"Showing stored run from {run.StartedAtText}";
+    }
+
+    [RelayCommand]
+    private void DismissFocusedWorkflowRunLanding()
+    {
+        var sourceLabel = FocusedWorkflowRunSourceLabel;
+        ClearFocusedWorkflowRunLanding();
+
+        if (string.Equals(StatusMessage, sourceLabel, StringComparison.Ordinal))
+        {
+            StatusMessage = string.Empty;
+        }
     }
 
     partial void OnSelectedWorkflowChanged(WorkflowListItem? value)
@@ -814,7 +826,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
 
         if (_pendingOperationsRunRequest is null || value?.Id != _pendingOperationsRunRequest.WorkflowId)
         {
-            FocusedWorkflowRunSourceLabel = string.Empty;
+            ClearFocusedWorkflowRunLanding();
         }
 
         _ = LoadSelectedWorkflowRunsAsync(value);
@@ -943,7 +955,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             return;
         }
 
-        FocusedWorkflowRunSourceLabel = string.Empty;
+        ClearFocusedWorkflowRunLanding();
         _pendingOperationsRunRequest = request;
 
         var workflow = Workflows.FirstOrDefault(item => item.Id == request.WorkflowId);
@@ -972,6 +984,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         var focusedRun = RecentRuns.FirstOrDefault(run => run.RunId == _pendingOperationsRunRequest.RunId);
         if (focusedRun is null)
         {
+            ClearFocusedWorkflowRunLanding();
             StatusMessage = "The requested workflow run is no longer in recent history.";
             _pendingOperationsRunRequest = null;
             return;
@@ -991,6 +1004,16 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
 
     partial void OnFocusedWorkflowRunSourceLabelChanged(string value) =>
         OnPropertyChanged(nameof(HasFocusedWorkflowRunLanding));
+
+    private void ClearFocusedWorkflowRunLanding()
+    {
+        FocusedWorkflowRunSourceLabel = string.Empty;
+
+        foreach (var run in RecentRuns)
+        {
+            run.IsFocused = false;
+        }
+    }
 
     private WorkflowTemplateGuideContent? SelectedTemplateGuide
     {

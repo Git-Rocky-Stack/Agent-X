@@ -53,6 +53,8 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _hasStatusMessage;
     [ObservableProperty] private string _errorMessage = string.Empty;
     [ObservableProperty] private bool _hasError;
+    [ObservableProperty] private long _focusedSyncLogId;
+    [ObservableProperty] private string _focusedSyncSourceLabel = string.Empty;
 
     // ── Configuration Fields ─────────────────────────────────────────────────
 
@@ -171,6 +173,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
 
     /// <summary>True when the sync history collection contains at least one entry.</summary>
     public bool HasSyncHistory => SyncHistory.Count > 0;
+    public bool HasFocusedSyncLanding => !string.IsNullOrWhiteSpace(FocusedSyncSourceLabel);
     public bool ShowSelectedCollectionsPicker => SyncScope == "SelectedCollections";
     public bool HasAvailableCollections => AvailableCollections.Count > 0;
     public string SelectedCollectionSummary
@@ -228,7 +231,6 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
             await LoadAvailableCollectionsAsync();
             RefreshStatusFromService();
             await LoadHistoryAsync();
-            ApplyPendingOperationsRequest();
         }
         catch (Exception ex)
         {
@@ -613,6 +615,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
             }
 
             Log.Debug("Sync history loaded: {Count} entries", SyncHistory.Count);
+            ApplyPendingOperationsRequest();
         }
         catch (Exception ex)
         {
@@ -681,6 +684,21 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         }
     }
 
+    [RelayCommand]
+    private void DismissFocusedSyncLanding()
+    {
+        var shouldClearStatus = HasStatusMessage && string.Equals(StatusMessage, FocusedSyncSourceLabel, StringComparison.Ordinal);
+
+        FocusedSyncLogId = 0;
+        FocusedSyncSourceLabel = string.Empty;
+        ClearSyncHistoryFocus();
+
+        if (shouldClearStatus)
+        {
+            ClearStatus();
+        }
+    }
+
     // =========================================================================
     // COMMAND: ClearSyncHistoryAsync
     // Clears the in-memory sync history collection and notifies the View.
@@ -690,8 +708,18 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
     private Task ClearSyncHistoryAsync()
     {
         Log.Debug("Clear sync history requested");
+        var shouldClearStatus = HasStatusMessage && string.Equals(StatusMessage, FocusedSyncSourceLabel, StringComparison.Ordinal);
+
         SyncHistory.Clear();
+        FocusedSyncLogId = 0;
+        FocusedSyncSourceLabel = string.Empty;
         OnPropertyChanged(nameof(HasSyncHistory));
+
+        if (shouldClearStatus)
+        {
+            ClearStatus();
+        }
+
         return Task.CompletedTask;
     }
 
@@ -716,6 +744,9 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         SyncNowCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(CanSync));
     }
+
+    partial void OnFocusedSyncSourceLabelChanged(string value) =>
+        OnPropertyChanged(nameof(HasFocusedSyncLanding));
 
     partial void OnSyncStateChanged(string value)
     {
@@ -811,22 +842,30 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
     private void ApplyPendingOperationsRequest()
     {
         var request = _operationsDrillInService?.ConsumePendingSyncRequest();
-        if (request is null)
+        if (request is not null && request.SyncLogId > 0)
         {
+            FocusedSyncLogId = request.SyncLogId;
+            FocusedSyncSourceLabel = request.SourceLabel;
+        }
+
+        if (FocusedSyncLogId <= 0 || string.IsNullOrWhiteSpace(FocusedSyncSourceLabel))
+        {
+            ClearSyncHistoryFocus();
             return;
         }
 
-        var focusedItem = SyncHistory.FirstOrDefault(item => item.Id == request.SyncLogId);
+        var focusedItem = SyncHistory.FirstOrDefault(item => item.Id == FocusedSyncLogId);
         if (focusedItem is null)
         {
+            FocusedSyncLogId = 0;
+            FocusedSyncSourceLabel = string.Empty;
+            ClearSyncHistoryFocus();
             SetStatus("The requested sync history entry is no longer available.");
             return;
         }
 
-        foreach (var item in SyncHistory)
-        {
-            item.IsFocused = item.Id == request.SyncLogId;
-        }
+        ClearSyncHistoryFocus();
+        focusedItem.IsFocused = true;
 
         var currentIndex = SyncHistory.IndexOf(focusedItem);
         if (currentIndex > 0)
@@ -834,7 +873,15 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
             SyncHistory.Move(currentIndex, 0);
         }
 
-        SetStatus(request.SourceLabel);
+        SetStatus(FocusedSyncSourceLabel);
+    }
+
+    private void ClearSyncHistoryFocus()
+    {
+        foreach (var item in SyncHistory)
+        {
+            item.IsFocused = false;
+        }
     }
 
     private void UpdateSelectedCollectionIdsFromSelections()

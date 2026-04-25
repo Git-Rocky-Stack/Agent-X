@@ -637,6 +637,40 @@
                     </Button>
                 </Grid>
 
+                <Border Background="{StaticResource AccentSubtleBrush}"
+                        BorderBrush="{StaticResource AccentPrimaryBrush}"
+                        BorderThickness="1"
+                        CornerRadius="{StaticResource RadiusMD}"
+                        Padding="16,14"
+                        Visibility="{x:Bind ViewModel.HasFocusedSyncLanding, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Focused Sync History Entry"
+                                       Style="{StaticResource BodyStyle}"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource AccentPrimaryBrush}" />
+                            <TextBlock Text="{x:Bind ViewModel.FocusedSyncSourceLabel, Mode=OneWay}"
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       TextWrapping="Wrap" />
+                            <TextBlock Text="The matching sync record stays pinned and marked until you dismiss this focus state."
+                                       Style="{StaticResource CaptionStyle}"
+                                       Opacity="0.7"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <Button Grid.Column="1"
+                                Content="Dismiss"
+                                Command="{x:Bind ViewModel.DismissFocusedSyncLandingCommand}"
+                                Style="{StaticResource GhostButtonStyle}"
+                                VerticalAlignment="Top" />
+                    </Grid>
+                </Border>
+
                 <!-- Loading indicator for history -->
                 <StackPanel Spacing="12"
                             HorizontalAlignment="Center"

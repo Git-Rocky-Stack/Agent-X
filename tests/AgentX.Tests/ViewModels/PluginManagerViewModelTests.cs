@@ -95,6 +95,60 @@ public sealed class PluginManagerViewModelTests
         viewModel.Plugins[1].IsFocused.Should().BeFalse();
     }
 
+    [Fact]
+    public async Task RefreshPluginsCommand_preserves_focused_plugin_until_dismissed()
+    {
+        _pluginService.SetupSequence(service => service.GetInstalledPluginsAsync())
+            .ReturnsAsync(
+            [
+                CreatePlugin(11, "Calendar Connector", enabled: false),
+                CreatePlugin(12, "Email Connector", enabled: true),
+            ])
+            .ReturnsAsync(
+            [
+                CreatePlugin(11, "Calendar Connector", enabled: false),
+                CreatePlugin(12, "Email Connector", enabled: true),
+            ]);
+        _operationsDrillInService.SetupSequence(service => service.ConsumePendingPluginRequest())
+            .Returns(new OperationsPluginDrillInRequest(12, "Opened connector \"Email Connector\" from Operations"))
+            .Returns((OperationsPluginDrillInRequest?)null);
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+        await viewModel.RefreshPluginsCommand.ExecuteAsync(null);
+
+        viewModel.FocusedPluginId.Should().Be(12);
+        viewModel.FocusedPluginSourceLabel.Should().Contain("Email Connector");
+        viewModel.StatusMessage.Should().Contain("Email Connector");
+        viewModel.Plugins[0].Id.Should().Be(12);
+        viewModel.Plugins[0].IsFocused.Should().BeTrue();
+        viewModel.Plugins[1].IsFocused.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task DismissFocusedPluginLandingCommand_clears_focus_and_restores_default_status()
+    {
+        _pluginService.Setup(service => service.GetInstalledPluginsAsync())
+            .ReturnsAsync(
+            [
+                CreatePlugin(11, "Calendar Connector", enabled: false),
+                CreatePlugin(12, "Email Connector", enabled: true),
+            ]);
+        _operationsDrillInService.Setup(service => service.ConsumePendingPluginRequest())
+            .Returns(new OperationsPluginDrillInRequest(12, "Opened connector \"Email Connector\" from Operations"));
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+        viewModel.DismissFocusedPluginLandingCommand.Execute(null);
+
+        viewModel.FocusedPluginId.Should().Be(0);
+        viewModel.FocusedPluginSourceLabel.Should().BeEmpty();
+        viewModel.StatusMessage.Should().Be("2 plugins installed");
+        viewModel.Plugins.Should().OnlyContain(plugin => !plugin.IsFocused);
+    }
+
     private PluginManagerViewModel CreateViewModel() =>
         new(_pluginService.Object, _operationsDrillInService.Object);
 

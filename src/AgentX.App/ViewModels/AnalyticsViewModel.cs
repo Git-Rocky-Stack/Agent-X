@@ -101,6 +101,9 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private ObservableCollection<AnalyticsConversationSummaryItem> _recentConversationSummaries = new();
     [ObservableProperty] private bool _hasConversationIntelligence;
     [ObservableProperty] private bool _hasRecentConversationSummaries;
+    [ObservableProperty] private long _focusedConversationSummaryId;
+    [ObservableProperty] private string _focusedConversationSourceLabel = string.Empty;
+    public bool HasFocusedConversationLanding => !string.IsNullOrWhiteSpace(FocusedConversationSourceLabel);
 
     // ── Conversation Recall ─────────────────────────────────────────────────
 
@@ -548,7 +551,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
                 })
                 .ToList();
 
-            ApplyPendingConversationSummaryFocus(recentSummaries);
+            ApplyConversationSummaryFocus(recentSummaries);
 
             RecentConversationSummaries = new ObservableCollection<AnalyticsConversationSummaryItem>(recentSummaries);
 
@@ -561,46 +564,67 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             _log.Warning(ex, "Analytics: failed to load conversation intelligence");
+            FocusedConversationSummaryId = 0;
+            FocusedConversationSourceLabel = string.Empty;
             RecentConversationSummaries = new ObservableCollection<AnalyticsConversationSummaryItem>();
             HasRecentConversationSummaries = false;
             HasConversationIntelligence = false;
         }
     }
 
-    private void ApplyPendingConversationSummaryFocus(List<AnalyticsConversationSummaryItem> items)
+    private void ApplyConversationSummaryFocus(List<AnalyticsConversationSummaryItem> items)
     {
         var request = _operationsDrillInService?.ConsumePendingConversationRequest();
-        if (request is null || request.ConversationId <= 0 || items.Count == 0)
+        if (request is not null && request.ConversationId > 0)
         {
+            FocusedConversationSummaryId = request.ConversationId;
+            FocusedConversationSourceLabel = request.SourceLabel;
+        }
+
+        if (FocusedConversationSummaryId <= 0 || string.IsNullOrWhiteSpace(FocusedConversationSourceLabel) || items.Count == 0)
+        {
+            if (items.Count == 0)
+            {
+                FocusedConversationSummaryId = 0;
+                FocusedConversationSourceLabel = string.Empty;
+            }
+
             return;
         }
 
-        var index = items.FindIndex(item => item.ConversationId == request.ConversationId);
+        var index = items.FindIndex(item => item.ConversationId == FocusedConversationSummaryId);
         if (index < 0)
         {
+            FocusedConversationSummaryId = 0;
+            FocusedConversationSourceLabel = string.Empty;
             return;
         }
 
         var target = items[index];
-        items[index] = new AnalyticsConversationSummaryItem
-        {
-            ConversationId = target.ConversationId,
-            Title = target.Title,
-            PreviewText = target.PreviewText,
-            KeyPoints = target.KeyPoints,
-            CoveredMessageCount = target.CoveredMessageCount,
-            GeneratedAt = target.GeneratedAt,
-            GeneratedAtLabel = target.GeneratedAtLabel,
-            StatusLabel = target.StatusLabel,
-            StatusColor = target.StatusColor,
-            IsFocused = true,
-            SourceLabel = request.SourceLabel
-        };
+        items[index] = CloneConversationSummaryItem(target, true, FocusedConversationSourceLabel);
 
         var focused = items[index];
         items.RemoveAt(index);
         items.Insert(0, focused);
     }
+
+    private static AnalyticsConversationSummaryItem CloneConversationSummaryItem(
+        AnalyticsConversationSummaryItem item,
+        bool isFocused,
+        string? sourceLabel = null) => new()
+    {
+        ConversationId = item.ConversationId,
+        Title = item.Title,
+        PreviewText = item.PreviewText,
+        KeyPoints = item.KeyPoints,
+        CoveredMessageCount = item.CoveredMessageCount,
+        GeneratedAt = item.GeneratedAt,
+        GeneratedAtLabel = item.GeneratedAtLabel,
+        StatusLabel = item.StatusLabel,
+        StatusColor = item.StatusColor,
+        IsFocused = isFocused,
+        SourceLabel = isFocused ? sourceLabel ?? item.SourceLabel : string.Empty
+    };
 
     private async Task LoadConversationRecallAsync(CancellationToken ct)
     {
@@ -725,11 +749,29 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         RunConversationRecallCommand.NotifyCanExecuteChanged();
     }
 
+    partial void OnFocusedConversationSourceLabelChanged(string value) =>
+        OnPropertyChanged(nameof(HasFocusedConversationLanding));
+
     [RelayCommand]
     private async Task RefreshAsync()
     {
         _log.Debug("Analytics: manual refresh requested");
         await LoadDataAsync();
+    }
+
+    [RelayCommand]
+    private void DismissFocusedConversationLanding()
+    {
+        FocusedConversationSummaryId = 0;
+        FocusedConversationSourceLabel = string.Empty;
+
+        if (RecentConversationSummaries.Count == 0)
+        {
+            return;
+        }
+
+        RecentConversationSummaries = new ObservableCollection<AnalyticsConversationSummaryItem>(
+            RecentConversationSummaries.Select(item => CloneConversationSummaryItem(item, false)));
     }
 
     private bool CanRunConversationRecall() =>

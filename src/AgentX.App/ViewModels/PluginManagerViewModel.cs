@@ -74,11 +74,7 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
             }
 
             PluginCount = Plugins.Count;
-            StatusMessage = PluginCount > 0
-                ? $"{PluginCount} plugin{(PluginCount == 1 ? "" : "s")} installed"
-                : "No plugins installed";
-            FocusedPluginId = 0;
-            FocusedPluginSourceLabel = string.Empty;
+            StatusMessage = BuildInstalledPluginsStatusMessage();
 
             ApplyPendingOperationsRequest();
 
@@ -437,34 +433,68 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
     private void ApplyPendingOperationsRequest()
     {
         var request = _operationsDrillInService?.ConsumePendingPluginRequest();
-        if (request is null || request.PluginId <= 0)
+        if (request is not null && request.PluginId > 0)
         {
+            FocusedPluginId = request.PluginId;
+            FocusedPluginSourceLabel = request.SourceLabel;
+        }
+
+        if (FocusedPluginId <= 0 || string.IsNullOrWhiteSpace(FocusedPluginSourceLabel))
+        {
+            ClearPluginFocus(clearStatus: false);
+            return;
+        }
+
+        var target = Plugins.FirstOrDefault(plugin => plugin.Id == FocusedPluginId);
+        if (target is null)
+        {
+            ClearPluginFocus(clearStatus: false);
             return;
         }
 
         foreach (var plugin in Plugins)
         {
-            plugin.IsFocused = false;
-        }
-
-        var target = Plugins.FirstOrDefault(plugin => plugin.Id == request.PluginId);
-        if (target is null)
-        {
-            FocusedPluginId = 0;
-            FocusedPluginSourceLabel = string.Empty;
-            return;
+            plugin.IsFocused = plugin.Id == FocusedPluginId;
         }
 
         target.IsFocused = true;
         FocusedPluginId = target.Id;
-        FocusedPluginSourceLabel = request.SourceLabel;
-        StatusMessage = request.SourceLabel;
+        StatusMessage = FocusedPluginSourceLabel;
 
         if (Plugins.Remove(target))
         {
             Plugins.Insert(0, target);
         }
     }
+
+    [RelayCommand]
+    private void DismissFocusedPluginLanding()
+    {
+        ClearPluginFocus(clearStatus: true);
+    }
+
+    private void ClearPluginFocus(bool clearStatus)
+    {
+        var sourceLabel = FocusedPluginSourceLabel;
+
+        foreach (var plugin in Plugins)
+        {
+            plugin.IsFocused = false;
+        }
+
+        FocusedPluginId = 0;
+        FocusedPluginSourceLabel = string.Empty;
+
+        if (clearStatus && string.Equals(StatusMessage, sourceLabel, StringComparison.Ordinal))
+        {
+            StatusMessage = BuildInstalledPluginsStatusMessage();
+        }
+    }
+
+    private string BuildInstalledPluginsStatusMessage() =>
+        PluginCount > 0
+            ? $"{PluginCount} plugin{(PluginCount == 1 ? "" : "s")} installed"
+            : "No plugins installed";
 
     private void SetError(string message)
     {
