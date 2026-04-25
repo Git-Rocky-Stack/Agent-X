@@ -210,6 +210,12 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         if (document is not null)
         {
             LastSavedWorkflowDocumentName = document.FileName;
+            if (TryResolveFocusedWorkflowRunFromCurrentContext(
+                    $"Resolved the focused workflow run by saving it to Knowledge Vault as \"{document.FileName}\"."))
+            {
+                return;
+            }
+
             StatusMessage = $"Saved workflow result to Knowledge Vault as \"{document.FileName}\"";
         }
     }
@@ -242,6 +248,12 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         if (document is not null)
         {
             LastSavedWorkflowDocumentName = document.FileName;
+            if (TryResolveFocusedWorkflowRun(run,
+                    $"Resolved the focused workflow run by saving it to Knowledge Vault as \"{document.FileName}\"."))
+            {
+                return;
+            }
+
             StatusMessage = $"Saved stored workflow result to Knowledge Vault as \"{document.FileName}\"";
         }
     }
@@ -263,7 +275,14 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         var result = await ExportWorkflowResultAsync(artifact, options);
         if (result.Success)
         {
-            StatusMessage = $"Exported workflow result to {Path.GetFileName(result.FilePath)}";
+            var fileName = Path.GetFileName(result.FilePath);
+            if (TryResolveFocusedWorkflowRunFromCurrentContext(
+                    $"Resolved the focused workflow run by exporting it to {fileName}."))
+            {
+                return result;
+            }
+
+            StatusMessage = $"Exported workflow result to {fileName}";
         }
         else if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
         {
@@ -291,7 +310,14 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         var result = await ExportWorkflowResultAsync(artifact, options);
         if (result.Success)
         {
-            StatusMessage = $"Exported stored workflow result to {Path.GetFileName(result.FilePath)}";
+            var fileName = Path.GetFileName(result.FilePath);
+            if (TryResolveFocusedWorkflowRun(run,
+                    $"Resolved the focused workflow run by exporting it to {fileName}."))
+            {
+                return result;
+            }
+
+            StatusMessage = $"Exported stored workflow result to {fileName}";
         }
         else if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
         {
@@ -1013,6 +1039,34 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         {
             run.IsFocused = false;
         }
+    }
+
+    private bool TryResolveFocusedWorkflowRun(
+        WorkflowRunHistoryDisplayItem? run,
+        string resolutionMessage)
+    {
+        if (run is null || !run.IsFocused || string.IsNullOrWhiteSpace(FocusedWorkflowRunSourceLabel))
+        {
+            return false;
+        }
+
+        ClearFocusedWorkflowRunLanding();
+        StatusMessage = resolutionMessage;
+        return true;
+    }
+
+    private bool TryResolveFocusedWorkflowRunFromCurrentContext(string resolutionMessage)
+    {
+        if (!HasFocusedWorkflowRunLanding
+            || string.IsNullOrWhiteSpace(RunResultContextText)
+            || !RunResultContextText.StartsWith("Showing stored run from", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        ClearFocusedWorkflowRunLanding();
+        StatusMessage = resolutionMessage;
+        return true;
     }
 
     private WorkflowTemplateGuideContent? SelectedTemplateGuide

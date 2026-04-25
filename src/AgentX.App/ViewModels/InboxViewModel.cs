@@ -222,11 +222,25 @@ public partial class InboxViewModel : ObservableObject
     [RelayCommand]
     private async Task AcceptItemAsync(long itemId)
     {
+        var target = InboxItems.FirstOrDefault(item => item.Id == itemId);
+        var resolvedFocusedItemMessage = BuildFocusedInboxResolutionMessage(
+            itemId,
+            target?.FileName,
+            "accepting it and queuing it for indexing.");
+
         try
         {
             await _inboxService.AcceptItemAsync(itemId, SelectedCollection?.Id);
             await LoadInboxItemsAsync();
-            StatusMessage = "Item accepted and queued for indexing";
+            if (resolvedFocusedItemMessage is not null)
+            {
+                ClearFocusedInboxLanding();
+                StatusMessage = resolvedFocusedItemMessage;
+            }
+            else
+            {
+                StatusMessage = "Item accepted and queued for indexing";
+            }
         }
         catch (Exception ex)
         {
@@ -349,6 +363,19 @@ public partial class InboxViewModel : ObservableObject
         {
             StatusMessage = string.Empty;
         }
+    }
+
+    private string? BuildFocusedInboxResolutionMessage(long itemId, string? fileName, string resolutionText)
+    {
+        if (FocusedInboxItemId != itemId || string.IsNullOrWhiteSpace(FocusedInboxSourceLabel))
+        {
+            return null;
+        }
+
+        var resolvedLabel = !string.IsNullOrWhiteSpace(fileName)
+            ? $"\"{fileName}\""
+            : "the focused inbox item";
+        return $"Resolved {resolvedLabel} by {resolutionText}";
     }
 
     partial void OnFocusedInboxSourceLabelChanged(string value) =>

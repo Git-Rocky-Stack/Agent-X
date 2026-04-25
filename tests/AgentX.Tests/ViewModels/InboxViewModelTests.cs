@@ -205,4 +205,63 @@ public sealed class InboxViewModelTests
         viewModel.StatusMessage.Should().BeEmpty();
         viewModel.InboxItems.Should().OnlyContain(item => !item.IsFocused);
     }
+
+    [Fact]
+    public async Task AcceptItemCommand_resolves_focused_inbox_item_after_successful_accept()
+    {
+        _collectionService.Setup(service => service.GetAllCollectionsAsync())
+            .ReturnsAsync(Array.Empty<CollectionEntity>());
+        _inboxService.SetupSequence(service => service.GetPendingCountAsync())
+            .ReturnsAsync(2)
+            .ReturnsAsync(1);
+        _inboxService.SetupSequence(service => service.GetAllItemsAsync("pending", 0, 100))
+            .ReturnsAsync(
+            [
+                new InboxItemEntity
+                {
+                    Id = 1,
+                    FileName = "Older note.md",
+                    FileType = "Markdown",
+                    Status = "pending",
+                    AddedAt = DateTime.UtcNow.AddMinutes(-30)
+                },
+                new InboxItemEntity
+                {
+                    Id = 7,
+                    FileName = "Board update.docx",
+                    FileType = "Document",
+                    Status = "pending",
+                    AddedAt = DateTime.UtcNow.AddMinutes(-10)
+                }
+            ])
+            .ReturnsAsync(
+            [
+                new InboxItemEntity
+                {
+                    Id = 1,
+                    FileName = "Older note.md",
+                    FileType = "Markdown",
+                    Status = "pending",
+                    AddedAt = DateTime.UtcNow.AddMinutes(-30)
+                }
+            ]);
+        _inboxService.Setup(service => service.AcceptItemAsync(7, null))
+            .Returns(Task.CompletedTask);
+        _operationsDrillInService.Setup(service => service.ConsumePendingInboxRequest())
+            .Returns(new OperationsInboxDrillInRequest(7, "Opened inbox item \"Board update.docx\" from Operations"));
+
+        var viewModel = new InboxViewModel(
+            _inboxService.Object,
+            _collectionService.Object,
+            _operationsDrillInService.Object);
+
+        await viewModel.InitializeAsync();
+        await viewModel.AcceptItemCommand.ExecuteAsync(7L);
+
+        _inboxService.Verify(service => service.AcceptItemAsync(7, null), Times.Once);
+        viewModel.FocusedInboxItemId.Should().Be(0);
+        viewModel.HasFocusedInboxLanding.Should().BeFalse();
+        viewModel.InboxItems.Should().OnlyContain(item => !item.IsFocused);
+        viewModel.StatusMessage.Should().Be("Resolved \"Board update.docx\" by accepting it and queuing it for indexing.");
+    }
 }

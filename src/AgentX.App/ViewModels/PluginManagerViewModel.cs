@@ -198,7 +198,14 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
                 target.LastActivatedAtFormatted = FormatHelper.TimeAgoWithMonths(DateTime.Now);
             }
 
-            StatusMessage = $"Enabled {target?.Name ?? $"plugin #{id}"}";
+            if (TryResolveFocusedPluginAction(id, target?.Name, out var resolutionMessage))
+            {
+                StatusMessage = resolutionMessage;
+            }
+            else
+            {
+                StatusMessage = $"Enabled {target?.Name ?? $"plugin #{id}"}";
+            }
             Log.Information("Plugin enabled: {PluginId}", id);
         }
         catch (Exception ex)
@@ -292,6 +299,10 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
         if (SelectedPluginIds.Count == 0) return;
 
         var count = SelectedPluginIds.Count;
+        var resolvedPluginName = Plugins.FirstOrDefault(plugin => plugin.Id == FocusedPluginId)?.Name;
+        var shouldResolveFocusedPlugin = FocusedPluginId > 0
+            && !string.IsNullOrWhiteSpace(FocusedPluginSourceLabel)
+            && SelectedPluginIds.Contains(FocusedPluginId);
         Log.Information("Bulk enabling {Count} plugins", count);
         ClearError();
         IsLoading = true;
@@ -306,7 +317,15 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
 
             await LoadPluginsAsync();
             Log.Information("Bulk enabled {Count} plugins", count);
-            StatusMessage = $"Successfully enabled {count} plugin{(count == 1 ? "" : "s")}";
+            if (shouldResolveFocusedPlugin)
+            {
+                ClearPluginFocus(clearStatus: false);
+                StatusMessage = BuildFocusedPluginResolutionMessage(resolvedPluginName);
+            }
+            else
+            {
+                StatusMessage = $"Successfully enabled {count} plugin{(count == 1 ? "" : "s")}";
+            }
         }
         catch (Exception ex)
         {
@@ -489,6 +508,27 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
         {
             StatusMessage = BuildInstalledPluginsStatusMessage();
         }
+    }
+
+    private bool TryResolveFocusedPluginAction(long pluginId, string? pluginName, out string resolutionMessage)
+    {
+        resolutionMessage = string.Empty;
+        if (FocusedPluginId != pluginId || string.IsNullOrWhiteSpace(FocusedPluginSourceLabel))
+        {
+            return false;
+        }
+
+        ClearPluginFocus(clearStatus: false);
+        resolutionMessage = BuildFocusedPluginResolutionMessage(pluginName);
+        return true;
+    }
+
+    private static string BuildFocusedPluginResolutionMessage(string? pluginName)
+    {
+        var resolvedLabel = !string.IsNullOrWhiteSpace(pluginName)
+            ? $"\"{pluginName}\""
+            : "the focused connector";
+        return $"Resolved {resolvedLabel} by enabling it.";
     }
 
     private string BuildInstalledPluginsStatusMessage() =>

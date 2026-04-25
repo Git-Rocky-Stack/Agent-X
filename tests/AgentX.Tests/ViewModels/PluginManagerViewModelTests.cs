@@ -149,6 +149,72 @@ public sealed class PluginManagerViewModelTests
         viewModel.Plugins.Should().OnlyContain(plugin => !plugin.IsFocused);
     }
 
+    [Fact]
+    public async Task EnablePluginCommand_resolves_focused_connector_after_successful_enable()
+    {
+        _pluginService.Setup(service => service.GetInstalledPluginsAsync())
+            .ReturnsAsync(
+            [
+                CreatePlugin(11, "Calendar Connector", enabled: false),
+                CreatePlugin(12, "Email Connector", enabled: false),
+            ]);
+        _pluginService.Setup(service => service.EnablePluginAsync(12))
+            .Returns(Task.CompletedTask);
+        _operationsDrillInService.Setup(service => service.ConsumePendingPluginRequest())
+            .Returns(new OperationsPluginDrillInRequest(12, "Opened connector \"Email Connector\" from Operations"));
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+        await viewModel.EnablePluginCommand.ExecuteAsync(12L);
+
+        _pluginService.Verify(service => service.EnablePluginAsync(12), Times.Once);
+        viewModel.FocusedPluginId.Should().Be(0);
+        viewModel.FocusedPluginSourceLabel.Should().BeEmpty();
+        viewModel.StatusMessage.Should().Be("Resolved \"Email Connector\" by enabling it.");
+        viewModel.Plugins.Should().OnlyContain(plugin => !plugin.IsFocused);
+        viewModel.Plugins.Single(plugin => plugin.Id == 12).IsEnabled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task BulkEnableAsync_resolves_focused_connector_when_selection_includes_it()
+    {
+        _pluginService.SetupSequence(service => service.GetInstalledPluginsAsync())
+            .ReturnsAsync(
+            [
+                CreatePlugin(11, "Calendar Connector", enabled: false),
+                CreatePlugin(12, "Email Connector", enabled: false),
+            ])
+            .ReturnsAsync(
+            [
+                CreatePlugin(11, "Calendar Connector", enabled: true),
+                CreatePlugin(12, "Email Connector", enabled: true),
+            ]);
+        _pluginService.Setup(service => service.EnablePluginAsync(It.IsAny<long>()))
+            .Returns(Task.CompletedTask);
+        _operationsDrillInService.SetupSequence(service => service.ConsumePendingPluginRequest())
+            .Returns(new OperationsPluginDrillInRequest(12, "Opened connector \"Email Connector\" from Operations"))
+            .Returns((OperationsPluginDrillInRequest?)null);
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+        viewModel.ToggleMultiSelectCommand.Execute(null);
+        viewModel.TogglePluginSelectionCommand.Execute(11L);
+        viewModel.TogglePluginSelectionCommand.Execute(12L);
+
+        await viewModel.BulkEnableCommand.ExecuteAsync(null);
+
+        _pluginService.Verify(service => service.EnablePluginAsync(11L), Times.Once);
+        _pluginService.Verify(service => service.EnablePluginAsync(12L), Times.Once);
+        viewModel.FocusedPluginId.Should().Be(0);
+        viewModel.FocusedPluginSourceLabel.Should().BeEmpty();
+        viewModel.StatusMessage.Should().Be("Resolved \"Email Connector\" by enabling it.");
+        viewModel.SelectedPluginIds.Should().BeEmpty();
+        viewModel.SelectedCount.Should().Be(0);
+        viewModel.Plugins.Should().OnlyContain(plugin => !plugin.IsFocused && plugin.IsEnabled);
+    }
+
     private PluginManagerViewModel CreateViewModel() =>
         new(_pluginService.Object, _operationsDrillInService.Object);
 

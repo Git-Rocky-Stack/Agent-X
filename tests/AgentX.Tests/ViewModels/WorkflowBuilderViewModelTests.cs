@@ -584,6 +584,65 @@ public sealed class WorkflowBuilderViewModelTests
     }
 
     [Fact]
+    public async Task SaveCurrentResultToVaultAsync_resolves_focused_stored_run_after_successful_save()
+    {
+        var savedDocument = new DocumentEntity
+        {
+            Id = 701,
+            FileName = "Research Brief Result 2026-04-24_103000.txt",
+            FilePath = Path.Combine(Path.GetTempPath(), "workflow-run-resolution.txt"),
+            FileType = "WorkflowResult"
+        };
+
+        _documentService.Setup(service => service.ImportExternalContentAsync(
+                It.IsAny<string>(),
+                "WorkflowResult",
+                It.IsAny<string>(),
+                null,
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(savedDocument);
+
+        var run = new WorkflowRunHistoryDisplayItem(
+            new WorkflowRunHistoryItem
+            {
+                RunId = 77,
+                WorkflowId = 42,
+                Status = "completed",
+                StartedAt = new DateTime(2026, 4, 24, 10, 30, 0, DateTimeKind.Utc),
+                FinalOutput = "stored result"
+            })
+        {
+            IsFocused = true
+        };
+
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object)
+        {
+            SelectedWorkflow = new WorkflowListItem
+            {
+                Id = 42,
+                Name = "Research Brief"
+            },
+            RunOutput = "stored result",
+            RunResultContextText = $"Showing stored run from {run.StartedAtText}",
+            FocusedWorkflowRunSourceLabel = "Opened stored workflow run for \"Research Brief\" from Operations"
+        };
+        viewModel.RecentRuns.Add(run);
+
+        await viewModel.SaveCurrentResultToVaultCommand.ExecuteAsync(null);
+
+        viewModel.HasFocusedWorkflowRunLanding.Should().BeFalse();
+        viewModel.FocusedWorkflowRunSourceLabel.Should().BeEmpty();
+        viewModel.RecentRuns.Should().OnlyContain(item => !item.IsFocused);
+        viewModel.StatusMessage.Should().Be(
+            "Resolved the focused workflow run by saving it to Knowledge Vault as \"Research Brief Result 2026-04-24_103000.txt\".");
+    }
+
+    [Fact]
     public async Task SaveHistoricalRunToVaultAsync_imports_selected_run_content()
     {
         var savedDocument = new DocumentEntity
@@ -747,6 +806,60 @@ public sealed class WorkflowBuilderViewModelTests
         capturedArtifact.Metadata!["Status"].Should().Be("Completed");
         capturedArtifact.Metadata["Workflow"].Should().Be("Research Brief");
         viewModel.StatusMessage.Should().Be("Exported stored workflow result to workflow-history.json");
+    }
+
+    [Fact]
+    public async Task ExportHistoricalRunAsync_resolves_focused_stored_run_after_successful_export()
+    {
+        _exportService.Setup(service => service.ExportTextArtifactAsync(
+                It.IsAny<TextArtifactExportItem>(),
+                It.IsAny<ExportOptions>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ExportResult.Ok(@"C:\exports\focused-workflow-run.json", 256));
+
+        var run = new WorkflowRunHistoryDisplayItem(
+            new WorkflowRunHistoryItem
+            {
+                RunId = 12,
+                WorkflowId = 42,
+                Status = "completed",
+                StartedAt = new DateTime(2026, 4, 23, 16, 30, 0, DateTimeKind.Utc),
+                StepsCompleted = 2,
+                TotalSteps = 2,
+                FinalOutput = "brief summary"
+            })
+        {
+            IsFocused = true
+        };
+
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object,
+            _exportService.Object)
+        {
+            SelectedWorkflow = new WorkflowListItem
+            {
+                Id = 42,
+                Name = "Research Brief"
+            },
+            FocusedWorkflowRunSourceLabel = "Opened stored workflow run for \"Research Brief\" from Operations"
+        };
+        viewModel.RecentRuns.Add(run);
+
+        var result = await viewModel.ExportHistoricalRunAsync(run, new ExportOptions
+        {
+            Format = ExportFormat.Json,
+            IncludeMetadata = true
+        });
+
+        result.Success.Should().BeTrue();
+        viewModel.HasFocusedWorkflowRunLanding.Should().BeFalse();
+        viewModel.FocusedWorkflowRunSourceLabel.Should().BeEmpty();
+        viewModel.RecentRuns.Should().OnlyContain(item => !item.IsFocused);
+        viewModel.StatusMessage.Should().Be(
+            "Resolved the focused workflow run by exporting it to focused-workflow-run.json.");
     }
 
     [Fact]
