@@ -196,7 +196,63 @@ public sealed class KnowledgeVaultViewModelTests
         viewModel.SelectedDocument.Should().NotBeNull();
         viewModel.SelectedDocument!.Id.Should().Be(2);
         viewModel.SelectedDocument.HasFocusedSourceLabel.Should().BeTrue();
+        viewModel.FocusedDocumentVisibilityHint.Should().BeEmpty();
         viewModel.IsPreviewOpen.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task InitializeAsync_widens_filters_for_pending_operations_document_request()
+    {
+        _documentService
+            .Setup(service => service.GetAllDocumentsAsync(
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<long?>(),
+                It.IsAny<DateTime?>(),
+                It.IsAny<DateTime?>(),
+                It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string? fileTypeFilter, string? statusFilter, string? tagFilter, long? collectionId, DateTime? importedAfter, DateTime? importedBefore, string? sortBy, CancellationToken ct) =>
+                statusFilter == "failed"
+                    ? [CreateDocument(1, "alpha.md")]
+                    : [CreateDocument(1, "alpha.md"), CreateDocument(2, "beta.pdf")]);
+        _documentService.Setup(service => service.GetDocumentAsync(2))
+            .ReturnsAsync(CreateDocument(2, "beta.pdf"));
+        _documentService.Setup(service => service.GetTotalDocumentCountAsync()).ReturnsAsync(2L);
+        _documentService.Setup(service => service.GetTotalStorageBytesAsync()).ReturnsAsync(3_072L);
+
+        _indexingService.Setup(service => service.GetQueueLengthAsync()).ReturnsAsync(0);
+        _indexingService.SetupGet(service => service.IsProcessing).Returns(false);
+
+        _autoTagService.Setup(service => service.GetTagsForDocumentsAsync(It.IsAny<IReadOnlyList<long>>()))
+            .ReturnsAsync(new Dictionary<long, IReadOnlyList<TagEntity>>());
+        _autoTagService.Setup(service => service.GetAllTagsAsync())
+            .ReturnsAsync(Array.Empty<TagEntity>());
+        _collectionService.Setup(service => service.GetAllCollectionsAsync())
+            .ReturnsAsync(Array.Empty<CollectionEntity>());
+        _operationsDrillInService.Setup(service => service.ConsumePendingDocumentRequest())
+            .Returns(new OperationsDocumentDrillInRequest(2, "Opened imported document \"beta.pdf\" from Operations"));
+
+        var viewModel = new KnowledgeVaultViewModel(
+            _documentService.Object,
+            _indexingService.Object,
+            _aiService.Object,
+            _autoTagService.Object,
+            _collectionService.Object,
+            _workflowLaunchService.Object,
+            _operationsDrillInService.Object)
+        {
+            StatusFilter = "failed"
+        };
+
+        await viewModel.InitializeAsync();
+
+        viewModel.StatusFilter.Should().BeNull();
+        viewModel.Documents[0].Id.Should().Be(2);
+        viewModel.SelectedDocument.Should().NotBeNull();
+        viewModel.SelectedDocument!.Id.Should().Be(2);
+        viewModel.FocusedDocumentVisibilityHint.Should().Be("Filters were widened to show the requested document.");
     }
 
     private static DocumentEntity CreateDocument(long id, string fileName)

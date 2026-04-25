@@ -35,6 +35,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     private readonly ICollectionService _collectionService;
     private readonly IWorkflowLaunchService? _workflowLaunchService;
     private readonly IOperationsDrillInService? _operationsDrillInService;
+    private bool _suppressFilterRefresh;
 
     // ── Page State ─────────────────────────────────────────────
     [ObservableProperty] private string _pageTitle = "Knowledge Vault";
@@ -48,6 +49,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _isIndexing;
     [ObservableProperty] private string _errorMessage = string.Empty;
     [ObservableProperty] private bool _hasError;
+    [ObservableProperty] private string _focusedDocumentVisibilityHint = string.Empty;
 
     // ── Filters ──────────────────────────────────────────────
     [ObservableProperty] private string? _fileTypeFilter;
@@ -325,48 +327,88 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     partial void OnFileTypeFilterChanged(string? value)
     {
         OnPropertyChanged(nameof(HasActiveFilters));
+        if (_suppressFilterRefresh)
+        {
+            return;
+        }
+
         ApplyFilters();
     }
 
     partial void OnStatusFilterChanged(string? value)
     {
         OnPropertyChanged(nameof(HasActiveFilters));
+        if (_suppressFilterRefresh)
+        {
+            return;
+        }
+
         ApplyFilters();
     }
 
     partial void OnSearchQueryChanged(string value)
     {
         OnPropertyChanged(nameof(HasActiveFilters));
+        if (_suppressFilterRefresh)
+        {
+            return;
+        }
+
         ApplyFilters();
     }
 
     partial void OnTagFilterChanged(string? value)
     {
         OnPropertyChanged(nameof(HasActiveFilters));
+        if (_suppressFilterRefresh)
+        {
+            return;
+        }
+
         ApplyFilters();
     }
 
     partial void OnCollectionFilterChanged(long? value)
     {
         OnPropertyChanged(nameof(HasActiveFilters));
+        if (_suppressFilterRefresh)
+        {
+            return;
+        }
+
         ApplyFilters();
     }
 
     partial void OnDateAfterFilterChanged(DateTime? value)
     {
         OnPropertyChanged(nameof(HasActiveFilters));
+        if (_suppressFilterRefresh)
+        {
+            return;
+        }
+
         ApplyFilters();
     }
 
     partial void OnDateBeforeFilterChanged(DateTime? value)
     {
         OnPropertyChanged(nameof(HasActiveFilters));
+        if (_suppressFilterRefresh)
+        {
+            return;
+        }
+
         ApplyFilters();
     }
 
     partial void OnSortByChanged(string value)
     {
         OnPropertyChanged(nameof(HasActiveFilters));
+        if (_suppressFilterRefresh)
+        {
+            return;
+        }
+
         ApplyFilters();
     }
 
@@ -374,6 +416,11 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     {
         IsPreviewOpen = value is not null;
         OnPropertyChanged(nameof(HasSelectedDocument));
+
+        if (value is null || !value.HasFocusedSourceLabel)
+        {
+            FocusedDocumentVisibilityHint = string.Empty;
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -1045,12 +1092,27 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
             return;
         }
 
+        FocusedDocumentVisibilityHint = string.Empty;
         foreach (var document in Documents)
         {
             document.FocusedSourceLabel = string.Empty;
         }
 
         var target = Documents.FirstOrDefault(document => document.Id == request.DocumentId);
+        if (target is null && HasActiveFilters)
+        {
+            var widenedFilters = ResetFiltersForOperationsDocumentRequest();
+            if (widenedFilters)
+            {
+                await LoadDocumentsAsync();
+                target = Documents.FirstOrDefault(document => document.Id == request.DocumentId);
+                if (target is not null)
+                {
+                    FocusedDocumentVisibilityHint = "Filters were widened to show the requested document.";
+                }
+            }
+        }
+
         if (target is null)
         {
             return;
@@ -1064,6 +1126,35 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         }
 
         await SelectDocumentAsync(target.Id);
+    }
+
+    private bool ResetFiltersForOperationsDocumentRequest()
+    {
+        var changed = HasActiveFilters;
+        if (!changed)
+        {
+            return false;
+        }
+
+        _suppressFilterRefresh = true;
+        try
+        {
+            FileTypeFilter = null;
+            StatusFilter = null;
+            TagFilter = null;
+            CollectionFilter = null;
+            DateAfterFilter = null;
+            DateBeforeFilter = null;
+            SortBy = "date";
+            SearchQuery = string.Empty;
+        }
+        finally
+        {
+            _suppressFilterRefresh = false;
+        }
+
+        OnPropertyChanged(nameof(HasActiveFilters));
+        return true;
     }
 
     private static DocumentDisplayItem MapDocumentToDisplay(AgentX.Core.Data.Entities.DocumentEntity doc)

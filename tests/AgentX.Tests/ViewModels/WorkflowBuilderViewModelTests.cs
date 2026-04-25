@@ -879,6 +879,8 @@ public sealed class WorkflowBuilderViewModelTests
         viewModel.RecentRuns[0].IsFocused.Should().BeTrue();
         viewModel.RunOutput.Should().Be("stored result");
         viewModel.RunResultContextText.Should().Contain("Showing stored run from");
+        viewModel.HasFocusedWorkflowRunLanding.Should().BeTrue();
+        viewModel.FocusedWorkflowRunSourceLabel.Should().Contain("Research Briefing");
         viewModel.StatusMessage.Should().Contain("Opened stored workflow run");
     }
 

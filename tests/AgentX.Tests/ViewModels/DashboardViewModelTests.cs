@@ -25,6 +25,7 @@ public sealed class DashboardViewModelTests
     private readonly Mock<IIndexingService> _indexingService = new();
     private readonly Mock<IRagPipeline> _ragPipeline = new();
     private readonly Mock<IOperationsOverviewService> _operationsOverviewService = new();
+    private readonly Mock<IOperationsDrillInService> _operationsDrillInService = new();
 
     public DashboardViewModelTests()
     {
@@ -249,6 +250,89 @@ public sealed class DashboardViewModelTests
     }
 
     [Fact]
+    public async Task InitializeAsync_prefers_exact_targets_when_operations_snapshot_includes_preview_ids()
+    {
+        _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot
+                {
+                    Headline = "5",
+                    Status = "Durable recall current",
+                    Detail = "6 stored snapshots · latest 10 minutes ago"
+                },
+                SyncHealth = new OperationsCardSnapshot
+                {
+                    Headline = "Configured",
+                    Status = "Standing by",
+                    Detail = "Syncing the full workspace."
+                },
+                IngestionBacklog = new OperationsCardSnapshot
+                {
+                    Headline = "2",
+                    Status = "2 items awaiting triage",
+                    Detail = "Open Smart Inbox to triage connector and watch-folder imports."
+                },
+                PendingInboxItems =
+                [
+                    new OperationsInboxPreview
+                    {
+                        ItemId = 701,
+                        Title = "Board recap.msg",
+                        Status = "Email Connector",
+                        Detail = "Message awaiting preview generation"
+                    }
+                ],
+                RecentImportedDocuments =
+                [
+                    new OperationsImportedDocumentPreview
+                    {
+                        DocumentId = 501,
+                        Title = "Quarterly Brief.docx",
+                        Status = "Email Connector",
+                        HealthStatus = "Needs Attention",
+                        Detail = "Embedding request failed."
+                    }
+                ],
+                Connectors = new OperationsCardSnapshot
+                {
+                    Headline = "1",
+                    Status = "1 connector disabled",
+                    Detail = "Email Connector is installed but currently disabled."
+                },
+                ConnectorPreviews =
+                [
+                    new OperationsConnectorPreview
+                    {
+                        PluginId = 301,
+                        IsEnabled = false,
+                        CanEnableFromOperations = true,
+                        Title = "Email Connector",
+                        Status = "Disabled",
+                        Detail = "Connector disabled"
+                    }
+                ],
+                WorkflowActivity = new OperationsCardSnapshot
+                {
+                    Headline = "0",
+                    Status = "Ready to automate",
+                    SupportingPrimary = "No recent runs",
+                    SupportingSecondary = "Avg duration unavailable",
+                    Detail = "Create or launch a workflow from Vault or Search to start automating multi-step tasks."
+                }
+            });
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.RecommendedActions.Select(action => action.Route)
+            .Should().Equal("KnowledgeVault", "Inbox", "PluginManager");
+        viewModel.RecommendedActions.Select(action => action.TargetId)
+            .Should().Equal(501, 701, 301);
+    }
+
+    [Fact]
     public void Recommended_action_command_routes_to_target_page()
     {
         var viewModel = CreateViewModel();
@@ -263,6 +347,30 @@ public sealed class DashboardViewModelTests
         });
 
         navigations.Should().Equal("Analytics");
+    }
+
+    [Fact]
+    public void OpenRecommendedActionCommand_stages_workflow_run_request_when_ids_are_present()
+    {
+        var viewModel = CreateViewModel();
+        var navigations = new List<string>();
+        viewModel.NavigateRequested = page => navigations.Add(page);
+
+        viewModel.OpenRecommendedActionCommand.Execute(new DashboardRecommendedActionItem
+        {
+            Title = "Review Research Briefing",
+            CommandText = "Review Run",
+            Route = "Workflows",
+            TargetId = 41,
+            SecondaryTargetId = 88
+        });
+
+        _operationsDrillInService.Verify(service => service.StageWorkflowRunRequest(
+            It.Is<OperationsWorkflowRunDrillInRequest>(request =>
+                request.WorkflowId == 41 &&
+                request.RunId == 88 &&
+                request.SourceLabel.Contains("Review Research Briefing"))), Times.Once);
+        navigations.Should().Equal("Workflows");
     }
 
     [Fact]
@@ -292,6 +400,7 @@ public sealed class DashboardViewModelTests
             _collectionService.Object,
             _indexingService.Object,
             _ragPipeline.Object,
-            _operationsOverviewService.Object);
+            _operationsOverviewService.Object,
+            _operationsDrillInService.Object);
     }
 }

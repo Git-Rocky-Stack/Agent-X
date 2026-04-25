@@ -18,6 +18,7 @@ public sealed class QuickActionsViewModelTests
     private readonly Mock<IOrganizationSuggestionService> _organizationSuggestionService = new();
     private readonly Mock<IDocumentService> _documentService = new();
     private readonly Mock<IOperationsOverviewService> _operationsOverviewService = new();
+    private readonly Mock<IOperationsDrillInService> _operationsDrillInService = new();
 
     public QuickActionsViewModelTests()
     {
@@ -144,6 +145,72 @@ public sealed class QuickActionsViewModelTests
         navigations.Should().Equal("Inbox");
     }
 
+    [Fact]
+    public async Task ExecuteRecommendedActionAsync_stages_pending_inbox_item_before_navigation()
+    {
+        _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                IngestionBacklog = new OperationsCardSnapshot
+                {
+                    Headline = "3",
+                    Status = "3 items awaiting triage",
+                    Detail = "Open Smart Inbox to triage imports."
+                },
+                PendingInboxItems =
+                [
+                    new OperationsInboxPreview
+                    {
+                        ItemId = 901,
+                        Title = "Research intake.msg",
+                        Status = "Email Connector",
+                        Detail = "Awaiting preview"
+                    }
+                ],
+                Connectors = new OperationsCardSnapshot
+                {
+                    Headline = "1",
+                    Status = "1 connector enabled",
+                    Detail = "Email Connector"
+                }
+            });
+
+        var viewModel = CreateViewModel();
+        var navigations = new List<string>();
+        viewModel.NavigateRequested = page => navigations.Add(page);
+
+        await viewModel.InitializeAsync();
+
+        var action = viewModel.RecommendedActions.First(item => item.Route == "Inbox");
+        await viewModel.ExecuteRecommendedActionCommand.ExecuteAsync(action);
+
+        _operationsDrillInService.Verify(service => service.StageInboxRequest(
+            It.Is<OperationsInboxDrillInRequest>(request =>
+                request.ItemId == 901 &&
+                request.SourceLabel.Contains("Triage new incoming content"))), Times.Once);
+        navigations.Should().Equal("Inbox");
+    }
+
+    [Fact]
+    public async Task ExecuteRecommendedActionAsync_stages_selected_document_before_vault_navigation()
+    {
+        var viewModel = CreateViewModel();
+        var navigations = new List<string>();
+        viewModel.NavigateRequested = page => navigations.Add(page);
+
+        await viewModel.InitializeAsync();
+        viewModel.SelectedDocument = viewModel.AvailableDocuments.Single(item => item.Id == 102);
+
+        var action = viewModel.RecommendedActions.First(item => item.Route == "KnowledgeVault");
+        await viewModel.ExecuteRecommendedActionCommand.ExecuteAsync(action);
+
+        _operationsDrillInService.Verify(service => service.StageDocumentRequest(
+            It.Is<OperationsDocumentDrillInRequest>(request =>
+                request.DocumentId == 102 &&
+                request.SourceLabel.Contains("Finish indexing Connector Intake.msg"))), Times.Once);
+        navigations.Should().Equal("KnowledgeVault");
+    }
+
     private QuickActionsViewModel CreateViewModel() =>
         new(
             _summaryService.Object,
@@ -151,5 +218,6 @@ public sealed class QuickActionsViewModelTests
             _organizationSuggestionService.Object,
             _documentService.Object,
             _operationsOverviewService.Object,
-            Log.ForContext<QuickActionsViewModelTests>());
+            Log.ForContext<QuickActionsViewModelTests>(),
+            _operationsDrillInService.Object);
 }

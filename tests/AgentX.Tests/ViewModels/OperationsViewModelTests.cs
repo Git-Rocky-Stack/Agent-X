@@ -1057,6 +1057,74 @@ public sealed class OperationsViewModelTests
         viewModel.EnableConnectorCommand.CanExecute(viewModel.ConnectorPreviews.Single()).Should().BeFalse();
     }
 
+    [Fact]
+    public async Task ExecuteRecommendedActionAsync_stages_failed_workflow_run_before_navigation()
+    {
+        _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot
+                {
+                    Headline = "5",
+                    Status = "Durable recall current",
+                    Detail = "Healthy"
+                },
+                SyncHealth = new OperationsCardSnapshot
+                {
+                    Headline = "Configured",
+                    Status = "Standing by",
+                    Detail = "Ready"
+                },
+                IngestionBacklog = new OperationsCardSnapshot
+                {
+                    Headline = "0",
+                    Status = "Queue clear",
+                    Detail = "Ready"
+                },
+                WorkflowActivity = new OperationsCardSnapshot
+                {
+                    Headline = "7",
+                    Status = "86% success rate",
+                    SupportingPrimary = "2 active / 30d",
+                    SupportingSecondary = "42s avg run",
+                    Detail = "Top workflow: Research Briefing"
+                },
+                RecentWorkflowRuns =
+                [
+                    new OperationsWorkflowRunPreview
+                    {
+                        WorkflowId = 41,
+                        RunId = 88,
+                        Title = "Research Briefing",
+                        Status = "Failed",
+                        Detail = "Model timed out while producing executive summary."
+                    }
+                ],
+                Connectors = new OperationsCardSnapshot
+                {
+                    Headline = "1",
+                    Status = "1 connector enabled",
+                    Detail = "Email Connector"
+                }
+            });
+
+        var viewModel = CreateViewModel();
+        var navigations = new List<string>();
+        viewModel.NavigateRequested = page => navigations.Add(page);
+
+        await viewModel.LoadAsync();
+
+        var action = viewModel.RecommendedActions.Single(item => item.Route == "Workflows");
+        await viewModel.ExecuteRecommendedActionCommand.ExecuteAsync(action);
+
+        _operationsDrillInService.Verify(service => service.StageWorkflowRunRequest(
+            It.Is<OperationsWorkflowRunDrillInRequest>(request =>
+                request.WorkflowId == 41 &&
+                request.RunId == 88 &&
+                request.SourceLabel.Contains("Review Research Briefing"))), Times.Once);
+        navigations.Should().Equal("Workflows");
+    }
+
     private OperationsViewModel CreateViewModel() =>
         new(
             _operationsActionService.Object,

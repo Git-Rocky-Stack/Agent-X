@@ -110,6 +110,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <!-- Header -->
@@ -120,8 +121,31 @@
                                    Style="{StaticResource BodySecondaryStyle}" />
                     </StackPanel>
 
+                    <Border Grid.Row="1"
+                            Visibility="{x:Bind ViewModel.HasFocusedInboxLanding, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                            Background="{StaticResource AccentSubtleBrush}"
+                            BorderBrush="{StaticResource AccentPrimaryBrush}"
+                            BorderThickness="1"
+                            CornerRadius="{StaticResource RadiusMD}"
+                            Padding="16,14">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Focused Inbox Item"
+                                       Style="{StaticResource BodyStyle}"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource AccentPrimaryBrush}" />
+                            <TextBlock Text="{x:Bind ViewModel.FocusedInboxSourceLabel, Mode=OneWay}"
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       TextWrapping="Wrap" />
+                            <TextBlock Text="{x:Bind ViewModel.FocusedInboxVisibilityHint, Mode=OneWay}"
+                                       Style="{StaticResource CaptionStyle}"
+                                       Opacity="0.7"
+                                       TextWrapping="Wrap"
+                                       Visibility="{x:Bind ViewModel.FocusedInboxVisibilityHint, Mode=OneWay, Converter={StaticResource StringToVis}}" />
+                        </StackPanel>
+                    </Border>
+
                     <!-- Inbox Item List -->
-                    <ItemsRepeater Grid.Row="1" ItemsSource="{x:Bind ViewModel.InboxItems}">
+                    <ItemsRepeater Grid.Row="2" ItemsSource="{x:Bind ViewModel.InboxItems}">
                         <ItemsRepeater.Layout>
                             <StackLayout Spacing="12" />
                         </ItemsRepeater.Layout>
@@ -286,7 +310,7 @@
                     </StackPanel>
 
                     <!-- Status -->
-                    <TextBlock Grid.Row="2"
+                    <TextBlock Grid.Row="3"
                                Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
                                Style="{StaticResource CaptionStyle}"
                                Opacity="0.5"

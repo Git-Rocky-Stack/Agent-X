@@ -26,6 +26,9 @@ public partial class InboxViewModel : ObservableObject
     [ObservableProperty] private bool _hasItems;
     [ObservableProperty] private int _pendingCount;
     [ObservableProperty] private long _focusedInboxItemId;
+    [ObservableProperty] private string _focusedInboxSourceLabel = string.Empty;
+    [ObservableProperty] private string _focusedInboxVisibilityHint = string.Empty;
+    public bool HasFocusedInboxLanding => !string.IsNullOrWhiteSpace(FocusedInboxSourceLabel);
 
     // ── Collection Selection ─────────────────────────────────
     public ObservableCollection<CollectionEntity> Collections { get; } = new();
@@ -87,6 +90,8 @@ public partial class InboxViewModel : ObservableObject
         try
         {
             FocusedInboxItemId = 0;
+            FocusedInboxSourceLabel = string.Empty;
+            FocusedInboxVisibilityHint = string.Empty;
             var filter = StatusFilter == "all" ? null : StatusFilter;
             var items = await _inboxService.GetAllItemsAsync(filter, 0, 100);
 
@@ -130,12 +135,17 @@ public partial class InboxViewModel : ObservableObject
             return;
         }
 
+        var visibilityHint = string.Empty;
         var focusedItem = InboxItems.FirstOrDefault(item => item.Id == request.ItemId);
         if (focusedItem is null && StatusFilter != "all")
         {
             StatusFilter = "all";
             await LoadInboxItemsAsync();
             focusedItem = InboxItems.FirstOrDefault(item => item.Id == request.ItemId);
+            if (focusedItem is not null)
+            {
+                visibilityHint = "Status filter widened to show the requested inbox item.";
+            }
         }
 
         if (focusedItem is null)
@@ -145,6 +155,8 @@ public partial class InboxViewModel : ObservableObject
         }
 
         FocusedInboxItemId = request.ItemId;
+        FocusedInboxSourceLabel = request.SourceLabel;
+        FocusedInboxVisibilityHint = visibilityHint;
         foreach (var item in InboxItems)
         {
             item.IsFocused = item.Id == request.ItemId;
@@ -285,6 +297,9 @@ public partial class InboxViewModel : ObservableObject
     {
         await LoadInboxItemsAsync();
     }
+
+    partial void OnFocusedInboxSourceLabelChanged(string value) =>
+        OnPropertyChanged(nameof(HasFocusedInboxLanding));
 }
 
 public partial class InboxDisplayItem : ObservableObject

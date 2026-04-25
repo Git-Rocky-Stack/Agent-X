@@ -73,6 +73,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _isEditing;
     [ObservableProperty] private bool _isRunning;
     [ObservableProperty] private string _statusMessage = string.Empty;
+    [ObservableProperty] private string _focusedWorkflowRunSourceLabel = string.Empty;
 
     // ── Workflow List ────────────────────────────────────────
     public ObservableCollection<WorkflowListItem> Workflows { get; } = new();
@@ -116,6 +117,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     public bool ShowWorkflowRunnerSection => !IsEditing && HasSelectedWorkflow;
     public bool HasRecentRuns => RecentRuns.Count > 0;
     public bool ShowRecentRunsEmptyState => HasSelectedWorkflow && !HasRecentRuns;
+    public bool HasFocusedWorkflowRunLanding => !string.IsNullOrWhiteSpace(FocusedWorkflowRunSourceLabel);
     public bool HasStepOutputs => StepOutputs.Count > 0;
     public bool HasRunOutput => !string.IsNullOrWhiteSpace(RunOutput);
     public bool HasRunOutputOrError => HasRunOutput || !string.IsNullOrWhiteSpace(RunErrorMessage);
@@ -659,6 +661,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             return;
         }
 
+        FocusedWorkflowRunSourceLabel = string.Empty;
         IsRunning = true;
         RunCompleted = false;
         RunFailed = false;
@@ -793,6 +796,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             return;
         }
 
+        FocusedWorkflowRunSourceLabel = string.Empty;
         ApplyHistoricalRun(run);
         StatusMessage = $"Showing stored run from {run.StartedAtText}";
     }
@@ -807,6 +811,11 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(ShowWorkflowRunnerSection));
         OnPropertyChanged(nameof(ShowRecentRunsEmptyState));
         NotifySelectedTemplateGuideChanged();
+
+        if (_pendingOperationsRunRequest is null || value?.Id != _pendingOperationsRunRequest.WorkflowId)
+        {
+            FocusedWorkflowRunSourceLabel = string.Empty;
+        }
 
         _ = LoadSelectedWorkflowRunsAsync(value);
     }
@@ -934,6 +943,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             return;
         }
 
+        FocusedWorkflowRunSourceLabel = string.Empty;
         _pendingOperationsRunRequest = request;
 
         var workflow = Workflows.FirstOrDefault(item => item.Id == request.WorkflowId);
@@ -974,9 +984,13 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         }
 
         ApplyHistoricalRun(focusedRun);
+        FocusedWorkflowRunSourceLabel = _pendingOperationsRunRequest.SourceLabel;
         StatusMessage = _pendingOperationsRunRequest.SourceLabel;
         _pendingOperationsRunRequest = null;
     }
+
+    partial void OnFocusedWorkflowRunSourceLabelChanged(string value) =>
+        OnPropertyChanged(nameof(HasFocusedWorkflowRunLanding));
 
     private WorkflowTemplateGuideContent? SelectedTemplateGuide
     {
