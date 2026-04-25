@@ -50,7 +50,8 @@ public sealed class StatusToColorConverter : IValueConverter
 
             // Amber statuses
             "processing" or "loading" or "pending" or "syncing"
-                or "warning" or "busy" or "queued" => AmberBrush,
+                or "warning" or "busy" or "queued"
+                or "cancelled" or "canceled" => AmberBrush,
 
             // Blue statuses
             "info" or "downloading" or "indexing" or "updating"
