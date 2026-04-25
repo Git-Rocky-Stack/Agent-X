@@ -669,12 +669,28 @@
                                            TextWrapping="Wrap" />
                             </StackPanel>
 
-                            <Button Grid.Column="1"
-                                    Content="Dismiss"
-                                    Command="{x:Bind ViewModel.DismissFocusedConversationLandingCommand}"
-                                    Style="{StaticResource GhostButtonStyle}"
-                                    VerticalAlignment="Top" />
+                            <StackPanel Grid.Column="1"
+                                        Spacing="8"
+                                        VerticalAlignment="Top">
+                                <Button Content="Refresh Summary"
+                                        Command="{x:Bind ViewModel.RefreshFocusedConversationSummaryCommand}"
+                                        Style="{StaticResource GhostButtonStyle}" />
+                                <Button Content="Dismiss"
+                                        Command="{x:Bind ViewModel.DismissFocusedConversationLandingCommand}"
+                                        Style="{StaticResource GhostButtonStyle}" />
+                            </StackPanel>
                         </Grid>
+                    </Border>
+
+                    <Border Background="{StaticResource InputBackgroundBrush}"
+                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                            BorderThickness="1"
+                            CornerRadius="{StaticResource RadiusMD}"
+                            Padding="14,12"
+                            Visibility="{x:Bind ViewModel.HasConversationIntelligenceStatusMessage, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="{x:Bind ViewModel.ConversationIntelligenceStatusMessage, Mode=OneWay}"
+                                   Style="{StaticResource BodySecondaryStyle}"
+                                   TextWrapping="Wrap" />
                     </Border>
 
                     <TextBlock Text="No durable conversation summaries yet. Open Analytics again after a few chats to seed the first snapshots."

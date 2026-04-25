@@ -544,6 +544,94 @@ public sealed class AnalyticsViewModelTests
     }
 
     [Fact]
+    public async Task RefreshFocusedConversationSummaryCommand_resolves_focused_summary_after_successful_refresh()
+    {
+        SetupDefaultLoadDataDependencies();
+
+        _operationsDrillInService
+            .SetupSequence(service => service.ConsumePendingConversationRequest())
+            .Returns(new OperationsConversationDrillInRequest(9, "Opened conversation summary \"Analytics roadmap\" from Operations"))
+            .Returns((OperationsConversationDrillInRequest?)null);
+        _conversationSummaryService
+            .Setup(service => service.RefreshConversationSummaryAsync(9, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        _analyticsService
+            .SetupSequence(service => service.GetConversationIntelligenceAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ConversationIntelligenceOverview
+            {
+                SummarizedConversations = 2,
+                CurrentSnapshots = 2,
+                StaleConversations = 1,
+                PendingRefreshes = 1,
+                RecentSummaries =
+                [
+                    new ConversationSummaryMetric
+                    {
+                        ConversationId = 4,
+                        Title = "Persistent memory rollout",
+                        PreviewText = "Durable summaries are now visible in chat and analytics.",
+                        KeyPoints = ["Persistent memory", "Analytics surface"],
+                        GeneratedAt = DateTime.UtcNow.AddMinutes(-30),
+                        CoveredMessageCount = 5
+                    },
+                    new ConversationSummaryMetric
+                    {
+                        ConversationId = 9,
+                        Title = "Analytics roadmap",
+                        PreviewText = "Operations should deep-link the relevant summary card.",
+                        KeyPoints = ["Operations drill-in", "Focused summary"],
+                        GeneratedAt = DateTime.UtcNow.AddMinutes(-10),
+                        CoveredMessageCount = 6,
+                        PendingMessageCount = 2,
+                        IsStale = true
+                    }
+                ]
+            })
+            .ReturnsAsync(new ConversationIntelligenceOverview
+            {
+                SummarizedConversations = 2,
+                CurrentSnapshots = 3,
+                RecentSummaries =
+                [
+                    new ConversationSummaryMetric
+                    {
+                        ConversationId = 4,
+                        Title = "Persistent memory rollout",
+                        PreviewText = "Durable summaries are now visible in chat and analytics.",
+                        KeyPoints = ["Persistent memory", "Analytics surface"],
+                        GeneratedAt = DateTime.UtcNow.AddMinutes(-30),
+                        CoveredMessageCount = 5
+                    },
+                    new ConversationSummaryMetric
+                    {
+                        ConversationId = 9,
+                        Title = "Analytics roadmap",
+                        PreviewText = "The durable summary was refreshed from the latest thread tail.",
+                        KeyPoints = ["Operations drill-in", "Refreshed summary"],
+                        GeneratedAt = DateTime.UtcNow.AddMinutes(-1),
+                        CoveredMessageCount = 8
+                    }
+                ]
+            });
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.LoadDataAsync();
+        await viewModel.RefreshFocusedConversationSummaryCommand.ExecuteAsync(null);
+
+        _conversationSummaryService.Verify(
+            service => service.RefreshConversationSummaryAsync(9, It.IsAny<CancellationToken>()),
+            Times.Once);
+        viewModel.HasFocusedConversationLanding.Should().BeFalse();
+        viewModel.FocusedConversationSummaryId.Should().Be(0);
+        viewModel.FocusedConversationSourceLabel.Should().BeEmpty();
+        viewModel.HasConversationIntelligenceStatusMessage.Should().BeTrue();
+        viewModel.ConversationIntelligenceStatusMessage.Should().Be(
+            "Resolved \"Analytics roadmap\" by refreshing its durable summary.");
+        viewModel.RecentConversationSummaries.Should().OnlyContain(item => !item.IsFocused && !item.HasSourceLabel);
+    }
+
+    [Fact]
     public async Task LoadDataAsync_leaves_workflow_section_in_empty_state_when_no_runs_exist()
     {
         SetupDefaultLoadDataDependencies();

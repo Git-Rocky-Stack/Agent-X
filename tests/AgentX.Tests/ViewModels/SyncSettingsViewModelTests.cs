@@ -262,4 +262,91 @@ public sealed class SyncSettingsViewModelTests
         viewModel.SyncHistory[0].IsFocused.Should().BeTrue();
         viewModel.StatusMessage.Should().Contain("Opened sync history entry");
     }
+
+    [Fact]
+    public async Task SyncNowAsync_resolves_focused_sync_landing_after_successful_sync()
+    {
+        _syncService.Setup(service => service.GetConfigurationAsync())
+            .ReturnsAsync(new SyncConfiguration
+            {
+                SyncFolderPath = @"C:\Sync",
+                EncryptionKey = "secret"
+            });
+        _syncService.SetupSequence(service => service.GetSyncHistoryAsync(It.IsAny<int>()))
+            .ReturnsAsync(
+            [
+                new SyncLogEntity
+                {
+                    Id = 3,
+                    Direction = "export",
+                    ChangesApplied = 2,
+                    IsSuccess = true,
+                    SyncedAt = DateTime.UtcNow.AddMinutes(-15),
+                    DurationMs = 1200
+                },
+                new SyncLogEntity
+                {
+                    Id = 9,
+                    Direction = "import",
+                    ChangesApplied = 12,
+                    IsSuccess = true,
+                    SyncedAt = DateTime.UtcNow.AddMinutes(-5),
+                    DurationMs = 2400
+                }
+            ])
+            .ReturnsAsync(
+            [
+                new SyncLogEntity
+                {
+                    Id = 11,
+                    Direction = "export",
+                    ChangesApplied = 1,
+                    IsSuccess = true,
+                    SyncedAt = DateTime.UtcNow.AddMinutes(-1),
+                    DurationMs = 1800
+                },
+                new SyncLogEntity
+                {
+                    Id = 9,
+                    Direction = "import",
+                    ChangesApplied = 12,
+                    IsSuccess = true,
+                    SyncedAt = DateTime.UtcNow.AddMinutes(-5),
+                    DurationMs = 2400
+                }
+            ]);
+        _syncService.Setup(service => service.ExportChangesAsync(It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SyncChangeSet
+            {
+                Changes =
+                [
+                    new SyncChange
+                    {
+                        EntityType = "ConversationEntity",
+                        EntityId = 42,
+                        ChangeType = SyncChangeType.Updated,
+                        Timestamp = DateTime.UtcNow,
+                        SerializedData = "{}"
+                    }
+                ]
+            });
+        _syncService.Setup(service => service.StartAutoSyncAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _operationsDrillInService.SetupSequence(service => service.ConsumePendingSyncRequest())
+            .Returns(new OperationsSyncDrillInRequest(9, "Opened sync history entry \"Import sync\" from Operations"))
+            .Returns((OperationsSyncDrillInRequest?)null);
+
+        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, _operationsDrillInService.Object);
+
+        await viewModel.InitializeAsync();
+        await viewModel.SyncNowCommand.ExecuteAsync(null);
+
+        _syncService.Verify(service => service.ExportChangesAsync(It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()), Times.Once);
+        _syncService.Verify(service => service.StartAutoSyncAsync(It.IsAny<CancellationToken>()), Times.Once);
+        viewModel.FocusedSyncLogId.Should().Be(0);
+        viewModel.FocusedSyncSourceLabel.Should().BeEmpty();
+        viewModel.HasFocusedSyncLanding.Should().BeFalse();
+        viewModel.SyncHistory.Should().OnlyContain(item => !item.IsFocused);
+        viewModel.StatusMessage.Should().Be("Resolved the focused sync history entry by running a fresh sync pass.");
+    }
 }

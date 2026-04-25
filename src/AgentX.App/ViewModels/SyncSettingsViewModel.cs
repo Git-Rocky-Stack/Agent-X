@@ -484,6 +484,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         }
 
         Log.Information("Manual sync requested");
+        var resolvedFocusedSyncMessage = BuildFocusedSyncResolutionMessage();
 
         IsSyncing = true;
         ClearError();
@@ -510,7 +511,14 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
             RefreshStatusFromService();
             await LoadHistoryAsync();
 
-            SetStatus($"Sync complete — {changeSet.Changes.Count} change(s) exported.");
+            if (resolvedFocusedSyncMessage is not null && TryResolveFocusedSyncAction(resolvedFocusedSyncMessage))
+            {
+                Log.Information("Manual sync completed and resolved focused sync history entry");
+            }
+            else
+            {
+                SetStatus($"Sync complete — {changeSet.Changes.Count} change(s) exported.");
+            }
             Log.Information("Manual sync completed: {Count} change(s) exported", changeSet.Changes.Count);
         }
         catch (OperationCanceledException)
@@ -874,6 +882,30 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         }
 
         SetStatus(FocusedSyncSourceLabel);
+    }
+
+    private bool TryResolveFocusedSyncAction(string resolutionMessage)
+    {
+        if (FocusedSyncLogId <= 0 || string.IsNullOrWhiteSpace(FocusedSyncSourceLabel))
+        {
+            return false;
+        }
+
+        FocusedSyncLogId = 0;
+        FocusedSyncSourceLabel = string.Empty;
+        ClearSyncHistoryFocus();
+        SetStatus(resolutionMessage);
+        return true;
+    }
+
+    private string? BuildFocusedSyncResolutionMessage()
+    {
+        if (FocusedSyncLogId <= 0 || string.IsNullOrWhiteSpace(FocusedSyncSourceLabel))
+        {
+            return null;
+        }
+
+        return "Resolved the focused sync history entry by running a fresh sync pass.";
     }
 
     private void ClearSyncHistoryFocus()

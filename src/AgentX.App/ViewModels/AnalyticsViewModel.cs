@@ -101,9 +101,11 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private ObservableCollection<AnalyticsConversationSummaryItem> _recentConversationSummaries = new();
     [ObservableProperty] private bool _hasConversationIntelligence;
     [ObservableProperty] private bool _hasRecentConversationSummaries;
+    [ObservableProperty] private string _conversationIntelligenceStatusMessage = string.Empty;
     [ObservableProperty] private long _focusedConversationSummaryId;
     [ObservableProperty] private string _focusedConversationSourceLabel = string.Empty;
     public bool HasFocusedConversationLanding => !string.IsNullOrWhiteSpace(FocusedConversationSourceLabel);
+    public bool HasConversationIntelligenceStatusMessage => !string.IsNullOrWhiteSpace(ConversationIntelligenceStatusMessage);
 
     // ── Conversation Recall ─────────────────────────────────────────────────
 
@@ -579,6 +581,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         {
             FocusedConversationSummaryId = request.ConversationId;
             FocusedConversationSourceLabel = request.SourceLabel;
+            ConversationIntelligenceStatusMessage = string.Empty;
         }
 
         if (FocusedConversationSummaryId <= 0 || string.IsNullOrWhiteSpace(FocusedConversationSourceLabel) || items.Count == 0)
@@ -744,13 +747,22 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         RunConversationRecallCommand.NotifyCanExecuteChanged();
     }
 
+    partial void OnConversationIntelligenceStatusMessageChanged(string value) =>
+        OnPropertyChanged(nameof(HasConversationIntelligenceStatusMessage));
+
+    partial void OnFocusedConversationSummaryIdChanged(long value) =>
+        RefreshFocusedConversationSummaryCommand.NotifyCanExecuteChanged();
+
     partial void OnIsRecallRunningChanged(bool value)
     {
         RunConversationRecallCommand.NotifyCanExecuteChanged();
     }
 
-    partial void OnFocusedConversationSourceLabelChanged(string value) =>
+    partial void OnFocusedConversationSourceLabelChanged(string value)
+    {
         OnPropertyChanged(nameof(HasFocusedConversationLanding));
+        RefreshFocusedConversationSummaryCommand.NotifyCanExecuteChanged();
+    }
 
     [RelayCommand]
     private async Task RefreshAsync()
@@ -762,16 +774,46 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void DismissFocusedConversationLanding()
     {
-        FocusedConversationSummaryId = 0;
-        FocusedConversationSourceLabel = string.Empty;
+        ClearFocusedConversationLanding();
+    }
 
-        if (RecentConversationSummaries.Count == 0)
+    private bool CanRefreshFocusedConversationSummary() =>
+        FocusedConversationSummaryId > 0 && !string.IsNullOrWhiteSpace(FocusedConversationSourceLabel);
+
+    [RelayCommand(CanExecute = nameof(CanRefreshFocusedConversationSummary))]
+    private async Task RefreshFocusedConversationSummaryAsync(CancellationToken ct = default)
+    {
+        if (!CanRefreshFocusedConversationSummary())
         {
             return;
         }
 
-        RecentConversationSummaries = new ObservableCollection<AnalyticsConversationSummaryItem>(
-            RecentConversationSummaries.Select(item => CloneConversationSummaryItem(item, false)));
+        var targetConversationId = FocusedConversationSummaryId;
+        var targetTitle = RecentConversationSummaries
+            .FirstOrDefault(item => item.ConversationId == targetConversationId)?
+            .Title;
+
+        try
+        {
+            var refreshed = await _conversationSummaryService
+                .RefreshConversationSummaryAsync(targetConversationId, ct)
+                .ConfigureAwait(false);
+
+            if (!refreshed)
+            {
+                ConversationIntelligenceStatusMessage = BuildConversationSummaryRefreshUnchangedMessage(targetTitle);
+                return;
+            }
+
+            ClearFocusedConversationLanding();
+            await LoadConversationIntelligenceAsync(ct).ConfigureAwait(false);
+            ConversationIntelligenceStatusMessage = BuildConversationSummaryResolutionMessage(targetTitle);
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Analytics: focused durable summary refresh failed for conversation {ConversationId}", targetConversationId);
+            ConversationIntelligenceStatusMessage = "Focused durable summary refresh failed. Check AI connectivity and try again.";
+        }
     }
 
     private bool CanRunConversationRecall() =>
@@ -833,6 +875,36 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         {
             IsRecallRunning = false;
         }
+    }
+
+    private void ClearFocusedConversationLanding()
+    {
+        FocusedConversationSummaryId = 0;
+        FocusedConversationSourceLabel = string.Empty;
+
+        if (RecentConversationSummaries.Count == 0)
+        {
+            return;
+        }
+
+        RecentConversationSummaries = new ObservableCollection<AnalyticsConversationSummaryItem>(
+            RecentConversationSummaries.Select(item => CloneConversationSummaryItem(item, false)));
+    }
+
+    private static string BuildConversationSummaryResolutionMessage(string? title)
+    {
+        var resolvedLabel = !string.IsNullOrWhiteSpace(title)
+            ? $"\"{title}\""
+            : "the focused conversation summary";
+        return $"Resolved {resolvedLabel} by refreshing its durable summary.";
+    }
+
+    private static string BuildConversationSummaryRefreshUnchangedMessage(string? title)
+    {
+        var resolvedLabel = !string.IsNullOrWhiteSpace(title)
+            ? $"\"{title}\""
+            : "the focused conversation summary";
+        return $"No refreshed durable summary was generated for {resolvedLabel}. The current state was kept.";
     }
 
     // ── Private Helpers ──────────────────────────────────────────────────────
