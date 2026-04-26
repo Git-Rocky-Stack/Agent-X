@@ -2,1222 +2,1101 @@
 
 **Agent-X -- Local-First AI Personal Intelligence Hub for Windows**
 
-Version 2.1.0-preview.1 | Last Updated: April 2026
+Version 2.1.0-preview.1 | Last updated: April 26, 2026
 
 ---
 
 ## Table of Contents
 
-1. [Introduction](#1-introduction)
+1. [Product Promise and Data Boundaries](#1-product-promise-and-data-boundaries)
 2. [System Requirements](#2-system-requirements)
-3. [Installation](#3-installation)
-4. [Getting Started: Onboarding Wizard](#4-getting-started-onboarding-wizard)
-5. [Dashboard](#5-dashboard)
-6. [AI Chat](#6-ai-chat)
-7. [Knowledge Vault](#7-knowledge-vault)
-8. [Collections](#8-collections)
-9. [Semantic Search](#9-semantic-search)
-10. [Ask Your Files (RAG)](#10-ask-your-files-rag)
-11. [Quick Actions](#11-quick-actions)
-12. [Model Manager](#12-model-manager)
-13. [Hardware Advisor](#13-hardware-advisor)
-14. [Settings](#14-settings)
-15. [Command Palette](#15-command-palette)
-16. [Keyboard Shortcuts](#16-keyboard-shortcuts)
-17. [Status Bar](#17-status-bar)
-18. [Workspace Profiles](#18-workspace-profiles)
-19. [Smart Inbox](#19-smart-inbox)
-20. [Comparative Analysis](#20-comparative-analysis)
-21. [Voice Input](#21-voice-input)
-22. [Plugin Manager](#22-plugin-manager)
-23. [Sync Settings](#23-sync-settings)
-24. [Troubleshooting](#24-troubleshooting)
-25. [FAQ](#25-faq)
-26. [Appendix: Supported File Types](#26-appendix-supported-file-types)
+3. [Installation and Model Setup](#3-installation-and-model-setup)
+4. [First Run Onboarding](#4-first-run-onboarding)
+5. [Navigation Map](#5-navigation-map)
+6. [Dashboard](#6-dashboard)
+7. [Operations](#7-operations)
+8. [AI Chat and Quick Chat](#8-ai-chat-and-quick-chat)
+9. [Ask Your Files](#9-ask-your-files)
+10. [Knowledge Vault](#10-knowledge-vault)
+11. [Web Import](#11-web-import)
+12. [Collections and Workspace Profiles](#12-collections-and-workspace-profiles)
+13. [Semantic Search](#13-semantic-search)
+14. [Knowledge Graph](#14-knowledge-graph)
+15. [Compare Documents](#15-compare-documents)
+16. [Quick Actions](#16-quick-actions)
+17. [Workflows](#17-workflows)
+18. [Smart Inbox](#18-smart-inbox)
+19. [Weekly Digest](#19-weekly-digest)
+20. [Analytics](#20-analytics)
+21. [Model Manager](#21-model-manager)
+22. [Hardware Advisor](#22-hardware-advisor)
+23. [Backup and Restore](#23-backup-and-restore)
+24. [Collaborative Sync](#24-collaborative-sync)
+25. [Calendar and Email Connectors](#25-calendar-and-email-connectors)
+26. [Annotations](#26-annotations)
+27. [Settings](#27-settings)
+28. [Command Palette, Jump To, and Shortcuts](#28-command-palette-jump-to-and-shortcuts)
+29. [Status Bar, Notifications, and Tray](#29-status-bar-notifications-and-tray)
+30. [Privacy, Security, and Licensing](#30-privacy-security-and-licensing)
+31. [Troubleshooting](#31-troubleshooting)
+32. [FAQ](#32-faq)
+33. [Supported File Types](#33-supported-file-types)
 
 ---
 
-## 1. Introduction
+## 1. Product Promise and Data Boundaries
 
-Agent-X is a local-first AI personal intelligence hub that runs entirely on your Windows machine. It connects to [Ollama](https://ollama.com) to power chat, document analysis, semantic search, retrieval-augmented generation (RAG), summaries, duplicate analysis, and other intelligence features without sending your vault to the cloud. Optional OpenAI and Anthropic providers can be enabled from Settings when you want cloud-backed models.
+Agent-X turns a Windows machine into a local AI intelligence hub. It imports documents, indexes them, searches by meaning, chats with local or optional cloud models, runs repeatable AI workflows, and helps triage new information without making a cloud account the center of the product.
 
-### Key Principles
+### What stays local by default
 
-- **Privacy by design.** All processing happens on your hardware. Your documents, conversations, and embeddings never leave your machine.
-- **Powered by Ollama.** Agent-X uses Ollama as its AI backend, giving you access to hundreds of open-source language models (Llama, Mistral, Phi, DeepSeek, and many more).
-- **Knowledge management.** Import documents, organize them into collections, and ask questions across your entire knowledge base using semantic search and RAG.
-- **Hardware-aware.** Agent-X detects your GPU, CPU, RAM, and NPU to recommend the best models for your specific hardware.
+- Documents, text chunks, embeddings, conversations, memories, workflow runs, sync logs, annotations, and settings are stored under `%LocalAppData%\AgentX\`.
+- Ollama-backed chat, embedding, RAG, summaries, document analysis, and workflow runs execute on the user's machine.
+- Search indexes live in SQLite and the local vector store. The app does not need an internet connection for already-installed local models.
 
-### Current Navigation Map
+### Optional external connections
 
-This guide goes deep on the highest-traffic surfaces, but the current app shell is broader than the original v1.x guide.
+Agent-X can connect to services the user explicitly configures:
 
-- **Intelligence:** Dashboard, Weekly Digest, Analytics, AI Chat, Ask Your Files, Quick Actions, Workflows
-- **Knowledge:** Knowledge Vault, Web Import, Collections, Semantic Search, Knowledge Graph, Compare Documents
-- **Triage:** Smart Inbox
-- **System:** Model Manager, Hardware Advisor, Backup & Restore, Workspace Profiles, Plugin Manager, Collaborative Sync, Calendar, Email, Annotations, Settings
-- **Supporting pages:** Onboarding, User Guide, Privacy Policy, Terms of Service
+- **OpenAI and Anthropic** for cloud model access.
+- **Google and Microsoft** for calendar/email connectors.
+- **Web import and web search providers** when the user imports URLs or enables provider-backed search.
+- **Collaborative sync folders** on local, network, or shared drives.
+
+When a cloud provider is active, prompts and selected context are sent to that provider. Keep sensitive documents on local Ollama models when data residency matters.
 
 ---
 
 ## 2. System Requirements
 
-### Minimum Requirements
+### Minimum
 
-| Component       | Requirement                                      |
-|-----------------|--------------------------------------------------|
-| Operating System | Windows 10 version 1809 or later / Windows 11   |
-| Runtime         | .NET 8.0 Desktop Runtime                         |
-| RAM             | 8 GB (16 GB recommended)                         |
-| Disk Space      | 500 MB for Agent-X + space for AI models         |
-| AI Backend      | Ollama installed and running                      |
+| Component | Requirement |
+| --- | --- |
+| OS | Windows 10 build 19041+ or Windows 11 |
+| Architecture | x64 |
+| Runtime | Self-contained installer bundles app runtime dependencies |
+| RAM | 8 GB minimum |
+| Storage | 500 MB for the app, plus space for models, documents, indexes, backups, and sync packages |
+| AI runtime | Ollama for local model features |
 
-### Recommended Hardware
+### Recommended
 
-| Component | Recommendation                                                |
-|-----------|---------------------------------------------------------------|
-| GPU       | NVIDIA GPU with 8+ GB VRAM (for GPU-accelerated inference)    |
-| RAM       | 16 GB or more                                                 |
-| CPU       | Modern multi-core processor (Intel 12th Gen+ or AMD Ryzen 5000+) |
-| Storage   | SSD with at least 50 GB free (for models and document storage)|
+| Component | Recommendation |
+| --- | --- |
+| RAM | 16 GB+ for 7B models; 32 GB+ for larger models |
+| GPU | NVIDIA, AMD, or Intel GPU where supported by the selected local runtime |
+| Storage | SSD with at least 50 GB free for practical model and vault growth |
+| Models | One chat model and one embedding model installed before heavy document work |
 
-> **Note:** Agent-X works without a dedicated GPU. Models will run on CPU, which is slower but fully functional. The Hardware Advisor page will recommend appropriate models regardless of your configuration.
+Agent-X works on CPU-only systems. CPU inference is slower, so the Hardware Advisor helps choose smaller models and more conservative settings.
 
 ---
 
-## 3. Installation
+## 3. Installation and Model Setup
 
-### Step 1: Install Ollama
+### Install Agent-X
 
-Ollama is the AI backend that Agent-X uses for all language model operations. You must install it before using AI features.
+1. Run the Agent-X installer.
+2. Launch Agent-X from the Start Menu or desktop shortcut.
+3. Complete first-run onboarding.
 
-1. Visit [https://ollama.com/download](https://ollama.com/download).
-2. Download the Windows installer.
-3. Run the installer and follow the prompts.
-4. After installation, Ollama runs as a background service on `http://localhost:11434`.
+The installer creates the local data directories under `%LocalAppData%\AgentX\` and preserves user data during uninstall.
 
-To verify Ollama is running, open a terminal and run:
+### Install Ollama
 
-```
+1. Download Ollama for Windows from `https://ollama.com/download`.
+2. Install and start Ollama.
+3. Verify it is available:
+
+```powershell
 ollama list
 ```
 
-If this returns a list of models (or an empty list), Ollama is running correctly.
+### Pull practical starter models
 
-### Step 2: Pull an Initial Model
+Use at least one chat model and one embedding model:
 
-Before launching Agent-X, it is helpful (but not required) to pull at least one chat model and one embedding model:
-
-```
+```powershell
 ollama pull llama3.2
 ollama pull all-minilm
 ```
 
-The `llama3.2` model is an excellent general-purpose chat model, and `all-minilm` provides fast text embeddings for semantic search.
-
-### Step 3: Install Agent-X
-
-1. Run the `AgentX-Setup-1.0.0-x64.exe` installer.
-2. Follow the installation wizard.
-3. Launch Agent-X from the Start Menu or desktop shortcut.
+Other strong embedding options include `nomic-embed-text`, `mxbai-embed-large`, and local models recommended by the Hardware Advisor.
 
 ---
 
-## 4. Getting Started: Onboarding Wizard
+## 4. First Run Onboarding
 
-On first launch, Agent-X presents a 5-step onboarding wizard to configure your environment. The navigation sidebar is hidden during onboarding to provide a focused setup experience.
+On first launch, Agent-X hides the navigation pane and presents a focused five-step wizard. You can finish with only local settings, add cloud keys, or skip pieces and complete configuration later from Dashboard or Settings.
 
 ### Step 0: Welcome
 
-The welcome screen introduces Agent-X and its core capabilities. Click **Get Started** to begin configuration.
+The welcome step explains the local-first promise, private knowledge vault, and optional provider model. Start here when introducing a new user to Agent-X.
 
-### Step 1: Ollama Connection
+### Step 1: Connect to Ollama
 
-This step configures and tests the connection to your Ollama instance.
+The wizard defaults to:
 
-| Field             | Default Value              | Description                                           |
-|-------------------|----------------------------|-------------------------------------------------------|
-| Ollama Endpoint   | `http://localhost:11434`   | The URL where Ollama is running. Change only if you are running Ollama on a different machine or port. |
+```text
+http://localhost:11434
+```
 
-**To test the connection:**
+Use **Test Connection** to verify Ollama is reachable. If Ollama runs on another machine or port, update the endpoint before testing.
 
-1. Ensure Ollama is running in the background.
-2. Verify or modify the endpoint URL.
-3. Click **Test Connection**.
-4. A green status message confirms a successful connection. A red message indicates Ollama is not reachable.
+If Ollama is not ready, continue anyway and configure it later in Settings. Features that require local models will remain unavailable until a provider and model are configured.
 
-If you want to configure Ollama later, click **Skip** to proceed without testing.
+### Step 2: Select Models
 
-### Step 2: Model Selection
+After a successful Ollama connection, Agent-X loads installed models and helps pick:
 
-Once connected to Ollama, this step loads all installed models and allows you to select defaults.
+| Model role | Used by |
+| --- | --- |
+| Chat model | AI Chat, Ask Your Files, Quick Actions, Workflows, summaries, comparisons |
+| Embedding model | Knowledge Vault indexing, Semantic Search, RAG retrieval, duplicate/relatedness features |
 
-- **Chat Model** -- The model used for conversations and text generation (e.g., `llama3.2`, `mistral`).
-- **Embedding Model** -- The model used for creating vector embeddings when indexing documents (e.g., `all-minilm`, `nomic-embed-text`).
+The wizard also shows hardware information so users understand whether the selected model is realistic for the machine.
 
-Agent-X auto-selects recommended models based on their names. You can change the selection at any time.
+### Step 3: Built-In Model and Cloud Providers
 
-The hardware summary line at the top of this step shows your detected GPU, RAM, and recommended maximum model size.
+Agent-X checks for the bundled local model and GPU acceleration summary. This step also accepts optional provider keys:
 
-> **Tip:** If no models appear, make sure you have pulled at least one model via `ollama pull <model-name>` before reaching this step.
+| Provider | Purpose |
+| --- | --- |
+| OpenAI | GPT-family model access for users who opt into cloud inference |
+| Anthropic | Claude-family model access for users who opt into cloud inference |
 
-### Step 3: License Key (Optional)
+API keys are stored in the user's local settings and should only be entered on trusted machines.
 
-Enter a license key to unlock additional features and higher document limits. This step is entirely optional -- Agent-X works in trial mode without a key.
+### Step 4: Summary and Launch
 
-If you do not have a license key, click **Next** to skip this step.
+Review Ollama status, selected models, built-in local model readiness, cloud provider status, and storage path. Select **Launch Agent-X** to persist settings and open the Dashboard.
 
-### Step 4: Summary
+### Re-running onboarding
 
-Review your configuration:
-
-- Ollama connection status and endpoint
-- Selected chat model
-- Selected embedding model
-
-Click **Finish** to save your settings and enter Agent-X. You will land on the Dashboard.
+Use the Dashboard **Setup AI** action to revisit model/provider setup. Developers can force onboarding by deleting `%LocalAppData%\AgentX\settings.json`, or skip it by setting `"onboardingCompleted": true`.
 
 ---
 
-## 5. Dashboard
+## 5. Navigation Map
 
-The Dashboard is your home base in Agent-X. It provides an at-a-glance overview of your knowledge base, AI connection status, and quick access to common actions.
+Agent-X is organized into four primary work areas plus support pages.
 
-### AI Connection Status
+| Area | Pages |
+| --- | --- |
+| Intelligence | Dashboard, Operations, Weekly Digest, Analytics, AI Chat, Ask Your Files, Quick Actions, Workflows |
+| Knowledge | Knowledge Vault, Web Import, Collections, Semantic Search, Knowledge Graph, Compare Documents |
+| Triage | Smart Inbox |
+| System | Model Manager, Hardware Advisor, Backup and Restore, Workspace Profiles, Plugin Manager, Collaborative Sync, Calendar, Email, Annotations, Settings |
+| Support | User Guide, Privacy Policy, Terms of Service |
 
-At the top of the Dashboard, a status banner indicates whether Agent-X is connected to Ollama:
-
-- **Connected** (green indicator) -- Ollama is running and responsive.
-- **Not Detected** (red indicator) -- Ollama is not running or not reachable. Click **Setup AI** to navigate to Settings and configure the endpoint.
-
-### Quick Search
-
-Below the status banner, a search bar provides instant access to semantic search across your knowledge base. You can also invoke this from anywhere using the `Ctrl+K` shortcut.
-
-### Stat Cards
-
-Four stat cards provide key metrics:
-
-| Card        | Description                                                    |
-|-------------|----------------------------------------------------------------|
-| Documents   | Total number of documents imported into the Knowledge Vault.   |
-| Storage     | Total disk space used by imported documents and their embeddings. |
-| AI Sessions | Number of AI chat conversations stored.                        |
-| System      | Detected GPU name and available RAM.                           |
-
-### Recent Documents
-
-A list of the most recently imported documents, showing filename, type, size, and import date. Click a document to view it or navigate to the Knowledge Vault for full details.
-
-### Recent Conversations
-
-A list of your most recent AI chat conversations, showing the conversation title, last message date, and message count. Click a conversation to resume it in AI Chat.
-
-### Insights
-
-- **File Type Distribution** -- A breakdown of your imported documents by type (PDF, DOCX, Markdown, Code, etc.).
-- **Top Collections** -- Your most populated collections with document counts.
-
-### Quick-Action Buttons
-
-A row of action buttons at the bottom of the Dashboard provides one-click access to frequently used features:
-
-| Button       | Action                                     |
-|--------------|--------------------------------------------|
-| New Chat     | Opens the AI Chat page with a new conversation. |
-| Import Files | Opens the Knowledge Vault file import dialog.   |
-| Search       | Navigates to the Semantic Search page.          |
-| Ask Files    | Navigates to the Ask Your Files (RAG) page.     |
-
-### Refresh
-
-Click the **Refresh** button in the page header to reload all Dashboard data (document counts, conversations, insights, and connection status).
+The command palette and Jump To dialog expose many of the same destinations without using the mouse.
 
 ---
 
-## 6. AI Chat
+## 6. Dashboard
 
-AI Chat provides a full-featured conversational interface for chatting with local language models. All conversations are stored locally on your machine.
+The Dashboard is the first operational surface after onboarding. It summarizes system health, recent work, and recommended next actions.
 
-### Starting a Conversation
+### What to check first
 
-1. Navigate to **AI Chat** from the sidebar or press `Ctrl+N`.
-2. Type your message in the input field at the bottom.
-3. Press **Enter** or click the **Send** button.
-4. Agent-X streams the response from the selected model in real time.
+- **AI connection status:** Confirms whether the selected provider is reachable.
+- **Model status:** Shows active chat and embedding model readiness.
+- **Document and storage metrics:** Tracks vault growth and indexed material.
+- **Recent documents:** Opens recently imported material without returning to the vault.
+- **Recent conversations:** Resumes prior AI sessions.
+- **Recommended actions:** Prioritizes setup, remediation, and useful next steps such as configuring AI, importing documents, reviewing sync, or running workflows.
 
-### Conversation Sidebar
+### Common dashboard flows
 
-The left panel displays all your conversations. Use it to:
+| Goal | Action |
+| --- | --- |
+| Start a clean conversation | Use **New Chat** |
+| Add source material | Use **Import Documents** |
+| Search the vault | Use **Search** |
+| Ask grounded questions | Use **Ask Files** |
+| Repair setup | Use **Setup AI** or follow the recommended action |
 
-- **Search** conversations by title or content.
-- **Pin** important conversations to keep them at the top of the list.
-- **Delete** conversations you no longer need.
-- Click a conversation to switch to it.
-
-### Creating and Managing Conversations
-
-| Action              | How                                                            |
-|---------------------|----------------------------------------------------------------|
-| New Conversation    | Click the **New Conversation** button in the toolbar or press `Ctrl+N`. |
-| Clear Messages      | Click the **Clear** button to remove all messages from the current conversation while keeping the conversation entry. |
-| Delete Conversation | Right-click a conversation in the sidebar and select **Delete**, or use the delete button. |
-
-### System Prompt Picker
-
-Click the **System Prompt** button in the toolbar to select a system prompt that shapes the AI's behavior for the conversation.
-
-System prompts are organized into categories:
-
-| Category  | Description                                          |
-|-----------|------------------------------------------------------|
-| General   | All-purpose assistant prompts.                       |
-| Writing   | Prompts optimized for writing, editing, and composition. |
-| Code      | Programming-focused prompts for code generation, review, and debugging. |
-| Analysis  | Prompts for data analysis, research, and critical thinking. |
-| Creative  | Prompts for brainstorming, storytelling, and creative work. |
-
-You can mark system prompts as **favorites** for quick access.
-
-### Model Selection
-
-Use the **Model** dropdown in the toolbar to switch between installed Ollama models for the current conversation. The selected model applies to all subsequent messages in the conversation.
-
-### Message Metadata
-
-Each AI response displays metadata beneath the message:
-
-- **Token count** -- The number of tokens generated.
-- **Generation time** -- How long the response took to complete.
-- **Tokens/second** -- The generation speed, useful for benchmarking model performance.
-
-### Message Actions
-
-Hover over any AI message to reveal action buttons:
-
-| Action          | Description                                            |
-|-----------------|--------------------------------------------------------|
-| Copy            | Copies the message text to the clipboard.              |
-| Regenerate      | Re-generates the last AI response with the same input. |
-
-### Stopping Generation
-
-While a response is being streamed, a **Stop** button appears. Click it to halt generation immediately. The partial response up to that point is preserved.
+Use **Refresh** when another page has changed documents, models, conversations, sync, or indexing state.
 
 ---
 
-## 7. Knowledge Vault
+## 7. Operations
 
-The Knowledge Vault is where you import, manage, and index your documents. Once indexed, documents become searchable through Semantic Search and available to the RAG pipeline in Ask Your Files.
+Operations is the mission-control page for ongoing system health. It brings together signals from conversation intelligence, sync posture, ingestion backlog, workflows, imported-document indexing, and connectors.
 
-### Importing Documents
+### Status areas
 
-There are three ways to import files:
+| Area | What it tells you |
+| --- | --- |
+| Conversation intelligence | Whether recent conversations have summary/recall context available |
+| Sync health | Manual and automatic sync status, pending changes, and recent sync passes |
+| Ingestion backlog | Smart Inbox queue and pending import work |
+| Imported documents | Recent vault documents, indexing state, chunk count, and errors |
+| Workflow activity | Recent workflow runs, failures, and runs that need review |
+| Connectors | Calendar/email readiness and setup gaps |
 
-1. **File Picker** -- Click the **Import Files** button and select one or more files from the file dialog.
-2. **Folder Picker** -- Click the **Import Folder** button to import all supported files from a directory.
-3. **Drag and Drop** -- Drag files directly from Windows Explorer onto the Knowledge Vault page.
+### Recommended actions
 
-### Supported File Formats
+Operations surfaces direct actions when a status area needs attention:
 
-Agent-X supports a wide range of document and code file formats:
+- Run a manual sync.
+- Open sync configuration.
+- Generate inbox previews.
+- Re-index a document that failed or needs attention.
+- Refresh conversation summaries.
+- Open the relevant connector setup page.
+- Drill into a workflow run that failed or is waiting for review.
 
-| Category   | Extensions                                                                        |
-|------------|-----------------------------------------------------------------------------------|
-| PDF        | `.pdf`                                                                            |
-| Documents  | `.docx`, `.doc`                                                                   |
-| Text       | `.txt`, `.csv`, `.log`, `.xml`, `.json`                                           |
-| Markdown   | `.md`, `.markdown`                                                                |
-| Images     | `.png`, `.jpg`, `.jpeg`, `.bmp`, `.tiff` (processed via OCR)                      |
-| Code       | `.cs`, `.js`, `.ts`, `.py`, `.java`, `.cpp`, `.c`, `.h`, `.go`, `.rs`, `.swift`, `.kt`, `.rb`, `.php`, `.html`, `.css`, `.scss`, `.sql`, `.sh`, `.yaml`, `.yml`, `.toml`, `.ini`, `.cfg`, `.xaml` |
+### Drill-in behavior
 
-See [Appendix: Supported File Types](#20-appendix-supported-file-types) for a complete reference table.
-
-### Document List
-
-Each document in the vault displays:
-
-| Field           | Description                                                       |
-|-----------------|-------------------------------------------------------------------|
-| Filename        | The original name of the imported file.                           |
-| Type Badge      | A color-coded badge indicating the file category (PDF, Code, etc.). |
-| File Size       | The size of the file on disk.                                     |
-| Import Date     | When the file was imported into the vault.                        |
-| Chunk Count     | The number of text chunks the document was split into during indexing. |
-| Indexing Status  | One of: **Pending**, **Indexing**, **Indexed**, or **Failed**.    |
-
-### Filtering and Searching
-
-Use the controls at the top of the document list to narrow results:
-
-- **File type filter** -- Filter by PDF, Document, Text, Markdown, Image, or Code.
-- **Indexing status filter** -- Show only documents with a specific indexing status.
-- **Search** -- Filter documents by filename.
-
-### Document Actions
-
-| Action           | Description                                                     |
-|------------------|-----------------------------------------------------------------|
-| Re-index         | Re-processes and re-embeds the document. Useful if you updated the source file or changed embedding settings. |
-| Delete           | Removes the document and all its embeddings from the vault.     |
-| Open in Explorer | Opens the file's location in Windows File Explorer.             |
-
-### Indexing Process
-
-When a document is imported, it goes through the following pipeline:
-
-1. **Text Extraction** -- The document's text content is extracted (or OCR is applied for images).
-2. **Chunking** -- The text is split into overlapping chunks based on your configured chunk size and overlap settings.
-3. **Embedding** -- Each chunk is passed through the embedding model to generate a vector representation.
-4. **Storage** -- The vectors are stored in the local vector database (SQLite-backed) for semantic search.
-
-The indexing status of each document is visible in the document list. Indexing requires Ollama to be running with the configured embedding model.
+Clicking a preview opens the destination page with enough context to resolve the issue. For example, a sync item opens Collaborative Sync with the relevant log focused; a workflow item opens Workflows with the selected historical run lifted to the top.
 
 ---
 
-## 8. Collections
+## 8. AI Chat and Quick Chat
 
-Collections allow you to organize your documents into logical groups. They support hierarchical nesting (parent/child relationships) for flexible organization.
+AI Chat is the full conversational workspace. Quick Chat is the tray/shortcut-style lightweight entry point for fast questions.
 
-### Interface Layout
+### Core chat workflow
 
-- **Left Panel** -- The collection tree showing all your collections in a hierarchical view.
-- **Right Panel** -- The detail view for the currently selected collection, showing its documents.
+1. Select **AI Chat** or press `Ctrl+N`.
+2. Pick a model when needed.
+3. Type a prompt and send it.
+4. Watch the response stream in real time.
+5. Copy, regenerate, branch, export, or continue the conversation.
 
-### Creating a Collection
+### Conversation management
 
-1. Click the **Create Collection** button at the top of the left panel.
-2. Enter a name for the collection.
-3. Optionally, select a parent collection to create a nested hierarchy.
-4. Click **Create**.
+- Conversations are stored locally.
+- The sidebar supports history review, search, pinning, and deletion.
+- Each conversation has its own message list and model context.
+- Export saves selected conversations as portable text/Markdown artifacts.
 
-### Managing Collections
+### Prompt and context tools
 
-| Action           | Description                                                     |
-|------------------|-----------------------------------------------------------------|
-| Select           | Click a collection in the tree to view its contents.            |
-| Delete           | Remove a collection. Documents are not deleted from the vault.  |
-| View Documents   | The right panel shows all documents assigned to the selected collection. |
+| Feature | Use |
+| --- | --- |
+| System prompts | Shape the assistant's role for a conversation |
+| Conversation memory | Reuses durable facts, preferences, instructions, and topics |
+| Context story | Shows which prior context influenced a reply |
+| Context inspection | Helps explain what Agent-X assembled before sending a prompt |
+| Branching | Explore alternate responses without losing the original path |
+| Suggested questions | Continue a thread with relevant follow-ups |
+| Voice input | Dictate text into chat through local transcription |
 
-### Adding and Removing Documents
+### Message behavior
 
-- To **add** documents to a collection, use the **Add Documents** button in the collection detail view. A picker lets you select from all vault documents.
-- To **remove** a document from a collection, click the remove button next to the document in the collection detail view. This removes the association only; the document remains in the Knowledge Vault.
-
-### Document Count Badges
-
-Each collection in the tree displays a badge showing the number of documents it contains.
-
----
-
-## 9. Semantic Search
-
-Semantic Search finds documents based on meaning, not just keyword matching. It uses vector embeddings to understand the intent behind your query and return the most relevant results.
-
-### How to Search
-
-1. Navigate to **Search** from the sidebar or press `Ctrl+F`.
-2. Type your query in the search bar. Use natural language -- for example, "What are the performance benchmarks for the Q4 release?" rather than just "Q4 benchmarks."
-3. Press **Enter** or click the **Search** button.
-
-### Search Results
-
-Each result displays:
-
-| Field           | Description                                                       |
-|-----------------|-------------------------------------------------------------------|
-| Relevance Score | A percentage indicating how closely the result matches your query. Higher scores mean stronger semantic matches. |
-| Matched Text    | An excerpt from the document chunk that matched your query.       |
-| Source File     | The filename and location of the source document.                 |
-| Page Number     | The page number within the source document (when available).      |
-
-### Filtering Results
-
-Use the filter controls to narrow your search:
-
-- **File Type** -- Restrict results to specific document types (PDF, Code, Markdown, etc.).
-- **Collection** -- Search only within documents belonging to a specific collection.
-
-### Search History
-
-The search page maintains a list of your recent queries for quick re-use. Click any entry in the history to re-execute that search.
-
-### Opening Results
-
-Click on a search result to open the source file's location in Windows File Explorer.
-
-> **Important:** Semantic search requires documents to be indexed. If a document's status shows as "Pending," it has not yet been embedded and will not appear in search results. Ensure Ollama is running with the embedding model to complete indexing.
+AI responses can render Markdown, lists, tables, and code blocks. Code blocks include copy actions when the message renderer recognizes them.
 
 ---
 
-## 10. Ask Your Files (RAG)
+## 9. Ask Your Files
 
-Ask Your Files combines semantic search with AI generation to answer questions directly from your document library. This is known as Retrieval-Augmented Generation (RAG).
+Ask Your Files is Agent-X's RAG workflow. It searches indexed document chunks, assembles source context, and asks the selected model to answer with citations.
 
-### How It Works
+### When to use it
 
-1. Navigate to **Ask Files** from the sidebar.
-2. Type your question in the input field (e.g., "Summarize the key findings from the Q3 financial report").
-3. Optionally, select a **collection scope** to restrict the AI's search to documents in a specific collection. Leave it as "All Documents" to search your entire vault.
-4. Press **Enter** or click **Ask**.
+- Ask questions across a collection or selected source set.
+- Generate grounded answers from imported documents.
+- Find the source passages behind a recommendation or summary.
+- Keep the model constrained to your own material instead of general memory.
 
-### The Response
+### How it works
 
-Agent-X retrieves the most relevant document chunks, passes them to the selected chat model as context, and streams an AI-generated response.
+1. Select a collection or source scope.
+2. Ask a natural-language question.
+3. Agent-X embeds the query and retrieves matching chunks.
+4. Optional reranking improves source ordering.
+5. The model generates an answer grounded in retrieved passages.
+6. Citations connect answer claims back to documents and chunks.
 
-Key elements of the response:
+### Reading citations
 
-- **Streamed answer** -- The AI's response appears in real time as it is generated.
-- **Citation references** -- Inline references appear as numbered markers (e.g., `[1]`, `[2]`, `[3]`) within the response text. Each number corresponds to a source document.
-- **Citations panel** -- Below or beside the response, a citations panel lists each referenced source with:
-  - Source document filename
-  - Page number (when available)
-  - The exact text excerpt that was used as context
-
-### Indexed Chunk Count
-
-An indicator shows the total number of indexed chunks available for retrieval. A higher count means more granular search coverage across your documents.
-
-> **Tip:** For the best results, ensure your documents are indexed and organized into relevant collections. Scoping a question to a specific collection can improve answer precision by reducing noise from unrelated documents.
+Use citations to verify source quality. If a citation looks weak, rephrase the question, narrow the collection, or re-index the relevant document with the desired embedding model.
 
 ---
 
-## 11. Quick Actions
+## 10. Knowledge Vault
 
-Quick Actions provide one-click AI-powered operations on individual documents. Select a document and choose an action to execute.
+The Knowledge Vault is the document repository and indexing control center.
 
-### Accessing Quick Actions
+### Import methods
 
-Navigate to **Quick Actions** from the sidebar. The interface is organized into tabbed sections:
+- File picker for selected files.
+- Folder import for batches.
+- Drag and drop from Windows Explorer.
+- Web Import and Smart Inbox handoff.
+- Workflow result save-to-vault.
 
-### Summarize
+### Document metadata
 
-Generates a concise AI-powered summary of the selected document.
+Each document tracks:
 
-1. Select a document from the picker.
-2. Click **Summarize**.
-3. The AI reads the document content and produces a summary.
+- File name, type, size, and path.
+- Import timestamp.
+- SHA-256 content hash for exact duplicate checks.
+- Tags and collection membership.
+- Chunk count.
+- Indexing status and indexing error detail.
 
-### Key Points
+### Bulk operations
 
-Extracts the most important points from a document as a structured bullet list.
+Multi-select documents to:
 
-1. Select a document.
-2. Click **Extract Key Points**.
-3. A bulleted list of key findings, arguments, or data points is generated.
+- Re-index multiple files.
+- Delete multiple files from the vault.
+- Add selected documents to a collection.
+- Apply or remove tags where supported by the current page controls.
 
-### Translate
+### Indexing lifecycle
 
-Translates document content into a target language.
+| Status | Meaning |
+| --- | --- |
+| Pending | Imported but not embedded yet |
+| Indexing | Background pipeline is extracting/chunking/embedding |
+| Indexed | Search and RAG can retrieve chunks |
+| Failed | The error column or Operations page should show the failure reason |
 
-1. Select a document.
-2. Choose the **target language** from the language picker (e.g., Spanish, French, German, Japanese, etc.).
-3. Click **Translate**.
-4. The AI produces a translation of the document content.
-
-### Duplicates
-
-Detects duplicate and near-duplicate documents in your vault.
-
-- **Exact Duplicates** -- Found by comparing content hashes. These are byte-for-byte identical files.
-- **Near Duplicates** -- Found by computing the semantic similarity between document embeddings. These are files with substantially similar content but potentially different formatting or minor variations.
-
-### Organize
-
-Provides AI-powered suggestions for organizing your documents.
-
-1. Select a document.
-2. Click **Analyze**.
-3. The AI suggests:
-   - **Collections** the document should belong to, based on its content.
-   - **Tags** that could be applied to the document for categorization.
+Re-index after changing embedding models, moving source files, or resolving an extraction failure.
 
 ---
 
-## 12. Model Manager
+## 11. Web Import
 
-The Model Manager gives you full control over the Ollama models installed on your system.
+Web Import turns URLs into vault documents.
 
-### Installed Models
+### Single-page import
 
-The main view lists all models currently installed in Ollama. Each model entry shows:
+1. Paste a URL.
+2. Preview the page title, site, author, word count, and extracted text when available.
+3. Choose a collection.
+4. Import the content into the Knowledge Vault.
 
-| Field          | Description                                               |
-|----------------|-----------------------------------------------------------|
-| Model Name     | The identifier of the model (e.g., `llama3.2:latest`).   |
-| Size           | The disk space consumed by the model weights.             |
-| Family         | The model architecture family (e.g., Llama, Mistral, Phi). |
-| Quantization   | The quantization level (e.g., Q4_0, Q4_K_M, F16).        |
+### Batch and discovery flows
 
-### Pulling New Models
+Web Import also supports source discovery paths such as feeds and sitemaps where configured. Results show success/failure counts, imported document names, word counts, and error messages for failed URLs.
 
-To download a new model from the Ollama library:
+### Best practices
 
-1. Enter the model name in the **Pull Model** input field (e.g., `mistral:7b` or `deepseek-r1:8b`).
-2. Click **Pull**.
-3. A progress indicator shows the download status.
-4. Once complete, the model appears in the installed list and becomes available for selection throughout Agent-X.
-
-You can browse available models at [https://ollama.com/library](https://ollama.com/library).
-
-### Deleting Models
-
-To remove a model from your system:
-
-1. Locate the model in the installed list.
-2. Click the **Delete** button.
-3. Confirm the deletion.
-
-Deleting a model frees up the disk space occupied by its weights. If the deleted model was set as your default, you will need to select a new default in Settings.
-
-### Cache Management
-
-The Model Manager provides controls for managing Ollama's model cache, allowing you to free up disk space when needed.
+- Prefer canonical article URLs over homepages.
+- Use collections to group imported sources by project.
+- Re-index imported pages if the embedding model changes.
+- Check failed rows for paywalls, unsupported dynamic pages, or blocked fetches.
 
 ---
 
-## 13. Hardware Advisor
+## 12. Collections and Workspace Profiles
 
-The Hardware Advisor detects your system hardware and provides tailored AI model recommendations.
+Collections organize documents inside a workspace. Workspace Profiles isolate broader working contexts.
 
-### Hardware Detection
+### Collections
 
-When you open the Hardware Advisor, it automatically scans your system for:
+Use Collections for project, client, research area, or topic groupings.
 
-| Component | Details Detected                                                |
-|-----------|-----------------------------------------------------------------|
-| GPU       | Name, VRAM amount, and tier classification (Entry / Mainstream / Performance / Enthusiast / Professional). |
-| CPU       | Name, core count, and architecture (x64 / ARM64).              |
-| RAM       | Total installed memory, currently available memory, and usage percentage. |
-| NPU       | Whether a Neural Processing Unit is present and its name.       |
+| Action | Result |
+| --- | --- |
+| Create collection | Adds a new organizational container |
+| Nest collection | Creates parent/child structure |
+| Add documents | Associates documents without duplicating files |
+| Remove documents | Removes only the collection relationship |
+| Delete collection | Leaves original vault documents intact |
 
-### Performance Tier
+Collections improve RAG scope, search filtering, sync scope, and dashboard insights.
 
-Based on your effective available memory (GPU VRAM if available, otherwise system RAM), the advisor assigns a performance tier:
+### Workspace Profiles
 
-| Effective Memory | Performance Tier | Recommended Model Size  |
-|------------------|------------------|-------------------------|
-| Less than 4 GB   | Basic            | Up to 3B parameters     |
-| 4 -- 8 GB        | Standard         | Up to 7B parameters     |
-| 8 -- 16 GB       | Performance      | Up to 13B parameters    |
-| 16 -- 32 GB      | High-End         | Up to 32B parameters    |
-| 32 GB+           | Professional     | Up to 70B+ parameters   |
+Workspace Profiles are separate environments for different contexts. The default workspace is seeded automatically and cannot be removed.
 
-### Model Recommendations
+Use separate workspaces when:
 
-Recommendations are categorized into three sections:
-
-**Chat Models** -- General-purpose conversational models for everyday AI tasks, writing, analysis, and Q&A.
-
-**Code Models** -- Models specialized for code generation, review, completion, and debugging.
-
-**Embedding Models** -- Compact models designed for generating vector embeddings used by Semantic Search and Ask Your Files.
-
-Each recommended model shows:
-
-- **Model name** (the Ollama identifier you would use to pull it).
-- **Description** of the model's strengths and use cases.
-- **Size** on disk.
-- **Installed badge** if the model is already present on your system.
-
-### Installing Recommended Models
-
-Click the **Install** button next to any recommendation to pull the model directly from the Hardware Advisor page. Alternatively, note the model name and use the Model Manager for more detailed download tracking.
-
-### Advisory Message
-
-Below the recommendations, an advisory message provides context-specific guidance about your hardware capabilities and suggestions for getting the best performance (e.g., whether GPU acceleration is available, memory considerations, or NPU support).
-
-### Refreshing
-
-Click the **Refresh** button to re-run hardware detection. This is useful if you have added or removed hardware, or if the initial detection encountered an error.
+- You need project-specific conversations and vault data.
+- You want different model/provider settings for a client or domain.
+- You need cleaner separation between personal, business, and testing data.
 
 ---
 
-## 14. Settings
+## 13. Semantic Search
 
-The Settings page allows you to configure Agent-X's behavior, AI parameters, knowledge vault indexing, and license status. Access Settings from the sidebar or press `Ctrl+,` (Ctrl + comma).
+Semantic Search finds meaning, not just exact words. It can search by vector similarity, keyword FTS5, or hybrid ranking.
 
-### AI Provider
+### Search modes
 
-| Setting          | Default                    | Description                                           |
-|------------------|----------------------------|-------------------------------------------------------|
-| Ollama Endpoint  | `http://localhost:11434`   | The URL of your Ollama instance. Modify if running Ollama on a remote machine or non-default port. |
-| Default Chat Model | `llama3.2`               | The model used for AI Chat and Quick Actions.         |
-| Embedding Model  | `all-minilm`               | The model used for generating document embeddings during indexing. |
+| Mode | Best for |
+| --- | --- |
+| Semantic | Concepts phrased differently from the original text |
+| Keyword | Exact names, codes, invoice numbers, quoted phrases |
+| Hybrid | Broad discovery where both meaning and exact terms matter |
 
-### Inference
+Hybrid search merges semantic and keyword results using Reciprocal Rank Fusion so strong candidates from either backend can rank well.
 
-These parameters control how the AI generates responses:
+### Result tools
 
-| Setting         | Default | Range           | Description                                           |
-|-----------------|---------|-----------------|-------------------------------------------------------|
-| Temperature     | 0.7     | 0.0 -- 2.0      | Controls response randomness. Lower values (0.1--0.3) produce more deterministic, focused responses. Higher values (0.8--1.5) produce more creative and varied output. |
-| Max Tokens      | 4096    | 256 -- 32,768    | The maximum number of tokens the AI can generate in a single response. |
-| Context Window  | 8192    | 2,048 -- 131,072 | The total context size (prompt + response) in tokens. Larger windows allow more document context in RAG but require more memory. |
+- Relevance score.
+- Source document and chunk preview.
+- Search history chips for repeated queries.
+- Saved filters where configured.
+- Collection and file-type filtering.
+- Direct open into source context.
 
-### Knowledge Vault (Indexing)
+### Search quality tips
 
-| Setting                   | Default | Range       | Description                                           |
-|---------------------------|---------|-------------|-------------------------------------------------------|
-| Chunk Size (tokens)       | 512     | 128 -- 2,048 | The target size of each document chunk. Larger chunks preserve more context per chunk but reduce granularity. |
-| Chunk Overlap             | 50      | 0 -- 256     | The number of tokens that overlap between adjacent chunks. Overlap prevents information loss at chunk boundaries. |
-| Top-K Results             | 5       | 1 -- 20      | The number of document chunks returned by semantic search. Higher values provide more context but may include less relevant results. |
-| Auto-index watch folders  | On      | On / Off     | When enabled, Agent-X automatically monitors configured watch folders for new or modified files and indexes them. |
+- Index documents before searching.
+- Use natural questions for semantic mode.
+- Use exact terms for keyword mode.
+- Use hybrid mode when unsure.
+- Re-index after embedding model changes.
 
-### License
+---
 
-The license section displays your current licensing status and provides controls for activation.
+## 14. Knowledge Graph
 
-| Element            | Description                                                    |
-|--------------------|----------------------------------------------------------------|
-| Tier Badge         | Shows your current tier (e.g., "Trial", "Pro", "Enterprise"). |
-| Activation Date    | When the license was activated (visible only for active licenses). |
-| Document Limit     | The maximum number of documents allowed under your tier.       |
-| License Key Input  | Enter a license key in the format `AX-X-...`.                 |
-| Activate Button    | Validates and activates the entered key.                       |
-| Deactivate Button  | Deactivates the current license (visible only when a license is active). |
-| Status Message     | Displays success or error messages after activation attempts.  |
+Knowledge Graph visualizes relationships among documents, collections, tags, and shared context.
+
+### What it shows
+
+- Document nodes sized by document/chunk characteristics.
+- Collection and tag nodes.
+- Edges based on shared collection membership, tags, or extracted relationships.
+- Counts for nodes, edges, documents, collections, and tags.
+
+### Controls
+
+- Refresh graph data.
+- Filter node types.
+- Zoom in/out and reset view.
+- Select nodes to inspect metadata.
+- Navigate from graph items back to source material where supported.
+
+Use the graph to spot isolated documents, densely connected topics, and clusters that deserve their own collection or workflow.
+
+---
+
+## 15. Compare Documents
+
+Compare Documents analyzes two or more vault documents together.
+
+### Inputs
+
+- Select at least two documents.
+- Optionally provide a focus query.
+- Choose the desired detail level.
+
+### Output
+
+| Section | Description |
+| --- | --- |
+| Summary | Overall comparative readout |
+| Similarities | Shared ideas, claims, themes, or structure |
+| Differences | Where documents diverge |
+| Contradictions | Conflicts that may need verification |
+| Unique points | Document-specific findings grouped by source |
+| Metrics | Tokens used and runtime duration |
+
+Export the comparison as Markdown when the report should become part of a project record.
+
+---
+
+## 16. Quick Actions
+
+Quick Actions are one-click AI tasks over selected documents.
+
+### Available action families
+
+| Action | Output |
+| --- | --- |
+| Summarize | Concise summary of selected content |
+| Extract key points | Structured takeaways and facts |
+| Translate | Translated text with meaning preserved |
+| Rewrite/explain | Clearer or domain-adjusted language |
+| Duplicate review | Exact or semantic duplication signals |
+| Organize | Collection/tag suggestions |
+| Q&A generation | Study or review questions with answers |
+
+### Contextual guidance
+
+Quick Actions can recommend useful actions based on selected document state, indexing readiness, and setup gaps. If no document is ready, follow the guidance to import, index, or repair provider configuration first.
+
+---
+
+## 17. Workflows
+
+Workflows are reusable multi-step prompt chains. They are useful when a task needs the same logic repeatedly, such as preparing briefs, extracting action items, or repurposing content.
+
+### Built-in starter templates
+
+The workflow page includes guided starters for common jobs:
+
+- Action item extraction from notes or transcripts.
+- Research briefing from source material.
+- Document critique and review.
+- Content repurposing into multiple formats.
+
+Template guides explain best-fit inputs, expected outcomes, and example use cases.
+
+### Creating a workflow
+
+1. Create or select a workflow.
+2. Add ordered steps.
+3. Configure each step's prompt template.
+4. Optionally override model, temperature, or token limits per step.
+5. Save and run the workflow against the current input.
+
+### Run inspection
+
+Workflow runs track:
+
+- Step progress.
+- Final output.
+- Per-step output.
+- Model used.
+- Tokens used.
+- Duration.
+- Failure status and error text.
+
+Historical runs can be reopened from the workflow page or from Operations drill-ins.
+
+### Saving and exporting
+
+Current or historical workflow results can be saved back into the Knowledge Vault or exported as text artifacts. Saved results become searchable and available to RAG after indexing.
+
+---
+
+## 18. Smart Inbox
+
+Smart Inbox is the triage queue for files or external items that should be reviewed before entering the main vault.
+
+### Inbox item details
+
+Each item can show:
+
+- File name, path, type, and size.
+- Source type and source URL.
+- AI preview when generated.
+- Suggested collection.
+- Suggested tags.
+- Status: pending, accepted, rejected, or deferred.
 
 ### Actions
 
-| Button             | Description                                                   |
-|--------------------|---------------------------------------------------------------|
-| Save Settings      | Persists all current settings to disk.                        |
-| Reset to Defaults  | Reverts all settings to their factory default values.         |
+| Action | Result |
+| --- | --- |
+| Generate preview | Uses AI to summarize or classify pending items |
+| Accept | Imports the item into the selected collection |
+| Reject | Dismisses it from the import flow |
+| Defer | Leaves it for later review |
+| Focus from Operations | Opens an item that needs action |
 
-Settings are stored as JSON at `%LocalAppData%\AgentX\settings.json`.
-
----
-
-## 15. Command Palette
-
-The Command Palette provides quick keyboard-driven access to Agent-X's registered high-frequency navigation commands and actions.
-
-### Opening the Palette
-
-Press `Ctrl+K` or `Ctrl+Shift+P` from anywhere in the application. A floating search dialog appears at the top of the window.
-
-### Using the Palette
-
-1. Start typing to filter the available commands.
-2. Use the **Up/Down arrow keys** to navigate through results.
-3. Press **Enter** to execute the selected command.
-4. Press **Escape** to close the palette without taking action.
-
-### Available Commands
-
-**Page Navigation:**
-
-| Command             | Action                        |
-|---------------------|-------------------------------|
-| Dashboard           | Navigate to the Dashboard     |
-| Analytics           | Navigate to Analytics         |
-| AI Chat             | Navigate to AI Chat           |
-| Ask Files           | Navigate to Ask Your Files    |
-| Knowledge Vault     | Navigate to Knowledge Vault   |
-| Collections         | Navigate to Collections       |
-| Search              | Navigate to Semantic Search   |
-| Workflows           | Navigate to Workflows         |
-| Web Import          | Navigate to Web Import        |
-| Knowledge Graph     | Navigate to Knowledge Graph   |
-| Model Manager       | Navigate to Model Manager     |
-| Settings            | Navigate to Settings          |
-
-**Actions:**
-
-| Command             | Action                                    |
-|---------------------|-------------------------------------------|
-| New Conversation    | Opens AI Chat with a new conversation.    |
-| Jump To             | Opens the Jump To dialog.                 |
-| Show Keyboard Shortcuts | Opens the cheatsheet dialog.          |
-
-### Footer Hints
-
-The bottom of the palette displays keyboard hints as a quick reference:
-
-- Up/Down arrows -- Navigate results
-- Enter -- Open / execute
-- Esc -- Close
+Use Smart Inbox for watch-folder review, connector-sourced items, browser clips, and backlog grooming.
 
 ---
 
-## 16. Keyboard Shortcuts
+## 19. Weekly Digest
 
-Agent-X provides keyboard shortcuts for fast navigation and common actions. All shortcuts work from any page in the application.
+Weekly Digest summarizes recent activity in the knowledge system.
 
-| Shortcut          | Action                                     |
-|-------------------|--------------------------------------------|
-| `Ctrl+K`          | Open / toggle the Command Palette          |
-| `Ctrl+Shift+P`    | Open the Command Palette                   |
-| `Ctrl+P`          | Open Jump To                               |
-| `F1`              | Open Keyboard Shortcuts / Cheatsheet       |
-| `Ctrl+N`          | Navigate to AI Chat (new conversation)     |
-| `Ctrl+I`          | Navigate to Knowledge Vault (import files) |
-| `Ctrl+F`          | Navigate to Semantic Search                |
-| `Ctrl+Shift+F`    | Navigate to Semantic Search (alternate)    |
-| `Ctrl+Shift+A`    | Navigate to Analytics                      |
-| `Ctrl+Shift+W`    | Navigate to Workflows                      |
-| `Ctrl+Shift+E`    | Navigate to Web Import                     |
-| `Ctrl+D`          | Navigate to Dashboard                      |
-| `Ctrl+G`          | Navigate to Knowledge Graph                |
-| `Ctrl+,`          | Navigate to Settings                       |
-| `Escape`          | Close the Command Palette (when open)      |
+### Digest contents
 
----
+- New document counts.
+- Conversation activity.
+- Top searches.
+- File type distribution.
+- Storage changes.
+- Token usage.
+- AI-generated insights where available.
 
-## 17. Status Bar
+### Actions
 
-The status bar runs along the bottom of the Agent-X window and provides persistent system-level information. It updates automatically every 30 seconds.
+- Generate or refresh a digest.
+- Review digest history.
+- Export a digest for reporting or archival use.
 
-### Status Bar Elements
-
-| Element             | Description                                                   |
-|---------------------|---------------------------------------------------------------|
-| Connection Indicator | A colored dot showing the Ollama connection status. **Green** means connected; **Red** means not detected. |
-| Active Model Name   | Displays the name of the currently active AI model (e.g., "Connected -- llama3.2"). If disconnected, shows "Ollama not detected." |
-| Indexing Progress   | When documents are being indexed, shows a progress ring and the count of documents remaining in the queue (e.g., "Indexing (3 remaining)"). Hidden when no indexing is in progress. |
-| Document Count      | Displays the total number of documents in the Knowledge Vault (e.g., "42 docs"). Hidden when the vault is empty. |
-| App Version         | Shown in the Settings page footer as "Agent-X v1.0.0".       |
+Use Weekly Digest as an operating rhythm: review it at the end of a project week to decide which documents need indexing, which conversations should become decisions, and which workflows deserve automation.
 
 ---
 
-## 18. Troubleshooting
+## 20. Analytics
 
-### "Ollama not detected"
+Analytics gives a deeper view into usage, quality, and intelligence coverage.
 
-**Symptom:** The Dashboard shows "Ollama not detected" with a red indicator, and AI features are unavailable.
+### Metric groups
 
-**Solutions:**
+| Group | Examples |
+| --- | --- |
+| Daily activity | Conversations, documents, searches, workflow runs |
+| Model usage | Model counts, provider usage, token totals |
+| File distribution | Document type mix |
+| Workflow analytics | Top workflows and recent runs |
+| Conversation intelligence | Summary freshness, recent summaries, recall results |
+| Theme analysis | Conversation theme clusters and theme trends |
 
-1. **Ensure Ollama is installed.** Download it from [https://ollama.com/download](https://ollama.com/download).
-2. **Ensure Ollama is running.** Open a terminal and run `ollama serve` or check that the Ollama service is running in the background. You can verify by running `ollama list`.
-3. **Check the endpoint.** Go to **Settings** and verify the Ollama Endpoint is set correctly (default: `http://localhost:11434`). If you run Ollama on a different port or machine, update the endpoint accordingly.
-4. **Check firewall rules.** Ensure your firewall is not blocking connections to the Ollama port.
+### Use cases
 
-### Slow Application Startup
-
-**Symptom:** Agent-X takes several seconds to start up.
-
-**Explanation:** On startup, Agent-X attempts to connect to Ollama with a 3-second timeout. If Ollama is not running, the connection check must time out before the UI becomes responsive. This is expected behavior.
-
-**Solution:** Start Ollama before launching Agent-X for instant startup. Alternatively, the application will become responsive after the timeout completes.
-
-### Documents Stuck on "Pending" Status
-
-**Symptom:** Imported documents remain in "Pending" indexing status and never progress to "Indexed."
-
-**Solutions:**
-
-1. **Ensure Ollama is running** with an embedding model available.
-2. **Verify the embedding model.** Go to **Settings** and check that the configured Embedding Model (default: `all-minilm`) is installed. Run `ollama list` in a terminal to verify. If not installed, run `ollama pull all-minilm`.
-3. **Check document count limits.** If you are using a trial license, you may have reached the document limit for indexing.
-4. **Re-index manually.** In the Knowledge Vault, click the **Re-index** button on a stuck document.
-
-### No Search Results
-
-**Symptom:** Semantic Search returns no results even though you have imported documents.
-
-**Solutions:**
-
-1. **Ensure documents are indexed.** Only documents with an "Indexed" status appear in search results. Check the Knowledge Vault for indexing status.
-2. **Verify the embedding model is consistent.** If you changed the embedding model after indexing, previously indexed documents will not match new queries. Re-index your documents with the new model.
-3. **Broaden your query.** Semantic search matches on meaning, not keywords. Try rephrasing your query in more general terms.
-
-### Model Download Fails
-
-**Symptom:** Pulling a model from the Model Manager fails or stalls.
-
-**Solutions:**
-
-1. **Check your internet connection.** Model downloads require internet access to fetch weights from the Ollama library.
-2. **Check disk space.** Large models (7B+) require several gigabytes of disk space. Ensure your drive has sufficient free space.
-3. **Try from the command line.** Run `ollama pull <model-name>` in a terminal for more detailed error output.
-
-### High Memory Usage
-
-**Symptom:** Agent-X or Ollama consumes a large amount of RAM.
-
-**Explanation:** Running local AI models requires significant memory. A 7B model typically uses 4--5 GB of RAM (or VRAM if GPU-accelerated).
-
-**Solutions:**
-
-1. **Use a smaller model.** Switch to a model with fewer parameters (e.g., `phi3:mini` at 2.3 GB instead of a 7B model).
-2. **Close other applications.** Free up RAM for AI inference.
-3. **Use the Hardware Advisor.** Navigate to the Hardware Advisor page for model recommendations optimized for your available memory.
-
-### OCR Not Working on Images
-
-**Symptom:** Imported images show no extracted text or fail to index.
-
-**Solution:** Ensure the image contains legible text. Very low-resolution images, heavily stylized fonts, or handwritten content may not be recognized reliably by the OCR engine.
+- See which workflows are actually used.
+- Audit whether conversation summaries are fresh.
+- Identify dominant topics.
+- Watch indexing/search activity after an import push.
+- Spot model usage patterns before changing defaults.
 
 ---
 
-## 19. FAQ
+## 21. Model Manager
 
-**Q: Does Agent-X send my data to the cloud?**
+Model Manager provides a UI for Ollama model inventory and lifecycle management.
 
-A: No. Agent-X is entirely local-first. All AI inference runs on your machine via Ollama. Your documents, conversations, embeddings, and settings never leave your computer.
+### Capabilities
 
-**Q: Can I use Agent-X without a GPU?**
+- List installed models with size and metadata.
+- Pull a model by name.
+- Track pull progress.
+- Delete unused models.
+- Refresh the installed model list.
+- Set or confirm defaults through Settings when needed.
 
-A: Yes. Ollama supports CPU-only inference. Performance will be slower compared to GPU-accelerated inference, but all features work correctly. The Hardware Advisor will recommend appropriate smaller models for CPU-only systems.
+### Model naming tips
 
-**Q: What is the difference between the Chat Model and the Embedding Model?**
+Use explicit model names where possible:
 
-A: The **Chat Model** (e.g., `llama3.2`, `mistral`) is a large language model used for generating text responses in AI Chat, Ask Your Files, and Quick Actions. The **Embedding Model** (e.g., `all-minilm`, `nomic-embed-text`) is a smaller, specialized model that converts text into vector representations used for Semantic Search and RAG retrieval.
+```powershell
+ollama pull llama3.2
+ollama pull mistral
+ollama pull nomic-embed-text
+```
 
-**Q: How much disk space do AI models require?**
-
-A: It varies by model. Small embedding models like `all-minilm` are around 100 MB. A 7B chat model is typically 4--5 GB. Large models like `llama3.1:70b` can be 40 GB or more. You can see exact sizes in the Model Manager.
-
-**Q: Can I run Ollama on a different computer on my network?**
-
-A: Yes. Change the **Ollama Endpoint** in Settings to point to the remote machine (e.g., `http://192.168.1.100:11434`). Ensure the remote Ollama instance is configured to accept external connections.
-
-**Q: What happens if I delete a document from the Knowledge Vault?**
-
-A: The document, all its text chunks, and all associated vector embeddings are permanently removed from Agent-X. The original source file on disk is not deleted.
-
-**Q: Can I use Agent-X without a license key?**
-
-A: Yes. Agent-X works in trial mode without a license key. Trial mode has a document limit, shown in Settings. Enter a license key to unlock higher limits.
-
-**Q: How do I change the default model?**
-
-A: Go to **Settings** and update the **Default Chat Model** field, then click **Save Settings**. The new model will be used for all new conversations.
-
-**Q: What is chunk size and why does it matter?**
-
-A: When documents are indexed, their text is split into smaller pieces called "chunks." The chunk size (default: 512 tokens) controls how large each piece is. Smaller chunks provide finer-grained search results but may lose context. Larger chunks preserve more context but may dilute search precision. The default of 512 tokens is a good balance for most use cases.
-
-**Q: Where is my data stored?**
-
-A: All data is stored locally at `%LocalAppData%\AgentX\` by default. This includes the SQLite database, vector store, and settings. You can change the storage path in Settings.
+Embedding models should include names such as `embed`, `nomic`, `bge`, or `minilm` so the app can identify them reliably during setup.
 
 ---
 
-## 20. Appendix: Supported File Types
+## 22. Hardware Advisor
 
-The table below lists every file extension supported by Agent-X, its category, and how it is processed.
+Hardware Advisor detects system capacity and recommends suitable models.
 
-### PDF and Documents
+### Detection areas
 
-| Extension   | Category   | Display Name              | Processing Method            |
-|-------------|------------|---------------------------|------------------------------|
-| `.pdf`      | PDF        | PDF Document              | Text extraction with page awareness |
-| `.docx`     | Document   | Word Document             | XML-based text extraction    |
-| `.doc`      | Document   | Word Document (Legacy)    | Binary format extraction     |
+- GPU name and acceleration summary.
+- VRAM and system RAM.
+- CPU and operating environment.
+- Recommended model size tier.
+- Chat, code, and embedding model suggestions.
 
-### Text Files
+### How to use recommendations
 
-| Extension   | Category   | Display Name              | Processing Method            |
-|-------------|------------|---------------------------|------------------------------|
-| `.txt`      | Text       | Text File                 | Plain text reading           |
-| `.csv`      | Text       | CSV Spreadsheet           | Plain text reading           |
-| `.log`      | Text       | Log File                  | Plain text reading           |
-| `.xml`      | Text       | XML Document              | Plain text reading           |
-| `.json`     | Text       | JSON File                 | Plain text reading           |
+- Use smaller or quantized models when VRAM is limited.
+- Keep context windows smaller on low-memory machines.
+- Prefer embedding models optimized for retrieval speed when indexing large vaults.
+- Refresh after changing GPUs, drivers, or runtime configuration.
+
+---
+
+## 23. Backup and Restore
+
+Backup and Restore protects local Agent-X data.
+
+### Backup options
+
+| Option | Purpose |
+| --- | --- |
+| Destination | Folder where backup packages are written |
+| Include documents | Includes vault source artifacts, not just the database |
+| Encryption | Adds password protection to the backup package |
+| Notes | Adds human-readable context to the backup history |
+| Scheduled backups | Runs recurring backups at the selected interval |
+| Retention | Limits how many backups are kept |
+
+### Restore behavior
+
+Choose a backup package, provide the password if encrypted, and run restore. Review the restore summary afterward. Restore operations should be treated as data-changing maintenance; close other Agent-X windows or background jobs first.
+
+### Backup before high-risk changes
+
+Create a fresh backup before:
+
+- Enabling at-rest database encryption.
+- Importing a large new corpus.
+- Changing sync scope.
+- Moving to a new machine.
+- Running major cleanup or duplicate removal.
+
+---
+
+## 24. Collaborative Sync
+
+Collaborative Sync packages local changes and imports remote changes through a configured sync folder.
+
+### Configuration
+
+| Field | Meaning |
+| --- | --- |
+| Sync folder | Local, network, or shared folder used for exchange |
+| Encryption key | Protects sync packages |
+| Auto-sync | Enables recurring sync passes |
+| Interval | Minutes between auto-sync passes |
+| Scope | All data or selected collections |
+| Selected collections | Included when scope is set to selected collections |
+
+### Manual sync
+
+Use **Sync Now** to:
+
+1. Export local changes.
+2. Read remote packages.
+3. Import remote changes.
+4. Update status, duration, pending changes, and history.
+
+### History and conflicts
+
+The history list tracks recent sync passes and conflicts. Operations can focus a specific sync log when an action is needed. If conflicts appear, review the sync status before starting another pass.
+
+---
+
+## 25. Calendar and Email Connectors
+
+Calendar and Email pages configure external productivity connectors.
+
+### Calendar
+
+Calendar sync supports:
+
+- Provider enable/disable.
+- OAuth connection and disconnection.
+- Manual sync.
+- Sync interval selection.
+- Past/future window configuration.
+- Conflict resolution: remote wins, local wins, or merge.
+- Last sync and next sync indicators.
+
+### Email
+
+Email sync supports:
+
+- Provider enable/disable.
+- OAuth connection and disconnection.
+- Manual sync.
+- Sync interval selection.
+- Maximum messages per sync.
+- Days-back sync window.
+- Last sync and next sync indicators.
+
+Connector output can feed Smart Inbox and Operations so external items are reviewed before becoming vault material.
+
+---
+
+## 26. Annotations
+
+Annotations capture highlights and notes connected to documents.
+
+### Annotation fields
+
+- Source document.
+- Highlighted text.
+- Note text.
+- Color.
+- Created and updated timestamps.
+
+### Tools
+
+- Search annotations.
+- Filter by color.
+- Edit note text and color.
+- Delete annotations.
+- Export annotations as Markdown.
+
+Annotations are useful for turning reading notes into searchable project evidence.
+
+---
+
+## 27. Settings
+
+Settings is the control plane for provider, inference, indexing, security, storage, and app behavior.
+
+### Key groups
+
+| Group | Controls |
+| --- | --- |
+| AI Provider | Ollama endpoint, active provider, OpenAI key, Anthropic key |
+| Inference | Temperature, max tokens, context window |
+| Knowledge Vault | Chunk size, chunk overlap, top-K, indexing behavior |
+| Web Search | Provider and API configuration where enabled |
+| Database Encryption | SQLCipher enablement and key/passphrase flow |
+| License | License tier, activation, document limits |
+| Language/UI | Locale follows Windows display language |
+
+### Database encryption
+
+Agent-X can encrypt the local SQLite vault with SQLCipher. Starter/Professional-style modes can use a key tied to the Windows user profile; passphrase-gated modes require the passphrase on future unlocks.
+
+Before enabling encryption:
+
+1. Create a fresh backup.
+2. Confirm the backup restores in a safe environment if the data is critical.
+3. Store passphrases securely.
+4. Keep `encryption.info.json` with the encrypted database when backing up manually.
+
+Disabling encryption in-place is not supported in this release; restore a plaintext backup if you need to return to an unencrypted vault.
+
+---
+
+## 28. Command Palette, Jump To, and Shortcuts
+
+### Command Palette
+
+Open the command palette with `Ctrl+K` or `Ctrl+Shift+P`. Type to filter registered pages and actions, press `Enter` to run the selected command, and press `Esc` to dismiss it.
+
+### Jump To
+
+Open Jump To with `Ctrl+P`. Use it for fast navigation to documents, conversations, or supported destinations.
+
+### Cheatsheet
+
+Open the shortcuts cheatsheet with `F1` or `Ctrl+Shift+?`.
+
+### Shipped global shortcuts
+
+| Shortcut | Action |
+| --- | --- |
+| `Ctrl+K` | Command Palette |
+| `Ctrl+Shift+P` | Command Palette |
+| `Ctrl+N` | AI Chat / new conversation |
+| `Ctrl+I` | Knowledge Vault |
+| `Ctrl+F` | Semantic Search |
+| `Ctrl+Shift+F` | Semantic Search |
+| `Ctrl+,` | Settings |
+| `Ctrl+Shift+A` | Analytics |
+| `Ctrl+Shift+O` | Operations |
+| `Ctrl+D` | Dashboard |
+| `Ctrl+Shift+W` | Workflows |
+| `Ctrl+Shift+E` | Web Import |
+| `Ctrl+G` | Knowledge Graph |
+| `Ctrl+P` | Jump To |
+| `F1` | Keyboard shortcuts |
+| `Ctrl+Shift+?` | Keyboard shortcuts |
+| `Ctrl+1` through `Ctrl+9` | Quick-access page slots |
+
+---
+
+## 29. Status Bar, Notifications, and Tray
+
+### Status bar
+
+The bottom status bar shows:
+
+- Provider connection indicator.
+- Current status text.
+- `Ctrl+K` hint.
+- Indexing spinner and progress text.
+- Document count.
+- Version label.
+
+### Notifications
+
+Agent-X uses in-app notifications for long-running and asynchronous work such as imports, indexing, sync, backup, and workflow outcomes.
+
+### System tray
+
+The tray icon provides:
+
+- Open Agent-X.
+- Quick Chat.
+- Settings.
+- Exit.
+
+Use the tray when Agent-X should stay available without occupying the main window.
+
+---
+
+## 30. Privacy, Security, and Licensing
+
+### Local-first security model
+
+- No telemetry is required for core functionality.
+- Local AI is the default architecture.
+- The vault, settings, logs, embeddings, and conversations stay in the user's profile directory.
+- Optional SQLCipher encryption protects the database at rest.
+- DPAPI is used where Windows user-bound secrets are required.
+
+### Provider keys
+
+API keys are entered by the user and stored locally. They are only sent to their respective providers when those providers are used.
+
+### Licensing
+
+License validation is offline. The license key controls tier and document limits without requiring a subscription check during normal local use.
+
+| Tier | Typical use |
+| --- | --- |
+| Trial | Evaluate core features within document limits |
+| Starter | Personal local knowledge base |
+| Professional | Unlimited document workflows and advanced intelligence |
+| Ultimate | Highest-tier local-first feature set and support path |
+
+---
+
+## 31. Troubleshooting
+
+### Ollama not detected
+
+1. Run `ollama list`.
+2. Confirm Ollama is listening on `http://localhost:11434`.
+3. Verify the endpoint in Settings.
+4. Restart Ollama.
+5. Re-run Dashboard **Setup AI**.
+
+### Models do not appear
+
+1. Pull at least one model with `ollama pull <model-name>`.
+2. Confirm `ollama list` shows it.
+3. Test the Agent-X Ollama connection.
+4. Refresh Model Manager.
+
+### Documents remain pending
+
+1. Check that an embedding model is selected.
+2. Confirm Ollama is running.
+3. Review Knowledge Vault indexing errors.
+4. Re-index the document.
+5. Check Operations for imported-document health.
+
+### Search returns no results
+
+1. Confirm documents are indexed.
+2. Try Hybrid mode.
+3. Broaden the query.
+4. Remove overly narrow filters.
+5. Re-index after changing embedding models.
+
+### Ask Your Files gives weak citations
+
+1. Narrow the collection or selected documents.
+2. Use a more specific question.
+3. Re-index source documents.
+4. Confirm chunk size/top-K settings are reasonable.
+5. Check whether the document text extraction is complete.
+
+### Workflow run fails
+
+1. Open the run from Workflows or Operations.
+2. Review the failed step and error text.
+3. Confirm the model/provider is reachable.
+4. Reduce max tokens or context length if the model runs out of memory.
+5. Save useful partial output before retrying.
+
+### Sync is stuck or reports conflicts
+
+1. Verify the sync folder is reachable.
+2. Confirm the encryption key matches across machines.
+3. Review sync history.
+4. Run manual sync once.
+5. Resolve focused Operations sync items before enabling auto-sync again.
+
+### High memory usage
+
+1. Use a smaller model.
+2. Reduce context window size.
+3. Use quantized models.
+4. Close other memory-heavy apps.
+5. Follow Hardware Advisor recommendations.
+
+### App starts into onboarding unexpectedly
+
+Check `%LocalAppData%\AgentX\settings.json`. If `"onboardingCompleted"` is missing or false, onboarding runs. Finish the wizard or set the value to `true` while the app is closed.
+
+---
+
+## 32. FAQ
+
+**Does Agent-X send my data to the cloud?**
+
+Not by default. Local Ollama workflows keep documents and prompts on your machine. Data is sent externally only when you explicitly use a configured cloud provider, connector, or web feature.
+
+**Can I use Agent-X without a GPU?**
+
+Yes. CPU inference works but is slower. Use smaller models and the Hardware Advisor.
+
+**What is the difference between chat and embedding models?**
+
+Chat models generate text. Embedding models convert text into vectors used by Semantic Search, RAG, relatedness, and duplicate analysis.
+
+**What happens when I delete a document?**
+
+Agent-X removes the vault record, chunks, embeddings, and relationships. The original source file is not necessarily deleted unless a specific workflow says so.
+
+**Where is my data?**
+
+By default: `%LocalAppData%\AgentX\`.
+
+**Can I move Agent-X to another machine?**
+
+Use Backup and Restore or Collaborative Sync. If the database is encrypted, move the required encryption metadata or passphrase too.
+
+**Why should I use Collections if Search already works?**
+
+Collections create better scopes for RAG, filters, sync, workflows, and project separation.
+
+**When should I use Workflows instead of Quick Actions?**
+
+Use Quick Actions for one-off document tasks. Use Workflows when the same multi-step prompt process should be repeated, inspected, saved, or exported.
+
+---
+
+## 33. Supported File Types
+
+### Documents
+
+| Extension | Type | Processing |
+| --- | --- | --- |
+| `.pdf` | PDF | Text extraction with document metadata |
+| `.docx` | Word document | OpenXML text extraction |
+| `.doc` | Legacy Word | Legacy document extraction where supported |
+
+### Text and data
+
+| Extension | Type | Processing |
+| --- | --- | --- |
+| `.txt` | Plain text | Direct text extraction |
+| `.csv` | CSV | Text/table-like extraction |
+| `.log` | Log | Plain text extraction |
+| `.xml` | XML | Plain text extraction |
+| `.json` | JSON | Plain text extraction |
+| `.yaml`, `.yml` | YAML | Plain text extraction |
+| `.toml` | TOML | Plain text extraction |
+| `.ini`, `.cfg` | Config | Plain text extraction |
 
 ### Markdown
 
-| Extension   | Category   | Display Name              | Processing Method            |
-|-------------|------------|---------------------------|------------------------------|
-| `.md`       | Markdown   | Markdown Document         | Markdown-aware text extraction |
-| `.markdown` | Markdown   | Markdown Document         | Markdown-aware text extraction |
+| Extension | Type | Processing |
+| --- | --- | --- |
+| `.md` | Markdown | Markdown-aware text extraction |
+| `.markdown` | Markdown | Markdown-aware text extraction |
 
-### Images (OCR)
+### Images
 
-| Extension   | Category   | Display Name              | Processing Method            |
-|-------------|------------|---------------------------|------------------------------|
-| `.png`      | Image      | PNG Image                 | Optical Character Recognition (OCR) |
-| `.jpg`      | Image      | JPEG Image                | Optical Character Recognition (OCR) |
-| `.jpeg`     | Image      | JPEG Image                | Optical Character Recognition (OCR) |
-| `.bmp`      | Image      | Bitmap Image              | Optical Character Recognition (OCR) |
-| `.tiff`     | Image      | TIFF Image                | Optical Character Recognition (OCR) |
+| Extension | Type | Processing |
+| --- | --- | --- |
+| `.png` | Image | Metadata/OCR path where enabled |
+| `.jpg`, `.jpeg` | Image | Metadata/OCR path where enabled |
+| `.bmp` | Image | Metadata/OCR path where enabled |
+| `.tiff` | Image | Metadata/OCR path where enabled |
 
-### Code Files
+### Code
 
-| Extension   | Category   | Display Name              | Processing Method            |
-|-------------|------------|---------------------------|------------------------------|
-| `.cs`       | Code       | C# Source File            | Code-aware text extraction   |
-| `.js`       | Code       | JavaScript File           | Code-aware text extraction   |
-| `.ts`       | Code       | TypeScript File           | Code-aware text extraction   |
-| `.py`       | Code       | Python Script             | Code-aware text extraction   |
-| `.java`     | Code       | Java Source File          | Code-aware text extraction   |
-| `.cpp`      | Code       | C++ Source File           | Code-aware text extraction   |
-| `.c`        | Code       | C Source File             | Code-aware text extraction   |
-| `.h`        | Code       | C/C++ Header File         | Code-aware text extraction   |
-| `.go`       | Code       | Go Source File            | Code-aware text extraction   |
-| `.rs`       | Code       | Rust Source File          | Code-aware text extraction   |
-| `.swift`    | Code       | Swift Source File         | Code-aware text extraction   |
-| `.kt`       | Code       | Kotlin Source File        | Code-aware text extraction   |
-| `.rb`       | Code       | Ruby Script               | Code-aware text extraction   |
-| `.php`      | Code       | PHP Source File           | Code-aware text extraction   |
-| `.html`     | Code       | HTML Document             | Code-aware text extraction   |
-| `.css`      | Code       | CSS Stylesheet            | Code-aware text extraction   |
-| `.scss`     | Code       | SCSS Stylesheet           | Code-aware text extraction   |
-| `.sql`      | Code       | SQL Script                | Code-aware text extraction   |
-| `.sh`       | Code       | Shell Script              | Code-aware text extraction   |
-| `.yaml`     | Code       | YAML Configuration        | Code-aware text extraction   |
-| `.yml`      | Code       | YAML Configuration        | Code-aware text extraction   |
-| `.toml`     | Code       | TOML Configuration        | Code-aware text extraction   |
-| `.ini`      | Code       | INI Configuration         | Code-aware text extraction   |
-| `.cfg`      | Code       | Configuration File        | Code-aware text extraction   |
-| `.xaml`     | Code       | XAML Markup               | Code-aware text extraction   |
+| Extension | Type |
+| --- | --- |
+| `.cs` | C# |
+| `.js`, `.ts` | JavaScript / TypeScript |
+| `.py` | Python |
+| `.java` | Java |
+| `.cpp`, `.c`, `.h` | C / C++ |
+| `.go` | Go |
+| `.rs` | Rust |
+| `.swift` | Swift |
+| `.kt` | Kotlin |
+| `.rb` | Ruby |
+| `.php` | PHP |
+| `.html`, `.css`, `.scss` | Web source |
+| `.sql` | SQL |
+| `.sh` | Shell |
+| `.xaml` | XAML |
 
 ---
 
-## 18. Workspace Profiles
-
-Workspace Profiles let you create isolated environments for different projects or contexts. Each workspace has its own conversations, knowledge base, and AI settings.
-
-### Creating a Workspace
-
-1. Navigate to **Workspaces** in the sidebar
-2. Click **New Workspace**
-3. Enter a name, choose an icon and color
-4. Click **Create**
-
-### Switching Workspaces
-
-- Click any workspace in the sidebar to switch
-- The Default workspace cannot be renamed or deleted
-- Switching workspaces changes your active conversations and settings
-
-### Workspace Storage
-
-Each workspace stores its data in a separate directory under `%LocalAppData%\AgentX\Workspaces\{id}\`. This ensures complete isolation between workspaces.
-
----
-
-## 19. Smart Inbox
-
-The Smart Inbox automatically detects new files added to your watch folders and presents them for review before importing into your knowledge base.
-
-### Inbox Workflow
-
-1. **New files appear** in the Inbox when detected in watch folders
-2. **AI-powered previews** are generated for each item
-3. **Accept** to import into a collection, **Reject** to dismiss, or **Defer** for later
-4. **Batch operations** — Accept or Reject multiple items at once
-
-### Accepting Items
-
-When you accept an item, you can optionally assign it to a specific collection. If no collection is selected, it goes to the default collection.
-
-### Auto-Preview
-
-The Inbox can generate AI previews for all pending items. Click **Generate All Previews** to batch-process your queue.
-
----
-
-## 20. Comparative Analysis
-
-Comparative Analysis lets you select multiple documents and have AI analyze the similarities, differences, and patterns across them.
-
-### Running a Comparison
-
-1. Navigate to **Comparison** in the sidebar
-2. Select 2 or more documents from your knowledge base
-3. Choose analysis dimensions (themes, arguments, methodology, sentiment)
-4. Click **Compare**
-
-### Comparison Options
-
-| Option | Description |
-|--------|-------------|
-| **Analysis Depth** | Quick summary vs. detailed deep-dive |
-| **Focus Areas** | Themes, Arguments, Methodology, Sentiment |
-| **Output Format** | Structured report with citations |
-
-### Exporting Results
-
-Use **Export as Markdown** to save the full comparison report for sharing or archival.
-
----
-
-## 21. Voice Input
-
-Voice Input lets you transcribe speech to text using local Whisper models. All processing happens on your machine — no audio data leaves your device.
-
-### Using Voice Input
-
-- **Click the microphone button** in the chat input bar to start recording
-- **Click again** (or the stop button) to stop recording and transcribe
-- **Right-click the microphone button** to select an audio file for transcription
-
-### Supported Audio Formats
-
-`.mp3`, `.wav`, `.m4a`, `.flac`, `.ogg`, `.webm`
-
-### Setting Up Voice Input
-
-1. Go to **Settings > Voice**
-2. Download a Whisper model (recommended: `base` for most users)
-3. Choose your language or leave on auto-detect
-
-### How It Works
-
-Voice recording uses your microphone via NAudio (WaveIn 16kHz mono) and transcribes the audio locally using Whisper.net. The transcribed text is inserted into the chat input box for review before sending.
-
-### Model Sizes
-
-| Model | Size | Speed | Accuracy |
-|-------|------|-------|----------|
-| tiny | ~75 MB | Fastest | Good for quick notes |
-| base | ~142 MB | Fast | Recommended for most users |
-| small | ~466 MB | Moderate | Higher accuracy |
-| medium | ~1.5 GB | Slow | High accuracy |
-| large | ~3 GB | Slowest | Best accuracy |
-
----
-
-## 22. Plugin Manager
-
-The Plugin Manager lets you install, enable, disable, and uninstall third-party plugins that extend Agent-X's capabilities.
-
-### Installing a Plugin
-
-1. Navigate to **Plugin Manager** in the sidebar
-2. Click **Install Plugin**
-3. Select a `.agentx-plugin` package file
-4. The plugin is installed in disabled state
-5. Click **Enable** to activate it
-
-### Plugin Types
-
-| Type | Description |
-|------|-------------|
-| **Document Processor** | Adds support for new file formats |
-| **AI Provider** | Integrates additional AI backends |
-| **Quick Action** | Adds single-click commands |
-| **Workflow Step** | Extends the workflow builder |
-| **Theme** | Applies custom visual themes |
-| **Custom** | Catch-all for other extensions |
-
-### Creating a Plugin
-
-See the [Plugin Development Guide](PLUGIN-DEVELOPMENT-GUIDE.md) for detailed instructions on creating your own plugins.
-
-### Plugin Safety
-
-- Plugins run in isolated `AssemblyLoadContext` instances
-- Each plugin has a sandboxed data directory
-- Plugins declare required permissions in their manifest
-- Disable or uninstall any plugin from the Plugin Manager
-
----
-
-## 23. Sync Settings
-
-Sync Settings allow you to configure data synchronization between Agent-X instances or backup destinations.
-
-### Setting Up Sync
-
-1. Navigate to **Sync Settings** in the sidebar
-2. Configure your sync destination (local path or network share)
-3. Choose what to sync: conversations, knowledge base, settings
-4. Set sync interval (manual, 5 minutes, 15 minutes, 30 minutes, 1 hour)
-
-### Export and Import
-
-- **Export**: Creates an encrypted sync package of your selected data
-- **Import**: Restores data from a sync package, with conflict detection
-
-### Conflict Resolution
-
-When importing changes that conflict with local data, choose:
-- **Keep Local** — Discard the incoming change
-- **Keep Remote** — Accept the incoming change
-- **Merge** — Combine both versions
-
-### Auto-Sync
-
-Enable automatic sync to run at your chosen interval. Changes are encrypted with AES-256-GCM before transmission.
-
----
-
-## Default Settings Reference
-
-For quick reference, the table below summarizes all configurable settings and their default values.
-
-| Setting                  | Default Value              | Location             |
-|--------------------------|----------------------------|----------------------|
-| Ollama Endpoint          | `http://localhost:11434`   | Settings > AI Provider |
-| Default Chat Model       | `llama3.2`                 | Settings > AI Provider |
-| Embedding Model          | `all-minilm`              | Settings > AI Provider |
-| Temperature              | `0.7`                      | Settings > Inference |
-| Max Tokens               | `4096`                     | Settings > Inference |
-| Context Window           | `8192`                     | Settings > Inference |
-| Chunk Size               | `512`                      | Settings > Knowledge Vault |
-| Chunk Overlap            | `50`                       | Settings > Knowledge Vault |
-| Top-K Results            | `5`                        | Settings > Knowledge Vault |
-| Auto-Index Watch Folders | `On`                       | Settings > Knowledge Vault |
-| Storage Path             | `%LocalAppData%\AgentX`    | Internal             |
-
----
-
-## Database Encryption
-
-Agent-X can encrypt your local vault with SQLCipher (AES-256). Open Settings → Database Encryption → toggle the switch on.
-
-**Starter and Professional tiers** use a transparent key that is automatically generated and tied to your Windows user account. You never see it. The database is unlocked automatically on every launch for as long as you are signed in as the same Windows user.
-
-**Ultimate tier** prompts you to set a passphrase of at least 12 characters. The passphrase is used to derive the encryption key on each launch — Agent-X never stores your passphrase itself. **Write your passphrase down and keep it safe.** If you lose it, your database cannot be recovered. Create an unencrypted backup first via Settings → Backup & Restore if you are not sure.
-
-Once encryption is enabled, every file Agent-X writes to its vault — documents, conversations, collections, memories, settings — is protected on disk. Encrypted backups preserve the same key: restoring an encrypted backup on a different machine requires the same passphrase (Ultimate) or the same Windows user profile (Starter / Professional).
-
-**Disabling encryption is not supported in v2.1.** To revert to a plaintext vault, restore from a pre-encryption backup.
-
-**Troubleshooting**
-
-- *Forgot your passphrase?* The key cannot be recovered. Restore the most recent unencrypted backup.
-- *Moved to a new machine (Starter / Professional tier)?* The DPAPI-wrapped key is bound to the original Windows user. Create an export via Settings → Backup & Restore on the old machine, import it on the new one.
-- *App says "file is not a database" on launch?* The DB file and the encryption marker file have gotten out of sync. Close the app, rename `%LocalAppData%\AgentX\encryption.info.json` to `encryption.info.json.bak`, and relaunch — Agent-X will start in plaintext mode. If the DB is actually encrypted, it will fail to open; restore from your most recent backup. If the DB is plaintext and the marker was stale, the app will resume normally.
-
----
-
-## Language Selection
-
-Agent-X displays its user interface in the language you have chosen for Windows, and ships translations for six languages out of the box:
-
-- **English (United States)** — canonical
-- **Deutsch** — German
-- **Español** — Spanish
-- **Français** — French
-- **日本語** — Japanese
-- **简体中文** — Simplified Chinese
-
-**Changing your display language.** Agent-X follows your Windows display language automatically. To switch:
-
-1. Open **Windows Settings → Time & language → Language & region**.
-2. Set your preferred display language at the top.
-3. Restart Agent-X. The next launch picks up the new locale.
-
-**Regional formatting** (dates, numbers, document counts in the status bar) also follows your Windows regional settings. If you prefer English UI but German number formatting, configure them independently in Windows.
-
-**Documentation language.** In-app help, this User Guide, and release notes are currently English-only. Future releases will expand documentation coverage.
-
-**Reporting translation issues.** If you spot an awkward phrase, missing string, or text that overflows a button, please file an issue with the page name, the language, and a screenshot. Translations are versioned alongside the app so fixes ship on the next release.
-
-## Keyboard Shortcuts
-
-### Command Palette (Ctrl+Shift+P)
-Search for any command or action. Start typing to fuzzy-match across all registered shortcuts. Use arrow keys to navigate, Enter to execute.
-
-### Jump-To (Ctrl+P)
-Quickly navigate to any document, conversation, or page. Start typing to filter results.
-
-### Cheatsheet (F1 or Ctrl+Shift+?)
-View all available keyboard shortcuts grouped by category. Shortcuts for the current page appear under a "Current Page" section.
-
-### Navigation Shortcuts
-- `Ctrl+Shift+D1` — Go to Documents (Knowledge Vault)
-- `Ctrl+Shift+D2` — Go to Chat
-- `Ctrl+Shift+D3` — Go to Settings
-
----
-
-*Agent-X is developed by Rocky Stack / Strategia. For support, feature requests, or bug reports, please contact the development team.*
+*Agent-X is developed by Rocky Stack / Strategia. For support, feature requests, or bug reports, use the official support channel included with the product.*

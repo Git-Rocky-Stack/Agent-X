@@ -15,7 +15,7 @@ Full product, architecture, and developer documentation lives under `docs/`. Sta
 | [`docs/README.md`](docs/README.md) | Complete product documentation — features, install, build, configuration, architecture, data storage, keyboard shortcuts, license tiers |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | System architecture, component diagrams, startup sequence, data-layer design |
 | [`docs/DEVELOPER-GUIDE.md`](docs/DEVELOPER-GUIDE.md) | Developer-facing reference — services, DI, migrations, error handling, extension points |
-| [`docs/USER-GUIDE.md`](docs/USER-GUIDE.md) | End-user guide — importing documents, search, chat, encryption toggle, settings |
+| [`docs/USER-GUIDE.md`](docs/USER-GUIDE.md) | End-user onboarding and feature guide — full navigation map, AI setup, Operations, chat, vault, RAG, workflows, sync, connectors, security, and troubleshooting |
 | [`docs/API-REFERENCE.md`](docs/API-REFERENCE.md) | Public API reference |
 | [`docs/SERVICE-REFERENCE.md`](docs/SERVICE-REFERENCE.md) | Internal service reference |
 | [`docs/PLUGIN-DEVELOPMENT-GUIDE.md`](docs/PLUGIN-DEVELOPMENT-GUIDE.md) | Plugin development |
