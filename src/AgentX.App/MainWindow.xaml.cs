@@ -8,6 +8,7 @@ using AgentX.App.ViewModels;
 using AgentX.App.Views;
 using AgentX.App.Views.Dialogs;
 using AgentX.Core.Services.Shortcuts;
+using Serilog;
 
 namespace AgentX.App;
 
@@ -88,19 +89,16 @@ public sealed partial class MainWindow : Window
         RootGrid.PreviewKeyDown += RootGrid_PreviewKeyDown;
         _shortcutInputRouter.Attach(RootGrid);
 
-        // Configure window chrome, tray, and status bar
+        // Configure window chrome and status bar. Tray/window lifecycle hooks are
+        // attached after the first activation so they cannot intercept WinUI's
+        // startup show messages.
         _chromeService.ConfigureWindow(this);
         _chromeService.ConfigureTitleBar(this);
         _chromeService.ConfigureBackdrop(this);
 
-        ConfigureSystemTray();
         ConfigureStatusBar();
 
-        // Navigate to Dashboard on launch (onboarding check may override this)
-        ContentFrame.Navigate(typeof(Views.DashboardPage));
-
-        // Check if onboarding is needed (first run)
-        _ = CheckOnboardingAsync();
+        QueueInitialNavigation();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -137,6 +135,25 @@ public sealed partial class MainWindow : Window
     }
 
     private Task ShowCommandPaletteAsync() { CommandPalette.Show(); return Task.CompletedTask; }
+
+    private void QueueInitialNavigation()
+    {
+        var queued = DispatcherQueue.TryEnqueue(() =>
+        {
+            Log.Debug("Navigating to Dashboard on startup");
+            ContentFrame.Navigate(typeof(Views.DashboardPage));
+
+            // Check if onboarding is needed (first run)
+            _ = CheckOnboardingAsync();
+        });
+
+        if (!queued)
+        {
+            Log.Warning("Failed to queue startup navigation; navigating synchronously");
+            ContentFrame.Navigate(typeof(Views.DashboardPage));
+            _ = CheckOnboardingAsync();
+        }
+    }
 
     private async Task ShowJumpToDialogAsync()
     {

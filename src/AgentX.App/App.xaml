@@ -6,13 +6,13 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
-                <ResourceDictionary Source="Styles/Colors.xaml" />
-                <ResourceDictionary Source="Styles/Typography.xaml" />
-                <ResourceDictionary Source="Styles/Controls.xaml" />
-                <ResourceDictionary Source="Styles/Navigation.xaml" />
-                <ResourceDictionary Source="Styles/Chat.xaml" />
-                <ResourceDictionary Source="Styles/Documents.xaml" />
-                <ResourceDictionary Source="Styles/UserGuideSections.xaml" />
+                <ResourceDictionary Source="ms-appx:///Styles/Colors.xaml" />
+                <ResourceDictionary Source="ms-appx:///Styles/Typography.xaml" />
+                <ResourceDictionary Source="ms-appx:///Styles/Controls.xaml" />
+                <ResourceDictionary Source="ms-appx:///Styles/Navigation.xaml" />
+                <ResourceDictionary Source="ms-appx:///Styles/Chat.xaml" />
+                <ResourceDictionary Source="ms-appx:///Styles/Documents.xaml" />
+                <ResourceDictionary Source="ms-appx:///Styles/UserGuideSections.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

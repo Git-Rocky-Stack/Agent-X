@@ -38,7 +38,7 @@ public class SettingsService : ISettingsService
         {
             try
             {
-                var json = await File.ReadAllTextAsync(_settingsPath);
+                var json = await File.ReadAllTextAsync(_settingsPath).ConfigureAwait(false);
                 _cachedSettings = JsonSerializer.Deserialize<AppSettings>(json, JsonOptions) ?? new AppSettings();
 
                 // Decrypt encrypted API keys; detect plaintext keys for auto-migration
@@ -83,7 +83,7 @@ public class SettingsService : ISettingsService
                 if (needsMigration)
                 {
                     Log.Information("Plaintext API keys detected — migrating to DPAPI encryption");
-                    await SaveSettingsAsync(_cachedSettings);
+                    await SaveSettingsAsync(_cachedSettings).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -95,7 +95,7 @@ public class SettingsService : ISettingsService
         else
         {
             _cachedSettings = new AppSettings();
-            await SaveSettingsAsync(_cachedSettings);
+            await SaveSettingsAsync(_cachedSettings).ConfigureAwait(false);
             Log.Information("Default settings created");
         }
 
@@ -118,7 +118,7 @@ public class SettingsService : ISettingsService
             onDiskSettings.OAuth.Microsoft.ClientSecret = EncryptIfNotEmpty(settings.OAuth.Microsoft.ClientSecret) ?? string.Empty;
 
             var onDiskJson = JsonSerializer.Serialize(onDiskSettings, JsonOptions);
-            await File.WriteAllTextAsync(_settingsPath, onDiskJson);
+            await File.WriteAllTextAsync(_settingsPath, onDiskJson).ConfigureAwait(false);
             Log.Debug("Settings saved to disk");
         }
         catch (Exception ex)
@@ -130,7 +130,7 @@ public class SettingsService : ISettingsService
 
     public async Task<T?> GetValueAsync<T>(string key)
     {
-        var settings = await GetSettingsAsync();
+        var settings = await GetSettingsAsync().ConfigureAwait(false);
         var property = typeof(AppSettings).GetProperty(key);
         if (property == null) return default;
         return (T?)property.GetValue(settings);
@@ -138,11 +138,11 @@ public class SettingsService : ISettingsService
 
     public async Task SetValueAsync<T>(string key, T value)
     {
-        var settings = await GetSettingsAsync();
+        var settings = await GetSettingsAsync().ConfigureAwait(false);
         var property = typeof(AppSettings).GetProperty(key);
         if (property == null) return;
         property.SetValue(settings, value);
-        await SaveSettingsAsync(settings);
+        await SaveSettingsAsync(settings).ConfigureAwait(false);
     }
 
     /// <summary>

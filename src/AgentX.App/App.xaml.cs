@@ -84,7 +84,12 @@ public partial class App : Application
         InitializeCoreServicesAsync();
 
         _mainWindow = new MainWindow();
-        _mainWindow.Activate();
+        if (_mainWindow is MainWindow mainWindow)
+        {
+            mainWindow.ConfigureWindowLifecycleServices();
+        }
+
+        GetService<SystemTrayService>().ShowMainWindow("startup");
 
         Log.Information("Agent-X started successfully");
     }

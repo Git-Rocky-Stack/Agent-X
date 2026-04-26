@@ -25,6 +25,7 @@ public sealed class SystemTrayService : IDisposable
     private const int MOD_WIN = 0x0008;
     private const int MOD_NOREPEAT = 0x4000;
     private const int HOTKEY_ID = 9001;
+    private const int SW_SHOWNORMAL = 1;
 
     private TaskbarIcon? _trayIcon;
     private IntPtr _hwnd;
@@ -294,20 +295,22 @@ public sealed class SystemTrayService : IDisposable
     }
 
     /// <summary>
-    /// Restores the main window from the system tray.
-    /// Shows the window, brings it to the foreground, and deactivates Efficiency Mode.
+    /// Shows the main window, brings it to the foreground, and deactivates Efficiency Mode.
     /// </summary>
-    public void RestoreFromTray()
+    public void ShowMainWindow(string reason)
     {
         if (_window == null || _appWindow == null)
         {
-            Log.Warning("Cannot restore window: not configured");
+            Log.Warning("Cannot show main window for {Reason}: not configured", reason);
             return;
         }
 
-        // Use H.NotifyIcon's WindowExtensions.Show to restore with Efficiency Mode disabled
+        // Use H.NotifyIcon's WindowExtensions.Show to disable efficiency mode,
+        // then force the native Win32 window visible. Window.Activate() can
+        // block on startup in unpackaged WinUI builds when the HWND has already
+        // been created hidden, so this path avoids relying on it.
         _window.Show(disableEfficiencyMode: true);
-        _window.Activate();
+        _appWindow.Show();
 
         // If the window was minimized before hiding, restore it to its previous state
         if (_appWindow.Presenter is OverlappedPresenter presenter
@@ -316,8 +319,19 @@ public sealed class SystemTrayService : IDisposable
             presenter.Restore();
         }
 
-        Log.Information("Window restored from system tray");
+        if (_hwnd != IntPtr.Zero)
+        {
+            ShowWindow(_hwnd, SW_SHOWNORMAL);
+            SetForegroundWindow(_hwnd);
+        }
+
+        Log.Information("Main window shown ({Reason})", reason);
     }
+
+    /// <summary>
+    /// Restores the main window from the system tray.
+    /// </summary>
+    public void RestoreFromTray() => ShowMainWindow("tray restore");
 
     /// <summary>
     /// Actually closes the application. Sets the flag so <see cref="OnWindowClosing"/>
@@ -415,6 +429,14 @@ public sealed class SystemTrayService : IDisposable
 
     [DllImport("user32.dll")]
     private static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetForegroundWindow(IntPtr hWnd);
 
     /// <summary>
     /// Safe wrapper for SetWindowLongPtr that handles both 32-bit and 64-bit.

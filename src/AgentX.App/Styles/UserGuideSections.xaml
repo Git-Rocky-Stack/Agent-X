@@ -12,9 +12,9 @@
     -->
 
     <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="Styles/UserGuideSections.Core.xaml" />
-        <ResourceDictionary Source="Styles/UserGuideSections.Features.xaml" />
-        <ResourceDictionary Source="Styles/UserGuideSections.Advanced.xaml" />
+        <ResourceDictionary Source="ms-appx:///Styles/UserGuideSections.Core.xaml" />
+        <ResourceDictionary Source="ms-appx:///Styles/UserGuideSections.Features.xaml" />
+        <ResourceDictionary Source="ms-appx:///Styles/UserGuideSections.Advanced.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <!-- DataTemplateSelector for UserGuide sections -->

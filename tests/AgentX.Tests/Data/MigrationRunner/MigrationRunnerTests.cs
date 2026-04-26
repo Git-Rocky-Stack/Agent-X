@@ -81,6 +81,34 @@ public class MigrationRunnerTests
     }
 
     [Fact]
+    public async Task RunAsync_on_up_to_date_database_repairs_missing_operations_tables()
+    {
+        var (ctx, dbPath) = CreateContextAtTempPath();
+        try
+        {
+            IMigrationRunner runner = new Core.Data.MigrationRunner.MigrationRunner(ctx);
+            await runner.RunAsync();
+
+            await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS workflow_runs;");
+            await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS workflow_steps;");
+            await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS workflows;");
+            await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS sync_logs;");
+            await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS plugins;");
+
+            var secondResult = await runner.RunAsync();
+
+            secondResult.DatabaseCreated.Should().BeFalse();
+            await AssertOperationsTablesExistAsync(ctx);
+        }
+        finally
+        {
+            await ctx.DisposeAsync();
+            SqliteConnection.ClearAllPools();
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
     public async Task GetPendingMigrationsAsync_returns_empty_when_up_to_date()
     {
         var (ctx, dbPath) = CreateContextAtTempPath();
@@ -170,6 +198,24 @@ public class MigrationRunnerTests
             await ctx.DisposeAsync();
             SqliteConnection.ClearAllPools();
             if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    private static async Task AssertOperationsTablesExistAsync(AgentXDbContext ctx)
+    {
+        await using var cmd = ctx.Database.GetDbConnection().CreateCommand();
+        await ctx.Database.OpenConnectionAsync();
+        try
+        {
+            cmd.CommandText =
+                "SELECT COUNT(*) FROM sqlite_master " +
+                "WHERE type='table' AND name IN ('plugins','sync_logs','workflows','workflow_runs','workflow_steps');";
+            var tableCount = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+            tableCount.Should().Be(5);
+        }
+        finally
+        {
+            await ctx.Database.CloseConnectionAsync();
         }
     }
 }

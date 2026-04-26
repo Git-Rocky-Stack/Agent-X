@@ -15,6 +15,11 @@ public sealed partial class MainWindow
         _statusBarService.StartPolling();
     }
 
+    internal void ConfigureWindowLifecycleServices()
+    {
+        ConfigureSystemTray();
+    }
+
     private void OnStatusBarStateChanged(object? sender, StatusBarState state)
     {
         if (!DispatcherQueue.HasThreadAccess)
