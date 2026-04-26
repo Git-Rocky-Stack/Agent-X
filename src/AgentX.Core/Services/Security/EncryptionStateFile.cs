@@ -54,7 +54,11 @@ public sealed class EncryptionStateFile : IEncryptionStateFile
         if (Environment.OSVersion.Platform == PlatformID.Win32NT)
         {
             var acl = new FileSecurity();
-            var currentUser = WindowsIdentity.GetCurrent().Owner;
+            var identity = WindowsIdentity.GetCurrent();
+            var currentUser = identity.User ?? identity.Owner;
+            if (currentUser is null)
+                throw new InvalidOperationException("Unable to resolve the current Windows identity for encryption state ACL hardening.");
+
             acl.SetOwner(currentUser);
             acl.AddAccessRule(new FileSystemAccessRule(
                 currentUser,

@@ -3,7 +3,7 @@
 ; Copyright (c) 2026 Rocky Stack. All rights reserved.
 
 #define MyAppName "Agent-X"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "2.1.0-preview.1"
 #define MyAppPublisher "Rocky Stack"
 #define MyAppURL "https://rockystack.com"
 #define MyAppExeName "AgentX.App.exe"
@@ -32,6 +32,7 @@ LZMANumBlockThreads=2
 WizardStyle=modern
 WizardSizePercent=120,120
 DisableWelcomePage=no
+SetupIconFile=..\src\AgentX.App\Assets\agent_x.ico
 ; Privileges
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
@@ -40,6 +41,7 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 ; Uninstaller
 UninstallDisplayName={#MyAppName}
+UninstallDisplayIcon={app}\{#MyAppExeName}
 ; Minimum Windows version (Windows 10 1903+)
 MinVersion=10.0.18362
 ; Misc
@@ -61,9 +63,9 @@ Source: "..\publish\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesu
 Source: "..\models\llama-3.2-3b-instruct-q4_k_m.gguf"; DestDir: "{localappdata}\AgentX\Models"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Comment: "{#MyAppDescription}"
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName}"; Comment: "{#MyAppDescription}"
 Name: "{group}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon; Comment: "{#MyAppDescription}"
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName}"; Tasks: desktopicon; Comment: "{#MyAppDescription}"
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent

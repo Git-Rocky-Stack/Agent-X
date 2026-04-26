@@ -162,7 +162,7 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
         var tasks = agents.Select(agent => RunAgentAsync(agent, task, ct)).ToArray();
         var results = await Task.WhenAll(tasks);
 
-        var outputs = results.Where(r => r is not null).ToList()!;
+        var outputs = results.OfType<AgentContribution>().ToList();
         var combined = await SynthesizeParallelOutputsAsync(task, outputs, ct);
 
         return new ParallelResult
@@ -410,12 +410,14 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
         }
     }
 
-    private static async Task<(string combined, string? consensus, List<string> disagreements)> SynthesizeParallelOutputsAsync(
+    private static Task<(string combined, string? consensus, List<string> disagreements)> SynthesizeParallelOutputsAsync(
         string task, List<AgentContribution> outputs, CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
+
         // For now, just concatenate. In a full implementation, this would use AI to synthesize
         var combined = string.Join("\n\n---\n\n", outputs.Select(o => $"[{o.Agent.Name}]\n{o.Output}"));
-        return (combined, null, new List<string>());
+        return Task.FromResult((combined, (string?)null, new List<string>()));
     }
 
     private static string BuildDebatePrompt(string topic, AgentRole agent, string previousContext, IReadOnlyList<AgentRole> allAgents)
@@ -442,8 +444,10 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
         return sb.ToString();
     }
 
-    private static async Task<string> SynthesizeDebateAsync(string topic, DebateResult result, CancellationToken ct)
+    private static Task<string> SynthesizeDebateAsync(string topic, DebateResult result, CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
+
         // This would use AI to synthesize - for now returning a placeholder
         var sb = new StringBuilder();
         sb.AppendLine($"Debate on: {topic}");
@@ -456,7 +460,7 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
                 sb.AppendLine($"- {pos.Agent.Name}: {pos.Argument.Truncate(100)}...");
             }
         }
-        return sb.ToString();
+        return Task.FromResult(sb.ToString());
     }
 
     private static string? IdentifyWinningPerspective(DebateResult result)
