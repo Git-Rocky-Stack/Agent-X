@@ -11,6 +11,7 @@
     <Page.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
         <converters:BoolToVisibilityConverter x:Key="InverseBoolToVis" IsInverted="True" />
+        <converters:DoubleToStringConverter x:Key="DoubleToStringConverter" />
     </Page.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto"
@@ -19,6 +20,7 @@
 
         <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="1200" HorizontalAlignment="Center">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -850,9 +852,136 @@
             </Grid>
 
             <!-- ==========================================================
-                 ROW 7: RECOMMENDED NEXT STEPS + QUICK LAUNCH
+                 ROW 7: BELIEF CONFLICTS (Temporal Identity)
                  ========================================================== -->
-            <StackPanel Grid.Row="7" Spacing="16">
+            <Border Grid.Row="7" Style="{StaticResource CardStyle}">
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Icon with subtle glow -->
+                    <Grid Width="48" Height="48" VerticalAlignment="Top">
+                        <Border CornerRadius="{StaticResource RadiusMD}"
+                                Background="{StaticResource WarningSubtleBrush}"
+                                Width="48" Height="48">
+                            <FontIcon Glyph="&#xE946;"
+                                      FontSize="20"
+                                      Foreground="{StaticResource WarningBrush}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center" />
+                        </Border>
+                    </Grid>
+
+                    <StackPanel Grid.Column="1" Spacing="12">
+                        <!-- Header -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <TextBlock Text="Your Belief Evolution"
+                                           Style="{StaticResource HeadingMediumStyle}" />
+                                <TextBlock Text="{x:Bind ViewModel.BeliefConflictsDetail, Mode=OneWay}"
+                                           Style="{StaticResource BodySecondaryStyle}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                <Border Style="{StaticResource BadgeWarningStyle}"
+                                        Visibility="{x:Bind ViewModel.HasBeliefConflicts, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Text="{x:Bind ViewModel.BeliefConflictsHeadline, Mode=OneWay}"
+                                               Style="{StaticResource BadgeStyle}" />
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Conflicts List -->
+                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.BeliefConflicts, Mode=OneWay}"
+                                       Visibility="{x:Bind ViewModel.HasBeliefConflicts, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Spacing="12" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="vm:BeliefConflictDisplayItem">
+                                    <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                            CornerRadius="{StaticResource RadiusSM}"
+                                            Padding="16">
+                                        <Grid RowSpacing="8">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+
+                                            <Grid Row="0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <TextBlock Grid.Column="0"
+                                                           Text="{x:Bind Topic}"
+                                                           Style="{StaticResource BodyStrongStyle}" />
+
+                                                <TextBlock Grid.Column="1"
+                                                           Style="{StaticResource CaptionStyle}"
+                                                           Foreground="{StaticResource WarningBrush}">
+                                                    <Run Text="Magnitude: " />
+                                                    <Run Text="{x:Bind ConflictMagnitude, Mode=OneWay, Converter={StaticResource DoubleToStringConverter}}" />
+                                                </TextBlock>
+                                            </Grid>
+
+                                            <TextBlock Grid.Row="1"
+                                                       Style="{StaticResource BodySecondaryStyle}"
+                                                       TextWrapping="Wrap">
+                                                <Run Text="Previously: " />
+                                                <Run Text="{x:Bind PreviousStance, Mode=OneWay}"
+                                                     Foreground="{StaticResource TextSecondaryBrush}"
+                                                     FontSize="11" />
+                                            </TextBlock>
+
+                                            <TextBlock Grid.Row="2"
+                                                       Style="{StaticResource BodySecondaryStyle}"
+                                                       TextWrapping="Wrap">
+                                                <Run Text="Currently: " />
+                                                <Run Text="{x:Bind CurrentStance, Mode=OneWay}"
+                                                     Foreground="{StaticResource TextPrimaryBrush}"
+                                                     FontWeight="SemiBold" />
+                                            </TextBlock>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+
+                        <!-- Empty State -->
+                        <StackPanel Spacing="8"
+                                    Visibility="{x:Bind ViewModel.HasBeliefConflicts, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}"
+                                    Padding="0,8">
+                            <TextBlock Text="No belief evolution detected yet."
+                                       Style="{StaticResource BodySecondaryStyle}" />
+                            <TextBlock Text="As you use the app, it will track when your views on topics evolve over time."
+                                       Style="{StaticResource CaptionStyle}"
+                                       Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                        </StackPanel>
+
+                        <!-- Action Button -->
+                        <Button Content="Explore Past Self"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{x:Bind ViewModel.NavigateToPastSelfCommand}"
+                                HorizontalAlignment="Left" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ==========================================================
+                 ROW 8: RECOMMENDED NEXT STEPS + QUICK LAUNCH
+                 ========================================================== -->
+            <StackPanel Grid.Row="8" Spacing="16">
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel Spacing="16">
                         <Grid>
@@ -1031,9 +1160,9 @@
             </StackPanel>
 
             <!-- ==========================================================
-                 ROW 8: SYSTEM INFO (compact horizontal bar)
+                 ROW 9: SYSTEM INFO (compact horizontal bar)
                  ========================================================== -->
-            <Border Grid.Row="8" Style="{StaticResource CardStyle}">
+            <Border Grid.Row="9" Style="{StaticResource CardStyle}">
                 <Grid ColumnSpacing="24">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -1102,9 +1231,9 @@
             </Border>
 
             <!-- ==========================================================
-                 ROW 9: PRIVACY FOOTER
+                 ROW 10: PRIVACY FOOTER
                  ========================================================== -->
-            <Border Grid.Row="9"
+            <Border Grid.Row="10"
                     Style="{StaticResource CardInsetStyle}"
                     Padding="20,14">
                 <StackPanel Orientation="Horizontal" Spacing="12">

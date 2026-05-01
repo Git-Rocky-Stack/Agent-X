@@ -1,5 +1,6 @@
 using System.Data;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Services.TemporalIdentity.Models;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
@@ -41,6 +42,13 @@ public class AgentXDbContext : DbContext
     public DbSet<PluginEntity> Plugins => Set<PluginEntity>();
     public DbSet<FeedbackEntity> Feedbacks => Set<FeedbackEntity>();
     public DbSet<OAuthCredentialEntity> OAuthCredentials => Set<OAuthCredentialEntity>();
+
+    // Temporal Identity — tracks belief evolution, insights, and voice
+    public DbSet<TemporalBeliefEntity> TemporalBeliefs => Set<TemporalBeliefEntity>();
+    public DbSet<InsightMomentEntity> InsightMoments => Set<InsightMomentEntity>();
+    public DbSet<EngagementMetricsEntity> EngagementMetrics => Set<EngagementMetricsEntity>();
+    public DbSet<BeliefConflictEntity> BeliefConflicts => Set<BeliefConflictEntity>();
+    public DbSet<VoiceProfileEntity> VoiceProfiles => Set<VoiceProfileEntity>();
 
     private readonly string _dbPath;
     private readonly IEncryptedConnectionFactory? _connectionFactory;
@@ -133,6 +141,110 @@ public class AgentXDbContext : DbContext
         ConfigurePlugin(modelBuilder);
         ConfigureFeedback(modelBuilder);
         ConfigureOAuthCredential(modelBuilder);
+        ConfigureTemporalIdentity(modelBuilder);
+    }
+
+    private static void ConfigureTemporalIdentity(ModelBuilder modelBuilder)
+    {
+        // TemporalBeliefEntity
+        modelBuilder.Entity<TemporalBeliefEntity>(entity =>
+        {
+            entity.ToTable("temporal_beliefs");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Topic).IsRequired();
+            entity.Property(e => e.SentimentScore).IsRequired();
+            entity.Property(e => e.ConfidenceLevel).IsRequired();
+            entity.Property(e => e.CurrentStance).IsRequired();
+            entity.Property(e => e.EvidenceJson).IsRequired().HasDefaultValue("[]");
+            entity.Property(e => e.FirstDetectedAt).IsRequired();
+            entity.Property(e => e.LastObservedAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired();
+
+            entity.HasIndex(e => e.Topic);
+            entity.HasIndex(e => e.LastObservedAt);
+            entity.HasIndex(e => e.HasEvolved);
+        });
+
+        // InsightMomentEntity
+        modelBuilder.Entity<InsightMomentEntity>(entity =>
+        {
+            entity.ToTable("insight_moments");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Topic).IsRequired();
+            entity.Property(e => e.InsightText).IsRequired();
+            entity.Property(e => e.SignificanceScore).IsRequired();
+            entity.Property(e => e.CapturedAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired();
+            entity.Property(e => e.RelatedTopicsJson).IsRequired().HasDefaultValue("[]");
+
+            entity.HasIndex(e => e.SignificanceScore);
+            entity.HasIndex(e => e.CapturedAt);
+            entity.HasIndex(e => e.HasBeenResurfaced);
+        });
+
+        // EngagementMetricsEntity
+        modelBuilder.Entity<EngagementMetricsEntity>(entity =>
+        {
+            entity.ToTable("engagement_metrics");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.TargetType).IsRequired();
+            entity.Property(e => e.TargetId).IsRequired();
+            entity.Property(e => e.FirstEngagedAt).IsRequired();
+            entity.Property(e => e.LastEngagedAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired();
+            entity.Property(e => e.TotalSecondsSpent).IsRequired();
+            entity.Property(e => e.RevisitCount).IsRequired();
+            entity.Property(e => e.Depth).IsRequired();
+            entity.Property(e => e.TopicsJson).IsRequired().HasDefaultValue("[]");
+
+            entity.HasIndex(e => new { e.TargetType, e.TargetId });
+            entity.HasIndex(e => e.LastEngagedAt);
+            entity.HasIndex(e => e.Depth);
+        });
+
+        // BeliefConflictEntity
+        modelBuilder.Entity<BeliefConflictEntity>(entity =>
+        {
+            entity.ToTable("belief_conflicts");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.BeliefId).IsRequired();
+            entity.Property(e => e.PreviousStance).IsRequired();
+            entity.Property(e => e.CurrentStance).IsRequired();
+            entity.Property(e => e.DetectedAt).IsRequired();
+            entity.Property(e => e.ConflictMagnitude).IsRequired();
+
+            entity.HasOne(e => e.Belief)
+                .WithMany()
+                .HasForeignKey(e => e.BeliefId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.DetectedAt);
+            entity.HasIndex(e => e.HasBeenAcknowledged);
+            entity.HasIndex(e => e.ConflictMagnitude);
+        });
+
+        // VoiceProfileEntity (singleton pattern)
+        modelBuilder.Entity<VoiceProfileEntity>(entity =>
+        {
+            entity.ToTable("voice_profiles");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.FirstSampleAt).IsRequired();
+            entity.Property(e => e.LastSampleAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired();
+            entity.Property(e => e.SampleCount).IsRequired();
+            entity.Property(e => e.AvgSentenceLength).IsRequired();
+            entity.Property(e => e.FormalityScore).IsRequired();
+            entity.Property(e => e.CharacteristicPhrasesJson).IsRequired().HasDefaultValue("[]");
+            entity.Property(e => e.SentencePatternsJson).IsRequired().HasDefaultValue("[]");
+            entity.Property(e => e.BookendsJson).IsRequired().HasDefaultValue("{}");
+            entity.Property(e => e.StylisticTraitsJson).IsRequired().HasDefaultValue("{}");
+            entity.Property(e => e.PronounPatterns).IsRequired().HasDefaultValue("");
+        });
     }
 
     private static void ConfigureConversation(ModelBuilder modelBuilder)

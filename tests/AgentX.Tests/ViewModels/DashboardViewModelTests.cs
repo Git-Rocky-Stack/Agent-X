@@ -8,6 +8,8 @@ using AgentX.Core.Search;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Indexing;
+using AgentX.Core.Services.TemporalIdentity;
+using AgentX.Core.Services.TemporalIdentity.Models;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -25,6 +27,7 @@ public sealed class DashboardViewModelTests
     private readonly Mock<IIndexingService> _indexingService = new();
     private readonly Mock<IRagPipeline> _ragPipeline = new();
     private readonly Mock<IOperationsOverviewService> _operationsOverviewService = new();
+    private readonly Mock<ITemporalIdentityService> _temporalIdentity = new();
     private readonly Mock<IOperationsDrillInService> _operationsDrillInService = new();
 
     public DashboardViewModelTests()
@@ -66,6 +69,9 @@ public sealed class DashboardViewModelTests
 
         _ragPipeline.Setup(pipeline => pipeline.GetIndexedChunkCountAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(120L);
+
+        _temporalIdentity.Setup(service => service.GetBeliefConflictsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<BeliefConflictEntity>());
 
         _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new OperationsOverviewSnapshot
@@ -401,6 +407,7 @@ public sealed class DashboardViewModelTests
             _indexingService.Object,
             _ragPipeline.Object,
             _operationsOverviewService.Object,
+            _temporalIdentity.Object,
             _operationsDrillInService.Object);
     }
 }

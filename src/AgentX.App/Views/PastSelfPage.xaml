@@ -1,0 +1,482 @@
+<Page
+    x:Class="AgentX.App.Views.PastSelfPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:AgentX.Core.Services.TemporalIdentity.Models"
+    xmlns:viewmodels="using:AgentX.App.ViewModels"
+    xmlns:converters="using:AgentX.App.Converters"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <converters:InverseVisibilityConverter x:Key="InverseVisibilityConverter"/>
+        <converters:StringEmptyToVisibilityConverter x:Key="StringEmptyToVisibilityConverter"/>
+    </Page.Resources>
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Grid Grid.Row="0" Background="{ThemeResource LayerFillColorDefaultBrush}" Padding="24,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Viewbox Width="24" Height="24" Grid.Column="0" Margin="0,0,12,0">
+                <Canvas Width="24" Height="24">
+                    <!-- Clock/history icon -->
+                    <Path Fill="{ThemeResource TextFillColorPrimaryBrush}" Data="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                </Canvas>
+            </Viewbox>
+
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Past Self" Style="{StaticResource SubtitleTextBlockStyle}"/>
+                <TextBlock Text="Query your beliefs, insights, and evolution across time"
+                           Style="{StaticResource CaptionTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Main Content -->
+        <ScrollViewer Grid.Row="1" Padding="24">
+            <StackPanel Spacing="24" MaxWidth="900">
+
+                <!-- Search Section -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        CornerRadius="8" Padding="20">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="What did I think about..."
+                                   Style="{StaticResource BodyStrongTextBlockStyle}"/>
+
+                        <!-- Search Box -->
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox x:Name="SearchBox"
+                                     Grid.Column="0"
+                                     PlaceholderText="Enter a topic (e.g., 'remote work', 'AI safety', 'microservices')"
+                                     Text="{x:Bind ViewModel.SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     KeyDown="SearchBox_KeyDown"/>
+
+                            <Button Grid.Column="1"
+                                    Content="Search Past Self"
+                                    Click="SearchButton_Click"
+                                    Style="{StaticResource AccentButtonStyle}"
+                                    IsEnabled="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
+                                    MinWidth="120"/>
+                        </Grid>
+
+                        <!-- Time Range Selector -->
+                        <StackPanel>
+                            <TextBlock Text="Time period"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Margin="0,0,0,8"/>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <RadioButton Content="All time"
+                                            GroupName="TimeRange"
+                                            Tag="0"
+                                            Checked="TimeRange_Checked"/>
+                                <RadioButton Content="Past week"
+                                            GroupName="TimeRange"
+                                            Tag="1"
+                                            Checked="TimeRange_Checked"/>
+                                <RadioButton Content="Past month"
+                                            GroupName="TimeRange"
+                                            Tag="2"
+                                            IsChecked="True"
+                                            Checked="TimeRange_Checked"/>
+                                <RadioButton Content="Past year"
+                                            GroupName="TimeRange"
+                                            Tag="3"
+                                            Checked="TimeRange_Checked"/>
+                                <RadioButton Content="Custom date"
+                                            GroupName="TimeRange"
+                                            Tag="4"
+                                            Checked="TimeRange_Checked"/>
+                                <CalendarDatePicker x:Name="CustomDatePicker"
+                                                     Visibility="{x:Bind ShowCustomDate, Mode=OneWay}"
+                                                     DateChanged="CustomDatePicker_DateChanged"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Quick Actions -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        CornerRadius="8" Padding="20">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="Quick Actions"
+                                   Style="{StaticResource BodyStrongTextBlockStyle}"/>
+
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button Content="Get Relevant Insights"
+                                    Click="InsightsButton_Click"
+                                    Style="{StaticResource DefaultButtonStyle}"/>
+                            <Button Content="Show Belief Evolution"
+                                    Click="EvolutionButton_Click"
+                                    Style="{StaticResource DefaultButtonStyle}"/>
+                            <Button Content="Get Active Topics"
+                                    Click="ActiveTopicsButton_Click"
+                                    Style="{StaticResource DefaultButtonStyle}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Loading State -->
+                <Border x:Name="LoadingPanel"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        CornerRadius="8"
+                        Padding="40"
+                        Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay}">
+                    <StackPanel Spacing="12" HorizontalAlignment="Center">
+                        <ProgressRing IsActive="True" Width="40" Height="40"/>
+                        <TextBlock Text="Searching your past..."
+                                   Style="{StaticResource BodyTextBlockStyle}"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Error State -->
+                <Border x:Name="ErrorPanel"
+                        Background="{ThemeResource SystemFillColorCautionBackgroundBrush}"
+                        CornerRadius="8"
+                        Padding="16"
+                        Visibility="{x:Bind ViewModel.ErrorMessage, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}">
+                    <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                               Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                               TextWrapping="Wrap"/>
+                </Border>
+
+                <!-- Results -->
+                <Border x:Name="ResultsPanel"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        CornerRadius="8"
+                        Padding="0"
+                        Visibility="{x:Bind ViewModel.CurrentResult, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}">
+                    <StackPanel Spacing="0">
+                        <!-- Result Header -->
+                        <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="0,0,0,1"
+                                Padding="20,16">
+                            <TextBlock Text="{x:Bind ViewModel.CurrentResult.Message, Mode=OneWay}"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}"/>
+                        </Border>
+
+                        <!-- Stance/Content -->
+                        <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="0,0,0,1"
+                                Padding="20">
+                            <StackPanel Spacing="12">
+                                <!-- Evolution Badge -->
+                                <Border x:Name="EvolutionBadge"
+                                        Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                        CornerRadius="4"
+                                        Padding="8,4"
+                                        HorizontalAlignment="Left"
+                                        Visibility="Collapsed">
+                                    <TextBlock Text="Your view has evolved"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="White"/>
+                                </Border>
+
+                                <TextBlock x:Name="StanceText"
+                                           Text="{x:Bind ViewModel.CurrentResult.Stance, Mode=OneWay}"
+                                           Style="{StaticResource BodyTextBlockStyle}"
+                                           TextWrapping="Wrap"
+                                           Foreground="{ThemeResource TextFillColorPrimaryBrush}"/>
+
+                                <!-- Confidence Bar -->
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Confidence"
+                                               Style="{StaticResource CaptionTextBlockStyle}"/>
+                                    <ProgressBar Height="4"
+                                                     Value="{x:Bind ViewModel.CurrentResult.Confidence, Mode=OneWay}"
+                                                     Maximum="1"
+                                                     Foreground="{ThemeResource AccentFillColorDefaultBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Evidence Excerpts -->
+                        <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="0,0,0,1"
+                                Padding="20"
+                                Visibility="{x:Bind HasEvidence, Mode=OneWay}">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Evidence from your conversations"
+                                           Style="{StaticResource CaptionTextBlockStyle}"/>
+                                <ItemsControl ItemsSource="{x:Bind ViewModel.CurrentResult.EvidenceExcerpts, Mode=OneWay}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="x:String">
+                                            <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                                    CornerRadius="4"
+                                                    Padding="12"
+                                                    Margin="0,0,0,0">
+                                                <TextBlock Text="{x:Bind}"
+                                                           TextWrapping="Wrap"
+                                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Related Content -->
+                        <Grid ColumnSpacing="12" Padding="20">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Conversations -->
+                            <StackPanel Grid.Column="0" Spacing="8">
+                                <TextBlock Text="Related Conversations"
+                                           Style="{StaticResource CaptionTextBlockStyle}"/>
+                                <ItemsControl ItemsSource="{x:Bind ViewModel.CurrentResult.RelatedConversations, Mode=OneWay}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="x:String">
+                                            <TextBlock Text="{x:Bind}"
+                                                       TextWrapping="Wrap"
+                                                       Style="{StaticResource BodyTextBlockStyle}"
+                                                       Margin="0,0,0,8"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+
+                            <!-- Documents -->
+                            <StackPanel Grid.Column="1" Spacing="8">
+                                <TextBlock Text="Related Documents"
+                                           Style="{StaticResource CaptionTextBlockStyle}"/>
+                                <ItemsControl ItemsSource="{x:Bind ViewModel.CurrentResult.RelatedDocuments, Mode=OneWay}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="x:String">
+                                            <TextBlock Text="{x:Bind}"
+                                                       TextWrapping="Wrap"
+                                                       Style="{StaticResource BodyTextBlockStyle}"
+                                                       Margin="0,0,0,8"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Insights Section -->
+                        <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="0,0,0,1"
+                                Padding="20"
+                                Visibility="{x:Bind HasInsights, Mode=OneWay}">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="💡 Relevant Insights from Your Past"
+                                           Style="{StaticResource BodyStrongTextBlockStyle}"/>
+                                <ItemsControl ItemsSource="{x:Bind ViewModel.CurrentResult.RelevantInsights, Mode=OneWay}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="viewmodels:InsightDisplay">
+                                            <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                                    CornerRadius="6"
+                                                    Padding="16"
+                                                    Margin="0,0,0,12">
+                                                <StackPanel Spacing="8">
+                                                    <TextBlock Text="{x:Bind Insight}"
+                                                               TextWrapping="Wrap"
+                                                               Style="{StaticResource BodyTextBlockStyle}"/>
+                                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                                        <TextBlock Text="{x:Bind OriginalDate, Converter={StaticResource DateTimeToStringConverter}}"
+                                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                        <TextBlock Text="{x:Bind RelevanceReason}"
+                                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Active Topics (filled dynamically) -->
+                <Border x:Name="ActiveTopicsPanel"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        CornerRadius="8"
+                        Padding="20"
+                        Visibility="Collapsed">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="🔥 Topics You've Been Exploring"
+                                   Style="{StaticResource BodyStrongTextBlockStyle}"/>
+                        <ItemsControl x:Name="ActiveTopicsList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                            CornerRadius="4"
+                                            Padding="12,8"
+                                            Margin="0,0,8,0">
+                                        <TextBlock Text="{x:Bind}"/>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Generative Identity: "Draft as Me" Panel -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        CornerRadius="8"
+                        Padding="20">
+                    <StackPanel Spacing="16">
+                        <!-- Header -->
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <TextBlock Text="✍️ Draft as Me"
+                                           Style="{StaticResource BodyStrongTextBlockStyle}"/>
+                                <TextBlock Text="Generate text in your voice using AI analysis of your writing patterns"
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                            </StackPanel>
+
+                            <Button Grid.Column="1"
+                                    Content="Load Profile"
+                                    Click="LoadProfileButton_Click"
+                                    Style="{StaticResource DefaultButtonStyle}"/>
+                        </Grid>
+
+                        <!-- Voice Profile Metrics (shown when loaded) -->
+                        <Border x:Name="VoiceProfilePanel"
+                                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                CornerRadius="6"
+                                Padding="16"
+                                Visibility="{x:Bind ViewModel.VoiceProfile, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}">
+                            <Grid ColumnSpacing="16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Spacing="4">
+                                    <TextBlock Text="Samples"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                    <TextBlock Text="{x:Bind ViewModel.VoiceProfile.SampleCount, Mode=OneWay}"
+                                               Style="{StaticResource SubtitleTextBlockStyle}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Spacing="4">
+                                    <TextBlock Text="Avg Sentence Length"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                    <TextBlock>
+                                        <Run Text="{x:Bind ViewModel.VoiceProfile.AvgSentenceLength, Mode=OneWay}"/>
+                                        <Run Text="words"/>
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2" Spacing="4">
+                                    <TextBlock Text="Style"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                    <TextBlock Text="{x:Bind ViewModel.VoiceProfile.FormalityLabel, Mode=OneWay}"
+                                               Style="{StaticResource BodyStrongTextBlockStyle}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Input Section -->
+                        <StackPanel Spacing="12">
+                            <!-- Context -->
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Context"
+                                           Style="{StaticResource CaptionTextBlockStyle}"/>
+                                <TextBox x:Name="DraftContextBox"
+                                         PlaceholderText="Describe what you're writing about (e.g., 'An email to the team about the Q4 roadmap')"
+                                         Text="{x:Bind ViewModel.DraftContext, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         TextWrapping="Wrap"
+                                         AcceptsReturn="True"
+                                         Height="60"/>
+                            </StackPanel>
+
+                            <!-- Goal -->
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Goal"
+                                           Style="{StaticResource CaptionTextBlockStyle}"/>
+                                <TextBox x:Name="DraftGoalBox"
+                                         PlaceholderText="What you want to accomplish (optional, e.g., 'Persuade them to adopt the new timeline')"
+                                         Text="{x:Bind ViewModel.DraftGoal, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            </StackPanel>
+
+                            <!-- Generate Button -->
+                            <Button Content="Generate Draft"
+                                    Click="GenerateDraftButton_Click"
+                                    Style="{StaticResource AccentButtonStyle}"
+                                    HorizontalAlignment="Left"
+                                    IsEnabled="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"
+                                    MinWidth="120"/>
+                        </StackPanel>
+
+                        <!-- Generated Output -->
+                        <Border x:Name="GeneratedDraftPanel"
+                                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                CornerRadius="6"
+                                Padding="16"
+                                Visibility="{x:Bind ViewModel.DraftContent, Mode=OneWay, Converter={StaticResource StringEmptyToVisibilityConverter}}">
+                            <StackPanel Spacing="12">
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0"
+                                               Text="Generated Draft"
+                                               Style="{StaticResource BodyStrongTextBlockStyle}"/>
+
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                        <Button Content="Copy"
+                                                Click="CopyDraftButton_Click"
+                                                Style="{StaticResource DefaultButtonStyle}"/>
+                                        <Button Content="Use in Chat"
+                                                Click="UseInChatButton_Click"
+                                                Style="{StaticResource AccentButtonStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Loading State -->
+                                <ProgressRing IsActive="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay}"
+                                             Width="24"
+                                             Height="24"
+                                             HorizontalAlignment="Left"
+                                             Visibility="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+                                <!-- Generated Content -->
+                                <TextBlock x:Name="DraftOutputText"
+                                           Text="{x:Bind ViewModel.DraftContent, Mode=OneWay}"
+                                           TextWrapping="Wrap"
+                                           Style="{StaticResource BodyTextBlockStyle}"
+                                           Visibility="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource InverseVisibilityConverter}}"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

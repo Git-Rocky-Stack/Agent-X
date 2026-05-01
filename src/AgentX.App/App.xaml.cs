@@ -47,6 +47,7 @@ using AgentX.Core.Services.Collaboration;
 using AgentX.Core.Services.Api;
 using AgentX.Core.Services.OAuth;
 using AgentX.Core.Services.Security;
+using AgentX.Core.Services.TemporalIdentity;
 using AgentX.Core.Validation;
 using AgentX.App.Services;
 
@@ -528,6 +529,9 @@ public partial class App : Application
         // ── REST API ─────────────────────────────────────────────
         services.AddSingleton<IApiHostService, ApiHostService>();
 
+        // ── Temporal Identity ─────────────────────────────────────
+        services.AddSingleton<ITemporalIdentityService, TemporalIdentityService>();
+
         // ── Notifications ────────────────────────────────────────
         services.AddSingleton<INotificationService, NotificationService>();
         services.AddSingleton<IWorkflowLaunchService, WorkflowLaunchService>();
@@ -573,6 +577,7 @@ public partial class App : Application
         services.AddTransient<ViewModels.EmailSettingsViewModel>();
         services.AddTransient<ViewModels.AnalyticsViewModel>();
         services.AddTransient<ViewModels.QuickChatViewModel>();
+        services.AddTransient<ViewModels.PastSelfViewModel>();
         // Keyboard Power Mode ViewModels — registered for testability.
         // MainWindow constructs them directly with runtime scope/callback values;
         // these factory registrations allow DI resolution with global-scope defaults.
@@ -626,6 +631,7 @@ public partial class App : Application
         services.AddTransient<Views.UserGuidePage>();
         services.AddTransient<Views.PrivacyPolicyPage>();
         services.AddTransient<Views.TermsOfServicePage>();
+        services.AddTransient<Views.PastSelfPage>();
     }
 
     private static async System.Threading.Tasks.Task<AgentX.Core.Services.Security.DatabaseKeyMaterial> UnlockWithPassphraseLoopAsync(

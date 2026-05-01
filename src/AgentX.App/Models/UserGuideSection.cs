@@ -40,5 +40,9 @@ public enum UserGuideSectionType
     SupportedFileFormats,
     Troubleshooting,
     PrivacyAndSecurity,
-    GettingHelp
+    GettingHelp,
+    TemporalIdentity,
+    PastSelf,
+    GenerativeIdentity,
+    InsightHarvesting
 }

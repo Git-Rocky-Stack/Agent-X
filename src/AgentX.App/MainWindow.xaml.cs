@@ -50,6 +50,7 @@ public sealed partial class MainWindow : Window
         ["CalendarSettings"] = typeof(Views.CalendarSettingsPage),
         ["EmailSettings"] = typeof(Views.EmailSettingsPage),
         ["Analytics"] = typeof(Views.AnalyticsPage),
+        ["PastSelf"] = typeof(Views.PastSelfPage),
         ["Onboarding"] = typeof(Views.OnboardingPage),
         ["UserGuide"] = typeof(Views.UserGuidePage),
         ["PrivacyPolicy"] = typeof(Views.PrivacyPolicyPage),

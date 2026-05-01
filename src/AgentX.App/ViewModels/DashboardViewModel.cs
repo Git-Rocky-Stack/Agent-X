@@ -8,6 +8,9 @@ using AgentX.Core.Search;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Indexing;
+using AgentX.Core.Services.TemporalIdentity;
+using AgentX.Core.Services.TemporalIdentity.Models;
+using AgentX.Core.Data.Entities;
 using AgentX.App.Services;
 using Serilog;
 
@@ -25,6 +28,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     private readonly IRagPipeline _ragPipeline;
     private readonly IOperationsOverviewService _operationsOverviewService;
     private readonly IOperationsDrillInService? _operationsDrillInService;
+    private readonly ITemporalIdentityService _temporalIdentity;
     private OperationsOverviewSnapshot _operationsSnapshot = new();
 
     // ── AI Status ───────────────────────────────────────────
@@ -47,7 +51,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _gpuName = "Detecting...";
     [ObservableProperty] private string _availableRam = "Detecting...";
     [ObservableProperty] private bool _hasNpu;
-    [ObservableProperty] private string _appVersion = "1.0.0";
+    [ObservableProperty] private string _appVersion = "1.1.0";
     [ObservableProperty] private string _totalRamInfo = "-- GB total";
     [ObservableProperty] private string _gpuVramInfo = "-- VRAM";
 
@@ -93,6 +97,13 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     [ObservableProperty] private ObservableCollection<DashboardFileTypeBreakdownItem> _fileTypeBreakdown = new();
     [ObservableProperty] private ObservableCollection<DashboardTopCollectionItem> _topCollections = new();
 
+    // ── Temporal Identity: Belief Conflicts ────────────────────
+    [ObservableProperty] private ObservableCollection<BeliefConflictDisplayItem> _beliefConflicts = new();
+    [ObservableProperty] private bool _hasBeliefConflicts;
+    [ObservableProperty] private string _beliefConflictsHeadline = "No conflicts detected";
+    [ObservableProperty] private string _beliefConflictsStatus = "Your beliefs are consistent";
+    [ObservableProperty] private string _beliefConflictsDetail = "No detected contradictions between your past and current views.";
+
     // ── Navigation ────────────────────────────────────────────
     public Action<string>? NavigateRequested { get; set; }
 
@@ -105,6 +116,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         IIndexingService indexingService,
         IRagPipeline ragPipeline,
         IOperationsOverviewService operationsOverviewService,
+        ITemporalIdentityService temporalIdentity,
         IOperationsDrillInService? operationsDrillInService = null)
     {
         _aiService = aiService;
@@ -115,6 +127,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         _indexingService = indexingService;
         _ragPipeline = ragPipeline;
         _operationsOverviewService = operationsOverviewService;
+        _temporalIdentity = temporalIdentity;
         _operationsDrillInService = operationsDrillInService;
         Log.Debug("DashboardViewModel created with services");
     }
@@ -132,7 +145,8 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             LoadRecentActivityAsync(),
             LoadInsightsAsync(),
             LoadIndexingStatusAsync(),
-            LoadOperationsOverviewAsync());
+            LoadOperationsOverviewAsync(),
+            LoadBeliefConflictsAsync());
 
         BuildRecommendedActions();
 
@@ -800,10 +814,110 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         }
     }
 
+    // ── Temporal Identity: Belief Conflicts ────────────────────────
+
+    private async Task LoadBeliefConflictsAsync()
+    {
+        try
+        {
+            var conflicts = await _temporalIdentity.GetBeliefConflictsAsync();
+
+            if (conflicts.Any())
+            {
+                BeliefConflicts = new ObservableCollection<BeliefConflictDisplayItem>(
+                    conflicts.Take(5).Select(c => new BeliefConflictDisplayItem
+                    {
+                        Topic = c.Belief?.Topic ?? "Unknown Topic",
+                        PreviousStance = c.PreviousStance,
+                        CurrentStance = c.CurrentStance,
+                        ConflictMagnitude = c.ConflictMagnitude,
+                        DetectedAt = c.DetectedAt,
+                        HasBeenAcknowledged = c.HasBeenAcknowledged,
+                        OriginalConflict = c
+                    }));
+                HasBeliefConflicts = true;
+                BeliefConflictsHeadline = conflicts.Count.ToString();
+                BeliefConflictsStatus = "Belief evolution detected";
+                BeliefConflictsDetail = $"Your views on {conflicts.Count} topic{(conflicts.Count > 1 ? "s" : "")} have evolved over time.";
+            }
+            else
+            {
+                BeliefConflicts = new ObservableCollection<BeliefConflictDisplayItem>();
+                HasBeliefConflicts = false;
+                BeliefConflictsHeadline = "No conflicts";
+                BeliefConflictsStatus = "Your beliefs are consistent";
+                BeliefConflictsDetail = "No detected contradictions between your past and current views.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to load belief conflicts for dashboard");
+            BeliefConflicts = new ObservableCollection<BeliefConflictDisplayItem>();
+            HasBeliefConflicts = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task AcknowledgeConflictAsync(BeliefConflictDisplayItem? conflict)
+    {
+        if (conflict is null) return;
+
+        try
+        {
+            if (conflict.OriginalConflict is not null)
+            {
+                conflict.OriginalConflict.HasBeenAcknowledged = true;
+                conflict.OriginalConflict.AcknowledgedAt = DateTime.UtcNow;
+            }
+
+            // Remove it from the display
+            BeliefConflicts.Remove(conflict);
+
+            if (!BeliefConflicts.Any())
+            {
+                HasBeliefConflicts = false;
+                BeliefConflictsHeadline = "No conflicts";
+                BeliefConflictsStatus = "Your beliefs are consistent";
+                BeliefConflictsDetail = "All belief conflicts have been acknowledged.";
+            }
+
+            Log.Information("Acknowledged belief conflict for topic: {Topic}", conflict.Topic);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to acknowledge belief conflict");
+        }
+    }
+
+    [RelayCommand]
+    private void NavigateToPastSelf()
+    {
+        Log.Debug("Navigate to Past Self requested from Dashboard");
+        NavigateRequested?.Invoke("PastSelf");
+    }
+
     public void Dispose()
     {
         Log.Debug("DashboardViewModel disposed");
     }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  TEMPORAL IDENTITY DISPLAY ITEMS
+// ═══════════════════════════════════════════════════════════════════
+
+/// <summary>
+/// Display wrapper for BeliefConflictEntity that includes the Topic from the related Belief.
+/// </summary>
+public class BeliefConflictDisplayItem
+{
+    public string Topic { get; set; } = string.Empty;
+    public string PreviousStance { get; set; } = string.Empty;
+    public string CurrentStance { get; set; } = string.Empty;
+    public double ConflictMagnitude { get; set; }
+    public DateTime DetectedAt { get; set; }
+    public bool HasBeenAcknowledged { get; set; }
+    public BeliefConflictEntity? OriginalConflict { get; set; }
 }
 
 // ═══════════════════════════════════════════════════════════════════

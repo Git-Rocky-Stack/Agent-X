@@ -56,6 +56,7 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
         string? convTitle = null;
         ChatContextInspectionSnapshot? contextInspection = null;
         long? assistantMessageId = null;
+        long? userMessageId = null;
 
         _generationCts = new CancellationTokenSource();
 
@@ -105,6 +106,7 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
                     }
 
                     contextInspection = _chatService.GetLatestContextInspection(activeConvId.Value);
+                    userMessageId = await ResolveUserMessageIdAsync(activeConvId.Value);
                     assistantMessageId = await ResolveAssistantMessageIdAsync(
                         activeConvId.Value,
                         responseBuilder.ToString());
@@ -146,7 +148,8 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
                 GenerationTimeMs = sw.Elapsed.TotalMilliseconds,
                 ConversationTitle = convTitle,
                 ContextInspection = contextInspection,
-                AssistantMessageId = assistantMessageId
+                AssistantMessageId = assistantMessageId,
+                UserMessageId = userMessageId
             };
             StreamingCompleted?.Invoke(this, completedArgs);
 
@@ -158,7 +161,8 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
                 GenerationTimeMs = sw.Elapsed.TotalMilliseconds,
                 ConversationTitle = convTitle,
                 ContextInspection = contextInspection,
-                AssistantMessageId = assistantMessageId
+                AssistantMessageId = assistantMessageId,
+                UserMessageId = userMessageId
             };
         }
         catch (OperationCanceledException)
@@ -235,6 +239,22 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to resolve assistant message id for conversation {ConversationId}", conversationId);
+            return null;
+        }
+    }
+
+    private async Task<long?> ResolveUserMessageIdAsync(long conversationId)
+    {
+        try
+        {
+            var messages = await _conversationService.GetMessagesAsync(conversationId);
+            return messages
+                .LastOrDefault(message => string.Equals(message.Role, "user", StringComparison.OrdinalIgnoreCase))
+                ?.Id;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to resolve user message id for conversation {ConversationId}", conversationId);
             return null;
         }
     }

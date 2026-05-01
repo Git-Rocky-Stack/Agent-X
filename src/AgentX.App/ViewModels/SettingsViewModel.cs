@@ -104,7 +104,7 @@ public partial class SettingsViewModel : ObservableObject
         = Enum.GetValues<WebSearchProvider>().ToList();
 
     // ── App Info ────────────────────────────────────────────
-    [ObservableProperty] private string _appVersion = "1.0.0";
+    [ObservableProperty] private string _appVersion = "1.1.0";
 
     /// <summary>
     /// Provider display names for the ComboBox items.

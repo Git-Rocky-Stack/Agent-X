@@ -20,6 +20,10 @@ public class UserGuideSectionSelector : DataTemplateSelector
     public DataTemplate? CollectionsTemplate { get; set; }
     public DataTemplate? KnowledgeGraphTemplate { get; set; }
     public DataTemplate? WeeklyDigestTemplate { get; set; }
+    public DataTemplate? TemporalIdentityTemplate { get; set; }
+    public DataTemplate? PastSelfTemplate { get; set; }
+    public DataTemplate? GenerativeIdentityTemplate { get; set; }
+    public DataTemplate? InsightHarvestingTemplate { get; set; }
     public DataTemplate? SemanticSearchTemplate { get; set; }
     public DataTemplate? ModelManagerTemplate { get; set; }
     public DataTemplate? HardwareAdvisorTemplate { get; set; }
@@ -47,6 +51,10 @@ public class UserGuideSectionSelector : DataTemplateSelector
                 "CollectionsTemplate" => CollectionsTemplate,
                 "KnowledgeGraphTemplate" => KnowledgeGraphTemplate,
                 "WeeklyDigestTemplate" => WeeklyDigestTemplate,
+                "TemporalIdentityTemplate" => TemporalIdentityTemplate,
+                "PastSelfTemplate" => PastSelfTemplate,
+                "GenerativeIdentityTemplate" => GenerativeIdentityTemplate,
+                "InsightHarvestingTemplate" => InsightHarvestingTemplate,
                 "SemanticSearchTemplate" => SemanticSearchTemplate,
                 "ModelManagerTemplate" => ModelManagerTemplate,
                 "HardwareAdvisorTemplate" => HardwareAdvisorTemplate,

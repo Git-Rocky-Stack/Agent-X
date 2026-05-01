@@ -149,6 +149,15 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
+                <NavigationViewItem x:Name="NavPastSelf"
+                                    Content="Past Self"
+                                    Tag="PastSelf"
+                                    Style="{StaticResource AgentXNavItemStyle}">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE917;" FontSize="16" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
                 <NavigationViewItem x:Name="NavChat"
                                     Content="AI Chat"
                                     Tag="Chat"

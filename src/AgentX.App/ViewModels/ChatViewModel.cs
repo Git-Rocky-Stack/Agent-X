@@ -12,6 +12,7 @@ using AgentX.Core.Services.Audio.Models;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Services.Feedback;
+using AgentX.Core.Services.TemporalIdentity;
 using AgentX.App.Helpers;
 using AgentX.App.Services;
 using AgentX.App.ViewModels.Coordinators;
@@ -288,6 +289,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private readonly ISystemPromptService _systemPromptService;
     private readonly IConversationMemoryService _memoryService;
     private readonly INotificationService _notificationService;
+    private readonly ITemporalIdentityService _temporalIdentity;
 
     // ── Streaming assistant message (for token-by-token updates) ──
     private ChatMessageItem? _streamingAssistantMessage;
@@ -304,7 +306,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         IModelManager modelManager,
         ISystemPromptService systemPromptService,
         IConversationMemoryService memoryService,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        ITemporalIdentityService temporalIdentity)
     {
         _conversationCoordinator = conversationCoordinator;
         _messagingCoordinator = messagingCoordinator;
@@ -316,6 +319,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         _systemPromptService = systemPromptService;
         _memoryService = memoryService;
         _notificationService = notificationService;
+        _temporalIdentity = temporalIdentity;
 
         SubscribeToCoordinatorEvents();
         Log.Debug("ChatViewModel created with coordinators");
@@ -408,6 +412,23 @@ public partial class ChatViewModel : ObservableObject, IDisposable
                     ? e.ResponseContent[..80] + "..."
                     : e.ResponseContent;
             }
+        }
+
+        // Temporal Identity: Learn from message and detect insights (non-blocking background)
+        if (e.UserMessageId.HasValue && e.ConversationId.HasValue)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _temporalIdentity.LearnFromMessageAsync(e.UserMessageId.Value);
+                    await _temporalIdentity.DetectInsightsAsync(e.ConversationId.Value);
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Failed to process temporal identity for message {MessageId}", e.UserMessageId.Value);
+                }
+            });
         }
 
         _streamingAssistantMessage = null;

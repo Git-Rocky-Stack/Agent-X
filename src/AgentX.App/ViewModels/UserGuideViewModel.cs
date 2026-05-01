@@ -99,84 +99,116 @@ public partial class UserGuideViewModel : ObservableObject
                 DisplayOrder: 10
             ),
 
-            // Row 11: Semantic Search
+            // Row 11: Temporal Identity Coherence
+            new UserGuideSection(
+                TitleKey: "UserGuide_TemporalIdentity_Title",
+                IconGlyph: "",
+                TemplateKey: "TemporalIdentityTemplate",
+                DisplayOrder: 11
+            ),
+
+            // Row 12: Past Self
+            new UserGuideSection(
+                TitleKey: "UserGuide_PastSelf_Title",
+                IconGlyph: "",
+                TemplateKey: "PastSelfTemplate",
+                DisplayOrder: 12
+            ),
+
+            // Row 13: Generative Identity (Draft As Me)
+            new UserGuideSection(
+                TitleKey: "UserGuide_GenerativeIdentity_Title",
+                IconGlyph: "",
+                TemplateKey: "GenerativeIdentityTemplate",
+                DisplayOrder: 13
+            ),
+
+            // Row 14: Insight Harvesting
+            new UserGuideSection(
+                TitleKey: "UserGuide_InsightHarvesting_Title",
+                IconGlyph: "",
+                TemplateKey: "InsightHarvestingTemplate",
+                DisplayOrder: 14
+            ),
+
+            // Row 15: Semantic Search
             new UserGuideSection(
                 TitleKey: "UserGuide_SemanticSearch_Title",
                 IconGlyph: "",
                 TemplateKey: "SemanticSearchTemplate",
-                DisplayOrder: 11
+                DisplayOrder: 15
             ),
 
-            // Row 12: Model Manager
+            // Row 16: Model Manager
             new UserGuideSection(
                 TitleKey: "UserGuide_ModelManager_Title",
                 IconGlyph: "",
                 TemplateKey: "ModelManagerTemplate",
-                DisplayOrder: 12
+                DisplayOrder: 16
             ),
 
-            // Row 13: Hardware Advisor
+            // Row 17: Hardware Advisor
             new UserGuideSection(
                 TitleKey: "UserGuide_HardwareAdvisor_Title",
                 IconGlyph: "",
                 TemplateKey: "HardwareAdvisorTemplate",
-                DisplayOrder: 13
+                DisplayOrder: 17
             ),
 
-            // Row 14: Settings
+            // Row 18: Settings
             new UserGuideSection(
                 TitleKey: "UserGuide_Settings_Title",
                 IconGlyph: "",
                 TemplateKey: "SettingsTemplate",
-                DisplayOrder: 14
+                DisplayOrder: 18
             ),
 
-            // Row 15: Keyboard Shortcuts
+            // Row 19: Keyboard Shortcuts
             new UserGuideSection(
                 TitleKey: "UserGuide_KeyboardShortcuts_Title",
                 IconGlyph: "",
                 TemplateKey: "KeyboardShortcutsTemplate",
-                DisplayOrder: 15
+                DisplayOrder: 19
             ),
 
-            // Row 16: Command Palette
+            // Row 20: Command Palette
             new UserGuideSection(
                 TitleKey: "UserGuide_CommandPalette_Title",
                 IconGlyph: "",
                 TemplateKey: "CommandPaletteTemplate",
-                DisplayOrder: 16
+                DisplayOrder: 20
             ),
 
-            // Row 17: Supported File Formats
+            // Row 21: Supported File Formats
             new UserGuideSection(
                 TitleKey: "UserGuide_SupportedFileFormats_Title",
                 IconGlyph: "",
                 TemplateKey: "SupportedFileFormatsTemplate",
-                DisplayOrder: 17
+                DisplayOrder: 21
             ),
 
-            // Row 18: Troubleshooting
+            // Row 22: Troubleshooting
             new UserGuideSection(
                 TitleKey: "UserGuide_Troubleshooting_Title",
                 IconGlyph: "",
                 TemplateKey: "TroubleshootingTemplate",
-                DisplayOrder: 18
+                DisplayOrder: 22
             ),
 
-            // Row 19: Privacy & Security
+            // Row 23: Privacy &amp; Security
             new UserGuideSection(
                 TitleKey: "UserGuide_PrivacySecurity_Title",
                 IconGlyph: "",
                 TemplateKey: "PrivacyAndSecurityTemplate",
-                DisplayOrder: 19
+                DisplayOrder: 23
             ),
 
-            // Row 20: Getting Help
+            // Row 24: Getting Help
             new UserGuideSection(
                 TitleKey: "UserGuide_GettingHelp_Title",
                 IconGlyph: "",
                 TemplateKey: "GettingHelpTemplate",
-                DisplayOrder: 20
+                DisplayOrder: 24
             )
         };
     }

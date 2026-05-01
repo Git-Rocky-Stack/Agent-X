@@ -5,6 +5,7 @@ using AgentX.Core.AI;
 using AgentX.Core.AI.Context;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Chat.Models;
+using AgentX.Core.Services.TemporalIdentity;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -23,6 +24,7 @@ public sealed class ChatViewModelTests
     private readonly Mock<ISystemPromptService> _systemPromptService = new();
     private readonly Mock<IConversationMemoryService> _memoryService = new();
     private readonly Mock<INotificationService> _notificationService = new();
+    private readonly Mock<ITemporalIdentityService> _temporalIdentity = new();
 
     public ChatViewModelTests()
     {
@@ -666,7 +668,8 @@ public sealed class ChatViewModelTests
             _modelManager.Object,
             _systemPromptService.Object,
             _memoryService.Object,
-            _notificationService.Object);
+            _notificationService.Object,
+            _temporalIdentity.Object);
 
     private static ChatContextInspectionSnapshot CreateInspectionSnapshot(
         long conversationId,

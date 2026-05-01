@@ -102,6 +102,9 @@ public sealed class SendMessageResult
 
     /// <summary>The persisted assistant message ID when one was created.</summary>
     public long? AssistantMessageId { get; init; }
+
+    /// <summary>The persisted user message ID when one was created.</summary>
+    public long? UserMessageId { get; init; }
 }
 
 /// <summary>
@@ -116,6 +119,7 @@ public sealed class StreamingCompletedEventArgs : EventArgs
     public string? ConversationTitle { get; init; }
     public ChatContextInspectionSnapshot? ContextInspection { get; init; }
     public long? AssistantMessageId { get; init; }
+    public long? UserMessageId { get; init; }
 }
 
 /// <summary>
