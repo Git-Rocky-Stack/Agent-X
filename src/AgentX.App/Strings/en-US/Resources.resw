@@ -413,4 +413,221 @@
   <data name="UserGuide_InsightHarvesting_Managing1.Text" xml:space="preserve"><value>View all insights on the Dashboard or Past Self page, sorted by recency.</value></data>
   <data name="UserGuide_InsightHarvesting_Managing2.Text" xml:space="preserve"><value>Click any insight card to jump to the original conversation context.</value></data>
   <data name="UserGuide_InsightHarvesting_Managing3.Text" xml:space="preserve"><value>Dismiss or keep insights — dismissed insights will not be shown again.</value></data>
+
+  <!-- ═════════════════════════════════════════════════════════════════════
+       USER GUIDE: GETTING STARTED TUTORIALS (NEW)
+       ═════════════════════════════════════════════════════════════════════ -->
+
+  <!-- UserGuide: First Chat Tutorial (Row 4) -->
+  <data name="UserGuide_FirstChat_Title.Text" xml:space="preserve"><value>Your First Chat</value></data>
+  <data name="UserGuide_FirstChat_Description.Text" xml:space="preserve"><value>This hands-on tutorial will guide you through your first conversation with Agent-X. By the end, you will understand how to chat effectively, use different AI models, and manage conversations.</value></data>
+  <data name="UserGuide_FirstChat_Step1_Title.Text" xml:space="preserve"><value>Step 1: Open AI Chat</value></data>
+  <data name="UserGuide_FirstChat_Step1.Text" xml:space="preserve"><value>Click the AI Chat tab in the sidebar or press Ctrl+1. The chat interface will appear with the conversation list on the left and the active chat in the main area.</value></data>
+  <data name="UserGuide_FirstChat_Step2_Title.Text" xml:space="preserve"><value>Step 2: Select a Model</value></data>
+  <data name="UserGuide_FirstChat_Step2.Text" xml:space="preserve"><value>Use the model dropdown at the top to choose your AI provider. For local use, select an Ollama model. For cloud access, choose OpenAI GPT-4o or Anthropic Claude Sonnet 4.</value></data>
+  <data name="UserGuide_FirstChat_Step3_Title.Text" xml:space="preserve"><value>Step 3: Start Chatting</value></data>
+  <data name="UserGuide_FirstChat_Step3.Text" xml:space="preserve"><value>Type your message in the input box at the bottom and press Enter or click Send. The AI will respond in real-time with streaming text.</value></data>
+  <data name="UserGuide_FirstChat_Tips_Title.Text" xml:space="preserve"><value>First Chat Tips</value></data>
+  <data name="UserGuide_FirstChat_Tip1.Text" xml:space="preserve"><value>Be specific with your questions — more context leads to better answers.</value></data>
+  <data name="UserGuide_FirstChat_Tip2.Text" xml:space="preserve"><value>Use the "New Chat" button to start fresh conversations for different topics.</value></data>
+  <data name="UserGuide_FirstChat_Tip3.Text" xml:space="preserve"><value>Try asking follow-up questions — Agent-X remembers context within the conversation.</value></data>
+
+  <!-- UserGuide: Your First Document (Row 5) -->
+  <data name="UserGuide_FirstDocument_Title.Text" xml:space="preserve"><value>Your First Document</value></data>
+  <data name="UserGuide_FirstDocument_Description.Text" xml:space="preserve"><value>Agent-X becomes infinitely more powerful when you connect it to your documents. This tutorial shows you how to import your first file and start asking questions about its contents.</value></data>
+  <data name="UserGuide_FirstDocument_Step1_Title.Text" xml:space="preserve"><value>Step 1: Import a File</value></data>
+  <data name="UserGuide_FirstDocument_Step1.Text" xml:space="preserve"><value>Click the Knowledge Vault tab, then drag and drop a PDF, Word document, or text file into the window. Alternatively, click the Import button and browse your files.</value></data>
+  <data name="UserGuide_FirstDocument_Step2_Title.Text" xml:space="preserve"><value>Step 2: Wait for Indexing</value></data>
+  <data name="UserGuide_FirstDocument_Step2.Text" xml:space="preserve"><value>Agent-X automatically indexes your document by extracting text, chunking it into semantic segments, and creating vector embeddings. This takes 5-30 seconds depending on file size.</value></data>
+  <data name="UserGuide_FirstDocument_Step3_Title.Text" xml:space="preserve"><value>Step 3: Ask Questions</value></data>
+  <data name="UserGuide_FirstDocument_Step3.Text" xml:space="preserve"><value>Go to AI Chat and type questions about your document. Agent-X will retrieve relevant sections and provide answers with citations. Try "What are the main points of this document?"</value></data>
+  <data name="UserGuide_FirstDocument_Supported_Title.Text" xml:space="preserve"><value>Supported File Types</value></data>
+  <data name="UserGuide_FirstDocument_Supported.Text" xml:space="preserve"><value>PDF (.pdf), Word (.docx), Plain text (.txt, .md), Markdown (.md), Rich text (.rtf), HTML (.html), and code files (.py, .js, .cs, .java, and more).</value></data>
+
+  <!-- ═════════════════════════════════════════════════════════════════════
+       USER GUIDE: RESEARCH & WEB (NEW SECTIONS)
+       ═════════════════════════════════════════════════════════════════════ -->
+
+  <!-- UserGuide: Web Search (Row 13) -->
+  <data name="UserGuide_WebSearch_Title.Text" xml:space="preserve"><value>Web Search &amp; Research</value></data>
+  <data name="UserGuide_WebSearch_Description.Text" xml:space="preserve"><value>Agent-X integrates live web search to bring you current information from across the internet. Whether you need breaking news, recent research, or verification of facts, web search connects your conversations to the world in real-time.</value></data>
+  <data name="UserGuide_WebSearch_HowItWorks_Title.Text" xml:space="preserve"><value>How Web Search Works</value></data>
+  <data name="UserGuide_WebSearch_Step1.Text" xml:space="preserve"><value>When your question requires current information, Agent-X automatically triggers a web search via the Tavily API.</value></data>
+  <data name="UserGuide_WebSearch_Step2.Text" xml:space="preserve"><value>Search results are retrieved and processed, extracting relevant content from each source.</value></data>
+  <data name="UserGuide_WebSearch_Step3.Text" xml:space="preserve"><value>The AI synthesizes information from multiple sources into a coherent answer with proper citations.</value></data>
+  <data name="UserGuide_WebSearch_Modes_Title.Text" xml:space="preserve"><value>Search Modes</value></data>
+  <data name="UserGuide_WebSearch_Mode1_Title.Text" xml:space="preserve"><value>Automatic (Default)</value></data>
+  <data name="UserGuide_WebSearch_Mode1_Description.Text" xml:space="preserve"><value>Agent-X detects when your question needs web access and automatically searches. No special commands needed.</value></data>
+  <data name="UserGuide_WebSearch_Mode2_Title.Text" xml:space="preserve"><value>Manual Search</value></data>
+  <data name="UserGuide_WebSearch_Mode2_Description.Text" xml:space="preserve"><value>Type "/search" before your query to force a web search, even for topics that may not require it.</value></data>
+  <data name="UserGuide_WebSearch_Mode3_Title.Text" xml:space="preserve"><value>RAG + Web Combined</value></data>
+  <data name="UserGuide_WebSearch_Mode3_Description.Text" xml:space="preserve"><value>Questions are answered using both your documents and live web sources, with clear attribution for each.</value></data>
+  <data name="UserGuide_WebSearch_Tips_Title.Text" xml:space="preserve"><value>Web Search Tips</value></data>
+  <data name="UserGuide_WebSearch_Tip1.Text" xml:space="preserve"><value>Ask for sources — Agent-X will always provide links and citations for web-sourced information.</value></data>
+  <data name="UserGuide_WebSearch_Tip2.Text" xml:space="preserve"><value>Request recency checks — "Is this still accurate as of 2026?" triggers verification searches.</value></data>
+
+  <!-- UserGuide: Web Content Import (Row 14) -->
+  <data name="UserGuide_WebImport_Title.Text" xml:space="preserve"><value>Web Content Import</value></data>
+  <data name="UserGuide_WebImport_Description.Text" xml:space="preserve"><value>Beyond files, Agent-X can import content directly from websites. Articles, blog posts, documentation pages — any web content can be added to your knowledge vault for searching and analysis.</value></data>
+  <data name="UserGuide_WebImport_Methods_Title.Text" xml:space="preserve"><value>Import Methods</value></data>
+  <data name="UserGuide_WebImport_Method1.Text" xml:space="preserve"><value>Paste URL directly — In the Knowledge Vault, click Import and paste any URL. Agent-X will fetch and process the page.</value></data>
+  <data name="UserGuide_WebImport_Method2.Text" xml:space="preserve"><value>Browser extension — Use the Agent-X browser extension to capture pages with one click while browsing.</value></data>
+  <data name="UserGuide_WebImport_Method3.Text" xml:space="preserve"><value>Batch import — Add multiple URLs at once from a text file or spreadsheet list.</value></data>
+  <data name="UserGuide_WebImport_Extraction_Title.Text" xml:space="preserve"><value>Content Extraction</value></data>
+  <data name="UserGuide_WebImport_Extraction_Description.Text" xml:space="preserve"><value>Agent-X intelligently extracts the main content from web pages:</value></data>
+  <data name="UserGuide_WebImport_Extraction1.Text" xml:space="preserve"><value>Removes navigation, ads, and clutter — keeping only the article or document body.</value></data>
+  <data name="UserGuide_WebImport_Extraction2.Text" xml:space="preserve"><value>Preserves formatting and structure — headings, lists, and tables are maintained.</value></data>
+  <data name="UserGuide_WebImport_Extraction3.Text" xml:space="preserve"><value>Captures metadata — author, publication date, title, and original URL are saved.</value></data>
+  <data name="UserGuide_WebImport_JsRendering_Title.Text" xml:space="preserve"><value>JavaScript Rendering</value></data>
+  <data name="UserGuide_WebImport_JsRendering_Description.Text" xml:space="preserve"><value>For sites that load content dynamically with JavaScript, enable JS rendering in Settings. Agent-X will use a headless browser to capture the fully-rendered page.</value></data>
+  <data name="UserGuide_WebImport_JsRendering_Note_Label.Text" xml:space="preserve"><value>Note</value></data>
+  <data name="UserGuide_WebImport_JsRendering_Note.Text" xml:space="preserve"><value>JS rendering is slower and requires more resources. Only enable it for sites that specifically need it.</value></data>
+
+  <!-- UserGuide: Citations & Sources (Row 15) -->
+  <data name="UserGuide_Citations_Title.Text" xml:space="preserve"><value>Citations &amp; Sources</value></data>
+  <data name="UserGuide_Citations_Description.Text" xml:space="preserve"><value>Transparency is fundamental to Agent-X. Every answer that references your documents or web sources includes clear citations, so you can verify information and explore sources in depth.</value></data>
+  <data name="UserGuide_Citations_Types_Title.Text" xml:space="preserve"><value>Citation Types</value></data>
+  <data name="UserGuide_Citations_Type1_Title.Text" xml:space="preserve"><value>Document Citations</value></data>
+  <data name="UserGuide_Citations_Type1_Description.Text" xml:space="preserve"><value>Shows file name, page number (for PDFs), and the specific chunk used. Click to open the document at that location.</value></data>
+  <data name="UserGuide_Citations_Type2_Title.Text" xml:space="preserve"><value>Web Citations</value></data>
+  <data name="UserGuide_Citations_Type2_Description.Text" xml:space="preserve"><value>Displays the source page title, URL, and a relevance score. Click to open the page in your browser.</value></data>
+  <data name="UserGuide_Citations_Type3_Title.Text" xml:space="preserve"><value>Multi-Source Answers</value></data>
+  <data name="UserGuide_Citations_Type3_Description.Text" xml:space="preserve"><value>When information comes from multiple sources, all citations are listed with clear indicators of which source contributed to each part of the answer.</value></data>
+  <data name="UserGuide_Citations_Using_Title.Text" xml:space="preserve"><value>Using Citations</value></data>
+  <data name="UserGuide_Citations_Using1.Text" xml:space="preserve"><value>Click any citation to view the source context and jump to the original content.</value></data>
+  <data name="UserGuide_Citations_Using2.Text" xml:space="preserve"><value>Hover over citation numbers in AI responses to see quick source previews.</value></data>
+  <data name="UserGuide_Citations_Using3.Text" xml:space="preserve"><value>In the Knowledge Vault, filter documents by citation frequency to see which sources are most referenced.</value></data>
+
+  <!-- UserGuide: Browser Extension (Row 16) -->
+  <data name="UserGuide_BrowserExtension_Title.Text" xml:space="preserve"><value>Browser Extension</value></data>
+  <data name="UserGuide_BrowserExtension_Description.Text" xml:space="preserve"><value>The Agent-X browser extension bridges the gap between your browsing and your knowledge vault. Save pages, chat about content, and access Agent-X without leaving your browser.</value></data>
+  <data name="UserGuide_BrowserExtension_Installation_Title.Text" xml:space="preserve"><value>Installation</value></data>
+  <data name="UserGuide_BrowserExtension_Step1.Text" xml:space="preserve"><value>Download the Agent-X extension for Chrome or Edge from the browser's web store.</value></data>
+  <data name="UserGuide_BrowserExtension_Step2.Text" xml:space="preserve"><value>When prompted, confirm the native messaging host installation. This allows the extension to communicate with the Agent-X desktop application.</value></data>
+  <data name="UserGuide_BrowserExtension_Step3.Text" xml:space="preserve"><value>Pin the extension icon for quick access to Agent-X features while browsing.</value></data>
+  <data name="UserGuide_BrowserExtension_Features_Title.Text" xml:space="preserve"><value>Extension Features</value></data>
+  <data name="UserGuide_BrowserExtension_Feature1.Text" xml:space="preserve"><value>Quick save — Click the extension icon to instantly save the current page to your Knowledge Vault.</value></data>
+  <data name="UserGuide_BrowserExtension_Feature2.Text" xml:space="preserve"><value>Page chat — Ask questions about the current page and get answers with page-specific context.</value></data>
+  <data name="UserGuide_BrowserExtension_Feature3.Text" xml:space="preserve"><value>Selection analysis — Highlight text on any page and ask Agent-X to explain, summarize, or analyze it.</value></data>
+  <data name="UserGuide_BrowserExtension_Feature4.Text" xml:space="preserve"><value>Smart capture — Automatically detects and captures the main article content, filtering out navigation and ads.</value></data>
+  <data name="UserGuide_BrowserExtension_NativeMessaging_Title.Text" xml:space="preserve"><value>Native Messaging</value></data>
+  <data name="UserGuide_BrowserExtension_NativeMessaging_Description.Text" xml:space="preserve"><value>The extension communicates with Agent-X through secure native messaging. No data leaves your machine — all processing happens locally within your desktop application.</value></data>
+
+  <!-- UserGuide: Mobile Companion (Row 17) -->
+  <data name="UserGuide_MobileCompanion_Title.Text" xml:space="preserve"><value>Mobile Companion App</value></data>
+  <data name="UserGuide_MobileCompanion_Description.Text" xml:space="preserve"><value>Take Agent-X anywhere with the mobile companion app. Chat with your knowledge base, access past conversations, and sync data between your desktop and mobile devices.</value></data>
+  <data name="UserGuide_MobileCompanion_Pairing_Title.Text" xml:space="preserve"><value>Pairing Your Device</value></data>
+  <data name="UserGuide_MobileCompanion_Step1.Text" xml:space="preserve"><value>Download Agent-X Mobile from the App Store or Google Play.</value></data>
+  <data name="UserGuide_MobileCompanion_Step2.Text" xml:space="preserve"><value>In the desktop app, open Settings &gt; Mobile Companion and click "Pair New Device." A QR code will appear.</value></data>
+  <data name="UserGuide_MobileCompanion_Step3.Text" xml:space="preserve"><value>Scan the QR code with the mobile app to establish a secure encrypted connection.</value></data>
+  <data name="UserGuide_MobileCompanion_Features_Title.Text" xml:space="preserve"><value>Mobile Features</value></data>
+  <data name="UserGuide_MobileCompanion_Feature1_Title.Text" xml:space="preserve"><value>Full Chat Access</value></data>
+  <data name="UserGuide_MobileCompanion_Feature1_Description.Text" xml:space="preserve"><value>Continue conversations from desktop or start new ones. Mobile chats sync back to desktop automatically.</value></data>
+  <data name="UserGuide_MobileCompanion_Feature2_Title.Text" xml:space="preserve"><value>Knowledge Search</value></data>
+  <data name="UserGuide_MobileCompanion_Feature2_Description.Text" xml:space="preserve"><value>Search your entire knowledge vault from your phone. Perfect for quick fact-checking on the go.</value></data>
+  <data name="UserGuide_MobileCompanion_Feature3_Title.Text" xml:space="preserve"><value>Quick Capture</value></data>
+  <data name="UserGuide_MobileCompanion_Feature3_Description.Text" xml:space="preserve"><value>Voice or text notes are instantly added to your knowledge base. Photos of documents are OCR-processed and indexed.</value></data>
+  <data name="UserGuide_MobileCompanion_Feature4_Title.Text" xml:space="preserve"><value>Offline Mode</value></data>
+  <data name="UserGuide_MobileCompanion_Feature4_Description.Text" xml:space="preserve"><value>Access recent conversations and documents offline. Changes sync when connection is restored.</value></data>
+  <data name="UserGuide_MobileCompanion_Sync_Title.Text" xml:space="preserve"><value>Data Synchronization</value></data>
+  <data name="UserGuide_MobileCompanion_Sync_Description.Text" xml:space="preserve"><value>Mobile companion syncs conversations, documents, and settings via secure end-to-end encryption. Your data never leaves your control — sync runs through your local desktop app as the authority.</value></data>
+
+  <!-- ═════════════════════════════════════════════════════════════════════
+       USER GUIDE: AUTOMATION (NEW SECTIONS)
+       ═════════════════════════════════════════════════════════════════════ -->
+
+  <!-- UserGuide: Workflows (Row 23) -->
+  <data name="UserGuide_Workflows_Title.Text" xml:space="preserve"><value>Workflows &amp; Automation</value></data>
+  <data name="UserGuide_Workflows_Description.Text" xml:space="preserve"><value>Workflows automate repetitive tasks and create powerful multi-step operations. Run queries on schedules, automatically process new documents, and build custom AI-powered routines that save hours of manual work.</value></data>
+  <data name="UserGuide_Workflows_Creating_Title.Text" xml:space="preserve"><value>Creating Workflows</value></data>
+  <data name="UserGuide_Workflows_CreateStep1.Text" xml:space="preserve"><value>Open the Workflows panel from Settings or the Quick Actions menu. Click "Create New Workflow" to start.</value></data>
+  <data name="UserGuide_Workflows_CreateStep2.Text" xml:space="preserve"><value>Define a trigger — this could be a schedule (daily at 9 AM), an event (new document added), or manual execution.</value></data>
+  <data name="UserGuide_Workflows_CreateStep3.Text" xml:space="preserve"><value>Add actions — each workflow can include multiple actions like AI queries, document indexing, or notifications.</value></data>
+  <data name="UserGuide_Workflows_CreateStep4.Text" xml:space="preserve"><value>Test your workflow with a manual run, then activate it. Monitor execution logs to verify it works as expected.</value></data>
+  <data name="UserGuide_Workflows_Triggers_Title.Text" xml:space="preserve"><value>Workflow Triggers</value></data>
+  <data name="UserGuide_Workflows_Trigger1_Title.Text" xml:space="preserve"><value>Scheduled</value></data>
+  <data name="UserGuide_Workflows_Trigger1_Description.Text" xml:space="preserve"><value>Run on a schedule — hourly, daily, weekly, or custom cron expressions. Perfect for daily briefings and periodic analysis.</value></data>
+  <data name="UserGuide_Workflows_Trigger2_Title.Text" xml:space="preserve"><value>Event-Based</value></data>
+  <data name="UserGuide_Workflows_Trigger2_Description.Text" xml:space="preserve"><value>Triggered by app events like document import, conversation completion, or reaching an insight threshold.</value></data>
+  <data name="UserGuide_Workflows_Trigger3_Title.Text" xml:space="preserve"><value>Manual</value></data>
+  <data name="UserGuide_Workflows_Trigger3_Description.Text" xml:space="preserve"><value>Run on-demand from the Workflows panel or via Quick Actions. Useful for ad-hoc automation tasks.</value></data>
+  <data name="UserGuide_Workflows_Examples_Title.Text" xml:space="preserve"><value>Example Workflows</value></data>
+  <data name="UserGuide_Workflows_Example1.Text" xml:space="preserve"><value>"Daily Briefing" — Every morning at 8 AM, query your recent documents and insights to generate a summary of what is new and what needs attention.</value></data>
+  <data name="UserGuide_Workflows_Example2.Text" xml:space="preserve"><value>"Research Assistant" — When new PDFs are added to your Research collection, automatically extract key points, generate citations, and flag important findings.</value></data>
+  <data name="UserGuide_Workflows_Example3.Text" xml:space="preserve"><value>"Weekly Review" — Each Sunday, compile all conversations from the past week, identify major themes, and create a reflection prompt.</value></data>
+
+  <!-- UserGuide: Scheduled Queries (Row 24) -->
+  <data name="UserGuide_ScheduledQueries_Title.Text" xml:space="preserve"><value>Scheduled Queries</value></data>
+  <data name="UserGuide_ScheduledQueries_Description.Text" xml:space="preserve"><value>Scheduled queries run automatically on your chosen schedule, delivering insights without manual effort. Perfect for daily briefings, periodic research updates, and recurring analysis tasks.</value></data>
+  <data name="UserGuide_ScheduledQueries_Setup_Title.Text" xml:space="preserve"><value>Setting Up Scheduled Queries</value></data>
+  <data name="UserGuide_ScheduledQueries_Step1.Text" xml:space="preserve"><value>In any conversation, click the "Schedule" button (clock icon) above the message input.</value></data>
+  <data name="UserGuide_ScheduledQueries_Step2.Text" xml:space="preserve"><value>Choose your schedule — daily, weekly, or a custom time. Select which collections or documents to query.</value></data>
+  <data name="UserGuide_ScheduledQueries_Step3.Text" xml:space="preserve"><value>Give your scheduled query a name and confirm. It will now run automatically at the specified time.</value></data>
+  <data name="UserGuide_ScheduledQueries_Schedules_Title.Text" xml:space="preserve"><value>Schedule Options</value></data>
+  <data name="UserGuide_ScheduledQueries_Schedule1_Title.Text" xml:space="preserve"><value>Once</value></data>
+  <data name="UserGuide_ScheduledQueries_Schedule1_Description.Text" xml:space="preserve"><value>Run once at a specific future date and time. Useful for reminders and deadline-driven queries.</value></data>
+  <data name="UserGuide_ScheduledQueries_Schedule2_Title.Text" xml:space="preserve"><value>Recurring</value></data>
+  <data name="UserGuide_ScheduledQueries_Schedule2_Description.Text" xml:space="preserve"><value>Run daily, weekly, or monthly. Each execution creates a new conversation entry with the results.</value></data>
+  <data name="UserGuide_ScheduledQueries_Schedule3_Title.Text" xml:space="preserve"><value>Cron Expression</value></data>
+  <data name="UserGuide_ScheduledQueries_Schedule3_Description.Text" xml:space="preserve"><value>Advanced scheduling with cron syntax for complex patterns like "every Monday and Thursday at 2 PM" or "first day of each month."</value></data>
+  <data name="UserGuide_ScheduledQueries_Results_Title.Text" xml:space="preserve"><value>Managing Results</value></data>
+  <data name="UserGuide_ScheduledQueries_Results_Description.Text" xml:space="preserve"><value>Scheduled query results appear as new conversations:</value></data>
+  <data name="UserGuide_ScheduledQueries_Result1.Text" xml:space="preserve"><value>Results are tagged with the query name and timestamp for easy identification.</value></data>
+  <data name="UserGuide_ScheduledQueries_Result2.Text" xml:space="preserve"><value>Notifications alert you when scheduled queries complete, with a summary of key findings.</value></data>
+
+  <!-- UserGuide: Automation Rules (Row 25) -->
+  <data name="UserGuide_AutomationRules_Title.Text" xml:space="preserve"><value>Automation Rules</value></data>
+  <data name="UserGuide_AutomationRules_Description.Text" xml:space="preserve"><value>Automation rules create if-then logic that responds to events in Agent-X. When a trigger condition is met, the rule executes one or more actions automatically. Build intelligent behaviors without any coding.</value></data>
+  <data name="UserGuide_AutomationRules_Structure_Title.Text" xml:space="preserve"><value>Rule Structure</value></data>
+  <data name="UserGuide_AutomationRules_Structure_Description.Text" xml:space="preserve"><value>Each rule consists of three parts:</value></data>
+  <data name="UserGuide_AutomationRules_Structure1.Text" xml:space="preserve"><value>Trigger — The event that starts the rule, such as a document being imported or an insight being detected.</value></data>
+  <data name="UserGuide_AutomationRules_Structure2.Text" xml:space="preserve"><value>Condition — Optional filters that refine when the rule applies, such as "only if the document is tagged 'Research'"</value></data>
+  <data name="UserGuide_AutomationRules_Structure3.Text" xml:space="preserve"><value>Actions — What happens when the rule runs, such as sending a notification, running a query, or adding tags.</value></data>
+  <data name="UserGuide_AutomationRules_Triggers_Title.Text" xml:space="preserve"><value>Available Triggers</value></data>
+  <data name="UserGuide_AutomationRules_Trigger1_Title.Text" xml:space="preserve"><value>Document Events</value></data>
+  <data name="UserGuide_AutomationRules_Trigger1_Description.Text" xml:space="preserve"><value>Document imported, updated, or deleted. Filter by file type, collection, or metadata.</value></data>
+  <data name="UserGuide_AutomationRules_Trigger2_Title.Text" xml:space="preserve"><value>Conversation Events</value></data>
+  <data name="UserGuide_AutomationRules_Trigger2_Description.Text" xml:space="preserve"><value>New conversation created, conversation reaches message threshold, or specific keywords mentioned.</value></data>
+  <data name="UserGuide_AutomationRules_Trigger3_Title.Text" xml:space="preserve"><value>Insight Events</value></data>
+  <data name="UserGuide_AutomationRules_Trigger3_Description.Text" xml:space="preserve"><value>New insight detected, insight matches certain keywords, or insight exceeds confidence threshold.</value></data>
+  <data name="UserGuide_AutomationRules_Examples_Title.Text" xml:space="preserve"><value>Example Rules</value></data>
+  <data name="UserGuide_AutomationRules_Example1.Text" xml:space="preserve"><value>"Auto-Tag Research" — When a PDF is imported, automatically analyze its content and tag it with relevant topics from your existing taxonomy.</value></data>
+  <data name="UserGuide_AutomationRules_Example2.Text" xml:space="preserve"><value>"Insight Alerts" — When an insight is detected containing "urgent" or "important," send a desktop notification immediately.</value></data>
+  <data name="UserGuide_AutomationRules_Example3.Text" xml:space="preserve"><value>"Weekly Summarizer" — Every Sunday at 6 PM, create a summary of all conversations from the past week and add it to your Weekly Digest collection.</value></data>
+
+  <!-- ═════════════════════════════════════════════════════════════════════
+       USER GUIDE: POWER USER (NEW SECTIONS)
+       ═════════════════════════════════════════════════════════════════════ -->
+
+  <!-- UserGuide: Advanced Queries (Row 31) -->
+  <data name="UserGuide_AdvancedQueries_Title.Text" xml:space="preserve"><value>Advanced Queries</value></data>
+  <data name="UserGuide_AdvancedQueries_Description.Text" xml:space="preserve"><value>Beyond simple questions, Agent-X supports advanced query techniques that yield more precise and powerful results. Master these techniques to unlock the full potential of your knowledge base.</value></data>
+  <data name="UserGuide_AdvancedQueries_Techniques_Title.Text" xml:space="preserve"><value>Query Techniques</value></data>
+  <data name="UserGuide_AdvancedQueries_Technique1.Text" xml:space="preserve"><value>Collection scoping — Add "in [Collection Name]" to limit searches to specific collections. Example: "What are the key points about pricing in the Competitors collection?"</value></data>
+  <data name="UserGuide_AdvancedQueries_Technique2.Text" xml:space="preserve"><value>Time-bounding — Specify date ranges to focus on recent information. Example: "Summarize conversations from the past week about the Q4 roadmap."</value></data>
+  <data name="UserGuide_AdvancedQueries_Technique3.Text" xml:space="preserve"><value>Comparative queries — Ask for comparisons across documents. Example: "How do the three proposals differ in their approach to timeline?"</value></data>
+  <data name="UserGuide_AdvancedQueries_Technique4.Text" xml:space="preserve"><source>Structured output — Request specific formats for results. Example: "Compare the products in a table with columns for features, pricing, and pros/cons."</source></data>
+
+  <!-- UserGuide: Performance Tuning (Row 32) -->
+  <data name="UserGuide_PerformanceTuning_Title.Text" xml:space="preserve"><value>Performance Tuning</value></data>
+  <data name="UserGuide_PerformanceTuning_Description.Text" xml:space="preserve"><value>Agent-X is designed to perform well on a wide range of hardware, but tuning settings to match your system can significantly improve responsiveness, reduce resource usage, and optimize query quality.</value></data>
+  <data name="UserGuide_PerformanceTuning_Memory_Title.Text" xml:space="preserve"><value>Memory Management</value></data>
+  <data name="UserGuide_PerformanceTuning_Memory.Text" xml:space="preserve"><value>Vector embeddings and the HNSW index can consume significant memory. Reduce the "Max in-memory chunks" setting if Agent-X uses too much RAM. For systems with 16GB+ RAM, the default settings provide optimal performance.</value></data>
+  <data name="UserGuide_PerformanceTuning_Queries_Title.Text" xml:space="preserve"><value>Query Optimization</value></data>
+  <data name="UserGuide_PerformanceTuning_Queries.Text" xml:space="preserve"><value>Adjust the "Semantic search results" setting — fewer results (5-10) are faster but may miss relevant content. More results (15-20) are more comprehensive but slower. The default of 10 balances speed and quality for most use cases.</value></data>
+  <data name="UserGuide_PerformanceTuning_Local_Title.Text" xml:space="preserve"><value>Local Model Tuning</value></data>
+  <data name="UserGuide_PerformanceTuning_Local.Text" xml:space="preserve"><value>For Ollama models, reduce "context length" if responses are slow. Smaller quantization (q4_0 instead of q8_0) uses less memory but may reduce output quality. The Hardware Advisor can recommend optimal settings for your specific GPU/CPU.</value></data>
+
+  <!-- UserGuide: Export & Data Portability (Row 34) -->
+  <data name="UserGuide_Export_Title.Text" xml:space="preserve"><value>Export &amp; Data Portability</value></data>
+  <data name="UserGuide_Export_Description.Text" xml:space="preserve"><value>Your data belongs to you. Agent-X provides comprehensive export capabilities for conversations, documents, and settings — ensuring you can back up, migrate, or analyze your information outside the application.</value></data>
+  <data name="UserGuide_Export_Conversations_Title.Text" xml:space="preserve"><value>Conversation Export</value></data>
+  <data name="UserGuide_Export_Conversations.Text" xml:space="preserve"><value>Export individual conversations or all conversations at once. Formats include Markdown (for readability), JSON (for analysis), and plain text. Each export includes full message history, citations, and metadata.</value></data>
+  <data name="UserGuide_Export_Documents_Title.Text" xml:space="preserve"><value>Document Export</value></data>
+  <data name="UserGuide_Export_Documents.Text" xml:space="preserve"><value>Export your entire knowledge vault as a ZIP file containing original documents, extracted text, and embedding data. This allows you to restore your vault on a new machine or migrate to another tool.</value></data>
+  <data name="UserGuide_Export_Backup_Title.Text" xml:space="preserve"><value>Automated Backups</value></data>
+  <data name="UserGuide_Export_Backup.Text" xml:space="preserve"><value>Schedule automatic backups in Settings. Backups include your database (conversations, insights, temporal identity), documents, and application settings. Encrypt backups with a password for secure cloud storage.</value></data>
+  <data name="UserGuide_Export_Restore_Title.Text" xml:space="preserve"><value>Restoring Data</value></data>
+  <data name="UserGuide_Export_Restore.Text" xml:space="preserve"><value>Import previous backups from Settings &gt; Data Management. Choose to merge with existing data or replace completely. Migration from previous Agent-X versions is handled automatically.</value></data>
+
 </root>

@@ -1,0 +1,783 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+    ╔══════════════════════════════════════════════════════════════════╗
+    ║          USER GUIDE RESEARCH & WEB SECTIONS (NEW)                 ║
+    ║                                                                  ║
+    ║  WebSearchTemplate, WebImportTemplate, CitationsTemplate,        ║
+    ║  BrowserExtensionTemplate, MobileCompanionTemplate               ║
+    ╚══════════════════════════════════════════════════════════════════╝
+    -->
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         WEB SEARCH & RESEARCH
+         ═══════════════════════════════════════════════════════════════ -->
+    <DataTemplate x:Key="WebSearchTemplate">
+        <Border Style="{StaticResource CardStyle}">
+            <StackPanel Spacing="16">
+                <!-- Section Header -->
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE773;"
+                              FontFamily="Segoe MDL2 Assets"
+                              FontSize="20"
+                              Foreground="{StaticResource TextAccentBrush}" />
+                    <TextBlock Grid.Column="1"
+                               x:Uid="UserGuide_WebSearch_Title"
+                               Style="{StaticResource HeadingMediumStyle}" />
+                </Grid>
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_WebSearch_Description" />
+
+                <!-- How It Works -->
+                <TextBlock x:Uid="UserGuide_WebSearch_HowItWorks_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <StackPanel Spacing="10">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Background="{StaticResource AccentSubtleBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <TextBlock Text="1"
+                                       FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
+                                   x:Uid="UserGuide_WebSearch_Step1" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Background="{StaticResource AccentSubtleBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <TextBlock Text="2"
+                                       FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
+                                   x:Uid="UserGuide_WebSearch_Step2" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Background="{StaticResource AccentSubtleBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <TextBlock Text="3"
+                                       FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
+                                   x:Uid="UserGuide_WebSearch_Step3" />
+                    </Grid>
+                </StackPanel>
+
+                <Border Style="{StaticResource SeparatorStyle}" />
+
+                <!-- Search Modes -->
+                <TextBlock x:Uid="UserGuide_WebSearch_Modes_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <StackPanel Spacing="10">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock x:Uid="UserGuide_WebSearch_Mode1_Title"
+                                           Style="{StaticResource AccentBodyStyle}" />
+                                <TextBlock x:Uid="UserGuide_WebSearch_Mode1_Description"
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE82D;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock x:Uid="UserGuide_WebSearch_Mode2_Title"
+                                           Style="{StaticResource AccentBodyStyle}" />
+                                <TextBlock x:Uid="UserGuide_WebSearch_Mode2_Description"
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock x:Uid="UserGuide_WebSearch_Mode3_Title"
+                                           Style="{StaticResource AccentBodyStyle}" />
+                                <TextBlock x:Uid="UserGuide_WebSearch_Mode3_Description"
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+
+                <Border Style="{StaticResource SeparatorStyle}" />
+
+                <!-- Tips -->
+                <TextBlock x:Uid="UserGuide_WebSearch_Tips_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <StackPanel Spacing="8">
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_WebSearch_Tip1" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_WebSearch_Tip2" />
+                    </Grid>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </DataTemplate>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         WEB CONTENT IMPORT
+         ═══════════════════════════════════════════════════════════════ -->
+    <DataTemplate x:Key="WebImportTemplate">
+        <Border Style="{StaticResource CardStyle}">
+            <StackPanel Spacing="16">
+                <!-- Section Header -->
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE895;"
+                              FontFamily="Segoe MDL2 Assets"
+                              FontSize="20"
+                              Foreground="{StaticResource TextAccentBrush}" />
+                    <TextBlock Grid.Column="1"
+                               x:Uid="UserGuide_WebImport_Title"
+                               Style="{StaticResource HeadingMediumStyle}" />
+                </Grid>
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_WebImport_Description" />
+
+                <!-- Import Methods -->
+                <TextBlock x:Uid="UserGuide_WebImport_Methods_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <StackPanel Spacing="10">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Background="{StaticResource AccentSubtleBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <TextBlock Text="1"
+                                       FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
+                                   x:Uid="UserGuide_WebImport_Method1" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Background="{StaticResource AccentSubtleBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <TextBlock Text="2"
+                                       FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
+                                   x:Uid="UserGuide_WebImport_Method2" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Background="{StaticResource AccentSubtleBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <TextBlock Text="3"
+                                       FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
+                                   x:Uid="UserGuide_WebImport_Method3" />
+                    </Grid>
+                </StackPanel>
+
+                <Border Style="{StaticResource SeparatorStyle}" />
+
+                <!-- Content Extraction -->
+                <TextBlock x:Uid="UserGuide_WebImport_Extraction_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_WebImport_Extraction_Description" />
+
+                <StackPanel Spacing="8">
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="#FF22C55E" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_WebImport_Extraction1" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="#FF22C55E" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_WebImport_Extraction2" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="#FF22C55E" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_WebImport_Extraction3" />
+                    </Grid>
+                </StackPanel>
+
+                <Border Style="{StaticResource SeparatorStyle}" />
+
+                <!-- JS Rendering -->
+                <TextBlock x:Uid="UserGuide_WebImport_JsRendering_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_WebImport_JsRendering_Description" />
+
+                <Border Style="{StaticResource CardInsetStyle}" Padding="12">
+                    <StackPanel Spacing="4">
+                        <TextBlock x:Uid="UserGuide_WebImport_JsRendering_Note_Label"
+                                   Style="{StaticResource OverlineStyle}" />
+                        <TextBlock x:Uid="UserGuide_WebImport_JsRendering_Note"
+                                   Style="{StaticResource BodySecondaryStyle}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Border>
+    </DataTemplate>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         CITATIONS & SOURCES
+         ═══════════════════════════════════════════════════════════════ -->
+    <DataTemplate x:Key="CitationsTemplate">
+        <Border Style="{StaticResource CardStyle}">
+            <StackPanel Spacing="16">
+                <!-- Section Header -->
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE8D7;"
+                              FontFamily="Segoe MDL2 Assets"
+                              FontSize="20"
+                              Foreground="{StaticResource TextAccentBrush}" />
+                    <TextBlock Grid.Column="1"
+                               x:Uid="UserGuide_Citations_Title"
+                               Style="{StaticResource HeadingMediumStyle}" />
+                </Grid>
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_Citations_Description" />
+
+                <!-- Citation Types -->
+                <TextBlock x:Uid="UserGuide_Citations_Types_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <StackPanel Spacing="10">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE82D;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock x:Uid="UserGuide_Citations_Type1_Title"
+                                           Style="{StaticResource AccentBodyStyle}" />
+                                <TextBlock x:Uid="UserGuide_Citations_Type1_Description"
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE895;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock x:Uid="UserGuide_Citations_Type2_Title"
+                                           Style="{StaticResource AccentBodyStyle}" />
+                                <TextBlock x:Uid="UserGuide_Citations_Type2_Description"
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock x:Uid="UserGuide_Citations_Type3_Title"
+                                           Style="{StaticResource AccentBodyStyle}" />
+                                <TextBlock x:Uid="UserGuide_Citations_Type3_Description"
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+
+                <Border Style="{StaticResource SeparatorStyle}" />
+
+                <!-- Using Citations -->
+                <TextBlock x:Uid="UserGuide_Citations_Using_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <StackPanel Spacing="8">
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_Citations_Using1" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_Citations_Using2" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_Citations_Using3" />
+                    </Grid>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </DataTemplate>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         BROWSER EXTENSION
+         ═══════════════════════════════════════════════════════════════ -->
+    <DataTemplate x:Key="BrowserExtensionTemplate">
+        <Border Style="{StaticResource CardStyle}">
+            <StackPanel Spacing="16">
+                <!-- Section Header -->
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE774;"
+                              FontFamily="Segoe MDL2 Assets"
+                              FontSize="20"
+                              Foreground="{StaticResource TextAccentBrush}" />
+                    <TextBlock Grid.Column="1"
+                               x:Uid="UserGuide_BrowserExtension_Title"
+                               Style="{StaticResource HeadingMediumStyle}" />
+                </Grid>
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_BrowserExtension_Description" />
+
+                <!-- Installation -->
+                <TextBlock x:Uid="UserGuide_BrowserExtension_Installation_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <StackPanel Spacing="10">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Background="{StaticResource AccentSubtleBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <TextBlock Text="1"
+                                       FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
+                                   x:Uid="UserGuide_BrowserExtension_Step1" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Background="{StaticResource AccentSubtleBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <TextBlock Text="2"
+                                       FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
+                                   x:Uid="UserGuide_BrowserExtension_Step2" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Background="{StaticResource AccentSubtleBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <TextBlock Text="3"
+                                       FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
+                                   x:Uid="UserGuide_BrowserExtension_Step3" />
+                    </Grid>
+                </StackPanel>
+
+                <Border Style="{StaticResource SeparatorStyle}" />
+
+                <!-- Features -->
+                <TextBlock x:Uid="UserGuide_BrowserExtension_Features_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <StackPanel Spacing="8">
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="#FF22C55E" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_BrowserExtension_Feature1" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="#FF22C55E" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_BrowserExtension_Feature2" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="#FF22C55E" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_BrowserExtension_Feature3" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="#FF22C55E" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_BrowserExtension_Feature4" />
+                    </Grid>
+                </StackPanel>
+
+                <Border Style="{StaticResource SeparatorStyle}" />
+
+                <!-- Native Messaging -->
+                <TextBlock x:Uid="UserGuide_BrowserExtension_NativeMessaging_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_BrowserExtension_NativeMessaging_Description" />
+            </StackPanel>
+        </Border>
+    </DataTemplate>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         MOBILE COMPANION APP
+         ═══════════════════════════════════════════════════════════════ -->
+    <DataTemplate x:Key="MobileCompanionTemplate">
+        <Border Style="{StaticResource CardStyle}">
+            <StackPanel Spacing="16">
+                <!-- Section Header -->
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE8EA;"
+                              FontFamily="Segoe MDL2 Assets"
+                              FontSize="20"
+                              Foreground="{StaticResource TextAccentBrush}" />
+                    <TextBlock Grid.Column="1"
+                               x:Uid="UserGuide_MobileCompanion_Title"
+                               Style="{StaticResource HeadingMediumStyle}" />
+                </Grid>
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_MobileCompanion_Description" />
+
+                <!-- Pairing -->
+                <TextBlock x:Uid="UserGuide_MobileCompanion_Pairing_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <StackPanel Spacing="10">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Background="{StaticResource AccentSubtleBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <TextBlock Text="1"
+                                       FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
+                                   x:Uid="UserGuide_MobileCompanion_Step1" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Background="{StaticResource AccentSubtleBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <TextBlock Text="2"
+                                       FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
+                                   x:Uid="UserGuide_MobileCompanion_Step2" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28"
+                                CornerRadius="{StaticResource RadiusRound}"
+                                Background="{StaticResource AccentSubtleBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <TextBlock Text="3"
+                                       FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource TextAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
+                                   x:Uid="UserGuide_MobileCompanion_Step3" />
+                    </Grid>
+                </StackPanel>
+
+                <Border Style="{StaticResource SeparatorStyle}" />
+
+                <!-- Features -->
+                <TextBlock x:Uid="UserGuide_MobileCompanion_Features_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <StackPanel Spacing="10">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8BD;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock x:Uid="UserGuide_MobileCompanion_Feature1_Title"
+                                           Style="{StaticResource AccentBodyStyle}" />
+                                <TextBlock x:Uid="UserGuide_MobileCompanion_Feature1_Description"
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock x:Uid="UserGuide_MobileCompanion_Feature2_Title"
+                                           Style="{StaticResource AccentBodyStyle}" />
+                                <TextBlock x:Uid="UserGuide_MobileCompanion_Feature2_Description"
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE895;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock x:Uid="UserGuide_MobileCompanion_Feature3_Title"
+                                           Style="{StaticResource AccentBodyStyle}" />
+                                <TextBlock x:Uid="UserGuide_MobileCompanion_Feature3_Description"
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE118;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                      Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock x:Uid="UserGuide_MobileCompanion_Feature4_Title"
+                                           Style="{StaticResource AccentBodyStyle}" />
+                                <TextBlock x:Uid="UserGuide_MobileCompanion_Feature4_Description"
+                                           Style="{StaticResource BodySecondaryStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+
+                <Border Style="{StaticResource SeparatorStyle}" />
+
+                <!-- Sync -->
+                <TextBlock x:Uid="UserGuide_MobileCompanion_Sync_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_MobileCompanion_Sync_Description" />
+            </StackPanel>
+        </Border>
+    </DataTemplate>
+
+</ResourceDictionary>

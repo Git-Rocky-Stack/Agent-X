@@ -1,0 +1,156 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+    ╔══════════════════════════════════════════════════════════════════╗
+    ║          USER GUIDE TUTORIALS SECTION (NEW)                       ║
+    ║                                                                  ║
+    ║  FirstChatTemplate, FirstDocumentTemplate                          ║
+    ╚══════════════════════════════════════════════════════════════════╝
+    -->
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         FIRST CHAT TUTORIAL
+         ═══════════════════════════════════════════════════════════════ -->
+    <DataTemplate x:Key="FirstChatTemplate">
+        <Border Style="{StaticResource CardStyle}">
+            <StackPanel Spacing="16">
+                <!-- Section Header -->
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE8BD;"
+                              FontFamily="Segoe MDL2 Assets"
+                              FontSize="20"
+                              Foreground="{StaticResource TextAccentBrush}" />
+                    <TextBlock Grid.Column="1"
+                               x:Uid="UserGuide_FirstChat_Title"
+                               Style="{StaticResource HeadingMediumStyle}" />
+                </Grid>
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_FirstChat_Description" />
+
+                <!-- Steps -->
+                <TextBlock x:Uid="UserGuide_FirstChat_Step1_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_FirstChat_Step1" />
+
+                <TextBlock x:Uid="UserGuide_FirstChat_Step2_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_FirstChat_Step2" />
+
+                <TextBlock x:Uid="UserGuide_FirstChat_Step3_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_FirstChat_Step3" />
+
+                <Border Style="{StaticResource SeparatorStyle}" />
+
+                <!-- Tips -->
+                <TextBlock x:Uid="UserGuide_FirstChat_Tips_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <StackPanel Spacing="8">
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_FirstChat_Tip1" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_FirstChat_Tip2" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
+                                   x:Uid="UserGuide_FirstChat_Tip3" />
+                    </Grid>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </DataTemplate>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         FIRST DOCUMENT TUTORIAL
+         ═══════════════════════════════════════════════════════════════ -->
+    <DataTemplate x:Key="FirstDocumentTemplate">
+        <Border Style="{StaticResource CardStyle}">
+            <StackPanel Spacing="16">
+                <!-- Section Header -->
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE82D;"
+                              FontFamily="Segoe MDL2 Assets"
+                              FontSize="20"
+                              Foreground="{StaticResource TextAccentBrush}" />
+                    <TextBlock Grid.Column="1"
+                               x:Uid="UserGuide_FirstDocument_Title"
+                               Style="{StaticResource HeadingMediumStyle}" />
+                </Grid>
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_FirstDocument_Description" />
+
+                <!-- Steps -->
+                <TextBlock x:Uid="UserGuide_FirstDocument_Step1_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_FirstDocument_Step1" />
+
+                <TextBlock x:Uid="UserGuide_FirstDocument_Step2_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_FirstDocument_Step2" />
+
+                <TextBlock x:Uid="UserGuide_FirstDocument_Step3_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <TextBlock Style="{StaticResource BodyStyle}"
+                           x:Uid="UserGuide_FirstDocument_Step3" />
+
+                <Border Style="{StaticResource SeparatorStyle}" />
+
+                <!-- Supported Types -->
+                <TextBlock x:Uid="UserGuide_FirstDocument_Supported_Title"
+                           Style="{StaticResource HeadingSmallStyle}" />
+
+                <Border Style="{StaticResource CardInsetStyle}" Padding="12">
+                    <TextBlock Style="{StaticResource BodyStyle}"
+                               x:Uid="UserGuide_FirstDocument_Supported" />
+                </Border>
+            </StackPanel>
+        </Border>
+    </DataTemplate>
+
+</ResourceDictionary>

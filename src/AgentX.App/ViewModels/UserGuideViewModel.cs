@@ -19,23 +19,24 @@ public partial class UserGuideViewModel : ObservableObject
     {
         Sections = new ObservableCollection<UserGuideSection>
         {
-            // Row 1: Welcome to Agent-X
+            // ═══════════════════════════════════════════════════════════════
+            // WELCOME & OVERVIEW
+            // ═══════════════════════════════════════════════════════════════
+
             new UserGuideSection(
                 TitleKey: "UserGuide_Welcome_Title",
-                IconGlyph: "",
+                IconGlyph: "",
                 TemplateKey: "WelcomeTemplate",
                 DisplayOrder: 1
             ),
 
-            // Row 2: Getting Started
             new UserGuideSection(
                 TitleKey: "UserGuide_GettingStarted_Title",
-                IconGlyph: "",
+                IconGlyph: "\uDE75",
                 TemplateKey: "GettingStartedTemplate",
                 DisplayOrder: 2
             ),
 
-            // Row 3: Dashboard
             new UserGuideSection(
                 TitleKey: "UserGuide_Dashboard_Title",
                 IconGlyph: "",
@@ -43,172 +44,274 @@ public partial class UserGuideViewModel : ObservableObject
                 DisplayOrder: 3
             ),
 
-            // Row 4: AI Chat
+            // ═══════════════════════════════════════════════════════════════
+            // GETTING STARTED TUTORIALS (NEW)
+            // ═══════════════════════════════════════════════════════════════
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_FirstChat_Title",
+                IconGlyph: "",
+                TemplateKey: "FirstChatTemplate",
+                DisplayOrder: 4
+            ),
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_FirstDocument_Title",
+                IconGlyph: "",
+                TemplateKey: "FirstDocumentTemplate",
+                DisplayOrder: 5
+            ),
+
+            // ═══════════════════════════════════════════════════════════════
+            // CORE FEATURES
+            // ═══════════════════════════════════════════════════════════════
+
             new UserGuideSection(
                 TitleKey: "UserGuide_AiChat_Title",
                 IconGlyph: "",
                 TemplateKey: "AiChatTemplate",
-                DisplayOrder: 4
+                DisplayOrder: 6
             ),
 
-            // Row 5: Ask Your Files (RAG)
             new UserGuideSection(
                 TitleKey: "UserGuide_AskYourFiles_Title",
                 IconGlyph: "",
                 TemplateKey: "AskYourFilesTemplate",
-                DisplayOrder: 5
+                DisplayOrder: 7
             ),
 
-            // Row 6: Quick Actions
             new UserGuideSection(
                 TitleKey: "UserGuide_QuickActions_Title",
                 IconGlyph: "",
                 TemplateKey: "QuickActionsTemplate",
-                DisplayOrder: 6
+                DisplayOrder: 8
             ),
 
-            // Row 7: Knowledge Vault
             new UserGuideSection(
                 TitleKey: "UserGuide_KnowledgeVault_Title",
                 IconGlyph: "",
                 TemplateKey: "KnowledgeVaultTemplate",
-                DisplayOrder: 7
+                DisplayOrder: 9
             ),
 
-            // Row 8: Collections
             new UserGuideSection(
                 TitleKey: "UserGuide_Collections_Title",
                 IconGlyph: "",
                 TemplateKey: "CollectionsTemplate",
-                DisplayOrder: 8
+                DisplayOrder: 10
             ),
 
-            // Row 9: Knowledge Graph
             new UserGuideSection(
                 TitleKey: "UserGuide_KnowledgeGraph_Title",
                 IconGlyph: "",
                 TemplateKey: "KnowledgeGraphTemplate",
-                DisplayOrder: 9
-            ),
-
-            // Row 10: Weekly Digest
-            new UserGuideSection(
-                TitleKey: "UserGuide_WeeklyDigest_Title",
-                IconGlyph: "",
-                TemplateKey: "WeeklyDigestTemplate",
-                DisplayOrder: 10
-            ),
-
-            // Row 11: Temporal Identity Coherence
-            new UserGuideSection(
-                TitleKey: "UserGuide_TemporalIdentity_Title",
-                IconGlyph: "",
-                TemplateKey: "TemporalIdentityTemplate",
                 DisplayOrder: 11
             ),
 
-            // Row 12: Past Self
-            new UserGuideSection(
-                TitleKey: "UserGuide_PastSelf_Title",
-                IconGlyph: "",
-                TemplateKey: "PastSelfTemplate",
-                DisplayOrder: 12
-            ),
-
-            // Row 13: Generative Identity (Draft As Me)
-            new UserGuideSection(
-                TitleKey: "UserGuide_GenerativeIdentity_Title",
-                IconGlyph: "",
-                TemplateKey: "GenerativeIdentityTemplate",
-                DisplayOrder: 13
-            ),
-
-            // Row 14: Insight Harvesting
-            new UserGuideSection(
-                TitleKey: "UserGuide_InsightHarvesting_Title",
-                IconGlyph: "",
-                TemplateKey: "InsightHarvestingTemplate",
-                DisplayOrder: 14
-            ),
-
-            // Row 15: Semantic Search
             new UserGuideSection(
                 TitleKey: "UserGuide_SemanticSearch_Title",
                 IconGlyph: "",
                 TemplateKey: "SemanticSearchTemplate",
+                DisplayOrder: 12
+            ),
+
+            // ═══════════════════════════════════════════════════════════════
+            // RESEARCH & WEB (NEW SECTIONS)
+            // ═══════════════════════════════════════════════════════════════
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_WebSearch_Title",
+                IconGlyph: "",
+                TemplateKey: "WebSearchTemplate",
+                DisplayOrder: 13
+            ),
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_WebImport_Title",
+                IconGlyph: "",
+                TemplateKey: "WebImportTemplate",
+                DisplayOrder: 14
+            ),
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_Citations_Title",
+                IconGlyph: "",
+                TemplateKey: "CitationsTemplate",
                 DisplayOrder: 15
             ),
 
-            // Row 16: Model Manager
+            new UserGuideSection(
+                TitleKey: "UserGuide_BrowserExtension_Title",
+                IconGlyph: "",
+                TemplateKey: "BrowserExtensionTemplate",
+                DisplayOrder: 16
+            ),
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_MobileCompanion_Title",
+                IconGlyph: "",
+                TemplateKey: "MobileCompanionTemplate",
+                DisplayOrder: 17
+            ),
+
+            // ═══════════════════════════════════════════════════════════════
+            // TEMPORAL IDENTITY
+            // ═══════════════════════════════════════════════════════════════
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_TemporalIdentity_Title",
+                IconGlyph: "",
+                TemplateKey: "TemporalIdentityTemplate",
+                DisplayOrder: 18
+            ),
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_PastSelf_Title",
+                IconGlyph: "",
+                TemplateKey: "PastSelfTemplate",
+                DisplayOrder: 19
+            ),
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_GenerativeIdentity_Title",
+                IconGlyph: "",
+                TemplateKey: "GenerativeIdentityTemplate",
+                DisplayOrder: 20
+            ),
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_InsightHarvesting_Title",
+                IconGlyph: "",
+                TemplateKey: "InsightHarvestingTemplate",
+                DisplayOrder: 21
+            ),
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_WeeklyDigest_Title",
+                IconGlyph: "",
+                TemplateKey: "WeeklyDigestTemplate",
+                DisplayOrder: 22
+            ),
+
+            // ═══════════════════════════════════════════════════════════════
+            // AUTOMATION (NEW SECTIONS)
+            // ═══════════════════════════════════════════════════════════════
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_Workflows_Title",
+                IconGlyph: "",
+                TemplateKey: "WorkflowsTemplate",
+                DisplayOrder: 23
+            ),
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_ScheduledQueries_Title",
+                IconGlyph: "",
+                TemplateKey: "ScheduledQueriesTemplate",
+                DisplayOrder: 24
+            ),
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_AutomationRules_Title",
+                IconGlyph: "",
+                TemplateKey: "AutomationRulesTemplate",
+                DisplayOrder: 25
+            ),
+
+            // ═══════════════════════════════════════════════════════════════
+            // CONFIGURATION
+            // ═══════════════════════════════════════════════════════════════
+
             new UserGuideSection(
                 TitleKey: "UserGuide_ModelManager_Title",
                 IconGlyph: "",
                 TemplateKey: "ModelManagerTemplate",
-                DisplayOrder: 16
+                DisplayOrder: 26
             ),
 
-            // Row 17: Hardware Advisor
             new UserGuideSection(
                 TitleKey: "UserGuide_HardwareAdvisor_Title",
-                IconGlyph: "",
+                IconGlyph: "",
                 TemplateKey: "HardwareAdvisorTemplate",
-                DisplayOrder: 17
+                DisplayOrder: 27
             ),
 
-            // Row 18: Settings
             new UserGuideSection(
                 TitleKey: "UserGuide_Settings_Title",
                 IconGlyph: "",
                 TemplateKey: "SettingsTemplate",
-                DisplayOrder: 18
+                DisplayOrder: 28
             ),
 
-            // Row 19: Keyboard Shortcuts
+            // ═══════════════════════════════════════════════════════════════
+            // POWER USER
+            // ═══════════════════════════════════════════════════════════════
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_CommandPalette_Title",
+                IconGlyph: "",
+                TemplateKey: "CommandPaletteTemplate",
+                DisplayOrder: 29
+            ),
+
             new UserGuideSection(
                 TitleKey: "UserGuide_KeyboardShortcuts_Title",
                 IconGlyph: "",
                 TemplateKey: "KeyboardShortcutsTemplate",
-                DisplayOrder: 19
+                DisplayOrder: 30
             ),
 
-            // Row 20: Command Palette
             new UserGuideSection(
-                TitleKey: "UserGuide_CommandPalette_Title",
-                IconGlyph: "",
-                TemplateKey: "CommandPaletteTemplate",
-                DisplayOrder: 20
+                TitleKey: "UserGuide_AdvancedQueries_Title",
+                IconGlyph: "",
+                TemplateKey: "AdvancedQueriesTemplate",
+                DisplayOrder: 31
             ),
 
-            // Row 21: Supported File Formats
+            new UserGuideSection(
+                TitleKey: "UserGuide_PerformanceTuning_Title",
+                IconGlyph: "",
+                TemplateKey: "PerformanceTuningTemplate",
+                DisplayOrder: 32
+            ),
+
+            // ═══════════════════════════════════════════════════════════════
+            // REFERENCE
+            // ═══════════════════════════════════════════════════════════════
+
             new UserGuideSection(
                 TitleKey: "UserGuide_SupportedFileFormats_Title",
-                IconGlyph: "",
+                IconGlyph: "",
                 TemplateKey: "SupportedFileFormatsTemplate",
-                DisplayOrder: 21
+                DisplayOrder: 33
             ),
 
-            // Row 22: Troubleshooting
+            new UserGuideSection(
+                TitleKey: "UserGuide_Export_Title",
+                IconGlyph: "",
+                TemplateKey: "ExportTemplate",
+                DisplayOrder: 34
+            ),
+
             new UserGuideSection(
                 TitleKey: "UserGuide_Troubleshooting_Title",
                 IconGlyph: "",
                 TemplateKey: "TroubleshootingTemplate",
-                DisplayOrder: 22
+                DisplayOrder: 35
             ),
 
-            // Row 23: Privacy &amp; Security
             new UserGuideSection(
                 TitleKey: "UserGuide_PrivacySecurity_Title",
                 IconGlyph: "",
                 TemplateKey: "PrivacyAndSecurityTemplate",
-                DisplayOrder: 23
+                DisplayOrder: 36
             ),
 
-            // Row 24: Getting Help
             new UserGuideSection(
                 TitleKey: "UserGuide_GettingHelp_Title",
                 IconGlyph: "",
                 TemplateKey: "GettingHelpTemplate",
-                DisplayOrder: 24
+                DisplayOrder: 37
             )
         };
     }

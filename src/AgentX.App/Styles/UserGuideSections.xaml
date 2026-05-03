@@ -15,6 +15,10 @@
         <ResourceDictionary Source="ms-appx:///Styles/UserGuideSections.Core.xaml" />
         <ResourceDictionary Source="ms-appx:///Styles/UserGuideSections.Features.xaml" />
         <ResourceDictionary Source="ms-appx:///Styles/UserGuideSections.Advanced.xaml" />
+        <ResourceDictionary Source="ms-appx:///Styles/UserGuideSections.Tutorials.xaml" />
+        <ResourceDictionary Source="ms-appx:///Styles/UserGuideSections.Research.xaml" />
+        <ResourceDictionary Source="ms-appx:///Styles/UserGuideSections.Automation.xaml" />
+        <ResourceDictionary Source="ms-appx:///Styles/UserGuideSections.PowerUser.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <!-- DataTemplateSelector for UserGuide sections -->
@@ -22,24 +26,37 @@
                                          WelcomeTemplate="{StaticResource WelcomeTemplate}"
                                          GettingStartedTemplate="{StaticResource GettingStartedTemplate}"
                                          DashboardTemplate="{StaticResource DashboardTemplate}"
+                                         FirstChatTemplate="{StaticResource FirstChatTemplate}"
+                                         FirstDocumentTemplate="{StaticResource FirstDocumentTemplate}"
                                          AiChatTemplate="{StaticResource AiChatTemplate}"
                                          AskYourFilesTemplate="{StaticResource AskYourFilesTemplate}"
                                          QuickActionsTemplate="{StaticResource QuickActionsTemplate}"
                                          KnowledgeVaultTemplate="{StaticResource KnowledgeVaultTemplate}"
                                          CollectionsTemplate="{StaticResource CollectionsTemplate}"
                                          KnowledgeGraphTemplate="{StaticResource KnowledgeGraphTemplate}"
+                                         SemanticSearchTemplate="{StaticResource SemanticSearchTemplate}"
+                                         WebSearchTemplate="{StaticResource WebSearchTemplate}"
+                                         WebImportTemplate="{StaticResource WebImportTemplate}"
+                                         CitationsTemplate="{StaticResource CitationsTemplate}"
+                                         BrowserExtensionTemplate="{StaticResource BrowserExtensionTemplate}"
+                                         MobileCompanionTemplate="{StaticResource MobileCompanionTemplate}"
                                          WeeklyDigestTemplate="{StaticResource WeeklyDigestTemplate}"
                                          TemporalIdentityTemplate="{StaticResource TemporalIdentityTemplate}"
                                          PastSelfTemplate="{StaticResource PastSelfTemplate}"
                                          GenerativeIdentityTemplate="{StaticResource GenerativeIdentityTemplate}"
                                          InsightHarvestingTemplate="{StaticResource InsightHarvestingTemplate}"
-                                         SemanticSearchTemplate="{StaticResource SemanticSearchTemplate}"
+                                         WorkflowsTemplate="{StaticResource WorkflowsTemplate}"
+                                         ScheduledQueriesTemplate="{StaticResource ScheduledQueriesTemplate}"
+                                         AutomationRulesTemplate="{StaticResource AutomationRulesTemplate}"
                                          ModelManagerTemplate="{StaticResource ModelManagerTemplate}"
                                          HardwareAdvisorTemplate="{StaticResource HardwareAdvisorTemplate}"
                                          SettingsTemplate="{StaticResource SettingsTemplate}"
-                                         KeyboardShortcutsTemplate="{StaticResource KeyboardShortcutsTemplate}"
                                          CommandPaletteTemplate="{StaticResource CommandPaletteTemplate}"
+                                         KeyboardShortcutsTemplate="{StaticResource KeyboardShortcutsTemplate}"
+                                         AdvancedQueriesTemplate="{StaticResource AdvancedQueriesTemplate}"
+                                         PerformanceTuningTemplate="{StaticResource PerformanceTuningTemplate}"
                                          SupportedFileFormatsTemplate="{StaticResource SupportedFileFormatsTemplate}"
+                                         ExportTemplate="{StaticResource ExportTemplate}"
                                          TroubleshootingTemplate="{StaticResource TroubleshootingTemplate}"
                                          PrivacyAndSecurityTemplate="{StaticResource PrivacyAndSecurityTemplate}"
                                          GettingHelpTemplate="{StaticResource GettingHelpTemplate}" />
