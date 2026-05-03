@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.TemporalIdentity.Models;
+using System.Text;
 using System.Text.Json;
 
 namespace AgentX.Core.Services.TemporalIdentity;
@@ -265,13 +266,86 @@ public class TemporalIdentityService : ITemporalIdentityService
         string goal,
         CancellationToken ct = default)
     {
-        // This would call an AI model with voice profile as a style guide
-        // For now, return a placeholder
-        var profile = await GetVoiceProfileAsync(ct);
-        if (profile == null)
-            return $"[Voice profile not yet learned] Based on: {context}";
+        if (string.IsNullOrWhiteSpace(context))
+            return "Please provide context so I can draft something useful.";
 
-        return $"[Draft in your voice — formality: {profile.FormalityScore:F2}, avg sentence length: {profile.AvgSentenceLength:F1}]";
+        var profile = await GetVoiceProfileAsync(ct);
+        var cleanContext = NormalizeDraftInput(context);
+        var cleanGoal = NormalizeDraftInput(goal);
+
+        if (profile == null || profile.SampleCount == 0)
+        {
+            return BuildBaselineDraft(cleanContext, cleanGoal);
+        }
+
+        var opening = profile.FormalityScore >= 0.65
+            ? "I recommend we approach this deliberately."
+            : profile.FormalityScore <= 0.35
+                ? "Here is how I would frame it."
+                : "I would keep this clear and grounded.";
+
+        var targetSentenceCount = profile.AvgSentenceLength <= 10 ? 3 : 4;
+        var lines = new List<string>
+        {
+            opening,
+            $"The core point is this: {ToSentence(cleanContext)}",
+        };
+
+        if (!string.IsNullOrWhiteSpace(cleanGoal))
+        {
+            lines.Add($"The goal is to {LowercaseFirst(cleanGoal)}.");
+        }
+
+        lines.Add(profile.FormalityScore >= 0.65
+            ? "I would rather be precise now than create avoidable churn later."
+            : "That keeps the message honest, useful, and easy to act on.");
+
+        return string.Join(" ", lines.Take(targetSentenceCount));
+    }
+
+    private static string BuildBaselineDraft(string context, string goal)
+    {
+        var sb = new StringBuilder();
+        sb.Append("I want to be clear about this: ");
+        sb.Append(ToSentence(context));
+
+        if (!string.IsNullOrWhiteSpace(goal))
+        {
+            sb.Append(' ');
+            sb.Append("The intent is to ");
+            sb.Append(LowercaseFirst(goal));
+            sb.Append('.');
+        }
+
+        sb.Append(" I recommend we keep the next step concrete and accountable.");
+        return sb.ToString();
+    }
+
+    private static string NormalizeDraftInput(string value)
+    {
+        return string.Join(' ', (value ?? string.Empty).Split(
+            [' ', '\r', '\n', '\t'],
+            StringSplitOptions.RemoveEmptyEntries));
+    }
+
+    private static string ToSentence(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return string.Empty;
+
+        var trimmed = value.Trim();
+        return trimmed.EndsWith('.') || trimmed.EndsWith('!') || trimmed.EndsWith('?')
+            ? trimmed
+            : trimmed + ".";
+    }
+
+    private static string LowercaseFirst(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return string.Empty;
+
+        var trimmed = value.Trim();
+        return char.ToLowerInvariant(trimmed[0]) + trimmed[1..].TrimEnd('.', '!', '?');
     }
 
     // ─── Pattern Recognition ─────────────────────────────────────────────────────

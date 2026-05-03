@@ -12,6 +12,10 @@
     <Page.Resources>
         <converters:InverseVisibilityConverter x:Key="InverseVisibilityConverter"/>
         <converters:StringEmptyToVisibilityConverter x:Key="StringEmptyToVisibilityConverter"/>
+        <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+        <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:TimeAgoConverter x:Key="TimeAgoConverter"/>
     </Page.Resources>
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
@@ -70,7 +74,7 @@
                                     Content="Search Past Self"
                                     Click="SearchButton_Click"
                                     Style="{StaticResource AccentButtonStyle}"
-                                    IsEnabled="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
+                                    IsEnabled="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"
                                     MinWidth="120"/>
                         </Grid>
 
@@ -291,7 +295,7 @@
                                                                TextWrapping="Wrap"
                                                                Style="{StaticResource BodyTextBlockStyle}"/>
                                                     <StackPanel Orientation="Horizontal" Spacing="12">
-                                                        <TextBlock Text="{x:Bind OriginalDate, Converter={StaticResource DateTimeToStringConverter}}"
+                                                        <TextBlock Text="{x:Bind OriginalDate, Converter={StaticResource TimeAgoConverter}}"
                                                                    Style="{StaticResource CaptionTextBlockStyle}"
                                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                                                         <TextBlock Text="{x:Bind RelevanceReason}"
@@ -452,7 +456,7 @@
                                         <Button Content="Copy"
                                                 Click="CopyDraftButton_Click"
                                                 Style="{StaticResource DefaultButtonStyle}"/>
-                                        <Button Content="Use in Chat"
+                                        <Button Content="Copy for Chat"
                                                 Click="UseInChatButton_Click"
                                                 Style="{StaticResource AccentButtonStyle}"/>
                                     </StackPanel>
@@ -463,7 +467,7 @@
                                              Width="24"
                                              Height="24"
                                              HorizontalAlignment="Left"
-                                             Visibility="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                             Visibility="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
                                 <!-- Generated Content -->
                                 <TextBlock x:Name="DraftOutputText"

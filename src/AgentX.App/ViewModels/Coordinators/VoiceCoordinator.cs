@@ -18,6 +18,7 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
     private WaveFileWriter? _waveWriter;
     private string? _currentRecordingPath;
     private TaskCompletionSource? _recordingStopTcs;
+    private bool _disposed;
 
     // ── State ────────────────────────────────────────────────────
     private bool _isRecording;
@@ -244,10 +245,12 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
         _waveWriter?.Dispose();
         _waveWriter = null;
 
-        _waveIn?.Dispose();
-        _waveIn = null;
-
         _recordingStopTcs?.TrySetResult();
+
+        if (_isRecording)
+        {
+            SetRecording(false);
+        }
 
         if (e.Exception is not null)
         {
@@ -305,10 +308,26 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
     /// </summary>
     public void Dispose()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
         if (_waveIn is not null && _isRecording)
         {
-            _waveIn.StopRecording();
+            try
+            {
+                _waveIn.StopRecording();
+                _recordingStopTcs?.Task.Wait(TimeSpan.FromSeconds(2));
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to stop voice recording during disposal");
+            }
         }
+
         CleanupRecording();
     }
 }

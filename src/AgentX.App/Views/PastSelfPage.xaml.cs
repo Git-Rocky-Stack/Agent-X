@@ -159,9 +159,6 @@ public sealed partial class PastSelfPage : Page, INotifyPropertyChanged
 
     private void UseInChatButton_Click(object sender, RoutedEventArgs e)
     {
-        // Navigate to Chat page with the draft pre-populated
-        // This would require passing the draft content to the ChatViewModel
-        // For now, just copy to clipboard as a fallback
         CopyDraftButton_Click(sender, e);
     }
 
