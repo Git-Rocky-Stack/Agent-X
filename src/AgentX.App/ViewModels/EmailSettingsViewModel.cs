@@ -1,4 +1,7 @@
+using AgentX.App.Services;
 using AgentX.Core.Services.OAuth;
+using AgentX.Core.Services.Plugins.Calendar.Models;
+using AgentX.Core.Services.Plugins.Email;
 using AgentX.Core.Services.Plugins.Email.Models;
 using AgentX.Core.Services.Settings;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -15,15 +18,21 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
 {
     private readonly ISettingsService _settingsService;
     private readonly IOAuthService _oauthService;
+    private readonly IEmailService _emailService;
+    private readonly IBuiltinConnectorLifecycleService _connectorLifecycle;
     private readonly ILogger _log;
 
     public EmailSettingsViewModel(
         ISettingsService settingsService,
         IOAuthService oauthService,
+        IEmailService emailService,
+        IBuiltinConnectorLifecycleService connectorLifecycle,
         ILogger logger)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _oauthService = oauthService ?? throw new ArgumentNullException(nameof(oauthService));
+        _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
+        _connectorLifecycle = connectorLifecycle ?? throw new ArgumentNullException(nameof(connectorLifecycle));
         _log = (logger ?? throw new ArgumentNullException(nameof(logger))).ForContext<EmailSettingsViewModel>();
     }
 
@@ -52,6 +61,9 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
 
     [ObservableProperty]
     private string _nextSyncTime = "—";
+
+    [ObservableProperty]
+    private bool _enableEmailSync;
 
     [ObservableProperty]
     private int _syncIntervalMinutes = 10;
@@ -99,6 +111,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         {
             var settings = await _settingsService.GetSettingsAsync().ConfigureAwait(false);
 
+            EnableEmailSync = settings.EmailConnector.EnableEmailSync;
             SyncIntervalMinutes = settings.EmailConnector.SyncIntervalMinutes;
             MaxMessagesPerSync = settings.EmailConnector.MessagesPerSync;
             SyncDaysBack = settings.EmailConnector.DaysBackToSync;
@@ -248,15 +261,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
 
         try
         {
-            var settings = await _settingsService.GetSettingsAsync().ConfigureAwait(false);
-
-            settings.EmailConnector.SyncIntervalMinutes = SyncIntervalMinutes;
-            settings.EmailConnector.MessagesPerSync = MaxMessagesPerSync;
-            settings.EmailConnector.DaysBackToSync = SyncDaysBack;
-            settings.EmailConnector.EnableAiCategorization = EnableAiCategorization;
-            settings.EmailConnector.IncludeAttachmentMetadata = IncludeAttachmentNames;
-
-            await _settingsService.SaveSettingsAsync(settings).ConfigureAwait(false);
+            await PersistConnectorSettingsAsync(refreshLifecycle: true).ConfigureAwait(false);
             _log.Information("Email connector settings saved");
         }
         catch (Exception ex)
@@ -271,7 +276,80 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    private async Task SyncNowAsync()
+    {
+        if (IsSyncing)
+            return;
+
+        IsSyncing = true;
+        IsLoading = true;
+        HasError = false;
+        SyncStatusText = "Syncing...";
+
+        try
+        {
+            EnableEmailSync = true;
+            await PersistConnectorSettingsAsync(refreshLifecycle: true).ConfigureAwait(false);
+
+            var result = await _emailService.SyncMessagesAsync().ConfigureAwait(false);
+            LastSyncTime = FormatSyncTime(result.CompletedAt);
+            SyncStatusText = FormatSyncResult(result);
+            _log.Information(
+                "Email manual sync completed. Added={Added} Updated={Updated} Skipped={Skipped} Failed={Failed}",
+                result.ItemsAdded,
+                result.ItemsUpdated,
+                result.ItemsSkipped,
+                result.ItemsFailed);
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to run email sync");
+            HasError = true;
+            ErrorMessage = $"Failed to sync: {ex.Message}";
+            SyncStatusText = "Sync failed";
+        }
+        finally
+        {
+            IsSyncing = false;
+            IsLoading = false;
+        }
+    }
+
     // ── Private helpers ─────────────────────────────────────────────────────────
+
+    private async Task PersistConnectorSettingsAsync(bool refreshLifecycle)
+    {
+        var settings = await _settingsService.GetSettingsAsync().ConfigureAwait(false);
+
+        settings.EmailConnector.EnableEmailSync = EnableEmailSync;
+        settings.EmailConnector.SyncIntervalMinutes = SyncIntervalMinutes;
+        settings.EmailConnector.MessagesPerSync = MaxMessagesPerSync;
+        settings.EmailConnector.DaysBackToSync = SyncDaysBack;
+        settings.EmailConnector.EnableAiCategorization = EnableAiCategorization;
+        settings.EmailConnector.IncludeAttachmentMetadata = IncludeAttachmentNames;
+
+        await _settingsService.SaveSettingsAsync(settings).ConfigureAwait(false);
+
+        var syncSettings = await _emailService.GetSyncSettingsAsync().ConfigureAwait(false);
+        syncSettings.SyncIntervalMinutes = SyncIntervalMinutes;
+        syncSettings.MaxMessagesPerSync = MaxMessagesPerSync;
+        syncSettings.SyncDaysBack = SyncDaysBack;
+        syncSettings.EnableAiCategorization = EnableAiCategorization;
+        syncSettings.IncludeAttachmentNames = IncludeAttachmentNames;
+
+        if (!syncSettings.EnabledFolders.Any(kv => kv.Value))
+        {
+            syncSettings.EnabledFolders["INBOX"] = true;
+        }
+
+        await _emailService.UpdateSyncSettingsAsync(syncSettings).ConfigureAwait(false);
+
+        if (refreshLifecycle)
+        {
+            await _connectorLifecycle.RefreshAsync().ConfigureAwait(false);
+        }
+    }
 
     private async Task CheckConnectionStatusAsync()
     {
@@ -300,5 +378,16 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
     private void UpdateNextSyncTime()
     {
         NextSyncTime = $"Every {SyncIntervalMinutes} min";
+    }
+
+    private static string FormatSyncTime(DateTime completedAt)
+    {
+        var timestamp = completedAt == default ? DateTime.UtcNow : completedAt;
+        return timestamp.ToLocalTime().ToString("g");
+    }
+
+    private static string FormatSyncResult(SyncResult result)
+    {
+        return $"Added {result.ItemsAdded}, updated {result.ItemsUpdated}, skipped {result.ItemsSkipped}, failed {result.ItemsFailed}";
     }
 }

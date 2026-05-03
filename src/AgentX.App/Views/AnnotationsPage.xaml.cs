@@ -3,6 +3,9 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using AgentX.App.ViewModels;
 using Serilog;
+using Windows.Storage;
+using Windows.Storage.Pickers;
+using WinRT.Interop;
 
 namespace AgentX.App.Views;
 
@@ -15,6 +18,7 @@ public sealed partial class AnnotationsPage : Page
         ViewModel = App.GetService<AnnotationsViewModel>();
         InitializeComponent();
 
+        ViewModel.SaveMarkdownExportAsync = SaveMarkdownExportAsync;
         Loaded += OnPageLoaded;
     }
 
@@ -36,4 +40,27 @@ public sealed partial class AnnotationsPage : Page
         "purple" => new SolidColorBrush(Windows.UI.Color.FromArgb(255, 192, 132, 252)),
         _ => new SolidColorBrush(Windows.UI.Color.FromArgb(255, 200, 200, 200))
     };
+
+    private static async Task<AnnotationMarkdownExportResult> SaveMarkdownExportAsync(
+        AnnotationMarkdownExportRequest request)
+    {
+        var picker = new FileSavePicker
+        {
+            SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
+            SuggestedFileName = Path.GetFileNameWithoutExtension(request.SuggestedFileName),
+        };
+        picker.FileTypeChoices.Add("Markdown", [".md"]);
+
+        var hwnd = WindowNative.GetWindowHandle(App.MainWindow);
+        InitializeWithWindow.Initialize(picker, hwnd);
+
+        var file = await picker.PickSaveFileAsync();
+        if (file is null)
+        {
+            return AnnotationMarkdownExportResult.Cancelled();
+        }
+
+        await FileIO.WriteTextAsync(file, request.Markdown);
+        return AnnotationMarkdownExportResult.Saved(file.Path);
+    }
 }

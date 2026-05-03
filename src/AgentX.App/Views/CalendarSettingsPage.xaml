@@ -117,6 +117,11 @@
                 <StackPanel Spacing="16">
                     <TextBlock Text="Sync Settings" Style="{StaticResource SubtitleTextBlockStyle}"/>
 
+                    <ToggleSwitch
+                        Header="Calendar sync"
+                        IsOn="{x:Bind ViewModel.EnableCalendarSync, Mode=TwoWay}"
+                        OffContent="Off" OnContent="On"/>
+
                     <StackPanel Spacing="4">
                         <TextBlock Text="Sync Interval (minutes)" Style="{StaticResource BodyTextBlockStyle}"/>
                         <ComboBox
@@ -169,6 +174,9 @@
                     Content="Save Settings"
                     Command="{x:Bind ViewModel.SaveSettingsCommand, Mode=OneWay}"
                     Style="{StaticResource AccentButtonStyle}"/>
+                <Button
+                    Content="Sync Now"
+                    Command="{x:Bind ViewModel.SyncNowCommand, Mode=OneWay}"/>
                 <ProgressBar
                     IsIndeterminate="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
                     Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
@@ -181,6 +189,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" Spacing="2">
                         <TextBlock Text="Last Synced" Opacity="0.6" Style="{StaticResource CaptionTextBlockStyle}"/>
@@ -189,6 +198,10 @@
                     <StackPanel Grid.Column="1" Spacing="2">
                         <TextBlock Text="Next Sync" Opacity="0.6" Style="{StaticResource CaptionTextBlockStyle}"/>
                         <TextBlock Text="{x:Bind ViewModel.NextSyncTime, Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Spacing="2">
+                        <TextBlock Text="Status" Opacity="0.6" Style="{StaticResource CaptionTextBlockStyle}"/>
+                        <TextBlock Text="{x:Bind ViewModel.SyncStatusText, Mode=OneWay}" TextWrapping="Wrap" Style="{StaticResource BodyTextBlockStyle}"/>
                     </StackPanel>
                 </Grid>
             </Border>

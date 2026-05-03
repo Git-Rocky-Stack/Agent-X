@@ -47,45 +47,7 @@ public sealed class EmailService : IEmailService
 
     public async Task<SyncResult> SyncMessagesAsync(CancellationToken cancellationToken = default)
     {
-        var settings = await GetSyncSettingsAsync().ConfigureAwait(false);
-
-        // SyncService is accessed via the plugin's internal state.
-        // For now, delegate to providers directly.
-        var totalAdded = 0;
-        var totalFailed = 0;
-        var startedAt = DateTime.UtcNow;
-
-        foreach (var provider in _plugin.Providers)
-        {
-            try
-            {
-                var folders = await provider.ListFoldersAsync(cancellationToken).ConfigureAwait(false);
-                var enabledIds = settings.EnabledFolders
-                    .Where(kv => kv.Value).Select(kv => kv.Key).ToHashSet();
-
-                foreach (var folder in folders.Where(f => enabledIds.Contains(f.Id)))
-                {
-                    var (messages, _) = await provider.GetMessagesAsync(
-                        folder.Id, settings.MaxMessagesPerSync,
-                        cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                    totalAdded += messages.Count;
-                }
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                totalFailed++;
-                _log.Error(ex, "Failed to sync messages from {ProviderId}", provider.ProviderId);
-            }
-        }
-
-        return new SyncResult
-        {
-            ItemsAdded = totalAdded,
-            ItemsFailed = totalFailed,
-            StartedAt = startedAt,
-            CompletedAt = DateTime.UtcNow,
-        };
+        return await _plugin.TriggerSyncAsync(cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<IReadOnlyList<EmailFolderInfo>> ListAvailableFoldersAsync(

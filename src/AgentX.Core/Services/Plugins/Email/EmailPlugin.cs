@@ -42,6 +42,8 @@ public sealed class EmailPlugin : IPlugin
     // ── Public surface ──────────────────────────────────────────────────────────
 
     public IReadOnlyList<IEmailProvider> Providers => _providers.AsReadOnly();
+    public event EventHandler<SyncResult>? SyncCompleted;
+    public SyncResult? LastSyncResult { get; private set; }
 
     // ── IPlugin lifecycle ───────────────────────────────────────────────────────
 
@@ -208,7 +210,9 @@ public sealed class EmailPlugin : IPlugin
 
         try
         {
-            await ExecuteSyncCycleAsync(cts.Token).ConfigureAwait(false);
+            var result = await ExecuteSyncCycleAsync(cts.Token).ConfigureAwait(false);
+            LastSyncResult = result;
+            SyncCompleted?.Invoke(this, result);
         }
         catch (OperationCanceledException)
         {
@@ -224,9 +228,31 @@ public sealed class EmailPlugin : IPlugin
         }
     }
 
-    private async Task ExecuteSyncCycleAsync(CancellationToken cancellationToken = default)
+    internal async Task<SyncResult> TriggerSyncAsync(CancellationToken cancellationToken = default)
     {
-        if (_isDisposed || _providers.Count == 0) return;
+        if (!await _syncLock.WaitAsync(0, cancellationToken).ConfigureAwait(false))
+        {
+            _log.Debug("Email sync already in progress — TriggerSyncAsync is a no-op");
+            return LastSyncResult ?? CreateEmptyResult();
+        }
+
+        try
+        {
+            var result = await ExecuteSyncCycleAsync(cancellationToken).ConfigureAwait(false);
+            LastSyncResult = result;
+            SyncCompleted?.Invoke(this, result);
+            return result;
+        }
+        finally
+        {
+            _syncLock.Release();
+        }
+    }
+
+    private async Task<SyncResult> ExecuteSyncCycleAsync(CancellationToken cancellationToken = default)
+    {
+        if (_isDisposed || _providers.Count == 0)
+            return CreateEmptyResult();
 
         try
         {
@@ -238,16 +264,22 @@ public sealed class EmailPlugin : IPlugin
                 _log.Information(
                     "Email sync complete. Added={Added} Skipped={Skipped} Failed={Failed}",
                     result.ItemsAdded, result.ItemsSkipped, result.ItemsFailed);
+
+                return result;
             }
-            else
-            {
-                // Fetch-only fallback when InboxService is not available.
-                await FetchOnlySyncCycleAsync().ConfigureAwait(false);
-            }
+
+            // Fetch-only fallback when InboxService is not available.
+            return await FetchOnlySyncCycleAsync(cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             _log.Error(ex, "Email sync cycle failed");
+            return new SyncResult
+            {
+                ItemsFailed = 1,
+                StartedAt = DateTime.UtcNow,
+                CompletedAt = DateTime.UtcNow,
+            };
         }
     }
 
@@ -255,21 +287,47 @@ public sealed class EmailPlugin : IPlugin
     /// Fallback: fetches messages without pushing to the Inbox pipeline.
     /// Used when IInboxService is not available in the plugin context.
     /// </summary>
-    private async Task FetchOnlySyncCycleAsync()
+    private async Task<SyncResult> FetchOnlySyncCycleAsync(CancellationToken cancellationToken)
     {
+        var startedAt = DateTime.UtcNow;
+        var skipped = 0;
+        var failed = 0;
+
         foreach (var provider in _providers)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             try
             {
-                var folders = await provider.ListFoldersAsync().ConfigureAwait(false);
+                var folders = await provider.ListFoldersAsync(cancellationToken).ConfigureAwait(false);
+                skipped += folders.Count;
                 _log.Debug(
                     "FetchOnly: {ProviderId} has {FolderCount} folders",
                     provider.ProviderId, folders.Count);
             }
             catch (Exception ex)
             {
+                failed++;
                 _log.Error(ex, "FetchOnly: failed to list folders for {ProviderId}", provider.ProviderId);
             }
         }
+
+        return new SyncResult
+        {
+            ItemsSkipped = skipped,
+            ItemsFailed = failed,
+            StartedAt = startedAt,
+            CompletedAt = DateTime.UtcNow,
+        };
+    }
+
+    private static SyncResult CreateEmptyResult()
+    {
+        var now = DateTime.UtcNow;
+        return new SyncResult
+        {
+            StartedAt = now,
+            CompletedAt = now,
+        };
     }
 }

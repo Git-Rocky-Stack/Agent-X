@@ -34,6 +34,8 @@ public partial class AnnotationsViewModel : ObservableObject
     [ObservableProperty] private string _editNoteText = string.Empty;
     [ObservableProperty] private string _editColor = "yellow";
 
+    public Func<AnnotationMarkdownExportRequest, Task<AnnotationMarkdownExportResult>>? SaveMarkdownExportAsync { get; set; }
+
     public AnnotationsViewModel(IAnnotationService annotationService)
     {
         _annotationService = annotationService;
@@ -201,8 +203,27 @@ public partial class AnnotationsViewModel : ObservableObject
         try
         {
             var markdown = await _annotationService.ExportAnnotationsAsMarkdownAsync();
-            // Copy to clipboard for now — let the page handle file saving
-            StatusMessage = $"Exported {TotalCount} annotations as Markdown";
+
+            if (SaveMarkdownExportAsync is null)
+            {
+                StatusMessage = "Export unavailable";
+                return;
+            }
+
+            var result = await SaveMarkdownExportAsync(new AnnotationMarkdownExportRequest(
+                CreateSuggestedExportFileName(),
+                markdown));
+
+            if (!result.IsSaved)
+            {
+                StatusMessage = "Export cancelled";
+                return;
+            }
+
+            var fileName = string.IsNullOrWhiteSpace(result.FilePath)
+                ? "Markdown file"
+                : Path.GetFileName(result.FilePath);
+            StatusMessage = $"Exported {TotalCount} annotations to {fileName}";
         }
         catch (Exception ex)
         {
@@ -210,6 +231,19 @@ public partial class AnnotationsViewModel : ObservableObject
             StatusMessage = "Export failed";
         }
     }
+
+    private static string CreateSuggestedExportFileName()
+    {
+        return $"agent-x-annotations-{DateTime.Now:yyyyMMdd-HHmmss}.md";
+    }
+}
+
+public sealed record AnnotationMarkdownExportRequest(string SuggestedFileName, string Markdown);
+
+public sealed record AnnotationMarkdownExportResult(bool IsSaved, string? FilePath)
+{
+    public static AnnotationMarkdownExportResult Saved(string filePath) => new(true, filePath);
+    public static AnnotationMarkdownExportResult Cancelled() => new(false, null);
 }
 
 public partial class AnnotationDisplayItem : ObservableObject

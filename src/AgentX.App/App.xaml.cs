@@ -48,6 +48,8 @@ using AgentX.Core.Services.Api;
 using AgentX.Core.Services.OAuth;
 using AgentX.Core.Services.Security;
 using AgentX.Core.Services.TemporalIdentity;
+using AgentX.Core.Services.Plugins.Calendar;
+using AgentX.Core.Services.Plugins.Email;
 using AgentX.Core.Validation;
 using AgentX.App.Services;
 
@@ -57,6 +59,7 @@ public partial class App : Application
 {
     private static IHost? _host;
     private static Window? _mainWindow;
+    private static int _shutdownStarted;
 
     /// <summary>
     /// Gets the main application window. Used by pages that need the HWND
@@ -87,6 +90,7 @@ public partial class App : Application
         _mainWindow = new MainWindow();
         if (_mainWindow is MainWindow mainWindow)
         {
+            mainWindow.Closed += OnMainWindowClosed;
             mainWindow.ConfigureWindowLifecycleServices();
         }
 
@@ -182,6 +186,30 @@ public partial class App : Application
         catch (Exception ex)
         {
             Log.Warning(ex, "FTS5 initialization failed — keyword search unavailable");
+        }
+
+        // 1c. Start the local REST API used by the browser extension and mobile companion.
+        try
+        {
+            var apiHostLifecycle = GetService<IApiHostLifecycleService>();
+            await apiHostLifecycle.StartAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(
+                ex,
+                "REST API startup failed — browser extension and mobile companion connectivity will be unavailable");
+        }
+
+        // 1d. Initialize first-party calendar/email connectors after the database is ready.
+        try
+        {
+            var connectorLifecycle = GetService<IBuiltinConnectorLifecycleService>();
+            await connectorLifecycle.InitializeAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Built-in connector initialization failed");
         }
 
         // 2. Initialize the AI service (creates provider, tests connection)
@@ -502,6 +530,17 @@ public partial class App : Application
 
         // ── Plugin API ──────────────────────────────────────────
         services.AddSingleton<IPluginService, PluginService>();
+        services.AddSingleton<CalendarPlugin>();
+        services.AddSingleton<ICalendarService>(sp =>
+            new CalendarService(
+                sp.GetRequiredService<CalendarPlugin>(),
+                sp.GetRequiredService<Serilog.ILogger>()));
+        services.AddSingleton<EmailPlugin>();
+        services.AddSingleton<IEmailService>(sp =>
+            new EmailService(
+                sp.GetRequiredService<EmailPlugin>(),
+                sp.GetRequiredService<Serilog.ILogger>()));
+        services.AddSingleton<IBuiltinConnectorLifecycleService, BuiltinConnectorLifecycleService>();
 
         // ── Voice / Audio ──────────────────────────────────────
         services.AddSingleton<ITranscriptionService, TranscriptionService>();
@@ -529,6 +568,7 @@ public partial class App : Application
 
         // ── REST API ─────────────────────────────────────────────
         services.AddSingleton<IApiHostService, ApiHostService>();
+        services.AddSingleton<IApiHostLifecycleService, ApiHostLifecycleService>();
 
         // ── Temporal Identity ─────────────────────────────────────
         services.AddSingleton<ITemporalIdentityService, TemporalIdentityService>();
@@ -753,5 +793,76 @@ public partial class App : Application
             Log.Fatal(e.Exception, "Application unhandled exception");
             e.Handled = true;
         };
+
+        AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
+    }
+
+    private static async void OnMainWindowClosed(object sender, WindowEventArgs args)
+    {
+        await ShutdownCoreServicesAsync();
+    }
+
+    private static void OnProcessExit(object? sender, EventArgs e)
+    {
+        ShutdownCoreServicesAsync().GetAwaiter().GetResult();
+    }
+
+    private static async System.Threading.Tasks.Task ShutdownCoreServicesAsync()
+    {
+        if (Interlocked.Exchange(ref _shutdownStarted, 1) == 1)
+            return;
+
+        try
+        {
+            if (_host is not null)
+            {
+                await _host.Services
+                    .GetRequiredService<IBuiltinConnectorLifecycleService>()
+                    .StopAsync()
+                    .ConfigureAwait(false);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to stop built-in connectors during shutdown");
+        }
+
+        try
+        {
+            if (_host is not null)
+            {
+                await _host.Services
+                    .GetRequiredService<IApiHostLifecycleService>()
+                    .StopAsync()
+                    .ConfigureAwait(false);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to stop REST API during shutdown");
+        }
+
+        try
+        {
+            switch (_host)
+            {
+                case IAsyncDisposable asyncDisposable:
+                    await asyncDisposable.DisposeAsync().ConfigureAwait(false);
+                    break;
+                case IDisposable disposable:
+                    disposable.Dispose();
+                    break;
+            }
+
+            _host = null;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to dispose application host during shutdown");
+        }
+        finally
+        {
+            Log.CloseAndFlush();
+        }
     }
 }

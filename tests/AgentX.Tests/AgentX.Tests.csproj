@@ -62,6 +62,8 @@
     <Compile Include="..\..\src\AgentX.App\ViewModels\QuickActionsViewModel.cs" Link="ViewModels\QuickActionsViewModel.cs" />
     <!-- InboxViewModel is pure inbox orchestration/state logic. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\InboxViewModel.cs" Link="ViewModels\InboxViewModel.cs" />
+    <!-- AnnotationsViewModel is pure annotation orchestration/state logic. -->
+    <Compile Include="..\..\src\AgentX.App\ViewModels\AnnotationsViewModel.cs" Link="ViewModels\AnnotationsViewModel.cs" />
     <!-- KnowledgeVaultViewModel is pure document-orchestration logic aside from an App.GetService seam stubbed in tests. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\KnowledgeVaultViewModel.cs" Link="ViewModels\KnowledgeVaultViewModel.cs" />
     <!-- SearchViewModel is pure search orchestration/state logic. -->
@@ -79,6 +81,8 @@
     <Compile Include="..\..\src\AgentX.App\ViewModels\SystemPromptItem.cs" Link="ViewModels\SystemPromptItem.cs" />
     <!-- SyncSettingsViewModel is pure sync orchestration/state logic; link it for selected-scope UI tests. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\SyncSettingsViewModel.cs" Link="ViewModels\SyncSettingsViewModel.cs" />
+    <Compile Include="..\..\src\AgentX.App\ViewModels\CalendarSettingsViewModel.cs" Link="ViewModels\CalendarSettingsViewModel.cs" />
+    <Compile Include="..\..\src\AgentX.App\ViewModels\EmailSettingsViewModel.cs" Link="ViewModels\EmailSettingsViewModel.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\Sync\SyncLogDisplayItem.cs" Link="ViewModels\Sync\SyncLogDisplayItem.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\Sync\SyncHistoryItem.cs" Link="ViewModels\Sync\SyncHistoryItem.cs" />
     <!-- ShortcutInputRouter dispatch core is pure; WinUI attach lives in a separate file. -->
@@ -100,6 +104,10 @@
     <Compile Include="..\..\src\AgentX.App\Services\IStatusBarService.cs" Link="Services\IStatusBarService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\StatusBarService.cs" Link="Services\StatusBarService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\NotificationService.cs" Link="Services\NotificationService.cs" />
+    <Compile Include="..\..\src\AgentX.App\Services\IApiHostLifecycleService.cs" Link="Services\IApiHostLifecycleService.cs" />
+    <Compile Include="..\..\src\AgentX.App\Services\ApiHostLifecycleService.cs" Link="Services\ApiHostLifecycleService.cs" />
+    <Compile Include="..\..\src\AgentX.App\Services\IBuiltinConnectorLifecycleService.cs" Link="Services\IBuiltinConnectorLifecycleService.cs" />
+    <Compile Include="..\..\src\AgentX.App\Services\BuiltinConnectorLifecycleService.cs" Link="Services\BuiltinConnectorLifecycleService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\IOperationsActionService.cs" Link="Services\IOperationsActionService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\IOperationsDrillInService.cs" Link="Services\IOperationsDrillInService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\OperationsActionService.cs" Link="Services\OperationsActionService.cs" />
