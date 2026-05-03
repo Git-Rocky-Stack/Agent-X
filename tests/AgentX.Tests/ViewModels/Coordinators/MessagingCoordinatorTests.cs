@@ -1,5 +1,6 @@
 using AgentX.App.ViewModels.Coordinators;
 using AgentX.Core.AI;
+using AgentX.Core.AI.Agents;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Chat;
@@ -18,6 +19,7 @@ public class MessagingCoordinatorTests
     private readonly Mock<IAiService> _aiService;
     private readonly Mock<IFeedbackService> _feedbackService;
     private readonly Mock<IAiProvider> _provider;
+    private readonly Mock<IMultiAgentOrchestrator> _multiAgentOrchestrator;
     private readonly MessagingCoordinator _coordinator;
 
     public MessagingCoordinatorTests()
@@ -27,6 +29,7 @@ public class MessagingCoordinatorTests
         _aiService = new Mock<IAiService>();
         _feedbackService = new Mock<IFeedbackService>();
         _provider = new Mock<IAiProvider>();
+        _multiAgentOrchestrator = new Mock<IMultiAgentOrchestrator>();
 
         // Default: ActiveProvider is connected so the coordinator uses IChatService
         _aiService.SetupGet(s => s.ActiveProvider).Returns(_provider.Object);
@@ -40,7 +43,8 @@ public class MessagingCoordinatorTests
             _chatService.Object,
             _conversationService.Object,
             _aiService.Object,
-            _feedbackService.Object);
+            _feedbackService.Object,
+            _multiAgentOrchestrator.Object);
     }
 
     // ── StopGenerationAsync ────────────────────────────────────────
@@ -237,6 +241,64 @@ public class MessagingCoordinatorTests
     }
 
     [Fact]
+    public async Task SendMessageAsync_WithMultiAgentParallelMode_RunsOrchestratorAndPersistsResult()
+    {
+        var tokens = new List<string>();
+        _coordinator.TokenReceived += (_, token) => tokens.Add(token);
+        _conversationService
+            .Setup(service => service.AddMessageAsync(
+                It.IsAny<long>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<int?>(),
+                It.IsAny<double?>()))
+            .Returns(Task.CompletedTask);
+        _multiAgentOrchestrator
+            .Setup(service => service.RunAsync(
+                "Plan launch",
+                It.Is<IReadOnlyList<AgentRole>>(agents => agents.Count >= 3),
+                OrchestratorStrategy.Parallel,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OrchestrationResult
+            {
+                Task = "Plan launch",
+                Strategy = OrchestratorStrategy.Parallel,
+                FinalAnswer = "# Multi-Agent Synthesis\n\n## Consensus\nShip in phases.",
+                IsSuccess = true
+            });
+
+        var result = await _coordinator.SendMessageAsync(
+            "Plan launch",
+            5,
+            null,
+            "model1",
+            false,
+            ChatOrchestrationMode.MultiAgentParallel);
+
+        result.ConversationId.Should().Be(5);
+        result.ResponseContent.Should().Contain("Multi-Agent Synthesis");
+        result.ContextInspection.Should().NotBeNull();
+        result.ContextInspection!.LimitedVisibilityReason.Should().Be("multi_agent_orchestration");
+        tokens.Should().ContainSingle().Which.Should().Contain("Multi-Agent Synthesis");
+        _chatService.Verify(service => service.SendMessageAsync(
+            It.IsAny<long>(),
+            It.IsAny<string>(),
+            It.IsAny<CancellationToken>()), Times.Never);
+        _conversationService.Verify(service => service.AddMessageAsync(
+            5,
+            "user",
+            "Plan launch",
+            null,
+            null), Times.Once);
+        _conversationService.Verify(service => service.AddMessageAsync(
+            5,
+            "assistant",
+            It.Is<string>(content => content.Contains("Multi-Agent Synthesis", StringComparison.Ordinal)),
+            It.Is<int?>(tokenCount => tokenCount > 0),
+            It.Is<double?>(duration => duration >= 0)), Times.Once);
+    }
+
+    [Fact]
     public async Task SendMessageAsync_ResolvesAssistantMessageId_WhenPersistedAssistantMessageExists()
     {
         var snapshot = CreateInspectionSnapshot(1);
@@ -326,7 +388,7 @@ public class MessagingCoordinatorTests
     public async Task SendMessageAsync_UsesDirectStreaming_WhenNoActiveProvider()
     {
         // Arrange — no active provider
-        _aiService.SetupGet(s => s.ActiveProvider).Returns((IAiProvider?)null);
+        _aiService.SetupGet(s => s.ActiveProvider).Returns((IAiProvider)null!);
 
         _aiService
             .Setup(s => s.StreamChatAsync(It.IsAny<IReadOnlyList<ChatMessage>>(), It.IsAny<string?>(), null, It.IsAny<CancellationToken>()))

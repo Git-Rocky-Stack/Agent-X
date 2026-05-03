@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using AgentX.Core.AI;
+using AgentX.Core.AI.Agents;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Chat.Models;
@@ -18,6 +19,7 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
     private readonly IConversationService _conversationService;
     private readonly IAiService _aiService;
     private readonly IFeedbackService _feedbackService;
+    private readonly IMultiAgentOrchestrator? _multiAgentOrchestrator;
 
     private CancellationTokenSource? _generationCts;
 
@@ -32,13 +34,30 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
         IChatService chatService,
         IConversationService conversationService,
         IAiService aiService,
-        IFeedbackService feedbackService)
+        IFeedbackService feedbackService,
+        IMultiAgentOrchestrator? multiAgentOrchestrator = null)
     {
         _chatService = chatService;
         _conversationService = conversationService;
         _aiService = aiService;
         _feedbackService = feedbackService;
+        _multiAgentOrchestrator = multiAgentOrchestrator;
     }
+
+    /// <inheritdoc />
+    public Task<SendMessageResult> SendMessageAsync(
+        string userContent,
+        long? conversationId,
+        string? systemPrompt,
+        string? modelId,
+        bool isResearchMode) =>
+        SendMessageAsync(
+            userContent,
+            conversationId,
+            systemPrompt,
+            modelId,
+            isResearchMode,
+            ChatOrchestrationMode.Standard);
 
     /// <inheritdoc />
     public async Task<SendMessageResult> SendMessageAsync(
@@ -46,9 +65,9 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
         long? conversationId,
         string? systemPrompt,
         string? modelId,
-        bool isResearchMode)
+        bool isResearchMode,
+        ChatOrchestrationMode orchestrationMode)
     {
-        var result = new SendMessageResult();
         var responseBuilder = new System.Text.StringBuilder();
         int tokCount = 0;
         var sw = Stopwatch.StartNew();
@@ -82,34 +101,71 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
                 }
             }
 
-            // Stream via IChatService (which persists and streams)
-            if (activeConvId is not null && _aiService.ActiveProvider is not null)
+            if (orchestrationMode != ChatOrchestrationMode.Standard)
             {
-                var connected = false;
-                try
+                tokCount = await RunOrchestratedAsync(
+                    responseBuilder,
+                    userContent,
+                    systemPrompt,
+                    activeConvId,
+                    orchestrationMode,
+                    sw,
+                    _generationCts.Token);
+                if (activeConvId.HasValue)
                 {
-                    connected = await _aiService.ActiveProvider.CheckConnectionAsync();
-                }
-                catch
-                {
-                    // Treat as disconnected
-                }
-
-                if (connected)
-                {
-                    await foreach (var token in _chatService.SendMessageAsync(
-                        activeConvId.Value, userContent, _generationCts.Token))
-                    {
-                        responseBuilder.Append(token);
-                        tokCount++;
-                        TokenReceived?.Invoke(this, token);
-                    }
-
-                    contextInspection = _chatService.GetLatestContextInspection(activeConvId.Value);
+                    contextInspection = ChatContextInspectionSnapshot.CreateLimited(
+                        activeConvId.Value,
+                        userContent,
+                        "multi_agent_orchestration");
                     userMessageId = await ResolveUserMessageIdAsync(activeConvId.Value);
                     assistantMessageId = await ResolveAssistantMessageIdAsync(
                         activeConvId.Value,
                         responseBuilder.ToString());
+                }
+            }
+            else
+            {
+                // Stream via IChatService (which persists and streams)
+                if (activeConvId is not null && _aiService.ActiveProvider is not null)
+                {
+                    var connected = false;
+                    try
+                    {
+                        connected = await _aiService.ActiveProvider.CheckConnectionAsync();
+                    }
+                    catch
+                    {
+                        // Treat as disconnected
+                    }
+
+                    if (connected)
+                    {
+                        await foreach (var token in _chatService.SendMessageAsync(
+                            activeConvId.Value, userContent, _generationCts.Token))
+                        {
+                            responseBuilder.Append(token);
+                            tokCount++;
+                            TokenReceived?.Invoke(this, token);
+                        }
+
+                        contextInspection = _chatService.GetLatestContextInspection(activeConvId.Value);
+                        userMessageId = await ResolveUserMessageIdAsync(activeConvId.Value);
+                        assistantMessageId = await ResolveAssistantMessageIdAsync(
+                            activeConvId.Value,
+                            responseBuilder.ToString());
+                    }
+                    else
+                    {
+                        // Fallback: direct streaming without persistence
+                        await StreamDirectAsync(responseBuilder, userContent, systemPrompt, _generationCts.Token);
+                        if (activeConvId.HasValue)
+                        {
+                            contextInspection = ChatContextInspectionSnapshot.CreateLimited(
+                                activeConvId.Value,
+                                userContent,
+                                "provider_disconnected");
+                        }
+                    }
                 }
                 else
                 {
@@ -120,20 +176,8 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
                         contextInspection = ChatContextInspectionSnapshot.CreateLimited(
                             activeConvId.Value,
                             userContent,
-                            "provider_disconnected");
+                            "no_active_provider");
                     }
-                }
-            }
-            else
-            {
-                // Fallback: direct streaming without persistence
-                await StreamDirectAsync(responseBuilder, userContent, systemPrompt, _generationCts.Token);
-                if (activeConvId.HasValue)
-                {
-                    contextInspection = ChatContextInspectionSnapshot.CreateLimited(
-                        activeConvId.Value,
-                        userContent,
-                        "no_active_provider");
                 }
             }
 
@@ -218,6 +262,91 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
             _generationCts?.Dispose();
             _generationCts = null;
         }
+    }
+
+    private async Task<int> RunOrchestratedAsync(
+        System.Text.StringBuilder responseBuilder,
+        string userContent,
+        string? systemPrompt,
+        long? conversationId,
+        ChatOrchestrationMode orchestrationMode,
+        Stopwatch stopwatch,
+        CancellationToken ct)
+    {
+        if (_multiAgentOrchestrator is null)
+        {
+            throw new InvalidOperationException("Multi-agent orchestration is not available in this app session.");
+        }
+
+        var strategy = orchestrationMode == ChatOrchestrationMode.MultiAgentDebate
+            ? OrchestratorStrategy.Debate
+            : OrchestratorStrategy.Parallel;
+        var task = string.IsNullOrWhiteSpace(systemPrompt)
+            ? userContent
+            : $"{userContent}\n\nActive system prompt:\n{systemPrompt}";
+
+        var orchestration = await _multiAgentOrchestrator.RunAsync(
+            task,
+            BuildDefaultAgentRoles(orchestrationMode),
+            strategy,
+            ct);
+        var finalContent = orchestration.IsSuccess && !string.IsNullOrWhiteSpace(orchestration.FinalAnswer)
+            ? orchestration.FinalAnswer
+            : BuildOrchestrationFailureMessage(orchestration);
+
+        responseBuilder.Append(finalContent);
+        TokenReceived?.Invoke(this, finalContent);
+
+        var tokenCount = EstimateTokenCount(finalContent);
+        if (conversationId.HasValue)
+        {
+            await _conversationService.AddMessageAsync(conversationId.Value, "user", userContent, null, null);
+            await _conversationService.AddMessageAsync(
+                conversationId.Value,
+                "assistant",
+                finalContent,
+                tokenCount,
+                stopwatch.Elapsed.TotalMilliseconds);
+        }
+
+        return tokenCount;
+    }
+
+    private static IReadOnlyList<AgentRole> BuildDefaultAgentRoles(ChatOrchestrationMode orchestrationMode)
+    {
+        return orchestrationMode == ChatOrchestrationMode.MultiAgentDebate
+            ?
+            [
+                AgentRole.Researcher(),
+                AgentRole.Critic(),
+                AgentRole.Creative()
+            ]
+            :
+            [
+                AgentRole.Researcher(),
+                AgentRole.Critic(),
+                AgentRole.Synthesizer()
+            ];
+    }
+
+    private static string BuildOrchestrationFailureMessage(OrchestrationResult orchestration)
+    {
+        if (orchestration.Errors.Count == 0)
+        {
+            return "Multi-agent orchestration did not return a usable answer. Check the active AI provider and try again.";
+        }
+
+        return "Multi-agent orchestration did not return a usable answer.\n\n" +
+               string.Join("\n", orchestration.Errors.Select(error => $"- {error}"));
+    }
+
+    private static int EstimateTokenCount(string content)
+    {
+        var wordCount = content.Split(
+            [' ', '\r', '\n', '\t'],
+            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Length;
+
+        return Math.Max(1, (int)Math.Ceiling(wordCount * 1.3));
     }
 
     private async Task<long?> ResolveAssistantMessageIdAsync(

@@ -3,6 +3,16 @@ using AgentX.Core.Services.Chat.Models;
 namespace AgentX.App.ViewModels.Coordinators;
 
 /// <summary>
+/// Chat generation modes available from the chat input surface.
+/// </summary>
+public enum ChatOrchestrationMode
+{
+    Standard = 0,
+    MultiAgentParallel = 1,
+    MultiAgentDebate = 2
+}
+
+/// <summary>
 /// Coordinates message sending, streaming, generation control, feedback, and editing.
 /// The coordinator owns the business logic; the ChatViewModel subscribes to events for
 /// UI state synchronization.
@@ -51,6 +61,17 @@ public interface IMessagingCoordinator
         string? systemPrompt,
         string? modelId,
         bool isResearchMode);
+
+    /// <summary>
+    /// Sends a user message using the selected generation/orchestration mode.
+    /// </summary>
+    Task<SendMessageResult> SendMessageAsync(
+        string userContent,
+        long? conversationId,
+        string? systemPrompt,
+        string? modelId,
+        bool isResearchMode,
+        ChatOrchestrationMode orchestrationMode);
 
     /// <summary>
     /// Stops the current generation.

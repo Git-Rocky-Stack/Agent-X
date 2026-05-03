@@ -298,6 +298,47 @@ public sealed class ChatViewModelTests
     }
 
     [Fact]
+    public async Task SendMessageAsync_WithMultiAgentMode_RoutesThroughOrchestrationMode()
+    {
+        _messagingCoordinator
+            .Setup(service => service.SendMessageAsync(
+                "How should I proceed?",
+                42,
+                null,
+                null,
+                false,
+                ChatOrchestrationMode.MultiAgentParallel))
+            .ReturnsAsync(new SendMessageResult
+            {
+                ConversationId = 42,
+                ResponseContent = "# Multi-Agent Synthesis",
+                TokenCount = 32,
+                GenerationTimeMs = 75
+            });
+
+        var viewModel = CreateViewModel();
+        viewModel.ActiveConversationId = 42;
+        viewModel.OrchestrationMode = ChatOrchestrationMode.MultiAgentParallel;
+        viewModel.UserInput = "How should I proceed?";
+
+        await viewModel.SendMessageCommand.ExecuteAsync(null);
+
+        _messagingCoordinator.Verify(service => service.SendMessageAsync(
+            "How should I proceed?",
+            42,
+            null,
+            null,
+            false,
+            ChatOrchestrationMode.MultiAgentParallel), Times.Once);
+        _messagingCoordinator.Verify(service => service.SendMessageAsync(
+            It.IsAny<string>(),
+            It.IsAny<long?>(),
+            It.IsAny<string?>(),
+            It.IsAny<string?>(),
+            It.IsAny<bool>()), Times.Never);
+    }
+
+    [Fact]
     public async Task SelectConversationAsync_ReappliesInlineContextNoteForAssistantMessageInSameSession()
     {
         var snapshot = CreateInspectionSnapshot(42);

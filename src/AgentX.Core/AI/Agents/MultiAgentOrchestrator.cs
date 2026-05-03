@@ -12,6 +12,70 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
 {
     private readonly IAiService _aiService;
     private readonly ILogger _log;
+    private static readonly char[] SentenceTerminators = ['.', '!', '?'];
+    private static readonly char[] WordSeparators = [' ', '\r', '\n', '\t', ',', ';', ':', '(', ')', '[', ']', '{', '}', '"', '\''];
+    private static readonly string[] ContrastMarkers =
+    [
+        " however ",
+        " but ",
+        " risk ",
+        " risks ",
+        " concern ",
+        " concerns ",
+        " avoid ",
+        " delay ",
+        " delaying ",
+        " disagree ",
+        " trade-off ",
+        " tradeoff ",
+        " only ",
+        " unless "
+    ];
+    private static readonly HashSet<string> StopWords = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "about",
+        "after",
+        "again",
+        "agent",
+        "agents",
+        "also",
+        "and",
+        "are",
+        "because",
+        "been",
+        "being",
+        "can",
+        "could",
+        "each",
+        "for",
+        "from",
+        "has",
+        "have",
+        "into",
+        "must",
+        "need",
+        "needs",
+        "not",
+        "only",
+        "out",
+        "over",
+        "plan",
+        "recommend",
+        "should",
+        "task",
+        "that",
+        "the",
+        "their",
+        "then",
+        "there",
+        "this",
+        "until",
+        "use",
+        "user",
+        "users",
+        "with",
+        "would"
+    };
 
     public MultiAgentOrchestrator(IAiService aiService, ILogger logger)
     {
@@ -52,7 +116,8 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
                 case OrchestratorStrategy.Debate:
                     var debateResult = await RunDebateAsync(task, agents, rounds: 2, ct);
                     result.FinalAnswer = debateResult.Synthesis;
-                    result.IsSuccess = !string.IsNullOrEmpty(debateResult.Synthesis);
+                    result.IsSuccess = debateResult.Rounds.Any(round => round.Positions.Count > 0) &&
+                                       !string.IsNullOrEmpty(debateResult.Synthesis);
                     break;
 
                 case OrchestratorStrategy.DivideAndConquer:
@@ -237,7 +302,7 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
             Strategy = OrchestratorStrategy.Parallel,
             FinalAnswer = parallelResult.CombinedOutput,
             Contributions = parallelResult.Outputs,
-            IsSuccess = !string.IsNullOrEmpty(parallelResult.CombinedOutput)
+            IsSuccess = parallelResult.Outputs.Count > 0 && !string.IsNullOrEmpty(parallelResult.CombinedOutput)
         };
     }
 
@@ -415,9 +480,17 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
     {
         ct.ThrowIfCancellationRequested();
 
-        // For now, just concatenate. In a full implementation, this would use AI to synthesize
-        var combined = string.Join("\n\n---\n\n", outputs.Select(o => $"[{o.Agent.Name}]\n{o.Output}"));
-        return Task.FromResult((combined, (string?)null, new List<string>()));
+        if (outputs.Count == 0)
+        {
+            return Task.FromResult(("No agents returned a usable output.", (string?)null, new List<string>()));
+        }
+
+        var texts = outputs.Select(output => output.Output).ToList();
+        var consensus = BuildConsensusSummary(texts, minimumSources: outputs.Count > 1 ? 2 : 1);
+        var disagreements = ExtractTensions(outputs).ToList();
+        var combined = BuildParallelSynthesis(task, outputs, consensus, disagreements);
+
+        return Task.FromResult((combined, (string?)consensus, disagreements));
     }
 
     private static string BuildDebatePrompt(string topic, AgentRole agent, string previousContext, IReadOnlyList<AgentRole> allAgents)
@@ -448,31 +521,74 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
     {
         ct.ThrowIfCancellationRequested();
 
-        // This would use AI to synthesize - for now returning a placeholder
-        var sb = new StringBuilder();
-        sb.AppendLine($"Debate on: {topic}");
-        sb.AppendLine($"Rounds: {result.Rounds.Count}");
-        sb.AppendLine("Key positions:");
-        foreach (var round in result.Rounds)
+        var positions = result.Rounds
+            .SelectMany(round => round.Positions.Select(position => (round.RoundNumber, position)))
+            .ToList();
+
+        if (positions.Count == 0)
         {
-            foreach (var pos in round.Positions)
+            return Task.FromResult($"# Debate Synthesis\n\nTopic: {topic}\n\nNo debate positions were produced.");
+        }
+
+        var consensus = BuildConsensusSummary(
+            positions.Select(item => item.position.Argument),
+            minimumSources: positions.Count > 1 ? 2 : 1);
+        var latestRound = result.Rounds.LastOrDefault()?.Positions ?? [];
+        var disagreements = ExtractTensions(latestRound.Select(position => new AgentContribution
+        {
+            Agent = position.Agent,
+            Output = position.Argument,
+        })).ToList();
+
+        var sb = new StringBuilder();
+        sb.AppendLine("# Debate Synthesis");
+        sb.AppendLine();
+        sb.AppendLine($"Topic: {topic}");
+        sb.AppendLine($"Rounds analyzed: {result.Rounds.Count}");
+        sb.AppendLine();
+        sb.AppendLine("## Consensus");
+        sb.AppendLine(consensus);
+        sb.AppendLine();
+        sb.AppendLine("## Open Disagreements");
+        if (disagreements.Count == 0)
+        {
+            sb.AppendLine("- No material disagreement remained in the final round.");
+        }
+        else
+        {
+            foreach (var disagreement in disagreements)
             {
-                sb.AppendLine($"- {pos.Agent.Name}: {pos.Argument.Truncate(100)}...");
+                sb.AppendLine($"- {disagreement}");
             }
         }
+        sb.AppendLine();
+        sb.AppendLine("## Position Evolution");
+        foreach (var (roundNumber, position) in positions)
+        {
+            sb.AppendLine($"- Round {roundNumber}, {position.Agent.Name}: {SummarizeSentence(position.Argument)}");
+        }
+        sb.AppendLine();
+        sb.AppendLine("## Final Perspective");
+        sb.AppendLine(BuildFinalPerspective(latestRound, consensus));
+
         return Task.FromResult(sb.ToString());
     }
 
     private static string? IdentifyWinningPerspective(DebateResult result)
     {
-        // Simple heuristic - in a full implementation, this would use more sophisticated analysis
         if (result.Rounds.Count == 0) return null;
-        return result.Rounds[^1].Positions.FirstOrDefault()?.Agent.Name;
+
+        return result.Rounds[^1].Positions
+            .OrderByDescending(position => ScoreDebatePosition(position.Argument))
+            .ThenBy(position => position.Agent.Name, StringComparer.Ordinal)
+            .FirstOrDefault()
+            ?.Agent
+            .Name;
     }
 
     private static List<string> ParseSubTasks(string division)
     {
-        // Simple parsing - in production, use structured output
+        // Accept the common bullet and numbered formats returned by the task planner prompt.
         var subTasks = new List<string>();
         var lines = division.Split('\n');
         var currentTask = new StringBuilder();
@@ -500,5 +616,234 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
         }
 
         return subTasks.Count > 0 ? subTasks : new List<string> { division };
+    }
+
+    private static string BuildParallelSynthesis(
+        string task,
+        IReadOnlyList<AgentContribution> outputs,
+        string consensus,
+        IReadOnlyList<string> disagreements)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("# Multi-Agent Synthesis");
+        sb.AppendLine();
+        sb.AppendLine($"Task: {task}");
+        sb.AppendLine();
+        sb.AppendLine("## Consensus");
+        sb.AppendLine(consensus);
+        sb.AppendLine();
+        sb.AppendLine("## Trade-offs and Disagreements");
+        if (disagreements.Count == 0)
+        {
+            sb.AppendLine("- No material disagreement was detected across the agent outputs.");
+        }
+        else
+        {
+            foreach (var disagreement in disagreements)
+            {
+                sb.AppendLine($"- {disagreement}");
+            }
+        }
+        sb.AppendLine();
+        sb.AppendLine("## Agent Contributions");
+        foreach (var output in outputs)
+        {
+            sb.AppendLine($"### {output.Agent.Name}");
+            sb.AppendLine(output.Output.Trim());
+            sb.AppendLine();
+        }
+
+        return sb.ToString().TrimEnd();
+    }
+
+    private static string BuildConsensusSummary(IEnumerable<string> texts, int minimumSources)
+    {
+        var textList = texts.Where(text => !string.IsNullOrWhiteSpace(text)).ToList();
+        if (textList.Count == 0)
+        {
+            return "No usable agent content was available to synthesize.";
+        }
+
+        var sharedPhrases = ExtractSharedPhrases(textList, minimumSources).Take(5).ToList();
+        var representativeSentence = SummarizeSentence(FindRepresentativeConsensusSentence(textList, sharedPhrases));
+
+        if (sharedPhrases.Count > 0)
+        {
+            return $"The agents converge on {FormatPhraseList(sharedPhrases)}. {representativeSentence}";
+        }
+
+        return $"The agents did not repeat a single phrase, but their outputs form a compatible direction. {representativeSentence}";
+    }
+
+    private static IEnumerable<string> ExtractSharedPhrases(IReadOnlyList<string> texts, int minimumSources)
+    {
+        var phraseCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var firstSeen = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var sourceIndex = 0;
+
+        foreach (var text in texts)
+        {
+            var phrasesForSource = ExtractPhrases(text).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            foreach (var phrase in phrasesForSource)
+            {
+                phraseCounts[phrase] = phraseCounts.TryGetValue(phrase, out var count) ? count + 1 : 1;
+                firstSeen.TryAdd(phrase, sourceIndex);
+            }
+
+            sourceIndex++;
+        }
+
+        return phraseCounts
+            .Where(pair => pair.Value >= Math.Max(1, minimumSources))
+            .OrderByDescending(pair => pair.Value)
+            .ThenBy(pair => firstSeen[pair.Key])
+            .ThenBy(pair => pair.Key, StringComparer.Ordinal)
+            .Select(pair => pair.Key);
+    }
+
+    private static IEnumerable<string> ExtractPhrases(string text)
+    {
+        var tokens = Tokenize(text).ToList();
+        for (var i = 0; i < tokens.Count - 1; i++)
+        {
+            yield return $"{tokens[i]} {tokens[i + 1]}";
+        }
+
+        for (var i = 0; i < tokens.Count - 2; i++)
+        {
+            yield return $"{tokens[i]} {tokens[i + 1]} {tokens[i + 2]}";
+        }
+    }
+
+    private static IEnumerable<string> Tokenize(string text)
+    {
+        return text
+            .ToLowerInvariant()
+            .Split(WordSeparators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(token => token.Trim('.', '!', '?', '-', '/'))
+            .Where(token => token.Length > 2 && !StopWords.Contains(token));
+    }
+
+    private static IEnumerable<string> ExtractTensions(IEnumerable<AgentContribution> outputs)
+    {
+        var tensions = new List<string>();
+        foreach (var output in outputs)
+        {
+            var sentence = ExtractSentences(output.Output)
+                .FirstOrDefault(ContainsContrastMarker);
+            if (!string.IsNullOrWhiteSpace(sentence))
+            {
+                tensions.Add($"{output.Agent.Name}: {NormalizeSentence(sentence)}");
+            }
+        }
+
+        return tensions.Count > 0
+            ? tensions.Distinct(StringComparer.Ordinal).Take(6)
+            : outputs.Select(output => $"{output.Agent.Name}: Emphasized {SummarizeSentence(output.Output)}")
+                .Distinct(StringComparer.Ordinal)
+                .Take(3);
+    }
+
+    private static bool ContainsContrastMarker(string sentence)
+    {
+        var normalized = $" {sentence.ToLowerInvariant()} ";
+        return ContrastMarkers.Any(marker => normalized.Contains(marker, StringComparison.Ordinal));
+    }
+
+    private static string FindRepresentativeConsensusSentence(IReadOnlyList<string> texts, IReadOnlyList<string> sharedPhrases)
+    {
+        if (sharedPhrases.Count > 0)
+        {
+            foreach (var phrase in sharedPhrases)
+            {
+                var sentence = texts
+                    .SelectMany(ExtractSentences)
+                    .FirstOrDefault(candidate => candidate.Contains(phrase, StringComparison.OrdinalIgnoreCase));
+                if (!string.IsNullOrWhiteSpace(sentence))
+                {
+                    return sentence;
+                }
+            }
+        }
+
+        return texts.SelectMany(ExtractSentences).FirstOrDefault() ?? texts[0];
+    }
+
+    private static IReadOnlyList<string> ExtractSentences(string text)
+    {
+        return text
+            .Split(SentenceTerminators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(sentence => !string.IsNullOrWhiteSpace(sentence))
+            .ToList();
+    }
+
+    private static string SummarizeSentence(string text)
+    {
+        var sentence = ExtractSentences(text).FirstOrDefault() ?? text;
+        return NormalizeSentence(sentence.Truncate(220));
+    }
+
+    private static string NormalizeSentence(string sentence)
+    {
+        var collapsed = string.Join(
+            " ",
+            sentence.Split([' ', '\r', '\n', '\t'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+
+        if (collapsed.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        return SentenceTerminators.Contains(collapsed[^1]) ? collapsed : $"{collapsed}.";
+    }
+
+    private static string FormatPhraseList(IReadOnlyList<string> phrases)
+    {
+        return phrases.Count switch
+        {
+            0 => "the same direction",
+            1 => phrases[0],
+            2 => $"{phrases[0]} and {phrases[1]}",
+            _ => $"{string.Join(", ", phrases.Take(phrases.Count - 1))}, and {phrases[^1]}"
+        };
+    }
+
+    private static string BuildFinalPerspective(IReadOnlyList<DebatePosition> latestRound, string consensus)
+    {
+        if (latestRound.Count == 0)
+        {
+            return consensus;
+        }
+
+        var strongest = latestRound
+            .OrderByDescending(position => ScoreDebatePosition(position.Argument))
+            .ThenBy(position => position.Agent.Name, StringComparer.Ordinal)
+            .First();
+
+        return $"{consensus} The strongest final position came from {strongest.Agent.Name}: {SummarizeSentence(strongest.Argument)}";
+    }
+
+    private static int ScoreDebatePosition(string argument)
+    {
+        var normalized = $" {argument.ToLowerInvariant()} ";
+        var score = Math.Min(argument.Length / 40, 8);
+
+        foreach (var marker in new[] { " agree ", " support ", " recommend ", " because ", " consent ", " audit ", " mitigate ", " control " })
+        {
+            if (normalized.Contains(marker, StringComparison.Ordinal))
+            {
+                score += 2;
+            }
+        }
+
+        foreach (var marker in new[] { " risk ", " however ", " but ", " disagree " })
+        {
+            if (normalized.Contains(marker, StringComparison.Ordinal))
+            {
+                score += 1;
+            }
+        }
+
+        return score;
     }
 }

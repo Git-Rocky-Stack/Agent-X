@@ -77,6 +77,35 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void ToggleResearchMode() => IsResearchMode = !IsResearchMode;
 
+    // ── Orchestration Mode ───────────────────────────────────────
+    [ObservableProperty] private ChatOrchestrationMode _orchestrationMode = ChatOrchestrationMode.Standard;
+
+    public int OrchestrationModeIndex
+    {
+        get => (int)OrchestrationMode;
+        set
+        {
+            var normalizedMode = value switch
+            {
+                1 => ChatOrchestrationMode.MultiAgentParallel,
+                2 => ChatOrchestrationMode.MultiAgentDebate,
+                _ => ChatOrchestrationMode.Standard
+            };
+
+            if (OrchestrationMode != normalizedMode)
+            {
+                OrchestrationMode = normalizedMode;
+            }
+        }
+    }
+
+    public string OrchestrationModeTooltip => OrchestrationMode switch
+    {
+        ChatOrchestrationMode.MultiAgentParallel => "Multi-agent parallel mode — researcher, critic, and synthesizer respond together",
+        ChatOrchestrationMode.MultiAgentDebate => "Multi-agent debate mode — agents challenge positions before the final synthesis",
+        _ => "Solo mode — standard Agent-X chat response"
+    };
+
     // ── Search ─────────────────────────────────────────────────
     [ObservableProperty] private string _conversationSearchQuery = string.Empty;
 
@@ -634,6 +663,12 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     partial void OnConversationSummaryRefreshErrorChanged(string value)
         => NotifyConversationSummaryRefreshStateChanged();
 
+    partial void OnOrchestrationModeChanged(ChatOrchestrationMode value)
+    {
+        OnPropertyChanged(nameof(OrchestrationModeIndex));
+        OnPropertyChanged(nameof(OrchestrationModeTooltip));
+    }
+
     partial void OnContextStoryTextChanged(string value)
         => OnPropertyChanged(nameof(HasContextStory));
 
@@ -677,9 +712,13 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         IsGenerating = true;
 
         // Delegate to messaging coordinator
-        var result = await _messagingCoordinator.SendMessageAsync(
-            userContent, ActiveConversationId, ActiveSystemPrompt,
-            _aiService.ActiveModelId, IsResearchMode);
+        var result = OrchestrationMode == ChatOrchestrationMode.Standard
+            ? await _messagingCoordinator.SendMessageAsync(
+                userContent, ActiveConversationId, ActiveSystemPrompt,
+                _aiService.ActiveModelId, IsResearchMode)
+            : await _messagingCoordinator.SendMessageAsync(
+                userContent, ActiveConversationId, ActiveSystemPrompt,
+                _aiService.ActiveModelId, IsResearchMode, OrchestrationMode);
 
         if (result.ContextInspection is not null)
         {

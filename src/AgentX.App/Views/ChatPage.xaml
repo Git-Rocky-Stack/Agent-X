@@ -1389,6 +1389,7 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
                         <!-- Multi-line input TextBox -->
@@ -1472,8 +1473,38 @@
                                       Foreground="{StaticResource TextSecondaryBrush}" />
                         </ToggleButton>
 
+                        <ComboBox Grid.Column="4"
+                                  MinHeight="44"
+                                  MinWidth="124"
+                                  MaxWidth="148"
+                                  SelectedIndex="{x:Bind ViewModel.OrchestrationModeIndex, Mode=TwoWay}"
+                                  ToolTipService.ToolTip="{x:Bind ViewModel.OrchestrationModeTooltip, Mode=OneWay}"
+                                  VerticalAlignment="Bottom">
+                            <ComboBoxItem>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE77B;" FontSize="12"
+                                              Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <TextBlock Text="Solo" Style="{StaticResource CaptionStyle}" />
+                                </StackPanel>
+                            </ComboBoxItem>
+                            <ComboBoxItem>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE8FD;" FontSize="12"
+                                              Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <TextBlock Text="Multi" Style="{StaticResource CaptionStyle}" />
+                                </StackPanel>
+                            </ComboBoxItem>
+                            <ComboBoxItem>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE8F2;" FontSize="12"
+                                              Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <TextBlock Text="Debate" Style="{StaticResource CaptionStyle}" />
+                                </StackPanel>
+                            </ComboBoxItem>
+                        </ComboBox>
+
                         <!-- Action buttons stack -->
-                        <StackPanel Grid.Column="4"
+                        <StackPanel Grid.Column="5"
                                     Spacing="4"
                                     VerticalAlignment="Bottom"
                                     Margin="0,0,0,2">
