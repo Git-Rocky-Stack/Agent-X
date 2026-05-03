@@ -308,7 +308,10 @@ public sealed class OAuthService : IOAuthService, IDisposable
                 _log.Information("Access token for {Provider} expires at {Expiry} (within {Buffer} min buffer), refreshing",
                     provider, credential.TokenExpiry, RefreshBuffer.TotalMinutes);
 
-                var refreshed = await RefreshTokenAsync(provider);
+                // We already hold the provider refresh lock here. Calling the
+                // public RefreshTokenAsync path would try to re-enter the same
+                // SemaphoreSlim and deadlock.
+                var refreshed = await RefreshTokenInternalAsync(provider);
                 if (!refreshed)
                 {
                     throw new InvalidOperationException(

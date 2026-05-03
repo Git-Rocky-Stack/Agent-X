@@ -8,11 +8,11 @@ namespace AgentX.Tests.ViewModels;
 public class UserGuideViewModelTests
 {
     [Fact]
-    public void Initial_state_populates_all_20_sections()
+    public void Initial_state_populates_all_24_sections()
     {
         var sut = new UserGuideViewModel();
 
-        sut.Sections.Should().HaveCount(20);
+        sut.Sections.Should().HaveCount(24);
     }
 
     [Fact]
@@ -41,6 +41,10 @@ public class UserGuideViewModelTests
             "CollectionsTemplate",
             "KnowledgeGraphTemplate",
             "WeeklyDigestTemplate",
+            "TemporalIdentityTemplate",
+            "PastSelfTemplate",
+            "GenerativeIdentityTemplate",
+            "InsightHarvestingTemplate",
             "SemanticSearchTemplate",
             "ModelManagerTemplate",
             "HardwareAdvisorTemplate",
@@ -97,6 +101,6 @@ public class UserGuideViewModelTests
         var sut = new UserGuideViewModel();
 
         sut.Sections.Last().TemplateKey.Should().Be("GettingHelpTemplate");
-        sut.Sections.Last().DisplayOrder.Should().Be(20);
+        sut.Sections.Last().DisplayOrder.Should().Be(24);
     }
 }

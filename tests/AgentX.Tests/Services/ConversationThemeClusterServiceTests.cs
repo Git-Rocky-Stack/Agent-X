@@ -34,9 +34,10 @@ public sealed class ConversationThemeClusterServiceTests : IDisposable
     public async Task MaterializeConversationThemeAsync_groups_similar_snapshots_into_one_cluster()
     {
         using var db = _dbFactory.CreateContext();
+        var now = DateTime.UtcNow;
 
-        var analytics = await SeedConversationAsync(db, "Analytics rollout", new DateTime(2026, 4, 23, 9, 0, 0, DateTimeKind.Utc));
-        var recall = await SeedConversationAsync(db, "Recall health", new DateTime(2026, 4, 23, 10, 0, 0, DateTimeKind.Utc));
+        var analytics = await SeedConversationAsync(db, "Analytics rollout", now.AddHours(-2));
+        var recall = await SeedConversationAsync(db, "Recall health", now.AddHours(-1));
 
         await SeedLatestSnapshotAsync(
             db,
@@ -92,9 +93,10 @@ public sealed class ConversationThemeClusterServiceTests : IDisposable
     public async Task RefreshStaleClustersAsync_reassigns_membership_when_latest_snapshot_changes()
     {
         using var db = _dbFactory.CreateContext();
+        var now = DateTime.UtcNow;
 
-        var analytics = await SeedConversationAsync(db, "Analytics rollout", new DateTime(2026, 4, 23, 9, 0, 0, DateTimeKind.Utc));
-        var sync = await SeedConversationAsync(db, "Sync collections", new DateTime(2026, 4, 23, 11, 0, 0, DateTimeKind.Utc));
+        var analytics = await SeedConversationAsync(db, "Analytics rollout", now.AddHours(-3));
+        var sync = await SeedConversationAsync(db, "Sync collections", now.AddHours(-1));
 
         var analyticsSnapshotV1 = await SeedLatestSnapshotAsync(
             db,
@@ -144,7 +146,7 @@ public sealed class ConversationThemeClusterServiceTests : IDisposable
             summary: "The conversation has shifted to sync scope and collection cleanup.",
             preview: "Sync scope cleanup.",
             keyPointsJson: """["Sync scope","Collection picker"]""",
-            generatedAt: new DateTime(2026, 4, 23, 12, 0, 0, DateTimeKind.Utc));
+            generatedAt: now);
 
         var analyticsState = await db.ConversationSummaryStates.SingleAsync(item => item.ConversationId == analytics.Id);
         analyticsState.LatestSnapshotId = analyticsSnapshotV2.Id;

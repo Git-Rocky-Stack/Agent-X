@@ -157,7 +157,21 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     {
         try
         {
-            var connected = await _aiService.ActiveProvider.CheckConnectionAsync();
+            IAiProvider activeProvider;
+            try
+            {
+                activeProvider = _aiService.ActiveProvider;
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("not been initialized", StringComparison.OrdinalIgnoreCase))
+            {
+                Log.Debug("Dashboard AI status deferred until AI service initialization completes");
+                IsOllamaConnected = false;
+                ConnectionStatus = "AI service starting...";
+                ActiveModelName = "Initializing...";
+                return;
+            }
+
+            var connected = await activeProvider.CheckConnectionAsync();
             IsOllamaConnected = connected;
             ConnectionStatus = connected ? "Connected to Ollama" : "Ollama not detected";
             ActiveModelName = connected && !string.IsNullOrEmpty(_aiService.ActiveModelId)

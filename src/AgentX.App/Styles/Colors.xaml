@@ -97,6 +97,10 @@
     <Color x:Key="StatusInfo">#FF3B82F6</Color>
     <Color x:Key="StatusOnline">#FF10B981</Color>
     <Color x:Key="StatusOffline">#FF6B7280</Color>
+    <Color x:Key="StatusSuccessSubtle">#2622C55E</Color>
+    <Color x:Key="StatusWarningSubtle">#26F59E0B</Color>
+    <Color x:Key="StatusErrorSubtle">#26EF4444</Color>
+    <Color x:Key="StatusInfoSubtle">#263B82F6</Color>
 
     <!-- ═══════════════════════════════════════════════════════════════
          SEMANTIC BRUSH SYSTEM
@@ -215,6 +219,10 @@
     <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource StatusInfo}" />
     <SolidColorBrush x:Key="OnlineBrush" Color="{StaticResource StatusOnline}" />
     <SolidColorBrush x:Key="OfflineBrush" Color="{StaticResource StatusOffline}" />
+    <SolidColorBrush x:Key="SuccessSubtleBrush" Color="{StaticResource StatusSuccessSubtle}" />
+    <SolidColorBrush x:Key="WarningSubtleBrush" Color="{StaticResource StatusWarningSubtle}" />
+    <SolidColorBrush x:Key="ErrorSubtleBrush" Color="{StaticResource StatusErrorSubtle}" />
+    <SolidColorBrush x:Key="InfoSubtleBrush" Color="{StaticResource StatusInfoSubtle}" />
 
     <!-- Input Field Brushes -->
     <SolidColorBrush x:Key="InputBackgroundBrush" Color="{StaticResource Surface0}" />

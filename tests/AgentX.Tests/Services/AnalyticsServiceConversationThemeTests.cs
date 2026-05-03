@@ -21,10 +21,11 @@ public sealed class AnalyticsServiceConversationThemeTests : IDisposable
     public async Task GetConversationThemeOverviewAsync_returns_materialized_cluster_metrics()
     {
         using var db = _dbFactory.CreateContext();
+        var now = DateTime.UtcNow;
 
-        var alpha = await SeedConversationAsync(db, "Analytics roadmap", new DateTime(2026, 4, 23, 10, 0, 0, DateTimeKind.Utc));
-        var beta = await SeedConversationAsync(db, "Recall health", new DateTime(2026, 4, 23, 11, 0, 0, DateTimeKind.Utc));
-        var gamma = await SeedConversationAsync(db, "Sync cleanup", new DateTime(2026, 4, 12, 9, 0, 0, DateTimeKind.Utc));
+        var alpha = await SeedConversationAsync(db, "Analytics roadmap", now.AddHours(-3));
+        var beta = await SeedConversationAsync(db, "Recall health", now.AddHours(-2));
+        var gamma = await SeedConversationAsync(db, "Sync cleanup", now.AddDays(-10));
 
         var alphaSnapshot = await SeedSnapshotAsync(db, alpha.Id, 1, "Analytics summary", "Analytics preview", """["Analytics dashboard","Recall health"]""");
         var betaSnapshot = await SeedSnapshotAsync(db, beta.Id, 1, "Recall summary", "Recall preview", """["Recall health"]""");
@@ -38,9 +39,9 @@ public sealed class AnalyticsServiceConversationThemeTests : IDisposable
             ConversationCount = 2,
             ActiveConversationCount7d = 2,
             ActiveConversationCount30d = 2,
-            FirstSeenAt = new DateTime(2026, 4, 22, 9, 0, 0, DateTimeKind.Utc),
+            FirstSeenAt = now.AddDays(-1),
             LastActiveAt = beta.UpdatedAt,
-            MaterializedAt = new DateTime(2026, 4, 23, 11, 30, 0, DateTimeKind.Utc)
+            MaterializedAt = now.AddHours(-1)
         };
 
         var syncCluster = new ConversationThemeClusterEntity
@@ -51,9 +52,9 @@ public sealed class AnalyticsServiceConversationThemeTests : IDisposable
             ConversationCount = 1,
             ActiveConversationCount7d = 0,
             ActiveConversationCount30d = 1,
-            FirstSeenAt = new DateTime(2026, 4, 20, 9, 0, 0, DateTimeKind.Utc),
+            FirstSeenAt = now.AddDays(-2),
             LastActiveAt = gamma.UpdatedAt,
-            MaterializedAt = new DateTime(2026, 4, 21, 11, 30, 0, DateTimeKind.Utc)
+            MaterializedAt = now.AddHours(-4)
         };
 
         db.ConversationThemeClusters.AddRange(analyticsCluster, syncCluster);

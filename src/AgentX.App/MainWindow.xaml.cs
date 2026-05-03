@@ -76,6 +76,13 @@ public sealed partial class MainWindow : Window
 
         _navItemMap = BuildNavItemMap();
 
+        ContentFrame.NavigationFailed += (_, args) =>
+        {
+            Log.Fatal(args.Exception, "Navigation failed for source page {SourcePageType}", args.SourcePageType);
+            Log.CloseAndFlush();
+            args.Handled = true;
+        };
+
         // Initialize navigation service with XAML control references
         _navigationService.Initialize(PageMap, _navItemMap, ContentFrame, NavView);
 
@@ -141,8 +148,7 @@ public sealed partial class MainWindow : Window
     {
         var queued = DispatcherQueue.TryEnqueue(() =>
         {
-            Log.Debug("Navigating to Dashboard on startup");
-            ContentFrame.Navigate(typeof(Views.DashboardPage));
+            NavigateStartupPage(typeof(Views.DashboardPage), "Dashboard");
 
             // Check if onboarding is needed (first run)
             _ = CheckOnboardingAsync();
@@ -151,8 +157,23 @@ public sealed partial class MainWindow : Window
         if (!queued)
         {
             Log.Warning("Failed to queue startup navigation; navigating synchronously");
-            ContentFrame.Navigate(typeof(Views.DashboardPage));
+            NavigateStartupPage(typeof(Views.DashboardPage), "Dashboard");
             _ = CheckOnboardingAsync();
+        }
+    }
+
+    private void NavigateStartupPage(Type pageType, string pageName)
+    {
+        try
+        {
+            Log.Debug("Navigating to {PageName} on startup", pageName);
+            ContentFrame.Navigate(pageType);
+            Log.Debug("Startup navigation to {PageName} completed", pageName);
+        }
+        catch (Exception ex)
+        {
+            Log.Fatal(ex, "Startup navigation to {PageName} failed", pageName);
+            Log.CloseAndFlush();
         }
     }
 

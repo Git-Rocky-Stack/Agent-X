@@ -133,9 +133,12 @@ namespace AgentX.Core.Data.Migrations
                 {
                     Id = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
+                    BeliefId = table.Column<long>(type: "INTEGER", nullable: false),
                     Topic = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
                     PreviousStance = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: false),
                     CurrentStance = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: false),
+                    PreviousStancePeriod = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    StanceChangedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     ConflictMagnitude = table.Column<double>(type: "REAL", nullable: false),
                     DetectedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     HasBeenAcknowledged = table.Column<bool>(type: "INTEGER", nullable: false),
@@ -147,12 +150,23 @@ namespace AgentX.Core.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_belief_conflicts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_belief_conflicts_temporal_beliefs_BeliefId",
+                        column: x => x.BeliefId,
+                        principalTable: "temporal_beliefs",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_belief_conflicts_Topic",
+                name: "IX_belief_conflicts_BeliefId",
                 table: "belief_conflicts",
-                column: "Topic");
+                column: "BeliefId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_belief_conflicts_DetectedAt",
+                table: "belief_conflicts",
+                column: "DetectedAt");
 
             migrationBuilder.CreateIndex(
                 name: "IX_belief_conflicts_HasBeenAcknowledged",

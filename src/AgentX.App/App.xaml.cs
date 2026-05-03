@@ -262,6 +262,7 @@ public partial class App : Application
                              AgentX.Core.Data.EncryptedConnectionFactory>();
         services.AddSingleton<AgentX.Core.Services.Security.IDatabaseKeyService,
                              AgentX.Core.Services.Security.DatabaseKeyService>();
+        services.AddSingleton<IDatabaseEncryptionMigrator, DatabaseEncryptionMigrator>();
         services.AddSingleton<AgentX.Core.Services.Security.IEncryptionStateFile,
                              AgentX.Core.Services.Security.EncryptionStateFile>();
         services.AddSingleton<ISecurityStatusService, SecurityStatusService>();
@@ -711,11 +712,13 @@ public partial class App : Application
 
     private static void ConfigureLogging()
     {
-        var logPath = Path.Combine(
+        var logDirectory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "AgentX", "Logs", "agentx-.log");
+            "AgentX", "Logs");
+        var logPath = Path.Combine(logDirectory, "agentx-.log");
+        var currentLogPath = Path.Combine(logDirectory, $"agentx-{DateTime.Now:yyyyMMdd}.log");
 
-        Directory.CreateDirectory(Path.GetDirectoryName(logPath)!);
+        Directory.CreateDirectory(logDirectory);
 
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
@@ -728,7 +731,7 @@ public partial class App : Application
             .Enrich.WithProperty("Application", "AgentX")
             .CreateLogger();
 
-        Log.Information("Agent-X logging initialized at {LogPath}", logPath);
+        Log.Information("Agent-X logging initialized at {LogPath}", currentLogPath);
     }
 
     private void ConfigureExceptionHandling()

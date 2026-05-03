@@ -302,4 +302,67 @@
   <data name="UserGuide_GettingHelp_Docs_Description.Text" xml:space="preserve"><value>Full online documentation, tutorials, and API reference.</value></data>
   <data name="UserGuide_GettingHelp_Footer1.Text" xml:space="preserve"><value>Agent-X by Strategia</value></data>
   <data name="UserGuide_GettingHelp_Footer2.Text" xml:space="preserve"><value>Local-first AI for everyone</value></data>
+
+  <data name="UserGuide_TemporalIdentity_Title.Text" xml:space="preserve"><value>Temporal Identity Coherence</value></data>
+  <data name="UserGuide_TemporalIdentity_Description.Text" xml:space="preserve"><value>Your thoughts and beliefs evolve over time. Agent-X tracks this evolution, creating a temporal map of your intellectual journey. The system learns from every conversation, capturing insights and detecting when new ideas conflict with your past self - giving you the power to see how your thinking has changed and even query past versions of yourself.</value></data>
+  <data name="UserGuide_TemporalIdentity_Tracking_Title.Text" xml:space="preserve"><value>What It Tracks</value></data>
+  <data name="UserGuide_TemporalIdentity_Tracking1.Text" xml:space="preserve"><value>Beliefs - Persistent opinions, positions, and convictions you express across conversations.</value></data>
+  <data name="UserGuide_TemporalIdentity_Tracking2.Text" xml:space="preserve"><value>Insights - Breakthrough moments, realizations, and novel ideas the system detects in your writing.</value></data>
+  <data name="UserGuide_TemporalIdentity_Tracking3.Text" xml:space="preserve"><value>Voice Patterns - Your unique writing style, vocabulary, and communication preferences.</value></data>
+  <data name="UserGuide_TemporalIdentity_Tracking4.Text" xml:space="preserve"><value>Temporal Changes - How your thinking shifts over weeks and months.</value></data>
+  <data name="UserGuide_TemporalIdentity_BeliefEvolution_Title.Text" xml:space="preserve"><value>Belief Evolution Timeline</value></data>
+  <data name="UserGuide_TemporalIdentity_BeliefEvolution_Description.Text" xml:space="preserve"><value>As you converse with Agent-X, the system identifies statements that express beliefs or opinions. These are captured with timestamps, creating an evolution timeline. On the Past Self page, you can see exactly what you believed at any point in time and trace how your views have changed.</value></data>
+  <data name="UserGuide_TemporalIdentity_Conflicts_Title.Text" xml:space="preserve"><value>Conflict Detection</value></data>
+  <data name="UserGuide_TemporalIdentity_Conflicts_Description.Text" xml:space="preserve"><value>When a new statement contradicts your past beliefs, Agent-X identifies the conflict. These are surfaced on the Dashboard so you can reflect on what changed your mind.</value></data>
+  <data name="UserGuide_TemporalIdentity_Conflicts1.Text" xml:space="preserve"><value>Conflicts are opportunities for reflection - they mark moments of growth, learning, or shifts in perspective.</value></data>
+  <data name="UserGuide_TemporalIdentity_Conflicts2.Text" xml:space="preserve"><value>Each conflict shows your past belief, your new position, and the conversation where the change occurred.</value></data>
+  <data name="UserGuide_PastSelf_Title.Text" xml:space="preserve"><value>Past Self</value></data>
+  <data name="UserGuide_PastSelf_Description.Text" xml:space="preserve"><value>The Past Self feature is a time machine for your ideas. Query conversations from specific time periods to understand what you thought, believed, or cared about at that moment. It is like having a conversation with your past self.</value></data>
+  <data name="UserGuide_PastSelf_Timeline_Title.Text" xml:space="preserve"><value>Timeline Navigation</value></data>
+  <data name="UserGuide_PastSelf_Timeline_Description.Text" xml:space="preserve"><value>The Past Self page displays your conversational history as a timeline. Each point represents a snapshot of your thinking at that moment.</value></data>
+  <data name="UserGuide_PastSelf_Timeline1.Text" xml:space="preserve"><value>Select any point on the timeline to filter conversations to that time period.</value></data>
+  <data name="UserGuide_PastSelf_Timeline2.Text" xml:space="preserve"><value>Scroll through months of conversations to see the ebb and flow of your interests and focus areas.</value></data>
+  <data name="UserGuide_PastSelf_Timeline3.Text" xml:space="preserve"><value>Compare beliefs across time by selecting different points and observing how positions have shifted.</value></data>
+  <data name="UserGuide_PastSelf_Querying_Title.Text" xml:space="preserve"><value>Querying Past Self</value></data>
+  <data name="UserGuide_PastSelf_Querying_Description.Text" xml:space="preserve"><value>Ask natural language questions about your past thinking. The system searches only within the selected time window, giving you answers from that specific version of yourself.</value></data>
+  <data name="UserGuide_PastSelf_QueryExample_Label.Text" xml:space="preserve"><value>Example query:</value></data>
+  <data name="UserGuide_PastSelf_UseCases_Title.Text" xml:space="preserve"><value>Use Cases</value></data>
+  <data name="UserGuide_PastSelf_UseCase1_Title.Text" xml:space="preserve"><value>Intellectual Archaeology</value></data>
+  <data name="UserGuide_PastSelf_UseCase1_Description.Text" xml:space="preserve"><value>Rediscover ideas you had forgotten or trace the origin of current beliefs.</value></data>
+  <data name="UserGuide_PastSelf_UseCase2_Title.Text" xml:space="preserve"><value>Decision Review</value></data>
+  <data name="UserGuide_PastSelf_UseCase2_Description.Text" xml:space="preserve"><value>Examine the reasoning behind past decisions by reading your thoughts from that time.</value></data>
+  <data name="UserGuide_PastSelf_UseCase3_Title.Text" xml:space="preserve"><value>Consistency Check</value></data>
+  <data name="UserGuide_PastSelf_UseCase3_Description.Text" xml:space="preserve"><value>Verify whether your current actions align with what you believed in the past.</value></data>
+  <data name="UserGuide_PastSelf_UseCase4_Title.Text" xml:space="preserve"><value>Growth Tracking</value></data>
+  <data name="UserGuide_PastSelf_UseCase4_Description.Text" xml:space="preserve"><value>See how your thinking has matured or changed over months of exploration.</value></data>
+  <data name="UserGuide_GenerativeIdentity_Title.Text" xml:space="preserve"><value>Generative Identity: Draft As Me</value></data>
+  <data name="UserGuide_GenerativeIdentity_Description.Text" xml:space="preserve"><value>Draft As Me transforms how you write. Instead of writing from scratch, provide a topic and let Agent-X generate text in your voice - drawing on your unique writing style, vocabulary preferences, and communication patterns learned from your entire conversation history. The result is a first draft that sounds like you, ready for review and refinement.</value></data>
+  <data name="UserGuide_GenerativeIdentity_HowItWorks_Title.Text" xml:space="preserve"><value>How It Works</value></data>
+  <data name="UserGuide_GenerativeIdentity_Step1.Text" xml:space="preserve"><value>Agent-X analyzes your writing across all conversations to build a voice profile: sentence structure, word choice, tone, and idioms.</value></data>
+  <data name="UserGuide_GenerativeIdentity_Step2.Text" xml:space="preserve"><value>When you request a draft, the system uses your voice profile as a style guide for generation.</value></data>
+  <data name="UserGuide_GenerativeIdentity_Step3.Text" xml:space="preserve"><value>The generated text is injected into the chat, ready for you to edit, refine, or use as-is.</value></data>
+  <data name="UserGuide_GenerativeIdentity_Voice_Title.Text" xml:space="preserve"><value>Voice Analysis</value></data>
+  <data name="UserGuide_GenerativeIdentity_Voice_Description.Text" xml:space="preserve"><value>Your voice profile is built from patterns extracted from your messages:</value></data>
+  <data name="UserGuide_GenerativeIdentity_Voice1.Text" xml:space="preserve"><value>Sentence patterns - Average length, use of complex vs simple sentences, and punctuation habits.</value></data>
+  <data name="UserGuide_GenerativeIdentity_Voice2.Text" xml:space="preserve"><value>Vocabulary - Favorite words, phrases you use frequently, and domain-specific terminology.</value></data>
+  <data name="UserGuide_GenerativeIdentity_Voice3.Text" xml:space="preserve"><value>Tone and formality - Whether you tend to be casual, professional, concise, or elaborative.</value></data>
+  <data name="UserGuide_GenerativeIdentity_Access_Title.Text" xml:space="preserve"><value>Accessing Draft As Me</value></data>
+  <data name="UserGuide_GenerativeIdentity_Access_Description.Text" xml:space="preserve"><value>The Draft As Me feature is available in the Past Self page:</value></data>
+  <data name="UserGuide_GenerativeIdentity_Access1.Text" xml:space="preserve"><value>Enter your topic or prompt in the Draft As Me panel.</value></data>
+  <data name="UserGuide_GenerativeIdentity_Access2.Text" xml:space="preserve"><value>Click Generate to create a draft written in your voice.</value></data>
+  <data name="UserGuide_InsightHarvesting_Title.Text" xml:space="preserve"><value>Insight Harvesting</value></data>
+  <data name="UserGuide_InsightHarvesting_Description.Text" xml:space="preserve"><value>Breakthrough moments happen unexpectedly - a new connection, a sudden realization, a novel idea. Insight Harvesting automatically detects these moments in your conversations and preserves them as insight cards, ensuring your best ideas are never lost to time.</value></data>
+  <data name="UserGuide_InsightHarvesting_Automatic_Title.Text" xml:space="preserve"><value>Automatic Detection</value></data>
+  <data name="UserGuide_InsightHarvesting_Automatic_Description.Text" xml:space="preserve"><value>After each conversation, Agent-X analyzes the exchange for markers of insight:</value></data>
+  <data name="UserGuide_InsightHarvesting_Automatic1.Text" xml:space="preserve"><value>Novel connections - When you relate two previously unrelated concepts.</value></data>
+  <data name="UserGuide_InsightHarvesting_Automatic2.Text" xml:space="preserve"><value>Realization language - Phrases like "I just realized," "The key insight is," "That changes everything."</value></data>
+  <data name="UserGuide_InsightHarvesting_Automatic3.Text" xml:space="preserve"><value>Synthesis moments - When complex ideas are condensed into clear, actionable understanding.</value></data>
+  <data name="UserGuide_InsightHarvesting_Cards_Title.Text" xml:space="preserve"><value>Insight Cards</value></data>
+  <data name="UserGuide_InsightHarvesting_Cards_Description.Text" xml:space="preserve"><value>Each detected insight becomes a card with:</value></data>
+  <data name="UserGuide_InsightHarvesting_CardExample_Title.Text" xml:space="preserve"><value>"Productivity is not about doing more - it is about doing less of what does not matter."</value></data>
+  <data name="UserGuide_InsightHarvesting_CardExample_Content.Text" xml:space="preserve"><value>Detected in conversation about time management. June 15, 2025.</value></data>
+  <data name="UserGuide_InsightHarvesting_Managing_Title.Text" xml:space="preserve"><value>Managing Insights</value></data>
+  <data name="UserGuide_InsightHarvesting_Managing1.Text" xml:space="preserve"><value>View all insights on the Dashboard or Past Self page, sorted by recency.</value></data>
+  <data name="UserGuide_InsightHarvesting_Managing2.Text" xml:space="preserve"><value>Click any insight card to jump to the original conversation context.</value></data>
+  <data name="UserGuide_InsightHarvesting_Managing3.Text" xml:space="preserve"><value>Dismiss or keep insights - dismissed insights will not be shown again.</value></data>
 </root>

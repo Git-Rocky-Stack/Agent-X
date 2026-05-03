@@ -48,4 +48,13 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
+  <Target Name="ExcludePlaywrightRuntimeFilesFromPriIndex" BeforeTargets="_GenerateProjectPriConfigurationFiles">
+    <ItemGroup>
+      <PriOutputs Remove="$(OutputPath).playwright\**" />
+      <PriOutputs Remove="$(OutDir).playwright\**" />
+      <PriOutputs Remove="@(PriOutputs)" Condition="$([System.String]::Copy('%(PriOutputs.Identity)').ToLowerInvariant().Contains('.playwright'))" />
+      <PriOutputs Remove="@(PriOutputs)" Condition="$([System.String]::Copy('%(PriOutputs.TargetPath)').ToLowerInvariant().StartsWith('.playwright'))" />
+    </ItemGroup>
+  </Target>
 </Project>

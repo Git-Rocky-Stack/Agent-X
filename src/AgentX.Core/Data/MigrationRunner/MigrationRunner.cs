@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -105,6 +106,60 @@ public sealed class MigrationRunner : IMigrationRunner
         """CREATE INDEX IF NOT EXISTS "IX_workflow_steps_WorkflowId_StepOrder" ON "workflow_steps" ("WorkflowId", "StepOrder");"""
     ];
 
+    private static readonly string[] CompatibilitySchemaSql =
+    [
+        """
+        CREATE TABLE IF NOT EXISTS "inbox_items" (
+            "Id" INTEGER NOT NULL CONSTRAINT "PK_inbox_items" PRIMARY KEY AUTOINCREMENT,
+            "FilePath" TEXT NOT NULL,
+            "FileName" TEXT NOT NULL,
+            "FileType" TEXT NOT NULL,
+            "FileSizeBytes" INTEGER NOT NULL,
+            "Status" TEXT NOT NULL DEFAULT 'pending',
+            "Preview" TEXT NULL,
+            "SuggestedCollectionId" INTEGER NULL,
+            "SuggestedCollectionName" TEXT NULL,
+            "SuggestedTags" TEXT NULL,
+            "AddedAt" TEXT NOT NULL,
+            "ProcessedAt" TEXT NULL,
+            "WatchFolderId" INTEGER NULL,
+            "SourceType" TEXT NULL,
+            "SourceUrl" TEXT NULL,
+            "SourcePluginId" TEXT NULL,
+            "SourceCategory" TEXT NULL,
+            "ExternalId" TEXT NULL,
+            "DocumentId" INTEGER NULL
+        );
+        """,
+        """CREATE INDEX IF NOT EXISTS "IX_inbox_items_AddedAt" ON "inbox_items" ("AddedAt");""",
+        """CREATE INDEX IF NOT EXISTS "IX_inbox_items_DocumentId" ON "inbox_items" ("DocumentId");""",
+        """CREATE INDEX IF NOT EXISTS "IX_inbox_items_ExternalId_SourcePluginId" ON "inbox_items" ("ExternalId", "SourcePluginId");""",
+        """CREATE INDEX IF NOT EXISTS "IX_inbox_items_Status" ON "inbox_items" ("Status");""",
+        """CREATE INDEX IF NOT EXISTS "IX_inbox_items_WatchFolderId" ON "inbox_items" ("WatchFolderId");""",
+        """
+        CREATE TABLE IF NOT EXISTS "belief_conflicts" (
+            "Id" INTEGER NOT NULL CONSTRAINT "PK_belief_conflicts" PRIMARY KEY AUTOINCREMENT,
+            "DetectedAt" TEXT NOT NULL,
+            "BeliefId" INTEGER NOT NULL DEFAULT 0,
+            "Topic" TEXT NOT NULL,
+            "PreviousStance" TEXT NOT NULL,
+            "CurrentStance" TEXT NOT NULL,
+            "PreviousStancePeriod" TEXT NOT NULL DEFAULT '0001-01-01 00:00:00',
+            "StanceChangedAt" TEXT NOT NULL DEFAULT '0001-01-01 00:00:00',
+            "ConflictMagnitude" REAL NOT NULL,
+            "HasBeenAcknowledged" INTEGER NOT NULL,
+            "AcknowledgedAt" TEXT NULL,
+            "ContextJson" TEXT NULL,
+            "CreatedAt" TEXT NOT NULL,
+            "UpdatedAt" TEXT NOT NULL
+        );
+        """,
+        """CREATE INDEX IF NOT EXISTS "IX_belief_conflicts_BeliefId" ON "belief_conflicts" ("BeliefId");""",
+        """CREATE INDEX IF NOT EXISTS "IX_belief_conflicts_ConflictMagnitude" ON "belief_conflicts" ("ConflictMagnitude");""",
+        """CREATE INDEX IF NOT EXISTS "IX_belief_conflicts_HasBeenAcknowledged" ON "belief_conflicts" ("HasBeenAcknowledged");""",
+        """CREATE INDEX IF NOT EXISTS "IX_belief_conflicts_Topic" ON "belief_conflicts" ("Topic");"""
+    ];
+
     private readonly AgentXDbContext _context;
     private readonly SemaphoreSlim _runLock = new(1, 1);
 
@@ -131,18 +186,19 @@ public sealed class MigrationRunner : IMigrationRunner
         var dbPath = ExtractDbPath(_context);
         var databaseExistedBefore = await _context.Database.CanConnectAsync(cancellationToken);
 
-        string? adoptedBaseline = null;
+        List<string> adoptedMigrations = [];
         if (databaseExistedBefore && !await HasMigrationsHistoryTableAsync(cancellationToken))
         {
-            adoptedBaseline = await AdoptBaselineAsync(cancellationToken);
+            adoptedMigrations = (await AdoptBaselineAsync(cancellationToken)).ToList();
         }
 
         var appliedBeforeMigrate = (await _context.Database.GetAppliedMigrationsAsync(cancellationToken)).ToList();
-        // For reporting, "already applied" reflects state BEFORE this runner invocation —
-        // if we adopted a baseline this run, that baseline is treated as newly applied, not already applied.
-        var alreadyAppliedForResult = adoptedBaseline is null
+        // For reporting, "already applied" reflects state BEFORE this runner invocation -
+        // if we adopted migrations this run, those rows are treated as newly applied, not already applied.
+        var adoptedSet = adoptedMigrations.ToHashSet(StringComparer.Ordinal);
+        var alreadyAppliedForResult = adoptedSet.Count == 0
             ? appliedBeforeMigrate
-            : appliedBeforeMigrate.Where(m => m != adoptedBaseline).ToList();
+            : appliedBeforeMigrate.Where(m => !adoptedSet.Contains(m)).ToList();
 
         var pendingBefore = (await _context.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
 
@@ -150,9 +206,9 @@ public sealed class MigrationRunner : IMigrationRunner
         {
             await EnsureOperationsTablesAsync(cancellationToken);
 
-            var appliedFromAdoption = adoptedBaseline is null
+            var appliedFromAdoption = adoptedMigrations.Count == 0
                 ? (IReadOnlyList<string>)System.Array.Empty<string>()
-                : new[] { adoptedBaseline };
+                : adoptedMigrations;
 
             return new MigrationResult(
                 DatabaseCreated: !databaseExistedBefore,
@@ -167,9 +223,9 @@ public sealed class MigrationRunner : IMigrationRunner
         var appliedAfter = (await _context.Database.GetAppliedMigrationsAsync(cancellationToken)).ToList();
         var newlyAppliedFromMigrate = appliedAfter.Except(appliedBeforeMigrate).ToList();
 
-        var allNewlyApplied = adoptedBaseline is null
+        var allNewlyApplied = adoptedMigrations.Count == 0
             ? (IReadOnlyList<string>)newlyAppliedFromMigrate
-            : new[] { adoptedBaseline }.Concat(newlyAppliedFromMigrate).ToList();
+            : adoptedMigrations.Concat(newlyAppliedFromMigrate).ToList();
 
         return new MigrationResult(
             DatabaseCreated: !databaseExistedBefore,
@@ -190,6 +246,78 @@ public sealed class MigrationRunner : IMigrationRunner
         {
             await _context.Database.ExecuteSqlRawAsync(sql, cancellationToken);
         }
+
+        foreach (var sql in CompatibilitySchemaSql)
+        {
+            await _context.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+        }
+
+        await EnsureColumnAsync(
+            "belief_conflicts",
+            "BeliefId",
+            """ALTER TABLE "belief_conflicts" ADD COLUMN "BeliefId" INTEGER NOT NULL DEFAULT 0;""",
+            cancellationToken);
+        await EnsureColumnAsync(
+            "belief_conflicts",
+            "PreviousStancePeriod",
+            """ALTER TABLE "belief_conflicts" ADD COLUMN "PreviousStancePeriod" TEXT NOT NULL DEFAULT '0001-01-01 00:00:00';""",
+            cancellationToken);
+        await EnsureColumnAsync(
+            "belief_conflicts",
+            "StanceChangedAt",
+            """ALTER TABLE "belief_conflicts" ADD COLUMN "StanceChangedAt" TEXT NOT NULL DEFAULT '0001-01-01 00:00:00';""",
+            cancellationToken);
+        await EnsureColumnAsync(
+            "conversations",
+            "FolderName",
+            """ALTER TABLE "conversations" ADD COLUMN "FolderName" TEXT NULL;""",
+            cancellationToken);
+        await EnsureColumnAsync(
+            "conversations",
+            "ParentConversationId",
+            """ALTER TABLE "conversations" ADD COLUMN "ParentConversationId" INTEGER NULL;""",
+            cancellationToken);
+        await EnsureColumnAsync(
+            "conversations",
+            "BranchPointMessageId",
+            """ALTER TABLE "conversations" ADD COLUMN "BranchPointMessageId" INTEGER NULL;""",
+            cancellationToken);
+        await EnsureColumnAsync(
+            "conversations",
+            "BranchLabel",
+            """ALTER TABLE "conversations" ADD COLUMN "BranchLabel" TEXT NULL;""",
+            cancellationToken);
+        await _context.Database.ExecuteSqlRawAsync(
+            """CREATE INDEX IF NOT EXISTS "IX_conversations_ParentConversationId" ON "conversations" ("ParentConversationId");""",
+            cancellationToken);
+    }
+
+    private async Task EnsureColumnAsync(
+        string tableName,
+        string columnName,
+        string alterSql,
+        CancellationToken cancellationToken)
+    {
+        using var cmd = _context.Database.GetDbConnection().CreateCommand();
+        await _context.Database.OpenConnectionAsync(cancellationToken);
+        try
+        {
+            cmd.CommandText = $"PRAGMA table_info(\"{tableName.Replace("\"", "\"\"")}\");";
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                if (string.Equals(reader.GetString(1), columnName, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+            }
+        }
+        finally
+        {
+            await _context.Database.CloseConnectionAsync();
+        }
+
+        await _context.Database.ExecuteSqlRawAsync(alterSql, cancellationToken);
     }
 
     private async Task<bool> HasMigrationsHistoryTableAsync(CancellationToken cancellationToken)
@@ -208,17 +336,19 @@ public sealed class MigrationRunner : IMigrationRunner
         }
     }
 
-    private async Task<string?> AdoptBaselineAsync(CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<string>> AdoptBaselineAsync(CancellationToken cancellationToken)
     {
-        // Create the EF migrations history table and insert a row marking every
-        // migration up through InitialBaseline as already applied, so MigrateAsync
-        // only applies migrations that ship AFTER the baseline. Returns the
-        // baseline migration name so the caller can report it as "applied" in
-        // the MigrationResult.
+        // Create the EF migrations history table and insert rows for migrations
+        // whose schema is already present. Existing installs created before the
+        // EF runner may have no history table, but they can still contain tables
+        // from newer EnsureCreated-based builds. Stamping only the baseline would
+        // make EF attempt duplicate CREATE TABLE / ADD COLUMN operations.
         var migrationsAssembly = _context.GetService<IMigrationsAssembly>();
-        var allMigrations = migrationsAssembly.Migrations.Keys.ToList();
-        var baseline = allMigrations.FirstOrDefault(m => m.EndsWith("_InitialBaseline"));
-        if (baseline is null) return null;
+        var allMigrations = migrationsAssembly.Migrations.Keys
+            .OrderBy(migration => migration, StringComparer.Ordinal)
+            .ToList();
+        var baseline = FindMigration(allMigrations, "_InitialBaseline");
+        if (baseline is null) return System.Array.Empty<string>();
 
         await _context.Database.ExecuteSqlRawAsync(
             "CREATE TABLE IF NOT EXISTS \"__EFMigrationsHistory\" (" +
@@ -226,12 +356,142 @@ public sealed class MigrationRunner : IMigrationRunner
             "\"ProductVersion\" TEXT NOT NULL);",
             cancellationToken);
 
-        await _context.Database.ExecuteSqlRawAsync(
-            "INSERT INTO \"__EFMigrationsHistory\" (\"MigrationId\", \"ProductVersion\") VALUES ({0}, {1});",
-            new object[] { baseline, "8.0.11" },
-            cancellationToken);
+        var adopted = new List<string>();
+        await StampMigrationAsync(baseline, adopted, cancellationToken);
 
-        return baseline;
+        var addEncryption = FindMigration(allMigrations, "_AddEncryptionColumns");
+        var removeEncryption = FindMigration(allMigrations, "_RemoveEncryptionColumns");
+        if (addEncryption is not null && removeEncryption is not null)
+        {
+            var encryptionColumns = new[]
+            {
+                "DpapiWrappedKey",
+                "EncryptionEnabled",
+                "EncryptionKeyStorageMode",
+                "EncryptionSaltBase64"
+            };
+            var allEncryptionColumnsExist = await AllColumnsExistAsync("user_settings", encryptionColumns, cancellationToken);
+            await StampMigrationAsync(addEncryption, adopted, cancellationToken);
+            if (!allEncryptionColumnsExist)
+            {
+                await StampMigrationAsync(removeEncryption, adopted, cancellationToken);
+            }
+        }
+
+        if (await TableExistsAsync("conversation_summary_snapshots", cancellationToken)
+            && await TableExistsAsync("conversation_summary_states", cancellationToken)
+            && FindMigration(allMigrations, "_AddConversationSummaryPersistence") is { } summaryMigration)
+        {
+            await StampMigrationAsync(summaryMigration, adopted, cancellationToken);
+        }
+
+        if (await AllColumnsExistAsync(
+                "memories",
+                ["Embedding", "LinkedMemoryId", "DecayRate", "Confidence", "Tags"],
+                cancellationToken)
+            && FindMigration(allMigrations, "_AddSemanticMemoryColumns") is { } semanticMemoryMigration)
+        {
+            await StampMigrationAsync(semanticMemoryMigration, adopted, cancellationToken);
+        }
+
+        if (await AllColumnsExistAsync(
+                "messages",
+                ["Embedding", "EmbeddedAt", "EmbeddingModel"],
+                cancellationToken)
+            && FindMigration(allMigrations, "_AddMessageRecallEmbeddings") is { } recallMigration)
+        {
+            await StampMigrationAsync(recallMigration, adopted, cancellationToken);
+        }
+
+        if (await TableExistsAsync("conversation_theme_clusters", cancellationToken)
+            && await TableExistsAsync("conversation_theme_memberships", cancellationToken)
+            && await AllColumnsExistAsync(
+                "conversation_summary_snapshots",
+                ["Embedding", "EmbeddedAt", "EmbeddingModel"],
+                cancellationToken)
+            && FindMigration(allMigrations, "_AddConversationThemeClustering") is { } themeMigration)
+        {
+            await StampMigrationAsync(themeMigration, adopted, cancellationToken);
+        }
+
+        if (await TableExistsAsync("conversation_theme_daily_metrics", cancellationToken)
+            && FindMigration(allMigrations, "_AddConversationThemeDailyMetrics") is { } themeDailyMigration)
+        {
+            await StampMigrationAsync(themeDailyMigration, adopted, cancellationToken);
+        }
+
+        if (await TableExistsAsync("temporal_beliefs", cancellationToken)
+            && await TableExistsAsync("insight_moments", cancellationToken)
+            && await TableExistsAsync("engagement_metrics", cancellationToken)
+            && await TableExistsAsync("belief_conflicts", cancellationToken)
+            && await TableExistsAsync("voice_profiles", cancellationToken)
+            && FindMigration(allMigrations, "_AddTemporalIdentity") is { } temporalMigration)
+        {
+            await StampMigrationAsync(temporalMigration, adopted, cancellationToken);
+        }
+
+        return adopted;
+    }
+
+    private async Task StampMigrationAsync(
+        string migrationId,
+        List<string> adopted,
+        CancellationToken cancellationToken)
+    {
+        await _context.Database.ExecuteSqlRawAsync(
+            "INSERT OR IGNORE INTO \"__EFMigrationsHistory\" (\"MigrationId\", \"ProductVersion\") VALUES ({0}, {1});",
+            new object[] { migrationId, "8.0.11" },
+            cancellationToken);
+        adopted.Add(migrationId);
+    }
+
+    private async Task<bool> TableExistsAsync(string tableName, CancellationToken cancellationToken)
+    {
+        using var cmd = _context.Database.GetDbConnection().CreateCommand();
+        await _context.Database.OpenConnectionAsync(cancellationToken);
+        try
+        {
+            cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name=$tableName;";
+            var parameter = cmd.CreateParameter();
+            parameter.ParameterName = "$tableName";
+            parameter.Value = tableName;
+            cmd.Parameters.Add(parameter);
+            return await cmd.ExecuteScalarAsync(cancellationToken) is not null;
+        }
+        finally
+        {
+            await _context.Database.CloseConnectionAsync();
+        }
+    }
+
+    private async Task<bool> AllColumnsExistAsync(
+        string tableName,
+        IReadOnlyCollection<string> columnNames,
+        CancellationToken cancellationToken)
+    {
+        var existingColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        using var cmd = _context.Database.GetDbConnection().CreateCommand();
+        await _context.Database.OpenConnectionAsync(cancellationToken);
+        try
+        {
+            cmd.CommandText = $"PRAGMA table_info(\"{tableName.Replace("\"", "\"\"")}\");";
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                existingColumns.Add(reader.GetString(1));
+            }
+        }
+        finally
+        {
+            await _context.Database.CloseConnectionAsync();
+        }
+
+        return columnNames.All(existingColumns.Contains);
+    }
+
+    private static string? FindMigration(IEnumerable<string> migrations, string suffix)
+    {
+        return migrations.FirstOrDefault(migration => migration.EndsWith(suffix, StringComparison.Ordinal));
     }
 
     private static string ExtractDbPath(AgentXDbContext context)

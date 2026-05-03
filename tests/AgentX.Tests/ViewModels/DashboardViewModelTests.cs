@@ -197,7 +197,7 @@ public sealed class DashboardViewModelTests
         viewModel.WorkflowAverageDuration.Should().Be("Avg duration unavailable");
         viewModel.WorkflowDetail.Should().Contain("Vault or Search");
         viewModel.RecommendedActions.Select(action => action.Route)
-            .Should().Equal("SyncSettings", "PluginManager", "Analytics");
+            .Should().Equal("Operations", "SyncSettings", "PluginManager");
     }
 
     [Fact]
@@ -253,6 +253,23 @@ public sealed class DashboardViewModelTests
 
         viewModel.RecommendedActions.Select(action => action.Route)
             .Should().Equal("Settings", "SyncSettings", "PluginManager");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_defers_ai_status_when_ai_service_is_still_starting()
+    {
+        _aiService.SetupGet(service => service.ActiveProvider)
+            .Throws(new InvalidOperationException("AI service has not been initialized. Call InitializeAsync first."));
+        _aiService.SetupGet(service => service.ActiveModelId).Returns(string.Empty);
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.IsOllamaConnected.Should().BeFalse();
+        viewModel.ConnectionStatus.Should().Be("AI service starting...");
+        viewModel.ActiveModelName.Should().Be("Initializing...");
+        _aiProvider.Verify(provider => provider.CheckConnectionAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]

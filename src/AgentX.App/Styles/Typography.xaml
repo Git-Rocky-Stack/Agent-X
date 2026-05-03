@@ -102,6 +102,10 @@
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
+    <Style x:Key="BodyStrongStyle" TargetType="TextBlock" BasedOn="{StaticResource BodyStyle}">
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
     <Style x:Key="BodySecondaryStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
         <Setter Property="FontSize" Value="14" />

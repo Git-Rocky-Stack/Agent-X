@@ -325,7 +325,17 @@
     </Style>
 
     <Style x:Key="BadgeSuccessStyle" TargetType="Border">
-        <Setter Property="Background" Value="#1A22C55E" />
+        <Setter Property="Background" Value="{StaticResource SuccessSubtleBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource SuccessBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
+        <Setter Property="Padding" Value="10,4,10,4" />
+    </Style>
+
+    <Style x:Key="BadgeWarningStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource WarningSubtleBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource WarningBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
         <Setter Property="Padding" Value="10,4,10,4" />
     </Style>

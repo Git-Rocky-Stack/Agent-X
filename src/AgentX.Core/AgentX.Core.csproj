@@ -14,10 +14,9 @@
   <ItemGroup>
     <!-- AI Providers -->
     <PackageReference Include="HnswLite.RamStorage" Version="1.0.6" />
-    <PackageReference Include="Microsoft.Extensions.AI" Version="9.5.0" />
-    <PackageReference Include="Microsoft.Extensions.AI.Abstractions" Version="9.5.0" />
+    <PackageReference Include="Microsoft.Extensions.AI.Abstractions" Version="9.0.0-preview.9.24525.1" />
     <PackageReference Include="Microsoft.Playwright" Version="1.59.0" />
-    <PackageReference Include="OllamaSharp" Version="4.0.12" />
+    <PackageReference Include="OllamaSharp" Version="4.0.6" />
 
     <!-- Built-in Local LLM (LLamaSharp — .NET bindings for llama.cpp) -->
     <PackageReference Include="LLamaSharp" Version="0.19.0" />
