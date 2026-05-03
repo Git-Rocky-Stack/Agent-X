@@ -358,7 +358,7 @@
                     </Border>
                 </StackPanel>
 
-                <Border Style="{StaticResource SeparatorStyle}" -->
+                <Border Style="{StaticResource SeparatorStyle}" />
 
                 <!-- Managing Results -->
                 <TextBlock x:Uid="UserGuide_ScheduledQueries_Results_Title"
