@@ -25,6 +25,12 @@ public sealed class SemanticSearchService : ISemanticSearchService
     /// </summary>
     private const int MaxExcerptLength = 200;
 
+    /// <summary>
+    /// Latch that ensures we emit the embedding-version-mismatch warning at most once
+    /// per process lifetime. Prevents log floods on every search after a model upgrade.
+    /// </summary>
+    private int _versionMismatchWarned;
+
     public SemanticSearchService(
         IEmbeddingService embeddingService,
         IVectorStore vectorStore,
@@ -141,6 +147,59 @@ public sealed class SemanticSearchService : ISemanticSearchService
             _logger.Warning("No matching chunks found in database for {Count} chunk IDs from vector search", chunkIds.Count);
             return Array.Empty<SearchResult>();
         }
+
+        // ── Step 3b: Embedding model version validation (P1-4) ──────────
+        // The query was embedded with the CURRENT model. Chunks embedded with a
+        // different model version live in incompatible vector space — their similarity
+        // scores are noise. Filter them out and warn the operator (once per process)
+        // so they can re-embed.
+        var currentVersion = _embeddingService.ModelVersion;
+        var compatibleChunks = new List<DocumentChunkEntity>(chunks.Count);
+        int legacyCount = 0;
+        int mismatchCount = 0;
+        foreach (var chunk in chunks)
+        {
+            // Legacy chunks (null version) predate versioning. Treat them as compatible
+            // for backwards compat — operators can opt-in to strict mode in a follow-up.
+            if (string.IsNullOrEmpty(chunk.EmbeddingModelVersion))
+            {
+                legacyCount++;
+                compatibleChunks.Add(chunk);
+                continue;
+            }
+
+            if (string.Equals(chunk.EmbeddingModelVersion, currentVersion, StringComparison.Ordinal))
+            {
+                compatibleChunks.Add(chunk);
+            }
+            else
+            {
+                mismatchCount++;
+            }
+        }
+
+        if (mismatchCount > 0 && Interlocked.Exchange(ref _versionMismatchWarned, 1) == 0)
+        {
+            _logger.Warning(
+                "Embedding model version mismatch detected: {Mismatched} of {Total} chunks were embedded with a different model than the current '{CurrentVersion}'. " +
+                "These chunks have been excluded from this search to prevent garbage similarity scores. Re-embed affected documents to restore retrieval quality.",
+                mismatchCount, chunks.Count, currentVersion);
+        }
+
+        if (legacyCount > 0)
+        {
+            _logger.Debug(
+                "Treating {Count} legacy (un-versioned) chunks as compatible with current model '{CurrentVersion}'",
+                legacyCount, currentVersion);
+        }
+
+        if (compatibleChunks.Count == 0)
+        {
+            _logger.Warning("All {Count} retrieved chunks were filtered out by version validation; returning empty results", chunks.Count);
+            return Array.Empty<SearchResult>();
+        }
+
+        chunks = compatibleChunks;
 
         // ── Step 4: Apply metadata filters ──────────────────────────────
         IEnumerable<DocumentChunkEntity> filtered = chunks;

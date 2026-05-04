@@ -117,6 +117,36 @@ public sealed class RagConfigurationOptions
     /// <summary>Max HyDE response tokens.</summary>
     public int HydeMaxTokens { get; set; } = 256;
 
+    /// <summary>Max parallel ContextualCompressor LLM calls per RAG turn.</summary>
+    public int CompressionConcurrency { get; set; } = 4;
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  HyDE Configuration
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>Whether HyDE is enabled in the RAG pipeline.</summary>
+    public bool EnableHyde { get; set; } = true;
+
+    /// <summary>Minimum question length (chars) before HyDE is invoked.</summary>
+    public int HydeMinQueryLength { get; set; } = 80;
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  Search Routing
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>Default search mode: "Semantic", "Keyword", or "Hybrid".</summary>
+    public string DefaultSearchMode { get; set; } = "Hybrid";
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  Privacy / PII
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>Whether to redact PII from RAG context before sending to LLM.</summary>
+    public bool EnablePiiRedaction { get; set; } = true;
+
+    /// <summary>Mask string used when redacting PII.</summary>
+    public string PiiRedactionMask { get; set; } = "***";
+
     // ═══════════════════════════════════════════════════════════════════
     //  Research Mode Configuration
     // ═══════════════════════════════════════════════════════════════════
@@ -182,6 +212,15 @@ public sealed class RagConfiguration : IRagConfiguration
     public bool EnableLlmReranking => _options.EnableLlmReranking;
     public int RerankerMaxTokens => _options.RerankerMaxTokens;
     public int HydeMaxTokens => _options.HydeMaxTokens;
+    public int CompressionConcurrency => _options.CompressionConcurrency;
+
+    public bool EnableHyde => _options.EnableHyde;
+    public int HydeMinQueryLength => _options.HydeMinQueryLength;
+
+    public string DefaultSearchMode => _options.DefaultSearchMode;
+
+    public bool EnablePiiRedaction => _options.EnablePiiRedaction;
+    public string PiiRedactionMask => _options.PiiRedactionMask;
 
     public bool EnableResearchMode => _options.EnableResearchMode;
     public int ResearchMaxWebResults => _options.ResearchMaxWebResults;
@@ -260,6 +299,24 @@ public sealed class RagConfiguration : IRagConfiguration
             errors.Add("RerankerMaxTokens must be positive.");
         if (HydeMaxTokens <= 0)
             errors.Add("HydeMaxTokens must be positive.");
+        if (CompressionConcurrency < 1)
+            errors.Add("CompressionConcurrency must be at least 1.");
+
+        // Validate HyDE parameters
+        if (HydeMinQueryLength < 0)
+            errors.Add("HydeMinQueryLength cannot be negative.");
+
+        // Validate search mode
+        if (string.IsNullOrWhiteSpace(DefaultSearchMode))
+            errors.Add("DefaultSearchMode cannot be empty.");
+        else if (!string.Equals(DefaultSearchMode, "Semantic", StringComparison.OrdinalIgnoreCase) &&
+                 !string.Equals(DefaultSearchMode, "Keyword", StringComparison.OrdinalIgnoreCase) &&
+                 !string.Equals(DefaultSearchMode, "Hybrid", StringComparison.OrdinalIgnoreCase))
+            errors.Add($"DefaultSearchMode '{DefaultSearchMode}' is invalid. Use 'Semantic', 'Keyword', or 'Hybrid'.");
+
+        // Validate PII parameters
+        if (EnablePiiRedaction && string.IsNullOrEmpty(PiiRedactionMask))
+            errors.Add("PiiRedactionMask cannot be empty when EnablePiiRedaction is true.");
 
         // Validate research mode parameters
         if (ResearchMaxWebResults <= 0)

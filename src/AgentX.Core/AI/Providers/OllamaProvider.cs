@@ -208,13 +208,33 @@ public sealed class OllamaProvider : IAiProvider
             throw;
         }
 
+        // Tracks Ollama's done_reason (P0-6). The terminal chunk is typed as
+        // ChatDoneResponseStream and exposes DoneReason: "stop" (natural), "length"
+        // (max tokens), "load", "unload". Anything other than "stop" indicates a
+        // degraded response.
+        string? doneReason = null;
+
         await foreach (var chunk in responseStream.WithCancellation(ct).ConfigureAwait(false))
         {
+            if (chunk is ChatDoneResponseStream done)
+            {
+                doneReason = done.DoneReason;
+            }
+
             var token = chunk?.Message?.Content;
             if (!string.IsNullOrEmpty(token))
             {
                 yield return token;
             }
+        }
+
+        if (!string.IsNullOrEmpty(doneReason)
+            && !string.Equals(doneReason, "stop", StringComparison.OrdinalIgnoreCase))
+        {
+            _logger.Warning(
+                "Ollama response truncated: done_reason={DoneReason}, model={Model}, max_tokens={MaxTokens}. " +
+                "Consider raising MaxTokens.",
+                doneReason, chatRequest.Model, options?.MaxTokens ?? 2048);
         }
     }
 
@@ -237,9 +257,15 @@ public sealed class OllamaProvider : IAiProvider
         try
         {
             var sb = new StringBuilder();
+            string? doneReason = null;
 
             await foreach (var chunk in _client.ChatAsync(chatRequest, ct).ConfigureAwait(false))
             {
+                if (chunk is ChatDoneResponseStream done)
+                {
+                    doneReason = done.DoneReason;
+                }
+
                 var token = chunk?.Message?.Content;
                 if (!string.IsNullOrEmpty(token))
                 {
@@ -248,6 +274,16 @@ public sealed class OllamaProvider : IAiProvider
             }
 
             var result = sb.ToString();
+
+            if (!string.IsNullOrEmpty(doneReason)
+                && !string.Equals(doneReason, "stop", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.Warning(
+                    "Ollama response truncated: done_reason={DoneReason}, model={Model}, max_tokens={MaxTokens}. " +
+                    "Consider raising MaxTokens.",
+                    doneReason, chatRequest.Model, options?.MaxTokens ?? 2048);
+            }
+
             _logger.Debug("Chat completed, response length: {Length} characters", result.Length);
             return result;
         }

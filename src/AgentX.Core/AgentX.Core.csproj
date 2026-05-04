@@ -56,5 +56,15 @@
     <PackageReference Include="Serilog" Version="4.0.2" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
     <PackageReference Include="System.Text.Json" Version="8.0.5" />
+
+    <!--
+      Analyzers — surface threading gaps (missing ConfigureAwait, sync-over-async,
+      etc.) at build time rather than via runtime UI-thread deadlocks. Warnings only;
+      a follow-up should sweep existing offenders and consider TreatWarningsAsErrors.
+    -->
+    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.10.48">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 </Project>

@@ -448,4 +448,9 @@ All P0 and P1 issues identified in the initial audit have been resolved:
 - 7 test files with 100+ tests
 - All P0, P1, and P2 audit items addressed
 
+**DI Registration:** Phase 3 services registered in App.xaml.cs
+- `IAdaptiveChunkingService` → AdaptiveChunkingService (with IRagConfiguration, ILogger)
+- `IRagMetrics` → RagMetrics (with ILogger)
+- `IPiiDetector` → PiiDetector (with ILogger)
+
 **Overall Assessment:** 9.5/10 — Production-ready with advanced features

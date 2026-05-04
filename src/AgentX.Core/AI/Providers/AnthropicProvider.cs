@@ -197,7 +197,28 @@ public sealed class AnthropicProvider : IAiProvider
             systemPrompt = "You MUST respond with valid JSON only. No markdown, no explanation, no text outside the JSON.";
 
         if (!string.IsNullOrEmpty(systemPrompt))
-            body["system"] = systemPrompt;
+        {
+            // P1-1: Anthropic prompt caching — when ChatOptions.CacheSystemPrompt is set,
+            // wrap the prompt in a typed text block with cache_control. Cache hits cost
+            // ~10% of normal input tokens with a 5-minute TTL. Falls back to a plain
+            // string when caching is not requested (preserves existing behavior).
+            if (options?.CacheSystemPrompt == true)
+            {
+                body["system"] = new object[]
+                {
+                    new
+                    {
+                        type = "text",
+                        text = systemPrompt,
+                        cache_control = new { type = "ephemeral" }
+                    }
+                };
+            }
+            else
+            {
+                body["system"] = systemPrompt;
+            }
+        }
 
         if (options?.Temperature is >= 0)
             body["temperature"] = options.Temperature;
@@ -229,6 +250,12 @@ public sealed class AnthropicProvider : IAiProvider
             _logger.Error(ex, "Anthropic streaming request failed for model {Model}", modelId);
             throw;
         }
+
+        // Tracks Anthropic's stop_reason from the message_delta event so we can warn
+        // on truncation (P0-6). Anthropic emits "end_turn", "max_tokens",
+        // "stop_sequence", "tool_use", "pause_turn", "refusal". Anything other than
+        // "end_turn" / "stop_sequence" / "tool_use" indicates a degraded response.
+        string? stopReason = null;
 
         using (response)
         {
@@ -285,6 +312,26 @@ public sealed class AnthropicProvider : IAiProvider
                     if (!string.IsNullOrEmpty(text))
                         yield return text;
                 }
+                else if (currentEventType == "message_delta")
+                {
+                    // The terminal message_delta event carries delta.stop_reason.
+                    try
+                    {
+                        var chunk = JsonSerializer.Deserialize<JsonElement>(data);
+                        if (chunk.TryGetProperty("delta", out var delta) &&
+                            delta.TryGetProperty("stop_reason", out var sr) &&
+                            sr.ValueKind == JsonValueKind.String)
+                        {
+                            var reason = sr.GetString();
+                            if (!string.IsNullOrEmpty(reason))
+                                stopReason = reason;
+                        }
+                    }
+                    catch (JsonException ex)
+                    {
+                        _logger.Debug(ex, "Skipping malformed message_delta from Anthropic");
+                    }
+                }
                 else if (currentEventType == "message_stop")
                 {
                     // End of message
@@ -296,6 +343,18 @@ public sealed class AnthropicProvider : IAiProvider
                     break;
                 }
             }
+        }
+
+        // P0-6: surface truncation. "end_turn" / "stop_sequence" / "tool_use" are healthy.
+        if (!string.IsNullOrEmpty(stopReason)
+            && !string.Equals(stopReason, "end_turn", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(stopReason, "stop_sequence", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(stopReason, "tool_use", StringComparison.OrdinalIgnoreCase))
+        {
+            _logger.Warning(
+                "Anthropic response truncated or filtered: stop_reason={StopReason}, model={Model}, max_tokens={MaxTokens}. " +
+                "Consider raising MaxTokens or inspecting prompt safety settings.",
+                stopReason, modelId, options?.MaxTokens ?? 2048);
         }
     }
 

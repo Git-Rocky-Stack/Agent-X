@@ -435,8 +435,9 @@ public partial class App : Application
         services.AddSingleton<IChunkingService>(sp =>
         {
             var tokenCounter = sp.GetRequiredService<ITokenCounter>();
+            var adaptive = sp.GetService<IAdaptiveChunkingService>(); // optional — may be null
             var logger = sp.GetRequiredService<Serilog.ILogger>();
-            return new ChunkingService(tokenCounter, logger.ForContext<ChunkingService>());
+            return new ChunkingService(tokenCounter, adaptive, logger.ForContext<ChunkingService>());
         });
 
         // ── Indexing Pipeline ────────────────────────────────────

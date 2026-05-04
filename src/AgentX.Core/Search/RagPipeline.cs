@@ -4,6 +4,7 @@ using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Configuration;
 using AgentX.Core.Data;
+using AgentX.Core.Observability;
 using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Search;
 using Microsoft.EntityFrameworkCore;
@@ -44,7 +45,7 @@ public sealed class RagPipeline : IRagPipeline
         "I couldn't find any relevant information in your documents. " +
         "Try rephrasing your question or ensure that relevant documents have been indexed.";
 
-    private readonly ISemanticSearchService _searchService;
+    private readonly IHybridSearchOrchestrator _searchOrchestrator;
     private readonly IAiService _aiService;
     private readonly ICitationService _citationService;
     private readonly IRagReranker _reranker;
@@ -60,9 +61,11 @@ public sealed class RagPipeline : IRagPipeline
     private readonly IContextualCompressor? _compressor;
     private readonly IRagEvaluator? _evaluator;
     private readonly IWebSearchService? _webSearchService;
+    private readonly IRagMetrics? _metrics;
+    private readonly IPiiDetector? _piiDetector;
 
     public RagPipeline(
-        ISemanticSearchService searchService,
+        IHybridSearchOrchestrator searchOrchestrator,
         IAiService aiService,
         ICitationService citationService,
         IRagReranker reranker,
@@ -75,9 +78,11 @@ public sealed class RagPipeline : IRagPipeline
         IParentDocumentRetriever? parentRetriever = null,
         IContextualCompressor? compressor = null,
         IRagEvaluator? evaluator = null,
-        IWebSearchService? webSearchService = null)
+        IWebSearchService? webSearchService = null,
+        IRagMetrics? metrics = null,
+        IPiiDetector? piiDetector = null)
     {
-        _searchService = searchService ?? throw new ArgumentNullException(nameof(searchService));
+        _searchOrchestrator = searchOrchestrator ?? throw new ArgumentNullException(nameof(searchOrchestrator));
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
         _citationService = citationService ?? throw new ArgumentNullException(nameof(citationService));
         _reranker = reranker ?? throw new ArgumentNullException(nameof(reranker));
@@ -92,13 +97,18 @@ public sealed class RagPipeline : IRagPipeline
         _compressor = compressor;
         _evaluator = evaluator;
         _webSearchService = webSearchService;
+        _metrics = metrics;
+        _piiDetector = piiDetector;
+
+        var hydeActive = _hydeService is not null && _ragConfiguration.EnableHyde;
+        var piiActive = _piiDetector is not null && _ragConfiguration.EnablePiiRedaction;
 
         _logger.Information(
             "RagPipeline initialized — enhancements: MultiQuery={MQ}, HyDE={HyDE}, LlmRerank={LR}, " +
-            "ParentDoc={PD}, Compression={C}, Eval={E}, WebSearch={WS}",
-            _multiQueryGenerator is not null, _hydeService is not null, _llmReranker is not null,
+            "ParentDoc={PD}, Compression={C}, Eval={E}, WebSearch={WS}, Metrics={M}, PiiRedaction={PII}",
+            _multiQueryGenerator is not null, hydeActive, _llmReranker is not null,
             _parentRetriever is not null, _compressor is not null, _evaluator is not null,
-            _webSearchService is not null);
+            _webSearchService is not null, _metrics is not null, piiActive);
     }
 
     /// <inheritdoc />
@@ -135,7 +145,38 @@ public sealed class RagPipeline : IRagPipeline
             }
         }
 
-        // ── Step 2: Semantic Search (across all query variations) ──────────
+        // ── Step 2: HyDE — generate hypothetical answer document and use it as another query ──
+        // HyDE is most effective on longer / abstract queries; we threshold on character count
+        // to avoid the LLM round-trip cost on short keyword-style questions.
+        if (_hydeService is not null
+            && _ragConfiguration.EnableHyde
+            && question.Length >= _ragConfiguration.HydeMinQueryLength)
+        {
+            try
+            {
+                var hypothetical = await _hydeService
+                    .GenerateHypotheticalDocumentAsync(question, ct)
+                    .ConfigureAwait(false);
+
+                if (!string.IsNullOrWhiteSpace(hypothetical))
+                {
+                    queries.Add(hypothetical);
+                    _logger.Debug("HyDE added hypothetical document ({Length} chars) as additional query",
+                        hypothetical.Length);
+                }
+            }
+            catch (OperationCanceledException) { throw; }
+            catch (Exception ex)
+            {
+                _logger.Warning(ex, "HyDE generation failed; continuing without hypothetical document");
+            }
+        }
+
+        // ── Step 3: Hybrid Search (across all query variations) ─────────────
+        // Uses IHybridSearchOrchestrator so RAG queries benefit from BOTH semantic (vector)
+        // and keyword (BM25) backends, merged via Reciprocal Rank Fusion. The mode is
+        // configurable — operators can fall back to pure semantic / keyword via appsettings.
+        var searchMode = ResolveSearchMode(_ragConfiguration.DefaultSearchMode);
         var searchStopwatch = Stopwatch.StartNew();
         var allResults = new List<SearchResult>();
 
@@ -148,10 +189,11 @@ public sealed class RagPipeline : IRagPipeline
                     QueryText = q,
                     TopK = _ragConfiguration.DefaultTopK,
                     MinScore = _ragConfiguration.DefaultMinScore,
-                    CollectionId = collectionId
+                    CollectionId = collectionId,
+                    Mode = searchMode
                 };
 
-                var results = await _searchService
+                var results = await _searchOrchestrator
                     .SearchAsync(searchQuery, ct)
                     .ConfigureAwait(false);
 
@@ -168,15 +210,21 @@ public sealed class RagPipeline : IRagPipeline
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)
         {
-            _logger.Error(ex, "Semantic search failed for RAG query");
+            _logger.Error(ex, "Search failed for RAG query (mode={Mode})", searchMode);
             throw;
         }
 
         searchStopwatch.Stop();
         var searchLatencyMs = searchStopwatch.Elapsed.TotalMilliseconds;
 
-        _logger.Debug("Search returned {Count} unique results in {ElapsedMs:F1}ms",
-            allResults.Count, searchLatencyMs);
+        _logger.Debug("Search returned {Count} unique results in {ElapsedMs:F1}ms (mode={Mode}, queries={QueryCount})",
+            allResults.Count, searchLatencyMs, searchMode, queries.Count);
+
+        // Record search metrics (P0-3)
+        if (_metrics is not null)
+        {
+            _metrics.RecordSearch(MapSearchType(searchMode), allResults.Count, 0, 0, searchStopwatch);
+        }
 
         // Filter by minimum score
         var relevantResults = allResults
@@ -296,6 +344,42 @@ public sealed class RagPipeline : IRagPipeline
             }
         }
 
+        // ── Step 8c: PII Redaction ──────────────────────────────────────
+        // Redact emails / phone numbers / SSNs / credit cards / API keys / IPs from
+        // context chunks BEFORE they enter the system prompt sent to the LLM provider.
+        if (_piiDetector is not null && _ragConfiguration.EnablePiiRedaction)
+        {
+            int redactedCount = 0;
+            for (int i = 0; i < contextChunks.Count; i++)
+            {
+                var chunk = contextChunks[i];
+                if (string.IsNullOrEmpty(chunk.ChunkText))
+                    continue;
+
+                if (_piiDetector.ContainsPii(chunk.ChunkText))
+                {
+                    contextChunks[i] = new RagContextChunk
+                    {
+                        ChunkId = chunk.ChunkId,
+                        DocumentId = chunk.DocumentId,
+                        FileName = chunk.FileName,
+                        FilePath = chunk.FilePath,
+                        PageNumber = chunk.PageNumber,
+                        ChunkIndex = chunk.ChunkIndex,
+                        ChunkText = _piiDetector.RedactPii(chunk.ChunkText, _ragConfiguration.PiiRedactionMask),
+                        RelevanceScore = chunk.RelevanceScore
+                    };
+                    redactedCount++;
+                }
+            }
+
+            if (redactedCount > 0)
+            {
+                _logger.Information("PII redacted in {Count} of {Total} context chunks before LLM call",
+                    redactedCount, contextChunks.Count);
+            }
+        }
+
         // ── Step 9: Build RAG Prompt ─────────────────────────────────────
         var systemPrompt = BuildSystemPrompt(contextChunks);
 
@@ -330,6 +414,13 @@ public sealed class RagPipeline : IRagPipeline
                 Temperature = 0.3,
                 MaxTokens = 2048,
                 TopP = 0.9
+                // NOTE on P1-1: the RAG system prompt is currently a single string with
+                // the static instruction prefix concatenated to per-question context
+                // chunks. Anthropic prompt caching keys on the full block content, so
+                // caching the whole prompt would never hit. To benefit here we need to
+                // split into two system blocks (cacheable prefix + non-cached context).
+                // Tracked as a follow-up; cleanly cacheable callers (RagEvaluator,
+                // LlmReranker, HydeService) already opt in.
             };
 
             await foreach (var token in _aiService
@@ -388,16 +479,36 @@ public sealed class RagPipeline : IRagPipeline
             {
                 try
                 {
-                    var metrics = await _evaluator.EvaluateAsync(
-                        question, answerText, contextChunks, CancellationToken.None);
+                    var evalMetrics = await _evaluator.EvaluateAsync(
+                        question, answerText, contextChunks, CancellationToken.None)
+                        .ConfigureAwait(false);
 
-                    ragResponse.EvalMetrics = metrics;
+                    ragResponse.EvalMetrics = evalMetrics;
 
                     _logger.Information(
                         "RAG evaluation: context={CR:F2}, faithfulness={F:F2}, " +
                         "answer={AR:F2}, overall={O:F2}",
-                        metrics.ContextRelevance, metrics.Faithfulness,
-                        metrics.AnswerRelevance, metrics.OverallScore);
+                        evalMetrics.ContextRelevance, evalMetrics.Faithfulness,
+                        evalMetrics.AnswerRelevance, evalMetrics.OverallScore);
+
+                    // Record quality metrics (P0-3) — but only when the eval scores
+                    // are real LLM judgements. Placeholder defaults (IsDefault=true)
+                    // would skew rolling averages with a constant 0.5 floor.
+                    if (!evalMetrics.IsDefault)
+                    {
+                        _metrics?.RecordEvaluation(new EvaluationMetrics
+                        {
+                            ContextRelevance = evalMetrics.ContextRelevance,
+                            Faithfulness = evalMetrics.Faithfulness,
+                            AnswerRelevance = evalMetrics.AnswerRelevance
+                        });
+                    }
+                    else
+                    {
+                        _logger.Debug(
+                            "Skipping metric recording for default-eval (reason={Reason})",
+                            evalMetrics.DefaultReason);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -408,6 +519,29 @@ public sealed class RagPipeline : IRagPipeline
 
         return ragResponse;
     }
+
+    /// <summary>
+    /// Parses the configured search-mode string into the <see cref="SearchMode"/> enum.
+    /// Falls back to Hybrid on unrecognized values (the safer default — gives both
+    /// semantic and keyword backends a chance to contribute).
+    /// </summary>
+    private SearchMode ResolveSearchMode(string configured)
+    {
+        if (Enum.TryParse<SearchMode>(configured, ignoreCase: true, out var parsed))
+            return parsed;
+
+        _logger.Warning("Unknown DefaultSearchMode '{Mode}'; falling back to Hybrid", configured);
+        return SearchMode.Hybrid;
+    }
+
+    /// <summary>Maps a <see cref="SearchMode"/> to the metrics-side <see cref="SearchType"/>.</summary>
+    private static SearchType MapSearchType(SearchMode mode) => mode switch
+    {
+        SearchMode.Semantic => SearchType.Semantic,
+        SearchMode.Keyword => SearchType.Keyword,
+        SearchMode.Hybrid => SearchType.Hybrid,
+        _ => SearchType.Hybrid
+    };
 
     /// <inheritdoc />
     public async Task<long> GetIndexedChunkCountAsync(CancellationToken ct = default)

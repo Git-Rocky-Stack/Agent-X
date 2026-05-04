@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using System.Text.Json;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
@@ -41,9 +42,20 @@ public sealed class RagEvaluator : IRagEvaluator
         IReadOnlyList<RagContextChunk> contextChunks,
         CancellationToken ct = default)
     {
+        // Input validation — return marked-default metrics so aggregators don't
+        // pollute their averages with placeholder scores.
+        if (string.IsNullOrWhiteSpace(question)
+            || string.IsNullOrWhiteSpace(answer)
+            || contextChunks is null
+            || contextChunks.Count == 0)
+        {
+            return DefaultMetrics("InputValidation");
+        }
+
         _logger.Debug("Evaluating RAG response quality for question: {Question}",
             question.Length > 80 ? question[..80] + "..." : question);
 
+        string response;
         try
         {
             var contextText = string.Join("\n---\n",
@@ -69,25 +81,32 @@ public sealed class RagEvaluator : IRagEvaluator
             var options = new ChatOptions
             {
                 Temperature = 0.0,
-                MaxTokens = 128,
-                ResponseFormat = ResponseFormat.JsonObject
+                // 256 tokens is a safe floor for the 3-key JSON output. Local LLMs frequently
+                // add a 1-2 sentence preamble or trailing whitespace; 128 was below the floor
+                // and caused silent truncation → JSON parse failure → default scores.
+                MaxTokens = 256,
+                ResponseFormat = ResponseFormat.JsonObject,
+                // P1-1: the eval system prompt is identical across every call; cache it
+                // when the provider supports prompt caching (Anthropic).
+                CacheSystemPrompt = true
             };
 
-            var response = await _aiService.ChatAsync(messages, EvalSystemPrompt, options, ct)
+            response = await _aiService.ChatAsync(messages, EvalSystemPrompt, options, ct)
                 .ConfigureAwait(false);
-
-            return ParseMetrics(response);
+        }
+        catch (OperationCanceledException)
+        {
+            // Cancellation is a caller-driven signal, not a quality event. Surface it
+            // so the caller can propagate / abort instead of swallowing it as a 0.5 score.
+            throw;
         }
         catch (Exception ex)
         {
-            _logger.Warning(ex, "RAG evaluation failed; returning default metrics");
-            return new RagEvalMetrics
-            {
-                ContextRelevance = 0.5,
-                Faithfulness = 0.5,
-                AnswerRelevance = 0.5
-            };
+            _logger.Warning(ex, "RAG evaluation LLM call failed; returning default metrics");
+            return DefaultMetrics("LlmCallFailure");
         }
+
+        return ParseMetrics(response);
     }
 
     private RagEvalMetrics ParseMetrics(string response)
@@ -109,31 +128,49 @@ public sealed class RagEvaluator : IRagEvaluator
                     {
                         ContextRelevance = Math.Clamp(parsed.ContextRelevance / 10.0, 0, 1),
                         Faithfulness = Math.Clamp(parsed.Faithfulness / 10.0, 0, 1),
-                        AnswerRelevance = Math.Clamp(parsed.AnswerRelevance / 10.0, 0, 1)
+                        AnswerRelevance = Math.Clamp(parsed.AnswerRelevance / 10.0, 0, 1),
+                        IsDefault = false
                     };
                 }
             }
+
+            // Reached here = no JSON braces found in the response. Surface the raw
+            // response so operators can see what the model actually produced.
+            _logger.Warning(
+                "RAG eval response contained no JSON object; using defaults. Raw response: {Response}",
+                Truncate(response, 500));
         }
         catch (Exception ex)
         {
-            _logger.Debug(ex, "Failed to parse eval JSON; using defaults");
+            _logger.Warning(ex,
+                "Failed to parse eval JSON; using defaults. Raw response: {Response}",
+                Truncate(response, 500));
         }
 
-        return new RagEvalMetrics
-        {
-            ContextRelevance = 0.5,
-            Faithfulness = 0.5,
-            AnswerRelevance = 0.5
-        };
+        return DefaultMetrics("JsonParseFailure");
     }
+
+    private static RagEvalMetrics DefaultMetrics(string reason) => new()
+    {
+        ContextRelevance = 0.5,
+        Faithfulness = 0.5,
+        AnswerRelevance = 0.5,
+        IsDefault = true,
+        DefaultReason = reason
+    };
 
     private static string Truncate(string text, int max)
         => text.Length <= max ? text : text[..max] + "...";
 
     private sealed class EvalScores
     {
+        [JsonPropertyName("context_relevance")]
         public double ContextRelevance { get; set; }
+
+        [JsonPropertyName("faithfulness")]
         public double Faithfulness { get; set; }
+
+        [JsonPropertyName("answer_relevance")]
         public double AnswerRelevance { get; set; }
     }
 }

@@ -124,6 +124,58 @@ public interface IRagConfiguration
     /// <summary>Maximum HyDE response tokens for hypothetical document generation.</summary>
     int HydeMaxTokens { get; }
 
+    /// <summary>
+    /// Maximum number of <c>ContextualCompressor</c> per-chunk LLM calls allowed
+    /// to run concurrently. Each chunk requires one LLM round-trip to extract its
+    /// relevant portion; without a cap, an N-chunk RAG turn issues N parallel
+    /// requests which can saturate local-LLM concurrency. Default 4.
+    /// </summary>
+    int CompressionConcurrency { get; }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  HyDE Configuration
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Whether HyDE (Hypothetical Document Embeddings) is enabled in the RAG pipeline.
+    /// When true and an IHydeService is registered, the pipeline runs HyDE on queries
+    /// whose length meets <see cref="HydeMinQueryLength"/>.
+    /// </summary>
+    bool EnableHyde { get; }
+
+    /// <summary>
+    /// Minimum question length (in characters) before HyDE is invoked.
+    /// HyDE is most useful on longer / abstract queries; short keyword queries
+    /// already match the vector space well enough.
+    /// </summary>
+    int HydeMinQueryLength { get; }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  Search Routing
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Default search mode used by the RAG pipeline.
+    /// Valid values: "Semantic", "Keyword", "Hybrid".
+    /// </summary>
+    string DefaultSearchMode { get; }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  Privacy / PII
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// When true, RAG context chunks are scanned for PII (emails, phone numbers,
+    /// SSNs, credit cards, API keys, IP addresses) and redacted before being
+    /// sent to the LLM provider.
+    /// </summary>
+    bool EnablePiiRedaction { get; }
+
+    /// <summary>
+    /// The mask string used when redacting PII (default "***").
+    /// </summary>
+    string PiiRedactionMask { get; }
+
     // ═══════════════════════════════════════════════════════════════════
     //  Research Mode Configuration
     // ═══════════════════════════════════════════════════════════════════

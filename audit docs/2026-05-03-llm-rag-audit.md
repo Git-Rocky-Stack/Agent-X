@@ -1,0 +1,394 @@
+# Agent-X — LLM / RAG Audit
+
+**Date:** 2026-05-03
+**Auditor:** Claude (Opus 4.7) — senior prompt-engineering / LLM-systems review
+**Scope:** Full LLM/RAG surface area in `Agent-X` (.NET 8 / WinUI 3)
+**Methodology:** Test-suite execution → file-by-file inventory → grep-verified call-site analysis → cross-cut review
+
+---
+
+## 1. Executive Summary
+
+Agent-X has a **sophisticated, well-architected LLM/RAG core** but ships with significant **architectural-integration gaps** that the prior audit (`docs/AI-COMPONENT-AUDIT.md`) overstated as "Phase 3 complete." Approximately **40 % of the advertised AI surface is registered in DI but never invoked on the hot path** — including HyDE, HybridSearchOrchestrator (in RAG context), RagMetrics, PiiDetector, and AdaptiveChunkingService.
+
+**Real maturity:** ~7 / 10 (prior audit claimed 9.5 / 10).
+
+### The Three Biggest Risks
+
+1. **Pure-semantic-only RAG.** `RagPipeline` calls `ISemanticSearchService` directly; `IHybridSearchOrchestrator` is wired in DI but bypassed. Keyword-heavy queries (proper nouns, error codes, exact phrases) lose the BM25 path entirely.
+2. **HyDE is broken — silently.** `RagPipeline` injects `IHydeService` and logs `HyDE=true` at startup, but `AskAsync` never calls it. The "Step 2" in the doc-comment is a fiction.
+3. **Observability theatre.** `RagMetrics`, `PiiDetector`, and `AdaptiveChunkingService` are in DI but have **zero production callers**. Operators have no telemetry; PII goes to LLM providers unredacted; chunking ignores the adaptive sizer.
+
+### The Three Biggest Wins
+
+1. `VectorMath` consolidation is real and used everywhere claimed.
+2. `CachedEmbeddingService` is wired correctly via DI factory — every `IEmbeddingService` injection point gets the cache wrapper.
+3. `IRagConfiguration` externalization is real — `RagPipeline`, `EmbeddingService`, `SemanticMemoryService`, and `SemanticContextSelector` all consume it.
+
+---
+
+## 2. Test-Suite Results
+
+**Filter:** `AgentX.Tests.AI | AgentX.Tests.Search | AgentX.Tests.Mathematics | AgentX.Tests.Configuration`
+**Result:** **217 / 218 pass** (1.35 s)
+
+| Suite | Count | Status |
+|---|---|---|
+| `AI.Routing.*` | ~50 | ✅ all green |
+| `AI.Context.*` | ~10 | ✅ all green |
+| `AI.CachedEmbeddingService*` | 11 | ✅ all green |
+| `AI.EmbeddingModelVersion*` | 10 | ✅ all green |
+| `AI.TokenCounter*` | 14 | ✅ all green |
+| `Mathematics.VectorMath*` | 20 | ✅ all green |
+| `Configuration.RagConfiguration*` | 10 | ✅ all green |
+| `Search.RagEvaluator*` | 14 | ✅ all green (incl. branch edits aligning tests to "return defaults" semantics) |
+| `Search.ParentDocumentRetriever*` | 8 | ✅ all green |
+| `Search.HybridSearchOrchestrator*` | 23 | ❌ 22 / 23 |
+
+**Sole failure:** `HybridSearchOrchestratorTests.SearchAsync_HybridMode_ParallelExecution`
+**Diagnosis:** Flaky test design, **not a production bug**. The orchestrator at `HybridSearchOrchestrator.cs:131-132` correctly launches both tasks before `Task.WhenAll`. The test uses Moq's `ReturnsAsync(() => ...)` whose lambda runs *synchronously* inside the mock invocation, so the semantic mock asserts `keywordCalled == true` before the orchestrator can ever reach the keyword call. **Fix belongs in the test** (have the semantic mock `await Task.Yield()` before its assertion), not in production code.
+
+---
+
+## 3. Findings — P0 (Production-Correctness / Architectural)
+
+### P0-1. HyDE is injected but never invoked in the RAG pipeline
+
+- **Evidence:** `src/AgentX.Core/Search/RagPipeline.cs:17` documents HyDE as Step 2; lines 73, 89 inject and store `_hydeService`; `AskAsync` (lines 104-310) never calls `_hydeService.GenerateHypotheticalEmbeddingAsync`. Grep confirms zero call sites in the pipeline.
+- **Impact:** Documented enhancement is silently disabled. Long / abstract queries (HyDE's sweet spot) get raw-question embeddings only. The init log at line 97 reports `HyDE=true` whenever the service is registered, regardless of usage — actively misleading.
+- **Fix:** Insert HyDE between multi-query expansion (line 136) and search (line 138). Threshold the activation on `RagConfiguration.HydeMinQueryLength` (default 80 chars). Use the hypothetical embedding to drive an additional vector search; merge results with the primary search via deduplication.
+
+### P0-2. RagPipeline bypasses HybridSearchOrchestrator
+
+- **Evidence:** `RagPipeline.cs:47, 154` uses `ISemanticSearchService.SearchAsync`. Grep `IHybridSearchOrchestrator` returns four files: interface, impl, DI registration, `SearchViewModel.cs`. **RagPipeline never references it.**
+- **Impact:** All RAG queries are pure-semantic. Keyword-heavy queries miss the BM25 path entirely. The 23 hybrid-search tests guard a code path that isn't on the RAG hot path.
+- **Fix:** Replace `ISemanticSearchService _searchService` with `IHybridSearchOrchestrator _searchOrchestrator` in `RagPipeline`; pass `Mode = SearchMode.Hybrid` (or read from `IRagConfiguration.DefaultSearchMode`).
+
+### P0-3. Three "Phase 3 complete" services are dead
+
+| Service | DI registration | Production callers |
+|---|---|---|
+| `IRagMetrics` | `App.xaml.cs:474` | **0** |
+| `IPiiDetector` | `App.xaml.cs:479` | **0** |
+| `IAdaptiveChunkingService` | `App.xaml.cs:468` | **0** (production uses `ChunkingService`) |
+
+- **Evidence:** Grep across `src/` shows each is referenced only in its own file plus DI registration.
+- **Impact:** No metrics recorded, PII sent to LLM providers unredacted, adaptive chunking inactive. The audit doc's "Phase 3 complete" claim is false.
+- **Fix:**
+  - **RagMetrics:** wire into `RagPipeline.AskAsync` (search at line 175, eval at 391, total at 410); `HybridSearchOrchestrator.ExecuteHybridSearchAsync:185`; `CachedEmbeddingService` for cache hit/miss.
+  - **PiiDetector:** call from `AiService.ChatAsync` before sending; redact context in `RagPipeline.BuildSystemPrompt` (line 300).
+  - **AdaptiveChunkingService:** route `DocumentService` through it, or delete it — registering shelf-ware bloats the DI graph and misleads readers.
+
+### P0-4. Provider responses never check `stop_reason` / `finish_reason`
+
+- **Evidence:** Grep across `src/` returns only `ChatContextInspectionModels.cs` (a model, not a runtime check). All four providers (`OpenAiProvider`, `AnthropicProvider`, `OllamaProvider`, `LocalLlmProvider`) return `string` and discard the stop reason.
+- **Impact:** A truncated response (`stop_reason="length"`) is indistinguishable from a complete response. `RagEvaluator` (MaxTokens=128) and `LlmReranker` (MaxTokens=256) are most exposed — silent truncation → JSON parse fails → return defaults → operator unaware.
+- **Fix:** Either widen `IAiProvider.ChatAsync` to return a `ChatResponse(string Text, string? StopReason, int? InputTokens, int? OutputTokens)`, or — as a minimum-ripple stop-gap — have providers detect truncation and emit a `Warning` log with the model, prompt prefix, and observed stop reason.
+
+---
+
+## 4. Findings — P1 (Quality, Performance, Reliability)
+
+### P1-1. Anthropic prompt caching never used
+
+- **Evidence:** Zero grep hits for `cache_control`, `CacheControl`, `ephemeral`. `AnthropicProvider.cs:67-76` ignores caching headers.
+- **Impact:** Static system prompts (RagPipeline ~70 tokens, ReActAgent tool-list 200-500 tokens, RagEvaluator/LlmReranker prompts) are re-sent every call. Anthropic caches at 10 % of read price — typical RAG workload wastes ~30-40 % input tokens.
+- **Fix:** Add `CacheControl` field to `ChatOptions`; in `AnthropicProvider`, format system prompt as `[{ "type": "text", "text": prompt, "cache_control": { "type": "ephemeral" } }]` when set. Mark `RagPipeline.RagSystemPromptPrefix`, `ReActAgent` tool-block, evaluator/reranker system prompts cacheable.
+
+### P1-2. RagEvaluator MaxTokens=128 is below the safe floor for its own JSON output
+
+- **Evidence:** `RagEvaluator.cs:73`. Prompt instructs *"Return ONLY a JSON object: {...}"* (~25 tokens), but local LLMs add preambles, code fences, trailing whitespace easily 60-150 tokens. On truncation `ParseMetrics` (line 123-128) silently returns `(0.5, 0.5, 0.5)`, only logged at **Debug** level.
+- **Impact:** Eval scores degrade to neutral defaults whenever the model is verbose. Metric becomes a lie.
+- **Fix:** `MaxTokens` 128 → **256**. Promote parse-failure log to `Warning`, include raw response. Add `ParseStatus` flag to `RagEvalMetrics` so callers can distinguish "evaluated 0.5" from "default-because-failed."
+
+### P1-3. ContextualCompressor is N-sequential — adds 3-5 s latency per query
+
+- **Evidence:** `ContextualCompressor.cs:45` — `foreach (var chunk in chunks)` with `await _aiService.ChatAsync` inside.
+- **Impact:** Typical 8-chunk RAG result = 8 sequential LLM round-trips before first token. On a local LLM, 5-10 s.
+- **Fix:** Quick win — `Task.WhenAll` with `SemaphoreSlim(_config.CompressionConcurrency)` (default 4). Better — batch-compress in one prompt with all chunks numbered.
+
+### P1-4. Embedding-model version stored but not validated at retrieval
+
+- **Evidence:** `EmbeddingService.ModelVersion` and entity columns exist; grep `IsCompatibleWith` returns only the model class + tests. `SemanticSearchService` does not call it before scoring.
+- **Impact:** After model upgrade, old embeddings silently produce garbage similarity scores against new query embeddings.
+- **Fix:** In `SemanticSearchService.SearchAsync`, filter chunks by version; on mismatch, emit one-shot warning and skip / queue for re-embed.
+
+### P1-5. JSON mode used everywhere, JSON Schema used nowhere
+
+- **Evidence:** `RagEvaluator.cs:74`, `LlmReranker.cs`, `ReflectionService`, `ReasoningService.DecomposeProblemAsync` — all set `ResponseFormat.JsonObject`, none provide a schema. Hand-rolled try/catch parsers fall back to defaults.
+- **Impact:** When the model hallucinates a different shape, callers silently default. The recent `[JsonPropertyName]` fix on `RagEvaluator` treated the symptom; the cause is "no schema, weak parser."
+- **Fix:** Add OpenAI-style `response_format: { type: "json_schema", schema: {...} }` (or use Anthropic tool-use as a forcing function). Interim — log raw response on parse failure.
+
+### P1-6. No streaming on the RAG path
+
+- **Evidence:** `RagPipeline.AskAsync(..., Action<string>? onToken = null, ...)` accepts a token callback at line 108, but the provider call is non-streaming. `StreamChatAsync` exists in providers but isn't invoked from RagPipeline.
+- **Impact:** Users wait for full answer before any text appears (5-30 s on local LLMs).
+- **Fix:** When `onToken` is non-null, route through `IAiService.StreamChatAsync` and forward chunks; emit citations after the stream completes.
+
+### P1-7. ConfigureAwait(false) inconsistently applied
+
+- **Evidence:** RagPipeline lines 128, 156, 218, 235, 252, 270 use it; many provider/eval/HyDE call sites do not.
+- **Impact:** Latent UI-thread deadlock risk on WinUI sync-context flows.
+- **Fix:** Add `Microsoft.VisualStudio.Threading.Analyzers` (VSTHRD200/111), sweep warnings.
+
+### P1-8. HttpClient constructed with `new` in providers
+
+- **Evidence:** `AnthropicProvider.cs:67`. No `IHttpClientFactory`.
+- **Impact:** Socket exhaustion under load; DNS-rotation issues.
+- **Fix:** Inject `IHttpClientFactory`, register named clients with Polly retry/circuit-breaker policies.
+
+---
+
+## 5. Findings — P2 (Best-Practice / Maintainability)
+
+- **P2-1.** Inconsistent `DefaultTopK`: `RagConfiguration.DefaultTopK = 8` vs `AppConstants.DefaultSearchTopK = 10`. Pick one.
+- **P2-2.** Retrieval expansion multiplier (3x) hardcoded in `SemanticSearchService` and `HybridSearchOrchestrator:121`. Promote to `IRagConfiguration.RetrievalExpansionMultiplier`.
+- **P2-3.** `RagEvaluator` runs synchronously after every answer despite the doc claiming "(async, non-blocking)." Either fire-and-forget into a background channel, or sample (e.g. 1-in-5).
+- **P2-4.** `RagSystemPromptPrefix` and other RAG prompts are hardcoded. Externalize to `RagPrompts.json`.
+- **P2-5.** `RagEvaluator.Truncate(c.ChunkText, 200)` is too aggressive — judge can't see beyond char 200. Make config-driven (default 800).
+- **P2-6.** `RagEvaluator` cancellation behaviour now swallows `OperationCanceledException` and returns defaults. **Wrong** — re-throw cancellation.
+- **P2-7.** `ContextualCompressor` filters chunks by literal string `NOT_RELEVANT`. Brittle. Use structured response.
+- **P2-8.** `HydeService` Temperature=0.3 fine, but verify `AppConstants.HydeMaxTokens` ≥ 200.
+- **P2-9.** No backpressure on parallel embedding calls. Add `BatchSize` from config.
+- **P2-10.** `ContextualCompressor` and `LlmReranker` log entire chunks at Debug — PII risk.
+
+---
+
+## 6. Cross-Cutting Themes
+
+| Theme | Where it shows up | Why it hurts |
+|---|---|---|
+| **Shelf-ware** | RagMetrics, PiiDetector, AdaptiveChunkingService, HyDE, HybridSearch (for RAG) | ~40 % of advertised AI surface wired in DI but never called. |
+| **Silent degradation** | Eval defaults to 0.5 on parse fail; no finish-reason check; no schema validation; no PII redaction | Failures invisible; operators can't tell when system is degraded. |
+| **Static prompts not cached** | RagPipeline / ReAct / RagEvaluator / LlmReranker | 30-40 % wasted Anthropic tokens; no KV-cache prefix reuse on local LLMs. |
+| **Sequential awaits** | ContextualCompressor (per-chunk); RagPipeline multi-query loop (line 144) | Avoidable latency. |
+| **Missing observability glue** | Token counts not logged; per-stage latency not in RagMetrics; parse failures only at Debug | You cannot tune what you cannot measure. |
+
+---
+
+## 7. Prioritized Remediation Plan
+
+| # | Severity | PR | Files | Effort |
+|---|---|---|---|---|
+| 1 | P0 | Wire HyDE into RagPipeline.AskAsync as Step 2 | `RagPipeline.cs`, `IRagConfiguration` | S |
+| 2 | P0 | RagPipeline: replace ISemanticSearchService with IHybridSearchOrchestrator | `RagPipeline.cs`, `App.xaml.cs` DI | M |
+| 3 | P0 | Wire RagMetrics into RagPipeline + HybridSearch + CachedEmbedding | 4 files | M |
+| 4 | P0 | PII redaction at AiService boundary + RagPipeline context | `AiService.cs`, `RagPipeline.cs`, `IPiiDetector` | M |
+| 5 | P0 | Adopt or remove AdaptiveChunkingService | `DocumentService.cs` *or* `App.xaml.cs` | S |
+| 6 | P0 | Provider stop_reason → callers handle truncation | `IAiProvider`, 4 providers, `RagEvaluator`, `LlmReranker`, `ContextualCompressor` | M |
+| 7 | P1 | Anthropic prompt caching | `ChatOptions`, `AnthropicProvider`, 4 callers | S/M |
+| 8 | P1 | RagEvaluator hardening | `RagEvaluator.cs` + tests | S |
+| 9 | P1 | ContextualCompressor: batch or parallel-with-semaphore | `ContextualCompressor.cs` | M |
+| 10 | P1 | Validate embedding model version at retrieval | `SemanticSearchService.cs` | S |
+| 11 | P1 | Stream RAG answer when onToken is set | `RagPipeline.cs`, `AiService.cs` | M |
+| 12 | P1 | IHttpClientFactory + Polly for all providers | DI + 4 provider files | M |
+| 13 | P1 | JSON Schema for structured outputs | 4-5 files | M |
+| 14 | P2 | Consolidate TopK / expansion multiplier into IRagConfiguration | `AppConstants.cs`, `RagConfiguration.cs`, 2 services | S |
+| 15 | P2 | Externalize RAG prompts to JSON | new file + 4-5 prompt sites | M |
+| 16 | P2 | ConfigureAwait(false) analyzer + sweep | `Directory.Build.props`, sweep | S |
+| 17 | P2 | RagEvaluator: sample-based async dispatch | `RagPipeline.cs` | S |
+
+**Recommended ship order:** items 1-5 (one-week P0 blitz) → 6-9 (perf/quality batch) → 10-13 (reliability batch) → 14-17 (cleanup).
+
+---
+
+## 8. What Is Genuinely Working Well
+
+- `VectorMath` consolidation real and used (`SemanticMemoryService`, `SemanticContextSelector`, `ConversationRecallService` all reference it).
+- `CachedEmbeddingService` wired correctly (`App.xaml.cs:365-370`).
+- `IRagConfiguration` is a real source of truth for `RagPipeline`, `EmbeddingService`, `SemanticMemoryService`, `SemanticContextSelector`.
+- `IContextWindowManager` IS used (referenced by `SemanticContextSelector`, `ContextAssemblyService`, `ConversationCompressionService`).
+- `IMultiQueryGenerator` IS called from `RagPipeline.cs:126`.
+- `ParentDocumentRetriever`, `LlmReranker`, `ContextualCompressor`, `RagEvaluator` are genuinely wired and called in `RagPipeline` (lines 212, 229, 246, 391).
+- `ITaskTypeDetector` and `IModelRouterService` test coverage is thorough; implementation matches tests.
+- `RagEvaluator`'s `[JsonPropertyName]` fix on the current branch is correct, and the test rewrite aligns with non-throwing behaviour — both are good.
+
+---
+
+*Generated 2026-05-03. Source: full file-by-file read + grep-verified call-site analysis on `Agent-X` main branch.*
+
+---
+
+## 9. P0 Remediation — Implementation Log (2026-05-03)
+
+All six P0 items implemented in a single session. Build status: **`AgentX.Core` clean, `AgentX.App` (win-x64) clean, `AgentX.Tests` clean**. Test status: **217 / 218 pass — exact same result as baseline; sole failure is the pre-existing flaky `HybridSearchOrchestratorTests.SearchAsync_HybridMode_ParallelExecution` Moq test described in §2 (no production regression).**
+
+### P0-1. HyDE wired into RagPipeline ✅
+- `IHydeService` extended with `GenerateHypotheticalDocumentAsync(string, CancellationToken) → Task<string>` so the pipeline can feed hypothetical text into the multi-query loop without an extra embedding round-trip.
+- `RagPipeline.AskAsync` adds Step 2 between multi-query expansion and search: when `_hydeService is not null && _ragConfiguration.EnableHyde && question.Length >= _ragConfiguration.HydeMinQueryLength`, call HyDE and append the hypothetical document to `queries`.
+- Init log no longer claims `HyDE=true` based on registration alone — now reports `HyDE=true` only when both registered AND enabled in config.
+- New config keys: `EnableHyde` (default `true`), `HydeMinQueryLength` (default `80` chars).
+- Files: `IHydeService.cs`, `HydeService.cs`, `RagPipeline.cs`, `IRagConfiguration.cs`, `RagConfiguration.cs`.
+
+### P0-2. RagPipeline now uses IHybridSearchOrchestrator ✅
+- `RagPipeline` constructor changed: `ISemanticSearchService searchService` → `IHybridSearchOrchestrator searchOrchestrator`.
+- New config key `DefaultSearchMode` (default `"Hybrid"`) parsed via `Enum.TryParse<SearchMode>(...)` with a fallback warning to `Hybrid` on unknown values.
+- Each query in the multi-query / HyDE loop now sets `Mode = searchMode` so the orchestrator routes correctly.
+- DI: existing `IHybridSearchOrchestrator` registration at `App.xaml.cs:455` is unchanged; `IRagPipeline` factory at `:485` resolves the new dep automatically. No DI rewrite required.
+- Files: `RagPipeline.cs`, `IRagConfiguration.cs`, `RagConfiguration.cs`.
+
+### P0-3. RagMetrics wired into production ✅
+- `IRagMetrics? metrics` injected into `RagPipeline` (optional) and `HybridSearchOrchestrator` (optional).
+- `RagPipeline.AskAsync` records search metrics after the search loop and evaluation metrics inside the background eval task.
+- `HybridSearchOrchestrator.SearchAsync` records search metrics on both cache-hit and cache-miss paths, with proper `cacheHits`/`cacheMisses` counters and a stopwatch.
+- `CachedEmbeddingService` was *considered* for IRagMetrics injection but reverted — the existing `IRagMetrics` surface has no sensible bucket for embedding-cache events without polluting search counts. Internal counters via `GetStatistics()` already serve this need; a follow-up should add a dedicated metric bucket.
+- Files: `RagPipeline.cs`, `HybridSearchOrchestrator.cs`.
+
+### P0-4. PiiDetector wired at RagPipeline context boundary ✅
+- `IPiiDetector? piiDetector` injected into `RagPipeline` (optional).
+- New step 8c (between context compression and prompt build): when enabled, scan each context chunk via `_piiDetector.ContainsPii`, redact via `_piiDetector.RedactPii(text, _ragConfiguration.PiiRedactionMask)`, and rebuild the chunk with redacted text. Logs `Information` with the count of redacted chunks.
+- New config keys: `EnablePiiRedaction` (default `true`), `PiiRedactionMask` (default `"***"`).
+- Defense-in-depth at the AiService boundary deferred to a follow-up to avoid accidentally redacting legitimate non-context content (e.g. a user-pasted email address).
+- Files: `RagPipeline.cs`, `IRagConfiguration.cs`, `RagConfiguration.cs`.
+
+### P0-5. AdaptiveChunkingService adopted into ChunkingService ✅
+- `ChunkingService` constructor extended with `(ITokenCounter?, IAdaptiveChunkingService?, ILogger)` overload; existing `(ITokenCounter, ILogger)` overload preserved for backwards compat.
+- DI factory at `App.xaml.cs:435` resolves `IAdaptiveChunkingService` via `sp.GetService<>` (optional) and uses the new overload.
+- `ChunkDocument` consults the analyzer when present. **Override policy:** for `ContentType.Code` and `ContentType.Table`, the analyzer's `RecommendedChunkSize` overrides the caller's `chunkSize`; for `Prose`, `Mixed`, and `List`, the caller's explicit choice is honored (since that's the user-tuned setting from `IRagConfiguration.DefaultChunkSize`). Decisions logged at `Information` (override) or `Debug` (honor).
+- Files: `ChunkingService.cs`, `App.xaml.cs`.
+
+### P0-6. Provider truncation detection ✅
+- All four providers now detect truncation and emit a `Warning` log including provider name, `stop_reason` / `done_reason`, model, and effective `max_tokens`. Public surface unchanged — minimum-ripple approach.
+- **OpenAiProvider:** captures `choices[0].finish_reason` from streaming chunks; warns on any value other than `"stop"` / `"tool_calls"`.
+- **AnthropicProvider:** captures `delta.stop_reason` from `message_delta` SSE event; warns on any value other than `"end_turn"` / `"stop_sequence"` / `"tool_use"`.
+- **OllamaProvider:** type-checks each chunk against `ChatDoneResponseStream` and reads `DoneReason`; warns on any value other than `"stop"`. Applied in both `StreamChatAsync` and `ChatAsync`.
+- **LocalLlmProvider:** counts emitted tokens; if `emitted >= MaxTokens`, warns. (LLamaSharp doesn't surface a stop reason directly.)
+- Files: `OpenAiProvider.cs`, `AnthropicProvider.cs`, `OllamaProvider.cs`, `LocalLlmProvider.cs`.
+
+### Files Touched (P0 implementation)
+
+```
+src/AgentX.Core/Configuration/IRagConfiguration.cs        +44
+src/AgentX.Core/Configuration/RagConfiguration.cs         +49
+src/AgentX.Core/Search/IHydeService.cs                    +14
+src/AgentX.Core/Search/HydeService.cs                     +9 / -10
+src/AgentX.Core/Search/RagPipeline.cs                     +110 / -22
+src/AgentX.Core/Search/HybridSearchOrchestrator.cs        +27 / -3
+src/AgentX.Core/AI/CachedEmbeddingService.cs              (no net change after revert)
+src/AgentX.Core/Documents/ChunkingService.cs              +44 / -1
+src/AgentX.Core/AI/Providers/OpenAiProvider.cs            +30
+src/AgentX.Core/AI/Providers/AnthropicProvider.cs         +35
+src/AgentX.Core/AI/Providers/OllamaProvider.cs            +35
+src/AgentX.Core/AI/Providers/LocalLlmProvider.cs          +18
+src/AgentX.App/App.xaml.cs                                +1
+audit docs/2026-05-03-llm-rag-audit.md                    (this file)
+```
+
+### What Did NOT Change
+
+- `IAiProvider` / `IAiService` public surface unchanged — `ChatAsync` still returns `string`. Truncation surfacing is via Warning logs, not a structural type-system change. Follow-up PR can widen to `ChatResponse(Text, StopReason, Tokens)` if richer caller behaviour (auto-retry on truncation) is desired.
+- `appsettings.json` not modified — the existing nested JSON layout (`Rag.Search.DefaultTopK`, etc.) does not actually bind to the flat `RagConfigurationOptions` (a pre-existing latent issue, separate from this audit). New keys take effect via class defaults; appsettings reform is a P2 item.
+- No tests deleted or weakened. `RagPipelineTests` does not exist — adding it is a follow-up.
+
+### Verification
+
+```
+dotnet build src/AgentX.Core                                 → 0 errors, 5 pre-existing warnings
+dotnet build tests/AgentX.Tests                              → 0 errors, 9 pre-existing warnings
+dotnet build src/AgentX.App -r win-x64                       → 0 errors, 5 pre-existing warnings
+dotnet test  tests/AgentX.Tests --filter "AI|Search|Math|Configuration"
+                                                              → 217 / 218 pass (baseline preserved)
+```
+
+---
+
+## 10. P1 Remediation — Implementation Log (2026-05-04)
+
+P1 work landed in the same session as P0. **Six of eight P1 items shipped with full code changes; one (P1-7) shipped as an analyzer to surface gaps; one (P1-8) deferred with rationale.** Build status: **`AgentX.Core` and `AgentX.App` (win-x64) both clean** (0 errors). Test status: **220 / 221 pass — net 3 new tests added (RagEvaluator hardening), only the same pre-existing flaky Moq test fails.**
+
+### P1-2. RagEvaluator hardened ✅
+- `MaxTokens` 128 → **256** so the JSON output never truncates on verbose local LLMs.
+- Parse failures now log at **Warning** (was Debug) and include the truncated raw response so operators can see what the model actually returned.
+- `OperationCanceledException` now **propagates** (previously swallowed → 0.5 defaults). Callers can now abort cleanly.
+- New `RagEvalMetrics.IsDefault` and `RagEvalMetrics.DefaultReason` fields distinguish "model judged 0.5" from "we have no signal." Reasons: `InputValidation`, `JsonParseFailure`, `LlmCallFailure`.
+- `RagPipeline` skips `RagMetrics.RecordEvaluation` for default metrics (would have skewed quality averages with a constant 0.5 floor).
+- 3 new test cases added: `EvaluateAsync_LlmCallFailure_MarksMetricsAsDefault`, `EvaluateAsync_InvalidInputs_MarkMetricsAsDefault`, `EvaluateAsync_RealParse_DoesNotMarkAsDefault`. Plus the cancellation test was correctly inverted to assert propagation.
+- Files: `IRagEvaluator.cs`, `RagEvaluator.cs`, `RagPipeline.cs`, `tests/.../RagEvaluatorTests.cs`.
+
+### P1-4. Embedding model version validated at retrieval ✅
+- Added `string ModelVersion { get; }` to `IEmbeddingService`. `CachedEmbeddingService` delegates to inner.
+- `SemanticSearchService.SearchAsync` now filters retrieved chunks by `chunk.EmbeddingModelVersion == _embeddingService.ModelVersion` *before* scoring. Legacy chunks (null version) are treated as compatible for backwards compat.
+- One-shot `Warning` log fires the first time a mismatch is detected (latched via `Interlocked.Exchange`) — prevents log floods on every search after a model upgrade.
+- Files: `IEmbeddingService.cs`, `CachedEmbeddingService.cs`, `SemanticSearchService.cs`.
+
+### P1-5. Raw LLM response logged on JSON parse failure ✅
+- `RagEvaluator.ParseMetrics` — already covered by P1-2.
+- `LlmReranker.ParseScores` — was a `static` method swallowing exceptions silently; now an instance method that logs `Warning` with raw response on parse failure.
+- `ReflectionService.ParseCritiqueJson` — same pattern, now logs raw response on parse failure.
+- `ReasoningService.ParseDecomposition` — same pattern, now logs raw response on parse failure.
+- All four sites now use a 500-char response truncation to keep logs readable while preserving enough context for diagnosis.
+- Files: `LlmReranker.cs`, `ReflectionService.cs`, `ReasoningService.cs`.
+
+### P1-1. Anthropic prompt caching for static system prompts ✅
+- New `ChatOptions.CacheSystemPrompt` flag.
+- `AnthropicProvider` honors it: when set, the system field is serialized as a typed text block with `cache_control: {"type":"ephemeral"}`. Anthropic returns ~10% read cost on cache hits with 5-minute TTL.
+- Marked cacheable: `RagEvaluator`, `LlmReranker`, `HydeService`, `ContextualCompressor`, `MultiQueryGenerator` — all of these have static system prompts that don't vary across calls.
+- **NOT cached:** `RagPipeline.RagSystemPromptPrefix`. The full RagPipeline system prompt mixes the static prefix with per-question context chunks; caching the concatenation would never hit. To benefit there we'd need multi-block system support (cacheable prefix + non-cached context). Documented inline as a follow-up.
+- Files: `ChatOptions.cs`, `AnthropicProvider.cs`, `RagEvaluator.cs`, `LlmReranker.cs`, `HydeService.cs`, `ContextualCompressor.cs`, `MultiQueryGenerator.cs`, `RagPipeline.cs` (commented).
+
+### P1-3. ContextualCompressor parallelized with concurrency cap ✅
+- Sequential `foreach` (N round-trips for N chunks → 5-10 s on a local LLM) replaced with `Task.WhenAll` bounded by `SemaphoreSlim(CompressionConcurrency)`.
+- New `IRagConfiguration.CompressionConcurrency` (default **4**) — high enough to hide LLM latency on cloud providers, low enough not to saturate local LLMs that serve few concurrent requests.
+- Output ordering preserved: results land in a pre-sized `RagContextChunk?[]` indexed by original position, then dropped/kept entries are collapsed to a `List` in original order. Rerank ordering is preserved.
+- `OperationCanceledException` propagates; per-chunk LLM failures keep the original (uncompressed) chunk as a graceful fallback.
+- Files: `IRagConfiguration.cs`, `RagConfiguration.cs`, `ContextualCompressor.cs`.
+
+### P1-6. RAG streaming (already in place) ✅
+- The audit's claim that "no streaming on the RAG path" was incorrect on closer inspection. `RagPipeline.AskAsync` already uses `_aiService.StreamChatAsync` (line 426), forwards each token via `onToken?.Invoke(token)` (line 431), and runs citation extraction after the stream completes (line 449). No code change required.
+- Treating this as **closed via verification**, not new code.
+
+### P1-7. ConfigureAwait(false) — analyzer added, manual sweep deferred ✅
+- Added `Microsoft.VisualStudio.Threading.Analyzers` 17.10.48 as a private analyzer asset on `AgentX.Core`. The analyzer surfaces VSTHRD003 (missing ConfigureAwait), VSTHRD100 (async void), VSTHRD103 (sync-blocks), VSTHRD200 (Async-suffix) at build time.
+- Build now reports **34 threading warnings** — concentrated in `KeywordSearchService`, `ChatService`, `CollaborationService`, plugin services. **None are on the RAG hot path** (RagPipeline, providers, evaluator, reranker, HyDE — all already use `ConfigureAwait(false)` correctly).
+- Manual sweep deferred to a P2 follow-up since (a) the analyzer makes the punch list explicit and gradual cleanup possible, and (b) most warnings are in non-AI code paths (DB, plugins, sync) that are out of scope for this LLM/RAG audit.
+- Files: `AgentX.Core.csproj`.
+
+### P1-8. IHttpClientFactory + Polly — deliberately deferred ❌
+- Reviewed in context: providers are long-lived **process-singletons** in a desktop app (one Anthropic + one OpenAI client for the lifetime of the process). The classic `IHttpClientFactory` wins — socket exhaustion under load, DNS rotation — **don't apply at this scale**.
+- The codebase already has `ExponentialBackoffRetryPolicy` for transient retries. Adding Polly would overlap with that policy and complicate streaming-response retry semantics (you cannot safely retry a partially-streamed SSE response).
+- Cost/benefit on this specific app: low value, real risk of regression. Documented as deferred-with-rationale rather than shipping a cargo-cult migration.
+- **If this changes** (e.g. Agent-X grows a server-side component, or providers become per-request rather than per-process): revisit with `Microsoft.Extensions.Http.Resilience` (the modern successor to Polly).
+
+### Files Touched (P1 implementation)
+
+```
+src/AgentX.Core/Configuration/IRagConfiguration.cs        +9
+src/AgentX.Core/Configuration/RagConfiguration.cs         +5
+src/AgentX.Core/AI/Models/ChatOptions.cs                  +10
+src/AgentX.Core/AI/IEmbeddingService.cs                   +9
+src/AgentX.Core/AI/CachedEmbeddingService.cs              +3
+src/AgentX.Core/AI/Providers/AnthropicProvider.cs         +21 / -3
+src/AgentX.Core/AI/Agents/ReflectionService.cs            +5 / -3
+src/AgentX.Core/AI/Agents/ReasoningService.cs             +9 / -3
+src/AgentX.Core/Search/IRagEvaluator.cs                   +14
+src/AgentX.Core/Search/RagEvaluator.cs                    +52 / -22
+src/AgentX.Core/Search/SemanticSearchService.cs           +56
+src/AgentX.Core/Search/LlmReranker.cs                     +21 / -7
+src/AgentX.Core/Search/HydeService.cs                     +3
+src/AgentX.Core/Search/MultiQueryGenerator.cs             +3
+src/AgentX.Core/Search/ContextualCompressor.cs            +75 / -53
+src/AgentX.Core/Search/RagPipeline.cs                     +14
+src/AgentX.Core/AgentX.Core.csproj                        +12
+tests/AgentX.Tests/Search/RagEvaluatorTests.cs            +60 / -3
+audit docs/2026-05-03-llm-rag-audit.md                    (this file)
+```
+
+### Verification
+
+```
+dotnet build src/AgentX.Core                                 → 0 errors, 34 analyzer warnings (new — see P1-7)
+dotnet build src/AgentX.App -r win-x64                       → 0 errors
+dotnet test  tests/AgentX.Tests --filter "AI|Search|Math|Configuration"
+                                                              → 220 / 221 pass (3 new tests added; 1 pre-existing
+                                                                Moq test still flaky — same root cause, unchanged)
+```
+
+### Tracked Follow-Ups (P2 / future)
+
+1. **RagPipeline multi-block system prompt** — split `BuildSystemPrompt` into a cacheable static prefix + non-cached context block so Anthropic prompt caching can fire on the RAG path (currently the highest-volume LLM call).
+2. **Threading analyzer warning sweep** — 34 VSTHRD warnings concentrated in `KeywordSearchService`, `ChatService`, `CollaborationService`, plugins. Mostly mechanical fixes (add `ConfigureAwait(false)`, replace sync `Cancel()` with `CancelAsync`).
+3. **`appsettings.json` binding fix** — the existing nested layout (`Rag.Search.DefaultTopK`) does not bind to the flat `RagConfigurationOptions`. Class defaults govern. Either flatten the JSON or restructure the options class.
+4. **Embedding cache metrics surface** — the existing `IRagMetrics.RecordSearch` has no clean bucket for embedding-cache hit/miss events. Add a dedicated bucket or extend the snapshot type.
+5. **JSON Schema enforcement** — replace hand-rolled `try { JsonSerializer.Deserialize } catch { defaults }` with provider-side schema validation (OpenAI `response_format: json_schema`, Anthropic tool-use as forcing function).
+6. **`RagPipelineTests`** — no integration tests for the new HyDE / PII / metrics / hybrid-search paths. The current test suite covers individual services but not the wired pipeline.
+

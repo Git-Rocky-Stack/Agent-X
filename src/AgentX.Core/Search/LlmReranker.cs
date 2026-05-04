@@ -66,7 +66,10 @@ public sealed class LlmReranker : ILlmReranker
             {
                 Temperature = 0.0,
                 MaxTokens = AppConstants.RerankerMaxTokens,
-                ResponseFormat = ResponseFormat.JsonObject
+                ResponseFormat = ResponseFormat.JsonObject,
+                // P1-1: the reranker system prompt is identical across every call; cache it
+                // when the provider supports prompt caching (Anthropic).
+                CacheSystemPrompt = true
             };
 
             var response = await _aiService.ChatAsync(messages, SystemPrompt, options, ct)
@@ -111,7 +114,7 @@ public sealed class LlmReranker : ILlmReranker
         return chunks.Take(maxChunks).ToList();
     }
 
-    private static Dictionary<int, double> ParseScores(string response, int chunkCount)
+    private Dictionary<int, double> ParseScores(string response, int chunkCount)
     {
         var scores = new Dictionary<int, double>();
 
@@ -135,12 +138,22 @@ public sealed class LlmReranker : ILlmReranker
                             scores[entry.Id] = Math.Clamp(entry.Score, 0, 10);
                         }
                     }
+
+                    return scores;
                 }
             }
+
+            // No JSON array found — surface the raw response so the operator
+            // can see what the model produced (P1-5).
+            _logger.Warning(
+                "LLM reranker response contained no JSON array; falling back to no rerank scores. Raw response: {Response}",
+                Truncate(response, 500));
         }
-        catch
+        catch (Exception ex)
         {
-            // JSON parsing failed — return empty scores
+            _logger.Warning(ex,
+                "Failed to parse LLM reranker JSON; falling back to no rerank scores. Raw response: {Response}",
+                Truncate(response, 500));
         }
 
         return scores;

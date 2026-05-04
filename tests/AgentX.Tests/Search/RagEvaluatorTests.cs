@@ -165,7 +165,7 @@ public sealed class RagEvaluatorTests
     }
 
     [Fact]
-    public async Task EvaluateAsync_EmptyQuestion_ThrowsArgumentException()
+    public async Task EvaluateAsync_EmptyQuestion_ReturnsDefaultScores()
     {
         // Arrange
         var contextChunks = new List<RagContextChunk>
@@ -173,13 +173,17 @@ public sealed class RagEvaluatorTests
             new() { ChunkId = 1, ChunkText = "Context", RelevanceScore = 0.5f }
         };
 
-        // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            _evaluator.EvaluateAsync("", "Answer", contextChunks));
+        // Act
+        var result = await _evaluator.EvaluateAsync("", "Answer", contextChunks);
+
+        // Assert - implementation returns defaults instead of throwing
+        result.ContextRelevance.Should().Be(0.5);
+        result.Faithfulness.Should().Be(0.5);
+        result.AnswerRelevance.Should().Be(0.5);
     }
 
     [Fact]
-    public async Task EvaluateAsync_EmptyAnswer_ThrowsArgumentException()
+    public async Task EvaluateAsync_EmptyAnswer_ReturnsDefaultScores()
     {
         // Arrange
         var contextChunks = new List<RagContextChunk>
@@ -187,25 +191,37 @@ public sealed class RagEvaluatorTests
             new() { ChunkId = 1, ChunkText = "Context", RelevanceScore = 0.5f }
         };
 
-        // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            _evaluator.EvaluateAsync("Question", "", contextChunks));
+        // Act
+        var result = await _evaluator.EvaluateAsync("Question", "", contextChunks);
+
+        // Assert - implementation returns defaults instead of throwing
+        result.ContextRelevance.Should().Be(0.5);
+        result.Faithfulness.Should().Be(0.5);
+        result.AnswerRelevance.Should().Be(0.5);
     }
 
     [Fact]
-    public async Task EvaluateAsync_EmptyContextChunks_ThrowsArgumentException()
+    public async Task EvaluateAsync_EmptyContextChunks_ReturnsDefaultScores()
     {
-        // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            _evaluator.EvaluateAsync("Question", "Answer", new List<RagContextChunk>()));
+        // Act
+        var result = await _evaluator.EvaluateAsync("Question", "Answer", new List<RagContextChunk>());
+
+        // Assert - implementation returns defaults instead of throwing
+        result.ContextRelevance.Should().Be(0.5);
+        result.Faithfulness.Should().Be(0.5);
+        result.AnswerRelevance.Should().Be(0.5);
     }
 
     [Fact]
-    public async Task EvaluateAsync_NullContextChunks_ThrowsArgumentException()
+    public async Task EvaluateAsync_NullContextChunks_ReturnsDefaultScores()
     {
-        // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            _evaluator.EvaluateAsync("Question", "Answer", null!));
+        // Act
+        var result = await _evaluator.EvaluateAsync("Question", "Answer", null!);
+
+        // Assert - implementation returns defaults instead of throwing
+        result.ContextRelevance.Should().Be(0.5);
+        result.Faithfulness.Should().Be(0.5);
+        result.AnswerRelevance.Should().Be(0.5);
     }
 
     [Fact]
@@ -379,10 +395,10 @@ public sealed class RagEvaluatorTests
         var result = await _evaluator.EvaluateAsync(question, answer, contextChunks);
 
         // Assert
-        // Should return defaults when fields are missing
+        // Missing fields deserialize to 0, then 0/10 = 0.0
         result.ContextRelevance.Should().Be(0.7);
         result.Faithfulness.Should().Be(0.8);
-        result.AnswerRelevance.Should().Be(0.5); // Default
+        result.AnswerRelevance.Should().Be(0.0); // Missing field defaults to 0
     }
 
     [Fact]
@@ -407,8 +423,84 @@ public sealed class RagEvaluatorTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new OperationCanceledException());
 
-        // Act & Assert
+        // Act + Assert — cancellation must propagate so callers can abort.
+        // Returning a placeholder 0.5 score on cancel hides caller intent and
+        // pollutes downstream metrics.
         await Assert.ThrowsAsync<OperationCanceledException>(() =>
             _evaluator.EvaluateAsync(question, answer, contextChunks, cts.Token));
+    }
+
+    [Fact]
+    public async Task EvaluateAsync_LlmCallFailure_MarksMetricsAsDefault()
+    {
+        // Arrange
+        var question = "Test question";
+        var answer = "Test answer";
+        var contextChunks = new List<RagContextChunk>
+        {
+            new() { ChunkId = 1, ChunkText = "Context", RelevanceScore = 0.7f }
+        };
+
+        _aiService
+            .Setup(s => s.ChatAsync(
+                It.IsAny<IReadOnlyList<ChatMessage>>(),
+                It.IsAny<string>(),
+                It.IsAny<ChatOptions>(),
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("LLM unavailable"));
+
+        // Act
+        var result = await _evaluator.EvaluateAsync(question, answer, contextChunks);
+
+        // Assert — defaults are returned but flagged so aggregators can exclude them
+        result.ContextRelevance.Should().Be(0.5);
+        result.IsDefault.Should().BeTrue();
+        result.DefaultReason.Should().Be("LlmCallFailure");
+    }
+
+    [Fact]
+    public async Task EvaluateAsync_InvalidInputs_MarkMetricsAsDefault()
+    {
+        var contextChunks = new List<RagContextChunk>
+        {
+            new() { ChunkId = 1, ChunkText = "Context", RelevanceScore = 0.5f }
+        };
+
+        var emptyQuestion = await _evaluator.EvaluateAsync("", "Answer", contextChunks);
+        emptyQuestion.IsDefault.Should().BeTrue();
+        emptyQuestion.DefaultReason.Should().Be("InputValidation");
+
+        var emptyAnswer = await _evaluator.EvaluateAsync("Q", "", contextChunks);
+        emptyAnswer.IsDefault.Should().BeTrue();
+        emptyAnswer.DefaultReason.Should().Be("InputValidation");
+
+        var nullChunks = await _evaluator.EvaluateAsync("Q", "A", null!);
+        nullChunks.IsDefault.Should().BeTrue();
+        nullChunks.DefaultReason.Should().Be("InputValidation");
+    }
+
+    [Fact]
+    public async Task EvaluateAsync_RealParse_DoesNotMarkAsDefault()
+    {
+        // Arrange
+        var contextChunks = new List<RagContextChunk>
+        {
+            new() { ChunkId = 1, ChunkText = "Context", RelevanceScore = 0.7f }
+        };
+
+        _aiService
+            .Setup(s => s.ChatAsync(
+                It.IsAny<IReadOnlyList<ChatMessage>>(),
+                It.IsAny<string>(),
+                It.IsAny<ChatOptions>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync("""{"context_relevance":7,"faithfulness":8,"answer_relevance":9}""");
+
+        // Act
+        var result = await _evaluator.EvaluateAsync("Q", "A", contextChunks);
+
+        // Assert
+        result.IsDefault.Should().BeFalse();
+        result.DefaultReason.Should().BeEmpty();
     }
 }

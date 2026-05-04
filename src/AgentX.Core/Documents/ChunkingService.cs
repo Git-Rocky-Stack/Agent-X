@@ -19,6 +19,7 @@ public sealed class ChunkingService : IChunkingService
 {
     private readonly ILogger _logger;
     private readonly ITokenCounter? _tokenCounter;
+    private readonly IAdaptiveChunkingService? _adaptive;
 
     /// <summary>
     /// Sentence-ending patterns used to split paragraphs that exceed the chunk size.
@@ -40,17 +41,27 @@ public sealed class ChunkingService : IChunkingService
     {
         _logger = Log.ForContext<ChunkingService>();
         _tokenCounter = null;
+        _adaptive = null;
     }
 
     public ChunkingService(ILogger logger)
     {
         _logger = logger ?? Log.ForContext<ChunkingService>();
         _tokenCounter = null;
+        _adaptive = null;
     }
 
     public ChunkingService(ITokenCounter tokenCounter, ILogger logger)
     {
         _tokenCounter = tokenCounter;
+        _logger = logger ?? Log.ForContext<ChunkingService>();
+        _adaptive = null;
+    }
+
+    public ChunkingService(ITokenCounter? tokenCounter, IAdaptiveChunkingService? adaptive, ILogger logger)
+    {
+        _tokenCounter = tokenCounter;
+        _adaptive = adaptive;
         _logger = logger ?? Log.ForContext<ChunkingService>();
     }
 
@@ -70,6 +81,39 @@ public sealed class ChunkingService : IChunkingService
         }
 
         ValidateParameters(chunkSize, chunkOverlap);
+
+        // ── Adaptive chunking (P0-5) ─────────────────────────────────────
+        // When the adaptive analyzer is registered, consult it. For content types
+        // where prose-sized chunks demonstrably hurt retrieval (Code, Table), honor
+        // the analyzer's recommendation. For Prose / Mixed / List, respect the
+        // caller's explicit chunkSize because that's the user-tuned setting.
+        if (_adaptive is not null)
+        {
+            try
+            {
+                var info = _adaptive.AnalyzeContent(document.ExtractedText, document.FileName);
+                var shouldOverride = info.ContentType is ContentType.Code or ContentType.Table;
+
+                if (shouldOverride && info.RecommendedChunkSize != chunkSize)
+                {
+                    _logger.Information(
+                        "Adaptive chunking override: {ContentType} content detected for '{FileName}' — " +
+                        "size {Original} → {Adaptive}",
+                        info.ContentType, document.FileName, chunkSize, info.RecommendedChunkSize);
+                    chunkSize = info.RecommendedChunkSize;
+                }
+                else
+                {
+                    _logger.Debug(
+                        "Adaptive analysis: {ContentType} (avgLine={AvgLine}, recommended={Recommended}); honoring caller's chunkSize={ChunkSize}",
+                        info.ContentType, info.AverageLineLength, info.RecommendedChunkSize, chunkSize);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Warning(ex, "Adaptive chunk analysis failed; falling back to caller-supplied chunkSize");
+            }
+        }
 
         _logger.Information(
             "Chunking document '{FileName}' ({PageCount} pages, {WordCount} words) with chunkSize={ChunkSize}, overlap={Overlap}",

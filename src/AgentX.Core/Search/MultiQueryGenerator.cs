@@ -50,7 +50,10 @@ public sealed class MultiQueryGenerator : IMultiQueryGenerator
             var options = new ChatOptions
             {
                 Temperature = 0.7,
-                MaxTokens = AppConstants.MultiQueryMaxTokens
+                MaxTokens = AppConstants.MultiQueryMaxTokens,
+                // P1-1: the multi-query system prompt is static across every call;
+                // cache it on Anthropic.
+                CacheSystemPrompt = true
             };
 
             var response = await _aiService.ChatAsync(messages, SystemPrompt, options, ct)

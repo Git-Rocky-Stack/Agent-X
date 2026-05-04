@@ -221,6 +221,12 @@ public sealed class OpenAiProvider : IAiProvider
             throw;
         }
 
+        // Tracks the most recent finish_reason emitted by the model so we can warn
+        // on truncation (P0-6) after the stream ends. OpenAI sends "stop", "length",
+        // "content_filter", "tool_calls" — anything other than "stop"/"tool_calls"
+        // typically means the response is degraded.
+        string? finishReason = null;
+
         using (response)
         {
             using var stream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
@@ -255,6 +261,15 @@ public sealed class OpenAiProvider : IAiProvider
                         {
                             text = content.GetString();
                         }
+
+                        // Capture finish_reason from the choice (OpenAI emits it on the final chunk).
+                        if (firstChoice.TryGetProperty("finish_reason", out var fr) &&
+                            fr.ValueKind == JsonValueKind.String)
+                        {
+                            var reason = fr.GetString();
+                            if (!string.IsNullOrEmpty(reason))
+                                finishReason = reason;
+                        }
                     }
                 }
                 catch (JsonException ex)
@@ -265,6 +280,19 @@ public sealed class OpenAiProvider : IAiProvider
                 if (!string.IsNullOrEmpty(text))
                     yield return text;
             }
+        }
+
+        // P0-6: warn the operator on truncation so silent eval / rerank failures
+        // become visible. "stop" and "tool_calls" are healthy terminations; anything
+        // else (especially "length") means the response was cut off.
+        if (!string.IsNullOrEmpty(finishReason)
+            && !string.Equals(finishReason, "stop", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(finishReason, "tool_calls", StringComparison.OrdinalIgnoreCase))
+        {
+            _logger.Warning(
+                "OpenAI response truncated or filtered: finish_reason={FinishReason}, model={Model}, max_tokens={MaxTokens}. " +
+                "Consider raising MaxTokens or inspecting prompt safety settings.",
+                finishReason, modelId, options?.MaxTokens ?? 2048);
         }
     }
 

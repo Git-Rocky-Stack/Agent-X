@@ -91,4 +91,14 @@ public class ChatOptions
     /// Requires <see cref="ForceToolCall"/> to be true.
     /// </summary>
     public string? ForceToolName { get; set; }
+
+    /// <summary>
+    /// When true, providers that support prompt caching (currently Anthropic) will
+    /// mark the system prompt with <c>cache_control: {"type":"ephemeral"}</c>.
+    /// Reuse of an identical system prompt within ~5 minutes pays ~10% of normal
+    /// input-token cost. Use for static, repeatable prompts (RAG system prompt,
+    /// evaluator / reranker prompts, ReAct tool list). Providers that don't
+    /// support caching ignore this flag.
+    /// </summary>
+    public bool CacheSystemPrompt { get; set; }
 }

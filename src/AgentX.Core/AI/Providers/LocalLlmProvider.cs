@@ -255,6 +255,12 @@ public sealed class LocalLlmProvider : IAiProvider
         // StatelessExecutor creates its own context per call — thread-safe
         var executor = new StatelessExecutor(_weights!, _chatParams!);
 
+        // Track emitted tokens so we can warn on MaxTokens truncation (P0-6).
+        // LLamaSharp StatelessExecutor stops naturally on antiprompt or MaxTokens —
+        // when token count equals MaxTokens, we likely hit the budget cap.
+        int emittedTokens = 0;
+        var maxTokens = inferenceParams.MaxTokens;
+
         await _inferenceLock.WaitAsync(ct).ConfigureAwait(false);
         try
         {
@@ -262,12 +268,24 @@ public sealed class LocalLlmProvider : IAiProvider
                 .ConfigureAwait(false))
             {
                 if (ct.IsCancellationRequested) yield break;
+                emittedTokens++;
                 yield return token;
             }
         }
         finally
         {
             _inferenceLock.Release();
+        }
+
+        // Heuristic truncation detection: LLamaSharp doesn't expose a stop_reason,
+        // but reaching MaxTokens is the most common failure mode for evaluators
+        // and rerankers (which set tight budgets like 128 tokens).
+        if (maxTokens > 0 && emittedTokens >= maxTokens)
+        {
+            _logger.Warning(
+                "Local LLM response likely truncated: emitted {Emitted} tokens, MaxTokens={MaxTokens}, model={Model}. " +
+                "If the response should have been shorter, check antiprompts; otherwise raise MaxTokens.",
+                emittedTokens, maxTokens, _modelFileName);
         }
     }
 

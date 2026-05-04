@@ -41,6 +41,9 @@ public sealed class CachedEmbeddingService : IEmbeddingService
     public string ModelName => _inner.ModelName;
 
     /// <inheritdoc />
+    public string ModelVersion => _inner.ModelVersion;
+
+    /// <inheritdoc />
     public async Task<float[]> EmbedAsync(string text, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(text))

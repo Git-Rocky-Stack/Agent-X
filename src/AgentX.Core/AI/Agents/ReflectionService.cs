@@ -197,7 +197,7 @@ public sealed partial class ReflectionService : IReflectionService
     /// <summary>
     /// Parses critique JSON response into structured format.
     /// </summary>
-    private static (double qualityScore, List<ReflectionCritique> critiques) ParseCritiqueJson(string json)
+    private (double qualityScore, List<ReflectionCritique> critiques) ParseCritiqueJson(string json)
     {
         try
         {
@@ -239,8 +239,13 @@ public sealed partial class ReflectionService : IReflectionService
 
             return (qualityScore, critiques);
         }
-        catch
+        catch (Exception ex)
         {
+            // Surface the raw response so operators can see what the model produced
+            // instead of silently defaulting to 0.7 quality with no critiques (P1-5).
+            _log.Warning(ex,
+                "Failed to parse reflection critique JSON; defaulting to qualityScore=0.7 and no critiques. Raw response: {Response}",
+                json.Truncate(500));
             return (0.7, new List<ReflectionCritique>());
         }
     }

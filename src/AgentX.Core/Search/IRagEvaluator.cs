@@ -38,4 +38,19 @@ public class RagEvalMetrics
 
     /// <summary>Overall quality score (weighted average of all metrics).</summary>
     public double OverallScore => ContextRelevance * 0.3 + Faithfulness * 0.4 + AnswerRelevance * 0.3;
+
+    /// <summary>
+    /// True when these metrics are placeholder defaults (0.5 / 0.5 / 0.5) emitted
+    /// because the evaluator's LLM call failed or its JSON output could not be parsed.
+    /// Distinguishes "the model judged this 0.5" from "we have no signal."
+    /// Aggregators / dashboards should EXCLUDE entries where this is true.
+    /// </summary>
+    public bool IsDefault { get; set; }
+
+    /// <summary>
+    /// Why these metrics are defaults (when <see cref="IsDefault"/> is true).
+    /// One of: "InputValidation", "JsonParseFailure", "LlmCallFailure", "Cancelled".
+    /// Empty when the metrics are real LLM scores.
+    /// </summary>
+    public string DefaultReason { get; set; } = string.Empty;
 }

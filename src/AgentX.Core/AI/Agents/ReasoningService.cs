@@ -414,7 +414,7 @@ Respond with JSON in this format:
         return chain;
     }
 
-    private static ProblemDecomposition ParseDecomposition(string query, string json)
+    private ProblemDecomposition ParseDecomposition(string query, string json)
     {
         try
         {
@@ -457,8 +457,13 @@ Respond with JSON in this format:
 
             return decomposition;
         }
-        catch
+        catch (Exception ex)
         {
+            // Surface what the model returned so the operator can debug instead
+            // of getting a silently-empty decomposition (P1-5).
+            _log.Warning(ex,
+                "Failed to parse problem decomposition JSON; returning empty decomposition. Raw response: {Response}",
+                json.Length > 500 ? json.Substring(0, 500) + "..." : json);
             return new ProblemDecomposition { OriginalProblem = query };
         }
     }

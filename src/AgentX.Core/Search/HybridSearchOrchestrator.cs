@@ -1,3 +1,4 @@
+using AgentX.Core.Observability;
 using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Search;
 using Serilog;
@@ -35,6 +36,7 @@ public sealed class HybridSearchOrchestrator : IHybridSearchOrchestrator
     private readonly ISemanticSearchService _semanticSearch;
     private readonly IKeywordSearchService _keywordSearch;
     private readonly ISearchCacheService? _searchCacheService;
+    private readonly IRagMetrics? _metrics;
     private readonly ILogger _logger;
 
     /// <summary>
@@ -48,12 +50,14 @@ public sealed class HybridSearchOrchestrator : IHybridSearchOrchestrator
         ISemanticSearchService semanticSearch,
         IKeywordSearchService keywordSearch,
         ILogger logger,
-        ISearchCacheService? searchCacheService = null)
+        ISearchCacheService? searchCacheService = null,
+        IRagMetrics? metrics = null)
     {
         _semanticSearch = semanticSearch ?? throw new ArgumentNullException(nameof(semanticSearch));
         _keywordSearch = keywordSearch ?? throw new ArgumentNullException(nameof(keywordSearch));
         _logger = logger?.ForContext<HybridSearchOrchestrator>() ?? throw new ArgumentNullException(nameof(logger));
         _searchCacheService = searchCacheService;
+        _metrics = metrics;
     }
 
     /// <inheritdoc />
@@ -61,22 +65,26 @@ public sealed class HybridSearchOrchestrator : IHybridSearchOrchestrator
     {
         ArgumentNullException.ThrowIfNull(query);
 
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
         // Check cache first (when available)
         if (_searchCacheService is not null)
         {
             var cached = _searchCacheService.TryGetCached(query);
             if (cached is not null)
             {
+                stopwatch.Stop();
                 _logger.Debug("Cache hit for {Mode} search query: {Query}", query.Mode, TruncateForLog(query.QueryText));
+                _metrics?.RecordSearch(MapSearchType(query.Mode), cached.Count, cacheHits: 1, cacheMisses: 0, stopwatch);
                 return cached;
             }
         }
 
         var results = query.Mode switch
         {
-            SearchMode.Semantic => await ExecuteSemanticSearchAsync(query, ct),
-            SearchMode.Keyword => await ExecuteKeywordSearchAsync(query, ct),
-            SearchMode.Hybrid => await ExecuteHybridSearchAsync(query, ct),
+            SearchMode.Semantic => await ExecuteSemanticSearchAsync(query, ct).ConfigureAwait(false),
+            SearchMode.Keyword => await ExecuteKeywordSearchAsync(query, ct).ConfigureAwait(false),
+            SearchMode.Hybrid => await ExecuteHybridSearchAsync(query, ct).ConfigureAwait(false),
             _ => throw new ArgumentOutOfRangeException(nameof(query), $"Unknown search mode: {query.Mode}")
         };
 
@@ -88,8 +96,20 @@ public sealed class HybridSearchOrchestrator : IHybridSearchOrchestrator
                 results.Count, query.Mode, TruncateForLog(query.QueryText));
         }
 
+        stopwatch.Stop();
+        _metrics?.RecordSearch(MapSearchType(query.Mode), results.Count,
+            cacheHits: 0, cacheMisses: _searchCacheService is not null ? 1 : 0, stopwatch);
+
         return results;
     }
+
+    private static SearchType MapSearchType(SearchMode mode) => mode switch
+    {
+        SearchMode.Semantic => SearchType.Semantic,
+        SearchMode.Keyword => SearchType.Keyword,
+        SearchMode.Hybrid => SearchType.Hybrid,
+        _ => SearchType.Hybrid
+    };
 
     // ═══════════════════════════════════════════════════════════════════
     //  Mode-specific execution
