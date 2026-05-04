@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Microsoft.UI.Xaml;
 using Serilog;
 using SQLitePCL;
@@ -10,6 +11,7 @@ using AgentX.Core.AI.Context;
 using AgentX.Core.AI.Agents;
 using AgentX.Core.AI.Models;
 using AgentX.Core.AI.Routing;
+using AgentX.Core.Configuration;
 using AgentX.Core.Data;
 using AgentX.Core.Data.VectorDb;
 using AgentX.Core.Services.Screen;
@@ -34,6 +36,7 @@ using AgentX.Core.Services.Inbox;
 using AgentX.Core.Services.Workspace;
 using AgentX.Core.Services.Plugins;
 using AgentX.Core.Services.Audio;
+using AgentX.Core.Observability;
 using AgentX.Core.Services.Sync;
 using AgentX.Core.Services.Sync.Codec;
 using AgentX.Core.Services.Sync.ConflictResolution;
@@ -332,6 +335,10 @@ public partial class App : Application
         services.AddSingleton<ILicenseService, LicenseService>();
         services.AddSingleton<IFeatureFlagService, FeatureFlagService>();
 
+        // ── RAG Configuration (Phase 1) ─────────────────────────
+        services.Configure<RagConfigurationOptions>(context.Configuration.GetSection("Rag"));
+        services.AddSingleton<IRagConfiguration, RagConfiguration>();
+
         // ── App Services (UI layer) ──────────────────────────────
         services.AddSingleton<IShortcutRegistry, ShortcutRegistry>();
         services.AddSingleton(_ => new ChordStateMachine(1000, () => DateTime.UtcNow));
@@ -347,7 +354,22 @@ public partial class App : Application
         services.AddSingleton<ICostTracker, CostTracker>();
         services.AddSingleton<IModelManager, ModelManager>();
         services.AddSingleton<IHardwareDetector, HardwareDetector>();
-        services.AddSingleton<IEmbeddingService, EmbeddingService>();
+
+        // Token counter for accurate context window budgeting
+        services.AddSingleton<ITokenCounter, TokenCounter>();
+
+        // Inner embedding service (wrapped by cache)
+        services.AddSingleton<EmbeddingService>();
+
+        // Cached embedding service (decorator pattern - wraps the inner service)
+        services.AddSingleton<IEmbeddingService>(sp =>
+        {
+            var inner = sp.GetRequiredService<EmbeddingService>();
+            var config = sp.GetRequiredService<IRagConfiguration>();
+            var logger = sp.GetRequiredService<Serilog.ILogger>();
+            return new CachedEmbeddingService(inner, config, logger.ForContext<CachedEmbeddingService>());
+        });
+
         services.AddSingleton<IContextWindowManager, ContextWindowManager>();
         services.AddSingleton<ISemanticContextSelector, SemanticContextSelector>();
         services.AddSingleton<IConversationCompressionService, ConversationCompressionService>();
@@ -362,12 +384,13 @@ public partial class App : Application
         services.AddSingleton<IVectorStore>(sp =>
         {
             var settingsService = sp.GetRequiredService<ISettingsService>();
+            var embeddingService = sp.GetRequiredService<IEmbeddingService>();
             var logger = sp.GetRequiredService<Serilog.ILogger>();
             // IEncryptedConnectionFactory is registered in Task 9; this resolve is
             // wired here as the minimal call-site adjustment for Task 8's signature
             // change so the project builds.
             var connectionFactory = sp.GetRequiredService<AgentX.Core.Data.IEncryptedConnectionFactory>();
-            return VectorStoreFactory.Create(settingsService, logger, connectionFactory);
+            return VectorStoreFactory.Create(settingsService, embeddingService, logger, connectionFactory);
         });
 
         // ── Chat Services ──────────────────────────────────────
@@ -409,7 +432,12 @@ public partial class App : Application
 
         // ── Document Services ────────────────────────────────────
         services.AddSingleton<IDocumentService, DocumentService>();
-        services.AddSingleton<IChunkingService, ChunkingService>();
+        services.AddSingleton<IChunkingService>(sp =>
+        {
+            var tokenCounter = sp.GetRequiredService<ITokenCounter>();
+            var logger = sp.GetRequiredService<Serilog.ILogger>();
+            return new ChunkingService(tokenCounter, logger.ForContext<ChunkingService>());
+        });
 
         // ── Indexing Pipeline ────────────────────────────────────
         services.AddSingleton<IIndexingQueueService, IndexingQueueService>();
@@ -435,6 +463,24 @@ public partial class App : Application
         services.AddSingleton<IParentDocumentRetriever, ParentDocumentRetriever>();
         services.AddSingleton<IContextualCompressor, ContextualCompressor>();
         services.AddSingleton<IRagEvaluator, RagEvaluator>();
+
+        // ── Phase 3: Advanced Observability & Enhancements ────────
+        services.AddSingleton<IAdaptiveChunkingService>(sp =>
+        {
+            var config = sp.GetRequiredService<IRagConfiguration>();
+            var logger = sp.GetRequiredService<Serilog.ILogger>();
+            return new AdaptiveChunkingService(config, logger.ForContext<AdaptiveChunkingService>());
+        });
+        services.AddSingleton<IRagMetrics>(sp =>
+        {
+            var logger = sp.GetRequiredService<Serilog.ILogger>();
+            return new RagMetrics(logger.ForContext<RagMetrics>());
+        });
+        services.AddSingleton<IPiiDetector>(sp =>
+        {
+            var logger = sp.GetRequiredService<Serilog.ILogger>();
+            return new PiiDetector(logger.ForContext<PiiDetector>());
+        });
 
         services.AddSingleton<IRagPipeline, RagPipeline>();
 

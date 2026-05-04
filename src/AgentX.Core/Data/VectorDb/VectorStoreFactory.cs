@@ -1,3 +1,4 @@
+using AgentX.Core.AI;
 using AgentX.Core.Services.Settings;
 using Serilog;
 
@@ -20,15 +21,18 @@ public static class VectorStoreFactory
     /// Creates the appropriate <see cref="IVectorStore"/> implementation based on settings.
     /// </summary>
     /// <param name="settingsService">Settings service providing app configuration.</param>
+    /// <param name="embeddingService">Embedding service providing dimension information.</param>
     /// <param name="logger">Serilog logger instance.</param>
     /// <param name="connectionFactory">Encrypted connection factory — required so PRAGMA key is applied when opening SQLite.</param>
     /// <returns>A fully constructed (but not yet initialized) <see cref="IVectorStore"/>.</returns>
     public static IVectorStore Create(
         ISettingsService settingsService,
+        IEmbeddingService embeddingService,
         ILogger logger,
         IEncryptedConnectionFactory connectionFactory)
     {
         ArgumentNullException.ThrowIfNull(settingsService);
+        ArgumentNullException.ThrowIfNull(embeddingService);
         ArgumentNullException.ThrowIfNull(logger);
         ArgumentNullException.ThrowIfNull(connectionFactory);
 
@@ -41,15 +45,15 @@ public static class VectorStoreFactory
         }
 
         logger.Information(
-            "HNSW index enabled; creating HnswVectorStore (M={M}, EfConstruction={EfConstruction}, FallbackThreshold={Threshold})",
-            settings.HnswM, settings.HnswEfConstruction, settings.HnswFallbackThreshold);
+            "HNSW index enabled; creating HnswVectorStore (M={M}, EfConstruction={EfConstruction}, FallbackThreshold={Threshold}, Dimensions={Dimensions})",
+            settings.HnswM, settings.HnswEfConstruction, settings.HnswFallbackThreshold, embeddingService.Dimensions);
 
         return new HnswVectorStore(
             settingsService,
             logger,
             m: settings.HnswM,
             efConstruction: settings.HnswEfConstruction,
-            dimensions: 384, // all-MiniLM-L6-v2 default; matches EmbeddingService.Dimensions
+            dimensions: embeddingService.Dimensions,
             fallbackThreshold: settings.HnswFallbackThreshold,
             connectionFactory: connectionFactory);
     }

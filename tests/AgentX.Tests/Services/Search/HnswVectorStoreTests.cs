@@ -1,4 +1,5 @@
 using System.Text.Json;
+using AgentX.Core.AI;
 using AgentX.Core.Data;
 using AgentX.Core.Data.VectorDb;
 using AgentX.Core.Services.Security;
@@ -32,6 +33,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
 
     private readonly string _tempPath;
     private readonly Mock<ISettingsService> _mockSettings;
+    private readonly Mock<IEmbeddingService> _mockEmbeddingService;
     private readonly ILogger _logger;
 
     public HnswVectorStoreTests()
@@ -43,6 +45,9 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         _mockSettings
             .Setup(s => s.GetSettingsAsync())
             .ReturnsAsync(new AppSettings { StoragePath = _tempPath });
+
+        _mockEmbeddingService = new Mock<IEmbeddingService>();
+        _mockEmbeddingService.Setup(e => e.Dimensions).Returns(3); // Test embeddings are 3-dimensional
 
         _logger = Log.ForContext<HnswVectorStoreTests>();
     }
@@ -381,7 +386,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
             });
 
         // Act
-        var store = VectorStoreFactory.Create(mockSettings.Object, _logger, CreatePlainFactory());
+        var store = VectorStoreFactory.Create(_mockSettings.Object, _mockEmbeddingService.Object, _logger, CreatePlainFactory());
 
         // Assert
         store.Should().BeOfType<HnswVectorStore>(
@@ -410,7 +415,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
             });
 
         // Act
-        var store = VectorStoreFactory.Create(mockSettings.Object, _logger, CreatePlainFactory());
+        var store = VectorStoreFactory.Create(_mockSettings.Object, _mockEmbeddingService.Object, _logger, CreatePlainFactory());
 
         // Assert
         store.Should().BeOfType<SqliteVecStore>(

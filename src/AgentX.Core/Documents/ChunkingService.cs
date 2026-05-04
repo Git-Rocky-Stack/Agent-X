@@ -1,3 +1,4 @@
+using AgentX.Core.AI;
 using AgentX.Core.Documents.Models;
 using Serilog;
 
@@ -12,12 +13,12 @@ namespace AgentX.Core.Documents;
 /// 3. If a sentence exceeds chunkSize, split by word boundaries
 /// 4. Apply overlap: the last N tokens of the previous chunk are prepended to the next
 ///
-/// Token counting is approximated using word count (splitting on whitespace),
-/// which provides a safe approximation for chunking purposes.
+/// Token counting uses ITokenCounter for accurate model-specific tokenization.
 /// </summary>
 public sealed class ChunkingService : IChunkingService
 {
     private readonly ILogger _logger;
+    private readonly ITokenCounter? _tokenCounter;
 
     /// <summary>
     /// Sentence-ending patterns used to split paragraphs that exceed the chunk size.
@@ -38,10 +39,18 @@ public sealed class ChunkingService : IChunkingService
     public ChunkingService()
     {
         _logger = Log.ForContext<ChunkingService>();
+        _tokenCounter = null;
     }
 
     public ChunkingService(ILogger logger)
     {
+        _logger = logger ?? Log.ForContext<ChunkingService>();
+        _tokenCounter = null;
+    }
+
+    public ChunkingService(ITokenCounter tokenCounter, ILogger logger)
+    {
+        _tokenCounter = tokenCounter;
         _logger = logger ?? Log.ForContext<ChunkingService>();
     }
 
@@ -403,7 +412,7 @@ public sealed class ChunkingService : IChunkingService
     /// <summary>
     /// Builds a DocumentChunk from a list of text segments by concatenating their content.
     /// </summary>
-    private static DocumentChunk BuildChunk(
+    private DocumentChunk BuildChunk(
         List<TextSegment> segments,
         int index,
         string? sectionTitle,
@@ -432,7 +441,7 @@ public sealed class ChunkingService : IChunkingService
     /// Extracts the trailing segments from the current chunk that together comprise
     /// approximately chunkOverlap tokens, for use as the overlap prefix of the next chunk.
     /// </summary>
-    private static List<TextSegment> GetOverlapSegments(List<TextSegment> segments, int chunkOverlap)
+    private List<TextSegment> GetOverlapSegments(List<TextSegment> segments, int chunkOverlap)
     {
         if (chunkOverlap <= 0 || segments.Count == 0)
             return new List<TextSegment>();
@@ -457,15 +466,21 @@ public sealed class ChunkingService : IChunkingService
     // ── Private: Token counting ─────────────────────────────────────────
 
     /// <summary>
-    /// Approximates the token count of text by counting whitespace-delimited words.
+    /// Counts tokens in text using the token counter service if available,
+    /// otherwise falls back to word count approximation.
     /// This is a conservative approximation: real tokenizers typically produce ~1.3 tokens
     /// per word, so word count provides a safe lower bound for chunking purposes.
     /// </summary>
-    private static int CountTokens(string text)
+    private int CountTokens(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
             return 0;
 
+        // Use accurate token counting if available
+        if (_tokenCounter is not null)
+            return _tokenCounter.CountTokens(text);
+
+        // Fallback to word count approximation
         return text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
     }
 

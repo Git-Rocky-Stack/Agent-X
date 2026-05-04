@@ -2,8 +2,10 @@ using System.Diagnostics;
 using System.Text;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Configuration;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Mathematics;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -19,12 +21,9 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
     private readonly IAiService _aiService;
     private readonly IEmbeddingService _embeddingService;
     private readonly ILogger _logger;
+    private readonly IRagConfiguration _ragConfiguration;
 
-    // Temporal decay: memories fade over time if not accessed
-    private const double DefaultDecayRate = 0.01;
-    private const int DaysBeforeFullDecay = 90; // After 90 days of no access, max decay applied
-
-    // Associative linking threshold
+    // Associative linking threshold (kept as constant since it's a domain-specific threshold)
     private const float AssociativeLinkThreshold = 0.85f;
 
     // Valid memory categories (expanded from 4 to 20+)
@@ -69,12 +68,14 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
         AgentXDbContext db,
         IAiService aiService,
         IEmbeddingService embeddingService,
-        ILogger logger)
+        ILogger logger,
+        IRagConfiguration ragConfiguration)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
         _embeddingService = embeddingService ?? throw new ArgumentNullException(nameof(embeddingService));
         _logger = logger?.ForContext<SemanticMemoryService>() ?? throw new ArgumentNullException(nameof(logger));
+        _ragConfiguration = ragConfiguration ?? throw new ArgumentNullException(nameof(ragConfiguration));
     }
 
     /// <inheritdoc />
@@ -110,7 +111,7 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
             {
                 if (TryParseEmbedding(memory.Embedding!, out var memoryEmbedding))
                 {
-                    float similarity = CosineSimilarity(queryEmbedding, memoryEmbedding);
+                    float similarity = VectorMath.CosineSimilarity(queryEmbedding, memoryEmbedding);
                     if (similarity >= minSimilarity)
                     {
                         double effectiveImportance = GetEffectiveImportance(memory);
@@ -324,7 +325,7 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
                     if (!string.IsNullOrEmpty(existing.Embedding) &&
                         TryParseEmbedding(existing.Embedding, out var existingEmbedding))
                     {
-                        var similarity = CosineSimilarity(contentEmbedding, existingEmbedding);
+                        var similarity = VectorMath.CosineSimilarity(contentEmbedding, existingEmbedding);
                         if (similarity > 0.92f) // High threshold for duplicate detection
                         {
                             isDuplicate = true;
@@ -441,7 +442,7 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
         if (memory is null) return 0.0;
 
         var daysSinceLastAccess = (DateTime.UtcNow - memory.LastUsedAt).TotalDays;
-        var decayFactor = Math.Exp(-memory.DecayRate * Math.Min(daysSinceLastAccess, DaysBeforeFullDecay));
+        var decayFactor = Math.Exp(-memory.DecayRate * Math.Min(daysSinceLastAccess, _ragConfiguration.MemoryDaysBeforeFullDecay));
 
         return memory.Importance * decayFactor;
     }
@@ -501,7 +502,7 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
                     if (string.IsNullOrEmpty(existing.Embedding)) continue;
                     if (!TryParseEmbedding(existing.Embedding, out var existingEmbedding)) continue;
 
-                    var similarity = CosineSimilarity(newEmbedding, existingEmbedding);
+                    var similarity = VectorMath.CosineSimilarity(newEmbedding, existingEmbedding);
 
                     if (similarity > AssociativeLinkThreshold && similarity > bestSimilarity)
                     {
@@ -543,24 +544,6 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
             .ToListAsync(ct);
     }
 
-    private static float CosineSimilarity(float[] a, float[] b)
-    {
-        if (a.Length != b.Length) return 0f;
-
-        float dot = 0;
-        float magA = 0;
-        float magB = 0;
-
-        for (int i = 0; i < a.Length; i++)
-        {
-            dot += a[i] * b[i];
-            magA += a[i] * a[i];
-            magB += b[i] * b[i];
-        }
-
-        float denominator = (float)Math.Sqrt(magA) * (float)Math.Sqrt(magB);
-        return denominator > 0f ? dot / denominator : 0f;
-    }
 
     private static bool TryParseEmbedding(string embeddingStr, out float[] embedding)
     {
@@ -632,7 +615,7 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
         return Math.Clamp(baseImportance * confidence, 0.1, 1.0);
     }
 
-    private static double GetDecayRateForCategory(string category)
+    private double GetDecayRateForCategory(string category)
     {
         // Important preferences/instructions should decay slower
         return category switch
@@ -657,7 +640,7 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
             "topic" => 0.025,
             "fact" => 0.02,
             "context" => 0.025,
-            _ => DefaultDecayRate
+            _ => _ragConfiguration.MemoryDecayRate
         };
     }
 

@@ -2,6 +2,7 @@ using System.Globalization;
 using AgentX.Core.AI;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Mathematics;
 using AgentX.Core.Services.Chat.Models;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -220,7 +221,7 @@ public sealed class ConversationRecallService : IConversationRecallService
                 continue;
             }
 
-            var similarity = CosineSimilarity(queryEmbedding, messageEmbedding);
+            var similarity = VectorMath.CosineSimilarity(queryEmbedding, messageEmbedding);
             if (similarity < minSimilarity)
             {
                 continue;
@@ -304,31 +305,5 @@ public sealed class ConversationRecallService : IConversationRecallService
 
         embedding = values;
         return true;
-    }
-
-    private static float CosineSimilarity(IReadOnlyList<float> left, IReadOnlyList<float> right)
-    {
-        if (left.Count == 0 || left.Count != right.Count)
-        {
-            return 0f;
-        }
-
-        double dot = 0;
-        double leftMagnitude = 0;
-        double rightMagnitude = 0;
-
-        for (var i = 0; i < left.Count; i++)
-        {
-            dot += left[i] * right[i];
-            leftMagnitude += left[i] * left[i];
-            rightMagnitude += right[i] * right[i];
-        }
-
-        if (leftMagnitude <= 0 || rightMagnitude <= 0)
-        {
-            return 0f;
-        }
-
-        return (float)(dot / (Math.Sqrt(leftMagnitude) * Math.Sqrt(rightMagnitude)));
     }
 }

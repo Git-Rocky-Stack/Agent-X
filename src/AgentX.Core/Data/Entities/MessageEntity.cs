@@ -14,6 +14,7 @@ public class MessageEntity
     public int SortOrder { get; set; }
     public string? Embedding { get; set; }
     public string? EmbeddingModel { get; set; }
+    public int? EmbeddingDimensions { get; set; }
     public DateTime? EmbeddedAt { get; set; }
 
     // Navigation

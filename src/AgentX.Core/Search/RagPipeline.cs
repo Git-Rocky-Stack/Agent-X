@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Configuration;
 using AgentX.Core.Data;
 using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Search;
@@ -30,9 +31,6 @@ namespace AgentX.Core.Search;
 /// </summary>
 public sealed class RagPipeline : IRagPipeline
 {
-    private const int DefaultTopK = 8;
-    private const float DefaultMinScore = 0.25f;
-
     private const string RagSystemPromptPrefix =
         """
         You are a helpful AI assistant answering questions based on the user's personal document library.
@@ -52,6 +50,7 @@ public sealed class RagPipeline : IRagPipeline
     private readonly IRagReranker _reranker;
     private readonly AgentXDbContext _dbContext;
     private readonly ILogger _logger;
+    private readonly IRagConfiguration _ragConfiguration;
 
     // ── Optional RAG enhancement services (nullable for graceful degradation) ──
     private readonly IMultiQueryGenerator? _multiQueryGenerator;
@@ -69,6 +68,7 @@ public sealed class RagPipeline : IRagPipeline
         IRagReranker reranker,
         AgentXDbContext dbContext,
         ILogger logger,
+        IRagConfiguration ragConfiguration,
         IMultiQueryGenerator? multiQueryGenerator = null,
         IHydeService? hydeService = null,
         ILlmReranker? llmReranker = null,
@@ -83,6 +83,7 @@ public sealed class RagPipeline : IRagPipeline
         _reranker = reranker ?? throw new ArgumentNullException(nameof(reranker));
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _logger = logger?.ForContext<RagPipeline>() ?? throw new ArgumentNullException(nameof(logger));
+        _ragConfiguration = ragConfiguration ?? throw new ArgumentNullException(nameof(ragConfiguration));
 
         _multiQueryGenerator = multiQueryGenerator;
         _hydeService = hydeService;
@@ -145,8 +146,8 @@ public sealed class RagPipeline : IRagPipeline
                 var searchQuery = new SearchQuery
                 {
                     QueryText = q,
-                    TopK = DefaultTopK,
-                    MinScore = DefaultMinScore,
+                    TopK = _ragConfiguration.DefaultTopK,
+                    MinScore = _ragConfiguration.DefaultMinScore,
                     CollectionId = collectionId
                 };
 
@@ -179,7 +180,7 @@ public sealed class RagPipeline : IRagPipeline
 
         // Filter by minimum score
         var relevantResults = allResults
-            .Where(r => r.Score >= DefaultMinScore)
+            .Where(r => r.Score >= _ragConfiguration.DefaultMinScore)
             .ToList();
 
         // ── Step 3: Handle No Results ────────────────────────────────────
@@ -205,7 +206,7 @@ public sealed class RagPipeline : IRagPipeline
         var rawContextChunks = BuildContextChunks(relevantResults);
 
         // ── Step 5: Heuristic Reranking (dedup, diversity, query-term boost) ──
-        var contextChunks = _reranker.Rerank(rawContextChunks, question, DefaultTopK);
+        var contextChunks = _reranker.Rerank(rawContextChunks, question, _ragConfiguration.DefaultTopK);
 
         // ── Step 6: LLM-based Reranking ──────────────────────────────────
         if (_llmReranker is not null && contextChunks.Count > 2)
@@ -213,7 +214,7 @@ public sealed class RagPipeline : IRagPipeline
             try
             {
                 contextChunks = await _llmReranker
-                    .RerankAsync(contextChunks, question, DefaultTopK, ct)
+                    .RerankAsync(contextChunks, question, _ragConfiguration.DefaultTopK, ct)
                     .ConfigureAwait(false);
 
                 _logger.Debug("LLM reranking applied, {Count} chunks retained", contextChunks.Count);

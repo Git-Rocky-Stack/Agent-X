@@ -1,5 +1,7 @@
 using System.Text.RegularExpressions;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Configuration;
+using AgentX.Core.Mathematics;
 using Serilog;
 
 namespace AgentX.Core.AI.Context;
@@ -9,20 +11,19 @@ public sealed class SemanticContextSelector : ISemanticContextSelector
     private readonly IEmbeddingService _embeddingService;
     private readonly IContextWindowManager _contextWindowManager;
     private readonly ILogger _logger;
-
-    private const double SemanticWeight = 0.68;
-    private const double LexicalWeight = 0.22;
-    private const double RecencyWeight = 0.10;
+    private readonly IRagConfiguration _ragConfiguration;
 
     public SemanticContextSelector(
         IEmbeddingService embeddingService,
         IContextWindowManager contextWindowManager,
-        ILogger logger)
+        ILogger logger,
+        IRagConfiguration ragConfiguration)
     {
         _embeddingService = embeddingService ?? throw new ArgumentNullException(nameof(embeddingService));
         _contextWindowManager = contextWindowManager ?? throw new ArgumentNullException(nameof(contextWindowManager));
         _logger = logger?.ForContext<SemanticContextSelector>()
                   ?? throw new ArgumentNullException(nameof(logger));
+        _ragConfiguration = ragConfiguration ?? throw new ArgumentNullException(nameof(ragConfiguration));
     }
 
     public async Task<ContextSelectionResult> SelectRelevantContextAsync(
@@ -141,7 +142,7 @@ public sealed class SemanticContextSelector : ISemanticContextSelector
 
                 for (var i = 0; i < request.CandidateMessages.Count && i < messageEmbeddings.Count; i++)
                 {
-                    semanticScores[i] = Clamp01(CosineSimilarity(queryEmbedding, messageEmbeddings[i]));
+                    semanticScores[i] = VectorMath.Clamp01(VectorMath.CosineSimilarity(queryEmbedding, messageEmbeddings[i]));
                 }
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
@@ -170,9 +171,9 @@ public sealed class SemanticContextSelector : ISemanticContextSelector
                 _ => 0.01
             };
 
-            var score = (semanticScores[i] * SemanticWeight) +
-                        (lexicalScores[i] * LexicalWeight) +
-                        (recencyScore * RecencyWeight) +
+            var score = (semanticScores[i] * _ragConfiguration.SemanticWeight) +
+                        (lexicalScores[i] * _ragConfiguration.LexicalWeight) +
+                        (recencyScore * _ragConfiguration.RecencyWeight) +
                         roleWeight;
 
             if (string.IsNullOrWhiteSpace(item.Message.Content) || item.Message.Content.Length < 8)
@@ -220,34 +221,6 @@ public sealed class SemanticContextSelector : ISemanticContextSelector
             .Select(match => match.Value)
             .ToHashSet(StringComparer.Ordinal);
     }
-
-    private static double CosineSimilarity(float[] left, float[] right)
-    {
-        if (left.Length == 0 || right.Length == 0 || left.Length != right.Length)
-        {
-            return 0;
-        }
-
-        double dot = 0;
-        double leftNorm = 0;
-        double rightNorm = 0;
-
-        for (var i = 0; i < left.Length; i++)
-        {
-            dot += left[i] * right[i];
-            leftNorm += left[i] * left[i];
-            rightNorm += right[i] * right[i];
-        }
-
-        if (leftNorm <= 0 || rightNorm <= 0)
-        {
-            return 0;
-        }
-
-        return dot / (Math.Sqrt(leftNorm) * Math.Sqrt(rightNorm));
-    }
-
-    private static double Clamp01(double value) => Math.Max(0, Math.Min(1, value));
 
     private sealed record ScoredCandidate(
         int Position,

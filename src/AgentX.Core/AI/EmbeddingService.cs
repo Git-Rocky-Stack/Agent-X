@@ -1,4 +1,4 @@
-using AgentX.Core.Services.Settings;
+using AgentX.Core.Configuration;
 using Serilog;
 
 namespace AgentX.Core.AI;
@@ -13,44 +13,32 @@ namespace AgentX.Core.AI;
 public sealed class EmbeddingService : IEmbeddingService
 {
     private readonly IAiService _aiService;
-    private readonly ISettingsService _settingsService;
+    private readonly IRagConfiguration _configuration;
     private readonly ILogger _logger;
 
-    /// <summary>
-    /// Maximum number of texts to embed in a single provider call.
-    /// Keeps memory usage and request latency manageable.
-    /// </summary>
-    private const int BatchSize = 32;
-
-    /// <summary>
-    /// Default embedding dimensionality for all-MiniLM-L6-v2.
-    /// </summary>
-    private const int DefaultDimensions = 384;
-
-    /// <summary>
-    /// Default Ollama model name for embedding generation.
-    /// </summary>
-    private const string DefaultModelName = "all-minilm";
-
-    private string? _cachedModelName;
+    /// <inheritdoc />
+    public int Dimensions => _configuration.DefaultEmbeddingDimensions;
 
     /// <inheritdoc />
-    public int Dimensions => DefaultDimensions;
+    public string ModelName => _configuration.DefaultEmbeddingModel;
 
-    /// <inheritdoc />
-    public string ModelName => _cachedModelName ?? DefaultModelName;
+    /// <summary>
+    /// Gets the full model version string for the current embedding model.
+    /// Format: "{ModelName}:1.0" (e.g., "all-minilm:1.0").
+    /// </summary>
+    public string ModelVersion => $"{_configuration.DefaultEmbeddingModel}:1.0";
 
     /// <summary>
     /// Creates a new EmbeddingService.
     /// </summary>
     /// <param name="aiService">The AI service providing access to the active inference provider.</param>
-    /// <param name="settingsService">The settings service for reading the configured embedding model.</param>
-    public EmbeddingService(IAiService aiService, ISettingsService settingsService)
+    /// <param name="configuration">The RAG configuration service for embedding parameters.</param>
+    public EmbeddingService(IAiService aiService, IRagConfiguration configuration)
     {
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
-        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _logger = Log.ForContext<EmbeddingService>();
-        _logger.Information("EmbeddingService created (dimensions={Dimensions})", DefaultDimensions);
+        _logger.Information("EmbeddingService created (model={Model}, dimensions={Dimensions})", ModelName, Dimensions);
     }
 
     /// <inheritdoc />
@@ -61,7 +49,7 @@ public sealed class EmbeddingService : IEmbeddingService
 
         EnsureProviderAvailable();
 
-        var modelName = await GetModelNameAsync().ConfigureAwait(false);
+        var modelName = ModelName;
 
         _logger.Debug("Generating embedding for text of length {Length} using model '{Model}'",
             text.Length, modelName);
@@ -95,23 +83,24 @@ public sealed class EmbeddingService : IEmbeddingService
         if (textList.Count == 0)
             return Array.Empty<float[]>();
 
-        var modelName = await GetModelNameAsync().ConfigureAwait(false);
+        var modelName = ModelName;
+        var batchSize = _configuration.EmbeddingBatchSize;
 
         _logger.Information(
             "Generating batch embeddings for {Count} texts using model '{Model}' (batch size: {BatchSize})",
-            textList.Count, modelName, BatchSize);
+            textList.Count, modelName, batchSize);
 
         var allEmbeddings = new List<float[]>(textList.Count);
-        var totalBatches = (int)Math.Ceiling((double)textList.Count / BatchSize);
+        var totalBatches = (int)Math.Ceiling((double)textList.Count / batchSize);
         var batchIndex = 0;
 
-        for (var offset = 0; offset < textList.Count; offset += BatchSize)
+        for (var offset = 0; offset < textList.Count; offset += batchSize)
         {
             ct.ThrowIfCancellationRequested();
 
             var batchTexts = textList
                 .Skip(offset)
-                .Take(BatchSize)
+                .Take(batchSize)
                 .ToList();
 
             batchIndex++;
@@ -145,33 +134,6 @@ public sealed class EmbeddingService : IEmbeddingService
     // ── Private Helpers ─────────────────────────────────────────────────
 
     /// <summary>
-    /// Reads the embedding model name from settings, caching it for subsequent calls.
-    /// Falls back to the default model name if settings cannot be read.
-    /// </summary>
-    private async Task<string> GetModelNameAsync()
-    {
-        if (_cachedModelName is not null)
-            return _cachedModelName;
-
-        try
-        {
-            var settings = await _settingsService.GetSettingsAsync().ConfigureAwait(false);
-            _cachedModelName = string.IsNullOrWhiteSpace(settings.EmbeddingModel)
-                ? DefaultModelName
-                : settings.EmbeddingModel;
-        }
-        catch (Exception ex)
-        {
-            _logger.Warning(ex, "Failed to read embedding model from settings, using default '{Model}'",
-                DefaultModelName);
-            _cachedModelName = DefaultModelName;
-        }
-
-        _logger.Debug("Embedding model resolved to '{Model}'", _cachedModelName);
-        return _cachedModelName;
-    }
-
-    /// <summary>
     /// Validates that the AI provider is initialized and available.
     /// Throws a clear, actionable exception if the provider cannot serve embedding requests.
     /// </summary>
@@ -182,7 +144,7 @@ public sealed class EmbeddingService : IEmbeddingService
             throw new InvalidOperationException(
                 "Cannot generate embeddings: the AI provider is not connected. " +
                 "Ensure Ollama is running and accessible, then call IAiService.InitializeAsync. " +
-                "The embedding model (all-MiniLM-L6-v2) must also be pulled via 'ollama pull all-minilm'.");
+                $"The embedding model ({ModelName}) must also be pulled via 'ollama pull {ModelName}'.");
         }
     }
 }

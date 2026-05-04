@@ -537,11 +537,22 @@ namespace AgentX.Core.Data.Migrations
                     b.Property<long?>("VectorRowId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("EmbeddingModelVersion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("EmbeddingDimensions")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("EmbeddedAt")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("VectorRowId");
 
                     b.HasIndex("DocumentId", "ChunkIndex");
+
+                    b.HasIndex("EmbeddingModelVersion");
 
                     b.ToTable("document_chunks", (string)null);
                 });
@@ -944,6 +955,15 @@ namespace AgentX.Core.Data.Migrations
                     b.Property<int>("UsageCount")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("EmbeddingModelVersion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("EmbeddingDimensions")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("EmbeddedAt")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Category");
@@ -957,6 +977,8 @@ namespace AgentX.Core.Data.Migrations
                     b.HasIndex("LinkedMemoryId");
 
                     b.HasIndex("CreatedAt");
+
+                    b.HasIndex("EmbeddingModelVersion");
 
                     b.ToTable("memories", (string)null);
                 });
@@ -996,6 +1018,9 @@ namespace AgentX.Core.Data.Migrations
                     b.Property<string>("EmbeddingModel")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("EmbeddingDimensions")
+                        .HasColumnType("INTEGER");
+
                     b.Property<double?>("GenerationTimeMs")
                         .HasColumnType("REAL");
 
@@ -1018,6 +1043,8 @@ namespace AgentX.Core.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("EmbeddedAt");
+
+                    b.HasIndex("EmbeddingModel");
 
                     b.HasIndex("ConversationId", "SortOrder");
 

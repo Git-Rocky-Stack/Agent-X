@@ -77,4 +77,27 @@ public class MemoryEntity
     /// Stored as comma-separated values (e.g., "technical,preference,csharp").
     /// </summary>
     public string? Tags { get; set; }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  Embedding Model Versioning (Added: Phase 1)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// The embedding model version used to generate the embedding.
+    /// Format: "{ModelName}:{Version}" (e.g., "all-minilm:1.0").
+    /// Null indicates legacy embedding from before versioning was introduced.
+    /// </summary>
+    public string? EmbeddingModelVersion { get; set; }
+
+    /// <summary>
+    /// The dimensionality of the embedding vector.
+    /// Used to validate compatibility before using embeddings in similarity search.
+    /// Null for memories without embeddings or legacy data.
+    /// </summary>
+    public int? EmbeddingDimensions { get; set; }
+
+    /// <summary>
+    /// Timestamp when the embedding was generated or last updated.
+    /// </summary>
+    public DateTime? EmbeddedAt { get; set; }
 }

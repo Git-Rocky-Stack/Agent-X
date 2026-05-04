@@ -1,6 +1,7 @@
 using AgentX.Core.AI;
 using AgentX.Core.AI.Context;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Configuration;
 using FluentAssertions;
 using Moq;
 using Serilog;
@@ -13,11 +14,20 @@ public sealed class SemanticContextSelectorTests
     private readonly Mock<IEmbeddingService> _embeddingService = new();
     private readonly IContextWindowManager _contextWindowManager = new ContextWindowManager(Log.Logger);
     private readonly ILogger _logger = Log.ForContext<SemanticContextSelector>();
+    private readonly Mock<IRagConfiguration> _ragConfiguration = new();
+
+    public SemanticContextSelectorTests()
+    {
+        // Setup default configuration values
+        _ragConfiguration.Setup(c => c.SemanticWeight).Returns(0.68);
+        _ragConfiguration.Setup(c => c.LexicalWeight).Returns(0.22);
+        _ragConfiguration.Setup(c => c.RecencyWeight).Returns(0.10);
+    }
 
     [Fact]
     public async Task SelectRelevantContextAsync_PrefersSemanticMatchesOverIrrelevantMessages()
     {
-        var sut = new SemanticContextSelector(_embeddingService.Object, _contextWindowManager, _logger);
+        var sut = new SemanticContextSelector(_embeddingService.Object, _contextWindowManager, _logger, _ragConfiguration.Object);
 
         _embeddingService
             .Setup(service => service.EmbedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -55,7 +65,7 @@ public sealed class SemanticContextSelectorTests
     [Fact]
     public async Task SelectRelevantContextAsync_UsesLexicalFallbackWhenEmbeddingFails()
     {
-        var sut = new SemanticContextSelector(_embeddingService.Object, _contextWindowManager, _logger);
+        var sut = new SemanticContextSelector(_embeddingService.Object, _contextWindowManager, _logger, _ragConfiguration.Object);
 
         _embeddingService
             .Setup(service => service.EmbedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
