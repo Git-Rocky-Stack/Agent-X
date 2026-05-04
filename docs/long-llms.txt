@@ -1,0 +1,403 @@
+# Agent-X Extended AI Reference
+
+**Comprehensive documentation for AI systems**
+
+---
+
+## Project Overview
+
+**Agent-X** is a native Windows desktop application (v2.1.0-preview.1) built on .NET 8.0 and WinUI 3 that transforms personal document collections into queryable, AI-augmented knowledge bases. It ships with Llama 3.2 3B bundled, supports Ollama for local models, and integrates OpenAI and Anthropic for cloud AI — all with a privacy-first, local-first architecture.
+
+**Key Differentiators:**
+- **100% Local by Default** — Zero telemetry, no phone-home, offline-capable
+- **Bundled AI Model** — Llama 3.2 3B Instruct (~2 GB) included in installer
+- **Enterprise-Grade RAG** — 6-stage retrieval pipeline (multi-query, HyDE, reranking, parent expansion, compression)
+- **SQLCipher Encryption** — AES-256-CBC at-rest database encryption with tier-aware key management
+- **GPU Acceleration** — CUDA 12 support with automatic VRAM-based layer offloading
+- **REST API** — Embedded HTTP server (port 9846) for programmatic access
+- **Production Data Layer** — EF Core migrations, 16-table schema, HNSW ANN vector index
+
+---
+
+## Architecture Overview
+
+### Technology Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Shell** | WinUI 3 (Windows App SDK 1.6) |
+| **Runtime** | .NET 8.0 |
+| **Database** | SQLite + SQLCipher |
+| **ORM** | Entity Framework Core 8.0 |
+| **Vector Search** | HNSW (Hierarchical Navigable Small World) |
+| **AI Models** | Llama 3.2 3B (bundled), Ollama, OpenAI, Anthropic |
+| **GPU** | CUDA 12 |
+| **Full-Text Search** | SQLite FTS5 |
+| **Logging** | Serilog |
+| **Testing** | xUnit + 224 unit tests |
+
+### Component Architecture
+
+```
+AgentX.App (WinUI 3)
+├── Views/Pages
+│   ├── DashboardView
+│   ├── ChatView
+│   ├── VaultView
+│   ├── SearchView
+│   ├── GraphView
+│   ├── WorkflowsView
+│   ├── AnalyticsView
+│   └── SettingsView
+├── ViewModels (MVVM)
+│   └── CommunityToolkit.Mvvm
+├── Services (55+ services)
+│   ├── IAIService (multi-provider abstraction)
+│   ├── RetrievalService (6-stage RAG pipeline)
+│   ├── EmbeddingService (vector generation)
+│   ├── VaultService (document management)
+│   ├── WorkflowService (automation)
+│   └── ... (50+ more)
+├── Data Layer
+│   ├── SQLite + SQLCipher
+│   ├── EF Core migrations
+│   └── Repositories (documents, tags, collections, conversations)
+└── REST API
+    └── Embedded HTTP listener (port 9846)
+```
+
+---
+
+## Feature Documentation
+
+### AI Chat Interface
+
+**Purpose:** Conversational interface for interacting with AI models using RAG
+
+**Key Features:**
+- Streaming responses with real-time rendering
+- Per-message actions (copy, delete, regenerate, feedback)
+- Message editing with "Save & Resend"
+- Code syntax highlighting (18 languages, One Dark Pro theme)
+- Conversation folders (Work, Research, Personal, Archive)
+- Conversation memory (facts, preferences, topics extracted)
+- Citation linking to source documents
+
+**RAG Pipeline:**
+
+1. **Query Embedding** — Convert user query to vector embedding
+2. **Multi-Query Expansion** — Generate 3-4 alternative query formulations
+3. **HyDE Embeddings** — Generate hypothetical ideal answer, embed it
+4. **Vector Search** — HNSW ANN search across document embeddings
+5. **LLM Reranking** — Re-score top-K results with LLM judgment
+6. **Context Compression** — Compress retrieved context to fit context window
+
+### Knowledge Vault
+
+**Purpose:** Document management and organization interface
+
+**Key Features:**
+- Import 20+ file formats (PDF, DOCX, TXT, MD, code files, etc.)
+- Auto-title generation (AI-generated descriptive titles)
+- Auto-tagging (confidence-scored tags from content analysis)
+- Batch operations (multi-select delete, re-index, collection assignment)
+- Advanced filtering (file type, collection, date range, indexing status)
+- Document preview panel (360px right-side panel with metadata)
+- SHA-256 duplicate detection (exact and near-duplicate)
+
+**Document Processing Pipeline:**
+
+1. **File Import** — Copy to vault storage
+2. **Text Extraction** — Format-specific parsers (PDF, DOCX, etc.)
+3. **Content Analysis** — AI generates title and tags
+4. **Chunking** — Split into 500-token overlapping chunks
+5. **Embedding Generation** — Create vectors for each chunk
+6. **Indexing** — Add to HNSW vector index and FTS5 keyword index
+7. **Deduplication** — SHA-256 hash check for duplicates
+
+### Semantic Search
+
+**Purpose:** Natural language search across entire document collection
+
+**Search Modes:**
+
+| Mode | Technique | Best For |
+|------|-----------|----------|
+| **Semantic** | Vector cosine similarity (HNSW ANN) | Concepts, meaning, related topics |
+| **Keyword** | SQLite FTS5 full-text search | Exact phrases, names, technical terms |
+| **Hybrid** | RRF (Reciprocal Rank Fusion, k=60) | Best of both worlds |
+
+**Hybrid Search Formula:**
+
+```
+RRF(d) = Σ (1 / (k + rank_i(d)))
+
+Where:
+- d = document
+- k = constant (typically 60)
+- rank_i = rank of document d in method i
+```
+
+### Knowledge Graph
+
+**Purpose:** Visual representation of document relationships
+
+**Visualization:**
+- Force-directed graph (spring-electric algorithm)
+- 100 iterations for layout convergence
+- Node types: Documents (blue), Collections (green), Tags (orange)
+- Edge weights: Shared membership count, tag co-occurrence frequency
+
+**Interaction:**
+- Click node to open document
+- Highlight related nodes on hover
+- Filter by node type
+- Zoom and pan controls
+- Export as PNG image
+
+### Workflows
+
+**Purpose:** Automate repetitive tasks and scheduled operations
+
+**Built-in Workflows:**
+
+| Workflow | Description | Schedule |
+|----------|-------------|----------|
+| **Weekly Digest** | Aggregate activity summary | Weekly |
+| **Batch Reindex** | Regenerate embeddings | Manual |
+| **Tag Cleanup** | Merge duplicate tags | Manual |
+| **Import & Process** | Import with auto-tag | Manual |
+
+**Workflow Steps:**
+- Import (files, folders)
+- Index (force reindex)
+- Chat (send prompt to AI)
+- Export (save results to file)
+- Digest (generate summary report)
+
+### Analytics Dashboard
+
+**Purpose:** Usage statistics and conversation intelligence
+
+**Metrics Displayed:**
+
+| Category | Metrics |
+|----------|---------|
+| **Usage** | Documents count, conversations count, tokens consumed, storage used |
+| **Performance** | Avg response time, embedding speed, search latency |
+| **File Types** | Document distribution by format |
+| **Conversation Intelligence** | Summary freshness, recent summary previews |
+
+### Model Manager
+
+**Purpose:** Manage AI models and providers
+
+**Provider Support:**
+
+| Provider | Models | Type |
+|----------|--------|------|
+| **Bundled** | Llama 3.2 3B Instruct | Local (ships with app) |
+| **Ollama** | Llama 3.x, Phi 4, Mistral, etc. | Local (user-managed) |
+| **OpenAI** | GPT-4o, GPT-4o-mini | Cloud (API key) |
+| **Anthropic** | Claude 3.5 Sonnet, Haiku | Cloud (API key) |
+
+**Model Operations:**
+- Download additional Ollama models
+- Refresh model list
+- View model details (size, parameters, capabilities)
+- Set default model per tier
+
+---
+
+## Configuration
+
+### Settings Categories
+
+| Category | Options |
+|----------|---------|
+| **AI Runtime** | Model selection, context window, temperature, max tokens, GPU acceleration |
+| **AI Providers** | API keys for OpenAI, Anthropic; Ollama connection settings |
+| **Import** | Auto-title, auto-tagging, duplicate detection, chunk size |
+| **Search** | Default search mode, result count, RRF constant |
+| **Privacy** | Data retention, encryption tier, cloud provider usage |
+| **Appearance** | Theme (dark/light/system), font size, animations |
+| **Advanced** | Debug logging, database location, port configuration |
+
+### GPU Acceleration Settings
+
+| VRAM Tier | Offloading | Speedup | VRAM Usage |
+|-----------|------------|---------|------------|
+| **2 GB** | Minimal (embeddings only) | 2-5x | ~2 GB |
+| **4 GB** | Partial (some layers) | 5-15x | ~4 GB |
+| **8 GB** | Significant (most layers) | 15-30x | ~8 GB |
+| **Max** | Aggressive (all layers) | 20-50x | 16+ GB |
+
+### Database Encryption
+
+| Tier | Key Storage | Use Case |
+|------|------------|----------|
+| **Starter/Pro** | Windows DPAPI | Personal use, convenience |
+| **Ultimate** | PBKDF2-HMAC-SHA256 | Maximum security, passphrase-derived |
+
+---
+
+## Data Storage
+
+### Database Schema (16 Tables)
+
+**Core Tables:**
+- `documents` — Document metadata and content
+- `document_chunks` — Chunked content for embeddings
+- `embeddings` — Vector embeddings (HNSW index)
+- `tags` — Tag definitions
+- `document_tags` — Many-to-many tag assignments
+- `collections` — Collection definitions
+- `collection_items` — Collection memberships
+- `conversations` — Chat sessions
+- `messages` — Chat messages (user and AI)
+- `message_memories` — Extracted conversation memories
+- `workflows` — Workflow definitions
+- `workflow_runs` — Workflow execution history
+- `digest_reports` — Generated activity summaries
+- `analytics_events` — Usage metrics
+
+**Encryption:**
+- All data encrypted at rest with SQLCipher AES-256-CBC
+- Encryption keys stored separately in `encryption.info.json`
+- Unlock required before any database access
+
+### File Storage
+
+**Location:** `%LocalAppData%\AgentX\`
+
+**Structure:**
+```
+%LocalAppData%\AgentX\
+├── data\
+│   ├── agentx.db              # Encrypted SQLite database
+│   ├── encryption.info.json    # Encryption key metadata
+│   └── hnsw_index\            # HNSW vector index files
+├── models\
+│   └── llama-3.2-3b\          # Bundled model files (~2 GB)
+├── vault\
+│   └── [imported files]       # Original imported documents
+├── logs\
+│   └── agentx-latest.log      # 7-day rolling logs
+├── backups\
+│   └── [timestamped backups]  # Automatic backups
+└── settings.json               # Application settings
+```
+
+---
+
+## API Reference
+
+### REST API Endpoints
+
+**Base URL:** `http://localhost:9846`
+
+**Endpoints:**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/documents` | List all documents |
+| `POST` | `/api/documents` | Import new document |
+| `GET` | `/api/documents/{id}` | Get document details |
+| `DELETE` | `/api/documents/{id}` | Delete document |
+| `GET` | `/api/conversations` | List conversations |
+| `POST` | `/api/conversations` | Create conversation |
+| `POST` | `/api/conversations/{id}/message` | Send chat message |
+| `GET` | `/api/search` | Semantic + keyword search |
+| `GET` | `/api/collections` | List collections |
+| `GET` | `/api/tags` | List tags |
+| `GET` | `/api/analytics` | Usage statistics |
+
+**Authentication:** Bearer token in Authorization header
+
+---
+
+## Glossary
+
+**AES-256-CBC:** Advanced Encryption Standard with 256-bit keys in Cipher Block Chaining mode. Used by SQLCipher for at-rest database encryption.
+
+**Chunking:** Splitting large documents into smaller segments (500 tokens with overlap) for embedding and retrieval.
+
+**CUDA:** NVIDIA's parallel computing platform. Agent-X uses CUDA 12 for GPU-accelerated inference.
+
+**Embedding:** Vector representation of text capturing semantic meaning. Generated by AI models and used for semantic search.
+
+**FTS5:** SQLite Full-Text Search extension for keyword-based search.
+
+**HNSW:** Hierarchical Navigable Small World — efficient Approximate Nearest Neighbor (ANN) index for fast vector similarity search.
+
+**HyDE:** Hypothetical Document Embeddings — retrieval technique using AI-generated ideal answers to improve semantic search.
+
+**LLM:** Large Language Model — AI model trained on vast text corpora for text generation and understanding.
+
+**Multi-Query:** Retrieval technique generating multiple search queries from a single user query to improve recall.
+
+**RAG:** Retrieval-Augmented Generation — AI responses generated using retrieved document context for factual grounding.
+
+**Re-ranking:** Second-pass retrieval improvement using LLM scoring to refine initial search results.
+
+**RRF:** Reciprocal Rank Fusion — algorithm for combining multiple ranked result lists using harmonic mean.
+
+**SQLCipher:** SQLite extension providing transparent AES-256 encryption of database files.
+
+**Token:** Atomic unit of text processed by language models (~4 characters).
+
+**VRAM:** Video RAM — memory on GPU used for model weights and computation.
+
+**WinUI 3:** Microsoft's native UI platform for Windows 11 and Windows 10.
+
+---
+
+## Best Practices
+
+### For Users
+
+1. **Start with imported documents** — Organize before you explore
+2. **Use collections liberally** — Group related documents
+3. **Review auto-generated tags** — Clean up periodically
+4. **Enable GPU acceleration** — If you have an NVIDIA GPU
+5. **Schedule weekly digests** — Stay informed about activity
+
+### For Developers
+
+1. **Use dependency injection** — All services support DI
+2. **Follow MVVM pattern** — ViewModels abstract UI logic
+3. **Write unit tests** — 224 tests provide coverage examples
+4. **Use structured logging** — Serilog with contextual information
+5. **Handle exceptions gracefully** — Typed exceptions with clear messages
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+**Application won't start:** Verify .NET 8.0 Desktop Runtime installed
+
+**GPU not detected:** Update NVIDIA GPU drivers, verify CUDA 12 support
+
+**Slow responses:** Enable GPU acceleration, use smaller model, reduce context window
+
+**Search returns no results:** Verify documents are indexed, try different search mode
+
+**Import fails:** Check file format support, remove password protection
+
+**Database locked:** Close other Agent-X instances, restart application
+
+---
+
+## Support Resources
+
+**Documentation:** docs/README.md (main)
+**User Guide:** docs/user-guide/
+**Developer Guide:** docs/DEVELOPER-GUIDE.md
+**API Reference:** docs/API-REFERENCE.md
+**GitHub Issues:** https://github.com/strategia-x/agent-x/issues
+
+---
+
+*Last updated: 2026-05-03*

@@ -1,0 +1,179 @@
+# Agent-X Documentation Index
+
+**AI-optimized documentation index for LLM consumption**
+
+---
+
+## Project Overview
+
+**Project:** Agent-X
+**Description:** Local-First AI-Powered Document Intelligence for Windows
+**Version:** 2.1.0-preview.1
+**Repository:** https://github.com/strategia-x/agent-x
+**Website:** https://strategia-x.com/agent-x
+**Documentation:** docs/README.md
+
+---
+
+## Quick Links
+
+**Getting Started:**
+- Quick Start Guide: docs/user-guide/getting-started/quick-start.md
+- Installation: Download from releases or installer-output directory
+- First Launch: Create passphrase, import documents, start chatting
+
+**Core Documentation:**
+- User Guide: docs/user-guide/comprehensive-user-guide.md
+- FAQ: docs/user-guide/faq.md
+- Troubleshooting: docs/user-guide/troubleshooting.md
+- Glossary: docs/user-guide/glossary.md
+- Keyboard Shortcuts: docs/user-guide/keyboard-shortcuts.md
+
+**Developers:**
+- Developer Guide: docs/DEVELOPER-GUIDE.md
+- API Reference: docs/API-REFERENCE.md
+- Service Reference: docs/SERVICE-REFERENCE.md
+- Plugin Development: docs/PLUGIN-DEVELOPMENT-GUIDE.md
+
+**Community:**
+- GitHub Issues: https://github.com/strategia-x/agent-x/issues
+- GitHub Discussions: https://github.com/strategia-x/agent-x/discussions
+
+---
+
+## Documentation Structure
+
+```
+docs/
+├── user-guide/
+│   ├── getting-started/
+│   │   └── quick-start.md                    # 10-minute setup guide
+│   ├── scenarios/                             # Real-world scenarios (5 scenarios)
+│   │   └── README.md                          # Research, meetings, code review, migration, PKB
+│   ├── templates/                             # Reusable templates
+│   │   ├── README.md                          # Templates overview
+│   │   ├── document-templates.md              # Project brief, meeting notes, research, spec
+│   │   └── chat-templates.md                   # Analysis, generation, research, technical
+│   ├── video-scripts/                         # Video tutorial scripts
+│   │   └── README.md                          # 5 video scripts with outlines
+│   ├── faq.md                                 # 100+ frequently asked questions
+│   ├── troubleshooting.md                      # Common issues and solutions
+│   ├── glossary.md                            # 100+ term glossary
+│   └── keyboard-shortcuts.md                   # Power user shortcuts
+├── developer-guide/
+│   ├── DEVELOPER-GUIDE.md                     # Developer-facing reference
+│   ├── API-REFERENCE.md                       # Public API documentation
+│   ├── SERVICE-REFERENCE.md                   # Internal service reference
+│   └── PLUGIN-DEVELOPMENT-GUIDE.md            # Plugin development
+├── ARCHITECTURE.md                            # System architecture
+├── README.md                                  # Main product documentation
+└── plans/                                     # Design and implementation plans
+```
+
+---
+
+## Key Concepts
+
+**Agent-X:** Local-first Windows desktop app for document intelligence
+**Bundled Model:** Llama 3.2 3B Instruct — ships with installer (~2 GB)
+**RAG:** Retrieval-Augmented Generation — AI responses grounded in documents
+**Knowledge Vault:** Document management interface
+**Semantic Search:** Vector-based search finding conceptually similar content
+**Hybrid Search:** Combined semantic + keyword search using RRF
+**Knowledge Graph:** Visual relationship map of documents, tags, collections
+**GPU Acceleration:** CUDA 12 support for NVIDIA GPUs
+**SQLCipher:** AES-256-CBC database encryption
+**Workflow:** Automated sequence of operations
+
+---
+
+## Core Features
+
+1. **Local-First AI** — Bundled Llama 3.2 3B, fully offline out of the box
+2. **Enterprise RAG** — 6-stage retrieval pipeline with multi-query, HyDE, reranking
+3. **Semantic Search** — Vector embeddings with cosine similarity search
+4. **Hybrid Search** — Parallel semantic + keyword with RRF merging
+5. **Knowledge Graph** — Force-directed visualization of relationships
+6. **Multi-Provider AI** — Bundled, Ollama, OpenAI, Anthropic
+7. **GPU Acceleration** — CUDA 12 with VRAM-based layer offloading
+8. **Workflows** — Automate import, indexing, digestion, reporting
+9. **REST API** — Embedded HTTP server for programmatic access
+10. **Database Encryption** — SQLCipher AES-256-CBC at-rest encryption
+
+---
+
+## Quick Reference
+
+### Keyboard Shortcuts
+
+- `Ctrl+K` — Command Palette
+- `Ctrl+I` — AI Chat
+- `Ctrl+L` — Knowledge Vault
+- `Ctrl+F` — Search
+- `Ctrl+G` — Knowledge Graph
+- `Ctrl+W` — Workflows
+- `Ctrl+A` — Analytics
+- `Ctrl+M` — Model Manager
+- `Ctrl+,` — Settings
+
+### Supported File Formats
+
+PDF, DOCX, DOC, TXT, MD, JSON, XML, CSV, HTML, and all code formats
+
+### AI Providers
+
+- **Bundled:** Llama 3.2 3B Instruct (local, ships with app)
+- **Ollama:** Llama 3.x, Phi 4, Mistral, etc. (local, user-managed)
+- **OpenAI:** GPT-4o, GPT-4o-mini (cloud, API key)
+- **Anthropic:** Claude 3.5 Sonnet, Haiku (cloud, API key)
+
+### Platform
+
+- **Windows 10 build 19041+** (version 2004)
+- **Windows 11** (fully supported and recommended)
+- **Architecture:** x64 only
+- **.NET 8.0** and **Windows App SDK 1.6** required
+
+---
+
+## Common Use Cases
+
+**Document Intelligence:**
+- Import research papers and analyze with AI
+- Extract key information from contracts
+- Compare multiple documents
+- Generate summaries and citations
+
+**Research & Analysis:**
+- Semantic search across entire document collection
+- Knowledge graph visualization of relationships
+- Identify connections between seemingly unrelated documents
+- Build personal knowledge base
+
+**Productivity:**
+- Automate document workflows
+- Generate meeting summaries
+- Create structured documentation
+- Track action items across meetings
+
+---
+
+## Support Resources
+
+**Documentation:** docs/README.md (main)
+**User Guide:** docs/user-guide/
+**Developer Guide:** docs/developer-guide/
+**GitHub Issues:** https://github.com/strategia-x/agent-x/issues
+
+---
+
+## License
+
+**Proprietary** — Copyright (c) 2026 Rocky Stack. All rights reserved.
+
+---
+
+## Version
+
+**Documentation Version:** 2.1.0-preview.1
+**Last Updated:** 2026-05-03

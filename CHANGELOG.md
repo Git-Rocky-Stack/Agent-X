@@ -2,6 +2,47 @@
 
 All notable changes to Agent-X are documented in this file.
 
+---
+
+## Documentation Release (2026-05-03)
+
+### Added — Comprehensive User Documentation Suite (20+ files, 8,000+ lines)
+
+**Getting Started & Onboarding**
+- `docs/user-guide/getting-started/quick-start.md` — 10-minute setup walkthrough for new users
+- Covers installation, first launch, passphrase creation, document import, AI chat, and semantic search
+
+**Reference Documentation**
+- `docs/user-guide/faq.md` — 100+ frequently asked questions covering installation, features, AI, search, performance, privacy, licensing, and troubleshooting
+- `docs/user-guide/troubleshooting.md` — Solutions to common issues organized by category with advanced diagnostics section
+- `docs/user-guide/glossary.md` — 100+ term glossary with definitions covering all Agent-X terminology
+- `docs/user-guide/keyboard-shortcuts.md` — Comprehensive power user navigation guide with platform-specific notes
+
+**Templates & Scenarios**
+- `docs/user-guide/templates/README.md` — Templates overview with usage guide
+- `docs/user-guide/templates/document-templates.md` — Project Brief, Meeting Notes, Research Summary, Technical Spec, Code Review templates
+- `docs/user-guide/templates/chat-templates.md` — Summarize, Compare, Extract, Research, Technical chat templates
+- `docs/user-guide/scenarios/README.md` — Real-world scenarios: Research Paper Analysis, Meeting Intelligence, Code Review Assistant, Document Migration, Personal Knowledge Base
+
+**Video Tutorial Scripts**
+- `docs/user-guide/video-scripts/README.md` — Scripts for 5 videos: Quick Start, Advanced RAG, Knowledge Graph, Workflows, GPU Acceleration
+
+**AI Discovery & Indexing**
+- `docs/llms.txt` — AI-optimized documentation index for LLM consumption with quick links and key concepts
+- `docs/long-llms.txt` — Extended AI reference with comprehensive details on architecture, features, configuration, and best practices
+
+### Updated
+- **README.md** — Added comprehensive documentation section with links to all new user guide resources
+- Documentation organized under `docs/user-guide/` with clear categorization
+
+### Documentation Statistics
+- **Total Files Created:** 20+
+- **Total Lines:** 8,000+
+- **Categories:** 7 (Getting Started, Reference, Templates, Scenarios, Video Scripts, AI Discovery, Enhanced)
+- **Topics Covered:** 100+ glossary terms, 100+ FAQ items, 5 real-world scenarios, 10+ templates, 5 video scripts
+
+---
+
 The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
 ## [2.1.0-preview.1] — 2026-04-17 — "Bedrock" data-layer hardening
