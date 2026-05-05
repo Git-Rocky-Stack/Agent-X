@@ -173,10 +173,21 @@ public sealed class RagPipelineTests
         _config.Setup(c => c.EnableHyde).Returns(true);
         _config.Setup(c => c.HydeMinQueryLength).Returns(20);
         var hyde = new Mock<IHydeService>();
+        const string hypotheticalDoc = "Paris is the capital city of France, located on the Seine.";
         hyde.Setup(h => h.GenerateHypotheticalDocumentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync("hypothetical doc text");
+            .ReturnsAsync(hypotheticalDoc);
 
-        SetupSearchReturns(MakeResult(1));
+        // Wave 3b: capture the actual SearchQuery.QueryText values seen by the
+        // orchestrator so we can assert the HyDE doc was added as a query, not
+        // just count calls. The previous Times.Exactly(2) check verified the
+        // call-count but didn't catch a hypothetical regression where the HyDE
+        // doc was generated but never wired into the search loop.
+        var seenQueries = new List<string>();
+        _searchOrchestrator
+            .Setup(s => s.SearchAsync(It.IsAny<SearchQuery>(), It.IsAny<CancellationToken>()))
+            .Callback<SearchQuery, CancellationToken>((q, _) => seenQueries.Add(q.QueryText))
+            .ReturnsAsync(new List<SearchResult> { MakeResult(1) });
+
         SetupAiStreamReturns("answer");
 
         var pipeline = BuildPipeline(hyde: hyde.Object);
@@ -187,9 +198,11 @@ public sealed class RagPipelineTests
         hyde.Verify(h => h.GenerateHypotheticalDocumentAsync(longQuestion, It.IsAny<CancellationToken>()),
             Times.Once);
 
-        // Search should fire twice: once with the original question, once with the HyDE doc.
-        _searchOrchestrator.Verify(s => s.SearchAsync(It.IsAny<SearchQuery>(), It.IsAny<CancellationToken>()),
-            Times.Exactly(2));
+        // Search fires twice: once with the original question, once with the HyDE doc.
+        seenQueries.Should().HaveCount(2);
+        seenQueries.Should().Contain(longQuestion, "the original question is always searched");
+        seenQueries.Should().Contain(hypotheticalDoc,
+            "the hypothetical document text must be added as a second search query — that's the whole point of HyDE");
     }
 
     [Fact]

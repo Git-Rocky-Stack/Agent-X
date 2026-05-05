@@ -293,19 +293,20 @@ public class WorkflowEngine : IWorkflowEngine
     }
 
     /// <inheritdoc />
-    public Task CancelExecutionAsync()
+    public async Task CancelExecutionAsync()
     {
+        // FU-2: changed from sync Cancel() returning Task.CompletedTask to async
+        // Task awaiting CancelAsync(). Method signature unchanged from caller's
+        // perspective — they were already awaiting it.
         if (_cancellationSource is not null && !_cancellationSource.IsCancellationRequested)
         {
             _log.Information("Cancellation requested for running workflow");
-            _cancellationSource.Cancel();
+            await _cancellationSource.CancelAsync().ConfigureAwait(false);
         }
         else
         {
             _log.Debug("CancelExecutionAsync called but no workflow is running or already cancelled");
         }
-
-        return Task.CompletedTask;
     }
 
     // ─────────────────────────────────────────────────────────────────────

@@ -137,8 +137,12 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
 
         IsRunning = false;
 
-        // Signal the accept loop to exit
-        _listenerCts?.Cancel();
+        // Signal the accept loop to exit. FU-2: switched from sync Cancel() to
+        // CancelAsync() — the latter properly awaits any registered callbacks
+        // before returning, which matters when the accept loop has cleanup
+        // hooks subscribed to the token's Register().
+        if (_listenerCts is not null)
+            await _listenerCts.CancelAsync().ConfigureAwait(false);
 
         // Stop the listener — this unblocks any pending GetContextAsync call
         try { _listener?.Stop(); } catch { /* intentional */ }

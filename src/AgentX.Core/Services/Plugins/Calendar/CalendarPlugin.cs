@@ -277,7 +277,9 @@ public sealed class CalendarPlugin : IPlugin
     /// </summary>
     internal async Task<SyncResult?> TriggerSyncAsync(CancellationToken cancellationToken = default)
     {
-        if (!_syncLock.Wait(0))
+        // FU-2: WaitAsync(0) has identical semantics to Wait(0) (non-blocking
+        // try-acquire) but is the analyzer-approved form in an async method.
+        if (!await _syncLock.WaitAsync(0).ConfigureAwait(false))
         {
             _log?.Debug("Sync already in progress — TriggerSyncAsync is a no-op");
             return LastSyncResult;
@@ -302,12 +304,28 @@ public sealed class CalendarPlugin : IPlugin
     {
         var interval = TimeSpan.FromMinutes(_syncSettings.SyncIntervalMinutes);
         _syncTimer = new Timer(
-            callback: async _ => await OnSyncTimerTickAsync(),
+            // FU-2: changed from async-void lambda to fire-and-forget on a
+            // wrapper that catches exceptions. async-void in a Timer callback
+            // would crash the process on any unhandled exception inside
+            // OnSyncTimerTickAsync.
+            callback: _ => _ = SafeOnSyncTimerTickAsync(),
             state: null,
             dueTime: TimeSpan.FromMinutes(1), // First sync 1 min after activation
             period: interval);
 
         _log?.Debug("Sync timer started. Interval={Interval}", interval);
+    }
+
+    private async Task SafeOnSyncTimerTickAsync()
+    {
+        try
+        {
+            await OnSyncTimerTickAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _log?.Error(ex, "Calendar sync timer callback faulted");
+        }
     }
 
     private void StopSyncTimer()

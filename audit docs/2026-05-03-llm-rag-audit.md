@@ -664,3 +664,86 @@ Same as the previous list, minus P2-4 itself:
 - **HyDE-doc query assertion** — tighten the integration test to assert on `SearchQuery.QueryText` content for the HyDE-firing case.
 - **`RagPromptCatalog` end-to-end test** — verify that an actual `RagPrompts.json` on disk binds through `IOptionsMonitor` and reaches the catalog. Current `RagPromptCatalogTests` exercises the catalog via a stub monitor; an integration test would cover the JSON binding pipeline too.
 
+---
+
+## 14. Wave 3 Final Slices Implementation Log (Wave 3b–3e — 2026-05-04)
+
+Closes the four remaining Wave 3 follow-ups in one session: HyDE query assertion tightening, RagPromptCatalog end-to-end binding test, Anthropic tool-use forcing function for structured outputs, and a partial threading-warning sweep on the safely-mechanical subset.
+
+### Wave 3b. Tighten HyDE assertion ✅
+- The previous `AskAsync_HydeEnabledLongQuestion_InvokesHydeAndAddsAsQuery` test verified HyDE invocation and called `_searchOrchestrator.Verify(..., Times.Exactly(2))` to imply the hypothetical doc was added as a search query — but it never asserted the doc text itself appeared in any `SearchQuery.QueryText`.
+- Replaced the indirect call-count check with a `Callback` that captures every `SearchQuery.QueryText` seen by the orchestrator, then asserts both the original question and the hypothetical doc text appear in the captured list. A regression that fired HyDE but never wired the doc into the search loop would now fail this test.
+- Files: `tests/AgentX.Tests/Search/RagPipelineTests.cs`.
+
+### Wave 3c. RagPromptCatalog end-to-end test ✅
+- New `RagPromptCatalogIntegrationTests` (4 tests) writes a real `RagPrompts.json` to a temp directory, binds via `ConfigurationBuilder.AddJsonFile(..., reloadOnChange: false)`, builds a real `ServiceProvider` with `services.Configure<RagPromptOptions>(...)` + `services.AddSingleton<IRagPromptCatalog, RagPromptCatalog>()`, and resolves the catalog. Tests cover (1) full prompt override with mixed defaults, (2) empty `RagPrompts` section → all defaults, (3) missing section entirely → all defaults, (4) multi-line array preserves blank lines exactly (matters for Anthropic prompt-cache byte-stability).
+- Required adding `Microsoft.Extensions.Configuration`, `Configuration.Json`, `DependencyInjection`, `Options`, and `Options.ConfigurationExtensions` packages to the test project. Versions match `Microsoft.Extensions.Hosting` in the App.
+- Test class implements `IDisposable` to clean up the temp directory.
+- Files: `tests/AgentX.Tests/Configuration/RagPromptCatalogIntegrationTests.cs` (new), `tests/AgentX.Tests/AgentX.Tests.csproj`.
+
+### Wave 3d. Anthropic tool-use forcing function (FU-5 part 2) ✅
+- The Wave 2 FU-5 work added OpenAI strict `json_schema` enforcement but Anthropic was deferred. Closed here: when `ChatOptions.JsonSchema` is set, `AnthropicProvider` now defines a single tool whose `input_schema` is the requested schema, sets `tool_choice: { type: "tool", name: <name> }` to force the model to call exactly that tool, and parses the streaming `input_json_delta` events as the response body. The tool's `input` is server-validated against the schema — the canonical Anthropic strict-output pattern.
+- The streaming loop now branches on `useToolForcing`: when active, it reads `delta.partial_json` from `input_json_delta` events instead of `delta.text` from `text_delta` events. Yields the JSON tokens as they arrive — callers (RagEvaluator/LlmReranker/ContextualCompressor) parse the assembled JSON unchanged.
+- Schema parsing is defensive: invalid JSON in `JsonSchema` logs a warning and falls back to text mode rather than failing the request.
+- The three RAG callsites already set `JsonSchema` from Wave 2 FU-5, so they pick up the Anthropic strict path automatically — no callsite changes required.
+- Files: `src/AgentX.Core/AI/Providers/AnthropicProvider.cs`.
+
+### Wave 3e. Threading analyzer sweep (partial) ✅
+- Triaged the 25 remaining VSTHRD warnings into three buckets:
+  - **Mechanically safe (6 fixed):** async methods, no enclosing lock, no API-surface ripple. Done.
+  - **Lock-bound (4 deferred):** `Cancel()` calls inside `lock` blocks (`ChatService` ×3, `SyncService` ×1) — can't `await` inside a lock; proper fix is `lock` → `SemaphoreSlim`, which is non-mechanical.
+  - **Sync-over-async (3 deferred):** `.Result` / `.Wait()` calls in non-async methods (`VectorStoreFactory`, `JsRenderingService`, `WorkspaceService`, `ApiHostService` ×2) — proper fix requires propagating async up the call chain.
+  - **Public API renames (5 deferred):** VSTHRD200 async-suffix renames on `IExportService`, `IPluginService`, `TemporalIdentityService` — interface signature changes break callers.
+  - **Dispose-async (4 deferred):** VSTHRD103 sync `Dispose` warnings — proper fix is `IAsyncDisposable` migration, ripples through every disposer.
+  - **Sync-over-async (3 deferred):** VSTHRD002 — see above.
+- The 6 mechanical fixes:
+  1. `ApiHostService.cs:141` — `Cancel()` → `await CancelAsync()` (already in async method).
+  2. `CollaborationService.cs:179` — same pattern.
+  3. `WorkflowEngine.cs:296` — `public Task CancelExecutionAsync()` returning `Task.CompletedTask` → `public async Task` awaiting `CancelAsync()`. Caller-visible signature unchanged.
+  4. `CalendarPlugin.cs:280` — `_syncLock.Wait(0)` → `await _syncLock.WaitAsync(0).ConfigureAwait(false)`. Identical semantics (non-blocking try-acquire), analyzer-approved form.
+  5. `CalendarPlugin.cs:307` — Timer callback: `async _ => await OnSyncTimerTickAsync()` → `_ => _ = SafeOnSyncTimerTickAsync()`. New `SafeOnSyncTimerTickAsync` wraps the call in try/catch — fixes the analyzer warning AND adds defensive exception handling that was missing (async-void in a Timer callback would crash the process on faults).
+  6. `EmailPlugin.cs:90` — same Timer callback pattern as CalendarPlugin.
+- Net: **25 → 19 warnings (-6)**. Combined with Wave 2's 34 → 25 reduction, the audit drove **34 → 19 (-15 / -44%)**, all in safely-mechanical fixes that didn't risk regressions.
+- Files: `Services/Api/ApiHostService.cs`, `Services/Collaboration/CollaborationService.cs`, `Services/Workflows/WorkflowEngine.cs`, `Services/Plugins/Calendar/CalendarPlugin.cs`, `Services/Plugins/Email/EmailPlugin.cs`.
+
+### Files Touched (Wave 3b–3e)
+
+```
+tests/AgentX.Tests/Search/RagPipelineTests.cs                            +20 / -10
+tests/AgentX.Tests/Configuration/RagPromptCatalogIntegrationTests.cs     new (~125)
+tests/AgentX.Tests/AgentX.Tests.csproj                                   +7
+src/AgentX.Core/AI/Providers/AnthropicProvider.cs                        +75 / -8
+src/AgentX.Core/Services/Api/ApiHostService.cs                           +5 / -1
+src/AgentX.Core/Services/Collaboration/CollaborationService.cs           +5 / -1
+src/AgentX.Core/Services/Workflows/WorkflowEngine.cs                     +6 / -3
+src/AgentX.Core/Services/Plugins/Calendar/CalendarPlugin.cs              +18 / -2
+src/AgentX.Core/Services/Plugins/Email/EmailPlugin.cs                    +18 / -1
+audit docs/2026-05-03-llm-rag-audit.md                                   this section
+```
+
+### Verification
+
+```
+dotnet build src/AgentX.Core                                 → 0 errors, 19 warnings (was 25 — Wave 3e cleared 6)
+dotnet build src/AgentX.App -r win-x64                       → 0 errors, 19 warnings
+dotnet test  tests/AgentX.Tests --filter "AI|Search|Math|Configuration"
+                                                              → 248 / 249 pass (4 new RagPromptCatalogIntegrationTests
+                                                                pass; HyDE assertion tightened in place; same single
+                                                                pre-existing flaky Moq test)
+```
+
+### Wave 3 Design Notes
+
+- **Why not handle the lock-bound `Cancel()` warnings?** Switching `lock` to `SemaphoreSlim` changes the synchronization primitive's semantics: `lock` is non-reentrant and panics on cross-thread release; `SemaphoreSlim.WaitAsync()` allows reentrancy through async stack frames. Each lock site needs to be reviewed for whether the new semantics are safe — that's not mechanical. Tracked for a future pass.
+- **Why fire-and-forget the timer callback instead of making it `async void`?** `async void` propagates exceptions to the synchronization context, which for `Timer` callbacks is the thread pool — unhandled exceptions crash the process. Fire-and-forget through a wrapper that try/catches converts faults into log entries instead of process termination. The analyzer warning was actually pointing at a real reliability risk, not just a style issue.
+- **Why didn't FU-5 part 2 require callsite changes?** Wave 2 already wired `JsonSchema` and `JsonSchemaName` into `RagEvaluator`, `LlmReranker`, and `ContextualCompressor` for OpenAI's strict mode. Anthropic just needed to learn how to interpret those same options — the callsites are unchanged. This is a clean example of why interface-first design pays back: the schema configuration is a property of the call, not the provider, so adding a second provider is a drop-in.
+- **Why no Anthropic test for FU-5 part 2?** The existing test infrastructure mocks `IAiService` at the service boundary, not the provider HTTP layer. Properly testing the tool-use SSE parser requires a mock HttpClient + scripted SSE response body — substantial infrastructure for one provider's edge case. Tracked as a follow-up if Anthropic schema enforcement starts producing parse failures in production.
+
+### Wave 4 Candidates (small remaining tail)
+
+- **Lock → SemaphoreSlim migration** for `ChatService` / `SyncService` Cancel sites — frees the 4 lock-bound VSTHRD103 warnings.
+- **Sync-over-async refactor** for `VectorStoreFactory`, `JsRenderingService`, `WorkspaceService`, `ApiHostService` Result blocks — needs callsite review per file.
+- **`IAsyncDisposable` migration** for `CollaborationService`, `EmailPlugin` — clears VSTHRD103 dispose warnings; benefits the WinUI shutdown path.
+- **Public API renames** (`IExportService`, `IPluginService`) — VSTHRD200 async-suffix; needs careful caller migration since the names appear in app code paths.
+- **Anthropic tool-use SSE test** — mock-HttpClient infra to verify the `input_json_delta` parser end-to-end.
+

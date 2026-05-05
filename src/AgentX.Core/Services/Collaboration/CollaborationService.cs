@@ -176,7 +176,11 @@ public sealed class CollaborationService : ICollaborationService, IDisposable
 
         try
         {
-            _listenerCts?.Cancel();
+            // FU-2: CancelAsync awaits cancellation callbacks instead of running
+            // them on the calling thread. Safer for shutdown paths where
+            // callbacks may do their own async cleanup.
+            if (_listenerCts is not null)
+                await _listenerCts.CancelAsync().ConfigureAwait(false);
             _listener?.Stop();
 
             if (_listenerTask is not null)

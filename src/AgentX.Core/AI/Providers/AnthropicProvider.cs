@@ -269,8 +269,55 @@ public sealed class AnthropicProvider : IAiProvider
         if (options?.StopSequences is { Length: > 0 })
             body["stop_sequences"] = options.StopSequences;
 
-        _logger.Debug("Streaming Anthropic chat with {Count} messages, model={Model}, system={HasSystem}",
-            apiMessages.Count, modelId, !string.IsNullOrEmpty(systemPrompt));
+        // FU-5 part 2: tool-use forcing function for strict structured outputs.
+        // Anthropic doesn't have a json_schema response_format like OpenAI. The
+        // canonical workaround is to define a single tool whose input_schema is
+        // the desired schema, then set tool_choice to force the model to call
+        // that tool. The tool's input field is then schema-validated by the
+        // API. We yield the tool's input as the response body so client-side
+        // parsers (RagEvaluator/LlmReranker/ContextualCompressor) work unchanged.
+        bool useToolForcing = !string.IsNullOrWhiteSpace(options?.JsonSchema);
+        string? forcedToolName = null;
+        if (useToolForcing)
+        {
+            JsonElement schemaElement = default;
+            try
+            {
+                schemaElement = JsonSerializer.Deserialize<JsonElement>(options!.JsonSchema!);
+            }
+            catch (JsonException ex)
+            {
+                _logger.Warning(ex,
+                    "ChatOptions.JsonSchema is not valid JSON; falling back to text mode (no schema enforcement)");
+                useToolForcing = false;
+            }
+
+            if (useToolForcing && schemaElement.ValueKind == JsonValueKind.Object)
+            {
+                forcedToolName = string.IsNullOrWhiteSpace(options?.JsonSchemaName)
+                    ? "structured_output"
+                    : options!.JsonSchemaName!;
+
+                body["tools"] = new object[]
+                {
+                    new
+                    {
+                        name = forcedToolName,
+                        description = "Return the answer in the structured form specified by input_schema.",
+                        input_schema = schemaElement
+                    }
+                };
+                body["tool_choice"] = new { type = "tool", name = forcedToolName };
+            }
+            else
+            {
+                useToolForcing = false;
+            }
+        }
+
+        _logger.Debug(
+            "Streaming Anthropic chat with {Count} messages, model={Model}, system={HasSystem}, toolForcing={Tool}",
+            apiMessages.Count, modelId, !string.IsNullOrEmpty(systemPrompt), useToolForcing);
 
         var request = new HttpRequestMessage(HttpMethod.Post, "messages")
         {
@@ -331,7 +378,10 @@ public sealed class AnthropicProvider : IAiProvider
 
                 var data = line["data: ".Length..];
 
-                // Handle content_block_delta events which carry the actual text
+                // Handle content_block_delta events. In text mode we read text_delta;
+                // in tool-use forcing mode (FU-5 part 2) we read input_json_delta and
+                // yield the partial JSON tokens as the response — callers parse the
+                // assembled JSON exactly as they would parse a json_object response.
                 if (currentEventType == "content_block_delta")
                 {
                     string? text = null;
@@ -339,11 +389,21 @@ public sealed class AnthropicProvider : IAiProvider
                     {
                         var chunk = JsonSerializer.Deserialize<JsonElement>(data);
                         if (chunk.TryGetProperty("delta", out var delta) &&
-                            delta.TryGetProperty("type", out var deltaType) &&
-                            deltaType.GetString() == "text_delta" &&
-                            delta.TryGetProperty("text", out var textElement))
+                            delta.TryGetProperty("type", out var deltaType))
                         {
-                            text = textElement.GetString();
+                            var deltaTypeStr = deltaType.GetString();
+                            if (useToolForcing
+                                && deltaTypeStr == "input_json_delta"
+                                && delta.TryGetProperty("partial_json", out var partialJson))
+                            {
+                                text = partialJson.GetString();
+                            }
+                            else if (!useToolForcing
+                                && deltaTypeStr == "text_delta"
+                                && delta.TryGetProperty("text", out var textElement))
+                            {
+                                text = textElement.GetString();
+                            }
                         }
                     }
                     catch (JsonException ex)

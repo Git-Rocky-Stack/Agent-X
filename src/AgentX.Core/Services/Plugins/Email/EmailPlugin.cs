@@ -86,8 +86,10 @@ public sealed class EmailPlugin : IPlugin
         }
 
         // Start periodic sync timer.
+        // FU-2: fire-and-forget through a wrapper that catches exceptions —
+        // async-void in a Timer callback crashes the process on faults.
         _syncTimer = new Timer(
-            callback: async _ => await OnSyncTimerTickAsync(),
+            callback: _ => _ = SafeOnSyncTimerTickAsync(),
             state: null,
             dueTime: TimeSpan.FromMinutes(1),
             period: TimeSpan.FromMinutes(_settings.SyncIntervalMinutes));
@@ -196,6 +198,18 @@ public sealed class EmailPlugin : IPlugin
     }
 
     // ── Internal: sync cycle ───────────────────────────────────────────────────
+
+    private async Task SafeOnSyncTimerTickAsync()
+    {
+        try
+        {
+            await OnSyncTimerTickAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Email sync timer callback faulted");
+        }
+    }
 
     private async Task OnSyncTimerTickAsync()
     {
