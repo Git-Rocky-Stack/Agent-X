@@ -487,3 +487,108 @@ dotnet test  tests/AgentX.Tests --filter "AI|Search|Math|Configuration"
 - **FU-5** JSON Schema enforcement on structured outputs.
 - **FU-6** `RagPipelineTests` integration coverage.
 
+---
+
+## 12. P2 Wave 2 Implementation Log (2026-05-04)
+
+Wave 2 closed the four highest-leverage Tracked Follow-Ups (FU-4, FU-5, FU-6, partial FU-2) plus two §5 P2 items (P2-7, P2-9). One item — **P2-4 externalize prompts to JSON** — was deliberately deferred to Wave 3 with rationale.
+
+### FU-4. Embedding cache metrics surface ✅
+- The audit's stated gap was that `IRagMetrics.RecordSearch` had no clean bucket for embedding-cache events. Per-call recording would dominate the cache's own latency in the indexing hot loop, so the design is **pull-based**: a registered `Func<EmbeddingCacheStats?>` provider is invoked at `GetSnapshot()` time only.
+- New `EmbeddingCacheStats` record (Hits, Misses, TotalRequests, CurrentCacheSize, HitRate). New `IRagMetrics.RegisterEmbeddingCacheProvider(...)`. `RagMetricsSnapshot.EmbeddingCache` is null when no provider is registered.
+- DI factory in `App.xaml.cs` registers a closure that resolves `IEmbeddingService`, type-checks it as `CachedEmbeddingService`, and invokes `GetStatistics()` to build the stats. Closure is lazy — avoids singleton-init cycle.
+- The provider invocation runs OUTSIDE `_lock` to avoid holding the metrics lock across an arbitrary callback. Provider exceptions are caught, logged once, and result in a null `EmbeddingCache` field rather than failing the snapshot.
+- Files: `Observability/RagMetrics.cs`, `App.xaml.cs`.
+
+### P2-9. Embedding batch backpressure ✅
+- `IndexingService` had a private `const int EmbeddingBatchSize = 16` that fought with the inner `EmbeddingService.EmbedBatchAsync`'s config-driven batch size (default 32). The outer batch became the binding constraint, halving inner-batch throughput.
+- Renamed the outer constant to `FallbackEmbeddingBatchSize` and added an optional `IRagConfiguration` constructor parameter; the loop now reads from config when registered. .NET DI auto-resolves to the longer constructor.
+- Files: `Services/Indexing/IndexingService.cs`.
+
+### P2-7. ContextualCompressor structured response ✅
+- The previous "extract or return literal `NOT_RELEVANT`" contract false-positived chunks whose extracted sentences happened to contain the words "NOT" or "RELEVANT" verbatim. Replaced with a typed JSON contract: `{"relevant": bool, "extracted": string?}`.
+- Added `ResponseFormat.JsonObject` to the compressor's chat options so providers constrain output to valid JSON. New `TryParse(string?)` helper and `CompressionResult` POCO; on parse failure, we soft-fail to keeping the original chunk (rather than dropping it) and emit a `LogRedaction.ForLog` summary.
+- Combined with FU-5 (next item) the compressor is now strict-schema-validated on OpenAI.
+- Files: `Search/ContextualCompressor.cs`.
+
+### FU-5. JSON Schema enforcement on structured outputs ✅ (OpenAI; Anthropic deferred)
+- Added `JsonSchema` (string, the schema document) and `JsonSchemaName` to `ChatOptions`. When set on OpenAI, the provider uses `response_format: { type: "json_schema", json_schema: { name, schema, strict: true } }` — OpenAI rejects responses that miss required fields, exceed declared ranges, or include extra keys at decode time, eliminating an entire class of parse failures.
+- Three RAG callsites updated:
+  - `RagEvaluator` → schema name `"rag_eval_metrics"` (3 numeric fields, range 0–10).
+  - `LlmReranker` → schema name `"rag_reranker_scores"` (object wrapping `scores: [{id, score}]`). Top-level had to be wrapped because OpenAI strict mode requires the root to be an object. Parser updated to read `{"scores":[...]}` while still tolerating the legacy bare-array form for rolling deployment.
+  - `ContextualCompressor` → schema name `"rag_compression_result"` (`{relevant: bool, extracted: string|null}`).
+- Anthropic tool-use forcing function deferred — would require a deeper rework (define a tool with the schema, force `tool_choice: tool`, parse the `tool_use` response block instead of text). Tracked as Wave 3.
+- Other providers (Anthropic / Ollama / Local) ignore `JsonSchema` and continue using `ResponseFormat.JsonObject`. Backwards compatible.
+- Files: `AI/Models/ChatOptions.cs`, `AI/Providers/OpenAiProvider.cs`, `Search/RagEvaluator.cs`, `Search/LlmReranker.cs`, `Search/ContextualCompressor.cs`.
+
+### FU-6. RagPipelineTests integration coverage ✅
+- 15 new tests in `tests/AgentX.Tests/Search/RagPipelineTests.cs` covering everything Waves 1+2 added:
+  - **HyDE gating** (4 tests): disabled / short query / enabled-and-long / fail-open
+  - **PII redaction** (2 tests): enabled invokes detector / disabled does not
+  - **Search-mode routing** (3 tests): Semantic / Keyword / invalid-falls-to-Hybrid
+  - **Eval sample-rate** (2 tests): 0.0 skips / 1.0 fires
+  - **Multi-block system** (1 test): SystemPromptBlocks always set with [Cacheable, NotCacheable] pair
+  - **No-results path** (1 test): returns NoResultsMessage and skips the LLM call entirely
+  - **Fail-open** (2 tests): multi-query throws / compressor throws — pipeline still completes
+- All 15 pass on first run. Total suite went from 220/221 → 235/236 — same single pre-existing flaky Moq test.
+- Tests use Moq concrete-class mocking on `AgentXDbContext` (matches existing pattern in `ParentDocumentRetrieverTests`) and a small `IAsyncEnumerable<string>` helper for `IAiService.StreamChatAsync` mocks.
+- Files: `tests/AgentX.Tests/Search/RagPipelineTests.cs` (new).
+
+### FU-2. Threading analyzer warning sweep ✅ (partial — RAG-adjacent only)
+- 34 VSTHRD/CS warnings reduced to 25 (-9). Targeted the highest-impact, lowest-risk subset:
+  - `HybridSearchOrchestrator` (4 × VSTHRD103 `.Result` blocks in the RAG hot path) — replaced with `await semanticTask.ConfigureAwait(false)` after `Task.WhenAll`. Tasks are already complete by that point so the awaits are no-ops, but the analyzer is satisfied and a future caller introducing a sync context can't deadlock.
+  - `AdaptiveChunkingService` (4 × CS0219 dead locals `hasCode/hasTable/hasList/hasProse`) — removed; the actual content-type decision uses the `*LineCount` totals, not these unused booleans.
+  - `CachedEmbeddingService` (1 × SYSLIB0021 `SHA256Managed` obsolete) — switched to static `SHA256.HashData`. Functionally identical, no allocation.
+- Remaining 25 warnings are concentrated in non-RAG paths (`KeywordSearchService`, `ChatService`, `CollaborationService`, `SyncService`, `WorkflowEngine`, plugin services, API host). Mostly mechanical `Cancel()` → `CancelAsync()` and async-suffix renames. **Tracked as Wave 3** — the remaining sweep is large, low-risk, but each fix needs careful review of the calling pattern (e.g. is the sync `Cancel()` in a non-async method that needs to be made async, propagating up?).
+- Files: `Search/HybridSearchOrchestrator.cs`, `Documents/AdaptiveChunkingService.cs`, `AI/CachedEmbeddingService.cs`.
+
+### P2-4. Externalize RAG prompts to JSON — DEFERRED to Wave 3
+- Refactor surface: 6 prompt sites + new `IRagPromptCatalog` + `RagPrompts.json` + DI + `IOptionsMonitor` hot-reload semantics.
+- The expanded `RagSystemPromptPrefix` (~900 tokens after FU-1) is unpleasant in JSON-escaped form — verbatim multi-line prompts benefit from C# raw string literals.
+- Current prompts are not actively iterated; the value of hot-reload is theoretical until prompt iteration becomes a workflow.
+- Better Wave 2 use of effort: ship FU-6 integration tests covering everything Waves 1+2 built, where the risk-reduction is concrete.
+- Tracked as Wave 3. When Rocky decides prompt iteration is a real workflow, partial externalization (the short prompts: eval / reranker / compressor / multi-query / HyDE; keep the long RAG prefix inline) is the right scope.
+
+### Files Touched (P2 Wave 2)
+
+```
+src/AgentX.Core/Observability/RagMetrics.cs                +50 / -1
+src/AgentX.Core/Search/RagEvaluator.cs                     +21 / -1
+src/AgentX.Core/Search/LlmReranker.cs                      +71 / -16
+src/AgentX.Core/Search/ContextualCompressor.cs             +90 / -19
+src/AgentX.Core/Search/HybridSearchOrchestrator.cs         +14 / -8
+src/AgentX.Core/AI/Models/ChatOptions.cs                   +21
+src/AgentX.Core/AI/Providers/OpenAiProvider.cs             +37 / -2
+src/AgentX.Core/AI/CachedEmbeddingService.cs               +5 / -3
+src/AgentX.Core/Documents/AdaptiveChunkingService.cs       +3 / -4
+src/AgentX.Core/Services/Indexing/IndexingService.cs       +28 / -3
+src/AgentX.App/App.xaml.cs                                 +21 / -1
+tests/AgentX.Tests/Search/RagPipelineTests.cs              new (~360)
+audit docs/2026-05-03-llm-rag-audit.md                     this section
+```
+
+### Verification
+
+```
+dotnet build src/AgentX.Core                                 → 0 errors, 25 warnings (was 34 — FU-2 reduced 9)
+dotnet build src/AgentX.App -r win-x64                       → 0 errors
+dotnet test  tests/AgentX.Tests --filter "AI|Search|Math|Configuration"
+                                                              → 235 / 236 pass (15 new RagPipelineTests, all pass;
+                                                                same single pre-existing flaky
+                                                                HybridSearchOrchestrator Moq test)
+```
+
+### Wave 2 Design Notes
+
+- **Why pull-based metrics for the embedding cache?** The cache hits in the indexing hot loop. Per-hit `IRagMetrics.RecordEmbeddingCache(...)` would burn one lock + one increment per cache lookup. Pull-based at snapshot time costs nothing per cache event and surfaces fresh data on demand.
+- **Why wrap the reranker JSON in `{"scores": [...]}`?** OpenAI strict json_schema mode requires the root to be an object. The legacy bare-array shape is preserved as a fallback parse path so deployed clients aren't broken by the wrapped-shape rollout.
+- **Why soft-fail in ContextualCompressor on parse failure?** Dropping an unparseable chunk silently is information loss the user can't see. Keeping the uncompressed chunk preserves the chunk's content; the redacted log lets operators triage parse-failure rates without exposing chunk PII.
+- **Why partial FU-2?** The RAG-adjacent warnings (`.Result`, `SHA256Managed`, dead locals) are zero-risk; the remaining VSTHRD103 `Cancel()` warnings in `ChatService` / `CollaborationService` / `SyncService` need each callsite reviewed for whether the surrounding method should become async — that's not a mechanical change.
+
+### Wave 3 Candidates
+
+- **P2-4** Externalize RAG prompts to JSON (deferred with rationale above).
+- **FU-2 remainder** Threading sweep of the 25 remaining VSTHRD warnings — mostly `Cancel()` → `CancelAsync()` requiring per-callsite async-propagation review.
+- **FU-5 part 2** Anthropic tool-use forcing function for structured outputs (the heavier alternative to OpenAI's `json_schema`).
+- **HyDE-doc test for `RagPipelineTests`** — current coverage verifies HyDE invocation but not that the hypothetical doc is actually added as a search query (verified indirectly via `Times.Exactly(2)` search count, but a stronger assertion on `SearchQuery.QueryText` content would be tighter).
+

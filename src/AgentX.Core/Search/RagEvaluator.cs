@@ -37,6 +37,24 @@ public sealed class RagEvaluator : IRagEvaluator
         Return ONLY a JSON object: {"context_relevance":N,"faithfulness":N,"answer_relevance":N}
         """;
 
+    // FU-5: provider-side schema enforcement (OpenAI strict json_schema).
+    // OpenAI rejects responses that miss required fields, exceed declared
+    // ranges, or include extra keys — eliminating a class of parse failures
+    // that previously fell through to placeholder defaults.
+    private const string EvalJsonSchema =
+        """
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["context_relevance", "faithfulness", "answer_relevance"],
+          "properties": {
+            "context_relevance": { "type": "number", "minimum": 0, "maximum": 10 },
+            "faithfulness":      { "type": "number", "minimum": 0, "maximum": 10 },
+            "answer_relevance":  { "type": "number", "minimum": 0, "maximum": 10 }
+          }
+        }
+        """;
+
     public RagEvaluator(IAiService aiService, ILogger logger)
         : this(aiService, null, logger)
     {
@@ -101,6 +119,11 @@ public sealed class RagEvaluator : IRagEvaluator
                 // and caused silent truncation → JSON parse failure → default scores.
                 MaxTokens = 256,
                 ResponseFormat = ResponseFormat.JsonObject,
+                // FU-5: strict provider-side schema validation on OpenAI. Other
+                // providers fall back to plain JSON-object mode and rely on the
+                // post-deserialize parser below.
+                JsonSchema = EvalJsonSchema,
+                JsonSchemaName = "rag_eval_metrics",
                 // P1-1: the eval system prompt is identical across every call; cache it
                 // when the provider supports prompt caching (Anthropic).
                 CacheSystemPrompt = true

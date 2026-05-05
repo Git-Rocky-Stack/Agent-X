@@ -263,9 +263,11 @@ public sealed class CachedEmbeddingService : IEmbeddingService
     /// </summary>
     private static string ComputeCacheKey(string text)
     {
-        // Use a simple, fast hash for cache keys
-        // SHA-256 would be more collision-resistant but slower
-        var hash = new System.Security.Cryptography.SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(text));
+        // FU-2: switched from `new SHA256Managed()` (SYSLIB0021 obsolete since
+        // .NET 6) to the static `SHA256.HashData` API — functionally identical
+        // hash, no allocation, no obsolete-warning noise. Cache-key format
+        // (Base64 first-16-chars) preserved exactly.
+        var hash = System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(text));
         var hashBase64 = Convert.ToBase64String(hash).Substring(0, 16); // First 16 chars is enough
         return $"embedding:{hashBase64}";
     }

@@ -132,4 +132,26 @@ public class ChatOptions
     /// string for graceful degradation on those providers.
     /// </summary>
     public IReadOnlyList<SystemPromptBlock>? SystemPromptBlocks { get; set; }
+
+    /// <summary>
+    /// FU-5: structured-output schema enforcement. When non-null, providers that
+    /// support JSON Schema response formatting (currently OpenAI's
+    /// <c>response_format: json_schema</c> with <c>strict: true</c>) constrain
+    /// the model's output to match this schema at decode time — rejecting
+    /// truncations and missing required fields server-side rather than
+    /// surfacing them as parse errors on the client. The string value MUST be
+    /// a valid JSON-Schema document. Providers that don't support
+    /// <c>json_schema</c> fall back to plain <see cref="ResponseFormat.JsonObject"/>
+    /// constraint and rely on the client's hand-rolled deserializer for
+    /// schema fidelity.
+    /// </summary>
+    public string? JsonSchema { get; set; }
+
+    /// <summary>
+    /// FU-5: human-readable name for the schema, surfaced as
+    /// <c>response_format.json_schema.name</c> on OpenAI. Should be a stable,
+    /// alphanumeric identifier (e.g. <c>"rag_eval_metrics"</c>). Required when
+    /// <see cref="JsonSchema"/> is set on OpenAI; ignored elsewhere.
+    /// </summary>
+    public string? JsonSchemaName { get; set; }
 }

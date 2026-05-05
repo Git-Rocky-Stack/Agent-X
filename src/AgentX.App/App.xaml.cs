@@ -475,7 +475,29 @@ public partial class App : Application
         services.AddSingleton<IRagMetrics>(sp =>
         {
             var logger = sp.GetRequiredService<Serilog.ILogger>();
-            return new RagMetrics(logger.ForContext<RagMetrics>());
+            var metrics = new RagMetrics(logger.ForContext<RagMetrics>());
+
+            // FU-4: pull-based embedding-cache stats. Resolving IEmbeddingService
+            // here would create a singleton-init cycle; defer to a closure that
+            // resolves at first GetSnapshot() call (lazy by construction).
+            metrics.RegisterEmbeddingCacheProvider(() =>
+            {
+                if (sp.GetService<IEmbeddingService>() is CachedEmbeddingService cache)
+                {
+                    var (hits, misses, total, size, hitRate) = cache.GetStatistics();
+                    return new EmbeddingCacheStats
+                    {
+                        Hits = hits,
+                        Misses = misses,
+                        TotalRequests = total,
+                        CurrentCacheSize = size,
+                        HitRate = hitRate
+                    };
+                }
+                return null;
+            });
+
+            return metrics;
         });
         services.AddSingleton<IPiiDetector>(sp =>
         {

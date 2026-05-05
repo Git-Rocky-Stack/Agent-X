@@ -168,9 +168,14 @@ public sealed class HybridSearchOrchestrator : IHybridSearchOrchestrator
 
         try
         {
-            await Task.WhenAll(semanticTask, keywordTask);
-            semanticHits = semanticTask.Result;
-            keywordHits = keywordTask.Result;
+            // FU-2: switched from Task.Result (VSTHRD103) to awaiting each task
+            // individually after Task.WhenAll. The tasks have already completed
+            // by the time WhenAll returns, so the awaits are no-ops in the happy
+            // path, but the analyzer is satisfied and there's no risk of a
+            // hidden deadlock if a future caller introduces a sync context.
+            await Task.WhenAll(semanticTask, keywordTask).ConfigureAwait(false);
+            semanticHits = await semanticTask.ConfigureAwait(false);
+            keywordHits = await keywordTask.ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -180,13 +185,15 @@ public sealed class HybridSearchOrchestrator : IHybridSearchOrchestrator
         {
             _logger.Error(ex, "One or both search backends failed during hybrid search");
 
-            // Graceful degradation: recover results from whichever backend succeeded
+            // Graceful degradation: recover results from whichever backend succeeded.
+            // Using await on a completed task surfaces the result without blocking;
+            // for non-completed (faulted) tasks we substitute empty.
             semanticHits = semanticTask.Status == TaskStatus.RanToCompletion
-                ? semanticTask.Result
+                ? await semanticTask.ConfigureAwait(false)
                 : Array.Empty<SearchResult>();
 
             keywordHits = keywordTask.Status == TaskStatus.RanToCompletion
-                ? keywordTask.Result
+                ? await keywordTask.ConfigureAwait(false)
                 : Array.Empty<SearchResult>();
 
             // If both failed, return empty

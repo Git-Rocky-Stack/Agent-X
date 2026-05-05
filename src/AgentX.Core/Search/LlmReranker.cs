@@ -23,8 +23,34 @@ public sealed class LlmReranker : ILlmReranker
         relevant it is to answering the given question on a scale of 0-10 where:
         0 = completely irrelevant, 10 = directly answers the question.
 
-        Return ONLY a JSON array of objects with "id" (the passage number) and "score" (0-10).
-        Example: [{"id":1,"score":8},{"id":2,"score":3}]
+        Return ONLY a JSON object with a single "scores" property, an array of
+        {"id":N,"score":N} entries — one per passage in the input order.
+        Example: {"scores":[{"id":1,"score":8},{"id":2,"score":3}]}
+        """;
+
+    // FU-5: provider-side schema. Wrapped in an object because OpenAI's
+    // strict json_schema mode requires the top-level type to be an object.
+    private const string RerankerJsonSchema =
+        """
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["scores"],
+          "properties": {
+            "scores": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "score"],
+                "properties": {
+                  "id":    { "type": "integer", "minimum": 1 },
+                  "score": { "type": "number",  "minimum": 0, "maximum": 10 }
+                }
+              }
+            }
+          }
+        }
         """;
 
     public LlmReranker(IAiService aiService, ILogger logger)
@@ -68,6 +94,11 @@ public sealed class LlmReranker : ILlmReranker
                 Temperature = 0.0,
                 MaxTokens = AppConstants.RerankerMaxTokens,
                 ResponseFormat = ResponseFormat.JsonObject,
+                // FU-5: provider-side schema enforcement on OpenAI. Other providers
+                // honor the broader ResponseFormat.JsonObject and rely on the
+                // tolerant ParseScores below.
+                JsonSchema = RerankerJsonSchema,
+                JsonSchemaName = "rag_reranker_scores",
                 // P1-1: the reranker system prompt is identical across every call; cache it
                 // when the provider supports prompt caching (Anthropic).
                 CacheSystemPrompt = true
@@ -121,34 +152,52 @@ public sealed class LlmReranker : ILlmReranker
 
         try
         {
-            var start = response.IndexOf('[');
-            var end = response.LastIndexOf(']');
+            // FU-5: response shape is now {"scores":[{"id":N,"score":N}, ...]}.
+            // We tolerate both the new wrapped form AND the legacy bare-array form
+            // for backwards compat with callers that may not have updated their
+            // schema yet — the Json reader handles either via root-element check.
+            var start = response.IndexOf('{');
+            var end = response.LastIndexOf('}');
+            List<ScoreEntry>? parsed = null;
 
             if (start >= 0 && end > start)
             {
                 var json = response[start..(end + 1)];
-                var parsed = JsonSerializer.Deserialize<List<ScoreEntry>>(json,
+                var wrapper = JsonSerializer.Deserialize<ScoresWrapper>(json,
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                if (parsed is not null)
+                parsed = wrapper?.Scores;
+            }
+            else
+            {
+                // Legacy fallback: bare JSON array
+                var arrStart = response.IndexOf('[');
+                var arrEnd = response.LastIndexOf(']');
+                if (arrStart >= 0 && arrEnd > arrStart)
                 {
-                    foreach (var entry in parsed)
-                    {
-                        if (entry.Id >= 1 && entry.Id <= chunkCount)
-                        {
-                            scores[entry.Id] = Math.Clamp(entry.Score, 0, 10);
-                        }
-                    }
-
-                    return scores;
+                    var json = response[arrStart..(arrEnd + 1)];
+                    parsed = JsonSerializer.Deserialize<List<ScoreEntry>>(json,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 }
             }
 
-            // No JSON array found — emit a redacted summary (P2-10) so operators
+            if (parsed is not null)
+            {
+                foreach (var entry in parsed)
+                {
+                    if (entry.Id >= 1 && entry.Id <= chunkCount)
+                    {
+                        scores[entry.Id] = Math.Clamp(entry.Score, 0, 10);
+                    }
+                }
+
+                return scores;
+            }
+
+            // No parseable JSON — emit a redacted summary (P2-10) so operators
             // can correlate failures by hash without dumping passages the model
             // may have echoed back in its response.
             _logger.Warning(
-                "LLM reranker response contained no JSON array; falling back to no rerank scores. Response summary: {Summary}",
+                "LLM reranker response contained no parseable scores object; falling back to no rerank scores. Response summary: {Summary}",
                 LogRedaction.ForLog(response));
         }
         catch (Exception ex)
@@ -170,5 +219,15 @@ public sealed class LlmReranker : ILlmReranker
     {
         public int Id { get; set; }
         public double Score { get; set; }
+    }
+
+    /// <summary>
+    /// FU-5: top-level wrapper for the schema-constrained reranker response
+    /// (<c>{"scores":[...]}</c>). OpenAI's strict json_schema mode requires
+    /// the root to be an object, which is why we wrap the array.
+    /// </summary>
+    private sealed class ScoresWrapper
+    {
+        public List<ScoreEntry>? Scores { get; set; }
     }
 }

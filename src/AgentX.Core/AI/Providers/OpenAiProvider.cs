@@ -195,7 +195,46 @@ public sealed class OpenAiProvider : IAiProvider
         if (options?.StopSequences is { Length: > 0 })
             body["stop"] = options.StopSequences;
         if (options?.ResponseFormat == ResponseFormat.JsonObject)
-            body["response_format"] = new Dictionary<string, string> { ["type"] = "json_object" };
+        {
+            // FU-5: prefer json_schema with strict: true when a schema is supplied.
+            // OpenAI enforces the schema at decode time, rejecting outputs that
+            // miss required fields or violate types — much stronger than the
+            // looser json_object mode which only requires syntactically-valid JSON.
+            if (!string.IsNullOrWhiteSpace(options.JsonSchema)
+                && !string.IsNullOrWhiteSpace(options.JsonSchemaName))
+            {
+                JsonElement schemaElement;
+                try
+                {
+                    schemaElement = JsonSerializer.Deserialize<JsonElement>(options.JsonSchema);
+                }
+                catch (JsonException ex)
+                {
+                    _logger.Warning(ex,
+                        "ChatOptions.JsonSchema is not valid JSON; falling back to json_object mode");
+                    body["response_format"] = new Dictionary<string, string> { ["type"] = "json_object" };
+                    schemaElement = default;
+                }
+
+                if (schemaElement.ValueKind == JsonValueKind.Object)
+                {
+                    body["response_format"] = new
+                    {
+                        type = "json_schema",
+                        json_schema = new
+                        {
+                            name = options.JsonSchemaName,
+                            schema = schemaElement,
+                            strict = true
+                        }
+                    };
+                }
+            }
+            else
+            {
+                body["response_format"] = new Dictionary<string, string> { ["type"] = "json_object" };
+            }
+        }
 
         _logger.Debug("Streaming OpenAI chat with {Count} messages, model={Model}",
             messages.Count, modelId);

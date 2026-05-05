@@ -5,6 +5,21 @@ using Serilog.Events;
 namespace AgentX.Core.Observability;
 
 /// <summary>
+/// Embedding-cache statistics surfaced via <see cref="IRagMetrics"/>.
+/// Reported at snapshot time by a registered provider (pull-based) instead of
+/// per-call recording — the embedding cache hits in hot-loop indexing paths,
+/// and per-hit metric writes would dominate the recording cost.
+/// </summary>
+public sealed class EmbeddingCacheStats
+{
+    public long Hits { get; init; }
+    public long Misses { get; init; }
+    public long TotalRequests { get; init; }
+    public int CurrentCacheSize { get; init; }
+    public double HitRate { get; init; }
+}
+
+/// <summary>
 /// Metrics collector for tracking RAG pipeline performance and quality.
 /// Provides structured telemetry for monitoring and alerting.
 /// </summary>
@@ -34,9 +49,21 @@ public sealed class RagMetrics : IRagMetrics
     private long _totalTokensProcessed;
     private long _totalChunksRetrieved;
 
+    // FU-4: pull-based embedding-cache provider. Set at startup by DI so the
+    // snapshot reads live stats from the cache without per-call telemetry cost.
+    // Using volatile reference for lock-free reads at snapshot time.
+    private Func<EmbeddingCacheStats?>? _embeddingCacheProvider;
+
     public RagMetrics(ILogger log)
     {
         _log = log ?? throw new ArgumentNullException(nameof(log));
+    }
+
+    /// <inheritdoc />
+    public void RegisterEmbeddingCacheProvider(Func<EmbeddingCacheStats?> provider)
+    {
+        _embeddingCacheProvider = provider ?? throw new ArgumentNullException(nameof(provider));
+        _log.Debug("Embedding cache stats provider registered");
     }
 
     /// <inheritdoc />
@@ -98,6 +125,18 @@ public sealed class RagMetrics : IRagMetrics
     /// <inheritdoc />
     public RagMetricsSnapshot GetSnapshot()
     {
+        // Invoke provider OUTSIDE the lock — the provider takes its own lock and
+        // we don't want to hold _lock across a callback.
+        EmbeddingCacheStats? embeddingStats = null;
+        try
+        {
+            embeddingStats = _embeddingCacheProvider?.Invoke();
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Embedding cache stats provider threw; snapshot will omit those fields");
+        }
+
         lock (_lock)
         {
             var totalSearches = _semanticSearchCount + _keywordSearchCount + _hybridSearchCount;
@@ -126,6 +165,9 @@ public sealed class RagMetrics : IRagMetrics
 
                 // Resource metrics
                 TotalTokensProcessed = _totalTokensProcessed,
+
+                // FU-4: embedding cache (pull-based — null when no provider registered)
+                EmbeddingCache = embeddingStats,
 
                 // Timestamp
                 SnapshotAt = DateTime.UtcNow
@@ -191,6 +233,14 @@ public interface IRagMetrics
     /// Resets all metrics to zero.
     /// </summary>
     void Reset();
+
+    /// <summary>
+    /// FU-4: Registers a callback that supplies live embedding-cache statistics
+    /// at snapshot time. The provider is invoked once per <see cref="GetSnapshot"/>
+    /// call and may return null (no stats yet, cache disabled, etc.). Registering
+    /// a second provider replaces the first.
+    /// </summary>
+    void RegisterEmbeddingCacheProvider(Func<EmbeddingCacheStats?> provider);
 }
 
 /// <summary>
@@ -262,6 +312,9 @@ public class RagMetricsSnapshot
 
     // Resource metrics
     public long TotalTokensProcessed { get; set; }
+
+    // FU-4: embedding cache (null when no provider is registered)
+    public EmbeddingCacheStats? EmbeddingCache { get; set; }
 
     // Metadata
     public DateTime SnapshotAt { get; set; }

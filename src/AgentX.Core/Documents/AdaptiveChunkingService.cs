@@ -113,10 +113,9 @@ public sealed class AdaptiveChunkingService : IAdaptiveChunkingService
 
     private static ContentType DetectContentType(string[] lines, string? fileName)
     {
-        bool hasCode = false;
-        bool hasTable = false;
-        bool hasList = false;
-        bool hasProse = false;
+        // FU-2: removed dead `hasCode/hasTable/hasList/hasProse` locals — the actual
+        // content type is decided below from `*LineCount` totals, not from boolean
+        // flags. The booleans were assigned-but-never-read (CS0219).
 
         // File extension hint
         if (!string.IsNullOrEmpty(fileName))

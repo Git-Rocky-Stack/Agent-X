@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading.Channels;
 using AgentX.Core.AI;
+using AgentX.Core.Configuration;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Data.VectorDb;
@@ -59,10 +60,16 @@ public sealed class IndexingService : IIndexingService
     public event EventHandler<long>? DocumentIndexed;
 
     /// <summary>
-    /// Batch size for embedding generation. Keeps memory usage bounded while
-    /// still benefiting from batch inference when supported by the model.
+    /// Default batch size for embedding generation when no IRagConfiguration is
+    /// supplied. Keeps memory usage bounded while still benefiting from batch
+    /// inference when supported by the model. P2-9: prefer the config value
+    /// (<c>IRagConfiguration.EmbeddingBatchSize</c>) — that way the outer batch
+    /// here matches the inner batch in <c>EmbeddingService.EmbedBatchAsync</c>
+    /// instead of the two fighting at different sizes.
     /// </summary>
-    private const int EmbeddingBatchSize = 16;
+    private const int FallbackEmbeddingBatchSize = 16;
+
+    private readonly IRagConfiguration? _ragConfiguration;
 
     public IndexingService(
         AgentXDbContext db,
@@ -75,6 +82,24 @@ public sealed class IndexingService : IIndexingService
         IAutoTagService autoTagService,
         ILogger logger,
         ISearchCacheService? searchCacheService = null)
+        : this(db, processors, chunkingService, embeddingService, vectorStore,
+               settingsService, keywordSearchService, autoTagService,
+               null, logger, searchCacheService)
+    {
+    }
+
+    public IndexingService(
+        AgentXDbContext db,
+        IEnumerable<IDocumentProcessor> processors,
+        IChunkingService chunkingService,
+        IEmbeddingService embeddingService,
+        IVectorStore vectorStore,
+        ISettingsService settingsService,
+        IKeywordSearchService keywordSearchService,
+        IAutoTagService autoTagService,
+        IRagConfiguration? ragConfiguration,
+        ILogger logger,
+        ISearchCacheService? searchCacheService = null)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
         _processors = processors ?? throw new ArgumentNullException(nameof(processors));
@@ -84,6 +109,7 @@ public sealed class IndexingService : IIndexingService
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _keywordSearchService = keywordSearchService ?? throw new ArgumentNullException(nameof(keywordSearchService));
         _autoTagService = autoTagService ?? throw new ArgumentNullException(nameof(autoTagService));
+        _ragConfiguration = ragConfiguration;
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _searchCacheService = searchCacheService;
 
@@ -454,12 +480,14 @@ public sealed class IndexingService : IIndexingService
 
             // 7. Generate embeddings in batches
             var embeddingsGenerated = 0;
+            var embeddingBatchSize = Math.Max(1,
+                _ragConfiguration?.EmbeddingBatchSize ?? FallbackEmbeddingBatchSize);
 
-            for (var batchStart = 0; batchStart < chunkEntities.Count; batchStart += EmbeddingBatchSize)
+            for (var batchStart = 0; batchStart < chunkEntities.Count; batchStart += embeddingBatchSize)
             {
                 ct.ThrowIfCancellationRequested();
 
-                var batchEnd = Math.Min(batchStart + EmbeddingBatchSize, chunkEntities.Count);
+                var batchEnd = Math.Min(batchStart + embeddingBatchSize, chunkEntities.Count);
                 var batchChunks = chunkEntities.GetRange(batchStart, batchEnd - batchStart);
                 var batchTexts = batchChunks.Select(c => c.Content).ToList();
 
