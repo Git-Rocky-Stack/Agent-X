@@ -938,7 +938,7 @@ public sealed class ExportServiceTests : IDisposable
     // ====================================================================
 
     [Fact]
-    public async Task FormatConversationAsMarkdown_WithValidConversation_ReturnsMarkdownString()
+    public async Task FormatConversationAsMarkdownAsync_WithValidConversation_ReturnsMarkdownString()
     {
         // Arrange
         var conversation = new ConversationEntity
@@ -966,7 +966,7 @@ public sealed class ExportServiceTests : IDisposable
         var sut = CreateService();
 
         // Act
-        var markdown = await sut.FormatConversationAsMarkdown(1, includeMeta: true);
+        var markdown = await sut.FormatConversationAsMarkdownAsync(1, includeMeta: true);
 
         // Assert
         markdown.Should().NotBeNullOrEmpty();
@@ -974,7 +974,7 @@ public sealed class ExportServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task FormatConversationAsMarkdown_WithNotFoundConversation_ReturnsEmptyString()
+    public async Task FormatConversationAsMarkdownAsync_WithNotFoundConversation_ReturnsEmptyString()
     {
         // Arrange
         _conversationServiceMock
@@ -984,14 +984,14 @@ public sealed class ExportServiceTests : IDisposable
         var sut = CreateService();
 
         // Act
-        var markdown = await sut.FormatConversationAsMarkdown(999, includeMeta: true);
+        var markdown = await sut.FormatConversationAsMarkdownAsync(999, includeMeta: true);
 
         // Assert
         markdown.Should().BeNullOrEmpty();
     }
 
     [Fact]
-    public async Task FormatConversationAsHtml_WithValidConversation_ReturnsHtmlString()
+    public async Task FormatConversationAsHtmlAsync_WithValidConversation_ReturnsHtmlString()
     {
         // Arrange
         var conversation = new ConversationEntity
@@ -1019,7 +1019,7 @@ public sealed class ExportServiceTests : IDisposable
         var sut = CreateService();
 
         // Act
-        var html = await sut.FormatConversationAsHtml(1, includeMeta: true);
+        var html = await sut.FormatConversationAsHtmlAsync(1, includeMeta: true);
 
         // Assert
         html.Should().NotBeNullOrEmpty();
@@ -1027,7 +1027,7 @@ public sealed class ExportServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task FormatConversationAsHtml_WithNotFoundConversation_ReturnsEmptyString()
+    public async Task FormatConversationAsHtmlAsync_WithNotFoundConversation_ReturnsEmptyString()
     {
         // Arrange
         _conversationServiceMock
@@ -1037,7 +1037,7 @@ public sealed class ExportServiceTests : IDisposable
         var sut = CreateService();
 
         // Act
-        var html = await sut.FormatConversationAsHtml(999, includeMeta: true);
+        var html = await sut.FormatConversationAsHtmlAsync(999, includeMeta: true);
 
         // Assert
         html.Should().BeNullOrEmpty();

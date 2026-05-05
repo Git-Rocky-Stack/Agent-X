@@ -31,7 +31,11 @@ public class ChatService : IChatService
     private readonly ILogger _log;
 
     private CancellationTokenSource? _generationCts;
-    private readonly object _generationLock = new();
+    // Wave 4b: migrated from `lock (object)` to SemaphoreSlim so cancellation of the
+    // previous CTS can be awaited (CancellationTokenSource.CancelAsync awaits any
+    // registered cancellation callbacks). The semaphore is *not* reentrant — every
+    // critical section in this class is straight-line and does not reacquire the lock.
+    private readonly SemaphoreSlim _generationLock = new(1, 1);
     private readonly ConcurrentDictionary<long, ChatContextInspectionSnapshot> _latestContextInspections = new();
     private bool _isGenerating;
 
@@ -177,12 +181,18 @@ public class ChatService : IChatService
 
         // Create a linked cancellation token so StopGenerationAsync can cancel mid-stream
         CancellationTokenSource linkedCts;
-        lock (_generationLock)
+        await _generationLock.WaitAsync(ct).ConfigureAwait(false);
+        try
         {
-            _generationCts?.Cancel();
+            if (_generationCts is not null)
+                await _generationCts.CancelAsync().ConfigureAwait(false);
             _generationCts?.Dispose();
             _generationCts = new CancellationTokenSource();
             linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, _generationCts.Token);
+        }
+        finally
+        {
+            _generationLock.Release();
         }
 
         var stopwatch = Stopwatch.StartNew();
@@ -427,12 +437,18 @@ public class ChatService : IChatService
 
             // Create a linked cancellation token for stop support
             CancellationTokenSource linkedCts;
-            lock (_generationLock)
+            await _generationLock.WaitAsync(ct).ConfigureAwait(false);
+            try
             {
-                _generationCts?.Cancel();
+                if (_generationCts is not null)
+                    await _generationCts.CancelAsync().ConfigureAwait(false);
                 _generationCts?.Dispose();
                 _generationCts = new CancellationTokenSource();
                 linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, _generationCts.Token);
+            }
+            finally
+            {
+                _generationLock.Release();
             }
 
             var stopwatch = Stopwatch.StartNew();
@@ -491,18 +507,21 @@ public class ChatService : IChatService
     }
 
     /// <inheritdoc />
-    public Task StopGenerationAsync()
+    public async Task StopGenerationAsync()
     {
-        lock (_generationLock)
+        await _generationLock.WaitAsync().ConfigureAwait(false);
+        try
         {
             if (_generationCts is not null && !_generationCts.IsCancellationRequested)
             {
                 _log.Information("Stopping generation");
-                _generationCts.Cancel();
+                await _generationCts.CancelAsync().ConfigureAwait(false);
             }
         }
-
-        return Task.CompletedTask;
+        finally
+        {
+            _generationLock.Release();
+        }
     }
 
     /// <summary>

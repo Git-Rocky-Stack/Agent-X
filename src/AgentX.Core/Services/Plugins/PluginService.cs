@@ -447,17 +447,17 @@ public sealed class PluginService : IPluginService
         return Task.FromResult(snapshot);
     }
 
-    // ── IPluginService: GetPluginInstance<T> ──────────────────────────────────
+    // ── IPluginService: GetPluginInstanceAsync<T> ─────────────────────────────
 
     /// <inheritdoc />
-    public Task<T?> GetPluginInstance<T>(string pluginId) where T : class, IPlugin
+    public Task<T?> GetPluginInstanceAsync<T>(string pluginId) where T : class, IPlugin
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(pluginId);
 
         if (!_loadedPlugins.TryGetValue(pluginId, out var entry))
         {
             _log.Debug(
-                "GetPluginInstance<{Type}>: plugin '{PluginId}' is not active",
+                "GetPluginInstanceAsync<{Type}>: plugin '{PluginId}' is not active",
                 typeof(T).Name, pluginId);
             return Task.FromResult<T?>(null);
         }
@@ -466,7 +466,7 @@ public sealed class PluginService : IPluginService
             return Task.FromResult<T?>(typed);
 
         _log.Debug(
-            "GetPluginInstance<{Type}>: plugin '{PluginId}' is active but does not implement {Type}",
+            "GetPluginInstanceAsync<{Type}>: plugin '{PluginId}' is active but does not implement {Type}",
             typeof(T).Name, pluginId, typeof(T).Name);
 
         return Task.FromResult<T?>(null);

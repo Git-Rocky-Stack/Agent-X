@@ -189,6 +189,18 @@ public sealed class HybridSearchOrchestratorTests
     [Fact]
     public async Task SearchAsync_HybridMode_ParallelExecution()
     {
+        // Verifies that the orchestrator launches BOTH backend searches before awaiting either.
+        // Each mocked backend signals that it has started, then awaits the OTHER backend's
+        // start signal before returning. If launches are parallel, both signals fire and both
+        // mocks complete. If launches are sequential (e.g. someone changes the production code
+        // to `await semantic; await keyword;`), the second mock never starts and the first
+        // mock's await deadlocks — surfaced as a 5-second test timeout.
+        //
+        // The original test version used `ReturnsAsync(Func<T>)` to defer lambda execution,
+        // but Moq invokes that Func eagerly (synchronously when the mocked method is called),
+        // so on a single thread the assertions inside the Func ran before the second backend
+        // had a chance to set its flag — the test failed deterministically rather than flakily.
+
         // Arrange
         var query = new SearchQuery
         {
@@ -197,44 +209,41 @@ public sealed class HybridSearchOrchestratorTests
             TopK = 5
         };
 
-        var semanticResults = new List<SearchResult>
-        {
-            new() { ChunkId = 1, Score = 0.9f }
-        };
+        var semanticResults = new List<SearchResult> { new() { ChunkId = 1, Score = 0.9f } };
+        var keywordResults = new List<SearchResult> { new() { ChunkId = 2, Score = 0.8f } };
 
-        var keywordResults = new List<SearchResult>
-        {
-            new() { ChunkId = 2, Score = 0.8f }
-        };
-
-        bool semanticCalled = false;
-        bool keywordCalled = false;
+        // RunContinuationsAsynchronously prevents the SetResult call from inline-running the
+        // continuation on the calling thread, which would deadlock the test.
+        var semanticStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var keywordStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         _semanticSearch
             .Setup(s => s.SearchAsync(It.IsAny<SearchQuery>(), It.IsAny<CancellationToken>()))
-            .Callback(() => semanticCalled = true)
-            .ReturnsAsync(() =>
+            .Returns(async () =>
             {
-                // Verify keyword was also called (indicating parallel execution)
-                keywordCalled.Should().BeTrue();
-                return semanticResults;
+                semanticStarted.SetResult(true);
+                await keywordStarted.Task;
+                return (IReadOnlyList<SearchResult>)semanticResults;
             });
 
         _keywordSearch
             .Setup(s => s.SearchAsync(It.IsAny<SearchQuery>(), It.IsAny<CancellationToken>()))
-            .Callback(() => keywordCalled = true)
-            .ReturnsAsync(() =>
+            .Returns(async () =>
             {
-                semanticCalled.Should().BeTrue();
-                return keywordResults;
+                keywordStarted.SetResult(true);
+                await semanticStarted.Task;
+                return (IReadOnlyList<SearchResult>)keywordResults;
             });
 
-        // Act
-        await _orchestrator.SearchAsync(query);
+        // Act — race against a 5-second timeout to catch a regression to sequential launch.
+        var searchTask = _orchestrator.SearchAsync(query);
+        var winner = await Task.WhenAny(searchTask, Task.Delay(TimeSpan.FromSeconds(5)));
 
         // Assert
-        semanticCalled.Should().BeTrue();
-        keywordCalled.Should().BeTrue();
+        winner.Should().Be(searchTask, "the orchestrator must launch both backends in parallel");
+        await searchTask; // surface any inner exception
+        _semanticSearch.Verify(s => s.SearchAsync(It.IsAny<SearchQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+        _keywordSearch.Verify(s => s.SearchAsync(It.IsAny<SearchQuery>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

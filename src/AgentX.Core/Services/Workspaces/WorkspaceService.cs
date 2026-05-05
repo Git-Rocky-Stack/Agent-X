@@ -100,7 +100,10 @@ public sealed class WorkspaceService : IWorkspaceService
         // because DI containers do not support async construction; this call
         // is safe because SettingsService caches on first call and never
         // blocks on I/O after the initial load.
+        // Wave 4b: VSTHRD002 suppressed — see rationale above.
+#pragma warning disable VSTHRD002
         var settings = settingsService.GetSettingsAsync().GetAwaiter().GetResult();
+#pragma warning restore VSTHRD002
         _appDataRoot = settings.StoragePath;
 
         _metadataFilePath = Path.Combine(_appDataRoot, WorkspacesFileName);

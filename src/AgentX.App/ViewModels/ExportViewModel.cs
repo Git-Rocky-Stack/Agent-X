@@ -152,7 +152,7 @@ public partial class ExportViewModel : ObservableObject
     {
         try
         {
-            var markdown = await _exportService.FormatConversationAsMarkdown(conversationId, IncludeMetadata);
+            var markdown = await _exportService.FormatConversationAsMarkdownAsync(conversationId, IncludeMetadata);
             var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
             dataPackage.SetText(markdown);
             Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);

@@ -113,5 +113,5 @@ public interface IPluginService
     /// The plugin instance cast to <typeparamref name="T"/>, or <see langword="null"/> if the
     /// plugin is not installed, not currently active, or does not implement <typeparamref name="T"/>.
     /// </returns>
-    Task<T?> GetPluginInstance<T>(string pluginId) where T : class, IPlugin;
+    Task<T?> GetPluginInstanceAsync<T>(string pluginId) where T : class, IPlugin;
 }

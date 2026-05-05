@@ -352,11 +352,11 @@ public class ExportService : IExportService
     // IExportService -- In-memory formatting helpers
 
     /// <inheritdoc />
-    public Task<string> FormatConversationAsMarkdown(long conversationId, bool includeMeta) =>
+    public Task<string> FormatConversationAsMarkdownAsync(long conversationId, bool includeMeta) =>
         FormatConversationAsync(conversationId, includeMeta, ExportFormat.Markdown, "Markdown");
 
     /// <inheritdoc />
-    public Task<string> FormatConversationAsHtml(long conversationId, bool includeMeta) =>
+    public Task<string> FormatConversationAsHtmlAsync(long conversationId, bool includeMeta) =>
         FormatConversationAsync(conversationId, includeMeta, ExportFormat.Html, "HTML");
 
     private async Task<string> FormatConversationAsync(

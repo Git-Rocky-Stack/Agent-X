@@ -36,7 +36,15 @@ public static class VectorStoreFactory
         ArgumentNullException.ThrowIfNull(logger);
         ArgumentNullException.ThrowIfNull(connectionFactory);
 
+        // Wave 4b: VSTHRD002 is suppressed because this factory is invoked from a sync
+        // DI factory lambda (Microsoft.Extensions.DependencyInjection does not support
+        // async construction). SettingsService caches its result on first access and
+        // performs no I/O after that, so the GetResult call is non-blocking in practice.
+        // A proper fix would require pre-resolving settings before container build —
+        // architectural change tracked separately.
+#pragma warning disable VSTHRD002
         var settings = settingsService.GetSettingsAsync().GetAwaiter().GetResult();
+#pragma warning restore VSTHRD002
 
         if (!settings.EnableHnswIndex)
         {

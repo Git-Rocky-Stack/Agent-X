@@ -386,7 +386,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
             });
 
         // Act
-        var store = VectorStoreFactory.Create(_mockSettings.Object, _mockEmbeddingService.Object, _logger, CreatePlainFactory());
+        var store = VectorStoreFactory.Create(mockSettings.Object, _mockEmbeddingService.Object, _logger, CreatePlainFactory());
 
         // Assert
         store.Should().BeOfType<HnswVectorStore>(
@@ -415,7 +415,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
             });
 
         // Act
-        var store = VectorStoreFactory.Create(_mockSettings.Object, _mockEmbeddingService.Object, _logger, CreatePlainFactory());
+        var store = VectorStoreFactory.Create(mockSettings.Object, _mockEmbeddingService.Object, _logger, CreatePlainFactory());
 
         // Assert
         store.Should().BeOfType<SqliteVecStore>(

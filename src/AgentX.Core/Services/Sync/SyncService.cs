@@ -59,7 +59,11 @@ public sealed class SyncService : ISyncService
     private readonly object _statusLock = new();
 
     /// <summary>Guards the auto-sync loop start/stop path to prevent races.</summary>
-    private readonly object _loopLock = new();
+    // Wave 4b: migrated from `lock (object)` to SemaphoreSlim so cancellation of the
+    // auto-sync CTS can be awaited (CancellationTokenSource.CancelAsync awaits any
+    // registered cancellation callbacks). The semaphore is *not* reentrant — each
+    // critical section is straight-line and does not reacquire the lock.
+    private readonly SemaphoreSlim _loopLock = new(1, 1);
 
     /// <summary>Cancels the currently-running auto-sync loop when not null.</summary>
     private CancellationTokenSource? _autoSyncCts;
@@ -554,11 +558,16 @@ public sealed class SyncService : ISyncService
 
         var intervalMinutes = Math.Max(1, config.SyncIntervalMinutes);
 
-        lock (_loopLock)
+        await _loopLock.WaitAsync(ct).ConfigureAwait(false);
+        try
         {
             _autoSyncCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             var loopCt = _autoSyncCts.Token;
             _ = Task.Run(() => RunAutoSyncLoopAsync(intervalMinutes, loopCt), loopCt);
+        }
+        finally
+        {
+            _loopLock.Release();
         }
 
         _log.Information(
@@ -569,21 +578,24 @@ public sealed class SyncService : ISyncService
     // ── ISyncService: StopAutoSyncAsync ──────────────────────────────────────
 
     /// <inheritdoc />
-    public Task StopAutoSyncAsync()
+    public async Task StopAutoSyncAsync()
     {
-        lock (_loopLock)
+        await _loopLock.WaitAsync().ConfigureAwait(false);
+        try
         {
             if (_autoSyncCts is null)
-                return Task.CompletedTask;
+                return;
 
             _log.Information("SyncService.StopAutoSyncAsync: cancelling auto-sync loop");
 
-            _autoSyncCts.Cancel();
+            await _autoSyncCts.CancelAsync().ConfigureAwait(false);
             _autoSyncCts.Dispose();
             _autoSyncCts = null;
         }
-
-        return Task.CompletedTask;
+        finally
+        {
+            _loopLock.Release();
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

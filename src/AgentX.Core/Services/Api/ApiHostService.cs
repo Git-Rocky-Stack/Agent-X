@@ -325,15 +325,21 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
         var docCountTask = Task.Run(() => _documents.GetTotalDocumentCountAsync(), ct);
         var convCountTask = Task.Run(() => _conversations.GetConversationCountAsync(), ct);
 
+        // Wave 4b: switched from .Result (VSTHRD103) to awaiting each task individually.
+        // Tasks are already complete after WhenAll, so the awaits are no-ops in the happy
+        // path, but the analyzer is satisfied and there's no risk of a hidden deadlock if a
+        // future caller introduces a sync context.
         await Task.WhenAll(docCountTask, convCountTask).ConfigureAwait(false);
+        var docCount = await docCountTask.ConfigureAwait(false);
+        var convCount = await convCountTask.ConfigureAwait(false);
 
         var payload = new ApiHealthDto
         {
             Status = "ok",
             Version = "1.0.0",
             Uptime = uptimeStr,
-            DocumentCount = docCountTask.Result,
-            ConversationCount = convCountTask.Result
+            DocumentCount = docCount,
+            ConversationCount = convCount
         };
 
         await WriteJsonResponseAsync(resp, 200, ApiResponse<ApiHealthDto>.Ok(payload), ct).ConfigureAwait(false);

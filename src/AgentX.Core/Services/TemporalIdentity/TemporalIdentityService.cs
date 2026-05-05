@@ -99,8 +99,8 @@ public class TemporalIdentityService : ITemporalIdentityService
             Stance = belief.CurrentStance,
             Confidence = belief.ConfidenceLevel,
             EvidenceExcerpts = GetEvidenceExcerpts(belief.EvidenceJson),
-            RelatedConversations = await GetRelatedConversations(topic, targetTime, ct),
-            RelatedDocuments = await GetRelatedDocuments(topic, targetTime, ct),
+            RelatedConversations = await GetRelatedConversationsAsync(topic, targetTime, ct),
+            RelatedDocuments = await GetRelatedDocumentsAsync(topic, targetTime, ct),
             HasEvolved = belief.HasEvolved,
             CurrentStance = belief.HasEvolved ? belief.CurrentStance : null,
         };
@@ -515,7 +515,7 @@ public class TemporalIdentityService : ITemporalIdentityService
         return evidence?.Select(e => e.excerpt).ToArray() ?? [];
     }
 
-    private async Task<string[]> GetRelatedConversations(string topic, DateTime around, CancellationToken ct)
+    private async Task<string[]> GetRelatedConversationsAsync(string topic, DateTime around, CancellationToken ct)
     {
         return (await _db.Conversations
             .Where(c => c.Title != null && c.Title.Contains(topic))
@@ -526,7 +526,7 @@ public class TemporalIdentityService : ITemporalIdentityService
             .ToListAsync(ct)).ToArray();
     }
 
-    private async Task<string[]> GetRelatedDocuments(string topic, DateTime around, CancellationToken ct)
+    private async Task<string[]> GetRelatedDocumentsAsync(string topic, DateTime around, CancellationToken ct)
     {
         return (await _db.Documents
             .Where(d => d.FileName != null && d.FileName.Contains(topic))
