@@ -101,7 +101,10 @@ public sealed class EmailPlugin : IPlugin
 
     public async Task DeactivateAsync()
     {
-        _syncTimer?.Dispose();
+        // Wave 4a: DisposeAsync awaits any in-flight Timer callback before tearing
+        // down the timer — prevents a race with the SafeOnSyncTimerTickAsync wrapper.
+        if (_syncTimer is not null)
+            await _syncTimer.DisposeAsync().ConfigureAwait(false);
         _syncTimer = null;
 
         // Flush pending sync if possible.

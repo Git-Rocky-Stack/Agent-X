@@ -194,7 +194,10 @@ public sealed class CollaborationService : ICollaborationService, IDisposable
         }
         finally
         {
-            _pruneTimer?.Dispose();
+            // Wave 4a: Timer.DisposeAsync awaits in-flight callbacks instead of
+            // blocking the calling thread — safer for shutdown paths.
+            if (_pruneTimer is not null)
+                await _pruneTimer.DisposeAsync().ConfigureAwait(false);
             _pruneTimer = null;
             _listenerCts?.Dispose();
             _listenerCts = null;
@@ -239,8 +242,10 @@ public sealed class CollaborationService : ICollaborationService, IDisposable
                 ct).ConfigureAwait(false);
         }
 
-        // Start the heartbeat timer.
-        _heartbeatTimer?.Dispose();
+        // Start the heartbeat timer. Wave 4a: DisposeAsync on the prior timer
+        // awaits in-flight callbacks before we install the replacement.
+        if (_heartbeatTimer is not null)
+            await _heartbeatTimer.DisposeAsync().ConfigureAwait(false);
         _heartbeatTimer = new Timer(
             SendHeartbeat,
             state: null,
@@ -270,7 +275,9 @@ public sealed class CollaborationService : ICollaborationService, IDisposable
         var sessionId = _localSessionId;
 
         // Stop heartbeat first to prevent a race with disposal.
-        _heartbeatTimer?.Dispose();
+        // Wave 4a: DisposeAsync awaits any callback already in flight before returning.
+        if (_heartbeatTimer is not null)
+            await _heartbeatTimer.DisposeAsync().ConfigureAwait(false);
         _heartbeatTimer = null;
 
         // Announce departure.

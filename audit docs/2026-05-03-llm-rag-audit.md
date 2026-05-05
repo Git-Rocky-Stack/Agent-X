@@ -747,3 +747,89 @@ dotnet test  tests/AgentX.Tests --filter "AI|Search|Math|Configuration"
 - **Public API renames** (`IExportService`, `IPluginService`) — VSTHRD200 async-suffix; needs careful caller migration since the names appear in app code paths.
 - **Anthropic tool-use SSE test** — mock-HttpClient infra to verify the `input_json_delta` parser end-to-end.
 
+---
+
+## 15. Wave 4a Implementation Log (2026-05-04 — low-risk threading slice)
+
+Closes the two safely-mechanical buckets identified in §14: the lone `async void` in `FileWatcherService` and the four `Timer.Dispose()` calls inside async methods (`CollaborationService` ×3, `EmailPlugin` ×1). The lock→`SemaphoreSlim`, sync-over-async, and public-API-rename buckets are deferred to a future Wave 4b/c since they carry semantic and caller-visible ripple.
+
+### Wave 4a-1. `FileWatcherService` async-void → fire-and-forget wrapper ✅
+
+The Timer callback at line 350 invoked `private async void OnDebounceElapsed(...)` — the same pattern Wave 3e fixed in `CalendarPlugin` and `EmailPlugin`. `async void` in a Timer callback propagates exceptions to the thread-pool sync context, where unhandled faults crash the process. Triaged as low-risk because the same fix has now been applied three times with no regressions.
+
+The fix follows the Wave 3e shape exactly:
+1. Renamed the body to `private async Task OnDebounceElapsedAsync(...)` — proper Task return type, eligible for await throughout.
+2. Added `private async Task SafeOnDebounceElapsedAsync(...)` wrapping the body in try/catch — converts a fault into a structured log entry instead of process termination. The wrapper catches faults from the *prelude* (dictionary `TryRemove`, path normalization, `FileDetected` event) too, which the body's own try/catch did not cover.
+3. Changed the Timer callback to fire-and-forget through the wrapper: `(object? s) => { _ = SafeOnDebounceElapsedAsync((string)s!, context); }`.
+4. Audited the callee chain for VSTHRD103 ripple: discovered `timer.Dispose()` inside the now-async `OnDebounceElapsedAsync` triggered a new VSTHRD103 — fixed by switching to `await timer.DisposeAsync().ConfigureAwait(false)`.
+
+**Subtle issue caught during build:** the original outer factory lambda used `_` as its parameter name (`_ => new Timer(...)`), which shadows the discard. Inside the inner Timer callback, my `_ = SafeOnDebounceElapsedAsync(...)` was being parsed by the compiler as **assignment to the outer lambda parameter** (`string`) rather than as a discard, producing CS0029 ("cannot convert Task to string"). Renamed the outer parameter to `key` so `_` inside the inner lambda is unambiguously a discard. Worth noting for future fire-and-forget edits inside nested lambdas.
+
+Files: `src/AgentX.Core/Services/Indexing/FileWatcherService.cs`.
+
+### Wave 4a-2. Timer DisposeAsync at four async-method call sites ✅
+
+Switched four `Timer.Dispose()` call sites to `await Timer.DisposeAsync().ConfigureAwait(false)`. `System.Threading.Timer` implements `IAsyncDisposable` in .NET 6+; the async path **awaits any in-flight callback** before tearing the timer down, where the sync `Dispose()` blocks the calling thread. All four sites are inside async methods, so the change is mechanical.
+
+| File | Line (before) | Method | Notes |
+|---|---|---|---|
+| `CollaborationService.cs` | 197 | `StopHostingAsync` (finally block) | Prune-timer teardown on host stop. `await` in `finally` is supported. |
+| `CollaborationService.cs` | 243 | `StartSessionAsync` | Disposes a previous heartbeat timer before installing the replacement — DisposeAsync ensures the old callback isn't still running when the new timer starts. |
+| `CollaborationService.cs` | 273 | `EndSessionAsync` | Stop heartbeat before broadcasting `UserLeft` — the await prevents a race where the heartbeat fires concurrently with departure. |
+| `EmailPlugin.cs` | 104 | `DeactivateAsync` | Symmetric with the Wave 3e Timer wrapper at line 92 — `SafeOnSyncTimerTickAsync` may still be executing when deactivate fires; DisposeAsync awaits that completion. |
+
+Decision **not to migrate the classes themselves to `IAsyncDisposable`**:
+- `EmailPlugin` is bound by the `IPlugin : IDisposable` contract — adding `IAsyncDisposable` would diverge from the interface and require host changes to call it. Out of scope for a low-risk slice.
+- `CollaborationService` could safely add `IAsyncDisposable` and the DI container would call it at host shutdown, but the warnings are at the call sites, not in `Dispose()`. The minimal fix clears all four warnings without rippling to lifecycle code.
+
+Files: `src/AgentX.Core/Services/Collaboration/CollaborationService.cs`, `src/AgentX.Core/Services/Plugins/Email/EmailPlugin.cs`.
+
+### Files Touched (Wave 4a)
+
+```
+src/AgentX.Core/Services/Indexing/FileWatcherService.cs        +28 / -8
+src/AgentX.Core/Services/Collaboration/CollaborationService.cs +12 / -3
+src/AgentX.Core/Services/Plugins/Email/EmailPlugin.cs          +4 / -1
+audit docs/2026-05-03-llm-rag-audit.md                         this section
+```
+
+### Verification
+
+```
+dotnet build src/AgentX.Core                                 → 0 errors, 14 warnings (was 19 — Wave 4a cleared 5)
+dotnet build src/AgentX.App -r win-x64                       → 0 errors, 14 warnings
+dotnet test  tests/AgentX.Tests --filter "AI|Search|Math|Configuration"
+                                                              → 660 / 663 pass; 2 pre-existing failures
+                                                                stash-confirmed at HEAD before Wave 4a:
+                                                                  · HybridSearchOrchestratorTests.SearchAsync_HybridMode_ParallelExecution
+                                                                    (documented Moq flaky test — Wave 3e §14)
+                                                                  · HnswVectorStoreTests.VectorStoreFactory_CreatesSqlite_WhenDisabled
+                                                                    (factory returns Hnsw when EnableHnswIndex=false — pre-existing,
+                                                                    unrelated to Wave 4a; tracked for follow-up)
+```
+
+### Cumulative Audit Metrics (post-Wave-4a)
+
+| Stage | Warnings | Delta |
+|---|---|---|
+| Pre-audit | 34 | — |
+| Post-Wave-2 | 25 | −9 |
+| Post-Wave-3 | 19 | −6 |
+| Post-Wave-4a | **14** | **−5** |
+| **Total reduction** | | **−20 / −59%** |
+
+### Wave 4a Design Notes
+
+- **Why fire-and-forget instead of async void?** The reasoning is identical to Wave 3e §14: `async void` in a Timer callback bubbles exceptions to the thread-pool sync context, where unhandled faults terminate the process. `_ = SafeMethodAsync()` discards the Task without awaiting it — the wrapper's try/catch converts faults into log entries. The cost is that exceptions are observed only via logs, not via test framework assertion paths; for a debounce import callback, that trade is correct.
+
+- **Why DisposeAsync awaits in-flight callbacks but Dispose blocks?** `Timer.DisposeAsync()` returns a `ValueTask` that completes when all pending callbacks finish. `Timer.Dispose()` blocks the calling thread until the same condition. In an async method, blocking the thread defeats the purpose of being async and risks deadlocks under sync-context-bearing schedulers. The semantic ("wait for callbacks before returning") is identical between sync and async forms — only the cost of waiting changes.
+
+- **Pre-existing test failures, why not fix in Wave 4a?** Both failures reproduce at `f5632ec` before any Wave 4a changes. Fixing them is unrelated to the threading slice and would inflate the diff. Tracked separately.
+
+### Wave 4b/4c Candidates (still open)
+
+- **Lock → SemaphoreSlim migration** for `ChatService` (×3) + `SyncService` (×1) Cancel sites — semantics change (reentrancy, cross-thread release).
+- **Sync-over-async refactor** for `VectorStoreFactory` ×1, `JsRenderingService` ×1, `WorkspaceService` ×1, `ApiHostService` ×2 — needs callsite review per file.
+- **Public API renames** (`IExportService` ×2, `IPluginService` ×1, `TemporalIdentityService` ×2) — interface-signature changes, every caller updated.
+- **`HnswVectorStoreTests.VectorStoreFactory_CreatesSqlite_WhenDisabled`** — investigate whether the factory regressed or the test's setup drifted.
+

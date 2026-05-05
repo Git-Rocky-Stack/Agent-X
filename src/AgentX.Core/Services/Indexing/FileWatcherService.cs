@@ -345,9 +345,12 @@ public sealed class FileWatcherService : IFileWatcherService
 
         var timer = _debounceTimers.AddOrUpdate(
             normalizedPath,
-            // Factory: create a new timer
-            _ => new Timer(
-                state => OnDebounceElapsed((string)state!, context),
+            // Factory: create a new timer.
+            // Wave 4a: fire-and-forget through SafeOnDebounceElapsedAsync — async-void in a
+            // Timer callback would crash the process on unhandled exceptions; the safe wrapper
+            // catches faults from BOTH the body and the dictionary/path-handling prelude.
+            key => new Timer(
+                (object? s) => { _ = SafeOnDebounceElapsedAsync((string)s!, context); },
                 filePath,
                 DebounceDelayMs,
                 Timeout.Infinite),
@@ -360,16 +363,33 @@ public sealed class FileWatcherService : IFileWatcherService
     }
 
     /// <summary>
+    /// Wraps <see cref="OnDebounceElapsedAsync"/> so the Timer callback can fire-and-forget
+    /// without leaking exceptions to the thread-pool synchronization context.
+    /// </summary>
+    private async Task SafeOnDebounceElapsedAsync(string filePath, WatchFolderContext context)
+    {
+        try
+        {
+            await OnDebounceElapsedAsync(filePath, context).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Debounce elapsed callback faulted for {FilePath}", filePath);
+        }
+    }
+
+    /// <summary>
     /// Called after the debounce period elapses for a file. Performs the actual import.
     /// </summary>
-    private async void OnDebounceElapsed(string filePath, WatchFolderContext context)
+    private async Task OnDebounceElapsedAsync(string filePath, WatchFolderContext context)
     {
         var normalizedPath = Path.GetFullPath(filePath).ToLowerInvariant();
 
-        // Remove the debounce timer
+        // Remove the debounce timer. Wave 4a: DisposeAsync awaits any in-flight
+        // callback before returning — safer than blocking the thread-pool thread.
         if (_debounceTimers.TryRemove(normalizedPath, out var timer))
         {
-            timer.Dispose();
+            await timer.DisposeAsync().ConfigureAwait(false);
         }
 
         if (_disposed) return;
@@ -383,10 +403,10 @@ public sealed class FileWatcherService : IFileWatcherService
         try
         {
             // Import the file through DocumentService
-            var document = await _documentService.ImportFileAsync(filePath, context.TargetCollectionId);
+            var document = await _documentService.ImportFileAsync(filePath, context.TargetCollectionId).ConfigureAwait(false);
 
             // Update the watch folder's stats
-            await UpdateWatchFolderStatsAsync(context.WatchFolderId);
+            await UpdateWatchFolderStatsAsync(context.WatchFolderId).ConfigureAwait(false);
 
             _logger.Information(
                 "Auto-imported file from watch folder: {FileName} (document ID {DocumentId})",
