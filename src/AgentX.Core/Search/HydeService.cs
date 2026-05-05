@@ -1,5 +1,6 @@
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Configuration;
 using AgentX.Core.Constants;
 using Serilog;
 
@@ -15,20 +16,30 @@ public sealed class HydeService : IHydeService
 {
     private readonly IAiService _aiService;
     private readonly IEmbeddingService _embeddingService;
+    private readonly IRagPromptCatalog? _promptCatalog;
     private readonly ILogger _logger;
 
-    private const string SystemPrompt =
-        """
-        Write a detailed, factual passage that directly answers the following question.
-        Write as if you are quoting from an authoritative document. Do not include
-        phrases like "According to..." or "The answer is...". Just write the content
-        that would appear in a relevant document. Keep it to 1-2 paragraphs.
-        """;
+    /// <summary>
+    /// P2-4: returns the active HyDE system prompt — catalog when registered,
+    /// compile-time default otherwise.
+    /// </summary>
+    private string SystemPrompt
+        => _promptCatalog?.HydeSystem ?? RagPromptDefaults.HydeSystem;
 
     public HydeService(IAiService aiService, IEmbeddingService embeddingService, ILogger logger)
+        : this(aiService, embeddingService, null, logger)
+    {
+    }
+
+    public HydeService(
+        IAiService aiService,
+        IEmbeddingService embeddingService,
+        IRagPromptCatalog? promptCatalog,
+        ILogger logger)
     {
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
         _embeddingService = embeddingService ?? throw new ArgumentNullException(nameof(embeddingService));
+        _promptCatalog = promptCatalog;
         _logger = logger?.ForContext<HydeService>() ?? throw new ArgumentNullException(nameof(logger));
     }
 

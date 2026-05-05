@@ -1,6 +1,7 @@
 using System.Text.Json;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Configuration;
 using AgentX.Core.Constants;
 using AgentX.Core.Observability;
 using Serilog;
@@ -15,18 +16,15 @@ namespace AgentX.Core.Search;
 public sealed class LlmReranker : ILlmReranker
 {
     private readonly IAiService _aiService;
+    private readonly IRagPromptCatalog? _promptCatalog;
     private readonly ILogger _logger;
 
-    private const string SystemPrompt =
-        """
-        You are a relevance scoring assistant. For each numbered passage below, rate how
-        relevant it is to answering the given question on a scale of 0-10 where:
-        0 = completely irrelevant, 10 = directly answers the question.
-
-        Return ONLY a JSON object with a single "scores" property, an array of
-        {"id":N,"score":N} entries — one per passage in the input order.
-        Example: {"scores":[{"id":1,"score":8},{"id":2,"score":3}]}
-        """;
+    /// <summary>
+    /// P2-4: returns the active reranker system prompt — catalog when registered,
+    /// compile-time default otherwise.
+    /// </summary>
+    private string SystemPrompt
+        => _promptCatalog?.RerankerSystem ?? RagPromptDefaults.RerankerSystem;
 
     // FU-5: provider-side schema. Wrapped in an object because OpenAI's
     // strict json_schema mode requires the top-level type to be an object.
@@ -54,8 +52,14 @@ public sealed class LlmReranker : ILlmReranker
         """;
 
     public LlmReranker(IAiService aiService, ILogger logger)
+        : this(aiService, null, logger)
+    {
+    }
+
+    public LlmReranker(IAiService aiService, IRagPromptCatalog? promptCatalog, ILogger logger)
     {
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
+        _promptCatalog = promptCatalog;
         _logger = logger?.ForContext<LlmReranker>() ?? throw new ArgumentNullException(nameof(logger));
     }
 

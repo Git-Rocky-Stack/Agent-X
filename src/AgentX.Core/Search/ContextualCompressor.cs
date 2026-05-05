@@ -18,7 +18,15 @@ public sealed class ContextualCompressor : IContextualCompressor
 {
     private readonly IAiService _aiService;
     private readonly IRagConfiguration? _ragConfiguration;
+    private readonly IRagPromptCatalog? _promptCatalog;
     private readonly ILogger _logger;
+
+    /// <summary>
+    /// P2-4: returns the active compressor system prompt — catalog when
+    /// registered, compile-time default otherwise.
+    /// </summary>
+    private string SystemPrompt
+        => _promptCatalog?.CompressorSystem ?? RagPromptDefaults.CompressorSystem;
 
     // FU-5: provider-side schema. <c>extracted</c> is allowed to be null OR
     // a non-empty string (representing the verbatim relevant sentences); we
@@ -36,39 +44,33 @@ public sealed class ContextualCompressor : IContextualCompressor
         }
         """;
 
-    // P2-7: structured-output prompt. The previous version returned a free-text
-    // extraction or the literal string "NOT_RELEVANT" — a brittle contract that
-    // false-positives any chunk that happens to contain those characters in a
-    // sentence the model thought was relevant. JSON mode + a typed schema makes
+    // P2-7: structured-output prompt content lives in RagPromptDefaults.CompressorSystem
+    // (compile-time fallback) and RagPrompts.json (runtime override via catalog).
+    // The previous version returned a free-text extraction or the literal string
+    // "NOT_RELEVANT" — a brittle contract that false-positives any chunk that
+    // happens to contain those characters. JSON mode + a typed schema makes
     // the contract explicit and lets the provider's native JSON enforcement do
     // the heavy lifting where available.
-    private const string SystemPrompt =
-        """
-        You extract only the sentences from a passage that are directly relevant
-        to answering a user's question.
-
-        Respond with a single JSON object matching this schema:
-          {"relevant": true,  "extracted": "<the verbatim relevant sentences>"}
-          {"relevant": false}
-
-        Rules:
-        - Set "relevant" to true when at least one sentence in the passage helps
-          answer the question; otherwise set it to false and omit "extracted".
-        - When "relevant" is true, "extracted" MUST contain the relevant
-          sentences copied verbatim from the passage. Do not paraphrase,
-          summarize, translate, or add commentary.
-        - Output ONLY the JSON object — no prose, no markdown, no code fence.
-        """;
 
     public ContextualCompressor(IAiService aiService, ILogger logger)
-        : this(aiService, null, logger)
+        : this(aiService, null, null, logger)
     {
     }
 
     public ContextualCompressor(IAiService aiService, IRagConfiguration? ragConfiguration, ILogger logger)
+        : this(aiService, ragConfiguration, null, logger)
+    {
+    }
+
+    public ContextualCompressor(
+        IAiService aiService,
+        IRagConfiguration? ragConfiguration,
+        IRagPromptCatalog? promptCatalog,
+        ILogger logger)
     {
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
         _ragConfiguration = ragConfiguration;
+        _promptCatalog = promptCatalog;
         _logger = logger?.ForContext<ContextualCompressor>() ?? throw new ArgumentNullException(nameof(logger));
     }
 

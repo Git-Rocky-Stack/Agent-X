@@ -592,3 +592,75 @@ dotnet test  tests/AgentX.Tests --filter "AI|Search|Math|Configuration"
 - **FU-5 part 2** Anthropic tool-use forcing function for structured outputs (the heavier alternative to OpenAI's `json_schema`).
 - **HyDE-doc test for `RagPipelineTests`** — current coverage verifies HyDE invocation but not that the hypothetical doc is actually added as a search query (verified indirectly via `Times.Exactly(2)` search count, but a stronger assertion on `SearchQuery.QueryText` content would be tighter).
 
+---
+
+## 13. P2-4 Implementation Log (Wave 3a — 2026-05-04)
+
+P2-4 was deferred at the end of Wave 2 with rationale, then explicitly requested. This section logs the full externalization including a fix for a latent bug discovered along the way.
+
+### What shipped
+
+- **`IRagPromptCatalog`** + **`RagPromptCatalog`** — interface and `IOptionsMonitor`-backed implementation; six string getters, one per RAG prompt site.
+- **`RagPromptOptions`** — bindable POCO with `string[]?` properties so prompts in JSON read as one-line-per-array-entry instead of escaped multi-line strings.
+- **`RagPromptDefaults`** — compile-time fallback constants. Byte-identical to the corresponding entries in `RagPrompts.json`. The catalog's `Resolve(...)` helper falls back to these when the option is null, empty, or all-blank — so an editor saving `["", "", ""]` doesn't silently break a downstream LLM call.
+- **`RagPrompts.json`** — runtime source of truth at the application root. Loaded with `optional: true, reloadOnChange: true` so operators can edit prompts without restarting; the catalog reads `IOptionsMonitor.CurrentValue` on every property access, propagating changes to the next prompt-site call.
+- **Six prompt sites updated** to consume from the catalog with optional fallback for the test/headless path: `RagPipeline` (RagSystemPrefix), `RagEvaluator` (EvalSystem), `LlmReranker` (RerankerSystem), `ContextualCompressor` (CompressorSystem), `MultiQueryGenerator` (MultiQuerySystem), `HydeService` (HydeSystem). Each site keeps its existing constructor overloads for backwards compat; the new constructor accepting `IRagPromptCatalog?` is the longest one .NET DI auto-resolves.
+- **`RagPromptCatalogTests`** — 9 new tests covering fallback semantics (empty / null / empty-array / all-blank-array), override semantics (non-empty / single-line / per-prompt independence), hot-reload semantics (IOptionsMonitor swap reflects on next read), and constructor null-check.
+
+### Latent bug fixed along the way
+
+Wave 1 flattened `appsettings.json` to actually bind to `RagConfigurationOptions`, but the App's `.csproj` had no `Content` entry for `appsettings.json`. The result: the file lived in the source tree but was **never copied to the build output**, so `Host.CreateDefaultBuilder()` couldn't find it at runtime — every `Rag.*` value was silently falling through to compile-time defaults regardless.
+
+Fixed in this session:
+- **`AgentX.App.csproj`** — added `<Content Include="appsettings.json">` and `<Content Include="RagPrompts.json">` with `CopyToOutputDirectory=PreserveNewest`. Both files now ship next to the executable.
+- **`App.xaml.cs`** — added `ConfigureAppConfiguration` to the host builder so `appsettings.json` and `RagPrompts.json` are loaded from `AppContext.BaseDirectory` with `reloadOnChange: true`. `CreateDefaultBuilder()` already does this for `appsettings.json` from CWD, but a packaged WinUI app's CWD is not the install dir — explicit `SetBasePath(AppContext.BaseDirectory)` makes it deterministic.
+
+This means the FU-3 binding fix from Wave 1 is now actually in effect. Class defaults no longer silently govern.
+
+### Files Touched (P2-4)
+
+```
+src/AgentX.Core/Configuration/IRagPromptCatalog.cs         new (~50)
+src/AgentX.Core/Configuration/RagPromptOptions.cs          new (~35)
+src/AgentX.Core/Configuration/RagPromptDefaults.cs         new (~145)
+src/AgentX.Core/Configuration/RagPromptCatalog.cs          new (~60)
+src/AgentX.Core/Search/RagPipeline.cs                      −98 / +18  (delete inline prefix; use catalog)
+src/AgentX.Core/Search/RagEvaluator.cs                     −13 / +25  (catalog overload)
+src/AgentX.Core/Search/LlmReranker.cs                      −10 / +22  (catalog overload)
+src/AgentX.Core/Search/ContextualCompressor.cs             −18 / +24  (catalog overload)
+src/AgentX.Core/Search/MultiQueryGenerator.cs              −7 / +20  (catalog overload)
+src/AgentX.Core/Search/HydeService.cs                      −7 / +25  (catalog overload)
+src/AgentX.App/RagPrompts.json                             new (~120)
+src/AgentX.App/AgentX.App.csproj                           +12 (Content entries)
+src/AgentX.App/App.xaml.cs                                 +18 (ConfigureAppConfiguration + DI)
+tests/AgentX.Tests/Configuration/RagPromptCatalogTests.cs  new (~165)
+audit docs/2026-05-03-llm-rag-audit.md                     this section
+```
+
+### Verification
+
+```
+dotnet build src/AgentX.Core                                 → 0 errors, 25 warnings (unchanged)
+dotnet build src/AgentX.App -r win-x64                       → 0 errors, 0 warnings
+dotnet test  tests/AgentX.Tests --filter "AI|Search|Math|Configuration"
+                                                              → 244 / 245 pass (9 new RagPromptCatalogTests, all
+                                                                pass; same single pre-existing flaky Moq test)
+```
+
+### Design Notes
+
+- **Why `string[]?` in options instead of `string?`?** JSON does not support multi-line string literals. The ~900-token `RagSystemPrefix` would be unreadable as a single escaped-newline string. One-line-per-array-entry is JSON-native and editor-friendly. The catalog joins with `\n` at resolution time.
+- **Why fall back when array is all-blank?** A common editor mistake is to delete a prompt's content and save `["", "", ""]` instead of removing the key. Without this guard, the LLM would receive a blank system prompt — silently degrading every downstream answer. The fallback keeps the system functional even in this edge case.
+- **Why keep `RagPromptDefaults` as compile-time constants when JSON exists?** Two reasons: (1) the test path doesn't load the JSON, so test doubles need a default; (2) the JSON file is `optional: true` — if it goes missing in production, the system continues to work on defaults rather than crashing. Defaults are the safety net.
+- **Why expose properties (not methods) on the catalog?** Reading via property is the most natural call site syntax: `_promptCatalog.RagSystemPrefix`. Each property internally calls `_monitor.CurrentValue` so hot-reload still works. Performance: one indirection + one dictionary lookup per LLM call — orders of magnitude smaller than the LLM round-trip itself.
+- **Why not register `IRagPromptCatalog` as a fallback in DI for headless apps?** Could be done with `services.TryAddSingleton<IRagPromptCatalog>(sp => new ...)` in `AgentX.Core`. Skipped for now to keep `AgentX.Core` Hosting-framework-free; the catalog is registered only in the WinUI host. Tests pass null and use `RagPromptDefaults` directly.
+- **Why fix the appsettings.json copy-to-output bug here?** Wave 1's FU-3 flattened the JSON but didn't ensure it was loaded — a half-fix. P2-4 was about to introduce `RagPrompts.json` with the same risk; fixing both files together prevents the same bug from shipping twice.
+
+### Wave 3 Candidates (after P2-4)
+
+Same as the previous list, minus P2-4 itself:
+- **FU-2 remainder** — 25 VSTHRD warnings outside the RAG hot path, mostly `Cancel()` → `CancelAsync()` requiring per-callsite review.
+- **FU-5 part 2** — Anthropic tool-use forcing function for structured outputs.
+- **HyDE-doc query assertion** — tighten the integration test to assert on `SearchQuery.QueryText` content for the HyDE-firing case.
+- **`RagPromptCatalog` end-to-end test** — verify that an actual `RagPrompts.json` on disk binds through `IOptionsMonitor` and reaches the catalog. Current `RagPromptCatalogTests` exercises the catalog via a stub monitor; an integration test would cover the JSON binding pipeline too.
+

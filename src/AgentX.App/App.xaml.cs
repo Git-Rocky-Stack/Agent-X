@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -83,6 +84,18 @@ public partial class App : Application
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         _host = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
+            .ConfigureAppConfiguration((ctx, config) =>
+            {
+                // P2-4: load RagPrompts.json from the application base directory.
+                // Optional + reloadOnChange so operators can edit prompts at
+                // runtime without restarting the process; IRagPromptCatalog
+                // reads via IOptionsMonitor and picks up the change on next
+                // prompt site invocation.
+                var baseDir = AppContext.BaseDirectory;
+                config.SetBasePath(baseDir);
+                config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                config.AddJsonFile("RagPrompts.json", optional: true, reloadOnChange: true);
+            })
             .UseSerilog()
             .ConfigureServices(ConfigureServices)
             .Build();
@@ -338,6 +351,13 @@ public partial class App : Application
         // ── RAG Configuration (Phase 1) ─────────────────────────
         services.Configure<RagConfigurationOptions>(context.Configuration.GetSection("Rag"));
         services.AddSingleton<IRagConfiguration, RagConfiguration>();
+
+        // P2-4: bind RagPrompts.json (loaded above in ConfigureAppConfiguration)
+        // and register the catalog. IOptionsMonitor gives us hot-reload — every
+        // prompt-site read resolves the current value, so editing the JSON at
+        // runtime takes effect on the next call.
+        services.Configure<RagPromptOptions>(context.Configuration.GetSection("RagPrompts"));
+        services.AddSingleton<IRagPromptCatalog, RagPromptCatalog>();
 
         // ── App Services (UI layer) ──────────────────────────────
         services.AddSingleton<IShortcutRegistry, ShortcutRegistry>();

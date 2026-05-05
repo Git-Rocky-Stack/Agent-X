@@ -1,5 +1,6 @@
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Configuration;
 using AgentX.Core.Constants;
 using Serilog;
 
@@ -13,19 +14,25 @@ namespace AgentX.Core.Search;
 public sealed class MultiQueryGenerator : IMultiQueryGenerator
 {
     private readonly IAiService _aiService;
+    private readonly IRagPromptCatalog? _promptCatalog;
     private readonly ILogger _logger;
 
-    private const string SystemPrompt =
-        """
-        You are a search query expansion assistant. Given a user question, generate alternative
-        phrasings that would help retrieve relevant documents. Each variation should capture a
-        different aspect or use different keywords while preserving the original intent.
-        Return ONLY the alternative queries, one per line, with no numbering or extra text.
-        """;
+    /// <summary>
+    /// P2-4: returns the active multi-query system prompt — catalog when
+    /// registered, compile-time default otherwise.
+    /// </summary>
+    private string SystemPrompt
+        => _promptCatalog?.MultiQuerySystem ?? RagPromptDefaults.MultiQuerySystem;
 
     public MultiQueryGenerator(IAiService aiService, ILogger logger)
+        : this(aiService, null, logger)
+    {
+    }
+
+    public MultiQueryGenerator(IAiService aiService, IRagPromptCatalog? promptCatalog, ILogger logger)
     {
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
+        _promptCatalog = promptCatalog;
         _logger = logger?.ForContext<MultiQueryGenerator>() ?? throw new ArgumentNullException(nameof(logger));
     }
 

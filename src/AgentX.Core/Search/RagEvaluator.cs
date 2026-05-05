@@ -5,6 +5,7 @@ using AgentX.Core.AI.Models;
 using AgentX.Core.Configuration;
 using AgentX.Core.Observability;
 using Serilog;
+// P2-4: RagPromptCatalog + RagPromptDefaults live in AgentX.Core.Configuration
 
 namespace AgentX.Core.Search;
 
@@ -17,6 +18,7 @@ public sealed class RagEvaluator : IRagEvaluator
 {
     private readonly IAiService _aiService;
     private readonly IRagConfiguration? _ragConfiguration;
+    private readonly IRagPromptCatalog? _promptCatalog;
     private readonly ILogger _logger;
 
     // P2-5: fallback when no IRagConfiguration is registered. Older default
@@ -24,18 +26,12 @@ public sealed class RagEvaluator : IRagEvaluator
     // returned spurious low context_relevance scores on long chunks.
     private const int FallbackEvalContextCharLimit = 800;
 
-    private const string EvalSystemPrompt =
-        """
-        You are an impartial quality evaluator for a question-answering system.
-        Given a question, retrieved context passages, and a generated answer,
-        evaluate on three dimensions:
-
-        1. context_relevance (0-10): How relevant are the retrieved passages to the question?
-        2. faithfulness (0-10): Is the answer grounded in the context? Does it avoid making claims not in the passages?
-        3. answer_relevance (0-10): How well does the answer address the original question?
-
-        Return ONLY a JSON object: {"context_relevance":N,"faithfulness":N,"answer_relevance":N}
-        """;
+    /// <summary>
+    /// P2-4: returns the active eval system prompt — catalog when registered,
+    /// compile-time default otherwise.
+    /// </summary>
+    private string EvalSystemPrompt
+        => _promptCatalog?.EvalSystem ?? RagPromptDefaults.EvalSystem;
 
     // FU-5: provider-side schema enforcement (OpenAI strict json_schema).
     // OpenAI rejects responses that miss required fields, exceed declared
@@ -56,14 +52,24 @@ public sealed class RagEvaluator : IRagEvaluator
         """;
 
     public RagEvaluator(IAiService aiService, ILogger logger)
-        : this(aiService, null, logger)
+        : this(aiService, null, null, logger)
     {
     }
 
     public RagEvaluator(IAiService aiService, IRagConfiguration? ragConfiguration, ILogger logger)
+        : this(aiService, ragConfiguration, null, logger)
+    {
+    }
+
+    public RagEvaluator(
+        IAiService aiService,
+        IRagConfiguration? ragConfiguration,
+        IRagPromptCatalog? promptCatalog,
+        ILogger logger)
     {
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
         _ragConfiguration = ragConfiguration;
+        _promptCatalog = promptCatalog;
         _logger = logger?.ForContext<RagEvaluator>() ?? throw new ArgumentNullException(nameof(logger));
     }
 

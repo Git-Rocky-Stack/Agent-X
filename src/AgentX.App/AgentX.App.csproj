@@ -47,6 +47,18 @@
     <Content Include="Assets\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <!--
+      P2-4 + FU-3: ship runtime configuration files alongside the executable.
+      Without these, Host.CreateDefaultBuilder() can't find appsettings.json or
+      RagPrompts.json at runtime and silently falls through to compile-time
+      defaults — exactly the latent issue FU-3 originally documented.
+    -->
+    <Content Include="appsettings.json" Condition="Exists('appsettings.json')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="RagPrompts.json" Condition="Exists('RagPrompts.json')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <Target Name="ExcludePlaywrightRuntimeFilesFromPriIndex" BeforeTargets="_GenerateProjectPriConfigurationFiles">
