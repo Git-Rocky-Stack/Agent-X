@@ -2,6 +2,7 @@ using System.Text.Json;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Constants;
+using AgentX.Core.Observability;
 using Serilog;
 
 namespace AgentX.Core.Search;
@@ -143,17 +144,18 @@ public sealed class LlmReranker : ILlmReranker
                 }
             }
 
-            // No JSON array found — surface the raw response so the operator
-            // can see what the model produced (P1-5).
+            // No JSON array found — emit a redacted summary (P2-10) so operators
+            // can correlate failures by hash without dumping passages the model
+            // may have echoed back in its response.
             _logger.Warning(
-                "LLM reranker response contained no JSON array; falling back to no rerank scores. Raw response: {Response}",
-                Truncate(response, 500));
+                "LLM reranker response contained no JSON array; falling back to no rerank scores. Response summary: {Summary}",
+                LogRedaction.ForLog(response));
         }
         catch (Exception ex)
         {
             _logger.Warning(ex,
-                "Failed to parse LLM reranker JSON; falling back to no rerank scores. Raw response: {Response}",
-                Truncate(response, 500));
+                "Failed to parse LLM reranker JSON; falling back to no rerank scores. Response summary: {Summary}",
+                LogRedaction.ForLog(response));
         }
 
         return scores;

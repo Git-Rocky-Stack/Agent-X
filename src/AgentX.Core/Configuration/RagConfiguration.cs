@@ -24,6 +24,9 @@ public sealed class RagConfigurationOptions
     /// <summary>Multiplier for retrieving extra results before filtering.</summary>
     public int RetrievalMultiplier { get; set; } = 3;
 
+    /// <summary>Hard ceiling on expanded retrieval candidate pool.</summary>
+    public int RetrievalCap { get; set; } = 500;
+
     // ═══════════════════════════════════════════════════════════════════
     //  Chunking Configuration
     // ═══════════════════════════════════════════════════════════════════
@@ -121,6 +124,16 @@ public sealed class RagConfigurationOptions
     public int CompressionConcurrency { get; set; } = 4;
 
     // ═══════════════════════════════════════════════════════════════════
+    //  Evaluation
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>Probability (0..1) that a RAG turn fires the LLM-judge eval.</summary>
+    public double EvalSampleRate { get; set; } = 1.0;
+
+    /// <summary>Per-chunk character budget the eval judge can see.</summary>
+    public int EvalContextCharLimit { get; set; } = 800;
+
+    // ═══════════════════════════════════════════════════════════════════
     //  HyDE Configuration
     // ═══════════════════════════════════════════════════════════════════
 
@@ -183,6 +196,7 @@ public sealed class RagConfiguration : IRagConfiguration
     public float DefaultMinScore => _options.DefaultMinScore;
     public int MaxTopK => _options.MaxTopK;
     public int RetrievalMultiplier => _options.RetrievalMultiplier;
+    public int RetrievalCap => _options.RetrievalCap;
 
     public int DefaultChunkSize => _options.DefaultChunkSize;
     public int DefaultChunkOverlap => _options.DefaultChunkOverlap;
@@ -214,6 +228,9 @@ public sealed class RagConfiguration : IRagConfiguration
     public int HydeMaxTokens => _options.HydeMaxTokens;
     public int CompressionConcurrency => _options.CompressionConcurrency;
 
+    public double EvalSampleRate => _options.EvalSampleRate;
+    public int EvalContextCharLimit => _options.EvalContextCharLimit;
+
     public bool EnableHyde => _options.EnableHyde;
     public int HydeMinQueryLength => _options.HydeMinQueryLength;
 
@@ -242,6 +259,10 @@ public sealed class RagConfiguration : IRagConfiguration
             errors.Add("DefaultMinScore must be between 0 and 1.");
         if (RetrievalMultiplier < 1)
             errors.Add("RetrievalMultiplier must be at least 1.");
+        if (RetrievalCap < 1)
+            errors.Add("RetrievalCap must be at least 1.");
+        if (RetrievalCap < MaxTopK)
+            errors.Add($"RetrievalCap ({RetrievalCap}) must be >= MaxTopK ({MaxTopK}).");
 
         // Validate chunking parameters
         if (MinChunkSize <= 0)
@@ -301,6 +322,12 @@ public sealed class RagConfiguration : IRagConfiguration
             errors.Add("HydeMaxTokens must be positive.");
         if (CompressionConcurrency < 1)
             errors.Add("CompressionConcurrency must be at least 1.");
+
+        // Validate evaluation parameters
+        if (EvalSampleRate < 0.0 || EvalSampleRate > 1.0)
+            errors.Add("EvalSampleRate must be between 0.0 and 1.0.");
+        if (EvalContextCharLimit <= 0)
+            errors.Add("EvalContextCharLimit must be positive.");
 
         // Validate HyDE parameters
         if (HydeMinQueryLength < 0)

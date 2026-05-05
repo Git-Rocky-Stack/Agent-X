@@ -190,33 +190,75 @@ public sealed class AnthropicProvider : IAiProvider
             ["stream"] = true
         };
 
-        // Anthropic uses system prompt reinforcement for JSON mode
-        if (options?.ResponseFormat == ResponseFormat.JsonObject && !string.IsNullOrEmpty(systemPrompt))
-            systemPrompt += "\n\nIMPORTANT: You MUST respond with valid JSON only. No markdown, no explanation, no text outside the JSON.";
-        else if (options?.ResponseFormat == ResponseFormat.JsonObject)
-            systemPrompt = "You MUST respond with valid JSON only. No markdown, no explanation, no text outside the JSON.";
-
-        if (!string.IsNullOrEmpty(systemPrompt))
+        // FU-1: multi-block system prompt path. When the caller supplies
+        // SystemPromptBlocks, each block is emitted as its own typed text
+        // segment with optional per-block cache_control. This is the path
+        // used by RagPipeline so its stable instruction prefix can be cached
+        // separately from the per-question retrieved context.
+        var blocks = options?.SystemPromptBlocks;
+        if (blocks is { Count: > 0 })
         {
-            // P1-1: Anthropic prompt caching — when ChatOptions.CacheSystemPrompt is set,
-            // wrap the prompt in a typed text block with cache_control. Cache hits cost
-            // ~10% of normal input tokens with a 5-minute TTL. Falls back to a plain
-            // string when caching is not requested (preserves existing behavior).
-            if (options?.CacheSystemPrompt == true)
+            var systemArray = new List<object>(blocks.Count + 1);
+            foreach (var block in blocks)
             {
-                body["system"] = new object[]
+                if (string.IsNullOrEmpty(block.Text)) continue;
+                if (block.Cacheable)
                 {
-                    new
+                    systemArray.Add(new
                     {
                         type = "text",
-                        text = systemPrompt,
+                        text = block.Text,
                         cache_control = new { type = "ephemeral" }
-                    }
-                };
+                    });
+                }
+                else
+                {
+                    systemArray.Add(new { type = "text", text = block.Text });
+                }
             }
-            else
+
+            // JSON-mode reinforcement is appended as a NON-CACHED block so the
+            // cacheable prefix preceding it remains cache-eligible.
+            if (options?.ResponseFormat == ResponseFormat.JsonObject)
             {
-                body["system"] = systemPrompt;
+                systemArray.Add(new
+                {
+                    type = "text",
+                    text = "IMPORTANT: You MUST respond with valid JSON only. No markdown, no explanation, no text outside the JSON."
+                });
+            }
+
+            if (systemArray.Count > 0)
+            {
+                body["system"] = systemArray;
+            }
+        }
+        else
+        {
+            // Single-block path (unchanged from P1-1).
+            if (options?.ResponseFormat == ResponseFormat.JsonObject && !string.IsNullOrEmpty(systemPrompt))
+                systemPrompt += "\n\nIMPORTANT: You MUST respond with valid JSON only. No markdown, no explanation, no text outside the JSON.";
+            else if (options?.ResponseFormat == ResponseFormat.JsonObject)
+                systemPrompt = "You MUST respond with valid JSON only. No markdown, no explanation, no text outside the JSON.";
+
+            if (!string.IsNullOrEmpty(systemPrompt))
+            {
+                if (options?.CacheSystemPrompt == true)
+                {
+                    body["system"] = new object[]
+                    {
+                        new
+                        {
+                            type = "text",
+                            text = systemPrompt,
+                            cache_control = new { type = "ephemeral" }
+                        }
+                    };
+                }
+                else
+                {
+                    body["system"] = systemPrompt;
+                }
             }
         }
 

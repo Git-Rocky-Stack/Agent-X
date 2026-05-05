@@ -1,3 +1,4 @@
+using AgentX.Core.Configuration;
 using AgentX.Core.Observability;
 using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Search;
@@ -37,6 +38,7 @@ public sealed class HybridSearchOrchestrator : IHybridSearchOrchestrator
     private readonly IKeywordSearchService _keywordSearch;
     private readonly ISearchCacheService? _searchCacheService;
     private readonly IRagMetrics? _metrics;
+    private readonly IRagConfiguration? _ragConfiguration;
     private readonly ILogger _logger;
 
     /// <summary>
@@ -46,18 +48,24 @@ public sealed class HybridSearchOrchestrator : IHybridSearchOrchestrator
     /// </summary>
     private const int RrfK = 60;
 
+    // P2-2 fallbacks for hosts that don't register IRagConfiguration.
+    private const int FallbackRetrievalMultiplier = 3;
+    private const int FallbackRetrievalCap = 500;
+
     public HybridSearchOrchestrator(
         ISemanticSearchService semanticSearch,
         IKeywordSearchService keywordSearch,
         ILogger logger,
         ISearchCacheService? searchCacheService = null,
-        IRagMetrics? metrics = null)
+        IRagMetrics? metrics = null,
+        IRagConfiguration? ragConfiguration = null)
     {
         _semanticSearch = semanticSearch ?? throw new ArgumentNullException(nameof(semanticSearch));
         _keywordSearch = keywordSearch ?? throw new ArgumentNullException(nameof(keywordSearch));
         _logger = logger?.ForContext<HybridSearchOrchestrator>() ?? throw new ArgumentNullException(nameof(logger));
         _searchCacheService = searchCacheService;
         _metrics = metrics;
+        _ragConfiguration = ragConfiguration;
     }
 
     /// <inheritdoc />
@@ -135,10 +143,13 @@ public sealed class HybridSearchOrchestrator : IHybridSearchOrchestrator
 
         // Run both searches in parallel for maximum throughput.
         // Request extra results from each backend so RRF has a larger candidate pool.
+        int multiplier = Math.Max(1, _ragConfiguration?.RetrievalMultiplier ?? FallbackRetrievalMultiplier);
+        int cap = Math.Max(1, _ragConfiguration?.RetrievalCap ?? FallbackRetrievalCap);
+
         var expandedQuery = new SearchQuery
         {
             QueryText = query.QueryText,
-            TopK = Math.Min(query.TopK * 3, 500),
+            TopK = Math.Min(query.TopK * multiplier, cap),
             MinScore = 0.0f, // RRF handles scoring; don't pre-filter aggressively
             CollectionId = query.CollectionId,
             FileTypeFilter = query.FileTypeFilter,

@@ -24,8 +24,10 @@ public static class AppConstants
     public const int Pbkdf2Iterations = 100_000;
 
     // ── Search ──────────────────────────────────────────────────────
-    public const int DefaultSearchTopK = 10;
-    public const float DefaultSearchMinScore = 0.3f;
+    // P2-1: DefaultSearchTopK / DefaultSearchMinScore removed — superseded by
+    // IRagConfiguration.DefaultTopK / DefaultMinScore (config-driven, single
+    // source of truth). The cache constants below remain because the search
+    // cache layer is not (yet) fronted by IRagConfiguration.
     public const int DefaultSearchCacheMaxEntries = 100;
     public static readonly TimeSpan DefaultSearchCacheTtl = TimeSpan.FromMinutes(5);
 
@@ -119,8 +121,9 @@ public static class AppConstants
     public const int DefaultSyncIntervalMinutes = 30;
 
     // ── Search Retrieval ──────────────────────────────────────────
-    public const int SearchTopKMultiplier = 3;
-    public const int SearchTopKCap = 500;
+    // P2-2: SearchTopKMultiplier / SearchTopKCap removed — superseded by
+    // IRagConfiguration.RetrievalMultiplier / RetrievalCap. Both call sites
+    // (SemanticSearchService, HybridSearchOrchestrator) now read from config.
     public const int RelevanceScoreBarMaxWidth = 150;
 
     // ── Visualization ─────────────────────────────────────────────

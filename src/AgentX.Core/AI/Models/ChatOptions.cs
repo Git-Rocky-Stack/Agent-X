@@ -1,6 +1,23 @@
 namespace AgentX.Core.AI.Models;
 
 /// <summary>
+/// A single segment of a multi-block system prompt. Used by providers that
+/// support per-block prompt caching (currently Anthropic) so that a stable
+/// instruction prefix can be cached while a per-request content block (e.g.
+/// retrieved RAG context) is re-sent fresh on each call.
+/// </summary>
+/// <param name="Text">The block's text content.</param>
+/// <param name="Cacheable">
+/// When true and the active provider supports prompt caching, this block is
+/// marked with <c>cache_control: {"type":"ephemeral"}</c>. Note that providers
+/// usually impose a minimum cacheable-block length (Anthropic: 1024 tokens
+/// for Sonnet/Opus, 2048 for Haiku) — sub-threshold blocks pass the marker
+/// through but never produce a cache hit.
+/// </param>
+public sealed record SystemPromptBlock(string Text, bool Cacheable);
+
+
+/// <summary>
 /// Specifies the expected response format from the AI model.
 /// </summary>
 public enum ResponseFormat
@@ -101,4 +118,18 @@ public class ChatOptions
     /// support caching ignore this flag.
     /// </summary>
     public bool CacheSystemPrompt { get; set; }
+
+    /// <summary>
+    /// Multi-block system prompt for providers that support per-block prompt
+    /// caching (currently Anthropic). When non-null and non-empty, this list
+    /// takes precedence over the singular <c>systemPrompt</c> parameter on the
+    /// provider call: each block becomes a separate text segment with optional
+    /// <c>cache_control</c>. Use to split a stable instruction prefix
+    /// (Cacheable=true) from per-request content like retrieved RAG context
+    /// (Cacheable=false) so the prefix is reused from cache across turns.
+    /// Providers that don't support multi-block system prompts ignore this
+    /// property — callers must still pass a concatenated <c>systemPrompt</c>
+    /// string for graceful degradation on those providers.
+    /// </summary>
+    public IReadOnlyList<SystemPromptBlock>? SystemPromptBlocks { get; set; }
 }

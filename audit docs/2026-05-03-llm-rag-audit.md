@@ -392,3 +392,98 @@ dotnet test  tests/AgentX.Tests --filter "AI|Search|Math|Configuration"
 5. **JSON Schema enforcement** — replace hand-rolled `try { JsonSerializer.Deserialize } catch { defaults }` with provider-side schema validation (OpenAI `response_format: json_schema`, Anthropic tool-use as forcing function).
 6. **`RagPipelineTests`** — no integration tests for the new HyDE / PII / metrics / hybrid-search paths. The current test suite covers individual services but not the wired pipeline.
 
+---
+
+## 11. P2 Wave 1 Implementation Log (2026-05-04)
+
+Wave 1 prioritized correctness, observability, and operator levers. Eight items shipped; six are from §5 P2-1..P2-10 and two are FU items closed early.
+
+### P2-1. Reconcile DefaultTopK constants ✅
+- `AppConstants.DefaultSearchTopK = 10` and `AppConstants.SearchTopKMultiplier = 3` and `AppConstants.SearchTopKCap = 500` were **zombie constants** — zero callers, source of the 8-vs-10 inconsistency with `RagConfiguration.DefaultTopK = 8`.
+- Deleted all three. Now `IRagConfiguration` is the single source of truth for retrieval parameters.
+- Files: `src/AgentX.Core/Constants/AppConstants.cs`.
+
+### P2-2. Promote 3x retrieval expansion to config ✅
+- Added `RetrievalCap` (default 500) to `IRagConfiguration` to pair with the existing `RetrievalMultiplier` (default 3). Hardcoded `Math.Min(query.TopK * 3, 500)` replaced with config-driven values in `SemanticSearchService` and `HybridSearchOrchestrator`.
+- Both services accept optional `IRagConfiguration` via constructor; .NET DI auto-resolves to the longer constructor when registered. Fallbacks (3, 500) preserved for test doubles.
+- Validation added: `RetrievalCap >= MaxTopK`.
+- Files: `IRagConfiguration.cs`, `RagConfiguration.cs`, `SemanticSearchService.cs`, `HybridSearchOrchestrator.cs`.
+
+### P2-3. Sample-based async dispatch for RagEvaluator ✅
+- Eval was already non-blocking via `_ = Task.Run(...)`. Added `EvalSampleRate` (double, default 1.0) so operators can dial-down eval cost on high-volume RAG turns. `Random.Shared.NextDouble() < sampleRate` gate applied before the Task.Run.
+- 0.0 disables eval without un-registering the service; 1.0 evaluates every turn (current default, preserves behavior).
+- Files: `IRagConfiguration.cs`, `RagConfiguration.cs`, `RagPipeline.cs`.
+
+### P2-5. Eval truncate length is config-driven ✅
+- Hardcoded `Truncate(c.ChunkText, 200)` in `RagEvaluator` blinded the judge to chunks > 200 chars. Replaced with `_ragConfiguration?.EvalContextCharLimit ?? 800`.
+- New `EvalContextCharLimit` property on `IRagConfiguration` (default 800). `RagEvaluator` accepts optional `IRagConfiguration` (constructor overload preserves existing test doubles).
+- Files: `IRagConfiguration.cs`, `RagConfiguration.cs`, `RagEvaluator.cs`.
+
+### P2-8. HydeMaxTokens ≥ 200 verified ✅
+- `AppConstants.HydeMaxTokens = 512` and `RagConfigurationOptions.HydeMaxTokens = 256` — both well above the 200-token floor for short hypothetical documents. No change needed.
+
+### P2-10. Suppress raw chunk text / response in Warning logs ✅
+- The audit's PII concern was real, but the actual leak vector wasn't Debug logs (those emit counts only) — it was **Warning** logs that dump `Truncate(response, 500)` of raw LLM responses. LLMs frequently echo back chunk content in their outputs, recreating the leak the upstream PII redactor just prevented.
+- New helper `LogRedaction.ForLog(text)` (`src/AgentX.Core/Observability/LogRedaction.cs`) emits `<head>… [len=N hash=ABCD]` — first 80 chars + length + 4-byte SHA-256 prefix. Operators can group failures by hash without dumping the payload.
+- Six callsites converted: `RagEvaluator` (×2), `LlmReranker` (×2), `ReflectionService` (×1), `ReasoningService` (×1).
+- Files: `Observability/LogRedaction.cs` (new), and the four service files above.
+
+### FU-1. Multi-block system prompt for RAG path ✅
+- Added `SystemPromptBlock(string Text, bool Cacheable)` record to `ChatOptions.SystemPromptBlocks` (`IReadOnlyList<SystemPromptBlock>?`). When non-null, providers that support per-block caching (Anthropic) emit each block as its own `text` segment with optional `cache_control: ephemeral`.
+- `AnthropicProvider` honors blocks: cacheable blocks get `cache_control`, others don't. JSON-mode reinforcement is appended as a non-cached trailing block so the cacheable prefix remains cache-eligible. Single-block path preserved unchanged for non-RAG callers.
+- `RagPipeline` builds two blocks: cacheable static prefix + non-cached context. Other providers ignore the blocks and use the legacy concatenated `systemPrompt` parameter — graceful degradation, zero behavioral change.
+- **Critical:** Anthropic prompt caching has a **1024-token minimum** for Sonnet/Opus and **2048-token minimum** for Haiku. The previous ~80-token static prefix was below the floor — caching would never have fired even with the multi-block split. Expanded `RagSystemPromptPrefix` from ~80 tokens to ~900+ tokens with a substantive RAG instruction set: grounding rules, citation rules, tone/formatting, edge-case handling, anti-injection guidance. The expansion is genuinely valuable prompt engineering on its own, AND is the unlock for caching.
+- Files: `ChatOptions.cs`, `AnthropicProvider.cs`, `RagPipeline.cs`.
+
+### FU-3. appsettings.json RAG binding fix ✅
+- Pre-existing latent bug: `appsettings.json` had nested groups (`Rag.Search.DefaultTopK`, `Rag.Embedding.DefaultModel`, etc.) but `RagConfigurationOptions` is **flat**. .NET DI binding silently failed — every value fell through to class defaults.
+- Flattened `appsettings.json` so all `Rag.*` keys are at one level. Visual grouping preserved via blank lines. New keys from P0/P1 (`EnableHyde`, `HydeMinQueryLength`, `DefaultSearchMode`, `EnablePiiRedaction`, `PiiRedactionMask`, `CompressionConcurrency`) and Wave 1 (`RetrievalCap`, `EvalSampleRate`, `EvalContextCharLimit`) added.
+- Files: `src/AgentX.App/appsettings.json`.
+
+### Files Touched (P2 Wave 1)
+
+```
+src/AgentX.Core/Constants/AppConstants.cs                  -10 / +12
+src/AgentX.Core/Configuration/IRagConfiguration.cs         +27
+src/AgentX.Core/Configuration/RagConfiguration.cs          +18
+src/AgentX.Core/AI/Models/ChatOptions.cs                   +29
+src/AgentX.Core/AI/Providers/AnthropicProvider.cs          +56 / -23
+src/AgentX.Core/AI/Agents/ReflectionService.cs             +4 / -3
+src/AgentX.Core/AI/Agents/ReasoningService.cs              +4 / -3
+src/AgentX.Core/Search/SemanticSearchService.cs            +25 / -3
+src/AgentX.Core/Search/HybridSearchOrchestrator.cs         +14 / -2
+src/AgentX.Core/Search/RagEvaluator.cs                     +18 / -8
+src/AgentX.Core/Search/LlmReranker.cs                      +5 / -5
+src/AgentX.Core/Search/RagPipeline.cs                      +135 / -12
+src/AgentX.Core/Observability/LogRedaction.cs              new (~50)
+src/AgentX.App/appsettings.json                            rewrite (flat)
+audit docs/2026-05-03-llm-rag-audit.md                     this section
+```
+
+### Verification
+
+```
+dotnet build src/AgentX.Core                                 → 0 errors, 34 threading warnings (unchanged from P1)
+dotnet build src/AgentX.App -r win-x64                       → 0 errors
+dotnet test  tests/AgentX.Tests --filter "AI|Search|Math|Configuration"
+                                                              → 220 / 221 pass (same single pre-existing flaky
+                                                                Moq test, unchanged)
+```
+
+### Wave 1 Design Notes
+
+- **Why delete the AppConstants instead of renaming?** The constants had zero callers — keeping them as "fallbacks" would mean two values for the same concept, recreating the inconsistency the audit flagged. Single source of truth via `IRagConfiguration`.
+- **Why `EvalSampleRate` defaults to 1.0?** Preserves current behavior — operators must explicitly opt into sampling. The lever is documented; the default is honest.
+- **Why expand the RAG prefix instead of leaving it short?** Anthropic's 1024-token minimum makes a tiny prefix uncacheable. The prefix expansion is necessary infrastructure for caching to work at all, and is independently valuable as prompt engineering.
+- **Why hash-prefix in `LogRedaction`?** SHA-256 first 4 bytes (8 hex chars) gives ~4B-collision-resistant grouping without re-hashing-on-every-log overhead. Operators can grep by hash to find all failures with the same response shape.
+
+### Wave 2 Candidates (still open)
+
+- **P2-4** Externalize RAG prompts to JSON (`RagPrompts.json` + reload).
+- **P2-7** ContextualCompressor: replace literal `NOT_RELEVANT` filter with structured response.
+- **P2-9** Embedding batch backpressure (configurable `BatchSize` from `IRagConfiguration` already exists; needs to be wired into the embedder loops).
+- **FU-2** Threading analyzer warning sweep (34 VSTHRD warnings — non-RAG hot path).
+- **FU-4** Embedding cache metrics surface (`IRagMetrics` extension).
+- **FU-5** JSON Schema enforcement on structured outputs.
+- **FU-6** `RagPipelineTests` integration coverage.
+

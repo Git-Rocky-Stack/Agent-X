@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Observability;
 using Serilog;
 
 namespace AgentX.Core.AI.Agents;
@@ -241,11 +242,12 @@ public sealed partial class ReflectionService : IReflectionService
         }
         catch (Exception ex)
         {
-            // Surface the raw response so operators can see what the model produced
-            // instead of silently defaulting to 0.7 quality with no critiques (P1-5).
+            // Emit a redacted summary (P2-10) so operators can correlate failures
+            // by hash without dumping the entire response — which may echo prompt
+            // content the upstream pipeline already redacted.
             _log.Warning(ex,
-                "Failed to parse reflection critique JSON; defaulting to qualityScore=0.7 and no critiques. Raw response: {Response}",
-                json.Truncate(500));
+                "Failed to parse reflection critique JSON; defaulting to qualityScore=0.7 and no critiques. Response summary: {Summary}",
+                LogRedaction.ForLog(json));
             return (0.7, new List<ReflectionCritique>());
         }
     }

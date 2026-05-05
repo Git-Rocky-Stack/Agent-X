@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Observability;
 using Serilog;
 
 namespace AgentX.Core.AI.Agents;
@@ -459,11 +460,11 @@ Respond with JSON in this format:
         }
         catch (Exception ex)
         {
-            // Surface what the model returned so the operator can debug instead
-            // of getting a silently-empty decomposition (P1-5).
+            // Emit a redacted summary (P2-10) so operators can group failures by
+            // hash without exposing chunk content the model may have echoed back.
             _log.Warning(ex,
-                "Failed to parse problem decomposition JSON; returning empty decomposition. Raw response: {Response}",
-                json.Length > 500 ? json.Substring(0, 500) + "..." : json);
+                "Failed to parse problem decomposition JSON; returning empty decomposition. Response summary: {Summary}",
+                LogRedaction.ForLog(json));
             return new ProblemDecomposition { OriginalProblem = query };
         }
     }

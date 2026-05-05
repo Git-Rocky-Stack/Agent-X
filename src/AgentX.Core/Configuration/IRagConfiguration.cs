@@ -25,6 +25,14 @@ public interface IRagConfiguration
     /// </summary>
     int RetrievalMultiplier { get; }
 
+    /// <summary>
+    /// Hard ceiling on the expanded retrieval candidate pool, applied as
+    /// <c>min(TopK * RetrievalMultiplier, RetrievalCap)</c>. Prevents pathological
+    /// requests (e.g. TopK=200, multiplier=3 → 600) from saturating the vector
+    /// store or hybrid backends. Default 500.
+    /// </summary>
+    int RetrievalCap { get; }
+
     // ═══════════════════════════════════════════════════════════════════
     //  Chunking Configuration
     // ═══════════════════════════════════════════════════════════════════
@@ -131,6 +139,25 @@ public interface IRagConfiguration
     /// requests which can saturate local-LLM concurrency. Default 4.
     /// </summary>
     int CompressionConcurrency { get; }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  Evaluation Configuration (P2-3, P2-5)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Probability (0.0–1.0) that any given RAG turn fires an LLM-as-judge eval.
+    /// 1.0 evaluates every turn (highest signal, highest cost); 0.2 samples 1-in-5.
+    /// 0.0 disables evaluation without un-registering the service. Default 1.0.
+    /// </summary>
+    double EvalSampleRate { get; }
+
+    /// <summary>
+    /// Per-chunk character budget passed to the eval judge. The judge sees only
+    /// <c>ChunkText[..EvalContextCharLimit]</c>; chunks longer than the limit are
+    /// truncated with an ellipsis. Too-low values starve the judge of evidence;
+    /// too-high values inflate eval cost. Default 800.
+    /// </summary>
+    int EvalContextCharLimit { get; }
 
     // ═══════════════════════════════════════════════════════════════════
     //  HyDE Configuration

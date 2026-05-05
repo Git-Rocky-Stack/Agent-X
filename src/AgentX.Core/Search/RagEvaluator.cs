@@ -2,6 +2,8 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Configuration;
+using AgentX.Core.Observability;
 using Serilog;
 
 namespace AgentX.Core.Search;
@@ -14,7 +16,13 @@ namespace AgentX.Core.Search;
 public sealed class RagEvaluator : IRagEvaluator
 {
     private readonly IAiService _aiService;
+    private readonly IRagConfiguration? _ragConfiguration;
     private readonly ILogger _logger;
+
+    // P2-5: fallback when no IRagConfiguration is registered. Older default
+    // was 200 — too aggressive; the judge couldn't see beyond char 200 and
+    // returned spurious low context_relevance scores on long chunks.
+    private const int FallbackEvalContextCharLimit = 800;
 
     private const string EvalSystemPrompt =
         """
@@ -30,8 +38,14 @@ public sealed class RagEvaluator : IRagEvaluator
         """;
 
     public RagEvaluator(IAiService aiService, ILogger logger)
+        : this(aiService, null, logger)
+    {
+    }
+
+    public RagEvaluator(IAiService aiService, IRagConfiguration? ragConfiguration, ILogger logger)
     {
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
+        _ragConfiguration = ragConfiguration;
         _logger = logger?.ForContext<RagEvaluator>() ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -58,8 +72,9 @@ public sealed class RagEvaluator : IRagEvaluator
         string response;
         try
         {
+            int charLimit = Math.Max(1, _ragConfiguration?.EvalContextCharLimit ?? FallbackEvalContextCharLimit);
             var contextText = string.Join("\n---\n",
-                contextChunks.Select((c, i) => $"[{i + 1}] {Truncate(c.ChunkText, 200)}"));
+                contextChunks.Select((c, i) => $"[{i + 1}] {Truncate(c.ChunkText, charLimit)}"));
 
             var messages = new List<ChatMessage>
             {
@@ -134,17 +149,18 @@ public sealed class RagEvaluator : IRagEvaluator
                 }
             }
 
-            // Reached here = no JSON braces found in the response. Surface the raw
-            // response so operators can see what the model actually produced.
+            // Reached here = no JSON braces found in the response. Surface a redacted
+            // summary (P2-10) so operators can group failures without exposing chunk
+            // PII the model may have echoed back in its response.
             _logger.Warning(
-                "RAG eval response contained no JSON object; using defaults. Raw response: {Response}",
-                Truncate(response, 500));
+                "RAG eval response contained no JSON object; using defaults. Response summary: {Summary}",
+                LogRedaction.ForLog(response));
         }
         catch (Exception ex)
         {
             _logger.Warning(ex,
-                "Failed to parse eval JSON; using defaults. Raw response: {Response}",
-                Truncate(response, 500));
+                "Failed to parse eval JSON; using defaults. Response summary: {Summary}",
+                LogRedaction.ForLog(response));
         }
 
         return DefaultMetrics("JsonParseFailure");

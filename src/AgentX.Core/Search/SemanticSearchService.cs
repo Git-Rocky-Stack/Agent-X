@@ -1,4 +1,5 @@
 using AgentX.Core.AI;
+using AgentX.Core.Configuration;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Data.VectorDb;
@@ -18,7 +19,13 @@ public sealed class SemanticSearchService : ISemanticSearchService
     private readonly IEmbeddingService _embeddingService;
     private readonly IVectorStore _vectorStore;
     private readonly AgentXDbContext _db;
+    private readonly IRagConfiguration? _ragConfiguration;
     private readonly ILogger _logger;
+
+    // P2-2 defaults: used only when IRagConfiguration is not registered (test
+    // doubles, minimal hosts). Production DI always supplies configuration.
+    private const int FallbackRetrievalMultiplier = 3;
+    private const int FallbackRetrievalCap = 500;
 
     /// <summary>
     /// Maximum character length for the generated excerpt text.
@@ -36,10 +43,21 @@ public sealed class SemanticSearchService : ISemanticSearchService
         IVectorStore vectorStore,
         AgentXDbContext db,
         ILogger logger)
+        : this(embeddingService, vectorStore, db, null, logger)
+    {
+    }
+
+    public SemanticSearchService(
+        IEmbeddingService embeddingService,
+        IVectorStore vectorStore,
+        AgentXDbContext db,
+        IRagConfiguration? ragConfiguration,
+        ILogger logger)
     {
         _embeddingService = embeddingService ?? throw new ArgumentNullException(nameof(embeddingService));
         _vectorStore = vectorStore ?? throw new ArgumentNullException(nameof(vectorStore));
         _db = db ?? throw new ArgumentNullException(nameof(db));
+        _ragConfiguration = ragConfiguration;
         _logger = logger?.ForContext<SemanticSearchService>() ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -81,9 +99,11 @@ public sealed class SemanticSearchService : ISemanticSearchService
 
         // ── Step 2: Vector similarity search ────────────────────────────
         // Request extra results to compensate for metadata-based filtering downstream.
-        // We fetch up to 3x the requested TopK so that after collection/type/date filters
-        // we still have a reasonable number of results to return.
-        int vectorTopK = Math.Min(query.TopK * 3, 500);
+        // We fetch up to RetrievalMultiplier x TopK (clamped by RetrievalCap) so that
+        // after collection/type/date filters we still have a reasonable result pool.
+        int multiplier = Math.Max(1, _ragConfiguration?.RetrievalMultiplier ?? FallbackRetrievalMultiplier);
+        int cap = Math.Max(1, _ragConfiguration?.RetrievalCap ?? FallbackRetrievalCap);
+        int vectorTopK = Math.Min(query.TopK * multiplier, cap);
 
         IReadOnlyList<VectorSearchResult> vectorResults;
         try
