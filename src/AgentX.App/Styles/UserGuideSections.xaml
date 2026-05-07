@@ -19,6 +19,7 @@
         <ResourceDictionary Source="ms-appx:///Styles/UserGuideSections.Research.xaml" />
         <ResourceDictionary Source="ms-appx:///Styles/UserGuideSections.Automation.xaml" />
         <ResourceDictionary Source="ms-appx:///Styles/UserGuideSections.PowerUser.xaml" />
+        <ResourceDictionary Source="ms-appx:///Styles/UserGuideSections.Extended.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <!-- DataTemplateSelector for UserGuide sections -->
@@ -59,6 +60,13 @@
                                          ExportTemplate="{StaticResource ExportTemplate}"
                                          TroubleshootingTemplate="{StaticResource TroubleshootingTemplate}"
                                          PrivacyAndSecurityTemplate="{StaticResource PrivacyAndSecurityTemplate}"
-                                         GettingHelpTemplate="{StaticResource GettingHelpTemplate}" />
+                                         GettingHelpTemplate="{StaticResource GettingHelpTemplate}"
+                                         AnnotationsTemplate="{StaticResource AnnotationsTemplate}"
+                                         AudioTranscriptionTemplate="{StaticResource AudioTranscriptionTemplate}"
+                                         WorkspaceProfilesTemplate="{StaticResource WorkspaceProfilesTemplate}"
+                                         PluginsTemplate="{StaticResource PluginsTemplate}"
+                                         IntegrationsTemplate="{StaticResource IntegrationsTemplate}"
+                                         BackupRestoreTemplate="{StaticResource BackupRestoreTemplate}"
+                                         LicenseTiersTemplate="{StaticResource LicenseTiersTemplate}" />
 
 </ResourceDictionary>

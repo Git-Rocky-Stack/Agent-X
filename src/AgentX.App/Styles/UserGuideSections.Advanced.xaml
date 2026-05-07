@@ -657,10 +657,9 @@
                         </Grid>
                     </Border>
 
-                    <!-- Escape (last row, closed bottom corners) -->
+                    <!-- Escape -->
                     <Border BorderBrush="{StaticResource BorderSubtleBrush}"
-                            BorderThickness="1"
-                            CornerRadius="0,0,8,8"
+                            BorderThickness="1,1,1,0"
                             Padding="16,12">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -686,7 +685,408 @@
                         </Grid>
                     </Border>
 
+                    <!-- F1 -->
+                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                            BorderThickness="1,1,1,0"
+                            Padding="16,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid ColumnSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                    <Border Background="{StaticResource CardElevatedBrush}"
+                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusSM}"
+                                            Padding="8,4">
+                                        <TextBlock Text="F1" Style="{StaticResource MonoSmallStyle}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </Border>
+                            </Grid>
+                            <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action8"
+                                       Style="{StaticResource BodyStyle}" VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Ctrl+P -->
+                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                            BorderThickness="1,1,1,0"
+                            Padding="16,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid ColumnSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                    <Border Background="{StaticResource CardElevatedBrush}"
+                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusSM}"
+                                            Padding="8,4">
+                                        <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                               VerticalAlignment="Center" FontSize="12" Margin="4,0" />
+                                    <Border Grid.Column="2" Background="{StaticResource CardElevatedBrush}"
+                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusSM}"
+                                            Padding="8,4"
+                                            HorizontalAlignment="Left">
+                                        <TextBlock Text="P" Style="{StaticResource MonoSmallStyle}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </Border>
+                            </Grid>
+                            <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action9"
+                                       Style="{StaticResource BodyStyle}" VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Ctrl+D -->
+                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                            BorderThickness="1,1,1,0"
+                            Padding="16,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid ColumnSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                    <Border Background="{StaticResource CardElevatedBrush}"
+                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusSM}"
+                                            Padding="8,4">
+                                        <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                               VerticalAlignment="Center" FontSize="12" Margin="4,0" />
+                                    <Border Grid.Column="2" Background="{StaticResource CardElevatedBrush}"
+                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusSM}"
+                                            Padding="8,4"
+                                            HorizontalAlignment="Left">
+                                        <TextBlock Text="D" Style="{StaticResource MonoSmallStyle}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </Border>
+                            </Grid>
+                            <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action10"
+                                       Style="{StaticResource BodyStyle}" VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Ctrl+G -->
+                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                            BorderThickness="1,1,1,0"
+                            Padding="16,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid ColumnSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                    <Border Background="{StaticResource CardElevatedBrush}"
+                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusSM}"
+                                            Padding="8,4">
+                                        <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                               VerticalAlignment="Center" FontSize="12" Margin="4,0" />
+                                    <Border Grid.Column="2" Background="{StaticResource CardElevatedBrush}"
+                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusSM}"
+                                            Padding="8,4"
+                                            HorizontalAlignment="Left">
+                                        <TextBlock Text="G" Style="{StaticResource MonoSmallStyle}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </Border>
+                            </Grid>
+                            <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action11"
+                                       Style="{StaticResource BodyStyle}" VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Ctrl+Shift+W -->
+                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                            BorderThickness="1,1,1,0"
+                            Padding="16,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid ColumnSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                    <Border Background="{StaticResource CardElevatedBrush}"
+                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusSM}"
+                                            Padding="8,4">
+                                        <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                               VerticalAlignment="Center" FontSize="12" Margin="4,0" />
+                                    <Border Grid.Column="2" Background="{StaticResource CardElevatedBrush}"
+                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusSM}"
+                                            Padding="8,4">
+                                        <TextBlock Text="Shift" Style="{StaticResource MonoSmallStyle}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </Border>
+                                    <TextBlock Grid.Column="3" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                               VerticalAlignment="Center" FontSize="12" Margin="4,0" />
+                                    <Border Grid.Column="4" Background="{StaticResource CardElevatedBrush}"
+                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusSM}"
+                                            Padding="8,4"
+                                            HorizontalAlignment="Left">
+                                        <TextBlock Text="W" Style="{StaticResource MonoSmallStyle}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </Border>
+                            </Grid>
+                            <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action12"
+                                       Style="{StaticResource BodyStyle}" VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Ctrl+Shift+E -->
+                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                            BorderThickness="1,1,1,0"
+                            Padding="16,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid ColumnSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                    <Border Background="{StaticResource CardElevatedBrush}"
+                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusSM}"
+                                            Padding="8,4">
+                                        <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                               VerticalAlignment="Center" FontSize="12" Margin="4,0" />
+                                    <Border Grid.Column="2" Background="{StaticResource CardElevatedBrush}"
+                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusSM}"
+                                            Padding="8,4">
+                                        <TextBlock Text="Shift" Style="{StaticResource MonoSmallStyle}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </Border>
+                                    <TextBlock Grid.Column="3" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                               VerticalAlignment="Center" FontSize="12" Margin="4,0" />
+                                    <Border Grid.Column="4" Background="{StaticResource CardElevatedBrush}"
+                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusSM}"
+                                            Padding="8,4"
+                                            HorizontalAlignment="Left">
+                                        <TextBlock Text="E" Style="{StaticResource MonoSmallStyle}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </Border>
+                            </Grid>
+                            <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action13"
+                                       Style="{StaticResource BodyStyle}" VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Ctrl+Shift+A -->
+                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                            BorderThickness="1,1,1,0"
+                            Padding="16,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid ColumnSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                    <Border Background="{StaticResource CardElevatedBrush}"
+                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusSM}"
+                                            Padding="8,4">
+                                        <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                               VerticalAlignment="Center" FontSize="12" Margin="4,0" />
+                                    <Border Grid.Column="2" Background="{StaticResource CardElevatedBrush}"
+                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusSM}"
+                                            Padding="8,4">
+                                        <TextBlock Text="Shift" Style="{StaticResource MonoSmallStyle}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </Border>
+                                    <TextBlock Grid.Column="3" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                               VerticalAlignment="Center" FontSize="12" Margin="4,0" />
+                                    <Border Grid.Column="4" Background="{StaticResource CardElevatedBrush}"
+                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusSM}"
+                                            Padding="8,4"
+                                            HorizontalAlignment="Left">
+                                        <TextBlock Text="A" Style="{StaticResource MonoSmallStyle}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </Border>
+                            </Grid>
+                            <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action14"
+                                       Style="{StaticResource BodyStyle}" VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Ctrl+Shift+O -->
+                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                            BorderThickness="1,1,1,0"
+                            Padding="16,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid ColumnSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                    <Border Background="{StaticResource CardElevatedBrush}"
+                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusSM}"
+                                            Padding="8,4">
+                                        <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                               VerticalAlignment="Center" FontSize="12" Margin="4,0" />
+                                    <Border Grid.Column="2" Background="{StaticResource CardElevatedBrush}"
+                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusSM}"
+                                            Padding="8,4">
+                                        <TextBlock Text="Shift" Style="{StaticResource MonoSmallStyle}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </Border>
+                                    <TextBlock Grid.Column="3" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                               VerticalAlignment="Center" FontSize="12" Margin="4,0" />
+                                    <Border Grid.Column="4" Background="{StaticResource CardElevatedBrush}"
+                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusSM}"
+                                            Padding="8,4"
+                                            HorizontalAlignment="Left">
+                                        <TextBlock Text="O" Style="{StaticResource MonoSmallStyle}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </Border>
+                            </Grid>
+                            <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action15"
+                                       Style="{StaticResource BodyStyle}" VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Ctrl+1...9 (last row, closed bottom corners) -->
+                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                            BorderThickness="1"
+                            CornerRadius="0,0,8,8"
+                            Padding="16,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid ColumnSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                    <Border Background="{StaticResource CardElevatedBrush}"
+                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusSM}"
+                                            Padding="8,4">
+                                        <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                               VerticalAlignment="Center" FontSize="12" Margin="4,0" />
+                                    <Border Grid.Column="2" Background="{StaticResource CardElevatedBrush}"
+                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{StaticResource RadiusSM}"
+                                            Padding="8,4"
+                                            HorizontalAlignment="Left">
+                                        <TextBlock Text="1 … 9" Style="{StaticResource MonoSmallStyle}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </Border>
+                            </Grid>
+                            <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action16"
+                                       Style="{StaticResource BodyStyle}" VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+
                 </StackPanel>
+
+                <TextBlock Style="{StaticResource BodySecondaryStyle}"
+                           x:Uid="UserGuide_KeyboardShortcuts_Footer" />
             </StackPanel>
         </Border>
     </DataTemplate>

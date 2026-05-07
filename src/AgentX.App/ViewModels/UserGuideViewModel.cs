@@ -155,6 +155,24 @@ public partial class UserGuideViewModel : ObservableObject
             ),
 
             // ═══════════════════════════════════════════════════════════════
+            // DOCUMENT MANAGEMENT (NEW)
+            // ═══════════════════════════════════════════════════════════════
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_Annotations_Title",
+                IconGlyph: "",
+                TemplateKey: "AnnotationsTemplate",
+                DisplayOrder: 175
+            ),
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_AudioTranscription_Title",
+                IconGlyph: "",
+                TemplateKey: "AudioTranscriptionTemplate",
+                DisplayOrder: 176
+            ),
+
+            // ═══════════════════════════════════════════════════════════════
             // TEMPORAL IDENTITY
             // ═══════════════════════════════════════════════════════════════
 
@@ -243,6 +261,34 @@ public partial class UserGuideViewModel : ObservableObject
                 DisplayOrder: 28
             ),
 
+            new UserGuideSection(
+                TitleKey: "UserGuide_LicenseTiers_Title",
+                IconGlyph: "",
+                TemplateKey: "LicenseTiersTemplate",
+                DisplayOrder: 280
+            ),
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_WorkspaceProfiles_Title",
+                IconGlyph: "",
+                TemplateKey: "WorkspaceProfilesTemplate",
+                DisplayOrder: 281
+            ),
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_Plugins_Title",
+                IconGlyph: "",
+                TemplateKey: "PluginsTemplate",
+                DisplayOrder: 282
+            ),
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_Integrations_Title",
+                IconGlyph: "",
+                TemplateKey: "IntegrationsTemplate",
+                DisplayOrder: 283
+            ),
+
             // ═══════════════════════════════════════════════════════════════
             // POWER USER
             // ═══════════════════════════════════════════════════════════════
@@ -291,6 +337,13 @@ public partial class UserGuideViewModel : ObservableObject
                 IconGlyph: "",
                 TemplateKey: "ExportTemplate",
                 DisplayOrder: 34
+            ),
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_BackupRestore_Title",
+                IconGlyph: "",
+                TemplateKey: "BackupRestoreTemplate",
+                DisplayOrder: 340
             ),
 
             new UserGuideSection(

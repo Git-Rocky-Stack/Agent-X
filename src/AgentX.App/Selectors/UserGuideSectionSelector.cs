@@ -65,6 +65,15 @@ public class UserGuideSectionSelector : DataTemplateSelector
     public DataTemplate? PrivacyAndSecurityTemplate { get; set; }
     public DataTemplate? GettingHelpTemplate { get; set; }
 
+    // Extended (NEW): Document management, integrations, extensibility, licensing
+    public DataTemplate? AnnotationsTemplate { get; set; }
+    public DataTemplate? AudioTranscriptionTemplate { get; set; }
+    public DataTemplate? WorkspaceProfilesTemplate { get; set; }
+    public DataTemplate? PluginsTemplate { get; set; }
+    public DataTemplate? IntegrationsTemplate { get; set; }
+    public DataTemplate? BackupRestoreTemplate { get; set; }
+    public DataTemplate? LicenseTiersTemplate { get; set; }
+
     protected override DataTemplate? SelectTemplateCore(object item)
     {
         if (item is UserGuideSection section)
@@ -125,6 +134,16 @@ public class UserGuideSectionSelector : DataTemplateSelector
                 "TroubleshootingTemplate" => TroubleshootingTemplate,
                 "PrivacyAndSecurityTemplate" => PrivacyAndSecurityTemplate,
                 "GettingHelpTemplate" => GettingHelpTemplate,
+
+                // Extended
+                "AnnotationsTemplate" => AnnotationsTemplate,
+                "AudioTranscriptionTemplate" => AudioTranscriptionTemplate,
+                "WorkspaceProfilesTemplate" => WorkspaceProfilesTemplate,
+                "PluginsTemplate" => PluginsTemplate,
+                "IntegrationsTemplate" => IntegrationsTemplate,
+                "BackupRestoreTemplate" => BackupRestoreTemplate,
+                "LicenseTiersTemplate" => LicenseTiersTemplate,
+
                 _ => null
             };
         }
