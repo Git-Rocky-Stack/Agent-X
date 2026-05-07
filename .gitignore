@@ -61,6 +61,11 @@ models/*.gguf
 ## Installer output (build artifact, too large for git)
 installer-output/
 
+## Publish output (build artifact, regenerable via `dotnet publish`).
+## Cross-platform Playwright Node binaries pushed individual files past
+## GitHub's 100 MB limit; build artifacts don't belong in source control.
+publish/
+
 ## Node.js (browser extension)
 node_modules/
 browser-extension/dist/
