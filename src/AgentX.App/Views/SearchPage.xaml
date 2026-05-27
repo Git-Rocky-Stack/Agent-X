@@ -117,7 +117,8 @@
                                 MinHeight="52"
                                 Command="{x:Bind ViewModel.ClearSearchCommand}"
                                 Visibility="{x:Bind ViewModel.QueryText, Mode=OneWay, Converter={StaticResource StringToVis}}"
-                                ToolTipService.ToolTip="Clear search">
+                                ToolTipService.ToolTip="Clear search"
+                                AutomationProperties.Name="Clear search">
                             <FontIcon Glyph="&#xE711;" FontSize="14" />
                         </Button>
                     </Grid>
@@ -906,7 +907,8 @@
                                             Padding="6,4,6,4" MinHeight="24"
                                             Tag="{x:Bind}"
                                             Click="OnApplySavedFilterClick"
-                                            ToolTipService.ToolTip="Apply this filter">
+                                            ToolTipService.ToolTip="Apply this filter"
+                                            AutomationProperties.Name="Apply this filter">
                                         <FontIcon Glyph="&#xE768;" FontSize="10"
                                                   Foreground="{StaticResource TextAccentBrush}" />
                                     </Button>
@@ -917,7 +919,8 @@
                                             Padding="6,4,6,4" MinHeight="24"
                                             Tag="{x:Bind Id}"
                                             Click="OnRemoveSavedFilterClick"
-                                            ToolTipService.ToolTip="Remove saved filter">
+                                            ToolTipService.ToolTip="Remove saved filter"
+                                            AutomationProperties.Name="Remove saved filter">
                                         <FontIcon Glyph="&#xE711;" FontSize="10"
                                                   Foreground="{StaticResource TextTertiaryBrush}" />
                                     </Button>

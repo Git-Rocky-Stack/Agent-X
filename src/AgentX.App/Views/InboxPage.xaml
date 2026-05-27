@@ -238,12 +238,14 @@
                                                         FontSize="14"
                                                         Foreground="{StaticResource SuccessBrush}"
                                                         ToolTipService.ToolTip="Accept"
+                                                        AutomationProperties.Name="Accept"
                                                         Style="{StaticResource GhostButtonStyle}"
                                                         Padding="8" MinWidth="0" MinHeight="0" />
                                                 <Button Content="&#xE768;"
                                                         FontFamily="{ThemeResource SymbolThemeFontFamily}"
                                                         FontSize="14"
                                                         ToolTipService.ToolTip="Defer"
+                                                        AutomationProperties.Name="Defer"
                                                         Style="{StaticResource GhostButtonStyle}"
                                                         Padding="8" MinWidth="0" MinHeight="0" />
                                                 <Button Content="&#xE711;"
@@ -251,6 +253,7 @@
                                                         FontSize="14"
                                                         Foreground="{StaticResource ErrorBrush}"
                                                         ToolTipService.ToolTip="Reject"
+                                                        AutomationProperties.Name="Reject"
                                                         Style="{StaticResource GhostButtonStyle}"
                                                         Padding="8" MinWidth="0" MinHeight="0" />
                                             </StackPanel>

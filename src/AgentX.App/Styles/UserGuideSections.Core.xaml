@@ -27,7 +27,8 @@
                               Foreground="{StaticResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_Welcome_Title"
-                               Style="{StaticResource HeadingMediumStyle}" />
+                               Style="{StaticResource HeadingMediumStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
                 </Grid>
 
                 <TextBlock Style="{StaticResource BodyStyle}"
@@ -60,7 +61,8 @@
                               Foreground="{StaticResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_GettingStarted_Title"
-                               Style="{StaticResource HeadingMediumStyle}" />
+                               Style="{StaticResource HeadingMediumStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
                 </Grid>
 
                 <!-- Prerequisites -->
@@ -192,7 +194,8 @@
                               Foreground="{StaticResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_Dashboard_Title"
-                               Style="{StaticResource HeadingMediumStyle}" />
+                               Style="{StaticResource HeadingMediumStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
                 </Grid>
 
                 <TextBlock Style="{StaticResource BodyStyle}"

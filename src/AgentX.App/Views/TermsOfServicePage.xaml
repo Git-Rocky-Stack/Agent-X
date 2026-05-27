@@ -83,7 +83,8 @@
 
                 <!-- Title -->
                 <TextBlock Text="Terms of Service"
-                           Style="{StaticResource DisplaySmallStyle}" />
+                           Style="{StaticResource DisplaySmallStyle}"
+                           AutomationProperties.HeadingLevel="Level1" />
 
                 <!-- Effective date -->
                 <StackPanel Orientation="Horizontal" Spacing="6">
@@ -111,7 +112,8 @@
                                   FontSize="18"
                                   Foreground="{StaticResource TextAccentBrush}" />
                         <TextBlock Text="1. Acceptance of Terms"
-                                   Style="{StaticResource HeadingMediumStyle}" />
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="By downloading, installing, or using Agent-X, you acknowledge that you have read, understood, and agree to be bound by these Terms. If you do not agree to these Terms, you must not use Agent-X. Your continued use of the application constitutes your ongoing acceptance of any updated Terms." />
@@ -129,7 +131,8 @@
                                   FontSize="18"
                                   Foreground="{StaticResource TextAccentBrush}" />
                         <TextBlock Text="2. Description of Service"
-                                   Style="{StaticResource HeadingMediumStyle}" />
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="Agent-X is a local-first AI personal intelligence hub for Windows. It provides the following capabilities:" />
@@ -203,7 +206,8 @@
                                   FontSize="18"
                                   Foreground="{StaticResource TextAccentBrush}" />
                         <TextBlock Text="3. License Grant"
-                                   Style="{StaticResource HeadingMediumStyle}" />
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="Strategia-X grants you a limited, non-exclusive, non-transferable, revocable license to use Agent-X for personal or internal business purposes, subject to these Terms." />
@@ -260,7 +264,8 @@
                                   FontSize="18"
                                   Foreground="{StaticResource TextAccentBrush}" />
                         <TextBlock Text="4. User Responsibilities"
-                                   Style="{StaticResource HeadingMediumStyle}" />
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="You are responsible for:" />
@@ -329,7 +334,8 @@
                                   FontSize="18"
                                   Foreground="{StaticResource TextAccentBrush}" />
                         <TextBlock Text="5. Intellectual Property"
-                                   Style="{StaticResource HeadingMediumStyle}" />
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="Agent-X and all associated intellectual property, including but not limited to source code, algorithms, user interface designs, and documentation, are and remain the exclusive property of Strategia-X. The application name, logos, and branding are trademarks of Strategia-X." />
@@ -349,7 +355,8 @@
                                   FontSize="18"
                                   Foreground="{StaticResource TextAccentBrush}" />
                         <TextBlock Text="6. Third-Party Software"
-                                   Style="{StaticResource HeadingMediumStyle}" />
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="Agent-X integrates with Ollama, an open-source project developed by Ollama, Inc. Ollama is subject to its own license terms and conditions, which are separate from these Terms. You are responsible for reviewing and complying with Ollama's terms of service." />
@@ -369,7 +376,8 @@
                                   FontSize="18"
                                   Foreground="{StaticResource TextAccentBrush}" />
                         <TextBlock Text="7. Privacy"
-                                   Style="{StaticResource HeadingMediumStyle}" />
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="Your use of Agent-X is also governed by our Privacy Policy, which is accessible within the application. The Privacy Policy describes how we handle data, what information (if any) is collected, and your rights regarding your personal data." />
@@ -402,7 +410,8 @@
                                   FontSize="18"
                                   Foreground="{StaticResource WarningBrush}" />
                         <TextBlock Text="8. Disclaimer of Warranties"
-                                   Style="{StaticResource HeadingMediumStyle}" />
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
 
                     <!-- Uppercase legal disclaimer block -->
@@ -481,7 +490,8 @@
                                   FontSize="18"
                                   Foreground="{StaticResource WarningBrush}" />
                         <TextBlock Text="9. Limitation of Liability"
-                                   Style="{StaticResource HeadingMediumStyle}" />
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
 
                     <!-- Uppercase legal disclaimer block -->
@@ -516,7 +526,8 @@
                                   FontSize="18"
                                   Foreground="{StaticResource TextAccentBrush}" />
                         <TextBlock Text="10. AI-Generated Content Disclaimer"
-                                   Style="{StaticResource HeadingMediumStyle}" />
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="Agent-X uses locally-running AI models to generate responses and perform analysis. It is important that you understand the following:" />
@@ -569,7 +580,8 @@
                                   FontSize="18"
                                   Foreground="{StaticResource TextAccentBrush}" />
                         <TextBlock Text="11. Indemnification"
-                                   Style="{StaticResource HeadingMediumStyle}" />
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="You agree to indemnify, defend, and hold harmless Strategia-X, its officers, directors, employees, agents, and affiliates from and against any and all claims, damages, obligations, losses, liabilities, costs, or expenses (including reasonable attorneys' fees) arising from:" />
@@ -622,7 +634,8 @@
                                   FontSize="18"
                                   Foreground="{StaticResource TextAccentBrush}" />
                         <TextBlock Text="12. Termination"
-                                   Style="{StaticResource HeadingMediumStyle}" />
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="We may terminate or suspend your license to use Agent-X at any time, with or without notice, for conduct that we believe violates these Terms or is harmful to other users, Strategia-X, or third parties, or for any other reason at our sole discretion." />
@@ -644,7 +657,8 @@
                                   FontSize="18"
                                   Foreground="{StaticResource TextAccentBrush}" />
                         <TextBlock Text="13. Modifications to Terms"
-                                   Style="{StaticResource HeadingMediumStyle}" />
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="We reserve the right to modify these Terms at any time at our sole discretion. When we make material changes, we will notify you through the application or by other appropriate means." />
@@ -664,7 +678,8 @@
                                   FontSize="18"
                                   Foreground="{StaticResource TextAccentBrush}" />
                         <TextBlock Text="14. Governing Law"
-                                   Style="{StaticResource HeadingMediumStyle}" />
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="These Terms shall be governed by and construed in accordance with the laws of the State of California, United States, without regard to its conflict of law provisions." />
@@ -684,7 +699,8 @@
                                   FontSize="18"
                                   Foreground="{StaticResource TextAccentBrush}" />
                         <TextBlock Text="15. Severability"
-                                   Style="{StaticResource HeadingMediumStyle}" />
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="If any provision of these Terms is found to be invalid, illegal, or unenforceable by a court of competent jurisdiction, the remaining provisions of these Terms shall remain in full force and effect. The invalid provision shall be modified to the minimum extent necessary to make it valid and enforceable while preserving the original intent." />
@@ -702,7 +718,8 @@
                                   FontSize="18"
                                   Foreground="{StaticResource TextAccentBrush}" />
                         <TextBlock Text="16. Entire Agreement"
-                                   Style="{StaticResource HeadingMediumStyle}" />
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="These Terms, together with the Privacy Policy and any additional terms referenced herein, constitute the entire agreement between you and Strategia-X regarding your use of Agent-X. These Terms supersede all prior agreements, understandings, representations, and warranties, both written and oral, regarding the subject matter." />
@@ -720,7 +737,8 @@
                                   FontSize="18"
                                   Foreground="{StaticResource TextAccentBrush}" />
                         <TextBlock Text="17. Contact Information"
-                                   Style="{StaticResource HeadingMediumStyle}" />
+                                   Style="{StaticResource HeadingMediumStyle}"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="If you have any questions, concerns, or requests regarding these Terms of Service, please contact us:" />

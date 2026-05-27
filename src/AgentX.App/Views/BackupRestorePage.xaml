@@ -286,11 +286,13 @@
                                             <Button Content="&#xE72C;"
                                                     FontFamily="{ThemeResource SymbolThemeFontFamily}"
                                                     ToolTipService.ToolTip="Restore this backup"
+                                                    AutomationProperties.Name="Restore this backup"
                                                     Style="{StaticResource GhostButtonStyle}"
                                                     Padding="8" MinWidth="0" MinHeight="0" />
                                             <Button Content="&#xE74D;"
                                                     FontFamily="{ThemeResource SymbolThemeFontFamily}"
                                                     ToolTipService.ToolTip="Delete backup"
+                                                    AutomationProperties.Name="Delete backup"
                                                     Foreground="{StaticResource ErrorBrush}"
                                                     Style="{StaticResource GhostButtonStyle}"
                                                     Tag="{x:Bind Id}"

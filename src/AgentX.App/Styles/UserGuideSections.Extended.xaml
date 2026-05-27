@@ -27,7 +27,8 @@
                               Foreground="{StaticResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_Annotations_Title"
-                               Style="{StaticResource HeadingMediumStyle}" />
+                               Style="{StaticResource HeadingMediumStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
                 </Grid>
 
                 <TextBlock Style="{StaticResource BodyStyle}"
@@ -137,7 +138,8 @@
                               Foreground="{StaticResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_AudioTranscription_Title"
-                               Style="{StaticResource HeadingMediumStyle}" />
+                               Style="{StaticResource HeadingMediumStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
                 </Grid>
 
                 <TextBlock Style="{StaticResource BodyStyle}"
@@ -264,7 +266,8 @@
                               Foreground="{StaticResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_WorkspaceProfiles_Title"
-                               Style="{StaticResource HeadingMediumStyle}" />
+                               Style="{StaticResource HeadingMediumStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
                 </Grid>
 
                 <TextBlock Style="{StaticResource BodyStyle}"
@@ -364,7 +367,8 @@
                               Foreground="{StaticResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_Plugins_Title"
-                               Style="{StaticResource HeadingMediumStyle}" />
+                               Style="{StaticResource HeadingMediumStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
                 </Grid>
 
                 <TextBlock Style="{StaticResource BodyStyle}"
@@ -474,7 +478,8 @@
                               Foreground="{StaticResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_Integrations_Title"
-                               Style="{StaticResource HeadingMediumStyle}" />
+                               Style="{StaticResource HeadingMediumStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
                 </Grid>
 
                 <TextBlock Style="{StaticResource BodyStyle}"
@@ -574,7 +579,8 @@
                               Foreground="{StaticResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_BackupRestore_Title"
-                               Style="{StaticResource HeadingMediumStyle}" />
+                               Style="{StaticResource HeadingMediumStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
                 </Grid>
 
                 <TextBlock Style="{StaticResource BodyStyle}"
@@ -682,7 +688,8 @@
                               Foreground="{StaticResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_LicenseTiers_Title"
-                               Style="{StaticResource HeadingMediumStyle}" />
+                               Style="{StaticResource HeadingMediumStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
                 </Grid>
 
                 <TextBlock Style="{StaticResource BodyStyle}"
