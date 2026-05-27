@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 namespace AgentX.App.Helpers;
 
 public enum StatusTone
@@ -67,6 +69,12 @@ public static class StatusToneResolver
         "idle",
         "paused",
         "disabled",
+        "inactive",
+        "off",
+        "not configured",
+        "not connected",
+        "not installed",
+        "none",
         "installed",
         "history",
         "analytics",
@@ -114,7 +122,11 @@ public static class StatusToneResolver
     {
         foreach (var token in tokens)
         {
-            if (status.Contains(token, StringComparison.Ordinal))
+            // Word-boundary match: "inactive" must NOT match the "active" success
+            // token, and "Collaborative sync is off" must NOT match the "offline"
+            // danger token. Substring matching here inverted status colors
+            // (negative states rendered green) — see design audit B2.
+            if (Regex.IsMatch(status, $@"\b{Regex.Escape(token)}\b"))
             {
                 return true;
             }
