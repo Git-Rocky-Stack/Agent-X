@@ -19,6 +19,7 @@
         <converters:StringToVisibilityConverter x:Key="StringToVis" />
         <converters:NullToVisibilityConverter x:Key="NullToVis" />
         <converters:NullToVisibilityConverter x:Key="InverseNullToVis" IsInverted="True" />
+        <converters:StatusToColorConverter x:Key="StatusToColor" />
 
     </Page.Resources>
 
@@ -668,21 +669,22 @@
                                                                CharacterSpacing="40" />
                                                 </Border>
 
-                                                <!-- Status badge -->
-                                                <Border CornerRadius="{StaticResource RadiusRound}"
-                                                        Padding="8,3,8,3">
-                                                    <Border.Background>
-                                                        <SolidColorBrush Color="{StaticResource StatusSuccess}" Opacity="0.1" />
-                                                    </Border.Background>
-                                                    <TextBlock Text="{x:Bind IndexingStatusLabel}"
-                                                               FontSize="10"
-                                                               FontWeight="Bold"
-                                                               CharacterSpacing="40">
-                                                        <TextBlock.Foreground>
-                                                            <SolidColorBrush Color="{StaticResource StatusSuccess}" />
-                                                        </TextBlock.Foreground>
-                                                    </TextBlock>
-                                                </Border>
+                                                <!-- Status badge — color bound to real indexing status
+                                                     (completed/processing/pending/failed) via the shared
+                                                     status->color converter instead of hardcoded green. -->
+                                                <Grid>
+                                                    <Border CornerRadius="{StaticResource RadiusRound}"
+                                                            Opacity="0.1"
+                                                            Background="{x:Bind IndexingStatus, Mode=OneWay, Converter={StaticResource StatusToColor}}" />
+                                                    <Border CornerRadius="{StaticResource RadiusRound}"
+                                                            Padding="8,3,8,3">
+                                                        <TextBlock Text="{x:Bind IndexingStatusLabel, Mode=OneWay}"
+                                                                   FontSize="10"
+                                                                   FontWeight="Bold"
+                                                                   CharacterSpacing="40"
+                                                                   Foreground="{x:Bind IndexingStatus, Mode=OneWay, Converter={StaticResource StatusToColor}}" />
+                                                    </Border>
+                                                </Grid>
 
                                                 <Border Style="{StaticResource BadgeDefaultStyle}"
                                                         Visibility="{x:Bind HasFocusedSourceLabel, Converter={StaticResource BoolToVis}}">
