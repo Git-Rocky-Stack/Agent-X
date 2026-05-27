@@ -66,8 +66,7 @@
                         <TextBlock Text="Ask Your Files"
                                    Style="{StaticResource HeadingSmallStyle}" />
                         <TextBlock Text="AI-powered answers grounded in your documents."
-                                   Style="{StaticResource CaptionStyle}"
-                                   Opacity="0.8" />
+                                   Style="{StaticResource CaptionStyle}" />
                     </StackPanel>
 
                     <!-- Collection scope dropdown -->

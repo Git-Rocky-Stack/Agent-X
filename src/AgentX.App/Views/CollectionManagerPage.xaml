@@ -160,8 +160,7 @@
                                                    Style="{StaticResource CaptionStyle}"
                                                    Visibility="{x:Bind Description, Converter={StaticResource StringToVis}}"
                                                    MaxLines="1"
-                                                   TextTrimming="CharacterEllipsis"
-                                                   Opacity="0.7" />
+                                                   TextTrimming="CharacterEllipsis" />
                                     </StackPanel>
 
                                     <!-- Document count badge -->

@@ -293,8 +293,7 @@
                                                                    Style="{StaticResource BodyStyle}"
                                                                    TextTrimming="CharacterEllipsis" />
                                                         <TextBlock Text="{x:Bind TrendLabel}"
-                                                                   Style="{StaticResource CaptionStyle}"
-                                                                   Opacity="0.55" />
+                                                                   Style="{StaticResource CaptionStyle}" />
                                                     </StackPanel>
                                                     <Border Grid.Column="1"
                                                             Style="{StaticResource BadgeAccentStyle}"
@@ -312,7 +311,6 @@
                                     <!-- Empty state for no searches -->
                                     <TextBlock Text="No searches recorded this period"
                                                Style="{StaticResource CaptionStyle}"
-                                               Opacity="0.5"
                                                HorizontalAlignment="Center"
                                                Margin="0,8" />
                                 </StackPanel>
@@ -353,12 +351,10 @@
                                                                    Style="{StaticResource BodyStyle}"
                                                                    TextTrimming="CharacterEllipsis" />
                                                         <TextBlock Text="{x:Bind TrendLabel}"
-                                                                   Style="{StaticResource CaptionStyle}"
-                                                                   Opacity="0.55" />
+                                                                   Style="{StaticResource CaptionStyle}" />
                                                     </StackPanel>
                                                     <TextBlock Grid.Column="1"
-                                                               Style="{StaticResource CaptionStyle}"
-                                                               Opacity="0.6">
+                                                               Style="{StaticResource CaptionStyle}">
                                                         <Run Text="{x:Bind DocumentCount}" />
                                                         <Run Text=" docs" />
                                                     </TextBlock>
@@ -370,7 +366,6 @@
                                     <!-- Empty state for no collections -->
                                     <TextBlock Text="No collections configured yet"
                                                Style="{StaticResource CaptionStyle}"
-                                               Opacity="0.5"
                                                HorizontalAlignment="Center"
                                                Margin="0,8" />
                                 </StackPanel>
@@ -428,7 +423,6 @@
                                                     <TextBlock Grid.Column="1"
                                                                Text="{x:Bind TrendLabel}"
                                                                Style="{StaticResource CaptionStyle}"
-                                                               Opacity="0.55"
                                                                VerticalAlignment="Center" />
                                                     <TextBlock Grid.Column="2"
                                                                Style="{StaticResource BodyStyle}">
@@ -443,7 +437,6 @@
                                     <!-- Empty state -->
                                     <TextBlock Text="No files imported this period"
                                                Style="{StaticResource CaptionStyle}"
-                                               Opacity="0.5"
                                                HorizontalAlignment="Center"
                                                Margin="0,8" />
                                 </StackPanel>
@@ -486,7 +479,7 @@
                                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                                 <FontIcon Glyph="&#xE8BD;" FontSize="10"
                                                                           Foreground="{StaticResource TextSecondaryBrush}" />
-                                                                <TextBlock Style="{StaticResource CaptionStyle}" Opacity="0.6">
+                                                                <TextBlock Style="{StaticResource CaptionStyle}">
                                                                     <Run Text="{x:Bind MessageCount}" />
                                                                     <Run Text=" messages" />
                                                                 </TextBlock>
@@ -494,7 +487,7 @@
                                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                                 <FontIcon Glyph="&#xE945;" FontSize="10"
                                                                           Foreground="{StaticResource TextSecondaryBrush}" />
-                                                                <TextBlock Style="{StaticResource CaptionStyle}" Opacity="0.6">
+                                                                <TextBlock Style="{StaticResource CaptionStyle}">
                                                                     <Run Text="{x:Bind TokensUsed}" />
                                                                     <Run Text=" tokens" />
                                                                 </TextBlock>
@@ -509,7 +502,6 @@
                                     <!-- Empty state -->
                                     <TextBlock Text="No conversations this period"
                                                Style="{StaticResource CaptionStyle}"
-                                               Opacity="0.5"
                                                HorizontalAlignment="Center"
                                                Margin="0,8" />
                                 </StackPanel>
@@ -541,8 +533,7 @@
                     <TextBlock Text="REPORT HISTORY"
                                Style="{StaticResource OverlineStyle}" />
                     <TextBlock Text="Select a previous report to view"
-                               Style="{StaticResource CaptionStyle}"
-                               Opacity="0.5" />
+                               Style="{StaticResource CaptionStyle}" />
                 </StackPanel>
 
                 <Border Grid.Row="1" Style="{StaticResource SeparatorStyle}" Margin="0" />
@@ -568,18 +559,17 @@
                                                    Style="{StaticResource BodySmallStyle}"
                                                    FontWeight="SemiBold" />
                                         <StackPanel Orientation="Horizontal" Spacing="12">
-                                            <TextBlock Style="{StaticResource CaptionStyle}" Opacity="0.5">
+                                            <TextBlock Style="{StaticResource CaptionStyle}">
                                                 <Run Text="{x:Bind NewDocumentsCount}" />
                                                 <Run Text=" docs" />
                                             </TextBlock>
-                                            <TextBlock Style="{StaticResource CaptionStyle}" Opacity="0.5">
+                                            <TextBlock Style="{StaticResource CaptionStyle}">
                                                 <Run Text="{x:Bind TotalSearches}" />
                                                 <Run Text=" searches" />
                                             </TextBlock>
                                         </StackPanel>
                                         <TextBlock Text="{x:Bind GeneratedAtFormatted}"
                                                    Style="{StaticResource CaptionStyle}"
-                                                   Opacity="0.35"
                                                    FontSize="10" />
                                     </StackPanel>
                                 </Button>

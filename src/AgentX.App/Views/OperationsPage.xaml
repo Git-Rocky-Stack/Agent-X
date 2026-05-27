@@ -551,7 +551,6 @@
                                        TextWrapping="Wrap" />
                             <TextBlock Text="Recent summaries"
                                        Style="{StaticResource CaptionStyle}"
-                                       Opacity="0.72"
                                        Margin="0,6,0,0" />
                             <ItemsControl ItemsSource="{x:Bind ViewModel.RecentConversationSummaries, Mode=OneWay}"
                                           ItemTemplate="{StaticResource OperationsConversationPreviewTemplate}" />
@@ -596,7 +595,6 @@
                                        TextWrapping="Wrap" />
                             <TextBlock Text="Recent sync passes"
                                        Style="{StaticResource CaptionStyle}"
-                                       Opacity="0.72"
                                        Margin="0,6,0,0" />
                             <ItemsControl ItemsSource="{x:Bind ViewModel.RecentSyncPasses, Mode=OneWay}"
                                           ItemTemplate="{StaticResource OperationsSyncPreviewTemplate}" />
@@ -641,13 +639,11 @@
                                        TextWrapping="Wrap" />
                             <TextBlock Text="Pending items"
                                        Style="{StaticResource CaptionStyle}"
-                                       Opacity="0.72"
                                        Margin="0,6,0,0" />
                             <ItemsControl ItemsSource="{x:Bind ViewModel.PendingInboxItems, Mode=OneWay}"
                                           ItemTemplate="{StaticResource OperationsInboxPreviewTemplate}" />
                             <TextBlock Text="Recent imported documents"
                                        Style="{StaticResource CaptionStyle}"
-                                       Opacity="0.72"
                                        Margin="0,6,0,0" />
                             <ItemsControl ItemsSource="{x:Bind ViewModel.RecentImportedDocuments, Mode=OneWay}"
                                           ItemTemplate="{StaticResource OperationsImportedDocumentPreviewTemplate}" />
@@ -708,7 +704,6 @@
                                        TextWrapping="Wrap" />
                             <TextBlock Text="Recent runs"
                                        Style="{StaticResource CaptionStyle}"
-                                       Opacity="0.72"
                                        Margin="0,6,0,0" />
                             <ItemsControl ItemsSource="{x:Bind ViewModel.RecentWorkflowRuns, Mode=OneWay}"
                                           ItemTemplate="{StaticResource OperationsWorkflowPreviewTemplate}" />
@@ -748,7 +743,6 @@
                                        TextWrapping="Wrap" />
                             <TextBlock Text="Connector preview"
                                        Style="{StaticResource CaptionStyle}"
-                                       Opacity="0.72"
                                        Margin="0,6,0,0" />
                             <ItemsControl ItemsSource="{x:Bind ViewModel.ConnectorPreviews, Mode=OneWay}"
                                           ItemTemplate="{StaticResource OperationsConnectorPreviewTemplate}" />

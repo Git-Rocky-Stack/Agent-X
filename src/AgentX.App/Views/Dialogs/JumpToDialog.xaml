@@ -48,7 +48,6 @@
                             <TextBlock
                                 Text="{x:Bind Subtitle, TargetNullValue=''}"
                                 FontSize="12"
-                                Opacity="0.7"
                                 TextTrimming="CharacterEllipsis" />
                         </StackPanel>
                     </Grid>

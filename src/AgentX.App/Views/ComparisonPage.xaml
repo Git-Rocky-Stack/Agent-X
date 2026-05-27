@@ -39,7 +39,7 @@
                     <TextBlock Text="Select Documents"
                                Style="{StaticResource HeadingSmallStyle}"
                                FontWeight="Bold" />
-                    <TextBlock Style="{StaticResource CaptionStyle}" Opacity="0.5">
+                    <TextBlock Style="{StaticResource CaptionStyle}">
                         <Run Text="{x:Bind ViewModel.SelectedDocuments.Count, Mode=OneWay}" />
                         <Run Text="selected" />
                     </TextBlock>
@@ -75,8 +75,7 @@
                                                Style="{StaticResource BodyStyle}"
                                                TextTrimming="CharacterEllipsis" />
                                     <TextBlock Text="{x:Bind FileType}"
-                                               Style="{StaticResource CaptionStyle}"
-                                               Opacity="0.4" />
+                                               Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
                             </Grid>
                         </DataTemplate>
@@ -133,8 +132,7 @@
                             <ProgressRing IsActive="True" Width="32" Height="32" />
                             <TextBlock Text="{x:Bind ViewModel.ProgressMessage, Mode=OneWay}"
                                        Style="{StaticResource BodyStyle}"
-                                       HorizontalAlignment="Center"
-                                       Opacity="0.7" />
+                                       HorizontalAlignment="Center" />
                         </StackPanel>
                     </Border>
 
@@ -152,11 +150,11 @@
                                 <TextBlock Text="Summary"
                                            Style="{StaticResource HeadingSmallStyle}" />
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="16">
-                                    <TextBlock Style="{StaticResource CaptionStyle}" Opacity="0.4">
+                                    <TextBlock Style="{StaticResource CaptionStyle}">
                                         <Run Text="{x:Bind ViewModel.ReportTokensUsed, Mode=OneWay}" />
                                         <Run Text="tokens" />
                                     </TextBlock>
-                                    <TextBlock Style="{StaticResource CaptionStyle}" Opacity="0.4">
+                                    <TextBlock Style="{StaticResource CaptionStyle}">
                                         <Run Text="{x:Bind ViewModel.ReportDurationMs, Mode=OneWay}" />
                                         <Run Text="ms" />
                                     </TextBlock>
@@ -190,7 +188,7 @@
                                                       VerticalAlignment="Top" Margin="0,3,0,0" />
                                             <TextBlock Grid.Column="1" Text="{x:Bind}"
                                                        Style="{StaticResource BodyStyle}"
-                                                       TextWrapping="Wrap" Opacity="0.8" />
+                                                       TextWrapping="Wrap" />
                                         </Grid>
                                     </DataTemplate>
                                 </ItemsRepeater.ItemTemplate>
@@ -219,7 +217,7 @@
                                                       VerticalAlignment="Top" Margin="0,3,0,0" />
                                             <TextBlock Grid.Column="1" Text="{x:Bind}"
                                                        Style="{StaticResource BodyStyle}"
-                                                       TextWrapping="Wrap" Opacity="0.8" />
+                                                       TextWrapping="Wrap" />
                                         </Grid>
                                     </DataTemplate>
                                 </ItemsRepeater.ItemTemplate>
@@ -248,7 +246,7 @@
                                                       VerticalAlignment="Top" Margin="0,3,0,0" />
                                             <TextBlock Grid.Column="1" Text="{x:Bind}"
                                                        Style="{StaticResource BodyStyle}"
-                                                       TextWrapping="Wrap" Opacity="0.8" />
+                                                       TextWrapping="Wrap" />
                                         </Grid>
                                     </DataTemplate>
                                 </ItemsRepeater.ItemTemplate>
@@ -309,8 +307,7 @@
                                                                 <TextBlock Grid.Column="1"
                                                                            Text="{x:Bind}"
                                                                            Style="{StaticResource BodyStyle}"
-                                                                           TextWrapping="Wrap"
-                                                                           Opacity="0.8" />
+                                                                           TextWrapping="Wrap" />
                                                             </Grid>
                                                         </DataTemplate>
                                                     </ItemsRepeater.ItemTemplate>
@@ -332,8 +329,7 @@
 
                         <!-- Status -->
                         <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
-                                   Style="{StaticResource CaptionStyle}"
-                                   Opacity="0.5" />
+                                   Style="{StaticResource CaptionStyle}" />
                     </StackPanel>
 
                     <!-- Empty State -->

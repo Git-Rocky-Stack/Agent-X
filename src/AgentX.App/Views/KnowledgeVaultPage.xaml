@@ -131,7 +131,7 @@
                         <TextBlock Text="Duplicate Documents Detected"
                                    Style="{StaticResource BodyStyle}" FontWeight="SemiBold" />
                         <TextBlock Text="{x:Bind ViewModel.DuplicateWarningMessage, Mode=OneWay}"
-                                   Style="{StaticResource CaptionStyle}" Opacity="0.7" />
+                                   Style="{StaticResource CaptionStyle}" />
                     </StackPanel>
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                         <Button Content="Skip Duplicates" Style="{StaticResource SecondaryButtonStyle}"
@@ -351,7 +351,7 @@
                                                      Fill="{StaticResource TextTertiaryBrush}" />
                                             <TextBlock Text="{x:Bind Name}" Style="{StaticResource CaptionStyle}" />
                                             <TextBlock Text="{x:Bind DocumentCountFormatted}"
-                                                       Style="{StaticResource CaptionStyle}" Opacity="0.5" />
+                                                       Style="{StaticResource CaptionStyle}" />
                                         </StackPanel>
                                     </Button>
                                 </DataTemplate>
@@ -1004,7 +1004,6 @@
                                            TextWrapping="Wrap" />
                                 <TextBlock Text="{x:Bind ViewModel.FocusedDocumentVisibilityHint, Mode=OneWay}"
                                            Style="{StaticResource CaptionStyle}"
-                                           Opacity="0.7"
                                            TextWrapping="Wrap"
                                            Visibility="{x:Bind ViewModel.FocusedDocumentVisibilityHint, Mode=OneWay, Converter={StaticResource StringToVis}}" />
                             </StackPanel>

@@ -30,8 +30,7 @@
                 <TextBlock Text="Email Connector" Style="{StaticResource TitleTextBlockStyle}"/>
                 <TextBlock
                     Text="Sync Gmail and Outlook emails into your knowledge vault for AI-powered search and triage."
-                    Style="{StaticResource CaptionTextBlockStyle}"
-                    Opacity="0.7"/>
+                    Style="{StaticResource CaptionTextBlockStyle}"/>
             </StackPanel>
 
             <!-- Error bar -->
@@ -61,7 +60,6 @@
                             <TextBlock Text="Gmail" Style="{StaticResource BodyStrongTextBlockStyle}"/>
                             <TextBlock
                                 Text="{x:Bind ViewModel.GoogleStatusText, Mode=OneWay}"
-                                Opacity="0.7"
                                 Style="{StaticResource CaptionTextBlockStyle}"/>
                         </StackPanel>
                         <Button
@@ -92,7 +90,6 @@
                             <TextBlock Text="Outlook Email" Style="{StaticResource BodyStrongTextBlockStyle}"/>
                             <TextBlock
                                 Text="{x:Bind ViewModel.MicrosoftStatusText, Mode=OneWay}"
-                                Opacity="0.7"
                                 Style="{StaticResource CaptionTextBlockStyle}"/>
                         </StackPanel>
                         <Button
@@ -184,15 +181,15 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" Spacing="2">
-                        <TextBlock Text="Last Synced" Opacity="0.6" Style="{StaticResource CaptionTextBlockStyle}"/>
+                        <TextBlock Text="Last Synced" Style="{StaticResource CaptionTextBlockStyle}"/>
                         <TextBlock Text="{x:Bind ViewModel.LastSyncTime, Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}"/>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Spacing="2">
-                        <TextBlock Text="Next Sync" Opacity="0.6" Style="{StaticResource CaptionTextBlockStyle}"/>
+                        <TextBlock Text="Next Sync" Style="{StaticResource CaptionTextBlockStyle}"/>
                         <TextBlock Text="{x:Bind ViewModel.NextSyncTime, Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}"/>
                     </StackPanel>
                     <StackPanel Grid.Column="2" Spacing="2">
-                        <TextBlock Text="Status" Opacity="0.6" Style="{StaticResource CaptionTextBlockStyle}"/>
+                        <TextBlock Text="Status" Style="{StaticResource CaptionTextBlockStyle}"/>
                         <TextBlock Text="{x:Bind ViewModel.SyncStatusText, Mode=OneWay}" TextWrapping="Wrap" Style="{StaticResource BodyTextBlockStyle}"/>
                     </StackPanel>
                 </Grid>
