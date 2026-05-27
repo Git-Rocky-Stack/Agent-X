@@ -21,7 +21,7 @@
 
         <Grid Padding="{StaticResource PaddingPage}"
               RowSpacing="20"
-              MaxWidth="900"
+              MaxWidth="760"
               HorizontalAlignment="Center">
 
             <Grid.RowDefinitions>

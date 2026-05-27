@@ -8,7 +8,7 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto"
                   HorizontalScrollBarVisibility="Disabled"
                   Padding="0">
-        <Grid Padding="{StaticResource PaddingPage}" MaxWidth="900" HorizontalAlignment="Center">
+        <Grid Padding="{StaticResource PaddingPage}" MaxWidth="760" HorizontalAlignment="Center">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
