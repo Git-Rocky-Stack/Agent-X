@@ -175,16 +175,14 @@
                                     <TextBlock Text="{x:Bind Description, Mode=OneWay}"
                                                Style="{StaticResource CaptionStyle}"
                                                MaxLines="1"
-                                               TextTrimming="CharacterEllipsis"
-                                               Opacity="0.7" />
+                                               TextTrimming="CharacterEllipsis" />
                                 </StackPanel>
 
                                 <!-- Timestamp -->
                                 <TextBlock Grid.Column="2"
                                            Text="{x:Bind CreatedAtFormatted, Mode=OneWay}"
                                            Style="{StaticResource CaptionStyle}"
-                                           VerticalAlignment="Center"
-                                           Opacity="0.5" />
+                                           VerticalAlignment="Center" />
                             </Grid>
                         </Border>
                     </DataTemplate>

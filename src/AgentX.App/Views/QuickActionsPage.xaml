@@ -295,8 +295,7 @@
                                 </Grid>
                                 <Border Style="{StaticResource SeparatorStyle}" />
                                 <TextBlock Text="Synthesized from indexed sections before final reduction."
-                                           Style="{StaticResource CaptionStyle}"
-                                           Opacity="0.6" />
+                                           Style="{StaticResource CaptionStyle}" />
                                 <TextBlock Text="{x:Bind ViewModel.SummaryResult, Mode=OneWay}"
                                            Style="{StaticResource BodyStyle}"
                                            TextWrapping="Wrap"

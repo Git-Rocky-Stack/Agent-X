@@ -659,7 +659,6 @@
                                        TextWrapping="Wrap" />
                             <TextBlock Text="The matching sync record stays pinned and marked until you dismiss this focus state."
                                        Style="{StaticResource CaptionStyle}"
-                                       Opacity="0.7"
                                        TextWrapping="Wrap" />
                         </StackPanel>
 

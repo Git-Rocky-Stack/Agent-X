@@ -48,44 +48,44 @@
 
                     <!-- Database Size -->
                     <StackPanel Grid.Column="0" Spacing="4">
-                        <TextBlock Text="Database" Style="{StaticResource CaptionStyle}" Opacity="0.5" />
+                        <TextBlock Text="Database" Style="{StaticResource CaptionStyle}" />
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <TextBlock Style="{StaticResource HeadingSmallStyle}" FontWeight="Bold">
                                 <Run Text="{x:Bind ViewModel.DatabaseSizeMB, Mode=OneWay}" />
                             </TextBlock>
-                            <TextBlock Text="MB" Style="{StaticResource CaptionStyle}" Opacity="0.5"
+                            <TextBlock Text="MB" Style="{StaticResource CaptionStyle}"
                                        VerticalAlignment="Bottom" Margin="0,0,0,2" />
                         </StackPanel>
                     </StackPanel>
 
                     <!-- Documents Size -->
                     <StackPanel Grid.Column="1" Spacing="4">
-                        <TextBlock Text="Documents" Style="{StaticResource CaptionStyle}" Opacity="0.5" />
+                        <TextBlock Text="Documents" Style="{StaticResource CaptionStyle}" />
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <TextBlock Style="{StaticResource HeadingSmallStyle}" FontWeight="Bold">
                                 <Run Text="{x:Bind ViewModel.DocumentsSizeMB, Mode=OneWay}" />
                             </TextBlock>
-                            <TextBlock Text="MB" Style="{StaticResource CaptionStyle}" Opacity="0.5"
+                            <TextBlock Text="MB" Style="{StaticResource CaptionStyle}"
                                        VerticalAlignment="Bottom" Margin="0,0,0,2" />
                         </StackPanel>
                     </StackPanel>
 
                     <!-- Total Estimate -->
                     <StackPanel Grid.Column="2" Spacing="4">
-                        <TextBlock Text="Total Estimated" Style="{StaticResource CaptionStyle}" Opacity="0.5" />
+                        <TextBlock Text="Total Estimated" Style="{StaticResource CaptionStyle}" />
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <TextBlock Style="{StaticResource HeadingSmallStyle}" FontWeight="Bold"
                                        Foreground="{StaticResource AccentPrimaryBrush}">
                                 <Run Text="{x:Bind ViewModel.EstimatedSizeMB, Mode=OneWay}" />
                             </TextBlock>
-                            <TextBlock Text="MB" Style="{StaticResource CaptionStyle}" Opacity="0.5"
+                            <TextBlock Text="MB" Style="{StaticResource CaptionStyle}"
                                        VerticalAlignment="Bottom" Margin="0,0,0,2" />
                         </StackPanel>
                     </StackPanel>
 
                     <!-- Document Count -->
                     <StackPanel Grid.Column="3" Spacing="4">
-                        <TextBlock Text="Documents" Style="{StaticResource CaptionStyle}" Opacity="0.5" />
+                        <TextBlock Text="Documents" Style="{StaticResource CaptionStyle}" />
                         <TextBlock Style="{StaticResource HeadingSmallStyle}" FontWeight="Bold">
                             <Run Text="{x:Bind ViewModel.EstimatedDocCount, Mode=OneWay}" />
                         </TextBlock>
@@ -152,7 +152,7 @@
                                 Visibility="{x:Bind ViewModel.IsBackingUp, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <ProgressBar Value="{x:Bind ViewModel.ProgressPercent, Mode=OneWay}"
                                      Maximum="100" />
-                        <TextBlock Style="{StaticResource CaptionStyle}" Opacity="0.6">
+                        <TextBlock Style="{StaticResource CaptionStyle}">
                             <Run Text="{x:Bind ViewModel.ProgressPhase, Mode=OneWay}" />
                             <Run Text=" — " />
                             <Run Text="{x:Bind ViewModel.ProgressItem, Mode=OneWay}" />
@@ -194,7 +194,7 @@
                                 Visibility="{x:Bind ViewModel.IsRestoring, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <ProgressBar Value="{x:Bind ViewModel.ProgressPercent, Mode=OneWay}"
                                      Maximum="100" />
-                        <TextBlock Style="{StaticResource CaptionStyle}" Opacity="0.6">
+                        <TextBlock Style="{StaticResource CaptionStyle}">
                             <Run Text="{x:Bind ViewModel.ProgressPhase, Mode=OneWay}" />
                         </TextBlock>
                     </StackPanel>
@@ -211,8 +211,7 @@
                                        Foreground="{StaticResource SuccessBrush}" />
                             <TextBlock Text="{x:Bind ViewModel.RestoreSummary, Mode=OneWay}"
                                        Style="{StaticResource CaptionStyle}"
-                                       TextWrapping="Wrap"
-                                       Opacity="0.7" />
+                                       TextWrapping="Wrap" />
                         </StackPanel>
                     </Border>
 
@@ -261,12 +260,11 @@
                                                        FontWeight="SemiBold"
                                                        TextTrimming="CharacterEllipsis" />
                                             <StackPanel Orientation="Horizontal" Spacing="12">
-                                                <TextBlock Style="{StaticResource CaptionStyle}" Opacity="0.5">
+                                                <TextBlock Style="{StaticResource CaptionStyle}">
                                                     <Run Text="{x:Bind SizeMB}" /><Run Text=" MB" />
                                                 </TextBlock>
                                                 <TextBlock Text="{x:Bind BackupType}"
-                                                           Style="{StaticResource CaptionStyle}"
-                                                           Opacity="0.4" />
+                                                           Style="{StaticResource CaptionStyle}" />
                                             </StackPanel>
                                         </StackPanel>
 
@@ -310,8 +308,7 @@
             <!-- ═══ STATUS ═══ -->
             <TextBlock Grid.Row="5"
                        Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
-                       Style="{StaticResource CaptionStyle}"
-                       Opacity="0.5" />
+                       Style="{StaticResource CaptionStyle}" />
         </Grid>
     </ScrollViewer>
 </Page>

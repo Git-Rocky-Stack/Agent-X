@@ -26,8 +26,7 @@
                             <TextBlock
                                 Grid.Column="1"
                                 Text="{x:Bind CurrentScopeLabel}"
-                                Style="{StaticResource BodySmallStyle}"
-                                Opacity="0.75" />
+                                Style="{StaticResource BodySmallStyle}" />
                         </Grid>
 
                         <ItemsControl ItemsSource="{x:Bind Items}">

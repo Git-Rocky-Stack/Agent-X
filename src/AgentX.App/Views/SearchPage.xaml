@@ -822,8 +822,7 @@
                                             <Run Text="results" />
                                         </TextBlock>
                                         <TextBlock Text="{x:Bind SearchedAgo}"
-                                                   Style="{StaticResource CaptionStyle}"
-                                                   Opacity="0.6" />
+                                                   Style="{StaticResource CaptionStyle}" />
                                     </StackPanel>
                                 </StackPanel>
 
@@ -897,8 +896,7 @@
                                                            CharacterSpacing="40" />
                                             </Border>
                                             <TextBlock Text="{x:Bind SavedAt}"
-                                                       Style="{StaticResource CaptionStyle}"
-                                                       Opacity="0.6" />
+                                                       Style="{StaticResource CaptionStyle}" />
                                         </StackPanel>
                                     </StackPanel>
 

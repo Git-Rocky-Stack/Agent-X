@@ -665,7 +665,6 @@
                                            TextWrapping="Wrap" />
                                 <TextBlock Text="The matching durable summary was moved to the top of the list so you can review it without hunting through Analytics."
                                            Style="{StaticResource CaptionStyle}"
-                                           Opacity="0.7"
                                            TextWrapping="Wrap" />
                             </StackPanel>
 
