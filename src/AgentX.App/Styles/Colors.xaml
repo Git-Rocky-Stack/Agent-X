@@ -117,6 +117,7 @@
     <!-- Window & Page Backgrounds -->
     <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource Black}" />
     <SolidColorBrush x:Key="PageBackgroundBrush" Color="{StaticResource BackgroundPrimary}" />
+    <SolidColorBrush x:Key="BackgroundSecondaryBrush" Color="{StaticResource BackgroundSecondary}" />
 
     <!-- Gradient Backgrounds (premium depth effect) -->
     <LinearGradientBrush x:Key="WindowGradientBrush" StartPoint="0,0" EndPoint="1,1">

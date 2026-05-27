@@ -22,12 +22,11 @@
 
                             <TextBlock
                                 Text="{x:Bind Header}"
-                                FontSize="16"
-                                FontWeight="SemiBold" />
+                                Style="{StaticResource HeadingSmallStyle}" />
                             <TextBlock
                                 Grid.Column="1"
                                 Text="{x:Bind CurrentScopeLabel}"
-                                FontSize="12"
+                                Style="{StaticResource BodySmallStyle}"
                                 Opacity="0.75" />
                         </Grid>
 
@@ -46,12 +45,11 @@
                                         <Border
                                             Grid.Column="1"
                                             Padding="6,2"
-                                            Background="{ThemeResource SubtleFillColorSecondaryBrush}"
-                                            CornerRadius="4">
+                                            Background="{StaticResource InputBackgroundBrush}"
+                                            CornerRadius="{StaticResource RadiusSM}">
                                             <TextBlock
                                                 Text="{x:Bind DisplayChord}"
-                                                FontFamily="Consolas"
-                                                FontSize="12" />
+                                                Style="{StaticResource MonoSmallStyle}" />
                                         </Border>
                                     </Grid>
                                 </DataTemplate>
