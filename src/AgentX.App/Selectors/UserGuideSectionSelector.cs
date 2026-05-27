@@ -74,6 +74,15 @@ public class UserGuideSectionSelector : DataTemplateSelector
     public DataTemplate? BackupRestoreTemplate { get; set; }
     public DataTemplate? LicenseTiersTemplate { get; set; }
 
+    // NOTE: WinUI 3's ItemsControl invokes the *two-argument* SelectTemplateCore
+    // overload (item + container), NOT the single-argument one. If only the
+    // single-arg overload is overridden, ItemsControl never calls the selector
+    // and falls back to rendering item.ToString() (e.g. the raw record string).
+    // We override the two-arg overload and delegate to the single-arg logic so
+    // template selection works regardless of which overload the host calls.
+    protected override DataTemplate? SelectTemplateCore(object item, DependencyObject container)
+        => SelectTemplateCore(item);
+
     protected override DataTemplate? SelectTemplateCore(object item)
     {
         if (item is UserGuideSection section)
