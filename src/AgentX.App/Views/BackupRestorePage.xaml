@@ -217,7 +217,7 @@
                     </Border>
 
                     <Button Content="Restore"
-                            Command="{x:Bind ViewModel.RestoreFromBackupCommand}"
+                            Click="OnRestoreClick"
                             IsEnabled="{x:Bind ViewModel.IsRestoring, Mode=OneWay, Converter={StaticResource InverseBool}}"
                             Style="{StaticResource SecondaryButtonStyle}" />
                 </StackPanel>
@@ -295,6 +295,8 @@
                                                     ToolTipService.ToolTip="Delete backup"
                                                     Foreground="{StaticResource ErrorBrush}"
                                                     Style="{StaticResource GhostButtonStyle}"
+                                                    Tag="{x:Bind Id}"
+                                                    Click="OnDeleteBackupClick"
                                                     Padding="8" MinWidth="0" MinHeight="0" />
                                         </StackPanel>
                                     </Grid>
