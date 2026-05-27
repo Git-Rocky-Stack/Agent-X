@@ -341,6 +341,37 @@
     </Style>
 
     <!-- ═══════════════════════════════════════════════════════════════
+         INLINE STATUS BARS
+         Captures the repeated inline status-banner pattern: a tinted
+         semantic background with a matching-color border, used for
+         error / success / info callouts embedded in page content.
+         ═══════════════════════════════════════════════════════════════ -->
+
+    <Style x:Key="InlineErrorBarStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource ErrorSubtleBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ErrorBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
+        <Setter Property="Padding" Value="{StaticResource PaddingCard}" />
+    </Style>
+
+    <Style x:Key="InlineSuccessBarStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource SuccessSubtleBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource SuccessBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
+        <Setter Property="Padding" Value="{StaticResource PaddingCard}" />
+    </Style>
+
+    <Style x:Key="InlineInfoBarStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource InfoSubtleBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource InfoBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
+        <Setter Property="Padding" Value="{StaticResource PaddingCard}" />
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════════
          SEPARATOR
          ═══════════════════════════════════════════════════════════════ -->
 
