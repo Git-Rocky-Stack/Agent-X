@@ -205,6 +205,26 @@
     </Style>
 
     <!-- ═══════════════════════════════════════════════════════════════
+         GHOST TOGGLE BUTTON (Ghost visual for ToggleButton controls)
+         Mirrors GhostButtonStyle. A Style with TargetType="Button" cannot
+         be applied to a ToggleButton (ToggleButton derives from ButtonBase,
+         not Button), so toggle controls that want the ghost look must use
+         this TargetType="ToggleButton" variant.
+         ═══════════════════════════════════════════════════════════════ -->
+
+    <Style x:Key="GhostToggleButtonStyle" TargetType="ToggleButton">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
+        <Setter Property="Padding" Value="12,8,12,8" />
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="MinHeight" Value="36" />
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════════
          ICON BUTTON (Circular, for toolbar actions)
          ═══════════════════════════════════════════════════════════════ -->
 
