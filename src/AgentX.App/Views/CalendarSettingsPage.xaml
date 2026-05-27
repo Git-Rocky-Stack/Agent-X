@@ -74,7 +74,7 @@
                         <Button
                             Grid.Column="2"
                             Content="Disconnect"
-                            Command="{x:Bind ViewModel.DisconnectGoogleCommand, Mode=OneWay}"
+                            Click="OnDisconnectGoogleClick"
                             Visibility="{x:Bind ViewModel.IsGoogleConnected, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
                             MinWidth="120"/>
                     </Grid>
@@ -105,7 +105,7 @@
                         <Button
                             Grid.Column="2"
                             Content="Disconnect"
-                            Command="{x:Bind ViewModel.DisconnectMicrosoftCommand, Mode=OneWay}"
+                            Click="OnDisconnectMicrosoftClick"
                             Visibility="{x:Bind ViewModel.IsMicrosoftConnected, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
                             MinWidth="120"/>
                     </Grid>
