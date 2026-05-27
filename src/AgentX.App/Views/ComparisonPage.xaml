@@ -103,7 +103,7 @@
              ══════════════════════════════════════════════════════════ -->
         <Grid Grid.Column="1">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <Grid Padding="{StaticResource PaddingPage}" RowSpacing="20" MaxWidth="900">
+                <Grid Padding="{StaticResource PaddingPage}" RowSpacing="20" MaxWidth="900" HorizontalAlignment="Center">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
