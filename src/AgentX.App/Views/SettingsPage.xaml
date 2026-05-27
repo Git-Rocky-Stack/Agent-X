@@ -565,7 +565,7 @@
                     <!-- Deactivate Button (only when license is active) -->
                     <Button Content="Deactivate License"
                             Style="{StaticResource SecondaryButtonStyle}"
-                            Command="{x:Bind ViewModel.DeactivateLicenseCommand}"
+                            Click="OnDeactivateLicenseClick"
                             Visibility="{x:Bind ViewModel.IsLicenseValid, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
 
                     <!-- Status Message -->
@@ -634,7 +634,7 @@
                 <Button Grid.Column="1"
                         Content="Reset to Defaults"
                         Style="{StaticResource SecondaryButtonStyle}"
-                        Command="{x:Bind ViewModel.ResetToDefaultsCommand}" />
+                        Click="OnResetToDefaultsClick" />
 
                 <TextBlock Grid.Column="3"
                            Style="{StaticResource CaptionStyle}"
