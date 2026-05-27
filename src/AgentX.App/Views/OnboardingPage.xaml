@@ -11,6 +11,7 @@
         <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
         <converters:BoolToVisibilityConverter x:Key="InverseBoolToVis" IsInverted="True" />
         <converters:StringToVisibilityConverter x:Key="StringToVis" />
+        <converters:StatusToColorConverter x:Key="StatusToColor" />
     </Page.Resources>
 
     <Grid>
@@ -297,13 +298,12 @@
                                         Background="{StaticResource InputBackgroundBrush}"
                                         Margin="0,4,0,0">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <!-- Dot color reflects the actual connection-test
+                                             result (connected/failed/untested) rather than a
+                                             constant green default. -->
                                         <Ellipse Width="8" Height="8"
-                                                 VerticalAlignment="Center">
-                                            <Ellipse.Fill>
-                                                <SolidColorBrush x:Name="ConnectionDotBrush"
-                                                                 Color="{StaticResource StatusSuccess}" />
-                                            </Ellipse.Fill>
-                                        </Ellipse>
+                                                 VerticalAlignment="Center"
+                                                 Fill="{x:Bind ViewModel.ConnectionStatusTone, Mode=OneWay, Converter={StaticResource StatusToColor}}" />
                                         <TextBlock Text="{x:Bind ViewModel.ConnectionStatusText, Mode=OneWay}"
                                                    Style="{StaticResource BodyStyle}" />
                                     </StackPanel>

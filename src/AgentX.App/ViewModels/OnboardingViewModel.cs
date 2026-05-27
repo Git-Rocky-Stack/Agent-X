@@ -31,9 +31,25 @@ public partial class OnboardingViewModel : ObservableObject
     // ── Step 1: Ollama Connection ────────────────────────────
     [ObservableProperty] private string _ollamaEndpoint = "http://localhost:11434";
     [ObservableProperty] private bool _isTestingConnection;
-    [ObservableProperty] private bool? _isOllamaConnected;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ConnectionStatusTone))]
+    private bool? _isOllamaConnected;
+
     [ObservableProperty] private string _connectionStatusText = "";
     [ObservableProperty] private bool _showConnectionStatus;
+
+    /// <summary>
+    /// Status token for the connection-result dot, mapped to a brush by
+    /// StatusToColorConverter: connected = green, failed = red, untested = neutral
+    /// (the offline default) instead of a constant green.
+    /// </summary>
+    public string ConnectionStatusTone => IsOllamaConnected switch
+    {
+        true => "connected",
+        false => "offline",
+        _ => "idle"
+    };
 
     // ── Step 2: Model Selection ──────────────────────────────
     [ObservableProperty] private ObservableCollection<OnboardingModelItem> _availableModels = new();
