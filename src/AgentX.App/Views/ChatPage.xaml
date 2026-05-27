@@ -1454,7 +1454,7 @@
                         <!-- Research Mode toggle -->
                         <ToggleButton Grid.Column="2"
                                       x:Name="ResearchModeToggle"
-                                      Style="{StaticResource GhostButtonStyle}"
+                                      Style="{StaticResource GhostToggleButtonStyle}"
                                       Padding="10,10,10,10"
                                       MinHeight="44"
                                       MinWidth="44"
@@ -1465,7 +1465,7 @@
                         </ToggleButton>
 
                         <ToggleButton Grid.Column="3"
-                                      Style="{StaticResource GhostButtonStyle}"
+                                      Style="{StaticResource GhostToggleButtonStyle}"
                                       Padding="10,10,10,10"
                                       MinHeight="44"
                                       MinWidth="44"

@@ -48,6 +48,12 @@ public sealed class AppNavigationService : IAppNavigationService
         // Wire the NavigationView selection changed event
         _navView.SelectionChanged += OnSelectionChanged;
 
+        // Surface page-realization failures: WinUI's Frame swallows exceptions
+        // thrown during InitializeComponent / OnNavigatedTo / x:Bind realization
+        // and silently leaves the previous page on screen. Logging the real
+        // exception here turns a silent no-op into an actionable diagnostic.
+        _contentFrame.NavigationFailed += OnNavigationFailed;
+
         _initialized = true;
         Log.Debug("AppNavigationService initialized with {Count} pages", pageMap.Count);
     }
@@ -152,15 +158,30 @@ public sealed class AppNavigationService : IAppNavigationService
             var tag = selectedItem.Tag?.ToString();
             if (tag != null && _pageMap.TryGetValue(tag, out var pageType))
             {
-                _contentFrame.Navigate(pageType);
-                CurrentPage = tag;
-                PageChanged?.Invoke(this, tag);
-                Log.Debug("Navigated to {Page} via NavView selection", tag);
+                // If page realization fails, WinUI's Frame raises NavigationFailed
+                // (handled by OnNavigationFailed) and returns false without throwing
+                // here, so guard the post-navigation state on the actual result.
+                var navigated = _contentFrame.Navigate(pageType);
+                if (navigated)
+                {
+                    CurrentPage = tag;
+                    PageChanged?.Invoke(this, tag);
+                    Log.Debug("Navigated to {Page} via NavView selection", tag);
+                }
             }
             else if (tag != null)
             {
                 Log.Debug("Page not yet implemented: {Page}", tag);
             }
         }
+    }
+
+    private void OnNavigationFailed(object sender, Microsoft.UI.Xaml.Navigation.NavigationFailedEventArgs e)
+    {
+        Log.Error(
+            e.Exception,
+            "Frame navigation to {PageType} failed: {Message}",
+            e.SourcePageType?.FullName,
+            e.Exception?.Message);
     }
 }
