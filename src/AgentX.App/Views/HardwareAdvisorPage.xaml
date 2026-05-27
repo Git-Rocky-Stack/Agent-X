@@ -76,6 +76,24 @@
             </Border>
 
             <!-- =======================================================
+                 ROW 1 (shared): ELEVATION HINT (UAC acknowledgement)
+
+                 Shown only after detection completes with partial/empty
+                 sensor data — the typical signature of running unelevated.
+                 LibreHardwareMonitor / WMI sensor reads require admin, so we
+                 surface the requirement instead of silently showing blanks.
+                 Mutually exclusive with the detecting spinner above (IsDetecting
+                 vs !IsDetecting && IsDetectionIncomplete), so sharing the row
+                 never causes overlap.
+                 ======================================================= -->
+            <InfoBar Grid.Row="1"
+                     Severity="Informational"
+                     IsOpen="{x:Bind ViewModel.IsDetectionIncomplete, Mode=OneWay}"
+                     IsClosable="False"
+                     Title="Some hardware details are unavailable"
+                     Message="Run Agent-X as administrator for full GPU, VRAM, and sensor detection. Without elevation, some readings may be incomplete." />
+
+            <!-- =======================================================
                  ROW 2: HARDWARE OVERVIEW CARDS (3-column grid)
                  ======================================================= -->
             <Grid Grid.Row="2" ColumnSpacing="16" RowSpacing="16"
