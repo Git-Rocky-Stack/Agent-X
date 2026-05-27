@@ -43,6 +43,13 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _errorMessage = string.Empty;
     [ObservableProperty] private bool _hasError;
 
+    // ── Elevation / detection completeness ─────────────────────
+    // LibreHardwareMonitor / WMI sensor reads need admin privileges; unelevated
+    // they silently return blanks (no VRAM, placeholder GPU name). When that
+    // happens we surface an informational elevation hint rather than show empty
+    // fields with no explanation.
+    [ObservableProperty] private bool _isDetectionIncomplete;
+
     public ObservableCollection<RecommendedModel> RecommendedModels { get; } = new();
 
     // Filtered collections for section display
@@ -63,6 +70,7 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
     {
         Log.Information("HardwareAdvisor initializing...");
         IsDetecting = true;
+        IsDetectionIncomplete = false;
         ClearError();
 
         try
@@ -89,16 +97,18 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
     // ── Populate from HardwareCapability ───────────────────────
     private void PopulateFromCapability(HardwareCapability capability)
     {
-        GpuName = capability.GpuName;
+        // Coalesce placeholder/empty sensor values to friendly fallbacks so the
+        // UI never shows a blank field when a read returns nothing.
+        GpuName = Friendly(capability.GpuName, "GPU not detected");
         GpuVram = capability.GpuVramFormatted;
         GpuTier = DetermineGpuTier(capability.GpuVramBytes);
 
-        CpuName = capability.CpuName;
+        CpuName = Friendly(capability.CpuName, "CPU not detected");
         CpuCores = capability.CpuCores;
         CpuArchitecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString();
 
-        TotalRam = capability.TotalRamFormatted;
-        AvailableRam = capability.AvailableRamFormatted;
+        TotalRam = capability.TotalRamBytes > 0 ? capability.TotalRamFormatted : "Not detected";
+        AvailableRam = capability.TotalRamBytes > 0 ? capability.AvailableRamFormatted : "Not detected";
         RamUsagePercent = capability.TotalRamBytes > 0
             ? (double)(capability.TotalRamBytes - capability.AvailableRamBytes) / capability.TotalRamBytes * 100.0
             : 0;
@@ -107,6 +117,33 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
         NpuName = capability.HasNpu ? capability.NpuName : "None detected";
 
         RecommendedModelSize = capability.RecommendedMaxModelSize;
+
+        // Detection is incomplete when core sensor reads came back empty or as a
+        // placeholder — the typical signature of running without elevation.
+        IsDetectionIncomplete =
+            IsPlaceholder(capability.GpuName) ||
+            IsPlaceholder(capability.CpuName) ||
+            capability.TotalRamBytes <= 0;
+    }
+
+    /// <summary>Returns the value when meaningful, otherwise a friendly fallback.</summary>
+    private static string Friendly(string? value, string fallback)
+        => IsPlaceholder(value) ? fallback : value!.Trim();
+
+    /// <summary>
+    /// True when a sensor field is empty or one of the known non-informative
+    /// placeholders that detection emits when a read fails or is blocked.
+    /// </summary>
+    private static bool IsPlaceholder(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return true;
+
+        var v = value.Trim();
+        return v.Equals("Unknown", StringComparison.OrdinalIgnoreCase)
+            || v.Equals("Unknown GPU", StringComparison.OrdinalIgnoreCase)
+            || v.Equals("Unknown CPU", StringComparison.OrdinalIgnoreCase)
+            || v.Equals("Detection failed", StringComparison.OrdinalIgnoreCase)
+            || v.Contains("Microsoft Basic", StringComparison.OrdinalIgnoreCase);
     }
 
     // ── Build Recommendations ──────────────────────────────────
@@ -497,6 +534,7 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
         RecommendedModelSize = "Unable to determine";
         AdvisoryMessage = "Hardware detection was unable to complete. Please ensure the application has the necessary permissions and try refreshing.";
         PerformanceTier = "Unknown";
+        IsDetectionIncomplete = true;
     }
 
     public void Dispose()
