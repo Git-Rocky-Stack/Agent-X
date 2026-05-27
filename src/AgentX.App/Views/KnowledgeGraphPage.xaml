@@ -104,7 +104,7 @@
                         <!-- Document count badge -->
                         <Border Style="{StaticResource StatBadgeStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <Ellipse Width="8" Height="8" Fill="#3B82F6" VerticalAlignment="Center" />
+                                <Ellipse Width="8" Height="8" Fill="{StaticResource InfoBrush}" VerticalAlignment="Center" />
                                 <TextBlock Style="{StaticResource CaptionStyle}"
                                            Foreground="{StaticResource TextSecondaryBrush}">
                                     <Run Text="{x:Bind ViewModel.DocumentCount, Mode=OneWay}" />
@@ -116,7 +116,7 @@
                         <!-- Collection count badge -->
                         <Border Style="{StaticResource StatBadgeStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <Ellipse Width="8" Height="8" Fill="#8B5CF6" VerticalAlignment="Center" />
+                                <Ellipse Width="8" Height="8" Fill="{StaticResource GraphTagBrush}" VerticalAlignment="Center" />
                                 <TextBlock Style="{StaticResource CaptionStyle}"
                                            Foreground="{StaticResource TextSecondaryBrush}">
                                     <Run Text="{x:Bind ViewModel.CollectionCount, Mode=OneWay}" />
@@ -128,7 +128,7 @@
                         <!-- Tag count badge -->
                         <Border Style="{StaticResource StatBadgeStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <Ellipse Width="8" Height="8" Fill="#F59E0B" VerticalAlignment="Center" />
+                                <Ellipse Width="8" Height="8" Fill="{StaticResource WarningBrush}" VerticalAlignment="Center" />
                                 <TextBlock Style="{StaticResource CaptionStyle}"
                                            Foreground="{StaticResource TextSecondaryBrush}">
                                     <Run Text="{x:Bind ViewModel.TagCount, Mode=OneWay}" />
@@ -318,7 +318,7 @@
 
                         <!-- Document legend item -->
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Ellipse Width="10" Height="10" Fill="#3B82F6" VerticalAlignment="Center" />
+                            <Ellipse Width="10" Height="10" Fill="{StaticResource InfoBrush}" VerticalAlignment="Center" />
                             <TextBlock Text="Document"
                                        Style="{StaticResource CaptionStyle}"
                                        Foreground="{StaticResource TextSecondaryBrush}"
@@ -327,7 +327,7 @@
 
                         <!-- Collection legend item -->
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Ellipse Width="10" Height="10" Fill="#8B5CF6" VerticalAlignment="Center" />
+                            <Ellipse Width="10" Height="10" Fill="{StaticResource GraphTagBrush}" VerticalAlignment="Center" />
                             <TextBlock Text="Collection"
                                        Style="{StaticResource CaptionStyle}"
                                        Foreground="{StaticResource TextSecondaryBrush}"
@@ -336,7 +336,7 @@
 
                         <!-- Tag legend item -->
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Ellipse Width="10" Height="10" Fill="#F59E0B" VerticalAlignment="Center" />
+                            <Ellipse Width="10" Height="10" Fill="{StaticResource WarningBrush}" VerticalAlignment="Center" />
                             <TextBlock Text="Tag"
                                        Style="{StaticResource CaptionStyle}"
                                        Foreground="{StaticResource TextSecondaryBrush}"

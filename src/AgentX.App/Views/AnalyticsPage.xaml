@@ -389,7 +389,7 @@
 
                         <StackPanel Spacing="10">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <Ellipse Width="8" Height="8" Fill="#F97316" VerticalAlignment="Center" />
+                                <Ellipse Width="8" Height="8" Fill="{StaticResource ChartSeriesBrush}" VerticalAlignment="Center" />
                                 <TextBlock Text="30-Day Workflow Run Trend" Style="{StaticResource LabelStyle}" />
                             </StackPanel>
 
@@ -411,7 +411,7 @@
                                                   ToolTipService.ToolTip="{x:Bind Tooltip}">
                                                 <Rectangle Width="20"
                                                            Height="{x:Bind BarHeight}"
-                                                           Fill="#F97316"
+                                                           Fill="{StaticResource ChartSeriesBrush}"
                                                            RadiusX="2" RadiusY="2"
                                                            VerticalAlignment="Bottom"
                                                            HorizontalAlignment="Center" />

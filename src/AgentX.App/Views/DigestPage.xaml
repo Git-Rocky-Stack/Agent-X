@@ -114,7 +114,7 @@
                         <!-- New Conversations -->
                         <Border Style="{StaticResource StatBadgeStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="12">
-                                <Border Background="#1A3B82F6"
+                                <Border Background="{StaticResource InfoSubtleBrush}"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Width="40" Height="40">
                                     <FontIcon Glyph="&#xE8BD;" FontSize="18"
@@ -135,7 +135,7 @@
                         <!-- Searches -->
                         <Border Style="{StaticResource StatBadgeStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="12">
-                                <Border Background="#1AF59E0B"
+                                <Border Background="{StaticResource WarningSubtleBrush}"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Width="40" Height="40">
                                     <FontIcon Glyph="&#xE721;" FontSize="18"
@@ -156,11 +156,11 @@
                         <!-- Tokens Used -->
                         <Border Style="{StaticResource StatBadgeStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="12">
-                                <Border Background="#1A22C55E"
+                                <Border Background="{StaticResource SuccessSubtleBrush}"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Width="40" Height="40">
                                     <FontIcon Glyph="&#xE945;" FontSize="18"
-                                              Foreground="#22C55E"
+                                              Foreground="{StaticResource SuccessBrush}"
                                               HorizontalAlignment="Center"
                                               VerticalAlignment="Center" />
                                 </Border>
@@ -176,11 +176,11 @@
                         <!-- Storage Delta -->
                         <Border Style="{StaticResource StatBadgeStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="12">
-                                <Border Background="#1A8B5CF6"
+                                <Border Background="{StaticResource GraphTagSubtleBrush}"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Width="40" Height="40">
                                     <FontIcon Glyph="&#xEDA2;" FontSize="18"
-                                              Foreground="#8B5CF6"
+                                              Foreground="{StaticResource GraphTagBrush}"
                                               HorizontalAlignment="Center"
                                               VerticalAlignment="Center" />
                                 </Border>
@@ -262,7 +262,7 @@
                             <Border Grid.Column="0" Style="{StaticResource CardStyle}">
                                 <StackPanel Spacing="16">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <Border Background="#1AF59E0B"
+                                        <Border Background="{StaticResource WarningSubtleBrush}"
                                                 CornerRadius="{StaticResource RadiusMD}"
                                                 Width="32" Height="32">
                                             <FontIcon Glyph="&#xE721;" FontSize="14"
@@ -322,7 +322,7 @@
                             <Border Grid.Column="1" Style="{StaticResource CardStyle}">
                                 <StackPanel Spacing="16">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <Border Background="#1A3B82F6"
+                                        <Border Background="{StaticResource InfoSubtleBrush}"
                                                 CornerRadius="{StaticResource RadiusMD}"
                                                 Width="32" Height="32">
                                             <FontIcon Glyph="&#xF168;" FontSize="14"
@@ -388,11 +388,11 @@
                             <Border Grid.Column="0" Style="{StaticResource CardStyle}">
                                 <StackPanel Spacing="16">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <Border Background="#1A8B5CF6"
+                                        <Border Background="{StaticResource GraphTagSubtleBrush}"
                                                 CornerRadius="{StaticResource RadiusMD}"
                                                 Width="32" Height="32">
                                             <FontIcon Glyph="&#xE8F1;" FontSize="14"
-                                                      Foreground="#8B5CF6"
+                                                      Foreground="{StaticResource GraphTagBrush}"
                                                       HorizontalAlignment="Center"
                                                       VerticalAlignment="Center" />
                                         </Border>
@@ -453,11 +453,11 @@
                             <Border Grid.Column="1" Style="{StaticResource CardStyle}">
                                 <StackPanel Spacing="16">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <Border Background="#1A22C55E"
+                                        <Border Background="{StaticResource SuccessSubtleBrush}"
                                                 CornerRadius="{StaticResource RadiusMD}"
                                                 Width="32" Height="32">
                                             <FontIcon Glyph="&#xE8BD;" FontSize="14"
-                                                      Foreground="#22C55E"
+                                                      Foreground="{StaticResource SuccessBrush}"
                                                       HorizontalAlignment="Center"
                                                       VerticalAlignment="Center" />
                                         </Border>
