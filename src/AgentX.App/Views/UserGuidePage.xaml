@@ -16,7 +16,8 @@
             <!-- Page Header -->
             <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,20">
                 <TextBlock x:Uid="UserGuide_PageHeaderTitle"
-                           Style="{StaticResource DisplaySmallStyle}" />
+                           Style="{StaticResource DisplaySmallStyle}"
+                           AutomationProperties.HeadingLevel="Level1" />
                 <TextBlock x:Uid="UserGuide_PageHeaderDescription"
                            Style="{StaticResource BodySecondaryStyle}" />
             </StackPanel>

@@ -28,7 +28,8 @@
                               Foreground="{StaticResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_WebSearch_Title"
-                               Style="{StaticResource HeadingMediumStyle}" />
+                               Style="{StaticResource HeadingMediumStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
                 </Grid>
 
                 <TextBlock Style="{StaticResource BodyStyle}"
@@ -204,7 +205,8 @@
                               Foreground="{StaticResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_WebImport_Title"
-                               Style="{StaticResource HeadingMediumStyle}" />
+                               Style="{StaticResource HeadingMediumStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
                 </Grid>
 
                 <TextBlock Style="{StaticResource BodyStyle}"
@@ -353,7 +355,8 @@
                               Foreground="{StaticResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_Citations_Title"
-                               Style="{StaticResource HeadingMediumStyle}" />
+                               Style="{StaticResource HeadingMediumStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
                 </Grid>
 
                 <TextBlock Style="{StaticResource BodyStyle}"
@@ -478,7 +481,8 @@
                               Foreground="{StaticResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_BrowserExtension_Title"
-                               Style="{StaticResource HeadingMediumStyle}" />
+                               Style="{StaticResource HeadingMediumStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
                 </Grid>
 
                 <TextBlock Style="{StaticResource BodyStyle}"
@@ -626,7 +630,8 @@
                               Foreground="{StaticResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_MobileCompanion_Title"
-                               Style="{StaticResource HeadingMediumStyle}" />
+                               Style="{StaticResource HeadingMediumStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
                 </Grid>
 
                 <TextBlock Style="{StaticResource BodyStyle}"

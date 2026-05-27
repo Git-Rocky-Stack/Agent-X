@@ -105,7 +105,8 @@
                     <!-- Refresh button -->
                     <Button Style="{StaticResource SecondaryButtonStyle}"
                             Command="{x:Bind ViewModel.RefreshCommand}"
-                            ToolTipService.ToolTip="Refresh documents">
+                            ToolTipService.ToolTip="Refresh documents"
+                            AutomationProperties.Name="Refresh documents">
                         <FontIcon Glyph="&#xE72C;" FontSize="14" />
                     </Button>
                 </StackPanel>
@@ -440,7 +441,8 @@
                                 Style="{StaticResource GhostButtonStyle}"
                                 Command="{x:Bind ViewModel.ClearFiltersCommand}"
                                 Visibility="{x:Bind ViewModel.HasActiveFilters, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                                ToolTipService.ToolTip="Clear all filters">
+                                ToolTipService.ToolTip="Clear all filters"
+                                AutomationProperties.Name="Clear all filters">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE711;" FontSize="12"
                                           Foreground="{StaticResource TextAccentBrush}" />
@@ -777,7 +779,8 @@
                                                 Padding="8,6,8,6" MinHeight="32"
                                                 Tag="{x:Bind Id}"
                                                 Click="OnGenerateTitleClick"
-                                                ToolTipService.ToolTip="Generate AI title">
+                                                ToolTipService.ToolTip="Generate AI title"
+                                                AutomationProperties.Name="Generate AI title">
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <FontIcon Glyph="&#xE945;" FontSize="12"
                                                           Foreground="{StaticResource TextAccentBrush}" />
@@ -822,7 +825,8 @@
                                                 Padding="8,6,8,6" MinHeight="32"
                                                 Tag="{x:Bind Id}"
                                                 Click="OnReindexClick"
-                                                ToolTipService.ToolTip="Re-index document">
+                                                ToolTipService.ToolTip="Re-index document"
+                                                AutomationProperties.Name="Re-index document">
                                             <FontIcon Glyph="&#xE72C;" FontSize="12"
                                                       Foreground="{StaticResource TextSecondaryBrush}" />
                                         </Button>
@@ -832,7 +836,8 @@
                                                 Padding="8,6,8,6" MinHeight="32"
                                                 Tag="{x:Bind FilePath}"
                                                 Click="OnOpenInExplorerClick"
-                                                ToolTipService.ToolTip="Open file location">
+                                                ToolTipService.ToolTip="Open file location"
+                                                AutomationProperties.Name="Open file location">
                                             <FontIcon Glyph="&#xE8DA;" FontSize="12"
                                                       Foreground="{StaticResource TextSecondaryBrush}" />
                                         </Button>
@@ -842,7 +847,8 @@
                                                 Padding="8,6,8,6" MinHeight="32"
                                                 Tag="{x:Bind Id}"
                                                 Click="OnDeleteDocumentClick"
-                                                ToolTipService.ToolTip="Delete document">
+                                                ToolTipService.ToolTip="Delete document"
+                                                AutomationProperties.Name="Delete document">
                                             <FontIcon Glyph="&#xE74D;" FontSize="12"
                                                       Foreground="{StaticResource ErrorBrush}" />
                                         </Button>
@@ -973,7 +979,8 @@
                         <Button Grid.Column="1"
                                 Style="{StaticResource IconButtonStyle}"
                                 Command="{x:Bind ViewModel.ClosePreviewCommand}"
-                                ToolTipService.ToolTip="Close preview">
+                                ToolTipService.ToolTip="Close preview"
+                                AutomationProperties.Name="Close preview">
                             <FontIcon Glyph="&#xE711;" FontSize="12"
                                       Foreground="{StaticResource TextSecondaryBrush}" />
                         </Button>

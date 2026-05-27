@@ -175,7 +175,8 @@
                                                     Foreground="{StaticResource ErrorBrush}"
                                                     Style="{StaticResource GhostButtonStyle}"
                                                     Padding="6" MinWidth="0" MinHeight="0"
-                                                    ToolTipService.ToolTip="Delete annotation" />
+                                                    ToolTipService.ToolTip="Delete annotation"
+                                                    AutomationProperties.Name="Delete annotation" />
                                         </Grid>
 
                                         <!-- Highlighted Text -->

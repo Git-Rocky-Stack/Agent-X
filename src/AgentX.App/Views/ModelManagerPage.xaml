@@ -349,6 +349,8 @@
                                         <Button Style="{StaticResource GhostButtonStyle}"
                                                 Padding="12,8,12,8" MinHeight="34"
                                                 Tag="{x:Bind Name, Mode=OneWay}"
+                                                ToolTipService.ToolTip="Copy model name"
+                                                AutomationProperties.Name="Copy model name"
                                                 Click="OnCopyModelNameClick">
                                             <FontIcon Glyph="&#xE8C8;" FontSize="14"
                                                       Foreground="{StaticResource TextSecondaryBrush}" />
@@ -356,6 +358,8 @@
                                         <Button Style="{StaticResource GhostButtonStyle}"
                                                 Padding="12,8,12,8" MinHeight="34"
                                                 Tag="{x:Bind Id, Mode=OneWay}"
+                                                ToolTipService.ToolTip="Delete model"
+                                                AutomationProperties.Name="Delete model"
                                                 Click="OnDeleteModelClick">
                                             <FontIcon Glyph="&#xE74D;" FontSize="14"
                                                       Foreground="{StaticResource ErrorBrush}" />

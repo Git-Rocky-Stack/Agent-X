@@ -494,6 +494,7 @@
                             Style="{StaticResource IconButtonStyle}"
                             Command="{x:Bind ViewModel.ToggleConversationPaneCommand}"
                             ToolTipService.ToolTip="Toggle sidebar"
+                            AutomationProperties.Name="Toggle sidebar"
                             Margin="0,0,8,0">
                         <FontIcon Glyph="&#xE700;" FontSize="16"
                                   Foreground="{StaticResource TextSecondaryBrush}" />
@@ -675,6 +676,7 @@
                             Style="{StaticResource IconButtonStyle}"
                             Command="{x:Bind ViewModel.CompareBranchesCommand}"
                             ToolTipService.ToolTip="Compare branches"
+                            AutomationProperties.Name="Compare branches"
                             Margin="0,0,4,0"
                             Visibility="{x:Bind ViewModel.HasBranches, Mode=OneWay}">
                         <FontIcon Glyph="&#xE735;" FontSize="14"
@@ -685,7 +687,8 @@
                     <Button Grid.Column="8"
                             Style="{StaticResource IconButtonStyle}"
                             Command="{x:Bind ViewModel.RefreshConnectionCommand}"
-                            ToolTipService.ToolTip="Refresh connection">
+                            ToolTipService.ToolTip="Refresh connection"
+                            AutomationProperties.Name="Refresh connection">
                         <FontIcon Glyph="&#xE72C;" FontSize="14"
                                   Foreground="{StaticResource TextSecondaryBrush}" />
                     </Button>
@@ -694,6 +697,7 @@
                     <Button Grid.Column="9"
                             Style="{StaticResource IconButtonStyle}"
                             ToolTipService.ToolTip="Export conversation"
+                            AutomationProperties.Name="Export conversation"
                             Click="ExportButton_Click"
                             Margin="4,0,0,0">
                         <FontIcon Glyph="&#xEDE1;" FontSize="14"
@@ -1514,7 +1518,8 @@
                                     MinWidth="44"
                                     Command="{x:Bind ViewModel.SendMessageCommand}"
                                     Visibility="{x:Bind ViewModel.IsGenerating, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}"
-                                    ToolTipService.ToolTip="Send message (Enter)">
+                                    ToolTipService.ToolTip="Send message (Enter)"
+                                    AutomationProperties.Name="Send message">
                                 <FontIcon Glyph="&#xE724;" FontSize="16" />
                             </Button>
 
@@ -1526,7 +1531,8 @@
                                     BorderBrush="{StaticResource ErrorBrush}"
                                     Command="{x:Bind ViewModel.StopGenerationCommand}"
                                     Visibility="{x:Bind ViewModel.IsGenerating, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
-                                    ToolTipService.ToolTip="Stop generation">
+                                    ToolTipService.ToolTip="Stop generation"
+                                    AutomationProperties.Name="Stop generation">
                                 <FontIcon Glyph="&#xE71A;" FontSize="16"
                                           Foreground="{StaticResource ErrorBrush}" />
                             </Button>

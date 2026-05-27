@@ -28,7 +28,8 @@
                               Foreground="{StaticResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_AdvancedQueries_Title"
-                               Style="{StaticResource HeadingMediumStyle}" />
+                               Style="{StaticResource HeadingMediumStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
                 </Grid>
 
                 <TextBlock Style="{StaticResource BodyStyle}"
@@ -129,7 +130,8 @@
                               Foreground="{StaticResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_PerformanceTuning_Title"
-                               Style="{StaticResource HeadingMediumStyle}" />
+                               Style="{StaticResource HeadingMediumStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
                 </Grid>
 
                 <TextBlock Style="{StaticResource BodyStyle}"
@@ -181,7 +183,8 @@
                               Foreground="{StaticResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_Export_Title"
-                               Style="{StaticResource HeadingMediumStyle}" />
+                               Style="{StaticResource HeadingMediumStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
                 </Grid>
 
                 <TextBlock Style="{StaticResource BodyStyle}"
