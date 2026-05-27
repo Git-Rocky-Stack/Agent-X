@@ -249,8 +249,8 @@
                  ======================================================= -->
             <Border Grid.Row="3"
                     Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                    Background="#1AEF4444"
-                    BorderBrush="#33EF4444"
+                    Background="{StaticResource ErrorSubtleBrush}"
+                    BorderBrush="{StaticResource ErrorBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusMD}"
                     Padding="16,12">
@@ -325,7 +325,7 @@
                                         <TextBlock Text="{x:Bind Name, Mode=OneWay}"
                                                    Style="{StaticResource HeadingSmallStyle}" />
                                         <!-- Active badge -->
-                                        <Border Background="#1A22C55E"
+                                        <Border Background="{StaticResource SuccessSubtleBrush}"
                                                 CornerRadius="{StaticResource RadiusRound}"
                                                 Padding="10,3,10,3"
                                                 Visibility="{x:Bind IsActive, Mode=OneWay, Converter={StaticResource BoolToVis}}">

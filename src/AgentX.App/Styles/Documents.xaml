@@ -58,28 +58,28 @@
 
     <!-- Completed: green -->
     <Style x:Key="StatusBadgeCompletedStyle" TargetType="Border">
-        <Setter Property="Background" Value="#1A22C55E" />
+        <Setter Property="Background" Value="{StaticResource SuccessSubtleBrush}" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
         <Setter Property="Padding" Value="8,3,8,3" />
     </Style>
 
     <!-- Processing: amber/warning -->
     <Style x:Key="StatusBadgeProcessingStyle" TargetType="Border">
-        <Setter Property="Background" Value="#1AF59E0B" />
+        <Setter Property="Background" Value="{StaticResource WarningSubtleBrush}" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
         <Setter Property="Padding" Value="8,3,8,3" />
     </Style>
 
     <!-- Pending: blue/info -->
     <Style x:Key="StatusBadgePendingStyle" TargetType="Border">
-        <Setter Property="Background" Value="#1A3B82F6" />
+        <Setter Property="Background" Value="{StaticResource InfoSubtleBrush}" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
         <Setter Property="Padding" Value="8,3,8,3" />
     </Style>
 
     <!-- Failed: red/error -->
     <Style x:Key="StatusBadgeFailedStyle" TargetType="Border">
-        <Setter Property="Background" Value="#1AEF4444" />
+        <Setter Property="Background" Value="{StaticResource ErrorSubtleBrush}" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
         <Setter Property="Padding" Value="8,3,8,3" />
     </Style>

@@ -395,8 +395,8 @@
                     <!-- Row 3: Error message -->
                     <Border Grid.Row="3"
                             Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                            Background="#1AEF4444"
-                            BorderBrush="#33EF4444"
+                            Background="{StaticResource ErrorSubtleBrush}"
+                            BorderBrush="{StaticResource ErrorBrush}"
                             BorderThickness="1"
                             CornerRadius="{StaticResource RadiusMD}"
                             Padding="16,12">

@@ -75,7 +75,7 @@
                             <Border Style="{StaticResource BadgeSuccessStyle}">
                                 <TextBlock Text="FREE"
                                            Style="{StaticResource BadgeStyle}"
-                                           Foreground="#FF22C55E" />
+                                           Foreground="{StaticResource SuccessBrush}" />
                             </Border>
                         </StackPanel>
 
