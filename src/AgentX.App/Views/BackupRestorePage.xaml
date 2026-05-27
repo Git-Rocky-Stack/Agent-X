@@ -11,6 +11,7 @@
         <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
         <converters:BoolToVisibilityConverter x:Key="InverseBoolToVis" IsInverted="True" />
         <converters:InverseBoolConverter x:Key="InverseBool" />
+        <converters:StatusToColorConverter x:Key="StatusToColor" />
     </Page.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto"
@@ -269,15 +270,16 @@
                                             </StackPanel>
                                         </StackPanel>
 
-                                        <!-- Valid Badge -->
+                                        <!-- Integrity Badge — label + color bound to real IsValid
+                                             state instead of a constant green "Valid". -->
                                         <Border Grid.Column="2"
                                                 CornerRadius="{StaticResource RadiusSM}"
                                                 Background="{StaticResource AccentSubtleBrush}"
                                                 Padding="8,2"
                                                 VerticalAlignment="Center">
-                                            <TextBlock Text="Valid"
+                                            <TextBlock Text="{x:Bind IntegrityLabel, Mode=OneWay}"
                                                        Style="{StaticResource CaptionStyle}"
-                                                       Foreground="{StaticResource SuccessBrush}" />
+                                                       Foreground="{x:Bind IntegrityStatus, Mode=OneWay, Converter={StaticResource StatusToColor}}" />
                                         </Border>
 
                                         <!-- Actions -->
