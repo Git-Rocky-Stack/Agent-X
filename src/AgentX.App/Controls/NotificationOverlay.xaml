@@ -32,6 +32,7 @@
 
                         <!-- Severity icon -->
                         <FontIcon Glyph="{x:Bind GlyphIcon}"
+                                  Foreground="{x:Bind SeverityBrush}"
                                   FontSize="16"
                                   VerticalAlignment="Top"
                                   Margin="0,2,0,0" />
