@@ -10,6 +10,7 @@
     <Page.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
         <converters:BoolToVisibilityConverter x:Key="InverseBoolToVis" IsInverted="True" />
+        <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
     </Page.Resources>
 
     <Grid>
@@ -69,7 +70,7 @@
                         <!-- Generate button -->
                         <Button Style="{StaticResource AccentButtonStyle}"
                                 Command="{x:Bind ViewModel.GenerateDigestCommand}"
-                                IsEnabled="{x:Bind ViewModel.IsGenerating, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
+                                IsEnabled="{x:Bind ViewModel.IsGenerating, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <ProgressRing IsActive="{x:Bind ViewModel.IsGenerating, Mode=OneWay}"
                                               Width="14" Height="14"
