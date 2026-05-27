@@ -102,6 +102,14 @@
     <Color x:Key="StatusErrorSubtle">#26EF4444</Color>
     <Color x:Key="StatusInfoSubtle">#263B82F6</Color>
 
+    <!-- Data-Visualization Colors (sanctioned, off-palette for graph/chart legibility)
+         GraphTag (violet) distinguishes a third node/series class from Info-blue &
+         Warning-amber. ChartSeries (orange) reuses Warning intent for series accents. -->
+    <Color x:Key="GraphTagColor">#FF8B5CF6</Color>
+    <Color x:Key="GraphTagSubtle">#268B5CF6</Color>
+    <Color x:Key="ChartSeriesColor">#FFF97316</Color>
+    <Color x:Key="ChartSeriesSubtle">#26F97316</Color>
+
     <!-- ═══════════════════════════════════════════════════════════════
          SEMANTIC BRUSH SYSTEM
          ═══════════════════════════════════════════════════════════════ -->
@@ -223,6 +231,12 @@
     <SolidColorBrush x:Key="WarningSubtleBrush" Color="{StaticResource StatusWarningSubtle}" />
     <SolidColorBrush x:Key="ErrorSubtleBrush" Color="{StaticResource StatusErrorSubtle}" />
     <SolidColorBrush x:Key="InfoSubtleBrush" Color="{StaticResource StatusInfoSubtle}" />
+
+    <!-- Data-Visualization Brushes (graph nodes / chart series) -->
+    <SolidColorBrush x:Key="GraphTagBrush" Color="{StaticResource GraphTagColor}" />
+    <SolidColorBrush x:Key="GraphTagSubtleBrush" Color="{StaticResource GraphTagSubtle}" />
+    <SolidColorBrush x:Key="ChartSeriesBrush" Color="{StaticResource ChartSeriesColor}" />
+    <SolidColorBrush x:Key="ChartSeriesSubtleBrush" Color="{StaticResource ChartSeriesSubtle}" />
 
     <!-- Input Field Brushes -->
     <SolidColorBrush x:Key="InputBackgroundBrush" Color="{StaticResource Surface0}" />
