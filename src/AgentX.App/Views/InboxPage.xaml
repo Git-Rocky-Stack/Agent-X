@@ -218,7 +218,7 @@
                                                     <!-- Web Clip badge — visible only for browser-extension items -->
                                                     <Border Visibility="{x:Bind IsBrowserClip, Converter={StaticResource BoolToVis}}"
                                                             CornerRadius="4"
-                                                            Background="#1A4FC3"
+                                                            Background="{StaticResource InfoBrush}"
                                                             Padding="6,2"
                                                             VerticalAlignment="Center">
                                                         <StackPanel Orientation="Horizontal" Spacing="4">

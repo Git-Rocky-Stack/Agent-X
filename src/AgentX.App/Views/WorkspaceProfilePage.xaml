@@ -161,7 +161,7 @@
                                                    TextTrimming="CharacterEllipsis" />
 
                                         <!-- Default badge -->
-                                        <Border Background="#1A22C55E"
+                                        <Border Background="{StaticResource SuccessSubtleBrush}"
                                                 CornerRadius="{StaticResource RadiusRound}"
                                                 Padding="6,2,6,2"
                                                 Visibility="{x:Bind IsDefault, Mode=OneWay, Converter={StaticResource BoolToVis}}">
@@ -294,7 +294,7 @@
                                            VerticalAlignment="Center" />
 
                                 <!-- Default badge in header -->
-                                <Border Background="#1A22C55E"
+                                <Border Background="{StaticResource SuccessSubtleBrush}"
                                         CornerRadius="{StaticResource RadiusRound}"
                                         Padding="10,3,10,3"
                                         Visibility="{x:Bind ViewModel.SelectedProfile.IsDefault, Mode=OneWay, Converter={StaticResource BoolToVis}}"
@@ -329,8 +329,8 @@
                     <StackPanel Grid.Row="1" Spacing="8">
                         <!-- Success / Status message -->
                         <Border Visibility="{x:Bind ViewModel.HasStatusMessage, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                                Background="#1A22C55E"
-                                BorderBrush="#3322C55E"
+                                Background="{StaticResource SuccessSubtleBrush}"
+                                BorderBrush="{StaticResource SuccessBrush}"
                                 BorderThickness="1"
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="16,12">
@@ -347,8 +347,8 @@
 
                         <!-- Error message -->
                         <Border Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                                Background="#1AEF4444"
-                                BorderBrush="#33EF4444"
+                                Background="{StaticResource ErrorSubtleBrush}"
+                                BorderBrush="{StaticResource ErrorBrush}"
                                 BorderThickness="1"
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="16,12">

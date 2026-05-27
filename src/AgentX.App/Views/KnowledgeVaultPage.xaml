@@ -117,15 +117,15 @@
                  ═══════════════════════════════════════════════════════ -->
             <Border Grid.Row="1"
                     Visibility="{x:Bind ViewModel.ShowDuplicateWarning, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                    Background="#2D1D1D" CornerRadius="8" Padding="16,12"
-                    BorderBrush="#F59E0B" BorderThickness="1">
+                    Background="{StaticResource WarningSubtleBrush}" CornerRadius="8" Padding="16,12"
+                    BorderBrush="{StaticResource WarningBrush}" BorderThickness="1">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <FontIcon Glyph="&#xE7BA;" FontSize="20" Foreground="#F59E0B"
+                    <FontIcon Glyph="&#xE7BA;" FontSize="20" Foreground="{StaticResource WarningBrush}"
                               VerticalAlignment="Center" Margin="0,0,12,0" />
                     <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
                         <TextBlock Text="Duplicate Documents Detected"
@@ -177,7 +177,7 @@
                     <!-- Storage size stat -->
                     <Border Style="{StaticResource StatBadgeStyle}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Border Background="#1A3B82F6"
+                            <Border Background="{StaticResource InfoSubtleBrush}"
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Width="40" Height="40">
                                 <FontIcon Glyph="&#xEDA2;" FontSize="18"
@@ -197,7 +197,7 @@
                     <!-- Indexing queue stat -->
                     <Border Style="{StaticResource StatBadgeStyle}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Border Background="#1AF59E0B"
+                            <Border Background="{StaticResource WarningSubtleBrush}"
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Width="40" Height="40">
                                 <FontIcon Glyph="&#xE915;" FontSize="18"
@@ -459,7 +459,7 @@
                  ═══════════════════════════════════════════════════════ -->
             <Border Grid.Row="4"
                     Visibility="{x:Bind ViewModel.IsMultiSelectMode, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                    Background="#1AEF4444"
+                    Background="{StaticResource ErrorSubtleBrush}"
                     BorderBrush="{StaticResource BorderSubtleBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusMD}"
@@ -488,10 +488,10 @@
                         </Button>
                         <Button Style="{StaticResource GhostButtonStyle}" Padding="12,6"
                                 Command="{x:Bind ViewModel.BulkDeleteCommand}"
-                                Foreground="#EF4444">
+                                Foreground="{StaticResource ErrorBrush}">
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="#EF4444" />
-                                <TextBlock Text="Delete" Foreground="#EF4444" />
+                                <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="{StaticResource ErrorBrush}" />
+                                <TextBlock Text="Delete" Foreground="{StaticResource ErrorBrush}" />
                             </StackPanel>
                         </Button>
                     </StackPanel>
@@ -503,8 +503,8 @@
                  ═══════════════════════════════════════════════════════ -->
             <Border Grid.Row="5"
                     Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                    Background="#1AEF4444"
-                    BorderBrush="#33EF4444"
+                    Background="{StaticResource ErrorSubtleBrush}"
+                    BorderBrush="{StaticResource ErrorBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusMD}"
                     Padding="16,12">

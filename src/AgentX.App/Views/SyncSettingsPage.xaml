@@ -107,8 +107,8 @@
                  ======================================================= -->
             <Border Grid.Row="1"
                     Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                    Background="#1AEF4444"
-                    BorderBrush="#33EF4444"
+                    Background="{StaticResource ErrorSubtleBrush}"
+                    BorderBrush="{StaticResource ErrorBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusMD}"
                     Padding="16,12">
@@ -133,8 +133,8 @@
                  ======================================================= -->
             <Border Grid.Row="2"
                     Visibility="{x:Bind ViewModel.HasSuccess, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                    Background="#1A22C55E"
-                    BorderBrush="#3322C55E"
+                    Background="{StaticResource SuccessSubtleBrush}"
+                    BorderBrush="{StaticResource SuccessBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusMD}"
                     Padding="16,12">
@@ -159,8 +159,8 @@
                  ======================================================= -->
             <Border Grid.Row="3"
                     Visibility="{x:Bind ViewModel.StatusMessage, Mode=OneWay, Converter={StaticResource StringToVis}}"
-                    Background="#1A3B82F6"
-                    BorderBrush="#333B82F6"
+                    Background="{StaticResource InfoSubtleBrush}"
+                    BorderBrush="{StaticResource InfoBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusMD}"
                     Padding="16,12">

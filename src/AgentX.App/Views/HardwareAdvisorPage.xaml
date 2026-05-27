@@ -165,7 +165,7 @@
                         <!-- Header -->
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <Grid Width="40" Height="40">
-                                <Ellipse Fill="#1A3B82F6"
+                                <Ellipse Fill="{StaticResource InfoSubtleBrush}"
                                          Width="40" Height="40" />
                                 <FontIcon Glyph="&#xE7F4;" FontSize="18"
                                           Foreground="{StaticResource InfoBrush}"
@@ -226,7 +226,7 @@
                         <!-- Header -->
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <Grid Width="40" Height="40">
-                                <Ellipse Fill="#1A22C55E"
+                                <Ellipse Fill="{StaticResource SuccessSubtleBrush}"
                                          Width="40" Height="40" />
                                 <FontIcon Glyph="&#xE950;" FontSize="18"
                                           Foreground="{StaticResource SuccessBrush}"
@@ -344,8 +344,8 @@
                  ======================================================= -->
             <Border Grid.Row="4"
                     Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                    Background="#1AEF4444"
-                    BorderBrush="#33EF4444"
+                    Background="{StaticResource ErrorSubtleBrush}"
+                    BorderBrush="{StaticResource ErrorBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusMD}"
                     Padding="16,12">
@@ -446,7 +446,7 @@
                                             <!-- Install button or Installed badge -->
                                             <Border Grid.Column="1"
                                                     Visibility="{x:Bind IsInstalled, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                                                    Background="#1A22C55E"
+                                                    Background="{StaticResource SuccessSubtleBrush}"
                                                     CornerRadius="{StaticResource RadiusRound}"
                                                     Padding="12,6,12,6">
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
@@ -514,7 +514,7 @@
                                                        Style="{StaticResource HeadingSmallStyle}" />
 
                                             <Border Grid.Column="1"
-                                                    Background="#1A3B82F6"
+                                                    Background="{StaticResource InfoSubtleBrush}"
                                                     CornerRadius="{StaticResource RadiusRound}"
                                                     Padding="10,4,10,4">
                                                 <TextBlock Text="Code"
@@ -547,7 +547,7 @@
 
                                             <Border Grid.Column="1"
                                                     Visibility="{x:Bind IsInstalled, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                                                    Background="#1A22C55E"
+                                                    Background="{StaticResource SuccessSubtleBrush}"
                                                     CornerRadius="{StaticResource RadiusRound}"
                                                     Padding="12,6,12,6">
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
@@ -615,7 +615,7 @@
                                                        Style="{StaticResource HeadingSmallStyle}" />
 
                                             <Border Grid.Column="1"
-                                                    Background="#1A22C55E"
+                                                    Background="{StaticResource SuccessSubtleBrush}"
                                                     CornerRadius="{StaticResource RadiusRound}"
                                                     Padding="10,4,10,4">
                                                 <TextBlock Text="Embedding"
@@ -648,7 +648,7 @@
 
                                             <Border Grid.Column="1"
                                                     Visibility="{x:Bind IsInstalled, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                                                    Background="#1A22C55E"
+                                                    Background="{StaticResource SuccessSubtleBrush}"
                                                     CornerRadius="{StaticResource RadiusRound}"
                                                     Padding="12,6,12,6">
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
