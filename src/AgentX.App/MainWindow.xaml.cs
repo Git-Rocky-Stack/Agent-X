@@ -104,6 +104,12 @@ public sealed partial class MainWindow : Window
         _chromeService.ConfigureTitleBar(this);
         _chromeService.ConfigureBackdrop(this);
 
+        // Register the reserved caption strip as the draggable title-bar region.
+        // ConfigureTitleBar sets ExtendsContentIntoTitleBar; without a SetTitleBar
+        // call the whole client area becomes drag-dead and page headers render
+        // under the caption buttons. AppTitleBar reserves that strip.
+        SetTitleBar(AppTitleBar);
+
         ConfigureStatusBar();
 
         QueueInitialNavigation();
