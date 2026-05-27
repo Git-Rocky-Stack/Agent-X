@@ -23,6 +23,7 @@
         <converters:BoolToVisibilityConverter x:Key="InverseBoolToVis" IsInverted="True" />
         <converters:InverseBoolConverter x:Key="InverseBool" />
         <converters:StringToVisibilityConverter x:Key="StringToVis" />
+        <converters:StatusToColorConverter x:Key="StatusToColor" />
     </Page.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto"
@@ -72,13 +73,12 @@
                         Visibility="{x:Bind ViewModel.IsConfigured, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                     <Border Style="{StaticResource BadgeDefaultStyle}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
+                            <!-- Dot color reflects the actual sync state
+                                 (idle/syncing/error/conflict) rather than a
+                                 constant online green. -->
                             <Ellipse Width="8" Height="8"
-                                     VerticalAlignment="Center">
-                                <Ellipse.Fill>
-                                    <SolidColorBrush x:Name="SyncStateDotBrush"
-                                                     Color="{StaticResource StatusOnline}" />
-                                </Ellipse.Fill>
-                            </Ellipse>
+                                     VerticalAlignment="Center"
+                                     Fill="{x:Bind ViewModel.SyncStateDisplay, Mode=OneWay, Converter={StaticResource StatusToColor}}" />
                             <TextBlock Text="{x:Bind ViewModel.SyncStateDisplay, Mode=OneWay}"
                                        Style="{StaticResource BadgeStyle}" />
                         </StackPanel>
