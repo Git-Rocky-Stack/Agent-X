@@ -69,10 +69,10 @@
                     <StackPanel Spacing="12">
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <Ellipse Width="10" Height="10"
-                                     Fill="{StaticResource OfflineBrush}" />
+                                     Fill="{ThemeResource OfflineBrush}" />
                             <TextBlock Text="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay}"
                                        Style="{StaticResource BodyStyle}"
-                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                       Foreground="{ThemeResource TextSecondaryBrush}" />
                         </StackPanel>
 
                         <TextBlock Text="{x:Bind ViewModel.ActiveModelName, Mode=OneWay}"
@@ -105,7 +105,7 @@
 
                     <FontIcon Glyph="&#xE721;"
                               FontSize="18"
-                              Foreground="{StaticResource TextTertiaryBrush}"
+                              Foreground="{ThemeResource TextTertiaryBrush}"
                               VerticalAlignment="Center" />
 
                     <TextBox Grid.Column="1"
@@ -120,7 +120,7 @@
                             VerticalAlignment="Center">
                         <TextBlock Text="Ctrl+K"
                                    Style="{StaticResource MonoSmallStyle}"
-                                   Foreground="{StaticResource TextTertiaryBrush}" />
+                                   Foreground="{ThemeResource TextTertiaryBrush}" />
                     </Border>
                 </Grid>
             </Border>
@@ -141,7 +141,7 @@
                     <Grid>                        <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8F1;" FontSize="14"
-                                          Foreground="{StaticResource TextAccentBrush}" />
+                                          Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock Text="DOCUMENTS"
                                            Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
@@ -151,7 +151,7 @@
                                 <Run Text="across " />
                                 <Run Text="{x:Bind ViewModel.TotalCollections, Mode=OneWay}"
                                      FontWeight="SemiBold"
-                                     Foreground="{StaticResource TextSecondaryBrush}" />
+                                     Foreground="{ThemeResource TextSecondaryBrush}" />
                                 <Run Text=" collections" />
                             </TextBlock>
                         </StackPanel>
@@ -163,7 +163,7 @@
                     <Grid>                        <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xEDA2;" FontSize="14"
-                                          Foreground="{StaticResource InfoBrush}" />
+                                          Foreground="{ThemeResource InfoBrush}" />
                                 <TextBlock Text="STORAGE"
                                            Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
@@ -173,7 +173,7 @@
                                 <TextBlock Style="{StaticResource CaptionStyle}">
                                     <Run Text="{x:Bind ViewModel.IndexedPercent, Mode=OneWay}"
                                          FontWeight="SemiBold"
-                                         Foreground="{StaticResource TextSecondaryBrush}" />
+                                         Foreground="{ThemeResource TextSecondaryBrush}" />
                                     <Run Text="% indexed" />
                                 </TextBlock>
                                 <ProgressBar Value="{x:Bind ViewModel.IndexedPercent, Mode=OneWay}"
@@ -189,7 +189,7 @@
                     <Grid>                        <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8BD;" FontSize="14"
-                                          Foreground="{StaticResource WarningBrush}" />
+                                          Foreground="{ThemeResource WarningBrush}" />
                                 <TextBlock Text="AI SESSIONS"
                                            Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
@@ -198,7 +198,7 @@
                             <TextBlock Style="{StaticResource CaptionStyle}">
                                 <Run Text="{x:Bind ViewModel.TotalTokensUsed, Mode=OneWay}"
                                      FontWeight="SemiBold"
-                                     Foreground="{StaticResource TextSecondaryBrush}" />
+                                     Foreground="{ThemeResource TextSecondaryBrush}" />
                                 <Run Text=" tokens used" />
                             </TextBlock>
                         </StackPanel>
@@ -210,7 +210,7 @@
                     <Grid>                        <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE964;" FontSize="14"
-                                          Foreground="{StaticResource SuccessBrush}" />
+                                          Foreground="{ThemeResource SuccessBrush}" />
                                 <TextBlock Text="SYSTEM"
                                            Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
@@ -276,7 +276,7 @@
                             <StackPanel Spacing="10">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE9D2;" FontSize="14"
-                                              Foreground="{StaticResource TextAccentBrush}" />
+                                              Foreground="{ThemeResource TextAccentBrush}" />
                                     <TextBlock Text="CONVERSATION INTELLIGENCE"
                                                Style="{StaticResource OverlineStyle}" />
                                 </StackPanel>
@@ -312,7 +312,7 @@
                             <StackPanel Spacing="10">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE895;" FontSize="14"
-                                              Foreground="{StaticResource InfoBrush}" />
+                                              Foreground="{ThemeResource InfoBrush}" />
                                     <TextBlock Text="SYNC HEALTH"
                                                Style="{StaticResource OverlineStyle}" />
                                 </StackPanel>
@@ -348,7 +348,7 @@
                             <StackPanel Spacing="10">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE943;" FontSize="14"
-                                              Foreground="{StaticResource SuccessBrush}" />
+                                              Foreground="{ThemeResource SuccessBrush}" />
                                     <TextBlock Text="CONNECTORS &amp; PLUGINS"
                                                Style="{StaticResource OverlineStyle}" />
                                 </StackPanel>
@@ -384,7 +384,7 @@
                             <StackPanel Spacing="10">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE8B7;" FontSize="14"
-                                              Foreground="{StaticResource WarningBrush}" />
+                                              Foreground="{ThemeResource WarningBrush}" />
                                     <TextBlock Text="INGESTION BACKLOG"
                                                Style="{StaticResource OverlineStyle}" />
                                 </StackPanel>
@@ -420,7 +420,7 @@
                             <StackPanel Spacing="10">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE8C7;" FontSize="14"
-                                              Foreground="{StaticResource SuccessBrush}" />
+                                              Foreground="{ThemeResource SuccessBrush}" />
                                     <TextBlock Text="WORKFLOW ACTIVITY"
                                                Style="{StaticResource OverlineStyle}" />
                                 </StackPanel>
@@ -434,12 +434,12 @@
                                     <Border Style="{StaticResource BadgeDefaultStyle}">
                                         <TextBlock Text="{x:Bind ViewModel.WorkflowRecentActivity, Mode=OneWay}"
                                                    Style="{StaticResource CaptionStyle}"
-                                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                                                   Foreground="{ThemeResource TextSecondaryBrush}" />
                                     </Border>
                                     <Border Style="{StaticResource BadgeDefaultStyle}">
                                         <TextBlock Text="{x:Bind ViewModel.WorkflowAverageDuration, Mode=OneWay}"
                                                    Style="{StaticResource CaptionStyle}"
-                                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                                                   Foreground="{ThemeResource TextSecondaryBrush}" />
                                     </Border>
                                 </StackPanel>
                                 <TextBlock Text="{x:Bind ViewModel.WorkflowDetail, Mode=OneWay}"
@@ -479,7 +479,7 @@
 
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Glyph="&#xE8F1;" FontSize="16"
-                                          Foreground="{StaticResource TextAccentBrush}" />
+                                          Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock Text="Recent Documents"
                                            Style="{StaticResource HeadingSmallStyle}" />
                             </StackPanel>
@@ -498,7 +498,7 @@
                                     HorizontalAlignment="Center"
                                     Padding="0,16">
                             <FontIcon Glyph="&#xE8F1;" FontSize="32"
-                                      Foreground="{StaticResource TextTertiaryBrush}"
+                                      Foreground="{ThemeResource TextTertiaryBrush}"
                                       HorizontalAlignment="Center"
                                       Opacity="0.4" />
                             <TextBlock Text="No documents imported yet"
@@ -530,10 +530,10 @@
                                             <!-- File type icon -->
                                             <Border Width="32" Height="32"
                                                     CornerRadius="{StaticResource RadiusMD}"
-                                                    Background="{StaticResource AccentSubtleBrush}">
+                                                    Background="{ThemeResource AccentSubtleBrush}">
                                                 <FontIcon Glyph="{x:Bind FileTypeIcon}"
                                                           FontSize="14"
-                                                          Foreground="{StaticResource TextAccentBrush}"
+                                                          Foreground="{ThemeResource TextAccentBrush}"
                                                           HorizontalAlignment="Center"
                                                           VerticalAlignment="Center" />
                                             </Border>
@@ -575,7 +575,7 @@
 
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Glyph="&#xE8BD;" FontSize="16"
-                                          Foreground="{StaticResource WarningBrush}" />
+                                          Foreground="{ThemeResource WarningBrush}" />
                                 <TextBlock Text="Recent Conversations"
                                            Style="{StaticResource HeadingSmallStyle}" />
                             </StackPanel>
@@ -594,7 +594,7 @@
                                     HorizontalAlignment="Center"
                                     Padding="0,16">
                             <FontIcon Glyph="&#xE8BD;" FontSize="32"
-                                      Foreground="{StaticResource TextTertiaryBrush}"
+                                      Foreground="{ThemeResource TextTertiaryBrush}"
                                       HorizontalAlignment="Center"
                                       Opacity="0.4" />
                             <TextBlock Text="No conversations yet"
@@ -626,10 +626,10 @@
                                             <!-- Chat icon -->
                                             <Border Width="32" Height="32"
                                                     CornerRadius="{StaticResource RadiusMD}"
-                                                    Background="{StaticResource AccentSubtleBrush}">
+                                                    Background="{ThemeResource AccentSubtleBrush}">
                                                 <FontIcon Glyph="&#xE8BD;"
                                                           FontSize="14"
-                                                          Foreground="{StaticResource WarningBrush}"
+                                                          Foreground="{ThemeResource WarningBrush}"
                                                           HorizontalAlignment="Center"
                                                           VerticalAlignment="Center" />
                                             </Border>
@@ -684,7 +684,7 @@
                     <StackPanel Spacing="16">
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE9D9;" FontSize="16"
-                                      Foreground="{StaticResource InfoBrush}" />
+                                      Foreground="{ThemeResource InfoBrush}" />
                             <TextBlock Text="File Type Distribution"
                                        Style="{StaticResource HeadingSmallStyle}" />
                         </StackPanel>
@@ -695,7 +695,7 @@
                                     HorizontalAlignment="Center"
                                     Padding="0,16">
                             <FontIcon Glyph="&#xE9D9;" FontSize="28"
-                                      Foreground="{StaticResource TextTertiaryBrush}"
+                                      Foreground="{ThemeResource TextTertiaryBrush}"
                                       HorizontalAlignment="Center"
                                       Opacity="0.4" />
                             <TextBlock Text="No data yet"
@@ -731,8 +731,8 @@
                                                      MinHeight="18"
                                                      MaxHeight="18"
                                                      CornerRadius="{StaticResource RadiusSM}"
-                                                     Background="{StaticResource InputBackgroundBrush}"
-                                                     Foreground="{StaticResource AccentPrimaryBrush}" />
+                                                     Background="{ThemeResource InputBackgroundBrush}"
+                                                     Foreground="{ThemeResource AccentPrimaryBrush}" />
 
                                         <!-- Percentage + Count -->
                                         <StackPanel Grid.Column="2"
@@ -741,7 +741,7 @@
                                             <TextBlock Text="{x:Bind PercentageLabel}"
                                                        Style="{StaticResource CaptionStyle}"
                                                        FontWeight="SemiBold"
-                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                                       Foreground="{ThemeResource TextSecondaryBrush}" />
                                             <TextBlock Text="{x:Bind CountLabel}"
                                                        Style="{StaticResource CaptionStyle}" />
                                         </StackPanel>
@@ -757,7 +757,7 @@
                     <StackPanel Spacing="16">
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xF168;" FontSize="16"
-                                      Foreground="{StaticResource SuccessBrush}" />
+                                      Foreground="{ThemeResource SuccessBrush}" />
                             <TextBlock Text="Top Collections"
                                        Style="{StaticResource HeadingSmallStyle}" />
                         </StackPanel>
@@ -768,7 +768,7 @@
                                     HorizontalAlignment="Center"
                                     Padding="0,16">
                             <FontIcon Glyph="&#xF168;" FontSize="28"
-                                      Foreground="{StaticResource TextTertiaryBrush}"
+                                      Foreground="{ThemeResource TextTertiaryBrush}"
                                       HorizontalAlignment="Center"
                                       Opacity="0.4" />
                             <TextBlock Text="No collections yet"
@@ -800,7 +800,7 @@
                                                        Text="{x:Bind CountLabel}"
                                                        Style="{StaticResource CaptionStyle}"
                                                        FontWeight="SemiBold"
-                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                                       Foreground="{ThemeResource TextSecondaryBrush}" />
                                         </Grid>
 
                                         <!-- Bar using ProgressBar for simplicity and theme compliance -->
@@ -809,8 +809,8 @@
                                                      MinHeight="8"
                                                      MaxHeight="8"
                                                      CornerRadius="{StaticResource RadiusSM}"
-                                                     Background="{StaticResource InputBackgroundBrush}"
-                                                     Foreground="{StaticResource SuccessBrush}" />
+                                                     Background="{ThemeResource InputBackgroundBrush}"
+                                                     Foreground="{ThemeResource SuccessBrush}" />
                                     </StackPanel>
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>
@@ -832,11 +832,11 @@
                     <!-- Icon with subtle glow -->
                     <Grid Width="48" Height="48" VerticalAlignment="Top">
                         <Border CornerRadius="{StaticResource RadiusMD}"
-                                Background="{StaticResource WarningSubtleBrush}"
+                                Background="{ThemeResource WarningSubtleBrush}"
                                 Width="48" Height="48">
                             <FontIcon Glyph="&#xE946;"
                                       FontSize="20"
-                                      Foreground="{StaticResource WarningBrush}"
+                                      Foreground="{ThemeResource WarningBrush}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
@@ -897,7 +897,7 @@
 
                                                 <TextBlock Grid.Column="1"
                                                            Style="{StaticResource CaptionStyle}"
-                                                           Foreground="{StaticResource WarningBrush}">
+                                                           Foreground="{ThemeResource WarningBrush}">
                                                     <Run Text="Magnitude: " />
                                                     <Run Text="{x:Bind ConflictMagnitude, Mode=OneWay, Converter={StaticResource DoubleToStringConverter}}" />
                                                 </TextBlock>
@@ -908,7 +908,7 @@
                                                        TextWrapping="Wrap">
                                                 <Run Text="Previously: " />
                                                 <Run Text="{x:Bind PreviousStance, Mode=OneWay}"
-                                                     Foreground="{StaticResource TextSecondaryBrush}"
+                                                     Foreground="{ThemeResource TextSecondaryBrush}"
                                                      FontSize="11" />
                                             </TextBlock>
 
@@ -917,7 +917,7 @@
                                                        TextWrapping="Wrap">
                                                 <Run Text="Currently: " />
                                                 <Run Text="{x:Bind CurrentStance, Mode=OneWay}"
-                                                     Foreground="{StaticResource TextPrimaryBrush}"
+                                                     Foreground="{ThemeResource TextPrimaryBrush}"
                                                      FontWeight="SemiBold" />
                                             </TextBlock>
                                         </Grid>
@@ -1004,10 +1004,10 @@
                                                 <Border Width="36"
                                                         Height="36"
                                                         CornerRadius="{StaticResource RadiusMD}"
-                                                        Background="{StaticResource AccentSubtleBrush}">
+                                                        Background="{ThemeResource AccentSubtleBrush}">
                                                     <FontIcon Glyph="{x:Bind IconGlyph}"
                                                               FontSize="15"
-                                                              Foreground="{StaticResource TextAccentBrush}"
+                                                              Foreground="{ThemeResource TextAccentBrush}"
                                                               HorizontalAlignment="Center"
                                                               VerticalAlignment="Center" />
                                                 </Border>
@@ -1066,7 +1066,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10"
                                     HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE8BD;" FontSize="16"
-                                      Foreground="{StaticResource TextAccentBrush}" />
+                                      Foreground="{ThemeResource TextAccentBrush}" />
                             <TextBlock Text="New Chat"
                                        Style="{StaticResource BodyStyle}"
                                        FontWeight="SemiBold"
@@ -1083,7 +1083,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10"
                                     HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE8B5;" FontSize="16"
-                                      Foreground="{StaticResource InfoBrush}" />
+                                      Foreground="{ThemeResource InfoBrush}" />
                             <TextBlock Text="Import Files"
                                        Style="{StaticResource BodyStyle}"
                                        FontWeight="SemiBold"
@@ -1100,7 +1100,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10"
                                     HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE721;" FontSize="16"
-                                      Foreground="{StaticResource SuccessBrush}" />
+                                      Foreground="{ThemeResource SuccessBrush}" />
                             <TextBlock Text="Search"
                                        Style="{StaticResource BodyStyle}"
                                        FontWeight="SemiBold"
@@ -1117,7 +1117,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10"
                                     HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE9D9;" FontSize="16"
-                                      Foreground="{StaticResource WarningBrush}" />
+                                      Foreground="{ThemeResource WarningBrush}" />
                             <TextBlock Text="Ask Files"
                                        Style="{StaticResource BodyStyle}"
                                        FontWeight="SemiBold"
@@ -1147,7 +1147,7 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE964;" FontSize="14"
-                                  Foreground="{StaticResource TextTertiaryBrush}"
+                                  Foreground="{ThemeResource TextTertiaryBrush}"
                                   VerticalAlignment="Center" />
                         <StackPanel Grid.Column="1" Spacing="2">
                             <TextBlock Text="GPU" Style="{StaticResource LabelStyle}" />
@@ -1159,7 +1159,7 @@
                     </Grid>
 
                     <Border Grid.Column="1" Width="1"
-                            Background="{StaticResource BorderSubtleBrush}" />
+                            Background="{ThemeResource BorderSubtleBrush}" />
 
                     <!-- RAM -->
                     <Grid Grid.Column="2" ColumnSpacing="12">
@@ -1168,7 +1168,7 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE950;" FontSize="14"
-                                  Foreground="{StaticResource TextTertiaryBrush}"
+                                  Foreground="{ThemeResource TextTertiaryBrush}"
                                   VerticalAlignment="Center" />
                         <StackPanel Grid.Column="1" Spacing="2">
                             <TextBlock Text="Available RAM" Style="{StaticResource LabelStyle}" />
@@ -1178,7 +1178,7 @@
                     </Grid>
 
                     <Border Grid.Column="3" Width="1"
-                            Background="{StaticResource BorderSubtleBrush}" />
+                            Background="{ThemeResource BorderSubtleBrush}" />
 
                     <!-- Vault Storage -->
                     <Grid Grid.Column="4" ColumnSpacing="12">
@@ -1187,7 +1187,7 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xEDA2;" FontSize="14"
-                                  Foreground="{StaticResource TextTertiaryBrush}"
+                                  Foreground="{ThemeResource TextTertiaryBrush}"
                                   VerticalAlignment="Center" />
                         <StackPanel Grid.Column="1" Spacing="2">
                             <TextBlock Text="Vault Storage" Style="{StaticResource LabelStyle}" />
@@ -1206,10 +1206,10 @@
                     Padding="20,14">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <FontIcon Glyph="&#xE72E;" FontSize="14"
-                              Foreground="{StaticResource SuccessBrush}" />
+                              Foreground="{ThemeResource SuccessBrush}" />
                     <TextBlock Style="{StaticResource BodySmallStyle}"
-                               Foreground="{StaticResource TextTertiaryBrush}">
-                        <Run Text="100% Private" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" />
+                               Foreground="{ThemeResource TextTertiaryBrush}">
+                        <Run Text="100% Private" FontWeight="SemiBold" Foreground="{ThemeResource TextSecondaryBrush}" />
                         <Run Text=" &#x2014; All AI processing runs locally on your hardware. Your data never leaves this machine. No telemetry. No cloud. No exceptions." />
                     </TextBlock>
                 </StackPanel>
