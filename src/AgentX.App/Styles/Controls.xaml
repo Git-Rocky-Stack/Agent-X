@@ -232,7 +232,9 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
+        <!-- W=H=36, so RadiusFull keeps this a perfect circle (the only
+             permitted "round" shape — pills are forbidden). -->
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusFull}" />
         <Setter Property="Padding" Value="8" />
         <Setter Property="Width" Value="36" />
         <Setter Property="Height" Value="36" />

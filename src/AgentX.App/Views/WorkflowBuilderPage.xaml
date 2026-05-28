@@ -253,7 +253,7 @@
 
                                                     <!-- Step Number Badge -->
                                                     <Border Width="28" Height="28"
-                                                            CornerRadius="{StaticResource RadiusRound}"
+                                                            CornerRadius="{StaticResource RadiusFull}"
                                                             Background="{StaticResource AccentGradientBrush}">
                                                         <TextBlock Text="{x:Bind StepOrder, Mode=OneWay}"
                                                                    FontSize="12"
@@ -662,7 +662,7 @@
                                                         <ColumnDefinition Width="Auto" />
                                                     </Grid.ColumnDefinitions>
                                                     <Border Width="24" Height="24"
-                                                            CornerRadius="{StaticResource RadiusRound}"
+                                                            CornerRadius="{StaticResource RadiusFull}"
                                                             Background="{StaticResource AccentSubtleBrush}">
                                                         <TextBlock Text="{x:Bind StepOrder}"
                                                                    FontSize="11" FontWeight="Bold"

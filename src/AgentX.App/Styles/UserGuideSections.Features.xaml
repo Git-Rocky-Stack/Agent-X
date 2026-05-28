@@ -47,7 +47,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Background="{StaticResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="1"
@@ -65,7 +65,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Background="{StaticResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="2"
@@ -83,7 +83,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Background="{StaticResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="3"
@@ -226,7 +226,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Background="{StaticResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="1"
@@ -244,7 +244,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Background="{StaticResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="2"
@@ -262,7 +262,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Background="{StaticResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="3"
@@ -280,7 +280,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Background="{StaticResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="4"
@@ -1211,7 +1211,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Background="{StaticResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="1"
@@ -1229,7 +1229,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Background="{StaticResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="2"
@@ -1247,7 +1247,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Background="{StaticResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="3"

@@ -299,7 +299,7 @@
                 <StackPanel Spacing="20" HorizontalAlignment="Center">
                     <!-- Accent circle with puzzle icon -->
                     <Border Background="{StaticResource AccentSubtleBrush}"
-                            CornerRadius="{StaticResource RadiusRound}"
+                            CornerRadius="{StaticResource RadiusFull}"
                             Width="72" Height="72"
                             HorizontalAlignment="Center">
                         <FontIcon Glyph="&#xE74C;"
