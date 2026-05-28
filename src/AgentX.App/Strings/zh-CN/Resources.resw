@@ -365,4 +365,269 @@
   <data name="UserGuide_InsightHarvesting_Managing1.Text" xml:space="preserve"><value>View all insights on the Dashboard or Past Self page, sorted by recency.</value></data>
   <data name="UserGuide_InsightHarvesting_Managing2.Text" xml:space="preserve"><value>Click any insight card to jump to the original conversation context.</value></data>
   <data name="UserGuide_InsightHarvesting_Managing3.Text" xml:space="preserve"><value>Dismiss or keep insights - dismissed insights will not be shown again.</value></data>
+
+  <!-- UserGuide Extended sections (parity restoration) -->
+  <data name="UserGuide_KeyboardShortcuts_Action8.Text" xml:space="preserve"><value>显示键盘快捷键速查表(实时、可搜索)</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action9.Text" xml:space="preserve"><value>跳转 — 快速文件/页面导航器</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action10.Text" xml:space="preserve"><value>打开仪表板</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action11.Text" xml:space="preserve"><value>打开知识图谱</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action12.Text" xml:space="preserve"><value>打开工作流</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action13.Text" xml:space="preserve"><value>打开网页导入</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action14.Text" xml:space="preserve"><value>打开分析</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action15.Text" xml:space="preserve"><value>打开运维面板</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action16.Text" xml:space="preserve"><value>按导航顺序快速跳转到第 1–9 页(Dashboard、Chat、AskFiles、Search、Vault、Collections、Workflows、Models、Settings)</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Footer.Text" xml:space="preserve"><value>提示:所有快捷键均可重新映射。打开“设置 &gt; 键盘快捷键”可重新绑定任意组合、注册多键序列,或将快捷键限定到特定页面。</value></data>
+  <data name="UserGuide_FirstChat_Title.Text" xml:space="preserve"><value>您的首次对话</value></data>
+  <data name="UserGuide_FirstChat_Description.Text" xml:space="preserve"><value>一份 90 秒的实操教程,带您从“全新安装”进入“首次有用对话”。完成后,您将了解聊天界面、如何在本地模型与云模型之间切换、会话上下文的含义,以及让后续每次对话提速 3 倍的几个关键快捷键。</value></data>
+  <data name="UserGuide_FirstChat_Step1_Title.Text" xml:space="preserve"><value>步骤 1:打开 AI Chat</value></data>
+  <data name="UserGuide_FirstChat_Step1.Text" xml:space="preserve"><value>在侧边栏点击 AI Chat 项、按 Ctrl+2(导航顺序为 Dashboard、Chat、AskFiles、Search、Vault……),或按 Ctrl+K 输入“chat”。界面左侧显示会话列表,中间是当前会话,顶部为模型选择器,底部为输入区。</value></data>
+  <data name="UserGuide_FirstChat_Step2_Title.Text" xml:space="preserve"><value>步骤 2:选择模型</value></data>
+  <data name="UserGuide_FirstChat_Step2.Text" xml:space="preserve"><value>使用会话顶部的模型下拉菜单。仅本地推理可选 Ollama 模型——llama3.2 是稳健的默认。要在选择性接入云端时使用前沿能力,可选 OpenAI GPT-4o(速度/成本敏感时选 GPT-4o-mini)或 Anthropic Claude Sonnet 4(推理与速度兼顾最佳)。下拉菜单显示上下文窗口长度和每 token 价格(云模型),便于根据任务挑选合适工具。</value></data>
+  <data name="UserGuide_FirstChat_Step3_Title.Text" xml:space="preserve"><value>步骤 3:开始对话</value></data>
+  <data name="UserGuide_FirstChat_Step3.Text" xml:space="preserve"><value>在底部的输入框中输入消息。回车发送;Shift+回车换行;Ctrl+回车发送并立即开启新一轮。响应按 token 流式输出、实时渲染完整 Markdown(包括带语法高亮的代码块),并以三个建议的后续问题结尾。任何时候按 Esc 都可停止生成;已生成的部分会保留。</value></data>
+  <data name="UserGuide_FirstChat_Tips_Title.Text" xml:space="preserve"><value>首次对话小贴士</value></data>
+  <data name="UserGuide_FirstChat_Tip1.Text" xml:space="preserve"><value>要具体。“总结这篇文章”优于“总结一下”;“用五个要点总结这篇文章,聚焦成本影响”比两者都好。清晰的提示能让答案大幅改善——在较小的本地模型上尤为明显。</value></data>
+  <data name="UserGuide_FirstChat_Tip2.Text" xml:space="preserve"><value>按 Ctrl+N 开始新的会话。每个会话拥有独立的上下文窗口,因此切换话题或希望模型忘记之前的设定时,开新会话是正确做法。用置顶图标把重要会话固定到侧边栏顶部。</value></data>
+  <data name="UserGuide_FirstChat_Tip3.Text" xml:space="preserve"><value>用追问迭代,而不是一次写出超长的开场提示。Agent-X 会记住会话内的全部内容,因此第二个问题可以非常简短(“现在与上一季度对比”)却仍保有完整上下文。这比拼出一个超大提示更快,效果也更好。</value></data>
+  <data name="UserGuide_FirstDocument_Title.Text" xml:space="preserve"><value>您的第一份文档</value></data>
+  <data name="UserGuide_FirstDocument_Description.Text" xml:space="preserve"><value>当您把 Agent-X 与自己的文档连起来,它的价值会显著提升。本教程在三分钟内带您从“首次导入”走到“首条带引用的有据回答”。同样的流程可从一份文件平滑扩展到数千份。</value></data>
+  <data name="UserGuide_FirstDocument_Step1_Title.Text" xml:space="preserve"><value>步骤 1:导入文件</value></data>
+  <data name="UserGuide_FirstDocument_Step1.Text" xml:space="preserve"><value>打开 Knowledge Vault(Ctrl+I),将 PDF、Word、Markdown、文本、代码或网页 URL 拖到窗口上。也可以点击“导入”使用系统文件选择器、粘贴 URL 摄取一个网页,或拖入整个文件夹递归导入其中所有文件。首次导入还会启动自动打标签和重复检测。</value></data>
+  <data name="UserGuide_FirstDocument_Step2_Title.Text" xml:space="preserve"><value>步骤 2:等待建索引</value></data>
+  <data name="UserGuide_FirstDocument_Step2.Text" xml:space="preserve"><value>建索引会通过格式特定的解析器提取文本,把内容切分为约 512 token、带重叠的语义片段,逐片送入您选择的嵌入模型,并将向量写入 HNSW 索引和 FTS5 关键词索引。耗时与体量相关:一份典型 PDF 需 5–30 秒,一本 1,000 页的书约 2 分钟。Vault 行与 Operations(Ctrl+Shift+O)中实时显示进度。</value></data>
+  <data name="UserGuide_FirstDocument_Step3_Title.Text" xml:space="preserve"><value>步骤 3:提出问题</value></data>
+  <data name="UserGuide_FirstDocument_Step3.Text" xml:space="preserve"><value>打开 AI Chat,将会话限定到刚导入的文档(或不限以查询整个 Vault),然后提问。可以试试“主要观点是什么?”、“总结核心论点与反论点”或“作者为其中心主张提供了哪些证据?”每条回答都带编号引用,指回所使用的确切片段。</value></data>
+  <data name="UserGuide_FirstDocument_Supported_Title.Text" xml:space="preserve"><value>支持的文件类型</value></data>
+  <data name="UserGuide_FirstDocument_Supported.Text" xml:space="preserve"><value>文档:PDF(带 OCR 兜底)、DOCX、RTF、EPUB、HTML、Markdown、纯文本、CSV/TSV、XLSX(按工作表抽取)、PPTX(按幻灯片抽取)。代码:30 多种语言并支持语法感知分块。网页:任意 URL,可粘贴或经浏览器扩展导入。音频:MP3/M4A/WAV/FLAC,经 Audio Transcription。YouTube URL 触发字幕摄取。图片:PNG/JPG/JPEG,经 Tesseract OCR(当激活模型支持图像时也支持视觉模型直接查询)。</value></data>
+  <data name="UserGuide_WebSearch_Title.Text" xml:space="preserve"><value>网页搜索与调研</value></data>
+  <data name="UserGuide_WebSearch_Description.Text" xml:space="preserve"><value>Agent-X 集成了实时网页搜索,把最新信息带入您的对话。配置三种可插拔提供方之一——Brave Search、Serper.dev 或自托管的 SearXNG 实例——Agent-X 即可抓取新鲜结果、抽取干净的正文,并将带引用的答案与您的本地 Knowledge Vault 一并合成。结果在本地缓存,降低重复查询的延迟与 API 开销。</value></data>
+  <data name="UserGuide_WebSearch_HowItWorks_Title.Text" xml:space="preserve"><value>网页搜索的工作方式</value></data>
+  <data name="UserGuide_WebSearch_Step1.Text" xml:space="preserve"><value>在“设置 &gt; 网页搜索”中配置一个提供方:Brave Search(粘贴您的 Brave API 密钥)、Serper.dev(由 Google 支撑,粘贴您的 Serper API 密钥),或 SearXNG(粘贴自托管实例的 URL,无需密钥)。当首选提供方失败或被限流时,Agent-X 会自动回退到下一个已配置的提供方。</value></data>
+  <data name="UserGuide_WebSearch_Step2.Text" xml:space="preserve"><value>当查询触发网页搜索时,Agent-X 发起检索、获取靠前的结果、抓取每个来源页面,并将 HTML 经可读性抽取器处理,去掉导航、广告和外层框架,保留干净的正文。可选地,JavaScript 渲染的页面会经 JsRendering 服务通过 Playwright 处理。</value></data>
+  <data name="UserGuide_WebSearch_Step3.Text" xml:space="preserve"><value>抽取的内容连同您的问题一并送入聊天模型。模型合成带编号引用的有据回答,引用链接到各来源 URL。来源页面可一键导入 Knowledge Vault,用于未来的 RAG 查询。</value></data>
+  <data name="UserGuide_WebSearch_Modes_Title.Text" xml:space="preserve"><value>搜索模式</value></data>
+  <data name="UserGuide_WebSearch_Mode1_Title.Text" xml:space="preserve"><value>自动(默认)</value></data>
+  <data name="UserGuide_WebSearch_Mode1_Description.Text" xml:space="preserve"><value>模型识别问题何时需要最新信息(近期事件、实时数据、事实核查、含“今天/本周”的表述),透明地触发网页搜索。搜索进行时,输入区显示“正在搜索网络…”指示。</value></data>
+  <data name="UserGuide_WebSearch_Mode2_Title.Text" xml:space="preserve"><value>手动搜索</value></data>
+  <data name="UserGuide_WebSearch_Mode2_Description.Text" xml:space="preserve"><value>在消息前加“/search ”或点击输入区的“Web”按钮,强制进行网页搜索。当您即便对长青话题也想要新鲜来源,或想绕过自动检测启发式时,这很有用。</value></data>
+  <data name="UserGuide_WebSearch_Mode3_Title.Text" xml:space="preserve"><value>RAG + Web 组合</value></data>
+  <data name="UserGuide_WebSearch_Mode3_Description.Text" xml:space="preserve"><value>Agent-X 一次查询同时从您的 Knowledge Vault 与实时网络中检索。引用会标注来源(“Vault”或“Web”),让您立刻看出哪些来自您自己的资料、哪些来自开放互联网。非常适合需要把过往工作与领域当前状态对比的研究。</value></data>
+  <data name="UserGuide_WebSearch_Tips_Title.Text" xml:space="preserve"><value>网页搜索小贴士</value></data>
+  <data name="UserGuide_WebSearch_Tip1.Text" xml:space="preserve"><value>索取来源——Agent-X 始终返回内联编号引用并链接到来源 URL。点击任一引用,默认浏览器中打开页面;右键将页面导入 Knowledge Vault 以长期建索引。</value></data>
+  <data name="UserGuide_WebSearch_Tip2.Text" xml:space="preserve"><value>请求时效核查——“截至今天”“到 2026 年还成立吗?”“过去一个月有什么变化?”等表述会自动触发新一次检索。缓存遵循可配置的 TTL,确保底层话题演变时旧答案不会长期残留。</value></data>
+  <data name="UserGuide_WebImport_Title.Text" xml:space="preserve"><value>网页内容导入</value></data>
+  <data name="UserGuide_WebImport_Description.Text" xml:space="preserve"><value>除了本地文件,Agent-X 还把任何网页内容导入 Knowledge Vault——文章、博客、文档页面、RSS/Atom 源、站点地图,甚至 YouTube 字幕。导入页面享受与本地文件相同的处理:文本抽取、分块、嵌入、FTS5 建索引、自动打标签,并完全可用于 RAG、搜索、Quick Actions 与 Workflows。</value></data>
+  <data name="UserGuide_WebImport_Methods_Title.Text" xml:space="preserve"><value>导入方式</value></data>
+  <data name="UserGuide_WebImport_Method1.Text" xml:space="preserve"><value>直接粘贴 URL — 在“网页导入”页(Ctrl+Shift+E)粘贴任意 URL,可选打标签,选择目标 Collection。Agent-X 抓取、抽取、对照已有导入去重并建索引——一篇文章通常 3–8 秒。</value></data>
+  <data name="UserGuide_WebImport_Method2.Text" xml:space="preserve"><value>浏览器扩展 — 安装 Agent-X 的 Chrome/Edge 扩展,一键采集当前阅读页面。扩展通过 Native Messaging 与桌面应用通信,因此采集在本地完成,无需云端往返。</value></data>
+  <data name="UserGuide_WebImport_Method3.Text" xml:space="preserve"><value>批量与 Feed 导入 — 从文本文件或电子表格粘贴 URL 列表、将 Agent-X 指向某 RSS/Atom 源,或从 sitemap.xml URL 导入。基于 Feed 的导入可经 FeedService 按计划刷新,为您构建一条免值守的管道,用于监控博客、新闻源与文档门户。</value></data>
+  <data name="UserGuide_WebImport_Extraction_Title.Text" xml:space="preserve"><value>内容抽取</value></data>
+  <data name="UserGuide_WebImport_Extraction_Description.Text" xml:space="preserve"><value>Agent-X 智能地从每个页面抽取有意义的内容:</value></data>
+  <data name="UserGuide_WebImport_Extraction1.Text" xml:space="preserve"><value>用可读性启发式剥离导航、侧栏、页脚、广告、Cookie 横幅与外层框架——仅保留正文。配套的辅助会保留嵌入图片的 alt 文本和图注信息(只要其增加信息量)。</value></data>
+  <data name="UserGuide_WebImport_Extraction2.Text" xml:space="preserve"><value>保留结构——标题层级、列表、表格、引用块、代码块和内联链接都得以保持,使语义分块尊重自然边界、引用解析到具体小节。</value></data>
+  <data name="UserGuide_WebImport_Extraction3.Text" xml:space="preserve"><value>捕获丰富的元数据——作者、发布日期、Canonical URL、og:image、语言和阅读时长。YouTube URL 会触发 YouTubeTranscriptHelper,把自动字幕或发布的转录文稿作为文档正文拉取。</value></data>
+  <data name="UserGuide_WebImport_JsRendering_Title.Text" xml:space="preserve"><value>JavaScript 渲染</value></data>
+  <data name="UserGuide_WebImport_JsRendering_Description.Text" xml:space="preserve"><value>对于动态加载内容的 SPA 站点(React/Vue/Svelte 应用、带 JS 门禁的付费墙站点、无限滚动归档),在“设置 &gt; 网页导入”启用 JS 渲染。Agent-X 启动一个无头 Playwright/Chromium 实例,等待页面完成 hydration,必要时滚动以触发懒加载,然后捕获渲染后的 DOM。</value></data>
+  <data name="UserGuide_WebImport_JsRendering_Note_Label.Text" xml:space="preserve"><value>提示</value></data>
+  <data name="UserGuide_WebImport_JsRendering_Note.Text" xml:space="preserve"><value>JS 渲染比静态抓取慢 5–15 倍,每并发页面占用约 200 MB 内存。仅对需要它的站点启用。按域名的覆写允许您对快站点保留静态抓取,仅对少数必需的站点启用 JS 渲染。</value></data>
+  <data name="UserGuide_Citations_Title.Text" xml:space="preserve"><value>引用与来源</value></data>
+  <data name="UserGuide_Citations_Description.Text" xml:space="preserve"><value>在 Agent-X 中透明性不容妥协。任何基于您的文档或实时网页来源的回答,都会附带显式、可点击的引用——不是模糊的“根据您的文件”,而是与具体片段绑定、可核验来源的 [1]、[2]、[3] 标记。渲染时的守卫流程会校验每个引用号码确实对应某个真实检索到的片段,因此即使在幻觉压力下模型也无法捏造引用。</value></data>
+  <data name="UserGuide_Citations_Types_Title.Text" xml:space="preserve"><value>引用类型</value></data>
+  <data name="UserGuide_Citations_Type1_Title.Text" xml:space="preserve"><value>文档引用</value></data>
+  <data name="UserGuide_Citations_Type1_Description.Text" xml:space="preserve"><value>针对 Knowledge Vault 来源:文件名、页码(PDF)、标题路径(Markdown/Word)或片段索引,加上相关度分值与精确检索到的片段。点击在该位置打开文档并高亮匹配范围;右键可把来源加入 Collection 或为本会话置顶。</value></data>
+  <data name="UserGuide_Citations_Type2_Title.Text" xml:space="preserve"><value>网页引用</value></data>
+  <data name="UserGuide_Citations_Type2_Description.Text" xml:space="preserve"><value>针对实时网页来源:页面标题、Canonical URL、来源域名 favicon、可获取时的发布日期,以及相关度分值。点击在默认浏览器中打开;右键将页面作为长期记录导入 Knowledge Vault,使后续 RAG 查询无需再次抓取即可基于它进行。</value></data>
+  <data name="UserGuide_Citations_Type3_Title.Text" xml:space="preserve"><value>多来源回答</value></data>
+  <data name="UserGuide_Citations_Type3_Description.Text" xml:space="preserve"><value>当一条回答融合了 Knowledge Vault 与网页来源时,每个引用都会标注其来源(“Vault”/“Web”),并在统一的“References”面板中按来源类型分组列出。模型被要求把每个主张归到具体来源,确保多来源回答可审计,而不是被混合成一团不透明的内容。</value></data>
+  <data name="UserGuide_Citations_Using_Title.Text" xml:space="preserve"><value>使用引用</value></data>
+  <data name="UserGuide_Citations_Using1.Text" xml:space="preserve"><value>点击任一引用 chip 可展开来源预览、跳到原位置,或将带出处的引用片段复制到剪贴板,供您自己写作时使用。</value></data>
+  <data name="UserGuide_Citations_Using2.Text" xml:space="preserve"><value>把鼠标悬停在 AI 回复中的内联引用号码上,会弹出包含来源标题、分值和摘录的快捷弹窗——无需中断阅读流即可核实主张。</value></data>
+  <data name="UserGuide_Citations_Using3.Text" xml:space="preserve"><value>在 Knowledge Vault 中按引用频次排序或筛选,即可看到您的对话最依赖哪些文档。高频来源是提升为置顶 Collection 或进行深度注释的明显候选。</value></data>
+  <data name="UserGuide_BrowserExtension_Title.Text" xml:space="preserve"><value>浏览器扩展</value></data>
+  <data name="UserGuide_BrowserExtension_Description.Text" xml:space="preserve"><value>Agent-X 浏览器扩展是您从浏览器到桌面应用的桥梁。一键把正在阅读的页面保存到 Knowledge Vault、不离开页面就对当前标签页进行有据问答、对选中文本运行 Quick Actions,并把页面或 YouTube 字幕直接送入 Workflows。扩展通过安全的本地 Native Messaging 与桌面应用通信——无云端、无代理、无第三方。</value></data>
+  <data name="UserGuide_BrowserExtension_Installation_Title.Text" xml:space="preserve"><value>安装</value></data>
+  <data name="UserGuide_BrowserExtension_Step1.Text" xml:space="preserve"><value>从 Chrome 应用商店或 Microsoft Edge 加载项安装 Agent-X 扩展(两种 Chromium 内核浏览器均完整支持)。Firefox 在路线图中。扩展是开源的,与桌面应用同一仓库发布。</value></data>
+  <data name="UserGuide_BrowserExtension_Step2.Text" xml:space="preserve"><value>首次启动时,扩展会请求注册 Native Messaging 主机。请确认——这是每用户一次的步骤,会写入一条注册表项,把浏览器指向本地 Agent-X 消息端点。若不完成此步,扩展无法到达桌面应用。</value></data>
+  <data name="UserGuide_BrowserExtension_Step3.Text" xml:space="preserve"><value>把扩展图标固定到工具栏,然后点击“配对”登录到本地 Agent-X 会话——桌面应用生成一次性代码,您在扩展中确认。配对持久存在,浏览器或应用重启后会自动重建。</value></data>
+  <data name="UserGuide_BrowserExtension_Features_Title.Text" xml:space="preserve"><value>扩展功能</value></data>
+  <data name="UserGuide_BrowserExtension_Feature1.Text" xml:space="preserve"><value>快速保存 — 点击扩展图标(或使用可配置的快捷键)将当前页面采集到 Knowledge Vault。扩展采用与“网页导入”相同的可读性抽取器,因此您获得的是干净正文(连同保留的元数据),而非原始 HTML。</value></data>
+  <data name="UserGuide_BrowserExtension_Feature2.Text" xml:space="preserve"><value>页面聊天 — 打开侧边面板与当前页面交谈。页面内容作为临时上下文加载(包括图片与表格),不会被永久建索引,适合快速询问那些您不想塞入 Vault 的文章。</value></data>
+  <data name="UserGuide_BrowserExtension_Feature3.Text" xml:space="preserve"><value>选区分析 — 在任意页面选中任意文本、右键,选择“解释”“总结”“翻译”“另存为注释”或“发送到 Quick Actions”。选区也可作为输入发送到指定的 Workflow。</value></data>
+  <data name="UserGuide_BrowserExtension_Feature4.Text" xml:space="preserve"><value>智能采集 — 在多数“阅读友好”站点自动识别文章边界;对复杂布局退化为手动的“选择采集区域”交互。YouTube 标签页会检测字幕可用性,并提供一键字幕导入。</value></data>
+  <data name="UserGuide_BrowserExtension_NativeMessaging_Title.Text" xml:space="preserve"><value>Native Messaging 架构</value></data>
+  <data name="UserGuide_BrowserExtension_NativeMessaging_Description.Text" xml:space="preserve"><value>通信运行在 Chrome 的 Native Messaging 协议上——扩展与一个已注册的小型宿主进程之间通过 stdio 传输 JSON,再由宿主转发到正在运行的 Agent-X 应用。无 HTTP、无 localhost 服务器、无对外暴露端口。若 Agent-X 未运行,扩展会在本地把动作排队,等应用回来时回放。一切都发生在您本机;没有任何内容经过第三方服务器。</value></data>
+  <data name="UserGuide_MobileCompanion_Title.Text" xml:space="preserve"><value>移动伴侣应用</value></data>
+  <data name="UserGuide_MobileCompanion_Description.Text" xml:space="preserve"><value>Agent-X 移动伴侣(iOS 与 Android)是一个轻量客户端,与桌面应用的本地 API 主机通信。您的手机从不保存完整 Vault 的副本——而是按需通过端到端加密的通道,从桌面流式获取聊天、搜索和文档访问,通道锚定在您的家庭网络或配对的隧道上。桌面始终是唯一的事实来源;手机是一扇窗。</value></data>
+  <data name="UserGuide_MobileCompanion_Pairing_Title.Text" xml:space="preserve"><value>配对设备</value></data>
+  <data name="UserGuide_MobileCompanion_Step1.Text" xml:space="preserve"><value>从 App Store 或 Google Play 安装 Agent-X Mobile。移动版本是开源的,与桌面版的发布周期独立,因此您可以让桌面 1.2 与移动 1.4(或反之)共存而无兼容性问题。</value></data>
+  <data name="UserGuide_MobileCompanion_Step2.Text" xml:space="preserve"><value>在桌面打开“设置 &gt; 移动伴侣”并点击“配对新设备”。Agent-X 启动本地 API 主机(若未启动)、为该设备生成新的密钥对,并渲染一个一次性 QR 码,其中包含本地端点、设备的对称会话密钥,以及一个 5 分钟过期的短配对码。</value></data>
+  <data name="UserGuide_MobileCompanion_Step3.Text" xml:space="preserve"><value>用移动应用扫描 QR 码,并在桌面确认匹配的配对码。移动应用把加密的设备密钥存入操作系统钥匙串(iOS Keychain / Android Keystore)。后续所有流量均通过该密钥进行双向认证与加密——您的数据绝不经过 Strategia 的服务器。</value></data>
+  <data name="UserGuide_MobileCompanion_Features_Title.Text" xml:space="preserve"><value>移动端功能</value></data>
+  <data name="UserGuide_MobileCompanion_Feature1_Title.Text" xml:space="preserve"><value>完整聊天访问</value></data>
+  <data name="UserGuide_MobileCompanion_Feature1_Description.Text" xml:space="preserve"><value>继续在桌面开始的会话,或从手机开启新对话。流式响应、引用、代码块与 Markdown 全部原生渲染。当双方在线时,新会话会在数秒内回传到桌面应用。</value></data>
+  <data name="UserGuide_MobileCompanion_Feature2_Title.Text" xml:space="preserve"><value>知识搜索</value></data>
+  <data name="UserGuide_MobileCompanion_Feature2_Description.Text" xml:space="preserve"><value>从任何地方对整个 Knowledge Vault 执行混合搜索——会议准备、出差中事实核查,或为消息取一句引语。结果、引用与文档预览从桌面实时流出。</value></data>
+  <data name="UserGuide_MobileCompanion_Feature3_Title.Text" xml:space="preserve"><value>快速捕获</value></data>
+  <data name="UserGuide_MobileCompanion_Feature3_Description.Text" xml:space="preserve"><value>语音笔记(在桌面经 Audio Transcription 服务本地转写)与文字笔记直接进入您的 Knowledge Vault。拍照采集会先做 OCR 再建索引——几秒内把一页书或白板变成可搜索的文档。</value></data>
+  <data name="UserGuide_MobileCompanion_Feature4_Title.Text" xml:space="preserve"><value>离线模式</value></data>
+  <data name="UserGuide_MobileCompanion_Feature4_Description.Text" xml:space="preserve"><value>最近的会话、置顶文档与最近 50 条搜索结果在设备上缓存,无连接也可访问。离线采集会进入队列,桌面再次可达时自动回放。</value></data>
+  <data name="UserGuide_MobileCompanion_Sync_Title.Text" xml:space="preserve"><value>数据同步与安全</value></data>
+  <data name="UserGuide_MobileCompanion_Sync_Description.Text" xml:space="preserve"><value>同步走您本地桌面 API 主机。在同一局域网中是直连;远程时可通过 Tailscale、Zerotier 或您自己的反向代理配对。桌面始终为权威——手机只保留当前视图所需的数据,在“设置”中撤销已配对设备会立即使其密钥失效,并在下次启动时清空其本地缓存。</value></data>
+  <data name="UserGuide_Workflows_Title.Text" xml:space="preserve"><value>工作流与自动化</value></data>
+  <data name="UserGuide_Workflows_Description.Text" xml:space="preserve"><value>工作流是基于动作节点库构建的多步、声明式自动化——查询、文档操作、网页搜索、文件生成、通知、模型调用、条件分支以及插件贡献的步骤。它们是把 Agent-X 从聊天工具升级为个人自动化平台的“胶水”:按计划摄取文档、自动生成周报、运行晨间研究简报,或驱动一条您本会手工执行的自定义管道。可在 Workflow Builder(Ctrl+Shift+W)中可视化搭建。</value></data>
+  <data name="UserGuide_Workflows_Creating_Title.Text" xml:space="preserve"><value>创建工作流</value></data>
+  <data name="UserGuide_Workflows_CreateStep1.Text" xml:space="preserve"><value>从“设置”或 Quick Actions 菜单打开工作流面板。点击“创建新工作流”开始。</value></data>
+  <data name="UserGuide_Workflows_CreateStep2.Text" xml:space="preserve"><value>定义触发器——可以是计划(每天上午 9 点)、事件(新增文档),或手动执行。</value></data>
+  <data name="UserGuide_Workflows_CreateStep3.Text" xml:space="preserve"><value>添加动作——每个工作流可包含多个动作,如 AI 查询、文档建索引或通知。</value></data>
+  <data name="UserGuide_Workflows_CreateStep4.Text" xml:space="preserve"><value>先用手动执行测试工作流,然后启用。监控执行日志以确认其按预期工作。</value></data>
+  <data name="UserGuide_Workflows_Triggers_Title.Text" xml:space="preserve"><value>工作流触发器</value></data>
+  <data name="UserGuide_Workflows_Trigger1_Title.Text" xml:space="preserve"><value>计划</value></data>
+  <data name="UserGuide_Workflows_Trigger1_Description.Text" xml:space="preserve"><value>按计划运行——每小时、每天、每周或自定义 cron 表达式。非常适合日常简报与周期性分析。</value></data>
+  <data name="UserGuide_Workflows_Trigger2_Title.Text" xml:space="preserve"><value>事件驱动</value></data>
+  <data name="UserGuide_Workflows_Trigger2_Description.Text" xml:space="preserve"><value>由应用事件触发,例如文档导入、会话完成或达到 insight 阈值。</value></data>
+  <data name="UserGuide_Workflows_Trigger3_Title.Text" xml:space="preserve"><value>手动</value></data>
+  <data name="UserGuide_Workflows_Trigger3_Description.Text" xml:space="preserve"><value>从工作流面板或经 Quick Actions 按需运行。适合临时性的自动化任务。</value></data>
+  <data name="UserGuide_Workflows_Examples_Title.Text" xml:space="preserve"><value>示例工作流</value></data>
+  <data name="UserGuide_Workflows_Example1.Text" xml:space="preserve"><value>“每日简报” — 每天上午 8 点查询您最近的文档与 insight,生成关于“有什么新内容、需要关注什么”的总结。</value></data>
+  <data name="UserGuide_Workflows_Example2.Text" xml:space="preserve"><value>“研究助手” — 当 Research 合集新增 PDF 时,自动提取要点、生成引用,并标记重要发现。</value></data>
+  <data name="UserGuide_Workflows_Example3.Text" xml:space="preserve"><value>“每周回顾” — 每周日汇总过去一周的所有会话,识别主要主题,并生成反思提示。</value></data>
+  <data name="UserGuide_ScheduledQueries_Title.Text" xml:space="preserve"><value>计划查询</value></data>
+  <data name="UserGuide_ScheduledQueries_Description.Text" xml:space="preserve"><value>计划查询按您选择的计划自动运行,免手工就能交付洞见。非常适合日常简报、周期研究更新与重复性分析任务。</value></data>
+  <data name="UserGuide_ScheduledQueries_Setup_Title.Text" xml:space="preserve"><value>配置计划查询</value></data>
+  <data name="UserGuide_ScheduledQueries_Step1.Text" xml:space="preserve"><value>在任意会话中,点击消息输入框上方的“计划”按钮(时钟图标)。</value></data>
+  <data name="UserGuide_ScheduledQueries_Step2.Text" xml:space="preserve"><value>选择计划——每天、每周或自定义时间。选择要查询的合集或文档。</value></data>
+  <data name="UserGuide_ScheduledQueries_Step3.Text" xml:space="preserve"><value>为计划查询命名并确认。它将在指定时间自动运行。</value></data>
+  <data name="UserGuide_ScheduledQueries_Schedules_Title.Text" xml:space="preserve"><value>计划选项</value></data>
+  <data name="UserGuide_ScheduledQueries_Schedule1_Title.Text" xml:space="preserve"><value>一次</value></data>
+  <data name="UserGuide_ScheduledQueries_Schedule1_Description.Text" xml:space="preserve"><value>在未来的特定日期与时间运行一次。适合提醒和受截止日期驱动的查询。</value></data>
+  <data name="UserGuide_ScheduledQueries_Schedule2_Title.Text" xml:space="preserve"><value>重复</value></data>
+  <data name="UserGuide_ScheduledQueries_Schedule2_Description.Text" xml:space="preserve"><value>每天、每周或每月运行。每次执行创建一条带结果的新会话条目。</value></data>
+  <data name="UserGuide_ScheduledQueries_Schedule3_Title.Text" xml:space="preserve"><value>Cron 表达式</value></data>
+  <data name="UserGuide_ScheduledQueries_Schedule3_Description.Text" xml:space="preserve"><value>以 cron 语法进行高级调度,适配“每周一和周四下午 2 点”或“每月第一天”等复杂模式。</value></data>
+  <data name="UserGuide_ScheduledQueries_Results_Title.Text" xml:space="preserve"><value>管理结果</value></data>
+  <data name="UserGuide_ScheduledQueries_Results_Description.Text" xml:space="preserve"><value>计划查询的结果以新会话的形式出现:</value></data>
+  <data name="UserGuide_ScheduledQueries_Result1.Text" xml:space="preserve"><value>结果以查询名称和时间戳打标签,便于识别。</value></data>
+  <data name="UserGuide_ScheduledQueries_Result2.Text" xml:space="preserve"><value>计划查询完成时,通知会附带关键发现的摘要提醒您。</value></data>
+  <data name="UserGuide_AutomationRules_Title.Text" xml:space="preserve"><value>自动化规则</value></data>
+  <data name="UserGuide_AutomationRules_Description.Text" xml:space="preserve"><value>自动化规则创建对 Agent-X 事件作出响应的 if-then 逻辑。当触发条件满足时,规则会自动执行一个或多个动作。无需任何编码即可构建智能行为。</value></data>
+  <data name="UserGuide_AutomationRules_Structure_Title.Text" xml:space="preserve"><value>规则结构</value></data>
+  <data name="UserGuide_AutomationRules_Structure_Description.Text" xml:space="preserve"><value>每条规则由三部分组成:</value></data>
+  <data name="UserGuide_AutomationRules_Structure1.Text" xml:space="preserve"><value>触发器——启动规则的事件,如文档被导入或检测到 insight。</value></data>
+  <data name="UserGuide_AutomationRules_Structure2.Text" xml:space="preserve"><value>条件——可选的过滤器,精细化规则适用范围,如“仅当文档被标记为‘Research’时”。</value></data>
+  <data name="UserGuide_AutomationRules_Structure3.Text" xml:space="preserve"><value>动作——规则运行时发生的事情,如发送通知、运行查询或添加标签。</value></data>
+  <data name="UserGuide_AutomationRules_Triggers_Title.Text" xml:space="preserve"><value>可用触发器</value></data>
+  <data name="UserGuide_AutomationRules_Trigger1_Title.Text" xml:space="preserve"><value>文档事件</value></data>
+  <data name="UserGuide_AutomationRules_Trigger1_Description.Text" xml:space="preserve"><value>文档被导入、更新或删除。可按文件类型、合集或元数据过滤。</value></data>
+  <data name="UserGuide_AutomationRules_Trigger2_Title.Text" xml:space="preserve"><value>会话事件</value></data>
+  <data name="UserGuide_AutomationRules_Trigger2_Description.Text" xml:space="preserve"><value>新建会话、会话达到消息数阈值,或提及特定关键词。</value></data>
+  <data name="UserGuide_AutomationRules_Trigger3_Title.Text" xml:space="preserve"><value>Insight 事件</value></data>
+  <data name="UserGuide_AutomationRules_Trigger3_Description.Text" xml:space="preserve"><value>检测到新的 insight、insight 匹配某些关键词,或 insight 超过置信度阈值。</value></data>
+  <data name="UserGuide_AutomationRules_Examples_Title.Text" xml:space="preserve"><value>示例规则</value></data>
+  <data name="UserGuide_AutomationRules_Example1.Text" xml:space="preserve"><value>“自动标记研究” — 当导入 PDF 时,自动分析其内容并用您现有分类法中的相关主题打标签。</value></data>
+  <data name="UserGuide_AutomationRules_Example2.Text" xml:space="preserve"><value>“Insight 提醒” — 当检测到含“urgent”或“important”的 insight 时,立即发送桌面通知。</value></data>
+  <data name="UserGuide_AutomationRules_Example3.Text" xml:space="preserve"><value>“每周总结” — 每周日下午 6 点,创建过去一周所有会话的摘要,并加入您的 Weekly Digest 合集。</value></data>
+  <data name="UserGuide_AdvancedQueries_Title.Text" xml:space="preserve"><value>高级查询</value></data>
+  <data name="UserGuide_AdvancedQueries_Description.Text" xml:space="preserve"><value>在简单提问之外,Agent-X 提供一组深入的查询技巧,可实质改善精确度、召回率与答案质量。措辞越审慎,结果越好——这些技巧把“有用”的答案与“出色”的答案区分开来,尤其当您的 Vault 超过几百份文档之后。</value></data>
+  <data name="UserGuide_AdvancedQueries_Techniques_Title.Text" xml:space="preserve"><value>查询技巧</value></data>
+  <data name="UserGuide_AdvancedQueries_Technique1.Text" xml:space="preserve"><value>合集与标签作用域 — 用自然语言的范围提示约束检索(“在 Competitors 合集中”“带 ‘pricing’ 标签”),或使用输入区上方的范围 chip。把合集与标签组合通常将答案精度提升 20–40%,因为它在检索前剔除了离题片段。混合检索还接受布尔提示:“必须包含 ‘ARR’”会在语义检索之外强制关键词匹配。</value></data>
+  <data name="UserGuide_AdvancedQueries_Technique2.Text" xml:space="preserve"><value>时间约束与时效性 — 用明确窗口表述查询(“过去一周”“仅第三季度”“Series B 公告之后”)。Agent-X 在来源元数据存在时应用日期过滤,并在话题快速演进时提示模型加权较新的片段。配合合集过滤,可问“第二季度到第四季度之间 Pricing 合集发生了什么变化”。</value></data>
+  <data name="UserGuide_AdvancedQueries_Technique3.Text" xml:space="preserve"><value>对比查询 — 跨文档或跨来源请求显式对比(“三个方案在时间表上有何不同?”“将我们的路线图与竞争对手本季度的发布对比”)。Agent-X 按来源/文档独立检索 Top-K 片段,再提示模型合成对比回答,而不是把来源混成一种声音。专用 Comparison 页中的对比视图会展示并排差异。</value></data>
+  <data name="UserGuide_AdvancedQueries_Technique4.Text" xml:space="preserve"><value>结构化输出 — 请求具体的输出形态(“以 Markdown 表格作答,列为 功能 / 价格 / 优点 / 缺点”“按季度分组的项目符号列表”“返回符合该 schema 的 JSON 对象”)。原生支持 tool-use 的云模型(OpenAI、Anthropic)会以严格模式遵从 JSON-schema 请求——非常适合把 AI 输出接入 Workflows 或外部系统。</value></data>
+  <data name="UserGuide_PerformanceTuning_Title.Text" xml:space="preserve"><value>性能调优</value></data>
+  <data name="UserGuide_PerformanceTuning_Description.Text" xml:space="preserve"><value>Agent-X 能在从 4 GB 显存的笔记本到多 GPU 工作站的广泛硬件上良好运行。默认设置瞄准这一光谱的中段(16 GB 内存、8 GB 显存、7B 级聊天模型)。把下列旋钮按您的机器和工作负载调整,可带来 2–5 倍提速、内存使用减半,并显著提升答案质量。请先运行 Hardware Advisor——它会为您的具体配置设定合理起点。</value></data>
+  <data name="UserGuide_PerformanceTuning_Memory_Title.Text" xml:space="preserve"><value>内存管理</value></data>
+  <data name="UserGuide_PerformanceTuning_Memory.Text" xml:space="preserve"><value>向量嵌入与 HNSW 索引常驻内存以实现快速检索。“最大常驻片段数”(设置 &gt; Knowledge Vault)限制有多少片段保持热态——8 GB 系统下调(试 50,000),16 GB 保留默认 250,000,32 GB 可推到 100 万以上。SQLCipher 加密大约消耗 10–15% 吞吐;在“设置 &gt; Sync”的 Encryption 选项可在受信环境中用加密换速度。对于超大 Vault,启用基于 mmap 的盘上 HNSW——检索略慢但内存有界。</value></data>
+  <data name="UserGuide_PerformanceTuning_Queries_Title.Text" xml:space="preserve"><value>查询优化</value></data>
+  <data name="UserGuide_PerformanceTuning_Queries.Text" xml:space="preserve"><value>调整检索 Top-K(默认 10):5–7 更快,对窄查询往往足够;15–20 对宽问题改善召回但会增加 prompt token 与延迟。把 MMR 多样化 lambda 设为 0.3–0.5 以去重接近重复的片段。缓存命中率与平均检索延迟在 Operations 页中可见——若命中率低于 30%,说明您的查询足够分散,缓存未抵成本;可考虑关闭 SearchCache 或增大其 TTL。</value></data>
+  <data name="UserGuide_PerformanceTuning_Local_Title.Text" xml:space="preserve"><value>本地模型调优</value></data>
+  <data name="UserGuide_PerformanceTuning_Local.Text" xml:space="preserve"><value>对于 Ollama:更小的量化(Q4_K_M)比 Q8_0 少用约 50% 显存,质量下降通常 2–5%——多数情况下是正确权衡。问答工作负载将上下文长度限制在 4K,长文档 RAG 则保留 8K–16K。把 GPU 层卸载(num_gpu)最大化直到刚要溢到 CPU 为止;甜点在溢出点下方 1–2 层。嵌入方面,在多数工作负载下 all-minilm 比 mxbai-embed-large 快 10 倍且检索质量相当——若无特别理由,使用前者。吞吐量记录在 Operations 中;追逐 token/秒,而非理论上的模型排名。</value></data>
+  <data name="UserGuide_Annotations_Title.Text" xml:space="preserve"><value>注释与高亮</value></data>
+  <data name="UserGuide_Annotations_Description.Text" xml:space="preserve"><value>注释把 Knowledge Vault 从存储之地变成思考之地。阅读时高亮片段、附加笔记与标签、跨文档关联注释,并把它们作为一等公民的搜索结果、RAG 上下文与摘要素材浮现出来。每条注释都锚定到精确的来源范围——颜色、批注与交叉引用经得起文档重建索引与导出。</value></data>
+  <data name="UserGuide_Annotations_Creating_Title.Text" xml:space="preserve"><value>创建注释</value></data>
+  <data name="UserGuide_Annotations_Create1.Text" xml:space="preserve"><value>阅读时高亮 — 在 Vault 预览窗格中打开任意文档,选中文本并选择颜色(黄/绿/蓝/粉/紫)。每种颜色可在“设置”中赋予含义(例如:黄=“关键论断”、粉=“需核实”、绿=“同意”)。</value></data>
+  <data name="UserGuide_Annotations_Create2.Text" xml:space="preserve"><value>添加笔记与标签 — 给任何高亮附加自由格式笔记;添加标签使注释在文档间可搜索。笔记支持 Markdown,包括指向其他文档、会话或其他注释的内嵌链接。</value></data>
+  <data name="UserGuide_Annotations_Create3.Text" xml:space="preserve"><value>从任意位置捕获 — 一键把 AI Chat 引用、网页搜索结果、浏览器扩展与 Quick Action 输出中的选区,作为对源文档的注释保存。</value></data>
+  <data name="UserGuide_Annotations_Surfacing_Title.Text" xml:space="preserve"><value>注释出现的位置</value></data>
+  <data name="UserGuide_Annotations_Surface1.Text" xml:space="preserve"><value>注释页 — 一个专门工作区,列出整个 Vault 中的每条高亮与笔记,可按文档、颜色、标签、日期与自由文本筛选。可批量导出为 Markdown,便于审阅或迁移。</value></data>
+  <data name="UserGuide_Annotations_Surface2.Text" xml:space="preserve"><value>源文档内内联 — 重新打开文档时,所有注释都会以内联方式可见;点击页边标记会打开关联笔记。同一视图可导出为 PDF,便于对外分享带注释的文档。</value></data>
+  <data name="UserGuide_Annotations_Surface3.Text" xml:space="preserve"><value>RAG 上下文加权 — 进行有据问答时,被注释的片段在检索阶段被加权;模型被告知“用户已将这些片段标为重要”——在重度注释文档上,答案质量差异肉眼可见。</value></data>
+  <data name="UserGuide_Annotations_Surface4.Text" xml:space="preserve"><value>周报与 Insights — 被注释的片段与您的笔记会进入“本周您标记的内容”章节并融入 Weekly Digest,同时参与 insight 检测与知识图谱边权重计算。</value></data>
+  <data name="UserGuide_AudioTranscription_Title.Text" xml:space="preserve"><value>音频转录</value></data>
+  <data name="UserGuide_AudioTranscription_Description.Text" xml:space="preserve"><value>将音频文件(MP3、M4A、WAV、FLAC、OGG、WebM)或移动端录音拖入 Agent-X,会以 Whisper 级模型在本地完成转录,并按带时间戳的片段索引到 Knowledge Vault,从而对所有其他功能可用——RAG、搜索、Quick Actions、Workflows。语音备忘、播客集、会议录音、讲座、访谈——全部成为一等可搜索内容。</value></data>
+  <data name="UserGuide_AudioTranscription_HowItWorks_Title.Text" xml:space="preserve"><value>转录的工作方式</value></data>
+  <data name="UserGuide_AudioTranscription_Step1.Text" xml:space="preserve"><value>通过拖放、文件选择器、移动伴侣的语音备忘采集或文件夹监视导入。文件在 Audio Transcription 管道中排队,索引队列在 Operations 中实时显示进度。</value></data>
+  <data name="UserGuide_AudioTranscription_Step2.Text" xml:space="preserve"><value>本地 Whisper 级转录在您的机器上运行——可在“设置”中选择模型变体(tiny/base/small/medium/large),以速度换精度。支持仅 CPU 运行;GPU 会显著加速大模型。语言自动检测(支持 100+ 种语言);对已知来源可固定语言。</value></data>
+  <data name="UserGuide_AudioTranscription_Step3.Text" xml:space="preserve"><value>输出是带完整时间戳的转录,按说话人感知边界分块(如果模型支持 diarization)。片段像其他文档一样嵌入 Vault,但有额外好处:引用解析到具体时间戳,可点击跳转到音频播放面板中对应位置。</value></data>
+  <data name="UserGuide_AudioTranscription_UseCases_Title.Text" xml:space="preserve"><value>使用场景</value></data>
+  <data name="UserGuide_AudioTranscription_UseCase1.Text" xml:space="preserve"><value>会议回顾 — 把会议录音丢进来,然后提问“关于第四季度招聘我们决定了什么?”,获得带时间戳与精确引用、可点击播放的答案。</value></data>
+  <data name="UserGuide_AudioTranscription_UseCase2.Text" xml:space="preserve"><value>播客研究 — 构建播客集 Collection;像普通文本 Vault 一样跨集查询。“哪些集讨论了 X?”——附可收听的引用。</value></data>
+  <data name="UserGuide_AudioTranscription_UseCase3.Text" xml:space="preserve"><value>语音日记 — 在移动应用中捕获语音备忘;自动转录并像书面消息一样进入 Temporal Identity 跟踪。</value></data>
+  <data name="UserGuide_AudioTranscription_Note_Label.Text" xml:space="preserve"><value>提示</value></data>
+  <data name="UserGuide_AudioTranscription_Note.Text" xml:space="preserve"><value>Audio Transcription 由实验功能开关 experimental.audio_transcription 控制,可能需要额外下载模型。请在“设置 &gt; Feature Flags”中启用。小模型可在 4 核 CPU 上实时运行;大模型受益于 GPU。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_Title.Text" xml:space="preserve"><value>工作区配置文件</value></data>
+  <data name="UserGuide_WorkspaceProfiles_Description.Text" xml:space="preserve"><value>工作区配置文件允许您一键切换整个 Agent-X 上下文——不同的文档作用域、默认模型、系统提示、配色主题,甚至每个配置文件不同的功能开关集合。可以拥有一个仅看工作 Vault、默认使用 Claude Sonnet 4 的“Work”配置文件,以及一个看日记条目、使用本地 Ollama 模型的“Personal”配置文件。配置文件干净地隔离而无需沙箱——同一个 Vault 可按 Collection 作用域服务多个配置文件。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_Creating_Title.Text" xml:space="preserve"><value>创建配置文件</value></data>
+  <data name="UserGuide_WorkspaceProfiles_Create1.Text" xml:space="preserve"><value>打开 Workspace Profile(侧边栏或 Command Palette → “workspace”)并点击 New Profile。选择名称、颜色标签,以及(可选)将所有检索与搜索约束到这些 Collection 的 Collection 作用域。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_Create2.Text" xml:space="preserve"><value>配置该配置文件特定的默认值:聊天模型、嵌入模型、系统提示、主题(亮/暗/自动)、启用的功能开关、默认 RAG top-K,以及可见的侧边栏页面。未设置的项继承自全局“设置”。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_Create3.Text" xml:space="preserve"><value>通过标题栏的配置文件下拉菜单或 Ctrl+Shift+S → 从列表中选择来切换配置文件。切换是即时的;无需重启应用、重建索引或数据迁移。会话与注释保持绑定到创建它们的配置文件。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_UseCases_Title.Text" xml:space="preserve"><value>使用场景</value></data>
+  <data name="UserGuide_WorkspaceProfiles_UseCase1.Text" xml:space="preserve"><value>工作 / 个人分离 — 两个配置文件、两个作用域、两套默认模型。避免把工作场景的模型习惯泄漏到个人探索(或反之),同时不必启动单独安装。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_UseCase2.Text" xml:space="preserve"><value>客户隔离 — 顾问与承包商按客户创建配置文件,使每个客户的文档、会话与笔记被干净地分区。在 Acme Corp 与 BetaCo 之间一键切换,零上下文渗漏。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_UseCase3.Text" xml:space="preserve"><value>项目工作区 — 为埋头冲刺启动一个配置文件,搭配自定义系统提示(“你是项目 X 的研究助理”)、置顶 Collection 与不同主题,使视觉上也像独立工作区。</value></data>
+  <data name="UserGuide_Plugins_Title.Text" xml:space="preserve"><value>插件与可扩展性</value></data>
+  <data name="UserGuide_Plugins_Description.Text" xml:space="preserve"><value>插件以新的提供方、解析器、Quick Actions、工作流节点、侧边栏页面与集成扩展 Agent-X。它们打包为 .agentx-plugin 文件(或 .zip),通过 Plugin Manager(设置 &gt; Plugins)发布,在桌面应用内沙箱运行。内置插件包括 Calendar(Outlook/Google)与 Email;开发者 SDK 让您构建自己的插件——从自定义 RAG 管道到“发送到 Notion”动作。</value></data>
+  <data name="UserGuide_Plugins_Manager_Title.Text" xml:space="preserve"><value>Plugin Manager</value></data>
+  <data name="UserGuide_Plugins_Manager1.Text" xml:space="preserve"><value>安装 — 把 .agentx-plugin 或 .zip 拖到 Plugin Manager,或浏览目录并点击 Install。插件在安装时声明权限(网络、文件系统、模型访问);激活前请审阅并批准。</value></data>
+  <data name="UserGuide_Plugins_Manager2.Text" xml:space="preserve"><value>配置 — 每个插件提供自己的设置面板(API 密钥、同步间隔、范围过滤器)。配置与 Agent-X 设置并列加密存储,跨升级保留。插件贡献的命令会自动出现在 Command Palette 中。</value></data>
+  <data name="UserGuide_Plugins_Manager3.Text" xml:space="preserve"><value>启用 / 禁用 / 卸载 — 在不卸载的情况下切换插件开关。被禁用的插件保留配置但停止运行。卸载会删除所有插件文件与配置;卸载为最终操作,经 Danger Zone 确认。</value></data>
+  <data name="UserGuide_Plugins_Capabilities_Title.Text" xml:space="preserve"><value>插件能做什么</value></data>
+  <data name="UserGuide_Plugins_Capability1.Text" xml:space="preserve"><value>自定义 AI 提供方 — 接入任何兼容 OpenAI 或 Anthropic 的 API 端点(自托管 Mistral、Together、Groq、OpenRouter、Replicate、Fireworks 等)。提供方插件与 Cost Tracking、设置和 Model Manager 集成。</value></data>
+  <data name="UserGuide_Plugins_Capability2.Text" xml:space="preserve"><value>自定义解析器与来源 — 增加对新文件格式、利基来源(Notion 导出、Logseq 日志、Roam 图)或专用索引器的支持。插件解析器与内置解析器一同参与索引队列。</value></data>
+  <data name="UserGuide_Plugins_Capability3.Text" xml:space="preserve"><value>工作流节点与 Quick Actions — 贡献新的动作节点(发送到 Slack、推送到 webhook、追加到电子表格、运行脚本)或新的 Quick Action 模板。插件扩展用户已熟悉的同一构建器 UI。</value></data>
+  <data name="UserGuide_Plugins_Capability4.Text" xml:space="preserve"><value>侧边栏页面与集成 — 插件可添加带自有 UI 的新页面、与 Calendar/Email/Inbox 集成,或为知识图谱做贡献。插件 SDK 使用与应用其余部分一致的 WinUI 3 组件,以保持视觉一致性。</value></data>
+  <data name="UserGuide_Integrations_Title.Text" xml:space="preserve"><value>日历与邮件集成</value></data>
+  <data name="UserGuide_Integrations_Description.Text" xml:space="preserve"><value>接入 Microsoft Outlook、Google Workspace 或任何标准 CalDAV / IMAP / Exchange Web Services 来源,Agent-X 即把您的日历事件与邮件视为一等知识——可搜索、可查询、可摘要,也可作为 Workflows 的触发器。集成默认只读;可选的发送与回复能力需要额外的明示权限授予。</value></data>
+  <data name="UserGuide_Integrations_Calendar_Title.Text" xml:space="preserve"><value>日历集成</value></data>
+  <data name="UserGuide_Integrations_Calendar1.Text" xml:space="preserve"><value>接入 Outlook(经 Microsoft Graph 的 OAuth)、Google Calendar(经 Google 的 OAuth)或任何 CalDAV 提供方。CalendarSyncService 按计划拉取事件(默认每 15 分钟),尊重按日历的可见性过滤,并把事件作为可搜索条目建索引。</value></data>
+  <data name="UserGuide_Integrations_Calendar2.Text" xml:space="preserve"><value>用自然语言对您的日历提问——“下周我有什么安排?”“我会见 Acme 的谁?”“找出所有超过 60 分钟的重复会议”“按参与者汇总第三季度的会议负担”。回答会引用具体事件并提供回到来源应用的点击链接。</value></data>
+  <data name="UserGuide_Integrations_Calendar3.Text" xml:space="preserve"><value>把日历事件作为 Workflow 触发器——在每个事件前 15 分钟通过查询 Knowledge Vault 中相关文档和关于与会者的邮件,自动准备会议简报,把简报推送到收件箱或 Slack 频道,并把会议结果捕回 Vault。</value></data>
+  <data name="UserGuide_Integrations_Email_Title.Text" xml:space="preserve"><value>邮件集成</value></data>
+  <data name="UserGuide_Integrations_Email1.Text" xml:space="preserve"><value>通过 OAuth(Outlook、Gmail)或 IMAP(任意提供方)接入。配置文件夹过滤(例如:索引 Inbox + Sent,跳过 Promotions 与 Updates)与保留窗口。索引后的邮件像其他文档一样参与 RAG 与搜索。</value></data>
+  <data name="UserGuide_Integrations_Email2.Text" xml:space="preserve"><value>查询您的邮件历史——“找出所有关于 Smith 合同的邮件”“总结本季度我与 Jane 的对话”“本月有谁给我发来过截止日期?”邮件线程会合并,使 12 条消息的线程作为一个连贯单元被检索,而不是 12 个碎片。</value></data>
+  <data name="UserGuide_Integrations_Email3.Text" xml:space="preserve"><value>邮件驱动的自动化——按过滤器(发件人、主题、标签)在收件时触发 Workflows,用 AI 经 Generative Identity 以您的语气起草回复,排队等待一键发送,或把收件附件直接路由到 Knowledge Vault。</value></data>
+  <data name="UserGuide_BackupRestore_Title.Text" xml:space="preserve"><value>备份与还原</value></data>
+  <data name="UserGuide_BackupRestore_Description.Text" xml:space="preserve"><value>备份与还原是您数据的双向闭环:完整、加密、可计划的备份能够在任何机器上重建您的整个 Agent-X 状态。备份会捕获 SQLite 数据库、文档存储、插件数据与设置——离开这台设备并在另一台设备上从断点处恢复所需的一切。还原支持完全替换、智能合并与 cherry-pick。</value></data>
+  <data name="UserGuide_BackupRestore_Backup_Title.Text" xml:space="preserve"><value>创建备份</value></data>
+  <data name="UserGuide_BackupRestore_Backup1.Text" xml:space="preserve"><value>手动备份 — “设置 &gt; 备份 &gt; 立即创建备份”会生成单个 .agentxbackup 文件(压缩加密归档)。选择目标位置、可选设置口令即可完成。典型备份大小约等于您导入文档的大小再加 10–15% 以容纳向量与元数据。</value></data>
+  <data name="UserGuide_BackupRestore_Backup2.Text" xml:space="preserve"><value>计划备份 — 配置频率(每日、每周)、目标(本地文件夹、网络共享,或 OneDrive/Dropbox/Google Drive 等同步云盘文件夹)、保留策略(保留最近 N 个、最近 M 天)与口令。BackupService 在后台运行;失败会通过带诊断细节的通知呈现。</value></data>
+  <data name="UserGuide_BackupRestore_Backup3.Text" xml:space="preserve"><value>包含的内容 — 完整 SQLite 数据库(会话、insights、beliefs、voice profile、注释、搜索历史、设置)、文档存储、插件数据与配置、许可证激活以及工作区配置文件。云提供方的 API 密钥默认以 DPAPI 加密,仅在同一 Windows 账户打开备份时往返;pair-with-passphrase 模式支持跨账户还原。</value></data>
+  <data name="UserGuide_BackupRestore_Restore_Title.Text" xml:space="preserve"><value>从备份还原</value></data>
+  <data name="UserGuide_BackupRestore_Restore1.Text" xml:space="preserve"><value>替换 — 清除当前状态并按原样加载备份。迁移到新机器、从损坏中恢复或回滚错误更改的正确选择。替换前会自动备份当前状态,因此该操作可逆。</value></data>
+  <data name="UserGuide_BackupRestore_Restore2.Text" xml:space="preserve"><value>合并 — 将备份与当前状态合并。冲突(相同会话 ID、相同文档哈希)默认按 last-write-wins 解决;可配置为 prefer-backup 或 prefer-current。在合并两套 Agent-X 安装、或在不丢失最近工作的情况下恢复特定数据时非常有用。</value></data>
+  <data name="UserGuide_BackupRestore_Restore3.Text" xml:space="preserve"><value>Cherry-Pick — 一个清单式 UI,可预览备份内容并有选择地还原:挑选特定会话、文档合集、插件配置或设置进行导入。最适合部分恢复与外科式迁移。</value></data>
+  <data name="UserGuide_BackupRestore_Migration_Title.Text" xml:space="preserve"><value>跨版本迁移</value></data>
+  <data name="UserGuide_BackupRestore_Migration_Description.Text" xml:space="preserve"><value>备份带有 schema 版本号。当您在更新的 Agent-X 上还原时,迁移流水线会就地升级 schema——添加新列、在嵌入模型默认值变化时重建索引等。可以无任何手动步骤地把多年前制作的备份还原到最新版本上。</value></data>
+  <data name="UserGuide_LicenseTiers_Title.Text" xml:space="preserve"><value>许可证等级</value></data>
+  <data name="UserGuide_LicenseTiers_Description.Text" xml:space="preserve"><value>Agent-X 按设备授权,分四个等级,逐步解锁文档配额、Intelligence 功能与支持。本地优先架构与完全的数据所有权在所有等级上保持不变——付费等级解锁规模与深度,从不限制您对数据的访问。可在“设置 &gt; 许可证”中查看、激活与管理许可证。</value></data>
+  <data name="UserGuide_LicenseTiers_Tier1_Title.Text" xml:space="preserve"><value>Trial — 免费</value></data>
+  <data name="UserGuide_LicenseTiers_Tier1_Description.Text" xml:space="preserve"><value>Knowledge Vault 内最多 50 份文档,仅基础聊天模型,单一工作区配置文件,手动备份。非常适合在做承诺前端到端评估 Agent-X 并验证本地性能。</value></data>
+  <data name="UserGuide_LicenseTiers_Tier2_Title.Text" xml:space="preserve"><value>Starter — $79(一次性)</value></data>
+  <data name="UserGuide_LicenseTiers_Tier2_Description.Text" xml:space="preserve"><value>最多 500 份文档,所有聊天与嵌入模型(本地 + 云端),完整 Quick Actions 库,计划备份,完整导出。个人知识库——研究、写作、日志——的正确选择。</value></data>
+  <data name="UserGuide_LicenseTiers_Tier3_Title.Text" xml:space="preserve"><value>Professional — $149(一次性)</value></data>
+  <data name="UserGuide_LicenseTiers_Tier3_Description.Text" xml:space="preserve"><value>文档无限,完整 Intelligence 栈(知识图谱、Insight Harvesting、Temporal Identity、Generative Identity)、Workflows + 计划查询 + 自动化规则、多工作区配置文件、插件、日历/邮件集成、浏览器扩展、移动伴侣。完整平台。</value></data>
+  <data name="UserGuide_LicenseTiers_Tier4_Title.Text" xml:space="preserve"><value>Ultimate — $249(一次性)</value></data>
+  <data name="UserGuide_LicenseTiers_Tier4_Description.Text" xml:space="preserve"><value>包含 Professional 全部内容,并默认启用口令加密的 SQLCipher Vault、优先支持(1 个工作日内回复)、实验功能抢先体验,以及具有公开目录发布权的插件开发者 SDK。</value></data>
+  <data name="UserGuide_LicenseTiers_Notes_Title.Text" xml:space="preserve"><value>激活与管理</value></data>
+  <data name="UserGuide_LicenseTiers_Note1.Text" xml:space="preserve"><value>许可证按设备授权且一次性付费(无订阅)。一次购买,永久拥有。新大版本作为独立许可证发布;次版本更新与缺陷修复在您购买的大版本生命周期内免费。</value></data>
+  <data name="UserGuide_LicenseTiers_Note2.Text" xml:space="preserve"><value>在设备间迁移许可证:通过“设置 &gt; 许可证 &gt; 停用”,然后在新设备上用同一密钥激活。设备丢失?把您的许可证密钥邮件给支持团队,我们会重置激活槽位。</value></data>
+  <data name="UserGuide_Export_Title.Text" xml:space="preserve"><value>导出与数据可携性</value></data>
+  <data name="UserGuide_Export_Description.Text" xml:space="preserve"><value>您的数据可在各层级以开放格式导出——单条会话、完整会话历史、单个文档、整个 Knowledge Vault、您的 voice profile、insights、beliefs、设置、插件清单。不存在锁定:如果您将来离开 Agent-X,可以把一切以可读、可在任何地方加载的格式带走。备份与还原(单独章节)是双向闭环;本节讨论单向导出。</value></data>
+  <data name="UserGuide_Export_Conversations_Title.Text" xml:space="preserve"><value>会话导出</value></data>
+  <data name="UserGuide_Export_Conversations.Text" xml:space="preserve"><value>可导出单条会话、多选会话、所有会话或 Past Self 的时间窗口。格式:Markdown(最适合阅读与分享)、JSON(包括系统提示、tool 调用、分支与引用的完整结构保真)、纯文本(有损但通用)与 HTML(含已渲染的代码高亮与引用)。可经导出模板(设置 &gt; 导出)自定义——控制字段、匿名化姓名、屏蔽密文,以及调整版面。</value></data>
+  <data name="UserGuide_Export_Documents_Title.Text" xml:space="preserve"><value>文档与 Vault 导出</value></data>
+  <data name="UserGuide_Export_Documents.Text" xml:space="preserve"><value>把整个 Knowledge Vault 导出为 ZIP,包含原始文件、每个文档的抽取文本、片段索引,以及向量嵌入(便携 .vec 格式)。该包可在另一台 Agent-X 安装上比特对齐地重新加载——非常适合在机器间迁移、归档项目或把 Vault 交给协作者。也可在不需要全部内容时导出子集(单个文档、单个合集、日期范围)。</value></data>
+  <data name="UserGuide_Export_Backup_Title.Text" xml:space="preserve"><value>自动备份</value></data>
+  <data name="UserGuide_Export_Backup.Text" xml:space="preserve"><value>在“设置 &gt; 备份”中安排自动备份。备份捕获 SQLite 数据库(会话、insights、beliefs、voice profile、设置)、文档存储与插件数据。可用口令加密以安全地存放云端;压缩默认开启。设定保留策略(保留最近 N 个、最近 M 天)、选择目标(本地文件夹、网络共享,或 OneDrive/Dropbox/Google Drive 文件夹)与频率(每日、每周)。</value></data>
+  <data name="UserGuide_Export_Restore_Title.Text" xml:space="preserve"><value>还原数据</value></data>
+  <data name="UserGuide_Export_Restore.Text" xml:space="preserve"><value>可从“设置 &gt; 备份 &gt; 还原”导入任何过往备份,或在全新安装的引导流程中导入。还原模式:替换(清除当前状态并加载备份)、合并(与当前状态合并,冲突按 last-write-wins 处理),或 Cherry-Pick(可勾选要带过来的会话、文档与设置)。跨版本迁移自动进行——打开任何更早版本 Agent-X 的备份,迁移流水线会就地升级 schema。</value></data>
 </root>
