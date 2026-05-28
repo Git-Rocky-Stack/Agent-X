@@ -365,4 +365,269 @@
   <data name="UserGuide_InsightHarvesting_Managing1.Text" xml:space="preserve"><value>View all insights on the Dashboard or Past Self page, sorted by recency.</value></data>
   <data name="UserGuide_InsightHarvesting_Managing2.Text" xml:space="preserve"><value>Click any insight card to jump to the original conversation context.</value></data>
   <data name="UserGuide_InsightHarvesting_Managing3.Text" xml:space="preserve"><value>Dismiss or keep insights - dismissed insights will not be shown again.</value></data>
+
+  <!-- UserGuide Extended sections (parity restoration) -->
+  <data name="UserGuide_KeyboardShortcuts_Action8.Text" xml:space="preserve"><value>キーボード ショートカット一覧を表示(リアルタイム、検索可能)</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action9.Text" xml:space="preserve"><value>ジャンプ — ファイル/ページのクイック ナビゲーター</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action10.Text" xml:space="preserve"><value>ダッシュボードを開く</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action11.Text" xml:space="preserve"><value>ナレッジ グラフを開く</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action12.Text" xml:space="preserve"><value>ワークフローを開く</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action13.Text" xml:space="preserve"><value>Web インポートを開く</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action14.Text" xml:space="preserve"><value>アナリティクスを開く</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action15.Text" xml:space="preserve"><value>オペレーションを開く</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action16.Text" xml:space="preserve"><value>ナビゲーション順 1〜9 ページへのクイック ジャンプ(ダッシュボード、Chat、AskFiles、検索、Vault、Collections、Workflows、Models、Settings)</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Footer.Text" xml:space="preserve"><value>ヒント: すべてのショートカットは再割り当て可能です。設定 &gt; キーボード ショートカットで任意のコンビネーションの再バインド、複数キー シーケンスの登録、特定のページへの限定スコープを設定できます。</value></data>
+  <data name="UserGuide_FirstChat_Title.Text" xml:space="preserve"><value>最初のチャット</value></data>
+  <data name="UserGuide_FirstChat_Description.Text" xml:space="preserve"><value>「インストール直後」から「最初の実用的な会話」までを 90 秒で案内するハンズオン チュートリアルです。完了時には、チャット画面の構成、ローカル モデルとクラウド モデルの切り替え方、会話コンテキストの意味、そして以後のすべてのチャットを 3 倍速くする数少ないショートカットの使い方を理解できます。</value></data>
+  <data name="UserGuide_FirstChat_Step1_Title.Text" xml:space="preserve"><value>ステップ 1: AI Chat を開く</value></data>
+  <data name="UserGuide_FirstChat_Step1.Text" xml:space="preserve"><value>サイドバーの AI Chat エントリをクリックするか、Ctrl+2(ナビゲーション順は Dashboard、Chat、AskFiles、Search、Vault…)を押すか、Ctrl+K を押して「chat」と入力します。画面左側に会話リスト、中央に現在の会話、上下にモデル セレクターと入力欄が表示されます。</value></data>
+  <data name="UserGuide_FirstChat_Step2_Title.Text" xml:space="preserve"><value>ステップ 2: モデルを選択</value></data>
+  <data name="UserGuide_FirstChat_Step2.Text" xml:space="preserve"><value>会話上部のモデル ドロップダウンを使用します。完全ローカル推論には Ollama モデルを選択し、llama3.2 が強力な既定値です。クラウド オプトインによるフロンティア性能には OpenAI GPT-4o(またはスピード/コスト重視で GPT-4o-mini)、もしくは Anthropic Claude Sonnet 4(推論能力と速度のバランスが最良)を選びます。ドロップダウンにはコンテキスト ウィンドウ長とトークン単価(クラウド モデルの場合)が表示され、用途に最適な選択が可能です。</value></data>
+  <data name="UserGuide_FirstChat_Step3_Title.Text" xml:space="preserve"><value>ステップ 3: チャットを開始</value></data>
+  <data name="UserGuide_FirstChat_Step3.Text" xml:space="preserve"><value>下部の入力欄にメッセージを入力します。Enter で送信、Shift+Enter で改行、Ctrl+Enter で送信して即座に次のターンを開始します。応答はトークン単位でストリーミングされ、Markdown(構文ハイライト付きのコード ブロックを含む)をライブでレンダリングし、フォローアップ候補 3 件で終わります。生成を停止するには任意のタイミングで Esc を押してください。途中までの応答は保持されます。</value></data>
+  <data name="UserGuide_FirstChat_Tips_Title.Text" xml:space="preserve"><value>最初のチャットのコツ</value></data>
+  <data name="UserGuide_FirstChat_Tip1.Text" xml:space="preserve"><value>具体的に書きましょう。「この記事を要約して」は「これを要約して」より優れ、「この記事を 5 つの箇条書きで、コストへの影響に絞って要約して」はその両方を上回ります。明確なプロンプトは劇的に良い回答を生み、特に小型のローカル モデルでその差が顕著です。</value></data>
+  <data name="UserGuide_FirstChat_Tip2.Text" xml:space="preserve"><value>新しい会話を始めるには Ctrl+N を押します。各会話は独自のコンテキスト ウィンドウを持つため、トピックを切り替えたい時や、それまでの文脈をモデルに忘れさせたい時には新規会話が適切です。重要な会話はピン アイコンでサイドバーの上部に固定できます。</value></data>
+  <data name="UserGuide_FirstChat_Tip3.Text" xml:space="preserve"><value>長大な冒頭プロンプトより、フォローアップで反復しましょう。Agent-X は会話内のすべてを記憶しているため、2 つ目の質問は非常に短く(「では前四半期と比較して」)書いてもフル コンテキストが効きます。巨大プロンプトを練り上げるより速く、回答も良くなります。</value></data>
+  <data name="UserGuide_FirstDocument_Title.Text" xml:space="preserve"><value>最初のドキュメント</value></data>
+  <data name="UserGuide_FirstDocument_Description.Text" xml:space="preserve"><value>Agent-X は、あなた自身のドキュメントを接続した瞬間に格段に有用になります。このチュートリアルでは「最初のインポート」から「引用付きの最初の根拠ある回答」までを 3 分以内で案内します。同じフローは 1 ファイルから数千ファイルへとシームレスに拡張します。</value></data>
+  <data name="UserGuide_FirstDocument_Step1_Title.Text" xml:space="preserve"><value>ステップ 1: ファイルをインポート</value></data>
+  <data name="UserGuide_FirstDocument_Step1.Text" xml:space="preserve"><value>Knowledge Vault(Ctrl+I)を開き、PDF、Word、Markdown、テキスト、コード、または Web URL をウィンドウにドラッグします。あるいは「インポート」をクリックしてシステムのファイル ピッカーを使用、URL を貼り付けて Web ページを取り込み、フォルダーをドラッグして中身を再帰的にインポートします。最初のインポートでは自動タグ付けと重複検出も開始されます。</value></data>
+  <data name="UserGuide_FirstDocument_Step2_Title.Text" xml:space="preserve"><value>ステップ 2: インデックス作成を待つ</value></data>
+  <data name="UserGuide_FirstDocument_Step2.Text" xml:space="preserve"><value>インデックス作成では、フォーマット固有のパーサーでテキストを抽出し、内容を約 512 トークンのセマンティック セグメント(重複付き)に分割し、各チャンクを埋め込みモデルに通し、ベクトルを HNSW インデックスおよび FTS5 キーワード インデックスへ書き込みます。所要時間はサイズに比例し、一般的な PDF で 5〜30 秒、1,000 ページの書籍で約 2 分です。進捗は Vault の行および Operations(Ctrl+Shift+O)にライブ表示されます。</value></data>
+  <data name="UserGuide_FirstDocument_Step3_Title.Text" xml:space="preserve"><value>ステップ 3: 質問する</value></data>
+  <data name="UserGuide_FirstDocument_Step3.Text" xml:space="preserve"><value>AI Chat を開き、会話のスコープをインポートしたばかりのドキュメントに限定(またはスコープを省略して Vault 全体を検索)し、質問します。「主な要点は?」「主要な主張と反論を要約して」「著者は中心的な主張に対してどんな根拠を提供している?」などを試してください。各回答には番号付き引用が付き、使用された正確な箇所に戻ります。</value></data>
+  <data name="UserGuide_FirstDocument_Supported_Title.Text" xml:space="preserve"><value>対応ファイル形式</value></data>
+  <data name="UserGuide_FirstDocument_Supported.Text" xml:space="preserve"><value>ドキュメント: PDF(OCR フォールバック付き)、DOCX、RTF、EPUB、HTML、Markdown、プレーン テキスト、CSV/TSV、XLSX(シート抽出)、PPTX(スライド抽出)。コード: 30 以上の言語を構文認識チャンク分割で対応。Web: 貼り付けまたはブラウザー拡張からの任意の URL。音声: MP3/M4A/WAV/FLAC を Audio Transcription 経由で対応。YouTube URL は文字起こしの取り込みを起動。画像: PNG/JPG/JPEG を Tesseract OCR で(アクティブ モデルが画像対応の場合はビジョン モデルでの直接クエリも)。</value></data>
+  <data name="UserGuide_WebSearch_Title.Text" xml:space="preserve"><value>Web 検索とリサーチ</value></data>
+  <data name="UserGuide_WebSearch_Description.Text" xml:space="preserve"><value>Agent-X はライブの Web 検索を統合し、最新情報を会話に取り込みます。Brave Search、Serper.dev、または自己ホストの SearXNG インスタンスのいずれかを差し替え可能なプロバイダーとして構成すれば、Agent-X は新鮮な結果を取得し、クリーンな記事本文を抽出し、ローカル Knowledge Vault と並行して引用付きの回答を合成します。結果はローカルにキャッシュされ、繰り返しクエリのレイテンシと API 費用を削減します。</value></data>
+  <data name="UserGuide_WebSearch_HowItWorks_Title.Text" xml:space="preserve"><value>Web 検索の仕組み</value></data>
+  <data name="UserGuide_WebSearch_Step1.Text" xml:space="preserve"><value>設定 &gt; Web 検索でプロバイダーを構成します。Brave Search(Brave API キーを貼り付け)、Serper.dev(Google 基盤、Serper API キーを貼り付け)、または SearXNG(自己ホスト インスタンスの URL を貼り付け — キー不要)。Agent-X は優先プロバイダーが失敗またはレート制限された場合、自動的に次に構成されたプロバイダーへフォールバックします。</value></data>
+  <data name="UserGuide_WebSearch_Step2.Text" xml:space="preserve"><value>クエリが Web 検索を起動すると、Agent-X は検索を発行し、上位結果を取得し、各ソース ページをフェッチし、HTML を可読性抽出器に通してナビゲーション、広告、クロームを取り除き、クリーンな本文のみを残します。オプションで、JavaScript レンダーが必要なページは JsRendering サービス経由で Playwright で処理されます。</value></data>
+  <data name="UserGuide_WebSearch_Step3.Text" xml:space="preserve"><value>抽出されたコンテンツは質問とともにチャット モデルに渡されます。モデルは番号付き引用付きの根拠ある回答を合成し、引用は各ソース URL にリンクされます。ソース ページはワンクリックで Knowledge Vault にインポートでき、将来の RAG クエリで活用できます。</value></data>
+  <data name="UserGuide_WebSearch_Modes_Title.Text" xml:space="preserve"><value>検索モード</value></data>
+  <data name="UserGuide_WebSearch_Mode1_Title.Text" xml:space="preserve"><value>自動(既定)</value></data>
+  <data name="UserGuide_WebSearch_Mode1_Description.Text" xml:space="preserve"><value>モデルが質問に最新情報(最近の出来事、ライブ データ、ファクトチェック、「今日/今週」などの表現)が必要かを検出し、Web 検索を透過的に起動します。検索中、入力欄に「Web を検索中…」インジケーターが表示されます。</value></data>
+  <data name="UserGuide_WebSearch_Mode2_Title.Text" xml:space="preserve"><value>手動検索</value></data>
+  <data name="UserGuide_WebSearch_Mode2_Description.Text" xml:space="preserve"><value>メッセージの先頭に「/search 」を付ける、または入力欄の Web ボタンを切り替えて Web 検索を強制します。常緑トピックでも新鮮なソースが欲しい時や、境界クエリで自動検出ヒューリスティクスを回避したい時に便利です。</value></data>
+  <data name="UserGuide_WebSearch_Mode3_Title.Text" xml:space="preserve"><value>RAG + Web 併用</value></data>
+  <data name="UserGuide_WebSearch_Mode3_Description.Text" xml:space="preserve"><value>Agent-X は 1 回のクエリで Knowledge Vault とライブ Web の両方から取得します。引用には「Vault」「Web」の出処タグが付き、自分の資料由来か公開インターネット由来かが一目でわかります。自身の過去の作業を分野の現状と比較したい研究に最適です。</value></data>
+  <data name="UserGuide_WebSearch_Tips_Title.Text" xml:space="preserve"><value>Web 検索のヒント</value></data>
+  <data name="UserGuide_WebSearch_Tip1.Text" xml:space="preserve"><value>出典を求めましょう — Agent-X は常にソース URL にリンクされたインライン番号付き引用を返します。引用をクリックすると既定のブラウザーでページが開き、右クリックで Knowledge Vault にインポートして恒久的にインデックスできます。</value></data>
+  <data name="UserGuide_WebSearch_Tip2.Text" xml:space="preserve"><value>最新性チェックを依頼しましょう — 「現時点で」「2026 年でも正しい?」「過去 1 か月で何が変わった?」などのフレーズは自動的に新鮮な検索を起動します。キャッシュは構成可能な TTL を尊重し、基礎トピックが変化した時に古い回答が残らないようにします。</value></data>
+  <data name="UserGuide_WebImport_Title.Text" xml:space="preserve"><value>Web コンテンツのインポート</value></data>
+  <data name="UserGuide_WebImport_Description.Text" xml:space="preserve"><value>Agent-X はローカル ファイルを超え、任意の Web コンテンツを Knowledge Vault に取り込みます — 記事、ブログ投稿、ドキュメント ページ、RSS/Atom フィード、サイトマップ、YouTube 字幕も。インポートされたページはローカル ファイルと同じ処理を受けます: テキスト抽出、チャンク分割、埋め込み、FTS5 インデックス作成、自動タグ付け、そして RAG、検索、Quick Actions、Workflows での完全利用可能性。</value></data>
+  <data name="UserGuide_WebImport_Methods_Title.Text" xml:space="preserve"><value>インポート方法</value></data>
+  <data name="UserGuide_WebImport_Method1.Text" xml:space="preserve"><value>URL を直接貼り付け — Web Import ページ(Ctrl+Shift+E)で任意の URL を貼り付け、必要に応じてタグ付けし、宛先 Collection を選びます。Agent-X が取得・抽出・既存インポートに対する重複排除・インデックス化を行います — 記事 1 本で通常 3〜8 秒。</value></data>
+  <data name="UserGuide_WebImport_Method2.Text" xml:space="preserve"><value>ブラウザー拡張 — Agent-X の Chrome/Edge 拡張をインストールし、読んでいるページをワンクリックでキャプチャ。拡張はデスクトップ アプリと Native Messaging で通信するため、キャプチャはクラウドを経由せずローカルで完結します。</value></data>
+  <data name="UserGuide_WebImport_Method3.Text" xml:space="preserve"><value>バッチ/フィードベースのインポート — テキスト ファイルや表計算ソフトから URL リストを貼り付け、RSS/Atom フィードを Agent-X に向ける、または sitemap.xml URL からインポートします。フィードベースのインポートは FeedService でスケジュール更新でき、ブログ、ニュース ソース、ドキュメント ポータルを監視するハンズオフのパイプラインを構築できます。</value></data>
+  <data name="UserGuide_WebImport_Extraction_Title.Text" xml:space="preserve"><value>コンテンツ抽出</value></data>
+  <data name="UserGuide_WebImport_Extraction_Description.Text" xml:space="preserve"><value>Agent-X は各ページから意味のあるコンテンツを賢く抽出します:</value></data>
+  <data name="UserGuide_WebImport_Extraction1.Text" xml:space="preserve"><value>可読性ヒューリスティクスを使ってナビゲーション、サイドバー、フッター、広告、Cookie バナー、クロームを除去し、本文のみを保持します。補助ヘルパーは情報を加える限り埋め込み画像の alt テキストや図表キャプションも保持します。</value></data>
+  <data name="UserGuide_WebImport_Extraction2.Text" xml:space="preserve"><value>構造を保持 — 見出し階層、リスト、表、引用ブロック、コード ブロック、インライン リンクをすべて維持するため、セマンティック チャンク分割が自然な境界を尊重し、引用は特定のセクションに解決します。</value></data>
+  <data name="UserGuide_WebImport_Extraction3.Text" xml:space="preserve"><value>豊富なメタデータをキャプチャ — 著者、公開日、正規 URL、og:image、言語、読了時間。YouTube URL は YouTubeTranscriptHelper を起動し、自動字幕または公開された文字起こしを文書本文として取り込みます。</value></data>
+  <data name="UserGuide_WebImport_JsRendering_Title.Text" xml:space="preserve"><value>JavaScript レンダリング</value></data>
+  <data name="UserGuide_WebImport_JsRendering_Description.Text" xml:space="preserve"><value>コンテンツを動的に読み込む SPA サイト(React/Vue/Svelte アプリ、JS ゲートで保護されたペイウォール サイト、無限スクロール アーカイブ)については、設定 &gt; Web インポートで JS レンダリングを有効化します。Agent-X はヘッドレス Playwright/Chromium インスタンスを起動し、ページのハイドレーションを待ち、必要に応じて遅延読み込みを誘発するためスクロールし、レンダリング後の DOM をキャプチャします。</value></data>
+  <data name="UserGuide_WebImport_JsRendering_Note_Label.Text" xml:space="preserve"><value>注意</value></data>
+  <data name="UserGuide_WebImport_JsRendering_Note.Text" xml:space="preserve"><value>JS レンダリングは静的フェッチより 5〜15 倍遅く、同時処理ページあたり約 200 MB の RAM を使用します。必要なサイトに限定して有効化してください。ドメインごとのオーバーライドにより、高速サイトは静的フェッチ、必要な少数のサイトのみ JS レンダリングという運用が可能です。</value></data>
+  <data name="UserGuide_Citations_Title.Text" xml:space="preserve"><value>引用とソース</value></data>
+  <data name="UserGuide_Citations_Description.Text" xml:space="preserve"><value>Agent-X では透明性は譲れません。あなたのドキュメントやライブ Web ソースに根拠付けられた回答には、必ず明示的でクリック可能な引用が付きます — 曖昧な「あなたのファイルによれば」ではなく、検証可能な出処を伴う具体的な箇所への [1]、[2]、[3] マーカーです。レンダリング時のガード パスがすべての引用番号が実際に取得されたチャンクに対応していることを検証するため、ハルシネーション圧下でもモデルは引用を捏造できません。</value></data>
+  <data name="UserGuide_Citations_Types_Title.Text" xml:space="preserve"><value>引用の種類</value></data>
+  <data name="UserGuide_Citations_Type1_Title.Text" xml:space="preserve"><value>ドキュメント引用</value></data>
+  <data name="UserGuide_Citations_Type1_Description.Text" xml:space="preserve"><value>Knowledge Vault ソースの場合: ファイル名、ページ番号(PDF)、見出しパス(Markdown/Word)またはチャンク インデックス、関連度スコア、取得された正確な箇所。クリックでドキュメントをその位置で開き、一致範囲がハイライトされます。右クリックでソースを Collection に追加、または会話用にピン留めできます。</value></data>
+  <data name="UserGuide_Citations_Type2_Title.Text" xml:space="preserve"><value>Web 引用</value></data>
+  <data name="UserGuide_Citations_Type2_Description.Text" xml:space="preserve"><value>ライブ Web ソースの場合: ページ タイトル、正規 URL、ソース ドメインの favicon、公開日(利用可能な場合)、関連度スコア。クリックで既定のブラウザーで開き、右クリックで Knowledge Vault に恒久レコードとしてインポートでき、将来の RAG クエリは追加の Web 取得なしにそれに根拠を置けます。</value></data>
+  <data name="UserGuide_Citations_Type3_Title.Text" xml:space="preserve"><value>マルチソース回答</value></data>
+  <data name="UserGuide_Citations_Type3_Description.Text" xml:space="preserve"><value>回答が Knowledge Vault と Web のソースを統合する場合、各引用には出処タグ(「Vault」/「Web」)が付き、統一された References パネルでソース タイプごとにグループ化されます。モデルは各主張を特定のソースに帰属させるよう指示されるため、マルチソース回答は不透明なブロブに平均化されるのではなく監査可能なまま保たれます。</value></data>
+  <data name="UserGuide_Citations_Using_Title.Text" xml:space="preserve"><value>引用の使い方</value></data>
+  <data name="UserGuide_Citations_Using1.Text" xml:space="preserve"><value>任意の引用チップをクリックすると、ソース プレビューを展開、元の場所にジャンプ、または引用箇所を出典付きでクリップボードへコピーでき、自分の執筆にそのまま使えます。</value></data>
+  <data name="UserGuide_Citations_Using2.Text" xml:space="preserve"><value>AI 応答内のインライン引用番号にマウスを乗せると、ソース タイトル、スコア、抜粋を含むクイック ポップアップが表示されます — 読書フローを中断せずに主張を検証できます。</value></data>
+  <data name="UserGuide_Citations_Using3.Text" xml:space="preserve"><value>Knowledge Vault では引用頻度で並べ替え/フィルターし、会話が最も依存しているドキュメントを確認できます。高頻度ソースはピン留めした Collection への昇格や、より深い注釈付けの明確な候補です。</value></data>
+  <data name="UserGuide_BrowserExtension_Title.Text" xml:space="preserve"><value>ブラウザー拡張</value></data>
+  <data name="UserGuide_BrowserExtension_Description.Text" xml:space="preserve"><value>Agent-X ブラウザー拡張は、ブラウザー内からデスクトップ アプリへの橋渡しです。読んでいるページをワンクリックで Knowledge Vault に保存、ページを離れずに現在のタブについて根拠ある質問、選択テキストに対する Quick Actions の実行、ページや YouTube 字幕を Workflows に直接送信。拡張はデスクトップ アプリとセキュアなローカルの Native Messaging で通信します — クラウドなし、プロキシなし、第三者なし。</value></data>
+  <data name="UserGuide_BrowserExtension_Installation_Title.Text" xml:space="preserve"><value>インストール</value></data>
+  <data name="UserGuide_BrowserExtension_Step1.Text" xml:space="preserve"><value>Agent-X 拡張を Chrome Web Store または Microsoft Edge Add-ons からインストールします(Chromium ベースの両ブラウザーが完全サポートされます)。Firefox は計画中です。拡張はオープン ソースで、デスクトップ アプリと同じリポジトリから提供されます。</value></data>
+  <data name="UserGuide_BrowserExtension_Step2.Text" xml:space="preserve"><value>初回起動時、拡張は Native Messaging ホストの登録を求めます。確認してください — これはユーザーごとに 1 回限りのステップで、ブラウザーをローカルの Agent-X メッセージング エンドポイントに向ける Registry エントリーを書き込みます。これなしでは拡張はデスクトップ アプリに到達できません。</value></data>
+  <data name="UserGuide_BrowserExtension_Step3.Text" xml:space="preserve"><value>拡張アイコンをツールバーに固定し、「ペアリング」をクリックしてローカル Agent-X セッションにサインインします — デスクトップ アプリがワンタイム コードを生成し、拡張で確認します。ペアリングは持続的で、ブラウザーやアプリの再起動後も自動的に再確立されます。</value></data>
+  <data name="UserGuide_BrowserExtension_Features_Title.Text" xml:space="preserve"><value>拡張の機能</value></data>
+  <data name="UserGuide_BrowserExtension_Feature1.Text" xml:space="preserve"><value>クイック保存 — 拡張アイコンをクリック(または構成可能なホットキー)して現在のページを Knowledge Vault にキャプチャ。拡張は Web Import と同じ可読性抽出器を適用するため、生 HTML ではなくクリーンな本文をメタデータ付きで取得できます。</value></data>
+  <data name="UserGuide_BrowserExtension_Feature2.Text" xml:space="preserve"><value>ページ チャット — サイド パネルを開いて現在のページについて会話。ページ コンテンツはアドホック コンテキスト(画像と表を含む)として読み込まれますが、ページが恒久的にインデックスされることはないため、Vault を散らかしたくない記事も素早く問い合わせられます。</value></data>
+  <data name="UserGuide_BrowserExtension_Feature3.Text" xml:space="preserve"><value>選択解析 — 任意のページの任意のテキストをハイライトし、右クリックして「説明」「要約」「翻訳」「注釈として保存」「Quick Actions に送信」から選択。選択は特定の Workflow への入力としても送信できます。</value></data>
+  <data name="UserGuide_BrowserExtension_Feature4.Text" xml:space="preserve"><value>スマート キャプチャ — 多くの読み手向けサイトで記事境界を自動検出し、難しいレイアウトでは手動の「キャプチャ範囲を選択」モードにフォールバックします。YouTube タブは字幕の利用可否を検出し、ワンクリックの字幕インポートを提供します。</value></data>
+  <data name="UserGuide_BrowserExtension_NativeMessaging_Title.Text" xml:space="preserve"><value>Native Messaging アーキテクチャ</value></data>
+  <data name="UserGuide_BrowserExtension_NativeMessaging_Description.Text" xml:space="preserve"><value>通信は Chrome の Native Messaging プロトコルで動作します — 拡張と、起動中の Agent-X アプリへ転送する小さな登録済みホスト プロセス間で、stdio 経由の JSON でやり取りします。HTTP なし、localhost サーバーなし、公開ポートなし。Agent-X が起動していない場合、拡張はアクションをローカルでキューに入れ、アプリが戻った時に再送します。すべてあなたのマシン上で完結し、第三者サーバーを経由する情報はありません。</value></data>
+  <data name="UserGuide_MobileCompanion_Title.Text" xml:space="preserve"><value>モバイル コンパニオン アプリ</value></data>
+  <data name="UserGuide_MobileCompanion_Description.Text" xml:space="preserve"><value>Agent-X モバイル コンパニオン(iOS と Android)は、デスクトップ アプリのローカル API ホストと話す薄いクライアントです。電話機は Vault 全体のコピーを保持せず、代わりに自宅ネットワークまたはペアリングされたトンネル上にアンカーされたエンドツーエンド暗号化チャネル経由で、デスクトップから必要な時にチャット、検索、ドキュメント アクセスをストリームします。デスクトップが唯一の信頼の源であり続け、電話機はそれへの窓です。</value></data>
+  <data name="UserGuide_MobileCompanion_Pairing_Title.Text" xml:space="preserve"><value>デバイスのペアリング</value></data>
+  <data name="UserGuide_MobileCompanion_Step1.Text" xml:space="preserve"><value>Agent-X Mobile を App Store または Google Play からインストールします。モバイル ビルドはオープン ソースで、デスクトップ リリース サイクルから独立して出荷されるため、デスクトップ 1.2 とモバイル 1.4(またはその逆)を互換性問題なしで実行できます。</value></data>
+  <data name="UserGuide_MobileCompanion_Step2.Text" xml:space="preserve"><value>デスクトップで 設定 &gt; モバイル コンパニオン を開き、「新しいデバイスをペアリング」をクリックします。Agent-X はローカル API ホストを起動(まだ稼働していない場合)し、デバイス用の新しいキー ペアを生成し、ローカル エンドポイント、デバイスの対称セッション キー、5 分で期限切れになる短いペアリング コードを含むワンタイム QR コードを表示します。</value></data>
+  <data name="UserGuide_MobileCompanion_Step3.Text" xml:space="preserve"><value>モバイル アプリで QR コードをスキャンし、デスクトップ側で一致するペアリング コードを確認します。モバイル アプリは暗号化されたデバイス キーを OS のキーチェーン(iOS Keychain / Android Keystore)に保存します。以後のすべてのトラフィックは相互認証され、そのキーで暗号化されます — データが Strategia のサーバーを経由することは決してありません。</value></data>
+  <data name="UserGuide_MobileCompanion_Features_Title.Text" xml:space="preserve"><value>モバイル機能</value></data>
+  <data name="UserGuide_MobileCompanion_Feature1_Title.Text" xml:space="preserve"><value>フル チャット アクセス</value></data>
+  <data name="UserGuide_MobileCompanion_Feature1_Description.Text" xml:space="preserve"><value>デスクトップで開始した会話を続行するか、電話機から新しく開始します。ストリーミング応答、引用、コード ブロック、Markdown はすべてネイティブにレンダリングされます。新しい会話は双方がオンラインの時、数秒以内にデスクトップ アプリへ同期されます。</value></data>
+  <data name="UserGuide_MobileCompanion_Feature2_Title.Text" xml:space="preserve"><value>ナレッジ検索</value></data>
+  <data name="UserGuide_MobileCompanion_Feature2_Description.Text" xml:space="preserve"><value>どこからでも Knowledge Vault 全体にハイブリッド検索を実行 — 会議の準備、出先でのファクト チェック、メッセージに引用を引き出す用途。結果、引用、ドキュメント プレビューはデスクトップからリアルタイムでストリームされます。</value></data>
+  <data name="UserGuide_MobileCompanion_Feature3_Title.Text" xml:space="preserve"><value>クイック キャプチャ</value></data>
+  <data name="UserGuide_MobileCompanion_Feature3_Description.Text" xml:space="preserve"><value>音声メモ(デスクトップで Audio Transcription サービスを用いてローカルに文字起こし)とテキスト メモは直接 Knowledge Vault に入ります。写真キャプチャはインデックス作成前に OCR を実行 — 本のページやホワイトボードを数秒で検索可能な文書に変換します。</value></data>
+  <data name="UserGuide_MobileCompanion_Feature4_Title.Text" xml:space="preserve"><value>オフライン モード</value></data>
+  <data name="UserGuide_MobileCompanion_Feature4_Description.Text" xml:space="preserve"><value>最近の会話、ピン留めされたドキュメント、直近 50 件の検索結果はデバイス上にキャッシュされ、接続がなくてもアクセスできます。オフラインで行われたキャプチャはキューに入れられ、デスクトップが再到達可能になった時に自動的に再送されます。</value></data>
+  <data name="UserGuide_MobileCompanion_Sync_Title.Text" xml:space="preserve"><value>データ同期とセキュリティ</value></data>
+  <data name="UserGuide_MobileCompanion_Sync_Description.Text" xml:space="preserve"><value>同期はあなたのローカル デスクトップ API ホスト経由で行われます。共有 LAN 上では直接、リモートでは Tailscale、Zerotier、または独自のリバース プロキシを介してペアリングできます。デスクトップが常に権威 — 電話機は現在のビューに必要なものだけを保持し、設定からペアリング済みデバイスを取り消すと、そのキーは即座に無効化され、次回起動時にローカル キャッシュがワイプされます。</value></data>
+  <data name="UserGuide_Workflows_Title.Text" xml:space="preserve"><value>ワークフローと自動化</value></data>
+  <data name="UserGuide_Workflows_Description.Text" xml:space="preserve"><value>ワークフローは、アクション ノード ライブラリから構成される宣言型の複数ステップ自動化です — クエリ、ドキュメント操作、Web 検索、ファイル生成、通知、モデル呼び出し、条件分岐、プラグイン提供ステップなど。これらは Agent-X をチャット ツールからパーソナルな自動化プラットフォームに変える「接着剤」です: スケジュールでドキュメントを取り込み、週次レポートを自動生成、朝のリサーチ ブリーフィングを実行、または手動でやるであろうカスタム パイプラインを駆動します。Workflow Builder(Ctrl+Shift+W)で視覚的に作成できます。</value></data>
+  <data name="UserGuide_Workflows_Creating_Title.Text" xml:space="preserve"><value>ワークフローの作成</value></data>
+  <data name="UserGuide_Workflows_CreateStep1.Text" xml:space="preserve"><value>設定または Quick Actions メニューから Workflows パネルを開きます。「新しいワークフローを作成」をクリックして開始します。</value></data>
+  <data name="UserGuide_Workflows_CreateStep2.Text" xml:space="preserve"><value>トリガーを定義します — スケジュール(毎日 9 時)、イベント(新しいドキュメントの追加)、または手動実行が可能です。</value></data>
+  <data name="UserGuide_Workflows_CreateStep3.Text" xml:space="preserve"><value>アクションを追加します — 各ワークフローには AI クエリ、ドキュメント インデックス作成、通知などの複数のアクションを含められます。</value></data>
+  <data name="UserGuide_Workflows_CreateStep4.Text" xml:space="preserve"><value>手動実行でワークフローをテストしてから有効化します。実行ログを監視して期待通りに動作するか検証します。</value></data>
+  <data name="UserGuide_Workflows_Triggers_Title.Text" xml:space="preserve"><value>ワークフロー トリガー</value></data>
+  <data name="UserGuide_Workflows_Trigger1_Title.Text" xml:space="preserve"><value>スケジュール</value></data>
+  <data name="UserGuide_Workflows_Trigger1_Description.Text" xml:space="preserve"><value>スケジュールで実行 — 1 時間ごと、毎日、毎週、またはカスタム cron 式。日次ブリーフィングや定期分析に最適です。</value></data>
+  <data name="UserGuide_Workflows_Trigger2_Title.Text" xml:space="preserve"><value>イベント駆動</value></data>
+  <data name="UserGuide_Workflows_Trigger2_Description.Text" xml:space="preserve"><value>ドキュメント インポート、会話完了、insight しきい値到達などのアプリ イベントによってトリガー。</value></data>
+  <data name="UserGuide_Workflows_Trigger3_Title.Text" xml:space="preserve"><value>手動</value></data>
+  <data name="UserGuide_Workflows_Trigger3_Description.Text" xml:space="preserve"><value>Workflows パネルまたは Quick Actions から必要に応じて実行。アドホックな自動化タスクに便利です。</value></data>
+  <data name="UserGuide_Workflows_Examples_Title.Text" xml:space="preserve"><value>ワークフローの例</value></data>
+  <data name="UserGuide_Workflows_Example1.Text" xml:space="preserve"><value>「日次ブリーフィング」 — 毎朝 8 時に最近のドキュメントと insight をクエリして、新しい内容と注意が必要な事項のサマリーを生成します。</value></data>
+  <data name="UserGuide_Workflows_Example2.Text" xml:space="preserve"><value>「リサーチ アシスタント」 — Research コレクションに新しい PDF が追加された時、自動的に重要点を抽出し、引用を生成し、重要な発見をフラグ付けします。</value></data>
+  <data name="UserGuide_Workflows_Example3.Text" xml:space="preserve"><value>「週次レビュー」 — 毎週日曜、過去 1 週間の全会話をまとめ、主要テーマを特定し、振り返りプロンプトを作成します。</value></data>
+  <data name="UserGuide_ScheduledQueries_Title.Text" xml:space="preserve"><value>スケジュール済みクエリ</value></data>
+  <data name="UserGuide_ScheduledQueries_Description.Text" xml:space="preserve"><value>スケジュール済みクエリは選択したスケジュールで自動実行され、手動の手間なく insight を届けます。日次ブリーフィング、定期的なリサーチ更新、繰り返しの分析タスクに最適です。</value></data>
+  <data name="UserGuide_ScheduledQueries_Setup_Title.Text" xml:space="preserve"><value>スケジュール済みクエリの設定</value></data>
+  <data name="UserGuide_ScheduledQueries_Step1.Text" xml:space="preserve"><value>任意の会話で、メッセージ入力欄の上にある「スケジュール」ボタン(時計アイコン)をクリックします。</value></data>
+  <data name="UserGuide_ScheduledQueries_Step2.Text" xml:space="preserve"><value>スケジュールを選択 — 毎日、毎週、またはカスタム時刻。クエリ対象のコレクションまたはドキュメントを選択します。</value></data>
+  <data name="UserGuide_ScheduledQueries_Step3.Text" xml:space="preserve"><value>スケジュール済みクエリに名前を付けて確定します。指定した時刻に自動的に実行されるようになります。</value></data>
+  <data name="UserGuide_ScheduledQueries_Schedules_Title.Text" xml:space="preserve"><value>スケジュール オプション</value></data>
+  <data name="UserGuide_ScheduledQueries_Schedule1_Title.Text" xml:space="preserve"><value>一回</value></data>
+  <data name="UserGuide_ScheduledQueries_Schedule1_Description.Text" xml:space="preserve"><value>特定の将来の日付と時刻に一度実行。リマインダーや期限駆動のクエリに有用です。</value></data>
+  <data name="UserGuide_ScheduledQueries_Schedule2_Title.Text" xml:space="preserve"><value>繰り返し</value></data>
+  <data name="UserGuide_ScheduledQueries_Schedule2_Description.Text" xml:space="preserve"><value>毎日、毎週、または毎月実行。各実行は結果を伴う新しい会話エントリーを作成します。</value></data>
+  <data name="UserGuide_ScheduledQueries_Schedule3_Title.Text" xml:space="preserve"><value>cron 式</value></data>
+  <data name="UserGuide_ScheduledQueries_Schedule3_Description.Text" xml:space="preserve"><value>「毎週月曜と木曜の 14 時」「毎月初日」などの複雑なパターンに対応する cron 構文による高度なスケジュール。</value></data>
+  <data name="UserGuide_ScheduledQueries_Results_Title.Text" xml:space="preserve"><value>結果の管理</value></data>
+  <data name="UserGuide_ScheduledQueries_Results_Description.Text" xml:space="preserve"><value>スケジュール済みクエリの結果は新しい会話として表示されます:</value></data>
+  <data name="UserGuide_ScheduledQueries_Result1.Text" xml:space="preserve"><value>結果はクエリ名とタイムスタンプでタグ付けされ、識別が容易です。</value></data>
+  <data name="UserGuide_ScheduledQueries_Result2.Text" xml:space="preserve"><value>スケジュール済みクエリが完了すると、主要な発見のサマリー付き通知でお知らせします。</value></data>
+  <data name="UserGuide_AutomationRules_Title.Text" xml:space="preserve"><value>自動化ルール</value></data>
+  <data name="UserGuide_AutomationRules_Description.Text" xml:space="preserve"><value>自動化ルールは、Agent-X のイベントに応答する if-then ロジックを作成します。トリガー条件が満たされると、ルールは 1 つ以上のアクションを自動的に実行します。コードを書かずにインテリジェントな動作を構築できます。</value></data>
+  <data name="UserGuide_AutomationRules_Structure_Title.Text" xml:space="preserve"><value>ルール構造</value></data>
+  <data name="UserGuide_AutomationRules_Structure_Description.Text" xml:space="preserve"><value>各ルールは 3 つの部分で構成されます:</value></data>
+  <data name="UserGuide_AutomationRules_Structure1.Text" xml:space="preserve"><value>トリガー — ドキュメントのインポートや insight 検出など、ルールを開始するイベント。</value></data>
+  <data name="UserGuide_AutomationRules_Structure2.Text" xml:space="preserve"><value>条件 — 「ドキュメントが ‘Research’ タグの場合のみ」などのオプション フィルター。ルール適用条件を絞り込みます。</value></data>
+  <data name="UserGuide_AutomationRules_Structure3.Text" xml:space="preserve"><value>アクション — 通知の送信、クエリの実行、タグ追加など、ルール実行時の挙動。</value></data>
+  <data name="UserGuide_AutomationRules_Triggers_Title.Text" xml:space="preserve"><value>利用可能なトリガー</value></data>
+  <data name="UserGuide_AutomationRules_Trigger1_Title.Text" xml:space="preserve"><value>ドキュメント イベント</value></data>
+  <data name="UserGuide_AutomationRules_Trigger1_Description.Text" xml:space="preserve"><value>ドキュメントのインポート、更新、削除。ファイル タイプ、コレクション、メタデータでフィルター可能。</value></data>
+  <data name="UserGuide_AutomationRules_Trigger2_Title.Text" xml:space="preserve"><value>会話イベント</value></data>
+  <data name="UserGuide_AutomationRules_Trigger2_Description.Text" xml:space="preserve"><value>新規会話の作成、会話のメッセージ数しきい値到達、特定キーワードの言及。</value></data>
+  <data name="UserGuide_AutomationRules_Trigger3_Title.Text" xml:space="preserve"><value>Insight イベント</value></data>
+  <data name="UserGuide_AutomationRules_Trigger3_Description.Text" xml:space="preserve"><value>新規 insight 検出、insight が特定のキーワードに一致、または insight が信頼度しきい値を超過。</value></data>
+  <data name="UserGuide_AutomationRules_Examples_Title.Text" xml:space="preserve"><value>ルールの例</value></data>
+  <data name="UserGuide_AutomationRules_Example1.Text" xml:space="preserve"><value>「リサーチ自動タグ」 — PDF がインポートされた時、内容を自動分析し、既存の分類体系の関連トピックでタグ付けします。</value></data>
+  <data name="UserGuide_AutomationRules_Example2.Text" xml:space="preserve"><value>「Insight アラート」 — 「urgent」または「important」を含む insight が検出された時、即座にデスクトップ通知を送信します。</value></data>
+  <data name="UserGuide_AutomationRules_Example3.Text" xml:space="preserve"><value>「週次サマライザー」 — 毎週日曜 18 時、過去 1 週間のすべての会話のサマリーを作成し、Weekly Digest コレクションに追加します。</value></data>
+  <data name="UserGuide_AdvancedQueries_Title.Text" xml:space="preserve"><value>高度なクエリ</value></data>
+  <data name="UserGuide_AdvancedQueries_Description.Text" xml:space="preserve"><value>単純な質問を超えて、Agent-X は精度、リコール、回答品質を実質的に向上させる豊富なクエリ技法をサポートします。表現が意図的であるほど結果も良くなります — これらの技法は「役に立つ」回答と「驚くほど良い」回答を分けるもので、特に Vault が数百ドキュメントを超えた時に効果を発揮します。</value></data>
+  <data name="UserGuide_AdvancedQueries_Techniques_Title.Text" xml:space="preserve"><value>クエリ技法</value></data>
+  <data name="UserGuide_AdvancedQueries_Technique1.Text" xml:space="preserve"><value>コレクション/タグによるスコープ指定 — 自然言語のスコープ ヒント(「Competitors コレクション内で」「‘pricing’ タグ付き」)で取得を制限するか、入力欄上のスコープ チップを使用します。コレクションとタグを組み合わせると、取得前にトピック外チャンクが除外されるため、回答精度が 20〜40% 向上することが多いです。ハイブリッド取得はブール ヒントも受け付けます: 「‘ARR’ を含むこと」はセマンティック検索と並行してキーワード一致を強制します。</value></data>
+  <data name="UserGuide_AdvancedQueries_Technique2.Text" xml:space="preserve"><value>時間範囲と新しさ — クエリに明示的なウィンドウ(「過去 1 週間」「Q3 のみ」「シリーズ B 発表後」)を含めます。Agent-X はソース メタデータに日付フィルターを適用し、進化するトピックでは古い箇所より新しい箇所を重視するようモデルに促します。コレクション フィルターと併用すると「Q2 と Q4 の間で Pricing コレクションで何が変わったか」のような問いに対応できます。</value></data>
+  <data name="UserGuide_AdvancedQueries_Technique3.Text" xml:space="preserve"><value>比較クエリ — ドキュメントやソース間の明示的な比較を依頼します(「3 つの提案はタイムラインでどう異なる?」「我々のロードマップと今四半期の競合発表を比較して」)。Agent-X は各ソース/ドキュメントごとに上位 K の箇所を独立して取得し、ソースを 1 つの声に混ぜずに比較回答を合成するようモデルに促します。専用 Comparison ページの比較ビューは並列差分を表示します。</value></data>
+  <data name="UserGuide_AdvancedQueries_Technique4.Text" xml:space="preserve"><value>構造化出力 — 特定の出力形を要求します(「Markdown テーブルで列が Feature / Price / Pros / Cons の形で回答して」「四半期ごとにグループ化された箇条書きで」「このスキーマに一致する JSON オブジェクトで」)。ネイティブの tool-use を備えるクラウド モデル(OpenAI、Anthropic)は JSON-schema 要求を strict モードで尊重します — AI 出力を Workflows や外部システムへパイプするのに有用です。</value></data>
+  <data name="UserGuide_PerformanceTuning_Title.Text" xml:space="preserve"><value>パフォーマンス チューニング</value></data>
+  <data name="UserGuide_PerformanceTuning_Description.Text" xml:space="preserve"><value>Agent-X は 4 GB VRAM のノート PC から複数 GPU 搭載のワークステーションまで、幅広いハードウェアで良好に動作するよう設計されています。既定値はその中央(16 GB RAM、8 GB VRAM、7B クラスのチャット モデル)を狙っています。マシンとワークロードに合わせて以下のつまみを調整すると、2〜5 倍の高速化、メモリ使用量の半減、回答品質の有意な向上が得られます。最初に Hardware Advisor を実行してください — あなたの具体的な構成に対する妥当な初期値を設定します。</value></data>
+  <data name="UserGuide_PerformanceTuning_Memory_Title.Text" xml:space="preserve"><value>メモリ管理</value></data>
+  <data name="UserGuide_PerformanceTuning_Memory.Text" xml:space="preserve"><value>ベクトル埋め込みと HNSW インデックスは高速取得のため RAM に常駐します。「メモリ内の最大チャンク数」(設定 &gt; Knowledge Vault)は熱いまま保持するチャンク数を上限化します — 8 GB システムでは下げる(50,000 を試す)、16 GB では既定 250,000 を維持、32 GB では 100 万以上に押し上げます。SQLCipher 暗号化はスループットを 10〜15% 消費します。設定 &gt; Sync の Encryption 設定により、信頼環境では暗号化と速度を交換できます。非常に大きな Vault では mmap を用いたディスク上 HNSW を有効化 — 取得はやや遅くなりますがメモリは有界化されます。</value></data>
+  <data name="UserGuide_PerformanceTuning_Queries_Title.Text" xml:space="preserve"><value>クエリ最適化</value></data>
+  <data name="UserGuide_PerformanceTuning_Queries.Text" xml:space="preserve"><value>取得の top-K(既定 10)を調整します: 狭いクエリには 5〜7 が速く十分なことが多く、広い質問では 15〜20 がリコールに寄与しますがプロンプト トークンとレイテンシが増加します。MMR 多様化 lambda を 0.3〜0.5 に設定して類似チャンクを重複排除します。キャッシュ ヒット率と平均取得レイテンシは Operations ページに表示されます — ヒット率が 30% 未満なら、クエリは分散していてキャッシュがコストを取り戻していないので、SearchCache の無効化または TTL の延長を検討してください。</value></data>
+  <data name="UserGuide_PerformanceTuning_Local_Title.Text" xml:space="preserve"><value>ローカル モデルのチューニング</value></data>
+  <data name="UserGuide_PerformanceTuning_Local.Text" xml:space="preserve"><value>Ollama の場合: より小さい量子化(Q4_K_M)は Q8_0 より VRAM 使用量が ~50% 少なく、品質低下は通常 2〜5% — 多くの場合これが正しい妥協点です。Q&amp;A 用途ではコンテキスト長を 4K に制限し、長文 RAG では 8K〜16K のままに。GPU レイヤー オフロード(num_gpu)を CPU へのスピルが起きる直前まで最大化します。スイート スポットはスピル点の 1〜2 レイヤー下です。埋め込みでは all-minilm が mxbai-embed-large より 10 倍速く、多くのワークロードで取得品質は同等 — 大きいモデルを特に要する理由がない限りこれを使用します。スループットは Operations にログされます。理論的なモデル ランキングではなく、トークン/秒を追いかけてください。</value></data>
+  <data name="UserGuide_Annotations_Title.Text" xml:space="preserve"><value>注釈とハイライト</value></data>
+  <data name="UserGuide_Annotations_Description.Text" xml:space="preserve"><value>注釈は Knowledge Vault を「保存する場所」から「考える場所」に変えます。読みながら箇所をハイライトし、メモとタグを添え、ドキュメント間で注釈をリンクし、それらを一級の検索結果、RAG コンテキスト、ダイジェスト素材として浮上させます。各注釈は正確なソース範囲に紐付き — 色、コメント、相互参照はドキュメントの再インデックスやエクスポートを越えて存続します。</value></data>
+  <data name="UserGuide_Annotations_Creating_Title.Text" xml:space="preserve"><value>注釈の作成</value></data>
+  <data name="UserGuide_Annotations_Create1.Text" xml:space="preserve"><value>読みながらハイライト — Vault プレビュー ペインで任意のドキュメントを開き、テキストを選択し、色を選びます(黄/緑/青/ピンク/紫)。各色には設定で意味を割り当てられます(例: 黄=「重要主張」、ピンク=「要検証」、緑=「同意」)。</value></data>
+  <data name="UserGuide_Annotations_Create2.Text" xml:space="preserve"><value>メモとタグを追加 — 任意のハイライトに自由形式のメモを付け、タグを追加してドキュメント間で注釈を検索可能にします。メモは Markdown をサポートし、他のドキュメント、会話、別の注釈への埋め込みリンクも使えます。</value></data>
+  <data name="UserGuide_Annotations_Create3.Text" xml:space="preserve"><value>どこからでもキャプチャ — AI Chat の引用、Web 検索結果、ブラウザー拡張、Quick Action の出力からの選択をワンクリックでソース ドキュメントの注釈として保存します。</value></data>
+  <data name="UserGuide_Annotations_Surfacing_Title.Text" xml:space="preserve"><value>注釈の表示場所</value></data>
+  <data name="UserGuide_Annotations_Surface1.Text" xml:space="preserve"><value>Annotations ページ — Vault 全体のすべてのハイライトとメモを一覧する専用ワークスペース。ドキュメント、色、タグ、日付、フリーテキスト検索でフィルター可能。レビューや移行のため Markdown へ一括エクスポート。</value></data>
+  <data name="UserGuide_Annotations_Surface2.Text" xml:space="preserve"><value>ソース ドキュメント内インライン — ドキュメントを再オープンすると、すべての注釈がインラインで表示されます。ガター マークをクリックすると関連メモが開きます。同じビューを PDF へエクスポートして、注釈付きドキュメントを外部共有できます。</value></data>
+  <data name="UserGuide_Annotations_Surface3.Text" xml:space="preserve"><value>RAG コンテキスト ブースト — 根拠ある質問では、注釈済みの箇所は取得時により高く重み付けされます。モデルは「ユーザーがこれらの箇所を重要と印した」と伝えられるため、注釈の多いドキュメントでは回答品質の差が見えます。</value></data>
+  <data name="UserGuide_Annotations_Surface4.Text" xml:space="preserve"><value>週次ダイジェストと Insights — 注釈済みの箇所とメモは「今週マークした内容」セクションとして週次ダイジェストに流れ込み、insight 検出とナレッジ グラフのエッジ重み付けに貢献します。</value></data>
+  <data name="UserGuide_AudioTranscription_Title.Text" xml:space="preserve"><value>音声文字起こし</value></data>
+  <data name="UserGuide_AudioTranscription_Description.Text" xml:space="preserve"><value>音声ファイル(MP3、M4A、WAV、FLAC、OGG、WebM)やモバイル アプリからの録音を Agent-X にドロップすると、Whisper クラスのモデルでローカルに文字起こしされ、タイムスタンプ付きチャンクで Knowledge Vault にインデックスされ、他のすべての機能 — RAG、検索、Quick Actions、Workflows — で利用可能になります。音声メモ、ポッドキャスト エピソード、会議録音、講義、インタビュー — すべてが一級の検索可能なコンテンツになります。</value></data>
+  <data name="UserGuide_AudioTranscription_HowItWorks_Title.Text" xml:space="preserve"><value>文字起こしの仕組み</value></data>
+  <data name="UserGuide_AudioTranscription_Step1.Text" xml:space="preserve"><value>ドラッグ&amp;ドロップ、ファイル ピッカー、モバイル コンパニオンの音声メモ キャプチャ、またはフォルダー監視でインポートします。ファイルは Audio Transcription パイプラインのキューに入り、Operations にインデックス作成キューのライブ進捗が表示されます。</value></data>
+  <data name="UserGuide_AudioTranscription_Step2.Text" xml:space="preserve"><value>ローカルの Whisper クラス文字起こしはあなたのマシンで実行 — 設定でモデル バリアント(tiny/base/small/medium/large)を選び、速度と精度を交換します。CPU のみでサポート、GPU は大規模モデルを劇的に高速化します。言語は自動検出されます(100 以上の言語をサポート)。既知のソースに対しては固定可能です。</value></data>
+  <data name="UserGuide_AudioTranscription_Step3.Text" xml:space="preserve"><value>出力は完全にタイムスタンプ付きの文字起こしで、話者認識境界(モデルが diarization をサポートする場合)でチャンクされます。チャンクは他のドキュメントと同様に Vault に埋め込まれますが、引用は特定のタイムスタンプに解決され、クリックして音声再生パネル上の該当箇所にジャンプできるという追加の利点があります。</value></data>
+  <data name="UserGuide_AudioTranscription_UseCases_Title.Text" xml:space="preserve"><value>ユース ケース</value></data>
+  <data name="UserGuide_AudioTranscription_UseCase1.Text" xml:space="preserve"><value>会議の振り返り — 会議録音をドロップして「Q4 の採用について何を決めた?」と質問し、正確な引用とクリック再生付きのタイムスタンプ リンク回答を得ます。</value></data>
+  <data name="UserGuide_AudioTranscription_UseCase2.Text" xml:space="preserve"><value>ポッドキャスト リサーチ — ポッドキャスト エピソードのコレクションを構築し、通常のテキスト Vault のようにクエリ。「どのエピソードが X について議論している?」を聴ける引用付きで。</value></data>
+  <data name="UserGuide_AudioTranscription_UseCase3.Text" xml:space="preserve"><value>ボイス ジャーナリング — モバイル アプリで音声メモをキャプチャ。自動的に文字起こしされ、書かれたメッセージと同様に Temporal Identity トラッキングに供給されます。</value></data>
+  <data name="UserGuide_AudioTranscription_Note_Label.Text" xml:space="preserve"><value>注意</value></data>
+  <data name="UserGuide_AudioTranscription_Note.Text" xml:space="preserve"><value>Audio Transcription は experimental.audio_transcription フィーチャー フラグで制御され、追加のモデル ダウンロードが必要な場合があります。設定 &gt; Feature Flags で有効化してください。小さいモデルは 4 コア CPU でリアルタイム動作し、大きいモデルは GPU の恩恵を受けます。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_Title.Text" xml:space="preserve"><value>ワークスペース プロファイル</value></data>
+  <data name="UserGuide_WorkspaceProfiles_Description.Text" xml:space="preserve"><value>ワークスペース プロファイルは、Agent-X のコンテキスト全体をワンクリックで切り替えることを可能にします — プロファイルごとに異なるドキュメント スコープ、既定モデル、システム プロンプト、カラー テーマ、フィーチャー フラグ セット。仕事用 Vault のみを見て既定で Claude Sonnet 4 を使う「Work」プロファイルと、日記エントリーを見てローカル Ollama モデルを使う「Personal」プロファイルを持てます。プロファイルはサンドボックス化せずに綺麗に分離 — 同じ Vault が Collection スコープにより複数のプロファイルを提供できます。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_Creating_Title.Text" xml:space="preserve"><value>プロファイルの作成</value></data>
+  <data name="UserGuide_WorkspaceProfiles_Create1.Text" xml:space="preserve"><value>Workspace Profile(サイドバーまたは Command Palette → 「workspace」)を開き、New Profile をクリックします。名前、カラー タグ、および(任意で)すべての取得と検索をそれらの Collection に限定する Collection スコープを選びます。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_Create2.Text" xml:space="preserve"><value>プロファイル固有の既定値を構成: チャット モデル、埋め込みモデル、システム プロンプト、テーマ(ライト/ダーク/自動)、有効なフィーチャー フラグ、既定の RAG top-K、表示するサイドバー サーフェスなど。設定されていないものはグローバル設定から継承されます。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_Create3.Text" xml:space="preserve"><value>タイトル バーのプロファイル ドロップダウンまたは Ctrl+Shift+S → リストから選択でプロファイルを切り替えます。切り替えは即時で、アプリの再起動も再インデックスもデータ移行も不要です。会話と注釈は作成元プロファイルに紐付いたままです。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_UseCases_Title.Text" xml:space="preserve"><value>ユース ケース</value></data>
+  <data name="UserGuide_WorkspaceProfiles_UseCase1.Text" xml:space="preserve"><value>Work / Personal の分離 — 2 プロファイル、2 スコープ、2 つの既定モデル。仕事コンテキストのモデル習慣を個人探索に持ち込んだり、その逆を起こしたりせず、別インストールを立ち上げる必要もありません。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_UseCase2.Text" xml:space="preserve"><value>クライアント分離 — コンサルタントや契約者はクライアントごとのプロファイルを作成し、各クライアントのドキュメント、会話、メモを綺麗に分割します。Acme Corp と BetaCo の間でコンテキストの混入なくワンクリックで切り替え。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_UseCase3.Text" xml:space="preserve"><value>プロジェクト ワークスペース — カスタム システム プロンプト(「あなたはプロジェクト X のリサーチ アシスタントです」)、ピン留めされた Collection、別テーマで「集中スプリント」用プロファイルを立ち上げ、視覚的にも別のワークスペースに感じられます。</value></data>
+  <data name="UserGuide_Plugins_Title.Text" xml:space="preserve"><value>プラグインと拡張性</value></data>
+  <data name="UserGuide_Plugins_Description.Text" xml:space="preserve"><value>プラグインは Agent-X を新しいプロバイダー、パーサー、Quick Actions、ワークフロー ノード、サイドバー サーフェス、統合で拡張します。.agentx-plugin ファイル(または .zip)としてパッケージ化され、Plugin Manager(設定 &gt; Plugins)から配布され、デスクトップ アプリ内でサンドボックス実行されます。組み込みプラグインには Calendar(Outlook/Google)と Email が含まれます。開発者 SDK で独自のプラグインを構築できます — カスタム RAG パイプラインから「Notion へ送信」アクションまで。</value></data>
+  <data name="UserGuide_Plugins_Manager_Title.Text" xml:space="preserve"><value>Plugin Manager</value></data>
+  <data name="UserGuide_Plugins_Manager1.Text" xml:space="preserve"><value>インストール — .agentx-plugin または .zip を Plugin Manager にドラッグするか、カタログを参照して Install をクリック。プラグインはインストール時に権限(ネットワーク、ファイル システム、モデル アクセス)を宣言します。有効化前にレビューして承認してください。</value></data>
+  <data name="UserGuide_Plugins_Manager2.Text" xml:space="preserve"><value>構成 — 各プラグインは独自の設定パネル(API キー、同期間隔、スコープ フィルター)を公開します。構成は Agent-X 設定と並列に暗号化保存され、アップグレードを越えて存続します。プラグイン提供のコマンドは Command Palette に自動表示されます。</value></data>
+  <data name="UserGuide_Plugins_Manager3.Text" xml:space="preserve"><value>有効化 / 無効化 / アンインストール — アンインストールせずにプラグインのオン/オフを切り替えます。無効化されたプラグインは設定を保持しますが実行を停止します。アンインストールはすべてのプラグイン ファイルと構成を削除します。アンインストールは最終的で Danger Zone で確認されます。</value></data>
+  <data name="UserGuide_Plugins_Capabilities_Title.Text" xml:space="preserve"><value>プラグインができること</value></data>
+  <data name="UserGuide_Plugins_Capability1.Text" xml:space="preserve"><value>カスタム AI プロバイダー — 任意の OpenAI 互換または Anthropic 互換 API エンドポイント(自己ホスト Mistral、Together、Groq、OpenRouter、Replicate、Fireworks 等)を組み込みます。プロバイダー プラグインは Cost Tracking、設定、Model Manager と統合されます。</value></data>
+  <data name="UserGuide_Plugins_Capability2.Text" xml:space="preserve"><value>カスタム パーサーとソース — 新しいファイル形式、ニッチなソース(Notion エクスポート、Logseq ジャーナル、Roam グラフ)、特殊なインデクサーのサポートを追加します。プラグイン パーサーは組み込みパーサーと同様にインデックス キューに参加します。</value></data>
+  <data name="UserGuide_Plugins_Capability3.Text" xml:space="preserve"><value>ワークフロー ノードと Quick Actions — 新しいアクション ノード(Slack へ送信、webhook へ POST、スプレッドシートに追記、スクリプト実行)や新しい Quick Action テンプレートを提供します。プラグインはユーザーが既に知っている同じビルダー UI を拡張します。</value></data>
+  <data name="UserGuide_Plugins_Capability4.Text" xml:space="preserve"><value>サイドバー ページと統合 — プラグインは独自 UI を持つ新ページを追加、Calendar/Email/Inbox と統合、またはナレッジ グラフに貢献できます。プラグイン SDK は視覚的一貫性のためアプリの他の部分と同じ WinUI 3 コンポーネントを使用します。</value></data>
+  <data name="UserGuide_Integrations_Title.Text" xml:space="preserve"><value>カレンダーと Email の統合</value></data>
+  <data name="UserGuide_Integrations_Description.Text" xml:space="preserve"><value>Microsoft Outlook、Google Workspace、または任意の標準 CalDAV / IMAP / Exchange Web Services ソースを接続すると、Agent-X はあなたのカレンダー イベントとメールを一級のナレッジとして扱い始めます — 検索可能、クエリ可能、要約可能、Workflows のトリガーとしても使用可能。統合は既定で読み取り専用です。送信と返信のオプトイン機能は明示的な追加権限の付与が必要です。</value></data>
+  <data name="UserGuide_Integrations_Calendar_Title.Text" xml:space="preserve"><value>カレンダー統合</value></data>
+  <data name="UserGuide_Integrations_Calendar1.Text" xml:space="preserve"><value>Outlook(Microsoft Graph 経由 OAuth)、Google Calendar(Google 経由 OAuth)、または任意の CalDAV プロバイダーを接続します。CalendarSyncService はスケジュール(既定 15 分ごと)でイベントを取得し、カレンダーごとの可視性フィルターを尊重し、イベントを検索可能項目としてインデックスします。</value></data>
+  <data name="UserGuide_Integrations_Calendar2.Text" xml:space="preserve"><value>カレンダーに自然言語で質問 — 「来週の予定は?」「Acme から誰と会う?」「60 分超の繰り返し会議をすべて見つけて」「Q3 の会議負荷を参加者別に要約して」。回答はソース アプリへのクリックスルー付きで具体的なイベントを引用します。</value></data>
+  <data name="UserGuide_Integrations_Calendar3.Text" xml:space="preserve"><value>カレンダー イベントを Workflow トリガーとして利用 — 各イベントの 15 分前に Knowledge Vault の関連ドキュメントと出席者についてのメールをクエリして会議ブリーフィングを自動準備、Inbox や Slack チャネルにブリーフィングを投稿、会議結果を Vault に取り込みます。</value></data>
+  <data name="UserGuide_Integrations_Email_Title.Text" xml:space="preserve"><value>Email 統合</value></data>
+  <data name="UserGuide_Integrations_Email1.Text" xml:space="preserve"><value>OAuth(Outlook、Gmail)または IMAP(任意のプロバイダー)で接続。フォルダー フィルター(例: 受信トレイ + 送信済みをインデックス、Promotions と Updates をスキップ)と保持期間を構成。インデックスされたメールは他のドキュメントと同様に RAG と検索に参加します。</value></data>
+  <data name="UserGuide_Integrations_Email2.Text" xml:space="preserve"><value>メール履歴をクエリ — 「Smith 契約に関するすべてのメールを見つけて」「今四半期の Jane との会話を要約して」「今月誰かが送ってきた締切は?」。メール スレッドは結合されるため、12 通のスレッドは 12 の断片ではなく 1 つのまとまった単位として取得されます。</value></data>
+  <data name="UserGuide_Integrations_Email3.Text" xml:space="preserve"><value>メール駆動の自動化 — フィルター(送信者、件名、ラベル)に一致する受信メールで Workflow をトリガー、AI で Generative Identity を使ってあなたの声で返信を下書き、ワンクリック送信用にキュー、または受信添付を直接 Knowledge Vault にルーティングします。</value></data>
+  <data name="UserGuide_BackupRestore_Title.Text" xml:space="preserve"><value>バックアップと復元</value></data>
+  <data name="UserGuide_BackupRestore_Description.Text" xml:space="preserve"><value>バックアップと復元は、データのラウンドトリップ ストーリーです: 完全で暗号化された、スケジュール可能なバックアップが、Agent-X の状態全体を任意のマシン上で再構築できます。バックアップは SQLite データベース、ドキュメント ストア、プラグイン データ、設定をキャプチャ — このデバイスを離れて別のデバイスで中断した正確な場所から再開するのに必要なすべてです。復元は完全置換、スマート マージ、cherry-pick をサポートします。</value></data>
+  <data name="UserGuide_BackupRestore_Backup_Title.Text" xml:space="preserve"><value>バックアップの作成</value></data>
+  <data name="UserGuide_BackupRestore_Backup1.Text" xml:space="preserve"><value>手動バックアップ — 設定 &gt; Backup &gt; 今すぐバックアップを作成 で単一の .agentxbackup ファイル(圧縮暗号化アーカイブ)を生成します。宛先を選び、任意でパスフレーズを設定すれば完了です。一般的なバックアップ サイズはインポート済みドキュメントのサイズに、ベクトルとメタデータのため 10〜15% を加えた程度です。</value></data>
+  <data name="UserGuide_BackupRestore_Backup2.Text" xml:space="preserve"><value>スケジュール済みバックアップ — 頻度(毎日、毎週)、宛先(ローカル フォルダー、ネットワーク共有、OneDrive/Dropbox/Google Drive などの同期クラウド ドライブ フォルダー)、保持ポリシー(直近 N 件、直近 M 日)、パスフレーズを構成します。BackupService はバックグラウンドで動作し、失敗は診断詳細付き通知で表示されます。</value></data>
+  <data name="UserGuide_BackupRestore_Backup3.Text" xml:space="preserve"><value>含まれるもの — 完全な SQLite データベース(会話、insights、beliefs、voice profile、注釈、検索履歴、設定)、ドキュメント ストア、プラグイン データと構成、ライセンス アクティベーション、ワークスペース プロファイル。クラウド プロバイダー API キーは既定で DPAPI で暗号化され、同じ Windows アカウントがバックアップを開く場合のみ往復します。pair-with-passphrase モードはアカウントをまたいだ復元を可能にします。</value></data>
+  <data name="UserGuide_BackupRestore_Restore_Title.Text" xml:space="preserve"><value>バックアップからの復元</value></data>
+  <data name="UserGuide_BackupRestore_Restore1.Text" xml:space="preserve"><value>置換 — 現在の状態を消去し、バックアップを原文通り読み込みます。新しいマシンへの移行、破損からの回復、悪い変更のロールバックに適しています。置換前に現状態が自動バックアップされるため、操作は元に戻せます。</value></data>
+  <data name="UserGuide_BackupRestore_Restore2.Text" xml:space="preserve"><value>マージ — バックアップを現在の状態と結合します。競合(同一会話 ID、同一ドキュメント ハッシュ)は既定で last-write-wins で解決され、prefer-backup や prefer-current に構成可能です。2 つの Agent-X インストールを統合する場合や、最近の作業を失わずに特定データを復元する場合に有用です。</value></data>
+  <data name="UserGuide_BackupRestore_Restore3.Text" xml:space="preserve"><value>Cherry-Pick — バックアップの内容をプレビューして選択的に復元できるチェックリスト UI: 特定の会話、ドキュメント コレクション、プラグイン設定、設定を選んでインポート。部分復元や外科的移行に最適です。</value></data>
+  <data name="UserGuide_BackupRestore_Migration_Title.Text" xml:space="preserve"><value>バージョン間移行</value></data>
+  <data name="UserGuide_BackupRestore_Migration_Description.Text" xml:space="preserve"><value>バックアップはスキーマ バージョンを持ちます。より新しい Agent-X で復元すると、移行パイプラインがその場でスキーマをアップグレードします — 新しい列の追加、埋め込みモデルの既定が変わった場合の再インデックスなど。何年も前に作成したバックアップを手動ステップなしで最新版で復元できます。</value></data>
+  <data name="UserGuide_LicenseTiers_Title.Text" xml:space="preserve"><value>ライセンス階層</value></data>
+  <data name="UserGuide_LicenseTiers_Description.Text" xml:space="preserve"><value>Agent-X はデバイス単位でライセンスされ、4 つの階層でドキュメント割当、Intelligence 機能、サポートが段階的にアンロックされます。ローカルファースト アーキテクチャと完全なデータ所有権はすべての階層で一定です — 有料階層はスケールと深さをアンロックしますが、データへのアクセスをゲートすることはありません。設定 &gt; ライセンスでライセンスを表示、有効化、管理します。</value></data>
+  <data name="UserGuide_LicenseTiers_Tier1_Title.Text" xml:space="preserve"><value>Trial — 無料</value></data>
+  <data name="UserGuide_LicenseTiers_Tier1_Description.Text" xml:space="preserve"><value>Knowledge Vault に最大 50 ドキュメント、基本チャット モデルのみ、単一ワークスペース プロファイル、手動バックアップ。Agent-X をエンドツーエンドで評価し、コミットする前にあなたのハードウェアでのローカル パフォーマンスを確認するのに最適です。</value></data>
+  <data name="UserGuide_LicenseTiers_Tier2_Title.Text" xml:space="preserve"><value>Starter — $79(買い切り)</value></data>
+  <data name="UserGuide_LicenseTiers_Tier2_Description.Text" xml:space="preserve"><value>最大 500 ドキュメント、すべてのチャットと埋め込みモデル(ローカル + クラウド)、Quick Actions ライブラリ全体、スケジュール済みバックアップ、フル エクスポート。リサーチ、執筆、ジャーナリングなど個人ナレッジ ベースに適切な選択です。</value></data>
+  <data name="UserGuide_LicenseTiers_Tier3_Title.Text" xml:space="preserve"><value>Professional — $149(買い切り)</value></data>
+  <data name="UserGuide_LicenseTiers_Tier3_Description.Text" xml:space="preserve"><value>ドキュメント無制限、フル Intelligence スタック(ナレッジ グラフ、Insight Harvesting、Temporal Identity、Generative Identity)、Workflows + スケジュール済みクエリ + 自動化ルール、複数ワークスペース プロファイル、プラグイン、Calendar/Email 統合、ブラウザー拡張、モバイル コンパニオン。完全プラットフォーム。</value></data>
+  <data name="UserGuide_LicenseTiers_Tier4_Title.Text" xml:space="preserve"><value>Ultimate — $249(買い切り)</value></data>
+  <data name="UserGuide_LicenseTiers_Tier4_Description.Text" xml:space="preserve"><value>Professional のすべてに加え、パスフレーズ暗号化 SQLCipher Vault を既定で有効、優先サポート(1 営業日以内に返信)、実験機能への早期アクセス、そして公開カタログへの公開権付きプラグイン デベロッパー SDK。</value></data>
+  <data name="UserGuide_LicenseTiers_Notes_Title.Text" xml:space="preserve"><value>アクティベーションと管理</value></data>
+  <data name="UserGuide_LicenseTiers_Note1.Text" xml:space="preserve"><value>ライセンスはデバイスごと、買い切り(サブスクリプションではない)です。一度購入すれば永続所有。新メジャー バージョンは別ライセンスとして出荷され、マイナー更新とバグ修正は購入したメジャー バージョンの寿命を通じて無料です。</value></data>
+  <data name="UserGuide_LicenseTiers_Note2.Text" xml:space="preserve"><value>デバイス間のライセンス移動は 設定 &gt; ライセンス &gt; 無効化、次に同じキーで新デバイスで Activate を行います。デバイスを紛失? ライセンス キー付きでサポートにメールいただければ、アクティベーション スロットをリセットします。</value></data>
+  <data name="UserGuide_Export_Title.Text" xml:space="preserve"><value>エクスポートとデータ ポータビリティ</value></data>
+  <data name="UserGuide_Export_Description.Text" xml:space="preserve"><value>あなたのデータはあらゆるレベルでオープン フォーマットでエクスポート可能です — 単一会話、完全な会話履歴、個別ドキュメント、Knowledge Vault 全体、voice profile、insights、beliefs、設定、プラグイン マニフェスト。ロックインはありません: Agent-X を離れる時、すべてをどこでも読み込めるフォーマットで持ち出せます。バックアップと復元(専用セクション)はラウンドトリップ ストーリー、本セクションは片道エクスポートを扱います。</value></data>
+  <data name="UserGuide_Export_Conversations_Title.Text" xml:space="preserve"><value>会話のエクスポート</value></data>
+  <data name="UserGuide_Export_Conversations.Text" xml:space="preserve"><value>単一会話、複数選択会話、すべての会話、Past Self 時間ウィンドウをエクスポート。形式: Markdown(読み取りと共有に最適)、JSON(システム プロンプト、ツール呼び出し、ブランチ、引用を含む完全な構造的忠実度)、プレーン テキスト(損失あり、しかし普遍的)、HTML(コード ハイライトと引用がレンダリングされた状態)。エクスポート テンプレート(設定 &gt; エクスポート)でカスタマイズ — フィールドの制御、名前の匿名化、機密の伏字、レイアウト調整。</value></data>
+  <data name="UserGuide_Export_Documents_Title.Text" xml:space="preserve"><value>ドキュメントと Vault のエクスポート</value></data>
+  <data name="UserGuide_Export_Documents.Text" xml:space="preserve"><value>Knowledge Vault 全体を、原本ファイル、ドキュメントごとの抽出テキスト、チャンク インデックス、ベクトル埋め込み(ポータブル .vec フォーマット)を含む ZIP としてエクスポート。バンドルは別の Agent-X インストールでビット単位で再読み込み可能 — マシン間の移動、プロジェクトのアーカイブ、共同作業者への Vault 引き渡しに最適です。全体が不要な場合はサブセット(単一ドキュメント、単一コレクション、日付範囲)もエクスポートできます。</value></data>
+  <data name="UserGuide_Export_Backup_Title.Text" xml:space="preserve"><value>自動バックアップ</value></data>
+  <data name="UserGuide_Export_Backup.Text" xml:space="preserve"><value>設定 &gt; Backup で自動バックアップをスケジュール。バックアップは SQLite データベース(会話、insights、beliefs、voice profile、設定)、ドキュメント ストア、プラグイン データをキャプチャします。安全なクラウド ストレージのためパスフレーズで暗号化、圧縮は既定で有効。保持ポリシー(直近 N 件、直近 M 日)を設定し、宛先(ローカル フォルダー、ネットワーク共有、OneDrive/Dropbox/Google Drive フォルダー)、頻度(毎日、毎週)を選択します。</value></data>
+  <data name="UserGuide_Export_Restore_Title.Text" xml:space="preserve"><value>データの復元</value></data>
+  <data name="UserGuide_Export_Restore.Text" xml:space="preserve"><value>以前のバックアップを 設定 &gt; Backup &gt; Restore から、またはオンボーディング中の新規インストールから、インポートします。復元モード: 置換(現状態を消去してバックアップを読み込み)、マージ(現状態と結合、競合は last-write-wins)、Cherry-Pick(持ち越す会話、ドキュメント、設定のチェックリスト)。バージョン間移行は自動実行 — 任意の以前の Agent-X バージョンのバックアップを開けば、移行パイプラインがその場でスキーマをアップグレードします。</value></data>
 </root>

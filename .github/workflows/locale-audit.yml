@@ -15,6 +15,15 @@ jobs:
   coverage-gate:
     name: Locale coverage >= 98%
     runs-on: ubuntu-latest
+    # github-script needs to read + create/update issue comments to post the
+    # coverage report on the PR. Default GITHUB_TOKEN is read-only on PRs;
+    # without this elevation the post-coverage comment step fails with
+    # 403 "Resource not accessible by integration" even when the actual
+    # `dotnet run … --fail-below 98` step succeeds.
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
