@@ -7,7 +7,16 @@
     ║                                                                  ║
     ║  Premium dark theme with red accent system.                      ║
     ║  Palette: Black, Charcoal, Silver, Light Grey, White, Red.       ║
-    ║  Designed for AMOLED-class depth with gradient elevation.        ║
+    ║                                                                  ║
+    ║  Flat-elevation system. NO gradients — depth comes from layered  ║
+    ║  solid surfaces (Surface0 → Surface4), subtle 1px borders, and   ║
+    ║  confident typography. Gradients read as AI-generated; flat tone ║
+    ║  reads as deliberate, Fortune-10 craft.                          ║
+    ║                                                                  ║
+    ║  The *Gradient* brush keys below are retained as solid brushes   ║
+    ║  for binary back-compat with existing consumers. New code should ║
+    ║  prefer the un-suffixed equivalents (CardBrush, AccentPrimary,   ║
+    ║  BorderSubtle).                                                  ║
     ╚══════════════════════════════════════════════════════════════════╝
     -->
 
@@ -102,13 +111,15 @@
     <Color x:Key="StatusErrorSubtle">#26EF4444</Color>
     <Color x:Key="StatusInfoSubtle">#263B82F6</Color>
 
-    <!-- Data-Visualization Colors (sanctioned, off-palette for graph/chart legibility)
-         GraphTag (violet) distinguishes a third node/series class from Info-blue &
-         Warning-amber. ChartSeries (orange) reuses Warning intent for series accents. -->
-    <Color x:Key="GraphTagColor">#FF8B5CF6</Color>
-    <Color x:Key="GraphTagSubtle">#268B5CF6</Color>
-    <Color x:Key="ChartSeriesColor">#FFF97316</Color>
-    <Color x:Key="ChartSeriesSubtle">#26F97316</Color>
+    <!-- Data-Visualization Colors (kept on-palette).
+         GraphTag was violet (#8B5CF6) — replaced with Silver400 so graph
+         tag pills read as neutral metadata, not a third brand color.
+         ChartSeries was orange (#F97316) — replaced with Red500 so series
+         accents share the primary brand red. Keys preserved for back-compat. -->
+    <Color x:Key="GraphTagColor">#FFB0B0B0</Color>
+    <Color x:Key="GraphTagSubtle">#26B0B0B0</Color>
+    <Color x:Key="ChartSeriesColor">#FFC41E3A</Color>
+    <Color x:Key="ChartSeriesSubtle">#26C41E3A</Color>
 
     <!-- ═══════════════════════════════════════════════════════════════
          SEMANTIC BRUSH SYSTEM
@@ -119,24 +130,10 @@
     <SolidColorBrush x:Key="PageBackgroundBrush" Color="{StaticResource BackgroundPrimary}" />
     <SolidColorBrush x:Key="BackgroundSecondaryBrush" Color="{StaticResource BackgroundSecondary}" />
 
-    <!-- Gradient Backgrounds (premium depth effect) -->
-    <LinearGradientBrush x:Key="WindowGradientBrush" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="{StaticResource Black}" Offset="0.0" />
-        <GradientStop Color="{StaticResource BackgroundSecondary}" Offset="0.5" />
-        <GradientStop Color="{StaticResource BackgroundTertiary}" Offset="1.0" />
-    </LinearGradientBrush>
-
-    <LinearGradientBrush x:Key="SidebarGradientBrush" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="{StaticResource BackgroundPrimary}" Offset="0.0" />
-        <GradientStop Color="{StaticResource Surface0}" Offset="0.4" />
-        <GradientStop Color="{StaticResource BackgroundSecondary}" Offset="1.0" />
-    </LinearGradientBrush>
-
-    <LinearGradientBrush x:Key="HeaderGradientBrush" StartPoint="0,0" EndPoint="1,0">
-        <GradientStop Color="{StaticResource BackgroundPrimary}" Offset="0.0" />
-        <GradientStop Color="#FF080808" Offset="0.5" />
-        <GradientStop Color="{StaticResource BackgroundSecondary}" Offset="1.0" />
-    </LinearGradientBrush>
+    <!-- Ambient surface brushes (flat — depth via layered solids, not gradients) -->
+    <SolidColorBrush x:Key="WindowGradientBrush" Color="{StaticResource Black}" />
+    <SolidColorBrush x:Key="SidebarGradientBrush" Color="{StaticResource BackgroundSecondary}" />
+    <SolidColorBrush x:Key="HeaderGradientBrush" Color="{StaticResource BackgroundPrimary}" />
 
     <!-- Card Surface Brushes (elevation system) -->
     <SolidColorBrush x:Key="CardBrush" Color="{StaticResource Surface1}" />
@@ -145,33 +142,15 @@
     <SolidColorBrush x:Key="CardHoverBrush" Color="{StaticResource SurfaceHover}" />
     <SolidColorBrush x:Key="CardPressedBrush" Color="{StaticResource SurfacePressed}" />
 
-    <!-- Card Gradient Brushes (glass-like depth) -->
-    <LinearGradientBrush x:Key="CardGradientBrush" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="{StaticResource Surface2}" Offset="0.0" />
-        <GradientStop Color="{StaticResource Surface1}" Offset="1.0" />
-    </LinearGradientBrush>
+    <!-- Card Surface Brushes (flat — match the un-suffixed Card brushes above) -->
+    <SolidColorBrush x:Key="CardGradientBrush" Color="{StaticResource Surface2}" />
+    <SolidColorBrush x:Key="CardGradientVerticalBrush" Color="{StaticResource Surface3}" />
+    <SolidColorBrush x:Key="CardGradientSubtleBrush" Color="{StaticResource Surface1}" />
 
-    <LinearGradientBrush x:Key="CardGradientVerticalBrush" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="{StaticResource Surface3}" Offset="0.0" />
-        <GradientStop Color="{StaticResource Surface1}" Offset="1.0" />
-    </LinearGradientBrush>
-
-    <LinearGradientBrush x:Key="CardGradientSubtleBrush" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="{StaticResource Surface1}" Offset="0.0" />
-        <GradientStop Color="{StaticResource Surface0}" Offset="1.0" />
-    </LinearGradientBrush>
-
-    <!-- Accent Card (featured / highlighted elements) -->
-    <LinearGradientBrush x:Key="AccentCardGradientBrush" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="{StaticResource Red950}" Offset="0.0" />
-        <GradientStop Color="{StaticResource Surface1}" Offset="0.6" />
-        <GradientStop Color="{StaticResource Surface0}" Offset="1.0" />
-    </LinearGradientBrush>
-
-    <LinearGradientBrush x:Key="AccentGlowGradientBrush" StartPoint="0.5,0" EndPoint="0.5,1">
-        <GradientStop Color="{StaticResource RedGlow15}" Offset="0.0" />
-        <GradientStop Color="#00C41E3A" Offset="1.0" />
-    </LinearGradientBrush>
+    <!-- Accent Card (featured / highlighted elements) — flat Surface1 + the
+         accent treatment is the BorderFocusBrush (solid red) edge -->
+    <SolidColorBrush x:Key="AccentCardGradientBrush" Color="{StaticResource Surface1}" />
+    <SolidColorBrush x:Key="AccentGlowGradientBrush" Color="{StaticResource RedGlow15}" />
 
     <!-- Border Brushes -->
     <SolidColorBrush x:Key="BorderSubtleBrush" Color="{StaticResource BorderSubtle}" />
@@ -179,18 +158,9 @@
     <SolidColorBrush x:Key="BorderStrongBrush" Color="{StaticResource BorderStrong}" />
     <SolidColorBrush x:Key="BorderFocusBrush" Color="{StaticResource BorderFocus}" />
 
-    <!-- Gradient Borders (premium edge glow) -->
-    <LinearGradientBrush x:Key="BorderGradientBrush" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="{StaticResource White10}" Offset="0.0" />
-        <GradientStop Color="{StaticResource White05}" Offset="0.5" />
-        <GradientStop Color="{StaticResource White10}" Offset="1.0" />
-    </LinearGradientBrush>
-
-    <LinearGradientBrush x:Key="BorderAccentGradientBrush" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="{StaticResource RedGlow30}" Offset="0.0" />
-        <GradientStop Color="{StaticResource White10}" Offset="0.5" />
-        <GradientStop Color="{StaticResource RedGlow20}" Offset="1.0" />
-    </LinearGradientBrush>
+    <!-- Border brushes (flat — edge accent is opacity, not gradient direction) -->
+    <SolidColorBrush x:Key="BorderGradientBrush" Color="{StaticResource BorderSubtle}" />
+    <SolidColorBrush x:Key="BorderAccentGradientBrush" Color="{StaticResource BorderFocus}" />
 
     <!-- Text Brushes -->
     <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource White95}" />
@@ -208,18 +178,10 @@
     <SolidColorBrush x:Key="AccentSubtleBrush" Color="{StaticResource RedGlow10}" />
     <SolidColorBrush x:Key="AccentGlowBrush" Color="{StaticResource RedGlow20}" />
 
-    <!-- Accent Gradient (buttons, highlights) -->
-    <LinearGradientBrush x:Key="AccentGradientBrush" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="{StaticResource Red600}" Offset="0.0" />
-        <GradientStop Color="{StaticResource Red500}" Offset="0.5" />
-        <GradientStop Color="{StaticResource Red400}" Offset="1.0" />
-    </LinearGradientBrush>
-
-    <LinearGradientBrush x:Key="AccentGradientHoverBrush" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="{StaticResource Red500}" Offset="0.0" />
-        <GradientStop Color="{StaticResource Red400}" Offset="0.5" />
-        <GradientStop Color="{StaticResource Red300}" Offset="1.0" />
-    </LinearGradientBrush>
+    <!-- Accent Brushes for buttons / highlights (flat — confidence through
+         saturation, not gradient direction) -->
+    <SolidColorBrush x:Key="AccentGradientBrush" Color="{StaticResource Red500}" />
+    <SolidColorBrush x:Key="AccentGradientHoverBrush" Color="{StaticResource Red400}" />
 
     <!-- Status Brushes -->
     <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource StatusSuccess}" />

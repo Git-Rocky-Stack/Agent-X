@@ -201,7 +201,7 @@
                 <Border HorizontalAlignment="Right"
                         VerticalAlignment="Bottom"
                         Margin="0,0,16,16"
-                        Background="{StaticResource CardBackgroundBrush}"
+                        Background="{StaticResource CardBrush}"
                         CornerRadius="{StaticResource RadiusMD}"
                         BorderBrush="{StaticResource BorderSubtleBrush}"
                         BorderThickness="1"
@@ -241,7 +241,7 @@
                 <!-- Hover Tooltip -->
                 <Border x:Name="NodeTooltip"
                         Visibility="Collapsed"
-                        Background="{StaticResource CardBackgroundBrush}"
+                        Background="{StaticResource CardBrush}"
                         CornerRadius="{StaticResource RadiusMD}"
                         BorderBrush="{StaticResource BorderSubtleBrush}"
                         BorderThickness="1"

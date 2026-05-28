@@ -17,42 +17,11 @@
             <RowDefinition Height="28"/>
         </Grid.RowDefinitions>
 
-        <!-- ═══════════════════════════════════════════════════════
-             AMBIENT GLOW LAYER (subtle red radial glow, top-left)
-             Creates premium depth perception on the dark canvas.
-             ═══════════════════════════════════════════════════════ -->
-        <Border x:Name="AmbientGlow"
-                Grid.RowSpan="3"
-                IsHitTestVisible="False"
-                Opacity="0.35">
-            <Border.Background>
-                <RadialGradientBrush Center="0.05,0.02"
-                                     RadiusX="0.5" RadiusY="0.6"
-                                     MappingMode="RelativeToBoundingBox"
-                                     SpreadMethod="Pad">
-                    <GradientStop Color="{StaticResource RedGlow10}" Offset="0.0" />
-                    <GradientStop Color="Transparent" Offset="1.0" />
-                </RadialGradientBrush>
-            </Border.Background>
-        </Border>
-
-        <!-- ═══════════════════════════════════════════════════════
-             SECONDARY GLOW (cool tone, bottom-right for balance)
-             ═══════════════════════════════════════════════════════ -->
-        <Border x:Name="SecondaryGlow"
-                Grid.RowSpan="3"
-                IsHitTestVisible="False"
-                Opacity="0.15">
-            <Border.Background>
-                <RadialGradientBrush Center="0.95,0.95"
-                                     RadiusX="0.5" RadiusY="0.5"
-                                     MappingMode="RelativeToBoundingBox"
-                                     SpreadMethod="Pad">
-                    <GradientStop Color="#0A3B82F6" Offset="0.0" />
-                    <GradientStop Color="Transparent" Offset="1.0" />
-                </RadialGradientBrush>
-            </Border.Background>
-        </Border>
+        <!-- Removed: AmbientGlow + SecondaryGlow radial gradient decorations.
+             The off-palette blue glow (#3B82F6) and the red radial glow
+             were AI-slop ambient lighting. Depth now comes from the layered
+             solid surfaces (Surface0..4) and confident typography, not from
+             gradients painted onto the canvas. -->
 
         <!-- ═══════════════════════════════════════════════════════
              MAIN NAVIGATION SHELL
@@ -436,18 +405,8 @@
             <Grid x:Name="ContentHost"
                   Margin="0,32,0,0"
                   SizeChanged="ContentHost_SizeChanged">
-                <!-- Content gradient overlay (subtle depth at top) -->
-                <Border IsHitTestVisible="False"
-                        VerticalAlignment="Top"
-                        Height="120"
-                        Opacity="0.6">
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="{StaticResource BackgroundSecondary}" Offset="0.0" />
-                            <GradientStop Color="Transparent" Offset="1.0" />
-                        </LinearGradientBrush>
-                    </Border.Background>
-                </Border>
+                <!-- Removed: top-edge gradient overlay. Page chrome reads
+                     cleanly on flat BackgroundPrimary; no fade needed. -->
 
                 <!-- Main Content Frame -->
                 <Frame x:Name="ContentFrame"
