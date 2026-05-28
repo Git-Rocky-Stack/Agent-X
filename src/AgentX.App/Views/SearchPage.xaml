@@ -25,7 +25,7 @@
          ROOT LAYOUT: 2-column grid (results + history sidebar)
          ============================================================= -->
 
-    <Grid Background="{StaticResource PageBackgroundBrush}">
+    <Grid Background="{ThemeResource PageBackgroundBrush}">
 
         <!-- ═══════ ADAPTIVE LAYOUT (Tier 3) — see Colors.xaml breakpoints ═══════
              Narrow (<960):  history pane 240   |  Medium (>=960): 260
@@ -119,7 +119,7 @@
                             <!-- Search icon overlay -->
                             <FontIcon Glyph="&#xE721;"
                                       FontSize="18"
-                                      Foreground="{StaticResource TextTertiaryBrush}"
+                                      Foreground="{ThemeResource TextTertiaryBrush}"
                                       HorizontalAlignment="Left"
                                       VerticalAlignment="Center"
                                       Margin="16,0,0,0"
@@ -167,7 +167,7 @@
                     <StackPanel Spacing="4">
                         <TextBlock Text="SEARCH MODE"
                                    Style="{StaticResource OverlineStyle}" />
-                        <Border Background="{StaticResource InputBackgroundBrush}"
+                        <Border Background="{ThemeResource InputBackgroundBrush}"
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="3"
                                 HorizontalAlignment="Left">
@@ -231,10 +231,10 @@
                                 ToolTipService.ToolTip="Toggle advanced search filters">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE71C;" FontSize="12"
-                                          Foreground="{StaticResource TextSecondaryBrush}" />
+                                          Foreground="{ThemeResource TextSecondaryBrush}" />
                                 <TextBlock Text="Advanced"
                                            Style="{StaticResource CaptionStyle}"
-                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                                           Foreground="{ThemeResource TextSecondaryBrush}" />
                             </StackPanel>
                         </Button>
                     </Grid>
@@ -330,7 +330,7 @@
 
             <Border Grid.Row="2" Padding="32,0,32,12"
                     Visibility="{x:Bind ViewModel.IsAdvancedFiltersOpen, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                <Border Background="{StaticResource InputBackgroundBrush}"
+                <Border Background="{ThemeResource InputBackgroundBrush}"
                         CornerRadius="{StaticResource RadiusMD}"
                         Padding="20,16,20,16"
                         MaxWidth="900">
@@ -351,7 +351,7 @@
                                 <TextBlock Text="MIN RELEVANCE"
                                            Style="{StaticResource OverlineStyle}" />
                                 <TextBlock Style="{StaticResource MonoSmallStyle}"
-                                           Foreground="{StaticResource TextAccentBrush}"
+                                           Foreground="{ThemeResource TextAccentBrush}"
                                            Text="{x:Bind local:SearchPage.FormatPercent(ViewModel.MinScoreFilter), Mode=OneWay}" />
                             </StackPanel>
                             <Slider Minimum="0" Maximum="100" StepFrequency="5"
@@ -377,10 +377,10 @@
                                 ToolTipService.ToolTip="Reset all advanced filters">
                             <StackPanel Orientation="Horizontal" Spacing="4">
                                 <FontIcon Glyph="&#xE894;" FontSize="12"
-                                          Foreground="{StaticResource TextSecondaryBrush}" />
+                                          Foreground="{ThemeResource TextSecondaryBrush}" />
                                 <TextBlock Text="Reset"
                                            Style="{StaticResource CaptionStyle}"
-                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                                           Foreground="{ThemeResource TextSecondaryBrush}" />
                             </StackPanel>
                         </Button>
 
@@ -425,12 +425,12 @@
                         <!-- Loading spinner (visible during search) -->
                         <ProgressRing IsActive="{x:Bind ViewModel.IsSearching, Mode=OneWay}"
                                       Width="14" Height="14"
-                                      Foreground="{StaticResource AccentPrimaryBrush}"
+                                      Foreground="{ThemeResource AccentPrimaryBrush}"
                                       Visibility="{x:Bind ViewModel.IsSearching, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
 
                         <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
                                    Style="{StaticResource BodySmallStyle}"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Foreground="{ThemeResource TextSecondaryBrush}"
                                    VerticalAlignment="Center" />
                     </StackPanel>
 
@@ -457,10 +457,10 @@
                             Margin="0,0,8,0">
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <FontIcon Glyph="&#xE728;" FontSize="11"
-                                      Foreground="{StaticResource TextAccentBrush}" />
+                                      Foreground="{ThemeResource TextAccentBrush}" />
                             <TextBlock Text="Save"
                                        Style="{StaticResource CaptionStyle}"
-                                       Foreground="{StaticResource TextAccentBrush}" />
+                                       Foreground="{ThemeResource TextAccentBrush}" />
                         </StackPanel>
                     </Button>
 
@@ -470,7 +470,7 @@
                             Padding="8,3,8,3"
                             Visibility="{x:Bind ViewModel.HasResults, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <TextBlock Style="{StaticResource MonoSmallStyle}"
-                                   Foreground="{StaticResource TextTertiaryBrush}">
+                                   Foreground="{ThemeResource TextTertiaryBrush}">
                             <Run Text="{x:Bind ViewModel.TotalResults, Mode=OneWay}" />
                             <Run Text="results" />
                         </TextBlock>
@@ -492,13 +492,13 @@
                     <StackPanel Spacing="20" HorizontalAlignment="Center">
 
                         <!-- Icon -->
-                        <Border Background="{StaticResource AccentSubtleBrush}"
+                        <Border Background="{ThemeResource AccentSubtleBrush}"
                                 CornerRadius="{StaticResource RadiusFull}"
                                 Width="72" Height="72"
                                 HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE721;"
                                       FontSize="32"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
@@ -521,7 +521,7 @@
                             <Border Style="{StaticResource BadgeDefaultStyle}">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <FontIcon Glyph="&#xE765;" FontSize="10"
-                                              Foreground="{StaticResource TextTertiaryBrush}" />
+                                              Foreground="{ThemeResource TextTertiaryBrush}" />
                                     <TextBlock Text="Enter to search"
                                                Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
@@ -530,7 +530,7 @@
                                     HorizontalAlignment="Center">
                                 <TextBlock Text="Semantic AI Search"
                                            Style="{StaticResource CaptionStyle}"
-                                           Foreground="{StaticResource TextAccentBrush}"
+                                           Foreground="{ThemeResource TextAccentBrush}"
                                            FontWeight="SemiBold" />
                             </Border>
                         </StackPanel>
@@ -550,7 +550,7 @@
                                 HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE783;"
                                       FontSize="28"
-                                      Foreground="{StaticResource ErrorBrush}"
+                                      Foreground="{ThemeResource ErrorBrush}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
@@ -606,7 +606,7 @@
                                                 VerticalAlignment="Top">
                                             <FontIcon Glyph="{x:Bind FileTypeIcon}"
                                                       FontSize="22"
-                                                      Foreground="{StaticResource TextAccentBrush}"
+                                                      Foreground="{ThemeResource TextAccentBrush}"
                                                       HorizontalAlignment="Center"
                                                       VerticalAlignment="Center" />
                                         </Border>
@@ -625,7 +625,7 @@
                                                     <TextBlock Text="{x:Bind FileType}"
                                                                FontSize="10"
                                                                FontWeight="Bold"
-                                                               Foreground="{StaticResource TextAccentBrush}"
+                                                               Foreground="{ThemeResource TextAccentBrush}"
                                                                CharacterSpacing="40" />
                                                 </Border>
                                             </StackPanel>
@@ -644,7 +644,7 @@
 
                                                 <!-- Score track background -->
                                                 <Border Grid.Column="1"
-                                                        Background="{StaticResource InputBackgroundBrush}"
+                                                        Background="{ThemeResource InputBackgroundBrush}"
                                                         CornerRadius="{StaticResource RadiusRound}"
                                                         Height="6"
                                                         VerticalAlignment="Center">
@@ -678,7 +678,7 @@
                                                 <StackPanel Orientation="Horizontal" Spacing="4"
                                                             Visibility="{x:Bind local:SearchPage.PageNumberToVisibility(PageNumber)}">
                                                     <FontIcon Glyph="&#xE8A1;" FontSize="10"
-                                                              Foreground="{StaticResource TextTertiaryBrush}" />
+                                                              Foreground="{ThemeResource TextTertiaryBrush}" />
                                                     <TextBlock Style="{StaticResource CaptionStyle}">
                                                         <Run Text="Page" />
                                                         <Run Text="{x:Bind PageNumber}" />
@@ -688,7 +688,7 @@
                                                 <!-- Chunk ID -->
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <FontIcon Glyph="&#xE943;" FontSize="10"
-                                                              Foreground="{StaticResource TextTertiaryBrush}" />
+                                                              Foreground="{ThemeResource TextTertiaryBrush}" />
                                                     <TextBlock Style="{StaticResource CaptionStyle}">
                                                         <Run Text="Chunk" />
                                                         <Run Text="{x:Bind ChunkId}" />
@@ -706,7 +706,7 @@
                                                         <Border Style="{StaticResource TagBadgeStyle}">
                                                             <TextBlock Text="{x:Bind}"
                                                                        FontSize="10"
-                                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                                                       Foreground="{ThemeResource TextSecondaryBrush}" />
                                                         </Border>
                                                     </DataTemplate>
                                                 </ItemsRepeater.ItemTemplate>
@@ -728,10 +728,10 @@
                                                     ToolTipService.ToolTip="Open in Explorer">
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <FontIcon Glyph="&#xE8DA;" FontSize="12"
-                                                              Foreground="{StaticResource TextSecondaryBrush}" />
+                                                              Foreground="{ThemeResource TextSecondaryBrush}" />
                                                     <TextBlock Text="Open"
                                                                Style="{StaticResource CaptionStyle}"
-                                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                                               Foreground="{ThemeResource TextSecondaryBrush}" />
                                                 </StackPanel>
                                             </Button>
 
@@ -742,10 +742,10 @@
                                                     ToolTipService.ToolTip="Use this result in a workflow">
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <FontIcon Glyph="&#xE945;" FontSize="12"
-                                                              Foreground="{StaticResource AccentPrimaryBrush}" />
+                                                              Foreground="{ThemeResource AccentPrimaryBrush}" />
                                                     <TextBlock Text="Workflow"
                                                                Style="{StaticResource CaptionStyle}"
-                                                               Foreground="{StaticResource AccentPrimaryBrush}" />
+                                                               Foreground="{ThemeResource AccentPrimaryBrush}" />
                                                 </StackPanel>
                                             </Button>
                                         </StackPanel>
@@ -765,8 +765,8 @@
              ============================================================= -->
 
         <Grid Grid.Column="1"
-              Background="{StaticResource SidebarGradientBrush}"
-              BorderBrush="{StaticResource BorderSubtleBrush}"
+              Background="{ThemeResource SidebarGradientBrush}"
+              BorderBrush="{ThemeResource BorderSubtleBrush}"
               BorderThickness="1,0,0,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -785,7 +785,7 @@
 
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE81C;" FontSize="14"
-                                  Foreground="{StaticResource TextTertiaryBrush}"
+                                  Foreground="{ThemeResource TextTertiaryBrush}"
                                   VerticalAlignment="Center" />
                         <TextBlock Text="Search History"
                                    Style="{StaticResource HeadingSmallStyle}"
@@ -799,7 +799,7 @@
                             ToolTipService.ToolTip="Clear search history">
                         <TextBlock Text="Clear"
                                    Style="{StaticResource CaptionStyle}"
-                                   Foreground="{StaticResource TextAccentBrush}" />
+                                   Foreground="{ThemeResource TextAccentBrush}" />
                     </Button>
                 </Grid>
             </Border>
@@ -837,13 +837,13 @@
 
                                 <FontIcon Glyph="&#xE721;"
                                           FontSize="11"
-                                          Foreground="{StaticResource TextTertiaryBrush}"
+                                          Foreground="{ThemeResource TextTertiaryBrush}"
                                           VerticalAlignment="Center" />
 
                                 <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                                     <TextBlock Text="{x:Bind QueryText}"
                                                Style="{StaticResource BodySmallStyle}"
-                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                               Foreground="{ThemeResource TextPrimaryBrush}"
                                                FontWeight="SemiBold"
                                                MaxLines="1"
                                                TextTrimming="CharacterEllipsis" />
@@ -860,7 +860,7 @@
                                 <FontIcon Grid.Column="2"
                                           Glyph="&#xE72A;"
                                           FontSize="10"
-                                          Foreground="{StaticResource TextTertiaryBrush}"
+                                          Foreground="{ThemeResource TextTertiaryBrush}"
                                           VerticalAlignment="Center"
                                           Opacity="0.5" />
                             </Grid>
@@ -879,11 +879,11 @@
 
                 <!-- Saved Filters Header -->
                 <Border Grid.Row="0" Padding="16,10,16,6"
-                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                        BorderBrush="{ThemeResource BorderSubtleBrush}"
                         BorderThickness="0,1,0,0">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE728;" FontSize="12"
-                                  Foreground="{StaticResource TextAccentBrush}"
+                                  Foreground="{ThemeResource TextAccentBrush}"
                                   VerticalAlignment="Center" />
                         <TextBlock Text="Saved Filters"
                                    Style="{StaticResource HeadingSmallStyle}"
@@ -916,14 +916,14 @@
                                                    FontWeight="SemiBold"
                                                    MaxLines="1"
                                                    TextTrimming="CharacterEllipsis"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                         <StackPanel Orientation="Horizontal" Spacing="4">
-                                            <Border Background="{StaticResource AccentSubtleBrush}"
+                                            <Border Background="{ThemeResource AccentSubtleBrush}"
                                                     CornerRadius="{StaticResource RadiusSM}"
                                                     Padding="4,1,4,1">
                                                 <TextBlock Text="{x:Bind SearchType}"
                                                            FontSize="9" FontWeight="Bold"
-                                                           Foreground="{StaticResource TextAccentBrush}"
+                                                           Foreground="{ThemeResource TextAccentBrush}"
                                                            CharacterSpacing="40" />
                                             </Border>
                                             <TextBlock Text="{x:Bind SavedAt}"
@@ -940,7 +940,7 @@
                                             ToolTipService.ToolTip="Apply this filter"
                                             AutomationProperties.Name="Apply this filter">
                                         <FontIcon Glyph="&#xE768;" FontSize="10"
-                                                  Foreground="{StaticResource TextAccentBrush}" />
+                                                  Foreground="{ThemeResource TextAccentBrush}" />
                                     </Button>
 
                                     <!-- Remove button -->
@@ -952,7 +952,7 @@
                                             ToolTipService.ToolTip="Remove saved filter"
                                             AutomationProperties.Name="Remove saved filter">
                                         <FontIcon Glyph="&#xE711;" FontSize="10"
-                                                  Foreground="{StaticResource TextTertiaryBrush}" />
+                                                  Foreground="{ThemeResource TextTertiaryBrush}" />
                                     </Button>
                                 </Grid>
                             </Border>
@@ -964,11 +964,11 @@
             <!-- Sidebar Footer -->
             <Border Grid.Row="3"
                     Padding="16,10,16,10"
-                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                    BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="0,1,0,0">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <FontIcon Glyph="&#xE81C;" FontSize="11"
-                              Foreground="{StaticResource TextTertiaryBrush}" />
+                              Foreground="{ThemeResource TextTertiaryBrush}" />
                     <TextBlock Style="{StaticResource CaptionStyle}">
                         <Run Text="{x:Bind ViewModel.SearchHistory.Count, Mode=OneWay}" />
                         <Run Text="recent searches" />

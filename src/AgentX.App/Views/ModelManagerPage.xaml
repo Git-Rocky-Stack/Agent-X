@@ -71,7 +71,7 @@
                             </Ellipse>
                             <TextBlock Text="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay}"
                                        Style="{StaticResource BodyStyle}"
-                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                       Foreground="{ThemeResource TextSecondaryBrush}" />
                         </StackPanel>
 
                         <!-- Badges row -->
@@ -80,7 +80,7 @@
                             <Border Style="{StaticResource BadgeDefaultStyle}">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon Glyph="&#xE964;" FontSize="12"
-                                              Foreground="{StaticResource TextAccentBrush}" />
+                                              Foreground="{ThemeResource TextAccentBrush}" />
                                     <TextBlock Style="{StaticResource BadgeStyle}">
                                         <Run Text="{x:Bind ViewModel.TotalModels, Mode=OneWay}" />
                                         <Run Text=" Models" />
@@ -92,7 +92,7 @@
                             <Border Style="{StaticResource BadgeDefaultStyle}">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon Glyph="&#xEDA2;" FontSize="12"
-                                              Foreground="{StaticResource InfoBrush}" />
+                                              Foreground="{ThemeResource InfoBrush}" />
                                     <TextBlock Text="{x:Bind ViewModel.TotalModelSize, Mode=OneWay}"
                                                Style="{StaticResource BadgeStyle}" />
                                 </StackPanel>
@@ -122,7 +122,7 @@
                     <StackPanel Spacing="4">
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE896;" FontSize="18"
-                                      Foreground="{StaticResource TextAccentBrush}" />
+                                      Foreground="{ThemeResource TextAccentBrush}" />
                             <TextBlock Text="Pull New Model"
                                        Style="{StaticResource HeadingMediumStyle}" />
                         </StackPanel>
@@ -171,13 +171,13 @@
                                      MaxHeight="6" />
                         <TextBlock Text="{x:Bind ViewModel.DownloadStatus, Mode=OneWay}"
                                    Style="{StaticResource BodySmallStyle}"
-                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                                   Foreground="{ThemeResource TextSecondaryBrush}" />
                     </StackPanel>
 
                     <!-- Download status (when not downloading but has status) -->
                     <TextBlock Text="{x:Bind ViewModel.DownloadStatus, Mode=OneWay}"
                                Style="{StaticResource BodySmallStyle}"
-                               Foreground="{StaticResource SuccessBrush}"
+                               Foreground="{ThemeResource SuccessBrush}"
                                Visibility="{x:Bind ViewModel.IsDownloading, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
 
                     <!-- Common model suggestions -->
@@ -191,7 +191,7 @@
                                     CommandParameter="llama3.2">
                                 <Border Style="{StaticResource BadgeAccentStyle}" Padding="10,4">
                                     <TextBlock Text="llama3.2" Style="{StaticResource MonoSmallStyle}"
-                                               Foreground="{StaticResource TextAccentBrush}" />
+                                               Foreground="{ThemeResource TextAccentBrush}" />
                                 </Border>
                             </Button>
                             <Button Style="{StaticResource GhostButtonStyle}"
@@ -200,7 +200,7 @@
                                     CommandParameter="mistral">
                                 <Border Style="{StaticResource BadgeAccentStyle}" Padding="10,4">
                                     <TextBlock Text="mistral" Style="{StaticResource MonoSmallStyle}"
-                                               Foreground="{StaticResource TextAccentBrush}" />
+                                               Foreground="{ThemeResource TextAccentBrush}" />
                                 </Border>
                             </Button>
                             <Button Style="{StaticResource GhostButtonStyle}"
@@ -209,7 +209,7 @@
                                     CommandParameter="phi3">
                                 <Border Style="{StaticResource BadgeAccentStyle}" Padding="10,4">
                                     <TextBlock Text="phi3" Style="{StaticResource MonoSmallStyle}"
-                                               Foreground="{StaticResource TextAccentBrush}" />
+                                               Foreground="{ThemeResource TextAccentBrush}" />
                                 </Border>
                             </Button>
                             <Button Style="{StaticResource GhostButtonStyle}"
@@ -218,7 +218,7 @@
                                     CommandParameter="qwen2.5">
                                 <Border Style="{StaticResource BadgeAccentStyle}" Padding="10,4">
                                     <TextBlock Text="qwen2.5" Style="{StaticResource MonoSmallStyle}"
-                                               Foreground="{StaticResource TextAccentBrush}" />
+                                               Foreground="{ThemeResource TextAccentBrush}" />
                                 </Border>
                             </Button>
                             <Button Style="{StaticResource GhostButtonStyle}"
@@ -227,7 +227,7 @@
                                     CommandParameter="gemma2">
                                 <Border Style="{StaticResource BadgeAccentStyle}" Padding="10,4">
                                     <TextBlock Text="gemma2" Style="{StaticResource MonoSmallStyle}"
-                                               Foreground="{StaticResource TextAccentBrush}" />
+                                               Foreground="{ThemeResource TextAccentBrush}" />
                                 </Border>
                             </Button>
                             <Button Style="{StaticResource GhostButtonStyle}"
@@ -236,7 +236,7 @@
                                     CommandParameter="deepseek-r1">
                                 <Border Style="{StaticResource BadgeAccentStyle}" Padding="10,4">
                                     <TextBlock Text="deepseek-r1" Style="{StaticResource MonoSmallStyle}"
-                                               Foreground="{StaticResource TextAccentBrush}" />
+                                               Foreground="{ThemeResource TextAccentBrush}" />
                                 </Border>
                             </Button>
                         </StackPanel>
@@ -249,18 +249,18 @@
                  ======================================================= -->
             <Border Grid.Row="3"
                     Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                    Background="{StaticResource ErrorSubtleBrush}"
-                    BorderBrush="{StaticResource ErrorBrush}"
+                    Background="{ThemeResource ErrorSubtleBrush}"
+                    BorderBrush="{ThemeResource ErrorBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusMD}"
                     Padding="16,12">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <FontIcon Glyph="&#xE7BA;" FontSize="16"
-                              Foreground="{StaticResource ErrorBrush}"
+                              Foreground="{ThemeResource ErrorBrush}"
                               VerticalAlignment="Center" />
                     <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
                                Style="{StaticResource BodySmallStyle}"
-                               Foreground="{StaticResource ErrorBrush}"
+                               Foreground="{ThemeResource ErrorBrush}"
                                VerticalAlignment="Center" />
                 </StackPanel>
             </Border>
@@ -288,7 +288,7 @@
                             Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                     <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
                                   Width="40" Height="40"
-                                  Foreground="{StaticResource AccentPrimaryBrush}" />
+                                  Foreground="{ThemeResource AccentPrimaryBrush}" />
                     <TextBlock Text="Loading models..."
                                Style="{StaticResource BodySecondaryStyle}"
                                HorizontalAlignment="Center" />
@@ -319,19 +319,19 @@
                                                 Orientation="Horizontal" Spacing="12">
                                         <!-- Active dot indicator -->
                                         <Ellipse Width="8" Height="8"
-                                                 Fill="{StaticResource AccentPrimaryBrush}"
+                                                 Fill="{ThemeResource AccentPrimaryBrush}"
                                                  VerticalAlignment="Center"
                                                  Visibility="{x:Bind IsActive, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
                                         <TextBlock Text="{x:Bind Name, Mode=OneWay}"
                                                    Style="{StaticResource HeadingSmallStyle}" />
                                         <!-- Active badge -->
-                                        <Border Background="{StaticResource SuccessSubtleBrush}"
+                                        <Border Background="{ThemeResource SuccessSubtleBrush}"
                                                 CornerRadius="{StaticResource RadiusRound}"
                                                 Padding="10,3,10,3"
                                                 Visibility="{x:Bind IsActive, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                                             <TextBlock Text="ACTIVE"
                                                        FontSize="10" FontWeight="Bold"
-                                                       Foreground="{StaticResource SuccessBrush}"
+                                                       Foreground="{ThemeResource SuccessBrush}"
                                                        CharacterSpacing="60" />
                                         </Border>
                                     </StackPanel>
@@ -353,7 +353,7 @@
                                                 AutomationProperties.Name="Copy model name"
                                                 Click="OnCopyModelNameClick">
                                             <FontIcon Glyph="&#xE8C8;" FontSize="14"
-                                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                                                      Foreground="{ThemeResource TextSecondaryBrush}" />
                                         </Button>
                                         <Button Style="{StaticResource GhostButtonStyle}"
                                                 Padding="12,8,12,8" MinHeight="34"
@@ -362,7 +362,7 @@
                                                 AutomationProperties.Name="Delete model"
                                                 Click="OnDeleteModelClick">
                                             <FontIcon Glyph="&#xE74D;" FontSize="14"
-                                                      Foreground="{StaticResource ErrorBrush}" />
+                                                      Foreground="{ThemeResource ErrorBrush}" />
                                         </Button>
                                     </StackPanel>
 
@@ -374,14 +374,14 @@
                                                 Visibility="{x:Bind Family, Mode=OneWay, Converter={StaticResource StringToVis}}">
                                             <TextBlock Text="{x:Bind Family, Mode=OneWay}"
                                                        Style="{StaticResource BadgeStyle}"
-                                                       Foreground="{StaticResource TextAccentBrush}" />
+                                                       Foreground="{ThemeResource TextAccentBrush}" />
                                         </Border>
 
                                         <!-- Size badge -->
                                         <Border Style="{StaticResource BadgeDefaultStyle}">
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <FontIcon Glyph="&#xEDA2;" FontSize="10"
-                                                          Foreground="{StaticResource TextTertiaryBrush}" />
+                                                          Foreground="{ThemeResource TextTertiaryBrush}" />
                                                 <TextBlock Text="{x:Bind SizeFormatted, Mode=OneWay}"
                                                            Style="{StaticResource BadgeStyle}" />
                                             </StackPanel>
@@ -392,7 +392,7 @@
                                                 Visibility="{x:Bind QuantizationLevel, Mode=OneWay, Converter={StaticResource StringToVis}}">
                                             <TextBlock Text="{x:Bind QuantizationLevel, Mode=OneWay}"
                                                        Style="{StaticResource BadgeStyle}"
-                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                                       Foreground="{ThemeResource TextSecondaryBrush}" />
                                         </Border>
 
                                         <!-- Parameters badge -->
@@ -402,7 +402,7 @@
                                                            Style="{StaticResource BadgeStyle}" />
                                                 <TextBlock Text="params"
                                                            Style="{StaticResource BadgeStyle}"
-                                                           Foreground="{StaticResource TextTertiaryBrush}" />
+                                                           Foreground="{ThemeResource TextTertiaryBrush}" />
                                             </StackPanel>
                                         </Border>
 
@@ -413,7 +413,7 @@
                                                            Style="{StaticResource BadgeStyle}" />
                                                 <TextBlock Text="ctx"
                                                            Style="{StaticResource BadgeStyle}"
-                                                           Foreground="{StaticResource TextTertiaryBrush}" />
+                                                           Foreground="{ThemeResource TextTertiaryBrush}" />
                                             </StackPanel>
                                         </Border>
                                     </StackPanel>
@@ -429,7 +429,7 @@
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                             <FontIcon Glyph="&#xE787;" FontSize="10"
-                                                      Foreground="{StaticResource TextTertiaryBrush}" />
+                                                      Foreground="{ThemeResource TextTertiaryBrush}" />
                                             <TextBlock Text="{x:Bind ModifiedAtFormatted, Mode=OneWay}"
                                                        Style="{StaticResource CaptionStyle}" />
                                         </StackPanel>
@@ -447,12 +447,12 @@
                     <StackPanel Spacing="16" HorizontalAlignment="Center"
                                 Visibility="{x:Bind HasNoModels(ViewModel.TotalModels), Mode=OneWay}">
                         <FontIcon Glyph="&#xE964;" FontSize="40"
-                                  Foreground="{StaticResource TextTertiaryBrush}"
+                                  Foreground="{ThemeResource TextTertiaryBrush}"
                                   HorizontalAlignment="Center" />
                         <TextBlock Text="No models installed"
                                    Style="{StaticResource HeadingSmallStyle}"
                                    HorizontalAlignment="Center"
-                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                                   Foreground="{ThemeResource TextSecondaryBrush}" />
                         <TextBlock Text="Pull a model from the Ollama library to get started. Popular choices include llama3.2, mistral, and phi3."
                                    Style="{StaticResource BodySecondaryStyle}"
                                    TextAlignment="Center"

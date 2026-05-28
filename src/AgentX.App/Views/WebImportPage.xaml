@@ -149,10 +149,10 @@
                     </Grid>
 
                     <!-- Content Preview -->
-                    <Border Background="{StaticResource InputBackgroundBrush}"
+                    <Border Background="{ThemeResource InputBackgroundBrush}"
                             CornerRadius="{StaticResource RadiusSM}"
                             Padding="16"
-                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                            BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1">
                         <TextBlock Text="{x:Bind ViewModel.PreviewContent, Mode=OneWay}"
                                    Style="{StaticResource BodyStyle}"
@@ -178,19 +178,19 @@
                                    Style="{StaticResource HeadingSmallStyle}" />
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
                             <Border CornerRadius="{StaticResource RadiusSM}"
-                                    Background="{StaticResource AccentSubtleBrush}"
+                                    Background="{ThemeResource AccentSubtleBrush}"
                                     Padding="10,4">
-                                <TextBlock Foreground="{StaticResource SuccessBrush}"
+                                <TextBlock Foreground="{ThemeResource SuccessBrush}"
                                            Style="{StaticResource CaptionStyle}">
                                     <Run Text="{x:Bind ViewModel.SuccessCount, Mode=OneWay}" />
                                     <Run Text="imported" />
                                 </TextBlock>
                             </Border>
                             <Border CornerRadius="{StaticResource RadiusSM}"
-                                    Background="{StaticResource AccentSubtleBrush}"
+                                    Background="{ThemeResource AccentSubtleBrush}"
                                     Padding="10,4"
                                     Visibility="{x:Bind views:WebImportPage.IntToVisibility(ViewModel.FailCount)}">
-                                <TextBlock Foreground="{StaticResource ErrorBrush}"
+                                <TextBlock Foreground="{ThemeResource ErrorBrush}"
                                            Style="{StaticResource CaptionStyle}">
                                     <Run Text="{x:Bind ViewModel.FailCount, Mode=OneWay}" />
                                     <Run Text="failed" />

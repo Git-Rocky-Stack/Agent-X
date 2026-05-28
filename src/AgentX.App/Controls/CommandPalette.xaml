@@ -15,7 +15,7 @@
              SEMI-TRANSPARENT BACKDROP (click to dismiss)
              ═══════════════════════════════════════════════════════ -->
         <Border x:Name="BackdropLayer"
-                Background="{StaticResource OverlayBrush}"
+                Background="{ThemeResource OverlayBrush}"
                 Opacity="0"
                 Tapped="BackdropLayer_Tapped" />
 
@@ -28,9 +28,9 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Top"
                 Margin="0,80,0,0"
-                Background="{StaticResource CardBrush}"
+                Background="{ThemeResource CardBrush}"
                 CornerRadius="{StaticResource RadiusXL}"
-                BorderBrush="{StaticResource BorderSubtleBrush}"
+                BorderBrush="{ThemeResource BorderSubtleBrush}"
                 BorderThickness="1"
                 Opacity="0"
                 RenderTransformOrigin="0.5,0">
@@ -58,18 +58,18 @@
                                  Height="48"
                                  FontFamily="{StaticResource FontPrimary}"
                                  FontSize="16"
-                                 Foreground="{StaticResource TextPrimaryBrush}"
-                                 Background="{StaticResource BackgroundSecondaryBrush}"
+                                 Foreground="{ThemeResource TextPrimaryBrush}"
+                                 Background="{ThemeResource BackgroundSecondaryBrush}"
                                  BorderThickness="0"
                                  CornerRadius="{StaticResource RadiusMD}"
                                  Padding="16,12,16,12"
-                                 PlaceholderForeground="{StaticResource InputPlaceholderBrush}"
-                                 SelectionHighlightColor="{StaticResource AccentPrimaryBrush}"
+                                 PlaceholderForeground="{ThemeResource InputPlaceholderBrush}"
+                                 SelectionHighlightColor="{ThemeResource AccentPrimaryBrush}"
                                  TextChanged="SearchInput_TextChanged"
                                  KeyDown="SearchInput_KeyDown" />
 
                         <Border Grid.Column="1"
-                                Background="{StaticResource CardElevatedBrush}"
+                                Background="{ThemeResource CardElevatedBrush}"
                                 CornerRadius="{StaticResource RadiusSM}"
                                 Padding="8,6"
                                 VerticalAlignment="Center"
@@ -77,14 +77,14 @@
                             <TextBlock Text="ESC"
                                        FontFamily="{StaticResource FontMono}"
                                        FontSize="11"
-                                       Foreground="{StaticResource TextTertiaryBrush}"
+                                       Foreground="{ThemeResource TextTertiaryBrush}"
                                        VerticalAlignment="Center" />
                         </Border>
                     </Grid>
 
                     <!-- Separator -->
                     <Border Height="1"
-                            Background="{StaticResource BorderSubtleBrush}"
+                            Background="{ThemeResource BorderSubtleBrush}"
                             Margin="16,12,16,0" />
 
                     <!-- ═══════════════════════════════════════
@@ -102,7 +102,7 @@
                     <!-- ═══════════════════════════════════════
                          FOOTER HINTS
                          ═══════════════════════════════════════ -->
-                    <Border Background="{StaticResource BackgroundSecondaryBrush}"
+                    <Border Background="{ThemeResource BackgroundSecondaryBrush}"
                             CornerRadius="0,0,16,16"
                             Padding="16,10">
                         <StackPanel Orientation="Horizontal"
@@ -110,50 +110,50 @@
                                     Spacing="20">
 
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <Border Background="{StaticResource CardElevatedBrush}"
+                                <Border Background="{ThemeResource CardElevatedBrush}"
                                         CornerRadius="{StaticResource RadiusSM}"
                                         Padding="6,3">
                                     <TextBlock Text="&#x2191;&#x2193;"
                                                FontFamily="{StaticResource FontMono}"
                                                FontSize="11"
-                                               Foreground="{StaticResource TextTertiaryBrush}" />
+                                               Foreground="{ThemeResource TextTertiaryBrush}" />
                                 </Border>
                                 <TextBlock Text="Navigate"
                                            FontFamily="{StaticResource FontPrimary}"
                                            FontSize="11"
-                                           Foreground="{StaticResource TextTertiaryBrush}"
+                                           Foreground="{ThemeResource TextTertiaryBrush}"
                                            VerticalAlignment="Center" />
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <Border Background="{StaticResource CardElevatedBrush}"
+                                <Border Background="{ThemeResource CardElevatedBrush}"
                                         CornerRadius="{StaticResource RadiusSM}"
                                         Padding="6,3">
                                     <TextBlock Text="&#x21B5;"
                                                FontFamily="{StaticResource FontMono}"
                                                FontSize="11"
-                                               Foreground="{StaticResource TextTertiaryBrush}" />
+                                               Foreground="{ThemeResource TextTertiaryBrush}" />
                                 </Border>
                                 <TextBlock Text="Open"
                                            FontFamily="{StaticResource FontPrimary}"
                                            FontSize="11"
-                                           Foreground="{StaticResource TextTertiaryBrush}"
+                                           Foreground="{ThemeResource TextTertiaryBrush}"
                                            VerticalAlignment="Center" />
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <Border Background="{StaticResource CardElevatedBrush}"
+                                <Border Background="{ThemeResource CardElevatedBrush}"
                                         CornerRadius="{StaticResource RadiusSM}"
                                         Padding="6,3">
                                     <TextBlock Text="Esc"
                                                FontFamily="{StaticResource FontMono}"
                                                FontSize="11"
-                                               Foreground="{StaticResource TextTertiaryBrush}" />
+                                               Foreground="{ThemeResource TextTertiaryBrush}" />
                                 </Border>
                                 <TextBlock Text="Close"
                                            FontFamily="{StaticResource FontPrimary}"
                                            FontSize="11"
-                                           Foreground="{StaticResource TextTertiaryBrush}"
+                                           Foreground="{ThemeResource TextTertiaryBrush}"
                                            VerticalAlignment="Center" />
                             </StackPanel>
 

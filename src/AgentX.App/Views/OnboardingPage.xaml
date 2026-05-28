@@ -39,62 +39,62 @@
                 <!-- Step 0 Dot -->
                 <Grid Width="32" Height="32">
                     <Ellipse Width="10" Height="10"
-                             Fill="{StaticResource AccentPrimaryBrush}"
+                             Fill="{ThemeResource AccentPrimaryBrush}"
                              Visibility="{x:Bind ViewModel.IsStep0Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
                     <Ellipse Width="8" Height="8"
-                             Fill="{StaticResource TextTertiaryBrush}"
+                             Fill="{ThemeResource TextTertiaryBrush}"
                              Opacity="0.4"
                              Visibility="{x:Bind ViewModel.IsStep0Visible, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
                 </Grid>
 
-                <Border Width="24" Height="1" Background="{StaticResource BorderSubtleBrush}" VerticalAlignment="Center" />
+                <Border Width="24" Height="1" Background="{ThemeResource BorderSubtleBrush}" VerticalAlignment="Center" />
 
                 <!-- Step 1 Dot -->
                 <Grid Width="32" Height="32">
                     <Ellipse Width="10" Height="10"
-                             Fill="{StaticResource AccentPrimaryBrush}"
+                             Fill="{ThemeResource AccentPrimaryBrush}"
                              Visibility="{x:Bind ViewModel.IsStep1Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
                     <Ellipse Width="8" Height="8"
-                             Fill="{StaticResource TextTertiaryBrush}"
+                             Fill="{ThemeResource TextTertiaryBrush}"
                              Opacity="0.4"
                              Visibility="{x:Bind ViewModel.IsStep1Visible, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
                 </Grid>
 
-                <Border Width="24" Height="1" Background="{StaticResource BorderSubtleBrush}" VerticalAlignment="Center" />
+                <Border Width="24" Height="1" Background="{ThemeResource BorderSubtleBrush}" VerticalAlignment="Center" />
 
                 <!-- Step 2 Dot -->
                 <Grid Width="32" Height="32">
                     <Ellipse Width="10" Height="10"
-                             Fill="{StaticResource AccentPrimaryBrush}"
+                             Fill="{ThemeResource AccentPrimaryBrush}"
                              Visibility="{x:Bind ViewModel.IsStep2Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
                     <Ellipse Width="8" Height="8"
-                             Fill="{StaticResource TextTertiaryBrush}"
+                             Fill="{ThemeResource TextTertiaryBrush}"
                              Opacity="0.4"
                              Visibility="{x:Bind ViewModel.IsStep2Visible, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
                 </Grid>
 
-                <Border Width="24" Height="1" Background="{StaticResource BorderSubtleBrush}" VerticalAlignment="Center" />
+                <Border Width="24" Height="1" Background="{ThemeResource BorderSubtleBrush}" VerticalAlignment="Center" />
 
                 <!-- Step 3 Dot -->
                 <Grid Width="32" Height="32">
                     <Ellipse Width="10" Height="10"
-                             Fill="{StaticResource AccentPrimaryBrush}"
+                             Fill="{ThemeResource AccentPrimaryBrush}"
                              Visibility="{x:Bind ViewModel.IsStep3Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
                     <Ellipse Width="8" Height="8"
-                             Fill="{StaticResource TextTertiaryBrush}"
+                             Fill="{ThemeResource TextTertiaryBrush}"
                              Opacity="0.4"
                              Visibility="{x:Bind ViewModel.IsStep3Visible, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
                 </Grid>
 
-                <Border Width="24" Height="1" Background="{StaticResource BorderSubtleBrush}" VerticalAlignment="Center" />
+                <Border Width="24" Height="1" Background="{ThemeResource BorderSubtleBrush}" VerticalAlignment="Center" />
 
                 <!-- Step 4 Dot -->
                 <Grid Width="32" Height="32">
                     <Ellipse Width="10" Height="10"
-                             Fill="{StaticResource AccentPrimaryBrush}"
+                             Fill="{ThemeResource AccentPrimaryBrush}"
                              Visibility="{x:Bind ViewModel.IsStep4Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
                     <Ellipse Width="8" Height="8"
-                             Fill="{StaticResource TextTertiaryBrush}"
+                             Fill="{ThemeResource TextTertiaryBrush}"
                              Opacity="0.4"
                              Visibility="{x:Bind ViewModel.IsStep4Visible, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
                 </Grid>
@@ -124,12 +124,12 @@
                               HorizontalAlignment="Center"
                               Margin="0,16,0,0">
                             <Border CornerRadius="{StaticResource RadiusLG}"
-                                    Background="{StaticResource AccentGradientBrush}">
+                                    Background="{ThemeResource AccentGradientBrush}">
                                 <TextBlock Text="AX"
                                            FontFamily="{StaticResource FontDisplay}"
                                            FontSize="32"
                                            FontWeight="Black"
-                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           Foreground="{ThemeResource TextPrimaryBrush}"
                                            HorizontalAlignment="Center"
                                            VerticalAlignment="Center"
                                            CharacterSpacing="-30" />
@@ -144,7 +144,7 @@
                                        TextAlignment="Center" />
                             <TextBlock Text="Your Local-First AI Intelligence Hub"
                                        Style="{StaticResource HeadingMediumStyle}"
-                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       Foreground="{ThemeResource TextSecondaryBrush}"
                                        HorizontalAlignment="Center"
                                        TextAlignment="Center"
                                        FontWeight="Normal" />
@@ -162,10 +162,10 @@
                                     </Grid.ColumnDefinitions>
                                     <Border Width="44" Height="44"
                                             CornerRadius="{StaticResource RadiusMD}"
-                                            Background="{StaticResource AccentSubtleBrush}">
+                                            Background="{ThemeResource AccentSubtleBrush}">
                                         <FontIcon Glyph="&#xE72E;"
                                                   FontSize="20"
-                                                  Foreground="{StaticResource AccentPrimaryBrush}"
+                                                  Foreground="{ThemeResource AccentPrimaryBrush}"
                                                   HorizontalAlignment="Center"
                                                   VerticalAlignment="Center" />
                                     </Border>
@@ -187,10 +187,10 @@
                                     </Grid.ColumnDefinitions>
                                     <Border Width="44" Height="44"
                                             CornerRadius="{StaticResource RadiusMD}"
-                                            Background="{StaticResource AccentSubtleBrush}">
+                                            Background="{ThemeResource AccentSubtleBrush}">
                                         <FontIcon Glyph="&#xE734;"
                                                   FontSize="20"
-                                                  Foreground="{StaticResource AccentPrimaryBrush}"
+                                                  Foreground="{ThemeResource AccentPrimaryBrush}"
                                                   HorizontalAlignment="Center"
                                                   VerticalAlignment="Center" />
                                     </Border>
@@ -212,10 +212,10 @@
                                     </Grid.ColumnDefinitions>
                                     <Border Width="44" Height="44"
                                             CornerRadius="{StaticResource RadiusMD}"
-                                            Background="{StaticResource AccentSubtleBrush}">
+                                            Background="{ThemeResource AccentSubtleBrush}">
                                         <FontIcon Glyph="&#xE8F1;"
                                                   FontSize="20"
-                                                  Foreground="{StaticResource AccentPrimaryBrush}"
+                                                  Foreground="{ThemeResource AccentPrimaryBrush}"
                                                   HorizontalAlignment="Center"
                                                   VerticalAlignment="Center" />
                                     </Border>
@@ -275,7 +275,7 @@
                                                   IsActive="{x:Bind ViewModel.IsTestingConnection, Mode=OneWay}"
                                                   Visibility="{x:Bind ViewModel.IsTestingConnection, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                                   Width="24" Height="24"
-                                                  Foreground="{StaticResource AccentPrimaryBrush}"
+                                                  Foreground="{ThemeResource AccentPrimaryBrush}"
                                                   VerticalAlignment="Center" />
                                 </Grid>
 
@@ -283,7 +283,7 @@
                                 <Border Visibility="{x:Bind ViewModel.ShowConnectionStatus, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Padding="16,12"
-                                        Background="{StaticResource InputBackgroundBrush}"
+                                        Background="{ThemeResource InputBackgroundBrush}"
                                         Margin="0,4,0,0">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
                                         <!-- Dot color reflects the actual connection-test
@@ -305,7 +305,7 @@
                                        HorizontalAlignment="Center"
                                        TextAlignment="Center">
                                 <Run Text="Don't have Ollama? Visit" />
-                                <Run Text="ollama.com" Foreground="{StaticResource TextAccentBrush}" FontWeight="SemiBold" />
+                                <Run Text="ollama.com" Foreground="{ThemeResource TextAccentBrush}" FontWeight="SemiBold" />
                                 <Run Text="to install it." />
                             </TextBlock>
 
@@ -342,7 +342,7 @@
                                 Visibility="{x:Bind ViewModel.HardwareInfo, Mode=OneWay, Converter={StaticResource StringToVis}}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE950;" FontSize="12"
-                                          Foreground="{StaticResource TextTertiaryBrush}" />
+                                          Foreground="{ThemeResource TextTertiaryBrush}" />
                                 <TextBlock Text="{x:Bind ViewModel.HardwareInfo, Mode=OneWay}"
                                            Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
@@ -354,7 +354,7 @@
                                     Spacing="12" Margin="0,24,0,0">
                             <ProgressRing IsActive="True"
                                           Width="32" Height="32"
-                                          Foreground="{StaticResource AccentPrimaryBrush}" />
+                                          Foreground="{ThemeResource AccentPrimaryBrush}" />
                             <TextBlock Text="Loading available models..."
                                        Style="{StaticResource BodySecondaryStyle}"
                                        HorizontalAlignment="Center" />
@@ -369,7 +369,7 @@
                                 <StackPanel Spacing="12">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <FontIcon Glyph="&#xE8BD;" FontSize="16"
-                                                  Foreground="{StaticResource AccentPrimaryBrush}" />
+                                                  Foreground="{ThemeResource AccentPrimaryBrush}" />
                                         <TextBlock Text="CHAT MODEL"
                                                    Style="{StaticResource OverlineStyle}" />
                                     </StackPanel>
@@ -380,8 +380,8 @@
                                               SelectedValuePath="ModelId"
                                               DisplayMemberPath="DisplayName"
                                               HorizontalAlignment="Stretch"
-                                              Background="{StaticResource InputBackgroundBrush}"
-                                              BorderBrush="{StaticResource InputBorderBrush}"
+                                              Background="{ThemeResource InputBackgroundBrush}"
+                                              BorderBrush="{ThemeResource InputBorderBrush}"
                                               CornerRadius="{StaticResource RadiusMD}" />
                                 </StackPanel>
                             </Border>
@@ -391,7 +391,7 @@
                                 <StackPanel Spacing="12">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <FontIcon Glyph="&#xE773;" FontSize="16"
-                                                  Foreground="{StaticResource AccentPrimaryBrush}" />
+                                                  Foreground="{ThemeResource AccentPrimaryBrush}" />
                                         <TextBlock Text="EMBEDDING MODEL"
                                                    Style="{StaticResource OverlineStyle}" />
                                     </StackPanel>
@@ -402,8 +402,8 @@
                                               SelectedValuePath="ModelId"
                                               DisplayMemberPath="DisplayName"
                                               HorizontalAlignment="Stretch"
-                                              Background="{StaticResource InputBackgroundBrush}"
-                                              BorderBrush="{StaticResource InputBorderBrush}"
+                                              Background="{ThemeResource InputBackgroundBrush}"
+                                              BorderBrush="{ThemeResource InputBorderBrush}"
                                               CornerRadius="{StaticResource RadiusMD}" />
                                 </StackPanel>
                             </Border>
@@ -415,7 +415,7 @@
                                 Margin="0,8,0,0">
                             <StackPanel Spacing="12" HorizontalAlignment="Center" Padding="20">
                                 <FontIcon Glyph="&#xE946;" FontSize="36"
-                                          Foreground="{StaticResource TextTertiaryBrush}"
+                                          Foreground="{ThemeResource TextTertiaryBrush}"
                                           HorizontalAlignment="Center" />
                                 <TextBlock Text="No models available"
                                            Style="{StaticResource HeadingSmallStyle}"
@@ -429,9 +429,9 @@
                                            HorizontalAlignment="Center"
                                            Margin="0,8,0,0">
                                     <Run Text="Default chat model:" />
-                                    <Run Text="llama3.2" Foreground="{StaticResource TextAccentBrush}" FontWeight="SemiBold" />
+                                    <Run Text="llama3.2" Foreground="{ThemeResource TextAccentBrush}" FontWeight="SemiBold" />
                                     <Run Text="  |  Default embedding model:" />
-                                    <Run Text="all-minilm" Foreground="{StaticResource TextAccentBrush}" FontWeight="SemiBold" />
+                                    <Run Text="all-minilm" Foreground="{ThemeResource TextAccentBrush}" FontWeight="SemiBold" />
                                 </TextBlock>
                             </StackPanel>
                         </Border>
@@ -473,10 +473,10 @@
                                     </Grid.ColumnDefinitions>
                                     <Border Width="40" Height="40"
                                             CornerRadius="{StaticResource RadiusFull}"
-                                            Background="{StaticResource AccentSubtleBrush}">
+                                            Background="{ThemeResource AccentSubtleBrush}">
                                         <FontIcon Glyph="&#xE99A;"
                                                   FontSize="18"
-                                                  Foreground="{StaticResource AccentPrimaryBrush}"
+                                                  Foreground="{ThemeResource AccentPrimaryBrush}"
                                                   HorizontalAlignment="Center"
                                                   VerticalAlignment="Center" />
                                     </Border>
@@ -486,16 +486,16 @@
                                                    FontWeight="SemiBold" />
                                         <TextBlock Text="Q4_K_M quantization  |  ~2 GB  |  Runs entirely on your device"
                                                    Style="{StaticResource CaptionStyle}"
-                                                   Foreground="{StaticResource TextTertiaryBrush}" />
+                                                   Foreground="{ThemeResource TextTertiaryBrush}" />
                                     </StackPanel>
                                     <Border Grid.Column="2"
                                             CornerRadius="12"
                                             Padding="12,6"
-                                            Background="{StaticResource SuccessSubtleBrush}"
+                                            Background="{ThemeResource SuccessSubtleBrush}"
                                             Visibility="{x:Bind ViewModel.IsLocalModelAvailable, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                                         <TextBlock Text="{x:Bind ViewModel.LocalModelStatusText, Mode=OneWay}"
                                                    FontSize="12"
-                                                   Foreground="{StaticResource SuccessBrush}"
+                                                   Foreground="{ThemeResource SuccessBrush}"
                                                    FontWeight="SemiBold" />
                                     </Border>
                                 </Grid>
@@ -510,7 +510,7 @@
                                     </Grid.ColumnDefinitions>
                                     <FontIcon Glyph="&#xE7F4;"
                                               FontSize="16"
-                                              Foreground="{StaticResource TextSecondaryBrush}"
+                                              Foreground="{ThemeResource TextSecondaryBrush}"
                                               VerticalAlignment="Center" />
                                     <TextBlock Grid.Column="1"
                                                Text="{x:Bind ViewModel.GpuAccelerationInfo, Mode=OneWay}"
@@ -528,7 +528,7 @@
                                                Style="{StaticResource OverlineStyle}" />
                                     <TextBlock Text="Connect cloud AI providers for access to GPT-4o, Claude, and other advanced models."
                                                Style="{StaticResource CaptionStyle}"
-                                               Foreground="{StaticResource TextTertiaryBrush}" />
+                                               Foreground="{ThemeResource TextTertiaryBrush}" />
                                 </StackPanel>
 
                                 <!-- OpenAI API Key -->
@@ -544,7 +544,7 @@
                                         <TextBlock Grid.Column="1"
                                                    Text="GPT-4o, GPT-4o-mini"
                                                    Style="{StaticResource CaptionStyle}"
-                                                   Foreground="{StaticResource TextTertiaryBrush}"
+                                                   Foreground="{ThemeResource TextTertiaryBrush}"
                                                    VerticalAlignment="Center"
                                                    HorizontalAlignment="Right" />
                                     </Grid>
@@ -569,7 +569,7 @@
                                         <TextBlock Grid.Column="1"
                                                    Text="Claude Sonnet, Claude Opus"
                                                    Style="{StaticResource CaptionStyle}"
-                                                   Foreground="{StaticResource TextTertiaryBrush}"
+                                                   Foreground="{ThemeResource TextTertiaryBrush}"
                                                    VerticalAlignment="Center"
                                                    HorizontalAlignment="Right" />
                                     </Grid>
@@ -582,7 +582,7 @@
                                 <!-- Note -->
                                 <TextBlock Text="API keys are stored locally on your device and never sent anywhere except the respective provider."
                                            Style="{StaticResource CaptionStyle}"
-                                           Foreground="{StaticResource TextTertiaryBrush}"
+                                           Foreground="{ThemeResource TextTertiaryBrush}"
                                            FontStyle="Italic"
                                            TextWrapping="Wrap" />
                             </StackPanel>
@@ -601,10 +601,10 @@
                               HorizontalAlignment="Center"
                               Margin="0,16,0,0">
                             <Border CornerRadius="{StaticResource RadiusRound}"
-                                    Background="{StaticResource AccentSubtleBrush}">
+                                    Background="{ThemeResource AccentSubtleBrush}">
                                 <FontIcon Glyph="&#xE73E;"
                                           FontSize="36"
-                                          Foreground="{StaticResource SuccessBrush}"
+                                          Foreground="{ThemeResource SuccessBrush}"
                                           HorizontalAlignment="Center"
                                           VerticalAlignment="Center" />
                             </Border>
@@ -618,7 +618,7 @@
                                        TextAlignment="Center" />
                             <TextBlock Text="Agent-X is configured and ready to use. All settings can be changed anytime from the Settings page."
                                        Style="{StaticResource HeadingMediumStyle}"
-                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       Foreground="{ThemeResource TextSecondaryBrush}"
                                        HorizontalAlignment="Center"
                                        TextAlignment="Center"
                                        FontWeight="Normal" />
@@ -658,7 +658,7 @@
                                     <TextBlock Grid.Column="1"
                                                Text="{x:Bind ViewModel.SummaryChatModel, Mode=OneWay}"
                                                Style="{StaticResource BodyStyle}"
-                                               Foreground="{StaticResource TextAccentBrush}"
+                                               Foreground="{ThemeResource TextAccentBrush}"
                                                HorizontalAlignment="Right" />
                                 </Grid>
 
@@ -675,7 +675,7 @@
                                     <TextBlock Grid.Column="1"
                                                Text="{x:Bind ViewModel.SummaryEmbeddingModel, Mode=OneWay}"
                                                Style="{StaticResource BodyStyle}"
-                                               Foreground="{StaticResource TextAccentBrush}"
+                                               Foreground="{ThemeResource TextAccentBrush}"
                                                HorizontalAlignment="Right" />
                                 </Grid>
 
@@ -692,7 +692,7 @@
                                     <TextBlock Grid.Column="1"
                                                Text="{x:Bind ViewModel.SummaryLocalModel, Mode=OneWay}"
                                                Style="{StaticResource BodyStyle}"
-                                               Foreground="{StaticResource SuccessBrush}"
+                                               Foreground="{ThemeResource SuccessBrush}"
                                                HorizontalAlignment="Right" />
                                 </Grid>
 
@@ -739,9 +739,9 @@
                  ROW 2: NAVIGATION BUTTONS
                  ═══════════════════════════════════════════════════════ -->
             <Border Grid.Row="2"
-                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                    BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="0,1,0,0"
-                    Background="{StaticResource PageBackgroundBrush}"
+                    Background="{ThemeResource PageBackgroundBrush}"
                     Padding="32,16,32,24">
 
                 <Grid MaxWidth="700" HorizontalAlignment="Center">

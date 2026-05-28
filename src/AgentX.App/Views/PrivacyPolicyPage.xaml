@@ -60,14 +60,14 @@
 
                     <!-- Shield Icon -->
                     <Border Grid.Column="0"
-                            Background="{StaticResource AccentSubtleBrush}"
+                            Background="{ThemeResource AccentSubtleBrush}"
                             CornerRadius="{StaticResource RadiusMD}"
                             Width="44" Height="44"
                             VerticalAlignment="Center">
                         <FontIcon Glyph="&#xEA18;"
                                   FontFamily="Segoe MDL2 Assets"
                                   FontSize="20"
-                                  Foreground="{StaticResource TextAccentBrush}"
+                                  Foreground="{ThemeResource TextAccentBrush}"
                                   HorizontalAlignment="Center"
                                   VerticalAlignment="Center" />
                     </Border>
@@ -76,7 +76,7 @@
                     <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                         <TextBlock Text="Local-First Privacy"
                                    Style="{StaticResource HeadingSmallStyle}"
-                                   Foreground="{StaticResource TextAccentBrush}" />
+                                   Foreground="{ThemeResource TextAccentBrush}" />
                         <TextBlock Text="Your data never leaves your device. All AI processing, document storage, and conversations remain entirely on your machine."
                                    Style="{StaticResource BodySecondaryStyle}" />
                     </StackPanel>
@@ -89,10 +89,10 @@
                             <FontIcon Glyph="&#xE73E;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="10"
-                                      Foreground="{StaticResource TextAccentBrush}" />
+                                      Foreground="{ThemeResource TextAccentBrush}" />
                             <TextBlock Text="VERIFIED"
                                        Style="{StaticResource BadgeStyle}"
-                                       Foreground="{StaticResource TextAccentBrush}" />
+                                       Foreground="{ThemeResource TextAccentBrush}" />
                         </StackPanel>
                     </Border>
                 </Grid>
@@ -107,13 +107,13 @@
 
                     <!-- Section Header -->
                     <StackPanel Orientation="Horizontal" Spacing="12">
-                        <Border Background="{StaticResource AccentSubtleBrush}"
+                        <Border Background="{ThemeResource AccentSubtleBrush}"
                                 CornerRadius="{StaticResource RadiusSM}"
                                 Width="32" Height="32">
                             <FontIcon Glyph="&#xE72E;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="14"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
@@ -140,13 +140,13 @@
 
                     <!-- Section Header -->
                     <StackPanel Orientation="Horizontal" Spacing="12">
-                        <Border Background="{StaticResource AccentSubtleBrush}"
+                        <Border Background="{ThemeResource AccentSubtleBrush}"
                                 CornerRadius="{StaticResource RadiusSM}"
                                 Width="32" Height="32">
                             <FontIcon Glyph="&#xE9D5;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="14"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
@@ -166,7 +166,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <TextBlock Text="&#x2022;"
                                            Style="{StaticResource BodyStyle}"
-                                           Foreground="{StaticResource TextAccentBrush}"
+                                           Foreground="{ThemeResource TextAccentBrush}"
                                            VerticalAlignment="Top" />
                                 <TextBlock Text="Documents you import into the Knowledge Vault"
                                            Style="{StaticResource BodyStyle}" />
@@ -174,7 +174,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <TextBlock Text="&#x2022;"
                                            Style="{StaticResource BodyStyle}"
-                                           Foreground="{StaticResource TextAccentBrush}"
+                                           Foreground="{ThemeResource TextAccentBrush}"
                                            VerticalAlignment="Top" />
                                 <TextBlock Text="Conversations with AI models"
                                            Style="{StaticResource BodyStyle}" />
@@ -182,7 +182,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <TextBlock Text="&#x2022;"
                                            Style="{StaticResource BodyStyle}"
-                                           Foreground="{StaticResource TextAccentBrush}"
+                                           Foreground="{ThemeResource TextAccentBrush}"
                                            VerticalAlignment="Top" />
                                 <TextBlock Text="Settings and preferences you configure"
                                            Style="{StaticResource BodyStyle}" />
@@ -190,7 +190,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <TextBlock Text="&#x2022;"
                                            Style="{StaticResource BodyStyle}"
-                                           Foreground="{StaticResource TextAccentBrush}"
+                                           Foreground="{ThemeResource TextAccentBrush}"
                                            VerticalAlignment="Top" />
                                 <TextBlock Text="Collection names and organizational tags"
                                            Style="{StaticResource BodyStyle}" />
@@ -211,7 +211,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <TextBlock Text="&#x2022;"
                                            Style="{StaticResource BodyStyle}"
-                                           Foreground="{StaticResource TextAccentBrush}"
+                                           Foreground="{ThemeResource TextAccentBrush}"
                                            VerticalAlignment="Top" />
                                 <TextBlock Text="Application logs (stored locally only)"
                                            Style="{StaticResource BodyStyle}" />
@@ -219,7 +219,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <TextBlock Text="&#x2022;"
                                            Style="{StaticResource BodyStyle}"
-                                           Foreground="{StaticResource TextAccentBrush}"
+                                           Foreground="{ThemeResource TextAccentBrush}"
                                            VerticalAlignment="Top" />
                                 <TextBlock Text="Hardware capability information (for model recommendations)"
                                            Style="{StaticResource BodyStyle}" />
@@ -227,7 +227,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <TextBlock Text="&#x2022;"
                                            Style="{StaticResource BodyStyle}"
-                                           Foreground="{StaticResource TextAccentBrush}"
+                                           Foreground="{ThemeResource TextAccentBrush}"
                                            VerticalAlignment="Top" />
                                 <TextBlock Text="Usage statistics (stored locally, never transmitted)"
                                            Style="{StaticResource BodyStyle}" />
@@ -247,7 +247,7 @@
                                 <FontIcon Glyph="&#xE711;"
                                           FontFamily="Segoe MDL2 Assets"
                                           FontSize="10"
-                                          Foreground="{StaticResource ErrorBrush}"
+                                          Foreground="{ThemeResource ErrorBrush}"
                                           VerticalAlignment="Top"
                                           Margin="0,5,0,0" />
                                 <TextBlock Text="We do not collect personal identification information"
@@ -257,7 +257,7 @@
                                 <FontIcon Glyph="&#xE711;"
                                           FontFamily="Segoe MDL2 Assets"
                                           FontSize="10"
-                                          Foreground="{StaticResource ErrorBrush}"
+                                          Foreground="{ThemeResource ErrorBrush}"
                                           VerticalAlignment="Top"
                                           Margin="0,5,0,0" />
                                 <TextBlock Text="We do not transmit data to external servers"
@@ -267,7 +267,7 @@
                                 <FontIcon Glyph="&#xE711;"
                                           FontFamily="Segoe MDL2 Assets"
                                           FontSize="10"
-                                          Foreground="{StaticResource ErrorBrush}"
+                                          Foreground="{ThemeResource ErrorBrush}"
                                           VerticalAlignment="Top"
                                           Margin="0,5,0,0" />
                                 <TextBlock Text="We do not use cookies or tracking technologies"
@@ -277,7 +277,7 @@
                                 <FontIcon Glyph="&#xE711;"
                                           FontFamily="Segoe MDL2 Assets"
                                           FontSize="10"
-                                          Foreground="{StaticResource ErrorBrush}"
+                                          Foreground="{ThemeResource ErrorBrush}"
                                           VerticalAlignment="Top"
                                           Margin="0,5,0,0" />
                                 <TextBlock Text="We do not collect payment information through the app"
@@ -297,13 +297,13 @@
 
                     <!-- Section Header -->
                     <StackPanel Orientation="Horizontal" Spacing="12">
-                        <Border Background="{StaticResource AccentSubtleBrush}"
+                        <Border Background="{ThemeResource AccentSubtleBrush}"
                                 CornerRadius="{StaticResource RadiusSM}"
                                 Width="32" Height="32">
                             <FontIcon Glyph="&#xEDA2;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="14"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
@@ -320,7 +320,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <TextBlock Text="&#x2022;"
                                        Style="{StaticResource BodyStyle}"
-                                       Foreground="{StaticResource TextAccentBrush}"
+                                       Foreground="{ThemeResource TextAccentBrush}"
                                        VerticalAlignment="Top" />
                             <TextBlock Style="{StaticResource BodyStyle}">
                                 <Run Text="All data stored in local SQLite databases on your device" />
@@ -329,7 +329,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <TextBlock Text="&#x2022;"
                                        Style="{StaticResource BodyStyle}"
-                                       Foreground="{StaticResource TextAccentBrush}"
+                                       Foreground="{ThemeResource TextAccentBrush}"
                                        VerticalAlignment="Top" />
                             <TextBlock Style="{StaticResource BodyStyle}">
                                 <Run Text="Document embeddings stored in local vector database (sqlite-vec)" />
@@ -338,20 +338,20 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <TextBlock Text="&#x2022;"
                                        Style="{StaticResource BodyStyle}"
-                                       Foreground="{StaticResource TextAccentBrush}"
+                                       Foreground="{ThemeResource TextAccentBrush}"
                                        VerticalAlignment="Top" />
                             <TextBlock Style="{StaticResource BodyStyle}">
                                 <Run Text="Application logs stored in " />
                                 <Run Text="%LOCALAPPDATA%\AgentX\Logs\"
                                      FontFamily="{StaticResource FontMono}"
-                                     Foreground="{StaticResource TextSecondaryBrush}"
+                                     Foreground="{ThemeResource TextSecondaryBrush}"
                                      FontSize="12" />
                             </TextBlock>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <TextBlock Text="&#x2022;"
                                        Style="{StaticResource BodyStyle}"
-                                       Foreground="{StaticResource TextAccentBrush}"
+                                       Foreground="{ThemeResource TextAccentBrush}"
                                        VerticalAlignment="Top" />
                             <TextBlock Text="Settings stored locally &#x2014; never synced to cloud"
                                        Style="{StaticResource BodyStyle}" />
@@ -359,7 +359,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <TextBlock Text="&#x2022;"
                                        Style="{StaticResource BodyStyle}"
-                                       Foreground="{StaticResource TextAccentBrush}"
+                                       Foreground="{ThemeResource TextAccentBrush}"
                                        VerticalAlignment="Top" />
                             <TextBlock Text="You have full control: all data can be deleted by removing the application data folder"
                                        Style="{StaticResource BodyStyle}" />
@@ -377,13 +377,13 @@
 
                     <!-- Section Header -->
                     <StackPanel Orientation="Horizontal" Spacing="12">
-                        <Border Background="{StaticResource AccentSubtleBrush}"
+                        <Border Background="{ThemeResource AccentSubtleBrush}"
                                 CornerRadius="{StaticResource RadiusSM}"
                                 Width="32" Height="32">
                             <FontIcon Glyph="&#xE71B;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="14"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
@@ -411,11 +411,11 @@
                             <FontIcon Glyph="&#xE73E;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="12"
-                                      Foreground="{StaticResource SuccessBrush}"
+                                      Foreground="{ThemeResource SuccessBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Text="No Analytics Services"
                                        Style="{StaticResource AccentBodyStyle}"
-                                       Foreground="{StaticResource SuccessBrush}" />
+                                       Foreground="{ThemeResource SuccessBrush}" />
                         </StackPanel>
                         <TextBlock Text="We do not use Google Analytics, Mixpanel, or any third-party analytics services. No usage data is collected or transmitted."
                                    Style="{StaticResource BodySecondaryStyle}"
@@ -428,11 +428,11 @@
                             <FontIcon Glyph="&#xE73E;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="12"
-                                      Foreground="{StaticResource SuccessBrush}"
+                                      Foreground="{ThemeResource SuccessBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Text="No Advertising"
                                        Style="{StaticResource AccentBodyStyle}"
-                                       Foreground="{StaticResource SuccessBrush}" />
+                                       Foreground="{ThemeResource SuccessBrush}" />
                         </StackPanel>
                         <TextBlock Text="We do not display ads or share data with advertisers. Agent-X is a paid product; our users are our customers, not our product."
                                    Style="{StaticResource BodySecondaryStyle}"
@@ -450,13 +450,13 @@
 
                     <!-- Section Header -->
                     <StackPanel Orientation="Horizontal" Spacing="12">
-                        <Border Background="{StaticResource AccentSubtleBrush}"
+                        <Border Background="{ThemeResource AccentSubtleBrush}"
                                 CornerRadius="{StaticResource RadiusSM}"
                                 Width="32" Height="32">
                             <FontIcon Glyph="&#xE909;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="14"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
@@ -481,13 +481,13 @@
                             <FontIcon Glyph="&#xE73E;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
                                 <TextBlock Text="Right to Access"
                                            Style="{StaticResource LabelStyle}"
-                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                           Foreground="{ThemeResource TextPrimaryBrush}" />
                                 <TextBlock Text="You can access all your data directly on your device. No request to us is needed."
                                            Style="{StaticResource BodySecondaryStyle}" />
                             </StackPanel>
@@ -502,13 +502,13 @@
                             <FontIcon Glyph="&#xE73E;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
                                 <TextBlock Text="Right to Rectification"
                                            Style="{StaticResource LabelStyle}"
-                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                           Foreground="{ThemeResource TextPrimaryBrush}" />
                                 <TextBlock Text="You can modify your data at any time through the application interface."
                                            Style="{StaticResource BodySecondaryStyle}" />
                             </StackPanel>
@@ -523,13 +523,13 @@
                             <FontIcon Glyph="&#xE73E;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
                                 <TextBlock Text="Right to Erasure ('Right to be Forgotten')"
                                            Style="{StaticResource LabelStyle}"
-                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                           Foreground="{ThemeResource TextPrimaryBrush}" />
                                 <TextBlock Text="Delete documents, conversations, and all data through the app or by removing the application data folder."
                                            Style="{StaticResource BodySecondaryStyle}" />
                             </StackPanel>
@@ -544,13 +544,13 @@
                             <FontIcon Glyph="&#xE73E;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
                                 <TextBlock Text="Right to Data Portability"
                                            Style="{StaticResource LabelStyle}"
-                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                           Foreground="{ThemeResource TextPrimaryBrush}" />
                                 <TextBlock Text="Your data is stored in standard SQLite format and can be exported or moved freely."
                                            Style="{StaticResource BodySecondaryStyle}" />
                             </StackPanel>
@@ -565,13 +565,13 @@
                             <FontIcon Glyph="&#xE73E;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
                                 <TextBlock Text="Right to Restrict Processing"
                                            Style="{StaticResource LabelStyle}"
-                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                           Foreground="{ThemeResource TextPrimaryBrush}" />
                                 <TextBlock Text="You control all processing &#x2014; simply close the application to stop all data processing."
                                            Style="{StaticResource BodySecondaryStyle}" />
                             </StackPanel>
@@ -586,13 +586,13 @@
                             <FontIcon Glyph="&#xE73E;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
                                 <TextBlock Text="Right to Object"
                                            Style="{StaticResource LabelStyle}"
-                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                           Foreground="{ThemeResource TextPrimaryBrush}" />
                                 <TextBlock Text="You can stop using the application at any time. Uninstalling removes all processing."
                                            Style="{StaticResource BodySecondaryStyle}" />
                             </StackPanel>
@@ -608,7 +608,7 @@
                             <FontIcon Glyph="&#xE946;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="14"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Top"
                                       Margin="0,2,0,0" />
                             <TextBlock Style="{StaticResource BodyStyle}"
@@ -627,13 +627,13 @@
 
                     <!-- Section Header -->
                     <StackPanel Orientation="Horizontal" Spacing="12">
-                        <Border Background="{StaticResource AccentSubtleBrush}"
+                        <Border Background="{ThemeResource AccentSubtleBrush}"
                                 CornerRadius="{StaticResource RadiusSM}"
                                 Width="32" Height="32">
                             <FontIcon Glyph="&#xE8A3;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="14"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
@@ -658,13 +658,13 @@
                             <FontIcon Glyph="&#xE73E;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
                                 <TextBlock Text="Right to Know"
                                            Style="{StaticResource LabelStyle}"
-                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                           Foreground="{ThemeResource TextPrimaryBrush}" />
                                 <TextBlock Text="What personal information is collected &#x2014; see 'Information We Collect' above for a complete enumeration."
                                            Style="{StaticResource BodySecondaryStyle}" />
                             </StackPanel>
@@ -679,13 +679,13 @@
                             <FontIcon Glyph="&#xE73E;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
                                 <TextBlock Text="Right to Delete"
                                            Style="{StaticResource LabelStyle}"
-                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                           Foreground="{ThemeResource TextPrimaryBrush}" />
                                 <TextBlock Text="Remove all data by uninstalling the app or deleting the application data directory."
                                            Style="{StaticResource BodySecondaryStyle}" />
                             </StackPanel>
@@ -700,13 +700,13 @@
                             <FontIcon Glyph="&#xE73E;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
                                 <TextBlock Text="Right to Opt-Out of Sale"
                                            Style="{StaticResource LabelStyle}"
-                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                           Foreground="{ThemeResource TextPrimaryBrush}" />
                                 <TextBlock Style="{StaticResource BodySecondaryStyle}"
                                            Text="We do not sell your personal information. We never have and never will." />
                             </StackPanel>
@@ -721,13 +721,13 @@
                             <FontIcon Glyph="&#xE73E;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
                                 <TextBlock Text="Right to Non-Discrimination"
                                            Style="{StaticResource LabelStyle}"
-                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                           Foreground="{ThemeResource TextPrimaryBrush}" />
                                 <TextBlock Text="We do not discriminate against users who exercise their privacy rights."
                                            Style="{StaticResource BodySecondaryStyle}" />
                             </StackPanel>
@@ -745,7 +745,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <TextBlock Text="&#x2022;"
                                            Style="{StaticResource BodyStyle}"
-                                           Foreground="{StaticResource TextAccentBrush}"
+                                           Foreground="{ThemeResource TextAccentBrush}"
                                            VerticalAlignment="Top" />
                                 <TextBlock Text="Documents and files you import"
                                            Style="{StaticResource BodyStyle}" />
@@ -753,7 +753,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <TextBlock Text="&#x2022;"
                                            Style="{StaticResource BodyStyle}"
-                                           Foreground="{StaticResource TextAccentBrush}"
+                                           Foreground="{ThemeResource TextAccentBrush}"
                                            VerticalAlignment="Top" />
                                 <TextBlock Text="AI conversation history"
                                            Style="{StaticResource BodyStyle}" />
@@ -761,7 +761,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <TextBlock Text="&#x2022;"
                                            Style="{StaticResource BodyStyle}"
-                                           Foreground="{StaticResource TextAccentBrush}"
+                                           Foreground="{ThemeResource TextAccentBrush}"
                                            VerticalAlignment="Top" />
                                 <TextBlock Text="Application preferences"
                                            Style="{StaticResource BodyStyle}" />
@@ -778,13 +778,13 @@
                             <FontIcon Glyph="&#xE72E;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="14"
-                                      Foreground="{StaticResource SuccessBrush}"
+                                      Foreground="{ThemeResource SuccessBrush}"
                                       VerticalAlignment="Top"
                                       Margin="0,2,0,0" />
                             <StackPanel Spacing="2">
                                 <TextBlock Text="No Sale of Data"
                                            Style="{StaticResource LabelStyle}"
-                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                           Foreground="{ThemeResource TextPrimaryBrush}" />
                                 <TextBlock Text="Strategia-X does not sell, rent, or trade any user data. Your information is yours alone."
                                            Style="{StaticResource BodySecondaryStyle}" />
                             </StackPanel>
@@ -802,13 +802,13 @@
 
                     <!-- Section Header -->
                     <StackPanel Orientation="Horizontal" Spacing="12">
-                        <Border Background="{StaticResource AccentSubtleBrush}"
+                        <Border Background="{ThemeResource AccentSubtleBrush}"
                                 CornerRadius="{StaticResource RadiusSM}"
                                 Width="32" Height="32">
                             <FontIcon Glyph="&#xE72E;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="14"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
@@ -829,7 +829,7 @@
                             <FontIcon Glyph="&#xE73E;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="11"
-                                      Foreground="{StaticResource SuccessBrush}"
+                                      Foreground="{ThemeResource SuccessBrush}"
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
                             <TextBlock Text="Keep your operating system and software updated"
@@ -839,7 +839,7 @@
                             <FontIcon Glyph="&#xE73E;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="11"
-                                      Foreground="{StaticResource SuccessBrush}"
+                                      Foreground="{ThemeResource SuccessBrush}"
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
                             <TextBlock Text="Use strong device passwords and biometric locks where available"
@@ -849,7 +849,7 @@
                             <FontIcon Glyph="&#xE73E;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="11"
-                                      Foreground="{StaticResource SuccessBrush}"
+                                      Foreground="{ThemeResource SuccessBrush}"
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
                             <TextBlock Text="Encrypt your hard drive (e.g., BitLocker on Windows)"
@@ -867,7 +867,7 @@
                             <FontIcon Glyph="&#xE946;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="12"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource AccentBodyStyle}"
                                        Text="Network security: by default, all AI processing is local. No data leaves your network." />
@@ -885,13 +885,13 @@
 
                     <!-- Section Header -->
                     <StackPanel Orientation="Horizontal" Spacing="12">
-                        <Border Background="{StaticResource AccentSubtleBrush}"
+                        <Border Background="{ThemeResource AccentSubtleBrush}"
                                 CornerRadius="{StaticResource RadiusSM}"
                                 Width="32" Height="32">
                             <FontIcon Glyph="&#xE7EF;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="14"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
@@ -915,13 +915,13 @@
 
                     <!-- Section Header -->
                     <StackPanel Orientation="Horizontal" Spacing="12">
-                        <Border Background="{StaticResource AccentSubtleBrush}"
+                        <Border Background="{ThemeResource AccentSubtleBrush}"
                                 CornerRadius="{StaticResource RadiusSM}"
                                 Width="32" Height="32">
                             <FontIcon Glyph="&#xE70F;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="14"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
@@ -948,13 +948,13 @@
 
                     <!-- Section Header -->
                     <StackPanel Orientation="Horizontal" Spacing="12">
-                        <Border Background="{StaticResource AccentSubtleBrush}"
+                        <Border Background="{ThemeResource AccentSubtleBrush}"
                                 CornerRadius="{StaticResource RadiusSM}"
                                 Width="32" Height="32">
                             <FontIcon Glyph="&#xE715;"
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="14"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
@@ -980,7 +980,7 @@
                                 <FontIcon Glyph="&#xE731;"
                                           FontFamily="Segoe MDL2 Assets"
                                           FontSize="14"
-                                          Foreground="{StaticResource TextAccentBrush}"
+                                          Foreground="{ThemeResource TextAccentBrush}"
                                           VerticalAlignment="Center" />
                                 <StackPanel Grid.Column="1" Spacing="2">
                                     <TextBlock Text="Company"
@@ -1002,14 +1002,14 @@
                                 <FontIcon Glyph="&#xE715;"
                                           FontFamily="Segoe MDL2 Assets"
                                           FontSize="14"
-                                          Foreground="{StaticResource TextAccentBrush}"
+                                          Foreground="{ThemeResource TextAccentBrush}"
                                           VerticalAlignment="Center" />
                                 <StackPanel Grid.Column="1" Spacing="2">
                                     <TextBlock Text="Privacy Questions"
                                                Style="{StaticResource LabelStyle}" />
                                     <TextBlock Text="support@strategia-x.com"
                                                Style="{StaticResource BodyStyle}"
-                                               Foreground="{StaticResource TextLinkBrush}" />
+                                               Foreground="{ThemeResource TextLinkBrush}" />
                                 </StackPanel>
                             </Grid>
 
@@ -1025,7 +1025,7 @@
                                 <FontIcon Glyph="&#xE909;"
                                           FontFamily="Segoe MDL2 Assets"
                                           FontSize="14"
-                                          Foreground="{StaticResource TextAccentBrush}"
+                                          Foreground="{ThemeResource TextAccentBrush}"
                                           VerticalAlignment="Center" />
                                 <StackPanel Grid.Column="1" Spacing="2">
                                     <TextBlock Text="GDPR Data Protection Contact"
@@ -1047,7 +1047,7 @@
                                 <FontIcon Glyph="&#xE8A3;"
                                           FontFamily="Segoe MDL2 Assets"
                                           FontSize="14"
-                                          Foreground="{StaticResource TextAccentBrush}"
+                                          Foreground="{ThemeResource TextAccentBrush}"
                                           VerticalAlignment="Center" />
                                 <StackPanel Grid.Column="1" Spacing="2">
                                     <TextBlock Text="CCPA Requests (California Residents)"

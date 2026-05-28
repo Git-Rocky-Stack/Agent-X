@@ -14,8 +14,8 @@
         </ItemsRepeater.Layout>
         <ItemsRepeater.ItemTemplate>
             <DataTemplate x:DataType="services:NotificationItem">
-                <Border Background="{StaticResource CardHighBrush}"
-                        BorderBrush="{StaticResource BorderMediumBrush}"
+                <Border Background="{ThemeResource CardHighBrush}"
+                        BorderBrush="{ThemeResource BorderMediumBrush}"
                         BorderThickness="1"
                         CornerRadius="10"
                         Padding="14,10,14,10"
@@ -59,7 +59,7 @@
                                 ToolTipService.ToolTip="Dismiss"
                                 VerticalAlignment="Top">
                             <FontIcon Glyph="&#xE711;" FontSize="10"
-                                      Foreground="{StaticResource TextTertiaryBrush}" />
+                                      Foreground="{ThemeResource TextTertiaryBrush}" />
                         </Button>
                     </Grid>
                 </Border>

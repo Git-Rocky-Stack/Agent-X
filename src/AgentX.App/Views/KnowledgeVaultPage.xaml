@@ -118,15 +118,15 @@
                  ═══════════════════════════════════════════════════════ -->
             <Border Grid.Row="1"
                     Visibility="{x:Bind ViewModel.ShowDuplicateWarning, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                    Background="{StaticResource WarningSubtleBrush}" CornerRadius="8" Padding="16,12"
-                    BorderBrush="{StaticResource WarningBrush}" BorderThickness="1">
+                    Background="{ThemeResource WarningSubtleBrush}" CornerRadius="8" Padding="16,12"
+                    BorderBrush="{ThemeResource WarningBrush}" BorderThickness="1">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <FontIcon Glyph="&#xE7BA;" FontSize="20" Foreground="{StaticResource WarningBrush}"
+                    <FontIcon Glyph="&#xE7BA;" FontSize="20" Foreground="{ThemeResource WarningBrush}"
                               VerticalAlignment="Center" Margin="0,0,12,0" />
                     <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
                         <TextBlock Text="Duplicate Documents Detected"
@@ -141,7 +141,7 @@
                                 Command="{x:Bind ViewModel.ImportAllAnywayCommand}" Padding="12,6" />
                         <Button Style="{StaticResource IconButtonStyle}"
                                 Command="{x:Bind ViewModel.DismissDuplicateWarningCommand}">
-                            <FontIcon Glyph="&#xE711;" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                            <FontIcon Glyph="&#xE711;" FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}" />
                         </Button>
                     </StackPanel>
                 </Grid>
@@ -157,11 +157,11 @@
                     <!-- Document count stat -->
                     <Border Style="{StaticResource StatBadgeStyle}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Border Background="{StaticResource AccentSubtleBrush}"
+                            <Border Background="{ThemeResource AccentSubtleBrush}"
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Width="40" Height="40">
                                 <FontIcon Glyph="&#xE8F1;" FontSize="18"
-                                          Foreground="{StaticResource TextAccentBrush}"
+                                          Foreground="{ThemeResource TextAccentBrush}"
                                           HorizontalAlignment="Center"
                                           VerticalAlignment="Center" />
                             </Border>
@@ -178,11 +178,11 @@
                     <!-- Storage size stat -->
                     <Border Style="{StaticResource StatBadgeStyle}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Border Background="{StaticResource InfoSubtleBrush}"
+                            <Border Background="{ThemeResource InfoSubtleBrush}"
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Width="40" Height="40">
                                 <FontIcon Glyph="&#xEDA2;" FontSize="18"
-                                          Foreground="{StaticResource InfoBrush}"
+                                          Foreground="{ThemeResource InfoBrush}"
                                           HorizontalAlignment="Center"
                                           VerticalAlignment="Center" />
                             </Border>
@@ -198,11 +198,11 @@
                     <!-- Indexing queue stat -->
                     <Border Style="{StaticResource StatBadgeStyle}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Border Background="{StaticResource WarningSubtleBrush}"
+                            <Border Background="{ThemeResource WarningSubtleBrush}"
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Width="40" Height="40">
                                 <FontIcon Glyph="&#xE915;" FontSize="18"
-                                          Foreground="{StaticResource WarningBrush}"
+                                          Foreground="{ThemeResource WarningBrush}"
                                           HorizontalAlignment="Center"
                                           VerticalAlignment="Center" />
                             </Border>
@@ -219,18 +219,18 @@
 
                 <!-- Import progress bar (visible during import) -->
                 <Border Visibility="{x:Bind ViewModel.IsImporting, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                        Background="{StaticResource CardGradientBrush}"
-                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                        Background="{ThemeResource CardGradientBrush}"
+                        BorderBrush="{ThemeResource BorderSubtleBrush}"
                         BorderThickness="1"
                         CornerRadius="{StaticResource RadiusMD}"
                         Padding="20,14">
                     <StackPanel Spacing="10">
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <ProgressRing IsActive="True" Width="18" Height="18"
-                                          Foreground="{StaticResource AccentPrimaryBrush}" />
+                                          Foreground="{ThemeResource AccentPrimaryBrush}" />
                             <TextBlock Text="{x:Bind ViewModel.ImportStatus, Mode=OneWay}"
                                        Style="{StaticResource BodySmallStyle}"
-                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       Foreground="{ThemeResource TextSecondaryBrush}"
                                        VerticalAlignment="Center" />
                         </StackPanel>
                         <ProgressBar Value="{x:Bind ViewModel.ImportProgress, Mode=OneWay}"
@@ -305,28 +305,28 @@
                             <Button Click="OnFilterStatusClick" Tag="completed"
                                     Style="{StaticResource FilterChipStyle}" x:Name="FilterStatusCompleted">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <Ellipse Width="6" Height="6" Fill="{StaticResource SuccessBrush}" />
+                                    <Ellipse Width="6" Height="6" Fill="{ThemeResource SuccessBrush}" />
                                     <TextBlock Text="Completed" />
                                 </StackPanel>
                             </Button>
                             <Button Click="OnFilterStatusClick" Tag="processing"
                                     Style="{StaticResource FilterChipStyle}" x:Name="FilterStatusProcessing">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <Ellipse Width="6" Height="6" Fill="{StaticResource WarningBrush}" />
+                                    <Ellipse Width="6" Height="6" Fill="{ThemeResource WarningBrush}" />
                                     <TextBlock Text="Processing" />
                                 </StackPanel>
                             </Button>
                             <Button Click="OnFilterStatusClick" Tag="pending"
                                     Style="{StaticResource FilterChipStyle}" x:Name="FilterStatusPending">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <Ellipse Width="6" Height="6" Fill="{StaticResource InfoBrush}" />
+                                    <Ellipse Width="6" Height="6" Fill="{ThemeResource InfoBrush}" />
                                     <TextBlock Text="Pending" />
                                 </StackPanel>
                             </Button>
                             <Button Click="OnFilterStatusClick" Tag="failed"
                                     Style="{StaticResource FilterChipStyle}" x:Name="FilterStatusFailed">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <Ellipse Width="6" Height="6" Fill="{StaticResource ErrorBrush}" />
+                                    <Ellipse Width="6" Height="6" Fill="{ThemeResource ErrorBrush}" />
                                     <TextBlock Text="Failed" />
                                 </StackPanel>
                             </Button>
@@ -349,7 +349,7 @@
                                             Click="OnFilterTagClick">
                                         <StackPanel Orientation="Horizontal" Spacing="4">
                                             <Ellipse Width="8" Height="8"
-                                                     Fill="{StaticResource TextTertiaryBrush}" />
+                                                     Fill="{ThemeResource TextTertiaryBrush}" />
                                             <TextBlock Text="{x:Bind Name}" Style="{StaticResource CaptionStyle}" />
                                             <TextBlock Text="{x:Bind DocumentCountFormatted}"
                                                        Style="{StaticResource CaptionStyle}" />
@@ -427,7 +427,7 @@
 
                         <FontIcon Glyph="&#xE721;"
                                   FontSize="16"
-                                  Foreground="{StaticResource TextTertiaryBrush}"
+                                  Foreground="{ThemeResource TextTertiaryBrush}"
                                   VerticalAlignment="Center" />
 
                         <TextBox Grid.Column="1"
@@ -445,10 +445,10 @@
                                 AutomationProperties.Name="Clear all filters">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE711;" FontSize="12"
-                                          Foreground="{StaticResource TextAccentBrush}" />
+                                          Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock Text="Clear All"
                                            Style="{StaticResource CaptionStyle}"
-                                           Foreground="{StaticResource TextAccentBrush}" />
+                                           Foreground="{ThemeResource TextAccentBrush}" />
                             </StackPanel>
                         </Button>
                     </Grid>
@@ -461,8 +461,8 @@
                  ═══════════════════════════════════════════════════════ -->
             <Border Grid.Row="4"
                     Visibility="{x:Bind ViewModel.IsMultiSelectMode, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                    Background="{StaticResource ErrorSubtleBrush}"
-                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                    Background="{ThemeResource ErrorSubtleBrush}"
+                    BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusMD}"
                     Padding="16,10">
@@ -490,10 +490,10 @@
                         </Button>
                         <Button Style="{StaticResource GhostButtonStyle}" Padding="12,6"
                                 Command="{x:Bind ViewModel.BulkDeleteCommand}"
-                                Foreground="{StaticResource ErrorBrush}">
+                                Foreground="{ThemeResource ErrorBrush}">
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="{StaticResource ErrorBrush}" />
-                                <TextBlock Text="Delete" Foreground="{StaticResource ErrorBrush}" />
+                                <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="{ThemeResource ErrorBrush}" />
+                                <TextBlock Text="Delete" Foreground="{ThemeResource ErrorBrush}" />
                             </StackPanel>
                         </Button>
                     </StackPanel>
@@ -505,18 +505,18 @@
                  ═══════════════════════════════════════════════════════ -->
             <Border Grid.Row="5"
                     Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                    Background="{StaticResource ErrorSubtleBrush}"
-                    BorderBrush="{StaticResource ErrorBrush}"
+                    Background="{ThemeResource ErrorSubtleBrush}"
+                    BorderBrush="{ThemeResource ErrorBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusMD}"
                     Padding="16,12">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <FontIcon Glyph="&#xE7BA;" FontSize="16"
-                              Foreground="{StaticResource ErrorBrush}"
+                              Foreground="{ThemeResource ErrorBrush}"
                               VerticalAlignment="Center" />
                     <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
                                Style="{StaticResource BodySmallStyle}"
-                               Foreground="{StaticResource ErrorBrush}"
+                               Foreground="{ThemeResource ErrorBrush}"
                                VerticalAlignment="Center" />
                 </StackPanel>
             </Border>
@@ -536,13 +536,13 @@
                     Drop="DropZone_Drop">
                 <StackPanel Spacing="16" HorizontalAlignment="Center">
                     <!-- Upload icon -->
-                    <Border Background="{StaticResource AccentSubtleBrush}"
+                    <Border Background="{ThemeResource AccentSubtleBrush}"
                             CornerRadius="{StaticResource RadiusFull}"
                             Width="72" Height="72"
                             HorizontalAlignment="Center">
                         <FontIcon Glyph="&#xE898;"
                                   FontSize="32"
-                                  Foreground="{StaticResource TextAccentBrush}"
+                                  Foreground="{ThemeResource TextAccentBrush}"
                                   HorizontalAlignment="Center"
                                   VerticalAlignment="Center" />
                     </Border>
@@ -597,7 +597,7 @@
                             Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                     <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
                                   Width="40" Height="40"
-                                  Foreground="{StaticResource AccentPrimaryBrush}" />
+                                  Foreground="{ThemeResource AccentPrimaryBrush}" />
                     <TextBlock Text="Loading documents..."
                                Style="{StaticResource BodySecondaryStyle}"
                                HorizontalAlignment="Center" />
@@ -648,7 +648,7 @@
                                         <Border Grid.Column="1" Style="{StaticResource FileTypeIconContainerStyle}">
                                             <FontIcon Glyph="{x:Bind FileTypeIcon}"
                                                       FontSize="22"
-                                                      Foreground="{StaticResource TextAccentBrush}"
+                                                      Foreground="{ThemeResource TextAccentBrush}"
                                                       HorizontalAlignment="Center"
                                                       VerticalAlignment="Center" />
                                         </Border>
@@ -667,7 +667,7 @@
                                                     <TextBlock Text="{x:Bind FileTypeLabel}"
                                                                FontSize="10"
                                                                FontWeight="Bold"
-                                                               Foreground="{StaticResource TextAccentBrush}"
+                                                               Foreground="{ThemeResource TextAccentBrush}"
                                                                CharacterSpacing="40" />
                                                 </Border>
 
@@ -692,7 +692,7 @@
                                                         Visibility="{x:Bind HasFocusedSourceLabel, Converter={StaticResource BoolToVis}}">
                                                     <TextBlock Text="{x:Bind FocusedSourceLabel}"
                                                                Style="{StaticResource CaptionStyle}"
-                                                               Foreground="{StaticResource TextAccentBrush}" />
+                                                               Foreground="{ThemeResource TextAccentBrush}" />
                                                 </Border>
                                             </StackPanel>
                                         </StackPanel>
@@ -710,7 +710,7 @@
                                     <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="16">
                                         <StackPanel Orientation="Horizontal" Spacing="4">
                                             <FontIcon Glyph="&#xE8A1;" FontSize="10"
-                                                      Foreground="{StaticResource TextTertiaryBrush}" />
+                                                      Foreground="{ThemeResource TextTertiaryBrush}" />
                                             <TextBlock Style="{StaticResource CaptionStyle}">
                                                 <Run Text="{x:Bind PageCount}" />
                                                 <Run Text="pages" />
@@ -719,7 +719,7 @@
 
                                         <StackPanel Orientation="Horizontal" Spacing="4">
                                             <FontIcon Glyph="&#xE8C1;" FontSize="10"
-                                                      Foreground="{StaticResource TextTertiaryBrush}" />
+                                                      Foreground="{ThemeResource TextTertiaryBrush}" />
                                             <TextBlock Style="{StaticResource CaptionStyle}">
                                                 <Run Text="{x:Bind WordCountFormatted}" />
                                                 <Run Text="words" />
@@ -728,7 +728,7 @@
 
                                         <StackPanel Orientation="Horizontal" Spacing="4">
                                             <FontIcon Glyph="&#xE943;" FontSize="10"
-                                                      Foreground="{StaticResource TextTertiaryBrush}" />
+                                                      Foreground="{ThemeResource TextTertiaryBrush}" />
                                             <TextBlock Style="{StaticResource CaptionStyle}">
                                                 <Run Text="{x:Bind ChunkCount}" />
                                                 <Run Text="chunks" />
@@ -740,13 +740,13 @@
                                     <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="12">
                                         <StackPanel Orientation="Horizontal" Spacing="4">
                                             <FontIcon Glyph="&#xEDA2;" FontSize="10"
-                                                      Foreground="{StaticResource TextTertiaryBrush}" />
+                                                      Foreground="{ThemeResource TextTertiaryBrush}" />
                                             <TextBlock Text="{x:Bind FileSizeFormatted}"
                                                        Style="{StaticResource CaptionStyle}" />
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Spacing="4">
                                             <FontIcon Glyph="&#xE787;" FontSize="10"
-                                                      Foreground="{StaticResource TextTertiaryBrush}" />
+                                                      Foreground="{ThemeResource TextTertiaryBrush}" />
                                             <TextBlock Text="{x:Bind ImportedAtFormatted}"
                                                        Style="{StaticResource CaptionStyle}" />
                                         </StackPanel>
@@ -763,7 +763,7 @@
                                                 <Border Style="{StaticResource TagBadgeStyle}">
                                                     <TextBlock Text="{x:Bind}"
                                                                FontSize="10"
-                                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                                               Foreground="{ThemeResource TextSecondaryBrush}" />
                                                 </Border>
                                             </DataTemplate>
                                         </ItemsRepeater.ItemTemplate>
@@ -783,10 +783,10 @@
                                                 AutomationProperties.Name="Generate AI title">
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <FontIcon Glyph="&#xE945;" FontSize="12"
-                                                          Foreground="{StaticResource TextAccentBrush}" />
+                                                          Foreground="{ThemeResource TextAccentBrush}" />
                                                 <TextBlock Text="AI Title"
                                                            Style="{StaticResource CaptionStyle}"
-                                                           Foreground="{StaticResource TextAccentBrush}" />
+                                                           Foreground="{ThemeResource TextAccentBrush}" />
                                             </StackPanel>
                                         </Button>
 
@@ -798,10 +798,10 @@
                                                 ToolTipService.ToolTip="View details">
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <FontIcon Glyph="&#xE8A7;" FontSize="12"
-                                                          Foreground="{StaticResource TextSecondaryBrush}" />
+                                                          Foreground="{ThemeResource TextSecondaryBrush}" />
                                                 <TextBlock Text="Detail"
                                                            Style="{StaticResource CaptionStyle}"
-                                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                                                           Foreground="{ThemeResource TextSecondaryBrush}" />
                                                 </StackPanel>
                                         </Button>
 
@@ -813,10 +813,10 @@
                                                 ToolTipService.ToolTip="Use this document in a workflow">
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <FontIcon Glyph="&#xE945;" FontSize="12"
-                                                          Foreground="{StaticResource AccentPrimaryBrush}" />
+                                                          Foreground="{ThemeResource AccentPrimaryBrush}" />
                                                 <TextBlock Text="Workflow"
                                                            Style="{StaticResource CaptionStyle}"
-                                                           Foreground="{StaticResource AccentPrimaryBrush}" />
+                                                           Foreground="{ThemeResource AccentPrimaryBrush}" />
                                             </StackPanel>
                                         </Button>
 
@@ -828,7 +828,7 @@
                                                 ToolTipService.ToolTip="Re-index document"
                                                 AutomationProperties.Name="Re-index document">
                                             <FontIcon Glyph="&#xE72C;" FontSize="12"
-                                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                                                      Foreground="{ThemeResource TextSecondaryBrush}" />
                                         </Button>
 
                                         <!-- Open in Explorer -->
@@ -839,7 +839,7 @@
                                                 ToolTipService.ToolTip="Open file location"
                                                 AutomationProperties.Name="Open file location">
                                             <FontIcon Glyph="&#xE8DA;" FontSize="12"
-                                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                                                      Foreground="{ThemeResource TextSecondaryBrush}" />
                                         </Button>
 
                                         <!-- Delete -->
@@ -850,7 +850,7 @@
                                                 ToolTipService.ToolTip="Delete document"
                                                 AutomationProperties.Name="Delete document">
                                             <FontIcon Glyph="&#xE74D;" FontSize="12"
-                                                      Foreground="{StaticResource ErrorBrush}" />
+                                                      Foreground="{ThemeResource ErrorBrush}" />
                                         </Button>
                                     </StackPanel>
                                 </Grid>
@@ -869,13 +869,13 @@
                             Drop="DropZone_Drop">
                         <StackPanel Spacing="20" HorizontalAlignment="Center">
                             <!-- Icon -->
-                            <Border Background="{StaticResource AccentSubtleBrush}"
+                            <Border Background="{ThemeResource AccentSubtleBrush}"
                                     CornerRadius="{StaticResource RadiusFull}"
                                     Width="80" Height="80"
                                     HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE8F1;"
                                           FontSize="36"
-                                          Foreground="{StaticResource TextAccentBrush}"
+                                          Foreground="{ThemeResource TextAccentBrush}"
                                           HorizontalAlignment="Center"
                                           VerticalAlignment="Center" />
                             </Border>
@@ -921,10 +921,10 @@
 
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <ProgressRing IsActive="True" Width="16" Height="16"
-                                      Foreground="{StaticResource AccentPrimaryBrush}" />
+                                      Foreground="{ThemeResource AccentPrimaryBrush}" />
                         <TextBlock Text="Indexing in progress..."
                                    Style="{StaticResource BodySmallStyle}"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Foreground="{ThemeResource TextSecondaryBrush}"
                                    VerticalAlignment="Center" />
                     </StackPanel>
 
@@ -938,7 +938,7 @@
                             Style="{StaticResource BadgeDefaultStyle}"
                             Padding="8,3,8,3">
                         <TextBlock Style="{StaticResource MonoSmallStyle}"
-                                   Foreground="{StaticResource TextTertiaryBrush}">
+                                   Foreground="{ThemeResource TextTertiaryBrush}">
                             <Run Text="{x:Bind ViewModel.IndexingQueueLength, Mode=OneWay}" />
                             <Run Text="remaining" />
                         </TextBlock>
@@ -956,8 +956,8 @@
              ═══════════════════════════════════════════════════════════ -->
         <Border Grid.Column="1"
                 Width="360"
-                Background="{StaticResource SidebarGradientBrush}"
-                BorderBrush="{StaticResource BorderSubtleBrush}"
+                Background="{ThemeResource SidebarGradientBrush}"
+                BorderBrush="{ThemeResource BorderSubtleBrush}"
                 BorderThickness="1,0,0,0"
                 Visibility="{x:Bind ViewModel.IsPreviewOpen, Mode=OneWay, Converter={StaticResource BoolToVis}}">
 
@@ -982,14 +982,14 @@
                                 ToolTipService.ToolTip="Close preview"
                                 AutomationProperties.Name="Close preview">
                             <FontIcon Glyph="&#xE711;" FontSize="12"
-                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                                      Foreground="{ThemeResource TextSecondaryBrush}" />
                         </Button>
                     </Grid>
 
                     <Border Style="{StaticResource SeparatorStyle}" Margin="0,0,0,20" />
 
-                    <Border Background="{StaticResource AccentSubtleBrush}"
-                            BorderBrush="{StaticResource AccentPrimaryBrush}"
+                    <Border Background="{ThemeResource AccentSubtleBrush}"
+                            BorderBrush="{ThemeResource AccentPrimaryBrush}"
                             BorderThickness="1"
                             CornerRadius="{StaticResource RadiusMD}"
                             Padding="16,14"
@@ -1005,7 +1005,7 @@
                                 <TextBlock Text="Focused Document"
                                            Style="{StaticResource BodyStyle}"
                                            FontWeight="SemiBold"
-                                           Foreground="{StaticResource AccentPrimaryBrush}" />
+                                           Foreground="{ThemeResource AccentPrimaryBrush}" />
                                 <TextBlock Text="{x:Bind ViewModel.SelectedDocument.FocusedSourceLabel, Mode=OneWay}"
                                            Style="{StaticResource BodySecondaryStyle}"
                                            TextWrapping="Wrap" />
@@ -1034,7 +1034,7 @@
                         <Border Style="{StaticResource FileTypeIconContainerStyle}">
                             <FontIcon Glyph="{x:Bind ViewModel.SelectedDocument.FileTypeIcon, Mode=OneWay}"
                                       FontSize="22"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
@@ -1049,14 +1049,14 @@
                                         Visibility="{x:Bind ViewModel.SelectedDocument.HasFocusedSourceLabel, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                                     <TextBlock Text="{x:Bind ViewModel.SelectedDocument.FocusedSourceLabel, Mode=OneWay}"
                                                Style="{StaticResource CaptionStyle}"
-                                               Foreground="{StaticResource TextAccentBrush}" />
+                                               Foreground="{ThemeResource TextAccentBrush}" />
                                 </Border>
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <Border Style="{StaticResource FileTypeBadgeStyle}">
                                         <TextBlock Text="{x:Bind ViewModel.SelectedDocument.FileTypeLabel, Mode=OneWay}"
                                                FontSize="10"
                                                FontWeight="Bold"
-                                               Foreground="{StaticResource TextAccentBrush}"
+                                               Foreground="{ThemeResource TextAccentBrush}"
                                                CharacterSpacing="40" />
                                 </Border>
                                 <Border CornerRadius="{StaticResource RadiusRound}"
@@ -1098,7 +1098,7 @@
                             <TextBlock Text="{x:Bind ViewModel.SelectedDocument.Summary, Mode=OneWay}"
                                        Style="{StaticResource BodySmallStyle}"
                                        TextWrapping="WrapWholeWords"
-                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                       Foreground="{ThemeResource TextSecondaryBrush}" />
                         </Border>
                     </StackPanel>
 
@@ -1123,7 +1123,7 @@
                                     Style="{StaticResource CardInsetStyle}" Padding="12,10">
                                 <StackPanel Spacing="2">
                                     <TextBlock Style="{StaticResource CaptionStyle}"
-                                               Foreground="{StaticResource TextTertiaryBrush}">
+                                               Foreground="{ThemeResource TextTertiaryBrush}">
                                         <Run Text="&#xE8A1;" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="10" />
                                         <Run Text=" Pages" />
                                     </TextBlock>
@@ -1137,7 +1137,7 @@
                                     Style="{StaticResource CardInsetStyle}" Padding="12,10">
                                 <StackPanel Spacing="2">
                                     <TextBlock Style="{StaticResource CaptionStyle}"
-                                               Foreground="{StaticResource TextTertiaryBrush}">
+                                               Foreground="{ThemeResource TextTertiaryBrush}">
                                         <Run Text="&#xE8C1;" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="10" />
                                         <Run Text=" Words" />
                                     </TextBlock>
@@ -1151,7 +1151,7 @@
                                     Style="{StaticResource CardInsetStyle}" Padding="12,10">
                                 <StackPanel Spacing="2">
                                     <TextBlock Style="{StaticResource CaptionStyle}"
-                                               Foreground="{StaticResource TextTertiaryBrush}">
+                                               Foreground="{ThemeResource TextTertiaryBrush}">
                                         <Run Text="&#xE943;" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="10" />
                                         <Run Text=" Chunks" />
                                     </TextBlock>
@@ -1165,7 +1165,7 @@
                                     Style="{StaticResource CardInsetStyle}" Padding="12,10">
                                 <StackPanel Spacing="2">
                                     <TextBlock Style="{StaticResource CaptionStyle}"
-                                               Foreground="{StaticResource TextTertiaryBrush}">
+                                               Foreground="{ThemeResource TextTertiaryBrush}">
                                         <Run Text="&#xEDA2;" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="10" />
                                         <Run Text=" Size" />
                                     </TextBlock>
@@ -1179,7 +1179,7 @@
                                     Style="{StaticResource CardInsetStyle}" Padding="12,10">
                                 <StackPanel Spacing="2">
                                     <TextBlock Style="{StaticResource CaptionStyle}"
-                                               Foreground="{StaticResource TextTertiaryBrush}">
+                                               Foreground="{ThemeResource TextTertiaryBrush}">
                                         <Run Text="&#xE787;" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="10" />
                                         <Run Text=" Date Imported" />
                                     </TextBlock>
@@ -1209,7 +1209,7 @@
                                     <Border Style="{StaticResource TagBadgeStyle}">
                                         <TextBlock Text="{x:Bind}"
                                                    FontSize="11"
-                                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                                                   Foreground="{ThemeResource TextSecondaryBrush}" />
                                     </Border>
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>
@@ -1257,9 +1257,9 @@
                             <StackPanel Orientation="Horizontal" Spacing="8"
                                         HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE72C;" FontSize="14"
-                                          Foreground="{StaticResource TextSecondaryBrush}" />
+                                          Foreground="{ThemeResource TextSecondaryBrush}" />
                                 <TextBlock Text="Re-index"
-                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                                           Foreground="{ThemeResource TextSecondaryBrush}" />
                             </StackPanel>
                         </Button>
                     </StackPanel>

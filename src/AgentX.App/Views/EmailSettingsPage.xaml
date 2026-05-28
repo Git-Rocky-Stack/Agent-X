@@ -71,7 +71,7 @@
                         <FontIcon Grid.Column="0"
                                   Glyph="&#xE715;"
                                   FontSize="24"
-                                  Foreground="{StaticResource TextSecondaryBrush}"/>
+                                  Foreground="{ThemeResource TextSecondaryBrush}"/>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                             <TextBlock Text="Gmail"
                                        Style="{StaticResource BodyStrongStyle}"/>
@@ -103,7 +103,7 @@
                         <FontIcon Grid.Column="0"
                                   Glyph="&#xE77B;"
                                   FontSize="24"
-                                  Foreground="{StaticResource TextSecondaryBrush}"/>
+                                  Foreground="{ThemeResource TextSecondaryBrush}"/>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                             <TextBlock Text="Outlook Email"
                                        Style="{StaticResource BodyStrongStyle}"/>

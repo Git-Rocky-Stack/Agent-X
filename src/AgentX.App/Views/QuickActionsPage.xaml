@@ -101,10 +101,10 @@
                                                 <Border Width="36"
                                                         Height="36"
                                                         CornerRadius="{StaticResource RadiusMD}"
-                                                        Background="{StaticResource AccentSubtleBrush}">
+                                                        Background="{ThemeResource AccentSubtleBrush}">
                                                     <FontIcon Glyph="{x:Bind IconGlyph}"
                                                               FontSize="15"
-                                                              Foreground="{StaticResource TextAccentBrush}"
+                                                              Foreground="{ThemeResource TextAccentBrush}"
                                                               HorizontalAlignment="Center"
                                                               VerticalAlignment="Center" />
                                                 </Border>
@@ -283,7 +283,7 @@
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Orientation="Horizontal" Spacing="10">
                                         <FontIcon Glyph="&#xE8C8;" FontSize="16"
-                                                  Foreground="{StaticResource TextAccentBrush}" />
+                                                  Foreground="{ThemeResource TextAccentBrush}" />
                                         <TextBlock Text="Summary"
                                                    Style="{StaticResource HeadingSmallStyle}" />
                                     </StackPanel>
@@ -344,7 +344,7 @@
                             <StackPanel Spacing="12">
                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                     <FontIcon Glyph="&#xE8FD;" FontSize="16"
-                                              Foreground="{StaticResource TextAccentBrush}" />
+                                              Foreground="{ThemeResource TextAccentBrush}" />
                                     <TextBlock Text="Key Points"
                                                Style="{StaticResource HeadingSmallStyle}" />
                                 </StackPanel>
@@ -365,7 +365,7 @@
                                                     </Grid.ColumnDefinitions>
 
                                                     <FontIcon Glyph="&#xE73E;" FontSize="12"
-                                                              Foreground="{StaticResource SuccessBrush}"
+                                                              Foreground="{ThemeResource SuccessBrush}"
                                                               VerticalAlignment="Top"
                                                               Margin="0,3,0,0" />
 
@@ -436,7 +436,7 @@
                             <StackPanel Spacing="12">
                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                     <FontIcon Glyph="&#xE8C1;" FontSize="16"
-                                              Foreground="{StaticResource TextAccentBrush}" />
+                                              Foreground="{ThemeResource TextAccentBrush}" />
                                     <TextBlock Text="Translation"
                                                Style="{StaticResource HeadingSmallStyle}" />
                                 </StackPanel>
@@ -498,7 +498,7 @@
                                     Padding="16,12">
                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                     <FontIcon Glyph="&#xE946;" FontSize="16"
-                                              Foreground="{StaticResource InfoBrush}" />
+                                              Foreground="{ThemeResource InfoBrush}" />
                                     <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
                                                Style="{StaticResource BodyStyle}" />
                                 </StackPanel>
@@ -539,7 +539,7 @@
                                                             Style="{StaticResource BadgeAccentStyle}"
                                                             VerticalAlignment="Center">
                                                         <TextBlock Style="{StaticResource CaptionStyle}"
-                                                                   Foreground="{StaticResource TextAccentBrush}">
+                                                                   Foreground="{ThemeResource TextAccentBrush}">
                                                             <Run Text="{x:Bind WastedStorage}" />
                                                             <Run Text=" wasted" />
                                                         </TextBlock>
@@ -565,7 +565,7 @@
                                                                     </Grid.ColumnDefinitions>
 
                                                                     <FontIcon Glyph="&#xE7C3;" FontSize="14"
-                                                                              Foreground="{StaticResource TextTertiaryBrush}"
+                                                                              Foreground="{ThemeResource TextTertiaryBrush}"
                                                                               VerticalAlignment="Center" />
 
                                                                     <StackPanel Grid.Column="1" Spacing="2"
@@ -633,7 +633,7 @@
                             <Border Style="{StaticResource CardInsetStyle}" Padding="16,12">
                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                     <FontIcon Glyph="&#xE946;" FontSize="16"
-                                              Foreground="{StaticResource InfoBrush}" />
+                                              Foreground="{ThemeResource InfoBrush}" />
                                     <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
                                                Style="{StaticResource BodyStyle}" />
                                 </StackPanel>
@@ -656,7 +656,7 @@
 
                                                     <StackPanel Orientation="Horizontal" Spacing="10">
                                                         <FontIcon Glyph="&#xE7C3;" FontSize="16"
-                                                                  Foreground="{StaticResource TextAccentBrush}" />
+                                                                  Foreground="{ThemeResource TextAccentBrush}" />
                                                         <TextBlock Text="{x:Bind FileName}"
                                                                    Style="{StaticResource BodyStyle}"
                                                                    FontWeight="SemiBold"
@@ -691,7 +691,7 @@
                                                             HorizontalAlignment="Left">
                                                         <TextBlock Text="{x:Bind SuggestedCollection}"
                                                                    Style="{StaticResource CaptionStyle}"
-                                                                   Foreground="{StaticResource TextAccentBrush}"
+                                                                   Foreground="{ThemeResource TextAccentBrush}"
                                                                    FontWeight="SemiBold" />
                                                     </Border>
                                                 </Grid>
@@ -742,8 +742,8 @@
              STATUS BAR (Bottom)
              ========================================================== -->
         <Border Grid.Row="1"
-                Background="{StaticResource CardBrush}"
-                BorderBrush="{StaticResource BorderSubtleBrush}"
+                Background="{ThemeResource CardBrush}"
+                BorderBrush="{ThemeResource BorderSubtleBrush}"
                 BorderThickness="0,1,0,0"
                 Padding="24,10">
             <Grid ColumnSpacing="12">
