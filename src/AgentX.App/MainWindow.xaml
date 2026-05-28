@@ -7,7 +7,7 @@
     xmlns:tb="using:H.NotifyIcon"
     Title="Agent-X">
 
-    <Grid x:Name="RootGrid" Background="{StaticResource WindowBackgroundBrush}">
+    <Grid x:Name="RootGrid" Background="{ThemeResource WindowBackgroundBrush}">
         <Grid.RowDefinitions>
             <!-- Caption strip: reserves the title-bar region so page content
                  (e.g. right-panel headers on Ask Your Files / Search) never
@@ -52,12 +52,12 @@
                         <!-- Agent-X Logo Mark -->
                         <Grid Width="36" Height="36">
                             <Border CornerRadius="{StaticResource RadiusMD}"
-                                    Background="{StaticResource AccentGradientBrush}">
+                                    Background="{ThemeResource AccentGradientBrush}">
                                 <TextBlock Text="AX"
                                            FontFamily="{StaticResource FontDisplay}"
                                            FontSize="15"
                                            FontWeight="Black"
-                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           Foreground="{ThemeResource TextPrimaryBrush}"
                                            HorizontalAlignment="Center"
                                            VerticalAlignment="Center"
                                            CharacterSpacing="-30" />
@@ -86,7 +86,7 @@
 
                 <!-- PRIMARY SECTION -->
                 <NavigationViewItemHeader Content="INTELLIGENCE"
-                                          Foreground="{StaticResource TextTertiaryBrush}"
+                                          Foreground="{ThemeResource TextTertiaryBrush}"
                                           FontSize="10"
                                           FontWeight="SemiBold" />
 
@@ -176,7 +176,7 @@
 
                 <!-- KNOWLEDGE SECTION -->
                 <NavigationViewItemHeader Content="KNOWLEDGE"
-                                          Foreground="{StaticResource TextTertiaryBrush}"
+                                          Foreground="{ThemeResource TextTertiaryBrush}"
                                           FontSize="10"
                                           FontWeight="SemiBold" />
 
@@ -238,7 +238,7 @@
 
                 <!-- TRIAGE SECTION -->
                 <NavigationViewItemHeader Content="TRIAGE"
-                                          Foreground="{StaticResource TextTertiaryBrush}"
+                                          Foreground="{ThemeResource TextTertiaryBrush}"
                                           FontSize="10"
                                           FontWeight="SemiBold" />
 
@@ -255,7 +255,7 @@
 
                 <!-- SYSTEM SECTION -->
                 <NavigationViewItemHeader Content="SYSTEM"
-                                          Foreground="{StaticResource TextTertiaryBrush}"
+                                          Foreground="{ThemeResource TextTertiaryBrush}"
                                           FontSize="10"
                                           FontWeight="SemiBold" />
 
@@ -347,7 +347,7 @@
 
                 <!-- SUPPORT SECTION -->
                 <NavigationViewItemHeader Content="SUPPORT"
-                                          Foreground="{StaticResource TextTertiaryBrush}"
+                                          Foreground="{ThemeResource TextTertiaryBrush}"
                                           FontSize="10"
                                           FontWeight="SemiBold" />
 
@@ -434,8 +434,8 @@
              ═══════════════════════════════════════════════════════ -->
         <Border Grid.Row="2"
                 Height="28"
-                Background="{StaticResource PageBackgroundBrush}"
-                BorderBrush="{StaticResource BorderSubtleBrush}"
+                Background="{ThemeResource PageBackgroundBrush}"
+                BorderBrush="{ThemeResource BorderSubtleBrush}"
                 BorderThickness="0,1,0,0"
                 Padding="16,0">
             <Grid>
@@ -451,18 +451,18 @@
                             Spacing="8">
                     <Ellipse x:Name="StatusIndicator"
                              Width="6" Height="6"
-                             Fill="{StaticResource OfflineBrush}" />
+                             Fill="{ThemeResource OfflineBrush}" />
                     <TextBlock x:Name="StatusText"
                                Text="Initializing..."
                                Style="{StaticResource CaptionStyle}"
                                VerticalAlignment="Center" />
 
                     <!-- Ctrl+K shortcut hint -->
-                    <Border Background="{StaticResource InputBackgroundBrush}"
+                    <Border Background="{ThemeResource InputBackgroundBrush}"
                             CornerRadius="3"
                             Padding="6,1"
                             Margin="12,0,0,0"
-                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                            BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1">
                         <TextBlock Text="Ctrl+K"
                                    Style="{StaticResource CaptionStyle}"

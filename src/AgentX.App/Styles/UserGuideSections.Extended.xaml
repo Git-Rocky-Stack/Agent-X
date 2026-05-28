@@ -24,7 +24,7 @@
                     <FontIcon Glyph="&#xED63;"
                               FontFamily="Segoe MDL2 Assets"
                               FontSize="20"
-                              Foreground="{StaticResource TextAccentBrush}" />
+                              Foreground="{ThemeResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_Annotations_Title"
                                Style="{StaticResource HeadingMediumStyle}"
@@ -44,7 +44,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Annotations_Create1" />
                     </Grid>
@@ -54,7 +54,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Annotations_Create2" />
                     </Grid>
@@ -64,7 +64,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Annotations_Create3" />
                     </Grid>
@@ -82,7 +82,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Annotations_Surface1" />
                     </Grid>
@@ -92,7 +92,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Annotations_Surface2" />
                     </Grid>
@@ -102,7 +102,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Annotations_Surface3" />
                     </Grid>
@@ -112,7 +112,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Annotations_Surface4" />
                     </Grid>
@@ -135,7 +135,7 @@
                     <FontIcon Glyph="&#xE720;"
                               FontFamily="Segoe MDL2 Assets"
                               FontSize="20"
-                              Foreground="{StaticResource TextAccentBrush}" />
+                              Foreground="{ThemeResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_AudioTranscription_Title"
                                Style="{StaticResource HeadingMediumStyle}"
@@ -156,10 +156,10 @@
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
                                 CornerRadius="{StaticResource RadiusFull}"
-                                Background="{StaticResource AccentSubtleBrush}"
+                                Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="1" FontSize="13" FontWeight="Bold"
-                                       Foreground="{StaticResource TextAccentBrush}"
+                                       Foreground="{ThemeResource TextAccentBrush}"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
@@ -172,10 +172,10 @@
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
                                 CornerRadius="{StaticResource RadiusFull}"
-                                Background="{StaticResource AccentSubtleBrush}"
+                                Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="2" FontSize="13" FontWeight="Bold"
-                                       Foreground="{StaticResource TextAccentBrush}"
+                                       Foreground="{ThemeResource TextAccentBrush}"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
@@ -188,10 +188,10 @@
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
                                 CornerRadius="{StaticResource RadiusFull}"
-                                Background="{StaticResource AccentSubtleBrush}"
+                                Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="3" FontSize="13" FontWeight="Bold"
-                                       Foreground="{StaticResource TextAccentBrush}"
+                                       Foreground="{ThemeResource TextAccentBrush}"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
@@ -211,7 +211,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_AudioTranscription_UseCase1" />
                     </Grid>
@@ -221,7 +221,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_AudioTranscription_UseCase2" />
                     </Grid>
@@ -231,7 +231,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_AudioTranscription_UseCase3" />
                     </Grid>
@@ -263,7 +263,7 @@
                     <FontIcon Glyph="&#xE7EE;"
                               FontFamily="Segoe MDL2 Assets"
                               FontSize="20"
-                              Foreground="{StaticResource TextAccentBrush}" />
+                              Foreground="{ThemeResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_WorkspaceProfiles_Title"
                                Style="{StaticResource HeadingMediumStyle}"
@@ -283,7 +283,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_WorkspaceProfiles_Create1" />
                     </Grid>
@@ -293,7 +293,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_WorkspaceProfiles_Create2" />
                     </Grid>
@@ -303,7 +303,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_WorkspaceProfiles_Create3" />
                     </Grid>
@@ -321,7 +321,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_WorkspaceProfiles_UseCase1" />
                     </Grid>
@@ -331,7 +331,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_WorkspaceProfiles_UseCase2" />
                     </Grid>
@@ -341,7 +341,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_WorkspaceProfiles_UseCase3" />
                     </Grid>
@@ -364,7 +364,7 @@
                     <FontIcon Glyph="&#xEA86;"
                               FontFamily="Segoe MDL2 Assets"
                               FontSize="20"
-                              Foreground="{StaticResource TextAccentBrush}" />
+                              Foreground="{ThemeResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_Plugins_Title"
                                Style="{StaticResource HeadingMediumStyle}"
@@ -384,7 +384,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Plugins_Manager1" />
                     </Grid>
@@ -394,7 +394,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Plugins_Manager2" />
                     </Grid>
@@ -404,7 +404,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Plugins_Manager3" />
                     </Grid>
@@ -422,7 +422,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Plugins_Capability1" />
                     </Grid>
@@ -432,7 +432,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Plugins_Capability2" />
                     </Grid>
@@ -442,7 +442,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Plugins_Capability3" />
                     </Grid>
@@ -452,7 +452,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Plugins_Capability4" />
                     </Grid>
@@ -475,7 +475,7 @@
                     <FontIcon Glyph="&#xE787;"
                               FontFamily="Segoe MDL2 Assets"
                               FontSize="20"
-                              Foreground="{StaticResource TextAccentBrush}" />
+                              Foreground="{ThemeResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_Integrations_Title"
                                Style="{StaticResource HeadingMediumStyle}"
@@ -495,7 +495,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Integrations_Calendar1" />
                     </Grid>
@@ -505,7 +505,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Integrations_Calendar2" />
                     </Grid>
@@ -515,7 +515,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Integrations_Calendar3" />
                     </Grid>
@@ -533,7 +533,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Integrations_Email1" />
                     </Grid>
@@ -543,7 +543,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Integrations_Email2" />
                     </Grid>
@@ -553,7 +553,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Integrations_Email3" />
                     </Grid>
@@ -576,7 +576,7 @@
                     <FontIcon Glyph="&#xE777;"
                               FontFamily="Segoe MDL2 Assets"
                               FontSize="20"
-                              Foreground="{StaticResource TextAccentBrush}" />
+                              Foreground="{ThemeResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_BackupRestore_Title"
                                Style="{StaticResource HeadingMediumStyle}"
@@ -596,7 +596,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_BackupRestore_Backup1" />
                     </Grid>
@@ -606,7 +606,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_BackupRestore_Backup2" />
                     </Grid>
@@ -616,7 +616,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_BackupRestore_Backup3" />
                     </Grid>
@@ -634,7 +634,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_BackupRestore_Restore1" />
                     </Grid>
@@ -644,7 +644,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_BackupRestore_Restore2" />
                     </Grid>
@@ -654,7 +654,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_BackupRestore_Restore3" />
                     </Grid>
@@ -685,7 +685,7 @@
                     <FontIcon Glyph="&#xE8A4;"
                               FontFamily="Segoe MDL2 Assets"
                               FontSize="20"
-                              Foreground="{StaticResource TextAccentBrush}" />
+                              Foreground="{ThemeResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_LicenseTiers_Title"
                                Style="{StaticResource HeadingMediumStyle}"
@@ -754,7 +754,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_LicenseTiers_Note1" />
                     </Grid>
@@ -764,7 +764,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_LicenseTiers_Note2" />
                     </Grid>

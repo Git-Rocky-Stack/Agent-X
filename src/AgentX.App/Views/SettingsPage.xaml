@@ -75,7 +75,7 @@
                             <Border Style="{StaticResource BadgeSuccessStyle}">
                                 <TextBlock Text="FREE"
                                            Style="{StaticResource BadgeStyle}"
-                                           Foreground="{StaticResource SuccessBrush}" />
+                                           Foreground="{ThemeResource SuccessBrush}" />
                             </Border>
                         </StackPanel>
 
@@ -133,7 +133,7 @@
                             <Border Style="{StaticResource BadgeDefaultStyle}">
                                 <TextBlock Text="CLOUD"
                                            Style="{StaticResource BadgeStyle}"
-                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                                           Foreground="{ThemeResource TextSecondaryBrush}" />
                             </Border>
                         </StackPanel>
 
@@ -192,7 +192,7 @@
                             <Border Style="{StaticResource BadgeDefaultStyle}">
                                 <TextBlock Text="CLOUD"
                                            Style="{StaticResource BadgeStyle}"
-                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                                           Foreground="{ThemeResource TextSecondaryBrush}" />
                             </Border>
                         </StackPanel>
 
@@ -501,7 +501,7 @@
                         <Border Style="{StaticResource BadgeAccentStyle}">
                             <TextBlock Text="{x:Bind ViewModel.LicenseTier, Mode=OneWay}"
                                        Style="{StaticResource BadgeStyle}"
-                                       Foreground="{StaticResource TextAccentBrush}" />
+                                       Foreground="{ThemeResource TextAccentBrush}" />
                         </Border>
                     </StackPanel>
 

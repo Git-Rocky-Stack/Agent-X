@@ -41,7 +41,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon Glyph="&#xE840;"
                                       FontSize="10"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       Visibility="{x:Bind IsPinned, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
                                       VerticalAlignment="Center" />
                             <TextBlock Text="{x:Bind Title}"
@@ -60,7 +60,7 @@
                         <!-- Folder label -->
                         <TextBlock Text="{x:Bind FolderName}"
                                    Style="{StaticResource CaptionStyle}"
-                                   Foreground="{StaticResource TextAccentBrush}"
+                                   Foreground="{ThemeResource TextAccentBrush}"
                                    FontSize="10"
                                    Visibility="{x:Bind FolderName, Converter={StaticResource StringToVisibility}}" />
                     </StackPanel>
@@ -77,7 +77,7 @@
                                 Padding="6,2,6,2"
                                 HorizontalAlignment="Right">
                             <TextBlock Style="{StaticResource CaptionStyle}"
-                                       Foreground="{StaticResource TextTertiaryBrush}"
+                                       Foreground="{ThemeResource TextTertiaryBrush}"
                                        FontSize="9">
                                 <Run Text="{x:Bind MessageCount}" />
                                 <Run Text="msgs" />
@@ -155,15 +155,15 @@
                         Tag="{x:Bind}"
                         ToolTipService.ToolTip="Inspect the full context used for this response"
                         Visibility="{x:Bind HasInlineContextNote, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                    <Border Background="{StaticResource AccentSubtleBrush}"
-                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border Background="{ThemeResource AccentSubtleBrush}"
+                            BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1"
                             CornerRadius="{StaticResource RadiusMD}"
                             Padding="10,8,10,8">
                         <StackPanel Spacing="6">
                             <TextBlock Text="Context Used"
                                        Style="{StaticResource CaptionStyle}"
-                                       Foreground="{StaticResource TextAccentBrush}" />
+                                       Foreground="{ThemeResource TextAccentBrush}" />
                             <TextBlock Text="{x:Bind InlineContextStoryText, Mode=OneWay}"
                                        Style="{StaticResource CaptionStyle}"
                                        TextWrapping="WrapWholeWords" />
@@ -215,7 +215,7 @@
 
                     <FontIcon Glyph="{x:Bind CategoryIcon}"
                               FontSize="14"
-                              Foreground="{StaticResource TextTertiaryBrush}"
+                              Foreground="{ThemeResource TextTertiaryBrush}"
                               VerticalAlignment="Center" />
 
                     <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
@@ -229,7 +229,7 @@
                     <FontIcon Grid.Column="2"
                               Glyph="&#xE735;"
                               FontSize="12"
-                              Foreground="{StaticResource TextAccentBrush}"
+                              Foreground="{ThemeResource TextAccentBrush}"
                               Visibility="{x:Bind IsFavorite, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
                               VerticalAlignment="Center" />
                 </Grid>
@@ -245,26 +245,26 @@
         </DataTemplate>
 
         <DataTemplate x:Key="ContextStoryChipTemplate" x:DataType="vm:ChatContextStorySourceDisplayItem">
-            <Border Background="{StaticResource InputBackgroundBrush}"
-                    BorderBrush="{StaticResource BorderSubtleBrush}"
+            <Border Background="{ThemeResource InputBackgroundBrush}"
+                    BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusRound}"
                     Padding="8,4,8,4">
                 <TextBlock Text="{x:Bind Label}"
                            Style="{StaticResource CaptionStyle}"
-                           Foreground="{StaticResource TextSecondaryBrush}" />
+                           Foreground="{ThemeResource TextSecondaryBrush}" />
             </Border>
         </DataTemplate>
 
         <DataTemplate x:Key="InlineContextStoryChipTemplate" x:DataType="x:String">
-            <Border Background="{StaticResource InputBackgroundBrush}"
-                    BorderBrush="{StaticResource BorderSubtleBrush}"
+            <Border Background="{ThemeResource InputBackgroundBrush}"
+                    BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusRound}"
                     Padding="7,3,7,3">
                 <TextBlock Text="{x:Bind}"
                            Style="{StaticResource CaptionStyle}"
-                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Foreground="{ThemeResource TextSecondaryBrush}"
                            FontSize="11" />
             </Border>
         </DataTemplate>
@@ -275,7 +275,7 @@
          ROOT LAYOUT: 2-column grid (sidebar + chat area)
          ═══════════════════════════════════════════════════════════════ -->
 
-    <Grid Background="{StaticResource PageBackgroundBrush}">
+    <Grid Background="{ThemeResource PageBackgroundBrush}">
 
         <!-- ═══════════════════════════════════════════════════════════
              ADAPTIVE LAYOUT (Tier 3)
@@ -332,8 +332,8 @@
              ═══════════════════════════════════════════════════════════ -->
 
         <Grid Grid.Column="0"
-              Background="{StaticResource SidebarGradientBrush}"
-              BorderBrush="{StaticResource BorderSubtleBrush}"
+              Background="{ThemeResource SidebarGradientBrush}"
+              BorderBrush="{ThemeResource BorderSubtleBrush}"
               BorderThickness="0,0,1,0"
               Visibility="{x:Bind ViewModel.IsConversationPaneOpen, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
             <Grid.RowDefinitions>
@@ -452,7 +452,7 @@
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <FontIcon Glyph="&#xE735;" FontSize="12" Foreground="{StaticResource TextAccentBrush}" />
+                                <FontIcon Glyph="&#xE735;" FontSize="12" Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock Grid.Column="1"
                                            Text="{Binding BranchLabel}"
                                            VerticalAlignment="Center"
@@ -464,7 +464,7 @@
                                         Padding="4,2,4,2"
                                         MinHeight="24"
                                         MinWidth="24">
-                                    <FontIcon Glyph="&#xE8A5;" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <FontIcon Glyph="&#xE8A5;" FontSize="10" Foreground="{ThemeResource TextSecondaryBrush}" />
                                 </Button>
                                 <Button Grid.Column="3"
                                         ToolTipService.ToolTip="Delete branch"
@@ -473,7 +473,7 @@
                                         Padding="4,2,4,2"
                                         MinHeight="24"
                                         MinWidth="24">
-                                    <FontIcon Glyph="&#xE74D;" FontSize="10" Foreground="{StaticResource ErrorBrush}" />
+                                    <FontIcon Glyph="&#xE74D;" FontSize="10" Foreground="{ThemeResource ErrorBrush}" />
                                 </Button>
                             </Grid>
                         </DataTemplate>
@@ -484,11 +484,11 @@
             <!-- Sidebar Footer -->
             <Border Grid.Row="5"
                     Padding="16,10,16,10"
-                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                    BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="0,1,0,0">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <FontIcon Glyph="&#xE8BD;" FontSize="11"
-                              Foreground="{StaticResource TextTertiaryBrush}" />
+                              Foreground="{ThemeResource TextTertiaryBrush}" />
                     <TextBlock Style="{StaticResource CaptionStyle}">
                         <Run Text="{x:Bind ViewModel.Conversations.Count, Mode=OneWay}" />
                         <Run Text="conversations" />
@@ -540,7 +540,7 @@
                             AutomationProperties.Name="Toggle sidebar"
                             Margin="0,0,8,0">
                         <FontIcon Glyph="&#xE700;" FontSize="16"
-                                  Foreground="{StaticResource TextSecondaryBrush}" />
+                                  Foreground="{ThemeResource TextSecondaryBrush}" />
                     </Button>
 
                     <!-- Model selector -->
@@ -550,9 +550,9 @@
                               DisplayMemberPath="Name"
                               PlaceholderText="Select model..."
                               MinWidth="180"
-                              Background="{StaticResource InputBackgroundBrush}"
-                              BorderBrush="{StaticResource BorderSubtleBrush}"
-                              Foreground="{StaticResource TextPrimaryBrush}"
+                              Background="{ThemeResource InputBackgroundBrush}"
+                              BorderBrush="{ThemeResource BorderSubtleBrush}"
+                              Foreground="{ThemeResource TextPrimaryBrush}"
                               VerticalAlignment="Center" />
 
                     <!-- Connection status -->
@@ -579,11 +579,11 @@
                             ToolTipService.ToolTip="System prompt">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon Glyph="&#xE771;" FontSize="14"
-                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                                      Foreground="{ThemeResource TextSecondaryBrush}" />
                             <TextBlock x:Name="SystemPromptLabel"
                                        Text="{x:Bind ViewModel.ActiveSystemPromptName, Mode=OneWay, TargetNullValue='Prompt'}"
                                        Style="{StaticResource CaptionStyle}"
-                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       Foreground="{ThemeResource TextSecondaryBrush}"
                                        MaxWidth="100"
                                        TextTrimming="CharacterEllipsis" />
                         </StackPanel>
@@ -607,7 +607,7 @@
                                             MinHeight="32">
                                         <StackPanel Orientation="Horizontal" Spacing="8">
                                             <FontIcon Glyph="&#xE711;" FontSize="12"
-                                                      Foreground="{StaticResource TextTertiaryBrush}" />
+                                                      Foreground="{ThemeResource TextTertiaryBrush}" />
                                             <TextBlock Text="No system prompt"
                                                        Style="{StaticResource BodySmallStyle}" />
                                         </StackPanel>
@@ -645,11 +645,11 @@
                             ToolTipService.ToolTip="Assign folder">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon Glyph="&#xE8B7;" FontSize="14"
-                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                                      Foreground="{ThemeResource TextSecondaryBrush}" />
                             <TextBlock x:Name="FolderLabel"
                                        Text="{x:Bind ViewModel.ActiveFolderFilter, Mode=OneWay, TargetNullValue='Folder'}"
                                        Style="{StaticResource CaptionStyle}"
-                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       Foreground="{ThemeResource TextSecondaryBrush}"
                                        MaxWidth="80"
                                        TextTrimming="CharacterEllipsis" />
                         </StackPanel>
@@ -709,9 +709,9 @@
                             Visibility="{x:Bind ViewModel.TokenCount, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <FontIcon Glyph="&#xE8A3;" FontSize="10"
-                                      Foreground="{StaticResource TextTertiaryBrush}" />
+                                      Foreground="{ThemeResource TextTertiaryBrush}" />
                             <TextBlock Style="{StaticResource MonoSmallStyle}"
-                                       Foreground="{StaticResource TextTertiaryBrush}">
+                                       Foreground="{ThemeResource TextTertiaryBrush}">
                                 <Run Text="{x:Bind ViewModel.TokenCount, Mode=OneWay}" />
                                 <Run Text="tok" />
                             </TextBlock>
@@ -727,7 +727,7 @@
                             Margin="0,0,4,0"
                             Visibility="{x:Bind ViewModel.HasBranches, Mode=OneWay}">
                         <FontIcon Glyph="&#xE735;" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" />
+                                  Foreground="{ThemeResource TextAccentBrush}" />
                     </Button>
 
                     <!-- Refresh connection button -->
@@ -737,7 +737,7 @@
                             ToolTipService.ToolTip="Refresh connection"
                             AutomationProperties.Name="Refresh connection">
                         <FontIcon Glyph="&#xE72C;" FontSize="14"
-                                  Foreground="{StaticResource TextSecondaryBrush}" />
+                                  Foreground="{ThemeResource TextSecondaryBrush}" />
                     </Button>
 
                     <!-- Export conversation button -->
@@ -748,7 +748,7 @@
                             Click="ExportButton_Click"
                             Margin="4,0,0,0">
                         <FontIcon Glyph="&#xEDE1;" FontSize="14"
-                                  Foreground="{StaticResource TextSecondaryBrush}" />
+                                  Foreground="{ThemeResource TextSecondaryBrush}" />
                     </Button>
                 </Grid>
             </Border>
@@ -756,8 +756,8 @@
             <Border Grid.Row="1"
                     Margin="24,12,24,0"
                     Padding="12,10,12,10"
-                    Background="{StaticResource CardElevatedBrush}"
-                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                    Background="{ThemeResource CardElevatedBrush}"
+                    BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusLG}"
                     Visibility="{x:Bind ViewModel.HasConversationIntelligenceStrip, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
@@ -773,32 +773,32 @@
                                 Visibility="{x:Bind ViewModel.ConversationIntelligenceIsCurrent, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                             <TextBlock Text="{x:Bind ViewModel.ConversationIntelligenceBadgeText, Mode=OneWay}"
                                        Style="{StaticResource BadgeStyle}"
-                                       Foreground="{StaticResource SuccessBrush}" />
+                                       Foreground="{ThemeResource SuccessBrush}" />
                         </Border>
 
-                        <Border Background="{StaticResource InputBackgroundBrush}"
-                                BorderBrush="{StaticResource WarningBrush}"
+                        <Border Background="{ThemeResource InputBackgroundBrush}"
+                                BorderBrush="{ThemeResource WarningBrush}"
                                 BorderThickness="1"
                                 CornerRadius="{StaticResource RadiusRound}"
                                 Padding="10,4,10,4"
                                 Visibility="{x:Bind ViewModel.ConversationIntelligenceIsStale, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                             <TextBlock Text="{x:Bind ViewModel.ConversationIntelligenceBadgeText, Mode=OneWay}"
                                        Style="{StaticResource BadgeStyle}"
-                                       Foreground="{StaticResource WarningBrush}" />
+                                       Foreground="{ThemeResource WarningBrush}" />
                         </Border>
 
                         <Border Style="{StaticResource BadgeDefaultStyle}"
                                 Visibility="{x:Bind ViewModel.ConversationIntelligenceIsPending, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                             <TextBlock Text="{x:Bind ViewModel.ConversationIntelligenceBadgeText, Mode=OneWay}"
                                        Style="{StaticResource BadgeStyle}"
-                                       Foreground="{StaticResource InfoBrush}" />
+                                       Foreground="{ThemeResource InfoBrush}" />
                         </Border>
 
                         <Border Style="{StaticResource BadgeDefaultStyle}"
                                 Visibility="{x:Bind ViewModel.ConversationIntelligenceIsUnavailable, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                             <TextBlock Text="{x:Bind ViewModel.ConversationIntelligenceBadgeText, Mode=OneWay}"
                                        Style="{StaticResource BadgeStyle}"
-                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                       Foreground="{ThemeResource TextSecondaryBrush}" />
                         </Border>
                     </Grid>
 
@@ -811,7 +811,7 @@
                                    MaxLines="1" />
                         <TextBlock Text="{x:Bind ViewModel.ConversationIntelligenceStoryText, Mode=OneWay}"
                                    Style="{StaticResource CaptionStyle}"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Foreground="{ThemeResource TextSecondaryBrush}"
                                    TextTrimming="CharacterEllipsis"
                                    MaxLines="2"
                                    Visibility="{x:Bind ViewModel.HasConversationIntelligenceStory, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
@@ -836,10 +836,10 @@
                                 ToolTipService.ToolTip="Refresh the durable summary for this conversation">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE72C;" FontSize="12"
-                                          Foreground="{StaticResource TextSecondaryBrush}" />
+                                          Foreground="{ThemeResource TextSecondaryBrush}" />
                                 <TextBlock Text="{x:Bind ViewModel.ConversationSummaryRefreshActionText, Mode=OneWay}"
                                            Style="{StaticResource CaptionStyle}"
-                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                                           Foreground="{ThemeResource TextSecondaryBrush}" />
                             </StackPanel>
                         </Button>
 
@@ -850,10 +850,10 @@
                                 ToolTipService.ToolTip="Open the full context inspector">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE8F1;" FontSize="12"
-                                          Foreground="{StaticResource TextSecondaryBrush}" />
+                                          Foreground="{ThemeResource TextSecondaryBrush}" />
                                 <TextBlock Text="Inspect Context"
                                            Style="{StaticResource CaptionStyle}"
-                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                                           Foreground="{ThemeResource TextSecondaryBrush}" />
                             </StackPanel>
                         </Button>
                     </StackPanel>
@@ -872,13 +872,13 @@
                     <StackPanel Spacing="20" HorizontalAlignment="Center">
 
                         <!-- Icon -->
-                        <Border Background="{StaticResource AccentSubtleBrush}"
+                        <Border Background="{ThemeResource AccentSubtleBrush}"
                                 CornerRadius="{StaticResource RadiusFull}"
                                 Width="72" Height="72"
                                 HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE8BD;"
                                       FontSize="32"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
@@ -900,7 +900,7 @@
                                     HorizontalAlignment="Center">
                                 <TextBlock Text="100% Private"
                                            Style="{StaticResource CaptionStyle}"
-                                           Foreground="{StaticResource TextAccentBrush}"
+                                           Foreground="{ThemeResource TextAccentBrush}"
                                            FontWeight="SemiBold" />
                             </Border>
 
@@ -910,7 +910,7 @@
                                 <Border Style="{StaticResource BadgeDefaultStyle}">
                                     <StackPanel Orientation="Horizontal" Spacing="4">
                                         <FontIcon Glyph="&#xE765;" FontSize="10"
-                                                  Foreground="{StaticResource TextTertiaryBrush}" />
+                                                  Foreground="{ThemeResource TextTertiaryBrush}" />
                                         <TextBlock Text="Enter to send"
                                                    Style="{StaticResource CaptionStyle}" />
                                     </StackPanel>
@@ -918,7 +918,7 @@
                                 <Border Style="{StaticResource BadgeDefaultStyle}">
                                     <StackPanel Orientation="Horizontal" Spacing="4">
                                         <FontIcon Glyph="&#xE765;" FontSize="10"
-                                                  Foreground="{StaticResource TextTertiaryBrush}" />
+                                                  Foreground="{ThemeResource TextTertiaryBrush}" />
                                         <TextBlock Text="Shift+Enter for new line"
                                                    Style="{StaticResource CaptionStyle}" />
                                     </StackPanel>
@@ -1001,15 +1001,15 @@
 
                                             <!-- Branch indicator badge (visible when message has branches) -->
                                             <Border
-                                                Background="{StaticResource AccentSubtleBrush}"
+                                                Background="{ThemeResource AccentSubtleBrush}"
                                                 CornerRadius="4"
                                                 Padding="4,2"
                                                 Margin="4,0,0,0"
                                                 VerticalAlignment="Center"
                                                 Visibility="{x:Bind IsBranchPoint, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                                                 <StackPanel Orientation="Horizontal" Spacing="2">
-                                                    <FontIcon Glyph="&#xE735;" FontSize="10" Foreground="{StaticResource TextAccentBrush}" />
-                                                    <TextBlock Text="{x:Bind BranchCountAtPoint, Mode=OneWay}" FontSize="10" Foreground="{StaticResource TextAccentBrush}" />
+                                                    <FontIcon Glyph="&#xE735;" FontSize="10" Foreground="{ThemeResource TextAccentBrush}" />
+                                                    <TextBlock Text="{x:Bind BranchCountAtPoint, Mode=OneWay}" FontSize="10" Foreground="{ThemeResource TextAccentBrush}" />
                                                 </StackPanel>
                                             </Border>
 
@@ -1170,8 +1170,8 @@
                     <Border Grid.Row="0"
                             Visibility="{x:Bind ViewModel.IsContextInspectorOpen, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
                             Margin="0,0,0,12"
-                            Background="{StaticResource CardElevatedBrush}"
-                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                            Background="{ThemeResource CardElevatedBrush}"
+                            BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1"
                             CornerRadius="{StaticResource RadiusLG}"
                             Padding="16">
@@ -1184,8 +1184,8 @@
                                            Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
 
-                            <Border Background="{StaticResource InputBackgroundBrush}"
-                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                            <Border Background="{ThemeResource InputBackgroundBrush}"
+                                    BorderBrush="{ThemeResource BorderSubtleBrush}"
                                     BorderThickness="1"
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Padding="12"
@@ -1193,7 +1193,7 @@
                                 <StackPanel Spacing="8">
                                     <TextBlock Text="Context Story"
                                                Style="{StaticResource CaptionStyle}"
-                                               Foreground="{StaticResource TextAccentBrush}" />
+                                               Foreground="{ThemeResource TextAccentBrush}" />
                                     <TextBlock Text="{x:Bind ViewModel.ContextStoryText, Mode=OneWay}"
                                                Style="{StaticResource CaptionStyle}"
                                                TextWrapping="WrapWholeWords" />
@@ -1215,15 +1215,15 @@
                                 </Grid.ColumnDefinitions>
 
                                 <Border Grid.Column="0"
-                                        Background="{StaticResource InputBackgroundBrush}"
-                                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                                        Background="{ThemeResource InputBackgroundBrush}"
+                                        BorderBrush="{ThemeResource BorderSubtleBrush}"
                                         BorderThickness="1"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Padding="12">
                                     <StackPanel Spacing="6">
                                         <TextBlock Text="Assembly Overview"
                                                    Style="{StaticResource CaptionStyle}"
-                                                   Foreground="{StaticResource TextAccentBrush}" />
+                                                   Foreground="{ThemeResource TextAccentBrush}" />
                                         <TextBlock Style="{StaticResource CaptionStyle}">
                                             <Run Text="Mode: " />
                                             <Run Text="{x:Bind ViewModel.ContextAssemblyMode, Mode=OneWay}" />
@@ -1247,8 +1247,8 @@
                                 </Border>
 
                                 <Border Grid.Column="1"
-                                        Background="{StaticResource InputBackgroundBrush}"
-                                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                                        Background="{ThemeResource InputBackgroundBrush}"
+                                        BorderBrush="{ThemeResource BorderSubtleBrush}"
                                         BorderThickness="1"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Padding="12">
@@ -1261,7 +1261,7 @@
 
                                             <TextBlock Text="Durable Summary"
                                                        Style="{StaticResource CaptionStyle}"
-                                                       Foreground="{StaticResource TextAccentBrush}"
+                                                       Foreground="{ThemeResource TextAccentBrush}"
                                                        VerticalAlignment="Center" />
 
                                             <Button Grid.Column="1"
@@ -1274,10 +1274,10 @@
                                                     ToolTipService.ToolTip="Refresh the durable summary for this conversation">
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <FontIcon Glyph="&#xE72C;" FontSize="11"
-                                                              Foreground="{StaticResource TextSecondaryBrush}" />
+                                                              Foreground="{ThemeResource TextSecondaryBrush}" />
                                                     <TextBlock Text="{x:Bind ViewModel.ConversationSummaryRefreshActionText, Mode=OneWay}"
                                                                Style="{StaticResource CaptionStyle}"
-                                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                                               Foreground="{ThemeResource TextSecondaryBrush}" />
                                                 </StackPanel>
                                             </Button>
                                         </Grid>
@@ -1288,7 +1288,7 @@
                                         <TextBlock Text="{x:Bind ViewModel.ConversationSummaryRefreshStatusText, Mode=OneWay}"
                                                    Style="{StaticResource CaptionStyle}"
                                                    TextWrapping="WrapWholeWords"
-                                                   Foreground="{StaticResource WarningBrush}"
+                                                   Foreground="{ThemeResource WarningBrush}"
                                                    Visibility="{x:Bind ViewModel.HasConversationSummaryRefreshStatus, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
                                         <TextBlock Text="{x:Bind ViewModel.ContextSummaryFreshness, Mode=OneWay}"
                                                    Style="{StaticResource CaptionStyle}"
@@ -1317,15 +1317,15 @@
                                 </Border>
 
                                 <Border Grid.Column="2"
-                                        Background="{StaticResource InputBackgroundBrush}"
-                                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                                        Background="{ThemeResource InputBackgroundBrush}"
+                                        BorderBrush="{ThemeResource BorderSubtleBrush}"
                                         BorderThickness="1"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Padding="12">
                                     <StackPanel Spacing="6">
                                         <TextBlock Text="Durable Recall"
                                                    Style="{StaticResource CaptionStyle}"
-                                                   Foreground="{StaticResource TextAccentBrush}" />
+                                                   Foreground="{ThemeResource TextAccentBrush}" />
                                         <TextBlock Text="{x:Bind ViewModel.ContextRecallStatus, Mode=OneWay}"
                                                    Style="{StaticResource CaptionStyle}"
                                                    TextWrapping="WrapWholeWords" />
@@ -1336,8 +1336,8 @@
                                             </ItemsRepeater.Layout>
                                             <ItemsRepeater.ItemTemplate>
                                                 <DataTemplate x:DataType="vm:ChatContextRecallDisplayItem">
-                                                    <Border Background="{StaticResource AccentSubtleBrush}"
-                                                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                                                    <Border Background="{ThemeResource AccentSubtleBrush}"
+                                                            BorderBrush="{ThemeResource BorderSubtleBrush}"
                                                             BorderThickness="1"
                                                             CornerRadius="{StaticResource RadiusMD}"
                                                             Padding="10">
@@ -1363,15 +1363,15 @@
                                 </Border>
                             </Grid>
 
-                            <Border Background="{StaticResource InputBackgroundBrush}"
-                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                            <Border Background="{ThemeResource InputBackgroundBrush}"
+                                    BorderBrush="{ThemeResource BorderSubtleBrush}"
                                     BorderThickness="1"
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Padding="12">
                                 <StackPanel Spacing="6">
                                     <TextBlock Text="Why This Context"
                                                Style="{StaticResource CaptionStyle}"
-                                               Foreground="{StaticResource TextAccentBrush}" />
+                                               Foreground="{ThemeResource TextAccentBrush}" />
                                     <TextBlock Text="{x:Bind ViewModel.ContextCompressionExplanation, Mode=OneWay}"
                                                Style="{StaticResource CaptionStyle}"
                                                TextWrapping="WrapWholeWords" />
@@ -1420,9 +1420,9 @@
                                 HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE771;" FontSize="10"
-                                          Foreground="{StaticResource TextAccentBrush}" />
+                                          Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock Style="{StaticResource CaptionStyle}"
-                                           Foreground="{StaticResource TextAccentBrush}">
+                                           Foreground="{ThemeResource TextAccentBrush}">
                                     <Run Text="Prompt:" />
                                     <Run Text="{x:Bind ViewModel.ActiveSystemPromptName, Mode=OneWay}" />
                                 </TextBlock>
@@ -1466,7 +1466,7 @@
                                     ToolTipService.ToolTip="Voice input — click to record"
                                     RightTapped="OnMicRightTapped">
                                 <FontIcon Glyph="&#xE720;" FontSize="16"
-                                          Foreground="{StaticResource TextSecondaryBrush}" />
+                                          Foreground="{ThemeResource TextSecondaryBrush}" />
                             </Button>
 
                             <!-- Recording: Stop button with red indicator -->
@@ -1474,15 +1474,15 @@
                                     Padding="12,10,12,10"
                                     MinHeight="44"
                                     MinWidth="44"
-                                    BorderBrush="{StaticResource ErrorBrush}"
+                                    BorderBrush="{ThemeResource ErrorBrush}"
                                     Command="{x:Bind ViewModel.ToggleVoiceRecordingCommand}"
                                     Visibility="{x:Bind ViewModel.IsRecording, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
                                     ToolTipService.ToolTip="Stop recording and transcribe">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <Ellipse Width="8" Height="8"
-                                             Fill="{StaticResource ErrorBrush}" />
+                                             Fill="{ThemeResource ErrorBrush}" />
                                     <FontIcon Glyph="&#xE72A;" FontSize="14"
-                                              Foreground="{StaticResource ErrorBrush}" />
+                                              Foreground="{ThemeResource ErrorBrush}" />
                                 </StackPanel>
                             </Button>
 
@@ -1508,7 +1508,7 @@
                                       IsChecked="{x:Bind ViewModel.IsResearchMode, Mode=TwoWay}"
                                       ToolTipService.ToolTip="{x:Bind ViewModel.ResearchModeTooltip, Mode=OneWay}">
                             <FontIcon Glyph="&#xE774;" FontSize="16"
-                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                                      Foreground="{ThemeResource TextSecondaryBrush}" />
                         </ToggleButton>
 
                         <ToggleButton Grid.Column="3"
@@ -1519,7 +1519,7 @@
                                       IsChecked="{x:Bind ViewModel.IsContextInspectorOpen, Mode=TwoWay}"
                                       ToolTipService.ToolTip="Inspect the latest assembled chat context">
                             <FontIcon Glyph="&#xE8F1;" FontSize="16"
-                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                                      Foreground="{ThemeResource TextSecondaryBrush}" />
                         </ToggleButton>
 
                         <ComboBox Grid.Column="4"
@@ -1532,21 +1532,21 @@
                             <ComboBoxItem>
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon Glyph="&#xE77B;" FontSize="12"
-                                              Foreground="{StaticResource TextSecondaryBrush}" />
+                                              Foreground="{ThemeResource TextSecondaryBrush}" />
                                     <TextBlock Text="Solo" Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
                             </ComboBoxItem>
                             <ComboBoxItem>
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon Glyph="&#xE8FD;" FontSize="12"
-                                              Foreground="{StaticResource TextSecondaryBrush}" />
+                                              Foreground="{ThemeResource TextSecondaryBrush}" />
                                     <TextBlock Text="Multi" Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
                             </ComboBoxItem>
                             <ComboBoxItem>
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon Glyph="&#xE8F2;" FontSize="12"
-                                              Foreground="{StaticResource TextSecondaryBrush}" />
+                                              Foreground="{ThemeResource TextSecondaryBrush}" />
                                     <TextBlock Text="Debate" Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
                             </ComboBoxItem>
@@ -1575,13 +1575,13 @@
                                     Padding="12,10,12,10"
                                     MinHeight="44"
                                     MinWidth="44"
-                                    BorderBrush="{StaticResource ErrorBrush}"
+                                    BorderBrush="{ThemeResource ErrorBrush}"
                                     Command="{x:Bind ViewModel.StopGenerationCommand}"
                                     Visibility="{x:Bind ViewModel.IsGenerating, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
                                     ToolTipService.ToolTip="Stop generation"
                                     AutomationProperties.Name="Stop generation">
                                 <FontIcon Glyph="&#xE71A;" FontSize="16"
-                                          Foreground="{StaticResource ErrorBrush}" />
+                                          Foreground="{ThemeResource ErrorBrush}" />
                             </Button>
                         </StackPanel>
                     </Grid>

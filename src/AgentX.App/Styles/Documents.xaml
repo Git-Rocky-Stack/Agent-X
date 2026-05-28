@@ -17,8 +17,8 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="DocumentCardStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource CardGradientSubtleBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource CardGradientSubtleBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusLG}" />
         <Setter Property="Padding" Value="20" />
@@ -31,8 +31,8 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="DropZoneStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderMediumBrush}" />
+        <Setter Property="Background" Value="{ThemeResource InputBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource BorderMediumBrush}" />
         <Setter Property="BorderThickness" Value="2" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusXL}" />
         <Setter Property="Padding" Value="48,40,48,40" />
@@ -43,8 +43,8 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="DropZoneActiveStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource AccentSubtleBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource AccentPrimaryBrush}" />
+        <Setter Property="Background" Value="{ThemeResource AccentSubtleBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource AccentPrimaryBrush}" />
         <Setter Property="BorderThickness" Value="2" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusXL}" />
         <Setter Property="Padding" Value="48,40,48,40" />
@@ -58,28 +58,28 @@
 
     <!-- Completed: green -->
     <Style x:Key="StatusBadgeCompletedStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource SuccessSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource SuccessSubtleBrush}" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
         <Setter Property="Padding" Value="8,3,8,3" />
     </Style>
 
     <!-- Processing: amber/warning -->
     <Style x:Key="StatusBadgeProcessingStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource WarningSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource WarningSubtleBrush}" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
         <Setter Property="Padding" Value="8,3,8,3" />
     </Style>
 
     <!-- Pending: blue/info -->
     <Style x:Key="StatusBadgePendingStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource InfoSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource InfoSubtleBrush}" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
         <Setter Property="Padding" Value="8,3,8,3" />
     </Style>
 
     <!-- Failed: red/error -->
     <Style x:Key="StatusBadgeFailedStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource ErrorSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource ErrorSubtleBrush}" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
         <Setter Property="Padding" Value="8,3,8,3" />
     </Style>
@@ -90,7 +90,7 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="FileTypeBadgeStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource AccentSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource AccentSubtleBrush}" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusSM}" />
         <Setter Property="Padding" Value="8,3,8,3" />
     </Style>
@@ -101,8 +101,8 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="TagBadgeStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource CardElevatedBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource CardElevatedBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
         <Setter Property="Padding" Value="8,2,8,2" />
@@ -124,7 +124,7 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="FileTypeIconContainerStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource AccentSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource AccentSubtleBrush}" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
         <Setter Property="Width" Value="48" />
         <Setter Property="Height" Value="48" />
@@ -147,8 +147,8 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="CollectionTreeItemSelectedStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource AccentSubtleBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource AccentGlowBrush}" />
+        <Setter Property="Background" Value="{ThemeResource AccentSubtleBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource AccentGlowBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
         <Setter Property="Padding" Value="12,10,12,10" />
@@ -161,8 +161,8 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="DocumentGridItemStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource CardGradientBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource CardGradientBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusLG}" />
         <Setter Property="Padding" Value="20" />
@@ -176,8 +176,8 @@
 
     <Style x:Key="FilterChipStyle" TargetType="Button">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderSubtleBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource TextSecondaryBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
         <Setter Property="Padding" Value="14,6,14,6" />
@@ -188,9 +188,9 @@
     </Style>
 
     <Style x:Key="FilterChipActiveStyle" TargetType="Button">
-        <Setter Property="Background" Value="{StaticResource AccentSubtleBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource TextAccentBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource AccentGlowBrush}" />
+        <Setter Property="Background" Value="{ThemeResource AccentSubtleBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource TextAccentBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource AccentGlowBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
         <Setter Property="Padding" Value="14,6,14,6" />
@@ -206,8 +206,8 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="IndexingStatusBarStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource CardGradientVerticalBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource CardGradientVerticalBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
         <Setter Property="Padding" Value="20,14,20,14" />
@@ -218,8 +218,8 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="StatBadgeStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource CardGradientBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource CardGradientBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
         <Setter Property="Padding" Value="20,14,20,14" />
@@ -231,8 +231,8 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="CollectionSidebarStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource CardGradientSubtleBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource CardGradientSubtleBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
         <Setter Property="BorderThickness" Value="0,0,1,0" />
         <Setter Property="Padding" Value="0" />
     </Style>
@@ -243,8 +243,8 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="DocumentSimpleCardStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource CardGradientSubtleBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource CardGradientSubtleBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
         <Setter Property="Padding" Value="16" />

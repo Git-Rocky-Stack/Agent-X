@@ -28,7 +28,7 @@
                     <FontIcon Glyph="&#xE721;"
                               FontFamily="Segoe MDL2 Assets"
                               FontSize="20"
-                              Foreground="{StaticResource TextAccentBrush}" />
+                              Foreground="{ThemeResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_SemanticSearch_Title"
                                Style="{StaticResource HeadingMediumStyle}"
@@ -58,7 +58,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_SemanticSearch_Using1" />
                     </Grid>
@@ -69,7 +69,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_SemanticSearch_Using2" />
                     </Grid>
@@ -80,7 +80,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_SemanticSearch_Using3" />
                     </Grid>
@@ -91,7 +91,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_SemanticSearch_Using4" />
                     </Grid>
@@ -102,7 +102,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_SemanticSearch_Using5" />
                     </Grid>
@@ -113,7 +113,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_SemanticSearch_Using6" />
                     </Grid>
@@ -137,7 +137,7 @@
                     <FontIcon Glyph="&#xE74C;"
                               FontFamily="Segoe MDL2 Assets"
                               FontSize="20"
-                              Foreground="{StaticResource TextAccentBrush}" />
+                              Foreground="{ThemeResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_ModelManager_Title"
                                Style="{StaticResource HeadingMediumStyle}"
@@ -158,7 +158,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_ModelManager_Capability1" />
                     </Grid>
@@ -169,7 +169,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_ModelManager_Capability2" />
                     </Grid>
@@ -180,7 +180,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_ModelManager_Capability3" />
                     </Grid>
@@ -191,7 +191,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_ModelManager_Capability4" />
                     </Grid>
@@ -202,7 +202,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_ModelManager_Capability5" />
                     </Grid>
@@ -226,7 +226,7 @@
                     <FontIcon Glyph="&#xE7F4;"
                               FontFamily="Segoe MDL2 Assets"
                               FontSize="20"
-                              Foreground="{StaticResource TextAccentBrush}" />
+                              Foreground="{ThemeResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_HardwareAdvisor_Title"
                                Style="{StaticResource HeadingMediumStyle}"
@@ -247,7 +247,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_HardwareAdvisor_Detect1" />
                     </Grid>
@@ -258,7 +258,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_HardwareAdvisor_Detect2" />
                     </Grid>
@@ -269,7 +269,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_HardwareAdvisor_Detect3" />
                     </Grid>
@@ -280,7 +280,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_HardwareAdvisor_Detect4" />
                     </Grid>
@@ -304,7 +304,7 @@
                     <FontIcon Glyph="&#xE713;"
                               FontFamily="Segoe MDL2 Assets"
                               FontSize="20"
-                              Foreground="{StaticResource TextAccentBrush}" />
+                              Foreground="{ThemeResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_Settings_Title"
                                Style="{StaticResource HeadingMediumStyle}"
@@ -393,7 +393,7 @@
                     <FontIcon Glyph="&#xE765;"
                               FontFamily="Segoe MDL2 Assets"
                               FontSize="20"
-                              Foreground="{StaticResource TextAccentBrush}" />
+                              Foreground="{ThemeResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_KeyboardShortcuts_Title"
                                Style="{StaticResource HeadingMediumStyle}"
@@ -407,9 +407,9 @@
                 <StackPanel Spacing="0">
 
                     <!-- Table Header -->
-                    <Border Background="{StaticResource InputBackgroundBrush}"
+                    <Border Background="{ThemeResource InputBackgroundBrush}"
                             CornerRadius="8,8,0,0"
-                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                            BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"
                             Padding="16,10">
                         <Grid>
@@ -425,7 +425,7 @@
                     </Border>
 
                     <!-- Ctrl+K -->
-                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"
                             Padding="16,12">
                         <Grid>
@@ -438,23 +438,23 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                    <Border Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{ThemeResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" />
-                                    <Border Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="K" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
                             </Grid>
                             <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action1"
@@ -463,7 +463,7 @@
                     </Border>
 
                     <!-- Ctrl+N -->
-                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"
                             Padding="16,12">
                         <Grid>
@@ -476,23 +476,23 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                    <Border Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{ThemeResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" />
-                                    <Border Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="N" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
                             </Grid>
                             <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action2"
@@ -501,7 +501,7 @@
                     </Border>
 
                     <!-- Ctrl+I -->
-                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"
                             Padding="16,12">
                         <Grid>
@@ -514,23 +514,23 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                    <Border Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{ThemeResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" />
-                                    <Border Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="I" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
                             </Grid>
                             <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action3"
@@ -539,7 +539,7 @@
                     </Border>
 
                     <!-- Ctrl+F -->
-                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"
                             Padding="16,12">
                         <Grid>
@@ -552,23 +552,23 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                    <Border Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{ThemeResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" />
-                                    <Border Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="F" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
                             </Grid>
                             <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action4"
@@ -577,7 +577,7 @@
                     </Border>
 
                     <!-- Ctrl+Shift+F -->
-                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"
                             Padding="16,12">
                         <Grid>
@@ -590,33 +590,33 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                    <Border Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{ThemeResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" />
-                                    <Border Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="Shift" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Text="+" Foreground="{ThemeResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" />
-                                    <Border Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="F" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
                             </Grid>
                             <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action5"
@@ -625,7 +625,7 @@
                     </Border>
 
                     <!-- Ctrl+, -->
-                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"
                             Padding="16,12">
                         <Grid>
@@ -638,23 +638,23 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                    <Border Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{ThemeResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" />
-                                    <Border Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="," Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
                             </Grid>
                             <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action6"
@@ -663,7 +663,7 @@
                     </Border>
 
                     <!-- Escape -->
-                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"
                             Padding="16,12">
                         <Grid>
@@ -676,13 +676,13 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                    <Border Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="Esc" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
                             </Grid>
                             <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action7"
@@ -691,7 +691,7 @@
                     </Border>
 
                     <!-- F1 -->
-                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"
                             Padding="16,12">
                         <Grid>
@@ -704,13 +704,13 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                    <Border Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="F1" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
                             </Grid>
                             <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action8"
@@ -719,7 +719,7 @@
                     </Border>
 
                     <!-- Ctrl+P -->
-                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"
                             Padding="16,12">
                         <Grid>
@@ -733,24 +733,24 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                    <Border Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{ThemeResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" Margin="4,0" />
-                                    <Border Grid.Column="2" Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Grid.Column="2" Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4"
                                             HorizontalAlignment="Left">
                                         <TextBlock Text="P" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
                             </Grid>
                             <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action9"
@@ -759,7 +759,7 @@
                     </Border>
 
                     <!-- Ctrl+D -->
-                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"
                             Padding="16,12">
                         <Grid>
@@ -773,24 +773,24 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                    <Border Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{ThemeResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" Margin="4,0" />
-                                    <Border Grid.Column="2" Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Grid.Column="2" Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4"
                                             HorizontalAlignment="Left">
                                         <TextBlock Text="D" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
                             </Grid>
                             <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action10"
@@ -799,7 +799,7 @@
                     </Border>
 
                     <!-- Ctrl+G -->
-                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"
                             Padding="16,12">
                         <Grid>
@@ -813,24 +813,24 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                    <Border Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{ThemeResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" Margin="4,0" />
-                                    <Border Grid.Column="2" Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Grid.Column="2" Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4"
                                             HorizontalAlignment="Left">
                                         <TextBlock Text="G" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
                             </Grid>
                             <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action11"
@@ -839,7 +839,7 @@
                     </Border>
 
                     <!-- Ctrl+Shift+W -->
-                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"
                             Padding="16,12">
                         <Grid>
@@ -855,34 +855,34 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                    <Border Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{ThemeResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" Margin="4,0" />
-                                    <Border Grid.Column="2" Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Grid.Column="2" Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="Shift" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Grid.Column="3" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="3" Text="+" Foreground="{ThemeResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" Margin="4,0" />
-                                    <Border Grid.Column="4" Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Grid.Column="4" Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4"
                                             HorizontalAlignment="Left">
                                         <TextBlock Text="W" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
                             </Grid>
                             <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action12"
@@ -891,7 +891,7 @@
                     </Border>
 
                     <!-- Ctrl+Shift+E -->
-                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"
                             Padding="16,12">
                         <Grid>
@@ -907,34 +907,34 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                    <Border Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{ThemeResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" Margin="4,0" />
-                                    <Border Grid.Column="2" Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Grid.Column="2" Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="Shift" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Grid.Column="3" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="3" Text="+" Foreground="{ThemeResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" Margin="4,0" />
-                                    <Border Grid.Column="4" Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Grid.Column="4" Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4"
                                             HorizontalAlignment="Left">
                                         <TextBlock Text="E" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
                             </Grid>
                             <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action13"
@@ -943,7 +943,7 @@
                     </Border>
 
                     <!-- Ctrl+Shift+A -->
-                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"
                             Padding="16,12">
                         <Grid>
@@ -959,34 +959,34 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                    <Border Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{ThemeResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" Margin="4,0" />
-                                    <Border Grid.Column="2" Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Grid.Column="2" Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="Shift" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Grid.Column="3" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="3" Text="+" Foreground="{ThemeResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" Margin="4,0" />
-                                    <Border Grid.Column="4" Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Grid.Column="4" Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4"
                                             HorizontalAlignment="Left">
                                         <TextBlock Text="A" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
                             </Grid>
                             <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action14"
@@ -995,7 +995,7 @@
                     </Border>
 
                     <!-- Ctrl+Shift+O -->
-                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"
                             Padding="16,12">
                         <Grid>
@@ -1011,34 +1011,34 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                    <Border Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{ThemeResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" Margin="4,0" />
-                                    <Border Grid.Column="2" Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Grid.Column="2" Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="Shift" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Grid.Column="3" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="3" Text="+" Foreground="{ThemeResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" Margin="4,0" />
-                                    <Border Grid.Column="4" Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Grid.Column="4" Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4"
                                             HorizontalAlignment="Left">
                                         <TextBlock Text="O" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
                             </Grid>
                             <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action15"
@@ -1047,7 +1047,7 @@
                     </Border>
 
                     <!-- Ctrl+1...9 (last row, closed bottom corners) -->
-                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1"
                             CornerRadius="0,0,8,8"
                             Padding="16,12">
@@ -1063,24 +1063,24 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                    <Border Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4">
                                         <TextBlock Text="Ctrl" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
-                                    <TextBlock Grid.Column="1" Text="+" Foreground="{StaticResource TextTertiaryBrush}"
+                                    <TextBlock Grid.Column="1" Text="+" Foreground="{ThemeResource TextTertiaryBrush}"
                                                VerticalAlignment="Center" FontSize="12" Margin="4,0" />
-                                    <Border Grid.Column="2" Background="{StaticResource CardElevatedBrush}"
-                                            BorderBrush="{StaticResource BorderMediumBrush}"
+                                    <Border Grid.Column="2" Background="{ThemeResource CardElevatedBrush}"
+                                            BorderBrush="{ThemeResource BorderMediumBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}"
                                             Padding="8,4"
                                             HorizontalAlignment="Left">
                                         <TextBlock Text="1 … 9" Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
                             </Grid>
                             <TextBlock Grid.Column="1" x:Uid="UserGuide_KeyboardShortcuts_Action16"
@@ -1111,7 +1111,7 @@
                     <FontIcon Glyph="&#xE773;"
                               FontFamily="Segoe MDL2 Assets"
                               FontSize="20"
-                              Foreground="{StaticResource TextAccentBrush}" />
+                              Foreground="{ThemeResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_CommandPalette_Title"
                                Style="{StaticResource HeadingMediumStyle}"
@@ -1132,11 +1132,11 @@
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
                                 CornerRadius="{StaticResource RadiusFull}"
-                                Background="{StaticResource AccentSubtleBrush}"
+                                Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="1"
                                        FontSize="13" FontWeight="Bold"
-                                       Foreground="{StaticResource TextAccentBrush}"
+                                       Foreground="{ThemeResource TextAccentBrush}"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
@@ -1150,11 +1150,11 @@
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
                                 CornerRadius="{StaticResource RadiusFull}"
-                                Background="{StaticResource AccentSubtleBrush}"
+                                Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="2"
                                        FontSize="13" FontWeight="Bold"
-                                       Foreground="{StaticResource TextAccentBrush}"
+                                       Foreground="{ThemeResource TextAccentBrush}"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
@@ -1168,11 +1168,11 @@
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
                                 CornerRadius="{StaticResource RadiusFull}"
-                                Background="{StaticResource AccentSubtleBrush}"
+                                Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="3"
                                        FontSize="13" FontWeight="Bold"
-                                       Foreground="{StaticResource TextAccentBrush}"
+                                       Foreground="{ThemeResource TextAccentBrush}"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
@@ -1201,7 +1201,7 @@
                     <FontIcon Glyph="&#xE8A5;"
                               FontFamily="Segoe MDL2 Assets"
                               FontSize="20"
-                              Foreground="{StaticResource TextAccentBrush}" />
+                              Foreground="{ThemeResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_FileFormats_Title"
                                Style="{StaticResource HeadingMediumStyle}"
@@ -1215,9 +1215,9 @@
                 <StackPanel Spacing="0">
 
                     <!-- Table Header -->
-                    <Border Background="{StaticResource InputBackgroundBrush}"
+                    <Border Background="{ThemeResource InputBackgroundBrush}"
                             CornerRadius="8,8,0,0"
-                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                            BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"
                             Padding="16,10">
                         <Grid>
@@ -1236,7 +1236,7 @@
                     </Border>
 
                     <!-- PDF -->
-                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"
                             Padding="16,12">
                         <Grid>
@@ -1254,7 +1254,7 @@
                     </Border>
 
                     <!-- Word -->
-                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"
                             Padding="16,12">
                         <Grid>
@@ -1272,7 +1272,7 @@
                     </Border>
 
                     <!-- Plain Text -->
-                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"
                             Padding="16,12">
                         <Grid>
@@ -1290,7 +1290,7 @@
                     </Border>
 
                     <!-- Markdown -->
-                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"
                             Padding="16,12">
                         <Grid>
@@ -1308,7 +1308,7 @@
                     </Border>
 
                     <!-- Code Files -->
-                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"
                             Padding="16,12">
                         <Grid>
@@ -1327,7 +1327,7 @@
                     </Border>
 
                     <!-- Images (last row, bottom corners) -->
-                    <Border BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1"
                             CornerRadius="0,0,8,8"
                             Padding="16,12">
@@ -1368,7 +1368,7 @@
                     <FontIcon Glyph="&#xE90F;"
                               FontFamily="Segoe MDL2 Assets"
                               FontSize="20"
-                              Foreground="{StaticResource TextAccentBrush}" />
+                              Foreground="{ThemeResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_Troubleshooting_Title"
                                Style="{StaticResource HeadingMediumStyle}"
@@ -1387,7 +1387,7 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xEA39;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                      Foreground="{StaticResource WarningBrush}" />
+                                      Foreground="{ThemeResource WarningBrush}" />
                             <TextBlock Grid.Column="1" x:Uid="UserGuide_Troubleshooting_Issue1_Title"
                                        Style="{StaticResource HeadingSmallStyle}" />
                         </Grid>
@@ -1405,7 +1405,7 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xEA39;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                      Foreground="{StaticResource WarningBrush}" />
+                                      Foreground="{ThemeResource WarningBrush}" />
                             <TextBlock Grid.Column="1" x:Uid="UserGuide_Troubleshooting_Issue2_Title"
                                        Style="{StaticResource HeadingSmallStyle}" />
                         </Grid>
@@ -1423,7 +1423,7 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xEA39;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                      Foreground="{StaticResource WarningBrush}" />
+                                      Foreground="{ThemeResource WarningBrush}" />
                             <TextBlock Grid.Column="1" x:Uid="UserGuide_Troubleshooting_Issue3_Title"
                                        Style="{StaticResource HeadingSmallStyle}" />
                         </Grid>
@@ -1441,7 +1441,7 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xEA39;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                      Foreground="{StaticResource WarningBrush}" />
+                                      Foreground="{ThemeResource WarningBrush}" />
                             <TextBlock Grid.Column="1" x:Uid="UserGuide_Troubleshooting_Issue4_Title"
                                        Style="{StaticResource HeadingSmallStyle}" />
                         </Grid>
@@ -1459,7 +1459,7 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xEA39;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                      Foreground="{StaticResource WarningBrush}" />
+                                      Foreground="{ThemeResource WarningBrush}" />
                             <TextBlock Grid.Column="1" x:Uid="UserGuide_Troubleshooting_Issue5_Title"
                                        Style="{StaticResource HeadingSmallStyle}" />
                         </Grid>
@@ -1486,7 +1486,7 @@
                     <FontIcon Glyph="&#xE72E;"
                               FontFamily="Segoe MDL2 Assets"
                               FontSize="20"
-                              Foreground="{StaticResource TextAccentBrush}" />
+                              Foreground="{ThemeResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_Privacy_Title"
                                Style="{StaticResource HeadingMediumStyle}"
@@ -1547,7 +1547,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE7BA;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Privacy_Point5" />
                     </Grid>
@@ -1571,7 +1571,7 @@
                     <FontIcon Glyph="&#xE897;"
                               FontFamily="Segoe MDL2 Assets"
                               FontSize="20"
-                              Foreground="{StaticResource TextAccentBrush}" />
+                              Foreground="{ThemeResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_GettingHelp_Title"
                                Style="{StaticResource HeadingMediumStyle}"
@@ -1595,13 +1595,13 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <FontIcon Glyph="&#xE715;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                          Foreground="{StaticResource TextAccentBrush}" />
+                                          Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock Grid.Column="1" x:Uid="UserGuide_GettingHelp_Email_Title"
                                            Style="{StaticResource AccentBodyStyle}" />
                             </Grid>
                             <TextBlock Text="support@strategia-x.com"
                                        Style="{StaticResource MonoStyle}"
-                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                       Foreground="{ThemeResource TextSecondaryBrush}" />
                             <TextBlock x:Uid="UserGuide_GettingHelp_Email_Description"
                                        Style="{StaticResource BodySmallStyle}" />
                         </StackPanel>
@@ -1615,13 +1615,13 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <FontIcon Glyph="&#xE774;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                          Foreground="{StaticResource TextAccentBrush}" />
+                                          Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock Grid.Column="1" x:Uid="UserGuide_GettingHelp_Docs_Title"
                                            Style="{StaticResource AccentBodyStyle}" />
                             </Grid>
                             <TextBlock Text="docs.strategia-x.com"
                                        Style="{StaticResource MonoStyle}"
-                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                       Foreground="{ThemeResource TextSecondaryBrush}" />
                             <TextBlock x:Uid="UserGuide_GettingHelp_Docs_Description"
                                        Style="{StaticResource BodySmallStyle}" />
                         </StackPanel>
