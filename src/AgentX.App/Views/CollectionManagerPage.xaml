@@ -22,9 +22,39 @@
     </Page.Resources>
 
     <Grid Background="{StaticResource PageBackgroundBrush}">
+
+        <!-- ═══════ ADAPTIVE LAYOUT (Tier 3) — see Colors.xaml breakpoints ═══════
+             Narrow (<960):  sidebar 260   |  Medium (>=960): sidebar 300
+             Wide (>=1280):  sidebar 320 (markup default) -->
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="LayoutStates">
+                <VisualState x:Name="NarrowState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="SidebarColumn.Width" Value="260" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="MediumState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="960" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="SidebarColumn.Width" Value="300" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="WideState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="1280" />
+                    </VisualState.StateTriggers>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
         <Grid.ColumnDefinitions>
-            <!-- Left panel: Collection tree (fixed width) -->
-            <ColumnDefinition Width="320" />
+            <!-- Left panel: Collection tree (adaptive width — 260/300/320) -->
+            <ColumnDefinition x:Name="SidebarColumn" Width="320" />
             <!-- Right panel: Selected collection detail -->
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>

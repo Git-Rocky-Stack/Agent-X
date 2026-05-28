@@ -26,11 +26,41 @@
          ============================================================= -->
 
     <Grid Background="{StaticResource PageBackgroundBrush}">
+
+        <!-- ═══════ ADAPTIVE LAYOUT (Tier 3) — see Colors.xaml breakpoints ═══════
+             Narrow (<960):  history pane 240   |  Medium (>=960): 260
+             Wide (>=1280):  280 (markup default) -->
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="LayoutStates">
+                <VisualState x:Name="NarrowState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="SidebarColumn.Width" Value="240" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="MediumState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="960" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="SidebarColumn.Width" Value="260" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="WideState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="1280" />
+                    </VisualState.StateTriggers>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
         <Grid.ColumnDefinitions>
             <!-- Main search area -->
             <ColumnDefinition Width="*" />
-            <!-- History sidebar -->
-            <ColumnDefinition Width="280" />
+            <!-- History sidebar (adaptive width — 240/260/280) -->
+            <ColumnDefinition x:Name="SidebarColumn" Width="280" />
         </Grid.ColumnDefinitions>
 
         <!-- =============================================================
