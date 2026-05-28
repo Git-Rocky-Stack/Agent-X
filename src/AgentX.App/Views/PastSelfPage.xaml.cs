@@ -65,6 +65,13 @@ public sealed partial class PastSelfPage : Page, INotifyPropertyChanged
 
     private void TimeRange_Checked(object sender, RoutedEventArgs e)
     {
+        // IsChecked="True" on the default RadioButton fires this handler DURING
+        // InitializeComponent(), before the constructor assigns ViewModel. The
+        // post-InitializeComponent OnNavigatedTo sets the default explicitly,
+        // so a null ViewModel here is the XAML-load pass and must be a no-op.
+        // Without this guard, the NRE bubbles up as XamlParseException and the
+        // page silently fails to realize (Frame.NavigationFailed logs it).
+        if (ViewModel == null) return;
         if (sender is RadioButton rb && rb.Tag is string tagStr && int.TryParse(tagStr, out int timeRange))
         {
             ViewModel.SelectedTimeRange = timeRange;
