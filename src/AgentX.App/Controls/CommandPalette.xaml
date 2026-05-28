@@ -38,23 +38,10 @@
                 <TranslateTransform x:Name="PaletteTranslate" Y="-12" />
             </Border.RenderTransform>
 
-            <!-- Subtle red glow at top of card -->
+            <!-- Removed: 5-stop red→transparent decorative top bar. The
+                 palette card now reads on its own borders + elevation; no
+                 painted accent line at the top. -->
             <Grid>
-                <Border CornerRadius="16,16,0,0"
-                        Height="2"
-                        VerticalAlignment="Top"
-                        IsHitTestVisible="False">
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                            <GradientStop Color="Transparent" Offset="0.0" />
-                            <GradientStop Color="{StaticResource RedGlow30}" Offset="0.3" />
-                            <GradientStop Color="{StaticResource Red500}" Offset="0.5" />
-                            <GradientStop Color="{StaticResource RedGlow30}" Offset="0.7" />
-                            <GradientStop Color="Transparent" Offset="1.0" />
-                        </LinearGradientBrush>
-                    </Border.Background>
-                </Border>
-
                 <StackPanel>
 
                     <!-- ═══════════════════════════════════════

@@ -391,18 +391,11 @@
                  ROW 8: DISCLAIMER OF WARRANTIES (Warning-style card)
                  ══════════════════════════════════════════════════════════ -->
             <Border Grid.Row="8"
+                    Background="{StaticResource CardElevatedBrush}"
                     CornerRadius="{StaticResource RadiusLG}"
                     Padding="{StaticResource PaddingCard}"
                     BorderThickness="1"
-                    BorderBrush="{StaticResource WarningBrush}"
-                    Opacity="1">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#1AF59E0B" Offset="0.0" />
-                        <GradientStop Color="{StaticResource Surface1}" Offset="0.35" />
-                        <GradientStop Color="{StaticResource Surface0}" Offset="1.0" />
-                    </LinearGradientBrush>
-                </Border.Background>
+                    BorderBrush="{StaticResource WarningBrush}">
 
                 <StackPanel Spacing="12">
                     <StackPanel Orientation="Horizontal" Spacing="10">
@@ -471,18 +464,11 @@
                  ROW 9: LIMITATION OF LIABILITY (Warning-style card)
                  ══════════════════════════════════════════════════════════ -->
             <Border Grid.Row="9"
+                    Background="{StaticResource CardElevatedBrush}"
                     CornerRadius="{StaticResource RadiusLG}"
                     Padding="{StaticResource PaddingCard}"
                     BorderThickness="1"
-                    BorderBrush="{StaticResource WarningBrush}"
-                    Opacity="1">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#1AF59E0B" Offset="0.0" />
-                        <GradientStop Color="{StaticResource Surface1}" Offset="0.35" />
-                        <GradientStop Color="{StaticResource Surface0}" Offset="1.0" />
-                    </LinearGradientBrush>
-                </Border.Background>
+                    BorderBrush="{StaticResource WarningBrush}">
 
                 <StackPanel Spacing="12">
                     <StackPanel Orientation="Horizontal" Spacing="10">
