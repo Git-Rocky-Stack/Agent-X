@@ -346,7 +346,7 @@
                                 Style="{StaticResource GhostButtonStyle}"
                                 Padding="10,4,10,4"
                                 MinHeight="28"
-                                FontSize="11"
+                                FontSize="12"
                                 Click="OnFolderFilterClick"
                                 Tag="" />
                         <ItemsRepeater ItemsSource="{x:Bind ViewModel.FolderNames, Mode=OneWay}">
@@ -359,7 +359,7 @@
                                             Style="{StaticResource GhostButtonStyle}"
                                             Padding="10,4,10,4"
                                             MinHeight="28"
-                                            FontSize="11"
+                                            FontSize="12"
                                             Click="OnFolderFilterClick"
                                             Tag="{x:Bind}" />
                                 </DataTemplate>
