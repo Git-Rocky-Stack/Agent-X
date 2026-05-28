@@ -5,8 +5,16 @@
     ╔══════════════════════════════════════════════════════════════════╗
     ║                 AGENT-X CONTROL STYLE SYSTEM                    ║
     ║                                                                  ║
-    ║  Buttons, Cards, Inputs, Badges — all with gradient depth,       ║
-    ║  smooth transitions, and premium interaction states.             ║
+    ║  Buttons, Cards, Inputs, Badges — flat surfaces with crisp 1px   ║
+    ║  borders, deliberate corner radii, and quiet interaction state   ║
+    ║  transitions (no gradient fades, no ambient glows).              ║
+    ║                                                                  ║
+    ║  Button typography (deliberate hierarchy — confirmed consistent):║
+    ║    14px / SemiBold / 40px min-height — AccentButton, Secondary   ║
+    ║    14px / Normal   / 36px min-height — Ghost, GhostToggle        ║
+    ║    12px / SemiBold / 32px min-height — FilterChip (compact)      ║
+    ║    36x36 circle                       — IconButton               ║
+    ║  FontFamily = FontPrimary across all button tiers.               ║
     ╚══════════════════════════════════════════════════════════════════╝
     -->
 

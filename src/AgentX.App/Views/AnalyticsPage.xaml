@@ -812,6 +812,7 @@
                             <Button Grid.Column="1"
                                     Command="{x:Bind ViewModel.RunConversationRecallCommand}"
                                     Content="Search Recall"
+                                    Style="{StaticResource SecondaryButtonStyle}"
                                     MinWidth="140" />
                         </Grid>
 
