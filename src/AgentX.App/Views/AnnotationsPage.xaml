@@ -53,8 +53,8 @@
              LEFT PANEL: Filters & Stats
              ══════════════════════════════════════════════════════════ -->
         <Border Grid.Column="0"
-                Background="{StaticResource CardGradientSubtleBrush}"
-                BorderBrush="{StaticResource BorderSubtleBrush}"
+                Background="{ThemeResource CardGradientSubtleBrush}"
+                BorderBrush="{ThemeResource BorderSubtleBrush}"
                 BorderThickness="0,0,1,0">
             <StackPanel Padding="20" Spacing="20">
                 <!-- Header -->
@@ -169,9 +169,9 @@
                         </ItemsRepeater.Layout>
                         <ItemsRepeater.ItemTemplate>
                             <DataTemplate x:DataType="vm:AnnotationDisplayItem">
-                                <Border Background="{StaticResource CardGradientBrush}"
+                                <Border Background="{ThemeResource CardGradientBrush}"
                                         CornerRadius="{StaticResource RadiusMD}"
-                                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                                        BorderBrush="{ThemeResource BorderSubtleBrush}"
                                         BorderThickness="1"
                                         Padding="20">
                                     <StackPanel Spacing="10">
@@ -202,7 +202,7 @@
                                                     Content="&#xE74D;"
                                                     FontFamily="{ThemeResource SymbolThemeFontFamily}"
                                                     FontSize="12"
-                                                    Foreground="{StaticResource ErrorBrush}"
+                                                    Foreground="{ThemeResource ErrorBrush}"
                                                     Style="{StaticResource GhostButtonStyle}"
                                                     Padding="6" MinWidth="0" MinHeight="0"
                                                     ToolTipService.ToolTip="Delete annotation"
@@ -210,10 +210,10 @@
                                         </Grid>
 
                                         <!-- Highlighted Text -->
-                                        <Border Background="{StaticResource InputBackgroundBrush}"
+                                        <Border Background="{ThemeResource InputBackgroundBrush}"
                                                 CornerRadius="{StaticResource RadiusSM}"
                                                 Padding="12,8"
-                                                BorderBrush="{StaticResource BorderSubtleBrush}"
+                                                BorderBrush="{ThemeResource BorderSubtleBrush}"
                                                 BorderThickness="1,1,1,1">
                                             <TextBlock Text="{x:Bind HighlightedText}"
                                                        Style="{StaticResource BodyStyle}"
@@ -242,7 +242,7 @@
                                 Visibility="{x:Bind ViewModel.HasAnnotations, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
                         <FontIcon Glyph="&#xE7BC;"
                                   FontSize="48"
-                                  Foreground="{StaticResource TextTertiaryBrush}"
+                                  Foreground="{ThemeResource TextTertiaryBrush}"
                                   HorizontalAlignment="Center" />
                         <TextBlock Text="No annotations yet"
                                    Style="{StaticResource BodySecondaryStyle}"

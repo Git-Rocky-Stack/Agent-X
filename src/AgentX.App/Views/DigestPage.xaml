@@ -61,7 +61,7 @@
                                 Padding="12,6">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE787;" FontSize="12"
-                                          Foreground="{StaticResource TextSecondaryBrush}" />
+                                          Foreground="{ThemeResource TextSecondaryBrush}" />
                                 <TextBlock Text="{x:Bind ViewModel.CurrentReport.PeriodFormatted, Mode=OneWay}"
                                            Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
@@ -93,11 +93,11 @@
                         <!-- New Documents -->
                         <Border Style="{StaticResource StatBadgeStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="12">
-                                <Border Background="{StaticResource AccentSubtleBrush}"
+                                <Border Background="{ThemeResource AccentSubtleBrush}"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Width="40" Height="40">
                                     <FontIcon Glyph="&#xE8F1;" FontSize="18"
-                                              Foreground="{StaticResource TextAccentBrush}"
+                                              Foreground="{ThemeResource TextAccentBrush}"
                                               HorizontalAlignment="Center"
                                               VerticalAlignment="Center" />
                                 </Border>
@@ -114,11 +114,11 @@
                         <!-- New Conversations -->
                         <Border Style="{StaticResource StatBadgeStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="12">
-                                <Border Background="{StaticResource InfoSubtleBrush}"
+                                <Border Background="{ThemeResource InfoSubtleBrush}"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Width="40" Height="40">
                                     <FontIcon Glyph="&#xE8BD;" FontSize="18"
-                                              Foreground="{StaticResource InfoBrush}"
+                                              Foreground="{ThemeResource InfoBrush}"
                                               HorizontalAlignment="Center"
                                               VerticalAlignment="Center" />
                                 </Border>
@@ -135,11 +135,11 @@
                         <!-- Searches -->
                         <Border Style="{StaticResource StatBadgeStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="12">
-                                <Border Background="{StaticResource WarningSubtleBrush}"
+                                <Border Background="{ThemeResource WarningSubtleBrush}"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Width="40" Height="40">
                                     <FontIcon Glyph="&#xE721;" FontSize="18"
-                                              Foreground="{StaticResource WarningBrush}"
+                                              Foreground="{ThemeResource WarningBrush}"
                                               HorizontalAlignment="Center"
                                               VerticalAlignment="Center" />
                                 </Border>
@@ -156,11 +156,11 @@
                         <!-- Tokens Used -->
                         <Border Style="{StaticResource StatBadgeStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="12">
-                                <Border Background="{StaticResource SuccessSubtleBrush}"
+                                <Border Background="{ThemeResource SuccessSubtleBrush}"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Width="40" Height="40">
                                     <FontIcon Glyph="&#xE945;" FontSize="18"
-                                              Foreground="{StaticResource SuccessBrush}"
+                                              Foreground="{ThemeResource SuccessBrush}"
                                               HorizontalAlignment="Center"
                                               VerticalAlignment="Center" />
                                 </Border>
@@ -176,11 +176,11 @@
                         <!-- Storage Delta -->
                         <Border Style="{StaticResource StatBadgeStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="12">
-                                <Border Background="{StaticResource GraphTagSubtleBrush}"
+                                <Border Background="{ThemeResource GraphTagSubtleBrush}"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Width="40" Height="40">
                                     <FontIcon Glyph="&#xEDA2;" FontSize="18"
-                                              Foreground="{StaticResource GraphTagBrush}"
+                                              Foreground="{ThemeResource GraphTagBrush}"
                                               HorizontalAlignment="Center"
                                               VerticalAlignment="Center" />
                                 </Border>
@@ -206,7 +206,7 @@
                                 Spacing="12"
                                 Margin="0,48,0,48">
                         <ProgressRing IsActive="True" Width="32" Height="32"
-                                      Foreground="{StaticResource AccentPrimaryBrush}" />
+                                      Foreground="{ThemeResource AccentPrimaryBrush}" />
                         <TextBlock Text="Loading digest reports..."
                                    Style="{StaticResource BodySecondaryStyle}"
                                    HorizontalAlignment="Center" />
@@ -218,12 +218,12 @@
                             Padding="48,64"
                             Margin="0,0,0,24">
                         <StackPanel HorizontalAlignment="Center" Spacing="16">
-                            <Border Background="{StaticResource AccentSubtleBrush}"
+                            <Border Background="{ThemeResource AccentSubtleBrush}"
                                     CornerRadius="{StaticResource RadiusFull}"
                                     Width="72" Height="72"
                                     HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE9D2;" FontSize="32"
-                                          Foreground="{StaticResource TextAccentBrush}"
+                                          Foreground="{ThemeResource TextAccentBrush}"
                                           HorizontalAlignment="Center"
                                           VerticalAlignment="Center" />
                             </Border>
@@ -262,11 +262,11 @@
                             <Border Grid.Column="0" Style="{StaticResource CardStyle}">
                                 <StackPanel Spacing="16">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <Border Background="{StaticResource WarningSubtleBrush}"
+                                        <Border Background="{ThemeResource WarningSubtleBrush}"
                                                 CornerRadius="{StaticResource RadiusMD}"
                                                 Width="32" Height="32">
                                             <FontIcon Glyph="&#xE721;" FontSize="14"
-                                                      Foreground="{StaticResource WarningBrush}"
+                                                      Foreground="{ThemeResource WarningBrush}"
                                                       HorizontalAlignment="Center"
                                                       VerticalAlignment="Center" />
                                         </Border>
@@ -299,7 +299,7 @@
                                                             Style="{StaticResource BadgeAccentStyle}"
                                                             Padding="8,2">
                                                         <TextBlock Style="{StaticResource CaptionStyle}"
-                                                                   Foreground="{StaticResource TextAccentBrush}">
+                                                                   Foreground="{ThemeResource TextAccentBrush}">
                                                             <Run Text="{x:Bind Count}" />
                                                         </TextBlock>
                                                     </Border>
@@ -320,11 +320,11 @@
                             <Border Grid.Column="1" Style="{StaticResource CardStyle}">
                                 <StackPanel Spacing="16">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <Border Background="{StaticResource InfoSubtleBrush}"
+                                        <Border Background="{ThemeResource InfoSubtleBrush}"
                                                 CornerRadius="{StaticResource RadiusMD}"
                                                 Width="32" Height="32">
                                             <FontIcon Glyph="&#xF168;" FontSize="14"
-                                                      Foreground="{StaticResource InfoBrush}"
+                                                      Foreground="{ThemeResource InfoBrush}"
                                                       HorizontalAlignment="Center"
                                                       VerticalAlignment="Center" />
                                         </Border>
@@ -383,11 +383,11 @@
                             <Border Grid.Column="0" Style="{StaticResource CardStyle}">
                                 <StackPanel Spacing="16">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <Border Background="{StaticResource GraphTagSubtleBrush}"
+                                        <Border Background="{ThemeResource GraphTagSubtleBrush}"
                                                 CornerRadius="{StaticResource RadiusMD}"
                                                 Width="32" Height="32">
                                             <FontIcon Glyph="&#xE8F1;" FontSize="14"
-                                                      Foreground="{StaticResource GraphTagBrush}"
+                                                      Foreground="{ThemeResource GraphTagBrush}"
                                                       HorizontalAlignment="Center"
                                                       VerticalAlignment="Center" />
                                         </Border>
@@ -410,13 +410,13 @@
                                                         <ColumnDefinition Width="*" />
                                                         <ColumnDefinition Width="Auto" />
                                                     </Grid.ColumnDefinitions>
-                                                    <Border Background="{StaticResource AccentSubtleBrush}"
+                                                    <Border Background="{ThemeResource AccentSubtleBrush}"
                                                             CornerRadius="4"
                                                             Padding="8,2"
                                                             Margin="0,0,10,0">
                                                         <TextBlock Text="{x:Bind Type}"
                                                                    Style="{StaticResource CaptionStyle}"
-                                                                   Foreground="{StaticResource TextAccentBrush}"
+                                                                   Foreground="{ThemeResource TextAccentBrush}"
                                                                    FontWeight="SemiBold"
                                                                    CharacterSpacing="40" />
                                                     </Border>
@@ -446,11 +446,11 @@
                             <Border Grid.Column="1" Style="{StaticResource CardStyle}">
                                 <StackPanel Spacing="16">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <Border Background="{StaticResource SuccessSubtleBrush}"
+                                        <Border Background="{ThemeResource SuccessSubtleBrush}"
                                                 CornerRadius="{StaticResource RadiusMD}"
                                                 Width="32" Height="32">
                                             <FontIcon Glyph="&#xE8BD;" FontSize="14"
-                                                      Foreground="{StaticResource SuccessBrush}"
+                                                      Foreground="{ThemeResource SuccessBrush}"
                                                       HorizontalAlignment="Center"
                                                       VerticalAlignment="Center" />
                                         </Border>
@@ -478,7 +478,7 @@
                                                         <StackPanel Orientation="Horizontal" Spacing="16">
                                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                                 <FontIcon Glyph="&#xE8BD;" FontSize="10"
-                                                                          Foreground="{StaticResource TextSecondaryBrush}" />
+                                                                          Foreground="{ThemeResource TextSecondaryBrush}" />
                                                                 <TextBlock Style="{StaticResource CaptionStyle}">
                                                                     <Run Text="{x:Bind MessageCount}" />
                                                                     <Run Text=" messages" />
@@ -486,7 +486,7 @@
                                                             </StackPanel>
                                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                                 <FontIcon Glyph="&#xE945;" FontSize="10"
-                                                                          Foreground="{StaticResource TextSecondaryBrush}" />
+                                                                          Foreground="{ThemeResource TextSecondaryBrush}" />
                                                                 <TextBlock Style="{StaticResource CaptionStyle}">
                                                                     <Run Text="{x:Bind TokensUsed}" />
                                                                     <Run Text=" tokens" />
@@ -517,8 +517,8 @@
              ═══════════════════════════════════════════════════════════ -->
         <Border Grid.Column="1"
                 Width="280"
-                Background="{StaticResource PageBackgroundBrush}"
-                BorderBrush="{StaticResource BorderSubtleBrush}"
+                Background="{ThemeResource PageBackgroundBrush}"
+                BorderBrush="{ThemeResource BorderSubtleBrush}"
                 BorderThickness="1,0,0,0"
                 Padding="20,32,20,20">
             <Grid RowSpacing="16">

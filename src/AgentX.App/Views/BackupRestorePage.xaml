@@ -75,7 +75,7 @@
                         <TextBlock Text="Total Estimated" Style="{StaticResource CaptionStyle}" />
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <TextBlock Style="{StaticResource HeadingSmallStyle}" FontWeight="Bold"
-                                       Foreground="{StaticResource AccentPrimaryBrush}">
+                                       Foreground="{ThemeResource AccentPrimaryBrush}">
                                 <Run Text="{x:Bind ViewModel.EstimatedSizeMB, Mode=OneWay}" />
                             </TextBlock>
                             <TextBlock Text="MB" Style="{StaticResource CaptionStyle}"
@@ -201,14 +201,14 @@
 
                     <!-- Restore Result -->
                     <Border Visibility="{x:Bind ViewModel.RestoreCompleted, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                            Background="{StaticResource AccentSubtleBrush}"
+                            Background="{ThemeResource AccentSubtleBrush}"
                             CornerRadius="{StaticResource RadiusSM}"
                             Padding="16">
                         <StackPanel Spacing="4">
                             <TextBlock Text="Restore Complete"
                                        Style="{StaticResource BodyStyle}"
                                        FontWeight="SemiBold"
-                                       Foreground="{StaticResource SuccessBrush}" />
+                                       Foreground="{ThemeResource SuccessBrush}" />
                             <TextBlock Text="{x:Bind ViewModel.RestoreSummary, Mode=OneWay}"
                                        Style="{StaticResource CaptionStyle}"
                                        TextWrapping="Wrap" />
@@ -235,7 +235,7 @@
                         </ItemsRepeater.Layout>
                         <ItemsRepeater.ItemTemplate>
                             <DataTemplate x:DataType="vm:BackupHistoryItem">
-                                <Border Background="{StaticResource CardGradientSubtleBrush}"
+                                <Border Background="{ThemeResource CardGradientSubtleBrush}"
                                         CornerRadius="{StaticResource RadiusSM}"
                                         Padding="16">
                                     <Grid ColumnSpacing="16">
@@ -250,7 +250,7 @@
                                         <FontIcon Grid.Column="0"
                                                   Glyph="&#xE8F1;"
                                                   FontSize="20"
-                                                  Foreground="{StaticResource AccentPrimaryBrush}"
+                                                  Foreground="{ThemeResource AccentPrimaryBrush}"
                                                   VerticalAlignment="Center" />
 
                                         <!-- Details -->
@@ -272,7 +272,7 @@
                                              state instead of a constant green "Valid". -->
                                         <Border Grid.Column="2"
                                                 CornerRadius="{StaticResource RadiusSM}"
-                                                Background="{StaticResource AccentSubtleBrush}"
+                                                Background="{ThemeResource AccentSubtleBrush}"
                                                 Padding="8,2"
                                                 VerticalAlignment="Center">
                                             <TextBlock Text="{x:Bind IntegrityLabel, Mode=OneWay}"
@@ -293,7 +293,7 @@
                                                     FontFamily="{ThemeResource SymbolThemeFontFamily}"
                                                     ToolTipService.ToolTip="Delete backup"
                                                     AutomationProperties.Name="Delete backup"
-                                                    Foreground="{StaticResource ErrorBrush}"
+                                                    Foreground="{ThemeResource ErrorBrush}"
                                                     Style="{StaticResource GhostButtonStyle}"
                                                     Tag="{x:Bind Id}"
                                                     Click="OnDeleteBackupClick"

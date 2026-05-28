@@ -65,7 +65,7 @@
                 <StackPanel Spacing="16" HorizontalAlignment="Center">
                     <ProgressRing IsActive="{x:Bind ViewModel.IsDetecting, Mode=OneWay}"
                                   Width="48" Height="48"
-                                  Foreground="{StaticResource AccentPrimaryBrush}" />
+                                  Foreground="{ThemeResource AccentPrimaryBrush}" />
                     <TextBlock Text="Scanning your hardware..."
                                Style="{StaticResource HeadingSmallStyle}"
                                HorizontalAlignment="Center" />
@@ -110,10 +110,10 @@
                         <!-- Header -->
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <Grid Width="40" Height="40">
-                                <Ellipse Fill="{StaticResource AccentSubtleBrush}"
+                                <Ellipse Fill="{ThemeResource AccentSubtleBrush}"
                                          Width="40" Height="40" />
                                 <FontIcon Glyph="&#xE964;" FontSize="18"
-                                          Foreground="{StaticResource TextAccentBrush}"
+                                          Foreground="{ThemeResource TextAccentBrush}"
                                           HorizontalAlignment="Center"
                                           VerticalAlignment="Center" />
                             </Grid>
@@ -150,10 +150,10 @@
                                 HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE735;" FontSize="10"
-                                          Foreground="{StaticResource TextAccentBrush}" />
+                                          Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock Text="{x:Bind ViewModel.GpuTier, Mode=OneWay}"
                                            Style="{StaticResource BadgeStyle}"
-                                           Foreground="{StaticResource TextAccentBrush}" />
+                                           Foreground="{ThemeResource TextAccentBrush}" />
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -165,10 +165,10 @@
                         <!-- Header -->
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <Grid Width="40" Height="40">
-                                <Ellipse Fill="{StaticResource InfoSubtleBrush}"
+                                <Ellipse Fill="{ThemeResource InfoSubtleBrush}"
                                          Width="40" Height="40" />
                                 <FontIcon Glyph="&#xE7F4;" FontSize="18"
-                                          Foreground="{StaticResource InfoBrush}"
+                                          Foreground="{ThemeResource InfoBrush}"
                                           HorizontalAlignment="Center"
                                           VerticalAlignment="Center" />
                             </Grid>
@@ -212,7 +212,7 @@
                                 HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE7F4;" FontSize="10"
-                                          Foreground="{StaticResource InfoBrush}" />
+                                          Foreground="{ThemeResource InfoBrush}" />
                                 <TextBlock Text="{x:Bind ViewModel.CpuArchitecture, Mode=OneWay}"
                                            Style="{StaticResource BadgeStyle}" />
                             </StackPanel>
@@ -226,10 +226,10 @@
                         <!-- Header -->
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <Grid Width="40" Height="40">
-                                <Ellipse Fill="{StaticResource SuccessSubtleBrush}"
+                                <Ellipse Fill="{ThemeResource SuccessSubtleBrush}"
                                          Width="40" Height="40" />
                                 <FontIcon Glyph="&#xE950;" FontSize="18"
-                                          Foreground="{StaticResource SuccessBrush}"
+                                          Foreground="{ThemeResource SuccessBrush}"
                                           HorizontalAlignment="Center"
                                           VerticalAlignment="Center" />
                             </Grid>
@@ -270,10 +270,10 @@
                             <StackPanel Orientation="Horizontal" Spacing="6"
                                         Visibility="{x:Bind ViewModel.HasNpu, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                                 <FontIcon Glyph="&#xE73E;" FontSize="10"
-                                          Foreground="{StaticResource SuccessBrush}" />
+                                          Foreground="{ThemeResource SuccessBrush}" />
                                 <TextBlock Text="{x:Bind ViewModel.NpuName, Mode=OneWay}"
                                            Style="{StaticResource BadgeStyle}"
-                                           Foreground="{StaticResource SuccessBrush}" />
+                                           Foreground="{ThemeResource SuccessBrush}" />
                             </StackPanel>
                         </Border>
 
@@ -283,7 +283,7 @@
                                 Visibility="{x:Bind ViewModel.HasNpu, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
                             <TextBlock Text="No NPU"
                                        Style="{StaticResource BadgeStyle}"
-                                       Foreground="{StaticResource TextTertiaryBrush}" />
+                                       Foreground="{ThemeResource TextTertiaryBrush}" />
                         </Border>
                     </StackPanel>
                 </Border>
@@ -303,7 +303,7 @@
                     <StackPanel Spacing="14">
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE945;" FontSize="20"
-                                      Foreground="{StaticResource TextAccentBrush}" />
+                                      Foreground="{ThemeResource TextAccentBrush}" />
                             <TextBlock Text="Recommended Configuration"
                                        Style="{StaticResource HeadingMediumStyle}" />
                         </StackPanel>
@@ -332,7 +332,7 @@
                                 HorizontalAlignment="Center">
                             <TextBlock Text="{x:Bind ViewModel.PerformanceTier, Mode=OneWay}"
                                        Style="{StaticResource HeadingSmallStyle}"
-                                       Foreground="{StaticResource TextAccentBrush}"
+                                       Foreground="{ThemeResource TextAccentBrush}"
                                        HorizontalAlignment="Center" />
                         </Border>
                     </StackPanel>
@@ -344,18 +344,18 @@
                  ======================================================= -->
             <Border Grid.Row="4"
                     Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                    Background="{StaticResource ErrorSubtleBrush}"
-                    BorderBrush="{StaticResource ErrorBrush}"
+                    Background="{ThemeResource ErrorSubtleBrush}"
+                    BorderBrush="{ThemeResource ErrorBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusMD}"
                     Padding="16,12">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <FontIcon Glyph="&#xE7BA;" FontSize="16"
-                              Foreground="{StaticResource ErrorBrush}"
+                              Foreground="{ThemeResource ErrorBrush}"
                               VerticalAlignment="Center" />
                     <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
                                Style="{StaticResource BodySmallStyle}"
-                               Foreground="{StaticResource ErrorBrush}"
+                               Foreground="{ThemeResource ErrorBrush}"
                                VerticalAlignment="Center" />
                 </StackPanel>
             </Border>
@@ -379,7 +379,7 @@
                             Visibility="{x:Bind HasItems(ViewModel.ChatModels.Count), Mode=OneWay}">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE8BD;" FontSize="16"
-                                  Foreground="{StaticResource TextAccentBrush}" />
+                                  Foreground="{ThemeResource TextAccentBrush}" />
                         <TextBlock Text="Chat Models"
                                    Style="{StaticResource HeadingSmallStyle}" />
                         <Border Style="{StaticResource BadgeDefaultStyle}"
@@ -415,7 +415,7 @@
                                                     Style="{StaticResource BadgeAccentStyle}">
                                                 <TextBlock Text="Chat"
                                                            Style="{StaticResource BadgeStyle}"
-                                                           Foreground="{StaticResource TextAccentBrush}" />
+                                                           Foreground="{ThemeResource TextAccentBrush}" />
                                             </Border>
                                         </Grid>
 
@@ -437,7 +437,7 @@
                                                     VerticalAlignment="Center">
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <FontIcon Glyph="&#xEDA2;" FontSize="10"
-                                                              Foreground="{StaticResource TextTertiaryBrush}" />
+                                                              Foreground="{ThemeResource TextTertiaryBrush}" />
                                                     <TextBlock Text="{x:Bind Size, Mode=OneWay}"
                                                                Style="{StaticResource BadgeStyle}" />
                                                 </StackPanel>
@@ -446,15 +446,15 @@
                                             <!-- Install button or Installed badge -->
                                             <Border Grid.Column="1"
                                                     Visibility="{x:Bind IsInstalled, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                                                    Background="{StaticResource SuccessSubtleBrush}"
+                                                    Background="{ThemeResource SuccessSubtleBrush}"
                                                     CornerRadius="{StaticResource RadiusRound}"
                                                     Padding="12,6,12,6">
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <FontIcon Glyph="&#xE73E;" FontSize="12"
-                                                              Foreground="{StaticResource SuccessBrush}" />
+                                                              Foreground="{ThemeResource SuccessBrush}" />
                                                     <TextBlock Text="Installed"
                                                                FontSize="12" FontWeight="SemiBold"
-                                                               Foreground="{StaticResource SuccessBrush}" />
+                                                               Foreground="{ThemeResource SuccessBrush}" />
                                                 </StackPanel>
                                             </Border>
 
@@ -482,7 +482,7 @@
                             Visibility="{x:Bind HasItems(ViewModel.CodeModels.Count), Mode=OneWay}">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE943;" FontSize="16"
-                                  Foreground="{StaticResource InfoBrush}" />
+                                  Foreground="{ThemeResource InfoBrush}" />
                         <TextBlock Text="Code Models"
                                    Style="{StaticResource HeadingSmallStyle}" />
                         <Border Style="{StaticResource BadgeDefaultStyle}"
@@ -514,12 +514,12 @@
                                                        Style="{StaticResource HeadingSmallStyle}" />
 
                                             <Border Grid.Column="1"
-                                                    Background="{StaticResource InfoSubtleBrush}"
+                                                    Background="{ThemeResource InfoSubtleBrush}"
                                                     CornerRadius="{StaticResource RadiusRound}"
                                                     Padding="10,4,10,4">
                                                 <TextBlock Text="Code"
                                                            Style="{StaticResource BadgeStyle}"
-                                                           Foreground="{StaticResource InfoBrush}" />
+                                                           Foreground="{ThemeResource InfoBrush}" />
                                             </Border>
                                         </Grid>
 
@@ -539,7 +539,7 @@
                                                     VerticalAlignment="Center">
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <FontIcon Glyph="&#xEDA2;" FontSize="10"
-                                                              Foreground="{StaticResource TextTertiaryBrush}" />
+                                                              Foreground="{ThemeResource TextTertiaryBrush}" />
                                                     <TextBlock Text="{x:Bind Size, Mode=OneWay}"
                                                                Style="{StaticResource BadgeStyle}" />
                                                 </StackPanel>
@@ -547,15 +547,15 @@
 
                                             <Border Grid.Column="1"
                                                     Visibility="{x:Bind IsInstalled, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                                                    Background="{StaticResource SuccessSubtleBrush}"
+                                                    Background="{ThemeResource SuccessSubtleBrush}"
                                                     CornerRadius="{StaticResource RadiusRound}"
                                                     Padding="12,6,12,6">
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <FontIcon Glyph="&#xE73E;" FontSize="12"
-                                                              Foreground="{StaticResource SuccessBrush}" />
+                                                              Foreground="{ThemeResource SuccessBrush}" />
                                                     <TextBlock Text="Installed"
                                                                FontSize="12" FontWeight="SemiBold"
-                                                               Foreground="{StaticResource SuccessBrush}" />
+                                                               Foreground="{ThemeResource SuccessBrush}" />
                                                 </StackPanel>
                                             </Border>
 
@@ -583,7 +583,7 @@
                             Visibility="{x:Bind HasItems(ViewModel.EmbeddingModels.Count), Mode=OneWay}">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xF168;" FontSize="16"
-                                  Foreground="{StaticResource SuccessBrush}" />
+                                  Foreground="{ThemeResource SuccessBrush}" />
                         <TextBlock Text="Embedding Models"
                                    Style="{StaticResource HeadingSmallStyle}" />
                         <Border Style="{StaticResource BadgeDefaultStyle}"
@@ -615,12 +615,12 @@
                                                        Style="{StaticResource HeadingSmallStyle}" />
 
                                             <Border Grid.Column="1"
-                                                    Background="{StaticResource SuccessSubtleBrush}"
+                                                    Background="{ThemeResource SuccessSubtleBrush}"
                                                     CornerRadius="{StaticResource RadiusRound}"
                                                     Padding="10,4,10,4">
                                                 <TextBlock Text="Embedding"
                                                            Style="{StaticResource BadgeStyle}"
-                                                           Foreground="{StaticResource SuccessBrush}" />
+                                                           Foreground="{ThemeResource SuccessBrush}" />
                                             </Border>
                                         </Grid>
 
@@ -640,7 +640,7 @@
                                                     VerticalAlignment="Center">
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <FontIcon Glyph="&#xEDA2;" FontSize="10"
-                                                              Foreground="{StaticResource TextTertiaryBrush}" />
+                                                              Foreground="{ThemeResource TextTertiaryBrush}" />
                                                     <TextBlock Text="{x:Bind Size, Mode=OneWay}"
                                                                Style="{StaticResource BadgeStyle}" />
                                                 </StackPanel>
@@ -648,15 +648,15 @@
 
                                             <Border Grid.Column="1"
                                                     Visibility="{x:Bind IsInstalled, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                                                    Background="{StaticResource SuccessSubtleBrush}"
+                                                    Background="{ThemeResource SuccessSubtleBrush}"
                                                     CornerRadius="{StaticResource RadiusRound}"
                                                     Padding="12,6,12,6">
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <FontIcon Glyph="&#xE73E;" FontSize="12"
-                                                              Foreground="{StaticResource SuccessBrush}" />
+                                                              Foreground="{ThemeResource SuccessBrush}" />
                                                     <TextBlock Text="Installed"
                                                                FontSize="12" FontWeight="SemiBold"
-                                                               Foreground="{StaticResource SuccessBrush}" />
+                                                               Foreground="{ThemeResource SuccessBrush}" />
                                                 </StackPanel>
                                             </Border>
 
@@ -689,10 +689,10 @@
                     Visibility="{x:Bind ViewModel.IsDetecting, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <FontIcon Glyph="&#xE72E;" FontSize="14"
-                              Foreground="{StaticResource SuccessBrush}" />
+                              Foreground="{ThemeResource SuccessBrush}" />
                     <TextBlock Style="{StaticResource BodySmallStyle}"
-                               Foreground="{StaticResource TextTertiaryBrush}">
-                        <Run Text="Local AI Only" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" />
+                               Foreground="{ThemeResource TextTertiaryBrush}">
+                        <Run Text="Local AI Only" FontWeight="SemiBold" Foreground="{ThemeResource TextSecondaryBrush}" />
                         <Run Text=" — All models run entirely on your hardware. No data is sent to external servers. Your hardware information never leaves this machine." />
                     </TextBlock>
                 </StackPanel>

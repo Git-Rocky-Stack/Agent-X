@@ -44,7 +44,7 @@
                                         <Border
                                             Grid.Column="1"
                                             Padding="6,2"
-                                            Background="{StaticResource InputBackgroundBrush}"
+                                            Background="{ThemeResource InputBackgroundBrush}"
                                             CornerRadius="{StaticResource RadiusSM}">
                                             <TextBlock
                                                 Text="{x:Bind DisplayChord}"

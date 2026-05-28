@@ -65,7 +65,7 @@
                             HorizontalAlignment="Center" Padding="8">
                     <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
                                   Width="20" Height="20"
-                                  Foreground="{StaticResource TextAccentBrush}" />
+                                  Foreground="{ThemeResource TextAccentBrush}" />
                     <TextBlock Text="Loading analytics data..."
                                Style="{StaticResource BodySecondaryStyle}"
                                VerticalAlignment="Center" />
@@ -94,7 +94,7 @@
                         <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8BD;" FontSize="13"
-                                          Foreground="{StaticResource TextAccentBrush}" />
+                                          Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock Text="CONVERSATIONS" Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
                             <TextBlock Text="{x:Bind ViewModel.TotalConversations, Mode=OneWay}"
@@ -111,7 +111,7 @@
                         <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8F2;" FontSize="13"
-                                          Foreground="{StaticResource InfoBrush}" />
+                                          Foreground="{ThemeResource InfoBrush}" />
                                 <TextBlock Text="MESSAGES" Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
                             <TextBlock Text="{x:Bind ViewModel.TotalMessages, Mode=OneWay}"
@@ -128,7 +128,7 @@
                         <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE9D9;" FontSize="13"
-                                          Foreground="{StaticResource WarningBrush}" />
+                                          Foreground="{ThemeResource WarningBrush}" />
                                 <TextBlock Text="TOKENS USED" Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
                             <TextBlock Text="{x:Bind ViewModel.TotalTokensUsed, Mode=OneWay}"
@@ -149,7 +149,7 @@
                         <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8F1;" FontSize="13"
-                                          Foreground="{StaticResource SuccessBrush}" />
+                                          Foreground="{ThemeResource SuccessBrush}" />
                                 <TextBlock Text="DOCUMENTS" Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
                             <TextBlock Text="{x:Bind ViewModel.TotalDocuments, Mode=OneWay}"
@@ -157,11 +157,11 @@
                             <StackPanel Orientation="Horizontal" Spacing="4">
                                 <TextBlock Text="{x:Bind ViewModel.DocumentsIndexed, Mode=OneWay}"
                                            Style="{StaticResource CaptionStyle}"
-                                           Foreground="{StaticResource SuccessBrush}" />
+                                           Foreground="{ThemeResource SuccessBrush}" />
                                 <TextBlock Text="indexed ·" Style="{StaticResource CaptionStyle}" />
                                 <TextBlock Text="{x:Bind ViewModel.DocumentsPending, Mode=OneWay}"
                                            Style="{StaticResource CaptionStyle}"
-                                           Foreground="{StaticResource WarningBrush}" />
+                                           Foreground="{ThemeResource WarningBrush}" />
                                 <TextBlock Text="pending" Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
                         </StackPanel>
@@ -174,7 +174,7 @@
                         <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE721;" FontSize="13"
-                                          Foreground="{StaticResource AccentHoverBrush}" />
+                                          Foreground="{ThemeResource AccentHoverBrush}" />
                                 <TextBlock Text="SEARCHES" Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
                             <TextBlock Text="{x:Bind ViewModel.TotalSearches, Mode=OneWay}"
@@ -191,7 +191,7 @@
                         <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE916;" FontSize="13"
-                                          Foreground="{StaticResource InfoBrush}" />
+                                          Foreground="{ThemeResource InfoBrush}" />
                                 <TextBlock Text="AVG RESPONSE" Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
                             <TextBlock Text="{x:Bind ViewModel.AverageResponseTime, Mode=OneWay}"
@@ -233,7 +233,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="16">
                             <StackPanel Orientation="Horizontal" Spacing="4">
                                 <Ellipse Width="6" Height="6"
-                                         Fill="{StaticResource SuccessBrush}"
+                                         Fill="{ThemeResource SuccessBrush}"
                                          VerticalAlignment="Center" />
                                 <TextBlock Style="{StaticResource CaptionStyle}">
                                     <Run Text="{x:Bind ViewModel.DocumentsIndexed, Mode=OneWay}" />
@@ -242,7 +242,7 @@
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="4">
                                 <Ellipse Width="6" Height="6"
-                                         Fill="{StaticResource WarningBrush}"
+                                         Fill="{ThemeResource WarningBrush}"
                                          VerticalAlignment="Center" />
                                 <TextBlock Style="{StaticResource CaptionStyle}">
                                     <Run Text="{x:Bind ViewModel.DocumentsPending, Mode=OneWay}" />
@@ -276,7 +276,7 @@
                     <StackPanel Spacing="4">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE8AF;" FontSize="14"
-                                      Foreground="{StaticResource TextAccentBrush}" />
+                                      Foreground="{ThemeResource TextAccentBrush}" />
                             <TextBlock Text="Workflow Intelligence"
                                        Style="{StaticResource HeadingSmallStyle}" />
                         </StackPanel>
@@ -300,8 +300,8 @@
                             </Grid.ColumnDefinitions>
 
                             <Border Grid.Column="0"
-                                    Background="{StaticResource InputBackgroundBrush}"
-                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                    Background="{ThemeResource InputBackgroundBrush}"
+                                    BorderBrush="{ThemeResource BorderSubtleBrush}"
                                     BorderThickness="1"
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Padding="16,12,16,12">
@@ -315,8 +315,8 @@
                             </Border>
 
                             <Border Grid.Column="1"
-                                    Background="{StaticResource InputBackgroundBrush}"
-                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                    Background="{ThemeResource InputBackgroundBrush}"
+                                    BorderBrush="{ThemeResource BorderSubtleBrush}"
                                     BorderThickness="1"
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Padding="16,12,16,12">
@@ -330,8 +330,8 @@
                             </Border>
 
                             <Border Grid.Column="2"
-                                    Background="{StaticResource InputBackgroundBrush}"
-                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                    Background="{ThemeResource InputBackgroundBrush}"
+                                    BorderBrush="{ThemeResource BorderSubtleBrush}"
                                     BorderThickness="1"
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Padding="16,12,16,12">
@@ -345,8 +345,8 @@
                             </Border>
 
                             <Border Grid.Column="3"
-                                    Background="{StaticResource AccentSubtleBrush}"
-                                    BorderBrush="{StaticResource BorderAccentGradientBrush}"
+                                    Background="{ThemeResource AccentSubtleBrush}"
+                                    BorderBrush="{ThemeResource BorderAccentGradientBrush}"
                                     BorderThickness="1"
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Padding="16,12,16,12">
@@ -354,7 +354,7 @@
                                     <TextBlock Text="ACTIVE WORKFLOWS (30D)" Style="{StaticResource OverlineStyle}" />
                                     <TextBlock Text="{x:Bind ViewModel.WorkflowActiveRecently, Mode=OneWay}"
                                                Style="{StaticResource MetricSmallStyle}"
-                                               Foreground="{StaticResource TextAccentBrush}" />
+                                               Foreground="{ThemeResource TextAccentBrush}" />
                                     <TextBlock Text="Distinct workflows used during the recent 30-day window"
                                                Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
@@ -365,7 +365,7 @@
 
                         <StackPanel Spacing="10">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <Ellipse Width="8" Height="8" Fill="{StaticResource ChartSeriesBrush}" VerticalAlignment="Center" />
+                                <Ellipse Width="8" Height="8" Fill="{ThemeResource ChartSeriesBrush}" VerticalAlignment="Center" />
                                 <TextBlock Text="30-Day Workflow Run Trend" Style="{StaticResource LabelStyle}" />
                             </StackPanel>
 
@@ -387,7 +387,7 @@
                                                   ToolTipService.ToolTip="{x:Bind Tooltip}">
                                                 <Rectangle Width="20"
                                                            Height="{x:Bind BarHeight}"
-                                                           Fill="{StaticResource ChartSeriesBrush}"
+                                                           Fill="{ThemeResource ChartSeriesBrush}"
                                                            RadiusX="2" RadiusY="2"
                                                            VerticalAlignment="Bottom"
                                                            HorizontalAlignment="Center" />
@@ -425,8 +425,8 @@
                                     </ItemsRepeater.Layout>
                                     <ItemsRepeater.ItemTemplate>
                                         <DataTemplate x:DataType="vm:AnalyticsWorkflowTopItem">
-                                            <Border Background="{StaticResource InputBackgroundBrush}"
-                                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                            <Border Background="{ThemeResource InputBackgroundBrush}"
+                                                    BorderBrush="{ThemeResource BorderSubtleBrush}"
                                                     BorderThickness="1"
                                                     CornerRadius="{StaticResource RadiusMD}"
                                                     Padding="16">
@@ -484,8 +484,8 @@
                                     </ItemsRepeater.Layout>
                                     <ItemsRepeater.ItemTemplate>
                                         <DataTemplate x:DataType="vm:AnalyticsWorkflowRecentRunItem">
-                                            <Border Background="{StaticResource InputBackgroundBrush}"
-                                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                            <Border Background="{ThemeResource InputBackgroundBrush}"
+                                                    BorderBrush="{ThemeResource BorderSubtleBrush}"
                                                     BorderThickness="1"
                                                     CornerRadius="{StaticResource RadiusMD}"
                                                     Padding="16">
@@ -510,7 +510,7 @@
                                                                 VerticalAlignment="Top">
                                                             <TextBlock Text="{x:Bind StatusLabel}"
                                                                        Style="{StaticResource CaptionStyle}"
-                                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                                                       Foreground="{ThemeResource TextSecondaryBrush}" />
                                                         </Border>
                                                     </Grid>
 
@@ -539,7 +539,7 @@
                     <StackPanel Spacing="4">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE8BD;" FontSize="14"
-                                      Foreground="{StaticResource TextAccentBrush}" />
+                                      Foreground="{ThemeResource TextAccentBrush}" />
                             <TextBlock Text="Conversation Intelligence"
                                        Style="{StaticResource HeadingSmallStyle}" />
                         </StackPanel>
@@ -556,8 +556,8 @@
                         </Grid.ColumnDefinitions>
 
                         <Border Grid.Column="0"
-                                Background="{StaticResource InputBackgroundBrush}"
-                                BorderBrush="{StaticResource BorderSubtleBrush}"
+                                Background="{ThemeResource InputBackgroundBrush}"
+                                BorderBrush="{ThemeResource BorderSubtleBrush}"
                                 BorderThickness="1"
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="16,12,16,12">
@@ -571,8 +571,8 @@
                         </Border>
 
                         <Border Grid.Column="1"
-                                Background="{StaticResource InputBackgroundBrush}"
-                                BorderBrush="{StaticResource BorderSubtleBrush}"
+                                Background="{ThemeResource InputBackgroundBrush}"
+                                BorderBrush="{ThemeResource BorderSubtleBrush}"
                                 BorderThickness="1"
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="16,12,16,12">
@@ -586,8 +586,8 @@
                         </Border>
 
                         <Border Grid.Column="2"
-                                Background="{StaticResource InputBackgroundBrush}"
-                                BorderBrush="{StaticResource BorderSubtleBrush}"
+                                Background="{ThemeResource InputBackgroundBrush}"
+                                BorderBrush="{ThemeResource BorderSubtleBrush}"
                                 BorderThickness="1"
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="16,12,16,12">
@@ -601,8 +601,8 @@
                         </Border>
 
                         <Border Grid.Column="3"
-                                Background="{StaticResource AccentSubtleBrush}"
-                                BorderBrush="{StaticResource BorderAccentGradientBrush}"
+                                Background="{ThemeResource AccentSubtleBrush}"
+                                BorderBrush="{ThemeResource BorderAccentGradientBrush}"
                                 BorderThickness="1"
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="16,12,16,12">
@@ -610,7 +610,7 @@
                                 <TextBlock Text="PENDING REFRESHES" Style="{StaticResource OverlineStyle}" />
                                 <TextBlock Text="{x:Bind ViewModel.PendingSummaryRefreshes, Mode=OneWay}"
                                            Style="{StaticResource MetricSmallStyle}"
-                                           Foreground="{StaticResource TextAccentBrush}" />
+                                           Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock Text="Conversations waiting for first-pass or incremental refresh"
                                            Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
@@ -619,8 +619,8 @@
 
                     <Border Style="{StaticResource SeparatorStyle}" />
 
-                    <Border Background="{StaticResource AccentSubtleBrush}"
-                            BorderBrush="{StaticResource AccentPrimaryBrush}"
+                    <Border Background="{ThemeResource AccentSubtleBrush}"
+                            BorderBrush="{ThemeResource AccentPrimaryBrush}"
                             BorderThickness="1"
                             CornerRadius="{StaticResource RadiusMD}"
                             Padding="16,14"
@@ -635,7 +635,7 @@
                                 <TextBlock Text="Focused Conversation Summary"
                                            Style="{StaticResource BodyStyle}"
                                            FontWeight="SemiBold"
-                                           Foreground="{StaticResource AccentPrimaryBrush}" />
+                                           Foreground="{ThemeResource AccentPrimaryBrush}" />
                                 <TextBlock Text="{x:Bind ViewModel.FocusedConversationSourceLabel, Mode=OneWay}"
                                            Style="{StaticResource BodySecondaryStyle}"
                                            TextWrapping="Wrap" />
@@ -657,8 +657,8 @@
                         </Grid>
                     </Border>
 
-                    <Border Background="{StaticResource InputBackgroundBrush}"
-                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                    <Border Background="{ThemeResource InputBackgroundBrush}"
+                            BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1"
                             CornerRadius="{StaticResource RadiusMD}"
                             Padding="14,12"
@@ -679,8 +679,8 @@
                         </ItemsRepeater.Layout>
                         <ItemsRepeater.ItemTemplate>
                             <DataTemplate x:DataType="vm:AnalyticsConversationSummaryItem">
-                                <Border Background="{StaticResource InputBackgroundBrush}"
-                                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                                <Border Background="{ThemeResource InputBackgroundBrush}"
+                                        BorderBrush="{ThemeResource BorderSubtleBrush}"
                                         BorderThickness="1"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Padding="16">
@@ -709,7 +709,7 @@
                                                     VerticalAlignment="Top">
                                                 <TextBlock Text="{x:Bind StatusLabel}"
                                                            Style="{StaticResource CaptionStyle}"
-                                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                                                           Foreground="{ThemeResource TextSecondaryBrush}" />
                                             </Border>
                                         </Grid>
 
@@ -722,7 +722,7 @@
                                                 Visibility="{x:Bind HasSourceLabel, Converter={StaticResource BoolToVis}, Mode=OneWay}">
                                             <TextBlock Text="Opened from Operations"
                                                        Style="{StaticResource BadgeStyle}"
-                                                       Foreground="{StaticResource TextAccentBrush}" />
+                                                       Foreground="{ThemeResource TextAccentBrush}" />
                                         </Border>
 
                                         <TextBlock Text="{x:Bind KeyPointsPreview}"
@@ -753,8 +753,8 @@
                             </Grid.ColumnDefinitions>
 
                             <Border Grid.Column="0"
-                                    Background="{StaticResource InputBackgroundBrush}"
-                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                    Background="{ThemeResource InputBackgroundBrush}"
+                                    BorderBrush="{ThemeResource BorderSubtleBrush}"
                                     BorderThickness="1"
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Padding="16,12,16,12">
@@ -768,8 +768,8 @@
                             </Border>
 
                             <Border Grid.Column="1"
-                                    Background="{StaticResource InputBackgroundBrush}"
-                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                    Background="{ThemeResource InputBackgroundBrush}"
+                                    BorderBrush="{ThemeResource BorderSubtleBrush}"
                                     BorderThickness="1"
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Padding="16,12,16,12">
@@ -783,8 +783,8 @@
                             </Border>
 
                             <Border Grid.Column="2"
-                                    Background="{StaticResource AccentSubtleBrush}"
-                                    BorderBrush="{StaticResource BorderAccentGradientBrush}"
+                                    Background="{ThemeResource AccentSubtleBrush}"
+                                    BorderBrush="{ThemeResource BorderAccentGradientBrush}"
                                     BorderThickness="1"
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Padding="16,12,16,12">
@@ -792,7 +792,7 @@
                                     <TextBlock Text="RECALL-READY CONVERSATIONS" Style="{StaticResource OverlineStyle}" />
                                     <TextBlock Text="{x:Bind ViewModel.RecallReadyConversations, Mode=OneWay}"
                                                Style="{StaticResource MetricSmallStyle}"
-                                               Foreground="{StaticResource TextAccentBrush}" />
+                                               Foreground="{ThemeResource TextAccentBrush}" />
                                     <TextBlock Text="{x:Bind ViewModel.LastMessageEmbeddingRefresh, Mode=OneWay}"
                                                Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
@@ -830,8 +830,8 @@
                             </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="vm:AnalyticsConversationRecallItem">
-                                    <Border Background="{StaticResource InputBackgroundBrush}"
-                                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                                    <Border Background="{ThemeResource InputBackgroundBrush}"
+                                            BorderBrush="{ThemeResource BorderSubtleBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusMD}"
                                             Padding="16">
@@ -841,7 +841,7 @@
                                                     Visibility="{Binding HasSourceLabel, Converter={StaticResource BoolToVis}}">
                                                 <TextBlock Text="{Binding SourceLabel}"
                                                            Style="{StaticResource BadgeStyle}"
-                                                           Foreground="{StaticResource TextAccentBrush}" />
+                                                           Foreground="{ThemeResource TextAccentBrush}" />
                                             </Border>
 
                                             <Grid ColumnSpacing="12">
@@ -864,7 +864,7 @@
                                                         VerticalAlignment="Top">
                                                     <TextBlock Text="{x:Bind SimilarityLabel}"
                                                                Style="{StaticResource CaptionStyle}"
-                                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                                               Foreground="{ThemeResource TextSecondaryBrush}" />
                                                 </Border>
                                             </Grid>
 
@@ -896,8 +896,8 @@
                                 </Grid.ColumnDefinitions>
 
                                 <Border Grid.Column="0"
-                                        Background="{StaticResource InputBackgroundBrush}"
-                                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                                        Background="{ThemeResource InputBackgroundBrush}"
+                                        BorderBrush="{ThemeResource BorderSubtleBrush}"
                                         BorderThickness="1"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Padding="16,12,16,12">
@@ -911,8 +911,8 @@
                                 </Border>
 
                                 <Border Grid.Column="1"
-                                        Background="{StaticResource InputBackgroundBrush}"
-                                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                                        Background="{ThemeResource InputBackgroundBrush}"
+                                        BorderBrush="{ThemeResource BorderSubtleBrush}"
                                         BorderThickness="1"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Padding="16,12,16,12">
@@ -926,8 +926,8 @@
                                 </Border>
 
                                 <Border Grid.Column="2"
-                                        Background="{StaticResource InputBackgroundBrush}"
-                                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                                        Background="{ThemeResource InputBackgroundBrush}"
+                                        BorderBrush="{ThemeResource BorderSubtleBrush}"
                                         BorderThickness="1"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Padding="16,12,16,12">
@@ -941,8 +941,8 @@
                                 </Border>
 
                                 <Border Grid.Column="3"
-                                        Background="{StaticResource AccentSubtleBrush}"
-                                        BorderBrush="{StaticResource BorderAccentGradientBrush}"
+                                        Background="{ThemeResource AccentSubtleBrush}"
+                                        BorderBrush="{ThemeResource BorderAccentGradientBrush}"
                                         BorderThickness="1"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Padding="16,12,16,12">
@@ -950,7 +950,7 @@
                                         <TextBlock Text="LAST MATERIALIZED" Style="{StaticResource OverlineStyle}" />
                                         <TextBlock Text="{x:Bind ViewModel.LastThemeMaterialized, Mode=OneWay}"
                                                    Style="{StaticResource MetricSmallStyle}"
-                                                   Foreground="{StaticResource TextAccentBrush}" />
+                                                   Foreground="{ThemeResource TextAccentBrush}" />
                                         <TextBlock Text="Latest durable cluster recomputation"
                                                    Style="{StaticResource CaptionStyle}" />
                                     </StackPanel>
@@ -968,8 +968,8 @@
                                 </ItemsRepeater.Layout>
                                 <ItemsRepeater.ItemTemplate>
                                     <DataTemplate x:DataType="vm:AnalyticsConversationThemeItem">
-                                        <Border Background="{StaticResource InputBackgroundBrush}"
-                                                BorderBrush="{StaticResource BorderSubtleBrush}"
+                                        <Border Background="{ThemeResource InputBackgroundBrush}"
+                                                BorderBrush="{ThemeResource BorderSubtleBrush}"
                                                 BorderThickness="1"
                                                 CornerRadius="{StaticResource RadiusMD}"
                                                 Padding="16">
@@ -995,7 +995,7 @@
                                                             VerticalAlignment="Top">
                                                         <TextBlock Text="{x:Bind LastActiveAtLabel}"
                                                                    Style="{StaticResource CaptionStyle}"
-                                                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                                                                   Foreground="{ThemeResource TextSecondaryBrush}" />
                                                     </Border>
                                                 </Grid>
 
@@ -1037,8 +1037,8 @@
                                     </Grid.ColumnDefinitions>
 
                                     <Border Grid.Column="0"
-                                            Background="{StaticResource InputBackgroundBrush}"
-                                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                                            Background="{ThemeResource InputBackgroundBrush}"
+                                            BorderBrush="{ThemeResource BorderSubtleBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusMD}"
                                             Padding="16,12,16,12">
@@ -1052,8 +1052,8 @@
                                     </Border>
 
                                     <Border Grid.Column="1"
-                                            Background="{StaticResource InputBackgroundBrush}"
-                                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                                            Background="{ThemeResource InputBackgroundBrush}"
+                                            BorderBrush="{ThemeResource BorderSubtleBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusMD}"
                                             Padding="16,12,16,12">
@@ -1067,8 +1067,8 @@
                                     </Border>
 
                                     <Border Grid.Column="2"
-                                            Background="{StaticResource InputBackgroundBrush}"
-                                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                                            Background="{ThemeResource InputBackgroundBrush}"
+                                            BorderBrush="{ThemeResource BorderSubtleBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusMD}"
                                             Padding="16,12,16,12">
@@ -1084,8 +1084,8 @@
                                     </Border>
 
                                     <Border Grid.Column="3"
-                                            Background="{StaticResource AccentSubtleBrush}"
-                                            BorderBrush="{StaticResource BorderAccentGradientBrush}"
+                                            Background="{ThemeResource AccentSubtleBrush}"
+                                            BorderBrush="{ThemeResource BorderAccentGradientBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusMD}"
                                             Padding="16,12,16,12">
@@ -1093,7 +1093,7 @@
                                             <TextBlock Text="LAST TREND REFRESH" Style="{StaticResource OverlineStyle}" />
                                             <TextBlock Text="{x:Bind ViewModel.LastThemeTrendRefresh, Mode=OneWay}"
                                                        Style="{StaticResource MetricSmallStyle}"
-                                                       Foreground="{StaticResource TextAccentBrush}" />
+                                                       Foreground="{ThemeResource TextAccentBrush}" />
                                             <TextBlock Text="Latest persisted theme-trend materialization"
                                                        Style="{StaticResource CaptionStyle}" />
                                         </StackPanel>
@@ -1111,8 +1111,8 @@
                                     </ItemsRepeater.Layout>
                                     <ItemsRepeater.ItemTemplate>
                                         <DataTemplate x:DataType="vm:AnalyticsConversationThemeTrendItem">
-                                            <Border Background="{StaticResource InputBackgroundBrush}"
-                                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                            <Border Background="{ThemeResource InputBackgroundBrush}"
+                                                    BorderBrush="{ThemeResource BorderSubtleBrush}"
                                                     BorderThickness="1"
                                                     CornerRadius="{StaticResource RadiusMD}"
                                                     Padding="16">
@@ -1139,7 +1139,7 @@
                                                                     HorizontalAlignment="Right">
                                                                 <TextBlock Text="{x:Bind MomentumLabel}"
                                                                            Style="{StaticResource CaptionStyle}"
-                                                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                                                                           Foreground="{ThemeResource TextSecondaryBrush}" />
                                                             </Border>
                                                             <TextBlock Text="{x:Bind LastActiveAtLabel}"
                                                                        Style="{StaticResource CaptionStyle}"
@@ -1163,13 +1163,13 @@
                                                             <DataTemplate x:DataType="vm:AnalyticsConversationThemeTrendBarItem">
                                                                 <Border Width="7"
                                                                         Height="48"
-                                                                        Background="{StaticResource AccentSubtleBrush}"
+                                                                        Background="{ThemeResource AccentSubtleBrush}"
                                                                         CornerRadius="3"
                                                                         VerticalAlignment="Bottom"
                                                                         ToolTipService.ToolTip="{x:Bind Tooltip}">
                                                                     <Grid VerticalAlignment="Stretch">
                                                                         <Border Height="{x:Bind BarHeight}"
-                                                                                Background="{StaticResource TextAccentBrush}"
+                                                                                Background="{ThemeResource TextAccentBrush}"
                                                                                 CornerRadius="3"
                                                                                 VerticalAlignment="Bottom" />
                                                                     </Grid>
@@ -1200,7 +1200,7 @@
                     <StackPanel Spacing="4">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE9D9;" FontSize="14"
-                                      Foreground="{StaticResource TextAccentBrush}" />
+                                      Foreground="{ThemeResource TextAccentBrush}" />
                             <TextBlock Text="Activity Trends"
                                        Style="{StaticResource HeadingSmallStyle}" />
                         </StackPanel>
@@ -1334,7 +1334,7 @@
                     <StackPanel Spacing="4">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE950;" FontSize="14"
-                                      Foreground="{StaticResource TextAccentBrush}" />
+                                      Foreground="{ThemeResource TextAccentBrush}" />
                             <TextBlock Text="Model Usage" Style="{StaticResource HeadingSmallStyle}" />
                         </StackPanel>
                         <TextBlock Text="AI model distribution by conversation count"
@@ -1369,7 +1369,7 @@
 
                                     <!-- Bar track -->
                                     <Grid Grid.Column="1" Height="8" VerticalAlignment="Center">
-                                        <Rectangle Fill="{StaticResource InputBackgroundBrush}"
+                                        <Rectangle Fill="{ThemeResource InputBackgroundBrush}"
                                                    RadiusX="4" RadiusY="4" />
                                         <!-- BarWidthFraction is 0.0–1.0; converter multiplies by
                                              ConverterParameter (400 px) to produce a pixel width. -->
@@ -1414,7 +1414,7 @@
                     <StackPanel Spacing="4">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE8F1;" FontSize="14"
-                                      Foreground="{StaticResource TextAccentBrush}" />
+                                      Foreground="{ThemeResource TextAccentBrush}" />
                             <TextBlock Text="Document Types" Style="{StaticResource HeadingSmallStyle}" />
                         </StackPanel>
                         <TextBlock Text="File type breakdown across your knowledge vault"
@@ -1448,12 +1448,12 @@
                                             VerticalAlignment="Center">
                                         <TextBlock Text="{x:Bind FileType}"
                                                    Style="{StaticResource MonoSmallStyle}"
-                                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                                                   Foreground="{ThemeResource TextSecondaryBrush}" />
                                     </Border>
 
                                     <!-- Bar track -->
                                     <Grid Grid.Column="1" Height="8" VerticalAlignment="Center">
-                                        <Rectangle Fill="{StaticResource InputBackgroundBrush}"
+                                        <Rectangle Fill="{ThemeResource InputBackgroundBrush}"
                                                    RadiusX="4" RadiusY="4" />
                                         <Rectangle HorizontalAlignment="Left"
                                                    RadiusX="4" RadiusY="4"
@@ -1504,7 +1504,7 @@
                     <StackPanel Spacing="4">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE916;" FontSize="14"
-                                      Foreground="{StaticResource TextAccentBrush}" />
+                                      Foreground="{ThemeResource TextAccentBrush}" />
                             <TextBlock Text="Performance Metrics" Style="{StaticResource HeadingSmallStyle}" />
                         </StackPanel>
                         <TextBlock Text="AI inference timing statistics across all assistant responses"
@@ -1532,8 +1532,8 @@
 
                         <!-- Average -->
                         <Border Grid.Row="0" Grid.Column="0"
-                                Background="{StaticResource InputBackgroundBrush}"
-                                BorderBrush="{StaticResource BorderSubtleBrush}"
+                                Background="{ThemeResource InputBackgroundBrush}"
+                                BorderBrush="{ThemeResource BorderSubtleBrush}"
                                 BorderThickness="1"
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="16,12,16,12">
@@ -1547,8 +1547,8 @@
 
                         <!-- Median P50 -->
                         <Border Grid.Row="0" Grid.Column="1"
-                                Background="{StaticResource InputBackgroundBrush}"
-                                BorderBrush="{StaticResource BorderSubtleBrush}"
+                                Background="{ThemeResource InputBackgroundBrush}"
+                                BorderBrush="{ThemeResource BorderSubtleBrush}"
                                 BorderThickness="1"
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="16,12,16,12">
@@ -1562,8 +1562,8 @@
 
                         <!-- P95 -->
                         <Border Grid.Row="0" Grid.Column="2"
-                                Background="{StaticResource InputBackgroundBrush}"
-                                BorderBrush="{StaticResource BorderSubtleBrush}"
+                                Background="{ThemeResource InputBackgroundBrush}"
+                                BorderBrush="{ThemeResource BorderSubtleBrush}"
                                 BorderThickness="1"
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="16,12,16,12">
@@ -1577,8 +1577,8 @@
 
                         <!-- Throughput (accent highlight) -->
                         <Border Grid.Row="0" Grid.Column="3"
-                                Background="{StaticResource AccentSubtleBrush}"
-                                BorderBrush="{StaticResource BorderAccentGradientBrush}"
+                                Background="{ThemeResource AccentSubtleBrush}"
+                                BorderBrush="{ThemeResource BorderAccentGradientBrush}"
                                 BorderThickness="1"
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="16,12,16,12">
@@ -1586,55 +1586,55 @@
                                 <TextBlock Text="THROUGHPUT" Style="{StaticResource OverlineStyle}" />
                                 <TextBlock Text="{x:Bind ViewModel.PerfTokensPerSecond, Mode=OneWay}"
                                            Style="{StaticResource MetricSmallStyle}"
-                                           Foreground="{StaticResource TextAccentBrush}" />
+                                           Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock Text="Avg tokens per second" Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
                         </Border>
 
                         <!-- Fastest -->
                         <Border Grid.Row="1" Grid.Column="0"
-                                Background="{StaticResource InputBackgroundBrush}"
-                                BorderBrush="{StaticResource BorderSubtleBrush}"
+                                Background="{ThemeResource InputBackgroundBrush}"
+                                BorderBrush="{ThemeResource BorderSubtleBrush}"
                                 BorderThickness="1"
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="16,12,16,12">
                             <StackPanel Spacing="4">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon Glyph="&#xE72A;" FontSize="11"
-                                              Foreground="{StaticResource SuccessBrush}" />
+                                              Foreground="{ThemeResource SuccessBrush}" />
                                     <TextBlock Text="FASTEST" Style="{StaticResource OverlineStyle}" />
                                 </StackPanel>
                                 <TextBlock Text="{x:Bind ViewModel.PerfFastest, Mode=OneWay}"
                                            Style="{StaticResource MetricSmallStyle}"
-                                           Foreground="{StaticResource SuccessBrush}" />
+                                           Foreground="{ThemeResource SuccessBrush}" />
                                 <TextBlock Text="Best observed response" Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
                         </Border>
 
                         <!-- Slowest -->
                         <Border Grid.Row="1" Grid.Column="1"
-                                Background="{StaticResource InputBackgroundBrush}"
-                                BorderBrush="{StaticResource BorderSubtleBrush}"
+                                Background="{ThemeResource InputBackgroundBrush}"
+                                BorderBrush="{ThemeResource BorderSubtleBrush}"
                                 BorderThickness="1"
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="16,12,16,12">
                             <StackPanel Spacing="4">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon Glyph="&#xE72B;" FontSize="11"
-                                              Foreground="{StaticResource WarningBrush}" />
+                                              Foreground="{ThemeResource WarningBrush}" />
                                     <TextBlock Text="SLOWEST" Style="{StaticResource OverlineStyle}" />
                                 </StackPanel>
                                 <TextBlock Text="{x:Bind ViewModel.PerfSlowest, Mode=OneWay}"
                                            Style="{StaticResource MetricSmallStyle}"
-                                           Foreground="{StaticResource WarningBrush}" />
+                                           Foreground="{ThemeResource WarningBrush}" />
                                 <TextBlock Text="Worst observed response" Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
                         </Border>
 
                         <!-- Total Inference Time — spans 2 columns -->
                         <Border Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2"
-                                Background="{StaticResource InputBackgroundBrush}"
-                                BorderBrush="{StaticResource BorderSubtleBrush}"
+                                Background="{ThemeResource InputBackgroundBrush}"
+                                BorderBrush="{ThemeResource BorderSubtleBrush}"
                                 BorderThickness="1"
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="16,12,16,12">

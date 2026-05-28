@@ -205,10 +205,12 @@ def gather_files(args: argparse.Namespace, repo_root: Path) -> Iterable[Path]:
         root = Path(args.dir) if Path(args.dir).is_absolute() else (repo_root / args.dir)
         yield from root.rglob("*.xaml")
     elif args.tier5b:
-        # Full sweep — every XAML under src/AgentX.App, excluding obj/.
+        # Full sweep — every XAML under src/AgentX.App, excluding build
+        # artifacts (obj/, bin/) which can contain copies of WinUI SDK
+        # XAML payloads after a debug build.
         app_root = repo_root / "src" / "AgentX.App"
         for p in app_root.rglob("*.xaml"):
-            if "obj" in p.parts:
+            if "obj" in p.parts or "bin" in p.parts:
                 continue
             yield p
     else:

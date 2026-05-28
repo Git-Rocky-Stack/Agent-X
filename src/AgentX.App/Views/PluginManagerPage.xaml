@@ -23,7 +23,7 @@
 
     </Page.Resources>
 
-    <Grid Background="{StaticResource PageBackgroundBrush}">
+    <Grid Background="{ThemeResource PageBackgroundBrush}">
 
         <!-- ═══════ ADAPTIVE LAYOUT (Tier 3) — see Colors.xaml breakpoints ═══════
              Narrow (<960):  sidebar 240   |  Medium (>=960): sidebar 260
@@ -67,8 +67,8 @@
              card with icon, name, version, author, and status indicator.
              ═══════════════════════════════════════════════════════════════ -->
         <Grid Grid.Column="0"
-              Background="{StaticResource SidebarGradientBrush}"
-              BorderBrush="{StaticResource BorderSubtleBrush}"
+              Background="{ThemeResource SidebarGradientBrush}"
+              BorderBrush="{ThemeResource BorderSubtleBrush}"
               BorderThickness="0,0,1,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -107,7 +107,7 @@
                             Style="{StaticResource IconButtonStyle}"
                             Command="{x:Bind ViewModel.InstallPluginCommand}">
                         <FontIcon Glyph="&#xE710;" FontSize="14"
-                                  Foreground="{StaticResource TextAccentBrush}" />
+                                  Foreground="{ThemeResource TextAccentBrush}" />
                     </Button>
 
                     <!-- Refresh button -->
@@ -116,7 +116,7 @@
                             Style="{StaticResource IconButtonStyle}"
                             Command="{x:Bind ViewModel.RefreshPluginsCommand}">
                         <FontIcon Glyph="&#xE72C;" FontSize="14"
-                                  Foreground="{StaticResource TextSecondaryBrush}" />
+                                  Foreground="{ThemeResource TextSecondaryBrush}" />
                     </Button>
                 </Grid>
             </Border>
@@ -126,17 +126,17 @@
                  ═══════════════════════════════════════════════════════ -->
             <Border Grid.Row="1"
                     Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                    Background="{StaticResource ErrorSubtleBrush}"
-                    BorderBrush="{StaticResource ErrorBrush}"
+                    Background="{ThemeResource ErrorSubtleBrush}"
+                    BorderBrush="{ThemeResource ErrorBrush}"
                     BorderThickness="0,0,0,1"
                     Padding="16,10">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <FontIcon Glyph="&#xE7BA;" FontSize="12"
-                              Foreground="{StaticResource ErrorBrush}"
+                              Foreground="{ThemeResource ErrorBrush}"
                               VerticalAlignment="Center" />
                     <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
                                Style="{StaticResource CaptionStyle}"
-                               Foreground="{StaticResource ErrorBrush}"
+                               Foreground="{ThemeResource ErrorBrush}"
                                VerticalAlignment="Center"
                                MaxLines="2"
                                TextTrimming="CharacterEllipsis" />
@@ -153,7 +153,7 @@
                         Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                 <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
                               Width="32" Height="32"
-                              Foreground="{StaticResource AccentPrimaryBrush}" />
+                              Foreground="{ThemeResource AccentPrimaryBrush}" />
                 <TextBlock x:Uid="Plugin_Loading"
                            Style="{StaticResource CaptionStyle}"
                            HorizontalAlignment="Center" />
@@ -190,13 +190,13 @@
                                 </Grid.ColumnDefinitions>
 
                                 <!-- Plugin type icon in accent container -->
-                                <Border Background="{StaticResource AccentSubtleBrush}"
+                                <Border Background="{ThemeResource AccentSubtleBrush}"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Width="36" Height="36"
                                         VerticalAlignment="Center">
                                     <FontIcon Glyph="{x:Bind TypeGlyph}"
                                               FontSize="16"
-                                              Foreground="{StaticResource TextAccentBrush}"
+                                              Foreground="{ThemeResource TextAccentBrush}"
                                               HorizontalAlignment="Center"
                                               VerticalAlignment="Center" />
                                 </Border>
@@ -216,9 +216,9 @@
                                                    TextTrimming="CharacterEllipsis" />
                                         <TextBlock Text="·"
                                                    Style="{StaticResource CaptionStyle}"
-                                                   Foreground="{StaticResource TextTertiaryBrush}" />
+                                                   Foreground="{ThemeResource TextTertiaryBrush}" />
                                         <TextBlock Style="{StaticResource CaptionStyle}"
-                                                   Foreground="{StaticResource TextTertiaryBrush}">
+                                                   Foreground="{ThemeResource TextTertiaryBrush}">
                                             <Run Text="v" /><Run Text="{x:Bind Version, Mode=OneWay}" />
                                         </TextBlock>
                                     </StackPanel>
@@ -226,17 +226,17 @@
                                             Visibility="{x:Bind IsFocused, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                                         <TextBlock Text="Opened from Operations"
                                                    Style="{StaticResource BadgeStyle}"
-                                                   Foreground="{StaticResource TextAccentBrush}" />
+                                                   Foreground="{ThemeResource TextAccentBrush}" />
                                     </Border>
                                 </StackPanel>
 
                                 <!-- Status dot: green = active, grey = disabled -->
                                 <Grid Grid.Column="2" VerticalAlignment="Center">
                                     <Ellipse Width="8" Height="8"
-                                             Fill="{StaticResource SuccessBrush}"
+                                             Fill="{ThemeResource SuccessBrush}"
                                              Visibility="{x:Bind IsEnabled, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
                                     <Ellipse Width="8" Height="8"
-                                             Fill="{StaticResource OfflineBrush}"
+                                             Fill="{ThemeResource OfflineBrush}"
                                              Visibility="{x:Bind IsEnabled, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
                                 </Grid>
                             </Grid>
@@ -256,7 +256,7 @@
                     HorizontalAlignment="Center">
                 <StackPanel Spacing="12" HorizontalAlignment="Center">
                     <FontIcon Glyph="&#xE74C;" FontSize="28"
-                              Foreground="{StaticResource TextTertiaryBrush}"
+                              Foreground="{ThemeResource TextTertiaryBrush}"
                               HorizontalAlignment="Center" />
                     <TextBlock x:Uid="Plugin_NoPlugins"
                                Style="{StaticResource BodySmallStyle}"
@@ -284,7 +284,7 @@
                  ═══════════════════════════════════════════════════════ -->
             <Border Grid.Row="3"
                     Padding="16,10,16,10"
-                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                    BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="0,1,0,0">
                 <Grid ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
@@ -296,13 +296,13 @@
                     <ProgressRing Grid.Column="0"
                                   IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
                                   Width="14" Height="14"
-                                  Foreground="{StaticResource AccentPrimaryBrush}"
+                                  Foreground="{ThemeResource AccentPrimaryBrush}"
                                   Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
 
                     <!-- Status text (fallback icon when not loading) -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
                         <FontIcon Glyph="&#xE74C;" FontSize="11"
-                                  Foreground="{StaticResource TextTertiaryBrush}"
+                                  Foreground="{ThemeResource TextTertiaryBrush}"
                                   Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
                         <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
                                    Style="{StaticResource CaptionStyle}"
@@ -328,13 +328,13 @@
                     Visibility="Visible">
                 <StackPanel Spacing="20" HorizontalAlignment="Center">
                     <!-- Accent circle with puzzle icon -->
-                    <Border Background="{StaticResource AccentSubtleBrush}"
+                    <Border Background="{ThemeResource AccentSubtleBrush}"
                             CornerRadius="{StaticResource RadiusFull}"
                             Width="72" Height="72"
                             HorizontalAlignment="Center">
                         <FontIcon Glyph="&#xE74C;"
                                   FontSize="32"
-                                  Foreground="{StaticResource TextAccentBrush}"
+                                  Foreground="{ThemeResource TextAccentBrush}"
                                   HorizontalAlignment="Center"
                                   VerticalAlignment="Center" />
                     </Border>
@@ -383,14 +383,14 @@
 
                         <!-- Large plugin type icon -->
                         <Border x:Name="DetailIcon"
-                                Background="{StaticResource AccentSubtleBrush}"
+                                Background="{ThemeResource AccentSubtleBrush}"
                                 CornerRadius="{StaticResource RadiusLG}"
                                 Width="56" Height="56"
                                 VerticalAlignment="Top"
                                 Margin="0,0,16,0">
                             <FontIcon x:Name="DetailIconGlyph"
                                       FontSize="24"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
@@ -407,8 +407,8 @@
                                            FontWeight="SemiBold" />
                             </StackPanel>
                             <Border x:Name="DetailOperationsBadge"
-                                    Background="{StaticResource AccentSubtleBrush}"
-                                    BorderBrush="{StaticResource AccentPrimaryBrush}"
+                                    Background="{ThemeResource AccentSubtleBrush}"
+                                    BorderBrush="{ThemeResource AccentPrimaryBrush}"
                                     BorderThickness="1"
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Padding="12,10"
@@ -423,13 +423,13 @@
                                     <StackPanel Orientation="Horizontal" Spacing="10">
                                         <FontIcon Glyph="&#xE8A5;"
                                                   FontSize="14"
-                                                  Foreground="{StaticResource AccentPrimaryBrush}"
+                                                  Foreground="{ThemeResource AccentPrimaryBrush}"
                                                   VerticalAlignment="Top" />
                                         <StackPanel Spacing="3">
                                             <TextBlock Text="Focused Connector"
                                                        Style="{StaticResource CaptionStyle}"
                                                        FontWeight="SemiBold"
-                                                       Foreground="{StaticResource AccentPrimaryBrush}" />
+                                                       Foreground="{ThemeResource AccentPrimaryBrush}" />
                                             <TextBlock x:Name="DetailOperationsBadgeText"
                                                        Style="{StaticResource BodySecondaryStyle}"
                                                        TextWrapping="WrapWholeWords" />
@@ -459,7 +459,7 @@
                                     Padding="12,8,12,8" MinHeight="34"
                                     Click="OnUninstallPluginClick">
                                 <FontIcon Glyph="&#xE74D;" FontSize="14"
-                                          Foreground="{StaticResource ErrorBrush}" />
+                                          Foreground="{ThemeResource ErrorBrush}" />
                             </Button>
                         </StackPanel>
                     </Grid>
@@ -473,7 +473,7 @@
                         <Border Style="{StaticResource BadgeDefaultStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="4">
                                 <FontIcon Glyph="&#xE7C3;" FontSize="10"
-                                          Foreground="{StaticResource TextTertiaryBrush}" />
+                                          Foreground="{ThemeResource TextTertiaryBrush}" />
                                 <TextBlock x:Name="DetailVersionBadge"
                                            Style="{StaticResource BadgeStyle}" />
                             </StackPanel>
@@ -484,10 +484,10 @@
                             <StackPanel Orientation="Horizontal" Spacing="5">
                                 <FontIcon x:Name="DetailTypeBadgeIcon"
                                           FontSize="10"
-                                          Foreground="{StaticResource TextAccentBrush}" />
+                                          Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock x:Name="DetailTypeBadgeText"
                                            Style="{StaticResource BadgeStyle}"
-                                           Foreground="{StaticResource TextAccentBrush}" />
+                                           Foreground="{ThemeResource TextAccentBrush}" />
                             </StackPanel>
                         </Border>
 
@@ -516,14 +516,14 @@
                         <StackPanel Spacing="12">
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Glyph="&#xE946;" FontSize="16"
-                                          Foreground="{StaticResource TextAccentBrush}" />
+                                          Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock x:Uid="Plugin_Description"
                                            Style="{StaticResource HeadingSmallStyle}" />
                             </StackPanel>
 
                             <TextBlock x:Name="DetailDescription"
                                        Style="{StaticResource BodyStyle}"
-                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       Foreground="{ThemeResource TextSecondaryBrush}"
                                        TextWrapping="Wrap"
                                        MaxWidth="700" />
                         </StackPanel>
@@ -538,7 +538,7 @@
                             <!-- Section header -->
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Glyph="&#xE946;" FontSize="16"
-                                          Foreground="{StaticResource TextAccentBrush}" />
+                                          Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock x:Uid="Plugin_Details"
                                            Style="{StaticResource HeadingSmallStyle}" />
                             </StackPanel>
@@ -554,7 +554,7 @@
                                            Style="{StaticResource LabelStyle}"
                                            VerticalAlignment="Center" />
                                 <Border Grid.Column="1"
-                                        Background="{StaticResource InputBackgroundBrush}"
+                                        Background="{ThemeResource InputBackgroundBrush}"
                                         CornerRadius="{StaticResource RadiusSM}"
                                         Padding="10,6,10,6">
                                     <TextBlock x:Name="DetailInstallPath"
@@ -581,7 +581,7 @@
                                             Orientation="Horizontal" Spacing="8"
                                             VerticalAlignment="Center">
                                     <FontIcon Glyph="&#xE787;" FontSize="12"
-                                              Foreground="{StaticResource TextTertiaryBrush}" />
+                                              Foreground="{ThemeResource TextTertiaryBrush}" />
                                     <TextBlock x:Name="DetailInstalledAt"
                                                Style="{StaticResource BodySmallStyle}" />
                                 </StackPanel>
@@ -601,7 +601,7 @@
                                             Orientation="Horizontal" Spacing="8"
                                             VerticalAlignment="Center">
                                     <FontIcon Glyph="&#xE823;" FontSize="12"
-                                              Foreground="{StaticResource TextTertiaryBrush}" />
+                                              Foreground="{ThemeResource TextTertiaryBrush}" />
                                     <TextBlock x:Name="DetailLastActivated"
                                                Style="{StaticResource BodySmallStyle}" />
                                 </StackPanel>
@@ -619,15 +619,15 @@
                         <StackPanel Spacing="12">
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Glyph="&#xE713;" FontSize="16"
-                                          Foreground="{StaticResource TextAccentBrush}" />
+                                          Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock x:Uid="Plugin_Configuration"
                                            Style="{StaticResource HeadingSmallStyle}" />
                             </StackPanel>
 
-                            <Border Background="{StaticResource InputBackgroundBrush}"
+                            <Border Background="{ThemeResource InputBackgroundBrush}"
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Padding="16,12"
-                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                    BorderBrush="{ThemeResource BorderSubtleBrush}"
                                     BorderThickness="1">
                                 <TextBlock x:Name="DetailSettingsJson"
                                            Style="{StaticResource MonoSmallStyle}"
@@ -649,7 +649,7 @@
                         <StackPanel Spacing="16">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE736;" FontSize="16"
-                                          Foreground="{StaticResource AccentPrimaryBrush}" />
+                                          Foreground="{ThemeResource AccentPrimaryBrush}" />
                                 <TextBlock x:Uid="Plugin_Documentation"
                                            Style="{StaticResource LabelStyle}" />
                             </StackPanel>
@@ -663,7 +663,7 @@
                          ======================================================= -->
                     <Border Grid.Row="6"
                             Background="#0DEF4444"
-                            BorderBrush="{StaticResource ErrorSubtleBrush}"
+                            BorderBrush="{ThemeResource ErrorSubtleBrush}"
                             BorderThickness="1"
                             CornerRadius="{StaticResource RadiusLG}"
                             Padding="20">
@@ -676,10 +676,10 @@
                             <StackPanel Spacing="4" VerticalAlignment="Center">
                                 <TextBlock x:Uid="Plugin_DangerZone"
                                            Style="{StaticResource HeadingSmallStyle}"
-                                           Foreground="{StaticResource ErrorBrush}" />
+                                           Foreground="{ThemeResource ErrorBrush}" />
                                 <TextBlock x:Uid="Plugin_DangerZoneHint"
                                            Style="{StaticResource BodySmallStyle}"
-                                           Foreground="{StaticResource TextTertiaryBrush}"
+                                           Foreground="{ThemeResource TextTertiaryBrush}"
                                            MaxWidth="480" />
                             </StackPanel>
 
@@ -690,9 +690,9 @@
                                     VerticalAlignment="Center">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE74D;" FontSize="14"
-                                              Foreground="{StaticResource ErrorBrush}" />
+                                              Foreground="{ThemeResource ErrorBrush}" />
                                     <TextBlock x:Uid="Plugin_UninstallButton"
-                                               Foreground="{StaticResource ErrorBrush}"
+                                               Foreground="{ThemeResource ErrorBrush}"
                                                FontWeight="SemiBold"
                                                FontSize="13" />
                                 </StackPanel>

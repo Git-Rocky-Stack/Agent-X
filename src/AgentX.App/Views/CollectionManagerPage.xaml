@@ -21,7 +21,7 @@
 
     </Page.Resources>
 
-    <Grid Background="{StaticResource PageBackgroundBrush}">
+    <Grid Background="{ThemeResource PageBackgroundBrush}">
 
         <!-- ═══════ ADAPTIVE LAYOUT (Tier 3) — see Colors.xaml breakpoints ═══════
              Narrow (<960):  sidebar 260   |  Medium (>=960): sidebar 300
@@ -63,8 +63,8 @@
              LEFT PANEL: COLLECTION TREE
              ═══════════════════════════════════════════════════════════ -->
         <Grid Grid.Column="0"
-              Background="{StaticResource SidebarGradientBrush}"
-              BorderBrush="{StaticResource BorderSubtleBrush}"
+              Background="{ThemeResource SidebarGradientBrush}"
+              BorderBrush="{ThemeResource BorderSubtleBrush}"
               BorderThickness="0,0,1,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -100,7 +100,7 @@
                             ToolTipService.ToolTip="Refresh collections"
                             AutomationProperties.Name="Refresh collections">
                         <FontIcon Glyph="&#xE72C;" FontSize="14"
-                                  Foreground="{StaticResource TextSecondaryBrush}" />
+                                  Foreground="{ThemeResource TextSecondaryBrush}" />
                     </Button>
                 </Grid>
             </Border>
@@ -108,7 +108,7 @@
             <!-- New collection input area -->
             <Border Grid.Row="1"
                     Padding="16,12,16,12"
-                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                    BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="0,0,0,1">
                 <StackPanel Spacing="8">
                     <TextBox Style="{StaticResource InputTextBoxStyle}"
@@ -136,7 +136,7 @@
                         Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                 <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
                               Width="32" Height="32"
-                              Foreground="{StaticResource AccentPrimaryBrush}" />
+                              Foreground="{ThemeResource AccentPrimaryBrush}" />
                 <TextBlock Text="Loading..."
                            Style="{StaticResource CaptionStyle}"
                            HorizontalAlignment="Center" />
@@ -177,7 +177,7 @@
                                     <!-- Folder icon -->
                                     <FontIcon Glyph="{x:Bind IconGlyph, TargetNullValue='&#xF168;'}"
                                               FontSize="16"
-                                              Foreground="{StaticResource TextAccentBrush}"
+                                              Foreground="{ThemeResource TextAccentBrush}"
                                               VerticalAlignment="Center" />
 
                                     <!-- Name -->
@@ -200,7 +200,7 @@
                                             Padding="6,2,6,2"
                                             VerticalAlignment="Center">
                                         <TextBlock Style="{StaticResource CaptionStyle}"
-                                                   Foreground="{StaticResource TextTertiaryBrush}"
+                                                   Foreground="{ThemeResource TextTertiaryBrush}"
                                                    FontSize="10">
                                             <Run Text="{x:Bind DocumentCount, Mode=OneWay}" />
                                         </TextBlock>
@@ -217,7 +217,7 @@
                                             AutomationProperties.Name="Delete collection"
                                             Opacity="0.5">
                                         <FontIcon Glyph="&#xE74D;" FontSize="11"
-                                                  Foreground="{StaticResource ErrorBrush}" />
+                                                  Foreground="{ThemeResource ErrorBrush}" />
                                     </Button>
                                 </Grid>
                             </Border>
@@ -244,7 +244,7 @@
                                                 <!-- Sub-folder icon -->
                                                 <FontIcon Glyph="{x:Bind IconGlyph, TargetNullValue='&#xF168;'}"
                                                           FontSize="14"
-                                                          Foreground="{StaticResource TextSecondaryBrush}"
+                                                          Foreground="{ThemeResource TextSecondaryBrush}"
                                                           VerticalAlignment="Center" />
 
                                                 <!-- Name -->
@@ -262,7 +262,7 @@
                                                         Padding="6,2,6,2"
                                                         VerticalAlignment="Center">
                                                     <TextBlock Style="{StaticResource CaptionStyle}"
-                                                               Foreground="{StaticResource TextTertiaryBrush}"
+                                                               Foreground="{ThemeResource TextTertiaryBrush}"
                                                                FontSize="10">
                                                         <Run Text="{x:Bind DocumentCount, Mode=OneWay}" />
                                                     </TextBlock>
@@ -279,7 +279,7 @@
                                                         AutomationProperties.Name="Delete collection"
                                                         Opacity="0.5">
                                                     <FontIcon Glyph="&#xE74D;" FontSize="10"
-                                                              Foreground="{StaticResource ErrorBrush}" />
+                                                              Foreground="{ThemeResource ErrorBrush}" />
                                                 </Button>
                                             </Grid>
                                         </Border>
@@ -294,11 +294,11 @@
             <!-- Sidebar footer -->
             <Border Grid.Row="3"
                     Padding="16,10,16,10"
-                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                    BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="0,1,0,0">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <FontIcon Glyph="&#xF168;" FontSize="11"
-                              Foreground="{StaticResource TextTertiaryBrush}" />
+                              Foreground="{ThemeResource TextTertiaryBrush}" />
                     <TextBlock Style="{StaticResource CaptionStyle}">
                         <Run Text="{x:Bind ViewModel.TotalCollections, Mode=OneWay}" />
                         <Run Text="collections" />
@@ -317,13 +317,13 @@
                     Style="{StaticResource WelcomeCardStyle}">
                 <StackPanel Spacing="20" HorizontalAlignment="Center">
                     <!-- Icon -->
-                    <Border Background="{StaticResource AccentSubtleBrush}"
+                    <Border Background="{ThemeResource AccentSubtleBrush}"
                             CornerRadius="{StaticResource RadiusFull}"
                             Width="72" Height="72"
                             HorizontalAlignment="Center">
                         <FontIcon Glyph="&#xF168;"
                                   FontSize="32"
-                                  Foreground="{StaticResource TextAccentBrush}"
+                                  Foreground="{ThemeResource TextAccentBrush}"
                                   HorizontalAlignment="Center"
                                   VerticalAlignment="Center" />
                     </Border>
@@ -365,7 +365,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="12">
                                 <FontIcon Glyph="{x:Bind ViewModel.SelectedCollection.IconGlyph, Mode=OneWay, TargetNullValue='&#xF168;'}"
                                           FontSize="28"
-                                          Foreground="{StaticResource TextAccentBrush}"
+                                          Foreground="{ThemeResource TextAccentBrush}"
                                           VerticalAlignment="Center" />
                                 <TextBlock Text="{x:Bind ViewModel.SelectedCollection.Name, Mode=OneWay}"
                                            Style="{StaticResource HeadingLargeStyle}"
@@ -393,7 +393,7 @@
                         <Border Style="{StaticResource BadgeDefaultStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE8F1;" FontSize="11"
-                                          Foreground="{StaticResource TextAccentBrush}" />
+                                          Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock Style="{StaticResource BadgeStyle}">
                                     <Run Text="{x:Bind ViewModel.SelectedCollection.DocumentCount, Mode=OneWay}" />
                                     <Run Text=" documents" />
@@ -404,7 +404,7 @@
                         <Border Style="{StaticResource BadgeDefaultStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE787;" FontSize="11"
-                                          Foreground="{StaticResource TextTertiaryBrush}" />
+                                          Foreground="{ThemeResource TextTertiaryBrush}" />
                                 <TextBlock Text="{x:Bind ViewModel.SelectedCollection.CreatedAtFormatted, Mode=OneWay}"
                                            Style="{StaticResource BadgeStyle}" />
                             </StackPanel>
@@ -413,7 +413,7 @@
                         <Border Style="{StaticResource BadgeDefaultStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE72C;" FontSize="11"
-                                          Foreground="{StaticResource TextTertiaryBrush}" />
+                                          Foreground="{ThemeResource TextTertiaryBrush}" />
                                 <TextBlock Style="{StaticResource BadgeStyle}">
                                     <Run Text="Updated " />
                                     <Run Text="{x:Bind ViewModel.SelectedCollection.UpdatedAtFormatted, Mode=OneWay}" />
@@ -427,18 +427,18 @@
                     <!-- Row 3: Error message -->
                     <Border Grid.Row="3"
                             Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                            Background="{StaticResource ErrorSubtleBrush}"
-                            BorderBrush="{StaticResource ErrorBrush}"
+                            Background="{ThemeResource ErrorSubtleBrush}"
+                            BorderBrush="{ThemeResource ErrorBrush}"
                             BorderThickness="1"
                             CornerRadius="{StaticResource RadiusMD}"
                             Padding="16,12">
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <FontIcon Glyph="&#xE7BA;" FontSize="16"
-                                      Foreground="{StaticResource ErrorBrush}"
+                                      Foreground="{ThemeResource ErrorBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
                                        Style="{StaticResource BodySmallStyle}"
-                                       Foreground="{StaticResource ErrorBrush}"
+                                       Foreground="{ThemeResource ErrorBrush}"
                                        VerticalAlignment="Center" />
                         </StackPanel>
                     </Border>
@@ -470,7 +470,7 @@
                                                     Width="40" Height="40">
                                                 <FontIcon Glyph="{x:Bind FileTypeIcon}"
                                                           FontSize="18"
-                                                          Foreground="{StaticResource TextAccentBrush}"
+                                                          Foreground="{ThemeResource TextAccentBrush}"
                                                           HorizontalAlignment="Center"
                                                           VerticalAlignment="Center" />
                                             </Border>
@@ -487,7 +487,7 @@
                                                         <TextBlock Text="{x:Bind FileTypeLabel}"
                                                                    FontSize="9"
                                                                    FontWeight="Bold"
-                                                                   Foreground="{StaticResource TextAccentBrush}"
+                                                                   Foreground="{ThemeResource TextAccentBrush}"
                                                                    CharacterSpacing="40" />
                                                     </Border>
                                                     <TextBlock Text="{x:Bind FileSizeFormatted}"
@@ -509,7 +509,7 @@
                                                         <Border Style="{StaticResource TagBadgeStyle}">
                                                             <TextBlock Text="{x:Bind}"
                                                                        FontSize="9"
-                                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                                                       Foreground="{ThemeResource TextSecondaryBrush}" />
                                                         </Border>
                                                     </DataTemplate>
                                                 </ItemsRepeater.ItemTemplate>
@@ -524,7 +524,7 @@
                                                     ToolTipService.ToolTip="Remove from collection"
                                                     AutomationProperties.Name="Remove from collection">
                                                 <FontIcon Glyph="&#xE738;" FontSize="12"
-                                                          Foreground="{StaticResource TextTertiaryBrush}" />
+                                                          Foreground="{ThemeResource TextTertiaryBrush}" />
                                             </Button>
                                         </Grid>
                                     </Border>
@@ -538,7 +538,7 @@
                                 Visibility="{x:Bind ViewModel.HasSelectedCollectionDocuments, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
                             <StackPanel Spacing="12" HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE8F1;" FontSize="32"
-                                          Foreground="{StaticResource TextTertiaryBrush}"
+                                          Foreground="{ThemeResource TextTertiaryBrush}"
                                           HorizontalAlignment="Center" />
                                 <TextBlock Text="No documents in this collection"
                                            Style="{StaticResource BodySecondaryStyle}"

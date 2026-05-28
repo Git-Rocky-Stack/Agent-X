@@ -75,10 +75,10 @@
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <FontIcon Glyph="&#xE7BA;"
                               FontSize="14"
-                              Foreground="{StaticResource TextAccentBrush}" />
+                              Foreground="{ThemeResource TextAccentBrush}" />
                     <TextBlock Text="LEGAL"
                                Style="{StaticResource OverlineStyle}"
-                               Foreground="{StaticResource TextAccentBrush}" />
+                               Foreground="{ThemeResource TextAccentBrush}" />
                 </StackPanel>
 
                 <!-- Title -->
@@ -90,7 +90,7 @@
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <FontIcon Glyph="&#xE787;"
                               FontSize="12"
-                              Foreground="{StaticResource TextTertiaryBrush}" />
+                              Foreground="{ThemeResource TextTertiaryBrush}" />
                     <TextBlock Text="Effective Date: February 26, 2026"
                                Style="{StaticResource CaptionStyle}" />
                 </StackPanel>
@@ -110,7 +110,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE8FB;"
                                   FontSize="18"
-                                  Foreground="{StaticResource TextAccentBrush}" />
+                                  Foreground="{ThemeResource TextAccentBrush}" />
                         <TextBlock Text="1. Acceptance of Terms"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
@@ -129,7 +129,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE946;"
                                   FontSize="18"
-                                  Foreground="{StaticResource TextAccentBrush}" />
+                                  Foreground="{ThemeResource TextAccentBrush}" />
                         <TextBlock Text="2. Description of Service"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
@@ -142,7 +142,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE73E;"
                                       FontSize="12"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="Local AI chat via Ollama integration" />
@@ -150,7 +150,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE73E;"
                                       FontSize="12"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="Document management and indexing" />
@@ -158,7 +158,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE73E;"
                                       FontSize="12"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="Retrieval-augmented generation (RAG)" />
@@ -166,7 +166,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE73E;"
                                       FontSize="12"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="Semantic search across your documents" />
@@ -174,7 +174,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE73E;"
                                       FontSize="12"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="Model management" />
@@ -182,7 +182,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE73E;"
                                       FontSize="12"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="Hardware capability analysis" />
@@ -204,7 +204,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE8D7;"
                                   FontSize="18"
-                                  Foreground="{StaticResource TextAccentBrush}" />
+                                  Foreground="{ThemeResource TextAccentBrush}" />
                         <TextBlock Text="3. License Grant"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
@@ -220,7 +220,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE711;"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextTertiaryBrush}"
+                                      Foreground="{ThemeResource TextTertiaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="Modify, reverse engineer, or decompile the software" />
@@ -228,7 +228,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE711;"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextTertiaryBrush}"
+                                      Foreground="{ThemeResource TextTertiaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="Distribute or sublicense the software to third parties" />
@@ -236,7 +236,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE711;"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextTertiaryBrush}"
+                                      Foreground="{ThemeResource TextTertiaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="Use the software for any illegal or unauthorized purposes" />
@@ -244,7 +244,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE711;"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextTertiaryBrush}"
+                                      Foreground="{ThemeResource TextTertiaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="Remove or alter any proprietary notices, labels, or marks" />
@@ -262,7 +262,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE77B;"
                                   FontSize="18"
-                                  Foreground="{StaticResource TextAccentBrush}" />
+                                  Foreground="{ThemeResource TextAccentBrush}" />
                         <TextBlock Text="4. User Responsibilities"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
@@ -274,7 +274,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xEA3C;"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                      Foreground="{ThemeResource TextSecondaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="Ensuring your system meets the minimum hardware and software requirements for Agent-X" />
@@ -282,7 +282,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xEA3C;"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                      Foreground="{ThemeResource TextSecondaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="Installing and maintaining Ollama separately, as it is not bundled with Agent-X" />
@@ -290,7 +290,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xEA3C;"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                      Foreground="{ThemeResource TextSecondaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="The content of any documents you import into or process through Agent-X" />
@@ -298,7 +298,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xEA3C;"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                      Foreground="{ThemeResource TextSecondaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="Compliance with all applicable laws and regulations regarding your use of the application" />
@@ -306,7 +306,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xEA3C;"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                      Foreground="{ThemeResource TextSecondaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="Maintaining the security of your device and any credentials stored locally" />
@@ -314,7 +314,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xEA3C;"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                      Foreground="{ThemeResource TextSecondaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="Backing up your data regularly, as Strategia-X is not responsible for data loss" />
@@ -332,7 +332,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE82D;"
                                   FontSize="18"
-                                  Foreground="{StaticResource TextAccentBrush}" />
+                                  Foreground="{ThemeResource TextAccentBrush}" />
                         <TextBlock Text="5. Intellectual Property"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
@@ -353,7 +353,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE71B;"
                                   FontSize="18"
-                                  Foreground="{StaticResource TextAccentBrush}" />
+                                  Foreground="{ThemeResource TextAccentBrush}" />
                         <TextBlock Text="6. Third-Party Software"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
@@ -374,7 +374,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE72E;"
                                   FontSize="18"
-                                  Foreground="{StaticResource TextAccentBrush}" />
+                                  Foreground="{ThemeResource TextAccentBrush}" />
                         <TextBlock Text="7. Privacy"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
@@ -391,31 +391,31 @@
                  ROW 8: DISCLAIMER OF WARRANTIES (Warning-style card)
                  ══════════════════════════════════════════════════════════ -->
             <Border Grid.Row="8"
-                    Background="{StaticResource CardElevatedBrush}"
+                    Background="{ThemeResource CardElevatedBrush}"
                     CornerRadius="{StaticResource RadiusLG}"
                     Padding="{StaticResource PaddingCard}"
                     BorderThickness="1"
-                    BorderBrush="{StaticResource WarningBrush}">
+                    BorderBrush="{ThemeResource WarningBrush}">
 
                 <StackPanel Spacing="12">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE7BA;"
                                   FontSize="18"
-                                  Foreground="{StaticResource WarningBrush}" />
+                                  Foreground="{ThemeResource WarningBrush}" />
                         <TextBlock Text="8. Disclaimer of Warranties"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
 
                     <!-- Uppercase legal disclaimer block -->
-                    <Border Background="{StaticResource InputBackgroundBrush}"
+                    <Border Background="{ThemeResource InputBackgroundBrush}"
                             CornerRadius="{StaticResource RadiusMD}"
                             Padding="16"
-                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                            BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1">
                         <TextBlock Style="{StaticResource BodyStyle}"
                                    FontWeight="SemiBold"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Foreground="{ThemeResource TextSecondaryBrush}"
                                    Text="AGENT-X IS PROVIDED &quot;AS IS&quot; AND &quot;AS AVAILABLE&quot; WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED. TO THE FULLEST EXTENT PERMITTED BY LAW, STRATEGIA-X DISCLAIMS ALL WARRANTIES INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT." />
                     </Border>
 
@@ -426,7 +426,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE711;"
                                       FontSize="11"
-                                      Foreground="{StaticResource WarningBrush}"
+                                      Foreground="{ThemeResource WarningBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="The application will be error-free or uninterrupted" />
@@ -434,7 +434,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE711;"
                                       FontSize="11"
-                                      Foreground="{StaticResource WarningBrush}"
+                                      Foreground="{ThemeResource WarningBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="AI-generated responses will be accurate, complete, or reliable" />
@@ -442,7 +442,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE711;"
                                       FontSize="11"
-                                      Foreground="{StaticResource WarningBrush}"
+                                      Foreground="{ThemeResource WarningBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="The application will meet your specific requirements" />
@@ -450,7 +450,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE711;"
                                       FontSize="11"
-                                      Foreground="{StaticResource WarningBrush}"
+                                      Foreground="{ThemeResource WarningBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="Defects in the application will be corrected in a timely manner" />
@@ -464,31 +464,31 @@
                  ROW 9: LIMITATION OF LIABILITY (Warning-style card)
                  ══════════════════════════════════════════════════════════ -->
             <Border Grid.Row="9"
-                    Background="{StaticResource CardElevatedBrush}"
+                    Background="{ThemeResource CardElevatedBrush}"
                     CornerRadius="{StaticResource RadiusLG}"
                     Padding="{StaticResource PaddingCard}"
                     BorderThickness="1"
-                    BorderBrush="{StaticResource WarningBrush}">
+                    BorderBrush="{ThemeResource WarningBrush}">
 
                 <StackPanel Spacing="12">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE7BA;"
                                   FontSize="18"
-                                  Foreground="{StaticResource WarningBrush}" />
+                                  Foreground="{ThemeResource WarningBrush}" />
                         <TextBlock Text="9. Limitation of Liability"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
 
                     <!-- Uppercase legal disclaimer block -->
-                    <Border Background="{StaticResource InputBackgroundBrush}"
+                    <Border Background="{ThemeResource InputBackgroundBrush}"
                             CornerRadius="{StaticResource RadiusMD}"
                             Padding="16"
-                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                            BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1">
                         <TextBlock Style="{StaticResource BodyStyle}"
                                    FontWeight="SemiBold"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Foreground="{ThemeResource TextSecondaryBrush}"
                                    Text="TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, STRATEGIA-X SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DOCUMENTS, LOSS OF PROFITS OR REVENUE, DAMAGE TO HARDWARE OR SOFTWARE, BUSINESS INTERRUPTION, OR ANY OTHER INTANGIBLE LOSSES ARISING FROM YOUR USE OF OR INABILITY TO USE AGENT-X." />
                     </Border>
 
@@ -510,7 +510,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE99A;"
                                   FontSize="18"
-                                  Foreground="{StaticResource TextAccentBrush}" />
+                                  Foreground="{ThemeResource TextAccentBrush}" />
                         <TextBlock Text="10. AI-Generated Content Disclaimer"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
@@ -522,7 +522,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE946;"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="AI output may contain inaccuracies, errors, or biases inherent in the underlying models" />
@@ -530,7 +530,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE946;"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="You should independently verify any important information generated by AI before relying on it" />
@@ -538,7 +538,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE946;"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="Strategia-X is not responsible for any decisions made based on AI-generated content" />
@@ -546,7 +546,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE946;"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextAccentBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="AI responses do not constitute professional advice of any kind, including but not limited to legal, medical, financial, or engineering advice" />
@@ -564,7 +564,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE83D;"
                                   FontSize="18"
-                                  Foreground="{StaticResource TextAccentBrush}" />
+                                  Foreground="{ThemeResource TextAccentBrush}" />
                         <TextBlock Text="11. Indemnification"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
@@ -576,7 +576,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xEA3C;"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                      Foreground="{ThemeResource TextSecondaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="Your use or misuse of the application" />
@@ -584,7 +584,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xEA3C;"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                      Foreground="{ThemeResource TextSecondaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="Your violation of these Terms" />
@@ -592,7 +592,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xEA3C;"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                      Foreground="{ThemeResource TextSecondaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="Your violation of any third-party rights, including intellectual property rights" />
@@ -600,7 +600,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xEA3C;"
                                       FontSize="11"
-                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                      Foreground="{ThemeResource TextSecondaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        Text="Content you process, import, or generate through the application" />
@@ -618,7 +618,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE7E8;"
                                   FontSize="18"
-                                  Foreground="{StaticResource TextAccentBrush}" />
+                                  Foreground="{ThemeResource TextAccentBrush}" />
                         <TextBlock Text="12. Termination"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
@@ -641,7 +641,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE70F;"
                                   FontSize="18"
-                                  Foreground="{StaticResource TextAccentBrush}" />
+                                  Foreground="{ThemeResource TextAccentBrush}" />
                         <TextBlock Text="13. Modifications to Terms"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
@@ -662,7 +662,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE909;"
                                   FontSize="18"
-                                  Foreground="{StaticResource TextAccentBrush}" />
+                                  Foreground="{ThemeResource TextAccentBrush}" />
                         <TextBlock Text="14. Governing Law"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
@@ -683,7 +683,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE8C8;"
                                   FontSize="18"
-                                  Foreground="{StaticResource TextAccentBrush}" />
+                                  Foreground="{ThemeResource TextAccentBrush}" />
                         <TextBlock Text="15. Severability"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
@@ -702,7 +702,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE8A5;"
                                   FontSize="18"
-                                  Foreground="{StaticResource TextAccentBrush}" />
+                                  Foreground="{ThemeResource TextAccentBrush}" />
                         <TextBlock Text="16. Entire Agreement"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
@@ -721,7 +721,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE715;"
                                   FontSize="18"
-                                  Foreground="{StaticResource TextAccentBrush}" />
+                                  Foreground="{ThemeResource TextAccentBrush}" />
                         <TextBlock Text="17. Contact Information"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
@@ -730,16 +730,16 @@
                                Text="If you have any questions, concerns, or requests regarding these Terms of Service, please contact us:" />
 
                     <!-- Contact details card -->
-                    <Border Background="{StaticResource InputBackgroundBrush}"
+                    <Border Background="{ThemeResource InputBackgroundBrush}"
                             CornerRadius="{StaticResource RadiusMD}"
                             Padding="20"
-                            BorderBrush="{StaticResource BorderSubtleBrush}"
+                            BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1">
                         <StackPanel Spacing="12">
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Glyph="&#xE731;"
                                           FontSize="14"
-                                          Foreground="{StaticResource TextAccentBrush}"
+                                          Foreground="{ThemeResource TextAccentBrush}"
                                           VerticalAlignment="Center" />
                                 <StackPanel Spacing="2">
                                     <TextBlock Text="Email"
@@ -754,7 +754,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Glyph="&#xE7EE;"
                                           FontSize="14"
-                                          Foreground="{StaticResource TextAccentBrush}"
+                                          Foreground="{ThemeResource TextAccentBrush}"
                                           VerticalAlignment="Center" />
                                 <StackPanel Spacing="2">
                                     <TextBlock Text="Company"
@@ -781,7 +781,7 @@
                            Text="Agent-X by Strategia-X" />
                 <TextBlock Style="{StaticResource CaptionStyle}"
                            HorizontalAlignment="Center"
-                           Foreground="{StaticResource TextTertiaryBrush}"
+                           Foreground="{ThemeResource TextTertiaryBrush}"
                            Text="These Terms of Service were last updated on February 26, 2026." />
             </StackPanel>
 
