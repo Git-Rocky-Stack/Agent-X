@@ -22,9 +22,39 @@
     </Page.Resources>
 
     <Grid Background="{StaticResource PageBackgroundBrush}">
+
+        <!-- ═══════ ADAPTIVE LAYOUT (Tier 3) — see Colors.xaml breakpoints ═══════
+             Narrow (<960):  sidebar 240   |  Medium (>=960): sidebar 260
+             Wide (>=1280):  sidebar 280 (markup default) -->
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="LayoutStates">
+                <VisualState x:Name="NarrowState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="SidebarColumn.Width" Value="240" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="MediumState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="960" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="SidebarColumn.Width" Value="260" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="WideState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="1280" />
+                    </VisualState.StateTriggers>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
         <Grid.ColumnDefinitions>
-            <!-- Left panel: Profile list (fixed 280px) -->
-            <ColumnDefinition Width="280" />
+            <!-- Left panel: Profile list (adaptive width — 240/260/280) -->
+            <ColumnDefinition x:Name="SidebarColumn" Width="280" />
             <!-- Right panel: Profile editor -->
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>

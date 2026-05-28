@@ -265,4 +265,29 @@
     <Thickness x:Key="PaddingCard">20</Thickness>
     <Thickness x:Key="PaddingPage">32,24,32,24</Thickness>
 
+    <!-- ═══════════════════════════════════════════════════════════════
+         ADAPTIVE BREAKPOINTS  (Tier 3 — adaptive layout)
+         ═══════════════════════════════════════════════════════════════
+
+         These thresholds drive AdaptiveTrigger.MinWindowWidth across the
+         app. WinUI's AdaptiveTrigger requires literal numeric values, not
+         StaticResource references — these tokens are the *single source
+         of truth* for review, code search, and consistency. When a page
+         adds an AdaptiveTrigger, copy the numeric value from here and
+         leave a sibling XAML comment naming the token (e.g. the literal
+         text "BreakpointMedium") so the link to this table stays
+         greppable.
+
+         Tier     Min width   Use
+         Narrow      0         fallback / always matches (base state)
+         Medium    960         one collapse step — sidebar narrows; chat
+                               top-bar labels collapse to icons
+         Wide     1280         full layout — all labels visible, panes at
+                               their original design width
+         XWide    1600         wider gutters, broader cards (future use) -->
+
+    <x:Double x:Key="BreakpointMedium">960</x:Double>
+    <x:Double x:Key="BreakpointWide">1280</x:Double>
+    <x:Double x:Key="BreakpointXWide">1600</x:Double>
+
 </ResourceDictionary>
