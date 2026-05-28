@@ -245,7 +245,13 @@
     <CornerRadius x:Key="RadiusMD">8</CornerRadius>
     <CornerRadius x:Key="RadiusLG">12</CornerRadius>
     <CornerRadius x:Key="RadiusXL">16</CornerRadius>
-    <CornerRadius x:Key="RadiusRound">9999</CornerRadius>
+    <!-- Symmetry: shapes are squares / rounded rectangles / perfect circles —
+         never oblong capsules. Use RadiusFull (9999) only when the element
+         is W=H and you genuinely want a perfect circle (avatars, icon
+         buttons). Everything else: pill capsules are visually loud and
+         "AI generated" — keep corners moderate (RadiusSM/MD). -->
+    <CornerRadius x:Key="RadiusRound">4</CornerRadius>
+    <CornerRadius x:Key="RadiusFull">9999</CornerRadius>
 
     <Thickness x:Key="BorderThin">1</Thickness>
     <Thickness x:Key="BorderMediumThickness">1.5</Thickness>

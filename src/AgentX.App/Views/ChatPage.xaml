@@ -826,7 +826,7 @@
 
                         <!-- Icon -->
                         <Border Background="{StaticResource AccentSubtleBrush}"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Width="72" Height="72"
                                 HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE8BD;"

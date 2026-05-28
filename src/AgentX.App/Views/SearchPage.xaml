@@ -463,7 +463,7 @@
 
                         <!-- Icon -->
                         <Border Background="{StaticResource AccentSubtleBrush}"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Width="72" Height="72"
                                 HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE721;"
@@ -515,7 +515,7 @@
                     <StackPanel Spacing="16" HorizontalAlignment="Center">
 
                         <Border Background="#1AEF4444"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Width="64" Height="64"
                                 HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE783;"

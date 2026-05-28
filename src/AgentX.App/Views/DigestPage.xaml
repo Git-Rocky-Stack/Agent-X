@@ -219,7 +219,7 @@
                             Margin="0,0,0,24">
                         <StackPanel HorizontalAlignment="Center" Spacing="16">
                             <Border Background="{StaticResource AccentSubtleBrush}"
-                                    CornerRadius="{StaticResource RadiusRound}"
+                                    CornerRadius="{StaticResource RadiusFull}"
                                     Width="72" Height="72"
                                     HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE9D2;" FontSize="32"

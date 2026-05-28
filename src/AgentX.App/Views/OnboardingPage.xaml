@@ -472,7 +472,7 @@
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
                                     <Border Width="40" Height="40"
-                                            CornerRadius="{StaticResource RadiusRound}"
+                                            CornerRadius="{StaticResource RadiusFull}"
                                             Background="{StaticResource AccentSubtleBrush}">
                                         <FontIcon Glyph="&#xE99A;"
                                                   FontSize="18"

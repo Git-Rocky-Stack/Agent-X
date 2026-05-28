@@ -537,7 +537,7 @@
                 <StackPanel Spacing="16" HorizontalAlignment="Center">
                     <!-- Upload icon -->
                     <Border Background="{StaticResource AccentSubtleBrush}"
-                            CornerRadius="{StaticResource RadiusRound}"
+                            CornerRadius="{StaticResource RadiusFull}"
                             Width="72" Height="72"
                             HorizontalAlignment="Center">
                         <FontIcon Glyph="&#xE898;"
@@ -870,7 +870,7 @@
                         <StackPanel Spacing="20" HorizontalAlignment="Center">
                             <!-- Icon -->
                             <Border Background="{StaticResource AccentSubtleBrush}"
-                                    CornerRadius="{StaticResource RadiusRound}"
+                                    CornerRadius="{StaticResource RadiusFull}"
                                     Width="80" Height="80"
                                     HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE8F1;"
