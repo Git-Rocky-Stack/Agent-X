@@ -31,8 +31,8 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="AccentButtonStyle" TargetType="Button">
-        <Setter Property="Background" Value="{StaticResource AccentGradientBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Background" Value="{ThemeResource AccentGradientBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource TextPrimaryBrush}" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
         <Setter Property="Padding" Value="24,12,24,12" />
@@ -65,7 +65,7 @@
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BackgroundBorder"
                                                                        Storyboard.TargetProperty="Background">
                                             <DiscreteObjectKeyFrame KeyTime="0"
-                                                                     Value="{StaticResource AccentGradientHoverBrush}" />
+                                                                     Value="{ThemeResource AccentGradientHoverBrush}" />
                                         </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </VisualState>
@@ -74,12 +74,12 @@
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BackgroundBorder"
                                                                        Storyboard.TargetProperty="Background">
                                             <DiscreteObjectKeyFrame KeyTime="0"
-                                                                     Value="{StaticResource AccentPressedBrush}" />
+                                                                     Value="{ThemeResource AccentPressedBrush}" />
                                         </ObjectAnimationUsingKeyFrames>
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter"
                                                                        Storyboard.TargetProperty="Foreground">
                                             <DiscreteObjectKeyFrame KeyTime="0"
-                                                                     Value="{StaticResource TextPrimaryBrush}" />
+                                                                     Value="{ThemeResource TextPrimaryBrush}" />
                                         </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </VisualState>
@@ -97,7 +97,7 @@
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BackgroundBorder"
                                                                        Storyboard.TargetProperty="BorderBrush">
                                             <DiscreteObjectKeyFrame KeyTime="0"
-                                                                     Value="{StaticResource BorderFocusBrush}" />
+                                                                     Value="{ThemeResource BorderFocusBrush}" />
                                         </ObjectAnimationUsingKeyFrames>
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BackgroundBorder"
                                                                        Storyboard.TargetProperty="BorderThickness">
@@ -124,8 +124,8 @@
 
     <Style x:Key="SecondaryButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderMediumBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource TextSecondaryBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource BorderMediumBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
         <Setter Property="Padding" Value="20,10,20,10" />
@@ -158,17 +158,17 @@
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BackgroundBorder"
                                                                        Storyboard.TargetProperty="Background">
                                             <DiscreteObjectKeyFrame KeyTime="0"
-                                                                     Value="{StaticResource CardHoverBrush}" />
+                                                                     Value="{ThemeResource CardHoverBrush}" />
                                         </ObjectAnimationUsingKeyFrames>
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BackgroundBorder"
                                                                        Storyboard.TargetProperty="BorderBrush">
                                             <DiscreteObjectKeyFrame KeyTime="0"
-                                                                     Value="{StaticResource BorderStrongBrush}" />
+                                                                     Value="{ThemeResource BorderStrongBrush}" />
                                         </ObjectAnimationUsingKeyFrames>
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter"
                                                                        Storyboard.TargetProperty="Foreground">
                                             <DiscreteObjectKeyFrame KeyTime="0"
-                                                                     Value="{StaticResource TextPrimaryBrush}" />
+                                                                     Value="{ThemeResource TextPrimaryBrush}" />
                                         </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </VisualState>
@@ -177,7 +177,7 @@
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BackgroundBorder"
                                                                        Storyboard.TargetProperty="Background">
                                             <DiscreteObjectKeyFrame KeyTime="0"
-                                                                     Value="{StaticResource CardPressedBrush}" />
+                                                                     Value="{ThemeResource CardPressedBrush}" />
                                         </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </VisualState>
@@ -202,7 +202,7 @@
 
     <Style x:Key="GhostButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource TextSecondaryBrush}" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
         <Setter Property="Padding" Value="12,8,12,8" />
@@ -222,7 +222,7 @@
 
     <Style x:Key="GhostToggleButtonStyle" TargetType="ToggleButton">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource TextSecondaryBrush}" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
         <Setter Property="Padding" Value="12,8,12,8" />
@@ -238,7 +238,7 @@
 
     <Style x:Key="IconButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource TextSecondaryBrush}" />
         <Setter Property="BorderThickness" Value="0" />
         <!-- W=H=36, so RadiusFull keeps this a perfect circle (the only
              permitted "round" shape — pills are forbidden). -->
@@ -256,8 +256,8 @@
 
     <!-- Standard Card — Used for most content containers -->
     <Style x:Key="CardStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource CardGradientBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource CardGradientBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusLG}" />
         <Setter Property="Padding" Value="{StaticResource PaddingCard}" />
@@ -265,8 +265,8 @@
 
     <!-- Elevated Card — Prominent elements, modals -->
     <Style x:Key="CardElevatedStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource CardGradientVerticalBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderMediumBrush}" />
+        <Setter Property="Background" Value="{ThemeResource CardGradientVerticalBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource BorderMediumBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusLG}" />
         <Setter Property="Padding" Value="{StaticResource PaddingCard}" />
@@ -274,8 +274,8 @@
 
     <!-- Accent Card — Featured / highlighted content -->
     <Style x:Key="CardAccentStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource AccentCardGradientBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderAccentGradientBrush}" />
+        <Setter Property="Background" Value="{ThemeResource AccentCardGradientBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource BorderAccentGradientBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusLG}" />
         <Setter Property="Padding" Value="{StaticResource PaddingCard}" />
@@ -283,8 +283,8 @@
 
     <!-- Interactive Card — Clickable items (list items, file cards) -->
     <Style x:Key="CardInteractiveStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource CardGradientSubtleBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource CardGradientSubtleBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
         <Setter Property="Padding" Value="16" />
@@ -292,8 +292,8 @@
 
     <!-- Inset Card — Recessed input areas, code blocks -->
     <Style x:Key="CardInsetStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource InputBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
         <Setter Property="Padding" Value="16" />
@@ -304,17 +304,17 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="InputTextBoxStyle" TargetType="TextBox">
-        <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
+        <Setter Property="Background" Value="{ThemeResource InputBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource TextPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource InputBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
         <Setter Property="Padding" Value="14,10,14,10" />
         <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="MinHeight" Value="40" />
-        <Setter Property="PlaceholderForeground" Value="{StaticResource InputPlaceholderBrush}" />
-        <Setter Property="SelectionHighlightColor" Value="{StaticResource AccentPrimaryBrush}" />
+        <Setter Property="PlaceholderForeground" Value="{ThemeResource InputPlaceholderBrush}" />
+        <Setter Property="SelectionHighlightColor" Value="{ThemeResource AccentPrimaryBrush}" />
     </Style>
 
     <!-- Chat Input — Larger, multi-line with premium feel -->
@@ -339,15 +339,15 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="BadgeDefaultStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource CardElevatedBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource CardElevatedBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
         <Setter Property="Padding" Value="10,4,10,4" />
     </Style>
 
     <Style x:Key="BadgeAccentStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource AccentSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource AccentSubtleBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource RedGlow20}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
@@ -355,16 +355,16 @@
     </Style>
 
     <Style x:Key="BadgeSuccessStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource SuccessSubtleBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource SuccessBrush}" />
+        <Setter Property="Background" Value="{ThemeResource SuccessSubtleBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource SuccessBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
         <Setter Property="Padding" Value="10,4,10,4" />
     </Style>
 
     <Style x:Key="BadgeWarningStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource WarningSubtleBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource WarningBrush}" />
+        <Setter Property="Background" Value="{ThemeResource WarningSubtleBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource WarningBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
         <Setter Property="Padding" Value="10,4,10,4" />
@@ -378,24 +378,24 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="InlineErrorBarStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource ErrorSubtleBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource ErrorBrush}" />
+        <Setter Property="Background" Value="{ThemeResource ErrorSubtleBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource ErrorBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
         <Setter Property="Padding" Value="{StaticResource PaddingCard}" />
     </Style>
 
     <Style x:Key="InlineSuccessBarStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource SuccessSubtleBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource SuccessBrush}" />
+        <Setter Property="Background" Value="{ThemeResource SuccessSubtleBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource SuccessBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
         <Setter Property="Padding" Value="{StaticResource PaddingCard}" />
     </Style>
 
     <Style x:Key="InlineInfoBarStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource InfoSubtleBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource InfoBrush}" />
+        <Setter Property="Background" Value="{ThemeResource InfoSubtleBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource InfoBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
         <Setter Property="Padding" Value="{StaticResource PaddingCard}" />
@@ -406,7 +406,7 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="SeparatorStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource BorderSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource BorderSubtleBrush}" />
         <Setter Property="Height" Value="1" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="Margin" Value="0,8,0,8" />
@@ -417,8 +417,8 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="AccentProgressBarStyle" TargetType="ProgressBar">
-        <Setter Property="Foreground" Value="{StaticResource AccentPrimaryBrush}" />
-        <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource AccentPrimaryBrush}" />
+        <Setter Property="Background" Value="{ThemeResource InputBackgroundBrush}" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
         <Setter Property="MinHeight" Value="4" />
         <Setter Property="MaxHeight" Value="4" />
@@ -430,7 +430,7 @@
 
     <Style x:Key="TabRadioButtonStyle" TargetType="RadioButton">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource TextSecondaryBrush}" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Padding" Value="16,10,16,10" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -463,7 +463,7 @@
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BackgroundBorder"
                                                                        Storyboard.TargetProperty="Background">
                                             <DiscreteObjectKeyFrame KeyTime="0"
-                                                                     Value="{StaticResource CardHoverBrush}" />
+                                                                     Value="{ThemeResource CardHoverBrush}" />
                                         </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </VisualState>
@@ -472,7 +472,7 @@
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BackgroundBorder"
                                                                        Storyboard.TargetProperty="Background">
                                             <DiscreteObjectKeyFrame KeyTime="0"
-                                                                     Value="{StaticResource CardPressedBrush}" />
+                                                                     Value="{ThemeResource CardPressedBrush}" />
                                         </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </VisualState>
@@ -490,12 +490,12 @@
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BackgroundBorder"
                                                                        Storyboard.TargetProperty="Background">
                                             <DiscreteObjectKeyFrame KeyTime="0"
-                                                                     Value="{StaticResource AccentSubtleBrush}" />
+                                                                     Value="{ThemeResource AccentSubtleBrush}" />
                                         </ObjectAnimationUsingKeyFrames>
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter"
                                                                        Storyboard.TargetProperty="Foreground">
                                             <DiscreteObjectKeyFrame KeyTime="0"
-                                                                     Value="{StaticResource TextAccentBrush}" />
+                                                                     Value="{ThemeResource TextAccentBrush}" />
                                         </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </VisualState>
@@ -514,9 +514,9 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="PremiumToolTipStyle" TargetType="ToolTip">
-        <Setter Property="Background" Value="{StaticResource CardHighBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderMediumBrush}" />
+        <Setter Property="Background" Value="{ThemeResource CardHighBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource TextPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource BorderMediumBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
         <Setter Property="Padding" Value="12,8,12,8" />
