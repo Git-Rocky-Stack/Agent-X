@@ -42,8 +42,7 @@
                                Style="{StaticResource HeadingSmallStyle}"
                                FontWeight="Bold" />
                     <TextBlock Text="Multi-step AI pipelines"
-                               Style="{StaticResource CaptionStyle}"
-                               Opacity="0.5" />
+                               Style="{StaticResource CaptionStyle}" />
                 </StackPanel>
 
                 <!-- Workflow Actions -->
@@ -102,16 +101,13 @@
                                                TextTrimming="CharacterEllipsis" />
                                     <TextBlock Text="{x:Bind Description}"
                                                Style="{StaticResource CaptionStyle}"
-                                               Opacity="0.7"
                                                TextWrapping="Wrap"
                                                MaxLines="2"
                                                Visibility="{x:Bind Description, Mode=OneWay, Converter={StaticResource StringToVis}}" />
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <TextBlock Text="{x:Bind Category}"
-                                                   Style="{StaticResource CaptionStyle}"
-                                                   Opacity="0.5" />
-                                        <TextBlock Style="{StaticResource CaptionStyle}"
-                                                   Opacity="0.4">
+                                                   Style="{StaticResource CaptionStyle}" />
+                                        <TextBlock Style="{StaticResource CaptionStyle}">
                                             <Run Text="{x:Bind StepCount}" />
                                             <Run Text=" steps" />
                                         </TextBlock>
@@ -124,7 +120,6 @@
                                                        Foreground="{StaticResource AccentPrimaryBrush}" />
                                         </Border>
                                         <TextBlock Style="{StaticResource CaptionStyle}"
-                                                   Opacity="0.4"
                                                    Visibility="{x:Bind views:WorkflowBuilderPage.IntToVisibility(RunCount)}">
                                             <Run Text="{x:Bind RunCount}" />
                                             <Run Text=" runs" />
@@ -258,7 +253,7 @@
 
                                                     <!-- Step Number Badge -->
                                                     <Border Width="28" Height="28"
-                                                            CornerRadius="{StaticResource RadiusRound}"
+                                                            CornerRadius="{StaticResource RadiusFull}"
                                                             Background="{StaticResource AccentGradientBrush}">
                                                         <TextBlock Text="{x:Bind StepOrder, Mode=OneWay}"
                                                                    FontSize="12"
@@ -365,7 +360,6 @@
                                                    TextWrapping="Wrap" />
                                         <TextBlock Text="The matching workflow and stored result were brought to the top of the page for review."
                                                    Style="{StaticResource CaptionStyle}"
-                                                   Opacity="0.7"
                                                    TextWrapping="Wrap" />
                                     </StackPanel>
 
@@ -387,8 +381,7 @@
                                     <TextBlock Text="Run Workflow"
                                                Style="{StaticResource HeadingSmallStyle}" />
                                     <TextBlock Text="{x:Bind ViewModel.SelectedWorkflowName, Mode=OneWay}"
-                                               Style="{StaticResource CaptionStyle}"
-                                               Opacity="0.55" />
+                                               Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
 
                                 <Button Grid.Column="1"
@@ -426,8 +419,7 @@
                                                        Style="{StaticResource LabelStyle}" />
                                             <TextBlock Text="{x:Bind ViewModel.SelectedTemplateGuideBestFor, Mode=OneWay}"
                                                        Style="{StaticResource BodyStyle}"
-                                                       TextWrapping="Wrap"
-                                                       Opacity="0.85" />
+                                                       TextWrapping="Wrap" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="1" Spacing="6">
@@ -435,8 +427,7 @@
                                                        Style="{StaticResource LabelStyle}" />
                                             <TextBlock Text="{x:Bind ViewModel.SelectedTemplateGuideOutcome, Mode=OneWay}"
                                                        Style="{StaticResource BodyStyle}"
-                                                       TextWrapping="Wrap"
-                                                       Opacity="0.85" />
+                                                       TextWrapping="Wrap" />
                                         </StackPanel>
                                     </Grid>
 
@@ -463,8 +454,7 @@
                                                         <TextBlock Grid.Column="1"
                                                                    Text="{x:Bind Text}"
                                                                    Style="{StaticResource BodyStyle}"
-                                                                   TextWrapping="Wrap"
-                                                                   Opacity="0.85" />
+                                                                   TextWrapping="Wrap" />
                                                     </Grid>
                                                 </DataTemplate>
                                             </ItemsRepeater.ItemTemplate>
@@ -473,7 +463,6 @@
 
                                     <TextBlock Text="Run the template as-is if it already fits. Use Template if you want to customize the steps before saving your own version."
                                                Style="{StaticResource CaptionStyle}"
-                                               Opacity="0.65"
                                                TextWrapping="Wrap" />
                                 </StackPanel>
                             </Border>
@@ -509,7 +498,7 @@
                                 <ProgressBar Value="{x:Bind ViewModel.RunProgress, Mode=OneWay}"
                                              Maximum="{x:Bind ViewModel.RunTotalSteps, Mode=OneWay}"
                                              IsIndeterminate="False" />
-                                <TextBlock Style="{StaticResource CaptionStyle}" Opacity="0.6">
+                                <TextBlock Style="{StaticResource CaptionStyle}">
                                     <Run Text="Running:" />
                                     <Run Text="{x:Bind ViewModel.CurrentStepName, Mode=OneWay}" />
                                     <Run Text="(" /><Run Text="{x:Bind ViewModel.RunProgress, Mode=OneWay}" />
@@ -535,13 +524,11 @@
                                 <TextBlock Grid.Column="1"
                                            Text="{x:Bind ViewModel.SelectedWorkflowName, Mode=OneWay}"
                                            Style="{StaticResource CaptionStyle}"
-                                           Opacity="0.55"
                                            VerticalAlignment="Center" />
                             </Grid>
 
                             <TextBlock Text="Stored workflow results you can reopen without rerunning."
-                                       Style="{StaticResource CaptionStyle}"
-                                       Opacity="0.6" />
+                                       Style="{StaticResource CaptionStyle}" />
 
                             <ItemsRepeater ItemsSource="{x:Bind ViewModel.RecentRuns, Mode=OneWay}"
                                            Visibility="{x:Bind ViewModel.HasRecentRuns, Mode=OneWay, Converter={StaticResource BoolToVis}}">
@@ -578,8 +565,7 @@
                                                                    Style="{StaticResource BodyStyle}"
                                                                    FontWeight="SemiBold" />
                                                         <TextBlock Text="{x:Bind StartedAtText}"
-                                                                   Style="{StaticResource CaptionStyle}"
-                                                                   Opacity="0.55" />
+                                                                   Style="{StaticResource CaptionStyle}" />
                                                     </StackPanel>
 
                                                     <StackPanel Grid.Column="1"
@@ -600,14 +586,12 @@
                                                 </Grid>
 
                                                 <TextBlock Text="{x:Bind DetailText}"
-                                                           Style="{StaticResource CaptionStyle}"
-                                                           Opacity="0.6" />
+                                                           Style="{StaticResource CaptionStyle}" />
 
                                                 <TextBlock Text="{x:Bind PreviewText}"
                                                            Style="{StaticResource BodyStyle}"
                                                            TextWrapping="Wrap"
                                                            MaxLines="3"
-                                                           Opacity="0.8"
                                                            Visibility="{x:Bind HasPreview, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
 
                                                 <TextBlock Text="{x:Bind ErrorMessage}"
@@ -643,18 +627,17 @@
                                                Style="{StaticResource HeadingSmallStyle}" />
                                     <TextBlock Text="{x:Bind ViewModel.RunResultContextText, Mode=OneWay}"
                                                Style="{StaticResource CaptionStyle}"
-                                               Opacity="0.55"
                                                Visibility="{x:Bind ViewModel.HasRunResultContextText, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
                                 </StackPanel>
                                 <StackPanel Grid.Column="1"
                                             Orientation="Horizontal"
                                             Spacing="16">
-                                    <TextBlock Style="{StaticResource CaptionStyle}" Opacity="0.5"
+                                    <TextBlock Style="{StaticResource CaptionStyle}"
                                                VerticalAlignment="Center">
                                         <Run Text="{x:Bind ViewModel.RunTotalTokens, Mode=OneWay}" />
                                         <Run Text="tokens" />
                                     </TextBlock>
-                                    <TextBlock Style="{StaticResource CaptionStyle}" Opacity="0.5"
+                                    <TextBlock Style="{StaticResource CaptionStyle}"
                                                VerticalAlignment="Center">
                                         <Run Text="{x:Bind ViewModel.RunDurationMs, Mode=OneWay}" />
                                         <Run Text="ms" />
@@ -679,7 +662,7 @@
                                                         <ColumnDefinition Width="Auto" />
                                                     </Grid.ColumnDefinitions>
                                                     <Border Width="24" Height="24"
-                                                            CornerRadius="{StaticResource RadiusRound}"
+                                                            CornerRadius="{StaticResource RadiusFull}"
                                                             Background="{StaticResource AccentSubtleBrush}">
                                                         <TextBlock Text="{x:Bind StepOrder}"
                                                                    FontSize="11" FontWeight="Bold"
@@ -695,7 +678,6 @@
                                                                VerticalAlignment="Center" />
                                                     <TextBlock Grid.Column="2"
                                                                Style="{StaticResource CaptionStyle}"
-                                                               Opacity="0.4"
                                                                VerticalAlignment="Center">
                                                         <Run Text="{x:Bind TokensUsed}" /><Run Text=" tok" />
                                                     </TextBlock>
@@ -704,8 +686,7 @@
                                                            Style="{StaticResource BodyStyle}"
                                                            TextWrapping="Wrap"
                                                            MaxLines="10"
-                                                           IsTextSelectionEnabled="True"
-                                                           Opacity="0.8" />
+                                                           IsTextSelectionEnabled="True" />
                                             </StackPanel>
                                         </Border>
                                     </DataTemplate>
@@ -756,7 +737,6 @@
                     <TextBlock Grid.Row="6"
                                Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
                                Style="{StaticResource CaptionStyle}"
-                               Opacity="0.5"
                                Margin="0,8,0,0"
                                Visibility="{x:Bind ViewModel.StatusMessage, Mode=OneWay, Converter={StaticResource StringToVis}}" />
 
@@ -810,8 +790,7 @@
                                                         </StackPanel>
                                                         <TextBlock Text="{x:Bind Summary}"
                                                                    Style="{StaticResource BodyStyle}"
-                                                                   TextWrapping="Wrap"
-                                                                   Opacity="0.85" />
+                                                                   TextWrapping="Wrap" />
                                                     </StackPanel>
 
                                                     <Button Grid.Column="1"
@@ -823,7 +802,6 @@
                                                 </Grid>
 
                                                 <TextBlock Style="{StaticResource CaptionStyle}"
-                                                           Opacity="0.65"
                                                            TextWrapping="Wrap">
                                                     <Run Text="Best for: " />
                                                     <Run Text="{x:Bind BestFor}" />
@@ -845,7 +823,6 @@
                                         Style="{StaticResource AccentButtonStyle}" />
                                 <TextBlock Text="You can also build a workflow from scratch if none of the starters fit."
                                            Style="{StaticResource CaptionStyle}"
-                                           Opacity="0.65"
                                            VerticalAlignment="Center"
                                            TextWrapping="Wrap" />
                             </StackPanel>

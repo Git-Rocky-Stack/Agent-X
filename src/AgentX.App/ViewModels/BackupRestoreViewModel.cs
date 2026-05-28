@@ -282,5 +282,18 @@ public partial class BackupHistoryItem : ObservableObject
     [ObservableProperty] private double _sizeMB;
     [ObservableProperty] private DateTime _createdAt;
     [ObservableProperty] private string _notes = string.Empty;
-    [ObservableProperty] private bool _isValid;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IntegrityLabel))]
+    [NotifyPropertyChangedFor(nameof(IntegrityStatus))]
+    private bool _isValid;
+
+    /// <summary>Human-readable integrity label for the history badge.</summary>
+    public string IntegrityLabel => IsValid ? "Valid" : "Invalid";
+
+    /// <summary>
+    /// Status token fed to StatusToColorConverter so the badge color reflects
+    /// real integrity (completed = green, failed = red) instead of a constant green.
+    /// </summary>
+    public string IntegrityStatus => IsValid ? "completed" : "failed";
 }

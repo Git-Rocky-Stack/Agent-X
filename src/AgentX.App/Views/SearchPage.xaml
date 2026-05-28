@@ -117,7 +117,8 @@
                                 MinHeight="52"
                                 Command="{x:Bind ViewModel.ClearSearchCommand}"
                                 Visibility="{x:Bind ViewModel.QueryText, Mode=OneWay, Converter={StaticResource StringToVis}}"
-                                ToolTipService.ToolTip="Clear search">
+                                ToolTipService.ToolTip="Clear search"
+                                AutomationProperties.Name="Clear search">
                             <FontIcon Glyph="&#xE711;" FontSize="14" />
                         </Button>
                     </Grid>
@@ -462,7 +463,7 @@
 
                         <!-- Icon -->
                         <Border Background="{StaticResource AccentSubtleBrush}"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Width="72" Height="72"
                                 HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE721;"
@@ -514,7 +515,7 @@
                     <StackPanel Spacing="16" HorizontalAlignment="Center">
 
                         <Border Background="#1AEF4444"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Width="64" Height="64"
                                 HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE783;"
@@ -822,8 +823,7 @@
                                             <Run Text="results" />
                                         </TextBlock>
                                         <TextBlock Text="{x:Bind SearchedAgo}"
-                                                   Style="{StaticResource CaptionStyle}"
-                                                   Opacity="0.6" />
+                                                   Style="{StaticResource CaptionStyle}" />
                                     </StackPanel>
                                 </StackPanel>
 
@@ -897,8 +897,7 @@
                                                            CharacterSpacing="40" />
                                             </Border>
                                             <TextBlock Text="{x:Bind SavedAt}"
-                                                       Style="{StaticResource CaptionStyle}"
-                                                       Opacity="0.6" />
+                                                       Style="{StaticResource CaptionStyle}" />
                                         </StackPanel>
                                     </StackPanel>
 
@@ -908,7 +907,8 @@
                                             Padding="6,4,6,4" MinHeight="24"
                                             Tag="{x:Bind}"
                                             Click="OnApplySavedFilterClick"
-                                            ToolTipService.ToolTip="Apply this filter">
+                                            ToolTipService.ToolTip="Apply this filter"
+                                            AutomationProperties.Name="Apply this filter">
                                         <FontIcon Glyph="&#xE768;" FontSize="10"
                                                   Foreground="{StaticResource TextAccentBrush}" />
                                     </Button>
@@ -919,7 +919,8 @@
                                             Padding="6,4,6,4" MinHeight="24"
                                             Tag="{x:Bind Id}"
                                             Click="OnRemoveSavedFilterClick"
-                                            ToolTipService.ToolTip="Remove saved filter">
+                                            ToolTipService.ToolTip="Remove saved filter"
+                                            AutomationProperties.Name="Remove saved filter">
                                         <FontIcon Glyph="&#xE711;" FontSize="10"
                                                   Foreground="{StaticResource TextTertiaryBrush}" />
                                     </Button>

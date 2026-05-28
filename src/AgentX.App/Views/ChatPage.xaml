@@ -55,8 +55,7 @@
                         <TextBlock Text="{x:Bind LastMessage}"
                                    Style="{StaticResource CaptionStyle}"
                                    MaxLines="1"
-                                   TextTrimming="CharacterEllipsis"
-                                   Opacity="0.7" />
+                                   TextTrimming="CharacterEllipsis" />
 
                         <!-- Folder label -->
                         <TextBlock Text="{x:Bind FolderName}"
@@ -73,8 +72,7 @@
                                 HorizontalAlignment="Right">
                         <TextBlock Text="{x:Bind FormattedTime}"
                                    Style="{StaticResource CaptionStyle}"
-                                   HorizontalAlignment="Right"
-                                   Opacity="0.6" />
+                                   HorizontalAlignment="Right" />
                         <Border Style="{StaticResource BadgeDefaultStyle}"
                                 Padding="6,2,6,2"
                                 HorizontalAlignment="Right">
@@ -348,7 +346,7 @@
                                 Style="{StaticResource GhostButtonStyle}"
                                 Padding="10,4,10,4"
                                 MinHeight="28"
-                                FontSize="11"
+                                FontSize="12"
                                 Click="OnFolderFilterClick"
                                 Tag="" />
                         <ItemsRepeater ItemsSource="{x:Bind ViewModel.FolderNames, Mode=OneWay}">
@@ -361,7 +359,7 @@
                                             Style="{StaticResource GhostButtonStyle}"
                                             Padding="10,4,10,4"
                                             MinHeight="28"
-                                            FontSize="11"
+                                            FontSize="12"
                                             Click="OnFolderFilterClick"
                                             Tag="{x:Bind}" />
                                 </DataTemplate>
@@ -496,6 +494,7 @@
                             Style="{StaticResource IconButtonStyle}"
                             Command="{x:Bind ViewModel.ToggleConversationPaneCommand}"
                             ToolTipService.ToolTip="Toggle sidebar"
+                            AutomationProperties.Name="Toggle sidebar"
                             Margin="0,0,8,0">
                         <FontIcon Glyph="&#xE700;" FontSize="16"
                                   Foreground="{StaticResource TextSecondaryBrush}" />
@@ -677,6 +676,7 @@
                             Style="{StaticResource IconButtonStyle}"
                             Command="{x:Bind ViewModel.CompareBranchesCommand}"
                             ToolTipService.ToolTip="Compare branches"
+                            AutomationProperties.Name="Compare branches"
                             Margin="0,0,4,0"
                             Visibility="{x:Bind ViewModel.HasBranches, Mode=OneWay}">
                         <FontIcon Glyph="&#xE735;" FontSize="14"
@@ -687,7 +687,8 @@
                     <Button Grid.Column="8"
                             Style="{StaticResource IconButtonStyle}"
                             Command="{x:Bind ViewModel.RefreshConnectionCommand}"
-                            ToolTipService.ToolTip="Refresh connection">
+                            ToolTipService.ToolTip="Refresh connection"
+                            AutomationProperties.Name="Refresh connection">
                         <FontIcon Glyph="&#xE72C;" FontSize="14"
                                   Foreground="{StaticResource TextSecondaryBrush}" />
                     </Button>
@@ -696,6 +697,7 @@
                     <Button Grid.Column="9"
                             Style="{StaticResource IconButtonStyle}"
                             ToolTipService.ToolTip="Export conversation"
+                            AutomationProperties.Name="Export conversation"
                             Click="ExportButton_Click"
                             Margin="4,0,0,0">
                         <FontIcon Glyph="&#xEDE1;" FontSize="14"
@@ -707,7 +709,7 @@
             <Border Grid.Row="1"
                     Margin="24,12,24,0"
                     Padding="12,10,12,10"
-                    Background="{StaticResource SurfaceElevatedBrush}"
+                    Background="{StaticResource CardElevatedBrush}"
                     BorderBrush="{StaticResource BorderSubtleBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusLG}"
@@ -824,7 +826,7 @@
 
                         <!-- Icon -->
                         <Border Background="{StaticResource AccentSubtleBrush}"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Width="72" Height="72"
                                 HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE8BD;"
@@ -1121,7 +1123,7 @@
                     <Border Grid.Row="0"
                             Visibility="{x:Bind ViewModel.IsContextInspectorOpen, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
                             Margin="0,0,0,12"
-                            Background="{StaticResource SurfaceElevatedBrush}"
+                            Background="{StaticResource CardElevatedBrush}"
                             BorderBrush="{StaticResource BorderSubtleBrush}"
                             BorderThickness="1"
                             CornerRadius="{StaticResource RadiusLG}"
@@ -1452,7 +1454,7 @@
                         <!-- Research Mode toggle -->
                         <ToggleButton Grid.Column="2"
                                       x:Name="ResearchModeToggle"
-                                      Style="{StaticResource GhostButtonStyle}"
+                                      Style="{StaticResource GhostToggleButtonStyle}"
                                       Padding="10,10,10,10"
                                       MinHeight="44"
                                       MinWidth="44"
@@ -1463,7 +1465,7 @@
                         </ToggleButton>
 
                         <ToggleButton Grid.Column="3"
-                                      Style="{StaticResource GhostButtonStyle}"
+                                      Style="{StaticResource GhostToggleButtonStyle}"
                                       Padding="10,10,10,10"
                                       MinHeight="44"
                                       MinWidth="44"
@@ -1516,7 +1518,8 @@
                                     MinWidth="44"
                                     Command="{x:Bind ViewModel.SendMessageCommand}"
                                     Visibility="{x:Bind ViewModel.IsGenerating, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}"
-                                    ToolTipService.ToolTip="Send message (Enter)">
+                                    ToolTipService.ToolTip="Send message (Enter)"
+                                    AutomationProperties.Name="Send message">
                                 <FontIcon Glyph="&#xE724;" FontSize="16" />
                             </Button>
 
@@ -1528,7 +1531,8 @@
                                     BorderBrush="{StaticResource ErrorBrush}"
                                     Command="{x:Bind ViewModel.StopGenerationCommand}"
                                     Visibility="{x:Bind ViewModel.IsGenerating, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
-                                    ToolTipService.ToolTip="Stop generation">
+                                    ToolTipService.ToolTip="Stop generation"
+                                    AutomationProperties.Name="Stop generation">
                                 <FontIcon Glyph="&#xE71A;" FontSize="16"
                                           Foreground="{StaticResource ErrorBrush}" />
                             </Button>

@@ -15,7 +15,7 @@
              SEMI-TRANSPARENT BACKDROP (click to dismiss)
              ═══════════════════════════════════════════════════════ -->
         <Border x:Name="BackdropLayer"
-                Background="#99000000"
+                Background="{StaticResource OverlayBrush}"
                 Opacity="0"
                 Tapped="BackdropLayer_Tapped" />
 
@@ -28,8 +28,8 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Top"
                 Margin="0,80,0,0"
-                Background="#FF111111"
-                CornerRadius="16"
+                Background="{StaticResource CardBrush}"
+                CornerRadius="{StaticResource RadiusXL}"
                 BorderBrush="{StaticResource BorderSubtleBrush}"
                 BorderThickness="1"
                 Opacity="0"
@@ -38,23 +38,10 @@
                 <TranslateTransform x:Name="PaletteTranslate" Y="-12" />
             </Border.RenderTransform>
 
-            <!-- Subtle red glow at top of card -->
+            <!-- Removed: 5-stop red→transparent decorative top bar. The
+                 palette card now reads on its own borders + elevation; no
+                 painted accent line at the top. -->
             <Grid>
-                <Border CornerRadius="16,16,0,0"
-                        Height="2"
-                        VerticalAlignment="Top"
-                        IsHitTestVisible="False">
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                            <GradientStop Color="Transparent" Offset="0.0" />
-                            <GradientStop Color="{StaticResource RedGlow30}" Offset="0.3" />
-                            <GradientStop Color="{StaticResource Red500}" Offset="0.5" />
-                            <GradientStop Color="{StaticResource RedGlow30}" Offset="0.7" />
-                            <GradientStop Color="Transparent" Offset="1.0" />
-                        </LinearGradientBrush>
-                    </Border.Background>
-                </Border>
-
                 <StackPanel>
 
                     <!-- ═══════════════════════════════════════
@@ -72,9 +59,9 @@
                                  FontFamily="{StaticResource FontPrimary}"
                                  FontSize="16"
                                  Foreground="{StaticResource TextPrimaryBrush}"
-                                 Background="#FF0A0A0A"
+                                 Background="{StaticResource BackgroundSecondaryBrush}"
                                  BorderThickness="0"
-                                 CornerRadius="8"
+                                 CornerRadius="{StaticResource RadiusMD}"
                                  Padding="16,12,16,12"
                                  PlaceholderForeground="{StaticResource InputPlaceholderBrush}"
                                  SelectionHighlightColor="{StaticResource AccentPrimaryBrush}"
@@ -82,8 +69,8 @@
                                  KeyDown="SearchInput_KeyDown" />
 
                         <Border Grid.Column="1"
-                                Background="#FF1A1A1A"
-                                CornerRadius="6"
+                                Background="{StaticResource CardElevatedBrush}"
+                                CornerRadius="{StaticResource RadiusSM}"
                                 Padding="8,6"
                                 VerticalAlignment="Center"
                                 Margin="8,0,0,0">
@@ -115,7 +102,7 @@
                     <!-- ═══════════════════════════════════════
                          FOOTER HINTS
                          ═══════════════════════════════════════ -->
-                    <Border Background="#FF0A0A0A"
+                    <Border Background="{StaticResource BackgroundSecondaryBrush}"
                             CornerRadius="0,0,16,16"
                             Padding="16,10">
                         <StackPanel Orientation="Horizontal"
@@ -123,8 +110,8 @@
                                     Spacing="20">
 
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <Border Background="#FF1A1A1A"
-                                        CornerRadius="4"
+                                <Border Background="{StaticResource CardElevatedBrush}"
+                                        CornerRadius="{StaticResource RadiusSM}"
                                         Padding="6,3">
                                     <TextBlock Text="&#x2191;&#x2193;"
                                                FontFamily="{StaticResource FontMono}"
@@ -139,8 +126,8 @@
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <Border Background="#FF1A1A1A"
-                                        CornerRadius="4"
+                                <Border Background="{StaticResource CardElevatedBrush}"
+                                        CornerRadius="{StaticResource RadiusSM}"
                                         Padding="6,3">
                                     <TextBlock Text="&#x21B5;"
                                                FontFamily="{StaticResource FontMono}"
@@ -155,8 +142,8 @@
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <Border Background="#FF1A1A1A"
-                                        CornerRadius="4"
+                                <Border Background="{StaticResource CardElevatedBrush}"
+                                        CornerRadius="{StaticResource RadiusSM}"
                                         Padding="6,3">
                                     <TextBlock Text="Esc"
                                                FontFamily="{StaticResource FontMono}"

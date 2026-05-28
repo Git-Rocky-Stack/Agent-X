@@ -28,7 +28,8 @@
                               Foreground="{StaticResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_Workflows_Title"
-                               Style="{StaticResource HeadingMediumStyle}" />
+                               Style="{StaticResource HeadingMediumStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
                 </Grid>
 
                 <TextBlock Style="{StaticResource BodyStyle}"
@@ -45,7 +46,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Background="{StaticResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="1"
@@ -63,7 +64,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Background="{StaticResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="2"
@@ -81,7 +82,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Background="{StaticResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="3"
@@ -99,7 +100,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Background="{StaticResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="4"
@@ -233,7 +234,8 @@
                               Foreground="{StaticResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_ScheduledQueries_Title"
-                               Style="{StaticResource HeadingMediumStyle}" />
+                               Style="{StaticResource HeadingMediumStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
                 </Grid>
 
                 <TextBlock Style="{StaticResource BodyStyle}"
@@ -250,7 +252,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Background="{StaticResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="1"
@@ -268,7 +270,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Background="{StaticResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="2"
@@ -286,7 +288,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Background="{StaticResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="3"
@@ -412,7 +414,8 @@
                               Foreground="{StaticResource TextAccentBrush}" />
                     <TextBlock Grid.Column="1"
                                x:Uid="UserGuide_AutomationRules_Title"
-                               Style="{StaticResource HeadingMediumStyle}" />
+                               Style="{StaticResource HeadingMediumStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
                 </Grid>
 
                 <TextBlock Style="{StaticResource BodyStyle}"

@@ -104,6 +104,12 @@ public sealed partial class MainWindow : Window
         _chromeService.ConfigureTitleBar(this);
         _chromeService.ConfigureBackdrop(this);
 
+        // Register the reserved caption strip as the draggable title-bar region.
+        // ConfigureTitleBar sets ExtendsContentIntoTitleBar; without a SetTitleBar
+        // call the whole client area becomes drag-dead and page headers render
+        // under the caption buttons. AppTitleBar reserves that strip.
+        SetTitleBar(AppTitleBar);
+
         ConfigureStatusBar();
 
         QueueInitialNavigation();
@@ -112,6 +118,21 @@ public sealed partial class MainWindow : Window
     // ═══════════════════════════════════════════════════════════════════
     //  KEYBOARD SHORTCUTS
     // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Clips the content host to its own bounds. WinUI panels do not clip
+    /// children by default, so a cached page (NavigationCacheMode="Enabled")
+    /// can momentarily paint past the row boundary and bleed under the status
+    /// bar during navigation transitions. Tracking the clip to the host size
+    /// keeps cached content confined to the content row.
+    /// </summary>
+    private void ContentHost_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        ContentHost.Clip = new Microsoft.UI.Xaml.Media.RectangleGeometry
+        {
+            Rect = new Windows.Foundation.Rect(0, 0, e.NewSize.Width, e.NewSize.Height)
+        };
+    }
 
     private void RootGrid_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
     {

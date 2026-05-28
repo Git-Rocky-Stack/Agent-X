@@ -17,7 +17,7 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto"
                   HorizontalScrollBarVisibility="Disabled">
 
-        <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="900">
+        <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="900" HorizontalAlignment="Center">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -42,8 +42,7 @@
                     <TextBlock Text="Enter URLs"
                                Style="{StaticResource HeadingSmallStyle}" />
                     <TextBlock Text="One URL per line. Supports web articles and YouTube videos."
-                               Style="{StaticResource CaptionStyle}"
-                               Opacity="0.5" />
+                               Style="{StaticResource CaptionStyle}" />
 
                     <!-- URL Input -->
                     <TextBox Text="{x:Bind ViewModel.UrlInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -85,7 +84,7 @@
                                 Visibility="{x:Bind ViewModel.IsImporting, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <ProgressBar Value="{x:Bind ViewModel.ImportProgress, Mode=OneWay}"
                                      Maximum="{x:Bind ViewModel.ImportTotal, Mode=OneWay}" />
-                        <TextBlock Style="{StaticResource CaptionStyle}" Opacity="0.6">
+                        <TextBlock Style="{StaticResource CaptionStyle}">
                             <Run Text="Importing" />
                             <Run Text="{x:Bind ViewModel.ImportProgress, Mode=OneWay}" />
                             <Run Text="of" />
@@ -98,8 +97,7 @@
                                 Visibility="{x:Bind ViewModel.IsPreviewing, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <ProgressRing IsActive="True" Width="16" Height="16" />
                         <TextBlock Text="Extracting content..."
-                                   Style="{StaticResource CaptionStyle}"
-                                   Opacity="0.6" />
+                                   Style="{StaticResource CaptionStyle}" />
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -159,7 +157,6 @@
                         <TextBlock Text="{x:Bind ViewModel.PreviewContent, Mode=OneWay}"
                                    Style="{StaticResource BodyStyle}"
                                    TextWrapping="Wrap"
-                                   Opacity="0.7"
                                    MaxLines="12"
                                    IsTextSelectionEnabled="True" />
                     </Border>
@@ -229,14 +226,12 @@
                                                    TextTrimming="CharacterEllipsis" />
                                         <TextBlock Text="{x:Bind Url}"
                                                    Style="{StaticResource CaptionStyle}"
-                                                   Opacity="0.4"
                                                    TextTrimming="CharacterEllipsis" />
                                     </StackPanel>
 
                                     <!-- Word Count -->
                                     <TextBlock Grid.Column="2"
                                                Style="{StaticResource CaptionStyle}"
-                                               Opacity="0.5"
                                                VerticalAlignment="Center">
                                         <Run Text="{x:Bind WordCount}" />
                                         <Run Text="words" />
@@ -258,8 +253,7 @@
                     <TextBlock Text="RSS / Atom Feed"
                                Style="{StaticResource HeadingSmallStyle}" />
                     <TextBlock Text="Subscribe to a feed and import all items into your Knowledge Vault."
-                               Style="{StaticResource CaptionStyle}"
-                               Opacity="0.5" />
+                               Style="{StaticResource CaptionStyle}" />
 
                     <TextBox Text="{x:Bind ViewModel.FeedUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              PlaceholderText="https://example.com/feed.xml"
@@ -277,8 +271,7 @@
                     </StackPanel>
 
                     <TextBlock Text="{x:Bind ViewModel.FeedStatusMessage, Mode=OneWay}"
-                               Style="{StaticResource CaptionStyle}"
-                               Opacity="0.6" />
+                               Style="{StaticResource CaptionStyle}" />
                 </StackPanel>
             </Border>
 
@@ -288,8 +281,7 @@
                     <TextBlock Text="Sitemap Import"
                                Style="{StaticResource HeadingSmallStyle}" />
                     <TextBlock Text="Import pages discovered from a sitemap.xml file. Up to 100 pages will be imported."
-                               Style="{StaticResource CaptionStyle}"
-                               Opacity="0.5" />
+                               Style="{StaticResource CaptionStyle}" />
 
                     <TextBox Text="{x:Bind ViewModel.SitemapUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              PlaceholderText="https://example.com/sitemap.xml"
@@ -307,16 +299,14 @@
                     </StackPanel>
 
                     <TextBlock Text="Imports up to 100 pages from the sitemap"
-                               Style="{StaticResource CaptionStyle}"
-                               Opacity="0.4" />
+                               Style="{StaticResource CaptionStyle}" />
                 </StackPanel>
             </Border>
 
             <!-- ═══ STATUS ═══ -->
             <TextBlock Grid.Row="6"
                        Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
-                       Style="{StaticResource CaptionStyle}"
-                       Opacity="0.5" />
+                       Style="{StaticResource CaptionStyle}" />
         </Grid>
     </ScrollViewer>
 </Page>

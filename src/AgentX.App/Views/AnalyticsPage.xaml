@@ -91,10 +91,6 @@
                 <!-- Card: Total Conversations -->
                 <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource CardStyle}">
                     <Grid>
-                        <FontIcon Glyph="&#xE8BD;" FontSize="56"
-                                  Foreground="{StaticResource TextPrimaryBrush}" Opacity="0.04"
-                                  HorizontalAlignment="Right" VerticalAlignment="Top"
-                                  Margin="0,-4,-4,0" />
                         <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8BD;" FontSize="13"
@@ -112,10 +108,6 @@
                 <!-- Card: Total Messages -->
                 <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource CardStyle}">
                     <Grid>
-                        <FontIcon Glyph="&#xE8F2;" FontSize="56"
-                                  Foreground="{StaticResource TextPrimaryBrush}" Opacity="0.04"
-                                  HorizontalAlignment="Right" VerticalAlignment="Top"
-                                  Margin="0,-4,-4,0" />
                         <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8F2;" FontSize="13"
@@ -133,10 +125,6 @@
                 <!-- Card: Total Tokens -->
                 <Border Grid.Row="0" Grid.Column="2" Style="{StaticResource CardStyle}">
                     <Grid>
-                        <FontIcon Glyph="&#xE9D9;" FontSize="56"
-                                  Foreground="{StaticResource TextPrimaryBrush}" Opacity="0.04"
-                                  HorizontalAlignment="Right" VerticalAlignment="Top"
-                                  Margin="0,-4,-4,0" />
                         <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE9D9;" FontSize="13"
@@ -158,10 +146,6 @@
                 <!-- Card: Documents -->
                 <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource CardStyle}">
                     <Grid>
-                        <FontIcon Glyph="&#xE8F1;" FontSize="56"
-                                  Foreground="{StaticResource TextPrimaryBrush}" Opacity="0.04"
-                                  HorizontalAlignment="Right" VerticalAlignment="Top"
-                                  Margin="0,-4,-4,0" />
                         <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8F1;" FontSize="13"
@@ -187,10 +171,6 @@
                 <!-- Card: Searches -->
                 <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CardStyle}">
                     <Grid>
-                        <FontIcon Glyph="&#xE721;" FontSize="56"
-                                  Foreground="{StaticResource TextPrimaryBrush}" Opacity="0.04"
-                                  HorizontalAlignment="Right" VerticalAlignment="Top"
-                                  Margin="0,-4,-4,0" />
                         <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE721;" FontSize="13"
@@ -208,10 +188,6 @@
                 <!-- Card: Avg Response Time -->
                 <Border Grid.Row="1" Grid.Column="2" Style="{StaticResource CardStyle}">
                     <Grid>
-                        <FontIcon Glyph="&#xE916;" FontSize="56"
-                                  Foreground="{StaticResource TextPrimaryBrush}" Opacity="0.04"
-                                  HorizontalAlignment="Right" VerticalAlignment="Top"
-                                  Margin="0,-4,-4,0" />
                         <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE916;" FontSize="13"
@@ -389,7 +365,7 @@
 
                         <StackPanel Spacing="10">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <Ellipse Width="8" Height="8" Fill="#F97316" VerticalAlignment="Center" />
+                                <Ellipse Width="8" Height="8" Fill="{StaticResource ChartSeriesBrush}" VerticalAlignment="Center" />
                                 <TextBlock Text="30-Day Workflow Run Trend" Style="{StaticResource LabelStyle}" />
                             </StackPanel>
 
@@ -411,7 +387,7 @@
                                                   ToolTipService.ToolTip="{x:Bind Tooltip}">
                                                 <Rectangle Width="20"
                                                            Height="{x:Bind BarHeight}"
-                                                           Fill="#F97316"
+                                                           Fill="{StaticResource ChartSeriesBrush}"
                                                            RadiusX="2" RadiusY="2"
                                                            VerticalAlignment="Bottom"
                                                            HorizontalAlignment="Center" />
@@ -665,7 +641,6 @@
                                            TextWrapping="Wrap" />
                                 <TextBlock Text="The matching durable summary was moved to the top of the list so you can review it without hunting through Analytics."
                                            Style="{StaticResource CaptionStyle}"
-                                           Opacity="0.7"
                                            TextWrapping="Wrap" />
                             </StackPanel>
 
@@ -837,6 +812,7 @@
                             <Button Grid.Column="1"
                                     Command="{x:Bind ViewModel.RunConversationRecallCommand}"
                                     Content="Search Recall"
+                                    Style="{StaticResource SecondaryButtonStyle}"
                                     MinWidth="140" />
                         </Grid>
 

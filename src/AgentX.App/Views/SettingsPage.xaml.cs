@@ -54,4 +54,51 @@ public sealed partial class SettingsPage : Page
         if (!_isLoaded) return;
         await ViewModel.OnEncryptionToggledAsync();
     }
+
+    /// <summary>
+    /// Confirms before resetting all settings to their defaults (discards the
+    /// user's current configuration), then gates the existing reset command on
+    /// the dialog's primary result.
+    /// </summary>
+    private async void OnResetToDefaultsClick(object sender, RoutedEventArgs e)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = "Reset to Defaults?",
+            Content = "This restores every setting on this page to its default value. " +
+                      "Your current configuration will be lost. Continue?",
+            PrimaryButtonText = "Reset",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = this.XamlRoot
+        };
+
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        {
+            await ViewModel.ResetToDefaultsCommand.ExecuteAsync(null);
+        }
+    }
+
+    /// <summary>
+    /// Confirms before deactivating the license on this machine, then gates the
+    /// existing deactivate command on the dialog's primary result.
+    /// </summary>
+    private async void OnDeactivateLicenseClick(object sender, RoutedEventArgs e)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = "Deactivate License?",
+            Content = "This deactivates Agent-X on this machine and disables licensed " +
+                      "features until you reactivate. Continue?",
+            PrimaryButtonText = "Deactivate",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = this.XamlRoot
+        };
+
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        {
+            await ViewModel.DeactivateLicenseCommand.ExecuteAsync(null);
+        }
+    }
 }

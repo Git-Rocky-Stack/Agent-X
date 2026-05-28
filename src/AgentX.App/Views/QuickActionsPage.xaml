@@ -24,7 +24,7 @@
                       VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled">
 
-            <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="1200">
+            <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="1200" HorizontalAlignment="Center">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -295,8 +295,7 @@
                                 </Grid>
                                 <Border Style="{StaticResource SeparatorStyle}" />
                                 <TextBlock Text="Synthesized from indexed sections before final reduction."
-                                           Style="{StaticResource CaptionStyle}"
-                                           Opacity="0.6" />
+                                           Style="{StaticResource CaptionStyle}" />
                                 <TextBlock Text="{x:Bind ViewModel.SummaryResult, Mode=OneWay}"
                                            Style="{StaticResource BodyStyle}"
                                            TextWrapping="Wrap"

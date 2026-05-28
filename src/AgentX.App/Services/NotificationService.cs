@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media;
 
 namespace AgentX.App.Services;
 
@@ -44,6 +46,18 @@ public partial class NotificationItem : ObservableObject
         NotificationSeverity.Error => "ErrorBrush",
         _ => "InfoBrush"
     };
+
+    /// <summary>
+    /// Resolved semantic brush for the severity icon, looked up from the app
+    /// resource dictionary via <see cref="SeverityColorKey"/>. Falls back to the
+    /// primary text brush if the keyed resource is unavailable (e.g. design-time).
+    /// </summary>
+    public Brush SeverityBrush =>
+        Application.Current?.Resources is { } resources
+        && resources.TryGetValue(SeverityColorKey, out var brush)
+        && brush is Brush severityBrush
+            ? severityBrush
+            : new SolidColorBrush(Microsoft.UI.Colors.White);
 }
 
 /// <summary>

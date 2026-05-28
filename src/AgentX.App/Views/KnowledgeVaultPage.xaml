@@ -19,6 +19,7 @@
         <converters:StringToVisibilityConverter x:Key="StringToVis" />
         <converters:NullToVisibilityConverter x:Key="NullToVis" />
         <converters:NullToVisibilityConverter x:Key="InverseNullToVis" IsInverted="True" />
+        <converters:StatusToColorConverter x:Key="StatusToColor" />
 
     </Page.Resources>
 
@@ -104,7 +105,8 @@
                     <!-- Refresh button -->
                     <Button Style="{StaticResource SecondaryButtonStyle}"
                             Command="{x:Bind ViewModel.RefreshCommand}"
-                            ToolTipService.ToolTip="Refresh documents">
+                            ToolTipService.ToolTip="Refresh documents"
+                            AutomationProperties.Name="Refresh documents">
                         <FontIcon Glyph="&#xE72C;" FontSize="14" />
                     </Button>
                 </StackPanel>
@@ -116,21 +118,21 @@
                  ═══════════════════════════════════════════════════════ -->
             <Border Grid.Row="1"
                     Visibility="{x:Bind ViewModel.ShowDuplicateWarning, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                    Background="#2D1D1D" CornerRadius="8" Padding="16,12"
-                    BorderBrush="#F59E0B" BorderThickness="1">
+                    Background="{StaticResource WarningSubtleBrush}" CornerRadius="8" Padding="16,12"
+                    BorderBrush="{StaticResource WarningBrush}" BorderThickness="1">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <FontIcon Glyph="&#xE7BA;" FontSize="20" Foreground="#F59E0B"
+                    <FontIcon Glyph="&#xE7BA;" FontSize="20" Foreground="{StaticResource WarningBrush}"
                               VerticalAlignment="Center" Margin="0,0,12,0" />
                     <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
                         <TextBlock Text="Duplicate Documents Detected"
                                    Style="{StaticResource BodyStyle}" FontWeight="SemiBold" />
                         <TextBlock Text="{x:Bind ViewModel.DuplicateWarningMessage, Mode=OneWay}"
-                                   Style="{StaticResource CaptionStyle}" Opacity="0.7" />
+                                   Style="{StaticResource CaptionStyle}" />
                     </StackPanel>
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                         <Button Content="Skip Duplicates" Style="{StaticResource SecondaryButtonStyle}"
@@ -176,7 +178,7 @@
                     <!-- Storage size stat -->
                     <Border Style="{StaticResource StatBadgeStyle}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Border Background="#1A3B82F6"
+                            <Border Background="{StaticResource InfoSubtleBrush}"
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Width="40" Height="40">
                                 <FontIcon Glyph="&#xEDA2;" FontSize="18"
@@ -196,7 +198,7 @@
                     <!-- Indexing queue stat -->
                     <Border Style="{StaticResource StatBadgeStyle}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Border Background="#1AF59E0B"
+                            <Border Background="{StaticResource WarningSubtleBrush}"
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Width="40" Height="40">
                                 <FontIcon Glyph="&#xE915;" FontSize="18"
@@ -350,7 +352,7 @@
                                                      Fill="{StaticResource TextTertiaryBrush}" />
                                             <TextBlock Text="{x:Bind Name}" Style="{StaticResource CaptionStyle}" />
                                             <TextBlock Text="{x:Bind DocumentCountFormatted}"
-                                                       Style="{StaticResource CaptionStyle}" Opacity="0.5" />
+                                                       Style="{StaticResource CaptionStyle}" />
                                         </StackPanel>
                                     </Button>
                                 </DataTemplate>
@@ -439,7 +441,8 @@
                                 Style="{StaticResource GhostButtonStyle}"
                                 Command="{x:Bind ViewModel.ClearFiltersCommand}"
                                 Visibility="{x:Bind ViewModel.HasActiveFilters, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                                ToolTipService.ToolTip="Clear all filters">
+                                ToolTipService.ToolTip="Clear all filters"
+                                AutomationProperties.Name="Clear all filters">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE711;" FontSize="12"
                                           Foreground="{StaticResource TextAccentBrush}" />
@@ -458,7 +461,7 @@
                  ═══════════════════════════════════════════════════════ -->
             <Border Grid.Row="4"
                     Visibility="{x:Bind ViewModel.IsMultiSelectMode, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                    Background="#1AEF4444"
+                    Background="{StaticResource ErrorSubtleBrush}"
                     BorderBrush="{StaticResource BorderSubtleBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusMD}"
@@ -487,10 +490,10 @@
                         </Button>
                         <Button Style="{StaticResource GhostButtonStyle}" Padding="12,6"
                                 Command="{x:Bind ViewModel.BulkDeleteCommand}"
-                                Foreground="#EF4444">
+                                Foreground="{StaticResource ErrorBrush}">
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="#EF4444" />
-                                <TextBlock Text="Delete" Foreground="#EF4444" />
+                                <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="{StaticResource ErrorBrush}" />
+                                <TextBlock Text="Delete" Foreground="{StaticResource ErrorBrush}" />
                             </StackPanel>
                         </Button>
                     </StackPanel>
@@ -502,8 +505,8 @@
                  ═══════════════════════════════════════════════════════ -->
             <Border Grid.Row="5"
                     Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                    Background="#1AEF4444"
-                    BorderBrush="#33EF4444"
+                    Background="{StaticResource ErrorSubtleBrush}"
+                    BorderBrush="{StaticResource ErrorBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusMD}"
                     Padding="16,12">
@@ -534,7 +537,7 @@
                 <StackPanel Spacing="16" HorizontalAlignment="Center">
                     <!-- Upload icon -->
                     <Border Background="{StaticResource AccentSubtleBrush}"
-                            CornerRadius="{StaticResource RadiusRound}"
+                            CornerRadius="{StaticResource RadiusFull}"
                             Width="72" Height="72"
                             HorizontalAlignment="Center">
                         <FontIcon Glyph="&#xE898;"
@@ -668,21 +671,22 @@
                                                                CharacterSpacing="40" />
                                                 </Border>
 
-                                                <!-- Status badge -->
-                                                <Border CornerRadius="{StaticResource RadiusRound}"
-                                                        Padding="8,3,8,3">
-                                                    <Border.Background>
-                                                        <SolidColorBrush Color="{StaticResource StatusSuccess}" Opacity="0.1" />
-                                                    </Border.Background>
-                                                    <TextBlock Text="{x:Bind IndexingStatusLabel}"
-                                                               FontSize="10"
-                                                               FontWeight="Bold"
-                                                               CharacterSpacing="40">
-                                                        <TextBlock.Foreground>
-                                                            <SolidColorBrush Color="{StaticResource StatusSuccess}" />
-                                                        </TextBlock.Foreground>
-                                                    </TextBlock>
-                                                </Border>
+                                                <!-- Status badge — color bound to real indexing status
+                                                     (completed/processing/pending/failed) via the shared
+                                                     status->color converter instead of hardcoded green. -->
+                                                <Grid>
+                                                    <Border CornerRadius="{StaticResource RadiusRound}"
+                                                            Opacity="0.1"
+                                                            Background="{x:Bind IndexingStatus, Mode=OneWay, Converter={StaticResource StatusToColor}}" />
+                                                    <Border CornerRadius="{StaticResource RadiusRound}"
+                                                            Padding="8,3,8,3">
+                                                        <TextBlock Text="{x:Bind IndexingStatusLabel, Mode=OneWay}"
+                                                                   FontSize="10"
+                                                                   FontWeight="Bold"
+                                                                   CharacterSpacing="40"
+                                                                   Foreground="{x:Bind IndexingStatus, Mode=OneWay, Converter={StaticResource StatusToColor}}" />
+                                                    </Border>
+                                                </Grid>
 
                                                 <Border Style="{StaticResource BadgeDefaultStyle}"
                                                         Visibility="{x:Bind HasFocusedSourceLabel, Converter={StaticResource BoolToVis}}">
@@ -775,7 +779,8 @@
                                                 Padding="8,6,8,6" MinHeight="32"
                                                 Tag="{x:Bind Id}"
                                                 Click="OnGenerateTitleClick"
-                                                ToolTipService.ToolTip="Generate AI title">
+                                                ToolTipService.ToolTip="Generate AI title"
+                                                AutomationProperties.Name="Generate AI title">
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <FontIcon Glyph="&#xE945;" FontSize="12"
                                                           Foreground="{StaticResource TextAccentBrush}" />
@@ -820,7 +825,8 @@
                                                 Padding="8,6,8,6" MinHeight="32"
                                                 Tag="{x:Bind Id}"
                                                 Click="OnReindexClick"
-                                                ToolTipService.ToolTip="Re-index document">
+                                                ToolTipService.ToolTip="Re-index document"
+                                                AutomationProperties.Name="Re-index document">
                                             <FontIcon Glyph="&#xE72C;" FontSize="12"
                                                       Foreground="{StaticResource TextSecondaryBrush}" />
                                         </Button>
@@ -830,7 +836,8 @@
                                                 Padding="8,6,8,6" MinHeight="32"
                                                 Tag="{x:Bind FilePath}"
                                                 Click="OnOpenInExplorerClick"
-                                                ToolTipService.ToolTip="Open file location">
+                                                ToolTipService.ToolTip="Open file location"
+                                                AutomationProperties.Name="Open file location">
                                             <FontIcon Glyph="&#xE8DA;" FontSize="12"
                                                       Foreground="{StaticResource TextSecondaryBrush}" />
                                         </Button>
@@ -840,7 +847,8 @@
                                                 Padding="8,6,8,6" MinHeight="32"
                                                 Tag="{x:Bind Id}"
                                                 Click="OnDeleteDocumentClick"
-                                                ToolTipService.ToolTip="Delete document">
+                                                ToolTipService.ToolTip="Delete document"
+                                                AutomationProperties.Name="Delete document">
                                             <FontIcon Glyph="&#xE74D;" FontSize="12"
                                                       Foreground="{StaticResource ErrorBrush}" />
                                         </Button>
@@ -862,7 +870,7 @@
                         <StackPanel Spacing="20" HorizontalAlignment="Center">
                             <!-- Icon -->
                             <Border Background="{StaticResource AccentSubtleBrush}"
-                                    CornerRadius="{StaticResource RadiusRound}"
+                                    CornerRadius="{StaticResource RadiusFull}"
                                     Width="80" Height="80"
                                     HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE8F1;"
@@ -971,7 +979,8 @@
                         <Button Grid.Column="1"
                                 Style="{StaticResource IconButtonStyle}"
                                 Command="{x:Bind ViewModel.ClosePreviewCommand}"
-                                ToolTipService.ToolTip="Close preview">
+                                ToolTipService.ToolTip="Close preview"
+                                AutomationProperties.Name="Close preview">
                             <FontIcon Glyph="&#xE711;" FontSize="12"
                                       Foreground="{StaticResource TextSecondaryBrush}" />
                         </Button>
@@ -1002,7 +1011,6 @@
                                            TextWrapping="Wrap" />
                                 <TextBlock Text="{x:Bind ViewModel.FocusedDocumentVisibilityHint, Mode=OneWay}"
                                            Style="{StaticResource CaptionStyle}"
-                                           Opacity="0.7"
                                            TextWrapping="Wrap"
                                            Visibility="{x:Bind ViewModel.FocusedDocumentVisibilityHint, Mode=OneWay, Converter={StaticResource StringToVis}}" />
                             </StackPanel>

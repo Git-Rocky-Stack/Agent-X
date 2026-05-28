@@ -5,8 +5,16 @@
     ╔══════════════════════════════════════════════════════════════════╗
     ║                 AGENT-X CONTROL STYLE SYSTEM                    ║
     ║                                                                  ║
-    ║  Buttons, Cards, Inputs, Badges — all with gradient depth,       ║
-    ║  smooth transitions, and premium interaction states.             ║
+    ║  Buttons, Cards, Inputs, Badges — flat surfaces with crisp 1px   ║
+    ║  borders, deliberate corner radii, and quiet interaction state   ║
+    ║  transitions (no gradient fades, no ambient glows).              ║
+    ║                                                                  ║
+    ║  Button typography (deliberate hierarchy — confirmed consistent):║
+    ║    14px / SemiBold / 40px min-height — AccentButton, Secondary   ║
+    ║    14px / Normal   / 36px min-height — Ghost, GhostToggle        ║
+    ║    12px / SemiBold / 32px min-height — FilterChip (compact)      ║
+    ║    36x36 circle                       — IconButton               ║
+    ║  FontFamily = FontPrimary across all button tiers.               ║
     ╚══════════════════════════════════════════════════════════════════╝
     -->
 
@@ -205,6 +213,26 @@
     </Style>
 
     <!-- ═══════════════════════════════════════════════════════════════
+         GHOST TOGGLE BUTTON (Ghost visual for ToggleButton controls)
+         Mirrors GhostButtonStyle. A Style with TargetType="Button" cannot
+         be applied to a ToggleButton (ToggleButton derives from ButtonBase,
+         not Button), so toggle controls that want the ghost look must use
+         this TargetType="ToggleButton" variant.
+         ═══════════════════════════════════════════════════════════════ -->
+
+    <Style x:Key="GhostToggleButtonStyle" TargetType="ToggleButton">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
+        <Setter Property="Padding" Value="12,8,12,8" />
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="MinHeight" Value="36" />
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════════
          ICON BUTTON (Circular, for toolbar actions)
          ═══════════════════════════════════════════════════════════════ -->
 
@@ -212,7 +240,9 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
+        <!-- W=H=36, so RadiusFull keeps this a perfect circle (the only
+             permitted "round" shape — pills are forbidden). -->
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusFull}" />
         <Setter Property="Padding" Value="8" />
         <Setter Property="Width" Value="36" />
         <Setter Property="Height" Value="36" />
@@ -338,6 +368,37 @@
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
         <Setter Property="Padding" Value="10,4,10,4" />
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         INLINE STATUS BARS
+         Captures the repeated inline status-banner pattern: a tinted
+         semantic background with a matching-color border, used for
+         error / success / info callouts embedded in page content.
+         ═══════════════════════════════════════════════════════════════ -->
+
+    <Style x:Key="InlineErrorBarStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource ErrorSubtleBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ErrorBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
+        <Setter Property="Padding" Value="{StaticResource PaddingCard}" />
+    </Style>
+
+    <Style x:Key="InlineSuccessBarStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource SuccessSubtleBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource SuccessBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
+        <Setter Property="Padding" Value="{StaticResource PaddingCard}" />
+    </Style>
+
+    <Style x:Key="InlineInfoBarStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource InfoSubtleBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource InfoBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
+        <Setter Property="Padding" Value="{StaticResource PaddingCard}" />
     </Style>
 
     <!-- ═══════════════════════════════════════════════════════════════

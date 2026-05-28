@@ -66,8 +66,7 @@
                         <TextBlock Text="Ask Your Files"
                                    Style="{StaticResource HeadingSmallStyle}" />
                         <TextBlock Text="AI-powered answers grounded in your documents."
-                                   Style="{StaticResource CaptionStyle}"
-                                   Opacity="0.8" />
+                                   Style="{StaticResource CaptionStyle}" />
                     </StackPanel>
 
                     <!-- Collection scope dropdown -->
@@ -103,6 +102,7 @@
                             Padding="8,4,8,4" MinHeight="32"
                             Command="{x:Bind ViewModel.ClearConversationCommand}"
                             ToolTipService.ToolTip="Clear conversation"
+                            AutomationProperties.Name="Clear conversation"
                             VerticalAlignment="Center"
                             Margin="4,0,0,0">
                         <StackPanel Orientation="Horizontal" Spacing="4">
@@ -131,7 +131,7 @@
 
                         <!-- Brain / Document icon -->
                         <Border Background="{StaticResource AccentSubtleBrush}"
-                                CornerRadius="{StaticResource RadiusRound}"
+                                CornerRadius="{StaticResource RadiusFull}"
                                 Width="80" Height="80"
                                 HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE8D4;"
@@ -365,7 +365,8 @@
                                 MinWidth="44"
                                 Command="{x:Bind ViewModel.AskCommand}"
                                 Visibility="{x:Bind ViewModel.IsGenerating, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}"
-                                ToolTipService.ToolTip="Send question (Enter)">
+                                ToolTipService.ToolTip="Send question (Enter)"
+                                AutomationProperties.Name="Send question">
                             <FontIcon Glyph="&#xE724;" FontSize="16" />
                         </Button>
 
@@ -502,7 +503,8 @@
                                                     Padding="6,4,6,4" MinHeight="24"
                                                     Tag="{x:Bind FilePath}"
                                                     Click="OnOpenCitationClick"
-                                                    ToolTipService.ToolTip="Open source document">
+                                                    ToolTipService.ToolTip="Open source document"
+                                                    AutomationProperties.Name="Open source document">
                                                 <FontIcon Glyph="&#xE8DA;" FontSize="10"
                                                           Foreground="{StaticResource TextSecondaryBrush}" />
                                             </Button>

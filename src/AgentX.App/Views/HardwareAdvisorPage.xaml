@@ -76,6 +76,24 @@
             </Border>
 
             <!-- =======================================================
+                 ROW 1 (shared): ELEVATION HINT (UAC acknowledgement)
+
+                 Shown only after detection completes with partial/empty
+                 sensor data — the typical signature of running unelevated.
+                 LibreHardwareMonitor / WMI sensor reads require admin, so we
+                 surface the requirement instead of silently showing blanks.
+                 Mutually exclusive with the detecting spinner above (IsDetecting
+                 vs !IsDetecting && IsDetectionIncomplete), so sharing the row
+                 never causes overlap.
+                 ======================================================= -->
+            <InfoBar Grid.Row="1"
+                     Severity="Informational"
+                     IsOpen="{x:Bind ViewModel.IsDetectionIncomplete, Mode=OneWay}"
+                     IsClosable="False"
+                     Title="Some hardware details are unavailable"
+                     Message="Run Agent-X as administrator for full GPU, VRAM, and sensor detection. Without elevation, some readings may be incomplete." />
+
+            <!-- =======================================================
                  ROW 2: HARDWARE OVERVIEW CARDS (3-column grid)
                  ======================================================= -->
             <Grid Grid.Row="2" ColumnSpacing="16" RowSpacing="16"
@@ -147,7 +165,7 @@
                         <!-- Header -->
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <Grid Width="40" Height="40">
-                                <Ellipse Fill="#1A3B82F6"
+                                <Ellipse Fill="{StaticResource InfoSubtleBrush}"
                                          Width="40" Height="40" />
                                 <FontIcon Glyph="&#xE7F4;" FontSize="18"
                                           Foreground="{StaticResource InfoBrush}"
@@ -208,7 +226,7 @@
                         <!-- Header -->
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <Grid Width="40" Height="40">
-                                <Ellipse Fill="#1A22C55E"
+                                <Ellipse Fill="{StaticResource SuccessSubtleBrush}"
                                          Width="40" Height="40" />
                                 <FontIcon Glyph="&#xE950;" FontSize="18"
                                           Foreground="{StaticResource SuccessBrush}"
@@ -326,8 +344,8 @@
                  ======================================================= -->
             <Border Grid.Row="4"
                     Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                    Background="#1AEF4444"
-                    BorderBrush="#33EF4444"
+                    Background="{StaticResource ErrorSubtleBrush}"
+                    BorderBrush="{StaticResource ErrorBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusMD}"
                     Padding="16,12">
@@ -428,7 +446,7 @@
                                             <!-- Install button or Installed badge -->
                                             <Border Grid.Column="1"
                                                     Visibility="{x:Bind IsInstalled, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                                                    Background="#1A22C55E"
+                                                    Background="{StaticResource SuccessSubtleBrush}"
                                                     CornerRadius="{StaticResource RadiusRound}"
                                                     Padding="12,6,12,6">
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
@@ -496,7 +514,7 @@
                                                        Style="{StaticResource HeadingSmallStyle}" />
 
                                             <Border Grid.Column="1"
-                                                    Background="#1A3B82F6"
+                                                    Background="{StaticResource InfoSubtleBrush}"
                                                     CornerRadius="{StaticResource RadiusRound}"
                                                     Padding="10,4,10,4">
                                                 <TextBlock Text="Code"
@@ -529,7 +547,7 @@
 
                                             <Border Grid.Column="1"
                                                     Visibility="{x:Bind IsInstalled, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                                                    Background="#1A22C55E"
+                                                    Background="{StaticResource SuccessSubtleBrush}"
                                                     CornerRadius="{StaticResource RadiusRound}"
                                                     Padding="12,6,12,6">
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
@@ -597,7 +615,7 @@
                                                        Style="{StaticResource HeadingSmallStyle}" />
 
                                             <Border Grid.Column="1"
-                                                    Background="#1A22C55E"
+                                                    Background="{StaticResource SuccessSubtleBrush}"
                                                     CornerRadius="{StaticResource RadiusRound}"
                                                     Padding="10,4,10,4">
                                                 <TextBlock Text="Embedding"
@@ -630,7 +648,7 @@
 
                                             <Border Grid.Column="1"
                                                     Visibility="{x:Bind IsInstalled, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                                                    Background="#1A22C55E"
+                                                    Background="{StaticResource SuccessSubtleBrush}"
                                                     CornerRadius="{StaticResource RadiusRound}"
                                                     Padding="12,6,12,6">
                                                 <StackPanel Orientation="Horizontal" Spacing="6">

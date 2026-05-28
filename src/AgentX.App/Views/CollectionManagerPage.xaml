@@ -67,7 +67,8 @@
                     <Button Grid.Column="1"
                             Style="{StaticResource IconButtonStyle}"
                             Command="{x:Bind ViewModel.RefreshCommand}"
-                            ToolTipService.ToolTip="Refresh collections">
+                            ToolTipService.ToolTip="Refresh collections"
+                            AutomationProperties.Name="Refresh collections">
                         <FontIcon Glyph="&#xE72C;" FontSize="14"
                                   Foreground="{StaticResource TextSecondaryBrush}" />
                     </Button>
@@ -160,8 +161,7 @@
                                                    Style="{StaticResource CaptionStyle}"
                                                    Visibility="{x:Bind Description, Converter={StaticResource StringToVis}}"
                                                    MaxLines="1"
-                                                   TextTrimming="CharacterEllipsis"
-                                                   Opacity="0.7" />
+                                                   TextTrimming="CharacterEllipsis" />
                                     </StackPanel>
 
                                     <!-- Document count badge -->
@@ -184,6 +184,7 @@
                                             Tag="{x:Bind Id}"
                                             Click="OnDeleteCollectionClick"
                                             ToolTipService.ToolTip="Delete collection"
+                                            AutomationProperties.Name="Delete collection"
                                             Opacity="0.5">
                                         <FontIcon Glyph="&#xE74D;" FontSize="11"
                                                   Foreground="{StaticResource ErrorBrush}" />
@@ -245,6 +246,7 @@
                                                         Tag="{x:Bind Id}"
                                                         Click="OnDeleteCollectionClick"
                                                         ToolTipService.ToolTip="Delete collection"
+                                                        AutomationProperties.Name="Delete collection"
                                                         Opacity="0.5">
                                                     <FontIcon Glyph="&#xE74D;" FontSize="10"
                                                               Foreground="{StaticResource ErrorBrush}" />
@@ -286,7 +288,7 @@
                 <StackPanel Spacing="20" HorizontalAlignment="Center">
                     <!-- Icon -->
                     <Border Background="{StaticResource AccentSubtleBrush}"
-                            CornerRadius="{StaticResource RadiusRound}"
+                            CornerRadius="{StaticResource RadiusFull}"
                             Width="72" Height="72"
                             HorizontalAlignment="Center">
                         <FontIcon Glyph="&#xF168;"
@@ -395,8 +397,8 @@
                     <!-- Row 3: Error message -->
                     <Border Grid.Row="3"
                             Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                            Background="#1AEF4444"
-                            BorderBrush="#33EF4444"
+                            Background="{StaticResource ErrorSubtleBrush}"
+                            BorderBrush="{StaticResource ErrorBrush}"
                             BorderThickness="1"
                             CornerRadius="{StaticResource RadiusMD}"
                             Padding="16,12">
@@ -489,7 +491,8 @@
                                                     Padding="6" MinHeight="32" MinWidth="32"
                                                     Tag="{x:Bind Id}"
                                                     Click="OnRemoveDocumentFromCollectionClick"
-                                                    ToolTipService.ToolTip="Remove from collection">
+                                                    ToolTipService.ToolTip="Remove from collection"
+                                                    AutomationProperties.Name="Remove from collection">
                                                 <FontIcon Glyph="&#xE738;" FontSize="12"
                                                           Foreground="{StaticResource TextTertiaryBrush}" />
                                             </Button>

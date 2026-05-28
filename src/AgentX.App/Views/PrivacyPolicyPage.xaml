@@ -11,7 +11,7 @@
 
         <Grid Padding="{StaticResource PaddingPage}"
               RowSpacing="20"
-              MaxWidth="900"
+              MaxWidth="760"
               HorizontalAlignment="Center">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />  <!-- Row 0: Header -->
@@ -35,7 +35,8 @@
                  ========================================================== -->
             <StackPanel Grid.Row="0" Spacing="8">
                 <TextBlock Text="Privacy Policy"
-                           Style="{StaticResource DisplaySmallStyle}" />
+                           Style="{StaticResource DisplaySmallStyle}"
+                           AutomationProperties.HeadingLevel="Level1" />
                 <TextBlock Style="{StaticResource BodySecondaryStyle}">
                     <Run Text="Effective Date: February 26, 2026" />
                 </TextBlock>
@@ -118,7 +119,8 @@
                         </Border>
                         <TextBlock Text="Our Commitment to Privacy"
                                    Style="{StaticResource HeadingMediumStyle}"
-                                   VerticalAlignment="Center" />
+                                   VerticalAlignment="Center"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
@@ -150,7 +152,8 @@
                         </Border>
                         <TextBlock Text="Information We Collect"
                                    Style="{StaticResource HeadingMediumStyle}"
-                                   VerticalAlignment="Center" />
+                                   VerticalAlignment="Center"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
 
                     <!-- Sub-section: Information You Provide -->
@@ -306,7 +309,8 @@
                         </Border>
                         <TextBlock Text="How Your Data Is Stored"
                                    Style="{StaticResource HeadingMediumStyle}"
-                                   VerticalAlignment="Center" />
+                                   VerticalAlignment="Center"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
 
                     <TextBlock Style="{StaticResource BodySecondaryStyle}"
@@ -385,7 +389,8 @@
                         </Border>
                         <TextBlock Text="Third-Party Services"
                                    Style="{StaticResource HeadingMediumStyle}"
-                                   VerticalAlignment="Center" />
+                                   VerticalAlignment="Center"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
 
                     <!-- Ollama Sub-section -->
@@ -457,7 +462,8 @@
                         </Border>
                         <TextBlock Text="Your Rights Under GDPR"
                                    Style="{StaticResource HeadingMediumStyle}"
-                                   VerticalAlignment="Center" />
+                                   VerticalAlignment="Center"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
 
                     <TextBlock Style="{StaticResource BodySecondaryStyle}"
@@ -633,7 +639,8 @@
                         </Border>
                         <TextBlock Text="Your Rights Under CCPA"
                                    Style="{StaticResource HeadingMediumStyle}"
-                                   VerticalAlignment="Center" />
+                                   VerticalAlignment="Center"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
 
                     <TextBlock Style="{StaticResource BodySecondaryStyle}"
@@ -807,7 +814,8 @@
                         </Border>
                         <TextBlock Text="Data Security"
                                    Style="{StaticResource HeadingMediumStyle}"
-                                   VerticalAlignment="Center" />
+                                   VerticalAlignment="Center"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
@@ -889,7 +897,8 @@
                         </Border>
                         <TextBlock Text="Children's Privacy"
                                    Style="{StaticResource HeadingMediumStyle}"
-                                   VerticalAlignment="Center" />
+                                   VerticalAlignment="Center"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
@@ -918,7 +927,8 @@
                         </Border>
                         <TextBlock Text="Changes to This Privacy Policy"
                                    Style="{StaticResource HeadingMediumStyle}"
-                                   VerticalAlignment="Center" />
+                                   VerticalAlignment="Center"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
@@ -950,7 +960,8 @@
                         </Border>
                         <TextBlock Text="Contact Us"
                                    Style="{StaticResource HeadingMediumStyle}"
-                                   VerticalAlignment="Center" />
+                                   VerticalAlignment="Center"
+                                   AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
 
                     <TextBlock Style="{StaticResource BodyStyle}"

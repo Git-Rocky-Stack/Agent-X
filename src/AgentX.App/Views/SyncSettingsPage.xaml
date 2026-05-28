@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="AgentX.App.Views.SyncSettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -23,6 +23,7 @@
         <converters:BoolToVisibilityConverter x:Key="InverseBoolToVis" IsInverted="True" />
         <converters:InverseBoolConverter x:Key="InverseBool" />
         <converters:StringToVisibilityConverter x:Key="StringToVis" />
+        <converters:StatusToColorConverter x:Key="StatusToColor" />
     </Page.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto"
@@ -72,13 +73,12 @@
                         Visibility="{x:Bind ViewModel.IsConfigured, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                     <Border Style="{StaticResource BadgeDefaultStyle}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
+                            <!-- Dot color reflects the actual sync state
+                                 (idle/syncing/error/conflict) rather than a
+                                 constant online green. -->
                             <Ellipse Width="8" Height="8"
-                                     VerticalAlignment="Center">
-                                <Ellipse.Fill>
-                                    <SolidColorBrush x:Name="SyncStateDotBrush"
-                                                     Color="{StaticResource StatusOnline}" />
-                                </Ellipse.Fill>
-                            </Ellipse>
+                                     VerticalAlignment="Center"
+                                     Fill="{x:Bind ViewModel.SyncStateDisplay, Mode=OneWay, Converter={StaticResource StatusToColor}}" />
                             <TextBlock Text="{x:Bind ViewModel.SyncStateDisplay, Mode=OneWay}"
                                        Style="{StaticResource BadgeStyle}" />
                         </StackPanel>
@@ -107,8 +107,8 @@
                  ======================================================= -->
             <Border Grid.Row="1"
                     Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                    Background="#1AEF4444"
-                    BorderBrush="#33EF4444"
+                    Background="{StaticResource ErrorSubtleBrush}"
+                    BorderBrush="{StaticResource ErrorBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusMD}"
                     Padding="16,12">
@@ -133,8 +133,8 @@
                  ======================================================= -->
             <Border Grid.Row="2"
                     Visibility="{x:Bind ViewModel.HasSuccess, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                    Background="#1A22C55E"
-                    BorderBrush="#3322C55E"
+                    Background="{StaticResource SuccessSubtleBrush}"
+                    BorderBrush="{StaticResource SuccessBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusMD}"
                     Padding="16,12">
@@ -159,8 +159,8 @@
                  ======================================================= -->
             <Border Grid.Row="3"
                     Visibility="{x:Bind ViewModel.StatusMessage, Mode=OneWay, Converter={StaticResource StringToVis}}"
-                    Background="#1A3B82F6"
-                    BorderBrush="#333B82F6"
+                    Background="{StaticResource InfoSubtleBrush}"
+                    BorderBrush="{StaticResource InfoBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusMD}"
                     Padding="16,12">
@@ -659,7 +659,6 @@
                                        TextWrapping="Wrap" />
                             <TextBlock Text="The matching sync record stays pinned and marked until you dismiss this focus state."
                                        Style="{StaticResource CaptionStyle}"
-                                       Opacity="0.7"
                                        TextWrapping="Wrap" />
                         </StackPanel>
 
@@ -709,7 +708,7 @@
                                     <Border Grid.Row="0" Grid.Column="0"
                                             Grid.RowSpan="2"
                                             Width="36" Height="36"
-                                            CornerRadius="{StaticResource RadiusRound}"
+                                            CornerRadius="{StaticResource RadiusFull}"
                                             VerticalAlignment="Top"
                                             Margin="0,2,0,0">
                                         <Border.Background>

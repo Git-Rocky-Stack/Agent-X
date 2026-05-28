@@ -32,7 +32,7 @@
                     <TextBlock Text="Annotations"
                                Style="{StaticResource HeadingSmallStyle}"
                                FontWeight="Bold" />
-                    <TextBlock Style="{StaticResource CaptionStyle}" Opacity="0.5">
+                    <TextBlock Style="{StaticResource CaptionStyle}">
                         <Run Text="{x:Bind ViewModel.TotalCount, Mode=OneWay}" />
                         <Run Text="highlights" />
                     </TextBlock>
@@ -50,8 +50,7 @@
                 <!-- Color Filter -->
                 <StackPanel Spacing="8">
                     <TextBlock Text="FILTER BY COLOR"
-                               Style="{StaticResource OverlineStyle}"
-                               Opacity="0.5" />
+                               Style="{StaticResource OverlineStyle}" />
                     <ItemsRepeater ItemsSource="{x:Bind ViewModel.ColorOptions}">
                         <ItemsRepeater.Layout>
                             <StackLayout Spacing="4" />
@@ -72,8 +71,7 @@
                 <StackPanel Spacing="8"
                             Visibility="{x:Bind ViewModel.HasAnnotations, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                     <TextBlock Text="DISTRIBUTION"
-                               Style="{StaticResource OverlineStyle}"
-                               Opacity="0.5" />
+                               Style="{StaticResource OverlineStyle}" />
                     <ItemsRepeater ItemsSource="{x:Bind ViewModel.ColorStats}">
                         <ItemsRepeater.Layout>
                             <StackLayout Spacing="4" />
@@ -97,7 +95,6 @@
                                     <TextBlock Grid.Column="2"
                                                Text="{x:Bind Count}"
                                                Style="{StaticResource CaptionStyle}"
-                                               Opacity="0.5"
                                                VerticalAlignment="Center" />
                                 </Grid>
                             </DataTemplate>
@@ -119,7 +116,7 @@
         <Grid Grid.Column="1">
             <ScrollViewer VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled">
-                <Grid Padding="{StaticResource PaddingPage}" RowSpacing="16" MaxWidth="800">
+                <Grid Padding="{StaticResource PaddingPage}" RowSpacing="16" MaxWidth="800" HorizontalAlignment="Center">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -166,7 +163,6 @@
                                             <TextBlock Grid.Column="1"
                                                        Text="{x:Bind DocumentName}"
                                                        Style="{StaticResource CaptionStyle}"
-                                                       Opacity="0.5"
                                                        Margin="10,0,0,0"
                                                        VerticalAlignment="Center"
                                                        TextTrimming="CharacterEllipsis" />
@@ -179,7 +175,8 @@
                                                     Foreground="{StaticResource ErrorBrush}"
                                                     Style="{StaticResource GhostButtonStyle}"
                                                     Padding="6" MinWidth="0" MinHeight="0"
-                                                    ToolTipService.ToolTip="Delete annotation" />
+                                                    ToolTipService.ToolTip="Delete annotation"
+                                                    AutomationProperties.Name="Delete annotation" />
                                         </Grid>
 
                                         <!-- Highlighted Text -->
@@ -193,7 +190,6 @@
                                                        TextWrapping="Wrap"
                                                        IsTextSelectionEnabled="True"
                                                        FontStyle="Italic"
-                                                       Opacity="0.8"
                                                        MaxLines="6" />
                                         </Border>
 
@@ -201,7 +197,6 @@
                                         <TextBlock Text="{x:Bind NoteText}"
                                                    Style="{StaticResource BodyStyle}"
                                                    TextWrapping="Wrap"
-                                                   Opacity="0.7"
                                                    MaxLines="4" />
                                     </StackPanel>
                                 </Border>
@@ -224,7 +219,6 @@
                                    HorizontalAlignment="Center" />
                         <TextBlock Text="Highlight text in your documents to create annotations."
                                    Style="{StaticResource CaptionStyle}"
-                                   Opacity="0.5"
                                    HorizontalAlignment="Center" />
                     </StackPanel>
 
@@ -232,7 +226,6 @@
                     <TextBlock Grid.Row="2"
                                Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
                                Style="{StaticResource CaptionStyle}"
-                               Opacity="0.5"
                                Margin="0,8,0,0" />
                 </Grid>
             </ScrollViewer>

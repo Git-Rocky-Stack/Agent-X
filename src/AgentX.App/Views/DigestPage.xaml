@@ -10,6 +10,7 @@
     <Page.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
         <converters:BoolToVisibilityConverter x:Key="InverseBoolToVis" IsInverted="True" />
+        <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
     </Page.Resources>
 
     <Grid>
@@ -69,7 +70,7 @@
                         <!-- Generate button -->
                         <Button Style="{StaticResource AccentButtonStyle}"
                                 Command="{x:Bind ViewModel.GenerateDigestCommand}"
-                                IsEnabled="{x:Bind ViewModel.IsGenerating, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
+                                IsEnabled="{x:Bind ViewModel.IsGenerating, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <ProgressRing IsActive="{x:Bind ViewModel.IsGenerating, Mode=OneWay}"
                                               Width="14" Height="14"
@@ -113,7 +114,7 @@
                         <!-- New Conversations -->
                         <Border Style="{StaticResource StatBadgeStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="12">
-                                <Border Background="#1A3B82F6"
+                                <Border Background="{StaticResource InfoSubtleBrush}"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Width="40" Height="40">
                                     <FontIcon Glyph="&#xE8BD;" FontSize="18"
@@ -134,7 +135,7 @@
                         <!-- Searches -->
                         <Border Style="{StaticResource StatBadgeStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="12">
-                                <Border Background="#1AF59E0B"
+                                <Border Background="{StaticResource WarningSubtleBrush}"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Width="40" Height="40">
                                     <FontIcon Glyph="&#xE721;" FontSize="18"
@@ -155,11 +156,11 @@
                         <!-- Tokens Used -->
                         <Border Style="{StaticResource StatBadgeStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="12">
-                                <Border Background="#1A22C55E"
+                                <Border Background="{StaticResource SuccessSubtleBrush}"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Width="40" Height="40">
                                     <FontIcon Glyph="&#xE945;" FontSize="18"
-                                              Foreground="#22C55E"
+                                              Foreground="{StaticResource SuccessBrush}"
                                               HorizontalAlignment="Center"
                                               VerticalAlignment="Center" />
                                 </Border>
@@ -175,11 +176,11 @@
                         <!-- Storage Delta -->
                         <Border Style="{StaticResource StatBadgeStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="12">
-                                <Border Background="#1A8B5CF6"
+                                <Border Background="{StaticResource GraphTagSubtleBrush}"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Width="40" Height="40">
                                     <FontIcon Glyph="&#xEDA2;" FontSize="18"
-                                              Foreground="#8B5CF6"
+                                              Foreground="{StaticResource GraphTagBrush}"
                                               HorizontalAlignment="Center"
                                               VerticalAlignment="Center" />
                                 </Border>
@@ -218,7 +219,7 @@
                             Margin="0,0,0,24">
                         <StackPanel HorizontalAlignment="Center" Spacing="16">
                             <Border Background="{StaticResource AccentSubtleBrush}"
-                                    CornerRadius="{StaticResource RadiusRound}"
+                                    CornerRadius="{StaticResource RadiusFull}"
                                     Width="72" Height="72"
                                     HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE9D2;" FontSize="32"
@@ -261,7 +262,7 @@
                             <Border Grid.Column="0" Style="{StaticResource CardStyle}">
                                 <StackPanel Spacing="16">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <Border Background="#1AF59E0B"
+                                        <Border Background="{StaticResource WarningSubtleBrush}"
                                                 CornerRadius="{StaticResource RadiusMD}"
                                                 Width="32" Height="32">
                                             <FontIcon Glyph="&#xE721;" FontSize="14"
@@ -292,8 +293,7 @@
                                                                    Style="{StaticResource BodyStyle}"
                                                                    TextTrimming="CharacterEllipsis" />
                                                         <TextBlock Text="{x:Bind TrendLabel}"
-                                                                   Style="{StaticResource CaptionStyle}"
-                                                                   Opacity="0.55" />
+                                                                   Style="{StaticResource CaptionStyle}" />
                                                     </StackPanel>
                                                     <Border Grid.Column="1"
                                                             Style="{StaticResource BadgeAccentStyle}"
@@ -311,7 +311,6 @@
                                     <!-- Empty state for no searches -->
                                     <TextBlock Text="No searches recorded this period"
                                                Style="{StaticResource CaptionStyle}"
-                                               Opacity="0.5"
                                                HorizontalAlignment="Center"
                                                Margin="0,8" />
                                 </StackPanel>
@@ -321,7 +320,7 @@
                             <Border Grid.Column="1" Style="{StaticResource CardStyle}">
                                 <StackPanel Spacing="16">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <Border Background="#1A3B82F6"
+                                        <Border Background="{StaticResource InfoSubtleBrush}"
                                                 CornerRadius="{StaticResource RadiusMD}"
                                                 Width="32" Height="32">
                                             <FontIcon Glyph="&#xF168;" FontSize="14"
@@ -352,12 +351,10 @@
                                                                    Style="{StaticResource BodyStyle}"
                                                                    TextTrimming="CharacterEllipsis" />
                                                         <TextBlock Text="{x:Bind TrendLabel}"
-                                                                   Style="{StaticResource CaptionStyle}"
-                                                                   Opacity="0.55" />
+                                                                   Style="{StaticResource CaptionStyle}" />
                                                     </StackPanel>
                                                     <TextBlock Grid.Column="1"
-                                                               Style="{StaticResource CaptionStyle}"
-                                                               Opacity="0.6">
+                                                               Style="{StaticResource CaptionStyle}">
                                                         <Run Text="{x:Bind DocumentCount}" />
                                                         <Run Text=" docs" />
                                                     </TextBlock>
@@ -369,7 +366,6 @@
                                     <!-- Empty state for no collections -->
                                     <TextBlock Text="No collections configured yet"
                                                Style="{StaticResource CaptionStyle}"
-                                               Opacity="0.5"
                                                HorizontalAlignment="Center"
                                                Margin="0,8" />
                                 </StackPanel>
@@ -387,11 +383,11 @@
                             <Border Grid.Column="0" Style="{StaticResource CardStyle}">
                                 <StackPanel Spacing="16">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <Border Background="#1A8B5CF6"
+                                        <Border Background="{StaticResource GraphTagSubtleBrush}"
                                                 CornerRadius="{StaticResource RadiusMD}"
                                                 Width="32" Height="32">
                                             <FontIcon Glyph="&#xE8F1;" FontSize="14"
-                                                      Foreground="#8B5CF6"
+                                                      Foreground="{StaticResource GraphTagBrush}"
                                                       HorizontalAlignment="Center"
                                                       VerticalAlignment="Center" />
                                         </Border>
@@ -427,7 +423,6 @@
                                                     <TextBlock Grid.Column="1"
                                                                Text="{x:Bind TrendLabel}"
                                                                Style="{StaticResource CaptionStyle}"
-                                                               Opacity="0.55"
                                                                VerticalAlignment="Center" />
                                                     <TextBlock Grid.Column="2"
                                                                Style="{StaticResource BodyStyle}">
@@ -442,7 +437,6 @@
                                     <!-- Empty state -->
                                     <TextBlock Text="No files imported this period"
                                                Style="{StaticResource CaptionStyle}"
-                                               Opacity="0.5"
                                                HorizontalAlignment="Center"
                                                Margin="0,8" />
                                 </StackPanel>
@@ -452,11 +446,11 @@
                             <Border Grid.Column="1" Style="{StaticResource CardStyle}">
                                 <StackPanel Spacing="16">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <Border Background="#1A22C55E"
+                                        <Border Background="{StaticResource SuccessSubtleBrush}"
                                                 CornerRadius="{StaticResource RadiusMD}"
                                                 Width="32" Height="32">
                                             <FontIcon Glyph="&#xE8BD;" FontSize="14"
-                                                      Foreground="#22C55E"
+                                                      Foreground="{StaticResource SuccessBrush}"
                                                       HorizontalAlignment="Center"
                                                       VerticalAlignment="Center" />
                                         </Border>
@@ -485,7 +479,7 @@
                                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                                 <FontIcon Glyph="&#xE8BD;" FontSize="10"
                                                                           Foreground="{StaticResource TextSecondaryBrush}" />
-                                                                <TextBlock Style="{StaticResource CaptionStyle}" Opacity="0.6">
+                                                                <TextBlock Style="{StaticResource CaptionStyle}">
                                                                     <Run Text="{x:Bind MessageCount}" />
                                                                     <Run Text=" messages" />
                                                                 </TextBlock>
@@ -493,7 +487,7 @@
                                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                                 <FontIcon Glyph="&#xE945;" FontSize="10"
                                                                           Foreground="{StaticResource TextSecondaryBrush}" />
-                                                                <TextBlock Style="{StaticResource CaptionStyle}" Opacity="0.6">
+                                                                <TextBlock Style="{StaticResource CaptionStyle}">
                                                                     <Run Text="{x:Bind TokensUsed}" />
                                                                     <Run Text=" tokens" />
                                                                 </TextBlock>
@@ -508,7 +502,6 @@
                                     <!-- Empty state -->
                                     <TextBlock Text="No conversations this period"
                                                Style="{StaticResource CaptionStyle}"
-                                               Opacity="0.5"
                                                HorizontalAlignment="Center"
                                                Margin="0,8" />
                                 </StackPanel>
@@ -540,8 +533,7 @@
                     <TextBlock Text="REPORT HISTORY"
                                Style="{StaticResource OverlineStyle}" />
                     <TextBlock Text="Select a previous report to view"
-                               Style="{StaticResource CaptionStyle}"
-                               Opacity="0.5" />
+                               Style="{StaticResource CaptionStyle}" />
                 </StackPanel>
 
                 <Border Grid.Row="1" Style="{StaticResource SeparatorStyle}" Margin="0" />
@@ -567,18 +559,17 @@
                                                    Style="{StaticResource BodySmallStyle}"
                                                    FontWeight="SemiBold" />
                                         <StackPanel Orientation="Horizontal" Spacing="12">
-                                            <TextBlock Style="{StaticResource CaptionStyle}" Opacity="0.5">
+                                            <TextBlock Style="{StaticResource CaptionStyle}">
                                                 <Run Text="{x:Bind NewDocumentsCount}" />
                                                 <Run Text=" docs" />
                                             </TextBlock>
-                                            <TextBlock Style="{StaticResource CaptionStyle}" Opacity="0.5">
+                                            <TextBlock Style="{StaticResource CaptionStyle}">
                                                 <Run Text="{x:Bind TotalSearches}" />
                                                 <Run Text=" searches" />
                                             </TextBlock>
                                         </StackPanel>
                                         <TextBlock Text="{x:Bind GeneratedAtFormatted}"
                                                    Style="{StaticResource CaptionStyle}"
-                                                   Opacity="0.35"
                                                    FontSize="10" />
                                     </StackPanel>
                                 </Button>

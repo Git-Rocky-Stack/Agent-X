@@ -75,7 +75,7 @@
                             <Border Style="{StaticResource BadgeSuccessStyle}">
                                 <TextBlock Text="FREE"
                                            Style="{StaticResource BadgeStyle}"
-                                           Foreground="#FF22C55E" />
+                                           Foreground="{StaticResource SuccessBrush}" />
                             </Border>
                         </StackPanel>
 
@@ -229,8 +229,7 @@
                         </Grid>
 
                         <TextBlock Text="Note: Anthropic does not support embeddings. Use Ollama or OpenAI for document indexing."
-                                   Style="{StaticResource CaptionStyle}"
-                                   Opacity="0.6" />
+                                   Style="{StaticResource CaptionStyle}" />
 
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <Button Content="Test Connection"
@@ -261,8 +260,7 @@
                                   HorizontalAlignment="Stretch"
                                   MinWidth="200" />
                         <TextBlock Text="Changes apply immediately. 'System Default' follows your Windows theme."
-                                   Style="{StaticResource CaptionStyle}"
-                                   Opacity="0.6" />
+                                   Style="{StaticResource CaptionStyle}" />
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -295,14 +293,11 @@
 
                         <StackPanel Spacing="4" Padding="4,0,0,0">
                             <TextBlock Text="Cost Optimized — Local models for all tasks, cloud only as fallback"
-                                       Style="{StaticResource CaptionStyle}"
-                                       Opacity="0.7" />
+                                       Style="{StaticResource CaptionStyle}" />
                             <TextBlock Text="Quality Optimized — Cloud models for analysis, code, creative"
-                                       Style="{StaticResource CaptionStyle}"
-                                       Opacity="0.7" />
+                                       Style="{StaticResource CaptionStyle}" />
                             <TextBlock Text="Balanced — Local for simple tasks, cloud for quality-critical tasks"
-                                       Style="{StaticResource CaptionStyle}"
-                                       Opacity="0.7" />
+                                       Style="{StaticResource CaptionStyle}" />
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
@@ -565,7 +560,7 @@
                     <!-- Deactivate Button (only when license is active) -->
                     <Button Content="Deactivate License"
                             Style="{StaticResource SecondaryButtonStyle}"
-                            Command="{x:Bind ViewModel.DeactivateLicenseCommand}"
+                            Click="OnDeactivateLicenseClick"
                             Visibility="{x:Bind ViewModel.IsLicenseValid, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
 
                     <!-- Status Message -->
@@ -603,16 +598,14 @@
                                Style="{StaticResource SubtitleTextBlockStyle}" />
                     <TextBlock x:Uid="Encryption_Description"
                                Text="Encrypt your knowledge vault with AES-256 (SQLCipher). Ultimate tier uses a passphrase you enter on each launch; other tiers use an automatic key tied to your Windows account."
-                               TextWrapping="Wrap"
-                               Opacity="0.8" />
+                               TextWrapping="Wrap" />
                     <ToggleSwitch x:Name="EncryptionToggle"
                                   OnContent="Encrypted"
                                   OffContent="Not encrypted"
                                   IsOn="{x:Bind ViewModel.EncryptionEnabled, Mode=TwoWay}"
                                   Toggled="EncryptionToggle_Toggled" />
                     <TextBlock Text="{x:Bind ViewModel.EncryptionStatus, Mode=OneWay}"
-                               TextWrapping="Wrap"
-                               Opacity="0.7" />
+                               TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
 
@@ -634,12 +627,11 @@
                 <Button Grid.Column="1"
                         Content="Reset to Defaults"
                         Style="{StaticResource SecondaryButtonStyle}"
-                        Command="{x:Bind ViewModel.ResetToDefaultsCommand}" />
+                        Click="OnResetToDefaultsClick" />
 
                 <TextBlock Grid.Column="3"
                            Style="{StaticResource CaptionStyle}"
-                           VerticalAlignment="Center"
-                           Opacity="0.4">
+                           VerticalAlignment="Center">
                     <Run Text="Agent-X v" />
                     <Run Text="{x:Bind ViewModel.AppVersion, Mode=OneWay}" />
                 </TextBlock>

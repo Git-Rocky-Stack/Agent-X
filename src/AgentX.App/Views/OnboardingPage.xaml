@@ -11,24 +11,13 @@
         <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
         <converters:BoolToVisibilityConverter x:Key="InverseBoolToVis" IsInverted="True" />
         <converters:StringToVisibilityConverter x:Key="StringToVis" />
+        <converters:StatusToColorConverter x:Key="StatusToColor" />
     </Page.Resources>
 
     <Grid>
-        <!-- ═══════════════════════════════════════════════════════
-             AMBIENT GLOW — Centered red glow for wizard
-             ═══════════════════════════════════════════════════════ -->
-        <Border IsHitTestVisible="False"
-                Opacity="0.25">
-            <Border.Background>
-                <RadialGradientBrush Center="0.5,0.3"
-                                     RadiusX="0.5" RadiusY="0.5"
-                                     MappingMode="RelativeToBoundingBox"
-                                     SpreadMethod="Pad">
-                    <GradientStop Color="{StaticResource RedGlow15}" Offset="0.0" />
-                    <GradientStop Color="Transparent" Offset="1.0" />
-                </RadialGradientBrush>
-            </Border.Background>
-        </Border>
+        <!-- Removed: ambient radial red glow. Wizard now sits cleanly on the
+             flat page background; brand presence comes from the AX mark in
+             the header and the red accent on the active step. -->
 
         <!-- Main Wizard Layout -->
         <Grid RowSpacing="0">
@@ -297,13 +286,12 @@
                                         Background="{StaticResource InputBackgroundBrush}"
                                         Margin="0,4,0,0">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <!-- Dot color reflects the actual connection-test
+                                             result (connected/failed/untested) rather than a
+                                             constant green default. -->
                                         <Ellipse Width="8" Height="8"
-                                                 VerticalAlignment="Center">
-                                            <Ellipse.Fill>
-                                                <SolidColorBrush x:Name="ConnectionDotBrush"
-                                                                 Color="{StaticResource StatusSuccess}" />
-                                            </Ellipse.Fill>
-                                        </Ellipse>
+                                                 VerticalAlignment="Center"
+                                                 Fill="{x:Bind ViewModel.ConnectionStatusTone, Mode=OneWay, Converter={StaticResource StatusToColor}}" />
                                         <TextBlock Text="{x:Bind ViewModel.ConnectionStatusText, Mode=OneWay}"
                                                    Style="{StaticResource BodyStyle}" />
                                     </StackPanel>
@@ -484,7 +472,7 @@
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
                                     <Border Width="40" Height="40"
-                                            CornerRadius="{StaticResource RadiusRound}"
+                                            CornerRadius="{StaticResource RadiusFull}"
                                             Background="{StaticResource AccentSubtleBrush}">
                                         <FontIcon Glyph="&#xE99A;"
                                                   FontSize="18"

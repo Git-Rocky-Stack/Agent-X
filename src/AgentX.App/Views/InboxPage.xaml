@@ -48,8 +48,7 @@
                 <!-- Status Filters -->
                 <StackPanel Spacing="8">
                     <TextBlock Text="STATUS"
-                               Style="{StaticResource OverlineStyle}"
-                               Opacity="0.5" />
+                               Style="{StaticResource OverlineStyle}" />
                     <ItemsRepeater ItemsSource="{x:Bind ViewModel.StatusFilters}">
                         <ItemsRepeater.Layout>
                             <StackLayout Spacing="4" />
@@ -69,8 +68,7 @@
                 <!-- Collection Target -->
                 <StackPanel Spacing="6">
                     <TextBlock Text="TARGET COLLECTION"
-                               Style="{StaticResource OverlineStyle}"
-                               Opacity="0.5" />
+                               Style="{StaticResource OverlineStyle}" />
                     <ComboBox ItemsSource="{x:Bind ViewModel.Collections}"
                               SelectedItem="{x:Bind ViewModel.SelectedCollection, Mode=TwoWay}"
                               DisplayMemberPath="Name"
@@ -81,8 +79,7 @@
                 <!-- Batch Actions -->
                 <StackPanel Spacing="8">
                     <TextBlock Text="ACTIONS"
-                               Style="{StaticResource OverlineStyle}"
-                               Opacity="0.5" />
+                               Style="{StaticResource OverlineStyle}" />
                     <Button Content="Accept All Pending"
                             Command="{x:Bind ViewModel.AcceptAllCommand}"
                             Style="{StaticResource AccentButtonStyle}"
@@ -144,7 +141,6 @@
                                            TextWrapping="Wrap" />
                                 <TextBlock Text="{x:Bind ViewModel.FocusedInboxVisibilityHint, Mode=OneWay}"
                                            Style="{StaticResource CaptionStyle}"
-                                           Opacity="0.7"
                                            TextWrapping="Wrap"
                                            Visibility="{x:Bind ViewModel.FocusedInboxVisibilityHint, Mode=OneWay, Converter={StaticResource StringToVis}}" />
                             </StackPanel>
@@ -210,15 +206,13 @@
                                                            TextTrimming="CharacterEllipsis" />
                                                 <StackPanel Orientation="Horizontal" Spacing="12">
                                                     <TextBlock Text="{x:Bind FileType}"
-                                                               Style="{StaticResource CaptionStyle}"
-                                                               Opacity="0.5" />
+                                                               Style="{StaticResource CaptionStyle}" />
                                                     <TextBlock Style="{StaticResource CaptionStyle}"
-                                                               Opacity="0.4"
                                                                Text="{x:Bind Status}" />
                                                     <!-- Web Clip badge — visible only for browser-extension items -->
                                                     <Border Visibility="{x:Bind IsBrowserClip, Converter={StaticResource BoolToVis}}"
                                                             CornerRadius="4"
-                                                            Background="#1A4FC3"
+                                                            Background="{StaticResource InfoBrush}"
                                                             Padding="6,2"
                                                             VerticalAlignment="Center">
                                                         <StackPanel Orientation="Horizontal" Spacing="4">
@@ -244,12 +238,14 @@
                                                         FontSize="14"
                                                         Foreground="{StaticResource SuccessBrush}"
                                                         ToolTipService.ToolTip="Accept"
+                                                        AutomationProperties.Name="Accept"
                                                         Style="{StaticResource GhostButtonStyle}"
                                                         Padding="8" MinWidth="0" MinHeight="0" />
                                                 <Button Content="&#xE768;"
                                                         FontFamily="{ThemeResource SymbolThemeFontFamily}"
                                                         FontSize="14"
                                                         ToolTipService.ToolTip="Defer"
+                                                        AutomationProperties.Name="Defer"
                                                         Style="{StaticResource GhostButtonStyle}"
                                                         Padding="8" MinWidth="0" MinHeight="0" />
                                                 <Button Content="&#xE711;"
@@ -257,6 +253,7 @@
                                                         FontSize="14"
                                                         Foreground="{StaticResource ErrorBrush}"
                                                         ToolTipService.ToolTip="Reject"
+                                                        AutomationProperties.Name="Reject"
                                                         Style="{StaticResource GhostButtonStyle}"
                                                         Padding="8" MinWidth="0" MinHeight="0" />
                                             </StackPanel>
@@ -272,13 +269,11 @@
                                             <StackPanel Spacing="4">
                                                 <TextBlock Text="AI Preview"
                                                            Style="{StaticResource CaptionStyle}"
-                                                           Opacity="0.5"
                                                            FontWeight="SemiBold" />
                                                 <TextBlock Text="{x:Bind Preview}"
                                                            Style="{StaticResource BodyStyle}"
                                                            TextWrapping="Wrap"
-                                                           MaxLines="4"
-                                                           Opacity="0.7" />
+                                                           MaxLines="4" />
                                             </StackPanel>
                                         </Border>
 
@@ -286,7 +281,6 @@
                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                             <TextBlock Text="Suggested:"
                                                        Style="{StaticResource CaptionStyle}"
-                                                       Opacity="0.4"
                                                        VerticalAlignment="Center" />
                                             <TextBlock Text="{x:Bind SuggestedCollectionName}"
                                                        Style="{StaticResource CaptionStyle}"
@@ -294,7 +288,6 @@
                                                        VerticalAlignment="Center" />
                                             <TextBlock Text="{x:Bind SuggestedTags}"
                                                        Style="{StaticResource CaptionStyle}"
-                                                       Opacity="0.5"
                                                        VerticalAlignment="Center" />
                                         </StackPanel>
                                     </StackPanel>
@@ -318,7 +311,6 @@
                                    HorizontalAlignment="Center" />
                         <TextBlock Text="New files from watch folders will appear here for triage."
                                    Style="{StaticResource CaptionStyle}"
-                                   Opacity="0.5"
                                    HorizontalAlignment="Center" />
                     </StackPanel>
 
@@ -326,7 +318,6 @@
                     <TextBlock Grid.Row="3"
                                Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
                                Style="{StaticResource CaptionStyle}"
-                               Opacity="0.5"
                                Margin="0,8,0,0" />
                 </Grid>
             </ScrollViewer>
