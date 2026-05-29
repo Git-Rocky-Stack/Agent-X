@@ -210,7 +210,7 @@
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="Agent-X is free and open-source software released under the MIT License. You are granted a perpetual, worldwide, royalty-free right to use, copy, modify, merge, publish, distribute, sublicense, and even sell copies of the software, subject only to the terms of the MIT License." />
+                               Text="Agent-X is free and open-source software released under the MIT License. You are granted a perpetual, worldwide, royalty-free right to use, copy, modify, merge, publish, distribute, sublicense, and even sell copies of the software, subject only to the terms of the MIT License. The complete source code and MIT License are available at https://github.com/Git-Rocky-Stack/Agent-X." />
 
                     <TextBlock Style="{StaticResource HeadingSmallStyle}"
                                Text="Under the MIT License you may freely:"

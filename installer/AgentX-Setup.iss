@@ -5,7 +5,7 @@
 #define MyAppName "Agent-X"
 #define MyAppVersion "2.1.0-preview.1"
 #define MyAppPublisher "Rocky Elsalaymeh"
-#define MyAppURL "https://rockystack.com"
+#define MyAppURL "https://github.com/Git-Rocky-Stack/Agent-X"
 #define MyAppExeName "AgentX.App.exe"
 #define MyAppDescription "Local-First AI Personal Intelligence Hub"
 
