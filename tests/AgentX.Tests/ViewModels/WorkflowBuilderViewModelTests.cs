@@ -196,8 +196,27 @@ public sealed class WorkflowBuilderViewModelTests
             }
         };
 
-        await Task.Delay(50);
-        await viewModel.RunWorkflowCommand.ExecuteAsync(77L);
+        // The view model relays workflow step progress through System.Progress<T>,
+        // which marshals each report onto the SynchronizationContext captured when the
+        // Progress<T> is constructed. In the running app that is the WinUI dispatcher -
+        // a single-threaded FIFO queue - so step reports are delivered in order and
+        // RunProgress lands on the final step. xUnit runs without an ambient context,
+        // in which case Progress<T> falls back to unordered ThreadPool delivery; reports
+        // can then execute out of order (leaving RunProgress at 1) or after the awaited
+        // run completes. Install an ordered single-threaded context for the duration of
+        // the run so the test faithfully reproduces the production dispatcher and is
+        // deterministic.
+        var originalContext = SynchronizationContext.Current;
+        SynchronizationContext.SetSynchronizationContext(new OrderedSynchronizationContext());
+        try
+        {
+            await viewModel.RunWorkflowCommand.ExecuteAsync(77L);
+        }
+        finally
+        {
+            SynchronizationContext.SetSynchronizationContext(originalContext);
+        }
+
         await WaitForAsync(() => viewModel.StepOutputs.Count == 2 && viewModel.RunCompleted, TimeSpan.FromSeconds(1));
 
         viewModel.RunCompleted.Should().BeTrue();
@@ -1079,5 +1098,22 @@ public sealed class WorkflowBuilderViewModelTests
         }
 
         throw new TimeoutException("Condition was not met within the expected time.");
+    }
+
+    /// <summary>
+    /// A single-threaded, FIFO-ordered <see cref="SynchronizationContext"/> that mirrors the
+    /// WinUI dispatcher used in the running app. Callbacks posted by <see cref="System.Progress{T}"/>
+    /// are executed synchronously in the exact order they are reported, so progress-driven state
+    /// (step outputs, run progress) is observed deterministically rather than racing on the
+    /// thread pool. Posting synchronously is safe here because workflow step results are reported
+    /// synchronously by the test's workflow-engine stub.
+    /// </summary>
+    private sealed class OrderedSynchronizationContext : SynchronizationContext
+    {
+        public override void Post(SendOrPostCallback d, object? state) => d(state);
+
+        public override void Send(SendOrPostCallback d, object? state) => d(state);
+
+        public override SynchronizationContext CreateCopy() => this;
     }
 }

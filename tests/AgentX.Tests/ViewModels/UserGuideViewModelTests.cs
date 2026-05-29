@@ -8,11 +8,11 @@ namespace AgentX.Tests.ViewModels;
 public class UserGuideViewModelTests
 {
     [Fact]
-    public void Initial_state_populates_all_24_sections()
+    public void Initial_state_populates_all_43_sections()
     {
         var sut = new UserGuideViewModel();
 
-        sut.Sections.Should().HaveCount(24);
+        sut.Sections.Should().HaveCount(43);
     }
 
     [Fact]
@@ -29,29 +29,61 @@ public class UserGuideViewModelTests
     {
         var sut = new UserGuideViewModel();
 
+        // Every registered template key, in display order. Each key has a matching
+        // property on UserGuideSectionSelector and a backing DataTemplate in the
+        // Styles/UserGuideSections*.xaml resource dictionaries.
         var validTemplateKeys = new[]
         {
+            // Welcome & Overview
             "WelcomeTemplate",
             "GettingStartedTemplate",
             "DashboardTemplate",
+            // Getting Started Tutorials
+            "FirstChatTemplate",
+            "FirstDocumentTemplate",
+            // Core Features
             "AiChatTemplate",
             "AskYourFilesTemplate",
             "QuickActionsTemplate",
             "KnowledgeVaultTemplate",
             "CollectionsTemplate",
             "KnowledgeGraphTemplate",
-            "WeeklyDigestTemplate",
+            "SemanticSearchTemplate",
+            // Research & Web
+            "WebSearchTemplate",
+            "WebImportTemplate",
+            "CitationsTemplate",
+            "BrowserExtensionTemplate",
+            "MobileCompanionTemplate",
+            // Document Management
+            "AnnotationsTemplate",
+            "AudioTranscriptionTemplate",
+            // Temporal Identity
             "TemporalIdentityTemplate",
             "PastSelfTemplate",
             "GenerativeIdentityTemplate",
             "InsightHarvestingTemplate",
-            "SemanticSearchTemplate",
+            "WeeklyDigestTemplate",
+            // Automation
+            "WorkflowsTemplate",
+            "ScheduledQueriesTemplate",
+            "AutomationRulesTemplate",
+            // Configuration
             "ModelManagerTemplate",
             "HardwareAdvisorTemplate",
             "SettingsTemplate",
-            "KeyboardShortcutsTemplate",
+            "WorkspaceProfilesTemplate",
+            "PluginsTemplate",
+            "IntegrationsTemplate",
+            // Power User
             "CommandPaletteTemplate",
+            "KeyboardShortcutsTemplate",
+            "AdvancedQueriesTemplate",
+            "PerformanceTuningTemplate",
+            // Reference
             "SupportedFileFormatsTemplate",
+            "ExportTemplate",
+            "BackupRestoreTemplate",
             "TroubleshootingTemplate",
             "PrivacyAndSecurityTemplate",
             "GettingHelpTemplate"
@@ -101,6 +133,6 @@ public class UserGuideViewModelTests
         var sut = new UserGuideViewModel();
 
         sut.Sections.Last().TemplateKey.Should().Be("GettingHelpTemplate");
-        sut.Sections.Last().DisplayOrder.Should().Be(24);
+        sut.Sections.Last().DisplayOrder.Should().Be(43);
     }
 }

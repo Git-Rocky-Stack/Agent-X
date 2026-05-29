@@ -403,6 +403,26 @@ public sealed class MigrationRunner : IMigrationRunner
             await StampMigrationAsync(recallMigration, adopted, cancellationToken);
         }
 
+        // Embedding-model versioning added EmbeddingModelVersion / EmbeddingDimensions /
+        // EmbeddedAt to document_chunks and memories (plus EmbeddingDimensions on messages).
+        // A pre-migration install created from the full model via EnsureCreated already has
+        // these columns, so the migration must be stamped as applied rather than replayed -
+        // otherwise EF re-runs ADD COLUMN "EmbeddingModelVersion" against document_chunks
+        // and SQLite throws "duplicate column name". document_chunks uniquely identifies this
+        // migration's schema (no earlier migration touches it).
+        if (await AllColumnsExistAsync(
+                "document_chunks",
+                ["EmbeddingModelVersion", "EmbeddingDimensions", "EmbeddedAt"],
+                cancellationToken)
+            && await AllColumnsExistAsync(
+                "memories",
+                ["EmbeddingModelVersion", "EmbeddingDimensions", "EmbeddedAt"],
+                cancellationToken)
+            && FindMigration(allMigrations, "_AddEmbeddingModelVersioning") is { } embeddingVersioningMigration)
+        {
+            await StampMigrationAsync(embeddingVersioningMigration, adopted, cancellationToken);
+        }
+
         if (await TableExistsAsync("conversation_theme_clusters", cancellationToken)
             && await TableExistsAsync("conversation_theme_memberships", cancellationToken)
             && await AllColumnsExistAsync(
@@ -428,6 +448,19 @@ public sealed class MigrationRunner : IMigrationRunner
             && FindMigration(allMigrations, "_AddTemporalIdentity") is { } temporalMigration)
         {
             await StampMigrationAsync(temporalMigration, adopted, cancellationToken);
+        }
+
+        // DropLicensesTable removed the "licenses" table when Agent-X became fully free.
+        // A pre-migration install created from the current model (via EnsureCreated) never
+        // had the table to begin with, and _InitialBaseline is always stamped above as if it
+        // created it. If "licenses" is already absent, the drop has effectively been applied,
+        // so stamp it as applied; replaying DROP TABLE "licenses" would otherwise throw
+        // "no such table: licenses". A legacy install that still has the table is left
+        // unstamped so EF performs the drop normally.
+        if (!await TableExistsAsync("licenses", cancellationToken)
+            && FindMigration(allMigrations, "_DropLicensesTable") is { } dropLicensesMigration)
+        {
+            await StampMigrationAsync(dropLicensesMigration, adopted, cancellationToken);
         }
 
         return adopted;

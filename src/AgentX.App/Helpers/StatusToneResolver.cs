@@ -36,6 +36,7 @@ public static class StatusToneResolver
         "busy",
         "queued",
         "conflict",
+        "conflicts",
         "cancelled",
         "canceled"
     ];
