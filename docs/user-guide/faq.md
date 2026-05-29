@@ -37,15 +37,7 @@ Agent-X is a local-first AI-powered document intelligence application for Window
 
 ### Is Agent-X free?
 
-Agent-X is a proprietary application with tiered licensing:
-
-| Tier | Price | Features |
-|------|-------|----------|
-| **Starter** | $49 | Core productivity features, bundled model |
-| **Professional** | $99 | Advanced RAG, GPU acceleration, multi-provider |
-| **Ultimate** | $199 | All features including REST API, sync, analytics |
-
-See the [License Tiers](../../README.md#license-tiers) for detailed comparison.
+Yes — completely. Agent-X is 100% free and open-source software, released under the MIT License. Every capability is unconditionally available to every user: unlimited documents, advanced RAG, GPU acceleration, multi-provider AI, the REST API, the full intelligence stack, plugins, integrations, and encryption. There are no paid tiers, no subscriptions, no activation, no quotas, and no feature gates of any kind.
 
 ### What file formats does Agent-X support?
 
@@ -352,7 +344,7 @@ Agent-X uses **SQLCipher** with:
 
 - **Algorithm:** AES-256-CBC
 - **Key derivation:** PBKDF2-HMAC-SHA256 (100,000 iterations)
-- **Key storage:** Windows DPAPI (lower tiers) or passphrase-derived (Ultimate)
+- **Key storage:** Windows DPAPI, tied to your Windows account (available to every user)
 
 ### What happens if I forget my passphrase?
 
@@ -380,47 +372,24 @@ Yes, but consider:
 |--------|----------------|
 | **Data Policy** | Local-first means data stays on your machine |
 | **Approval** | Check with IT before installing |
-| **Licensing** | Commercial licenses available |
-| **Support** | Enterprise support options available |
+| **Licensing** | MIT — free for commercial use with no per-seat fees |
+| **Support** | Community support via the project repository |
 
 ---
 
 ## Licensing
 
-### What are the license tiers?
+### How is Agent-X licensed?
 
-| Feature | Starter | Professional | Ultimate |
-|---------|---------|--------------|----------|
-| **Price** | $49 | $99 | $199 |
-| **Bundled Model** | ✓ | ✓ | ✓ |
-| **Semantic Search** | ✓ | ✓ | ✓ |
-| **GPU Acceleration** | ✗ | ✓ | ✓ |
-| **Advanced RAG** | ✗ | ✓ | ✓ |
-| **Knowledge Graph** | ✓ | ✓ | ✓ |
-| **Multi-Provider AI** | ✗ | ✓ | ✓ |
-| **REST API** | ✗ | ✗ | ✓ |
-| **Collaborative Sync** | ✗ | ✗ | ✓ |
-| **Analytics Dashboard** | ✗ | ✗ | ✓ |
+Agent-X is free and open-source software released under the **MIT License**. Every feature — bundled model, semantic search, GPU acceleration, advanced RAG, Knowledge Graph, multi-provider AI, REST API, sync, and analytics — is unconditionally available to every user. There is nothing to buy, activate, or upgrade.
 
-### Can I upgrade my license?
+### Is there anything I need to pay for?
 
-Yes. Upgrade pricing is the difference between tiers:
-
-- Starter → Professional: +$50
-- Starter → Ultimate: +$150
-- Professional → Ultimate: +$100
-
-### Is there a free trial?
-
-A 14-day free trial is available for all tiers. After the trial, you must purchase a license to continue using Agent-X.
+No. Agent-X is completely free. There are no tiers, no subscriptions, no trials, and no quotas. Install it and use everything, forever, at no cost.
 
 ### Can I use Agent-X commercially?
 
-Yes. Commercial licenses are included in all tiers. Each license is per-user:
-
-- **Individual:** Use on all your personal computers
-- **Business:** One license per employee
-- **Enterprise:** Volume discounts available
+Yes. The MIT License lets you use, copy, modify, merge, publish, distribute, sublicense, and even sell copies of Agent-X — for personal, business, or enterprise use — with no per-user or per-seat restrictions. The only condition is that the MIT copyright and permission notice be included in copies of the software.
 
 ---
 

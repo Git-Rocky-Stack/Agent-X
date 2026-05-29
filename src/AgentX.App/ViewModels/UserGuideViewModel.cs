@@ -262,13 +262,6 @@ public partial class UserGuideViewModel : ObservableObject
             ),
 
             new UserGuideSection(
-                TitleKey: "UserGuide_LicenseTiers_Title",
-                IconGlyph: "",
-                TemplateKey: "LicenseTiersTemplate",
-                DisplayOrder: 280
-            ),
-
-            new UserGuideSection(
                 TitleKey: "UserGuide_WorkspaceProfiles_Title",
                 IconGlyph: "",
                 TemplateKey: "WorkspaceProfilesTemplate",

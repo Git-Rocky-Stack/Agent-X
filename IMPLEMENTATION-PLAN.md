@@ -5,11 +5,21 @@
 
 **Product:** Agent-X (Codename) -- Private AI Command Center for Windows
 **Version:** 1.0.0
-**Developer:** Rocky Stack / Strategia
+**Developer:** Rocky Elsalaymeh / Strategia
 **Tech Stack:** .NET 8.0 / WinUI 3 / MVVM / SQLite / Ollama / LLamaSharp
 **Date:** February 25, 2026
 **Timeline:** 26 weeks (6 phases)
-**Pricing:** $79 / $149 / $249 one-time purchase tiers
+**Pricing:** Free and open-source (MIT License)
+
+---
+
+> **Historical note (relicensing):** This document is the original implementation plan and
+> describes a proprietary, tiered-license model (a `LicenseService`, `LicenseTier`, license
+> pages, a Cloudflare license worker, and pricing) that was **subsequently removed**. Agent-X
+> is now 100% free and open-source under the MIT License — there are no tiers, activation,
+> quotas, or feature gates, and every capability is unconditionally available to every user.
+> The license-related sections below are retained only as a historical record of the original
+> design; they no longer reflect the shipping product.
 
 ---
 
@@ -1674,7 +1684,7 @@ All component styles are defined in separate XAML ResourceDictionary files under
     <WarningLevel>4</WarningLevel>
     <AnalysisLevel>latest</AnalysisLevel>
     <Version>1.0.0</Version>
-    <Authors>Strategia / Rocky Stack</Authors>
+    <Authors>Strategia / Rocky Elsalaymeh</Authors>
     <Company>Strategia</Company>
     <Product>Agent-X</Product>
     <Copyright>Copyright (c) 2026 Strategia</Copyright>

@@ -4,7 +4,6 @@ using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Export;
 using AgentX.Core.Services.Export.Formatters;
 using AgentX.Core.Services.Export.Models;
-using AgentX.Core.Services.License;
 using AgentX.Core.Services.Settings;
 using AgentX.Core.Services.Chat;
 using FluentAssertions;
@@ -17,8 +16,9 @@ namespace AgentX.Tests.Services.Export;
 /// <summary>
 /// Unit tests for <see cref="ExportService"/>.
 /// Tests the thin orchestrator that delegates formatting to <see cref="IExportFormatter"/>
-/// implementations while handling file I/O, license gating, and special-case exports
-/// (search results, collections) inline.
+/// implementations while handling file I/O and special-case exports
+/// (search results, collections) inline. Every export format is unconditionally
+/// available — there is no license gating.
 /// </summary>
 public sealed class ExportServiceTests : IDisposable
 {
@@ -26,7 +26,6 @@ public sealed class ExportServiceTests : IDisposable
     private readonly Mock<IDocumentService> _documentServiceMock;
     private readonly Mock<ICollectionService> _collectionServiceMock;
     private readonly Mock<ISettingsService> _settingsServiceMock;
-    private readonly Mock<ILicenseService> _licenseServiceMock;
     private readonly Mock<ILogger> _loggerMock;
     private readonly string _tempExportDir;
 
@@ -36,15 +35,9 @@ public sealed class ExportServiceTests : IDisposable
         _documentServiceMock = new Mock<IDocumentService>();
         _collectionServiceMock = new Mock<ICollectionService>();
         _settingsServiceMock = new Mock<ISettingsService>();
-        _licenseServiceMock = new Mock<ILicenseService>();
         _loggerMock = new Mock<ILogger>();
 
         _loggerMock.Setup(l => l.ForContext<ExportService>()).Returns(_loggerMock.Object);
-
-        // Default to Professional tier for tests
-        _licenseServiceMock
-            .Setup(s => s.GetCurrentLicenseAsync())
-            .ReturnsAsync(new LicenseInfo { Tier = LicenseTier.Professional, IsActivated = true });
 
         // Create temp directory for export tests
         _tempExportDir = Path.Combine(Path.GetTempPath(), $"AgentX_ExportTests_{Guid.NewGuid()}");
@@ -91,7 +84,6 @@ public sealed class ExportServiceTests : IDisposable
         _documentServiceMock.Object,
         _collectionServiceMock.Object,
         _settingsServiceMock.Object,
-        _licenseServiceMock.Object,
         _loggerMock.Object,
         CreateFormatters()
     );
@@ -440,114 +432,21 @@ public sealed class ExportServiceTests : IDisposable
     }
 
     // ====================================================================
-    //  License Gating Tests
+    //  Export Always Allowed (no license gating)
     // ====================================================================
 
-    [Fact]
-    public async Task ExportConversationAsync_WithMarkdownFormat_AndTrialLicense_ReturnsFailureResult()
+    [Theory]
+    [InlineData(ExportFormat.Markdown, "always_md.md")]
+    [InlineData(ExportFormat.Html, "always_html.html")]
+    [InlineData(ExportFormat.Pdf, "always_pdf.pdf")]
+    public async Task ExportConversationAsync_FormerlyGatedFormats_AlwaysSucceed(ExportFormat format, string fileName)
     {
-        // Arrange
-        _licenseServiceMock
-            .Setup(s => s.GetCurrentLicenseAsync())
-            .ReturnsAsync(new LicenseInfo { Tier = LicenseTier.Trial, IsActivated = false });
-
+        // Previously PDF/Markdown/HTML were gated behind a paid license tier. Agent-X
+        // is now free and open-source: every export format must succeed for everyone.
         var conversation = new ConversationEntity
         {
             Id = 1,
-            Title = "Test",
-            CreatedAt = DateTime.UtcNow,
-            Messages = new List<MessageEntity>()
-        };
-
-        _conversationServiceMock
-            .Setup(s => s.GetConversationAsync(1))
-            .ReturnsAsync(conversation);
-
-        var sut = CreateService();
-        var options = new ExportOptions { Format = ExportFormat.Markdown };
-
-        // Act
-        var result = await sut.ExportConversationAsync(1, options);
-
-        // Assert
-        result.Success.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("PDF/Markdown/HTML export requires Professional or Ultimate license");
-    }
-
-    [Fact]
-    public async Task ExportConversationAsync_WithHtmlFormat_AndTrialLicense_ReturnsFailureResult()
-    {
-        // Arrange
-        _licenseServiceMock
-            .Setup(s => s.GetCurrentLicenseAsync())
-            .ReturnsAsync(new LicenseInfo { Tier = LicenseTier.Trial, IsActivated = false });
-
-        var conversation = new ConversationEntity
-        {
-            Id = 1,
-            Title = "Test",
-            CreatedAt = DateTime.UtcNow,
-            Messages = new List<MessageEntity>()
-        };
-
-        _conversationServiceMock
-            .Setup(s => s.GetConversationAsync(1))
-            .ReturnsAsync(conversation);
-
-        var sut = CreateService();
-        var options = new ExportOptions { Format = ExportFormat.Html };
-
-        // Act
-        var result = await sut.ExportConversationAsync(1, options);
-
-        // Assert
-        result.Success.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("PDF/Markdown/HTML export requires Professional or Ultimate license");
-    }
-
-    [Fact]
-    public async Task ExportConversationAsync_WithPdfFormat_AndTrialLicense_ReturnsFailureResult()
-    {
-        // Arrange
-        _licenseServiceMock
-            .Setup(s => s.GetCurrentLicenseAsync())
-            .ReturnsAsync(new LicenseInfo { Tier = LicenseTier.Trial, IsActivated = false });
-
-        var conversation = new ConversationEntity
-        {
-            Id = 1,
-            Title = "Test",
-            CreatedAt = DateTime.UtcNow,
-            Messages = new List<MessageEntity>()
-        };
-
-        _conversationServiceMock
-            .Setup(s => s.GetConversationAsync(1))
-            .ReturnsAsync(conversation);
-
-        var sut = CreateService();
-        var options = new ExportOptions { Format = ExportFormat.Pdf };
-
-        // Act
-        var result = await sut.ExportConversationAsync(1, options);
-
-        // Assert
-        result.Success.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("PDF/Markdown/HTML export requires Professional or Ultimate license");
-    }
-
-    [Fact]
-    public async Task ExportConversationAsync_WithMarkdownFormat_AndProfessionalLicense_ReturnsSuccessResult()
-    {
-        // Arrange
-        _licenseServiceMock
-            .Setup(s => s.GetCurrentLicenseAsync())
-            .ReturnsAsync(new LicenseInfo { Tier = LicenseTier.Professional, IsActivated = true });
-
-        var conversation = new ConversationEntity
-        {
-            Id = 1,
-            Title = "Pro License Test",
+            Title = "Open Source Export",
             CreatedAt = DateTime.UtcNow,
             Messages = new List<MessageEntity>
             {
@@ -560,100 +459,62 @@ public sealed class ExportServiceTests : IDisposable
             .ReturnsAsync(conversation);
 
         var sut = CreateService();
-        var outputPath = Path.Combine(_tempExportDir, "pro_test.md");
-        var options = new ExportOptions { Format = ExportFormat.Markdown, OutputPath = outputPath };
+        var outputPath = Path.Combine(_tempExportDir, fileName);
+        var options = new ExportOptions { Format = format, OutputPath = outputPath };
 
-        // Act
         var result = await sut.ExportConversationAsync(1, options);
 
-        // Assert
         result.Success.Should().BeTrue();
         File.Exists(outputPath).Should().BeTrue();
     }
 
     [Fact]
-    public async Task ExportConversationAsync_WithHtmlFormat_AndUltimateLicense_ReturnsSuccessResult()
+    public async Task ExportConversationsAsync_HtmlFormat_AlwaysSucceeds()
     {
-        // Arrange
-        _licenseServiceMock
-            .Setup(s => s.GetCurrentLicenseAsync())
-            .ReturnsAsync(new LicenseInfo { Tier = LicenseTier.Ultimate, IsActivated = true });
-
-        var conversation = new ConversationEntity
+        // Batch HTML export was formerly gated; it must now succeed unconditionally.
+        var conversations = new List<ConversationEntity>
         {
-            Id = 1,
-            Title = "Ultimate License Test",
-            CreatedAt = DateTime.UtcNow,
-            Messages = new List<MessageEntity>
-            {
-                new MessageEntity { Id = 1, Role = "user", Content = "Test", Timestamp = DateTime.UtcNow, SortOrder = 0 }
-            }
+            new ConversationEntity { Id = 1, Title = "First", CreatedAt = DateTime.UtcNow, Messages = new List<MessageEntity>() },
+            new ConversationEntity { Id = 2, Title = "Second", CreatedAt = DateTime.UtcNow, Messages = new List<MessageEntity>() }
+        };
+        _conversationServiceMock.Setup(s => s.GetConversationAsync(1)).ReturnsAsync(conversations[0]);
+        _conversationServiceMock.Setup(s => s.GetConversationAsync(2)).ReturnsAsync(conversations[1]);
+
+        var sut = CreateService();
+        var options = new ExportOptions
+        {
+            Format = ExportFormat.Html,
+            OutputPath = Path.Combine(_tempExportDir, "always_batch.html")
         };
 
-        _conversationServiceMock
-            .Setup(s => s.GetConversationAsync(1))
-            .ReturnsAsync(conversation);
-
-        var sut = CreateService();
-        var outputPath = Path.Combine(_tempExportDir, "ultimate_test.html");
-        var options = new ExportOptions { Format = ExportFormat.Html, OutputPath = outputPath };
-
-        // Act
-        var result = await sut.ExportConversationAsync(1, options);
-
-        // Assert
-        result.Success.Should().BeTrue();
-        File.Exists(outputPath).Should().BeTrue();
-        var content = await File.ReadAllTextAsync(outputPath);
-        content.Should().Contain("<!DOCTYPE html>");
-        content.Should().Contain("Ultimate License Test");
-    }
-
-    [Fact]
-    public async Task ExportConversationsAsync_WithHtmlFormat_AndStarterLicense_ReturnsFailureResult()
-    {
-        // Arrange
-        _licenseServiceMock
-            .Setup(s => s.GetCurrentLicenseAsync())
-            .ReturnsAsync(new LicenseInfo { Tier = LicenseTier.Starter, IsActivated = true });
-
-        var sut = CreateService();
-        var options = new ExportOptions { Format = ExportFormat.Html };
-
-        // Act
         var result = await sut.ExportConversationsAsync(new[] { 1L, 2L }, options);
 
-        // Assert
-        result.Success.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("PDF/Markdown/HTML export requires Professional or Ultimate license");
+        result.Success.Should().BeTrue();
+        File.Exists(result.FilePath).Should().BeTrue();
     }
 
     [Fact]
-    public async Task ExportSearchResultsAsync_WithPdfFormat_AndTrialLicense_ReturnsFailureResult()
+    public async Task ExportSearchResultsAsync_MarkdownFormat_AlwaysSucceeds()
     {
-        // Arrange
-        _licenseServiceMock
-            .Setup(s => s.GetCurrentLicenseAsync())
-            .ReturnsAsync(new LicenseInfo { Tier = LicenseTier.Trial, IsActivated = false });
-
+        // Markdown search-result export was formerly gated behind a paid tier; it must
+        // now succeed unconditionally. (PDF/HTML are not supported for search results
+        // by design — a format-capability limit unrelated to licensing.)
         var results = new List<SearchResultExportItem>
         {
-            new SearchResultExportItem
-            {
-                Content = "Test",
-                DocumentName = "Test.pdf"
-            }
+            new SearchResultExportItem { Query = "test", Content = "Test", DocumentName = "Test.pdf" }
         };
 
         var sut = CreateService();
-        var options = new ExportOptions { Format = ExportFormat.Pdf };
+        var options = new ExportOptions
+        {
+            Format = ExportFormat.Markdown,
+            OutputPath = Path.Combine(_tempExportDir, "always_search.md")
+        };
 
-        // Act
         var result = await sut.ExportSearchResultsAsync("test", results, options);
 
-        // Assert
-        result.Success.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("PDF/Markdown/HTML export requires Professional or Ultimate license");
+        result.Success.Should().BeTrue();
+        File.Exists(result.FilePath).Should().BeTrue();
     }
 
     // ====================================================================

@@ -323,7 +323,6 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource CardInsetStyle}">
@@ -358,15 +357,6 @@
                             <TextBlock x:Uid="UserGuide_Settings_Group4_Title"
                                        Style="{StaticResource AccentBodyStyle}" />
                             <TextBlock x:Uid="UserGuide_Settings_Group4_Description"
-                                       Style="{StaticResource BodySmallStyle}" />
-                        </StackPanel>
-                    </Border>
-
-                    <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource CardInsetStyle}">
-                        <StackPanel Spacing="6">
-                            <TextBlock x:Uid="UserGuide_Settings_Group5_Title"
-                                       Style="{StaticResource AccentBodyStyle}" />
-                            <TextBlock x:Uid="UserGuide_Settings_Group5_Description"
                                        Style="{StaticResource BodySmallStyle}" />
                         </StackPanel>
                     </Border>

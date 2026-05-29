@@ -1,7 +1,7 @@
 # Agent-X Competitive Landscape & Gap Analysis
 
 **Date:** April 14, 2026
-**Prepared for:** Rocky Stack / Strategia
+**Prepared for:** Rocky Elsalaymeh / Strategia
 **Product:** Agent-X — $249 Windows Desktop AI Intelligence Hub
 
 ---

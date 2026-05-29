@@ -2,7 +2,7 @@
 
 **Product:** Agent-X — Private AI Command Center for Windows
 **Version:** v1.1.0 (Enhancement Wave)
-**Developer:** Rocky Stack / Strategia
+**Developer:** Rocky Elsalaymeh / Strategia
 **Date:** March 7, 2026
 **Baseline:** v1.0.0 feature-complete with Tier 1-3 original enhancements shipped
 

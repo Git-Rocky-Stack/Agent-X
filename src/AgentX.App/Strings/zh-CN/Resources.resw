@@ -75,7 +75,7 @@
 
   <!-- Annotations -->
   <data name="Encryption_SectionHeader.Text" xml:space="preserve"><value>Database Encryption</value></data>
-  <data name="Encryption_Description.Text" xml:space="preserve"><value>Encrypt your knowledge vault with AES-256 (SQLCipher). Ultimate tier uses a passphrase you enter on each launch; other tiers use an automatic key tied to your Windows account.</value></data>
+  <data name="Encryption_Description.Text" xml:space="preserve"><value>Encrypt your knowledge vault with AES-256 (SQLCipher). The key is managed automatically and tied to your Windows account.</value></data>
 
   <!--
   ╔══════════════════════════════════════════════════════════════════╗
@@ -234,10 +234,8 @@
   <data name="UserGuide_Settings_Group2_Description.Text" xml:space="preserve"><value>Temperature (creativity), max tokens (response length), and context window size for conversation memory.</value></data>
   <data name="UserGuide_Settings_Group3_Title.Text" xml:space="preserve"><value>Knowledge Vault</value></data>
   <data name="UserGuide_Settings_Group3_Description.Text" xml:space="preserve"><value>Chunk size, chunk overlap, and top-K results for retrieval. Controls how documents are split and how many chunks are retrieved per query.</value></data>
-  <data name="UserGuide_Settings_Group4_Title.Text" xml:space="preserve"><value>License</value></data>
-  <data name="UserGuide_Settings_Group4_Description.Text" xml:space="preserve"><value>View your license tier, activate a license key, check document limits, and manage your subscription status.</value></data>
-  <data name="UserGuide_Settings_Group5_Title.Text" xml:space="preserve"><value>Cost Tracking</value></data>
-  <data name="UserGuide_Settings_Group5_Description.Text" xml:space="preserve"><value>Monitor and track cloud API usage costs for OpenAI and Anthropic providers. View per-session and cumulative spending with detailed breakdowns.</value></data>
+  <data name="UserGuide_Settings_Group4_Title.Text" xml:space="preserve"><value>Cost Tracking</value></data>
+  <data name="UserGuide_Settings_Group4_Description.Text" xml:space="preserve"><value>Monitor and track cloud API usage costs for OpenAI and Anthropic providers. View per-session and cumulative spending with detailed breakdowns.</value></data>
   <data name="UserGuide_Settings_Shortcut.Text" xml:space="preserve"><value>Use Ctrl+, to quickly jump to Settings from anywhere in the app.</value></data>
   <data name="UserGuide_KeyboardShortcuts_Title.Text" xml:space="preserve"><value>Keyboard Shortcuts</value></data>
   <data name="UserGuide_KeyboardShortcuts_Description.Text" xml:space="preserve"><value>Agent-X supports keyboard shortcuts for rapid navigation and common actions. Master these to dramatically speed up your workflow.</value></data>
@@ -600,26 +598,13 @@
   <data name="UserGuide_BackupRestore_Backup_Title.Text" xml:space="preserve"><value>创建备份</value></data>
   <data name="UserGuide_BackupRestore_Backup1.Text" xml:space="preserve"><value>手动备份 — “设置 &gt; 备份 &gt; 立即创建备份”会生成单个 .agentxbackup 文件(压缩加密归档)。选择目标位置、可选设置口令即可完成。典型备份大小约等于您导入文档的大小再加 10–15% 以容纳向量与元数据。</value></data>
   <data name="UserGuide_BackupRestore_Backup2.Text" xml:space="preserve"><value>计划备份 — 配置频率(每日、每周)、目标(本地文件夹、网络共享,或 OneDrive/Dropbox/Google Drive 等同步云盘文件夹)、保留策略(保留最近 N 个、最近 M 天)与口令。BackupService 在后台运行;失败会通过带诊断细节的通知呈现。</value></data>
-  <data name="UserGuide_BackupRestore_Backup3.Text" xml:space="preserve"><value>包含的内容 — 完整 SQLite 数据库(会话、insights、beliefs、voice profile、注释、搜索历史、设置)、文档存储、插件数据与配置、许可证激活以及工作区配置文件。云提供方的 API 密钥默认以 DPAPI 加密,仅在同一 Windows 账户打开备份时往返;pair-with-passphrase 模式支持跨账户还原。</value></data>
+  <data name="UserGuide_BackupRestore_Backup3.Text" xml:space="preserve"><value>包含的内容 — 完整 SQLite 数据库(会话、insights、beliefs、voice profile、注释、搜索历史、设置)、文档存储、插件数据与配置以及工作区配置文件。云提供方的 API 密钥默认以 DPAPI 加密,仅在同一 Windows 账户打开备份时往返;pair-with-passphrase 模式支持跨账户还原。</value></data>
   <data name="UserGuide_BackupRestore_Restore_Title.Text" xml:space="preserve"><value>从备份还原</value></data>
   <data name="UserGuide_BackupRestore_Restore1.Text" xml:space="preserve"><value>替换 — 清除当前状态并按原样加载备份。迁移到新机器、从损坏中恢复或回滚错误更改的正确选择。替换前会自动备份当前状态,因此该操作可逆。</value></data>
   <data name="UserGuide_BackupRestore_Restore2.Text" xml:space="preserve"><value>合并 — 将备份与当前状态合并。冲突(相同会话 ID、相同文档哈希)默认按 last-write-wins 解决;可配置为 prefer-backup 或 prefer-current。在合并两套 Agent-X 安装、或在不丢失最近工作的情况下恢复特定数据时非常有用。</value></data>
   <data name="UserGuide_BackupRestore_Restore3.Text" xml:space="preserve"><value>Cherry-Pick — 一个清单式 UI,可预览备份内容并有选择地还原:挑选特定会话、文档合集、插件配置或设置进行导入。最适合部分恢复与外科式迁移。</value></data>
   <data name="UserGuide_BackupRestore_Migration_Title.Text" xml:space="preserve"><value>跨版本迁移</value></data>
   <data name="UserGuide_BackupRestore_Migration_Description.Text" xml:space="preserve"><value>备份带有 schema 版本号。当您在更新的 Agent-X 上还原时,迁移流水线会就地升级 schema——添加新列、在嵌入模型默认值变化时重建索引等。可以无任何手动步骤地把多年前制作的备份还原到最新版本上。</value></data>
-  <data name="UserGuide_LicenseTiers_Title.Text" xml:space="preserve"><value>许可证等级</value></data>
-  <data name="UserGuide_LicenseTiers_Description.Text" xml:space="preserve"><value>Agent-X 按设备授权,分四个等级,逐步解锁文档配额、Intelligence 功能与支持。本地优先架构与完全的数据所有权在所有等级上保持不变——付费等级解锁规模与深度,从不限制您对数据的访问。可在“设置 &gt; 许可证”中查看、激活与管理许可证。</value></data>
-  <data name="UserGuide_LicenseTiers_Tier1_Title.Text" xml:space="preserve"><value>Trial — 免费</value></data>
-  <data name="UserGuide_LicenseTiers_Tier1_Description.Text" xml:space="preserve"><value>Knowledge Vault 内最多 50 份文档,仅基础聊天模型,单一工作区配置文件,手动备份。非常适合在做承诺前端到端评估 Agent-X 并验证本地性能。</value></data>
-  <data name="UserGuide_LicenseTiers_Tier2_Title.Text" xml:space="preserve"><value>Starter — $79(一次性)</value></data>
-  <data name="UserGuide_LicenseTiers_Tier2_Description.Text" xml:space="preserve"><value>最多 500 份文档,所有聊天与嵌入模型(本地 + 云端),完整 Quick Actions 库,计划备份,完整导出。个人知识库——研究、写作、日志——的正确选择。</value></data>
-  <data name="UserGuide_LicenseTiers_Tier3_Title.Text" xml:space="preserve"><value>Professional — $149(一次性)</value></data>
-  <data name="UserGuide_LicenseTiers_Tier3_Description.Text" xml:space="preserve"><value>文档无限,完整 Intelligence 栈(知识图谱、Insight Harvesting、Temporal Identity、Generative Identity)、Workflows + 计划查询 + 自动化规则、多工作区配置文件、插件、日历/邮件集成、浏览器扩展、移动伴侣。完整平台。</value></data>
-  <data name="UserGuide_LicenseTiers_Tier4_Title.Text" xml:space="preserve"><value>Ultimate — $249(一次性)</value></data>
-  <data name="UserGuide_LicenseTiers_Tier4_Description.Text" xml:space="preserve"><value>包含 Professional 全部内容,并默认启用口令加密的 SQLCipher Vault、优先支持(1 个工作日内回复)、实验功能抢先体验,以及具有公开目录发布权的插件开发者 SDK。</value></data>
-  <data name="UserGuide_LicenseTiers_Notes_Title.Text" xml:space="preserve"><value>激活与管理</value></data>
-  <data name="UserGuide_LicenseTiers_Note1.Text" xml:space="preserve"><value>许可证按设备授权且一次性付费(无订阅)。一次购买,永久拥有。新大版本作为独立许可证发布;次版本更新与缺陷修复在您购买的大版本生命周期内免费。</value></data>
-  <data name="UserGuide_LicenseTiers_Note2.Text" xml:space="preserve"><value>在设备间迁移许可证:通过“设置 &gt; 许可证 &gt; 停用”,然后在新设备上用同一密钥激活。设备丢失?把您的许可证密钥邮件给支持团队,我们会重置激活槽位。</value></data>
   <data name="UserGuide_Export_Title.Text" xml:space="preserve"><value>导出与数据可携性</value></data>
   <data name="UserGuide_Export_Description.Text" xml:space="preserve"><value>您的数据可在各层级以开放格式导出——单条会话、完整会话历史、单个文档、整个 Knowledge Vault、您的 voice profile、insights、beliefs、设置、插件清单。不存在锁定:如果您将来离开 Agent-X,可以把一切以可读、可在任何地方加载的格式带走。备份与还原(单独章节)是双向闭环;本节讨论单向导出。</value></data>
   <data name="UserGuide_Export_Conversations_Title.Text" xml:space="preserve"><value>会话导出</value></data>

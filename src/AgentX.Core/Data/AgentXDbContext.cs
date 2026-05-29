@@ -28,7 +28,6 @@ public class AgentXDbContext : DbContext
     public DbSet<UserSettingsEntity> UserSettings => Set<UserSettingsEntity>();
     public DbSet<WatchFolderEntity> WatchFolders => Set<WatchFolderEntity>();
     public DbSet<IndexingJobEntity> IndexingJobs => Set<IndexingJobEntity>();
-    public DbSet<LicenseEntity> Licenses => Set<LicenseEntity>();
     public DbSet<MemoryEntity> Memories => Set<MemoryEntity>();
     public DbSet<DigestReportEntity> DigestReports => Set<DigestReportEntity>();
     public DbSet<WorkflowEntity> Workflows => Set<WorkflowEntity>();
@@ -127,7 +126,6 @@ public class AgentXDbContext : DbContext
         ConfigureUserSettings(modelBuilder);
         ConfigureWatchFolder(modelBuilder);
         ConfigureIndexingJob(modelBuilder);
-        ConfigureLicense(modelBuilder);
         ConfigureMemory(modelBuilder);
         ConfigureDigestReport(modelBuilder);
         ConfigureWorkflow(modelBuilder);
@@ -692,18 +690,6 @@ public class AgentXDbContext : DbContext
             // Indexes
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.QueuedAt);
-        });
-    }
-
-    private static void ConfigureLicense(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<LicenseEntity>(entity =>
-        {
-            entity.ToTable("licenses");
-            entity.HasKey(e => e.Id);
-
-            entity.Property(e => e.LicenseKey).IsRequired();
-            entity.Property(e => e.Tier).IsRequired().HasDefaultValue("starter");
         });
     }
 

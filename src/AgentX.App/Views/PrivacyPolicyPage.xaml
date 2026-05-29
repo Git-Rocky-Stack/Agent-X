@@ -1071,7 +1071,7 @@
                         Margin="0,8,0,24">
                 <TextBlock Style="{StaticResource CaptionStyle}"
                            HorizontalAlignment="Center">
-                    <Run Text="&#x00A9; 2026 Strategia-X. All rights reserved." />
+                    <Run Text="&#x00A9; 2026 Rocky Elsalaymeh. Free and open-source under the MIT License." />
                 </TextBlock>
                 <TextBlock Text="Agent-X &#x2014; Local-First AI Personal Intelligence Hub"
                            Style="{StaticResource CaptionStyle}"

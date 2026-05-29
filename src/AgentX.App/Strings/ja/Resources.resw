@@ -75,7 +75,7 @@
 
   <!-- Annotations -->
   <data name="Encryption_SectionHeader.Text" xml:space="preserve"><value>Database Encryption</value></data>
-  <data name="Encryption_Description.Text" xml:space="preserve"><value>Encrypt your knowledge vault with AES-256 (SQLCipher). Ultimate tier uses a passphrase you enter on each launch; other tiers use an automatic key tied to your Windows account.</value></data>
+  <data name="Encryption_Description.Text" xml:space="preserve"><value>Encrypt your knowledge vault with AES-256 (SQLCipher). The key is managed automatically and tied to your Windows account.</value></data>
 
   <!--
   ╔══════════════════════════════════════════════════════════════════╗
@@ -234,10 +234,8 @@
   <data name="UserGuide_Settings_Group2_Description.Text" xml:space="preserve"><value>Temperature (creativity), max tokens (response length), and context window size for conversation memory.</value></data>
   <data name="UserGuide_Settings_Group3_Title.Text" xml:space="preserve"><value>Knowledge Vault</value></data>
   <data name="UserGuide_Settings_Group3_Description.Text" xml:space="preserve"><value>Chunk size, chunk overlap, and top-K results for retrieval. Controls how documents are split and how many chunks are retrieved per query.</value></data>
-  <data name="UserGuide_Settings_Group4_Title.Text" xml:space="preserve"><value>License</value></data>
-  <data name="UserGuide_Settings_Group4_Description.Text" xml:space="preserve"><value>View your license tier, activate a license key, check document limits, and manage your subscription status.</value></data>
-  <data name="UserGuide_Settings_Group5_Title.Text" xml:space="preserve"><value>Cost Tracking</value></data>
-  <data name="UserGuide_Settings_Group5_Description.Text" xml:space="preserve"><value>Monitor and track cloud API usage costs for OpenAI and Anthropic providers. View per-session and cumulative spending with detailed breakdowns.</value></data>
+  <data name="UserGuide_Settings_Group4_Title.Text" xml:space="preserve"><value>Cost Tracking</value></data>
+  <data name="UserGuide_Settings_Group4_Description.Text" xml:space="preserve"><value>Monitor and track cloud API usage costs for OpenAI and Anthropic providers. View per-session and cumulative spending with detailed breakdowns.</value></data>
   <data name="UserGuide_Settings_Shortcut.Text" xml:space="preserve"><value>Use Ctrl+, to quickly jump to Settings from anywhere in the app.</value></data>
   <data name="UserGuide_KeyboardShortcuts_Title.Text" xml:space="preserve"><value>Keyboard Shortcuts</value></data>
   <data name="UserGuide_KeyboardShortcuts_Description.Text" xml:space="preserve"><value>Agent-X supports keyboard shortcuts for rapid navigation and common actions. Master these to dramatically speed up your workflow.</value></data>
@@ -600,26 +598,13 @@
   <data name="UserGuide_BackupRestore_Backup_Title.Text" xml:space="preserve"><value>バックアップの作成</value></data>
   <data name="UserGuide_BackupRestore_Backup1.Text" xml:space="preserve"><value>手動バックアップ — 設定 &gt; Backup &gt; 今すぐバックアップを作成 で単一の .agentxbackup ファイル(圧縮暗号化アーカイブ)を生成します。宛先を選び、任意でパスフレーズを設定すれば完了です。一般的なバックアップ サイズはインポート済みドキュメントのサイズに、ベクトルとメタデータのため 10〜15% を加えた程度です。</value></data>
   <data name="UserGuide_BackupRestore_Backup2.Text" xml:space="preserve"><value>スケジュール済みバックアップ — 頻度(毎日、毎週)、宛先(ローカル フォルダー、ネットワーク共有、OneDrive/Dropbox/Google Drive などの同期クラウド ドライブ フォルダー)、保持ポリシー(直近 N 件、直近 M 日)、パスフレーズを構成します。BackupService はバックグラウンドで動作し、失敗は診断詳細付き通知で表示されます。</value></data>
-  <data name="UserGuide_BackupRestore_Backup3.Text" xml:space="preserve"><value>含まれるもの — 完全な SQLite データベース(会話、insights、beliefs、voice profile、注釈、検索履歴、設定)、ドキュメント ストア、プラグイン データと構成、ライセンス アクティベーション、ワークスペース プロファイル。クラウド プロバイダー API キーは既定で DPAPI で暗号化され、同じ Windows アカウントがバックアップを開く場合のみ往復します。pair-with-passphrase モードはアカウントをまたいだ復元を可能にします。</value></data>
+  <data name="UserGuide_BackupRestore_Backup3.Text" xml:space="preserve"><value>含まれるもの — 完全な SQLite データベース(会話、insights、beliefs、voice profile、注釈、検索履歴、設定)、ドキュメント ストア、プラグイン データと構成、ワークスペース プロファイル。クラウド プロバイダー API キーは既定で DPAPI で暗号化され、同じ Windows アカウントがバックアップを開く場合のみ往復します。pair-with-passphrase モードはアカウントをまたいだ復元を可能にします。</value></data>
   <data name="UserGuide_BackupRestore_Restore_Title.Text" xml:space="preserve"><value>バックアップからの復元</value></data>
   <data name="UserGuide_BackupRestore_Restore1.Text" xml:space="preserve"><value>置換 — 現在の状態を消去し、バックアップを原文通り読み込みます。新しいマシンへの移行、破損からの回復、悪い変更のロールバックに適しています。置換前に現状態が自動バックアップされるため、操作は元に戻せます。</value></data>
   <data name="UserGuide_BackupRestore_Restore2.Text" xml:space="preserve"><value>マージ — バックアップを現在の状態と結合します。競合(同一会話 ID、同一ドキュメント ハッシュ)は既定で last-write-wins で解決され、prefer-backup や prefer-current に構成可能です。2 つの Agent-X インストールを統合する場合や、最近の作業を失わずに特定データを復元する場合に有用です。</value></data>
   <data name="UserGuide_BackupRestore_Restore3.Text" xml:space="preserve"><value>Cherry-Pick — バックアップの内容をプレビューして選択的に復元できるチェックリスト UI: 特定の会話、ドキュメント コレクション、プラグイン設定、設定を選んでインポート。部分復元や外科的移行に最適です。</value></data>
   <data name="UserGuide_BackupRestore_Migration_Title.Text" xml:space="preserve"><value>バージョン間移行</value></data>
   <data name="UserGuide_BackupRestore_Migration_Description.Text" xml:space="preserve"><value>バックアップはスキーマ バージョンを持ちます。より新しい Agent-X で復元すると、移行パイプラインがその場でスキーマをアップグレードします — 新しい列の追加、埋め込みモデルの既定が変わった場合の再インデックスなど。何年も前に作成したバックアップを手動ステップなしで最新版で復元できます。</value></data>
-  <data name="UserGuide_LicenseTiers_Title.Text" xml:space="preserve"><value>ライセンス階層</value></data>
-  <data name="UserGuide_LicenseTiers_Description.Text" xml:space="preserve"><value>Agent-X はデバイス単位でライセンスされ、4 つの階層でドキュメント割当、Intelligence 機能、サポートが段階的にアンロックされます。ローカルファースト アーキテクチャと完全なデータ所有権はすべての階層で一定です — 有料階層はスケールと深さをアンロックしますが、データへのアクセスをゲートすることはありません。設定 &gt; ライセンスでライセンスを表示、有効化、管理します。</value></data>
-  <data name="UserGuide_LicenseTiers_Tier1_Title.Text" xml:space="preserve"><value>Trial — 無料</value></data>
-  <data name="UserGuide_LicenseTiers_Tier1_Description.Text" xml:space="preserve"><value>Knowledge Vault に最大 50 ドキュメント、基本チャット モデルのみ、単一ワークスペース プロファイル、手動バックアップ。Agent-X をエンドツーエンドで評価し、コミットする前にあなたのハードウェアでのローカル パフォーマンスを確認するのに最適です。</value></data>
-  <data name="UserGuide_LicenseTiers_Tier2_Title.Text" xml:space="preserve"><value>Starter — $79(買い切り)</value></data>
-  <data name="UserGuide_LicenseTiers_Tier2_Description.Text" xml:space="preserve"><value>最大 500 ドキュメント、すべてのチャットと埋め込みモデル(ローカル + クラウド)、Quick Actions ライブラリ全体、スケジュール済みバックアップ、フル エクスポート。リサーチ、執筆、ジャーナリングなど個人ナレッジ ベースに適切な選択です。</value></data>
-  <data name="UserGuide_LicenseTiers_Tier3_Title.Text" xml:space="preserve"><value>Professional — $149(買い切り)</value></data>
-  <data name="UserGuide_LicenseTiers_Tier3_Description.Text" xml:space="preserve"><value>ドキュメント無制限、フル Intelligence スタック(ナレッジ グラフ、Insight Harvesting、Temporal Identity、Generative Identity)、Workflows + スケジュール済みクエリ + 自動化ルール、複数ワークスペース プロファイル、プラグイン、Calendar/Email 統合、ブラウザー拡張、モバイル コンパニオン。完全プラットフォーム。</value></data>
-  <data name="UserGuide_LicenseTiers_Tier4_Title.Text" xml:space="preserve"><value>Ultimate — $249(買い切り)</value></data>
-  <data name="UserGuide_LicenseTiers_Tier4_Description.Text" xml:space="preserve"><value>Professional のすべてに加え、パスフレーズ暗号化 SQLCipher Vault を既定で有効、優先サポート(1 営業日以内に返信)、実験機能への早期アクセス、そして公開カタログへの公開権付きプラグイン デベロッパー SDK。</value></data>
-  <data name="UserGuide_LicenseTiers_Notes_Title.Text" xml:space="preserve"><value>アクティベーションと管理</value></data>
-  <data name="UserGuide_LicenseTiers_Note1.Text" xml:space="preserve"><value>ライセンスはデバイスごと、買い切り(サブスクリプションではない)です。一度購入すれば永続所有。新メジャー バージョンは別ライセンスとして出荷され、マイナー更新とバグ修正は購入したメジャー バージョンの寿命を通じて無料です。</value></data>
-  <data name="UserGuide_LicenseTiers_Note2.Text" xml:space="preserve"><value>デバイス間のライセンス移動は 設定 &gt; ライセンス &gt; 無効化、次に同じキーで新デバイスで Activate を行います。デバイスを紛失? ライセンス キー付きでサポートにメールいただければ、アクティベーション スロットをリセットします。</value></data>
   <data name="UserGuide_Export_Title.Text" xml:space="preserve"><value>エクスポートとデータ ポータビリティ</value></data>
   <data name="UserGuide_Export_Description.Text" xml:space="preserve"><value>あなたのデータはあらゆるレベルでオープン フォーマットでエクスポート可能です — 単一会話、完全な会話履歴、個別ドキュメント、Knowledge Vault 全体、voice profile、insights、beliefs、設定、プラグイン マニフェスト。ロックインはありません: Agent-X を離れる時、すべてをどこでも読み込めるフォーマットで持ち出せます。バックアップと復元(専用セクション)はラウンドトリップ ストーリー、本セクションは片道エクスポートを扱います。</value></data>
   <data name="UserGuide_Export_Conversations_Title.Text" xml:space="preserve"><value>会話のエクスポート</value></data>

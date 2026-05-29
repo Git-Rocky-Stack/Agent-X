@@ -37,7 +37,7 @@ Version 2.1.0-preview.1 | Last updated: April 26, 2026
 27. [Settings](#27-settings)
 28. [Command Palette, Jump To, and Shortcuts](#28-command-palette-jump-to-and-shortcuts)
 29. [Status Bar, Notifications, and Tray](#29-status-bar-notifications-and-tray)
-30. [Privacy, Security, and Licensing](#30-privacy-security-and-licensing)
+30. [Privacy and Security](#30-privacy-and-security)
 31. [Troubleshooting](#31-troubleshooting)
 32. [FAQ](#32-faq)
 33. [Supported File Types](#33-supported-file-types)
@@ -247,7 +247,7 @@ The summary screen provides a complete readiness report:
 | **4** | Try a **Workflow Template** | Experience multi-step AI automation (action item extraction, research briefing, etc.) |
 | **5** | Explore **Knowledge Graph** | Visualize document relationships and discover content clusters |
 | **6** | Review **Analytics** | Understand your usage patterns and intelligence coverage |
-| **7** | Enable **Database Encryption** (optional) | Add AES-256-CBC at-rest protection for your vault (Starter tier and above) |
+| **7** | Enable **Database Encryption** (optional) | Add AES-256-CBC at-rest protection for your vault (free for everyone) |
 
 ---
 
@@ -272,7 +272,7 @@ After onboarding, you have access to an enterprise-grade intelligence platform. 
 | **Database Engine** | SQLite 3.x with EF Core 8.0.11 ORM |
 | **Encryption** | SQLCipher AES-256-CBC (opt-in) with DPAPI or PBKDF2-HMAC-SHA256 (600k iterations) |
 | **Migrations** | EF Core migration runner with baseline adoption for pre-existing installs |
-| **Tables** | 16 entity types (conversations, messages, documents, chunks, embeddings, collections, tags, memories, workflows, licenses, and more) |
+| **Tables** | entity types (conversations, messages, documents, chunks, embeddings, collections, tags, memories, workflows, and more) |
 | **Vector Store** | BLOB-based float arrays with pre-computed L2 magnitude; HNSW indexing for large vaults |
 
 ### Productivity Accelerators
@@ -286,7 +286,7 @@ After onboarding, you have access to an enterprise-grade intelligence platform. 
 | **Web Import** | URL-to-vault ingestion with preview, collection assignment, and auto-indexing |
 | **Smart Inbox** | Triage queue for watch-folder, connector, and browser-clipped content with AI previews |
 
-### Enterprise Features (Professional/Ultimate)
+### Advanced Features
 
 | Feature | Description |
 | --- | --- |
@@ -295,13 +295,13 @@ After onboarding, you have access to an enterprise-grade intelligence platform. 
 | **Calendar/Email Connectors** | OAuth2-based Google/Microsoft integration for event-driven inbox flows and message ingestion |
 | **REST API** | Embedded HTTP listener (port 9846) with `/api/documents`, `/api/conversations`, `/api/search`, and more |
 | **Plugin Ecosystem** | Extensible plugin API for ingestion, providers, workflows, and UI extensions with markdown documentation rendering |
-| **Database Encryption** | SQLCipher with tier-aware key management (DPAPI for lower tiers, passphrase for Ultimate) |
+| **Database Encryption** | SQLCipher with automatic DPAPI-wrapped key management tied to your Windows account |
 
 ### Developer Quality Bar
 
 | Metric | Status |
 | --- | --- |
-| **Unit Tests** | 224 passing tests across Settings, Collections, License, Search Cache, and all validators |
+| **Unit Tests** | Comprehensive test suite across Settings, Collections, Export, Search Cache, and all validators |
 | **Code Coverage** | Critical paths in AI, search, indexing, and data layers fully tested |
 | **Validation Layer** | `IValidator<T>` with typed validators for AppSettings, SyncConfiguration, PluginManifest |
 | **Error Handling** | 7 typed exception classes with structured error propagation |
@@ -972,12 +972,11 @@ Settings is the control plane for provider, inference, indexing, security, stora
 | Knowledge Vault | Chunk size, chunk overlap, top-K, indexing behavior |
 | Web Search | Provider and API configuration where enabled |
 | Database Encryption | SQLCipher enablement and key/passphrase flow |
-| License | License tier, activation, document limits |
 | Language/UI | Locale follows Windows display language |
 
 ### Database encryption
 
-Agent-X can encrypt the local SQLite vault with SQLCipher. Starter/Professional-style modes can use a key tied to the Windows user profile; passphrase-gated modes require the passphrase on future unlocks.
+Agent-X can encrypt the local SQLite vault with SQLCipher. The encryption key is managed automatically and tied to your Windows user profile, and the feature is available to every user free of charge.
 
 Before enabling encryption:
 
@@ -1058,7 +1057,7 @@ Use the tray when Agent-X should stay available without occupying the main windo
 
 ---
 
-## 30. Privacy, Security, and Licensing
+## 30. Privacy and Security
 
 ### Local-first security model
 
@@ -1072,16 +1071,9 @@ Use the tray when Agent-X should stay available without occupying the main windo
 
 API keys are entered by the user and stored locally. They are only sent to their respective providers when those providers are used.
 
-### Licensing
+### Open-source license
 
-License validation is offline. The license key controls tier and document limits without requiring a subscription check during normal local use.
-
-| Tier | Typical use |
-| --- | --- |
-| Trial | Evaluate core features within document limits |
-| Starter | Personal local knowledge base |
-| Professional | Unlimited document workflows and advanced intelligence |
-| Ultimate | Highest-tier local-first feature set and support path |
+Agent-X is free and open-source software released under the MIT License. Every capability is unconditionally available to every user — there are no tiers, no activation, no document limits, and no subscription checks of any kind.
 
 ---
 
@@ -1253,4 +1245,4 @@ Use Quick Actions for one-off document tasks. Use Workflows when the same multi-
 
 ---
 
-*Agent-X is developed by Rocky Stack / Strategia. For support, feature requests, or bug reports, use the official support channel included with the product.*
+*Agent-X is developed by Rocky Elsalaymeh / Strategia. For support, feature requests, or bug reports, use the official support channel included with the product.*

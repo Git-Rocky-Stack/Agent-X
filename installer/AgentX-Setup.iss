@@ -1,10 +1,10 @@
 ; Agent-X Windows Installer
 ; Inno Setup 6 Script
-; Copyright (c) 2026 Rocky Stack. All rights reserved.
+; Copyright (c) 2026 Rocky Elsalaymeh. MIT License.
 
 #define MyAppName "Agent-X"
 #define MyAppVersion "2.1.0-preview.1"
-#define MyAppPublisher "Rocky Stack"
+#define MyAppPublisher "Rocky Elsalaymeh"
 #define MyAppURL "https://rockystack.com"
 #define MyAppExeName "AgentX.App.exe"
 #define MyAppDescription "Local-First AI Personal Intelligence Hub"

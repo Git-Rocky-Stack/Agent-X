@@ -210,46 +210,50 @@
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="Strategia-X grants you a limited, non-exclusive, non-transferable, revocable license to use Agent-X for personal or internal business purposes, subject to these Terms." />
+                               Text="Agent-X is free and open-source software released under the MIT License. You are granted a perpetual, worldwide, royalty-free right to use, copy, modify, merge, publish, distribute, sublicense, and even sell copies of the software, subject only to the terms of the MIT License." />
 
                     <TextBlock Style="{StaticResource HeadingSmallStyle}"
-                               Text="This license does not include the right to:"
+                               Text="Under the MIT License you may freely:"
                                Margin="0,4,0,0" />
 
                     <StackPanel Spacing="8" Margin="8,0,0,0">
                         <StackPanel Orientation="Horizontal" Spacing="10">
-                            <FontIcon Glyph="&#xE711;"
+                            <FontIcon Glyph="&#xE73E;"
                                       FontSize="11"
-                                      Foreground="{ThemeResource TextTertiaryBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Modify, reverse engineer, or decompile the software" />
+                                       Text="Use Agent-X for any purpose — personal, commercial, or otherwise" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
-                            <FontIcon Glyph="&#xE711;"
+                            <FontIcon Glyph="&#xE73E;"
                                       FontSize="11"
-                                      Foreground="{ThemeResource TextTertiaryBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Distribute or sublicense the software to third parties" />
+                                       Text="Study, modify, and build upon the source code" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
-                            <FontIcon Glyph="&#xE711;"
+                            <FontIcon Glyph="&#xE73E;"
                                       FontSize="11"
-                                      Foreground="{ThemeResource TextTertiaryBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Use the software for any illegal or unauthorized purposes" />
+                                       Text="Distribute and sublicense copies, with or without modification" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
-                            <FontIcon Glyph="&#xE711;"
+                            <FontIcon Glyph="&#xE73E;"
                                       FontSize="11"
-                                      Foreground="{ThemeResource TextTertiaryBrush}"
+                                      Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Remove or alter any proprietary notices, labels, or marks" />
+                                       Text="Include Agent-X in your own projects, free of charge" />
                         </StackPanel>
                     </StackPanel>
+
+                    <TextBlock Style="{StaticResource BodySecondaryStyle}"
+                               Margin="0,4,0,0"
+                               Text="The only condition is that the MIT copyright notice and permission notice be included in all copies or substantial portions of the software." />
                 </StackPanel>
             </Border>
 
@@ -338,7 +342,7 @@
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="Agent-X and all associated intellectual property, including but not limited to source code, algorithms, user interface designs, and documentation, are and remain the exclusive property of Strategia-X. The application name, logos, and branding are trademarks of Strategia-X." />
+                               Text="Agent-X is open-source software. The source code, documentation, and other materials are made available under the MIT License, and copyright is retained by the original authors and contributors as noted in that license. You are free to use and build upon these materials in accordance with the MIT License terms." />
                     <TextBlock Style="{StaticResource BodyStyle}"
                                Text="Your documents and data remain your property at all times. We claim no ownership of content you process through Agent-X. You retain all rights to your intellectual property." />
                 </StackPanel>
@@ -497,7 +501,7 @@
 
                     <TextBlock Style="{StaticResource BodyStyle}"
                                FontWeight="SemiBold"
-                               Text="Our total aggregate liability to you for all claims arising from or relating to Agent-X shall not exceed the amount you paid for Agent-X." />
+                               Text="Agent-X is provided to you free of charge under the MIT License. To the fullest extent permitted by law, the authors and copyright holders shall have no liability to you for any claims arising from or relating to Agent-X." />
                 </StackPanel>
             </Border>
 
@@ -624,11 +628,11 @@
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="We may terminate or suspend your license to use Agent-X at any time, with or without notice, for conduct that we believe violates these Terms or is harmful to other users, Strategia-X, or third parties, or for any other reason at our sole discretion." />
+                               Text="The rights granted to you under the MIT License are perpetual and irrevocable, and are not affected by these Terms. The MIT License governs your use of the Agent-X source code and software regardless of any other provision here." />
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="You may terminate your use of Agent-X at any time by uninstalling the application and deleting all associated data from your device." />
+                               Text="You may stop using Agent-X at any time by uninstalling the application and deleting all associated data from your device." />
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="Upon termination, whether initiated by you or by Strategia-X, all rights and licenses granted to you under these Terms will cease immediately. Sections regarding Intellectual Property, Disclaimer of Warranties, Limitation of Liability, and Indemnification shall survive termination." />
+                               Text="The Disclaimer of Warranties and Limitation of Liability sections reflect the standard MIT 'AS IS' terms and continue to apply for as long as you use Agent-X." />
                 </StackPanel>
             </Border>
 

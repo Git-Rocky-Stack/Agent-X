@@ -65,14 +65,13 @@ public class UserGuideSectionSelector : DataTemplateSelector
     public DataTemplate? PrivacyAndSecurityTemplate { get; set; }
     public DataTemplate? GettingHelpTemplate { get; set; }
 
-    // Extended (NEW): Document management, integrations, extensibility, licensing
+    // Extended (NEW): Document management, integrations, extensibility
     public DataTemplate? AnnotationsTemplate { get; set; }
     public DataTemplate? AudioTranscriptionTemplate { get; set; }
     public DataTemplate? WorkspaceProfilesTemplate { get; set; }
     public DataTemplate? PluginsTemplate { get; set; }
     public DataTemplate? IntegrationsTemplate { get; set; }
     public DataTemplate? BackupRestoreTemplate { get; set; }
-    public DataTemplate? LicenseTiersTemplate { get; set; }
 
     // NOTE: WinUI 3's ItemsControl invokes the *two-argument* SelectTemplateCore
     // overload (item + container), NOT the single-argument one. If only the
@@ -151,7 +150,6 @@ public class UserGuideSectionSelector : DataTemplateSelector
                 "PluginsTemplate" => PluginsTemplate,
                 "IntegrationsTemplate" => IntegrationsTemplate,
                 "BackupRestoreTemplate" => BackupRestoreTemplate,
-                "LicenseTiersTemplate" => LicenseTiersTemplate,
 
                 _ => null
             };

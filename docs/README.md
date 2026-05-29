@@ -35,7 +35,7 @@ Built on .NET 8.0 and WinUI 3 (Windows App SDK 1.6), Agent-X delivers an enterpr
 9. [Core Service Layer](#core-service-layer)
 10. [Data Storage](#data-storage)
 11. [Keyboard Shortcuts](#keyboard-shortcuts)
-12. [License Tiers](#license-tiers)
+12. [Pricing](#pricing)
 13. [Contributing](#contributing)
 14. [License](#license)
 
@@ -47,7 +47,7 @@ Built on .NET 8.0 and WinUI 3 (Windows App SDK 1.6), Agent-X delivers an enterpr
 
 | Feature | Impact |
 |---|---|
-| **SQLCipher Encryption** | AES-256-CBC at-rest database encryption with tier-aware key management (DPAPI for lower tiers, PBKDF2-HMAC-SHA256 passphrase for Ultimate) |
+| **SQLCipher Encryption** | AES-256-CBC at-rest database encryption with automatic DPAPI-wrapped key management tied to your Windows account |
 | **EF Core Migrations** | Production-ready migration runner with pending-migration API and baseline adoption for pre-existing installs |
 | **Out-of-DB Key Storage** | Encryption state separated from the encrypted vault via `encryption.info.json` — prevents unlock ↔ migration chicken-and-egg |
 | **Startup Unlock Flow** | Clean authentication experience before database access |
@@ -67,9 +67,9 @@ Built on .NET 8.0 and WinUI 3 (Windows App SDK 1.6), Agent-X delivers an enterpr
 
 ## Feature Overview
 
-Agent-X now spans a broader product surface than a simple feature checklist. The tables below highlight representative capabilities across core productivity, intelligence, and premium local-first workflows. All tiers run offline first; cloud AI providers (OpenAI, Anthropic) are optional and user-configured.
+Agent-X now spans a broader product surface than a simple feature checklist. The tables below highlight representative capabilities across core productivity, intelligence, and advanced local-first workflows. Every capability is free and unconditionally available to every user. All features run offline first; cloud AI providers (OpenAI, Anthropic) are optional and user-configured.
 
-### Tier 1 — Core Productivity
+### Core Productivity
 
 | Feature | Description |
 |---|---|
@@ -80,7 +80,7 @@ Agent-X now spans a broader product surface than a simple feature checklist. The
 | Auto-Generate Titles | AI generates a concise, descriptive title for each imported document based on its extracted content |
 | Persistent Search History | Every search query is persisted to SQLite and displayed as clickable history chips on the Search page |
 
-### Tier 2 — Differentiated Intelligence
+### Differentiated Intelligence
 
 | Feature | Description |
 |---|---|
@@ -90,7 +90,7 @@ Agent-X now spans a broader product surface than a simple feature checklist. The
 | Advanced Filtering | Filter the document vault by file type, collection, date range, indexing status, and sort order through a composable filter panel |
 | Chat Code Rendering | Markdown parsing via Markdig renders AI responses with syntax-highlighted code blocks and one-click copy buttons |
 
-### Tier 3 — Premium Intelligence
+### Advanced Intelligence
 
 | Feature | Description |
 |---|---|
@@ -103,13 +103,13 @@ Agent-X now spans a broader product surface than a simple feature checklist. The
 | Scheduled Digest Reports | Weekly activity summaries aggregate new document counts, conversation activity, top searches, file type distribution, storage delta, and token consumption into persisted digest reports |
 | Analytics & Conversation Intelligence | Analytics aggregates usage, performance, file-type, and durable conversation-intelligence metrics, including summary freshness and recent summary previews |
 | **REST API** | Embedded HTTP listener (port 9846) with endpoints for documents, conversations, collections, and search |
-| **Database Encryption** | SQLCipher AES-256-CBC at-rest encryption with tier-aware key management (DPAPI or PBKDF2-HMAC-SHA256) |
+| **Database Encryption** | SQLCipher AES-256-CBC at-rest encryption with automatic DPAPI-wrapped key management |
 
 ### Developer Quality Metrics
 
 | Metric | Value |
 |---|---|
-| **Unit Tests** | 224 passing tests across Settings, Collections, License, Search Cache, and all validators |
+| **Unit Tests** | Comprehensive test suite across Settings, Collections, Export, Search Cache, and all validators |
 | **Code Coverage** | Critical paths in AI, search, indexing, and data layers fully tested |
 | **Validation Layer** | `IValidator<T>` with typed validators for AppSettings, SyncConfiguration, PluginManifest |
 | **Error Handling** | 7 typed exception classes with structured error propagation |
@@ -363,7 +363,7 @@ The portable class library. Responsibilities:
 - **Intelligence Services** (`Services/Intelligence/`): Document summarization (`ISummaryService`), duplicate detection via SHA-256 and semantic similarity (`IDuplicateDetectionService`), organization suggestions (`IOrganizationSuggestionService`), knowledge graph construction with force-directed layout (`IKnowledgeGraphService`), and digest report generation (`IDigestService`).
 - **Collections and Tagging** (`Services/Collections/`, `Services/Tagging/`): Hierarchical collection management (`ICollectionService`) and AI-powered tag generation with confidence scoring (`IAutoTagService`).
 - **Data Layer** (`Data/`): Entity Framework Core DbContext with 16 entity types mapped to SQLite, vector embedding storage via `IVectorStore` (`HnswVectorStore` when enabled, `SqliteVecStore` fallback for small/disabled indexes), `IMigrationRunner` applying EF Core migrations on startup with baseline-adoption for pre-B9 installs (v2.1 Bedrock B9), `IEncryptedConnectionFactory` + `IDatabaseKeyService` routing every `SqliteConnection` through SQLCipher `PRAGMA key` (v2.1 Bedrock C13), and `IDatabaseEncryptionMigrator` for atomic plaintext→encrypted conversion via `sqlcipher_export`.
-- **Settings and Licensing** (`Services/Settings/`, `Services/License/`): JSON-file settings persistence (`ISettingsService`) and offline HMAC-SHA256 license key validation with machine fingerprinting (`ILicenseService`).
+- **Settings** (`Services/Settings/`): JSON-file settings persistence (`ISettingsService`) with at-rest encryption of any secrets.
 
 ### Dependency Injection Pattern
 
@@ -377,7 +377,7 @@ var aiService = App.GetService<IAiService>();
 ### Startup Sequence
 
 1. `App.OnLaunched` builds the `IHost` and calls `InitializeCoreServicesAsync`.
-2. `InitializeCoreServicesAsync` (fire-and-forget): reads the `%LocalAppData%\AgentX\encryption.info.json` keystore (when present) and unlocks the database key via `IDatabaseKeyService` (DPAPI-wrap or PBKDF2-HMAC-SHA256 passphrase, per tier); applies pending EF Core migrations via `IMigrationRunner.RunAsync()` with baseline-adoption for pre-B9 installs; initializes FTS5 virtual tables; and calls `IAiService.InitializeAsync` to connect to Ollama.
+2. `InitializeCoreServicesAsync` (fire-and-forget): reads the `%LocalAppData%\AgentX\encryption.info.json` keystore (when present) and unlocks the database key via `IDatabaseKeyService` (DPAPI-wrap, or PBKDF2-HMAC-SHA256 passphrase for legacy keystores); applies pending EF Core migrations via `IMigrationRunner.RunAsync()` with baseline-adoption for pre-B9 installs; initializes FTS5 virtual tables; and calls `IAiService.InitializeAsync` to connect to Ollama.
 3. `MainWindow` is instantiated and shown immediately — initialization continues in the background.
 4. The main window checks onboarding status; if not completed, it hides the navigation pane and navigates to `OnboardingPage`.
 5. The status bar polling timer fires after a 5-second delay and every 30 seconds thereafter, updating the Ollama connection dot, active model name, indexing progress ring, and document count.
@@ -417,7 +417,7 @@ Navigation is managed by a `NavigationView` in `MainWindow.xaml`. The `ContentFr
 | Calendar | `CalendarSettings` | Configures calendar connectors and related ingestion behavior for event-driven inbox flows. |
 | Email | `EmailSettings` | Configures email connectors and related ingestion behavior for inbox-driven knowledge capture. |
 | Annotations | `Annotations` | Displays and manages user annotations attached to documents and intelligence outputs. |
-| Settings | `Settings` | Full settings editor: AI provider selection and API keys, Ollama endpoint, model selection, chunking parameters, UI theme, storage path, watch folders, and license activation/deactivation. |
+| Settings | `Settings` | Full settings editor: AI provider selection and API keys, Ollama endpoint, model selection, chunking parameters, UI theme, storage path, and watch folders. |
 | Onboarding | `Onboarding` | First-run wizard shown on initial launch with navigation pane hidden. Steps through Ollama connection check, model selection, and a brief feature tour. |
 | User Guide | `UserGuide` | In-app reference documentation rendered as styled rich text. |
 | Privacy Policy | `PrivacyPolicy` | Full privacy policy text confirming the local-only data model. |
@@ -534,18 +534,6 @@ Duplicate detection uses a substring match on the first 30 characters of the mem
 
 The resulting node positions are returned to `KnowledgeGraphViewModel` and rendered on a WinUI 3 `Canvas` using `Ellipse` and `Line` primitives.
 
-### License Validation
-
-License keys follow the format `AX-{TIER}-{PAYLOAD}-{CHECKSUM}`:
-
-- `AX` — product prefix
-- `TIER` — `S` (Starter), `P` (Professional), `U` (Ultimate)
-- `PAYLOAD` — 16-character Base32-encoded random data
-- `CHECKSUM` — 4-character HMAC-SHA256 truncated checksum
-
-Validation is fully offline. The HMAC signing key is embedded in the binary. A machine fingerprint is computed from `MachineName`, `OSVersion`, and `ProcessorCount` via SHA-256 and stored with the license record. License records are stored in the `licenses` SQLite table; only one license may be active at a time.
-
----
 
 ## Data Storage
 
@@ -583,7 +571,6 @@ The `AgentXDbContext` maps 16 entity types to SQLite tables:
 | `user_settings` | `UserSettingsEntity` | Key-value settings with type annotation (supplement to settings.json) |
 | `watch_folders` | `WatchFolderEntity` | File system paths monitored for auto-import, optionally linked to a collection |
 | `indexing_jobs` | `IndexingJobEntity` | Asynchronous indexing job queue with status lifecycle |
-| `licenses` | `LicenseEntity` | License key, tier, activation timestamp, and machine fingerprint |
 | `memories` | `MemoryEntity` | AI-extracted memory entries with category, importance, and usage tracking |
 | `digest_reports` | `DigestReportEntity` | Weekly activity summaries with JSON-serialized sub-reports |
 | `vec_embeddings` | (raw SQL) | Float array BLOBs with pre-computed magnitude; managed outside EF Core |
@@ -594,12 +581,11 @@ Key indexes are defined on all foreign keys, date columns used in range queries,
 
 Starting with v2.1.0-preview.1, the entire `agentx.db` file can be encrypted at rest using **SQLCipher** (AES-256-CBC) via the `SQLitePCLRaw.bundle_e_sqlcipher` provider. Encryption is opt-in from **Settings → Database Encryption** and is applied atomically via `sqlcipher_export` — a `.plain.bak` backup of the plaintext database is retained only through the atomic-swap critical section and removed on success.
 
-**Key management is tier-aware:**
+**Key management (available to every user):**
 
-| Tier | Key Derivation | User Experience |
-|---|---|---|
-| Trial / Starter / Professional | DPAPI-wrapped random 256-bit key | Transparent — enable the toggle and the vault is encrypted; Windows handles the unlock |
-| Ultimate | PBKDF2-HMAC-SHA256 (600,000 iterations) over a user-supplied passphrase | Passphrase dialog on enable and on every launch; the passphrase is never stored |
+| Key Derivation | User Experience |
+|---|---|
+| DPAPI-wrapped random 256-bit key, tied to your Windows account | Transparent — enable the toggle and the vault is encrypted; Windows handles the unlock |
 
 **Key storage is OUT of the database.** The database key (or the salt + verifier material for passphrase mode) lives in `%LocalAppData%\AgentX\encryption.info.json`, a sibling file that is read before the `SqliteConnection` opens. This breaks the startup unlock ↔ migration chicken-and-egg and means the encryption state never depends on the encrypted vault. Losing `encryption.info.json` while the vault is encrypted means the database cannot be unlocked — back it up alongside `agentx.db` if you enable encryption.
 
@@ -635,18 +621,9 @@ The Command Palette (`Ctrl+K` or `Ctrl+Shift+P`) provides keyboard-first access 
 
 ---
 
-## License Tiers
+## Pricing
 
-Agent-X uses an offline perpetual license model. All tiers are permanent — there is no subscription, no renewal, and no expiry date.
-
-| Tier | Document Limit | Key Features |
-|---|---|---|
-| **Trial** | 50 documents | Full feature access; document limit enforced on import |
-| **Starter** | 500 documents | All Tier 1 and Tier 2 features |
-| **Professional** | Unlimited documents | All features including Tier 3 premium intelligence |
-| **Ultimate** | Unlimited documents | All features, priority support, and future premium additions |
-
-License keys are activated in the Settings page. The key format is `AX-{S|P|U}-{16-char payload}-{4-char checksum}`. Activation is instant and offline — no internet connection is required. One license key activates one machine (identified by machine fingerprint). To move a license to a new machine, deactivate from the current machine first.
+Agent-X is **100% free and open-source**. There are no paid tiers, no subscriptions, no activation, no document limits, and no feature gates of any kind. Every capability — including unlimited documents, the full intelligence stack, plugins, integrations, and encryption — is unconditionally available to every user, forever, at no cost.
 
 ---
 
@@ -685,7 +662,6 @@ Agent-X/
 │           ├── Collections/           -- CollectionService
 │           ├── Indexing/              -- IndexingService, IndexingQueueService, FileWatcherService
 │           ├── Intelligence/          -- DigestService, KnowledgeGraphService, SummaryService, etc.
-│           ├── License/               -- LicenseService
 │           ├── Settings/              -- SettingsService, AppSettings model
 │           └── Tagging/               -- AutoTagService
 │
@@ -743,7 +719,7 @@ The following conventions apply to all code in this repository:
 
 **Error handling:**
 - Catch and log exceptions at service boundaries. Do not let exceptions from AI providers or file I/O propagate unhandled to the ViewModel layer.
-- For user-facing operations, return result objects (e.g., `LicenseActivationResult`) rather than throwing exceptions.
+- For user-facing operations, return result objects (e.g., `ExportResult`) rather than throwing exceptions.
 - For background operations, log at `Warning` level and continue where possible (graceful degradation).
 
 **Logging:**
@@ -770,6 +746,4 @@ Copyright (c) 2026 Rocky Elsalaymeh.
 
 Agent-X is released under the **MIT License** — see [LICENSE](../LICENSE) at the repository root. You may use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the software, subject to inclusion of the copyright and permission notice.
 
-> **Note:** This repository previously described a proprietary, tiered-license model. The source is now MIT-licensed. The in-app license-tier UI and Terms of Service text are legacy artifacts being reconciled; the MIT License at the repository root governs the source code.
-
-The Trial tier is provided at no cost for evaluation purposes. Starter, Professional, and Ultimate tier licenses are available for purchase through the official Rocky Stack sales channel.
+Agent-X is 100% free and open-source. Every capability is unconditionally available to every user — there are no paid tiers, no activation, no quotas, and no feature gates of any kind. Use it for anything, forever, at no cost.

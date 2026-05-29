@@ -1,7 +1,7 @@
 # Market Opportunity Analysis: Local-First AI Personal Intelligence Hub
 
 **Date:** February 25, 2026
-**Prepared for:** Rocky Stack / Strategia
+**Prepared for:** Rocky Elsalaymeh / Strategia
 **Analysis Type:** Market Opportunity + SWOT + Strategic Recommendation
 
 ---

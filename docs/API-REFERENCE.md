@@ -46,11 +46,9 @@
    - [IIndexingQueueService](#iindexingqueueservice)
    - [IFileWatcherService](#ifilewatcherservice)
    - [IndexingProgressEventArgs](#indexingprogresseventargs)
-9. [Settings and License](#9-settings-and-license)
+9. [Settings](#9-settings)
    - [ISettingsService](#isettingsservice)
    - [AppSettings](#appsettings)
-   - [ILicenseService](#ilicenseservice)
-   - [License Models](#license-models)
 10. [Intelligence Services](#10-intelligence-services)
     - [ISummaryService](#isummaryservice)
     - [IDuplicateDetectionService](#iduplicatedetectionservice)
@@ -70,7 +68,6 @@
     - [UserSettingsEntity](#usersettingsentity)
     - [WatchFolderEntity](#watchfolderentity)
     - [IndexingJobEntity](#indexingjobentity)
-    - [LicenseEntity](#licenseentity)
     - [OAuthCredentialEntity](#oauthcredentialentity)
 12. [OAuth Services](#12-oauth-services)
     - [IOAuthService](#ioauthservice-1)
@@ -2684,7 +2681,7 @@ Event data for indexing progress updates.
 
 ---
 
-## 9. Settings and License
+## 9. Settings
 
 ### ISettingsService
 
@@ -2790,211 +2787,6 @@ Application configuration stored as `settings.json` in `%LOCALAPPDATA%/AgentX/`.
 
 ---
 
-### ILicenseService
-
-```csharp
-namespace AgentX.Core.Services.License;
-
-public interface ILicenseService
-```
-
-Manages license activation, validation, and querying. Uses offline-first validation -- no network calls are required for license operations.
-
-**Namespace:** `AgentX.Core.Services.License`
-**Assembly:** `AgentX.Core`
-**Implementation:** `LicenseService`
-
-**License Key Format:** `AX-{TIER}-{PAYLOAD}-{CHECKSUM}`
-
-| Segment | Description |
-|---------|-------------|
-| `AX` | Product prefix (always `"AX"`). |
-| `TIER` | Tier character: `S` (Starter), `P` (Professional), `U` (Ultimate). |
-| `PAYLOAD` | 16-character Base32-encoded random data. |
-| `CHECKSUM` | 4-character HMAC-SHA256 truncated checksum for offline validation. |
-
-**Regex Pattern:** `^AX-[SPU]-[A-Z2-7]{16}-[A-Z2-7]{4}$`
-
-#### Methods
-
----
-
-##### GetCurrentLicenseAsync
-
-```csharp
-Task<LicenseInfo> GetCurrentLicenseAsync();
-```
-
-Returns the current license info. If no license is activated, returns a Trial-tier license. Results are cached in memory.
-
-**Returns:** A `LicenseInfo` instance representing the current license state.
-
----
-
-##### ActivateLicenseAsync
-
-```csharp
-Task<LicenseActivationResult> ActivateLicenseAsync(string licenseKey);
-```
-
-Activates a license key. Performs the following validation steps:
-1. Validates format against the regex pattern.
-2. Parses the tier character.
-3. Verifies the HMAC-SHA256 checksum.
-4. Checks for duplicate activation.
-5. Deactivates any existing license before activating the new one.
-6. Stores the activation in the database with a machine fingerprint.
-7. Updates the in-memory cache.
-
-**Returns:** A `LicenseActivationResult` with success/failure status.
-
----
-
-##### DeactivateLicenseAsync
-
-```csharp
-Task<bool> DeactivateLicenseAsync();
-```
-
-Deactivates the current license, removing it from the database and reverting to Trial tier.
-
-**Returns:** `true` on success; `false` on database errors.
-
----
-
-##### ValidateCurrentLicenseAsync
-
-```csharp
-Task<bool> ValidateCurrentLicenseAsync();
-```
-
-Re-validates the currently stored license (format + checksum). Updates `LastValidatedAt` on success.
-
-**Returns:** `true` if the license is valid; `false` if not found, invalid format, or invalid checksum.
-
----
-
-##### GetMachineFingerprint
-
-```csharp
-string GetMachineFingerprint();
-```
-
-Generates a deterministic machine fingerprint based on hardware characteristics (machine name, OS version, processor count). Returns a lowercase hex-encoded SHA-256 hash string.
-
----
-
-### License Models
-
-#### LicenseTier
-
-```csharp
-namespace AgentX.Core.Services.License;
-
-public enum LicenseTier
-```
-
-| Value | Description | Document Limit |
-|-------|-------------|----------------|
-| `Trial` | Free tier -- limited to 50 documents, basic models only. | 50 |
-| `Starter` | $79 -- 500 documents, all chat models. | 500 |
-| `Professional` | $149 -- Unlimited documents, all features including intelligence. | Unlimited |
-| `Ultimate` | $249 -- Unlimited everything plus priority support. | Unlimited |
-
-#### LicenseInfo
-
-```csharp
-namespace AgentX.Core.Services.License;
-
-public class LicenseInfo
-```
-
-Immutable snapshot of the current license state. Provides feature gates, document limits, and display helpers for the UI layer.
-
-**Core Properties:**
-
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `Tier` | `LicenseTier` | `LicenseTier.Trial` | The current license tier (init-only). |
-| `IsActivated` | `bool` | `false` | Whether a license has been activated (init-only). |
-| `CustomerName` | `string?` | `null` | Name of the license holder (init-only). |
-| `CustomerEmail` | `string?` | `null` | Email of the license holder (init-only). |
-| `ActivatedAt` | `DateTime?` | `null` | When the license was activated (init-only). |
-| `ExpiresAt` | `DateTime?` | `null` | Expiration date. Always `null` for perpetual licenses (init-only). |
-| `MaxDocuments` | `int` | -- | Maximum number of documents allowed under this tier (init-only). |
-
-**Feature Gates:**
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `CanUseAdvancedModels` | `bool` | `true` for Starter and above. Enables advanced/larger chat models. |
-| `CanUseIntelligenceFeatures` | `bool` | `true` for Professional and above. Enables summaries, duplicate detection, organization suggestions. |
-| `CanUseUnlimitedDocuments` | `bool` | `true` for Professional and above. Removes the document cap. |
-| `CanUsePrioritySupport` | `bool` | `true` for Ultimate only. |
-
-**Methods:**
-
-```csharp
-bool HasFeature(string feature);
-```
-
-Checks whether the current tier grants access to a named feature. Feature names are case-insensitive.
-
-| Feature Name | Gate |
-|-------------|------|
-| `"ADVANCED_MODELS"` | `CanUseAdvancedModels` |
-| `"INTELLIGENCE"` | `CanUseIntelligenceFeatures` |
-| `"UNLIMITED_DOCUMENTS"` | `CanUseUnlimitedDocuments` |
-| `"PRIORITY_SUPPORT"` | `CanUsePrioritySupport` |
-
-```csharp
-static int GetDocumentLimit(LicenseTier tier);
-```
-
-Returns the maximum number of documents allowed for the given tier. Professional and Ultimate return `int.MaxValue`.
-
-**Display Helpers:**
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `TierDisplayName` | `string` | Human-readable tier name (e.g., `"Trial"`, `"Professional"`). |
-| `TierBadgeColor` | `string` | Hex color code for the tier badge in the UI. Trial: `#666666`, Starter: `#3B82F6`, Professional: `#C41E3A`, Ultimate: `#F59E0B`. |
-| `DocumentLimitDisplay` | `string` | Human-readable document limit: `"Unlimited"` or a formatted number. |
-
-#### LicenseActivationResult
-
-```csharp
-namespace AgentX.Core.Services.License;
-
-public class LicenseActivationResult
-```
-
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `Success` | `bool` | -- | Whether the activation was successful (init-only). |
-| `Message` | `string` | `""` | A human-readable message describing the result (init-only). |
-| `LicenseInfo` | `LicenseInfo?` | `null` | The resulting license info on success (init-only). |
-| `Error` | `LicenseActivationError?` | `null` | The error code on failure (init-only). |
-
-#### LicenseActivationError
-
-```csharp
-namespace AgentX.Core.Services.License;
-
-public enum LicenseActivationError
-```
-
-| Value | Description |
-|-------|-------------|
-| `None` | No error. |
-| `InvalidFormat` | The license key does not match the expected format. |
-| `InvalidChecksum` | The HMAC-SHA256 checksum verification failed. |
-| `AlreadyActivated` | The license key is already activated on this machine. |
-| `Expired` | The license has expired (reserved for future use). |
-| `DatabaseError` | A database error occurred during activation. |
-
----
-
 ## 10. Intelligence Services
 
 ### ISummaryService
@@ -3010,7 +2802,6 @@ Provides AI-powered document summarization, key-point extraction, and text trans
 **Namespace:** `AgentX.Core.Services.Intelligence`
 **Assembly:** `AgentX.Core`
 **Implementation:** `SummaryService`
-**License Requirement:** Professional tier or above (`CanUseIntelligenceFeatures`).
 
 #### Methods
 
@@ -3094,7 +2885,6 @@ Detects duplicate and near-duplicate documents in the knowledge vault. Supports 
 **Namespace:** `AgentX.Core.Services.Intelligence`
 **Assembly:** `AgentX.Core`
 **Implementation:** `DuplicateDetectionService`
-**License Requirement:** Professional tier or above (`CanUseIntelligenceFeatures`).
 
 #### Methods
 
@@ -3148,7 +2938,6 @@ Analyzes uncategorized documents and provides AI-powered suggestions for organiz
 **Namespace:** `AgentX.Core.Services.Intelligence`
 **Assembly:** `AgentX.Core`
 **Implementation:** `OrganizationSuggestionService`
-**License Requirement:** Professional tier or above (`CanUseIntelligenceFeatures`).
 
 #### Methods
 
@@ -3537,23 +3326,6 @@ Represents a single document indexing job in the processing queue.
 
 ---
 
-### LicenseEntity
-
-Stores the activated license record in the local database.
-
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `Id` | `long` | *(auto)* | Primary key (auto-increment). |
-| `LicenseKey` | `string` | `""` | The full license key string (format: `AX-{TIER}-{PAYLOAD}-{CHECKSUM}`). |
-| `InstanceId` | `string?` | `null` | Machine fingerprint (SHA-256 hash) used as the instance identifier. |
-| `Tier` | `string` | `"starter"` | License tier as a lowercase string: `"starter"`, `"professional"`, `"ultimate"`. |
-| `IsActivated` | `bool` | `false` | Whether this license is currently active. |
-| `ActivatedAt` | `DateTime?` | `null` | When the license was activated. |
-| `LastValidatedAt` | `DateTime?` | `null` | When the license was last validated. |
-| `CustomerEmail` | `string?` | `null` | Email address of the license holder. |
-| `CustomerName` | `string?` | `null` | Name of the license holder. |
-
----
 
 ---
 

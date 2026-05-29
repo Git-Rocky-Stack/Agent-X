@@ -9,14 +9,12 @@
 
     <Page.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
-        <converters:BoolToVisibilityConverter x:Key="InverseBoolToVisibility" IsInverted="True" />
         <converters:StringToVisibilityConverter x:Key="StringToVisibility" />
     </Page.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0">
         <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="800">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -491,90 +489,10 @@
                 </StackPanel>
             </Border>
 
-            <Border Grid.Row="8" Style="{StaticResource CardStyle}">
-                <StackPanel Spacing="16">
-
-                    <!-- License Header with Tier Badge -->
-                    <StackPanel Orientation="Horizontal" Spacing="12">
-                        <TextBlock Text="License"
-                                   Style="{StaticResource HeadingSmallStyle}" />
-                        <Border Style="{StaticResource BadgeAccentStyle}">
-                            <TextBlock Text="{x:Bind ViewModel.LicenseTier, Mode=OneWay}"
-                                       Style="{StaticResource BadgeStyle}"
-                                       Foreground="{ThemeResource TextAccentBrush}" />
-                        </Border>
-                    </StackPanel>
-
-                    <!-- License Details (visible when activated) -->
-                    <StackPanel Spacing="8"
-                                Visibility="{x:Bind ViewModel.IsLicenseValid, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-
-                        <!-- Activation Date -->
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="Activated:"
-                                       Style="{StaticResource LabelStyle}"
-                                       VerticalAlignment="Center" />
-                            <TextBlock Text="{x:Bind ViewModel.LicenseActivatedAt, Mode=OneWay}"
-                                       Style="{StaticResource BodySmallStyle}"
-                                       VerticalAlignment="Center" />
-                        </StackPanel>
-
-                        <!-- Document Limit -->
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="Document Limit:"
-                                       Style="{StaticResource LabelStyle}"
-                                       VerticalAlignment="Center" />
-                            <TextBlock Text="{x:Bind ViewModel.LicenseDocumentLimit, Mode=OneWay}"
-                                       Style="{StaticResource BodySmallStyle}"
-                                       VerticalAlignment="Center" />
-                        </StackPanel>
-                    </StackPanel>
-
-                    <!-- Document Limit for Trial (visible when not activated) -->
-                    <StackPanel Orientation="Horizontal" Spacing="8"
-                                Visibility="{x:Bind ViewModel.IsLicenseValid, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}">
-                        <TextBlock Text="Document Limit:"
-                                   Style="{StaticResource LabelStyle}"
-                                   VerticalAlignment="Center" />
-                        <TextBlock Text="{x:Bind ViewModel.LicenseDocumentLimit, Mode=OneWay}"
-                                   Style="{StaticResource BodySmallStyle}"
-                                   VerticalAlignment="Center" />
-                    </StackPanel>
-
-                    <!-- License Key Input + Activate Button -->
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <TextBox Style="{StaticResource InputTextBoxStyle}"
-                                 Text="{x:Bind ViewModel.LicenseKey, Mode=TwoWay}"
-                                 PlaceholderText="Enter your license key (AX-X-...)" />
-                        <Button Grid.Column="1"
-                                Content="Activate"
-                                Style="{StaticResource AccentButtonStyle}"
-                                Command="{x:Bind ViewModel.ValidateLicenseCommand}" />
-                    </Grid>
-
-                    <!-- Deactivate Button (only when license is active) -->
-                    <Button Content="Deactivate License"
-                            Style="{StaticResource SecondaryButtonStyle}"
-                            Click="OnDeactivateLicenseClick"
-                            Visibility="{x:Bind ViewModel.IsLicenseValid, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
-
-                    <!-- Status Message -->
-                    <TextBlock Text="{x:Bind ViewModel.LicenseStatusMessage, Mode=OneWay}"
-                               Style="{StaticResource BodySmallStyle}"
-                               TextWrapping="Wrap"
-                               Visibility="{x:Bind ViewModel.LicenseStatusMessage, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
-                </StackPanel>
-            </Border>
-
             <!-- ════════════════════════════════════════════════════════
                  STORAGE
                  ════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="9" Style="{StaticResource CardStyle}">
+            <Border Grid.Row="8" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="12">
                     <TextBlock Text="Storage"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -591,13 +509,13 @@
             <!-- ════════════════════════════════════════════════════════
                  DATABASE ENCRYPTION
                  ════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="10" Style="{StaticResource CardStyle}">
+            <Border Grid.Row="9" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="12">
                     <TextBlock x:Uid="Encryption_SectionHeader"
                                Text="Database Encryption"
                                Style="{StaticResource SubtitleTextBlockStyle}" />
                     <TextBlock x:Uid="Encryption_Description"
-                               Text="Encrypt your knowledge vault with AES-256 (SQLCipher). Ultimate tier uses a passphrase you enter on each launch; other tiers use an automatic key tied to your Windows account."
+                               Text="Encrypt your knowledge vault with AES-256 (SQLCipher). The key is managed automatically and tied to your Windows account."
                                TextWrapping="Wrap" />
                     <ToggleSwitch x:Name="EncryptionToggle"
                                   OnContent="Encrypted"
@@ -612,7 +530,7 @@
             <!-- ════════════════════════════════════════════════════════
                  ACTIONS
                  ════════════════════════════════════════════════════════ -->
-            <Grid Grid.Row="11" ColumnSpacing="12">
+            <Grid Grid.Row="10" ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />

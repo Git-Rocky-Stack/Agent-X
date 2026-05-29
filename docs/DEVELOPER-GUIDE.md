@@ -251,7 +251,6 @@ AgentX.Core/
       DocumentEntity.cs
       DocumentTagEntity.cs
       IndexingJobEntity.cs
-      LicenseEntity.cs
       MemoryEntity.cs
       MessageEntity.cs
       SearchHistoryEntity.cs
@@ -329,11 +328,6 @@ AgentX.Core/
       ISettingsService.cs
       SettingsService.cs         # JSON-persisted settings with in-memory cache
       AppSettings.cs             # Settings POCO with defaults
-    License/
-      ILicenseService.cs
-      LicenseService.cs          # Offline HMAC-SHA256 license validation
-      LicenseInfo.cs             # Feature gates by tier
-      LicenseTier.cs             # Trial, Starter, Professional, Ultimate
     Tagging/
       IAutoTagService.cs
       AutoTagService.cs          # AI-generated tags applied during indexing
@@ -594,7 +588,7 @@ The application startup follows this sequence:
 1. `App()` constructor — `ConfigureLogging()` initializes Serilog, `ConfigureExceptionHandling()` hooks unhandled exception handlers
 2. `OnLaunched()` — builds the `IHost` (triggers `ConfigureServices()`), then calls `InitializeCoreServicesAsync()` as fire-and-forget
 3. `InitializeCoreServicesAsync()` — runs concurrently with window display:
-   - If `%LocalAppData%\AgentX\encryption.info.json` is present, unlocks the database key via `IDatabaseKeyService` (DPAPI-wrap for Trial/Starter/Professional; PBKDF2-HMAC-SHA256 passphrase dialog for Ultimate) and caches it in `IDatabaseKeyProvider` so every `SqliteConnection` opened through `IEncryptedConnectionFactory` applies the same `PRAGMA key` (C13)
+   - If `%LocalAppData%\AgentX\encryption.info.json` is present, unlocks the database key via `IDatabaseKeyService` (transparent DPAPI-wrap available to everyone; a PBKDF2-HMAC-SHA256 passphrase dialog is still honored for legacy keystores) and caches it in `IDatabaseKeyProvider` so every `SqliteConnection` opened through `IEncryptedConnectionFactory` applies the same `PRAGMA key` (C13)
    - Calls `IMigrationRunner.RunAsync()` — applies pending EF Core migrations (`InitialBaseline`, `AddEncryptionColumns`, `RemoveEncryptionColumns`, and any future migration); baseline-adopts pre-B9 installs by writing `InitialBaseline` to `__EFMigrationsHistory` without re-applying schema (B9)
    - Calls `keywordSearch.InitializeFtsAsync()` — creates FTS5 virtual table via raw ADO.NET (runs through `IEncryptedConnectionFactory` when encryption is enabled)
    - Calls `aiService.InitializeAsync()` — registers providers, checks connection
@@ -1133,7 +1127,6 @@ The database is a single SQLite file at `%LocalAppData%\AgentX\agentx.db`. It co
 | `user_settings` | Key-value store for fine-grained settings |
 | `watch_folders` | File system watch folder configuration |
 | `indexing_jobs` | Background indexing job tracking |
-| `licenses` | License key storage |
 | `memories` | AI-extracted conversation memories |
 | `digest_reports` | Periodic knowledge digest report content |
 
@@ -1624,7 +1617,7 @@ From Visual Studio: open Test Explorer (`Ctrl+E, T`) and run all or selected tes
 
 Focus unit tests on:
 
-- **Pure business logic**: `ChunkingService`, `HybridSearchOrchestrator` (RRF algorithm), `MarkdownParser`, `LicenseService` (key validation), `AiService` (tag parsing, message preparation)
+- **Pure business logic**: `ChunkingService`, `HybridSearchOrchestrator` (RRF algorithm), `MarkdownParser`, `AiService` (tag parsing, message preparation)
 - **Vector math**: `SqliteVecStore.CosineSimilarity()`, `SerializeEmbedding()`/`DeserializeEmbedding()` round-trips, plus `HnswVectorStore` indexing/fallback behavior
 - **Document processors**: text extraction from sample files
 - **Search orchestration**: correct delegation based on `SearchMode`, RRF merge correctness

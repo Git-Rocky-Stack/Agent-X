@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.AI.Routing;
-using AgentX.Core.Services.License;
 using AgentX.Core.Services.Search;
 using AgentX.Core.Services.Security;
 using AgentX.Core.Services.Settings;
@@ -15,7 +14,6 @@ namespace AgentX.App.ViewModels;
 public partial class SettingsViewModel : ObservableObject
 {
     private readonly ISettingsService _settingsService;
-    private readonly ILicenseService _licenseService;
     private readonly IAiService _aiService;
     private readonly ICostTracker _costTracker;
     private readonly IThemeService _themeService;
@@ -69,17 +67,6 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private string _todayCostDisplay = "$0.00";
     [ObservableProperty] private string _totalTokensDisplay = "0";
 
-    // ── License ─────────────────────────────────────────────
-    [ObservableProperty] private string _licenseKey = string.Empty;
-    [ObservableProperty] private string _licenseTier = "Trial";
-    [ObservableProperty] private bool _isLicenseValid;
-    [ObservableProperty] private string _licenseStatusMessage = string.Empty;
-    [ObservableProperty] private string _licenseCustomerName = string.Empty;
-    [ObservableProperty] private string _licenseCustomerEmail = string.Empty;
-    [ObservableProperty] private string _licenseActivatedAt = string.Empty;
-    [ObservableProperty] private string _licenseDocumentLimit = "50";
-    [ObservableProperty] private string _licenseBadgeColor = "#666666";
-
     // ── Security Status ────────────────────────────────────
     [ObservableProperty] private bool _areKeysEncrypted;
     [ObservableProperty] private string _encryptionStatusDescription = string.Empty;
@@ -121,7 +108,6 @@ public partial class SettingsViewModel : ObservableObject
 
     public SettingsViewModel(
         ISettingsService settingsService,
-        ILicenseService licenseService,
         IAiService aiService,
         ICostTracker costTracker,
         IThemeService themeService,
@@ -133,7 +119,6 @@ public partial class SettingsViewModel : ObservableObject
         IModelRouterService? modelRouterService = null)
     {
         _settingsService = settingsService;
-        _licenseService = licenseService;
         _aiService = aiService;
         _costTracker = costTracker;
         _themeService = themeService;
@@ -201,9 +186,6 @@ public partial class SettingsViewModel : ObservableObject
 
         // Load cost tracking data
         RefreshCostDisplay();
-
-        // Load current license info
-        await LoadLicenseInfoAsync();
 
         // Load theme preference
         ThemeIndex = _themeService.CurrentTheme switch
@@ -355,57 +337,6 @@ public partial class SettingsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task ValidateLicenseAsync()
-    {
-        if (string.IsNullOrWhiteSpace(LicenseKey))
-        {
-            LicenseStatusMessage = "Please enter a license key.";
-            return;
-        }
-
-        Log.Debug("License activation requested for key: {KeyPrefix}...",
-            LicenseKey[..Math.Min(8, LicenseKey.Length)]);
-
-        LicenseStatusMessage = "Activating license...";
-
-        var result = await _licenseService.ActivateLicenseAsync(LicenseKey);
-
-        LicenseStatusMessage = result.Message;
-
-        if (result.Success && result.LicenseInfo != null)
-        {
-            ApplyLicenseInfo(result.LicenseInfo);
-            Log.Information("License activated via UI: {Tier}", result.LicenseInfo.Tier);
-        }
-        else
-        {
-            Log.Warning("License activation failed: {Error}", result.Error);
-        }
-    }
-
-    [RelayCommand]
-    private async Task DeactivateLicenseAsync()
-    {
-        Log.Debug("License deactivation requested");
-
-        var success = await _licenseService.DeactivateLicenseAsync();
-
-        if (success)
-        {
-            var trialInfo = await _licenseService.GetCurrentLicenseAsync();
-            ApplyLicenseInfo(trialInfo);
-            LicenseKey = string.Empty;
-            LicenseStatusMessage = "License deactivated. Reverted to Trial tier.";
-            Log.Information("License deactivated via UI");
-        }
-        else
-        {
-            LicenseStatusMessage = "Failed to deactivate license. Please try again.";
-            Log.Warning("License deactivation failed via UI");
-        }
-    }
-
-    [RelayCommand]
     private async Task ResetToDefaultsAsync()
     {
         // Provider defaults
@@ -502,36 +433,6 @@ public partial class SettingsViewModel : ObservableObject
         _ => 0
     };
 
-    private async Task LoadLicenseInfoAsync()
-    {
-        try
-        {
-            var licenseInfo = await _licenseService.GetCurrentLicenseAsync();
-            ApplyLicenseInfo(licenseInfo);
-            Log.Debug("License info loaded: {Tier}, Activated={IsActivated}",
-                licenseInfo.Tier, licenseInfo.IsActivated);
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to load license info");
-            LicenseTier = "Trial";
-            IsLicenseValid = false;
-            LicenseDocumentLimit = "50";
-            LicenseBadgeColor = "#666666";
-        }
-    }
-
-    private void ApplyLicenseInfo(LicenseInfo info)
-    {
-        LicenseTier = info.TierDisplayName;
-        IsLicenseValid = info.IsActivated;
-        LicenseCustomerName = info.CustomerName ?? string.Empty;
-        LicenseCustomerEmail = info.CustomerEmail ?? string.Empty;
-        LicenseActivatedAt = info.ActivatedAt?.ToString("MMMM d, yyyy") ?? string.Empty;
-        LicenseDocumentLimit = info.DocumentLimitDisplay;
-        LicenseBadgeColor = info.TierBadgeColor;
-    }
-
     /// <summary>
     /// Reacts to theme ComboBox selection changes.
     /// Maps the index to an <see cref="Microsoft.UI.Xaml.ElementTheme"/> and
@@ -585,8 +486,9 @@ public partial class SettingsViewModel : ObservableObject
 
     /// <summary>
     /// Invoked by the Settings page when the encryption ToggleSwitch changes.
-    /// Runs a tier-aware enable flow: Ultimate → passphrase dialog,
-    /// Starter/Professional/Trial → transparent DPAPI-wrapped key.
+    /// Database encryption is available to every user, free of charge. The key is
+    /// wrapped with Windows DPAPI and tied transparently to the current Windows user
+    /// account — no passphrase to remember and no risk of permanent data loss.
     /// On failure, reverts the toggle and does NOT write the marker file.
     /// </summary>
     public async System.Threading.Tasks.Task OnEncryptionToggledAsync()
@@ -609,34 +511,21 @@ public partial class SettingsViewModel : ObservableObject
             return;
         }
 
-        var licenseInfo = await _licenseService.GetCurrentLicenseAsync();
-        var mode = licenseInfo.Tier == AgentX.Core.Services.License.LicenseTier.Ultimate
-            ? KeyStorageMode.UserPassphrase
-            : KeyStorageMode.DpapiWrapped;
-
-        string? passphrase = null;
-        if (mode == KeyStorageMode.UserPassphrase)
-        {
-            passphrase = await PromptForNewPassphraseAsync();
-            if (string.IsNullOrEmpty(passphrase))
-            {
-                EncryptionEnabled = false;
-                EncryptionStatus = "Encryption was not enabled.";
-                return;
-            }
-        }
+        // DPAPI-wrapped key storage is the universal, transparent mode available to
+        // every user. The key is managed automatically and tied to the Windows account.
+        const KeyStorageMode mode = KeyStorageMode.DpapiWrapped;
 
         try
         {
             EncryptionStatus = "Encrypting…";
 
-            // Provisioning writes the marker file (containing the DPAPI-wrapped key or
-            // the PBKDF2 salt) as part of GetOrCreateKeyAsync — no separate marker write
-            // is needed. If MigrateToEncryptedAsync fails below, the marker will be
-            // present but the DB unencrypted; the next launch will detect the mismatch
-            // and prompt the user. This is acceptable for v2.1 (disable-encryption flow
-            // is a future feature).
-            var key = await _databaseKeyService.GetOrCreateKeyAsync(mode, passphrase);
+            // Provisioning writes the marker file (containing the DPAPI-wrapped key)
+            // as part of GetOrCreateKeyAsync — no separate marker write is needed.
+            // If MigrateToEncryptedAsync fails below, the marker will be present but
+            // the DB unencrypted; the next launch will detect the mismatch and prompt
+            // the user. This is acceptable for v2.1 (disable-encryption flow is a
+            // future feature).
+            var key = await _databaseKeyService.GetOrCreateKeyAsync(mode, passphrase: null);
             var dbPath = System.IO.Path.Combine(
                 System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
                 "AgentX",
@@ -648,9 +537,7 @@ public partial class SettingsViewModel : ObservableObject
             if (_databaseKeyProvider is DatabaseKeyProvider provider)
                 provider.Set(key);
 
-            EncryptionStatus = mode == KeyStorageMode.UserPassphrase
-                ? "Encrypted with your passphrase. You'll be prompted on next launch."
-                : "Encrypted. The key is managed automatically and tied to your Windows user account.";
+            EncryptionStatus = "Encrypted. The key is managed automatically and tied to your Windows user account.";
 
             Serilog.Log.Information("Database encryption enabled (mode={Mode})", mode);
         }
@@ -672,8 +559,11 @@ public partial class SettingsViewModel : ObservableObject
         {
             EncryptionEnabled = true;
             var info = _encryptionStateFile.Read();
+            // Older installs may have provisioned a passphrase-protected key; keep
+            // describing that case accurately while new encryptions use the universal
+            // DPAPI-wrapped mode below.
             EncryptionStatus = info?.StorageMode == KeyStorageMode.UserPassphrase
-                ? "Encrypted with your passphrase (Ultimate tier)."
+                ? "Encrypted with your passphrase. You'll be prompted on next launch."
                 : "Encrypted. The key is managed automatically and tied to your Windows user account.";
         }
         else
@@ -682,41 +572,5 @@ public partial class SettingsViewModel : ObservableObject
             EncryptionStatus = "Encryption is not enabled.";
         }
         return System.Threading.Tasks.Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// Shows a ContentDialog prompting the user to enter a new encryption passphrase.
-    /// Returns null if cancelled or if the passphrase fails the minimum-length check.
-    /// </summary>
-    private static async System.Threading.Tasks.Task<string?> PromptForNewPassphraseAsync()
-    {
-        var box = new Microsoft.UI.Xaml.Controls.PasswordBox
-        {
-            PlaceholderText = "Minimum 12 characters"
-        };
-        var help = new Microsoft.UI.Xaml.Controls.TextBlock
-        {
-            Text = "Write this down and store it safely. If lost, your database cannot be recovered.",
-            TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap,
-            Opacity = 0.7,
-            Margin = new Microsoft.UI.Xaml.Thickness(0, 0, 0, 8)
-        };
-        var panel = new Microsoft.UI.Xaml.Controls.StackPanel { Spacing = 8 };
-        panel.Children.Add(help);
-        panel.Children.Add(box);
-
-        var dialog = new Microsoft.UI.Xaml.Controls.ContentDialog
-        {
-            Title = "Set an encryption passphrase",
-            Content = panel,
-            PrimaryButtonText = "Encrypt",
-            CloseButtonText = "Cancel",
-            DefaultButton = Microsoft.UI.Xaml.Controls.ContentDialogButton.Primary,
-            XamlRoot = App.MainWindow.Content.XamlRoot,
-        };
-
-        var result = await dialog.ShowAsync();
-        if (result != Microsoft.UI.Xaml.Controls.ContentDialogResult.Primary) return null;
-        return box.Password.Length >= 12 ? box.Password : null;
     }
 }

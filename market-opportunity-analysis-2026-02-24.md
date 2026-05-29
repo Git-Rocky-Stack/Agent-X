@@ -1,7 +1,7 @@
 # Market Opportunity Analysis: Personal AI Security Agent (Desktop)
 
 **Date:** February 24, 2026
-**Prepared for:** Rocky Stack / Strategia
+**Prepared for:** Rocky Elsalaymeh / Strategia
 **Analysis Type:** TAM/SAM/SOM + SWOT + Strategic Assessment
 
 ---

@@ -5,7 +5,6 @@ using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Export.Formatters;
 using AgentX.Core.Services.Export.Models;
-using AgentX.Core.Services.License;
 using AgentX.Core.Services.Settings;
 using Serilog;
 
@@ -15,7 +14,8 @@ namespace AgentX.Core.Services.Export;
 /// Thin orchestrator implementation of <see cref="IExportService"/>.
 /// Delegates format-specific rendering to registered <see cref="IExportFormatter"/>
 /// implementations and <see cref="ExportContentBuilder"/> for search results
-/// and collections. Handles file I/O, license gating, and orchestration.
+/// and collections. Handles file I/O and orchestration. Every export format is
+/// unconditionally available to every user.
 /// </summary>
 public class ExportService : IExportService
 {
@@ -23,22 +23,17 @@ public class ExportService : IExportService
     private readonly IDocumentService _documentService;
     private readonly ICollectionService _collectionService;
     private readonly ISettingsService _settingsService;
-    private readonly ILicenseService _licenseService;
     private readonly ILogger _log;
     private readonly IReadOnlyDictionary<ExportFormat, IExportFormatter> _formatters;
 
     private static readonly HashSet<ExportFormat> BinaryFormats =
         [ExportFormat.Pdf, ExportFormat.Docx, ExportFormat.Pptx];
 
-    private static readonly HashSet<ExportFormat> GatedFormats =
-        [ExportFormat.Pdf, ExportFormat.Markdown, ExportFormat.Html];
-
     public ExportService(
         IConversationService conversationService,
         IDocumentService documentService,
         ICollectionService collectionService,
         ISettingsService settingsService,
-        ILicenseService licenseService,
         ILogger logger,
         IEnumerable<IExportFormatter> formatters)
     {
@@ -50,8 +45,6 @@ public class ExportService : IExportService
             ?? throw new ArgumentNullException(nameof(collectionService));
         _settingsService = settingsService
             ?? throw new ArgumentNullException(nameof(settingsService));
-        _licenseService = licenseService
-            ?? throw new ArgumentNullException(nameof(licenseService));
         _log = logger?.ForContext<ExportService>()
                ?? throw new ArgumentNullException(nameof(logger));
 
@@ -70,9 +63,6 @@ public class ExportService : IExportService
         try
         {
             ct.ThrowIfCancellationRequested();
-
-            var gatedResult = await CheckLicenseGateAsync(options.Format);
-            if (gatedResult is not null) return gatedResult;
 
             var conversation = await _conversationService.GetConversationAsync(conversationId);
             if (conversation is null)
@@ -122,9 +112,6 @@ public class ExportService : IExportService
         try
         {
             ct.ThrowIfCancellationRequested();
-
-            var gatedResult = await CheckLicenseGateAsync(options.Format);
-            if (gatedResult is not null) return gatedResult;
 
             if (conversationIds is null || conversationIds.Count == 0)
                 return ExportResult.Fail("No conversation IDs provided.");
@@ -176,9 +163,6 @@ public class ExportService : IExportService
         {
             ct.ThrowIfCancellationRequested();
 
-            var gatedResult = await CheckLicenseGateAsync(options.Format);
-            if (gatedResult is not null) return gatedResult;
-
             if (string.IsNullOrWhiteSpace(query))
                 return ExportResult.Fail("Search query must not be empty.");
 
@@ -226,9 +210,6 @@ public class ExportService : IExportService
         try
         {
             ct.ThrowIfCancellationRequested();
-
-            var gatedResult = await CheckLicenseGateAsync(options.Format);
-            if (gatedResult is not null) return gatedResult;
 
             var collection = await _collectionService.GetCollectionAsync(collectionId);
             if (collection is null)
@@ -309,9 +290,6 @@ public class ExportService : IExportService
 
             if (string.IsNullOrWhiteSpace(artifact.Content))
                 return ExportResult.Fail("Export artifact content must not be empty.");
-
-            var gatedResult = await CheckLicenseGateAsync(options.Format);
-            if (gatedResult is not null) return gatedResult;
 
             var title = options.Title ?? artifact.Title;
             var outputPath = await ExportPathUtility.ResolveOutputPathAsync(options, title, options.Format, _settingsService);
@@ -424,25 +402,6 @@ public class ExportService : IExportService
         }
 
         return null; // success — no error
-    }
-
-    // License gating
-
-    private async Task<ExportResult?> CheckLicenseGateAsync(ExportFormat format)
-    {
-        if (!GatedFormats.Contains(format))
-            return null;
-
-        var license = await _licenseService.GetCurrentLicenseAsync();
-        if (license.Tier < LicenseTier.Professional)
-        {
-            _log.Warning(
-                "Export blocked: {Format} requires Professional or Ultimate license, current tier is {Tier}",
-                format, license.Tier);
-            return ExportResult.Fail("PDF/Markdown/HTML export requires Professional or Ultimate license.");
-        }
-
-        return null;
     }
 
     // Conversation fetching

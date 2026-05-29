@@ -11,7 +11,7 @@ Complete API reference for all public services in the Agent-X platform. This doc
 5. [Indexing Services](#indexing-services)
 6. [Collection & Tagging Services](#collection--tagging-services)
 7. [Intelligence Services](#intelligence-services)
-8. [Settings & License Services](#settings--license-services)
+8. [Settings Services](#settings-services)
 9. [Vector Database](#vector-database)
 10. [Models & Data Structures](#models--data-structures)
 11. [OAuth Services](#oauth-services)
@@ -2325,7 +2325,7 @@ Checks whether there are any unread digest reports.
 
 ---
 
-## Settings & License Services
+## Settings Services
 
 ### ISettingsService
 
@@ -2390,89 +2390,6 @@ Sets a specific setting value.
 - `value` (T): The value to set
 
 **Returns**: Task
-
----
-
-### ILicenseService
-
-**Namespace**: `AgentX.Core.Services.License`
-
-License activation, validation, and querying. Uses offline-first validation — no network calls required.
-
-#### Methods
-
-##### GetCurrentLicenseAsync
-
-```csharp
-Task<LicenseInfo> GetCurrentLicenseAsync()
-```
-
-Returns the current license info. If no license is activated, returns a Trial-tier license.
-
-**Returns**: `Task<LicenseInfo>` — Current license information
-
-**Example**:
-```csharp
-var license = await licenseService.GetCurrentLicenseAsync();
-Console.WriteLine($"Tier: {license.Tier}");
-Console.WriteLine($"Can use AI models: {license.CanUseAdvancedModels}");
-```
-
-##### ActivateLicenseAsync
-
-```csharp
-Task<LicenseActivationResult> ActivateLicenseAsync(string licenseKey)
-```
-
-Activates a license key. Validates format, checksum, and stores the activation.
-
-**Parameters**:
-- `licenseKey` (string): The license key to activate
-
-**Returns**: `Task<LicenseActivationResult>` — Activation result with success/failure status
-
-**Example**:
-```csharp
-var result = await licenseService.ActivateLicenseAsync("LICENSE-KEY-1234");
-if (result.Success)
-{
-    Console.WriteLine($"Activated: {result.LicenseInfo?.Tier}");
-}
-else
-{
-    Console.WriteLine($"Error: {result.Error}");
-}
-```
-
-##### DeactivateLicenseAsync
-
-```csharp
-Task<bool> DeactivateLicenseAsync()
-```
-
-Deactivates the current license, reverting to Trial tier.
-
-**Returns**: `Task<bool>` — True if deactivation succeeded
-
-##### ValidateCurrentLicenseAsync
-
-```csharp
-Task<bool> ValidateCurrentLicenseAsync()
-```
-
-Re-validates the currently stored license (format + checksum).
-
-**Returns**: `Task<bool>` — True if the license is valid
-
-##### GetMachineFingerprint
-
-```csharp
-string GetMachineFingerprint()
-```
-
-Generates a deterministic machine fingerprint based on hardware characteristics.
-
-**Returns**: `string` — The machine fingerprint
 
 ---
 
@@ -2816,52 +2733,6 @@ public enum SearchMode
 
 ---
 
-### LicenseInfo
-
-**Namespace**: `AgentX.Core.Services.License`
-
-License information and feature gates.
-
-```csharp
-public class LicenseInfo
-{
-    public LicenseTier Tier { get; init; }           // License tier
-    public bool IsActivated { get; init; }           // Is activated
-    public string? CustomerName { get; init; }       // Customer name
-    public string? CustomerEmail { get; init; }      // Customer email
-    public DateTime? ActivatedAt { get; init; }      // Activation date
-    public DateTime? ExpiresAt { get; init; }        // Expiration date
-    public int MaxDocuments { get; init; }           // Document limit
-
-    // Feature gates
-    public bool CanUseAdvancedModels => ...          // Starter+
-    public bool CanUseIntelligenceFeatures => ...    // Professional+
-    public bool CanUseUnlimitedDocuments => ...      // Professional+
-    public bool CanUsePrioritySupport => ...         // Ultimate only
-
-    public bool HasFeature(string feature) => ...    // Check feature by name
-}
-```
-
----
-
-### LicenseTier
-
-**Namespace**: `AgentX.Core.Services.License`
-
-License tier enumeration.
-
-```csharp
-public enum LicenseTier
-{
-    Trial,          // 50 documents, basic features
-    Starter,        // 500 documents, advanced models
-    Professional,   // Unlimited documents, intelligence features
-    Ultimate        // All features + priority support
-}
-```
-
----
 
 ### DuplicateGroup
 
@@ -3050,7 +2921,6 @@ public class IndexingProgressEventArgs : EventArgs
 | `IKnowledgeGraphService` | AgentX.Core.Services.Intelligence | Graph visualization |
 | `IDigestService` | AgentX.Core.Services.Intelligence | Weekly reports |
 | `ISettingsService` | AgentX.Core.Services.Settings | Configuration |
-| `ILicenseService` | AgentX.Core.Services.License | License management |
 | `IVectorStore` | AgentX.Core.Data.VectorDb | Vector storage |
 
 ---

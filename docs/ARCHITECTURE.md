@@ -29,7 +29,7 @@
    - 6.5 [Search and RAG Pipeline](#65-search-and-rag-pipeline)
    - 6.6 [Intelligence Services](#66-intelligence-services)
    - 6.7 [Collections and Tagging](#67-collections-and-tagging)
-   - 6.8 [Settings and License Services](#68-settings-and-license-services)
+   - 6.8 [Settings Service](#68-settings-service)
 7. [Data Layer (AgentX.Core/Data)](#7-data-layer-agentxcoredata)
    - 7.1 [Entity Framework Core Database Context](#71-entity-framework-core-database-context)
    - 7.2 [Entity Relationship Model](#72-entity-relationship-model)
@@ -45,7 +45,7 @@
 11. [Storage Architecture](#11-storage-architecture)
 12. [Startup Sequence](#12-startup-sequence)
 13. [Error Handling and Resilience](#13-error-handling-and-resilience)
-14. [License Tiers and Feature Gating](#14-license-tiers-and-feature-gating)
+14. [Free and Open-Source — No Feature Gating](#14-free-and-open-source--no-feature-gating)
 15. [Testing Architecture](#15-testing-architecture)
 16. [Deployment and Distribution](#16-deployment-and-distribution)
 17. [Performance Characteristics](#17-performance-characteristics)
@@ -108,7 +108,6 @@ Agent-X/
 │           ├── Indexing/               # IndexingService, IndexingQueueService, FileWatcherService
 │           ├── Intelligence/           # Summary, Duplicate, OrganizationSuggestion,
 │           │                           #   KnowledgeGraph, Digest
-│           ├── License/                # LicenseService, LicenseTier, LicenseInfo
 │           ├── Settings/               # SettingsService, AppSettings
 │           └── Tagging/                # AutoTagService
 ├── tests/
@@ -205,7 +204,6 @@ graph TB
 
         subgraph INFRA["Infrastructure"]
             SETT[SettingsService]
-            LIC[LicenseService]
             COL[CollectionService]
             TAG[AutoTagService]
         end
@@ -322,7 +320,7 @@ This pattern allows the window to appear immediately while initialization contin
 
 #### 4.4a Encryption Unlock Preamble (C13)
 
-Before fire-and-forget initialization runs, `App.OnLaunched` checks for `%LocalAppData%\AgentX\encryption.info.json` via `IEncryptionStateFile`. If the marker is present, the database key is unlocked via `IDatabaseKeyService` — DPAPI-unwrap for Trial/Starter/Professional tiers, or PBKDF2-HMAC-SHA256 passphrase prompt (600,000 iterations, SHA-256) for Ultimate — and cached in `IDatabaseKeyProvider` so every downstream `SqliteConnection` opened through `IEncryptedConnectionFactory` applies the same `PRAGMA key`. The keystore lives outside the encrypted vault deliberately: it breaks the migration ↔ unlock chicken-and-egg, and it means startup has no read dependency on the encrypted database before the key is available.
+Before fire-and-forget initialization runs, `App.OnLaunched` checks for `%LocalAppData%\AgentX\encryption.info.json` via `IEncryptionStateFile`. If the marker is present, the database key is unlocked via `IDatabaseKeyService` — DPAPI-unwrap for the universal `DpapiWrapped` mode (or a PBKDF2-HMAC-SHA256 passphrase prompt for any legacy `UserPassphrase` keystore) — and cached in `IDatabaseKeyProvider` so every downstream `SqliteConnection` opened through `IEncryptedConnectionFactory` applies the same `PRAGMA key`. The keystore lives outside the encrypted vault deliberately: it breaks the migration ↔ unlock chicken-and-egg, and it means startup has no read dependency on the encrypted database before the key is available.
 
 ### 4.5 Channel-Based Background Queue
 
@@ -830,7 +828,7 @@ Results are serialized to JSON and persisted as a `DigestReportEntity`.
 - `src/AgentX.Core/Services/Collections/CollectionService.cs`
 - `src/AgentX.Core/Services/Tagging/AutoTagService.cs`
 
-### 6.8 Settings and License Services
+### 6.8 Settings Service
 
 **`SettingsService`**: Reads and writes `AppSettings` as JSON to `%LocalAppData%/AgentX/settings.json`. Provides async `GetSettingsAsync()` and `SaveSettingsAsync()` with file locking to prevent concurrent write corruption. Initializes defaults on first run.
 
@@ -854,14 +852,7 @@ Results are serialized to JSON and persisted as a `DigestReportEntity`.
 | `TopKResults` | `5` | Search result count |
 | `StoragePath` | `%LocalAppData%/AgentX` | Base storage directory |
 
-**`LicenseService`**: Reads and validates `LicenseEntity` records from the database. Exposes `GetCurrentTierAsync()` for feature gating. Four tiers are defined:
-
-| Tier | Price | Document Limit | Features |
-|---|---|---|---|
-| Trial | Free | 50 documents | Basic chat, basic models |
-| Starter | $79 | 500 documents | All chat models |
-| Professional | $149 | Unlimited | All features + intelligence services |
-| Ultimate | $249 | Unlimited | All features + priority support |
+> Agent-X is free and open-source — there is no license service, no tiers, and no feature gating. Every capability is unconditionally available to every user.
 
 ---
 
@@ -899,12 +890,13 @@ Baseline adoption covers users upgrading from pre-B9 builds where `EnsureCreated
 
 When enabled, `agentx.db` is encrypted at rest using **SQLCipher 4** (AES-256-CBC, 4096-byte pages) via `SQLitePCLRaw.bundle_e_sqlcipher`. Encryption is off by default; the user enables it from Settings → Database Encryption.
 
-**Key management — tier-aware**
+**Key management — universal (available to every user)**
 
-| Tier | Mode | Key source | Unlock UX |
-|---|---|---|---|
-| Starter / Professional | `DpapiWrapped` | 32 random bytes, DPAPI-wrapped per Windows user in the out-of-DB `encryption.info.json` sibling file (field `DpapiWrappedKey`) | Transparent at launch |
-| Ultimate | `UserPassphrase` | PBKDF2-HMAC-SHA256 (600,000 iterations) of the user's passphrase with a 16-byte salt stored in `encryption.info.json` (field `SaltBase64`) | Passphrase prompt at launch |
+| Mode | Key source | Unlock UX |
+|---|---|---|
+| `DpapiWrapped` | 32 random bytes, DPAPI-wrapped per Windows user in the out-of-DB `encryption.info.json` sibling file (field `DpapiWrappedKey`) | Transparent at launch |
+
+A legacy `UserPassphrase` mode (PBKDF2-HMAC-SHA256, 600,000 iterations, with a 16-byte salt in `encryption.info.json`) is still honored on unlock for vaults provisioned by older builds, but new encryptions use the universal DPAPI-wrapped mode above.
 
 **Key delivery to SQLCipher (important)**
 
@@ -1075,15 +1067,6 @@ erDiagram
         DateTime QueuedAt
         DateTime StartedAt
         DateTime CompletedAt
-    }
-
-    License {
-        long Id PK
-        string LicenseKey
-        string Tier
-        string Email
-        DateTime ActivatedAt
-        DateTime ExpiresAt
     }
 
     Memory {
@@ -1429,7 +1412,6 @@ All service registrations are in `App.xaml.cs` `ConfigureServices()`. The comple
 | `Serilog.ILogger` | — | `Log.Logger` | Singleton |
 | `AgentXDbContext` | — | `AgentXDbContext` | Singleton |
 | `ISettingsService` | `ISettingsService` | `SettingsService` | Singleton |
-| `ILicenseService` | `ILicenseService` | `LicenseService` | Singleton |
 | `IShortcutRegistry` | `IShortcutRegistry` | `ShortcutRegistry` | Singleton |
 | `ShortcutCatalog` | — | `ShortcutCatalog` | Singleton |
 | `ChordStateMachine` | — | `ChordStateMachine` | Singleton |
@@ -1507,7 +1489,6 @@ agentx.db
 ├── user_settings                # Key-value store (unique key index)
 ├── watch_folders                # WatchFolderEntity (unique path index)
 ├── indexing_jobs                # IndexingJobEntity
-├── licenses                     # LicenseEntity
 ├── memories                     # MemoryEntity (category/importance indexes)
 ├── digest_reports               # DigestReportEntity
 ├── vec_embeddings               # BLOB store: chunk_id, embedding, magnitude
@@ -1602,40 +1583,18 @@ The system employs a layered error handling strategy:
 
 ---
 
-## 14. License Tiers and Feature Gating
+## 14. Free and Open-Source — No Feature Gating
 
-`LicenseService.GetCurrentTierAsync()` reads the active `LicenseEntity` from the database to determine the user's tier. Feature gates are checked in ViewModels before allowing operations that exceed the tier's limits.
+Agent-X is 100% free and open-source software (MIT License). There are no license tiers, no activation, no quotas, and no feature gates of any kind. Every capability is unconditionally available to every user.
 
-```mermaid
-graph LR
-    subgraph Trial["Trial (Free)"]
-        T1[50 document limit]
-        T2[Basic Ollama models]
-        T3[Core chat and search]
-    end
-    subgraph Starter["Starter ($79)"]
-        S1[500 document limit]
-        S2[All AI providers]
-        S3[All chat models]
-        S4[Collections]
-        S5[Search history]
-    end
-    subgraph Professional["Professional ($149)"]
-        P1[Unlimited documents]
-        P2[Intelligence services]
-        P3[Knowledge graph]
-        P4[Digest reports]
-        P5[Organization suggestions]
-        P6[Watch folders]
-    end
-    subgraph Ultimate["Ultimate ($249)"]
-        U1[Everything in Professional]
-        U2[Priority support]
-        U3[Future exclusive features]
-    end
+Historically the application carried a `LicenseService` and a `LicenseEntity` that gated features (document limits, advanced models, intelligence services) behind paid tiers. That entire subsystem has been removed:
 
-    Trial --> Starter --> Professional --> Ultimate
-```
+- The `Services/License/` module (`ILicenseService`, `LicenseService`, `LicenseInfo`, `LicenseTier`) and `LicenseException` are deleted.
+- The `LicenseEntity` and its `licenses` table are dropped via the `DropLicensesTable` EF Core migration.
+- Every former gate (export formats, intelligence features, document limits) is now unconditionally allowed.
+- Database encryption — formerly a tier-differentiated feature — is available to every user via transparent DPAPI-wrapped key storage.
+
+There is no tier graph, because there are no tiers.
 
 ---
 
@@ -1744,8 +1703,6 @@ The application is distributed as a self-contained Windows installer built with 
 - Import creates a new `DocumentEntity` record but does not copy file data to the storage directory — original file paths are stored as references.
 - Log files contain only application operation logs, never document content.
 
-**License Validation:**
-- License validation is performed locally against the `LicenseEntity` database record. The license key format and validation algorithm are internal to `LicenseService`.
 
 ---
 
@@ -1759,7 +1716,7 @@ The application is distributed as a self-contained Windows installer built with 
 | **Chunk** | A fixed-size fragment of a document's text (default 512 tokens, 50-token overlap) stored as a `DocumentChunkEntity` and embedded as a vector. |
 | **CommunityToolkit.Mvvm** | A Microsoft-maintained .NET MVVM library providing source generators for `[ObservableProperty]`, `[RelayCommand]`, and `ObservableObject`. |
 | **Cosine Similarity** | A measure of angle between two vectors in high-dimensional space, computed as `dot(a,b) / (|a| × |b|)`, ranging from -1 to 1. Used for semantic similarity. |
-| **DPAPI** | Windows Data Protection API — a Windows-level symmetric encryption facility tied to the user account. Used in Agent-X to wrap database-key material for transparent vault encryption on non-passphrase tiers; still a candidate for future API-key protection in settings. |
+| **DPAPI** | Windows Data Protection API — a Windows-level symmetric encryption facility tied to the user account. Used in Agent-X to wrap database-key material for transparent vault encryption available to every user; still a candidate for future API-key protection in settings. |
 | **EF Core** | Entity Framework Core — Microsoft's ORM for .NET, used here with the SQLite provider. |
 | **FTS5** | Full-Text Search version 5 — SQLite's built-in full-text search engine using the BM25 ranking algorithm. |
 | **IAiProvider** | The core interface implemented by `OllamaProvider`, `OpenAiProvider`, and `AnthropicProvider`, defining the contract for chat, embedding, and model management. |

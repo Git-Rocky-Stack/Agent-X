@@ -859,45 +859,6 @@ namespace AgentX.Core.Data.Migrations
                     b.ToTable("indexing_jobs", (string)null);
                 });
 
-            modelBuilder.Entity("AgentX.Core.Data.Entities.LicenseEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime?>("ActivatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CustomerEmail")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CustomerName")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("InstanceId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsActivated")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime?>("LastValidatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("LicenseKey")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Tier")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT")
-                        .HasDefaultValue("starter");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("licenses", (string)null);
-                });
-
             modelBuilder.Entity("AgentX.Core.Data.Entities.MemoryEntity", b =>
                 {
                     b.Property<long>("Id")

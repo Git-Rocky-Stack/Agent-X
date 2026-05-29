@@ -21,7 +21,6 @@ using AgentX.Core.Documents.Processors;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Indexing;
-using AgentX.Core.Services.License;
 using AgentX.Core.Services.Settings;
 using AgentX.Core.Services.Shortcuts;
 using AgentX.Core.Services.Tagging;
@@ -345,7 +344,6 @@ public partial class App : Application
 
         // ── Core Services ──────────────────────────────────────
         services.AddSingleton<ISettingsService, SettingsService>();
-        services.AddSingleton<ILicenseService, LicenseService>();
         services.AddSingleton<IFeatureFlagService, FeatureFlagService>();
 
         // ── RAG Configuration (Phase 1) ─────────────────────────

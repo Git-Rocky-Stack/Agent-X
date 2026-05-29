@@ -6,7 +6,7 @@
     ║         USER GUIDE EXTENDED SECTIONS                              ║
     ║                                                                  ║
     ║  Annotations, AudioTranscription, WorkspaceProfiles,             ║
-    ║  Plugins, Integrations, BackupRestore, LicenseTiers              ║
+    ║  Plugins, Integrations, BackupRestore                            ║
     ╚══════════════════════════════════════════════════════════════════╝
     -->
 
@@ -667,108 +667,6 @@
 
                 <TextBlock Style="{StaticResource BodyStyle}"
                            x:Uid="UserGuide_BackupRestore_Migration_Description" />
-            </StackPanel>
-        </Border>
-    </DataTemplate>
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         LICENSE TIERS
-         ═══════════════════════════════════════════════════════════════ -->
-    <DataTemplate x:Key="LicenseTiersTemplate">
-        <Border Style="{StaticResource CardStyle}">
-            <StackPanel Spacing="16">
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <FontIcon Glyph="&#xE8A4;"
-                              FontFamily="Segoe MDL2 Assets"
-                              FontSize="20"
-                              Foreground="{ThemeResource TextAccentBrush}" />
-                    <TextBlock Grid.Column="1"
-                               x:Uid="UserGuide_LicenseTiers_Title"
-                               Style="{StaticResource HeadingMediumStyle}"
-                               AutomationProperties.HeadingLevel="Level2" />
-                </Grid>
-
-                <TextBlock Style="{StaticResource BodyStyle}"
-                           x:Uid="UserGuide_LicenseTiers_Description" />
-
-                <Grid ColumnSpacing="12" RowSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-
-                    <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource CardInsetStyle}">
-                        <StackPanel Spacing="6">
-                            <TextBlock x:Uid="UserGuide_LicenseTiers_Tier1_Title"
-                                       Style="{StaticResource AccentBodyStyle}" />
-                            <TextBlock x:Uid="UserGuide_LicenseTiers_Tier1_Description"
-                                       Style="{StaticResource BodySmallStyle}" />
-                        </StackPanel>
-                    </Border>
-
-                    <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource CardInsetStyle}">
-                        <StackPanel Spacing="6">
-                            <TextBlock x:Uid="UserGuide_LicenseTiers_Tier2_Title"
-                                       Style="{StaticResource AccentBodyStyle}" />
-                            <TextBlock x:Uid="UserGuide_LicenseTiers_Tier2_Description"
-                                       Style="{StaticResource BodySmallStyle}" />
-                        </StackPanel>
-                    </Border>
-
-                    <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource CardInsetStyle}">
-                        <StackPanel Spacing="6">
-                            <TextBlock x:Uid="UserGuide_LicenseTiers_Tier3_Title"
-                                       Style="{StaticResource AccentBodyStyle}" />
-                            <TextBlock x:Uid="UserGuide_LicenseTiers_Tier3_Description"
-                                       Style="{StaticResource BodySmallStyle}" />
-                        </StackPanel>
-                    </Border>
-
-                    <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CardInsetStyle}">
-                        <StackPanel Spacing="6">
-                            <TextBlock x:Uid="UserGuide_LicenseTiers_Tier4_Title"
-                                       Style="{StaticResource AccentBodyStyle}" />
-                            <TextBlock x:Uid="UserGuide_LicenseTiers_Tier4_Description"
-                                       Style="{StaticResource BodySmallStyle}" />
-                        </StackPanel>
-                    </Border>
-                </Grid>
-
-                <Border Style="{StaticResource SeparatorStyle}" />
-
-                <TextBlock x:Uid="UserGuide_LicenseTiers_Notes_Title"
-                           Style="{StaticResource HeadingSmallStyle}" />
-
-                <StackPanel Spacing="8">
-                    <Grid ColumnSpacing="10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
-                                   x:Uid="UserGuide_LicenseTiers_Note1" />
-                    </Grid>
-                    <Grid ColumnSpacing="10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
-                                   x:Uid="UserGuide_LicenseTiers_Note2" />
-                    </Grid>
-                </StackPanel>
             </StackPanel>
         </Border>
     </DataTemplate>
