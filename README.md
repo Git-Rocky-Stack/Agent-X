@@ -12,7 +12,7 @@ Full product, architecture, and developer documentation lives under `docs/`. Sta
 
 | Document | Description |
 |---|---|
-| [`docs/README.md`](docs/README.md) | Complete product documentation — features, install, build, configuration, architecture, data storage, keyboard shortcuts, license tiers |
+| [`docs/README.md`](docs/README.md) | Complete product documentation — features, install, build, configuration, architecture, data storage, and keyboard shortcuts |
 | [`docs/user-guide/getting-started/quick-start.md`](docs/user-guide/getting-started/quick-start.md) | 10-minute setup walkthrough for new users |
 | [`docs/user-guide/faq.md`](docs/user-guide/faq.md) | 100+ frequently asked questions |
 | [`docs/user-guide/troubleshooting.md`](docs/user-guide/troubleshooting.md) | Solutions to common issues |
