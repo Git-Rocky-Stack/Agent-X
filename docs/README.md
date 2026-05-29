@@ -16,9 +16,9 @@ Built on .NET 8.0 and WinUI 3 (Windows App SDK 1.6), Agent-X delivers an enterpr
 
 > **Version:** 2.1.0-preview.1 ("Bedrock" data-layer hardening)
 > **Build:** 224 unit tests | 55+ services | 26 navigation pages | 16 database tables | 5 supported locales
-> **Publisher:** Rocky Stack / Strategia
+> **Publisher:** Rocky Elsalaymeh / Strategia-X
 > **Platform:** Windows 10 19041+ (x64)
-> **License:** Proprietary — see [License Tiers](#license-tiers)
+> **License:** MIT — see [LICENSE](../LICENSE)
 
 ---
 
@@ -728,9 +728,9 @@ Agent-X/
 
 ## Contributing
 
-Agent-X is a proprietary application. External contributions are not accepted at this time.
+Agent-X is released under the MIT License — you are free to use, modify, fork, and redistribute it under the license terms. The project is provided as-is and is not actively soliciting external contributions, but you are welcome to fork it.
 
-For bug reports, feature requests, or support inquiries, contact Rocky Stack through the official support channel listed in the installer.
+For bug reports, feature requests, or general inquiries, contact Rocky Elsalaymeh through the channels listed at strategia-x.com.
 
 ### Internal Development Guidelines
 
@@ -766,10 +766,10 @@ The following conventions apply to all code in this repository:
 
 ## License
 
-Copyright (c) 2026 Rocky Stack. All rights reserved.
+Copyright (c) 2026 Rocky Elsalaymeh.
 
-Agent-X is proprietary software. Redistribution, reverse engineering, decompilation, and creation of derivative works are prohibited without written permission from Rocky Stack.
+Agent-X is released under the **MIT License** — see [LICENSE](../LICENSE) at the repository root. You may use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the software, subject to inclusion of the copyright and permission notice.
 
-Use of the application is governed by the Terms of Service accessible from within the application (Settings > Terms of Service) and included in the installer.
+> **Note:** This repository previously described a proprietary, tiered-license model. The source is now MIT-licensed. The in-app license-tier UI and Terms of Service text are legacy artifacts being reconciled; the MIT License at the repository root governs the source code.
 
 The Trial tier is provided at no cost for evaluation purposes. Starter, Professional, and Ultimate tier licenses are available for purchase through the official Rocky Stack sales channel.

@@ -8,11 +8,11 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <Company>Rocky Stack</Company>
     <Product>Agent-X</Product>
-    <Copyright>Copyright (c) 2026 Rocky Stack. All rights reserved.</Copyright>
+    <Copyright>Copyright (c) 2026 Rocky Elsalaymeh. MIT License.</Copyright>
     <Version>2.1.0-preview.1</Version>
     <AssemblyVersion>2.1.0.0</AssemblyVersion>
     <FileVersion>2.1.0.0</FileVersion>
     <InformationalVersion>2.1.0-preview.1+bedrock</InformationalVersion>
-    <Authors>Rocky Stack</Authors>
+    <Authors>Rocky Elsalaymeh</Authors>
   </PropertyGroup>
 </Project>

@@ -4,7 +4,7 @@
 
 > **Current version:** [v2.1.0-preview.1](docs/v2.1.0-preview.1-RELEASE-NOTES.md) — "Bedrock" data-layer hardening (EF Core migration runner + SQLCipher at-rest encryption)
 > **Platform:** Windows 10 build 19041+ (x64)
-> **License:** Proprietary — Copyright (c) 2026 Rocky Stack. All rights reserved.
+> **License:** MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Rocky Elsalaymeh.
 
 ## Documentation
 

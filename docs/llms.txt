@@ -169,7 +169,7 @@ PDF, DOCX, DOC, TXT, MD, JSON, XML, CSV, HTML, and all code formats
 
 ## License
 
-**Proprietary** — Copyright (c) 2026 Rocky Stack. All rights reserved.
+**MIT License** — Copyright (c) 2026 Rocky Elsalaymeh. See LICENSE at the repository root.
 
 ---
 
