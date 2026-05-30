@@ -491,7 +491,11 @@ public sealed class PdfExport : IExportFormat
                 result.Add(description);
             }
         }
-        catch (System.Text.Json.JsonException) { }
+        catch (System.Text.Json.JsonException)
+        {
+            // Citation metadata is optional and decorative; malformed or partial
+            // JSON must not fail the export. Return whatever parsed successfully.
+        }
         return result;
     }
 }

@@ -166,8 +166,8 @@ public sealed class SerperSearchService : IWebSearchService
             // Also parse knowledge graph if present (often has high-quality results)
             if (root.TryGetProperty("knowledgeGraph", out var kg))
             {
-                // Knowledge graph is a single result, not an array — skip for now
-                // as it's usually a summary rather than a linkable source
+                // Knowledge graph is a single summary object, not a list of linkable
+                // sources, so it is intentionally not surfaced as a web result.
             }
         }
         catch (JsonException)

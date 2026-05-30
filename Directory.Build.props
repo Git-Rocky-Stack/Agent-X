@@ -9,10 +9,10 @@
     <Company>Rocky Elsalaymeh</Company>
     <Product>Agent-X</Product>
     <Copyright>Copyright (c) 2026 Rocky Elsalaymeh. MIT License.</Copyright>
-    <Version>2.1.0-preview.1</Version>
+    <Version>2.1.0</Version>
     <AssemblyVersion>2.1.0.0</AssemblyVersion>
     <FileVersion>2.1.0.0</FileVersion>
-    <InformationalVersion>2.1.0-preview.1+bedrock</InformationalVersion>
+    <InformationalVersion>2.1.0+bedrock</InformationalVersion>
     <Authors>Rocky Elsalaymeh</Authors>
   </PropertyGroup>
 </Project>

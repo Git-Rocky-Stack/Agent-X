@@ -45,6 +45,32 @@ All notable changes to Agent-X are documented in this file.
 
 The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] — 2026-05-30 — "Bedrock"
+
+Final v2.1.0 release. Promotes the `2.1.0-preview.1` data-layer slice to a stable release and completes the v2.1 scope. Full notes: [`docs/v2.1.0-RELEASE-NOTES.md`](docs/v2.1.0-RELEASE-NOTES.md).
+
+### Added
+
+- **A1 Multi-Language UI** — six shipping locales (de / en-US / es / fr / ja / zh-CN) with CLDR pluralization, RTL-ready `FlowDirection`, a `LocaleAudit.Tool` CI gate (≥98% coverage), and per-page snapshot tests
+- **A2 Keyboard-First Power Mode** — fuzzy Command Palette, Jump-To navigation, and a page-scoped shortcut Cheatsheet
+- **B9 EF Core migrations** and **C13 SQLCipher at-rest encryption** promoted from preview to stable
+
+### Changed
+
+- **In-app User Guide localization completed** — every `UserGuide_*` string is now natively translated across all five non-English locales (de / es / fr / ja / zh-CN), replacing the prior English placeholders; stale placeholder headers removed
+- `Directory.Build.props` `<Version>` bumped `2.1.0-preview.1` → `2.1.0`
+
+### Fixed
+
+- Documented previously-silent `JsonException` handling in HTML/PDF citation export
+- Corrected stale calendar-sync and Serper knowledge-graph comments; removed dead internal-path references from release notes
+
+### Rescoped
+
+- **C14 Audit Log** remains targeted at **v2.1.5** — a Phase 2 Memory prerequisite that ships before Memory regardless of v2.1.5 timing
+
+---
+
 ## [2.1.0-preview.1] — 2026-04-17 — "Bedrock" data-layer hardening
 
 Pre-release shipping the data-layer slice of the v2.1 Bedrock hardening stream. Ships on `phase1-bedrock` at commit `e4bb5ce`. Full release notes: [`docs/v2.1.0-preview.1-RELEASE-NOTES.md`](docs/v2.1.0-preview.1-RELEASE-NOTES.md).
@@ -67,7 +93,7 @@ Pre-release shipping the data-layer slice of the v2.1 Bedrock hardening stream. 
 
 ### Rescoped
 
-- **C14 Audit Log** was originally targeted at v2.1.0 per the magnum-opus Bedrock scope. Rescoped to **v2.1.5** on 2026-04-17 to let the C13 encryption landing settle before layering an HMAC-chained audit subsystem on top. Plan (`docs/superpowers/plans/2026-04-16-c14-audit-log.md`) and worktree (`.worktrees/c14-audit-log/`) remain ready.
+- **C14 Audit Log** was originally targeted at v2.1.0 per the magnum-opus Bedrock scope. Rescoped to **v2.1.5** on 2026-04-17 to let the C13 encryption landing settle before layering an HMAC-chained audit subsystem on top. It remains a Phase 2 Memory prerequisite and will ship before Memory regardless of v2.1.5 timing.
 
 ### Security
 
@@ -128,6 +154,7 @@ Added: Workspace Profiles, Smart Inbox, Comparative Analysis, Voice Input, Plugi
 
 ---
 
+[2.1.0]: https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.1.0
 [2.1.0-preview.1]: https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.1.0-preview.1
 [2.0.0]: https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.0.0
 [1.5.0]: https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v1.5.0

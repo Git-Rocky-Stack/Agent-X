@@ -447,9 +447,10 @@ public sealed class CalendarPlugin : IPlugin
 
                     lastDeltaToken = deltaToken;
 
-                    // For now, count events as "skipped" since the full processing
-                    // pipeline (CalendarEventProcessor → InboxService) is implemented
-                    // in task FEAT10-P2-010.
+                    // Fetch-only fallback: with no IInboxService available we count
+                    // events without indexing them. The full event → inbox pipeline
+                    // (CalendarEventProcessor → InboxService) runs in ExecuteSyncCycleAsync
+                    // via CalendarSyncService whenever the inbox service is present.
                     totalSkipped += events.Count;
 
                     _log?.Debug(

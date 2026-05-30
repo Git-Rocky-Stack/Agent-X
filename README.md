@@ -2,7 +2,7 @@
 
 **Local-First AI-Powered Document Intelligence for Windows.** A native Windows desktop application that transforms your personal document collection into a queryable, AI-augmented knowledge base. No cloud, no telemetry, no internet dependency. Built on .NET 8.0 and WinUI 3, with support for Ollama (local), OpenAI, and Anthropic providers.
 
-> **Current version:** [v2.1.0-preview.1](docs/v2.1.0-preview.1-RELEASE-NOTES.md) — "Bedrock" data-layer hardening (EF Core migration runner + SQLCipher at-rest encryption)
+> **Current version:** [v2.1.0](docs/v2.1.0-RELEASE-NOTES.md) — "Bedrock" (EF Core migrations + SQLCipher at-rest encryption, six fully-localized UI locales, keyboard-first power mode)
 > **Platform:** Windows 10 build 19041+ (x64)
 > **License:** MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Rocky Elsalaymeh.
 
@@ -30,8 +30,8 @@ Full product, architecture, and developer documentation lives under `docs/`. Sta
 
 ## Release Notes
 
-- [v2.1.0-preview.1](docs/v2.1.0-preview.1-RELEASE-NOTES.md) — 2026-04-17 — Bedrock data-layer (B9 + C13)
-- [v2.1.0](docs/v2.1.0-RELEASE-NOTES.md) — full v2.1 scope including deferred items
+- [v2.1.0](docs/v2.1.0-RELEASE-NOTES.md) — 2026-05-30 — "Bedrock" final (A1 + A2 + B9 + C13; C14 audit log rescoped to v2.1.5)
+- [v2.1.0-preview.1](docs/v2.1.0-preview.1-RELEASE-NOTES.md) — 2026-04-17 — Bedrock data-layer preview (B9 + C13)
 - [v1.5.0](docs/v1.5.0-RELEASE-NOTES.md) · [v1.4.0](docs/v1.4.0-RELEASE-NOTES.md) · [v1.3.0](docs/v1.3.0-RELEASE-NOTES.md)
 
 ---
