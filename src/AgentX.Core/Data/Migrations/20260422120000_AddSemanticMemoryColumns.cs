@@ -1,3 +1,5 @@
+using AgentX.Core.Data;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -5,6 +7,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace AgentX.Core.Data.Migrations
 {
     /// <inheritdoc />
+    [DbContext(typeof(AgentXDbContext))]
+    [Migration("20260422120000_AddSemanticMemoryColumns")]
     public partial class AddSemanticMemoryColumns : Migration
     {
         /// <inheritdoc />
@@ -43,30 +47,27 @@ namespace AgentX.Core.Data.Migrations
                 type: "TEXT",
                 nullable: true);
 
-            // Create index for associative links
+            // Index for associative-link traversal (memory -> LinkedMemoryId).
             migrationBuilder.CreateIndex(
                 name: "IX_memories_LinkedMemoryId",
                 table: "memories",
                 column: "LinkedMemoryId");
 
-            // Create foreign key for self-referencing relationship
-            migrationBuilder.AddForeignKey(
-                name: "FK_memories_memories_LinkedMemoryId",
-                table: "memories",
-                column: "LinkedMemoryId",
-                principalTable: "memories",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+            // NOTE: The self-referencing relationship (LinkedMemoryId -> memories.Id) is
+            // intentionally NOT created as a DB-level foreign key. SQLite cannot add a FK to
+            // an existing table (no ALTER TABLE ... ADD CONSTRAINT), so a standalone
+            // AddForeignKey throws NotSupportedException under the SQLite provider. The
+            // relationship is preserved at the model level (AgentXDbContext: HasOne
+            // LinkedMemory) for navigation/Include, and the link-traversal code in
+            // SemanticMemoryService already tolerates dangling links — so no DB constraint
+            // is required, and one would conflict with auto-linking (RESTRICT would block
+            // deleting any memory another links to).
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Drop foreign key and index
-            migrationBuilder.DropForeignKey(
-                name: "FK_memories_memories_LinkedMemoryId",
-                table: "memories");
-
+            // Drop index (no DB-level FK was created — see Up()).
             migrationBuilder.DropIndex(
                 name: "IX_memories_LinkedMemoryId",
                 table: "memories");

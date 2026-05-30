@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace AgentX.Core.Data.Migrations
 {
     [DbContext(typeof(AgentXDbContext))]
-    [Migration("20260430XXXXXX_AddTemporalIdentity")]
+    [Migration("20260430000000_AddTemporalIdentity")]
     public partial class AddTemporalIdentity : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)

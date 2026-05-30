@@ -201,6 +201,175 @@ public class MigrationRunnerTests
         }
     }
 
+    [Fact]
+    public async Task RunAsync_on_fresh_database_creates_semantic_memory_columns()
+    {
+        // Regression for the latent fresh-install defect: AddSemanticMemoryColumns was a
+        // Migration subclass with no [Migration]/[DbContext] attributes, so EF never applied
+        // it. A fresh install (MigrationRunner -> MigrateAsync) was therefore missing these
+        // memories columns. With the attributes restored, the migration must run on a fresh DB.
+        var (ctx, dbPath) = CreateContextAtTempPath();
+        try
+        {
+            IMigrationRunner runner = new Core.Data.MigrationRunner.MigrationRunner(ctx);
+
+            var result = await runner.RunAsync();
+
+            result.DatabaseCreated.Should().BeTrue();
+            result.AppliedMigrations.Should().Contain(m => m.EndsWith("_AddSemanticMemoryColumns"));
+
+            var memoryColumns = await GetTableColumnsAsync(ctx, "memories");
+            memoryColumns.Should().Contain(new[] { "Embedding", "DecayRate", "LinkedMemoryId", "Confidence", "Tags" });
+        }
+        finally
+        {
+            await ctx.DisposeAsync();
+            SqliteConnection.ClearAllPools();
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
+    public async Task RunAsync_on_existing_database_stamps_target_migrations_without_replaying()
+    {
+        // Existing-DB safety: a developer's agentx.db already has the semantic memory columns
+        // and a __EFMigrationsHistory table, but the two now-recognized migrations are not yet
+        // stamped. MigrateAsync would replay AddSemanticMemoryColumns (duplicate ADD COLUMN) and
+        // halt startup. The reconciliation step must stamp it instead, and AddTemporalIdentity
+        // (whose tables are absent here) must be applied normally. Neither must throw.
+        var (seedCtx, dbPath) = CreateContextAtTempPath();
+        try
+        {
+            // Bring the DB fully up to date (schema + all migrations stamped), then rewind the
+            // history to simulate the pre-existing install: drop the two target rows and remove
+            // the temporal tables so AddTemporalIdentity can be applied cleanly by MigrateAsync.
+            IMigrationRunner seedRunner = new Core.Data.MigrationRunner.MigrationRunner(seedCtx);
+            await seedRunner.RunAsync();
+
+            await seedCtx.Database.ExecuteSqlRawAsync(
+                "DELETE FROM \"__EFMigrationsHistory\" WHERE \"MigrationId\" IN ('20260422120000_AddSemanticMemoryColumns', '20260430000000_AddTemporalIdentity');");
+            await seedCtx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS belief_conflicts;");
+            await seedCtx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS voice_profiles;");
+            await seedCtx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS engagement_metrics;");
+            await seedCtx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS insight_moments;");
+            await seedCtx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS temporal_beliefs;");
+
+            await seedCtx.DisposeAsync();
+            SqliteConnection.ClearAllPools();
+
+            // Reopen against the same file as a brand-new context (no in-memory carry-over) and run.
+            var options = new DbContextOptionsBuilder<AgentXDbContext>()
+                .UseSqlite($"Data Source={dbPath}")
+                .Options;
+            await using var ctx = new AgentXDbContext(options);
+            IMigrationRunner runner = new Core.Data.MigrationRunner.MigrationRunner(ctx);
+
+            var act = async () => await runner.RunAsync();
+            await act.Should().NotThrowAsync();
+
+            var stamped = await GetStampedMigrationsAsync(ctx);
+            stamped.Should().Contain("20260422120000_AddSemanticMemoryColumns");
+            stamped.Should().Contain("20260430000000_AddTemporalIdentity");
+
+            // The semantic columns must remain intact (they were never dropped / re-added).
+            var memoryColumns = await GetTableColumnsAsync(ctx, "memories");
+            memoryColumns.Should().Contain(new[] { "Embedding", "DecayRate", "LinkedMemoryId", "Confidence", "Tags" });
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
+    public async Task RunAsync_migrates_legacy_temporal_identity_history_id()
+    {
+        // A pre-existing DB created before AddTemporalIdentity's placeholder id was corrected has
+        // the legacy "20260430XXXXXX_AddTemporalIdentity" stamped and the temporal tables present.
+        // Under the corrected id that migration would be pending; replaying it would throw
+        // "table temporal_beliefs already exists". The reconciliation must migrate the legacy
+        // history row to the corrected id so the migration is treated as applied.
+        var (seedCtx, dbPath) = CreateContextAtTempPath();
+        try
+        {
+            IMigrationRunner seedRunner = new Core.Data.MigrationRunner.MigrationRunner(seedCtx);
+            await seedRunner.RunAsync();
+
+            // Rewrite history to the legacy id (tables stay in place — mimicking the old install).
+            await seedCtx.Database.ExecuteSqlRawAsync(
+                "DELETE FROM \"__EFMigrationsHistory\" WHERE \"MigrationId\" = '20260430000000_AddTemporalIdentity';");
+            await seedCtx.Database.ExecuteSqlRawAsync(
+                "INSERT OR IGNORE INTO \"__EFMigrationsHistory\" (\"MigrationId\", \"ProductVersion\") VALUES ('20260430XXXXXX_AddTemporalIdentity', '8.0.11');");
+
+            await seedCtx.DisposeAsync();
+            SqliteConnection.ClearAllPools();
+
+            var options = new DbContextOptionsBuilder<AgentXDbContext>()
+                .UseSqlite($"Data Source={dbPath}")
+                .Options;
+            await using var ctx = new AgentXDbContext(options);
+            IMigrationRunner runner = new Core.Data.MigrationRunner.MigrationRunner(ctx);
+
+            var act = async () => await runner.RunAsync();
+            await act.Should().NotThrowAsync();
+
+            var stamped = await GetStampedMigrationsAsync(ctx);
+            stamped.Should().NotContain("20260430XXXXXX_AddTemporalIdentity");
+            stamped.Should().Contain("20260430000000_AddTemporalIdentity");
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    private static async Task<System.Collections.Generic.List<string>> GetTableColumnsAsync(
+        AgentXDbContext ctx, string tableName)
+    {
+        var columns = new System.Collections.Generic.List<string>();
+        await using var cmd = ctx.Database.GetDbConnection().CreateCommand();
+        await ctx.Database.OpenConnectionAsync();
+        try
+        {
+            cmd.CommandText = $"PRAGMA table_info(\"{tableName}\");";
+            await using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                columns.Add(reader.GetString(1));
+            }
+        }
+        finally
+        {
+            await ctx.Database.CloseConnectionAsync();
+        }
+
+        return columns;
+    }
+
+    private static async Task<System.Collections.Generic.List<string>> GetStampedMigrationsAsync(AgentXDbContext ctx)
+    {
+        var ids = new System.Collections.Generic.List<string>();
+        await using var cmd = ctx.Database.GetDbConnection().CreateCommand();
+        await ctx.Database.OpenConnectionAsync();
+        try
+        {
+            cmd.CommandText = "SELECT \"MigrationId\" FROM \"__EFMigrationsHistory\";";
+            await using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                ids.Add(reader.GetString(0));
+            }
+        }
+        finally
+        {
+            await ctx.Database.CloseConnectionAsync();
+        }
+
+        return ids;
+    }
+
     private static async Task AssertOperationsTablesExistAsync(AgentXDbContext ctx)
     {
         await using var cmd = ctx.Database.GetDbConnection().CreateCommand();

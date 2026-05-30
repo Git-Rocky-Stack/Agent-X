@@ -192,6 +192,12 @@ public sealed class MigrationRunner : IMigrationRunner
             adoptedMigrations = (await AdoptBaselineAsync(cancellationToken)).ToList();
         }
 
+        // Reconcile migrations whose recognized id changed or whose schema is already
+        // present, so MigrateAsync below does not replay them against an existing DB.
+        // Runs regardless of whether a history table existed (i.e. after any baseline
+        // adoption above) and is a no-op on fresh databases. See the method for details.
+        await ReconcilePendingMigrationsAsync(cancellationToken);
+
         var appliedBeforeMigrate = (await _context.Database.GetAppliedMigrationsAsync(cancellationToken)).ToList();
         // For reporting, "already applied" reflects state BEFORE this runner invocation -
         // if we adopted migrations this run, those rows are treated as newly applied, not already applied.
@@ -464,6 +470,99 @@ public sealed class MigrationRunner : IMigrationRunner
         }
 
         return adopted;
+    }
+
+    // Legacy migration id that AddTemporalIdentity shipped with before its [Migration]
+    // attribute was corrected. A developer's pre-existing agentx.db may have this exact
+    // string stamped in __EFMigrationsHistory; it must be migrated to the corrected id
+    // so EF treats AddTemporalIdentity as applied instead of replaying its CREATE TABLEs.
+    private const string LegacyTemporalIdentityMigrationId = "20260430XXXXXX_AddTemporalIdentity";
+
+    /// <summary>
+    /// Reconciles the migrations history for two id/recognition changes so that
+    /// <see cref="Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.MigrateAsync"/>
+    /// does not replay migrations whose schema is already present on a pre-existing database.
+    /// This runs on every invocation (after any baseline adoption, before MigrateAsync) and is a
+    /// no-op on fresh databases:
+    /// <list type="number">
+    /// <item>
+    /// AddTemporalIdentity's recognized id changed from a placeholder to a real timestamp.
+    /// If the legacy id is stamped in __EFMigrationsHistory, migrate that row to the new id
+    /// (the corresponding tables — temporal_beliefs etc. — already exist, so replaying the
+    /// migration would throw "table temporal_beliefs already exists"). Guarded so it only
+    /// touches the history table when it exists; affects 0 rows on a fresh database.
+    /// </item>
+    /// <item>
+    /// AddSemanticMemoryColumns was previously unrecognized (no [Migration] attribute) and is
+    /// now a recognized, pending migration. A pre-existing database already has the memories
+    /// columns it adds (Embedding, LinkedMemoryId, DecayRate, Confidence, Tags), so stamp it as
+    /// applied to avoid a duplicate ADD COLUMN. On a fresh database the memories table/columns do
+    /// not exist yet, so the column check fails and MigrateAsync applies the migration normally.
+    /// </item>
+    /// </list>
+    /// </summary>
+    private async Task ReconcilePendingMigrationsAsync(CancellationToken cancellationToken)
+    {
+        var migrationsAssembly = _context.GetService<IMigrationsAssembly>();
+        var allMigrations = migrationsAssembly.Migrations.Keys
+            .OrderBy(migration => migration, StringComparer.Ordinal)
+            .ToList();
+
+        // (1) Rename-stamp for AddTemporalIdentity. Only meaningful once a history table exists.
+        if (await HasMigrationsHistoryTableAsync(cancellationToken)
+            && FindMigration(allMigrations, "_AddTemporalIdentity") is { } temporalMigrationId
+            && !string.Equals(temporalMigrationId, LegacyTemporalIdentityMigrationId, StringComparison.Ordinal)
+            && await MigrationStampedAsync(LegacyTemporalIdentityMigrationId, cancellationToken))
+        {
+            // Carry the legacy row's ProductVersion forward where present; INSERT OR IGNORE keeps
+            // an already-correct row intact, then the legacy row is removed. Idempotent across runs.
+            await _context.Database.ExecuteSqlRawAsync(
+                "INSERT OR IGNORE INTO \"__EFMigrationsHistory\" (\"MigrationId\", \"ProductVersion\") " +
+                "SELECT {0}, \"ProductVersion\" FROM \"__EFMigrationsHistory\" WHERE \"MigrationId\" = {1};",
+                new object[] { temporalMigrationId, LegacyTemporalIdentityMigrationId },
+                cancellationToken);
+            await _context.Database.ExecuteSqlRawAsync(
+                "DELETE FROM \"__EFMigrationsHistory\" WHERE \"MigrationId\" = {0};",
+                new object[] { LegacyTemporalIdentityMigrationId },
+                cancellationToken);
+        }
+
+        // (2) Schema-exists stamp for AddSemanticMemoryColumns. Only stamp when the migration is
+        // recognized, still pending, and its columns are already present on the memories table.
+        if (FindMigration(allMigrations, "_AddSemanticMemoryColumns") is { } semanticMemoryMigrationId)
+        {
+            var pending = await _context.Database.GetPendingMigrationsAsync(cancellationToken);
+            if (pending.Contains(semanticMemoryMigrationId, StringComparer.Ordinal)
+                && await AllColumnsExistAsync(
+                    "memories",
+                    ["Embedding", "LinkedMemoryId", "DecayRate", "Confidence", "Tags"],
+                    cancellationToken))
+            {
+                // The history table is guaranteed to exist here: AdoptBaselineAsync creates it when
+                // it ran, and any DB that already has these columns also has an EF history table.
+                // StampMigrationAsync uses INSERT OR IGNORE, so this never double-stamps.
+                await StampMigrationAsync(semanticMemoryMigrationId, [], cancellationToken);
+            }
+        }
+    }
+
+    private async Task<bool> MigrationStampedAsync(string migrationId, CancellationToken cancellationToken)
+    {
+        using var cmd = _context.Database.GetDbConnection().CreateCommand();
+        await _context.Database.OpenConnectionAsync(cancellationToken);
+        try
+        {
+            cmd.CommandText = "SELECT 1 FROM \"__EFMigrationsHistory\" WHERE \"MigrationId\" = $migrationId;";
+            var parameter = cmd.CreateParameter();
+            parameter.ParameterName = "$migrationId";
+            parameter.Value = migrationId;
+            cmd.Parameters.Add(parameter);
+            return await cmd.ExecuteScalarAsync(cancellationToken) is not null;
+        }
+        finally
+        {
+            await _context.Database.CloseConnectionAsync();
+        }
     }
 
     private async Task StampMigrationAsync(
