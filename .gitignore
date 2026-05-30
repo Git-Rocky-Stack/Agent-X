@@ -26,6 +26,12 @@ bld/
 *.nuget.targets
 project.lock.json
 
+## EF Core design-time scratch database (created by `dotnet ef` tooling via
+## AgentXDbContextFactory; never the user's real data — safe to delete).
+agentx.design.db
+agentx.design.db-shm
+agentx.design.db-wal
+
 ## MSIX
 *.msix
 *.appxupload

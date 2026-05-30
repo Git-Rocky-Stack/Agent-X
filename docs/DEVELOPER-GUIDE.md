@@ -57,7 +57,7 @@ Agent-X is a local-first AI personal intelligence hub for Windows. It runs entir
 | Tool | Version | Notes |
 |---|---|---|
 | Visual Studio 2022 | 17.8 or later | With "Windows application development" workload |
-| .NET SDK | 8.0 | Installed automatically with VS or from dotnet.microsoft.com |
+| .NET SDK | 8.0 (pinned via `global.json`) | Installed automatically with VS or from dotnet.microsoft.com |
 | Windows App SDK | 1.6.x | Installed automatically via NuGet |
 | Windows 10/11 | Build 19041+ (20H1+) | Target platform minimum |
 | Ollama | Latest | For local AI inference during development |
@@ -67,6 +67,14 @@ Visual Studio workloads required:
 
 - .NET desktop development
 - Windows application development (includes Windows App SDK)
+
+**Entity Framework Core CLI.** Database migrations use a repo-pinned local `dotnet-ef` tool (matched to EF Core 8.0.11, recorded in `.config/dotnet-tools.json`). Restore it once after cloning — no global install is required:
+
+```powershell
+dotnet tool restore
+```
+
+See §6.3 below for the full migration workflow.
 
 ### 2.2 Getting Started
 
@@ -1183,27 +1191,29 @@ entity.HasOne(e => e.TargetCollection)
 3. Compares applied vs. `DbContext.Database.GetPendingMigrations()`; if pending migrations exist, applies them in order via `MigrateAsync()`.
 4. Returns a `MigrationResult` reporting applied migration IDs. If EF Core throws `PendingModelChangesWarning` or the runner detects an inconsistent state, `PendingMigrationsException` is raised and startup halts with a log entry.
 
-**Adding a new migration.**
+**Adding a new migration.** Restore the pinned EF tool first (`dotnet tool restore`), then:
 
 ```powershell
 # From the repository root
 dotnet ef migrations add <MigrationName> `
   --project src/AgentX.Core `
-  --startup-project src/AgentX.App `
+  --startup-project src/AgentX.Core `
   --output-dir Data/Migrations
 ```
 
-The design-time `AgentXDbContextFactory` supplies the provider so `dotnet ef` works outside the WinUI 3 host. Review the generated `<timestamp>_<MigrationName>.cs` and `.Designer.cs` files, commit them alongside the entity change, and the next launch applies the migration automatically.
+`AgentX.Core` is its own startup project for tooling. It is a plain class library, so `dotnet ef` builds and loads it without the WinUI app's `Platform=x64`/RID requirements — using `--startup-project src/AgentX.App` fails, because the EF host does not pass a platform and the WinUI build then errors. The design-time `AgentXDbContextFactory` supplies the SQLite provider against a throwaway `agentx.design.db` (git-ignored), and the `CopyWindowsSdkProjectionForEfTooling` target in `AgentX.Core.csproj` copies the Windows SDK projection assemblies (`Microsoft.Windows.SDK.NET.dll`, `WinRT.Runtime.dll`) into the build output so the EF host can load the `net8.0-windows` assembly. Review the generated `<timestamp>_<MigrationName>.cs` and `.Designer.cs` files, commit them alongside the entity change, and the next launch applies the migration automatically via `IMigrationRunner`.
 
 **Rollback.**
 
 ```powershell
 # Remove the most recent un-applied migration
-dotnet ef migrations remove --project src/AgentX.Core --startup-project src/AgentX.App
+dotnet ef migrations remove --project src/AgentX.Core --startup-project src/AgentX.Core
 
 # Revert the database to a specific migration
-dotnet ef database update <PreviousMigrationName> --project src/AgentX.Core --startup-project src/AgentX.App
+dotnet ef database update <PreviousMigrationName> --project src/AgentX.Core --startup-project src/AgentX.Core
 ```
+
+> **SQLite note:** `dotnet ef migrations script --idempotent` is not supported by the SQLite provider. Use a plain `dotnet ef migrations script`, or rely on the runtime `IMigrationRunner`, which already applies migrations idempotently at launch.
 
 **Migrations that exist in the v2.1.0-preview.1 slice.**
 

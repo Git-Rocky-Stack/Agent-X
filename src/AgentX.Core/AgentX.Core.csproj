@@ -67,4 +67,47 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+
+  <!--
+    ──────────────────────────────────────────────────────────────────────────
+    EF Core design-time tooling support (`dotnet ef`)
+    ──────────────────────────────────────────────────────────────────────────
+    `dotnet ef` loads this assembly through the shared-framework host, which
+    resolves Microsoft.Windows.SDK.NET.dll (the WinRT projection) from a Windows
+    SDK *runtime pack*. A framework-dependent class-library build does not lay
+    that pack down — it is normally supplied by the self-contained WinUI app at
+    publish time — so the host aborts with:
+      "An assembly specified in the application dependencies manifest
+       (AgentX.Core.deps.json) was not found:
+       package: 'runtimepack.Microsoft.Windows.SDK.NET.Ref' ... Microsoft.Windows.SDK.NET.dll"
+
+    Fix: copy the already-resolved projection assembly into this project's build
+    output so the EF host can load it from the app base directory. This touches
+    build OUTPUT only — the shipping app is WindowsAppSDKSelfContained and is
+    unaffected, and duplicate-at-publish is tolerated via
+    ErrorOnDuplicatePublishOutputFiles=false (Directory.Build.props). The target
+    is a no-op when the projection is unavailable, so non-EF builds never break.
+  -->
+  <Target Name="CopyWindowsSdkProjectionForEfTooling"
+          AfterTargets="ResolveReferences"
+          Condition="'$(DesignTimeBuild)' != 'true'">
+    <!--
+      The projection runtime pack contributes two sibling assemblies
+      (Microsoft.Windows.SDK.NET.dll + WinRT.Runtime.dll) from the same folder.
+      Derive that folder from the already-resolved reference and copy every DLL
+      in it, so the set stays correct version-agnostically and survives the pack
+      adding future siblings.
+    -->
+    <PropertyGroup>
+      <_WinSdkProjectionDir>@(ReferencePath->WithMetadataValue('FileName','Microsoft.Windows.SDK.NET')->'%(RootDir)%(Directory)')</_WinSdkProjectionDir>
+    </PropertyGroup>
+    <ItemGroup>
+      <_WinSdkProjectionFiles Include="$(_WinSdkProjectionDir)*.dll"
+                              Condition="'$(_WinSdkProjectionDir)' != ''" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_WinSdkProjectionFiles)"
+          DestinationFolder="$(OutDir)"
+          SkipUnchangedFiles="true"
+          Condition="'@(_WinSdkProjectionFiles)' != ''" />
+  </Target>
 </Project>
