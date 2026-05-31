@@ -66,7 +66,7 @@ public sealed class MarkdownFormatterTests
             UpdatedAt = new DateTime(2026, 1, 15, 11, 0, 0, DateTimeKind.Utc),
             MessageCount = messages.Count,
             TokensUsed = 250,
-            ModelId = modelId,
+            ModelId = modelId ?? string.Empty,
             SystemPrompt = systemPrompt,
             Messages = messages,
         };

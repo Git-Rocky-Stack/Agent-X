@@ -34,7 +34,7 @@ public sealed class EmbeddingModelVersion
     /// <param name="fullVersion">The full version string (e.g., "all-minilm:1.0").</param>
     /// <param name="defaultDimensions">Default dimensions if not specified in the version string.</param>
     /// <returns>Parsed EmbeddingModelVersion, or null if parsing fails.</returns>
-    public static EmbeddingModelVersion? Parse(string fullVersion, int defaultDimensions = 384)
+    public static EmbeddingModelVersion? Parse(string? fullVersion, int defaultDimensions = 384)
     {
         if (string.IsNullOrWhiteSpace(fullVersion))
             return null;
@@ -82,7 +82,7 @@ public sealed class EmbeddingModelVersion
     /// Determines if this model version is compatible with another.
     /// Models are compatible if they have the same name and dimensions.
     /// </summary>
-    public bool IsCompatibleWith(EmbeddingModelVersion other)
+    public bool IsCompatibleWith(EmbeddingModelVersion? other)
     {
         if (other is null)
             return false;

@@ -49,7 +49,7 @@ public sealed class DigestServiceTests : IDisposable
         searches.Should().NotBeNullOrEmpty();
         searches!.Single(item => item.Query == "database migration")
             .Trend.Should().Be("up");
-        searches.Single(item => item.Query == "new feature")
+        searches!.Single(item => item.Query == "new feature")
             .Trend.Should().Be("new");
 
         collections.Should().NotBeNullOrEmpty();

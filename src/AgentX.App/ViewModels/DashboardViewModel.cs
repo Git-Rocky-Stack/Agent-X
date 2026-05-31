@@ -872,9 +872,9 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private async Task AcknowledgeConflictAsync(BeliefConflictDisplayItem? conflict)
+    private Task AcknowledgeConflictAsync(BeliefConflictDisplayItem? conflict)
     {
-        if (conflict is null) return;
+        if (conflict is null) return Task.CompletedTask;
 
         try
         {
@@ -901,6 +901,8 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         {
             Log.Warning(ex, "Failed to acknowledge belief conflict");
         }
+
+        return Task.CompletedTask;
     }
 
     [RelayCommand]

@@ -67,7 +67,7 @@ public sealed class DocxFormatterTests
             UpdatedAt = DateTime.UtcNow,
             MessageCount = messages.Count,
             TokensUsed = 250,
-            ModelId = modelId,
+            ModelId = modelId ?? string.Empty,
             SystemPrompt = systemPrompt,
             Messages = messages,
         };

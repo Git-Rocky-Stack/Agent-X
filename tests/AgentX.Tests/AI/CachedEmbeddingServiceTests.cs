@@ -73,7 +73,7 @@ public sealed class CachedEmbeddingServiceTests
     }
 
     [Fact]
-    public async Task GetStatistics_InitialValues_AreZero()
+    public void GetStatistics_InitialValues_AreZero()
     {
         // Arrange
         var service = new CachedEmbeddingService(_innerService.Object, _configuration.Object, _logger);

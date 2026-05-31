@@ -103,7 +103,7 @@ public class StatusBarServiceTests
     public async Task PollAsync_WhenConnectedWithoutModelName_ShowsConnectedToOllama()
     {
         _providerMock.Setup(p => p.CheckConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
-        _aiServiceMock.SetupGet(a => a.ActiveModelId).Returns((string?)null);
+        _aiServiceMock.SetupGet(a => a.ActiveModelId).Returns((string)null!);
         _indexingServiceMock.SetupGet(i => i.IsProcessing).Returns(false);
         _documentServiceMock.Setup(d => d.GetTotalDocumentCountAsync()).ReturnsAsync(0L);
 

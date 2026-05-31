@@ -45,7 +45,7 @@ public sealed class PptxFormatterTests
             UpdatedAt = DateTime.UtcNow,
             MessageCount = messages.Count,
             TokensUsed = 250,
-            ModelId = modelId,
+            ModelId = modelId ?? string.Empty,
             Messages = messages,
         };
     }

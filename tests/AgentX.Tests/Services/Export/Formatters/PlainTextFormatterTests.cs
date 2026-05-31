@@ -66,7 +66,7 @@ public sealed class PlainTextFormatterTests
             UpdatedAt = new DateTime(2026, 2, 20, 14, 30, 0, DateTimeKind.Utc),
             MessageCount = messages.Count,
             TokensUsed = 180,
-            ModelId = modelId,
+            ModelId = modelId ?? string.Empty,
             SystemPrompt = systemPrompt,
             Messages = messages,
         };

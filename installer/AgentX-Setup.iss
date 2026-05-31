@@ -3,7 +3,7 @@
 ; Copyright (c) 2026 Rocky Elsalaymeh. MIT License.
 
 #define MyAppName "Agent-X"
-#define MyAppVersion "2.1.0-preview.1"
+#define MyAppVersion "2.1.0"
 #define MyAppPublisher "Rocky Elsalaymeh"
 #define MyAppURL "https://github.com/Git-Rocky-Stack/Agent-X"
 #define MyAppExeName "AgentX.App.exe"
@@ -42,8 +42,10 @@ ArchitecturesInstallIn64BitMode=x64compatible
 ; Uninstaller
 UninstallDisplayName={#MyAppName}
 UninstallDisplayIcon={app}\{#MyAppExeName}
-; Minimum Windows version (Windows 10 1903+)
-MinVersion=10.0.18362
+; Minimum Windows version — must match the app's TargetPlatformMinVersion
+; (Windows 10 2004 / build 19041+); installing on older builds would let
+; setup succeed but the app fail to launch.
+MinVersion=10.0.19041
 ; Misc
 DisableProgramGroupPage=yes
 CloseApplications=force
