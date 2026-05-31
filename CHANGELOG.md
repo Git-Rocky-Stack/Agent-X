@@ -45,6 +45,23 @@ All notable changes to Agent-X are documented in this file.
 
 The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1] — 2026-05-31 — "Bedrock" fresh-install fix
+
+Patch release. Fixes a **critical fresh-install defect** found during full installer validation: on a brand-new machine the database came up empty (no tables) and every feature failed with `no such table: documents/memories/user_settings/...`.
+
+### Fixed
+
+- **Fresh installs now build the full database schema.** At startup `EnsureKeyApplied()` opens the SQLite connection (to apply the SQLCipher PRAGMA) before the migration runner, which creates an empty `agentx.db` file. The runner then saw `CanConnectAsync() == true`, mistook the empty file for a pre-migration install, ran baseline adoption — which *stamps* the baseline as applied **without creating tables** — and `MigrateAsync` skipped schema creation. Baseline adoption is now gated on the database actually containing application tables, so an empty database flows through `MigrateAsync` and receives the full schema. Verified end-to-end via a clean install → launch → uninstall: all 11 migrations apply, 40 tables created, zero `no such table` errors.
+- Added a `MigrationRunner` regression test that opens the connection before running the runner, reproducing the real startup sequence (the prior fresh-DB test never did, which is why the defect slipped through).
+- Zeroed out all 13 Release build analyzer warnings at the root (nullable annotations, an unused `async`, and test-only Moq/null-handling) — the build is now warning-free.
+
+### Changed
+
+- `Directory.Build.props` `<Version>` bumped `2.1.0` → `2.1.1`.
+- Installer `AgentX-Setup.iss` `MinVersion` raised `10.0.18362` → `10.0.19041` to match the app's `TargetPlatformMinVersion` (older builds would install but fail to launch).
+
+---
+
 ## [2.1.0] — 2026-05-30 — "Bedrock"
 
 Final v2.1.0 release. Promotes the `2.1.0-preview.1` data-layer slice to a stable release and completes the v2.1 scope. Full notes: [`docs/v2.1.0-RELEASE-NOTES.md`](docs/v2.1.0-RELEASE-NOTES.md).
@@ -154,6 +171,7 @@ Added: Workspace Profiles, Smart Inbox, Comparative Analysis, Voice Input, Plugi
 
 ---
 
+[2.1.1]: https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.1.1
 [2.1.0]: https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.1.0
 [2.1.0-preview.1]: https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.1.0-preview.1
 [2.0.0]: https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.0.0
