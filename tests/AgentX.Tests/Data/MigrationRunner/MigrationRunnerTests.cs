@@ -58,6 +58,54 @@ public class MigrationRunnerTests
     }
 
     [Fact]
+    public async Task RunAsync_on_freshly_created_empty_database_file_creates_full_schema()
+    {
+        // Regression for the fresh-install defect: the real app opens the SQLite connection
+        // (EnsureKeyApplied applies the SQLCipher PRAGMA) BEFORE the migration runner, which
+        // creates an empty .db file on disk. The runner must NOT mistake that empty file for a
+        // pre-migration install and adopt the baseline -- doing so stamps migrations as applied
+        // without creating any tables, so MigrateAsync skips the table-creating baseline and the
+        // app fails every query with "no such table: memories/documents/...". An empty database
+        // must flow through MigrateAsync and receive the full schema.
+        var (ctx, dbPath) = CreateContextAtTempPath();
+        try
+        {
+            // Simulate EnsureKeyApplied: open + close so the empty .db file exists before the run.
+            await ctx.Database.OpenConnectionAsync();
+            await ctx.Database.CloseConnectionAsync();
+            File.Exists(dbPath).Should().BeTrue("opening the connection creates the empty db file");
+
+            IMigrationRunner runner = new Core.Data.MigrationRunner.MigrationRunner(ctx);
+
+            var result = await runner.RunAsync();
+
+            result.AppliedMigrations.Should().Contain(m => m.EndsWith("_InitialBaseline"));
+
+            // The core application tables that failed on a real install must all exist.
+            await using var cmd = ctx.Database.GetDbConnection().CreateCommand();
+            await ctx.Database.OpenConnectionAsync();
+            try
+            {
+                cmd.CommandText =
+                    "SELECT COUNT(*) FROM sqlite_master WHERE type='table' " +
+                    "AND name IN ('documents','memories','user_settings','oauth_credentials');";
+                var count = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+                count.Should().Be(4);
+            }
+            finally
+            {
+                await ctx.Database.CloseConnectionAsync();
+            }
+        }
+        finally
+        {
+            await ctx.DisposeAsync();
+            SqliteConnection.ClearAllPools();
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
     public async Task RunAsync_on_up_to_date_database_applies_nothing()
     {
         var (ctx, dbPath) = CreateContextAtTempPath();

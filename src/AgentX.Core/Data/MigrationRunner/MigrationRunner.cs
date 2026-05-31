@@ -187,7 +187,18 @@ public sealed class MigrationRunner : IMigrationRunner
         var databaseExistedBefore = await _context.Database.CanConnectAsync(cancellationToken);
 
         List<string> adoptedMigrations = [];
-        if (databaseExistedBefore && !await HasMigrationsHistoryTableAsync(cancellationToken))
+        // Baseline adoption is ONLY for a genuine pre-migration install: a database that
+        // already contains application tables (from an old EnsureCreated build) but has no
+        // __EFMigrationsHistory. A brand-new database can also look "existing" here, because
+        // opening the connection before this point — EnsureKeyApplied applies the SQLCipher
+        // PRAGMA on startup — creates an empty .db file. Adopting the baseline against that
+        // empty file stamps migrations as applied WITHOUT creating any tables, so MigrateAsync
+        // then skips the table-creating baseline and the app fails every query with
+        // "no such table". Gate on real schema presence so an empty database instead flows
+        // through MigrateAsync and receives the full schema.
+        if (databaseExistedBefore
+            && !await HasMigrationsHistoryTableAsync(cancellationToken)
+            && await HasApplicationTablesAsync(cancellationToken))
         {
             adoptedMigrations = (await AdoptBaselineAsync(cancellationToken)).ToList();
         }
@@ -335,6 +346,30 @@ public sealed class MigrationRunner : IMigrationRunner
             cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='__EFMigrationsHistory';";
             var result = await cmd.ExecuteScalarAsync(cancellationToken);
             return result is not null;
+        }
+        finally
+        {
+            await _context.Database.CloseConnectionAsync();
+        }
+    }
+
+    /// <summary>
+    /// True when the database contains at least one application table (a real schema from a
+    /// prior install), ignoring SQLite-internal tables and the EF history table. Used to
+    /// distinguish a genuine pre-migration database from a brand-new, empty .db file that
+    /// exists only because the connection was opened before the runner ran.
+    /// </summary>
+    private async Task<bool> HasApplicationTablesAsync(CancellationToken cancellationToken)
+    {
+        using var cmd = _context.Database.GetDbConnection().CreateCommand();
+        await _context.Database.OpenConnectionAsync(cancellationToken);
+        try
+        {
+            cmd.CommandText =
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' " +
+                "AND name NOT LIKE 'sqlite_%' AND name <> '__EFMigrationsHistory';";
+            var result = await cmd.ExecuteScalarAsync(cancellationToken);
+            return System.Convert.ToInt64(result) > 0;
         }
         finally
         {
