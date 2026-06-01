@@ -14,6 +14,7 @@ public partial class OnboardingViewModel : ObservableObject
     private readonly IAiService _aiService;
     private readonly ISettingsService _settingsService;
     private readonly IHardwareDetector _hardwareDetector;
+    private readonly IBuiltInModelBootstrap _bootstrap;
 
     // ── Step Navigation ──────────────────────────────────────
     [ObservableProperty] private int _currentStep;
@@ -67,6 +68,12 @@ public partial class OnboardingViewModel : ObservableObject
     [ObservableProperty] private string _openAiApiKey = "";
     [ObservableProperty] private string _anthropicApiKey = "";
 
+    // First-run built-in model download (SLIM installer ships without the GGUF)
+    [ObservableProperty] private bool _canDownloadLocalModel;
+    [ObservableProperty] private bool _isDownloadingLocalModel;
+    [ObservableProperty] private double _localModelDownloadProgress;
+    [ObservableProperty] private string _localModelDownloadStatus = "";
+
     // ── Step 4: Summary ──────────────────────────────────────
     [ObservableProperty] private string _summaryOllamaStatus = "Not configured";
     [ObservableProperty] private string _summaryChatModel = "Default (llama3.2)";
@@ -77,11 +84,13 @@ public partial class OnboardingViewModel : ObservableObject
     public OnboardingViewModel(
         IAiService aiService,
         ISettingsService settingsService,
-        IHardwareDetector hardwareDetector)
+        IHardwareDetector hardwareDetector,
+        IBuiltInModelBootstrap builtInModelBootstrap)
     {
         _aiService = aiService;
         _settingsService = settingsService;
         _hardwareDetector = hardwareDetector;
+        _bootstrap = builtInModelBootstrap;
         Log.Debug("OnboardingViewModel created");
     }
 
@@ -288,27 +297,28 @@ public partial class OnboardingViewModel : ObservableObject
     private async Task CheckBuiltInModelAsync()
     {
         LocalModelStatusText = "Checking...";
+        CanDownloadLocalModel = false;
 
         try
         {
-            // The model is bundled with the installer into %LOCALAPPDATA%\AgentX\Models
-            var settings = await _settingsService.GetSettingsAsync();
-            var modelsDir = Path.Combine(settings.StoragePath, "Models");
-            var modelPath = Path.Combine(modelsDir, settings.LocalModelFileName);
-            IsLocalModelAvailable = File.Exists(modelPath);
+            // The SLIM installer ships without the model; the OFFLINE installer pre-places it.
+            // IsInstalled() treats a truncated leftover as "not installed", so we re-offer download.
+            IsLocalModelAvailable = _bootstrap.IsInstalled();
 
             if (IsLocalModelAvailable)
             {
-                var fileInfo = new FileInfo(modelPath);
-                var sizeMb = fileInfo.Length / 1_000_000.0;
+                var sizeMb = new FileInfo(_bootstrap.ModelPath).Length / 1_000_000.0;
                 LocalModelStatusText = $"Ready ({sizeMb:F0} MB)";
             }
             else
             {
-                LocalModelStatusText = "Model not found — reinstall Agent-X to restore it.";
+                LocalModelStatusText =
+                    "Not installed yet. Download it for fully-offline AI (~1.9 GB), or just add a cloud API key below.";
+                CanDownloadLocalModel = true;
             }
 
             // Load any existing API keys from settings
+            var settings = await _settingsService.GetSettingsAsync();
             if (!string.IsNullOrEmpty(settings.OpenAiApiKey))
             {
                 OpenAiApiKey = settings.OpenAiApiKey;
@@ -328,6 +338,84 @@ public partial class OnboardingViewModel : ObservableObject
             LocalModelStatusText = "Unable to verify model";
             GpuAccelerationInfo = "Hardware detection unavailable";
         }
+    }
+
+    /// <summary>
+    /// Downloads the built-in GGUF model on demand (first-run flow for the SLIM installer).
+    /// Progress is marshalled to the UI thread; on success the local provider becomes active.
+    /// </summary>
+    [RelayCommand]
+    private async Task DownloadLocalModelAsync()
+    {
+        if (IsDownloadingLocalModel) return;
+
+        IsDownloadingLocalModel = true;
+        CanDownloadLocalModel = false;
+        LocalModelDownloadProgress = 0;
+        LocalModelDownloadStatus = "Starting download…";
+        Log.Information("User started built-in model download during onboarding");
+
+        try
+        {
+            var dispatcher = App.MainWindow?.DispatcherQueue;
+            var progress = new Progress<ModelDownloadProgress>(p =>
+            {
+                void Apply()
+                {
+                    LocalModelDownloadProgress = p.PercentComplete;
+                    LocalModelDownloadStatus = FormatModelDownloadStatus(p);
+                }
+
+                if (dispatcher is not null) dispatcher.TryEnqueue(Apply);
+                else Apply();
+            });
+
+            await _bootstrap.EnsureInstalledAsync(progress);
+
+            IsLocalModelAvailable = _bootstrap.IsInstalled();
+            if (IsLocalModelAvailable)
+            {
+                var sizeMb = new FileInfo(_bootstrap.ModelPath).Length / 1_000_000.0;
+                LocalModelStatusText = $"Ready ({sizeMb:F0} MB)";
+                LocalModelDownloadStatus = "Download complete.";
+
+                // Make the freshly-downloaded built-in model the active provider.
+                var settings = await _settingsService.GetSettingsAsync();
+                settings.ActiveProviderId = "local";
+                await _settingsService.SaveSettingsAsync(settings);
+                try
+                {
+                    await _aiService.InitializeAsync();
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "AI service re-init after model download failed");
+                }
+            }
+            else
+            {
+                LocalModelDownloadStatus = "Download did not complete. You can retry or use cloud models.";
+                CanDownloadLocalModel = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Built-in model download failed during onboarding");
+            LocalModelDownloadStatus = $"Download failed: {ex.Message}";
+            CanDownloadLocalModel = true;
+        }
+        finally
+        {
+            IsDownloadingLocalModel = false;
+        }
+    }
+
+    private static string FormatModelDownloadStatus(ModelDownloadProgress p)
+    {
+        if (p.TotalBytes <= 0) return p.Status;
+        var done = p.CompletedBytes / 1_000_000_000.0;
+        var total = p.TotalBytes / 1_000_000_000.0;
+        return $"{done:F2} / {total:F2} GB  ({p.PercentComplete:F0}%)";
     }
 
     // ═══════════════════════════════════════════════════════════

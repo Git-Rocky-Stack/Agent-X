@@ -114,6 +114,24 @@ public class TemporalIdentityService : ITemporalIdentityService
             .ToListAsync(ct);
     }
 
+    public async Task<bool> AcknowledgeConflictAsync(long conflictId, CancellationToken ct = default)
+    {
+        var conflict = await _db.Set<BeliefConflictEntity>()
+            .FirstOrDefaultAsync(c => c.Id == conflictId, ct);
+
+        if (conflict is null) return false;
+
+        // Idempotent: only write on the first acknowledgement so the original timestamp stands.
+        if (!conflict.HasBeenAcknowledged)
+        {
+            conflict.HasBeenAcknowledged = true;
+            conflict.AcknowledgedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync(ct);
+        }
+
+        return true;
+    }
+
     // ─── Insight Harvesting ─────────────────────────────────────────────────────
 
     public async Task CaptureInsightAsync(

@@ -500,6 +500,29 @@
                                     </Border>
                                 </Grid>
 
+                                <!-- First-run download zone (SLIM installer ships without the model) -->
+                                <StackPanel Spacing="12"
+                                            Visibility="{x:Bind ViewModel.IsLocalModelAvailable, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
+                                    <TextBlock Text="{x:Bind ViewModel.LocalModelStatusText, Mode=OneWay}"
+                                               Style="{StaticResource BodySecondaryStyle}"
+                                               TextWrapping="Wrap" />
+
+                                    <Button Content="Download built-in model (~1.9 GB)"
+                                            Style="{StaticResource AccentButtonStyle}"
+                                            HorizontalAlignment="Left"
+                                            Command="{x:Bind ViewModel.DownloadLocalModelCommand}"
+                                            Visibility="{x:Bind ViewModel.CanDownloadLocalModel, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+
+                                    <StackPanel Spacing="6"
+                                                Visibility="{x:Bind ViewModel.IsDownloadingLocalModel, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                        <ProgressBar Minimum="0" Maximum="100"
+                                                     Value="{x:Bind ViewModel.LocalModelDownloadProgress, Mode=OneWay}" />
+                                        <TextBlock Text="{x:Bind ViewModel.LocalModelDownloadStatus, Mode=OneWay}"
+                                                   Style="{StaticResource CaptionStyle}"
+                                                   Foreground="{ThemeResource TextTertiaryBrush}" />
+                                    </StackPanel>
+                                </StackPanel>
+
                                 <Border Style="{StaticResource SeparatorStyle}" />
 
                                 <!-- GPU Acceleration Info -->

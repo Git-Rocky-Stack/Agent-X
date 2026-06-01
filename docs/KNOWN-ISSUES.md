@@ -4,11 +4,11 @@ Non-blocking issues and follow-ups for Agent-X. **None of these prevent the app 
 building, passing tests, installing, or running.** They are tracked here for
 transparency and future work.
 
-_Last updated: 2026-05-31 (v2.1.1)._
+_Last updated: 2026-06-01._
 
 ---
 
-## Packaging & Distribution
+## Open
 
 ### 1. Installer is unsigned (SmartScreen warning)
 `AgentX-Setup-2.1.1-x64.exe` is not Authenticode-signed, so Windows SmartScreen /
@@ -16,78 +16,75 @@ Defender shows an **"unknown publisher"** prompt on download and first run.
 - **Impact:** UX/trust friction during install; not a functional defect.
 - **Fix:** acquire an OV (or EV, for instant SmartScreen reputation) code-signing
   certificate and sign the setup `.exe` (and ideally the app binaries) in the
-  release build.
-
-### 2. Installer exceeds GitHub's per-asset size limit
-The bundled installer (~2.07 GB = app + Llama 3.2 3B GGUF model) is larger than
-GitHub Releases' **2 GiB per-file limit**, so it cannot be attached to a GitHub
-release. Source releases are published instead.
-- **Fix options:** host the installer externally (e.g., Cloudflare R2 / a CDN
-  release bucket), ship a **model-less installer** that downloads the model on
-  first run, or split the asset.
-
-### 3. Uninstall deletes the bundled model
-The installer places the 2 GB model under `%LOCALAPPDATA%\AgentX\Models`, so the
-Inno uninstaller removes it on uninstall (Inno removes everything it installed).
-A reinstall therefore re-extracts ~2 GB.
-- **Fix options:** install the model to a path not tracked for uninstall, or copy
-  it into place on first run, if persistence across reinstall is desired.
-
-### 4. `setup.exe` has no numeric FileVersion
-Inno's `AppVersion` populates the ProductVersion resource but not the Win32
-**FileVersion**. Inventory/AV tooling that reads FileVersion sees a blank value.
-- **Fix:** add `VersionInfoVersion=2.1.1` to `installer/AgentX-Setup.iss`.
-
-### 5. Installer creates an unused data directory
-`CurStepChanged` in the `.iss` creates `%LOCALAPPDATA%\AgentX\Data`, but the app
-stores its database at `%LOCALAPPDATA%\AgentX\agentx.db` (the parent directory).
-The `Data\` subdirectory is never used.
-- **Fix:** remove the `ForceDirectories(...\Data)` call from the `.iss` to avoid
-  confusion. Harmless otherwise.
+  release build. (Deferred by decision — tracked, not scheduled.)
 
 ---
 
-## Data Layer
+## Resolved — 2026-06-01
 
-### 6. `licenses` table persists despite the DropLicensesTable migration
-On a fresh database the `20260528120000_DropLicensesTable` migration is applied,
-yet a `licenses` table is still present in the resulting schema (40 tables total).
-This suggests the migration's drop is a no-op, the EF model snapshot still defines
-the entity, or the baseline recreates it.
-- **Impact:** an unused table in the schema; functionally harmless.
-- **Fix:** reconcile the migration / model so the schema matches intent.
+Issues #2–#9 from the previous register were addressed this session. Summary and evidence:
 
-### 7. Migration runner logs `created=false` on a fresh install
-After the v2.1.1 fix, a genuinely fresh install logs
-`Migration runner: ... created=false applied=<all 11 migrations>`. The
-`created=false` is **cosmetic**: the empty `.db` file already exists (created when
-`EnsureKeyApplied()` opens the connection) before the runner inspects it, so
-`databaseExistedBefore` is `true`. The `applied=<all>` list reflects the true
-outcome (full schema created).
-- **Fix (optional):** derive `DatabaseCreated` from schema presence rather than
-  `CanConnectAsync()` for accurate reporting.
+### 2. Installer exceeded GitHub's per-asset size limit — RESOLVED
+The single Inno script (`installer/AgentX-Setup.iss`) now builds **two profiles** via the
+`AgentXOffline` flag:
+- **SLIM** (`ISCC AgentX-Setup.iss`) — no bundled model (~180 MB), small enough to attach to a
+  GitHub Release. The app downloads the model on first run.
+- **OFFLINE** (`ISCC /DAgentXOffline=1 …`) — bundles the model (~2 GB), hosted on Cloudflare R2
+  via `scripts/publish-offline-installer.ps1` and linked from the release notes.
+
+Reproducible build: `scripts/build-installers.ps1 [-Profiles slim|offline|both]`.
+
+### 3. Uninstall deleted the bundled model — RESOLVED
+- SLIM: the model is downloaded on first run to `%LOCALAPPDATA%\AgentX\Models` and is **never
+  part of the installer's file set**, so the uninstaller never tracks or removes it.
+- OFFLINE: the bundled model file carries Inno's `uninsneveruninstall` flag, so an uninstall
+  leaves it in place and a reinstall does not re-extract ~2 GB.
+
+### 4. `setup.exe` had no numeric FileVersion — RESOLVED
+Added `VersionInfoVersion=2.1.1` (plus `VersionInfoProductVersion`, company, description,
+copyright) to `AgentX-Setup.iss`, so the generated `setup.exe` carries a real Win32 FileVersion.
+
+### 5. Installer created an unused data directory — RESOLVED
+Removed the `ForceDirectories(...\AgentX\Data)` call from `CurStepChanged`. The app's database
+lives at `%LOCALAPPDATA%\AgentX\agentx.db`; only `Logs\` and `Models\` are created now.
+
+### 6. `licenses` table vs. DropLicensesTable migration — RESOLVED (verified not a runtime defect)
+Empirical check: a new regression test
+(`MigrationRunnerTests.RunAsync_on_fresh_database_does_not_leave_the_licenses_table`) runs the
+real `MigrationRunner` against a fresh database and asserts **zero** `licenses` tables — it
+passes. `InitialBaseline` creates the table and the trailing `DropLicensesTable` drops it; the
+EF model snapshot no longer defines the entity. The previous register's hypotheses (no-op drop /
+snapshot defines it / baseline recreates it) did **not** reproduce. The create-then-drop on a
+fresh install is harmless (microseconds on an empty table) and the migration must stay for
+upgraders that still hold the table.
+
+### 7. Migration runner logged `created=false` on a fresh install — RESOLVED
+`MigrationRunner` now derives `DatabaseCreated` from **actual schema presence** (no
+`__EFMigrationsHistory` and no application tables before the run) rather than `CanConnectAsync()`,
+which was always true because `EnsureKeyApplied()` pre-creates the empty `.db` file at startup.
+A new regression test asserts `DatabaseCreated == true` for a freshly-opened empty database file.
+
+### 8. Belief-conflict acknowledgement was not persisted — RESOLVED
+Added `ITemporalIdentityService.AcknowledgeConflictAsync(conflictId)`, which sets
+`HasBeenAcknowledged` + `AcknowledgedAt` and calls `SaveChangesAsync`. `DashboardViewModel`'s
+command is `async` again and awaits it. A service test proves an acknowledged conflict no longer
+returns from `GetBeliefConflictsAsync` after a simulated restart (fresh context).
+
+### 9. GUI/JS smoke tests were manual — RESOLVED
+The two skipped Playwright tests in `JsRenderingServiceTests` are now **hermetic** (served from a
+local loopback `HttpListener`, no live `example.com`) and `SkippableFact`s: they run wherever a
+Playwright browser is installed and skip gracefully otherwise. A new CI workflow
+(`.github/workflows/build-test.yml`) builds Core + Tests on Windows, runs
+`playwright install chromium`, and executes the full suite — so they are automated on every push.
 
 ---
 
-## Application
+## Testing / Tooling (carried forward)
 
-### 8. Belief-conflict acknowledgement is not persisted
-`DashboardViewModel.AcknowledgeConflictAsync` sets
-`OriginalConflict.HasBeenAcknowledged = true` in memory and removes the item from
-the displayed collection, but **never calls `SaveChangesAsync`** — and there is no
-acknowledge method on `ITemporalIdentityService`. Because `GetBeliefConflictsAsync`
-filters `!HasBeenAcknowledged` at the database level, **acknowledged conflicts
-reappear after an app restart**.
-- **Fix:** add a service method that persists the acknowledgement
-  (`HasBeenAcknowledged` + `AcknowledgedAt`, then `SaveChangesAsync`) and `await`
-  it from the view model (the command can return to being `async` at that point).
-
----
-
-## Testing / Tooling
-
-### 9. GUI smoke tests are manual
-Two Playwright/GUI tests are skipped in automated runs (manual execution). The
-WinUI presentation layer is otherwise exercised through ViewModel tests. Run the
-manual checklist at [`docs/a2-smoke-test-checklist.md`](a2-smoke-test-checklist.md)
-before wide distribution.
+- **GUI presentation layer** (WinUI XAML rendering) is still verified primarily through ViewModel
+  and service tests plus the manual checklist at
+  [`docs/a2-smoke-test-checklist.md`](a2-smoke-test-checklist.md). The first-run model-download
+  flow (Onboarding Step 3) is exercised by `BuiltInModelBootstrap` unit tests at the service layer;
+  the live dialog should get a manual pass before wide distribution.
+- `dotnet test` can leave the xUnit host hanging after tests pass (native SQLitePCLRaw / LLamaSharp
+  handles) — always pass `--blame-hang-timeout`.

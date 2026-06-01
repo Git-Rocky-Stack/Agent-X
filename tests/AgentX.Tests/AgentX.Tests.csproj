@@ -30,6 +30,10 @@
     <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
     <PackageReference Include="xunit" Version="2.9.2" />
+    <!-- Runtime-skippable facts: the JS-rendering integration tests run when a Playwright
+         browser is installed (CI installs it) and skip gracefully otherwise, so a developer
+         machine without `playwright install` still gets a green suite. -->
+    <PackageReference Include="Xunit.SkippableFact" Version="1.5.23" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

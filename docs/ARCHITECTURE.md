@@ -119,7 +119,7 @@ Agent-X/
 │       ├── Search/                    # Search pipeline tests
 │       └── Services/                  # Chat, indexing, and intelligence tests
 ├── installer/
-│   └── AgentX.iss                     # Inno Setup installation script
+│   └── AgentX-Setup.iss               # Inno Setup script (SLIM + OFFLINE profiles)
 ├── publish/
 │   └── win-x64/                       # Self-contained published binaries
 └── docs/                              # This documentation
@@ -1625,11 +1625,14 @@ Pure rendering surfaces still rely on manual or integration verification where a
 
 ## 16. Deployment and Distribution
 
-The application is distributed as a self-contained Windows installer built with Inno Setup (`installer/AgentX.iss`).
+The application is distributed as a self-contained Windows installer built with Inno Setup (`installer/AgentX-Setup.iss`). The single script produces two profiles via the `AgentXOffline` preprocessor flag:
+
+- **SLIM** (default) — no bundled model (~180 MB), small enough to attach to a GitHub Release. The app downloads the built-in Llama 3.2 3B model on first run (`BuiltInModelBootstrap`); cloud API keys work immediately.
+- **OFFLINE** (`ISCC /DAgentXOffline=1`) — bundles the ~1.9 GB model for fully-offline first run. The model is flagged `uninsneveruninstall` so an uninstall leaves it in place. The >2 GiB asset is hosted on Cloudflare R2 and linked from the release notes.
 
 **Build pipeline:**
 1. `dotnet publish -c Release -r win-x64 --self-contained true` produces the `publish/win-x64/` directory with all required .NET runtime files bundled.
-2. Inno Setup compiles the installer from `AgentX.iss`, packaging the publish output into `installer-output/AgentX-Setup-1.0.0-x64.exe`.
+2. Inno Setup compiles the installer from `AgentX-Setup.iss`, packaging the publish output into `installer-output/AgentX-Setup-2.1.1-x64.exe` (SLIM) and, with `/DAgentXOffline=1`, `installer-output/AgentX-Setup-2.1.1-x64-offline.exe` (OFFLINE).
 
 **Installer behavior:**
 - Installs to `%ProgramFiles%/AgentX/` by default.

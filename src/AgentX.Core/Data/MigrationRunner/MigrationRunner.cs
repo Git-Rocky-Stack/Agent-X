@@ -184,21 +184,29 @@ public sealed class MigrationRunner : IMigrationRunner
     private async Task<MigrationResult> RunCoreAsync(CancellationToken cancellationToken)
     {
         var dbPath = ExtractDbPath(_context);
-        var databaseExistedBefore = await _context.Database.CanConnectAsync(cancellationToken);
+
+        // Determine the database's prior state from actual SCHEMA presence, not from
+        // file/connection existence. App startup opens the SQLite connection
+        // (EnsureKeyApplied applies the SQLCipher PRAGMA) BEFORE this runner, which creates
+        // an empty .db file on disk — so CanConnectAsync() reports "true" even on a genuinely
+        // fresh install. A database "existed" for our purposes only when it already carries a
+        // real schema: an EF history table, or at least one application table. Deriving the
+        // signal this way keeps MigrationResult.DatabaseCreated accurate (true on a fresh
+        // install, where this run creates the full schema) and is exactly the condition the
+        // baseline-adoption gate below needs.
+        var hadHistoryTable = await HasMigrationsHistoryTableAsync(cancellationToken);
+        var hadApplicationTables = await HasApplicationTablesAsync(cancellationToken);
+        var databaseExistedBefore = hadHistoryTable || hadApplicationTables;
 
         List<string> adoptedMigrations = [];
         // Baseline adoption is ONLY for a genuine pre-migration install: a database that
         // already contains application tables (from an old EnsureCreated build) but has no
-        // __EFMigrationsHistory. A brand-new database can also look "existing" here, because
-        // opening the connection before this point — EnsureKeyApplied applies the SQLCipher
-        // PRAGMA on startup — creates an empty .db file. Adopting the baseline against that
-        // empty file stamps migrations as applied WITHOUT creating any tables, so MigrateAsync
-        // then skips the table-creating baseline and the app fails every query with
-        // "no such table". Gate on real schema presence so an empty database instead flows
-        // through MigrateAsync and receives the full schema.
-        if (databaseExistedBefore
-            && !await HasMigrationsHistoryTableAsync(cancellationToken)
-            && await HasApplicationTablesAsync(cancellationToken))
+        // __EFMigrationsHistory. A brand-new, empty .db file (no history, no app tables) — the
+        // one EnsureKeyApplied leaves behind — must NOT adopt the baseline: doing so stamps
+        // migrations as applied WITHOUT creating any tables, so MigrateAsync skips the
+        // table-creating baseline and the app fails every query with "no such table". Such an
+        // empty database instead falls through to MigrateAsync and receives the full schema.
+        if (hadApplicationTables && !hadHistoryTable)
         {
             adoptedMigrations = (await AdoptBaselineAsync(cancellationToken)).ToList();
         }

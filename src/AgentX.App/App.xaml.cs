@@ -371,6 +371,19 @@ public partial class App : Application
         services.AddSingleton<IAiService, AiService>();
         services.AddSingleton<ICostTracker, CostTracker>();
         services.AddSingleton<IModelManager, ModelManager>();
+        // Built-in model bootstrap — the SLIM installer ships without the ~1.9 GB GGUF, so the
+        // app fetches it on first run. Resolves to the same Models dir / file name the local
+        // provider reads from. Cloud providers never need this; OFFLINE installs find it present.
+        services.AddSingleton<IBuiltInModelBootstrap>(sp =>
+        {
+            var settings = sp.GetRequiredService<ISettingsService>().GetSettingsAsync().GetAwaiter().GetResult();
+            var modelsDir = System.IO.Path.Combine(settings.StoragePath, "Models");
+            return new BuiltInModelBootstrap(
+                new System.Net.Http.HttpClient { Timeout = AgentX.Core.Constants.AppConstants.ModelDownloadTimeout },
+                modelsDir,
+                sp.GetRequiredService<Serilog.ILogger>(),
+                modelFileName: settings.LocalModelFileName);
+        });
         services.AddSingleton<IHardwareDetector, HardwareDetector>();
 
         // Token counter for accurate context window budgeting

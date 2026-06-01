@@ -106,6 +106,72 @@ public class MigrationRunnerTests
     }
 
     [Fact]
+    public async Task RunAsync_reports_DatabaseCreated_true_when_schema_absent_despite_preopened_file()
+    {
+        // Regression for KNOWN-ISSUE #7: app startup opens the connection (EnsureKeyApplied
+        // applies the SQLCipher PRAGMA) BEFORE the runner, creating an empty .db file. The
+        // previous implementation derived DatabaseCreated from CanConnectAsync(), which is true
+        // for that empty file, so a genuinely fresh install was mis-reported as created=false.
+        // DatabaseCreated must reflect whether this run created the SCHEMA, derived from real
+        // table presence — a freshly-opened empty file still means "created on this run".
+        var (ctx, dbPath) = CreateContextAtTempPath();
+        try
+        {
+            await ctx.Database.OpenConnectionAsync();
+            await ctx.Database.CloseConnectionAsync();
+            File.Exists(dbPath).Should().BeTrue("opening the connection creates the empty db file");
+
+            IMigrationRunner runner = new Core.Data.MigrationRunner.MigrationRunner(ctx);
+            var result = await runner.RunAsync();
+
+            result.DatabaseCreated.Should().BeTrue(
+                "an empty pre-created file carries no schema, so this run created the database");
+            result.AppliedMigrations.Should().Contain(m => m.EndsWith("_InitialBaseline"));
+        }
+        finally
+        {
+            await ctx.DisposeAsync();
+            SqliteConnection.ClearAllPools();
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
+    public async Task RunAsync_on_fresh_database_does_not_leave_the_licenses_table()
+    {
+        // Regression for KNOWN-ISSUE #6: Agent-X is fully free, so 20260528120000_DropLicensesTable
+        // removes the licenses table. InitialBaseline still CREATES it (it must — so the drop has a
+        // target on every historical install and so the migration stays reversible), but a fresh
+        // install applies all migrations in order and the trailing DropLicensesTable removes it
+        // again. The resulting schema must therefore contain NO licenses table.
+        var (ctx, dbPath) = CreateContextAtTempPath();
+        try
+        {
+            IMigrationRunner runner = new Core.Data.MigrationRunner.MigrationRunner(ctx);
+            await runner.RunAsync();
+
+            await using var cmd = ctx.Database.GetDbConnection().CreateCommand();
+            await ctx.Database.OpenConnectionAsync();
+            try
+            {
+                cmd.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='licenses';";
+                var licensesTables = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+                licensesTables.Should().Be(0, "DropLicensesTable must leave no licenses table on a fresh install");
+            }
+            finally
+            {
+                await ctx.Database.CloseConnectionAsync();
+            }
+        }
+        finally
+        {
+            await ctx.DisposeAsync();
+            SqliteConnection.ClearAllPools();
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
     public async Task RunAsync_on_up_to_date_database_applies_nothing()
     {
         var (ctx, dbPath) = CreateContextAtTempPath();

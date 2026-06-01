@@ -52,6 +52,16 @@ public interface ITemporalIdentityService
     Task<List<BeliefConflictEntity>> GetBeliefConflictsAsync(
         CancellationToken ct = default);
 
+    /// <summary>
+    /// Acknowledge (dismiss) a detected belief conflict so it is no longer resurfaced.
+    /// Persists <c>HasBeenAcknowledged</c> + <c>AcknowledgedAt</c> to the database;
+    /// <see cref="GetBeliefConflictsAsync"/> filters acknowledged conflicts out, so without
+    /// this persistence a dismissed conflict reappears after an app restart.
+    /// </summary>
+    /// <param name="conflictId">The id of the <c>BeliefConflictEntity</c> to acknowledge.</param>
+    /// <returns><c>true</c> if the conflict existed and is now acknowledged; <c>false</c> if no such conflict was found.</returns>
+    Task<bool> AcknowledgeConflictAsync(long conflictId, CancellationToken ct = default);
+
     // ─── Insight Harvesting ─────────────────────────────────────────────────────
 
     /// <summary>

@@ -184,25 +184,40 @@ public sealed class LocalLlmProvider : IAiProvider
         var totalBytes = response.Content.Headers.ContentLength ?? -1;
         var downloadedBytes = 0L;
 
-        await using var contentStream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
-        await using var fileStream = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None,
-            bufferSize: AppConstants.FileStreamBufferSize, useAsync: true);
-
-        var buffer = new byte[AppConstants.FileStreamBufferSize];
-        int bytesRead;
-
-        while ((bytesRead = await contentStream.ReadAsync(buffer, ct).ConfigureAwait(false)) > 0)
+        // Download to a temporary .part file and atomically move it into place on success, so an
+        // interrupted or failed download never leaves a truncated .gguf that File.Exists would
+        // treat as a usable model. The partial is removed on any failure or cancellation.
+        var partPath = targetPath + ".part";
+        try
         {
-            await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), ct).ConfigureAwait(false);
-            downloadedBytes += bytesRead;
-
-            progress?.Report(new ModelDownloadProgress
+            await using (var contentStream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false))
+            await using (var fileStream = new FileStream(partPath, FileMode.Create, FileAccess.Write, FileShare.None,
+                bufferSize: AppConstants.FileStreamBufferSize, useAsync: true))
             {
-                ModelId = modelName,
-                Status = "Downloading...",
-                CompletedBytes = downloadedBytes,
-                TotalBytes = totalBytes
-            });
+                var buffer = new byte[AppConstants.FileStreamBufferSize];
+                int bytesRead;
+
+                while ((bytesRead = await contentStream.ReadAsync(buffer, ct).ConfigureAwait(false)) > 0)
+                {
+                    await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), ct).ConfigureAwait(false);
+                    downloadedBytes += bytesRead;
+
+                    progress?.Report(new ModelDownloadProgress
+                    {
+                        ModelId = modelName,
+                        Status = "Downloading...",
+                        CompletedBytes = downloadedBytes,
+                        TotalBytes = totalBytes
+                    });
+                }
+            }
+
+            File.Move(partPath, targetPath, overwrite: true);
+        }
+        catch
+        {
+            TryDeletePartial(partPath);
+            throw;
         }
 
         _logger.Information("Model downloaded: {Model} ({Size} bytes)", modelName, downloadedBytes);
@@ -580,6 +595,18 @@ public sealed class LocalLlmProvider : IAiProvider
 
         _logger.Debug("No NVIDIA GPU detected; using CPU-only inference");
         return 0;
+    }
+
+    private void TryDeletePartial(string path)
+    {
+        try
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+        catch (Exception ex)
+        {
+            _logger.Debug(ex, "Could not delete partial model download {Path}", path);
+        }
     }
 
     private void ThrowIfDisposed()

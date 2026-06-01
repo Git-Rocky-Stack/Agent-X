@@ -1,0 +1,68 @@
+name: Build & Test
+
+# Builds AgentX.Core + AgentX.Tests and runs the full unit-test suite on Windows.
+# Installs the Playwright Chromium browser so the JS-rendering integration tests
+# (SkippableFacts) actually execute in CI instead of being skipped.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/AgentX.Tests/**'
+      - 'Directory.Build.props'
+      - 'global.json'
+      - '.github/workflows/build-test.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/AgentX.Tests/**'
+      - 'Directory.Build.props'
+      - 'global.json'
+      - '.github/workflows/build-test.yml'
+
+jobs:
+  test:
+    name: Build + unit tests (Windows, x64)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore tests/AgentX.Tests/AgentX.Tests.csproj
+
+      - name: Build (Release, x64)
+        run: dotnet build tests/AgentX.Tests/AgentX.Tests.csproj --configuration Release -p:Platform=x64 --no-restore
+
+      - name: Install Playwright Chromium
+        shell: pwsh
+        run: |
+          $script = Get-ChildItem -Path tests/AgentX.Tests/bin -Recurse -Filter playwright.ps1 |
+                    Select-Object -First 1
+          if ($null -eq $script) {
+            Write-Error "playwright.ps1 not found in build output."
+            exit 1
+          }
+          Write-Host "Installing Chromium via $($script.FullName)"
+          & $script.FullName install chromium
+
+      - name: Test (Release, x64)
+        run: >
+          dotnet test tests/AgentX.Tests/AgentX.Tests.csproj
+          --configuration Release -p:Platform=x64 --no-build
+          --blame-hang-timeout 5m
+          --logger "trx;LogFileName=test-results.trx"
+          --logger "console;verbosity=normal"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/TestResults/*.trx'

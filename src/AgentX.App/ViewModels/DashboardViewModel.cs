@@ -872,14 +872,18 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private Task AcknowledgeConflictAsync(BeliefConflictDisplayItem? conflict)
+    private async Task AcknowledgeConflictAsync(BeliefConflictDisplayItem? conflict)
     {
-        if (conflict is null) return Task.CompletedTask;
+        if (conflict is null) return;
 
         try
         {
+            // Persist the acknowledgement. GetBeliefConflictsAsync filters out acknowledged
+            // conflicts at the database level, so without this the dismissed conflict would
+            // reappear on the next app launch (KNOWN-ISSUE #8).
             if (conflict.OriginalConflict is not null)
             {
+                await _temporalIdentity.AcknowledgeConflictAsync(conflict.OriginalConflict.Id);
                 conflict.OriginalConflict.HasBeenAcknowledged = true;
                 conflict.OriginalConflict.AcknowledgedAt = DateTime.UtcNow;
             }
@@ -901,8 +905,6 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         {
             Log.Warning(ex, "Failed to acknowledge belief conflict");
         }
-
-        return Task.CompletedTask;
     }
 
     [RelayCommand]
