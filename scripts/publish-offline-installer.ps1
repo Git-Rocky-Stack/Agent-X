@@ -28,8 +28,9 @@
     R2 bucket name. Defaults to env AGENTX_R2_BUCKET or "agentx-releases".
 
 .PARAMETER PublicBaseUrl
-    Public base URL of the bucket (the r2.dev URL or a custom domain), used to print the final
-    link. Defaults to env AGENTX_R2_PUBLIC_BASE_URL.
+    Public base URL of the bucket (a custom domain or the r2.dev URL), used to print the final
+    link. Defaults to env AGENTX_R2_PUBLIC_BASE_URL, then to the production custom domain
+    https://downloads.strategia-x.com (connected to the agentx-releases bucket).
 
 .PARAMETER InstallerPath
     Path to the offline installer. Defaults to the standard build output for this version.
@@ -41,15 +42,14 @@
     $env:R2_ACCESS_KEY_ID      = '...'
     $env:R2_SECRET_ACCESS_KEY  = '...'
     $env:CLOUDFLARE_ACCOUNT_ID = '0d75974a4b80a0be4800c64715d4f1f5'
-    ./publish-offline-installer.ps1 -Version 2.1.1 `
-        -PublicBaseUrl 'https://pub-4c881f88ef3b494182e22819a646363a.r2.dev'
+    ./publish-offline-installer.ps1 -Version 2.1.1   # prints https://downloads.strategia-x.com/v2.1.1/...
 #>
 
 [CmdletBinding()]
 param(
     [string]$Version = "2.1.1",
     [string]$Bucket = $(if ($env:AGENTX_R2_BUCKET) { $env:AGENTX_R2_BUCKET } else { "agentx-releases" }),
-    [string]$PublicBaseUrl = $env:AGENTX_R2_PUBLIC_BASE_URL,
+    [string]$PublicBaseUrl = $(if ($env:AGENTX_R2_PUBLIC_BASE_URL) { $env:AGENTX_R2_PUBLIC_BASE_URL } else { "https://downloads.strategia-x.com" }),
     [string]$InstallerPath,
     [switch]$DryRun
 )
