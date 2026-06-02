@@ -1,39 +1,48 @@
 <#
 .SYNOPSIS
-    Uploads the OFFLINE Agent-X installer (model-bundled, ~2 GB) to Cloudflare R2.
+    Uploads the OFFLINE Agent-X installer (model-bundled, ~2 GB) to Cloudflare R2 via rclone.
 
 .DESCRIPTION
     The OFFLINE installer exceeds GitHub Releases' 2 GiB per-asset limit, so it is hosted on
     Cloudflare R2 and linked from the release notes (the SLIM installer is the GitHub asset).
-    This script uploads the file with `wrangler r2 object put` and prints the public URL to put
-    in the release notes.
 
-    Credentials are read from the environment — nothing secret is stored in the repo:
-      CLOUDFLARE_API_TOKEN    R2-scoped API token (Object Read & Write).
-      CLOUDFLARE_ACCOUNT_ID   Cloudflare account id.
+    Wrangler's `r2 object put` is capped at 315 MB and is therefore NOT usable here — Cloudflare
+    recommends an S3-compatible tool with multipart support. This script uses **rclone** (auto
+    multipart, resumable) against R2's S3 endpoint.
 
-    Requires the Wrangler CLI (`npm i -g wrangler` or `npx wrangler`).
+    Credentials are read from the environment — nothing secret is stored in the repo. Create an
+    R2 API token in the dashboard (R2 -> Manage R2 API Tokens -> Create, Object Read & Write),
+    which yields the S3 Access Key ID + Secret, then set:
+      R2_ACCESS_KEY_ID        S3 Access Key ID from the R2 API token.
+      R2_SECRET_ACCESS_KEY    S3 Secret Access Key from the R2 API token.
+      CLOUDFLARE_ACCOUNT_ID   Account id (forms the S3 endpoint https://<id>.r2.cloudflarestorage.com).
+
+    Requires rclone (https://rclone.org). The bucket itself is created with wrangler:
+      wrangler r2 bucket create agentx-releases
+      wrangler r2 bucket dev-url enable agentx-releases   # public r2.dev URL
+
+.PARAMETER Version
+    Version string used in the object key. Defaults to 2.1.1.
 
 .PARAMETER Bucket
     R2 bucket name. Defaults to env AGENTX_R2_BUCKET or "agentx-releases".
 
 .PARAMETER PublicBaseUrl
-    Public base URL for the bucket (r2.dev domain or a custom domain), used only to print the
-    final link. Defaults to env AGENTX_R2_PUBLIC_BASE_URL.
+    Public base URL of the bucket (the r2.dev URL or a custom domain), used to print the final
+    link. Defaults to env AGENTX_R2_PUBLIC_BASE_URL.
 
 .PARAMETER InstallerPath
     Path to the offline installer. Defaults to the standard build output for this version.
-
-.PARAMETER Version
-    Version string used in the object key. Defaults to 2.1.1.
 
 .PARAMETER DryRun
     Print the planned action without uploading.
 
 .EXAMPLE
-    $env:CLOUDFLARE_API_TOKEN  = '...'
-    $env:CLOUDFLARE_ACCOUNT_ID = '...'
-    ./publish-offline-installer.ps1 -Version 2.1.1 -PublicBaseUrl 'https://downloads.strategia-x.com'
+    $env:R2_ACCESS_KEY_ID      = '...'
+    $env:R2_SECRET_ACCESS_KEY  = '...'
+    $env:CLOUDFLARE_ACCOUNT_ID = '0d75974a4b80a0be4800c64715d4f1f5'
+    ./publish-offline-installer.ps1 -Version 2.1.1 `
+        -PublicBaseUrl 'https://pub-4c881f88ef3b494182e22819a646363a.r2.dev'
 #>
 
 [CmdletBinding()]
@@ -58,31 +67,57 @@ if (-not (Test-Path $InstallerPath)) {
     exit 1
 }
 
-$fileSizeGB = [math]::Round((Get-Item $InstallerPath).Length / 1GB, 2)
-$objectKey = "v$Version/AgentX-Setup-$Version-x64-offline.exe"
-
-Write-Host ""
-Write-Host "Agent-X OFFLINE installer -> Cloudflare R2"
-Write-Host "==========================================="
-Write-Host "File:        $InstallerPath ($fileSizeGB GB)"
-Write-Host "Bucket:      $Bucket"
-Write-Host "Object key:  $objectKey"
-Write-Host ""
-
-if (-not $env:CLOUDFLARE_API_TOKEN -or -not $env:CLOUDFLARE_ACCOUNT_ID) {
-    Write-Error "Set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID before running (R2-scoped token)."
+if (-not (Get-Command rclone -ErrorAction SilentlyContinue)) {
+    Write-Error "rclone not found. Install it (https://rclone.org/downloads/ or 'winget install Rclone.Rclone')."
     exit 1
 }
 
+$missing = @()
+foreach ($v in 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'CLOUDFLARE_ACCOUNT_ID') {
+    if (-not (Get-Item "env:$v" -ErrorAction SilentlyContinue)) { $missing += $v }
+}
+if ($missing.Count -gt 0) {
+    Write-Error ("Set these env vars first (from an R2 API token): " + ($missing -join ', ') + @"
+
+  Cloudflare dashboard -> R2 -> Manage R2 API Tokens -> Create API token (Object Read & Write).
+  The token page shows the S3 Access Key ID + Secret Access Key and the endpoint.
+"@)
+    exit 1
+}
+
+$fileSizeGB = [math]::Round((Get-Item $InstallerPath).Length / 1GB, 2)
+$objectKey = "v$Version/AgentX-Setup-$Version-x64-offline.exe"
+$endpoint = "https://$($env:CLOUDFLARE_ACCOUNT_ID).r2.cloudflarestorage.com"
+
+Write-Host ""
+Write-Host "Agent-X OFFLINE installer -> Cloudflare R2 (rclone, multipart)"
+Write-Host "==============================================================="
+Write-Host "File:        $InstallerPath ($fileSizeGB GB)"
+Write-Host "Bucket:      $Bucket"
+Write-Host "Object key:  $objectKey"
+Write-Host "Endpoint:    $endpoint"
+Write-Host ""
+
+# rclone on-the-fly :s3: remote — no config file, credentials passed as flags from env.
+$rcloneArgs = @(
+    'copyto', $InstallerPath, ":s3:$Bucket/$objectKey",
+    '--s3-provider', 'Cloudflare',
+    '--s3-access-key-id', $env:R2_ACCESS_KEY_ID,
+    '--s3-secret-access-key', $env:R2_SECRET_ACCESS_KEY,
+    '--s3-endpoint', $endpoint,
+    '--s3-no-check-bucket',
+    '--s3-upload-concurrency', '4',
+    '--s3-chunk-size', '128M',
+    '--progress'
+)
+
 if ($DryRun) {
-    Write-Host "[DryRun] Would run: wrangler r2 object put $Bucket/$objectKey --file `"$InstallerPath`" --content-type application/vnd.microsoft.portable-executable"
+    Write-Host "[DryRun] rclone copyto `"$InstallerPath`" :s3:$Bucket/$objectKey --s3-provider Cloudflare --s3-endpoint $endpoint ..."
 } else {
-    Write-Host "Uploading (this transfers ~$fileSizeGB GB)..."
-    & wrangler r2 object put "$Bucket/$objectKey" `
-        --file "$InstallerPath" `
-        --content-type "application/vnd.microsoft.portable-executable"
+    Write-Host "Uploading (~$fileSizeGB GB via multipart)..."
+    & rclone @rcloneArgs
     if ($LASTEXITCODE -ne 0) {
-        Write-Error "wrangler upload failed (exit $LASTEXITCODE)."
+        Write-Error "rclone upload failed (exit $LASTEXITCODE)."
         exit $LASTEXITCODE
     }
     Write-Host "Upload complete."
