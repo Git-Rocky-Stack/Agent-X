@@ -6,6 +6,8 @@ using System.Text.Json;
 using AgentX.Core.Constants;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Helpers;
+using AgentX.Core.Validation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -47,6 +49,7 @@ public sealed class PluginService : IPluginService
 
     private readonly AgentXDbContext _dbContext;
     private readonly IServiceProvider _rootServiceProvider;
+    private readonly IValidator<PluginManifest> _manifestValidator;
     private readonly ILogger _log;
 
     /// <summary>
@@ -77,15 +80,25 @@ public sealed class PluginService : IPluginService
     /// <see cref="AgentX.Core.Services.OAuth.IOAuthService"/>) for injection into the
     /// plugin-scoped container. Must not be null.
     /// </param>
+    /// <param name="manifestValidator">
+    /// Strict <see cref="IValidator{T}"/> for <see cref="PluginManifest"/>, applied to every
+    /// package manifest before extraction. Rejects path-injection in the plugin ID and entry
+    /// assembly name. Must not be null.
+    /// </param>
     /// <param name="logger">
     /// The application-level Serilog <see cref="ILogger"/>. A context-specific child logger
     /// enriched with <c>SourceContext=PluginService</c> is derived via
     /// <see cref="Log.ForContext{T}()"/>.
     /// </param>
-    public PluginService(AgentXDbContext dbContext, IServiceProvider rootServiceProvider, ILogger logger)
+    public PluginService(
+        AgentXDbContext dbContext,
+        IServiceProvider rootServiceProvider,
+        IValidator<PluginManifest> manifestValidator,
+        ILogger logger)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _rootServiceProvider = rootServiceProvider ?? throw new ArgumentNullException(nameof(rootServiceProvider));
+        _manifestValidator = manifestValidator ?? throw new ArgumentNullException(nameof(manifestValidator));
         _log = logger?.ForContext<PluginService>()
                ?? throw new ArgumentNullException(nameof(logger));
 
@@ -121,9 +134,15 @@ public sealed class PluginService : IPluginService
         if (!File.Exists(packagePath))
             throw new FileNotFoundException($"Plugin package not found: {packagePath}", packagePath);
 
-        // ── Step 1: read and validate manifest from the archive ────────────────
+        // ── Step 1: read and strictly validate manifest from the archive ───────
         var manifest = await ReadManifestFromPackageAsync(packagePath).ConfigureAwait(false);
-        ValidateManifest(manifest);
+
+        var validation = _manifestValidator.Validate(manifest);
+        if (!validation.IsValid)
+        {
+            var details = string.Join(" ", validation.Errors.Select(e => $"{e.FieldName}: {e.Message}"));
+            throw new InvalidOperationException($"Plugin manifest is invalid: {details}");
+        }
 
         _log.Information(
             "Manifest validated. PluginId={PluginId} Name={Name} Version={Version} Author={Author}",
@@ -255,10 +274,21 @@ public sealed class PluginService : IPluginService
         await DeactivateAndUnloadAsync(entity.PluginId).ConfigureAwait(false);
 
         // ── Step 2: delete all files on disk ──────────────────────────────────
+        // Containment guard: only ever recursively delete a directory that lives under the
+        // plugin base directory, so a malformed stored InstallPath cannot wipe arbitrary paths.
         if (!string.IsNullOrEmpty(entity.InstallPath) && Directory.Exists(entity.InstallPath))
         {
-            _log.Information("Deleting plugin directory {InstallPath}", entity.InstallPath);
-            DeleteDirectoryQuietly(entity.InstallPath);
+            if (PathHelper.IsPathContained(GetPluginBaseDirectory(), entity.InstallPath))
+            {
+                _log.Information("Deleting plugin directory {InstallPath}", entity.InstallPath);
+                DeleteDirectoryQuietly(entity.InstallPath);
+            }
+            else
+            {
+                _log.Error(
+                    "Refusing to delete plugin directory outside the plugin base directory: {InstallPath}",
+                    entity.InstallPath);
+            }
         }
 
         // ── Step 3: remove the database record ────────────────────────────────
@@ -298,6 +328,13 @@ public sealed class PluginService : IPluginService
             // ── Locate and load the entry assembly ────────────────────────────
             var entryAssemblyName = GetEntryAssemblyName(entity);
             var entryDllPath = Path.Combine(entity.InstallPath, entryAssemblyName);
+
+            // Hard guard: the resolved assembly path must stay inside the plugin's install
+            // directory. GetEntryAssemblyName already rejects non-bare names; this is the
+            // last line of defense before loading executable code into the process.
+            if (!PathHelper.IsPathContained(entity.InstallPath, entryDllPath))
+                throw new InvalidOperationException(
+                    $"Refusing to load plugin entry assembly outside its install directory: '{entryDllPath}'.");
 
             if (!File.Exists(entryDllPath))
                 throw new InvalidOperationException(
@@ -560,29 +597,6 @@ public sealed class PluginService : IPluginService
         return manifest;
     }
 
-    /// <summary>
-    /// Validates that all mandatory manifest fields are present and non-empty.
-    /// Throws <see cref="InvalidOperationException"/> with a consolidated error message
-    /// listing every violation if any required field is missing.
-    /// </summary>
-    private static void ValidateManifest(PluginManifest manifest)
-    {
-        var errors = new List<string>(4);
-
-        if (string.IsNullOrWhiteSpace(manifest.Id))
-            errors.Add("'id' is required.");
-        if (string.IsNullOrWhiteSpace(manifest.Name))
-            errors.Add("'name' is required.");
-        if (string.IsNullOrWhiteSpace(manifest.Version))
-            errors.Add("'version' is required.");
-        if (string.IsNullOrWhiteSpace(manifest.EntryAssembly))
-            errors.Add("'entryAssembly' is required.");
-
-        if (errors.Count > 0)
-            throw new InvalidOperationException(
-                $"Plugin manifest is invalid: {string.Join(" ", errors)}");
-    }
-
     // ── Private: file-system helpers ──────────────────────────────────────────
 
     /// <summary>
@@ -656,8 +670,23 @@ public sealed class PluginService : IPluginService
                 var json = File.ReadAllText(manifestPath);
                 var manifest = JsonSerializer.Deserialize<PluginManifest>(json, ManifestJsonOptions);
 
-                if (!string.IsNullOrWhiteSpace(manifest?.EntryAssembly))
-                    return manifest.EntryAssembly;
+                // Only trust the on-disk manifest's entry assembly when it is a bare .dll file
+                // name. A tampered manifest with a path/traversal value falls back to the derived
+                // name and is, in any case, re-checked for containment at load time.
+                var declared = manifest?.EntryAssembly;
+                if (!string.IsNullOrWhiteSpace(declared)
+                    && PathHelper.IsBareFileName(declared)
+                    && declared.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                {
+                    return declared;
+                }
+
+                if (!string.IsNullOrWhiteSpace(declared))
+                {
+                    Log.Warning(
+                        "Ignoring unsafe entryAssembly '{EntryAssembly}' in manifest for plugin '{PluginId}' — using derived name",
+                        declared, entity.PluginId);
+                }
             }
             catch (Exception ex)
             {
@@ -722,7 +751,7 @@ public sealed class PluginService : IPluginService
     /// The plugin ID is sanitized to replace characters invalid in directory names.
     /// </summary>
     private static string GetPluginInstallPath(string pluginId) =>
-        Path.Combine(GetPluginBaseDirectory(), SanitizeDirectorySegment(pluginId));
+        PathHelper.ResolveContainedPath(GetPluginBaseDirectory(), SanitizeDirectorySegment(pluginId));
 
     /// <summary>
     /// Returns the absolute path to the plugin's private data directory:

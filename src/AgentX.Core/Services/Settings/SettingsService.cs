@@ -60,6 +60,24 @@ public class SettingsService : ISettingsService
                         needsMigration = true;
                 }
 
+                // Decrypt the web search provider key (Brave/Serper), same as other provider secrets
+                if (!string.IsNullOrEmpty(_cachedSettings.WebSearchApiKey))
+                {
+                    if (_encryptionService.IsEncrypted(_cachedSettings.WebSearchApiKey))
+                        _cachedSettings.WebSearchApiKey = _encryptionService.Decrypt(_cachedSettings.WebSearchApiKey);
+                    else
+                        needsMigration = true;
+                }
+
+                // Decrypt the local REST API token (bearer secret for the browser extension)
+                if (!string.IsNullOrEmpty(_cachedSettings.LocalApiToken))
+                {
+                    if (_encryptionService.IsEncrypted(_cachedSettings.LocalApiToken))
+                        _cachedSettings.LocalApiToken = _encryptionService.Decrypt(_cachedSettings.LocalApiToken);
+                    else
+                        needsMigration = true;
+                }
+
                 // Decrypt OAuth client secrets
                 if (!string.IsNullOrEmpty(_cachedSettings.OAuth.Google.ClientSecret))
                 {
@@ -114,6 +132,8 @@ public class SettingsService : ISettingsService
             var onDiskSettings = JsonSerializer.Deserialize<AppSettings>(json, JsonOptions)!;
             onDiskSettings.OpenAiApiKey = EncryptIfNotEmpty(settings.OpenAiApiKey);
             onDiskSettings.AnthropicApiKey = EncryptIfNotEmpty(settings.AnthropicApiKey);
+            onDiskSettings.WebSearchApiKey = EncryptIfNotEmpty(settings.WebSearchApiKey);
+            onDiskSettings.LocalApiToken = EncryptIfNotEmpty(settings.LocalApiToken);
             onDiskSettings.OAuth.Google.ClientSecret = EncryptIfNotEmpty(settings.OAuth.Google.ClientSecret) ?? string.Empty;
             onDiskSettings.OAuth.Microsoft.ClientSecret = EncryptIfNotEmpty(settings.OAuth.Microsoft.ClientSecret) ?? string.Empty;
 

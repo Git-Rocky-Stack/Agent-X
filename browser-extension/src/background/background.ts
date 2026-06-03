@@ -10,6 +10,31 @@ import { ExtractedPage } from '../content/extractors';
 
 const api = new AgentXApi();
 
+// ── API token (pairing) ─────────────────────────────────────────────────────
+// The desktop app requires a per-install bearer token on all data routes. The user
+// pairs by pasting it into the popup, which stores it under chrome.storage.local.apiToken.
+// Load it on startup and keep it in sync so clip requests are authenticated.
+
+const API_TOKEN_KEY = 'apiToken';
+
+async function loadApiToken(): Promise<void> {
+  try {
+    const stored = await chrome.storage.local.get<{ apiToken?: string }>(API_TOKEN_KEY);
+    api.setToken(stored.apiToken ?? null);
+  } catch {
+    api.setToken(null);
+  }
+}
+
+void loadApiToken();
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === 'local' && API_TOKEN_KEY in changes) {
+    const newValue = changes[API_TOKEN_KEY].newValue;
+    api.setToken(typeof newValue === 'string' ? newValue : null);
+  }
+});
+
 // ── Recent Clips Storage ────────────────────────────────────────────────────
 
 interface RecentClip {

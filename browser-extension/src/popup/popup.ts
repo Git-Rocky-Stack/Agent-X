@@ -16,6 +16,9 @@ const clipFullBtn = getButton('clipFull');
 const clipSelectionBtn = getButton('clipSelection');
 const clipReaderBtn = getButton('clipReader');
 const clipAllTabsBtn = getButton('clipAllTabs');
+const saveTokenBtn = getButton('saveToken');
+
+const API_TOKEN_KEY = 'apiToken';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -32,6 +35,7 @@ interface RecentClip {
 document.addEventListener('DOMContentLoaded', () => {
   void checkConnection();
   void loadRecentClips();
+  void loadApiToken();
   bindEvents();
 });
 
@@ -40,6 +44,46 @@ function bindEvents(): void {
   if (clipSelectionBtn) clipSelectionBtn.addEventListener('click', () => clipPage('selection'));
   if (clipReaderBtn) clipReaderBtn.addEventListener('click', () => clipPage('reader'));
   if (clipAllTabsBtn) clipAllTabsBtn.addEventListener('click', clipAllTabs);
+  if (saveTokenBtn) saveTokenBtn.addEventListener('click', saveApiToken);
+}
+
+// ── Pairing (API token) ──────────────────────────────────────────────────────
+
+function getTokenInput(): HTMLInputElement | null {
+  const element = document.getElementById('apiToken');
+  return element instanceof HTMLInputElement ? element : null;
+}
+
+async function loadApiToken(): Promise<void> {
+  const input = getTokenInput();
+  if (!input) return;
+
+  try {
+    const stored = await chrome.storage.local.get<{ apiToken?: string }>(API_TOKEN_KEY);
+    if (stored.apiToken) input.value = stored.apiToken;
+  } catch {
+    // Non-critical — leave the field empty.
+  }
+}
+
+async function saveApiToken(): Promise<void> {
+  const input = getTokenInput();
+  if (!input) return;
+
+  const token = input.value.trim();
+  try {
+    if (token.length === 0) {
+      await chrome.storage.local.remove(API_TOKEN_KEY);
+      showFeedback('Token cleared — extension unpaired.', 'info');
+    } else {
+      await chrome.storage.local.set({ [API_TOKEN_KEY]: token });
+      showFeedback('Paired with AgentX.', 'success');
+    }
+    // Re-probe so the status dot reflects the new pairing immediately.
+    await checkConnection();
+  } catch {
+    showFeedback('Could not save the token.', 'error');
+  }
 }
 
 // ── Connection Check ───────────────────────────────────────────────────────

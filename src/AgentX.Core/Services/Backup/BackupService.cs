@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using AgentX.Core.Constants;
 using AgentX.Core.Data;
+using AgentX.Core.Helpers;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Backup.Models;
 using AgentX.Core.Services.Settings;
@@ -22,9 +23,12 @@ namespace AgentX.Core.Services.Backup;
 ///   manifest.json       — metadata (version, counts, timestamps, app version)
 ///   documents/          — optional copy of files in the configured storage path
 ///
-/// Encryption: when a password is supplied the raw ZIP bytes are AES-256-CBC encrypted
-/// with a PBKDF2-derived key (100,000 iterations, SHA-256) and a random 16-byte IV.
-/// The IV is prepended to the cipher stream so the restore path can locate it.
+/// Encryption: when a password is supplied the raw ZIP bytes are encrypted with
+/// AES-256-GCM authenticated encryption (V2 format) using a PBKDF2-derived key
+/// (100,000 iterations, SHA-256), a random salt, and a random 96-bit nonce. The GCM
+/// authentication tag lets restore detect a wrong password or a tampered archive before
+/// it is opened. Legacy AES-256-CBC archives (V1) remain restorable for backward
+/// compatibility; see <see cref="DecryptBytes"/>.
 /// </summary>
 public sealed class BackupService : IBackupService
 {
@@ -39,7 +43,14 @@ public sealed class BackupService : IBackupService
     private const int AesBlockSize = AppConstants.AesBlockSizeBits;     // bits
     private const int Pbkdf2Iterations = AppConstants.Pbkdf2Iterations;
     private const int SaltSize = AppConstants.PbkdfSaltBytes;          // bytes
-    private const int IvSize = AppConstants.IvSizeBytes;               // bytes
+    private const int IvSize = AppConstants.IvSizeBytes;               // bytes (legacy CBC)
+    private const int GcmNonceSize = AppConstants.GcmNonceBytes;       // bytes (96-bit)
+    private const int GcmTagSize = AppConstants.GcmTagBytes;           // bytes (128-bit)
+
+    // Restore safety limits — defense-in-depth against archive ("zip") bombs. Generous
+    // enough to accommodate real document libraries while blocking pathological expansion.
+    private const long MaxRestoredEntryBytes = 2L * 1024 * 1024 * 1024;   // 2 GB per file
+    private const long MaxRestoredTotalBytes = 50L * 1024 * 1024 * 1024;  // 50 GB total
 
     // ── Fields ─────────────────────────────────────────────────────────────
 
@@ -303,6 +314,7 @@ public sealed class BackupService : IBackupService
 
                 var storagePath = settings.StoragePath;
                 var docEntriesRestored = 0;
+                long totalRestoredBytes = 0;
 
                 foreach (var entry in archive.Entries)
                 {
@@ -315,14 +327,30 @@ public sealed class BackupService : IBackupService
                         continue; // directory entry
 
                     var relativePath = entry.FullName[DocumentsEntryPrefix.Length..];
-                    var targetPath = Path.Combine(storagePath, relativePath);
+
+                    // Containment guard: never write outside the configured storage directory,
+                    // even if the archive was crafted with "../" traversal or rooted entry names.
+                    // ValidateBackupAsync rejects such archives up front; this is defense in depth
+                    // and throws (rolling back the restore) if a malicious entry slips through.
+                    var targetPath = PathHelper.ResolveContainedPath(storagePath, relativePath);
                     var targetDir = Path.GetDirectoryName(targetPath)!;
 
                     Directory.CreateDirectory(targetDir);
 
-                    using var entryStream = entry.Open();
-                    using var fileStream = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None, 65536, useAsync: true);
-                    await entryStream.CopyToAsync(fileStream, ct).ConfigureAwait(false);
+                    using (var entryStream = entry.Open())
+                    using (var fileStream = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None, AppConstants.FileStreamBufferSize, useAsync: true))
+                    {
+                        // Enforce a per-file byte cap while copying so a forged entry length
+                        // cannot drive unbounded writes.
+                        var written = await CopyEntryWithLimitAsync(entryStream, fileStream, MaxRestoredEntryBytes, ct)
+                            .ConfigureAwait(false);
+
+                        totalRestoredBytes += written;
+                        if (totalRestoredBytes > MaxRestoredTotalBytes)
+                            throw new InvalidOperationException(
+                                $"Restore aborted — total expanded document size exceeded the " +
+                                $"{MaxRestoredTotalBytes / (1024L * 1024 * 1024)} GB safety limit.");
+                    }
 
                     docEntriesRestored++;
                 }
@@ -562,6 +590,14 @@ public sealed class BackupService : IBackupService
                 return false;
             }
 
+            // Reject archives whose document entries use traversal/rooted paths or exceed
+            // the restore size limits — before any extraction touches the filesystem.
+            if (!TryValidateDocumentEntries(archive, out var entryReason))
+            {
+                Log.Warning("Validation failed — {Reason}", entryReason);
+                return false;
+            }
+
             Log.Debug("Archive validation passed");
             return true;
         }
@@ -575,6 +611,82 @@ public sealed class BackupService : IBackupService
             Log.Warning(ex, "Validation failed unexpectedly for {BackupFilePath}", backupFilePath);
             return false;
         }
+    }
+
+    /// <summary>
+    /// Validates that every <c>documents/</c> entry in the archive uses a safe, contained
+    /// relative path (no <c>..</c> traversal, no rooted paths) and does not exceed the
+    /// per-entry / total restore size limits. Pure and side-effect free so it guards both
+    /// <see cref="ValidateBackupAsync"/> and is directly unit-testable.
+    /// </summary>
+    /// <param name="archive">An archive opened in <see cref="ZipArchiveMode.Read"/> mode.</param>
+    /// <param name="failureReason">Human-readable reason when validation fails; null on success.</param>
+    /// <returns><c>true</c> when all document entries are safe; otherwise <c>false</c>.</returns>
+    public static bool TryValidateDocumentEntries(ZipArchive archive, out string? failureReason)
+    {
+        ArgumentNullException.ThrowIfNull(archive);
+
+        long totalUncompressed = 0;
+
+        foreach (var entry in archive.Entries)
+        {
+            if (!entry.FullName.StartsWith(DocumentsEntryPrefix, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            if (entry.FullName.EndsWith('/'))
+                continue; // directory entry
+
+            var relativePath = entry.FullName[DocumentsEntryPrefix.Length..];
+
+            if (!PathHelper.IsSafeRelativeEntry(relativePath))
+            {
+                failureReason = $"unsafe document entry path '{entry.FullName}'";
+                return false;
+            }
+
+            if (entry.Length > MaxRestoredEntryBytes)
+            {
+                failureReason = $"document entry '{entry.FullName}' exceeds the per-file size limit";
+                return false;
+            }
+
+            totalUncompressed += entry.Length;
+            if (totalUncompressed > MaxRestoredTotalBytes)
+            {
+                failureReason = "total expanded document size exceeds the restore safety limit";
+                return false;
+            }
+        }
+
+        failureReason = null;
+        return true;
+    }
+
+    /// <summary>
+    /// Copies <paramref name="source"/> to <paramref name="destination"/> while enforcing a hard
+    /// byte cap, aborting with an <see cref="InvalidOperationException"/> if the cap is exceeded.
+    /// Guards against forged ZIP entry lengths during restore.
+    /// </summary>
+    /// <returns>The number of bytes written.</returns>
+    private static async Task<long> CopyEntryWithLimitAsync(
+        Stream source, Stream destination, long perEntryLimit, CancellationToken ct)
+    {
+        var buffer = new byte[AppConstants.FileStreamBufferSize];
+        long written = 0;
+        int read;
+
+        while ((read = await source.ReadAsync(buffer.AsMemory(0, buffer.Length), ct).ConfigureAwait(false)) > 0)
+        {
+            written += read;
+            if (written > perEntryLimit)
+                throw new InvalidOperationException(
+                    $"Document entry exceeds the per-file restore limit of " +
+                    $"{perEntryLimit / (1024L * 1024 * 1024)} GB.");
+
+            await destination.WriteAsync(buffer.AsMemory(0, read), ct).ConfigureAwait(false);
+        }
+
+        return written;
     }
 
     // ── IBackupService: StartScheduledBackupsAsync ─────────────────────────
@@ -810,49 +922,100 @@ public sealed class BackupService : IBackupService
 
     // ── Private: AES-256 encryption/decryption ─────────────────────────────
 
-    // Encrypted archive byte layout:
-    //   [0..7]   magic header: "AGXENC\0\0" (8 bytes)
-    //   [8..23]  PBKDF2 salt  (16 bytes)
-    //   [24..39] AES IV       (16 bytes)
-    //   [40..]   AES-256-CBC cipher text
+    // Encrypted archive byte layouts:
+    //   V2 (current, authenticated): magic "AGXENC2\0" (8) + salt(16) + nonce(12) + tag(16) + AES-256-GCM ciphertext
+    //   V1 (legacy, restore-only):   magic "AGXENC\0\0" (8) + salt(16) + iv(16)    + AES-256-CBC ciphertext
 
-    private static readonly byte[] EncryptionMagic = Encoding.ASCII.GetBytes("AGXENC\0\0");
+    private static readonly byte[] EncryptionMagic = Encoding.ASCII.GetBytes("AGXENC\0\0");   // V1 legacy CBC
+    private static readonly byte[] EncryptionMagicV2 = Encoding.ASCII.GetBytes("AGXENC2\0");  // V2 authenticated GCM
 
-    private static byte[] EncryptBytes(byte[] plaintext, string password)
+    /// <summary>
+    /// Encrypts backup bytes using AES-256-GCM authenticated encryption (V2 format). The GCM
+    /// tag binds the ciphertext so a wrong password or a tampered archive is detected on restore
+    /// (see <see cref="DecryptBytes"/>) rather than yielding corrupt plaintext. Public to mirror
+    /// <see cref="DecryptBytes"/> and to support round-trip testing.
+    /// </summary>
+    public static byte[] EncryptBytes(byte[] plaintext, string password)
     {
+        ArgumentNullException.ThrowIfNull(plaintext);
+        ArgumentException.ThrowIfNullOrWhiteSpace(password);
+
         var salt = RandomNumberGenerator.GetBytes(SaltSize);
-        var iv = RandomNumberGenerator.GetBytes(IvSize);
+        var nonce = RandomNumberGenerator.GetBytes(GcmNonceSize);
         var key = DeriveKey(password, salt);
 
-        using var aes = Aes.Create();
-        aes.KeySize = AesKeySize;
-        aes.BlockSize = AesBlockSize;
-        aes.Mode = CipherMode.CBC;
-        aes.Padding = PaddingMode.PKCS7;
-        aes.Key = key;
-        aes.IV = iv;
+        var ciphertext = new byte[plaintext.Length];
+        var tag = new byte[GcmTagSize];
 
-        using var encryptor = aes.CreateEncryptor();
-        var ciphertext = encryptor.TransformFinalBlock(plaintext, 0, plaintext.Length);
+        using (var gcm = new AesGcm(key, GcmTagSize))
+        {
+            gcm.Encrypt(nonce, plaintext, ciphertext, tag);
+        }
 
-        // Prefix: magic(8) + salt(16) + iv(16) = 40 bytes header
-        var result = new byte[EncryptionMagic.Length + SaltSize + IvSize + ciphertext.Length];
-        EncryptionMagic.CopyTo(result, 0);
-        salt.CopyTo(result, EncryptionMagic.Length);
-        iv.CopyTo(result, EncryptionMagic.Length + SaltSize);
-        ciphertext.CopyTo(result, EncryptionMagic.Length + SaltSize + IvSize);
+        // Layout: magic(8) + salt(16) + nonce(12) + tag(16) + ciphertext
+        var result = new byte[EncryptionMagicV2.Length + SaltSize + GcmNonceSize + GcmTagSize + ciphertext.Length];
+        var span = result.AsSpan();
+        var offset = 0;
+        EncryptionMagicV2.CopyTo(span[offset..]); offset += EncryptionMagicV2.Length;
+        salt.CopyTo(span[offset..]); offset += SaltSize;
+        nonce.CopyTo(span[offset..]); offset += GcmNonceSize;
+        tag.CopyTo(span[offset..]); offset += GcmTagSize;
+        ciphertext.CopyTo(span[offset..]);
 
         return result;
     }
 
     /// <summary>
-    /// Decrypts an AES-256-CBC encrypted backup produced by <see cref="EncryptBytes"/>.
+    /// Decrypts a backup archive produced by <see cref="EncryptBytes"/> (AES-256-GCM, V2) or a
+    /// legacy AES-256-CBC archive (V1). The format is selected by the archive's magic header so
+    /// existing backups remain restorable. Throws <see cref="InvalidOperationException"/> when the
+    /// password is wrong or — for V2 — the archive fails authentication (tamper detected).
     /// </summary>
     public static byte[] DecryptBytes(byte[] cipherData, string password)
     {
         ArgumentNullException.ThrowIfNull(cipherData);
         ArgumentException.ThrowIfNullOrWhiteSpace(password);
 
+        if (StartsWith(cipherData, EncryptionMagicV2))
+            return DecryptGcm(cipherData, password);
+
+        if (StartsWith(cipherData, EncryptionMagic))
+            return DecryptLegacyCbc(cipherData, password);
+
+        throw new InvalidOperationException("Data is not a recognised encrypted Agent-X backup archive.");
+    }
+
+    private static byte[] DecryptGcm(byte[] cipherData, string password)
+    {
+        var headerLen = EncryptionMagicV2.Length + SaltSize + GcmNonceSize + GcmTagSize;
+        if (cipherData.Length < headerLen)
+            throw new InvalidOperationException("Data is too short to be a valid encrypted archive.");
+
+        var offset = EncryptionMagicV2.Length;
+        var salt = cipherData[offset..(offset + SaltSize)]; offset += SaltSize;
+        var nonce = cipherData[offset..(offset + GcmNonceSize)]; offset += GcmNonceSize;
+        var tag = cipherData[offset..(offset + GcmTagSize)]; offset += GcmTagSize;
+        var ciphertext = cipherData[offset..];
+
+        var key = DeriveKey(password, salt);
+        var plaintext = new byte[ciphertext.Length];
+
+        try
+        {
+            using var gcm = new AesGcm(key, GcmTagSize);
+            gcm.Decrypt(nonce, ciphertext, tag, plaintext);
+        }
+        catch (CryptographicException ex)
+        {
+            throw new InvalidOperationException(
+                "Backup decryption failed — the password is incorrect or the archive has been tampered with.", ex);
+        }
+
+        return plaintext;
+    }
+
+    private static byte[] DecryptLegacyCbc(byte[] cipherData, string password)
+    {
         var headerLen = EncryptionMagic.Length + SaltSize + IvSize; // 40 bytes
         if (cipherData.Length < headerLen)
             throw new InvalidOperationException("Data is too short to be a valid encrypted archive.");
@@ -886,12 +1049,10 @@ public sealed class BackupService : IBackupService
     }
 
     private static bool IsEncryptedArchive(byte[] data)
-    {
-        if (data.Length < EncryptionMagic.Length)
-            return false;
+        => StartsWith(data, EncryptionMagicV2) || StartsWith(data, EncryptionMagic);
 
-        return data[..EncryptionMagic.Length].SequenceEqual(EncryptionMagic);
-    }
+    private static bool StartsWith(byte[] data, byte[] prefix)
+        => data.Length >= prefix.Length && data.AsSpan(0, prefix.Length).SequenceEqual(prefix);
 
     // ── Private: scheduled backup retention ───────────────────────────────
 

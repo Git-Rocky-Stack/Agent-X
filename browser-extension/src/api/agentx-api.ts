@@ -87,9 +87,25 @@ function parseApiResponse<T>(
 
 export class AgentXApi {
   private readonly baseUrl: string;
+  private token: string | null;
 
-  constructor(baseUrl: string = API_BASE) {
+  constructor(baseUrl: string = API_BASE, token: string | null = null) {
     this.baseUrl = baseUrl;
+    this.token = token;
+  }
+
+  /** Update the bearer token used to authenticate data requests (set during pairing). */
+  setToken(token: string | null): void {
+    this.token = token;
+  }
+
+  /** Builds request headers, attaching the bearer token when the extension is paired. */
+  private authHeaders(base: Record<string, string> = {}): Record<string, string> {
+    const headers: Record<string, string> = { ...base };
+    if (this.token) {
+      headers['Authorization'] = `Bearer ${this.token}`;
+    }
+    return headers;
   }
 
   /** Check if AgentX is running and the inbox is available. */
@@ -115,9 +131,16 @@ export class AgentXApi {
   async clipToInbox(clip: ClipRequest): Promise<ClipResponse> {
     const response = await fetch(`${this.baseUrl}/api/inbox/clip`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: this.authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(clip),
     });
+
+    if (response.status === 401) {
+      throw new Error(
+        'Not paired with AgentX. Open the extension popup and paste the API token from ' +
+        'AgentX → Settings → Connections.'
+      );
+    }
 
     if (!response.ok) {
       const errorBody = await response.text().catch(() => '');

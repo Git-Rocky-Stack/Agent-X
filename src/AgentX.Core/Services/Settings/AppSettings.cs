@@ -55,6 +55,13 @@ public class AppSettings
     // Screen Awareness
     public bool EnableScreenAwareness { get; set; } = false;
 
+    // Local REST API (browser extension / companion integrations)
+    // When enabled, an authenticated HTTP listener runs on localhost:9846. Every data route
+    // requires the bearer token below; clients pair by pasting it. The token is generated on
+    // first start and stored DPAPI-encrypted at rest, like the provider API keys.
+    public bool LocalApiEnabled { get; set; } = true;
+    public string? LocalApiToken { get; set; }
+
     // HNSW Vector Search
     public bool EnableHnswIndex { get; set; } = true;
     public int HnswM { get; set; } = 16;

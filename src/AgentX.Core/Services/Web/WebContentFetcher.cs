@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net;
+using System.Text;
 using Serilog;
 
 namespace AgentX.Core.Services.Web;
@@ -167,17 +168,77 @@ public class WebContentFetcher : IWebContentFetcher, IDisposable
         // Capture the final URL after redirects
         var finalUrl = response.RequestMessage?.RequestUri?.ToString() ?? url;
 
-        // Read content with a size limit to prevent out-of-memory on extremely large pages
-        var contentLength = response.Content.Headers.ContentLength;
+        // Reject early when the server advertises an oversize body via Content-Length.
+        var declaredLength = response.Content.Headers.ContentLength;
 
-        if (contentLength.HasValue && contentLength.Value > MaxContentLengthBytes)
+        if (declaredLength.HasValue && declaredLength.Value > MaxContentLengthBytes)
         {
             throw new InvalidOperationException(
-                $"Page content too large ({contentLength.Value / 1024 / 1024:F1} MB). " +
+                $"Page content too large ({declaredLength.Value / 1024d / 1024d:F1} MB). " +
                 $"Maximum is {MaxContentLengthBytes / 1024 / 1024} MB.");
         }
 
-        return await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+        // Enforce the cap while streaming so a missing or dishonest Content-Length
+        // cannot force unbounded buffering. Previously the limit was only checked
+        // when the header was present, leaving a memory-exhaustion bypass.
+        var bytes = await ReadBoundedAsync(response.Content, MaxContentLengthBytes, ct)
+            .ConfigureAwait(false);
+
+        return ResolveEncoding(response.Content.Headers.ContentType?.CharSet).GetString(bytes);
+    }
+
+    /// <summary>
+    /// Reads an HTTP content stream fully into memory while enforcing a hard byte
+    /// cap. Aborts as soon as the cap is exceeded, regardless of whether the server
+    /// supplied an accurate <c>Content-Length</c> header.
+    /// </summary>
+    private static async Task<byte[]> ReadBoundedAsync(HttpContent content, int maxBytes, CancellationToken ct)
+    {
+        await using var source = await content.ReadAsStreamAsync(ct).ConfigureAwait(false);
+
+        // Pre-size the buffer only when the declared length is present and within
+        // the cap; never trust a declared length beyond the cap.
+        var declared = content.Headers.ContentLength;
+        var initialCapacity = declared.HasValue && declared.Value > 0 && declared.Value <= maxBytes
+            ? (int)declared.Value
+            : 0;
+
+        using var buffer = new MemoryStream(initialCapacity);
+        var chunk = new byte[81920];
+        int read;
+        while ((read = await source.ReadAsync(chunk.AsMemory(0, chunk.Length), ct).ConfigureAwait(false)) > 0)
+        {
+            if (buffer.Length + read > maxBytes)
+            {
+                throw new InvalidOperationException(
+                    "Page content exceeded the maximum allowed size of " +
+                    $"{maxBytes / 1024 / 1024} MB while streaming the response.");
+            }
+
+            await buffer.WriteAsync(chunk.AsMemory(0, read), ct).ConfigureAwait(false);
+        }
+
+        return buffer.ToArray();
+    }
+
+    /// <summary>
+    /// Resolves a .NET <see cref="Encoding"/> from an HTTP charset token, defaulting
+    /// to UTF-8 when the charset is missing or unrecognized. Mirrors the behavior of
+    /// <c>HttpContent.ReadAsStringAsync</c> for the common cases.
+    /// </summary>
+    private static Encoding ResolveEncoding(string? charSet)
+    {
+        if (string.IsNullOrWhiteSpace(charSet))
+            return Encoding.UTF8;
+
+        try
+        {
+            return Encoding.GetEncoding(charSet.Trim().Trim('"'));
+        }
+        catch (ArgumentException)
+        {
+            return Encoding.UTF8;
+        }
     }
 
     // ─── URL Validation ──────────────────────────────────────────────────────

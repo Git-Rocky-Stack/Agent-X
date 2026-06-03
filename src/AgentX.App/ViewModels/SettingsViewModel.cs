@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.AI.Routing;
+using AgentX.Core.Services.Api;
 using AgentX.Core.Services.Search;
 using AgentX.Core.Services.Security;
 using AgentX.Core.Services.Settings;
@@ -89,6 +90,10 @@ public partial class SettingsViewModel : ObservableObject
 
     public IReadOnlyList<WebSearchProvider> WebSearchProviders { get; }
         = Enum.GetValues<WebSearchProvider>().ToList();
+
+    // ── Local REST API (browser extension) ───────────────
+    [ObservableProperty] private bool _localApiEnabled = true;
+    [ObservableProperty] private string _localApiToken = string.Empty;
 
     // ── App Info ────────────────────────────────────────────
     [ObservableProperty] private string _appVersion = "1.1.0";
@@ -182,6 +187,10 @@ public partial class SettingsViewModel : ObservableObject
             WebSearchApiKey = settings.WebSearchApiKey;
             MaxSearchResults = settings.MaxSearchResults;
             SearchCacheTtlMinutes = settings.SearchCacheTtlMinutes;
+
+            // Local REST API (browser extension)
+            LocalApiEnabled = settings.LocalApiEnabled;
+            LocalApiToken = settings.LocalApiToken ?? string.Empty;
         }
 
         // Load cost tracking data
@@ -252,6 +261,10 @@ public partial class SettingsViewModel : ObservableObject
         settings.WebSearchApiKey = string.IsNullOrWhiteSpace(WebSearchApiKey) ? null : WebSearchApiKey;
         settings.MaxSearchResults = MaxSearchResults;
         settings.SearchCacheTtlMinutes = SearchCacheTtlMinutes;
+
+        // Local REST API (browser extension)
+        settings.LocalApiEnabled = LocalApiEnabled;
+        settings.LocalApiToken = string.IsNullOrWhiteSpace(LocalApiToken) ? null : LocalApiToken;
 
         await _settingsService.SaveSettingsAsync(settings);
 
@@ -386,8 +399,45 @@ public partial class SettingsViewModel : ObservableObject
         OpenAiConnectionStatus = string.Empty;
         AnthropicConnectionStatus = string.Empty;
 
+        // Local REST API — re-enable by default but keep the existing token so a paired
+        // extension is not silently unpaired by a settings reset.
+        LocalApiEnabled = true;
+
         await SaveSettingsAsync();
         Log.Information("Settings reset to defaults");
+    }
+
+    /// <summary>
+    /// Generates a fresh per-install local API token and persists it immediately. Existing paired
+    /// clients must be re-paired with the new token; the running listener adopts it on next launch.
+    /// </summary>
+    [RelayCommand]
+    private async Task RegenerateApiTokenAsync()
+    {
+        LocalApiToken = LocalApiSecurity.GenerateToken();
+
+        var settings = await _settingsService.GetSettingsAsync();
+        settings.LocalApiToken = LocalApiToken;
+        settings.LocalApiEnabled = LocalApiEnabled;
+        await _settingsService.SaveSettingsAsync(settings);
+
+        Log.Information("Local API token regenerated");
+    }
+
+    /// <summary>
+    /// Copies the local API token to the clipboard so it can be pasted into the browser extension.
+    /// </summary>
+    [RelayCommand]
+    private void CopyApiToken()
+    {
+        if (string.IsNullOrEmpty(LocalApiToken))
+            return;
+
+        var package = new Windows.ApplicationModel.DataTransfer.DataPackage();
+        package.SetText(LocalApiToken);
+        Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(package);
+
+        Log.Debug("Local API token copied to clipboard");
     }
 
     // ── Private Helpers ─────────────────────────────────────

@@ -50,6 +50,11 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
     private Task? _requestLoopTask;
     private DateTime _startedAt;
 
+    /// <summary>
+    /// Per-install bearer token required on every non-public route. Set at <see cref="StartAsync"/>.
+    /// </summary>
+    private string? _authToken;
+
     /// <summary>Maximum number of requests processed concurrently.</summary>
     private readonly SemaphoreSlim _concurrencyGate = new(16, 16);
 
@@ -92,12 +97,20 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     /// <inheritdoc/>
-    public async Task StartAsync(int port = 9846, CancellationToken ct = default)
+    public async Task StartAsync(int port = 9846, string? authToken = null, CancellationToken ct = default)
     {
         if (IsRunning)
         {
             _log.Debug("ApiHostService.StartAsync called while already running on port {Port}. No-op.", Port);
             return;
+        }
+
+        _authToken = authToken;
+        if (string.IsNullOrEmpty(_authToken))
+        {
+            // Defensive: starting without a token means every data route returns 401. Log loudly
+            // so a misconfiguration is visible rather than silently exposing or locking out the API.
+            _log.Warning("ApiHostService starting WITHOUT an auth token — all non-public routes will return 401.");
         }
 
         Port = port;
@@ -209,18 +222,33 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
 
         try
         {
+            var origin = req.Headers["Origin"];
+
             // CORS pre-flight — OPTIONS on any route
             if (req.HttpMethod.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
             {
-                WriteCorsHeaders(resp);
+                WriteCorsHeaders(resp, origin);
                 resp.StatusCode = 204;
                 resp.Close();
                 return;
             }
 
-            WriteCorsHeaders(resp);
+            WriteCorsHeaders(resp, origin);
 
             var path = req.Url?.AbsolutePath.TrimEnd('/').ToLowerInvariant() ?? string.Empty;
+
+            // Authentication — every route except the public health probe requires the bearer token.
+            if (!LocalApiSecurity.IsPublicPath(path)
+                && !LocalApiSecurity.IsAuthorized(req.Headers["Authorization"], _authToken))
+            {
+                statusCode = 401;
+                resp.AddHeader("WWW-Authenticate", "Bearer");
+                await WriteErrorResponseAsync(resp, 401,
+                    "Unauthorized. A valid API token is required. Pair the client with the token from AgentX Settings.",
+                    ct).ConfigureAwait(false);
+                return;
+            }
+
             var method = req.HttpMethod.ToUpperInvariant();
 
             statusCode = await RouteAsync(ctx, method, path, ct).ConfigureAwait(false);
@@ -672,10 +700,21 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
         await WriteJsonResponseAsync(resp, statusCode, ApiResponse<object>.Fail(error), ct).ConfigureAwait(false);
     }
 
-    private static void WriteCorsHeaders(HttpListenerResponse resp)
+    /// <summary>
+    /// Emits CORS headers scoped to the request origin. Only browser-extension origins receive an
+    /// <c>Access-Control-Allow-Origin</c> grant; ordinary web pages get none, so a malicious site
+    /// cannot read API responses even though the listener is on localhost. (Combined with the
+    /// bearer-token requirement, a web page would also lack the token.)
+    /// </summary>
+    private static void WriteCorsHeaders(HttpListenerResponse resp, string? requestOrigin)
     {
-        resp.AddHeader("Access-Control-Allow-Origin", "*");
-        resp.AddHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        var allowedOrigin = LocalApiSecurity.ResolveAllowedOrigin(requestOrigin);
+        if (allowedOrigin is null)
+            return;
+
+        resp.AddHeader("Access-Control-Allow-Origin", allowedOrigin);
+        resp.AddHeader("Vary", "Origin");
+        resp.AddHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
         resp.AddHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept, X-Requested-With");
         resp.AddHeader("Access-Control-Max-Age", "86400");
     }

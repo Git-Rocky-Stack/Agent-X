@@ -180,4 +180,92 @@ public sealed class SettingsServiceEncryptionTests : IDisposable
         anthropicKeyOnDisk.Should().NotContain("sk-ant-legacy-plaintext-key",
             "the plaintext key must not remain on disk after migration");
     }
+
+    [Fact]
+    public async Task SaveSettingsAsync_WebSearchApiKeyIsEncryptedInFile()
+    {
+        // Arrange
+        var sut = CreateSut();
+        var settings = new AppSettings
+        {
+            EnableResearchMode = true,
+            WebSearchApiKey = "brave-plaintext-search-key",
+        };
+
+        // Act
+        await sut.SaveSettingsAsync(settings);
+
+        // Assert: the web search key must be DPAPI-encrypted on disk, like the
+        // other provider secrets — never plaintext.
+        var rawJson = await File.ReadAllTextAsync(_settingsPath);
+        var doc = JsonDocument.Parse(rawJson);
+        var webSearchKey = doc.RootElement.GetProperty("webSearchApiKey").GetString()!;
+
+        webSearchKey.Should().StartWith("DPAPI:",
+            "the web search API key should be DPAPI-encrypted on disk");
+        webSearchKey.Should().NotContain("brave-plaintext-search-key",
+            "the plaintext web search key must not appear in the file");
+    }
+
+    [Fact]
+    public async Task GetSettingsAsync_DecryptsWebSearchApiKey()
+    {
+        // Arrange: save settings with a web search key (encrypted on disk)
+        var sut = CreateSut();
+        await sut.SaveSettingsAsync(new AppSettings
+        {
+            EnableResearchMode = true,
+            WebSearchApiKey = "serper-secret-search-key",
+        });
+
+        // Act: load with a fresh instance to bypass the in-memory cache
+        var freshSut = CreateSut();
+        var loaded = await freshSut.GetSettingsAsync();
+
+        // Assert: callers receive the decrypted plaintext
+        loaded.WebSearchApiKey.Should().Be("serper-secret-search-key",
+            "the in-memory web search key must be the decrypted plaintext");
+    }
+
+    [Fact]
+    public async Task GetSettingsAsync_MigratesPlaintextWebSearchKeyOnLoad()
+    {
+        // Arrange: write a raw settings.json with a legacy plaintext web search key
+        // Note: webSearchProvider is intentionally omitted. SettingsService serializes
+        // enums numerically (no JsonStringEnumConverter), so a string enum value here
+        // would fail deserialization and mask the migration under default settings.
+        var plaintextSettings = new
+        {
+            enableResearchMode = true,
+            webSearchApiKey = "legacy-plaintext-search-key",
+            storagePath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "AgentX"),
+        };
+
+        var jsonOptions = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        };
+        await File.WriteAllTextAsync(_settingsPath, JsonSerializer.Serialize(plaintextSettings, jsonOptions));
+
+        // Act: loading should keep plaintext in memory and re-save encrypted
+        var sut = CreateSut();
+        var loaded = await sut.GetSettingsAsync();
+
+        // Assert 1: in-memory value is the original plaintext
+        loaded.WebSearchApiKey.Should().Be("legacy-plaintext-search-key",
+            "the plaintext web search key should remain plaintext in memory after migration");
+
+        // Assert 2: the file now holds the encrypted form
+        var migratedJson = await File.ReadAllTextAsync(_settingsPath);
+        var onDisk = JsonDocument.Parse(migratedJson).RootElement
+            .GetProperty("webSearchApiKey").GetString()!;
+
+        onDisk.Should().StartWith("DPAPI:",
+            "auto-migration should have encrypted the web search key on disk");
+        onDisk.Should().NotContain("legacy-plaintext-search-key",
+            "the plaintext web search key must not remain on disk after migration");
+    }
 }

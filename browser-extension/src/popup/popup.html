@@ -40,6 +40,17 @@
 
     <div class="feedback-area" id="feedbackArea"></div>
 
+    <section class="pairing" id="pairingSection">
+      <h2 class="section-title">Connection</h2>
+      <p class="pairing-hint">Paste the API token from AgentX &rarr; Settings &rarr; Connections to pair this extension.</p>
+      <div class="pairing-row">
+        <input type="password" class="pairing-input" id="apiToken" placeholder="API token" autocomplete="off" spellcheck="false" aria-label="AgentX API token">
+        <button class="clip-btn pairing-save" id="saveToken">
+          <span class="clip-btn-label">Save</span>
+        </button>
+      </div>
+    </section>
+
     <section class="recent-clips">
       <h2 class="section-title">Recent Clips</h2>
       <ul class="clip-list" id="clipList">

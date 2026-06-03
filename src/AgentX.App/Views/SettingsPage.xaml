@@ -26,6 +26,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <!-- Header -->
@@ -528,9 +529,60 @@
             </Border>
 
             <!-- ════════════════════════════════════════════════════════
+                 CONNECTIONS (Local REST API / Browser Extension)
+                 ════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="10" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Connections"
+                               Style="{StaticResource HeadingSmallStyle}" />
+
+                    <TextBlock Text="The local API lets the AgentX browser extension clip web pages into your Smart Inbox. It runs on http://localhost:9846 and requires the token below — paste it into the extension popup to pair. Only the AgentX extension can use it; web pages are blocked."
+                               Style="{StaticResource BodySecondaryStyle}"
+                               TextWrapping="Wrap" />
+
+                    <ToggleSwitch Header="Enable Local API"
+                                  IsOn="{x:Bind ViewModel.LocalApiEnabled, Mode=TwoWay}"
+                                  OffContent="Disabled"
+                                  OnContent="Enabled (authenticated)" />
+
+                    <StackPanel Spacing="6"
+                                Visibility="{x:Bind ViewModel.LocalApiEnabled, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="API Token"
+                                   Style="{StaticResource LabelStyle}" />
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox Style="{StaticResource InputTextBoxStyle}"
+                                     Text="{x:Bind ViewModel.LocalApiToken, Mode=OneWay}"
+                                     IsReadOnly="True"
+                                     FontFamily="Consolas"
+                                     PlaceholderText="No token yet — click Regenerate" />
+
+                            <Button Grid.Column="1"
+                                    Content="Copy"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Command="{x:Bind ViewModel.CopyApiTokenCommand}" />
+
+                            <Button Grid.Column="2"
+                                    Content="Regenerate"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Command="{x:Bind ViewModel.RegenerateApiTokenCommand}" />
+                        </Grid>
+                        <TextBlock Text="Keep this token secret. Regenerating it unpairs existing clients until you paste the new token. Toggle changes apply on next launch."
+                                   Style="{StaticResource CaptionStyle}"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- ════════════════════════════════════════════════════════
                  ACTIONS
                  ════════════════════════════════════════════════════════ -->
-            <Grid Grid.Row="10" ColumnSpacing="12">
+            <Grid Grid.Row="11" ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />

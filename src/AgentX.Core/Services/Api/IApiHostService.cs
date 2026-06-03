@@ -27,8 +27,12 @@ public interface IApiHostService
     /// Idempotent — calling Start when already running is a no-op.
     /// </summary>
     /// <param name="port">TCP port to listen on. Defaults to 9846.</param>
+    /// <param name="authToken">
+    /// The per-install bearer token required on every non-public route. When null or empty the
+    /// host fails closed — only the unauthenticated extension health probe remains reachable.
+    /// </param>
     /// <param name="ct">Cancellation token.</param>
-    Task StartAsync(int port = 9846, CancellationToken ct = default);
+    Task StartAsync(int port = 9846, string? authToken = null, CancellationToken ct = default);
 
     /// <summary>
     /// Stops the HTTP listener gracefully, draining in-flight requests.
