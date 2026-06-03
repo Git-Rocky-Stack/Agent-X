@@ -23,11 +23,24 @@ public sealed partial class SettingsViewModel : ObservableObject
         _apiUrl = _settings.ApiUrl;
     }
 
+    /// <summary>
+    /// Loads persisted settings, including the bearer token from secure storage. Called by the
+    /// page on appearing because the token read is asynchronous.
+    /// </summary>
+    public async Task LoadAsync()
+    {
+        ApiUrl = _settings.ApiUrl;
+        ApiToken = await _settings.GetApiTokenAsync().ConfigureAwait(true) ?? string.Empty;
+    }
+
     // ── Observable state ──────────────────────────────────────────────────────
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     private string _apiUrl = string.Empty;
+
+    [ObservableProperty]
+    private string _apiToken = string.Empty;
 
     [ObservableProperty]
     private bool _isTesting;
@@ -52,16 +65,21 @@ public sealed partial class SettingsViewModel : ObservableObject
     /// Persists the API URL and updates the shared <see cref="AgentXApiClient"/>.
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanSave))]
-    private void Save()
+    private async Task SaveAsync()
     {
         var trimmed = ApiUrl.Trim().TrimEnd('/');
         _settings.ApiUrl = trimmed;
         _api.SetBaseUrl(trimmed);
 
-        // Reset any previous test result since the URL changed
+        // Persist and apply the pairing token (stored in secure storage).
+        var token = ApiToken?.Trim();
+        await _settings.SetApiTokenAsync(token).ConfigureAwait(true);
+        _api.SetToken(token);
+
+        // Reset any previous test result since the connection settings changed
         TestSucceeded = false;
         TestFailed = false;
-        ConnectionStatus = "URL saved. Tap 'Test Connection' to verify.";
+        ConnectionStatus = "Saved. Tap 'Test Connection' to verify.";
     }
 
     /// <summary>
@@ -78,9 +96,10 @@ public sealed partial class SettingsViewModel : ObservableObject
 
         try
         {
-            // Apply the current field value for the test even if not yet saved
+            // Apply the current field values for the test even if not yet saved
             var testUrl = ApiUrl.Trim().TrimEnd('/');
             _api.SetBaseUrl(testUrl);
+            _api.SetToken(ApiToken?.Trim());
 
             var health = await _api.GetHealthAsync(ct).ConfigureAwait(true);
 
@@ -96,7 +115,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             else
             {
                 TestFailed = true;
-                ConnectionStatus = "Connection failed. Ensure Agent-X is running and the URL is correct.";
+                ConnectionStatus = "Connection failed. Ensure Agent-X is running, the URL is correct, and the API token matches AgentX → Settings → Connections.";
             }
         }
         catch (OperationCanceledException)

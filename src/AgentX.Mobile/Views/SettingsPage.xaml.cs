@@ -19,4 +19,13 @@ public sealed partial class SettingsPage : ContentPage
         Resources.Add("StringNotEmptyConverter", new IsStringNotNullOrEmptyConverter());
         Resources.Add("IsNotNullConverter", new IsNotNullConverter());
     }
+
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+
+        // The bearer token is read from secure storage asynchronously.
+        if (BindingContext is SettingsViewModel vm)
+            _ = vm.LoadAsync();
+    }
 }

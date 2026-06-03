@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
@@ -34,6 +35,7 @@ public sealed class AgentXApiClient : IDisposable
 
     private HttpClient _http;
     private string _baseUrl;
+    private string? _token;
 
     // ── Constructor ───────────────────────────────────────────────────────────
 
@@ -41,17 +43,23 @@ public sealed class AgentXApiClient : IDisposable
     /// Optional base URL override (e.g., "http://192.168.1.10:9846" when connecting
     /// across a LAN rather than localhost).
     /// </param>
-    public AgentXApiClient(string? baseUrl = null)
+    /// <param name="token">
+    /// Optional bearer token. The desktop API requires this on all data routes; it can also
+    /// be supplied later via <see cref="SetToken"/> once the user pairs in Settings.
+    /// </param>
+    public AgentXApiClient(string? baseUrl = null, string? token = null)
     {
+        _token = NormalizeToken(token);
         _baseUrl = NormalizeBaseUrl(baseUrl ?? DefaultBaseUrl);
         _http = BuildHttpClient(_baseUrl);
+        ApplyAuth(_http, _token);
     }
 
     // ── Configuration ──────────────────────────────────────────────────────────
 
     /// <summary>
     /// Updates the base URL at runtime (e.g., after the user saves Settings).
-    /// Replaces the underlying <see cref="HttpClient"/> instance.
+    /// Replaces the underlying <see cref="HttpClient"/> instance, re-applying the token.
     /// </summary>
     public void SetBaseUrl(string baseUrl)
     {
@@ -62,11 +70,26 @@ public sealed class AgentXApiClient : IDisposable
         var old = _http;
         _baseUrl = normalized;
         _http = BuildHttpClient(_baseUrl);
+        ApplyAuth(_http, _token);
         old.Dispose();
+    }
+
+    /// <summary>
+    /// Sets (or clears) the bearer token sent with every request. The desktop API requires this
+    /// token on all data routes — pair by entering the token shown in
+    /// AgentX → Settings → Connections. Pass null/empty to unpair.
+    /// </summary>
+    public void SetToken(string? token)
+    {
+        _token = NormalizeToken(token);
+        ApplyAuth(_http, _token);
     }
 
     /// <summary>The currently configured base URL.</summary>
     public string BaseUrl => _baseUrl;
+
+    /// <summary>True when a bearer token has been configured (the client is paired).</summary>
+    public bool IsPaired => !string.IsNullOrEmpty(_token);
 
     // ── API Methods ───────────────────────────────────────────────────────────
 
@@ -289,6 +312,17 @@ public sealed class AgentXApiClient : IDisposable
     {
         // Trim trailing slashes so path concatenation is predictable
         return url.TrimEnd('/');
+    }
+
+    private static string? NormalizeToken(string? token) =>
+        string.IsNullOrWhiteSpace(token) ? null : token.Trim();
+
+    /// <summary>Applies (or clears) the bearer Authorization header on the given client.</summary>
+    private static void ApplyAuth(HttpClient http, string? token)
+    {
+        http.DefaultRequestHeaders.Authorization = string.IsNullOrEmpty(token)
+            ? null
+            : new AuthenticationHeaderValue("Bearer", token);
     }
 
     /// <summary>

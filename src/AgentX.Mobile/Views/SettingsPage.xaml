@@ -44,6 +44,31 @@
                         PlaceholderColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
                         MinimumHeightRequest="48" />
 
+                    <!-- API token field -->
+                    <Label
+                        Text="API Token"
+                        FontSize="14"
+                        FontAttributes="Bold"
+                        Margin="0,4,0,0"
+                        TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+
+                    <Label
+                        Text="Paste the token from AgentX desktop → Settings → Connections. The desktop API now requires it on every request."
+                        FontSize="12"
+                        LineHeight="1.5"
+                        TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
+
+                    <Entry
+                        Text="{Binding ApiToken}"
+                        Placeholder="API token"
+                        IsPassword="True"
+                        ClearButtonVisibility="WhileEditing"
+                        FontSize="14"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceCardLight}, Dark={StaticResource SurfaceDark}}"
+                        TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                        PlaceholderColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                        MinimumHeightRequest="48" />
+
                     <!-- Action buttons -->
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
                         <Button
