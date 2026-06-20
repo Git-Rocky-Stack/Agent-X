@@ -1,0 +1,79 @@
+name: Dependency Audit
+
+# AX-QA-006: CI now scans NuGet dependencies for known vulnerabilities. Runs when any project's
+# package set changes and weekly, so newly-published advisories surface even with no code change.
+# Fails on any High/Critical advisory that is not on the documented accepted list (see docs/CI.md).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**/*.csproj'
+      - 'Directory.Build.props'
+      - 'Directory.Packages.props'
+      - 'global.json'
+      - '.github/workflows/dependency-audit.yml'
+  pull_request:
+    paths:
+      - '**/*.csproj'
+      - 'Directory.Build.props'
+      - 'Directory.Packages.props'
+      - 'global.json'
+      - '.github/workflows/dependency-audit.yml'
+  schedule:
+    # Weekly Monday 07:00 UTC — catch advisories published against already-pinned versions.
+    - cron: '0 7 * * 1'
+
+jobs:
+  nuget-audit:
+    name: NuGet vulnerable packages
+    runs-on: windows-latest
+    env:
+      # The WinUI AgentX.App project only enumerates its package graph when Platform is set
+      # (it has no AnyCPU configuration); this lets `dotnet list package` read every project.
+      Platform: x64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore AgentX.sln
+
+      - name: Scan for vulnerable packages
+        shell: pwsh
+        run: |
+          # Accepted advisories with no available fix. Keep this list short and documented.
+          #   GHSA-2m69-gcr7-jv3q — SQLitePCLRaw.lib.e_sqlite3 2.1.6 (CVE-2025-6965). No patched
+          #   package exists; Agent-X loads the SQLCipher provider (e_sqlcipher.dll), not e_sqlite3.
+          #   Tracked as AX-QA-010 — remove this entry once a fixed bundle ships.
+          $accepted = @('GHSA-2m69-gcr7-jv3q')
+
+          dotnet list AgentX.sln package --vulnerable --include-transitive 2>&1 |
+            Tee-Object -FilePath nuget-vulnerable.txt | Out-Host
+
+          $offending = Get-Content nuget-vulnerable.txt |
+            Where-Object { $_ -match '^\s*>' -and $_ -match '\b(High|Critical)\b' } |
+            Where-Object {
+              $line = $_
+              -not ($accepted | Where-Object { $line -match $_ })
+            }
+
+          if ($offending) {
+            Write-Host '::error::High/Critical NuGet advisory found that is not on the accepted list:'
+            $offending | ForEach-Object { Write-Host $_ }
+            exit 1
+          }
+
+          Write-Host 'PASS: no unaccepted High/Critical NuGet advisories.'
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-vulnerable-report
+          path: nuget-vulnerable.txt

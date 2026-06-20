@@ -1,0 +1,58 @@
+name: Extension CI
+
+# AX-QA-006: the browser extension previously had no CI gate. This lints, type-checks, and builds the
+# extension and audits its production dependencies on every change under browser-extension/.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'browser-extension/**'
+      - '.github/workflows/extension-ci.yml'
+  pull_request:
+    paths:
+      - 'browser-extension/**'
+      - '.github/workflows/extension-ci.yml'
+
+defaults:
+  run:
+    working-directory: browser-extension
+
+jobs:
+  build:
+    name: Lint, typecheck, build, audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: browser-extension/package-lock.json
+
+      - name: Install (clean, lockfile-pinned)
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build (production)
+        run: npm run build
+
+      # Production runtime dependencies must be clean at any severity. Dev-only advisories are
+      # excluded here (tracked separately as AX-QA-016) since they never ship in the extension.
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=low
+
+      - name: Upload build output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-dist
+          path: browser-extension/dist
