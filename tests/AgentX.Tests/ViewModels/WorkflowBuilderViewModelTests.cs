@@ -4,6 +4,7 @@ using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
+using AgentX.Core.Helpers;
 using AgentX.Core.Services.Export;
 using AgentX.Core.Services.Export.Models;
 using AgentX.Core.Services.Workflows;
@@ -14,7 +15,7 @@ using Xunit;
 
 namespace AgentX.Tests.ViewModels;
 
-public sealed class WorkflowBuilderViewModelTests
+public sealed class WorkflowBuilderViewModelTests : IDisposable
 {
     private readonly Mock<IWorkflowService> _workflowService = new();
     private readonly Mock<IWorkflowEngine> _workflowEngine = new();
@@ -23,6 +24,44 @@ public sealed class WorkflowBuilderViewModelTests
     private readonly Mock<IExportService> _exportService = new();
     private readonly Mock<IWorkflowLaunchService> _workflowLaunchService = new();
     private readonly Mock<IOperationsDrillInService> _operationsDrillInService = new();
+
+    // AX-QA-011: a disposable per-test app-data root. Save tests inject this so production code writes
+    // workflow-result artifacts here, never into the real %LOCALAPPDATA%/AgentX user profile.
+    private readonly string _tempRoot =
+        Path.Combine(Path.GetTempPath(), "agentx-tests", Guid.NewGuid().ToString("N"));
+    private readonly IAppPathService _appPaths;
+
+    public WorkflowBuilderViewModelTests()
+    {
+        _appPaths = new TestAppPathService(_tempRoot);
+    }
+
+    public void Dispose()
+    {
+        try
+        {
+            if (Directory.Exists(_tempRoot))
+                Directory.Delete(_tempRoot, recursive: true);
+        }
+        catch
+        {
+            // Best-effort cleanup — never fail a test because temp deletion raced a file handle.
+        }
+    }
+
+    /// <summary>Roots every app path under a disposable test directory.</summary>
+    private sealed class TestAppPathService : IAppPathService
+    {
+        private readonly string _root;
+        public TestAppPathService(string root) => _root = root;
+        public string GetAppDataPath() => Ensure(_root);
+        public string GetTempPath() => Ensure(Path.Combine(_root, "Temp"));
+        private static string Ensure(string path)
+        {
+            Directory.CreateDirectory(path);
+            return path;
+        }
+    }
 
     [Fact]
     public async Task InitializeAsync_seeds_and_loads_workflows_and_models()
@@ -574,7 +613,8 @@ public sealed class WorkflowBuilderViewModelTests
             _workflowService.Object,
             _workflowEngine.Object,
             _modelManager.Object,
-            _documentService.Object)
+            _documentService.Object,
+            appPathService: _appPaths)
         {
             SelectedWorkflow = new WorkflowListItem
             {
@@ -596,6 +636,8 @@ public sealed class WorkflowBuilderViewModelTests
             It.IsAny<CancellationToken>()), Times.Once);
         importedPath.Should().NotBeNullOrWhiteSpace();
         File.Exists(importedPath!).Should().BeTrue();
+        importedPath!.Should().StartWith(_tempRoot,
+            "workflow artifacts must be written under the injected temp root, never the real user profile (AX-QA-011)");
         importedText.Should().Contain("Workflow: Document Review");
         importedText.Should().Contain("Context: Showing latest execution result");
         importedText.Should().Contain("final draft");
@@ -639,7 +681,8 @@ public sealed class WorkflowBuilderViewModelTests
             _workflowService.Object,
             _workflowEngine.Object,
             _modelManager.Object,
-            _documentService.Object)
+            _documentService.Object,
+            appPathService: _appPaths)
         {
             SelectedWorkflow = new WorkflowListItem
             {
@@ -703,7 +746,8 @@ public sealed class WorkflowBuilderViewModelTests
             _workflowService.Object,
             _workflowEngine.Object,
             _modelManager.Object,
-            _documentService.Object)
+            _documentService.Object,
+            appPathService: _appPaths)
         {
             SelectedWorkflow = new WorkflowListItem
             {

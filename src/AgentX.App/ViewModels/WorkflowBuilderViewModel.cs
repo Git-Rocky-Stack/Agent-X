@@ -66,6 +66,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     private readonly IExportService? _exportService;
     private readonly IWorkflowLaunchService? _workflowLaunchService;
     private readonly IOperationsDrillInService? _operationsDrillInService;
+    private readonly IAppPathService _appPaths;
 
     // ── Page State ───────────────────────────────────────────
     [ObservableProperty] private string _pageTitle = "Prompt Workflows";
@@ -163,7 +164,8 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         IDocumentService documentService,
         IExportService? exportService = null,
         IWorkflowLaunchService? workflowLaunchService = null,
-        IOperationsDrillInService? operationsDrillInService = null)
+        IOperationsDrillInService? operationsDrillInService = null,
+        IAppPathService? appPathService = null)
     {
         _workflowService = workflowService;
         _workflowEngine = workflowEngine;
@@ -172,6 +174,9 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         _exportService = exportService;
         _workflowLaunchService = workflowLaunchService;
         _operationsDrillInService = operationsDrillInService;
+        // Falls back to the real %LOCALAPPDATA%/AgentX paths when not supplied; tests inject a
+        // disposable temp root so workflow-result artifacts never land in the real profile (AX-QA-011).
+        _appPaths = appPathService ?? new AppPathService();
 
         Workflows.CollectionChanged += (_, _) =>
         {
@@ -1194,7 +1199,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
                 totalTokensUsed: 0,
                 durationMs: null);
 
-            var tempDir = Path.Combine(PathHelper.GetTempPath(), "WorkflowResults");
+            var tempDir = Path.Combine(_appPaths.GetTempPath(), "WorkflowResults");
             Directory.CreateDirectory(tempDir);
 
             var safeFileName = PathHelper.SanitizeFileName(artifact.Title);

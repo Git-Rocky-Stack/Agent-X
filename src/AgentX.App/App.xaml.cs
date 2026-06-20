@@ -356,6 +356,9 @@ public partial class App : Application
         // AX-QA-008: derives the dashboard's state-aware privacy disclosure from current settings.
         services.AddSingleton<AgentX.Core.Services.Privacy.IPrivacyStatusService,
                              AgentX.Core.Services.Privacy.PrivacyStatusService>();
+        // AX-QA-011: injectable app-data/temp path seam (delegates to PathHelper in production) so
+        // tests can redirect artifact writes away from the real user profile.
+        services.AddSingleton<AgentX.Core.Helpers.IAppPathService, AgentX.Core.Helpers.AppPathService>();
 
         // ── RAG Configuration (Phase 1) ─────────────────────────
         services.Configure<RagConfigurationOptions>(context.Configuration.GetSection("Rag"));
