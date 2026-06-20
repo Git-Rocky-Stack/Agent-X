@@ -353,6 +353,9 @@ public partial class App : Application
         // ── Core Services ──────────────────────────────────────
         services.AddSingleton<ISettingsService, SettingsService>();
         services.AddSingleton<IFeatureFlagService, FeatureFlagService>();
+        // AX-QA-008: derives the dashboard's state-aware privacy disclosure from current settings.
+        services.AddSingleton<AgentX.Core.Services.Privacy.IPrivacyStatusService,
+                             AgentX.Core.Services.Privacy.PrivacyStatusService>();
 
         // ── RAG Configuration (Phase 1) ─────────────────────────
         services.Configure<RagConfigurationOptions>(context.Configuration.GetSection("Rag"));

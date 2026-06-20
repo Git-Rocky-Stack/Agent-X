@@ -8,6 +8,7 @@ using AgentX.Core.Search;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Indexing;
+using AgentX.Core.Services.Privacy;
 using AgentX.Core.Services.TemporalIdentity;
 using AgentX.Core.Services.TemporalIdentity.Models;
 using FluentAssertions;
@@ -29,9 +30,13 @@ public sealed class DashboardViewModelTests
     private readonly Mock<IOperationsOverviewService> _operationsOverviewService = new();
     private readonly Mock<ITemporalIdentityService> _temporalIdentity = new();
     private readonly Mock<IOperationsDrillInService> _operationsDrillInService = new();
+    private readonly Mock<IPrivacyStatusService> _privacyStatusService = new();
 
     public DashboardViewModelTests()
     {
+        _privacyStatusService.Setup(s => s.GetCurrentAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(PrivacyStatus.FullyLocal);
+
         _aiProvider.Setup(provider => provider.CheckConnectionAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
@@ -414,6 +419,44 @@ public sealed class DashboardViewModelTests
     }
 
     [Fact]
+    public async Task InitializeAsync_maps_fully_local_status_to_private_footer()
+    {
+        // AX-QA-008: a genuinely local configuration keeps the strong privacy assurance.
+        _privacyStatusService.Setup(s => s.GetCurrentAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(PrivacyStatus.FullyLocal);
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.IsFullyPrivate.Should().BeTrue();
+        viewModel.PrivacyTitle.Should().Be("100% Private");
+        viewModel.PrivacyDisclosures.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task InitializeAsync_maps_cloud_status_to_disclosures()
+    {
+        // AX-QA-008: when cloud surfaces are active the footer must drop the "no cloud" claim and
+        // surface every disclosure the evaluator returned.
+        var status = new PrivacyStatus(false, new[]
+        {
+            new PrivacyDisclosure("AI model", "Your prompts and conversation content are sent to OpenAI for processing."),
+            new PrivacyDisclosure("Web search", "Research mode sends your search queries to Brave Search.")
+        });
+        _privacyStatusService.Setup(s => s.GetCurrentAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(status);
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.IsFullyPrivate.Should().BeFalse();
+        viewModel.PrivacyTitle.Should().Be("Cloud services active");
+        viewModel.PrivacyDisclosures.Select(item => item.Surface)
+            .Should().BeEquivalentTo(new[] { "AI model", "Web search" });
+        viewModel.PrivacyDisclosures.Should().Contain(item => item.Detail.Contains("OpenAI"));
+    }
+
+    [Fact]
     public async Task InitializeAsync_does_not_read_the_database_until_the_startup_gate_opens()
     {
         // AX-QA-003 follow-up (dashboard race): MainWindow shows the dashboard shell before the
@@ -481,6 +524,7 @@ public sealed class DashboardViewModelTests
             _operationsOverviewService.Object,
             _temporalIdentity.Object,
             gate,
+            _privacyStatusService.Object,
             _operationsDrillInService.Object);
     }
 }

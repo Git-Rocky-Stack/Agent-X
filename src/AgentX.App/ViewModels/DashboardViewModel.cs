@@ -10,6 +10,7 @@ using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Indexing;
 using AgentX.Core.Services.TemporalIdentity;
 using AgentX.Core.Services.TemporalIdentity.Models;
+using AgentX.Core.Services.Privacy;
 using AgentX.Core.Data.Entities;
 using AgentX.App.Services;
 using Serilog;
@@ -30,6 +31,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     private readonly IOperationsDrillInService? _operationsDrillInService;
     private readonly ITemporalIdentityService _temporalIdentity;
     private readonly IStartupGate _startupGate;
+    private readonly IPrivacyStatusService _privacyStatusService;
     private OperationsOverviewSnapshot _operationsSnapshot = new();
 
     // ── AI Status ───────────────────────────────────────────
@@ -105,6 +107,16 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _beliefConflictsStatus = "Your beliefs are consistent";
     [ObservableProperty] private string _beliefConflictsDetail = "No detected contradictions between your past and current views.";
 
+    // ── Privacy Posture (AX-QA-008) ────────────────────────────
+    // State-aware replacement for the former unconditional "no cloud, no exceptions" claim. Driven by
+    // IPrivacyStatusService over the user's actual settings; the footer shows the strong local-only
+    // assurance only when nothing is configured to leave the machine.
+    [ObservableProperty] private bool _isFullyPrivate = true;
+    [ObservableProperty] private string _privacyTitle = "100% Private";
+    [ObservableProperty] private string _privacySummary =
+        "All AI processing runs locally on your hardware. Your data never leaves this machine.";
+    [ObservableProperty] private ObservableCollection<DashboardPrivacyDisclosureItem> _privacyDisclosures = new();
+
     // ── Navigation ────────────────────────────────────────────
     public Action<string>? NavigateRequested { get; set; }
 
@@ -119,6 +131,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         IOperationsOverviewService operationsOverviewService,
         ITemporalIdentityService temporalIdentity,
         IStartupGate startupGate,
+        IPrivacyStatusService privacyStatusService,
         IOperationsDrillInService? operationsDrillInService = null)
     {
         _aiService = aiService;
@@ -131,6 +144,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         _operationsOverviewService = operationsOverviewService;
         _temporalIdentity = temporalIdentity;
         _startupGate = startupGate;
+        _privacyStatusService = privacyStatusService;
         _operationsDrillInService = operationsDrillInService;
         Log.Debug("DashboardViewModel created with services");
     }
@@ -163,11 +177,53 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             LoadInsightsAsync(),
             LoadIndexingStatusAsync(),
             LoadOperationsOverviewAsync(),
-            LoadBeliefConflictsAsync());
+            LoadBeliefConflictsAsync(),
+            LoadPrivacyStatusAsync());
 
         BuildRecommendedActions();
 
         Log.Information("Dashboard initialized");
+    }
+
+    private async Task LoadPrivacyStatusAsync()
+    {
+        try
+        {
+            var status = await _privacyStatusService.GetCurrentAsync();
+
+            PrivacyDisclosures.Clear();
+            if (status.IsFullyLocal)
+            {
+                IsFullyPrivate = true;
+                PrivacyTitle = "100% Private";
+                PrivacySummary =
+                    "All AI processing runs locally on your hardware. Your data never leaves this machine.";
+            }
+            else
+            {
+                IsFullyPrivate = false;
+                PrivacyTitle = "Cloud services active";
+                PrivacySummary = "Some features you've enabled send data off this machine:";
+                foreach (var disclosure in status.Disclosures)
+                {
+                    PrivacyDisclosures.Add(new DashboardPrivacyDisclosureItem
+                    {
+                        Surface = disclosure.Surface,
+                        Detail = disclosure.Detail
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // Never silently fall back to the strong "100% private" claim on error — that is exactly
+            // the false assurance AX-QA-008 is about. Show an honest, neutral state instead.
+            Log.Warning(ex, "Failed to evaluate dashboard privacy status");
+            IsFullyPrivate = false;
+            PrivacyTitle = "Privacy status unavailable";
+            PrivacySummary = "Agent-X couldn't confirm which services are active. Open Settings to review.";
+            PrivacyDisclosures.Clear();
+        }
     }
 
     private async Task LoadAiStatusAsync()
@@ -958,6 +1014,16 @@ public class BeliefConflictDisplayItem
 // ═══════════════════════════════════════════════════════════════════
 //  DISPLAY ITEM CLASSES (top-level for x:Bind DataTemplate support)
 // ═══════════════════════════════════════════════════════════════════
+
+/// <summary>
+/// A single privacy disclosure (a feature that sends data off the machine) for display in the
+/// dashboard's state-aware privacy footer (AX-QA-008).
+/// </summary>
+public class DashboardPrivacyDisclosureItem
+{
+    public string Surface { get; init; } = string.Empty;
+    public string Detail { get; init; } = string.Empty;
+}
 
 /// <summary>
 /// Represents a recently imported document for display on the dashboard.
