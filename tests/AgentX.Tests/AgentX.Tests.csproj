@@ -119,6 +119,10 @@
     <Compile Include="..\..\src\AgentX.App\Services\ApiHostLifecycleService.cs" Link="Services\ApiHostLifecycleService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\IBuiltinConnectorLifecycleService.cs" Link="Services\IBuiltinConnectorLifecycleService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\BuiltinConnectorLifecycleService.cs" Link="Services\BuiltinConnectorLifecycleService.cs" />
+    <!-- StartupOrchestrator is the pure, awaitable critical-startup sequence (AX-QA-003). It depends
+         only on IMigrationRunner + the two lifecycle interfaces + Serilog (no WinUI), so it links
+         cleanly for ordering / fail-closed unit tests. -->
+    <Compile Include="..\..\src\AgentX.App\Services\StartupOrchestrator.cs" Link="Services\StartupOrchestrator.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\IOperationsActionService.cs" Link="Services\IOperationsActionService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\IOperationsDrillInService.cs" Link="Services\IOperationsDrillInService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\OperationsActionService.cs" Link="Services\OperationsActionService.cs" />

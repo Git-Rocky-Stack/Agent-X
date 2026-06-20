@@ -6,11 +6,52 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations.Operations;
 
 namespace AgentX.Core.Data.MigrationRunner;
 
 public sealed class MigrationRunner : IMigrationRunner
 {
+    /// <summary>
+    /// Every table created by <c>_InitialBaseline</c> (see
+    /// 20260417011607_InitialBaseline.cs). Baseline adoption may only treat that migration as
+    /// already-applied when ALL of these tables are genuinely present. When some are missing on a
+    /// pre-migration database, they are created from the migration's own operations (via EF's SQL
+    /// generator) before the baseline is stamped — so later migrations never run against a
+    /// half-built schema. Keep in lockstep with the migration's <c>Up</c> method.
+    /// </summary>
+    private static readonly string[] BaselineTables =
+    [
+        "annotations",
+        "backups",
+        "collections",
+        "conversation_tags",
+        "conversations",
+        "digest_reports",
+        "document_chunks",
+        "document_collections",
+        "document_tags",
+        "documents",
+        "feedback",
+        "inbox_items",
+        "indexing_jobs",
+        "licenses",
+        "memories",
+        "messages",
+        "oauth_credentials",
+        "plugins",
+        "search_history",
+        "sync_logs",
+        "system_prompts",
+        "tags",
+        "user_settings",
+        "watch_folders",
+        "workflow_runs",
+        "workflow_steps",
+        "workflows",
+        "workspace_profiles"
+    ];
+
     private static readonly string[] OperationsSchemaSql =
     [
         """
@@ -405,6 +446,15 @@ public sealed class MigrationRunner : IMigrationRunner
             "\"ProductVersion\" TEXT NOT NULL);",
             cancellationToken);
 
+        // AX-QA-002: _InitialBaseline may only be stamped as already-applied when its FULL schema is
+        // genuinely present. A legacy/partial database can carry baseline + later-migration tables
+        // yet be MISSING some baseline tables (and have no history table). Stamping the baseline in
+        // that state means EF never creates the missing tables, and a later migration's
+        // "ALTER TABLE <missing> …" crashes with "no such table". Self-heal first: create exactly
+        // the missing baseline objects from the migration's own operations, then re-verify the full
+        // 28-table baseline before stamping. If healing leaves any table absent, fail closed.
+        await EnsureBaselineSchemaCompleteAsync(allMigrations, cancellationToken);
+
         var adopted = new List<string>();
         await StampMigrationAsync(baseline, adopted, cancellationToken);
 
@@ -513,6 +563,205 @@ public sealed class MigrationRunner : IMigrationRunner
         }
 
         return adopted;
+    }
+
+    /// <summary>
+    /// Ensures every table created by <c>_InitialBaseline</c> exists before that migration is
+    /// stamped as applied. On a pre-migration database whose baseline schema is incomplete, this
+    /// creates ONLY the missing baseline objects — sourced from the migration's own
+    /// <see cref="Migration.UpOperations"/> and turned into SQL by EF's
+    /// <see cref="IMigrationsSqlGenerator"/> (never hand-duplicated DDL) — preserving EF's operation
+    /// ordering so inter-baseline foreign keys resolve. After healing it re-verifies the full
+    /// baseline and throws <see cref="BaselineSchemaIncompleteException"/> if any table is still
+    /// absent (fail-closed). When the baseline is already complete this is a no-op.
+    /// </summary>
+    private async Task EnsureBaselineSchemaCompleteAsync(
+        IReadOnlyList<string> allMigrations,
+        CancellationToken cancellationToken)
+    {
+        var missing = await GetMissingBaselineTablesAsync(cancellationToken);
+        if (missing.Count == 0)
+        {
+            // Complete-baseline path: nothing to heal, behavior unchanged.
+            return;
+        }
+
+        var missingSet = new HashSet<string>(missing, StringComparer.OrdinalIgnoreCase);
+        var sqlGenerator = _context.GetService<IMigrationsSqlGenerator>();
+
+        var baselineMigration = InstantiateMigration(allMigrations, "_InitialBaseline");
+        if (baselineMigration is not null)
+        {
+            // Select only the operations that build the MISSING baseline tables — their
+            // CreateTableOperation (FKs are inline columns on the operation) plus the
+            // CreateIndexOperations targeting those tables. Iterate UpOperations in EF's original
+            // order so dependency ordering (parents before children) is preserved.
+            var operationsToApply = new List<MigrationOperation>();
+            foreach (var operation in baselineMigration.UpOperations)
+            {
+                switch (operation)
+                {
+                    case CreateTableOperation createTable when missingSet.Contains(createTable.Name):
+                        operationsToApply.Add(createTable);
+                        break;
+                    case CreateIndexOperation createIndex when missingSet.Contains(createIndex.Table):
+                        operationsToApply.Add(createIndex);
+                        break;
+                }
+            }
+
+            if (operationsToApply.Count > 0)
+            {
+                var commands = sqlGenerator.Generate(operationsToApply, _context.Model);
+                foreach (var command in commands)
+                {
+                    await _context.Database.ExecuteSqlRawAsync(command.CommandText, cancellationToken);
+                }
+            }
+        }
+
+        // A healed table is reborn at BASELINE shape, but the surrounding database is at HEAD
+        // (it already carries later-migration tables/columns). Bring each healed table forward by
+        // replaying — idempotently — the post-baseline AddColumn/CreateIndex operations that target
+        // it, in migration order. Without this, the per-migration stamp guards below would see a
+        // healed table that is missing later columns, decline to stamp the corresponding migration,
+        // and let MigrateAsync replay it — re-running its OTHER (already-applied) operations against
+        // sibling HEAD tables and crashing with "duplicate column name". (We touch ONLY healed
+        // tables, so genuinely-pending migrations on untouched tables still apply normally.)
+        await HealPostBaselineColumnsForTablesAsync(allMigrations, missingSet, sqlGenerator, cancellationToken);
+
+        // Re-verify: the heal must have produced a complete baseline. If not, refuse to stamp
+        // _InitialBaseline so startup can enter a recovery state instead of crashing later.
+        var stillMissing = await GetMissingBaselineTablesAsync(cancellationToken);
+        if (stillMissing.Count > 0)
+        {
+            throw new BaselineSchemaIncompleteException(stillMissing);
+        }
+    }
+
+    /// <summary>
+    /// Replays, idempotently, the post-baseline column and index additions that target the given
+    /// healed tables — sourced from each later migration's own <see cref="Migration.UpOperations"/>
+    /// (via EF's SQL generator, never hand-written DDL) and applied in migration order. Columns that
+    /// already exist are skipped; indexes are created with IF NOT EXISTS semantics. Operations for
+    /// tables NOT in <paramref name="healedTables"/> are ignored, so this never disturbs the rest of
+    /// the schema. This makes a reborn baseline table consistent with the surrounding HEAD database
+    /// so the downstream per-migration stamp guards fire correctly.
+    /// </summary>
+    private async Task HealPostBaselineColumnsForTablesAsync(
+        IReadOnlyList<string> allMigrations,
+        HashSet<string> healedTables,
+        IMigrationsSqlGenerator sqlGenerator,
+        CancellationToken cancellationToken)
+    {
+        if (healedTables.Count == 0) return;
+
+        foreach (var migrationId in allMigrations)
+        {
+            if (migrationId.EndsWith("_InitialBaseline", StringComparison.Ordinal)) continue;
+
+            var migration = InstantiateMigrationById(migrationId);
+            if (migration is null) continue;
+
+            foreach (var operation in migration.UpOperations)
+            {
+                switch (operation)
+                {
+                    case AddColumnOperation addColumn when healedTables.Contains(addColumn.Table):
+                        if (!await ColumnExistsAsync(addColumn.Table, addColumn.Name, cancellationToken))
+                        {
+                            foreach (var command in sqlGenerator.Generate(new[] { addColumn }, _context.Model))
+                            {
+                                await _context.Database.ExecuteSqlRawAsync(command.CommandText, cancellationToken);
+                            }
+                        }
+                        break;
+
+                    case CreateIndexOperation createIndex when healedTables.Contains(createIndex.Table):
+                        // EF's SQLite generator emits CREATE INDEX without IF NOT EXISTS, so guard
+                        // on prior existence to stay idempotent across repeated runs.
+                        if (!await IndexExistsAsync(createIndex.Name, cancellationToken))
+                        {
+                            foreach (var command in sqlGenerator.Generate(new[] { createIndex }, _context.Model))
+                            {
+                                await _context.Database.ExecuteSqlRawAsync(command.CommandText, cancellationToken);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Returns the subset of <see cref="BaselineTables"/> that are not present in the database,
+    /// in the same order, using a single sqlite_master read.
+    /// </summary>
+    private async Task<IReadOnlyList<string>> GetMissingBaselineTablesAsync(CancellationToken cancellationToken)
+    {
+        var existing = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        using var cmd = _context.Database.GetDbConnection().CreateCommand();
+        await _context.Database.OpenConnectionAsync(cancellationToken);
+        try
+        {
+            cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table';";
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                existing.Add(reader.GetString(0));
+            }
+        }
+        finally
+        {
+            await _context.Database.CloseConnectionAsync();
+        }
+
+        return BaselineTables.Where(table => !existing.Contains(table)).ToList();
+    }
+
+    /// <summary>
+    /// Materializes the <see cref="Migration"/> instance whose id ends with <paramref name="suffix"/>
+    /// so its <see cref="Migration.UpOperations"/> can be read. Returns null when not found.
+    /// </summary>
+    private Migration? InstantiateMigration(IEnumerable<string> allMigrations, string suffix)
+    {
+        var migrationId = FindMigration(allMigrations, suffix);
+        return migrationId is null ? null : InstantiateMigrationById(migrationId);
+    }
+
+    /// <summary>
+    /// Materializes the <see cref="Migration"/> instance for an exact migration id so its
+    /// <see cref="Migration.UpOperations"/> can be read. Returns null when not found.
+    /// </summary>
+    private Migration? InstantiateMigrationById(string migrationId)
+    {
+        var migrationsAssembly = _context.GetService<IMigrationsAssembly>();
+        if (!migrationsAssembly.Migrations.TryGetValue(migrationId, out var migrationType)) return null;
+
+        var activeProvider = _context.GetService<Microsoft.EntityFrameworkCore.Storage.IDatabaseProvider>().Name;
+        return migrationsAssembly.CreateMigration(migrationType, activeProvider);
+    }
+
+    private async Task<bool> ColumnExistsAsync(string tableName, string columnName, CancellationToken cancellationToken)
+        => await AllColumnsExistAsync(tableName, new[] { columnName }, cancellationToken);
+
+    private async Task<bool> IndexExistsAsync(string indexName, CancellationToken cancellationToken)
+    {
+        using var cmd = _context.Database.GetDbConnection().CreateCommand();
+        await _context.Database.OpenConnectionAsync(cancellationToken);
+        try
+        {
+            cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='index' AND name=$indexName;";
+            var parameter = cmd.CreateParameter();
+            parameter.ParameterName = "$indexName";
+            parameter.Value = indexName;
+            cmd.Parameters.Add(parameter);
+            return await cmd.ExecuteScalarAsync(cancellationToken) is not null;
+        }
+        finally
+        {
+            await _context.Database.CloseConnectionAsync();
+        }
     }
 
     // Legacy migration id that AddTemporalIdentity shipped with before its [Migration]

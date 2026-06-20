@@ -316,6 +316,62 @@ public class MigrationRunnerTests
     }
 
     [Fact]
+    public async Task RunAsync_on_preexisting_database_with_incomplete_baseline_creates_missing_baseline_tables()
+    {
+        // Regression for AX-QA-002 (data integrity): a legacy/partial install carries baseline +
+        // later-migration tables (38 application tables) but is MISSING baseline tables and has no
+        // __EFMigrationsHistory. The old behavior stamped _InitialBaseline as applied because at
+        // least one application table existed — so the missing baseline tables were never created,
+        // and a later migration's "ALTER TABLE memories ..." failed with
+        // "SQLite Error 1: 'no such table: memories'". Baseline adoption must self-heal: create the
+        // missing baseline objects (via EF's own SQL generator, not hand-duplicated DDL), re-verify
+        // the full 28-table baseline is present, THEN stamp _InitialBaseline so MigrateAsync applies
+        // only the genuinely-pending later migrations against a complete schema.
+        var (ctx, dbPath) = CreateContextAtTempPath();
+        try
+        {
+            // Start from the current model (all tables), then mutate it to mimic the reproduced DB:
+            // remove the history table and two baseline tables (memories + oauth_credentials).
+            // Nothing FK-references these two baseline tables, so they drop cleanly.
+            await ctx.Database.EnsureCreatedAsync();
+            await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS __EFMigrationsHistory;");
+            await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS oauth_credentials;");
+            await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS memories;");
+
+            // Sanity: the two baseline tables are genuinely absent before the run.
+            (await TableExistsAsync(ctx, "memories")).Should().BeFalse();
+            (await TableExistsAsync(ctx, "oauth_credentials")).Should().BeFalse();
+
+            IMigrationRunner runner = new Core.Data.MigrationRunner.MigrationRunner(ctx);
+
+            // The previously-failing "ALTER TABLE memories ..." path must now succeed.
+            var act = async () => await runner.RunAsync();
+            await act.Should().NotThrowAsync();
+
+            // The missing baseline tables must have been created during adoption.
+            (await TableExistsAsync(ctx, "memories")).Should().BeTrue(
+                "the incomplete baseline must be healed before _InitialBaseline is stamped");
+            (await TableExistsAsync(ctx, "oauth_credentials")).Should().BeTrue(
+                "the incomplete baseline must be healed before _InitialBaseline is stamped");
+
+            // _InitialBaseline must be stamped so EF treats the baseline as applied.
+            var stamped = await GetStampedMigrationsAsync(ctx);
+            stamped.Should().Contain(m => m.EndsWith("_InitialBaseline"));
+
+            // The later semantic-memory migration's columns must exist on the now-present memories
+            // table — proof the ALTER TABLE path that used to crash on "no such table" now runs.
+            var memoryColumns = await GetTableColumnsAsync(ctx, "memories");
+            memoryColumns.Should().Contain(new[] { "Embedding", "DecayRate", "LinkedMemoryId", "Confidence", "Tags" });
+        }
+        finally
+        {
+            await ctx.DisposeAsync();
+            SqliteConnection.ClearAllPools();
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
     public async Task RunAsync_on_fresh_database_creates_semantic_memory_columns()
     {
         // Regression for the latent fresh-install defect: AddSemanticMemoryColumns was a
@@ -436,6 +492,25 @@ public class MigrationRunnerTests
         {
             SqliteConnection.ClearAllPools();
             if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    private static async Task<bool> TableExistsAsync(AgentXDbContext ctx, string tableName)
+    {
+        await using var cmd = ctx.Database.GetDbConnection().CreateCommand();
+        await ctx.Database.OpenConnectionAsync();
+        try
+        {
+            cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name=$tableName;";
+            var parameter = cmd.CreateParameter();
+            parameter.ParameterName = "$tableName";
+            parameter.Value = tableName;
+            cmd.Parameters.Add(parameter);
+            return (await cmd.ExecuteScalarAsync()) is not null;
+        }
+        finally
+        {
+            await ctx.Database.CloseConnectionAsync();
         }
     }
 

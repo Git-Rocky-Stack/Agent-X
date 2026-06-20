@@ -79,3 +79,6 @@ browser-extension/dist/
 ## Claude / Loki development tooling
 .claude/
 .loki/
+
+## gstack QA tooling (run artifacts: reports, screenshots, evidence, coverage)
+.gstack/

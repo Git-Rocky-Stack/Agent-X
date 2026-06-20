@@ -99,9 +99,11 @@ public partial class App : Application
             .ConfigureServices(ConfigureServices)
             .Build();
 
-        // Initialize critical services before showing the window
-        InitializeCoreServicesAsync();
-
+        // Create and show the window shell FIRST. The critical async init below opens UI surfaces
+        // before any data work — the passphrase-unlock prompt and the migration-recovery dialog both
+        // need MainWindow.Content.XamlRoot — so _mainWindow must be assigned before init runs.
+        // (Pages are loaded lazily on navigation, so the shell carries no data-backed state yet; the
+        // migration gate inside InitializeCoreServicesAsync still precedes every data-backed feature.)
         _mainWindow = new MainWindow();
         if (_mainWindow is MainWindow mainWindow)
         {
@@ -111,13 +113,24 @@ public partial class App : Application
 
         GetService<SystemTrayService>().ShowMainWindow("startup");
 
+        // Critical services: migration is AWAITED and gates the API/connectors/FTS/data features.
+        // Runs after the shell exists so its UI prompts have a XamlRoot; fails closed on migration
+        // error (see InitializeCoreServicesAsync / EnterMigrationRecoveryStateAsync).
+        InitializeCoreServicesAsync();
+
         Log.Information("Agent-X started successfully");
     }
 
     /// <summary>
-    /// Initializes the database and AI service on startup.
-    /// Runs as fire-and-forget so the window appears immediately while
-    /// initialization continues in the background.
+    /// Initializes core services on startup in a single defined order. The CRITICAL path —
+    /// database unlock, key apply, and the migration → API → connectors sequence — is AWAITED and
+    /// fails closed: if migration throws, the app enters a recovery state and starts NO data-backed
+    /// feature (AX-QA-003). Only after the migration gate succeeds do the best-effort inits (FTS,
+    /// AI/Ollama, feature flags, localization, theme) run, in order. Invoked after the window shell
+    /// exists so its UI prompts (passphrase, recovery dialog) have a XamlRoot. This is an
+    /// <c>async void</c> event-style entry point (WinUI's OnLaunched cannot be async), but it no
+    /// longer races the rest of startup for the critical path — that path is internally awaited and
+    /// gated end to end.
     /// </summary>
     private static async void InitializeCoreServicesAsync()
     {
@@ -172,26 +185,36 @@ public partial class App : Application
             // if the DB is encrypted and we have no key — user can re-enter passphrase).
         }
 
-        // 1. Ensure the database schema is at the latest migration
+        // 1. CRITICAL PATH (AX-QA-003): apply the database migration and gate every data-backed
+        //    subsystem behind its success. The orchestrator AWAITS the migration, then — only if it
+        //    succeeds — starts the REST API and built-in connectors, in order. If migration throws
+        //    (including BaselineSchemaIncompleteException from AX-QA-002), it returns a recovery
+        //    state and starts NOTHING. We must NOT continue to FTS or any data-backed feature in
+        //    that case: fail closed.
         try
         {
             var db = GetService<AgentXDbContext>();
             db.EnsureKeyApplied();
-            var runner = GetService<AgentX.Core.Data.MigrationRunner.IMigrationRunner>();
-            var result = await runner.RunAsync();
-            Log.Information(
-                "Migration runner: db={DbPath} created={Created} applied={Applied} alreadyApplied={AlreadyApplied}",
-                result.DatabasePath,
-                result.DatabaseCreated,
-                string.Join(",", result.AppliedMigrations),
-                string.Join(",", result.AlreadyApplied));
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Failed to initialize database");
+            Log.Error(ex, "Failed to apply the database key before migration");
         }
 
-        // 1b. Initialize FTS5 full-text search
+        var startup = GetService<IStartupOrchestrator>();
+        var startupResult = await startup.RunCriticalStartupAsync();
+
+        if (startupResult.IsRecoveryState)
+        {
+            // Fail closed: do not initialize FTS, AI, connectors, data-backed pages, etc. Surface a
+            // blocking error so the user can recover (restore a backup / re-enter passphrase) rather
+            // than running the app against a broken or partially-migrated schema.
+            await EnterMigrationRecoveryStateAsync(startupResult.Failure);
+            return;
+        }
+
+        // 1b. Initialize FTS5 full-text search — only AFTER the migration gate, since it queries
+        //     the now-valid schema.
         try
         {
             var keywordSearch = GetService<IKeywordSearchService>();
@@ -201,30 +224,6 @@ public partial class App : Application
         catch (Exception ex)
         {
             Log.Warning(ex, "FTS5 initialization failed — keyword search unavailable");
-        }
-
-        // 1c. Start the local REST API used by the browser extension and mobile companion.
-        try
-        {
-            var apiHostLifecycle = GetService<IApiHostLifecycleService>();
-            await apiHostLifecycle.StartAsync();
-        }
-        catch (Exception ex)
-        {
-            Log.Error(
-                ex,
-                "REST API startup failed — browser extension and mobile companion connectivity will be unavailable");
-        }
-
-        // 1d. Initialize first-party calendar/email connectors after the database is ready.
-        try
-        {
-            var connectorLifecycle = GetService<IBuiltinConnectorLifecycleService>();
-            await connectorLifecycle.InitializeAsync();
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Built-in connector initialization failed");
         }
 
         // 2. Initialize the AI service (creates provider, tests connection)
@@ -269,8 +268,10 @@ public partial class App : Application
         {
             var themeService = GetService<IThemeService>();
             await themeService.InitializeAsync();
-            // Apply theme on UI thread
-            App.MainWindow?.DispatcherQueue.TryEnqueue(() =>
+            // Apply theme on the UI thread. Use the backing field (not the App.MainWindow getter,
+            // which THROWS when the window is not yet assigned) so a not-yet-ready window degrades to
+            // a no-op instead of an InvalidOperationException swallowed by the catch below.
+            _mainWindow?.DispatcherQueue.TryEnqueue(() =>
             {
                 themeService.ApplyTheme(themeService.CurrentTheme);
             });
@@ -296,6 +297,9 @@ public partial class App : Application
         });
         services.AddSingleton<AgentX.Core.Data.MigrationRunner.IMigrationRunner,
                              AgentX.Core.Data.MigrationRunner.MigrationRunner>();
+        // AX-QA-003: the critical, ordered startup sequence (migration gate → API → connectors).
+        // Awaited in OnLaunched; fails closed when migration throws so nothing runs on a broken schema.
+        services.AddSingleton<IStartupOrchestrator, StartupOrchestrator>();
 
         // ── Security ──────────────────────────────────────────
         services.AddSingleton<IDpapiEncryptionService, DpapiEncryptionService>();
@@ -848,6 +852,66 @@ public partial class App : Application
             XamlRoot = MainWindow.Content.XamlRoot,
         };
         await dialog.ShowAsync();
+    }
+
+    /// <summary>
+    /// AX-QA-003 recovery state: the database migration failed, so the app is fail-closed — the REST
+    /// API, connectors, FTS, and every data-backed feature were NOT started. Surface a blocking
+    /// error explaining the situation and exit, so the user can restore from a backup rather than
+    /// operate against a broken or partially-migrated schema. Runs on the UI thread via the window's
+    /// dispatcher; the window shell is already created in <see cref="OnLaunched"/>.
+    /// </summary>
+    private static async System.Threading.Tasks.Task EnterMigrationRecoveryStateAsync(Exception? failure)
+    {
+        var details = failure is AgentX.Core.Data.MigrationRunner.BaselineSchemaIncompleteException baselineEx
+            ? $"The database schema is incomplete and could not be repaired automatically. "
+              + $"Missing tables: {string.Join(", ", baselineEx.MissingTables)}."
+            : "The database could not be upgraded to the latest version.";
+
+        Log.Fatal(
+            failure,
+            "Startup halted in migration recovery state — data-backed features were not started. {Details}",
+            details);
+
+        var window = _mainWindow;
+        if (window?.Content?.XamlRoot is null)
+        {
+            // No UI surface to host a dialog (should not happen — the shell is created first). Exit
+            // immediately rather than continue running against an unmigrated database.
+            Microsoft.UI.Xaml.Application.Current.Exit();
+            return;
+        }
+
+        var tcs = new TaskCompletionSource();
+        window.DispatcherQueue.TryEnqueue(async () =>
+        {
+            try
+            {
+                var dialog = new Microsoft.UI.Xaml.Controls.ContentDialog
+                {
+                    Title = "Agent-X could not start",
+                    Content =
+                        details
+                        + "\n\nTo protect your data, Agent-X has stopped before loading any features. "
+                        + "Please restore your database from a recent backup, then reopen Agent-X. "
+                        + "Your log files contain the full technical details.",
+                    CloseButtonText = "Exit",
+                    XamlRoot = window.Content.XamlRoot,
+                };
+                await dialog.ShowAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to display the migration recovery dialog");
+            }
+            finally
+            {
+                Microsoft.UI.Xaml.Application.Current.Exit();
+                tcs.TrySetResult();
+            }
+        });
+
+        await tcs.Task;
     }
 
     private static void ConfigureLogging()
