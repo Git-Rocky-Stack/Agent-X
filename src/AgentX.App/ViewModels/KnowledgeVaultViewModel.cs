@@ -37,6 +37,12 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     private readonly IOperationsDrillInService? _operationsDrillInService;
     private bool _suppressFilterRefresh;
 
+    // Monotonic load token. Every document reload claims the next value; only the most
+    // recent load is allowed to mutate the UI-bound Documents collection, so overlapping
+    // reloads (e.g. a filter change landing while initialization is still in flight)
+    // can neither tear the collection nor overwrite newer, correct state.
+    private int _documentLoadGeneration;
+
     // ── Page State ─────────────────────────────────────────────
     [ObservableProperty] private string _pageTitle = "Knowledge Vault";
     [ObservableProperty] private bool _isLoading;
@@ -159,8 +165,11 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
 
     private async Task LoadDocumentsAsync()
     {
-        Documents.Clear();
+        // Claim this load's place in line. The collection is only mutated below if this is
+        // still the newest load by the time the (awaited) data has been fetched.
+        var generation = Interlocked.Increment(ref _documentLoadGeneration);
 
+        List<DocumentDisplayItem>? loaded = null;
         try
         {
             var docs = await _documentService.GetAllDocumentsAsync(
@@ -199,6 +208,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
                 }
             }
 
+            loaded = new List<DocumentDisplayItem>(filteredDocs.Count);
             foreach (var doc in filteredDocs)
             {
                 var displayItem = MapDocumentToDisplay(doc);
@@ -211,12 +221,31 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
                     }
                 }
 
-                Documents.Add(displayItem);
+                loaded.Add(displayItem);
             }
         }
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to load documents from service");
+        }
+
+        // A newer reload started while we were fetching — discard these results instead of
+        // overwriting the newer (correct) collection state. This is what prevents the
+        // filter-triggered reload from clobbering an in-flight initialization/drill-in.
+        if (generation != Volatile.Read(ref _documentLoadGeneration))
+        {
+            return;
+        }
+
+        // Atomic swap on the calling (UI) thread: clear once, then repopulate. No await
+        // sits between Clear and Add, so the collection is never observed half-built.
+        Documents.Clear();
+        if (loaded is not null)
+        {
+            foreach (var item in loaded)
+            {
+                Documents.Add(item);
+            }
         }
 
         OnPropertyChanged(nameof(HasDocuments));
@@ -1077,18 +1106,24 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
 
     private void ApplyFilters()
     {
-        // Re-load documents with the current filter settings
-        _ = Task.Run(async () =>
+        // Reload on the current (UI) thread context. The Documents collection is bound to the
+        // view, so it must be mutated on the UI thread — NOT on a thread-pool thread via
+        // Task.Run, which races initialization and throws RPC_E_WRONG_THREAD against a live
+        // ItemsRepeater. The generation guard in LoadDocumentsAsync coalesces overlapping
+        // reloads so the newest filter state always wins.
+        _ = ReloadForFilterChangeAsync();
+    }
+
+    private async Task ReloadForFilterChangeAsync()
+    {
+        try
         {
-            try
-            {
-                await LoadDocumentsAsync();
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "Failed to apply filters");
-            }
-        });
+            await LoadDocumentsAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to apply filters");
+        }
     }
 
     private void UpdateDropZoneVisibility()
