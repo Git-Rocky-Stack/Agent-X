@@ -53,17 +53,20 @@ public sealed class StartupOrchestrator : IStartupOrchestrator
     private readonly IMigrationRunner _migrationRunner;
     private readonly IApiHostLifecycleService _apiHostLifecycle;
     private readonly IBuiltinConnectorLifecycleService _connectorLifecycle;
+    private readonly IStartupGate _startupGate;
     private readonly ILogger _log;
 
     public StartupOrchestrator(
         IMigrationRunner migrationRunner,
         IApiHostLifecycleService apiHostLifecycle,
         IBuiltinConnectorLifecycleService connectorLifecycle,
+        IStartupGate startupGate,
         ILogger logger)
     {
         _migrationRunner = migrationRunner ?? throw new System.ArgumentNullException(nameof(migrationRunner));
         _apiHostLifecycle = apiHostLifecycle ?? throw new System.ArgumentNullException(nameof(apiHostLifecycle));
         _connectorLifecycle = connectorLifecycle ?? throw new System.ArgumentNullException(nameof(connectorLifecycle));
+        _startupGate = startupGate ?? throw new System.ArgumentNullException(nameof(startupGate));
         _log = (logger ?? throw new System.ArgumentNullException(nameof(logger))).ForContext<StartupOrchestrator>();
     }
 
@@ -84,8 +87,10 @@ public sealed class StartupOrchestrator : IStartupOrchestrator
         }
         catch (System.Exception ex)
         {
-            // Fail closed: do NOT start the API, connectors, or any data-backed feature. The caller
-            // must enter a blocking recovery/error state.
+            // Fail closed: do NOT start the API, connectors, or any data-backed feature. Release any
+            // data-ready waiters (e.g. the dashboard) via cancellation so they skip loading instead
+            // of awaiting forever, then have the caller enter a blocking recovery/error state.
+            _startupGate.SignalStartupFailed();
             _log.Error(
                 ex,
                 "Database migration failed — entering recovery state. REST API, built-in connectors, "
@@ -97,7 +102,13 @@ public sealed class StartupOrchestrator : IStartupOrchestrator
                 Failure: ex);
         }
 
-        // ── Past the gate: schema is valid. Start data-backed lifecycle steps in defined order. ──
+        // ── Past the gate: schema is valid. Open the data-ready gate IMMEDIATELY so data-backed UI
+        //    (e.g. the dashboard, already showing its shell) can load in parallel with the API and
+        //    connectors — those read no schema the dashboard needs, so there is no reason to make UI
+        //    reads wait on them (AX-QA-003 follow-up: dashboard-load-vs-migration race). ──
+        _startupGate.SignalDataReady();
+
+        // ── Start data-backed lifecycle steps in defined order. ──
 
         // 1) Local REST API used by the browser extension and mobile companion.
         try

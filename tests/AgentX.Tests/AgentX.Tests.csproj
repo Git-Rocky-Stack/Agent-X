@@ -123,6 +123,9 @@
          only on IMigrationRunner + the two lifecycle interfaces + Serilog (no WinUI), so it links
          cleanly for ordering / fail-closed unit tests. -->
     <Compile Include="..\..\src\AgentX.App\Services\StartupOrchestrator.cs" Link="Services\StartupOrchestrator.cs" />
+    <!-- StartupGate is the WinUI-free data-ready signal the orchestrator opens after migration and
+         DashboardViewModel awaits before reading the DB (AX-QA-003 follow-up: dashboard race). -->
+    <Compile Include="..\..\src\AgentX.App\Services\StartupGate.cs" Link="Services\StartupGate.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\IOperationsActionService.cs" Link="Services\IOperationsActionService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\IOperationsDrillInService.cs" Link="Services\IOperationsDrillInService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\OperationsActionService.cs" Link="Services\OperationsActionService.cs" />

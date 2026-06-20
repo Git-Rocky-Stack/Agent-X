@@ -29,6 +29,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     private readonly IOperationsOverviewService _operationsOverviewService;
     private readonly IOperationsDrillInService? _operationsDrillInService;
     private readonly ITemporalIdentityService _temporalIdentity;
+    private readonly IStartupGate _startupGate;
     private OperationsOverviewSnapshot _operationsSnapshot = new();
 
     // ── AI Status ───────────────────────────────────────────
@@ -117,6 +118,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         IRagPipeline ragPipeline,
         IOperationsOverviewService operationsOverviewService,
         ITemporalIdentityService temporalIdentity,
+        IStartupGate startupGate,
         IOperationsDrillInService? operationsDrillInService = null)
     {
         _aiService = aiService;
@@ -128,6 +130,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         _ragPipeline = ragPipeline;
         _operationsOverviewService = operationsOverviewService;
         _temporalIdentity = temporalIdentity;
+        _startupGate = startupGate;
         _operationsDrillInService = operationsDrillInService;
         Log.Debug("DashboardViewModel created with services");
     }
@@ -135,6 +138,20 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     public async Task InitializeAsync()
     {
         Log.Information("Dashboard initializing...");
+
+        // AX-QA-003 follow-up (dashboard race): MainWindow shows this page's shell immediately —
+        // before the awaited startup migration completes — so do NOT touch the database until the
+        // migration gate has opened. If startup failed and entered the recovery state the gate is
+        // cancelled; skip loading entirely (the app is exiting) rather than query a broken schema.
+        try
+        {
+            await _startupGate.WaitForDataReadyAsync();
+        }
+        catch (OperationCanceledException)
+        {
+            Log.Warning("Dashboard initialization skipped — startup did not reach a data-ready state");
+            return;
+        }
 
         // Run all data-loading tasks in parallel for faster initialization
         await Task.WhenAll(

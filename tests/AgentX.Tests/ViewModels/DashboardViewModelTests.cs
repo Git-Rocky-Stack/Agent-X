@@ -413,8 +413,63 @@ public sealed class DashboardViewModelTests
         navigations.Should().Equal("Analytics", "Operations", "Inbox", "SyncSettings", "Workflows", "PluginManager");
     }
 
-    private DashboardViewModel CreateViewModel()
+    [Fact]
+    public async Task InitializeAsync_does_not_read_the_database_until_the_startup_gate_opens()
     {
+        // AX-QA-003 follow-up (dashboard race): MainWindow shows the dashboard shell before the
+        // awaited migration completes, so InitializeAsync must block on the data-ready gate before
+        // fanning out its DB reads — otherwise it queries a not-yet-migrated schema.
+        var gate = new StartupGate(); // closed
+        var viewModel = CreateViewModel(gate);
+
+        var init = viewModel.InitializeAsync();
+
+        // Give any (incorrect) eager DB work a chance to run before asserting it did not.
+        await Task.Delay(100);
+
+        init.IsCompleted.Should().BeFalse("InitializeAsync must wait for the closed startup gate");
+        _documentService.Verify(service => service.GetTotalDocumentCountAsync(), Times.Never,
+            "no database read may occur before the migration gate opens");
+        _conversationService.Verify(service => service.GetConversationCountAsync(), Times.Never,
+            "no database read may occur before the migration gate opens");
+
+        // Open the gate — initialization must now complete and the reads must run.
+        gate.SignalDataReady();
+        await init.WaitAsync(TimeSpan.FromSeconds(5));
+
+        init.IsCompletedSuccessfully.Should().BeTrue();
+        _documentService.Verify(service => service.GetTotalDocumentCountAsync(), Times.Once);
+        _conversationService.Verify(service => service.GetConversationCountAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_skips_loading_when_startup_enters_recovery_state()
+    {
+        // If the migration gate fails, the gate is cancelled. InitializeAsync must skip loading
+        // (no reads) and complete without surfacing the cancellation as a crash.
+        var gate = new StartupGate();
+        var viewModel = CreateViewModel(gate);
+
+        var init = viewModel.InitializeAsync();
+        gate.SignalStartupFailed();
+
+        var act = async () => await init.WaitAsync(TimeSpan.FromSeconds(5));
+        await act.Should().NotThrowAsync("a failed startup must not crash the dashboard initializer");
+        _documentService.Verify(service => service.GetTotalDocumentCountAsync(), Times.Never);
+    }
+
+    private DashboardViewModel CreateViewModel(IStartupGate? startupGate = null)
+    {
+        // Default to an already-open gate so the many InitializeAsync tests proceed immediately;
+        // tests exercising the gate itself pass an explicit (closed) gate.
+        var gate = startupGate;
+        if (gate is null)
+        {
+            var ready = new StartupGate();
+            ready.SignalDataReady();
+            gate = ready;
+        }
+
         return new DashboardViewModel(
             _aiService.Object,
             _conversationService.Object,
@@ -425,6 +480,7 @@ public sealed class DashboardViewModelTests
             _ragPipeline.Object,
             _operationsOverviewService.Object,
             _temporalIdentity.Object,
+            gate,
             _operationsDrillInService.Object);
     }
 }

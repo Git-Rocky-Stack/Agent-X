@@ -26,8 +26,9 @@ public class StartupOrchestratorTests
     private static StartupOrchestrator CreateOrchestrator(
         Mock<IMigrationRunner> runner,
         Mock<IApiHostLifecycleService> api,
-        Mock<IBuiltinConnectorLifecycleService> connectors)
-        => new(runner.Object, api.Object, connectors.Object, Serilog.Core.Logger.None);
+        Mock<IBuiltinConnectorLifecycleService> connectors,
+        IStartupGate? gate = null)
+        => new(runner.Object, api.Object, connectors.Object, gate ?? new StartupGate(), Serilog.Core.Logger.None);
 
     private static MigrationResult OkResult() =>
         new(DatabaseCreated: false,
@@ -124,6 +125,61 @@ public class StartupOrchestratorTests
         runner.Verify(r => r.RunAsync(It.IsAny<CancellationToken>()), Times.Once);
         api.Verify(a => a.StartAsync(It.IsAny<CancellationToken>()), Times.Once);
         connectors.Verify(c => c.InitializeAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Successful_migration_opens_data_gate_before_starting_api_and_connectors()
+    {
+        // AX-QA-003 follow-up (dashboard race): the data-ready gate must open the instant the
+        // migration succeeds — BEFORE the API and connectors — so data-backed UI can load in
+        // parallel with them rather than waiting on subsystems it does not depend on.
+        var runner = new Mock<IMigrationRunner>(MockBehavior.Strict);
+        var api = new Mock<IApiHostLifecycleService>(MockBehavior.Strict);
+        var connectors = new Mock<IBuiltinConnectorLifecycleService>(MockBehavior.Strict);
+        var gate = new Mock<IStartupGate>(MockBehavior.Strict);
+
+        var callOrder = new List<string>();
+        runner.Setup(r => r.RunAsync(It.IsAny<CancellationToken>()))
+            .Callback(() => callOrder.Add("migration")).ReturnsAsync(OkResult());
+        gate.Setup(g => g.SignalDataReady()).Callback(() => callOrder.Add("gate"));
+        api.Setup(a => a.StartAsync(It.IsAny<CancellationToken>()))
+            .Callback(() => callOrder.Add("api")).Returns(Task.CompletedTask);
+        connectors.Setup(c => c.InitializeAsync(It.IsAny<CancellationToken>()))
+            .Callback(() => callOrder.Add("connectors")).Returns(Task.CompletedTask);
+
+        var orchestrator = CreateOrchestrator(runner, api, connectors, gate.Object);
+
+        var result = await orchestrator.RunCriticalStartupAsync();
+
+        result.MigrationSucceeded.Should().BeTrue();
+        callOrder.Should().Equal("migration", "gate", "api", "connectors");
+        gate.Verify(g => g.SignalDataReady(), Times.Once);
+        gate.Verify(g => g.SignalStartupFailed(), Times.Never);
+    }
+
+    [Fact]
+    public async Task Migration_failure_fails_the_gate_and_never_opens_it()
+    {
+        // On migration failure the gate must be FAILED (releasing waiters via cancellation) and must
+        // never be opened — so data-backed UI skips loading instead of querying a broken schema.
+        var runner = new Mock<IMigrationRunner>(MockBehavior.Strict);
+        var api = new Mock<IApiHostLifecycleService>(MockBehavior.Strict);
+        var connectors = new Mock<IBuiltinConnectorLifecycleService>(MockBehavior.Strict);
+        var gate = new Mock<IStartupGate>(MockBehavior.Strict);
+
+        gate.Setup(g => g.SignalStartupFailed());
+        runner.Setup(r => r.RunAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("migration boom"));
+
+        var orchestrator = CreateOrchestrator(runner, api, connectors, gate.Object);
+
+        var result = await orchestrator.RunCriticalStartupAsync();
+
+        result.IsRecoveryState.Should().BeTrue();
+        gate.Verify(g => g.SignalStartupFailed(), Times.Once);
+        gate.Verify(g => g.SignalDataReady(), Times.Never);
+        api.Verify(a => a.StartAsync(It.IsAny<CancellationToken>()), Times.Never);
+        connectors.Verify(c => c.InitializeAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]

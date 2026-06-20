@@ -297,6 +297,10 @@ public partial class App : Application
         });
         services.AddSingleton<AgentX.Core.Data.MigrationRunner.IMigrationRunner,
                              AgentX.Core.Data.MigrationRunner.MigrationRunner>();
+        // AX-QA-003: the data-ready gate data-backed UI awaits before its first DB read. The
+        // orchestrator opens it the instant migration succeeds (or fails it on error). Singleton so
+        // the orchestrator and every consumer (e.g. DashboardViewModel) share one instance.
+        services.AddSingleton<IStartupGate, StartupGate>();
         // AX-QA-003: the critical, ordered startup sequence (migration gate → API → connectors).
         // Awaited in OnLaunched; fails closed when migration throws so nothing runs on a broken schema.
         services.AddSingleton<IStartupOrchestrator, StartupOrchestrator>();
