@@ -235,10 +235,10 @@ public sealed class SyncPackageCodecTests
     {
         return new SyncChangeSet
         {
-            DeviceId   = "test-device-001",
+            DeviceId = "test-device-001",
             ExportedAt = DateTime.UtcNow,
-            Version    = 1,
-            Changes    =
+            Version = 1,
+            Changes =
             [
                 new SyncChange
                 {

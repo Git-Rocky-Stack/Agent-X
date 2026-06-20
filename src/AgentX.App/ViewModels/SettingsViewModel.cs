@@ -1,5 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
+using AgentX.App.Services;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.AI.Routing;
@@ -7,7 +6,8 @@ using AgentX.Core.Services.Api;
 using AgentX.Core.Services.Search;
 using AgentX.Core.Services.Security;
 using AgentX.Core.Services.Settings;
-using AgentX.App.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Serilog;
 
 namespace AgentX.App.ViewModels;

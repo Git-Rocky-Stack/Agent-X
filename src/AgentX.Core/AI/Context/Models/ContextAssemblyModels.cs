@@ -1,6 +1,6 @@
 using AgentX.Core.AI.Models;
-using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Constants;
+using AgentX.Core.Services.Chat.Models;
 
 namespace AgentX.Core.AI.Context;
 

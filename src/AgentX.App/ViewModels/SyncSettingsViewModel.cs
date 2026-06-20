@@ -1,13 +1,13 @@
 using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using AgentX.App.Services;
+using AgentX.App.ViewModels.Sync;
+using AgentX.Core.Data.Entities;
 using AgentX.Core.Helpers;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Sync;
 using AgentX.Core.Services.Sync.Models;
-using AgentX.Core.Data.Entities;
-using AgentX.App.ViewModels.Sync;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Serilog;
 
 namespace AgentX.App.ViewModels;
@@ -258,11 +258,11 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
 
             if (config is not null)
             {
-                SyncFolderPath       = config.SyncFolderPath ?? string.Empty;
-                EncryptionKey        = config.EncryptionKey ?? string.Empty;
-                AutoSyncEnabled      = config.AutoSyncEnabled;
-                SyncIntervalMinutes  = config.SyncIntervalMinutes.ToString();
-                SyncScope            = config.SyncScope == AgentX.Core.Services.Sync.Models.SyncScope.SelectedCollections
+                SyncFolderPath = config.SyncFolderPath ?? string.Empty;
+                EncryptionKey = config.EncryptionKey ?? string.Empty;
+                AutoSyncEnabled = config.AutoSyncEnabled;
+                SyncIntervalMinutes = config.SyncIntervalMinutes.ToString();
+                SyncScope = config.SyncScope == AgentX.Core.Services.Sync.Models.SyncScope.SelectedCollections
                     ? "SelectedCollections"
                     : "All";
                 SelectedCollectionIds = config.SelectedCollectionIds;
@@ -270,12 +270,12 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
                 // Map the stored interval in minutes back to the dropdown index
                 SelectedIntervalIndex = config.SyncIntervalMinutes switch
                 {
-                    5   => 0,
-                    15  => 1,
-                    30  => 2,
-                    60  => 3,
+                    5 => 0,
+                    15 => 1,
+                    30 => 2,
+                    60 => 3,
                     120 => 4,
-                    _   => 1  // default to "Every 15 minutes" for non-standard values
+                    _ => 1  // default to "Every 15 minutes" for non-standard values
                 };
 
                 Log.Debug(
@@ -338,11 +338,11 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
 
             SyncState = status.SyncState switch
             {
-                AgentX.Core.Services.Sync.Models.SyncState.Idle     => "Idle",
-                AgentX.Core.Services.Sync.Models.SyncState.Syncing  => "Syncing",
-                AgentX.Core.Services.Sync.Models.SyncState.Error    => "Error",
+                AgentX.Core.Services.Sync.Models.SyncState.Idle => "Idle",
+                AgentX.Core.Services.Sync.Models.SyncState.Syncing => "Syncing",
+                AgentX.Core.Services.Sync.Models.SyncState.Error => "Error",
                 AgentX.Core.Services.Sync.Models.SyncState.Conflict => "Conflict",
-                _                                                     => "Unknown"
+                _ => "Unknown"
             };
 
             PendingChanges = status.PendingChanges;
@@ -428,11 +428,11 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         {
             var config = new SyncConfiguration
             {
-                SyncFolderPath        = SyncFolderPath.Trim(),
-                EncryptionKey         = EncryptionKey,
-                AutoSyncEnabled       = AutoSyncEnabled,
-                SyncIntervalMinutes   = intervalMinutes,
-                SyncScope             = scope,
+                SyncFolderPath = SyncFolderPath.Trim(),
+                EncryptionKey = EncryptionKey,
+                AutoSyncEnabled = AutoSyncEnabled,
+                SyncIntervalMinutes = intervalMinutes,
+                SyncScope = scope,
                 SelectedCollectionIds = scope == AgentX.Core.Services.Sync.Models.SyncScope.SelectedCollections
                     ? SelectedCollectionIds?.Trim()
                     : null
@@ -835,16 +835,16 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
     /// </summary>
     private static SyncHistoryItem MapToDisplayItem(SyncLogEntity entry) => new()
     {
-        Id                = entry.Id,
-        Direction         = entry.Direction,
-        ChangesApplied    = entry.ChangesApplied,
+        Id = entry.Id,
+        Direction = entry.Direction,
+        ChangesApplied = entry.ChangesApplied,
         ConflictsDetected = entry.ConflictsDetected,
-        IsSuccess         = entry.IsSuccess,
-        IsFocused         = false,
+        IsSuccess = entry.IsSuccess,
+        IsFocused = false,
         SyncedAtFormatted = FormatHelper.TimeAgoWithMonths(entry.SyncedAt),
-        SyncedAtFull      = entry.SyncedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt"),
+        SyncedAtFull = entry.SyncedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt"),
         DurationFormatted = FormatHelper.FormatDuration(entry.DurationMs),
-        ErrorMessage      = entry.ErrorMessage
+        ErrorMessage = entry.ErrorMessage
     };
 
     private void ApplyPendingOperationsRequest()

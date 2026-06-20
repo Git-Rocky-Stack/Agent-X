@@ -1,6 +1,6 @@
+using AgentX.App.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using AgentX.App.Services;
 
 namespace AgentX.App.Controls;
 

@@ -96,8 +96,8 @@ public sealed class SyncConflictResolverTests
     [Fact]
     public async Task DetectConflictsAsync_BothSidesModified_ReturnsConflict()
     {
-        var syncTime  = DateTime.UtcNow.AddHours(-1);
-        var incoming  = CreateChangeSet("remote-dev");
+        var syncTime = DateTime.UtcNow.AddHours(-1);
+        var incoming = CreateChangeSet("remote-dev");
 
         // Local modified AFTER the last sync
         var localModifiedAt = syncTime.AddMinutes(30);
@@ -122,7 +122,7 @@ public sealed class SyncConflictResolverTests
         var syncTime = DateTime.UtcNow.AddHours(-1);
         var incoming = new SyncChangeSet
         {
-            DeviceId   = "remote-dev",
+            DeviceId = "remote-dev",
             ExportedAt = DateTime.UtcNow,
             Changes =
             [
@@ -236,7 +236,7 @@ public sealed class SyncConflictResolverTests
 
     private static SyncChangeSet CreateChangeSet(string deviceId) => new()
     {
-        DeviceId   = deviceId,
+        DeviceId = deviceId,
         ExportedAt = DateTime.UtcNow,
         Changes =
         [
@@ -254,20 +254,20 @@ public sealed class SyncConflictResolverTests
     private static SyncConflict CreateConflict() => new()
     {
         EntityType = "DocumentEntity",
-        EntityId   = 42,
+        EntityId = 42,
         LocalChange = new SyncChange
         {
             EntityType = "DocumentEntity",
-            EntityId   = 42,
+            EntityId = 42,
             ChangeType = SyncChangeType.Updated,
-            Timestamp  = DateTime.UtcNow,
+            Timestamp = DateTime.UtcNow,
         },
         RemoteChange = new SyncChange
         {
-            EntityType     = "DocumentEntity",
-            EntityId       = 42,
-            ChangeType     = SyncChangeType.Updated,
-            Timestamp      = DateTime.UtcNow,
+            EntityType = "DocumentEntity",
+            EntityId = 42,
+            ChangeType = SyncChangeType.Updated,
+            Timestamp = DateTime.UtcNow,
             SerializedData = "{\"title\":\"Remote\"}",
         },
         Resolution = SyncResolution.Pending,

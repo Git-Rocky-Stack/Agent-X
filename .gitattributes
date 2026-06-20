@@ -1,2 +1,74 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# ─────────────────────────────────────────────────────────────────────────────
+# Line-ending policy (AX-QA-012)
+#
+# The repository is LF-normalized. `.editorconfig` declares `end_of_line = lf`,
+# so the working tree must be LF on every platform — otherwise `dotnet format`
+# reports thousands of ENDOFLINE diagnostics and the format CI gate fails.
+#
+# `eol=lf` forces an LF working copy on checkout regardless of the local
+# `core.autocrlf` setting. This matters in CI: GitHub's `windows-latest` runners
+# default to `core.autocrlf=true`, which would otherwise materialize CRLF and
+# break `dotnet format --verify-no-changes`.
+#
+# `text=auto` lets Git still auto-detect binary content; the explicit `binary`
+# rules below are belt-and-suspenders for asset types that must never be touched.
+# ─────────────────────────────────────────────────────────────────────────────
+
+* text=auto eol=lf
+
+# ── Source & config (explicit LF; redundant with the default but self-documenting)
+*.cs        text eol=lf
+*.csx       text eol=lf
+*.csproj    text eol=lf
+*.props     text eol=lf
+*.sln       text eol=lf
+*.xaml      text eol=lf
+*.resw      text eol=lf
+*.manifest  text eol=lf
+*.json      text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.md        text eol=lf
+*.txt       text eol=lf
+*.html      text eol=lf
+*.css       text eol=lf
+*.js        text eol=lf
+*.mjs       text eol=lf
+*.ts        text eol=lf
+*.py        text eol=lf
+*.ps1       text eol=lf
+*.iss       text eol=lf
+.editorconfig text eol=lf
+.gitignore  text eol=lf
+.gitattributes text eol=lf
+
+# ── Binary assets (never EOL- or charset-converted)
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.ico   binary
+*.icns  binary
+*.pdf   binary
+*.zip   binary
+*.gz    binary
+*.7z    binary
+*.jar   binary
+*.aab   binary
+*.apk   binary
+*.dll   binary
+*.exe   binary
+*.pdb   binary
+*.snk   binary
+*.pfx   binary
+*.jks   binary
+*.keystore binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.otf   binary
+*.eot   binary
+*.mp3   binary
+*.mp4   binary
+*.wav   binary

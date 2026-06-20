@@ -1,14 +1,14 @@
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
-using Windows.System;
 using AgentX.App.Helpers;
 using AgentX.App.Services;
 using AgentX.App.ViewModels;
 using AgentX.App.Views;
 using AgentX.App.Views.Dialogs;
 using AgentX.Core.Services.Shortcuts;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Serilog;
+using Windows.System;
 
 namespace AgentX.App;
 
@@ -220,16 +220,34 @@ public sealed partial class MainWindow : Window
 
     private Dictionary<string, NavigationViewItem> BuildNavItemMap() => new()
     {
-        ["Dashboard"] = NavDashboard, ["Operations"] = NavOperations, ["Digest"] = NavDigest, ["Analytics"] = NavAnalytics, ["Chat"] = NavChat,
-        ["AskFiles"] = NavAskFiles, ["QuickActions"] = NavQuickActions, ["Workflows"] = NavWorkflows,
-        ["KnowledgeVault"] = NavVault, ["WebImport"] = NavWebImport, ["Collections"] = NavCollections,
-        ["Search"] = NavSearch, ["KnowledgeGraph"] = NavKnowledgeGraph, ["ModelManager"] = NavModels,
-        ["HardwareAdvisor"] = NavHardware, ["BackupRestore"] = NavBackupRestore, ["Annotations"] = NavAnnotations,
-        ["Inbox"] = NavInbox, ["Comparison"] = NavComparison, ["WorkspaceProfiles"] = NavWorkspaceProfiles,
-        ["PluginManager"] = NavPluginManager, ["SyncSettings"] = NavSyncSettings,
-        ["CalendarSettings"] = NavCalendarSettings, ["EmailSettings"] = NavEmailSettings,
-        ["Settings"] = NavSettings, ["UserGuide"] = NavUserGuide,
-        ["PrivacyPolicy"] = NavPrivacyPolicy, ["TermsOfService"] = NavTermsOfService,
+        ["Dashboard"] = NavDashboard,
+        ["Operations"] = NavOperations,
+        ["Digest"] = NavDigest,
+        ["Analytics"] = NavAnalytics,
+        ["Chat"] = NavChat,
+        ["AskFiles"] = NavAskFiles,
+        ["QuickActions"] = NavQuickActions,
+        ["Workflows"] = NavWorkflows,
+        ["KnowledgeVault"] = NavVault,
+        ["WebImport"] = NavWebImport,
+        ["Collections"] = NavCollections,
+        ["Search"] = NavSearch,
+        ["KnowledgeGraph"] = NavKnowledgeGraph,
+        ["ModelManager"] = NavModels,
+        ["HardwareAdvisor"] = NavHardware,
+        ["BackupRestore"] = NavBackupRestore,
+        ["Annotations"] = NavAnnotations,
+        ["Inbox"] = NavInbox,
+        ["Comparison"] = NavComparison,
+        ["WorkspaceProfiles"] = NavWorkspaceProfiles,
+        ["PluginManager"] = NavPluginManager,
+        ["SyncSettings"] = NavSyncSettings,
+        ["CalendarSettings"] = NavCalendarSettings,
+        ["EmailSettings"] = NavEmailSettings,
+        ["Settings"] = NavSettings,
+        ["UserGuide"] = NavUserGuide,
+        ["PrivacyPolicy"] = NavPrivacyPolicy,
+        ["TermsOfService"] = NavTermsOfService,
     };
 
     /// <summary>

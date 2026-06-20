@@ -1,8 +1,8 @@
+using System.Globalization;
+using AgentX.App.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using AgentX.App.Services;
 using Serilog;
-using System.Globalization;
 
 namespace AgentX.App.ViewModels;
 
@@ -28,7 +28,8 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
 
     [ObservableProperty] private string _summaryHeadline = "Operations ready";
     [ObservableProperty] private string _summaryDetail = "Unified status for conversation intelligence, sync posture, ingestion backlog, workflows, and connectors.";
-    [ObservableProperty] private IReadOnlyList<OperationsOverviewStatusTile> _overviewStatusTiles =
+    [ObservableProperty]
+    private IReadOnlyList<OperationsOverviewStatusTile> _overviewStatusTiles =
         BuildOverviewStatusTiles(CreateFallbackSnapshot());
     [ObservableProperty] private IReadOnlyList<OperationsRecommendedActionItem> _recommendedActions = Array.Empty<OperationsRecommendedActionItem>();
 
@@ -311,32 +312,32 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
                 break;
 
             case OperationsRecommendedActionKind.RetryImportedDocumentIndexing:
-            {
-                var preview = RecentImportedDocuments.FirstOrDefault(item => item.DocumentId == action.TargetId);
-                if (preview is not null && CanRetryImportedDocumentIndexing(preview))
                 {
-                    await RetryImportedDocumentIndexingAsync(preview, ct).ConfigureAwait(false);
+                    var preview = RecentImportedDocuments.FirstOrDefault(item => item.DocumentId == action.TargetId);
+                    if (preview is not null && CanRetryImportedDocumentIndexing(preview))
+                    {
+                        await RetryImportedDocumentIndexingAsync(preview, ct).ConfigureAwait(false);
+                        break;
+                    }
+
+                    NavigateToRecommendedAction(action);
+
                     break;
                 }
-
-                NavigateToRecommendedAction(action);
-
-                break;
-            }
 
             case OperationsRecommendedActionKind.EnableConnector:
-            {
-                var preview = ConnectorPreviews.FirstOrDefault(item => item.PluginId == action.TargetId);
-                if (preview is not null && CanEnableConnector(preview))
                 {
-                    await EnableConnectorAsync(preview, ct).ConfigureAwait(false);
+                    var preview = ConnectorPreviews.FirstOrDefault(item => item.PluginId == action.TargetId);
+                    if (preview is not null && CanEnableConnector(preview))
+                    {
+                        await EnableConnectorAsync(preview, ct).ConfigureAwait(false);
+                        break;
+                    }
+
+                    NavigateToRecommendedAction(action);
+
                     break;
                 }
-
-                NavigateToRecommendedAction(action);
-
-                break;
-            }
 
             case OperationsRecommendedActionKind.Navigate:
             default:

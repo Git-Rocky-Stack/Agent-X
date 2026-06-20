@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using Serilog;
 using AgentX.Core.Services.Settings;
+using Serilog;
 
 namespace AgentX.App.Services;
 

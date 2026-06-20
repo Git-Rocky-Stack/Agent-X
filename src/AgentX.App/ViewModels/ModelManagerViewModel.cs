@@ -1,10 +1,10 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Helpers;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Serilog;
 using Windows.ApplicationModel.DataTransfer;
 

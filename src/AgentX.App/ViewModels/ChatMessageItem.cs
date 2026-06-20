@@ -1,6 +1,6 @@
-using CommunityToolkit.Mvvm.ComponentModel;
 using AgentX.App.Helpers;
 using AgentX.Core.Search.Models;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace AgentX.App.ViewModels;
 

@@ -1,11 +1,11 @@
 using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using AgentX.App.Services;
 using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
 using AgentX.Core.Services.Intelligence;
 using AgentX.Core.Services.Intelligence.Models;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Serilog;
 
 namespace AgentX.App.ViewModels;
@@ -37,7 +37,8 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _translationInput = string.Empty;
     [ObservableProperty] private string _translationOutput = string.Empty;
     [ObservableProperty] private string _selectedLanguage = "Spanish";
-    [ObservableProperty] private ObservableCollection<string> _availableLanguages = new(new[]
+    [ObservableProperty]
+    private ObservableCollection<string> _availableLanguages = new(new[]
     {
         "Spanish", "French", "German", "Chinese", "Japanese",
         "Korean", "Portuguese", "Italian", "Russian", "Arabic"

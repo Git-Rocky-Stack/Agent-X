@@ -231,14 +231,14 @@ public sealed class PluginService : IPluginService
         // ── Step 4: create the database record (disabled by default) ───────────
         var entity = new PluginEntity
         {
-            PluginId    = manifest.Id,
-            Name        = manifest.Name,
-            Version     = manifest.Version,
-            Author      = manifest.Author,
+            PluginId = manifest.Id,
+            Name = manifest.Name,
+            Version = manifest.Version,
+            Author = manifest.Author,
             Description = manifest.Description,
-            PluginType  = manifest.PluginType,
+            PluginType = manifest.PluginType,
             InstallPath = installPath,
-            IsEnabled   = false,
+            IsEnabled = false,
             InstalledAt = DateTime.UtcNow,
             ReadmeContent = readmeContent,
         };
@@ -873,8 +873,8 @@ public sealed class PluginService : IPluginService
         public PluginContext(string pluginDataPath, IServiceProvider services, ILogger logger)
         {
             PluginDataPath = pluginDataPath;
-            Services       = services;
-            Logger         = logger;
+            Services = services;
+            Logger = logger;
         }
     }
 }

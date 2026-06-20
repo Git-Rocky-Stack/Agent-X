@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using AgentX.Core.Services.Settings;
 using Microsoft.UI.Xaml.Controls;
 using Serilog;
-using AgentX.Core.Services.Settings;
 
 namespace AgentX.App.Services;
 

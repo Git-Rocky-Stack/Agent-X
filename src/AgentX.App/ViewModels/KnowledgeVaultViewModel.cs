@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
+using AgentX.App.Services;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Data.Entities;
@@ -10,7 +9,8 @@ using AgentX.Core.Helpers;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Indexing;
 using AgentX.Core.Services.Tagging;
-using AgentX.App.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Serilog;
 
 namespace AgentX.App.ViewModels;

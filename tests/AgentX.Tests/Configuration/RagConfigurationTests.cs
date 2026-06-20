@@ -1,9 +1,9 @@
+using System;
 using AgentX.Core.Configuration;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
-using System;
 
 namespace AgentX.Tests.Configuration;
 

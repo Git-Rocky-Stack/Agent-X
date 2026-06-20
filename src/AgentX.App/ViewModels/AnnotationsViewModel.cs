@@ -1,8 +1,8 @@
 using System.Collections.ObjectModel;
+using AgentX.Core.Data.Entities;
+using AgentX.Core.Services.Annotations;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using AgentX.Core.Services.Annotations;
-using AgentX.Core.Data.Entities;
 using Serilog;
 
 namespace AgentX.App.ViewModels;

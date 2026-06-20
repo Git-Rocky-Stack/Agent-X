@@ -1,18 +1,18 @@
 using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
+using AgentX.App.Services;
 using AgentX.Core.AI;
+using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
 using AgentX.Core.Search;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Indexing;
+using AgentX.Core.Services.Privacy;
 using AgentX.Core.Services.TemporalIdentity;
 using AgentX.Core.Services.TemporalIdentity.Models;
-using AgentX.Core.Services.Privacy;
-using AgentX.Core.Data.Entities;
-using AgentX.App.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Serilog;
 
 namespace AgentX.App.ViewModels;
@@ -113,7 +113,8 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     // assurance only when nothing is configured to leave the machine.
     [ObservableProperty] private bool _isFullyPrivate = true;
     [ObservableProperty] private string _privacyTitle = "100% Private";
-    [ObservableProperty] private string _privacySummary =
+    [ObservableProperty]
+    private string _privacySummary =
         "All AI processing runs locally on your hardware. Your data never leaves this machine.";
     [ObservableProperty] private ObservableCollection<DashboardPrivacyDisclosureItem> _privacyDisclosures = new();
 

@@ -11,6 +11,7 @@ This document tracks Agent-X's CI gates and their status against audit finding *
 | LocaleAudit | `.github/workflows/locale-audit.yml` | Localization coverage ≥ 98% per locale + locale snapshot tests. |
 | Extension CI | `.github/workflows/extension-ci.yml` | Browser-extension lint, typecheck, production build, and production-dependency `npm audit`. |
 | Dependency Audit | `.github/workflows/dependency-audit.yml` | NuGet vulnerable-package scan across the solution; fails on any High/Critical advisory not on the accepted list. Runs on dependency changes and weekly. |
+| Format | `.github/workflows/format.yml` | `dotnet format --verify-no-changes` across the solution: whitespace, LF line endings, and using-directive ordering. Fails if the code is not formatted. Runs on `.cs`/`.csproj`/`.editorconfig`/`.gitattributes`/build-config changes. |
 
 ## AX-QA-006 gate matrix
 
@@ -21,7 +22,7 @@ This document tracks Agent-X's CI gates and their status against audit finding *
 | NuGet vulnerability checks | ✅ Added | `dependency-audit.yml` — allowlist gate (see below) |
 | Build Android / iOS | ⏸ Deferred → **AX-QA-004** | No mobile project in `AgentX.sln`; `maui-android` workload absent. Add an Android job once the mobile transport is decided and the project is added to the solution. |
 | Enforce code coverage | ⏸ Deferred → **AX-QA-009** | Coverage is currently 46% line / 33% branch. Setting and ratcheting the enforced threshold (with higher floors for security/migration code) is tracked under AX-QA-009. |
-| `dotnet format --verify-no-changes` | ⏸ Deferred → **AX-QA-012** | The repo currently has ~69k CRLF/whitespace diagnostics from `.gitattributes`/`.editorconfig`/`autocrlf` drift. A format gate must be added **in the same change** that performs the mechanical normalization, so it is not mixed with functional fixes. |
+| `dotnet format --verify-no-changes` | ✅ Added | `format.yml`. The mechanical normalization (LF via `.gitattributes eol=lf`, whitespace, using order) landed in the same change as the gate, with no functional edits mixed in (AX-QA-012 resolved). Gate runs at **default severity** — formatting + imports only; info-level analyzer refactors (CA1861, IDE0300) are intentionally out of scope. |
 | Publish / install / smoke-test the Windows artifact | ⏸ Deferred → **AX-QA-001 / 007** | Belongs to the signed release pipeline. |
 | Verify the artifact was built from the release tag/HEAD (provenance) | ⏸ Deferred → **AX-QA-001 / 007** | Release-pipeline concern; pairs with signing. |
 | Sign / verify signatures | ⏸ Deferred → **AX-QA-007** | Requires a code-signing certificate held in a protected pipeline; cannot be added from a normal CI run. |

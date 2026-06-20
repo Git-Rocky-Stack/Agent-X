@@ -1,8 +1,8 @@
+using System.Xml.Linq;
 using AgentX.Core.Services.Web;
 using FluentAssertions;
 using Moq;
 using Serilog;
-using System.Xml.Linq;
 using Xunit;
 
 namespace AgentX.Tests.Services.Web;

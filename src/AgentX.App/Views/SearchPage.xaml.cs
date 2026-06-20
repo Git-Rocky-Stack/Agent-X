@@ -1,9 +1,9 @@
+using AgentX.App.ViewModels;
+using AgentX.Core.Search.Models;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using AgentX.App.ViewModels;
-using AgentX.Core.Search.Models;
 using Serilog;
 using Windows.System;
 using Windows.UI;

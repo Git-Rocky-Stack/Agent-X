@@ -49,11 +49,11 @@ public sealed class TranscriptionService : ITranscriptionService
     private static readonly IReadOnlyDictionary<string, string> ModelDownloadUrls =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            ["tiny"]   = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin",
-            ["base"]   = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin",
-            ["small"]  = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin",
+            ["tiny"] = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin",
+            ["base"] = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin",
+            ["small"] = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin",
             ["medium"] = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.bin",
-            ["large"]  = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3.bin",
+            ["large"] = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3.bin",
         };
 
     /// <summary>
@@ -63,11 +63,11 @@ public sealed class TranscriptionService : ITranscriptionService
     private static readonly IReadOnlyDictionary<string, long> ApproximateModelBytes =
         new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase)
         {
-            ["tiny"]   =   75_000_000L,
-            ["base"]   =  142_000_000L,
-            ["small"]  =  466_000_000L,
+            ["tiny"] = 75_000_000L,
+            ["base"] = 142_000_000L,
+            ["small"] = 466_000_000L,
             ["medium"] = 1_528_000_000L,
-            ["large"]  = 3_094_000_000L,
+            ["large"] = 3_094_000_000L,
         };
 
     // ── Supported formats ────────────────────────────────────────────────────
@@ -460,8 +460,8 @@ public sealed class TranscriptionService : ITranscriptionService
         progress?.Report(new TranscriptionProgress
         {
             PercentComplete = percent,
-            CurrentPhase    = phase,
-            Segment         = segment,
+            CurrentPhase = phase,
+            Segment = segment,
         });
     }
 

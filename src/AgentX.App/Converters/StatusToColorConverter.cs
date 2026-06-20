@@ -1,7 +1,7 @@
+using AgentX.App.Helpers;
 using Microsoft.UI;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
-using AgentX.App.Helpers;
 using Windows.UI;
 
 namespace AgentX.App.Converters;

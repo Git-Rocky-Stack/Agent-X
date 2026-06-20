@@ -1,13 +1,13 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
+using AgentX.App.Services;
 using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
 using AgentX.Core.Search;
 using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Collections;
-using AgentX.App.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Serilog;
 
 namespace AgentX.App.ViewModels;

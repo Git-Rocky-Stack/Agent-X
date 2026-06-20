@@ -15,8 +15,8 @@ public class CommandPaletteViewModelTests
     {
         var registry = new ShortcutRegistry();
         registry.Register(Desc("g.one", "Global one", ShortcutScope.Global));
-        registry.Register(Desc("d.one", "Docs one",   new ShortcutScope("DocumentsPage")));
-        registry.Register(Desc("c.one", "Chat one",   new ShortcutScope("ChatPage")));
+        registry.Register(Desc("d.one", "Docs one", new ShortcutScope("DocumentsPage")));
+        registry.Register(Desc("c.one", "Chat one", new ShortcutScope("ChatPage")));
 
         var sut = new CommandPaletteViewModel(registry, activeScopeName: "DocumentsPage");
 
@@ -29,7 +29,7 @@ public class CommandPaletteViewModelTests
         var registry = new ShortcutRegistry();
         registry.Register(Desc("imp", "Import Document", ShortcutScope.Global));
         registry.Register(Desc("exp", "Export Document", ShortcutScope.Global));
-        registry.Register(Desc("set", "Settings",        ShortcutScope.Global));
+        registry.Register(Desc("set", "Settings", ShortcutScope.Global));
 
         var sut = new CommandPaletteViewModel(registry, activeScopeName: null);
         sut.Query = "doc";

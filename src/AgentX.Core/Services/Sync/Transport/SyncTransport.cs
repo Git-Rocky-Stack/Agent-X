@@ -14,7 +14,7 @@ public sealed class SyncTransport : ISyncTransport
     // ── Constants ─────────────────────────────────────────────────────────────
 
     private const string SyncFileExtension = ".axs";
-    private const string SyncFilePrefix    = "agentx-sync-";
+    private const string SyncFilePrefix = "agentx-sync-";
 
     // ── Fields ────────────────────────────────────────────────────────────────
 
@@ -109,7 +109,7 @@ public sealed class SyncTransport : ISyncTransport
                 peerFiles.Add(new SyncFilePayload
                 {
                     FilePath = filePath,
-                    Data     = data,
+                    Data = data,
                     FileName = fileName,
                 });
             }

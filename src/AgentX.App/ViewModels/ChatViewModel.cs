@@ -1,9 +1,11 @@
-using System.Collections.ObjectModel;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
+using AgentX.App.Helpers;
+using AgentX.App.Services;
+using AgentX.App.ViewModels.Coordinators;
+using AgentX.App.Views;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Search.Models;
@@ -13,10 +15,8 @@ using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Services.Feedback;
 using AgentX.Core.Services.TemporalIdentity;
-using AgentX.App.Helpers;
-using AgentX.App.Services;
-using AgentX.App.ViewModels.Coordinators;
-using AgentX.App.Views;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using NAudio.Wave;
 using Serilog;
 
@@ -583,8 +583,12 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             foreach (var p in prompts)
                 SystemPrompts.Add(new SystemPromptItem
                 {
-                    Id = p.Id, Name = p.Name, Content = p.Content,
-                    Category = p.Category, IsBuiltIn = p.IsBuiltIn, IsFavorite = p.IsFavorite
+                    Id = p.Id,
+                    Name = p.Name,
+                    Content = p.Content,
+                    Category = p.Category,
+                    IsBuiltIn = p.IsBuiltIn,
+                    IsFavorite = p.IsFavorite
                 });
         }
         catch (Exception ex) { Log.Warning(ex, "Failed to load system prompts"); }
@@ -696,16 +700,26 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         // Add user message to UI
         Messages.Add(new ChatMessageItem
         {
-            Role = "user", Content = userContent, Timestamp = DateTime.UtcNow,
-            IsUser = true, IsAssistant = false, IsSystem = false, IsStreaming = false
+            Role = "user",
+            Content = userContent,
+            Timestamp = DateTime.UtcNow,
+            IsUser = true,
+            IsAssistant = false,
+            IsSystem = false,
+            IsStreaming = false
         });
         OnPropertyChanged(nameof(HasNoMessages));
 
         // Create streaming placeholder
         _streamingAssistantMessage = new ChatMessageItem
         {
-            Role = "assistant", Content = "", Timestamp = DateTime.UtcNow,
-            IsUser = false, IsAssistant = true, IsSystem = false, IsStreaming = true
+            Role = "assistant",
+            Content = "",
+            Timestamp = DateTime.UtcNow,
+            IsUser = false,
+            IsAssistant = true,
+            IsSystem = false,
+            IsStreaming = true
         };
         Messages.Add(_streamingAssistantMessage);
 
@@ -896,7 +910,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         if (message is null || !message.IsAssistant || message.MessageId <= 0) return;
         var newRating = message.FeedbackRating switch
         {
-            "positive" => "negative", "negative" => "none", _ => "positive"
+            "positive" => "negative",
+            "negative" => "none",
+            _ => "positive"
         };
         message.FeedbackRating = newRating;
         await _messagingCoordinator.SubmitFeedbackAsync(message.MessageId, ActiveConversationId ?? 0, newRating);
@@ -1279,18 +1295,28 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
     private static ConversationListItem MapToConversationListItem(ConversationSummary s) => new()
     {
-        Id = s.Id, Title = s.Title, LastMessage = s.LastMessage,
-        UpdatedAt = s.UpdatedAt, IsPinned = s.IsPinned,
-        MessageCount = s.MessageCount, FolderName = s.FolderName
+        Id = s.Id,
+        Title = s.Title,
+        LastMessage = s.LastMessage,
+        UpdatedAt = s.UpdatedAt,
+        IsPinned = s.IsPinned,
+        MessageCount = s.MessageCount,
+        FolderName = s.FolderName
     };
 
     private static ChatMessageItem MapToChatMessageItem(MessageSummary ms) => new()
     {
-        MessageId = ms.MessageId, ConversationId = ms.ConversationId,
-        SortOrder = ms.SortOrder, Role = ms.Role, Content = ms.Content,
-        Timestamp = ms.Timestamp, IsUser = ms.Role == "user",
-        IsAssistant = ms.Role == "assistant", IsSystem = ms.Role == "system",
-        TokenCount = ms.TokenCount, GenerationTimeMs = ms.GenerationTimeMs,
+        MessageId = ms.MessageId,
+        ConversationId = ms.ConversationId,
+        SortOrder = ms.SortOrder,
+        Role = ms.Role,
+        Content = ms.Content,
+        Timestamp = ms.Timestamp,
+        IsUser = ms.Role == "user",
+        IsAssistant = ms.Role == "assistant",
+        IsSystem = ms.Role == "system",
+        TokenCount = ms.TokenCount,
+        GenerationTimeMs = ms.GenerationTimeMs,
         FeedbackRating = ms.FeedbackRating
     };
 

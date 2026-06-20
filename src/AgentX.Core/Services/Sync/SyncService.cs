@@ -35,21 +35,21 @@ public sealed class SyncService : ISyncService
     // ── Constants ─────────────────────────────────────────────────────────────
 
     private const string SyncConfigKey = "SyncConfiguration";
-    private const string DeviceIdKey   = "SyncDeviceId";
+    private const string DeviceIdKey = "SyncDeviceId";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
-        WriteIndented          = false,
-        PropertyNamingPolicy   = JsonNamingPolicy.CamelCase,
+        WriteIndented = false,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
     };
 
     // ── Fields ────────────────────────────────────────────────────────────────
 
-    private readonly AgentXDbContext       _db;
-    private readonly ILogger               _log;
-    private readonly ISyncTransport        _transport;
-    private readonly ISyncPackageCodec     _codec;
+    private readonly AgentXDbContext _db;
+    private readonly ILogger _log;
+    private readonly ISyncTransport _transport;
+    private readonly ISyncPackageCodec _codec;
     private readonly ISyncConflictResolver _conflictResolver;
 
     /// <summary>Current sync status — mutated only through <see cref="SetStatus"/>.</summary>
@@ -92,11 +92,11 @@ public sealed class SyncService : ISyncService
         ISyncPackageCodec codec,
         ISyncConflictResolver conflictResolver)
     {
-        _db               = dbContext    ?? throw new ArgumentNullException(nameof(dbContext));
-        _log              = (logger      ?? throw new ArgumentNullException(nameof(logger)))
+        _db = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        _log = (logger ?? throw new ArgumentNullException(nameof(logger)))
                            .ForContext<SyncService>();
-        _transport        = transport        ?? throw new ArgumentNullException(nameof(transport));
-        _codec            = codec            ?? throw new ArgumentNullException(nameof(codec));
+        _transport = transport ?? throw new ArgumentNullException(nameof(transport));
+        _codec = codec ?? throw new ArgumentNullException(nameof(codec));
         _conflictResolver = conflictResolver ?? throw new ArgumentNullException(nameof(conflictResolver));
 
         _log.Information("SyncService initialised");
@@ -186,13 +186,13 @@ public sealed class SyncService : ISyncService
 
         SetStatus(s =>
         {
-            s.SyncState   = SyncState.Syncing;
+            s.SyncState = SyncState.Syncing;
             s.ErrorMessage = null;
         });
 
         try
         {
-            var config   = await GetRequiredConfigurationAsync().ConfigureAwait(false);
+            var config = await GetRequiredConfigurationAsync().ConfigureAwait(false);
             var deviceId = await GetOrCreateDeviceIdAsync().ConfigureAwait(false);
 
             // ── Collect changed entities from the local database ──────────────
@@ -200,10 +200,10 @@ public sealed class SyncService : ISyncService
 
             var changeSet = new SyncChangeSet
             {
-                DeviceId   = deviceId,
+                DeviceId = deviceId,
                 ExportedAt = DateTime.UtcNow,
-                Changes    = changes,
-                Version    = 1,
+                Changes = changes,
+                Version = 1,
             };
 
             _log.Information(
@@ -229,22 +229,22 @@ public sealed class SyncService : ISyncService
             // ── Persist audit log ─────────────────────────────────────────────
             await PersistLogAsync(new SyncLogEntity
             {
-                SyncedAt          = DateTime.UtcNow,
-                Direction         = "export",
-                ChangesApplied    = changes.Count,
+                SyncedAt = DateTime.UtcNow,
+                Direction = "export",
+                ChangesApplied = changes.Count,
                 ConflictsDetected = 0,
                 ConflictsResolved = 0,
-                DurationMs        = sw.Elapsed.TotalMilliseconds,
-                IsSuccess         = true,
+                DurationMs = sw.Elapsed.TotalMilliseconds,
+                IsSuccess = true,
             }, CancellationToken.None).ConfigureAwait(false);
 
             SetStatus(s =>
             {
-                s.SyncState          = SyncState.Idle;
-                s.LastSyncAt         = DateTime.UtcNow;
+                s.SyncState = SyncState.Idle;
+                s.LastSyncAt = DateTime.UtcNow;
                 s.LastSyncDurationMs = sw.Elapsed.TotalMilliseconds;
-                s.PendingChanges     = 0;
-                s.ErrorMessage       = null;
+                s.PendingChanges = 0;
+                s.ErrorMessage = null;
             });
 
             return changeSet;
@@ -258,16 +258,16 @@ public sealed class SyncService : ISyncService
 
             await PersistLogAsync(new SyncLogEntity
             {
-                SyncedAt     = DateTime.UtcNow,
-                Direction    = "export",
-                DurationMs   = sw.Elapsed.TotalMilliseconds,
+                SyncedAt = DateTime.UtcNow,
+                Direction = "export",
+                DurationMs = sw.Elapsed.TotalMilliseconds,
                 ErrorMessage = "Export was cancelled.",
-                IsSuccess    = false,
+                IsSuccess = false,
             }, CancellationToken.None).ConfigureAwait(false);
 
             SetStatus(s =>
             {
-                s.SyncState    = SyncState.Idle;
+                s.SyncState = SyncState.Idle;
                 s.ErrorMessage = "Export was cancelled.";
             });
 
@@ -282,17 +282,17 @@ public sealed class SyncService : ISyncService
 
             await PersistLogAsync(new SyncLogEntity
             {
-                SyncedAt     = DateTime.UtcNow,
-                Direction    = "export",
-                DurationMs   = sw.Elapsed.TotalMilliseconds,
+                SyncedAt = DateTime.UtcNow,
+                Direction = "export",
+                DurationMs = sw.Elapsed.TotalMilliseconds,
                 ErrorMessage = ex.Message,
-                IsSuccess    = false,
+                IsSuccess = false,
             }, CancellationToken.None).ConfigureAwait(false);
 
             SetStatus(s =>
             {
-                s.SyncState          = SyncState.Error;
-                s.ErrorMessage       = ex.Message;
+                s.SyncState = SyncState.Error;
+                s.ErrorMessage = ex.Message;
                 s.LastSyncDurationMs = sw.Elapsed.TotalMilliseconds;
             });
 
@@ -320,7 +320,7 @@ public sealed class SyncService : ISyncService
 
         SetStatus(s =>
         {
-            s.SyncState    = SyncState.Syncing;
+            s.SyncState = SyncState.Syncing;
             s.ErrorMessage = null;
         });
 
@@ -328,7 +328,7 @@ public sealed class SyncService : ISyncService
         {
             // ── Detect conflicts before touching the database ─────────────────
             var localDeviceId = await GetOrCreateDeviceIdAsync().ConfigureAwait(false);
-            var conflicts     = await _conflictResolver.DetectConflictsAsync(
+            var conflicts = await _conflictResolver.DetectConflictsAsync(
                 changeSet,
                 Status.LastSyncAt,
                 localDeviceId,
@@ -384,24 +384,24 @@ public sealed class SyncService : ISyncService
 
             await PersistLogAsync(new SyncLogEntity
             {
-                SyncedAt          = DateTime.UtcNow,
-                Direction         = "import",
-                ChangesApplied    = applied,
+                SyncedAt = DateTime.UtcNow,
+                Direction = "import",
+                ChangesApplied = applied,
                 ConflictsDetected = conflicts.Count,
                 ConflictsResolved = 0,
-                DurationMs        = sw.Elapsed.TotalMilliseconds,
-                IsSuccess         = true,
+                DurationMs = sw.Elapsed.TotalMilliseconds,
+                IsSuccess = true,
             }, CancellationToken.None).ConfigureAwait(false);
 
             var newState = conflicts.Count > 0 ? SyncState.Conflict : SyncState.Idle;
 
             SetStatus(s =>
             {
-                s.SyncState          = newState;
-                s.LastSyncAt         = DateTime.UtcNow;
+                s.SyncState = newState;
+                s.LastSyncAt = DateTime.UtcNow;
                 s.LastSyncDurationMs = sw.Elapsed.TotalMilliseconds;
-                s.PendingChanges     = conflicts.Count;
-                s.ErrorMessage       = conflicts.Count > 0
+                s.PendingChanges = conflicts.Count;
+                s.ErrorMessage = conflicts.Count > 0
                     ? $"{conflicts.Count} conflict(s) require resolution."
                     : null;
             });
@@ -417,16 +417,16 @@ public sealed class SyncService : ISyncService
 
             await PersistLogAsync(new SyncLogEntity
             {
-                SyncedAt     = DateTime.UtcNow,
-                Direction    = "import",
-                DurationMs   = sw.Elapsed.TotalMilliseconds,
+                SyncedAt = DateTime.UtcNow,
+                Direction = "import",
+                DurationMs = sw.Elapsed.TotalMilliseconds,
                 ErrorMessage = "Import was cancelled.",
-                IsSuccess    = false,
+                IsSuccess = false,
             }, CancellationToken.None).ConfigureAwait(false);
 
             SetStatus(s =>
             {
-                s.SyncState    = SyncState.Idle;
+                s.SyncState = SyncState.Idle;
                 s.ErrorMessage = "Import was cancelled.";
             });
 
@@ -441,17 +441,17 @@ public sealed class SyncService : ISyncService
 
             await PersistLogAsync(new SyncLogEntity
             {
-                SyncedAt     = DateTime.UtcNow,
-                Direction    = "import",
-                DurationMs   = sw.Elapsed.TotalMilliseconds,
+                SyncedAt = DateTime.UtcNow,
+                Direction = "import",
+                DurationMs = sw.Elapsed.TotalMilliseconds,
                 ErrorMessage = ex.Message,
-                IsSuccess    = false,
+                IsSuccess = false,
             }, CancellationToken.None).ConfigureAwait(false);
 
             SetStatus(s =>
             {
-                s.SyncState          = SyncState.Error;
-                s.ErrorMessage       = ex.Message;
+                s.SyncState = SyncState.Error;
+                s.ErrorMessage = ex.Message;
                 s.LastSyncDurationMs = sw.Elapsed.TotalMilliseconds;
             });
 
@@ -506,7 +506,7 @@ public sealed class SyncService : ISyncService
 
             if (s.PendingChanges == 0 && s.SyncState == SyncState.Conflict)
             {
-                s.SyncState    = SyncState.Idle;
+                s.SyncState = SyncState.Idle;
                 s.ErrorMessage = null;
             }
         });
@@ -648,7 +648,7 @@ public sealed class SyncService : ISyncService
 
     private async Task ImportPeerFilesAsync(CancellationToken ct)
     {
-        var config        = await GetRequiredConfigurationAsync().ConfigureAwait(false);
+        var config = await GetRequiredConfigurationAsync().ConfigureAwait(false);
         var localDeviceId = await GetOrCreateDeviceIdAsync().ConfigureAwait(false);
 
         var peerFiles = await _transport.ReadPeerFilesAsync(
@@ -713,7 +713,7 @@ public sealed class SyncService : ISyncService
         CancellationToken ct)
     {
         var changes = new List<SyncChange>();
-        var cutoff  = since ?? DateTime.MinValue;
+        var cutoff = since ?? DateTime.MinValue;
 
         HashSet<long>? allowedCollectionIds = null;
 
@@ -737,10 +737,10 @@ public sealed class SyncService : ISyncService
         {
             changes.Add(new SyncChange
             {
-                EntityType     = nameof(DocumentEntity),
-                EntityId       = doc.Id,
-                ChangeType     = cutoff == DateTime.MinValue ? SyncChangeType.Created : SyncChangeType.Updated,
-                Timestamp      = doc.ImportedAt,
+                EntityType = nameof(DocumentEntity),
+                EntityId = doc.Id,
+                ChangeType = cutoff == DateTime.MinValue ? SyncChangeType.Created : SyncChangeType.Updated,
+                Timestamp = doc.ImportedAt,
                 SerializedData = JsonSerializer.Serialize(doc, JsonOptions),
             });
         }
@@ -754,10 +754,10 @@ public sealed class SyncService : ISyncService
         {
             changes.Add(new SyncChange
             {
-                EntityType     = nameof(CollectionEntity),
-                EntityId       = col.Id,
-                ChangeType     = col.CreatedAt > cutoff ? SyncChangeType.Created : SyncChangeType.Updated,
-                Timestamp      = col.UpdatedAt,
+                EntityType = nameof(CollectionEntity),
+                EntityId = col.Id,
+                ChangeType = col.CreatedAt > cutoff ? SyncChangeType.Created : SyncChangeType.Updated,
+                Timestamp = col.UpdatedAt,
                 SerializedData = JsonSerializer.Serialize(col, JsonOptions),
             });
         }
@@ -767,10 +767,10 @@ public sealed class SyncService : ISyncService
         {
             changes.Add(new SyncChange
             {
-                EntityType     = nameof(TagEntity),
-                EntityId       = tag.Id,
-                ChangeType     = SyncChangeType.Created,
-                Timestamp      = tag.CreatedAt,
+                EntityType = nameof(TagEntity),
+                EntityId = tag.Id,
+                ChangeType = SyncChangeType.Created,
+                Timestamp = tag.CreatedAt,
                 SerializedData = JsonSerializer.Serialize(tag, JsonOptions),
             });
         }
@@ -780,10 +780,10 @@ public sealed class SyncService : ISyncService
         {
             changes.Add(new SyncChange
             {
-                EntityType     = nameof(ConversationEntity),
-                EntityId       = conv.Id,
-                ChangeType     = conv.CreatedAt > cutoff ? SyncChangeType.Created : SyncChangeType.Updated,
-                Timestamp      = conv.UpdatedAt,
+                EntityType = nameof(ConversationEntity),
+                EntityId = conv.Id,
+                ChangeType = conv.CreatedAt > cutoff ? SyncChangeType.Created : SyncChangeType.Updated,
+                Timestamp = conv.UpdatedAt,
                 SerializedData = JsonSerializer.Serialize(conv, JsonOptions),
             });
         }
@@ -793,10 +793,10 @@ public sealed class SyncService : ISyncService
         {
             changes.Add(new SyncChange
             {
-                EntityType     = nameof(AnnotationEntity),
-                EntityId       = ann.Id,
-                ChangeType     = ann.CreatedAt > cutoff ? SyncChangeType.Created : SyncChangeType.Updated,
-                Timestamp      = ann.UpdatedAt,
+                EntityType = nameof(AnnotationEntity),
+                EntityId = ann.Id,
+                ChangeType = ann.CreatedAt > cutoff ? SyncChangeType.Created : SyncChangeType.Updated,
+                Timestamp = ann.UpdatedAt,
                 SerializedData = JsonSerializer.Serialize(ann, JsonOptions),
             });
         }
@@ -806,10 +806,10 @@ public sealed class SyncService : ISyncService
         {
             changes.Add(new SyncChange
             {
-                EntityType     = nameof(SystemPromptEntity),
-                EntityId       = prompt.Id,
-                ChangeType     = prompt.CreatedAt > cutoff ? SyncChangeType.Created : SyncChangeType.Updated,
-                Timestamp      = prompt.UpdatedAt,
+                EntityType = nameof(SystemPromptEntity),
+                EntityId = prompt.Id,
+                ChangeType = prompt.CreatedAt > cutoff ? SyncChangeType.Created : SyncChangeType.Updated,
+                Timestamp = prompt.UpdatedAt,
                 SerializedData = JsonSerializer.Serialize(prompt, JsonOptions),
             });
         }
@@ -893,11 +893,11 @@ public sealed class SyncService : ISyncService
     {
         switch (change.EntityType)
         {
-            case nameof(DocumentEntity):     await RemoveByIdAsync(_db.Documents, change.EntityId).ConfigureAwait(false); break;
-            case nameof(CollectionEntity):   await RemoveByIdAsync(_db.Collections, change.EntityId).ConfigureAwait(false); break;
-            case nameof(TagEntity):          await RemoveByIdAsync(_db.Tags, change.EntityId).ConfigureAwait(false); break;
+            case nameof(DocumentEntity): await RemoveByIdAsync(_db.Documents, change.EntityId).ConfigureAwait(false); break;
+            case nameof(CollectionEntity): await RemoveByIdAsync(_db.Collections, change.EntityId).ConfigureAwait(false); break;
+            case nameof(TagEntity): await RemoveByIdAsync(_db.Tags, change.EntityId).ConfigureAwait(false); break;
             case nameof(ConversationEntity): await RemoveByIdAsync(_db.Conversations, change.EntityId).ConfigureAwait(false); break;
-            case nameof(AnnotationEntity):   await RemoveByIdAsync(_db.Annotations, change.EntityId).ConfigureAwait(false); break;
+            case nameof(AnnotationEntity): await RemoveByIdAsync(_db.Annotations, change.EntityId).ConfigureAwait(false); break;
             case nameof(SystemPromptEntity): await RemoveByIdAsync(_db.SystemPrompts, change.EntityId).ConfigureAwait(false); break;
             default:
                 _log.Warning("SyncService.ApplyDeletionAsync: unrecognised entity type '{EntityType}' — skipped", change.EntityType);
@@ -977,15 +977,15 @@ public sealed class SyncService : ISyncService
         {
             _db.UserSettings.Add(new UserSettingsEntity
             {
-                Key       = key,
-                Value     = value,
+                Key = key,
+                Value = value,
                 ValueType = "json",
                 UpdatedAt = DateTime.UtcNow,
             });
         }
         else
         {
-            entity.Value     = value;
+            entity.Value = value;
             entity.ValueType = "json";
             entity.UpdatedAt = DateTime.UtcNow;
         }
@@ -1038,10 +1038,10 @@ public sealed class SyncService : ISyncService
 
             snapshot = new SyncStatus
             {
-                LastSyncAt         = _status.LastSyncAt,
-                SyncState          = _status.SyncState,
-                ErrorMessage       = _status.ErrorMessage,
-                PendingChanges     = _status.PendingChanges,
+                LastSyncAt = _status.LastSyncAt,
+                SyncState = _status.SyncState,
+                ErrorMessage = _status.ErrorMessage,
+                PendingChanges = _status.PendingChanges,
                 LastSyncDurationMs = _status.LastSyncDurationMs,
             };
         }

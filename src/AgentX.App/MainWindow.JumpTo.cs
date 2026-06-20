@@ -1,12 +1,12 @@
 using System.Linq;
-using Microsoft.UI.Xaml;
-using Serilog;
 using AgentX.App.Services;
 using AgentX.App.ViewModels;
 using AgentX.App.Views.Dialogs;
 using AgentX.Core.Documents;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Settings;
+using Microsoft.UI.Xaml;
+using Serilog;
 
 namespace AgentX.App;
 

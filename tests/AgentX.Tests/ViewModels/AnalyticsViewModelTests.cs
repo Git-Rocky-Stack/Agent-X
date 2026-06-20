@@ -1,5 +1,5 @@
-using AgentX.App.ViewModels;
 using AgentX.App.Services;
+using AgentX.App.ViewModels;
 using AgentX.Core.Services.Analytics;
 using AgentX.Core.Services.Analytics.Models;
 using AgentX.Core.Services.Chat;

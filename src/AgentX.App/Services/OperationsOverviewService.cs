@@ -1,3 +1,4 @@
+using System.Text;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
@@ -9,7 +10,6 @@ using AgentX.Core.Services.Sync;
 using AgentX.Core.Services.Sync.Models;
 using AgentX.Core.Services.Workflows;
 using Serilog;
-using System.Text;
 
 namespace AgentX.App.Services;
 

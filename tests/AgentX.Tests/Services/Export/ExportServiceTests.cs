@@ -1,11 +1,11 @@
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
+using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Export;
 using AgentX.Core.Services.Export.Formatters;
 using AgentX.Core.Services.Export.Models;
 using AgentX.Core.Services.Settings;
-using AgentX.Core.Services.Chat;
 using FluentAssertions;
 using Moq;
 using Serilog;

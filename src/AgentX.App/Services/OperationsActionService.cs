@@ -1,5 +1,5 @@
-using AgentX.Core.Services.Chat;
 using AgentX.Core.Documents;
+using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Inbox;
 using AgentX.Core.Services.Plugins;
 using AgentX.Core.Services.Sync;

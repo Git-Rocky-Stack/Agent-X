@@ -90,88 +90,88 @@ public class CostTracker : ICostTracker
     /// </summary>
     private static readonly Dictionary<string, ModelCostInfo> KnownCosts =
         new(StringComparer.OrdinalIgnoreCase)
-    {
-        // OpenAI models
-        ["gpt-4o"] = new()
         {
-            ModelId = "gpt-4o",
-            ProviderId = "openai",
-            InputCostPer1KTokens = 0.0025,
-            OutputCostPer1KTokens = 0.01
-        },
-        ["gpt-4o-mini"] = new()
-        {
-            ModelId = "gpt-4o-mini",
-            ProviderId = "openai",
-            InputCostPer1KTokens = 0.00015,
-            OutputCostPer1KTokens = 0.0006
-        },
-        ["gpt-4-turbo"] = new()
-        {
-            ModelId = "gpt-4-turbo",
-            ProviderId = "openai",
-            InputCostPer1KTokens = 0.01,
-            OutputCostPer1KTokens = 0.03
-        },
-        ["o1"] = new()
-        {
-            ModelId = "o1",
-            ProviderId = "openai",
-            InputCostPer1KTokens = 0.015,
-            OutputCostPer1KTokens = 0.06
-        },
-        ["o1-mini"] = new()
-        {
-            ModelId = "o1-mini",
-            ProviderId = "openai",
-            InputCostPer1KTokens = 0.003,
-            OutputCostPer1KTokens = 0.012
-        },
-        ["o3-mini"] = new()
-        {
-            ModelId = "o3-mini",
-            ProviderId = "openai",
-            InputCostPer1KTokens = 0.0011,
-            OutputCostPer1KTokens = 0.0044
-        },
+            // OpenAI models
+            ["gpt-4o"] = new()
+            {
+                ModelId = "gpt-4o",
+                ProviderId = "openai",
+                InputCostPer1KTokens = 0.0025,
+                OutputCostPer1KTokens = 0.01
+            },
+            ["gpt-4o-mini"] = new()
+            {
+                ModelId = "gpt-4o-mini",
+                ProviderId = "openai",
+                InputCostPer1KTokens = 0.00015,
+                OutputCostPer1KTokens = 0.0006
+            },
+            ["gpt-4-turbo"] = new()
+            {
+                ModelId = "gpt-4-turbo",
+                ProviderId = "openai",
+                InputCostPer1KTokens = 0.01,
+                OutputCostPer1KTokens = 0.03
+            },
+            ["o1"] = new()
+            {
+                ModelId = "o1",
+                ProviderId = "openai",
+                InputCostPer1KTokens = 0.015,
+                OutputCostPer1KTokens = 0.06
+            },
+            ["o1-mini"] = new()
+            {
+                ModelId = "o1-mini",
+                ProviderId = "openai",
+                InputCostPer1KTokens = 0.003,
+                OutputCostPer1KTokens = 0.012
+            },
+            ["o3-mini"] = new()
+            {
+                ModelId = "o3-mini",
+                ProviderId = "openai",
+                InputCostPer1KTokens = 0.0011,
+                OutputCostPer1KTokens = 0.0044
+            },
 
-        // Anthropic models
-        ["claude-opus-4-20250514"] = new()
-        {
-            ModelId = "claude-opus-4-20250514",
-            ProviderId = "anthropic",
-            InputCostPer1KTokens = 0.015,
-            OutputCostPer1KTokens = 0.075
-        },
-        ["claude-sonnet-4-20250514"] = new()
-        {
-            ModelId = "claude-sonnet-4-20250514",
-            ProviderId = "anthropic",
-            InputCostPer1KTokens = 0.003,
-            OutputCostPer1KTokens = 0.015
-        },
-        ["claude-haiku-4-5-20251001"] = new()
-        {
-            ModelId = "claude-haiku-4-5-20251001",
-            ProviderId = "anthropic",
-            InputCostPer1KTokens = 0.0008,
-            OutputCostPer1KTokens = 0.004
-        },
-        ["claude-3-5-sonnet-20241022"] = new()
-        {
-            ModelId = "claude-3-5-sonnet-20241022",
-            ProviderId = "anthropic",
-            InputCostPer1KTokens = 0.003,
-            OutputCostPer1KTokens = 0.015
-        },
-        ["claude-3-5-haiku-20241022"] = new()
-        {
-            ModelId = "claude-3-5-haiku-20241022",
-            ProviderId = "anthropic",
-            InputCostPer1KTokens = 0.0008,
-            OutputCostPer1KTokens = 0.004
-        },
-    };
+            // Anthropic models
+            ["claude-opus-4-20250514"] = new()
+            {
+                ModelId = "claude-opus-4-20250514",
+                ProviderId = "anthropic",
+                InputCostPer1KTokens = 0.015,
+                OutputCostPer1KTokens = 0.075
+            },
+            ["claude-sonnet-4-20250514"] = new()
+            {
+                ModelId = "claude-sonnet-4-20250514",
+                ProviderId = "anthropic",
+                InputCostPer1KTokens = 0.003,
+                OutputCostPer1KTokens = 0.015
+            },
+            ["claude-haiku-4-5-20251001"] = new()
+            {
+                ModelId = "claude-haiku-4-5-20251001",
+                ProviderId = "anthropic",
+                InputCostPer1KTokens = 0.0008,
+                OutputCostPer1KTokens = 0.004
+            },
+            ["claude-3-5-sonnet-20241022"] = new()
+            {
+                ModelId = "claude-3-5-sonnet-20241022",
+                ProviderId = "anthropic",
+                InputCostPer1KTokens = 0.003,
+                OutputCostPer1KTokens = 0.015
+            },
+            ["claude-3-5-haiku-20241022"] = new()
+            {
+                ModelId = "claude-3-5-haiku-20241022",
+                ProviderId = "anthropic",
+                InputCostPer1KTokens = 0.0008,
+                OutputCostPer1KTokens = 0.004
+            },
+        };
 
     /// <inheritdoc />
     public void RecordUsage(string modelId, string providerId, int inputTokens, int outputTokens)

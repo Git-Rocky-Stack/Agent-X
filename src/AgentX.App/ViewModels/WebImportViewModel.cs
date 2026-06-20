@@ -1,10 +1,10 @@
 using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
+using AgentX.Core.Data.Entities;
+using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Web;
 using AgentX.Core.Services.Web.Models;
-using AgentX.Core.Services.Collections;
-using AgentX.Core.Data.Entities;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Serilog;
 
 namespace AgentX.App.ViewModels;

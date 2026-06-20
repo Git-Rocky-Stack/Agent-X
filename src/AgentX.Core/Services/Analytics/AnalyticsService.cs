@@ -1,8 +1,8 @@
+using System.Text.Json;
 using AgentX.Core.Data;
 using AgentX.Core.Services.Analytics.Models;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using System.Text.Json;
 
 namespace AgentX.Core.Services.Analytics;
 
@@ -37,11 +37,11 @@ public sealed class AnalyticsService : IAnalyticsService
         {
             // Run independent scalar queries in parallel for minimum latency
             var conversationCountTask = _db.Conversations.AsNoTracking().CountAsync(ct);
-            var messageCountTask      = _db.Messages.AsNoTracking().CountAsync(ct);
-            var totalTokensTask       = _db.Conversations.AsNoTracking().SumAsync(c => c.TokensUsed, ct);
-            var documentCountTask     = _db.Documents.AsNoTracking().CountAsync(ct);
-            var searchCountTask       = _db.SearchHistory.AsNoTracking().CountAsync(ct);
-            var workflowRunCountTask  = _db.WorkflowRuns.AsNoTracking().CountAsync(ct);
+            var messageCountTask = _db.Messages.AsNoTracking().CountAsync(ct);
+            var totalTokensTask = _db.Conversations.AsNoTracking().SumAsync(c => c.TokensUsed, ct);
+            var documentCountTask = _db.Documents.AsNoTracking().CountAsync(ct);
+            var searchCountTask = _db.SearchHistory.AsNoTracking().CountAsync(ct);
+            var workflowRunCountTask = _db.WorkflowRuns.AsNoTracking().CountAsync(ct);
 
             var indexedCountTask = _db.Documents.AsNoTracking()
                 .CountAsync(d => d.IndexingStatus == "completed", ct);
@@ -68,12 +68,12 @@ public sealed class AnalyticsService : IAnalyticsService
 
             return new AnalyticsSummary
             {
-                TotalConversations    = await conversationCountTask,
-                TotalMessages         = await messageCountTask,
-                TotalTokensUsed       = await totalTokensTask,
-                TotalDocuments        = await documentCountTask,
-                TotalSearches         = await searchCountTask,
-                TotalWorkflowRuns     = await workflowRunCountTask,
+                TotalConversations = await conversationCountTask,
+                TotalMessages = await messageCountTask,
+                TotalTokensUsed = await totalTokensTask,
+                TotalDocuments = await documentCountTask,
+                TotalSearches = await searchCountTask,
+                TotalWorkflowRuns = await workflowRunCountTask,
                 DocumentsIndexedCount = await indexedCountTask,
                 DocumentsPendingCount = await pendingCountTask,
                 AverageResponseTimeMs = await avgResponseTask ?? 0.0,
@@ -171,9 +171,9 @@ public sealed class AnalyticsService : IAnalyticsService
                 .GroupBy(c => c.ModelId)
                 .Select(g => new
                 {
-                    ModelId           = g.Key,
+                    ModelId = g.Key,
                     ConversationCount = g.Count(),
-                    TotalTokens       = g.Sum(c => c.TokensUsed)
+                    TotalTokens = g.Sum(c => c.TokensUsed)
                 })
                 .OrderByDescending(g => g.ConversationCount)
                 .ToListAsync(ct);
@@ -185,10 +185,10 @@ public sealed class AnalyticsService : IAnalyticsService
 
             return conversationGroups.Select(g => new ModelUsageMetric
             {
-                ModelId           = g.ModelId,
+                ModelId = g.ModelId,
                 ConversationCount = g.ConversationCount,
-                TotalTokens       = g.TotalTokens,
-                Percentage        = totalConversations > 0
+                TotalTokens = g.TotalTokens,
+                Percentage = totalConversations > 0
                     ? Math.Round(g.ConversationCount * 100.0 / totalConversations, 1)
                     : 0.0
             }).ToList();
@@ -212,8 +212,8 @@ public sealed class AnalyticsService : IAnalyticsService
                 .GroupBy(d => d.FileType)
                 .Select(g => new
                 {
-                    FileType       = g.Key,
-                    Count          = g.Count(),
+                    FileType = g.Key,
+                    Count = g.Count(),
                     TotalSizeBytes = g.Sum(d => d.FileSizeBytes)
                 })
                 .OrderByDescending(g => g.Count)
@@ -226,10 +226,10 @@ public sealed class AnalyticsService : IAnalyticsService
 
             return groups.Select(g => new FileTypeMetric
             {
-                FileType       = g.FileType,
-                Count          = g.Count,
+                FileType = g.FileType,
+                Count = g.Count,
                 TotalSizeBytes = g.TotalSizeBytes,
-                Percentage     = totalCount > 0
+                Percentage = totalCount > 0
                     ? Math.Round(g.Count * 100.0 / totalCount, 1)
                     : 0.0
             }).ToList();
@@ -271,32 +271,32 @@ public sealed class AnalyticsService : IAnalyticsService
                 .ToListAsync(ct);
 
             var sortedMs = timings; // already ordered ascending
-            var count    = sortedMs.Count;
+            var count = sortedMs.Count;
 
-            var average      = sortedMs.Average();
-            var median       = ComputePercentile(sortedMs, 50);
-            var p95          = ComputePercentile(sortedMs, 95);
-            var fastest      = sortedMs[0];
-            var slowest      = sortedMs[count - 1];
-            var totalMs      = sortedMs.Sum();
+            var average = sortedMs.Average();
+            var median = ComputePercentile(sortedMs, 50);
+            var p95 = ComputePercentile(sortedMs, 95);
+            var fastest = sortedMs[0];
+            var slowest = sortedMs[count - 1];
+            var totalMs = sortedMs.Sum();
 
             // tokens/sec: sum(tokens) / sum(seconds)
             double avgTokensPerSec = 0.0;
             if (tokenTimingPairs.Count > 0)
             {
-                var totalTokens  = tokenTimingPairs.Sum(p => p.Tokens);
+                var totalTokens = tokenTimingPairs.Sum(p => p.Tokens);
                 var totalSeconds = tokenTimingPairs.Sum(p => p.Ms) / 1000.0;
-                avgTokensPerSec  = totalSeconds > 0 ? Math.Round(totalTokens / totalSeconds, 1) : 0.0;
+                avgTokensPerSec = totalSeconds > 0 ? Math.Round(totalTokens / totalSeconds, 1) : 0.0;
             }
 
             return new PerformanceMetrics
             {
-                AverageResponseTimeMs  = Math.Round(average, 1),
-                MedianResponseTimeMs   = Math.Round(median, 1),
-                P95ResponseTimeMs      = Math.Round(p95, 1),
-                FastestResponseMs      = Math.Round(fastest, 1),
-                SlowestResponseMs      = Math.Round(slowest, 1),
-                TotalInferenceTimeMs   = Math.Round(totalMs, 0),
+                AverageResponseTimeMs = Math.Round(average, 1),
+                MedianResponseTimeMs = Math.Round(median, 1),
+                P95ResponseTimeMs = Math.Round(p95, 1),
+                FastestResponseMs = Math.Round(fastest, 1),
+                SlowestResponseMs = Math.Round(slowest, 1),
+                TotalInferenceTimeMs = Math.Round(totalMs, 0),
                 AverageTokensPerSecond = avgTokensPerSec,
             };
         }
@@ -868,17 +868,17 @@ public sealed class AnalyticsService : IAnalyticsService
         int days)
     {
         var lookup = raw.ToDictionary(r => r.Date.Date, r => r.Count);
-        var today  = DateTime.UtcNow.Date;
+        var today = DateTime.UtcNow.Date;
         var result = new List<DailyMetric>(days);
 
         for (var i = days - 1; i >= 0; i--)
         {
-            var date  = today.AddDays(-i);
+            var date = today.AddDays(-i);
             var count = lookup.GetValueOrDefault(date, 0);
 
             result.Add(new DailyMetric
             {
-                Date  = date,
+                Date = date,
                 Count = count,
                 Label = date.ToString("MMM d"),
             });

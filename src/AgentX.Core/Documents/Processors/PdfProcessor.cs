@@ -2,9 +2,9 @@ using System.Text;
 using AgentX.Core.Documents.Models;
 using AgentX.Core.Helpers;
 using PdfSharp.Pdf;
-using PdfSharp.Pdf.IO;
 using PdfSharp.Pdf.Content;
 using PdfSharp.Pdf.Content.Objects;
+using PdfSharp.Pdf.IO;
 using Serilog;
 
 namespace AgentX.Core.Documents.Processors;

@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
 using AgentX.App.Models;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace AgentX.App.ViewModels;
 

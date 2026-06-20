@@ -127,7 +127,7 @@ public sealed class VectorMathTests
         var result = VectorMath.DotProduct(a, b);
 
         // Assert
-        result.Should().Be(1*4 + 2*5 + 3*6); // 32
+        result.Should().Be(1 * 4 + 2 * 5 + 3 * 6); // 32
     }
 
     [Fact]

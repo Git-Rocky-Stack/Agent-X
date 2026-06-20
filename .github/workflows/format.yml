@@ -1,0 +1,67 @@
+name: Format
+
+# AX-QA-012: enforce the repository's formatting contract so it can never drift back to the
+# 69k-diagnostic state the QA audit found. `dotnet format --verify-no-changes` checks whitespace,
+# line endings (LF per .editorconfig + .gitattributes), and using-directive ordering across the
+# whole solution and fails the build if anything is out of shape.
+#
+# Runs on Windows with Platform=x64 because the WinUI 3 AgentX.App project only loads its full
+# project graph when Platform is set (it has no AnyCPU configuration) — the same constraint the
+# dependency-audit workflow handles this way.
+#
+# Default severity is intentional: it gates formatting + imports (the AX-QA-012 scope) without
+# enforcing info-level analyzer refactors (e.g. CA1861 / IDE0300), which are code-quality changes
+# tracked separately and must not be bundled into the mechanical formatting gate.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**/*.cs'
+      - '**/*.csproj'
+      - '.editorconfig'
+      - '.gitattributes'
+      - 'Directory.Build.props'
+      - 'Directory.Packages.props'
+      - 'global.json'
+      - '.github/workflows/format.yml'
+  pull_request:
+    paths:
+      - '**/*.cs'
+      - '**/*.csproj'
+      - '.editorconfig'
+      - '.gitattributes'
+      - 'Directory.Build.props'
+      - 'Directory.Packages.props'
+      - 'global.json'
+      - '.github/workflows/format.yml'
+
+jobs:
+  format:
+    name: dotnet format (whitespace + imports)
+    runs-on: windows-latest
+    env:
+      # The WinUI AgentX.App project only enumerates its project graph when Platform is set
+      # (no AnyCPU configuration); this lets dotnet format load every project in the solution.
+      Platform: x64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore AgentX.sln
+
+      - name: Verify formatting
+        shell: pwsh
+        run: |
+          dotnet format AgentX.sln --verify-no-changes --no-restore --verbosity diagnostic
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host '::error::Code is not formatted. Run ''dotnet format AgentX.sln'' locally and commit the result.'
+            exit 1
+          }
+          Write-Host 'PASS: solution is formatted (whitespace, line endings, using order).'

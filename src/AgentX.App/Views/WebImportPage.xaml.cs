@@ -1,7 +1,7 @@
+using AgentX.App.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using AgentX.App.ViewModels;
 using Serilog;
 
 namespace AgentX.App.Views;

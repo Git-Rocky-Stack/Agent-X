@@ -1,12 +1,12 @@
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
 using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
 using AgentX.Core.Services.Shortcuts;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Navigation;
 using Serilog;
-using Windows.Storage.Pickers;
 using Windows.Storage;
+using Windows.Storage.Pickers;
 using WinRT.Interop;
 
 namespace AgentX.App.Views;

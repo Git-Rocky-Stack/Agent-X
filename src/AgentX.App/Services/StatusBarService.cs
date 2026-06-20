@@ -1,9 +1,9 @@
 using System;
 using System.Threading;
-using Serilog;
 using AgentX.Core.AI;
 using AgentX.Core.Documents;
 using AgentX.Core.Services.Indexing;
+using Serilog;
 
 namespace AgentX.App.Services;
 

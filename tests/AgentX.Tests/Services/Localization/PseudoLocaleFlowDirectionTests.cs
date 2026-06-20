@@ -15,10 +15,10 @@ public class PseudoLocaleFlowDirectionTests
 {
     [Theory]
     [InlineData("en-US", false)]
-    [InlineData("de",    false)]
-    [InlineData("es",    false)]
-    [InlineData("fr",    false)]
-    [InlineData("ja",    false)]
+    [InlineData("de", false)]
+    [InlineData("es", false)]
+    [InlineData("fr", false)]
+    [InlineData("ja", false)]
     [InlineData("zh-CN", false)]
     [InlineData("ar-SA", true)]   // Future locale — detector must already support it
     [InlineData("he-IL", true)]   // Future locale — detector must already support it

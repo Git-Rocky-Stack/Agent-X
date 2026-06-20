@@ -1,7 +1,7 @@
+using AgentX.App.ViewModels;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Services.Screen;
-using AgentX.App.ViewModels;
 using FluentAssertions;
 using Moq;
 using Xunit;

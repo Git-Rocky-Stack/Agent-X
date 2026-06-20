@@ -1,7 +1,7 @@
+using System.Text;
 using AgentX.Core.Configuration;
 using AgentX.Core.Documents.Models;
 using Serilog;
-using System.Text;
 
 namespace AgentX.Core.Documents;
 

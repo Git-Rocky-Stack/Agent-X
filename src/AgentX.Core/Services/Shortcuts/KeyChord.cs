@@ -10,11 +10,11 @@ namespace AgentX.Core.Services.Shortcuts;
 [Flags]
 public enum KeyModifiers
 {
-    None  = 0,
-    Ctrl  = 1 << 0,
+    None = 0,
+    Ctrl = 1 << 0,
     Shift = 1 << 1,
-    Alt   = 1 << 2,
-    Win   = 1 << 3,
+    Alt = 1 << 2,
+    Win = 1 << 3,
 }
 
 /// <summary>
@@ -55,20 +55,20 @@ public static class KeyChordFormatter
     public static string Format(KeyChord c)
     {
         var parts = new List<string>(5);
-        if (c.Modifiers.HasFlag(KeyModifiers.Ctrl))  parts.Add("Ctrl");
+        if (c.Modifiers.HasFlag(KeyModifiers.Ctrl)) parts.Add("Ctrl");
         if (c.Modifiers.HasFlag(KeyModifiers.Shift)) parts.Add("Shift");
-        if (c.Modifiers.HasFlag(KeyModifiers.Alt))   parts.Add("Alt");
-        if (c.Modifiers.HasFlag(KeyModifiers.Win))   parts.Add("Win");
+        if (c.Modifiers.HasFlag(KeyModifiers.Alt)) parts.Add("Alt");
+        if (c.Modifiers.HasFlag(KeyModifiers.Win)) parts.Add("Win");
         parts.Add(FormatKey(c.Key));
         return string.Join("+", parts);
     }
 
     private static string FormatKey(VirtualKeyCode k) => k switch
     {
-        VirtualKeyCode.Oem2      => "?",
-        VirtualKeyCode.OemPlus   => "+",
-        VirtualKeyCode.OemMinus  => "-",
-        VirtualKeyCode.OemComma  => ",",
+        VirtualKeyCode.Oem2 => "?",
+        VirtualKeyCode.OemPlus => "+",
+        VirtualKeyCode.OemMinus => "-",
+        VirtualKeyCode.OemComma => ",",
         VirtualKeyCode.OemPeriod => ".",
         VirtualKeyCode.D0 => "0",
         VirtualKeyCode.D1 => "1",

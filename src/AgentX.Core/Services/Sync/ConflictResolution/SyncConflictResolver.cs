@@ -80,20 +80,20 @@ public sealed class SyncConflictResolver : ISyncConflictResolver
             // after the most recent sync timestamp — genuine conflict.
             var localChange = new SyncChange
             {
-                EntityType     = remoteChange.EntityType,
-                EntityId       = remoteChange.EntityId,
-                ChangeType     = SyncChangeType.Updated,
-                Timestamp      = localTs.Value,
+                EntityType = remoteChange.EntityType,
+                EntityId = remoteChange.EntityId,
+                ChangeType = SyncChangeType.Updated,
+                Timestamp = localTs.Value,
                 SerializedData = null, // serialised lazily only if the user selects KeepLocal
             };
 
             conflicts.Add(new SyncConflict
             {
-                EntityType   = remoteChange.EntityType,
-                EntityId     = remoteChange.EntityId,
-                LocalChange  = localChange,
+                EntityType = remoteChange.EntityType,
+                EntityId = remoteChange.EntityId,
+                LocalChange = localChange,
                 RemoteChange = remoteChange,
-                Resolution   = SyncResolution.Pending,
+                Resolution = SyncResolution.Pending,
             });
 
             _log.Debug(

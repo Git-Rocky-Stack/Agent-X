@@ -1,6 +1,6 @@
+using System;
 using AgentX.Core.Services.Security;
 using FluentAssertions;
-using System;
 using Xunit;
 
 namespace AgentX.Tests.Services.Security;

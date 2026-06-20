@@ -1,9 +1,9 @@
 using System.Text;
 using AgentX.Core.AI;
-using AgentX.Core.Documents;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Intelligence;

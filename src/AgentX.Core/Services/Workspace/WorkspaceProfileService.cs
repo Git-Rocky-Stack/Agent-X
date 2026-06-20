@@ -113,11 +113,11 @@ public sealed class WorkspaceProfileService : IWorkspaceProfileService
 
         var profile = new WorkspaceProfileEntity
         {
-            Name        = name.Trim(),
+            Name = name.Trim(),
             Description = description?.Trim(),
-            IsDefault   = false,
-            CreatedAt   = now,
-            UpdatedAt   = now,
+            IsDefault = false,
+            CreatedAt = now,
+            UpdatedAt = now,
         };
 
         _db.WorkspaceProfiles.Add(profile);
@@ -228,14 +228,14 @@ public sealed class WorkspaceProfileService : IWorkspaceProfileService
         await _db.WorkspaceProfiles
             .Where(p => p.IsDefault && p.Id != id)
             .ExecuteUpdateAsync(setters => setters
-                .SetProperty(p => p.IsDefault,  false)
-                .SetProperty(p => p.UpdatedAt,  now))
+                .SetProperty(p => p.IsDefault, false)
+                .SetProperty(p => p.UpdatedAt, now))
             .ConfigureAwait(false);
 
         // Step 2: Promote the target profile.  The entity is already tracked from
         // the FirstOrDefaultAsync call above, so no extra round-trip is needed.
-        target.IsDefault  = true;
-        target.UpdatedAt  = now;
+        target.IsDefault = true;
+        target.UpdatedAt = now;
 
         try
         {
@@ -273,14 +273,14 @@ public sealed class WorkspaceProfileService : IWorkspaceProfileService
         // value.  IsDefault is always false — the duplicate starts as a neutral profile.
         var duplicate = new WorkspaceProfileEntity
         {
-            Name                = newName.Trim(),
-            Description         = source.Description,
-            ActiveModelId       = source.ActiveModelId,
+            Name = newName.Trim(),
+            Description = source.Description,
+            ActiveModelId = source.ActiveModelId,
             ActiveCollectionIds = source.ActiveCollectionIds,
-            CustomSettings      = source.CustomSettings,
-            IsDefault           = false,
-            CreatedAt           = now,
-            UpdatedAt           = now,
+            CustomSettings = source.CustomSettings,
+            IsDefault = false,
+            CreatedAt = now,
+            UpdatedAt = now,
         };
 
         _db.WorkspaceProfiles.Add(duplicate);

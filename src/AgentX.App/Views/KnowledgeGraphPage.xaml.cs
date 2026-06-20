@@ -1,11 +1,11 @@
+using AgentX.App.ViewModels;
+using AgentX.Core.Services.Intelligence.Models;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
-using AgentX.App.ViewModels;
-using AgentX.Core.Services.Intelligence.Models;
 using Serilog;
 using Windows.UI;
 

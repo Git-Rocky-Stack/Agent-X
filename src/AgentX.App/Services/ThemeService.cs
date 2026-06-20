@@ -1,5 +1,5 @@
-using Microsoft.UI.Xaml;
 using AgentX.Core.Services.Settings;
+using Microsoft.UI.Xaml;
 using Serilog;
 
 namespace AgentX.App.Services;

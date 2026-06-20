@@ -1,7 +1,7 @@
+using System.ComponentModel;
+using AgentX.App.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using AgentX.App.ViewModels;
-using System.ComponentModel;
 
 namespace AgentX.App.Views;
 

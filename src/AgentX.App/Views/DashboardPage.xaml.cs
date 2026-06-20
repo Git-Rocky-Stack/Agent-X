@@ -1,5 +1,5 @@
-using Microsoft.UI.Xaml.Controls;
 using AgentX.App.ViewModels;
+using Microsoft.UI.Xaml.Controls;
 
 namespace AgentX.App.Views;
 

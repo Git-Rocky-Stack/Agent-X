@@ -1,6 +1,6 @@
+using AgentX.App.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using AgentX.App.Models;
 
 namespace AgentX.App.Selectors;
 

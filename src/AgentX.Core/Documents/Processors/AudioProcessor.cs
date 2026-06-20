@@ -44,11 +44,11 @@ public sealed class AudioProcessor : IDocumentProcessor
     private static readonly Dictionary<string, string> FileTypeNames =
         new(StringComparer.OrdinalIgnoreCase)
         {
-            [".mp3"]  = "mp3",
-            [".wav"]  = "wav",
-            [".m4a"]  = "m4a",
+            [".mp3"] = "mp3",
+            [".wav"] = "wav",
+            [".m4a"] = "m4a",
             [".flac"] = "flac",
-            [".ogg"]  = "ogg",
+            [".ogg"] = "ogg",
             [".webm"] = "webm",
         };
 
@@ -107,11 +107,11 @@ public sealed class AudioProcessor : IDocumentProcessor
 
         var document = new ProcessedDocument
         {
-            FilePath      = filePath,
-            FileName      = Path.GetFileName(filePath),
-            FileType      = FileTypeNames.GetValueOrDefault(ext, ext.TrimStart('.')),
+            FilePath = filePath,
+            FileName = Path.GetFileName(filePath),
+            FileType = FileTypeNames.GetValueOrDefault(ext, ext.TrimStart('.')),
             FileSizeBytes = fileInfo.Length,
-            PageCount     = 1,
+            PageCount = 1,
         };
 
         // Start the file hash computation in parallel with transcription so it does not
@@ -137,22 +137,22 @@ public sealed class AudioProcessor : IDocumentProcessor
                     ct: ct)
                 .ConfigureAwait(false);
 
-            document.ContentHash  = await hashTask.ConfigureAwait(false);
+            document.ContentHash = await hashTask.ConfigureAwait(false);
             document.ExtractedText = BuildExtractedText(result, fileInfo.Name);
-            document.Language      = result.Language;
-            document.WordCount     = CountWords(document.ExtractedText);
+            document.Language = result.Language;
+            document.WordCount = CountWords(document.ExtractedText);
 
             // Use the file name (without extension) as the document title since audio files
             // rarely embed a structural title the way documents or code files do.
             document.ExtractedTitle = Path.GetFileNameWithoutExtension(filePath);
 
             // Populate metadata with transcription provenance for downstream consumers.
-            document.Metadata.CreatedDate  = fileInfo.CreationTimeUtc;
+            document.Metadata.CreatedDate = fileInfo.CreationTimeUtc;
             document.Metadata.ModifiedDate = fileInfo.LastWriteTimeUtc;
-            document.Metadata.Custom["audioFormat"]    = ext.TrimStart('.');
-            document.Metadata.Custom["modelUsed"]      = result.ModelUsed;
-            document.Metadata.Custom["segmentCount"]   = result.Segments.Count.ToString();
-            document.Metadata.Custom["durationMs"]     = result.DurationMs.ToString();
+            document.Metadata.Custom["audioFormat"] = ext.TrimStart('.');
+            document.Metadata.Custom["modelUsed"] = result.ModelUsed;
+            document.Metadata.Custom["segmentCount"] = result.Segments.Count.ToString();
+            document.Metadata.Custom["durationMs"] = result.DurationMs.ToString();
             document.Metadata.Custom["durationDisplay"] = FormatDuration(result.DurationMs);
 
             if (!string.IsNullOrWhiteSpace(result.Language))
@@ -193,16 +193,16 @@ public sealed class AudioProcessor : IDocumentProcessor
                 "Whisper.net runtime unavailable; audio file will be indexed without transcript: {FilePath}",
                 filePath);
 
-            document.ContentHash  = await hashTask.ConfigureAwait(false);
+            document.ContentHash = await hashTask.ConfigureAwait(false);
             document.ExtractedText =
                 $"[Audio transcript unavailable — {ex.Message}]";
             document.ExtractedTitle = Path.GetFileNameWithoutExtension(filePath);
-            document.WordCount      = 0;
-            document.Metadata.CreatedDate  = fileInfo.CreationTimeUtc;
+            document.WordCount = 0;
+            document.Metadata.CreatedDate = fileInfo.CreationTimeUtc;
             document.Metadata.ModifiedDate = fileInfo.LastWriteTimeUtc;
             document.Metadata.Custom["audioFormat"] = ext.TrimStart('.');
-            document.Metadata.Custom["error"]       = ex.Message;
-            document.Metadata.Custom["errorType"]   = "RuntimeNotInstalled";
+            document.Metadata.Custom["error"] = ex.Message;
+            document.Metadata.Custom["errorType"] = "RuntimeNotInstalled";
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("not available"))
         {
@@ -212,16 +212,16 @@ public sealed class AudioProcessor : IDocumentProcessor
                 "Whisper model not downloaded; audio file will be indexed without transcript: {FilePath}",
                 filePath);
 
-            document.ContentHash  = await hashTask.ConfigureAwait(false);
+            document.ContentHash = await hashTask.ConfigureAwait(false);
             document.ExtractedText =
                 $"[Audio transcript unavailable — Whisper model not downloaded. {ex.Message}]";
             document.ExtractedTitle = Path.GetFileNameWithoutExtension(filePath);
-            document.WordCount      = 0;
-            document.Metadata.CreatedDate  = fileInfo.CreationTimeUtc;
+            document.WordCount = 0;
+            document.Metadata.CreatedDate = fileInfo.CreationTimeUtc;
             document.Metadata.ModifiedDate = fileInfo.LastWriteTimeUtc;
             document.Metadata.Custom["audioFormat"] = ext.TrimStart('.');
-            document.Metadata.Custom["error"]       = ex.Message;
-            document.Metadata.Custom["errorType"]   = "ModelNotDownloaded";
+            document.Metadata.Custom["error"] = ex.Message;
+            document.Metadata.Custom["errorType"] = "ModelNotDownloaded";
         }
         catch (Exception ex)
         {
@@ -240,7 +240,7 @@ public sealed class AudioProcessor : IDocumentProcessor
             }
 
             document.ExtractedText = string.Empty;
-            document.Metadata.Custom["error"]     = ex.Message;
+            document.Metadata.Custom["error"] = ex.Message;
             document.Metadata.Custom["errorType"] = ex.GetType().Name;
         }
 
@@ -284,7 +284,7 @@ public sealed class AudioProcessor : IDocumentProcessor
             foreach (var segment in result.Segments)
             {
                 var start = TimeSpan.FromMilliseconds(segment.StartMs);
-                var end   = TimeSpan.FromMilliseconds(segment.EndMs);
+                var end = TimeSpan.FromMilliseconds(segment.EndMs);
 
                 // Format: [HH:MM:SS --> HH:MM:SS]  or  [HH:MM:SS --> HH:MM:SS] (Speaker N)
                 sb.Append('[')

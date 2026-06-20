@@ -30,25 +30,25 @@ public sealed class SyncPackageCodec : ISyncPackageCodec
     private const ushort FormatVersion = 1;
 
     // AES-256-GCM parameters (centralized in AppConstants)
-    private const int AesKeyBytes   = AppConstants.AesKeyBytes;   // 256 bits
+    private const int AesKeyBytes = AppConstants.AesKeyBytes;   // 256 bits
     private const int GcmNonceBytes = AppConstants.GcmNonceBytes; // 96-bit nonce
-    private const int GcmTagBytes   = AppConstants.GcmTagBytes;   // 128-bit tag
+    private const int GcmTagBytes = AppConstants.GcmTagBytes;   // 128-bit tag
 
     // PBKDF2 parameters
     private const int Pbkdf2Iterations = AppConstants.Pbkdf2Iterations;
-    private const int SaltBytes        = AppConstants.PbkdfSaltBytes;
+    private const int SaltBytes = AppConstants.PbkdfSaltBytes;
 
     // File header layout
     private static readonly byte[] SyncMagic = "AXSYNC\0\0"u8.ToArray(); // 8 bytes
-    private const int MagicLen   = 8;
+    private const int MagicLen = 8;
     private const int VersionLen = 2;   // uint16 LE
-    private const int HeaderLen  = MagicLen + VersionLen + SaltBytes + GcmNonceBytes + GcmTagBytes;
+    private const int HeaderLen = MagicLen + VersionLen + SaltBytes + GcmNonceBytes + GcmTagBytes;
     // = 8 + 2 + 16 + 12 + 16 = 54 bytes
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
-        WriteIndented          = false,
-        PropertyNamingPolicy   = JsonNamingPolicy.CamelCase,
+        WriteIndented = false,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
     };
 
@@ -103,19 +103,19 @@ public sealed class SyncPackageCodec : ISyncPackageCodec
         ArgumentNullException.ThrowIfNull(plaintext);
         ArgumentException.ThrowIfNullOrWhiteSpace(passphrase);
 
-        var salt  = RandomNumberGenerator.GetBytes(SaltBytes);
+        var salt = RandomNumberGenerator.GetBytes(SaltBytes);
         var nonce = RandomNumberGenerator.GetBytes(GcmNonceBytes);
-        var key   = DeriveKey(passphrase, salt);
+        var key = DeriveKey(passphrase, salt);
 
         var ciphertext = new byte[plaintext.Length];
-        var tag        = new byte[GcmTagBytes];
+        var tag = new byte[GcmTagBytes];
 
         using var gcm = new AesGcm(key, GcmTagBytes);
         gcm.Encrypt(nonce, plaintext, ciphertext, tag);
 
         // Layout: magic(8) + version(2) + salt(16) + nonce(12) + tag(16) + ciphertext
         var result = new byte[HeaderLen + ciphertext.Length];
-        var span   = result.AsSpan();
+        var span = result.AsSpan();
         var offset = 0;
 
         SyncMagic.CopyTo(span[offset..]);
@@ -155,16 +155,16 @@ public sealed class SyncPackageCodec : ISyncPackageCodec
                 "Data is too short to be a valid .axs sync file.");
 
         // Parse header fields using index ranges for zero-copy slicing.
-        var offset     = MagicLen + VersionLen; // skip magic and version — already validated
-        var salt       = cipherData[offset..(offset + SaltBytes)];
-        offset        += SaltBytes;
-        var nonce      = cipherData[offset..(offset + GcmNonceBytes)];
-        offset        += GcmNonceBytes;
-        var tag        = cipherData[offset..(offset + GcmTagBytes)];
-        offset        += GcmTagBytes;
+        var offset = MagicLen + VersionLen; // skip magic and version — already validated
+        var salt = cipherData[offset..(offset + SaltBytes)];
+        offset += SaltBytes;
+        var nonce = cipherData[offset..(offset + GcmNonceBytes)];
+        offset += GcmNonceBytes;
+        var tag = cipherData[offset..(offset + GcmTagBytes)];
+        offset += GcmTagBytes;
         var ciphertext = cipherData[offset..];
 
-        var key       = DeriveKey(passphrase, salt);
+        var key = DeriveKey(passphrase, salt);
         var plaintext = new byte[ciphertext.Length];
 
         using var gcm = new AesGcm(key, GcmTagBytes);
