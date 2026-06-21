@@ -1,6 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net8.0-android;net8.0-ios</TargetFrameworks>
+    <!-- iOS is excluded on Linux so the Android CI job (which can only install the maui-android
+         workload — the full `maui` workload is unsupported on Linux) restores cleanly without a
+         -p:TargetFrameworks override, which would disable the MAUI SDK's implicit framework
+         references (UseMaui() etc.). iOS still builds on Windows/macOS. AX-QA-004. -->
+    <TargetFrameworks>net8.0-android</TargetFrameworks>
+    <TargetFrameworks Condition="!$([MSBuild]::IsOSPlatform('linux'))">$(TargetFrameworks);net8.0-ios</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <RootNamespace>AgentX.Mobile</RootNamespace>
     <UseMaui>true</UseMaui>
@@ -18,11 +23,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- .NET 8 no longer brings MAUI package references implicitly from <UseMaui>true>; reference
-         Microsoft.Maui.Controls explicitly so UseMaui() and the MAUI types resolve (AX-QA-004).
-         Pinned to the MAUI workload band shipped with the .NET 8.0.4xx SDK ($(MauiVersion) is
-         unset at PackageReference-evaluation time, so it must be a literal). -->
-    <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
     <PackageReference Include="CommunityToolkit.Maui" Version="9.1.1" />
   </ItemGroup>
