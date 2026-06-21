@@ -76,5 +76,21 @@ that has already landed, and it requires the secure listener + pairing UI on the
 ## CI
 
 `.github/workflows/android-build.yml` installs the `maui-android` workload and builds
-`src/AgentX.Mobile` (`net8.0-android`) on every change, so the mobile code is no longer
-compile-unverified. The iOS target requires a macOS runner and remains deferred.
+`src/AgentX.Mobile` (`net8.0-android`) on every change under it. The iOS target is conditioned out
+on Linux (the full `maui` workload is unsupported there) and remains deferred (needs macOS).
+
+**Status: work-in-progress (non-blocking).** Adding this job revealed why the audit found the
+mobile project "compile-unverified": it was missing its entire Android platform head (manifest,
+`MainActivity`/`MainApplication`, app icon/splash), now added. The whole project — including the
+AX-QA-005 transport hardening, which builds cleanly — now compiles except **one line**:
+`MauiProgram.cs` `builder.UseMaui()` fails with `CS1061`. `MauiApp.CreateBuilder()` and
+`.UseMauiCommunityToolkit()` both resolve, so the MAUI global usings are active — only
+`Microsoft.Maui.Controls.dll` is not being added to the compile references, despite the
+`maui-android` workload **and** an explicit `Microsoft.Maui.Controls` package reference. The job is
+`continue-on-error: true` so it surfaces this without blocking `main`.
+
+**To finish (local).** With the `maui-android` workload installed locally, build
+`src/AgentX.Mobile` and settle the `Microsoft.Maui.Controls` framework-reference resolution — align
+the explicit package version to the installed workload band, or drop the explicit package and rely
+on the workload's implicit framework references (the latter is how `dotnet new maui` builds).
+Once it compiles green locally, push and flip `continue-on-error` off so the job becomes a hard gate.
