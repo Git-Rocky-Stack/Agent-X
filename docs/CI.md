@@ -7,7 +7,7 @@ This document tracks Agent-X's CI gates and their status against audit finding *
 
 | Workflow | File | Gates |
 |---|---|---|
-| Build & Test | `.github/workflows/build-test.yml` | Restores, builds `AgentX.Core` + `AgentX.Tests` (Release, x64), installs Playwright Chromium, runs the full unit-test suite. |
+| Build & Test | `.github/workflows/build-test.yml` | Restores, builds `AgentX.Core` + `AgentX.Tests` (Release, x64), installs Playwright Chromium, runs the full unit-test suite, **collects code coverage and enforces the coverage gate** (AX-QA-009). |
 | LocaleAudit | `.github/workflows/locale-audit.yml` | Localization coverage ≥ 98% per locale + locale snapshot tests. |
 | Extension CI | `.github/workflows/extension-ci.yml` | Browser-extension lint, typecheck, production build, and production-dependency `npm audit`. |
 | Dependency Audit | `.github/workflows/dependency-audit.yml` | NuGet vulnerable-package scan across the solution; fails on any High/Critical advisory not on the accepted list. Runs on dependency changes and weekly. |
@@ -21,7 +21,7 @@ This document tracks Agent-X's CI gates and their status against audit finding *
 | `npm audit` (extension) | ✅ Added | `extension-ci.yml` — `npm audit --omit=dev` (production deps; dev-only advisory is AX-QA-016) |
 | NuGet vulnerability checks | ✅ Added | `dependency-audit.yml` — allowlist gate (see below) |
 | Build Android / iOS | ⏸ Deferred → **AX-QA-004** | No mobile project in `AgentX.sln`; `maui-android` workload absent. Add an Android job once the mobile transport is decided and the project is added to the solution. |
-| Enforce code coverage | ⏸ Deferred → **AX-QA-009** | Coverage is currently 46% line / 33% branch. Setting and ratcheting the enforced threshold (with higher floors for security/migration code) is tracked under AX-QA-009. |
+| Enforce code coverage | ✅ Added | `build-test.yml` collects coverage on the existing test run and `scripts/check-coverage.ps1` gates it (AX-QA-009). Global floor plus elevated floors for security/migration namespaces — see [Coverage gate](#coverage-gate-ax-qa-009) below. |
 | `dotnet format --verify-no-changes` | ✅ Added | `format.yml`. The mechanical normalization (LF via `.gitattributes eol=lf`, whitespace, using order) landed in the same change as the gate, with no functional edits mixed in (AX-QA-012 resolved). Gate runs at **default severity** — formatting + imports only; info-level analyzer refactors (CA1861, IDE0300) are intentionally out of scope. |
 | Publish / install / smoke-test the Windows artifact | ⏸ Deferred → **AX-QA-001 / 007** | Belongs to the signed release pipeline. |
 | Verify the artifact was built from the release tag/HEAD (provenance) | ⏸ Deferred → **AX-QA-001 / 007** | Release-pipeline concern; pairs with signing. |
@@ -37,3 +37,65 @@ This document tracks Agent-X's CI gates and their status against audit finding *
 
 Remove an entry from the allowlist (in the workflow and here) as soon as a fixed version ships, so
 the gate starts enforcing it again.
+
+## Coverage gate (AX-QA-009)
+
+The audit found that a passing test count is not release confidence: 1,877 tests passed while
+high-risk Core services (`ApiHostService`, `PluginService`, `WorkflowEngine`, `SyncService`) sat
+at **0%** coverage. The `Build & Test` workflow now collects coverage on its existing test run and
+`scripts/check-coverage.ps1` fails the build if any tracked metric drops below its floor.
+
+### What is measured
+
+The gate measures **authored `AgentX.Core` code**. `coverlet.runsettings` excludes generated
+scaffolding so the denominator is code the team actually writes and can test:
+
+- `[GeneratedCode]` members — source-generated regex and the CommunityToolkit.Mvvm
+  `[ObservableProperty]` / `[RelayCommand]` plumbing.
+- `[ExcludeFromCodeCoverage]` opt-outs.
+- EF Core migration scaffolds (`Data/Migrations/*.cs`, `*.Designer.cs`). The **runner** that applies
+  them (`Data/MigrationRunner`) is measured and carries an elevated floor.
+
+`[CompilerGenerated]` is intentionally **not** excluded — coverlet maps async state machines,
+iterators, and lambda closures back to their authored source, so dropping them would hide real
+async/LINQ logic. `IncludeTestAssembly` stays `false`, so the linked WinUI ViewModels hosted in
+`AgentX.Tests.dll` are not self-counted; the gate scopes to `AgentX.Core`, as the finding frames it.
+
+> Excluding the well-covered generated scaffolding lowers the *headline* line number from the raw
+> 46.43% to **40.06%** because that scaffolding was ~70% covered and inflating the raw figure. 40%
+> is the honest authored-code baseline; branch (33.56%) closely tracks the audit's 33.15%.
+
+### Floors (the ratchet)
+
+Floors are set just below the **2026-06-20 measured baseline** with a small headroom for CI
+variance. Every critical floor sits **above** the repository-wide minimum, as AX-QA-009 requires.
+
+| Scope | Line floor | Branch floor | Measured (baseline) |
+|---|---|---|---|
+| Global (`AgentX.Core`, authored) | 38% | 31% | 40.06% / 33.56% |
+| `AgentX.Core.Services.Security` | 80% | 62% | 82.41% / 66.22% |
+| `AgentX.Core.Services.Privacy` | 95% | 85% | 100% / 90.62% |
+| `AgentX.Core.Services.OAuth` | 42% | 32% | 45.18% / 34.55% |
+| `AgentX.Core.Data.MigrationRunner` | 95% | 85% | 98.11% / 91.67% |
+
+**This is a ratchet.** When coverage rises, raise the matching floor in `scripts/check-coverage.ps1`
+in the same change so the gain is protected. **Never lower a floor to turn a red build green — add
+tests.** The script self-checks that no critical floor drops below the global floor, and that every
+critical namespace still matches measured code (it fails loudly if a namespace is renamed or moved).
+
+### Raising overall coverage
+
+The gate prevents regression; it does not by itself lift the 0%-covered services the audit named.
+Closing those gaps (integration tests for `ApiHostService` / `PluginService` / `WorkflowEngine` /
+`SyncService`) is ongoing work — as each lands, bump the global floor to lock the gain in.
+
+### Running it locally
+
+```bash
+dotnet test tests/AgentX.Tests/AgentX.Tests.csproj --configuration Release -p:Platform=x64 \
+  --results-directory TestResults \
+  --collect:"XPlat Code Coverage" --settings coverlet.runsettings
+pwsh scripts/check-coverage.ps1 -CoverageFile TestResults
+```
+
+Add `-ReportOnly` to print the table without failing (useful when deciding new floors).
