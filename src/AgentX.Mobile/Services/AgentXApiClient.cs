@@ -16,7 +16,7 @@ namespace AgentX.Mobile.Services;
 ///
 /// Usage: register as a singleton via DI and inject wherever needed.
 /// Call <see cref="SetBaseUrl"/> when the user changes the API URL in
-/// Settings, or construct with a custom <paramref name="baseUrl"/>.
+/// Settings, or construct with a custom <c>baseUrl</c>.
 /// </summary>
 public sealed class AgentXApiClient : IDisposable
 {

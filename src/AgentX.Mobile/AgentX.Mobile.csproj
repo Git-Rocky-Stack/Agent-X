@@ -23,11 +23,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- .NET 8 does not auto-include MAUI package references from <UseMaui>true>; the SDK requires
-         this explicit reference (8.0.100 matches the maui-android workload band on the .NET 8.0.4xx
-         runner). With iOS conditioned out above, no -p:TargetFrameworks override is needed, so the
-         package's compile assets flow normally and UseMaui() resolves (AX-QA-004). -->
+    <!-- Microsoft.Maui.Controls is a REQUIRED explicit PackageReference: as of .NET 8 the MAUI SDK no
+         longer auto-includes it from <UseMaui>true</UseMaui> and emits warning MA002 when it is absent
+         (`dotnet new maui` carries it too). Version 8.0.100 matches the maui-android workload band
+         pinned by global.json (SDK 8.0.4xx). HISTORICAL NOTE (AX-QA-004): the earlier net8.0-android
+         build break was NOT a missing-reference problem — Microsoft.Maui.Controls.dll was always
+         resolved and Microsoft.Maui.Hosting was a global using. The defect was a wrong-API call in
+         MauiProgram.cs: a non-existent parameterless `.UseMaui()`. The correct user-facing bootstrap is
+         `.UseMauiApp<App>()` (it invokes the internal UseMaui for you). -->
     <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
+    <!-- Backs builder.Logging.AddDebug() in the #if DEBUG block of MauiProgram.cs. Without it a Debug
+         net8.0-android build fails (CS1061 on AddDebug); Release compiles the call out. Version tracks
+         the unified Microsoft.Extensions.Logging band (8.0.1) pulled in by the MAUI runtime. -->
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
     <PackageReference Include="CommunityToolkit.Maui" Version="9.1.1" />
   </ItemGroup>
