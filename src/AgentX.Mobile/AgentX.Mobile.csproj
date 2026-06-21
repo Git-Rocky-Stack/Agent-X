@@ -19,9 +19,10 @@
 
   <ItemGroup>
     <!-- .NET 8 no longer brings MAUI package references implicitly from <UseMaui>true>; reference
-         Microsoft.Maui.Controls explicitly at the workload-provided $(MauiVersion) so UseMaui()
-         and the MAUI types resolve (AX-QA-004). -->
-    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+         Microsoft.Maui.Controls explicitly so UseMaui() and the MAUI types resolve (AX-QA-004).
+         Pinned to the MAUI workload band shipped with the .NET 8.0.4xx SDK ($(MauiVersion) is
+         unset at PackageReference-evaluation time, so it must be a literal). -->
+    <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
     <PackageReference Include="CommunityToolkit.Maui" Version="9.1.1" />
   </ItemGroup>
