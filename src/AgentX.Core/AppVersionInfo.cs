@@ -13,7 +13,7 @@ namespace AgentX.Core;
 public static class AppVersionInfo
 {
     /// <summary>
-    /// Product version for display, e.g. <c>"2.1.1"</c> — without assembly-info build
+    /// Product version for display, e.g. <c>"2.1.2"</c> — without assembly-info build
     /// metadata (the <c>+bedrock</c>/commit suffix) or a trailing <c>.0</c> revision.
     /// </summary>
     public static string Display { get; } = Resolve();
@@ -22,7 +22,7 @@ public static class AppVersionInfo
     {
         var assembly = typeof(AppVersionInfo).Assembly;
 
-        // Preferred: InformationalVersion (e.g. "2.1.1+bedrock"). Take everything before
+        // Preferred: InformationalVersion (e.g. "2.1.2+bedrock"). Take everything before
         // the first '+' so any build/commit metadata is dropped.
         var informational = assembly
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
@@ -33,7 +33,7 @@ public static class AppVersionInfo
             return metadataStart >= 0 ? informational[..metadataStart] : informational;
         }
 
-        // Fallback: AssemblyVersion ("2.1.1.0") -> "2.1.1".
+        // Fallback: AssemblyVersion ("2.1.2.0") -> "2.1.2".
         var version = assembly.GetName().Version;
         return version is null ? "0.0.0" : $"{version.Major}.{version.Minor}.{version.Build}";
     }

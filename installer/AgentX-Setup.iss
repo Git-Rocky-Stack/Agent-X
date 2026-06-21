@@ -20,7 +20,7 @@
 ; ─────────────────────────────────────────────────────────────────────────────
 
 #define MyAppName "Agent-X"
-#define MyAppVersion "2.1.1"
+#define MyAppVersion "2.1.2"
 #define MyAppPublisher "Rocky Elsalaymeh"
 #define MyAppURL "https://github.com/Git-Rocky-Stack/Agent-X"
 #define MyAppExeName "AgentX.App.exe"

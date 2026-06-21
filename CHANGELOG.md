@@ -45,6 +45,38 @@ All notable changes to Agent-X are documented in this file.
 
 The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.2] — 2026-06-21 — "Bedrock" security & supply-chain hardening
+
+Security and hardening release. Closes the full **Codex security audit** and the **Comprehensive QA Audit (2026-06-19)** — every finding **AX-QA-001 through AX-QA-016** — makes the release pipeline signing-ready, and brings the mobile companion to a verified build. No breaking changes; no database schema changes.
+
+### Security
+
+- **Local REST API now requires authentication.** The desktop API (Enhancement #16) previously served unauthenticated loopback requests; it now enforces a bearer token, and the mobile companion authenticates against it (Codex audit).
+- **File-access boundaries hardened.** Local-API path handling is contained to approved roots (`ResolveContainedPath`), closing directory-traversal exposure (Codex audit).
+- **Secrets encrypted at rest** rather than stored in plaintext configuration (Codex audit).
+- **Mobile transport hardened (AX-QA-005).** Removed the `DangerousAcceptAnyServerCertificateValidator` TLS bypass; plaintext HTTP is refused to any non-loopback host; added an optional pairing-established SPKI-SHA-256 certificate pin with constant-time comparison. See [`docs/MOBILE-TRANSPORT.md`](docs/MOBILE-TRANSPORT.md).
+- **Dormant vulnerable SQLite binary removed (AX-QA-010).** Switched `AgentX.Core` and the test project to the `Microsoft.Data.Sqlite.Core` / `Microsoft.EntityFrameworkCore.Sqlite.Core` packages, so the unmaintained `e_sqlite3` native binary (GHSA-2m69-gcr7-jv3q) no longer ships; the app continues to run on the SQLCipher provider (`bundle_e_sqlcipher`). The dependency-audit allowlist is now empty.
+
+### Fixed
+
+- **Fresh-install / partial-baseline self-heal (AX-QA-002, AX-QA-003).** The migration runner detects and repairs a partially-stamped baseline, and startup is now fail-closed so a half-initialised database can no longer surface a broken UI; closed a dashboard-load-vs-migration race via `IStartupGate`.
+- **Dashboard privacy claim is state-aware (AX-QA-008).** The "no cloud" assurance reflects the actual provider state through `IPrivacyStatusService` instead of being hard-coded.
+- **Knowledge-vault document-reload race eliminated (AX-QA-009)** in `KnowledgeVaultViewModel`.
+- **Mobile Android build is green (AX-QA-004).** The MAUI companion now builds clean for `net8.0-android` (Debug **and** Release, 0 warnings) and is a **blocking** CI gate. It had been compile-unverified due to a missing Android platform head (now scaffolded: manifest, `MainActivity`/`MainApplication`, icon/splash) and a wrong-API call in `MauiProgram.cs` — a non-existent parameterless `UseMaui()`, corrected to the canonical `UseMauiApp<App>()`.
+- **Single-source version display (AX-QA-014).** The dashboard footer, Settings page, and backup manifest now read one assembly-backed version (`AppVersionInfo`) instead of three drifting hard-coded strings.
+- **Browser extension (AX-QA-013, AX-QA-015).** Long recent-clip titles/URLs truncate with an ellipsis; the feedback area is an ARIA live region announced to assistive technology (escalating to `assertive` for errors).
+
+### Added / Changed — release engineering
+
+- **Signing-ready installer pipeline with provenance gate (AX-QA-001, AX-QA-007).** `scripts/build-installers.ps1` Authenticode-signs and RFC-3161 timestamps the app binary plus both installers, verifies the signatures, writes `SHA256SUMS.txt`, and **aborts if the published `AgentX.Core.dll` lacks the security types** — the exact regression that shipped in the public v2.1.1 asset (built from stale source). See [`docs/RELEASE-SIGNING.md`](docs/RELEASE-SIGNING.md).
+- **CI vulnerability + quality gates (AX-QA-006, AX-QA-009, AX-QA-012, AX-QA-016).** Browser-extension and NuGet vulnerability gating; `AgentX.Core` coverage floors; a repository format gate; and removal of the unused React ESLint plugins that were the sole importers of the `@babel/core` dev advisory (`npm audit --omit=dev`: 0 vulnerabilities).
+- **Android build CI (AX-QA-004).** New `.github/workflows/android-build.yml` compiles `src/AgentX.Mobile` (`net8.0-android`) on every change under it; iOS is conditioned out on Linux and deferred (needs a macOS runner).
+- **Test isolation (AX-QA-011).** Workflow tests no longer write into the real user profile; removed 61 leaked `WorkflowResults` profile stub files.
+- **GitHub Actions runtime** bumped off the deprecated Node 20 runtime.
+- `Directory.Build.props` `<Version>` bumped `2.1.1` → `2.1.2` (single source; `AppVersionInfo` flows it to every surface).
+
+---
+
 ## [2.1.1] — 2026-05-31 — "Bedrock" fresh-install fix
 
 Patch release. Fixes a **critical fresh-install defect** found during full installer validation: on a brand-new machine the database came up empty (no tables) and every feature failed with `no such table: documents/memories/user_settings/...`.
@@ -171,6 +203,7 @@ Added: Workspace Profiles, Smart Inbox, Comparative Analysis, Voice Input, Plugi
 
 ---
 
+[2.1.2]: https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.1.2
 [2.1.1]: https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.1.1
 [2.1.0]: https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.1.0
 [2.1.0-preview.1]: https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.1.0-preview.1

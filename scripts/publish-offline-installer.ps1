@@ -22,7 +22,7 @@
       wrangler r2 bucket dev-url enable agentx-releases   # public r2.dev URL
 
 .PARAMETER Version
-    Version string used in the object key. Defaults to 2.1.1.
+    Version string used in the object key. Defaults to 2.1.2.
 
 .PARAMETER Bucket
     R2 bucket name. Defaults to env AGENTX_R2_BUCKET or "agentx-releases".
@@ -42,12 +42,12 @@
     $env:R2_ACCESS_KEY_ID      = '...'
     $env:R2_SECRET_ACCESS_KEY  = '...'
     $env:CLOUDFLARE_ACCOUNT_ID = '0d75974a4b80a0be4800c64715d4f1f5'
-    ./publish-offline-installer.ps1 -Version 2.1.1   # prints https://downloads.strategia-x.com/v2.1.1/...
+    ./publish-offline-installer.ps1 -Version 2.1.2   # prints https://downloads.strategia-x.com/v2.1.2/...
 #>
 
 [CmdletBinding()]
 param(
-    [string]$Version = "2.1.1",
+    [string]$Version = "2.1.2",
     [string]$Bucket = $(if ($env:AGENTX_R2_BUCKET) { $env:AGENTX_R2_BUCKET } else { "agentx-releases" }),
     [string]$PublicBaseUrl = $(if ($env:AGENTX_R2_PUBLIC_BASE_URL) { $env:AGENTX_R2_PUBLIC_BASE_URL } else { "https://downloads.strategia-x.com" }),
     [string]$InstallerPath,
