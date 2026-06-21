@@ -166,6 +166,11 @@ async function clipAllTabs(): Promise<void> {
 function showFeedback(message: string, type: 'success' | 'error' | 'info'): void {
   if (!feedbackArea) return;
 
+  // Keep the live region's politeness in sync with severity so screen readers
+  // interrupt for errors but announce successes/info politely (AX-QA-015).
+  feedbackArea.setAttribute('role', type === 'error' ? 'alert' : 'status');
+  feedbackArea.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
+
   // Remove existing feedback — using DOM APIs, never innerHTML
   while (feedbackArea.firstChild) {
     feedbackArea.removeChild(feedbackArea.firstChild);

@@ -38,7 +38,9 @@
       </button>
     </section>
 
-    <div class="feedback-area" id="feedbackArea"></div>
+    <!-- Live region so screen readers announce pairing/clip results (AX-QA-015).
+         showFeedback() escalates aria-live to "assertive" for errors. -->
+    <div class="feedback-area" id="feedbackArea" role="status" aria-live="polite" aria-atomic="true"></div>
 
     <section class="pairing" id="pairingSection">
       <h2 class="section-title">Connection</h2>

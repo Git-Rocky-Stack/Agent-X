@@ -331,6 +331,10 @@ body {
 }
 
 .clip-item-title {
+  /* Block-level (not inline) so the flex parent's constrained width applies and
+     overflow/ellipsis can actually clip long titles (AX-QA-013). */
+  display: block;
+  max-width: 100%;
   font-size: 12px;
   font-weight: 500;
   color: var(--color-text);
@@ -340,6 +344,10 @@ body {
 }
 
 .clip-item-url {
+  /* Block-level so overflow/ellipsis constrain long URLs instead of overlapping
+     neighboring content (AX-QA-013). */
+  display: block;
+  max-width: 100%;
   font-size: 10px;
   color: var(--color-text-secondary);
   white-space: nowrap;
