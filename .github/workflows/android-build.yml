@@ -27,14 +27,10 @@ jobs:
   android:
     name: Build AgentX.Mobile (net8.0-android)
     runs-on: ubuntu-latest
-    # Non-blocking for now. The job compiles the entire mobile project — including the AX-QA-005
-    # transport hardening, which builds cleanly — but a single .NET 8 MAUI SDK reference quirk
-    # leaves UseMaui() unresolved on the hosted runner: Microsoft.Maui.Controls.dll is not added to
-    # the compile references even with the maui-android workload + an explicit package reference
-    # (MauiApp.CreateBuilder and UseMauiCommunityToolkit both resolve, so the global usings are
-    # active — only the Controls assembly is missing). This needs a local MAUI build loop to settle
-    # (see docs/MOBILE-TRANSPORT.md); flip continue-on-error off once green so it becomes a hard gate.
-    continue-on-error: true
+    # Hard gate (blocking). The mobile project — including the AX-QA-005 transport hardening — builds
+    # clean for net8.0-android. The earlier "compile-unverified" status (AX-QA-004) was a wrong-API
+    # bug in MauiProgram.cs (a non-existent parameterless `.UseMaui()`), now fixed to `.UseMauiApp<App>()`
+    # and verified by a local MAUI build loop (Debug + Release, 0 warnings). See docs/MOBILE-TRANSPORT.md.
     steps:
       - name: Checkout
         uses: actions/checkout@v7
