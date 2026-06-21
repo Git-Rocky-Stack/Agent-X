@@ -23,6 +23,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- .NET 8 does not auto-include MAUI package references from <UseMaui>true>; the SDK requires
+         this explicit reference (8.0.100 matches the maui-android workload band on the .NET 8.0.4xx
+         runner). With iOS conditioned out above, no -p:TargetFrameworks override is needed, so the
+         package's compile assets flow normally and UseMaui() resolves (AX-QA-004). -->
+    <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
     <PackageReference Include="CommunityToolkit.Maui" Version="9.1.1" />
   </ItemGroup>
