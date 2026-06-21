@@ -32,7 +32,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -45,7 +45,9 @@ jobs:
       - name: Install MAUI Android workload
         run: dotnet workload install maui-android
 
-      # Build only the Android target framework (iOS needs macOS). The implicit restore is
-      # scoped to net8.0-android, so the absent iOS workload never blocks this job.
+      # Build only the Android target. We override TargetFrameworks (not just -f): the implicit
+      # restore ignores -f and would still evaluate the net8.0-ios target, whose workload pack
+      # (Microsoft.iOS.Sdk) cannot exist on a Linux runner (NETSDK1178). Overriding the property
+      # removes iOS from the restore/build graph entirely. iOS is built on macOS (deferred).
       - name: Build (Release, net8.0-android)
-        run: dotnet build src/AgentX.Mobile/AgentX.Mobile.csproj -c Release -f net8.0-android
+        run: dotnet build src/AgentX.Mobile/AgentX.Mobile.csproj -c Release -p:TargetFrameworks=net8.0-android
