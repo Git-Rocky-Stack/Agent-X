@@ -1,5 +1,7 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -37,21 +39,35 @@ public sealed class AgentXApiClient : IDisposable
     private string _baseUrl;
     private string? _token;
 
+    // Optional pairing-established server-certificate pin (SPKI SHA-256, base64). When set,
+    // HTTPS connections must present a leaf cert whose public-key SPKI hash matches it; when
+    // null, platform default chain validation applies. The client never blanket-accepts
+    // certificates (AX-QA-005).
+    private string? _pinnedSpkiSha256;
+
     // ── Constructor ───────────────────────────────────────────────────────────
 
     /// <param name="baseUrl">
-    /// Optional base URL override (e.g., "http://192.168.1.10:9846" when connecting
-    /// across a LAN rather than localhost).
+    /// Optional base URL override. Plaintext HTTP is accepted only for loopback
+    /// (localhost / 127.0.0.1 / ::1, or the Android emulator alias 10.0.2.2); any other
+    /// host must use HTTPS (e.g., "https://192.168.1.10:9846" across a LAN). See
+    /// <see cref="NormalizeBaseUrl"/> (AX-QA-005).
     /// </param>
     /// <param name="token">
     /// Optional bearer token. The desktop API requires this on all data routes; it can also
     /// be supplied later via <see cref="SetToken"/> once the user pairs in Settings.
     /// </param>
-    public AgentXApiClient(string? baseUrl = null, string? token = null)
+    /// <param name="pinnedServerCertSpkiSha256">
+    /// Optional pairing-established server-certificate pin (SPKI SHA-256, base64). When set,
+    /// HTTPS connections must present a matching leaf certificate; see
+    /// <see cref="SetPinnedServerCertificate"/>.
+    /// </param>
+    public AgentXApiClient(string? baseUrl = null, string? token = null, string? pinnedServerCertSpkiSha256 = null)
     {
         _token = NormalizeToken(token);
+        _pinnedSpkiSha256 = NormalizeToken(pinnedServerCertSpkiSha256);
         _baseUrl = NormalizeBaseUrl(baseUrl ?? DefaultBaseUrl);
-        _http = BuildHttpClient(_baseUrl);
+        _http = BuildHttpClient(_baseUrl, _pinnedSpkiSha256);
         ApplyAuth(_http, _token);
     }
 
@@ -69,7 +85,7 @@ public sealed class AgentXApiClient : IDisposable
 
         var old = _http;
         _baseUrl = normalized;
-        _http = BuildHttpClient(_baseUrl);
+        _http = BuildHttpClient(_baseUrl, _pinnedSpkiSha256);
         ApplyAuth(_http, _token);
         old.Dispose();
     }
@@ -83,6 +99,22 @@ public sealed class AgentXApiClient : IDisposable
     {
         _token = NormalizeToken(token);
         ApplyAuth(_http, _token);
+    }
+
+    /// <summary>
+    /// Pins the desktop server's certificate (SPKI SHA-256, base64) established during pairing.
+    /// Once set, HTTPS connections must present a leaf certificate whose public-key SPKI hash
+    /// matches; pass null/empty to clear the pin and fall back to platform chain validation.
+    /// The client never blanket-accepts certificates (AX-QA-005).
+    /// </summary>
+    public void SetPinnedServerCertificate(string? spkiSha256Base64)
+    {
+        _pinnedSpkiSha256 = NormalizeToken(spkiSha256Base64);
+
+        var old = _http;
+        _http = BuildHttpClient(_baseUrl, _pinnedSpkiSha256);
+        ApplyAuth(_http, _token);
+        old.Dispose();
     }
 
     /// <summary>The currently configured base URL.</summary>
@@ -292,14 +324,19 @@ public sealed class AgentXApiClient : IDisposable
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private static HttpClient BuildHttpClient(string baseUrl)
+    private static HttpClient BuildHttpClient(string baseUrl, string? pinnedSpkiSha256)
     {
-        var handler = new HttpClientHandler
+        var handler = new HttpClientHandler();
+
+        // Never blanket-accept certificates — the previous DangerousAcceptAnyServerCertificateValidator
+        // permitted trivial interception. When a pairing-established SPKI pin is configured, the leaf
+        // certificate must match it; otherwise defer to the platform's default chain validation.
+        // Loopback connections are HTTP and never reach this callback (AX-QA-005).
+        if (!string.IsNullOrEmpty(pinnedSpkiSha256))
         {
-            // Allow self-signed certs on LAN (the API is HTTP-only by design)
-            ServerCertificateCustomValidationCallback =
-                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-        };
+            handler.ServerCertificateCustomValidationCallback = (_, cert, _, _) =>
+                cert is not null && CertMatchesPin(cert, pinnedSpkiSha256);
+        }
 
         return new HttpClient(handler, disposeHandler: true)
         {
@@ -308,10 +345,48 @@ public sealed class AgentXApiClient : IDisposable
         };
     }
 
+    /// <summary>
+    /// Normalizes and validates the base URL. Plaintext HTTP is permitted only to a loopback host
+    /// (localhost / 127.0.0.1 / ::1) or the Android emulator's host-loopback alias (10.0.2.2),
+    /// neither of which leaves the device. Every other host MUST use HTTPS so the bearer token and
+    /// private document/search/conversation payloads are encrypted in transit (AX-QA-005).
+    /// </summary>
+    /// <exception cref="ArgumentException">The URL is malformed, uses an unsupported scheme, or is
+    /// plaintext HTTP to a non-loopback host.</exception>
     private static string NormalizeBaseUrl(string url)
     {
-        // Trim trailing slashes so path concatenation is predictable
-        return url.TrimEnd('/');
+        var trimmed = (url ?? string.Empty).Trim().TrimEnd('/');
+        if (!Uri.TryCreate(trimmed, UriKind.Absolute, out var uri))
+            throw new ArgumentException($"Invalid API URL: '{url}'.", nameof(url));
+
+        var isHttps = string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase);
+        var isHttp = string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase);
+        if (!isHttps && !isHttp)
+            throw new ArgumentException($"API URL must use http or https: '{url}'.", nameof(url));
+
+        if (isHttp && !IsLocalLoopback(uri))
+            throw new ArgumentException(
+                $"Refusing plaintext HTTP to non-loopback host '{uri.Host}'. Use https:// for LAN or remote connections.",
+                nameof(url));
+
+        return trimmed;
+    }
+
+    /// <summary>True for loopback hosts and the Android emulator host-loopback alias (10.0.2.2).</summary>
+    private static bool IsLocalLoopback(Uri uri) =>
+        uri.IsLoopback || string.Equals(uri.Host, "10.0.2.2", StringComparison.Ordinal);
+
+    /// <summary>
+    /// Constant-time comparison of the certificate's SubjectPublicKeyInfo SHA-256 (base64) against
+    /// the configured pin. Pinning the SPKI (not the whole cert) survives renewal with the same key.
+    /// </summary>
+    private static bool CertMatchesPin(X509Certificate2 cert, string expectedSpkiSha256Base64)
+    {
+        var spkiHash = SHA256.HashData(cert.PublicKey.ExportSubjectPublicKeyInfo());
+        var actual = Convert.ToBase64String(spkiHash);
+        return CryptographicOperations.FixedTimeEquals(
+            Encoding.ASCII.GetBytes(actual),
+            Encoding.ASCII.GetBytes(expectedSpkiSha256Base64));
     }
 
     private static string? NormalizeToken(string? token) =>

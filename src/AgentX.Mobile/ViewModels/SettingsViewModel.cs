@@ -76,8 +76,22 @@ public sealed partial class SettingsViewModel : ObservableObject
     private async Task SaveAsync()
     {
         var trimmed = ApiUrl.Trim().TrimEnd('/');
+
+        // Apply (and validate) the URL before persisting so an insecure/invalid URL is never
+        // saved or used — the client rejects plaintext HTTP to non-loopback hosts (AX-QA-005).
+        try
+        {
+            _api.SetBaseUrl(trimmed);
+        }
+        catch (ArgumentException ex)
+        {
+            TestSucceeded = false;
+            TestFailed = true;
+            ConnectionStatus = ex.Message;
+            return;
+        }
+
         _settings.ApiUrl = trimmed;
-        _api.SetBaseUrl(trimmed);
 
         // Persist and apply the pairing token (stored in secure storage).
         var token = ApiToken?.Trim();
@@ -125,6 +139,12 @@ public sealed partial class SettingsViewModel : ObservableObject
                 TestFailed = true;
                 ConnectionStatus = "Connection failed. Ensure Agent-X is running, the URL is correct, and the API token matches AgentX → Settings → Connections.";
             }
+        }
+        catch (ArgumentException ex)
+        {
+            // Insecure/invalid URL rejected by the client (AX-QA-005).
+            TestFailed = true;
+            ConnectionStatus = ex.Message;
         }
         catch (OperationCanceledException)
         {
