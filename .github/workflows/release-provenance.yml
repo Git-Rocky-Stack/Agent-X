@@ -1,0 +1,114 @@
+name: Release Provenance (cosign + Rekor)
+
+# Supply-chain provenance for published releases (AX-QA-001 / AX-QA-007 complement).
+#
+# This is the CI half of Agent-X's dual-layer signing model (see docs/RELEASE-SIGNING.md):
+#
+#   Layer 1 — Authenticode (LOCAL). scripts/build-installers.ps1 signs AgentX.exe and the
+#             installers with the maintainer's certificate. The cert never enters CI, so this
+#             stays a manual release step.
+#   Layer 2 — Keyless provenance (HERE, in CI). cosign signs the release's SHA256SUMS.txt using
+#             GitHub's ambient OIDC identity — NO secret, NO long-lived key. Fulcio issues an
+#             ephemeral certificate bound to this workflow's identity, and the signature is
+#             recorded in the public Rekor transparency log. Anyone can later prove the artifact
+#             came from this repository's release pipeline, unmodified.
+#
+# Why sign SHA256SUMS.txt rather than each installer: that one small manifest lists the SHA-256 of
+# BOTH the SLIM installer (GitHub asset) and the OFFLINE installer (~2 GB, hosted on Cloudflare R2).
+# Signing the manifest transitively covers every artifact — including the one CI never downloads —
+# and the signing job stays fast and cheap. Users verify the manifest signature, then check their
+# downloaded file's hash against the manifest.
+#
+# Prerequisite: the release must carry SHA256SUMS.txt as an asset (build-installers.ps1 writes it).
+# Run flow: publish a release with SHA256SUMS.txt attached -> this fires automatically. The manual
+# workflow_dispatch path re-signs an existing tag (e.g. a release created before this workflow, or
+# after attaching the manifest late).
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to sign (e.g. v2.1.2)'
+        required: true
+        type: string
+
+# Sign one tag at a time; never let two runs race to upload signatures for the same release.
+concurrency:
+  group: release-provenance-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # download the manifest from / upload signatures to the release
+  id-token: write   # REQUIRED for cosign keyless signing (GitHub OIDC -> Fulcio). No other secret.
+
+jobs:
+  provenance:
+    name: Sign SHA256SUMS.txt (keyless) + log to Rekor
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Download SHA256SUMS.txt from the release
+        run: |
+          set -euo pipefail
+          echo "Fetching SHA256SUMS.txt from release $TAG ..."
+          if ! gh release download "$TAG" -R "$REPO" --pattern 'SHA256SUMS.txt' --dir . --clobber; then
+            echo "::error::SHA256SUMS.txt is not attached to release $TAG. Build it with scripts/build-installers.ps1 and upload it to the release before signing."
+            exit 1
+          fi
+          echo "----- SHA256SUMS.txt -----"
+          cat SHA256SUMS.txt
+
+      - name: Sign the manifest (keyless) and record it in Rekor
+        run: |
+          set -euo pipefail
+          # cosign v2 keyless: detects the GitHub OIDC token automatically (id-token: write),
+          # gets an ephemeral cert from Fulcio, and uploads the entry to the public Rekor log.
+          cosign sign-blob --yes \
+            --output-signature SHA256SUMS.txt.sig \
+            --output-certificate SHA256SUMS.txt.pem \
+            SHA256SUMS.txt
+
+      - name: Self-verify the signature before publishing it
+        run: |
+          set -euo pipefail
+          # Defense-in-depth: fail the run if the signature we just produced does not verify against
+          # this workflow's own OIDC identity. ${{ github.workflow_ref }} is the exact SAN Fulcio
+          # binds the ephemeral cert to (owner/repo/.github/workflows/release-provenance.yml@<ref>).
+          cosign verify-blob \
+            --certificate SHA256SUMS.txt.pem \
+            --signature SHA256SUMS.txt.sig \
+            --certificate-identity "https://github.com/${{ github.workflow_ref }}" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            SHA256SUMS.txt
+
+      - name: Upload signature + certificate to the release
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" SHA256SUMS.txt.sig SHA256SUMS.txt.pem -R "$REPO" --clobber
+          echo "Attached SHA256SUMS.txt.sig and SHA256SUMS.txt.pem to release $TAG."
+
+      - name: Summarize provenance to the run summary
+        # Plain-text only (no backticks / no line-continuations) so there is no shell-escaping
+        # hazard in CI. The authoritative, formatted copy-paste verification command lives in
+        # docs/RELEASE-SIGNING.md — single source of truth, no duplication.
+        run: |
+          {
+            echo "## Release provenance signed — $TAG"
+            echo ""
+            echo "Signed SHA256SUMS.txt keylessly (GitHub OIDC -> Fulcio) and recorded it in the"
+            echo "public Rekor transparency log. The detached signature (SHA256SUMS.txt.sig) and"
+            echo "ephemeral certificate (SHA256SUMS.txt.pem) are attached to the release."
+            echo ""
+            echo "Signing identity (Fulcio SAN): https://github.com/${{ github.workflow_ref }}"
+            echo "OIDC issuer: https://token.actions.githubusercontent.com"
+            echo ""
+            echo "Verify a download: see docs/RELEASE-SIGNING.md (cosign verify-blob + sha256sum -c)."
+          } >> "$GITHUB_STEP_SUMMARY"
