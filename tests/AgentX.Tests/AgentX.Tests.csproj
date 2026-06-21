@@ -14,8 +14,11 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.11" />
+    <!-- .Core SQLite packages so tests exercise the same SQLCipher-only native graph as
+         the app and never pull the vulnerable lib.e_sqlite3 (AX-QA-010). The fixture calls
+         Batteries_V2.Init() to register the e_sqlcipher provider. -->
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="8.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite.Core" Version="8.0.11" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlcipher" Version="2.1.7" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="Moq" Version="4.20.72" />

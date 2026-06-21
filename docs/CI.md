@@ -29,14 +29,21 @@ This document tracks Agent-X's CI gates and their status against audit finding *
 
 ## NuGet vulnerability allowlist
 
-`dependency-audit.yml` fails on any **High/Critical** advisory **except** those explicitly accepted:
+`dependency-audit.yml` fails on any **High/Critical** advisory. The allowlist (`$accepted` in the
+workflow) is currently **empty** — there are no accepted exceptions.
 
-| Advisory | Package | Reason | Tracked by |
-|---|---|---|---|
-| [GHSA-2m69-gcr7-jv3q](https://github.com/advisories/GHSA-2m69-gcr7-jv3q) (CVE-2025-6965) | `SQLitePCLRaw.lib.e_sqlite3` 2.1.6 | No patched package version exists. Agent-X loads the SQLCipher provider (`e_sqlcipher.dll`) at runtime, not `e_sqlite3.dll`. | **AX-QA-010** |
+**AX-QA-010 (resolved).** The dormant, vulnerable `SQLitePCLRaw.lib.e_sqlite3` 2.1.6
+([GHSA-2m69-gcr7-jv3q](https://github.com/advisories/GHSA-2m69-gcr7-jv3q) / CVE-2025-6965) was
+removed by switching `AgentX.Core` and `AgentX.Tests` off the `Microsoft.Data.Sqlite` /
+`Microsoft.EntityFrameworkCore.Sqlite` meta-packages to their `.Core` variants. The meta-packages
+pull `SQLitePCLRaw.bundle_e_sqlite3` transitively; the `.Core` packages do not, leaving only
+`SQLitePCLRaw.bundle_e_sqlcipher` — the SQLCipher provider the app actually loads and registers via
+`Batteries_V2.Init()`. The Release build output now ships `e_sqlcipher.dll` and no longer ships
+`e_sqlite3.dll`, and `dotnet list package --vulnerable --include-transitive` reports zero vulnerable
+packages across the solution.
 
-Remove an entry from the allowlist (in the workflow and here) as soon as a fixed version ships, so
-the gate starts enforcing it again.
+If a future advisory ever has no available fix, add it to `$accepted` in the workflow and document
+it in a table here so the gate keeps enforcing everything else.
 
 ## Coverage gate (AX-QA-009)
 

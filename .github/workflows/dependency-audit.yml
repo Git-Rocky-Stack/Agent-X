@@ -48,10 +48,12 @@ jobs:
         shell: pwsh
         run: |
           # Accepted advisories with no available fix. Keep this list short and documented.
-          #   GHSA-2m69-gcr7-jv3q — SQLitePCLRaw.lib.e_sqlite3 2.1.6 (CVE-2025-6965). No patched
-          #   package exists; Agent-X loads the SQLCipher provider (e_sqlcipher.dll), not e_sqlite3.
-          #   Tracked as AX-QA-010 — remove this entry once a fixed bundle ships.
-          $accepted = @('GHSA-2m69-gcr7-jv3q')
+          # AX-QA-010 RESOLVED: the dormant, vulnerable SQLitePCLRaw.lib.e_sqlite3
+          # (GHSA-2m69-gcr7-jv3q / CVE-2025-6965) was removed by switching AgentX.Core and
+          # AgentX.Tests to the .Core SQLite packages, so only the SQLCipher provider
+          # (e_sqlcipher.dll) remains in the graph. The allowlist is intentionally empty —
+          # any High/Critical advisory now fails the build with no exceptions.
+          $accepted = @()
 
           dotnet list AgentX.sln package --vulnerable --include-transitive 2>&1 |
             Tee-Object -FilePath nuget-vulnerable.txt | Out-Host
