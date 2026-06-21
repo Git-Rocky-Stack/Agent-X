@@ -42,12 +42,15 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Install MAUI Android workload
-        run: dotnet workload install maui-android
+      # Install the full MAUI workload (not just maui-android) so the iOS workload PACKS exist for
+      # restore. The packs are SDK assemblies that install fine on Linux; we never *build* iOS here
+      # (that needs Xcode/macOS) — we just need restore of the net8.0-ios TFM to succeed.
+      - name: Install MAUI workloads
+        run: dotnet workload install maui
 
-      # Build only the Android target. We override TargetFrameworks (not just -f): the implicit
-      # restore ignores -f and would still evaluate the net8.0-ios target, whose workload pack
-      # (Microsoft.iOS.Sdk) cannot exist on a Linux runner (NETSDK1178). Overriding the property
-      # removes iOS from the restore/build graph entirely. iOS is built on macOS (deferred).
+      # Build only the Android target via -f (NOT -p:TargetFrameworks): overriding the property
+      # bypasses the MAUI SDK's per-TFM implicit framework references (UseMaui() etc. went missing).
+      # With the iOS packs installed, the implicit restore of both TFMs succeeds and -f scopes the
+      # actual build to Android. iOS build itself remains deferred (needs macOS).
       - name: Build (Release, net8.0-android)
-        run: dotnet build src/AgentX.Mobile/AgentX.Mobile.csproj -c Release -p:TargetFrameworks=net8.0-android
+        run: dotnet build src/AgentX.Mobile/AgentX.Mobile.csproj -c Release -f net8.0-android
