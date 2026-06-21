@@ -57,6 +57,14 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private HealthDto? _healthInfo;
 
+    /// <summary>
+    /// The mobile app's own version, read from platform package metadata
+    /// (ApplicationDisplayVersion → AppInfo) so it tracks the single product version
+    /// rather than a hardcoded label (AX-QA-014). Distinct from <see cref="HealthDto.Version"/>,
+    /// which is the connected desktop's version.
+    /// </summary>
+    public string AppVersion => Microsoft.Maui.ApplicationModel.AppInfo.Current.VersionString;
+
     // ── Commands ──────────────────────────────────────────────────────────────
 
     private bool CanSave => !string.IsNullOrWhiteSpace(ApiUrl);

@@ -174,7 +174,7 @@
                         FontAttributes="Bold"
                         TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
                     <Label
-                        Text="Version 1.0.0"
+                        Text="{Binding AppVersion, StringFormat='Version {0}'}"
                         FontSize="13"
                         TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
                     <Label

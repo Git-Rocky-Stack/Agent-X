@@ -497,7 +497,10 @@
                                Style="{StaticResource CaptionStyle}"
                                VerticalAlignment="Center"
                                Opacity="0.4" />
-                    <TextBlock Text="Agent-X v1.2.0"
+                    <!-- Text set in code-behind from AppVersionInfo (single source) so it
+                         never drifts from the shipped build (AX-QA-014). -->
+                    <TextBlock x:Name="AppVersionText"
+                               Text="Agent-X"
                                Style="{StaticResource CaptionStyle}"
                                VerticalAlignment="Center"
                                Opacity="0.5" />

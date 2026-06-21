@@ -96,7 +96,8 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private string _localApiToken = string.Empty;
 
     // ── App Info ────────────────────────────────────────────
-    [ObservableProperty] private string _appVersion = "1.1.0";
+    // Single source (assembly version) instead of a hardcoded string (AX-QA-014).
+    [ObservableProperty] private string _appVersion = AgentX.Core.AppVersionInfo.Display;
 
     /// <summary>
     /// Provider display names for the ComboBox items.

@@ -8,7 +8,9 @@
     <ApplicationTitle>Agent-X Mobile</ApplicationTitle>
     <ApplicationId>com.strategia.agentx.mobile</ApplicationId>
     <ApplicationVersion>1</ApplicationVersion>
-    <ApplicationDisplayVersion>1.0.0</ApplicationDisplayVersion>
+    <!-- Track the single product version from Directory.Build.props instead of a stale
+         hardcoded string, so the mobile "About" version matches the product line (AX-QA-014). -->
+    <ApplicationDisplayVersion>$(Version)</ApplicationDisplayVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
     <Nullable>enable</Nullable>

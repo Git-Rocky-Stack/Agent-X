@@ -34,7 +34,8 @@ public sealed class BackupService : IBackupService
 {
     // ── Constants ──────────────────────────────────────────────────────────
 
-    private const string AppVersion = "1.2.0";
+    // Single source (assembly version) so backup manifests record the real build (AX-QA-014).
+    private static readonly string AppVersion = AppVersionInfo.Display;
     private const string DbEntryName = "database/agentx.db";
     private const string ManifestEntryName = "manifest.json";
     private const string DocumentsEntryPrefix = "documents/";

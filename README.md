@@ -2,7 +2,7 @@
 
 **Local-First AI-Powered Document Intelligence for Windows.** A native Windows desktop application that transforms your personal document collection into a queryable, AI-augmented knowledge base. No cloud, no telemetry, no internet dependency. Built on .NET 8.0 and WinUI 3, with support for Ollama (local), OpenAI, and Anthropic providers.
 
-> **Current version:** [v2.1.0](docs/v2.1.0-RELEASE-NOTES.md) — "Bedrock" (EF Core migrations + SQLCipher at-rest encryption, six fully-localized UI locales, keyboard-first power mode)
+> **Current version:** [v2.1.1](CHANGELOG.md) — "Bedrock" (EF Core migrations + SQLCipher at-rest encryption, six fully-localized UI locales, keyboard-first power mode)
 > **Platform:** Windows 10 build 19041+ (x64)
 > **License:** MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Rocky Elsalaymeh.
 
