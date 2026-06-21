@@ -14,8 +14,6 @@
     "@types/chrome": "^0.1.40",
     "copy-webpack-plugin": "^14.0.0",
     "eslint": "^10.2.1",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
     "ts-loader": "^9.5.1",
     "typescript": "^5.4.5",
