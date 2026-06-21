@@ -5,7 +5,23 @@
 **Checkout:** `main` at `b7e9fe76dc915fac2631a58cff0cfe37229ddc3f`  
 **Release reviewed:** `v2.1.1`  
 **Decision:** **NO-GO**  
-**Cross-surface release health:** **38/100**
+**Cross-surface release health:** **38/100** _(at time of audit — see resolution status below)_
+
+> ### ✅ RESOLUTION STATUS — updated 2026-06-21 (v2.1.2)
+>
+> This audit's **NO-GO** verdict predates the v2.1.2 remediation. **All findings AX-QA-001 through
+> AX-QA-016 are now resolved** — see [`../CHANGELOG.md`](../CHANGELOG.md) and [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
+> In brief: authenticated local API with contained file boundaries and encrypted secrets;
+> self-healing + fail-closed migration startup (002/003); state-aware privacy claim (008); vault
+> document-reload race fixed (009); the dormant vulnerable SQLite binary removed (010); test
+> isolation with the 61 leaked stub files cleaned (011); CI vulnerability/coverage/format gates
+> (006/009/012); browser-extension ellipsis + assistive-tech live region (013/015); single-source
+> version display (014); the dev-only npm advisory cleared (016); hardened mobile transport with the
+> TLS-bypass removed (005); and a **green, CI-gated mobile Android build** (004). The signing-ready
+> release pipeline with a provenance gate closes **001/007 in source** — the one remaining action is
+> the **signed republish**, which awaits a code-signing certificate.
+>
+> The findings below are retained verbatim as the historical record of the 2026-06-19 review.
 
 ## Executive summary
 

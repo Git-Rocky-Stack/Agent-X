@@ -1,7 +1,7 @@
 # Agent-X Architecture Documentation
 
-**Version:** 2.1.0-preview.1
-**Last Updated:** 2026-04-22
+**Version:** 2.1.2
+**Last Updated:** 2026-06-21
 **Platform:** Windows 10/11 (x64, x86, ARM64)
 **Runtime:** .NET 8.0 / WinUI 3 (Windows App SDK 1.6)
 
@@ -1632,7 +1632,7 @@ The application is distributed as a self-contained Windows installer built with 
 
 **Build pipeline:**
 1. `dotnet publish -c Release -r win-x64 --self-contained true` produces the `publish/win-x64/` directory with all required .NET runtime files bundled.
-2. Inno Setup compiles the installer from `AgentX-Setup.iss`, packaging the publish output into `installer-output/AgentX-Setup-2.1.1-x64.exe` (SLIM) and, with `/DAgentXOffline=1`, `installer-output/AgentX-Setup-2.1.1-x64-offline.exe` (OFFLINE).
+2. Inno Setup compiles the installer from `AgentX-Setup.iss`, packaging the publish output into `installer-output/AgentX-Setup-2.1.2-x64.exe` (SLIM) and, with `/DAgentXOffline=1`, `installer-output/AgentX-Setup-2.1.2-x64-offline.exe` (OFFLINE).
 
 **Installer behavior:**
 - Installs to `%ProgramFiles%/AgentX/` by default.
@@ -1797,4 +1797,4 @@ Pages register scope-local shortcuts via `ShortcutRegistrationExtensions.Registe
 
 ---
 
-*This document reflects the Agent-X codebase as of version 2.1.0-preview.1, updated 2026-04-22. All file paths are relative to the solution root at `src/AgentX.App/` and `src/AgentX.Core/` respectively.*
+*This document reflects the Agent-X codebase as of version 2.1.2, updated 2026-06-21. All file paths are relative to the solution root at `src/AgentX.App/` and `src/AgentX.Core/` respectively.*

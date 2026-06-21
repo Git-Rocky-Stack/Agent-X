@@ -71,7 +71,7 @@ Yes! Agent-X ships with Llama 3.2 3B bundled in the installer (~2 GB). You get f
 
 ### How do I install Agent-X?
 
-1. Download `AgentX-Setup-2.1.0-preview.1-x64.exe`
+1. Download `AgentX-Setup-2.1.2-x64.exe` (or the `-offline` build to bundle the model)
 2. Run the installer (no admin privileges required)
 3. Launch from Start Menu or desktop shortcut
 4. Create a passphrase on first launch

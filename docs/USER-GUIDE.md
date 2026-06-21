@@ -2,7 +2,7 @@
 
 **Agent-X -- Local-First AI Personal Intelligence Hub for Windows**
 
-Version 2.1.0-preview.1 | Last updated: April 26, 2026
+Version 2.1.2 | Last updated: June 21, 2026
 
 ---
 
@@ -137,7 +137,7 @@ The welcome step introduces you to Agent-X's core promise: **uncompromising inte
 - **Local-First Architecture**: Your entire knowledge vault — documents, embeddings, conversations, memories, and workflows — lives under `%LocalAppData%\AgentX\`. Zero telemetry requirements. No subscription checks.
 - **Bundled AI Model**: Agent-X ships with **Llama 3.2 3B Instruct** (~2 GB) pre-packaged in the installer. You get fully functional offline AI out of the box — zero downloads required.
 - **Hybrid Intelligence Stack**: Choose between bundled local inference, Ollama integration for custom models, or optional cloud providers (OpenAI GPT-family, Anthropic Claude). Switch anytime without data migration.
-- **Enterprise Data Layer**: SQLCipher AES-256-CBC at-rest encryption (optional), EF Core migrations with baseline adoption, and a **16-table relational schema** powering everything from vector search to conversation memory.
+- **Enterprise Data Layer**: SQLCipher AES-256-CBC at-rest encryption (optional), EF Core migrations with baseline adoption, and a **40-table relational schema** powering everything from vector search to conversation memory.
 
 ### Step 1: Connect to Ollama (Optional)
 
@@ -253,7 +253,7 @@ The summary screen provides a complete readiness report:
 
 ## 4.2 Agent-X Capability Matrix
 
-After onboarding, you have access to an enterprise-grade intelligence platform. Here's what ships in v2.1.0-preview.1:
+After onboarding, you have access to an enterprise-grade intelligence platform. Here's what ships in v2.1.2:
 
 ### Intelligence Engine (Core)
 

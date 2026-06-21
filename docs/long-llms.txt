@@ -6,7 +6,7 @@
 
 ## Project Overview
 
-**Agent-X** is a native Windows desktop application (v2.1.0-preview.1) built on .NET 8.0 and WinUI 3 that transforms personal document collections into queryable, AI-augmented knowledge bases. It ships with Llama 3.2 3B bundled, supports Ollama for local models, and integrates OpenAI and Anthropic for cloud AI — all with a privacy-first, local-first architecture.
+**Agent-X** is a native Windows desktop application (v2.1.2) built on .NET 8.0 and WinUI 3 that transforms personal document collections into queryable, AI-augmented knowledge bases. It ships with Llama 3.2 3B bundled, supports Ollama for local models, and integrates OpenAI and Anthropic for cloud AI — all with a privacy-first, local-first architecture.
 
 **Key Differentiators:**
 - **100% Local by Default** — Zero telemetry, no phone-home, offline-capable
@@ -15,7 +15,7 @@
 - **SQLCipher Encryption** — AES-256-CBC at-rest database encryption with tier-aware key management
 - **GPU Acceleration** — CUDA 12 support with automatic VRAM-based layer offloading
 - **REST API** — Embedded HTTP server (port 9846) for programmatic access
-- **Production Data Layer** — EF Core migrations, 16-table schema, HNSW ANN vector index
+- **Production Data Layer** — EF Core migrations, 40-table schema, HNSW ANN vector index
 
 ---
 
@@ -34,7 +34,7 @@
 | **GPU** | CUDA 12 |
 | **Full-Text Search** | SQLite FTS5 |
 | **Logging** | Serilog |
-| **Testing** | xUnit + 224 unit tests |
+| **Testing** | xUnit + 1,909 unit tests |
 
 ### Component Architecture
 
@@ -366,7 +366,7 @@ Where:
 
 1. **Use dependency injection** — All services support DI
 2. **Follow MVVM pattern** — ViewModels abstract UI logic
-3. **Write unit tests** — 224 tests provide coverage examples
+3. **Write unit tests** — 1,909 tests provide coverage examples
 4. **Use structured logging** — Serilog with contextual information
 5. **Handle exceptions gracefully** — Typed exceptions with clear messages
 

@@ -19,7 +19,7 @@
 
 ### Step 1: Download the Installer
 
-Download `AgentX-Setup-2.1.0-preview.1-x64.exe` from:
+Download `AgentX-Setup-2.1.2-x64.exe` from:
 - The GitHub Releases page, or
 - The `installer-output/` directory
 

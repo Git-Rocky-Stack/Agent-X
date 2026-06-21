@@ -4,7 +4,7 @@ Non-blocking issues and follow-ups for Agent-X. **None of these prevent the app 
 building, passing tests, installing, or running.** They are tracked here for
 transparency and future work.
 
-_Last updated: 2026-06-01._
+_Last updated: 2026-06-21._
 
 ---
 
@@ -21,8 +21,22 @@ first run.
   provenance gate (aborts if the published Core DLL lacks the security types), and writes
   `SHA256SUMS.txt`. See [`RELEASE-SIGNING.md`](RELEASE-SIGNING.md).
 - **Remaining:** acquire an OV (or EV, for instant SmartScreen reputation) code-signing
-  certificate, then rebuild + sign + republish a new patch from current source with
-  `-RequireSign`. This is the only blocker — it needs the certificate and a release run.
+  certificate, then rebuild + sign + republish **v2.1.2** (the now-bumped patch) from current
+  source with `-RequireSign`. This is the only blocker — it needs the certificate and a release run.
+
+---
+
+## Resolved — 2026-06-21 (v2.1.2)
+
+The **Codex security audit** and the **Comprehensive QA Audit (2026-06-19)** are fully remediated in
+v2.1.2 — findings **AX-QA-001 through AX-QA-016**. Highlights: authenticated local API with contained
+file boundaries and encrypted secrets; hardened mobile transport with the TLS-bypass removed
+(AX-QA-005); the dormant vulnerable SQLite native binary dropped (AX-QA-010); single-source version
+display (AX-QA-014); the mobile Android build green and gated in CI (AX-QA-004); and a signing-ready
+release pipeline with a provenance gate (AX-QA-001 / AX-QA-007). The one item still **open** is the
+signed republish in #1 above — the pipeline is ready; it awaits a code-signing certificate. Full
+detail in [`../CHANGELOG.md`](../CHANGELOG.md) and
+[`COMPREHENSIVE-QA-AUDIT-2026-06-19.md`](COMPREHENSIVE-QA-AUDIT-2026-06-19.md).
 
 ---
 
@@ -47,8 +61,9 @@ Reproducible build: `scripts/build-installers.ps1 [-Profiles slim|offline|both]`
   leaves it in place and a reinstall does not re-extract ~2 GB.
 
 ### 4. `setup.exe` had no numeric FileVersion — RESOLVED
-Added `VersionInfoVersion=2.1.1` (plus `VersionInfoProductVersion`, company, description,
-copyright) to `AgentX-Setup.iss`, so the generated `setup.exe` carries a real Win32 FileVersion.
+Added `VersionInfoVersion={#MyAppVersion}` (plus `VersionInfoProductVersion`, company, description,
+copyright) to `AgentX-Setup.iss`, so the generated `setup.exe` carries a real Win32 FileVersion that
+tracks the single `MyAppVersion` define.
 
 ### 5. Installer created an unused data directory — RESOLVED
 Removed the `ForceDirectories(...\AgentX\Data)` call from `CurStepChanged`. The app's database
