@@ -11,12 +11,18 @@ _Last updated: 2026-06-01._
 ## Open
 
 ### 1. Installer is unsigned (SmartScreen warning)
-`AgentX-Setup-2.1.1-x64.exe` is not Authenticode-signed, so Windows SmartScreen /
-Defender shows an **"unknown publisher"** prompt on download and first run.
+The currently distributed `AgentX-Setup-2.1.1-x64.exe` is not Authenticode-signed, so
+Windows SmartScreen / Defender shows an **"unknown publisher"** prompt on download and
+first run.
 - **Impact:** UX/trust friction during install; not a functional defect.
-- **Fix:** acquire an OV (or EV, for instant SmartScreen reputation) code-signing
-  certificate and sign the setup `.exe` (and ideally the app binaries) in the
-  release build. (Deferred by decision — tracked, not scheduled.)
+- **Status (AX-QA-001 / AX-QA-007):** the release pipeline is now **sign-ready** —
+  `scripts/build-installers.ps1` signs and timestamps the app binaries and installers
+  (`-CertificateThumbprint` or `-CertificatePath`), verifies the signatures, enforces a
+  provenance gate (aborts if the published Core DLL lacks the security types), and writes
+  `SHA256SUMS.txt`. See [`RELEASE-SIGNING.md`](RELEASE-SIGNING.md).
+- **Remaining:** acquire an OV (or EV, for instant SmartScreen reputation) code-signing
+  certificate, then rebuild + sign + republish a new patch from current source with
+  `-RequireSign`. This is the only blocker — it needs the certificate and a release run.
 
 ---
 

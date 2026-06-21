@@ -24,9 +24,9 @@ This document tracks Agent-X's CI gates and their status against audit finding *
 | Build iOS | ⏸ Deferred → **AX-QA-004** | Requires a macOS runner toolchain. Enable when a macOS runner is available. |
 | Enforce code coverage | ✅ Added | `build-test.yml` collects coverage on the existing test run and `scripts/check-coverage.ps1` gates it (AX-QA-009). Global floor plus elevated floors for security/migration namespaces — see [Coverage gate](#coverage-gate-ax-qa-009) below. |
 | `dotnet format --verify-no-changes` | ✅ Added | `format.yml`. The mechanical normalization (LF via `.gitattributes eol=lf`, whitespace, using order) landed in the same change as the gate, with no functional edits mixed in (AX-QA-012 resolved). Gate runs at **default severity** — formatting + imports only; info-level analyzer refactors (CA1861, IDE0300) are intentionally out of scope. |
-| Publish / install / smoke-test the Windows artifact | ⏸ Deferred → **AX-QA-001 / 007** | Belongs to the signed release pipeline. |
-| Verify the artifact was built from the release tag/HEAD (provenance) | ⏸ Deferred → **AX-QA-001 / 007** | Release-pipeline concern; pairs with signing. |
-| Sign / verify signatures | ⏸ Deferred → **AX-QA-007** | Requires a code-signing certificate held in a protected pipeline; cannot be added from a normal CI run. |
+| Publish / install / smoke-test the Windows artifact | ⏸ Deferred → **AX-QA-001 / 007** | Belongs to the signed release pipeline (`scripts/build-installers.ps1`), which the maintainer runs manually. |
+| Verify the artifact was built from the release tag/HEAD (provenance) | ✅ In pipeline | `build-installers.ps1` aborts if the freshly published `AgentX.Core.dll` lacks the security types (`LocalApiSecurity`, `ResolveContainedPath`) and records the source commit + `SHA256SUMS.txt` (AX-QA-001). See [`RELEASE-SIGNING.md`](RELEASE-SIGNING.md). |
+| Sign / verify signatures | ✅ In pipeline | `build-installers.ps1` Authenticode-signs + timestamps the app binaries and installers and verifies every signature when a certificate is supplied (`-CertificateThumbprint` / `-CertificatePath`); `-RequireSign` makes an unsigned build a hard error (AX-QA-007). The certificate stays with the maintainer, not in CI. |
 
 ## NuGet vulnerability allowlist
 
