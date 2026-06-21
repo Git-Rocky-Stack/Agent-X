@@ -22,6 +22,13 @@
     <PackageReference Include="CommunityToolkit.Maui" Version="9.1.1" />
   </ItemGroup>
 
+  <!-- App icon + splash screen (single-project resizetizer assets). Required so the Android
+       build can generate @mipmap/appicon referenced by AndroidManifest.xml (AX-QA-004). -->
+  <ItemGroup>
+    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#6366F1" />
+    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#FFFFFF" BaseSize="128,128" />
+  </ItemGroup>
+
   <!-- MAUI resource inclusions -->
   <ItemGroup>
     <MauiXaml Update="App.xaml">
