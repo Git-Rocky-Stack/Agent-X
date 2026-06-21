@@ -28,7 +28,7 @@
                         TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
 
                     <Label
-                        Text="Enter the address where the Agent-X desktop app is running. Use localhost:9846 when on the same device, or the machine's IP on the same network."
+                        Text="The desktop app listens on localhost only. Emulator: use http://10.0.2.2:9846. Physical device: forward the port over USB (adb reverse tcp:9846 tcp:9846), then http://localhost:9846. LAN/remote connections require HTTPS — plaintext to another host is refused. See docs/MOBILE-TRANSPORT.md."
                         FontSize="12"
                         LineHeight="1.5"
                         TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />

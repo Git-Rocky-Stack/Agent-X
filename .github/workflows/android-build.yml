@@ -1,0 +1,51 @@
+name: Android Build
+
+# AX-QA-004: compile-verify the AgentX.Mobile MAUI companion (net8.0-android). The mobile
+# project is intentionally NOT in AgentX.sln — its MAUI workloads would break the Windows
+# desktop build — so this dedicated job installs the maui-android workload and builds the
+# Android target. The mobile code (incl. the AX-QA-005 transport hardening) can no longer
+# drift compile-unverified.
+#
+# iOS is not built here: it requires a macOS runner toolchain (tracked under AX-QA-004).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/AgentX.Mobile/**'
+      - 'Directory.Build.props'
+      - 'global.json'
+      - '.github/workflows/android-build.yml'
+  pull_request:
+    paths:
+      - 'src/AgentX.Mobile/**'
+      - 'Directory.Build.props'
+      - 'global.json'
+      - '.github/workflows/android-build.yml'
+
+jobs:
+  android:
+    name: Build AgentX.Mobile (net8.0-android)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install MAUI Android workload
+        run: dotnet workload install maui-android
+
+      # Build only the Android target framework (iOS needs macOS). The implicit restore is
+      # scoped to net8.0-android, so the absent iOS workload never blocks this job.
+      - name: Build (Release, net8.0-android)
+        run: dotnet build src/AgentX.Mobile/AgentX.Mobile.csproj -c Release -f net8.0-android
