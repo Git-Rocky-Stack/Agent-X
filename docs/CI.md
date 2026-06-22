@@ -71,17 +71,19 @@ async/LINQ logic. `IncludeTestAssembly` stays `false`, so the linked WinUI ViewM
 `AgentX.Tests.dll` are not self-counted; the gate scopes to `AgentX.Core`, as the finding frames it.
 
 > Excluding the well-covered generated scaffolding lowers the *headline* line number from the raw
-> 46.43% to **40.06%** because that scaffolding was ~70% covered and inflating the raw figure. 40%
-> is the honest authored-code baseline; branch (33.56%) closely tracks the audit's 33.15%.
+> 47.62% to **41.31%** because that scaffolding is well-covered and inflates the raw figure. 41% is
+> the honest authored-code baseline; branch (34.60%) tracks the audit's 33.15% closely.
 
 ### Floors (the ratchet)
 
-Floors are set just below the **2026-06-20 measured baseline** with a small headroom for CI
-variance. Every critical floor sits **above** the repository-wide minimum, as AX-QA-009 requires.
+Floors are set just below the measured baseline with a small headroom for CI variance. The global
+floor was re-ratcheted on **2026-06-21** after `ApiHostService` coverage; the critical-namespace
+baselines are from **2026-06-20**. Every critical floor sits **above** the repository-wide minimum,
+as AX-QA-009 requires.
 
 | Scope | Line floor | Branch floor | Measured (baseline) |
 |---|---|---|---|
-| Global (`AgentX.Core`, authored) | 38% | 31% | 40.06% / 33.56% |
+| Global (`AgentX.Core`, authored) | 39% | 32% | 41.31% / 34.60% |
 | `AgentX.Core.Services.Security` | 80% | 62% | 82.41% / 66.22% |
 | `AgentX.Core.Services.Privacy` | 95% | 85% | 100% / 90.62% |
 | `AgentX.Core.Services.OAuth` | 42% | 32% | 45.18% / 34.55% |
@@ -95,8 +97,10 @@ critical namespace still matches measured code (it fails loudly if a namespace i
 ### Raising overall coverage
 
 The gate prevents regression; it does not by itself lift the 0%-covered services the audit named.
-Closing those gaps (integration tests for `ApiHostService` / `PluginService` / `WorkflowEngine` /
-`SyncService`) is ongoing work — as each lands, bump the global floor to lock the gain in.
+**`ApiHostService` is now closed** — `ApiHostServiceTests` took it from 0% to full line coverage
+(2026-06-21) and the global floor was ratcheted up accordingly. The remaining gaps
+(`PluginService` / `WorkflowEngine` / `SyncService`) are ongoing work — as each lands, bump the
+global floor to lock the gain in.
 
 ### Running it locally
 

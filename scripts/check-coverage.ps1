@@ -43,11 +43,12 @@ $ErrorActionPreference = 'Stop'
 #   criticalNamespaces — elevated floors for high-risk areas; each MUST be >= the
 #                        global floor (the gate asserts this so the policy stays honest).
 # ─────────────────────────────────────────────────────────────────────────────
-# Floors are set just below the measured 2026-06-20 baseline (shown in comments) so the gate
-# locks in current coverage with a small headroom for CI variance, and every critical floor sits
-# above the global minimum as AX-QA-009 requires.
+# Floors are set just below the measured baseline (shown in comments) so the gate locks in current
+# coverage with a small headroom for CI variance, and every critical floor sits above the global
+# minimum as AX-QA-009 requires. Global was re-ratcheted on 2026-06-21 after ApiHostService unit tests
+# took that service from 0% to full coverage; the critical-namespace baselines are from 2026-06-20.
 $Policy = [ordered]@{
-    Global = @{ Line = 38.0; Branch = 31.0 }          # measured 40.06 / 33.56
+    Global = @{ Line = 39.0; Branch = 32.0 }          # measured 41.31 / 34.60 (2026-06-21)
     CriticalNamespaces = [ordered]@{
         # Security-critical: DB key material, DPAPI secret encryption, encryption-state migration,
         # security status. A regression here is a trust/compliance regression.
