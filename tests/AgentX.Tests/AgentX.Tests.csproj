@@ -23,6 +23,10 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="FluentAssertions" Version="6.12.2" />
+    <!-- Roslyn: compiles real, loadable plugin assemblies in-process so PluginServiceTests can
+         exercise the AssemblyLoadContext load → discover → instantiate → lifecycle path for real
+         (AX-QA-009). Test-only; never referenced by AgentX.Core or AgentX.App. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.5.0" />
     <PackageReference Include="System.IO.FileSystem.AccessControl" Version="5.0.0" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.6" />
     <!-- Wave 3c: real ConfigurationBuilder + Options DI for the prompt-catalog
