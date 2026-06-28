@@ -45,15 +45,18 @@ $ErrorActionPreference = 'Stop'
 # ─────────────────────────────────────────────────────────────────────────────
 # Floors are set just below the measured baseline (shown in comments) so the gate locks in current
 # coverage with a small headroom for CI variance, and every critical floor sits at or above the
-# global minimum as AX-QA-009 requires. On 2026-06-28 DocumentService — the largest remaining authored
-# gap at 452 measurable lines, previously 0% — was lifted to 91.15 line / 69.36 branch via an EF-SQLite
-# harness with a deterministic IDocumentProcessor stub and real-temp-file import I/O. It is not a trust
-# boundary (no crypto/migration), so it is NOT tracked as a critical namespace; its gain flows straight
-# into the global denominator, raising the GLOBAL floor: LINE 47 -> 48 and BRANCH 38 -> 40, bounded by
-# the GLOBAL measured value (49.02 / 41.12). Earlier the same day BackupService was lifted from 15.10%
-# to 78.66 line / 70.00 branch: a full create-backup round-trip made safe by mocking the injectable
-# IEncryptedConnectionFactory to redirect the SQLite source copy to a seeded throwaway DB and honour
-# the temp destination, plus reflection for the timer-gated retention helper. BackupService performs
+# global minimum as AX-QA-009 requires. On 2026-06-28 InboxService — the largest remaining authored gap
+# at 438 measurable lines, previously 0% — was lifted to 97.95 line / 96.00 branch via an EF-SQLite
+# harness mocking ICollectionService / IAiService (token-streamed via a hand-rolled IAsyncEnumerable) /
+# IDocumentService, with real-temp-file ingestion + preview reads and disposed-context tests for the
+# log-and-rethrow catch arms. Not a trust boundary (no crypto/migration), so NOT a critical namespace;
+# its gain flows straight into the global denominator, raising the GLOBAL floor: LINE 48 -> 50 and
+# BRANCH 40 -> 41, bounded by the GLOBAL measured value (50.42 / 42.00). Earlier the same day
+# DocumentService (452 lines, 0%) was lifted to 91.15 line / 69.36 branch (EF-SQLite + deterministic
+# IDocumentProcessor stub + real-temp-file import I/O), taking the global floor 47 -> 48 line / 38 -> 40
+# branch; and BackupService was lifted from 15.10% to 78.66 line / 70.00 branch (mocking the injectable
+# IEncryptedConnectionFactory to redirect the SQLite source copy to a seeded throwaway DB and honour the
+# temp destination, plus reflection for the timer-gated retention helper). BackupService performs
 # AES-256-GCM encryption of the entire user database, so its namespace is tracked as critical
 # (floor 75 line / 65 branch; measured 79.21 / 70.00); its residual uncovered region is
 # RestoreFromBackupAsync's database-swap body, which writes to the hardcoded real user-profile DB path
@@ -63,7 +66,7 @@ $ErrorActionPreference = 'Stop'
 # PluginService/WorkflowEngine (global line 41 -> 42); 2026-06-21 ApiHostService.
 # Critical-namespace baselines (Security/Privacy/MigrationRunner) are from 2026-06-20.
 $Policy = [ordered]@{
-    Global = @{ Line = 48.0; Branch = 40.0 }          # measured 49.02 / 41.12 (2026-06-28)
+    Global = @{ Line = 50.0; Branch = 41.0 }          # measured 50.42 / 42.00 (2026-06-28)
     CriticalNamespaces = [ordered]@{
         # Security-critical: DB key material, DPAPI secret encryption, encryption-state migration,
         # security status. A regression here is a trust/compliance regression. Its branch floor (62)
