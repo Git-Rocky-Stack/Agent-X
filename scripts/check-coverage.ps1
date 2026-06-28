@@ -45,22 +45,25 @@ $ErrorActionPreference = 'Stop'
 # ─────────────────────────────────────────────────────────────────────────────
 # Floors are set just below the measured baseline (shown in comments) so the gate locks in current
 # coverage with a small headroom for CI variance, and every critical floor sits at or above the
-# global minimum as AX-QA-009 requires. On 2026-06-27 OAuth coverage was lifted from 45.18/34.55 to
-# 82.57 line / 77.27 branch (HttpListener stub server for the real token/refresh/revocation paths +
-# reflection for the internals walled behind AuthorizeAsync's Process.Start browser launch). OAuth
-# was the binding critical namespace on BOTH metrics, so lifting it unpins the global floor: the
-# global LINE floor rises 44 -> 45 and the global BRANCH floor 33 -> 37, now bounded by the GLOBAL
-# measured value (46.39 / 38.6) rather than by OAuth. The minimum critical floors are now Security's
-# (line 80, branch 62), both far above the global floor, so the global floor is free to ratchet on
-# overall measured coverage alone. Earlier 2026-06-27 rounds: SyncService (global line -> 44),
-# PluginService/WorkflowEngine 2026-06-24 (global line 41 -> 42), ApiHostService 2026-06-21.
+# global minimum as AX-QA-009 requires. On 2026-06-28 BackupService coverage was lifted from 15.10%
+# to 78.66 line / 70.00 branch: a full create-backup round-trip made safe by mocking the injectable
+# IEncryptedConnectionFactory to redirect the SQLite source copy to a seeded throwaway DB and honour
+# the temp destination, plus reflection for the timer-gated retention helper. BackupService performs
+# AES-256-GCM encryption of the entire user database, so its namespace is now tracked as critical
+# (floor 75 line / 65 branch; measured 79.21 / 70.00). Lifting it raised the GLOBAL floor: LINE
+# 45 -> 47 and BRANCH 37 -> 38, bounded by the GLOBAL measured value (47.67 / 39.29). The residual
+# uncovered region is RestoreFromBackupAsync's database-swap body, which writes to the hardcoded real
+# user-profile DB path with no injection seam (running it would clobber the live DB), plus the
+# PeriodicTimer-gated scheduled-loop body. Earlier rounds: 2026-06-27 OAuth lifted 45.18/34.55 ->
+# 82.57/77.27 (unpinned the global floor: line 44 -> 45, branch 33 -> 37) and SyncService (global
+# line -> 44); 2026-06-24 PluginService/WorkflowEngine (global line 41 -> 42); 2026-06-21 ApiHostService.
 # Critical-namespace baselines (Security/Privacy/MigrationRunner) are from 2026-06-20.
 $Policy = [ordered]@{
-    Global = @{ Line = 45.0; Branch = 37.0 }          # measured 46.39 / 38.6 (2026-06-27)
+    Global = @{ Line = 47.0; Branch = 38.0 }          # measured 47.67 / 39.29 (2026-06-28)
     CriticalNamespaces = [ordered]@{
         # Security-critical: DB key material, DPAPI secret encryption, encryption-state migration,
-        # security status. A regression here is a trust/compliance regression. Now the binding
-        # critical namespace: its branch floor (62) is the lowest critical branch floor.
+        # security status. A regression here is a trust/compliance regression. Its branch floor (62)
+        # is the lowest critical branch floor; Backup's line floor (75) is the lowest critical line floor.
         'AgentX.Core.Services.Security' = @{ Line = 80.0; Branch = 62.0 }   # measured 82.41 / 66.22
         # Privacy disclosure (AX-QA-008) — the dashboard "no cloud" claim depends on it; keep tight.
         'AgentX.Core.Services.Privacy'  = @{ Line = 95.0; Branch = 85.0 }   # measured 100   / 90.62
@@ -69,6 +72,12 @@ $Policy = [ordered]@{
         # in CI (it shells to the system browser and blocks on a real redirect). No longer binding:
         # both floors now sit well above the global floor.
         'AgentX.Core.Services.OAuth'    = @{ Line = 80.0; Branch = 75.0 }   # measured 82.57 / 77.27
+        # Backup-critical: AES-256-GCM authenticated encryption of the WHOLE user database + documents
+        # (V2), with legacy AES-256-CBC restore. A regression here risks unrecoverable or tampered
+        # backups. Lifted 2026-06-28 from 15.10%; the residual gap is RestoreFromBackupAsync's
+        # database-swap body (writes the hardcoded real user-profile DB path — no seam to redirect it)
+        # and the PeriodicTimer-gated scheduled-loop body.
+        'AgentX.Core.Services.Backup'   = @{ Line = 75.0; Branch = 65.0 }   # measured 79.21 / 70.00
         # Migration-critical: the runner that applies EF migrations and guards against partial
         # baselines (AX-QA-002/003). The migration scaffolds themselves are excluded as generated.
         'AgentX.Core.Data.MigrationRunner' = @{ Line = 95.0; Branch = 85.0 } # measured 98.11 / 91.67

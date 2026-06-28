@@ -71,35 +71,44 @@ async/LINQ logic. `IncludeTestAssembly` stays `false`, so the linked WinUI ViewM
 `AgentX.Tests.dll` are not self-counted; the gate scopes to `AgentX.Core`, as the finding frames it.
 
 > Excluding the well-covered generated scaffolding lowers the *headline* line number from the raw
-> 51.63% to **46.39%** because that scaffolding is well-covered and inflates the raw figure. ~46% is
-> the honest authored-code baseline; branch (38.6%) tracks the audit's 33.15% closely. The raw and
-> authored *branch* rates are effectively identical — authored branch (38.6%) in fact edges out raw
-> branch (38.47%) — because the excluded scaffolding is line-heavy but has almost no branches, so it
+> 52.62% to **47.67%** because that scaffolding is well-covered and inflates the raw figure. ~48% is
+> the honest authored-code baseline; branch (39.29%) tracks the audit's 33.15% closely. The raw and
+> authored *branch* rates are effectively identical — authored branch (39.29%) in fact edges out raw
+> branch (39.11%) — because the excluded scaffolding is line-heavy but has almost no branches, so it
 > inflates only the line figure.
 
 ### Floors (the ratchet)
 
 Floors are set just below the measured baseline with a small headroom for CI variance. On
-**2026-06-27** `OAuth` coverage was lifted from 45.18% / 34.55% to **82.57% line / 77.27% branch** (an
-in-process `HttpListener` stub server makes the real token / refresh / revocation HTTP paths testable
-despite the service's non-injectable `HttpClient`, and reflection covers the token-exchange, persist,
-scope-building and PKCE internals walled behind `AuthorizeAsync`'s `Process.Start` browser launch).
-`OAuth` was the binding critical namespace on **both** metrics, so lifting it **unpins the global
-floor**: the global **line** floor rises **44% → 45%** and the global **branch** floor **33% → 37%**,
-now bounded by the global *measured* value (46.39% / 38.6%) rather than by OAuth. The lowest critical
-floors are now `Security`'s (line 80%, branch 62%), both far above the global floor — so the global
-floor is free to ratchet on overall measured coverage from here. Earlier **2026-06-27** rounds:
-`SyncService` (global line → 44%); the **2026-06-24** `PluginService`/`WorkflowEngine` rounds (global
-line 41% → 42%) and the **2026-06-21** `ApiHostService` ratchet preceded those. The
-Security/Privacy/MigrationRunner baselines are from **2026-06-20**. Every critical floor sits **at or
-above** the repository-wide minimum, as AX-QA-009 requires.
+**2026-06-28** `BackupService` coverage was lifted from **15.10%** to **78.66% line / 70.00% branch**:
+a full create-backup round-trip is made safe by mocking the injectable `IEncryptedConnectionFactory`
+to redirect the SQLite Online-Backup *source* copy to a seeded throwaway database (never the real user
+DB) and honour the generated temp *destination*, with reflection covering the `PeriodicTimer`-gated
+retention helper. Because `BackupService` performs AES-256-GCM authenticated encryption of the entire
+user database, its namespace is now tracked as **critical** (floor **75% line / 65% branch**; measured
+79.21% / 70.00%). Lifting it raised the **global** floor: **line 45% → 47%** and **branch 37% → 38%**,
+bounded by the global *measured* value (47.67% / 39.29%). The residual uncovered region is
+`RestoreFromBackupAsync`'s database-swap body — it writes the extracted database to the hardcoded real
+user-profile path with no injection seam, so exercising it would clobber the live database — plus the
+`PeriodicTimer`-gated scheduled-loop body.
+
+Earlier: on **2026-06-27** `OAuth` coverage was lifted from 45.18% / 34.55% to **82.57% line / 77.27%
+branch** (an in-process `HttpListener` stub server makes the real token / refresh / revocation HTTP
+paths testable despite the service's non-injectable `HttpClient`, and reflection covers the internals
+walled behind `AuthorizeAsync`'s `Process.Start` browser launch); `OAuth` had been the binding critical
+namespace on both metrics, so that **unpinned** the global floor (line 44% → 45%, branch 33% → 37%). The
+**2026-06-27** `SyncService` round took the global line floor → 44%; the **2026-06-24**
+`PluginService`/`WorkflowEngine` rounds took global line 41% → 42%; the **2026-06-21** `ApiHostService`
+ratchet preceded those. The Security/Privacy/MigrationRunner baselines are from **2026-06-20**. Every
+critical floor sits **at or above** the repository-wide minimum, as AX-QA-009 requires.
 
 | Scope | Line floor | Branch floor | Measured (baseline) |
 |---|---|---|---|
-| Global (`AgentX.Core`, authored) | 45% | 37% | 46.39% / 38.6% |
+| Global (`AgentX.Core`, authored) | 47% | 38% | 47.67% / 39.29% |
 | `AgentX.Core.Services.Security` | 80% | 62% | 82.41% / 66.22% |
 | `AgentX.Core.Services.Privacy` | 95% | 85% | 100% / 90.62% |
 | `AgentX.Core.Services.OAuth` | 80% | 75% | 82.57% / 77.27% |
+| `AgentX.Core.Services.Backup` | 75% | 65% | 79.21% / 70.00% |
 | `AgentX.Core.Data.MigrationRunner` | 95% | 85% | 98.11% / 91.67% |
 
 **This is a ratchet.** When coverage rises, raise the matching floor in `scripts/check-coverage.ps1`
@@ -114,11 +123,15 @@ The gate prevents regression; it does not by itself lift the 0%-covered services
 **`WorkflowEngine`** (0% → 99.57% line / 81.16% branch, 2026-06-24), **`PluginService`**
 (0% → 95.41% line / 92.39% branch, 2026-06-24), and **`SyncService`** (0% → 96.31% line / 98.61%
 branch, 2026-06-27) — the global floor was ratcheted up as each landed. With those done, **`OAuth`**
-— the namespace that was pinning the global floor — was then lifted **45.18% → 82.57% line and
-34.55% → 77.27% branch** (2026-06-27), unpinning both global floors. The only sizeable uncovered
-region left in `OAuth` is `AuthorizeAsync`'s browser-launch + local-callback body, which cannot run in
-CI. The next lever for the global floor is now overall measured coverage itself (46.39% line / 38.6%
-branch): no single critical namespace caps it — any authored-code coverage gain can raise it.
+— the namespace that had been pinning the global floor — was lifted **45.18% → 82.57% line and
+34.55% → 77.27% branch** (2026-06-27), unpinning both global floors. Then, with the global floor free
+to ratchet on overall coverage, the largest remaining authored gap was attacked: **`BackupService`**
+(the single biggest uncovered service at 493 lines) was lifted **15.10% → 78.66% line / 70.00% branch**
+(2026-06-28), raising the global floor to **47% line / 38% branch**. Its sizeable residual is
+`RestoreFromBackupAsync`'s database-swap body, which writes to the hardcoded real user-profile DB path
+with no injection seam. The next lever for the global floor remains overall measured coverage itself
+(47.67% line / 39.29% branch): no single critical namespace caps it — any authored-code coverage gain
+can raise it.
 
 ### Running it locally
 
