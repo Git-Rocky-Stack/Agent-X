@@ -71,26 +71,35 @@ async/LINQ logic. `IncludeTestAssembly` stays `false`, so the linked WinUI ViewM
 `AgentX.Tests.dll` are not self-counted; the gate scopes to `AgentX.Core`, as the finding frames it.
 
 > Excluding the well-covered generated scaffolding lowers the *headline* line number from the raw
-> 52.62% to **47.67%** because that scaffolding is well-covered and inflates the raw figure. ~48% is
-> the honest authored-code baseline; branch (39.29%) tracks the audit's 33.15% closely. The raw and
-> authored *branch* rates are effectively identical — authored branch (39.29%) in fact edges out raw
-> branch (39.11%) — because the excluded scaffolding is line-heavy but has almost no branches, so it
+> 53.70% to **49.02%** because that scaffolding is well-covered and inflates the raw figure. ~49% is
+> the honest authored-code baseline; branch (41.12%) tracks the audit's 33.15% closely. The raw and
+> authored *branch* rates are effectively identical — authored branch (41.12%) in fact edges out raw
+> branch (40.87%) — because the excluded scaffolding is line-heavy but has almost no branches, so it
 > inflates only the line figure.
 
 ### Floors (the ratchet)
 
 Floors are set just below the measured baseline with a small headroom for CI variance. On
-**2026-06-28** `BackupService` coverage was lifted from **15.10%** to **78.66% line / 70.00% branch**:
-a full create-backup round-trip is made safe by mocking the injectable `IEncryptedConnectionFactory`
-to redirect the SQLite Online-Backup *source* copy to a seeded throwaway database (never the real user
-DB) and honour the generated temp *destination*, with reflection covering the `PeriodicTimer`-gated
-retention helper. Because `BackupService` performs AES-256-GCM authenticated encryption of the entire
-user database, its namespace is now tracked as **critical** (floor **75% line / 65% branch**; measured
-79.21% / 70.00%). Lifting it raised the **global** floor: **line 45% → 47%** and **branch 37% → 38%**,
-bounded by the global *measured* value (47.67% / 39.29%). The residual uncovered region is
-`RestoreFromBackupAsync`'s database-swap body — it writes the extracted database to the hardcoded real
-user-profile path with no injection seam, so exercising it would clobber the live database — plus the
-`PeriodicTimer`-gated scheduled-loop body.
+**2026-06-28** `DocumentService` — the largest remaining authored gap at **452 measurable lines,
+previously 0%** — was lifted to **91.15% line / 69.36% branch** (412 / 452 lines). It is the knowledge-
+vault ingestion orchestrator (import / query / delete / reindex / duplicate-detection / bulk ops) over
+EF Core; an in-memory-SQLite harness with a deterministic `IDocumentProcessor` stub and real-temp-file
+import I/O drives the full surface. It is **not** a trust boundary (no crypto, no migrations), so it is
+not tracked as a critical namespace — its gain flows straight into the global denominator, raising the
+**global** floor: **line 47% → 48%** and **branch 38% → 40%**, bounded by the global *measured* value
+(49.02% / 41.12%). The small residual is the per-file MIME table's rarely-hit arms and a few
+defensive-log branches.
+
+Earlier the same day, `BackupService` coverage was lifted from **15.10%** to **78.66% line / 70.00%
+branch**: a full create-backup round-trip is made safe by mocking the injectable
+`IEncryptedConnectionFactory` to redirect the SQLite Online-Backup *source* copy to a seeded throwaway
+database (never the real user DB) and honour the generated temp *destination*, with reflection covering
+the `PeriodicTimer`-gated retention helper. Because `BackupService` performs AES-256-GCM authenticated
+encryption of the entire user database, its namespace is tracked as **critical** (floor **75% line /
+65% branch**; measured 79.21% / 70.00%). The residual uncovered region is `RestoreFromBackupAsync`'s
+database-swap body — it writes the extracted database to the hardcoded real user-profile path with no
+injection seam, so exercising it would clobber the live database — plus the `PeriodicTimer`-gated
+scheduled-loop body.
 
 Earlier: on **2026-06-27** `OAuth` coverage was lifted from 45.18% / 34.55% to **82.57% line / 77.27%
 branch** (an in-process `HttpListener` stub server makes the real token / refresh / revocation HTTP
@@ -104,7 +113,7 @@ critical floor sits **at or above** the repository-wide minimum, as AX-QA-009 re
 
 | Scope | Line floor | Branch floor | Measured (baseline) |
 |---|---|---|---|
-| Global (`AgentX.Core`, authored) | 47% | 38% | 47.67% / 39.29% |
+| Global (`AgentX.Core`, authored) | 48% | 40% | 49.02% / 41.12% |
 | `AgentX.Core.Services.Security` | 80% | 62% | 82.41% / 66.22% |
 | `AgentX.Core.Services.Privacy` | 95% | 85% | 100% / 90.62% |
 | `AgentX.Core.Services.OAuth` | 80% | 75% | 82.57% / 77.27% |
@@ -125,13 +134,15 @@ The gate prevents regression; it does not by itself lift the 0%-covered services
 branch, 2026-06-27) — the global floor was ratcheted up as each landed. With those done, **`OAuth`**
 — the namespace that had been pinning the global floor — was lifted **45.18% → 82.57% line and
 34.55% → 77.27% branch** (2026-06-27), unpinning both global floors. Then, with the global floor free
-to ratchet on overall coverage, the largest remaining authored gap was attacked: **`BackupService`**
-(the single biggest uncovered service at 493 lines) was lifted **15.10% → 78.66% line / 70.00% branch**
-(2026-06-28), raising the global floor to **47% line / 38% branch**. Its sizeable residual is
-`RestoreFromBackupAsync`'s database-swap body, which writes to the hardcoded real user-profile DB path
-with no injection seam. The next lever for the global floor remains overall measured coverage itself
-(47.67% line / 39.29% branch): no single critical namespace caps it — any authored-code coverage gain
-can raise it.
+to ratchet on overall coverage, the two largest remaining authored gaps were attacked on
+**2026-06-28**. First **`BackupService`** (then the single biggest uncovered service at 493 lines) was
+lifted **15.10% → 78.66% line / 70.00% branch**, raising the global floor to 47% line / 38% branch.
+Then **`DocumentService`** (the next-biggest at 452 measurable lines, also 0%) was lifted
+**0% → 91.15% line / 69.36% branch**, raising the global floor again to **48% line / 40% branch**. The
+next lever for the global floor remains overall measured coverage itself (49.02% line / 41.12% branch):
+no single critical namespace caps it — any authored-code coverage gain can raise it. The next-largest
+authored gaps are `InboxService` (438 lines, 0%), `ConversationService` (424, 0%), and
+`SemanticMemoryService` (383, 0%).
 
 ### Running it locally
 
