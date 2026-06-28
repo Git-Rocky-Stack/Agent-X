@@ -71,30 +71,34 @@ async/LINQ logic. `IncludeTestAssembly` stays `false`, so the linked WinUI ViewM
 `AgentX.Tests.dll` are not self-counted; the gate scopes to `AgentX.Core`, as the finding frames it.
 
 > Excluding the well-covered generated scaffolding lowers the *headline* line number from the raw
-> 49.72% to **43.97%** because that scaffolding is well-covered and inflates the raw figure. ~44% is
-> the honest authored-code baseline; branch (36.92%) tracks the audit's 33.15% closely. The raw and
-> authored *branch* rates are effectively identical — authored branch (36.92%) in fact edges out raw
-> branch (36.87%) — because the excluded scaffolding is line-heavy but has almost no branches, so it
+> 51.23% to **45.88%** because that scaffolding is well-covered and inflates the raw figure. ~46% is
+> the honest authored-code baseline; branch (38.19%) tracks the audit's 33.15% closely. The raw and
+> authored *branch* rates are effectively identical — authored branch (38.19%) in fact edges out raw
+> branch (38.07%) — because the excluded scaffolding is line-heavy but has almost no branches, so it
 > inflates only the line figure.
 
 ### Floors (the ratchet)
 
 Floors are set just below the measured baseline with a small headroom for CI variance. The global
-**line** floor was raised to **42%** on **2026-06-24** after `PluginService` coverage (global line
-rose to 43.97%); earlier the same day `WorkflowEngine` took it to 42% from the **2026-06-21**
-`ApiHostService` ratchet, and the critical-namespace baselines are from **2026-06-20**. Every
-critical floor sits **at or above** the repository-wide minimum, as AX-QA-009 requires. The global
-**branch** floor stays at **33%**: it is pinned by the `OAuth` branch floor (33%), since every
-critical floor must remain ≥ the global floor and OAuth's measured branch (34.55%) lacks the headroom
-to ratchet higher without new OAuth tests. The global line floor (42%) likewise now sits exactly at
-the `OAuth` line floor (42%), the binding critical line floor.
+**line** floor was raised to **44%** on **2026-06-27** after `SyncService` coverage (global line rose
+to 45.88%) — the fourth and last AX-QA-009 0%-covered service; reaching a 44% global line floor
+required nudging the binding `OAuth` line floor 42% → 44% into OAuth's existing line headroom
+(measured 45.18%). The **2026-06-24** `PluginService`/`WorkflowEngine` rounds (global line 41% → 42%)
+and the **2026-06-21** `ApiHostService` ratchet preceded it, and the critical-namespace baselines are
+from **2026-06-20**. Every critical floor sits **at or above** the repository-wide minimum, as
+AX-QA-009 requires. The global **branch** floor stays at **33%**: it is pinned by the `OAuth` branch
+floor (33%), since every critical floor must remain ≥ the global floor and OAuth's measured branch
+(34.55%) lacks the headroom to ratchet higher without new OAuth tests — so although SyncService lifted
+the global measured branch to 38.19%, the branch floor cannot rise until OAuth's branch coverage does.
+The global line floor (44%) likewise now sits exactly at the `OAuth` line floor (44%), the binding
+critical line floor.
 
 | Scope | Line floor | Branch floor | Measured (baseline) |
 |---|---|---|---|
-| Global (`AgentX.Core`, authored) | 42% | 33% | 43.97% / 36.92% |
+| Global (`AgentX.Core`, authored) | 44% | 33% | 45.88% / 38.19% |
 | `AgentX.Core.Services.Security` | 80% | 62% | 82.41% / 66.22% |
 | `AgentX.Core.Services.Privacy` | 95% | 85% | 100% / 90.62% |
-| `AgentX.Core.Services.OAuth` | 42% | 33% | 45.18% / 34.55% |
+| `AgentX.Core.Services.OAuth` | 44% | 33% | 45.18% / 34.55% |
 | `AgentX.Core.Data.MigrationRunner` | 95% | 85% | 98.11% / 91.67% |
 
 **This is a ratchet.** When coverage rises, raise the matching floor in `scripts/check-coverage.ps1`
@@ -105,11 +109,13 @@ critical namespace still matches measured code (it fails loudly if a namespace i
 ### Raising overall coverage
 
 The gate prevents regression; it does not by itself lift the 0%-covered services the audit named.
-Three of the four are now closed: **`ApiHostService`** (0% → full line coverage, 2026-06-21),
-**`WorkflowEngine`** (0% → 99.57% line / 81.16% branch, 2026-06-24), and **`PluginService`**
-(0% → 95.41% line / 92.39% branch, 2026-06-24) — the global floor was ratcheted up as each landed.
-The remaining gap (`SyncService`) is ongoing work — when it lands, bump the global floor to lock the
-gain in.
+**All four are now closed**: **`ApiHostService`** (0% → full line coverage, 2026-06-21),
+**`WorkflowEngine`** (0% → 99.57% line / 81.16% branch, 2026-06-24), **`PluginService`**
+(0% → 95.41% line / 92.39% branch, 2026-06-24), and **`SyncService`** (0% → 96.31% line / 98.61%
+branch, 2026-06-27) — the global floor was ratcheted up as each landed. With the four audit-named
+services covered, the next lever for the global floor is `OAuth` (the binding critical namespace at
+45.18% line / 34.55% branch): lifting its coverage is the prerequisite to raising the global floor
+further.
 
 ### Running it locally
 

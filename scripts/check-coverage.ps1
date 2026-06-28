@@ -45,18 +45,22 @@ $ErrorActionPreference = 'Stop'
 # ─────────────────────────────────────────────────────────────────────────────
 # Floors are set just below the measured baseline (shown in comments) so the gate locks in current
 # coverage with a small headroom for CI variance, and every critical floor sits at or above the
-# global minimum as AX-QA-009 requires. The global LINE floor was raised to 42 on 2026-06-24 after
-# PluginService unit tests took that service from 0% to 95.41 line / 92.39 branch (global line rose
-# to 43.97); earlier the same day WorkflowEngine lifted the global line to 42.87 (floor 41), and the
-# 2026-06-21 ApiHostService round preceded that. Critical-namespace baselines are from 2026-06-20.
+# global minimum as AX-QA-009 requires. The global LINE floor was raised to 44 on 2026-06-27 after
+# SyncService unit tests took that service from 0% to 96.31 line / 98.61 branch (global line rose to
+# 45.88) — the fourth and last of the AX-QA-009 0%-covered Core services. Reaching a global line
+# floor of 44 required nudging the binding OAuth line floor 42 -> 44 into OAuth's existing line
+# headroom (measured 45.18). The 2026-06-24 PluginService/WorkflowEngine rounds (global line 41->42)
+# and the 2026-06-21 ApiHostService round preceded this. Critical-namespace baselines are from
+# 2026-06-20.
 #
 # The global BRANCH floor stays at 33: it is pinned by the OAuth branch floor (33), because every
 # critical floor must stay >= the global floor and OAuth's measured branch coverage is only 34.55 —
 # too little headroom to ratchet OAuth (and therefore global) branch higher without first adding
-# OAuth tests. Likewise the global line floor (42) now sits exactly at the OAuth line floor (42), the
-# binding critical line floor; raising global line further requires lifting OAuth's coverage first.
+# OAuth tests. So although SyncService lifted the global measured branch to 38.19, the global branch
+# floor cannot rise until OAuth's branch coverage does. The global line floor (44) now sits exactly
+# at the OAuth line floor (44), the binding critical line floor.
 $Policy = [ordered]@{
-    Global = @{ Line = 42.0; Branch = 33.0 }          # measured 43.97 / 36.92 (2026-06-24)
+    Global = @{ Line = 44.0; Branch = 33.0 }          # measured 45.88 / 38.19 (2026-06-27)
     CriticalNamespaces = [ordered]@{
         # Security-critical: DB key material, DPAPI secret encryption, encryption-state migration,
         # security status. A regression here is a trust/compliance regression.
@@ -64,10 +68,11 @@ $Policy = [ordered]@{
         # Privacy disclosure (AX-QA-008) — the dashboard "no cloud" claim depends on it; keep tight.
         'AgentX.Core.Services.Privacy'  = @{ Line = 95.0; Branch = 85.0 }   # measured 100   / 90.62
         # OAuth token handling for the calendar/email connectors. Its floors are the binding critical
-        # floors: line 42 now equals the global line floor and branch 33 equals the global branch
+        # floors: line 44 now equals the global line floor and branch 33 equals the global branch
         # floor, so both gate the global ceiling. Both stay >= global; OAuth's measured coverage
-        # (45.18 / 34.55) is unchanged this round.
-        'AgentX.Core.Services.OAuth'    = @{ Line = 42.0; Branch = 33.0 }   # measured 45.18 / 34.55
+        # (45.18 / 34.55) is unchanged this round — the line floor was nudged 42 -> 44 into its
+        # existing line headroom to admit the global line ratchet, while the branch floor has none.
+        'AgentX.Core.Services.OAuth'    = @{ Line = 44.0; Branch = 33.0 }   # measured 45.18 / 34.55
         # Migration-critical: the runner that applies EF migrations and guards against partial
         # baselines (AX-QA-002/003). The migration scaffolds themselves are excluded as generated.
         'AgentX.Core.Data.MigrationRunner' = @{ Line = 95.0; Branch = 85.0 } # measured 98.11 / 91.67
