@@ -45,34 +45,30 @@ $ErrorActionPreference = 'Stop'
 # ─────────────────────────────────────────────────────────────────────────────
 # Floors are set just below the measured baseline (shown in comments) so the gate locks in current
 # coverage with a small headroom for CI variance, and every critical floor sits at or above the
-# global minimum as AX-QA-009 requires. The global LINE floor was raised to 44 on 2026-06-27 after
-# SyncService unit tests took that service from 0% to 96.31 line / 98.61 branch (global line rose to
-# 45.88) — the fourth and last of the AX-QA-009 0%-covered Core services. Reaching a global line
-# floor of 44 required nudging the binding OAuth line floor 42 -> 44 into OAuth's existing line
-# headroom (measured 45.18). The 2026-06-24 PluginService/WorkflowEngine rounds (global line 41->42)
-# and the 2026-06-21 ApiHostService round preceded this. Critical-namespace baselines are from
-# 2026-06-20.
-#
-# The global BRANCH floor stays at 33: it is pinned by the OAuth branch floor (33), because every
-# critical floor must stay >= the global floor and OAuth's measured branch coverage is only 34.55 —
-# too little headroom to ratchet OAuth (and therefore global) branch higher without first adding
-# OAuth tests. So although SyncService lifted the global measured branch to 38.19, the global branch
-# floor cannot rise until OAuth's branch coverage does. The global line floor (44) now sits exactly
-# at the OAuth line floor (44), the binding critical line floor.
+# global minimum as AX-QA-009 requires. On 2026-06-27 OAuth coverage was lifted from 45.18/34.55 to
+# 82.57 line / 77.27 branch (HttpListener stub server for the real token/refresh/revocation paths +
+# reflection for the internals walled behind AuthorizeAsync's Process.Start browser launch). OAuth
+# was the binding critical namespace on BOTH metrics, so lifting it unpins the global floor: the
+# global LINE floor rises 44 -> 45 and the global BRANCH floor 33 -> 37, now bounded by the GLOBAL
+# measured value (46.39 / 38.6) rather than by OAuth. The minimum critical floors are now Security's
+# (line 80, branch 62), both far above the global floor, so the global floor is free to ratchet on
+# overall measured coverage alone. Earlier 2026-06-27 rounds: SyncService (global line -> 44),
+# PluginService/WorkflowEngine 2026-06-24 (global line 41 -> 42), ApiHostService 2026-06-21.
+# Critical-namespace baselines (Security/Privacy/MigrationRunner) are from 2026-06-20.
 $Policy = [ordered]@{
-    Global = @{ Line = 44.0; Branch = 33.0 }          # measured 45.88 / 38.19 (2026-06-27)
+    Global = @{ Line = 45.0; Branch = 37.0 }          # measured 46.39 / 38.6 (2026-06-27)
     CriticalNamespaces = [ordered]@{
         # Security-critical: DB key material, DPAPI secret encryption, encryption-state migration,
-        # security status. A regression here is a trust/compliance regression.
+        # security status. A regression here is a trust/compliance regression. Now the binding
+        # critical namespace: its branch floor (62) is the lowest critical branch floor.
         'AgentX.Core.Services.Security' = @{ Line = 80.0; Branch = 62.0 }   # measured 82.41 / 66.22
         # Privacy disclosure (AX-QA-008) — the dashboard "no cloud" claim depends on it; keep tight.
         'AgentX.Core.Services.Privacy'  = @{ Line = 95.0; Branch = 85.0 }   # measured 100   / 90.62
-        # OAuth token handling for the calendar/email connectors. Its floors are the binding critical
-        # floors: line 44 now equals the global line floor and branch 33 equals the global branch
-        # floor, so both gate the global ceiling. Both stay >= global; OAuth's measured coverage
-        # (45.18 / 34.55) is unchanged this round — the line floor was nudged 42 -> 44 into its
-        # existing line headroom to admit the global line ratchet, while the branch floor has none.
-        'AgentX.Core.Services.OAuth'    = @{ Line = 44.0; Branch = 33.0 }   # measured 45.18 / 34.55
+        # OAuth token handling for the calendar/email connectors. Lifted 2026-06-27 from 45.18/34.55;
+        # the residual gap is AuthorizeAsync's browser-launch + local-callback body, which cannot run
+        # in CI (it shells to the system browser and blocks on a real redirect). No longer binding:
+        # both floors now sit well above the global floor.
+        'AgentX.Core.Services.OAuth'    = @{ Line = 80.0; Branch = 75.0 }   # measured 82.57 / 77.27
         # Migration-critical: the runner that applies EF migrations and guards against partial
         # baselines (AX-QA-002/003). The migration scaffolds themselves are excluded as generated.
         'AgentX.Core.Data.MigrationRunner' = @{ Line = 95.0; Branch = 85.0 } # measured 98.11 / 91.67
