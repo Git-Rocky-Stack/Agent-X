@@ -71,16 +71,30 @@ async/LINQ logic. `IncludeTestAssembly` stays `false`, so the linked WinUI ViewM
 `AgentX.Tests.dll` are not self-counted; the gate scopes to `AgentX.Core`, as the finding frames it.
 
 > Excluding the well-covered generated scaffolding lowers the *headline* line number from the raw
-> 57.10% to **54.33%** because that scaffolding is well-covered and inflates the raw figure. ~54% is
-> the honest authored-code baseline; branch (45.64%) tracks the audit's 33.15% closely. The raw and
-> authored *branch* rates are effectively identical — authored branch (45.64%) in fact edges out raw
-> branch (44.98%) — because the excluded scaffolding is line-heavy but has almost no branches, so it
+> 57.89% to **55.26%** because that scaffolding is well-covered and inflates the raw figure. ~55% is
+> the honest authored-code baseline; branch (46.47%) tracks the audit's 33.15% closely. The raw and
+> authored *branch* rates are effectively identical — authored branch (46.47%) in fact edges out raw
+> branch (45.77%) — because the excluded scaffolding is line-heavy but has almost no branches, so it
 > inflates only the line figure.
 
 ### Floors (the ratchet)
 
 Floors are set just below the measured baseline with a small headroom for CI variance. On
-**2026-06-28**, three of the largest remaining authored gaps were closed together — all driven by the
+**2026-06-28** `CollaborationService` — the next-largest authored gap at **431 measurable lines,
+previously 0%** — was lifted to **84.22% line / 81.03% branch** (363 / 431 lines). It is a lightweight
+real-time collaboration hub built on `HttpListener` + `HttpClient` (no EF, no external runtime libs). Its
+public `StartHostingAsync` binds the strong-wildcard prefix `http://+:{port}/`, which needs an elevated
+URL-ACL reservation and cannot run unprivileged in CI; the harness therefore injects a non-privileged
+`http://localhost:{port}/` listener into the service's own fields and runs its real `RunListenerLoopAsync`
+via reflection, so the production request handlers (session / heartbeat / events / sessions) are exercised
+over real HTTP — the same "drive the service's own loop against a localhost prefix" pattern the OAuth
+HTTP-flow and ApiHost suites use. The session / presence / event / query surface is tested directly, and
+the timer callbacks (`PruneExpiredSessions` / `SendHeartbeat`) are invoked by reflection. It is **not** a
+trust boundary, so it is not a critical namespace — its gain raised the **global** floor **line 54% → 55%**
+and **branch 45% → 46%**, bounded by the global *measured* value (55.26% / 46.47%). The residual is
+`StartHostingAsync`'s `+`-prefix bind body (needs admin) and a couple of fire-and-forget timer lambdas.
+
+Earlier the same day, three of the largest remaining authored gaps were closed together — all driven by the
 same in-memory-SQLite harness over the real `AgentXDbContext`, with the AI / embedding / config / feature-
 flag collaborators mocked, deterministic length-4 embedding vectors for exact cosine similarity, and a
 real silent Serilog logger (each constructor consumes `logger.ForContext<T>()`, so a loose mock's null
@@ -104,7 +118,7 @@ active set before the in-memory sort, and added three `OAuth` constructor null-g
 **74.55% → 78.18%**) after the larger suite perturbed async-branch scheduling toward the unchanged 75%
 OAuth floor — the guard branches restore deterministic headroom without moving the floor.
 
-Earlier the same day, `ConversationService` — the largest remaining authored gap at **424 measurable lines,
+Before those, `ConversationService` — the largest remaining authored gap at **424 measurable lines,
 previously 0%** — was lifted to **98.82% line / 100.00% branch** (419 / 424 lines). It is the EF-Core
 CRUD surface for chat conversations and messages (create / query / search / rename / pin / archive /
 delete, message add / delete / edit / truncate with conversation-metadata bookkeeping, token + count
@@ -154,7 +168,7 @@ critical floor sits **at or above** the repository-wide minimum, as AX-QA-009 re
 
 | Scope | Line floor | Branch floor | Measured (baseline) |
 |---|---|---|---|
-| Global (`AgentX.Core`, authored) | 54% | 45% | 54.33% / 45.64% |
+| Global (`AgentX.Core`, authored) | 55% | 46% | 55.26% / 46.47% |
 | `AgentX.Core.Services.Security` | 80% | 62% | 82.41% / 66.22% |
 | `AgentX.Core.Services.Privacy` | 95% | 85% | 100% / 90.62% |
 | `AgentX.Core.Services.OAuth` | 80% | 75% | 82.57% / 77.27% |
@@ -186,11 +200,13 @@ raising the global floor again to **51% line / 42% branch**. Then **`SemanticMem
 0%), **`WorkflowService`** (601 lines, 22.7%), and **`AutoTagService`** (473 lines, 0%) were closed
 together — **0% → 97.86% / 94.48%**, **22.7% → 90.35% / 88.68%**, and **0% → 86.26% / 85.19%**
 respectively — raising the global floor to **54% line / 45% branch** (and, along the way, fixing a latent
-always-throws bug in `SemanticMemoryService.GetAllMemoriesAsync`). The next lever for the global floor
-remains overall measured coverage itself (54.33% line / 45.64% branch): no single critical namespace caps
-it — any authored-code coverage gain can raise it. The next-largest authored gaps are
-`CollaborationService` (431 lines, 0%), `ConversationBranchService` (421, 0%), and `SemanticSearchService`
-(412, 0%).
+always-throws bug in `SemanticMemoryService.GetAllMemoriesAsync`). Then **`CollaborationService`** (431
+lines, 0%) — the `HttpListener`-based real-time hub — was lifted **0% → 84.22% line / 81.03% branch** by
+injecting a non-privileged localhost listener and driving the service's real request handlers over HTTP,
+raising the global floor to **55% line / 46% branch**. The next lever for the global floor remains overall
+measured coverage itself (55.26% line / 46.47% branch): no single critical namespace caps it — any
+authored-code coverage gain can raise it. The next-largest authored gaps are `ConversationBranchService`
+(421 lines, 0%), `SemanticSearchService` (412, 0%), and `ComparisonService` (408, 5%).
 
 ### Running it locally
 

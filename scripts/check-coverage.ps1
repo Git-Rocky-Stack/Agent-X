@@ -45,7 +45,16 @@ $ErrorActionPreference = 'Stop'
 # ─────────────────────────────────────────────────────────────────────────────
 # Floors are set just below the measured baseline (shown in comments) so the gate locks in current
 # coverage with a small headroom for CI variance, and every critical floor sits at or above the
-# global minimum as AX-QA-009 requires. On 2026-06-28 three of the largest remaining authored gaps were
+# global minimum as AX-QA-009 requires. On 2026-06-28 CollaborationService (431 measurable lines,
+# previously 0%) — a real-time collaboration hub on HttpListener + HttpClient (no EF) — was lifted to
+# 84.22 line / 81.03 branch. Its public StartHostingAsync binds the strong-wildcard prefix
+# http://+:{port}/ (needs an elevated URL-ACL reservation, unrunnable unprivileged in CI), so the harness
+# injects a non-privileged http://localhost:{port}/ listener into the service's own fields and runs its
+# real RunListenerLoopAsync via reflection — exercising the production request handlers over real HTTP —
+# while the session/presence/event/query surface is tested directly and the timer callbacks
+# (PruneExpiredSessions/SendHeartbeat) are invoked by reflection. Not a trust boundary, so NOT a critical
+# namespace; its gain raised the GLOBAL floor LINE 54 -> 55 and BRANCH 45 -> 46, bounded by the GLOBAL
+# measured value (55.26 / 46.47). Earlier on 2026-06-28 three of the largest remaining authored gaps were
 # closed together: SemanticMemoryService (468 measurable lines, previously 0%) -> 97.86 line / 94.48
 # branch, WorkflowService (601 lines, previously 22.7%) -> 90.35 / 88.68, and AutoTagService (473 lines,
 # 0%) -> 86.26 / 85.19 — all via the EF-SQLite harness (real AgentXDbContext; mocked IAiService /
@@ -72,7 +81,7 @@ $ErrorActionPreference = 'Stop'
 # (global line -> 44); 2026-06-24 PluginService/WorkflowEngine (global line 41 -> 42); 2026-06-21
 # ApiHostService. Critical-namespace baselines (Security/Privacy/MigrationRunner) are from 2026-06-20.
 $Policy = [ordered]@{
-    Global = @{ Line = 54.0; Branch = 45.0 }          # measured 54.33 / 45.64 (2026-06-28)
+    Global = @{ Line = 55.0; Branch = 46.0 }          # measured 55.26 / 46.47 (2026-06-28)
     CriticalNamespaces = [ordered]@{
         # Security-critical: DB key material, DPAPI secret encryption, encryption-state migration,
         # security status. A regression here is a trust/compliance regression. Its branch floor (62)
