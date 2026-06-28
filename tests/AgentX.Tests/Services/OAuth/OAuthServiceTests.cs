@@ -64,6 +64,38 @@ public sealed class OAuthServiceTests : IDisposable
     }
 
     // ══════════════════════════════════════════════════════════════════════
+    //  Constructor argument guards
+    // ══════════════════════════════════════════════════════════════════════
+
+    [Fact]
+    public void Constructor_Throws_WhenDbIsNull()
+    {
+        var act = () => new OAuthService(null!, _mockEncryption.Object, _logger);
+
+        act.Should().Throw<ArgumentNullException>().WithParameterName("db");
+    }
+
+    [Fact]
+    public void Constructor_Throws_WhenEncryptionIsNull()
+    {
+        using var context = _factory.CreateContext();
+
+        var act = () => new OAuthService(context, null!, _logger);
+
+        act.Should().Throw<ArgumentNullException>().WithParameterName("encryption");
+    }
+
+    [Fact]
+    public void Constructor_Throws_WhenLoggerIsNull()
+    {
+        using var context = _factory.CreateContext();
+
+        var act = () => new OAuthService(context, _mockEncryption.Object, null!);
+
+        act.Should().Throw<ArgumentNullException>().WithParameterName("logger");
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
     //  GetCredentialAsync
     // ══════════════════════════════════════════════════════════════════════
 

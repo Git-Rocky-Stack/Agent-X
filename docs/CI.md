@@ -71,16 +71,40 @@ async/LINQ logic. `IncludeTestAssembly` stays `false`, so the linked WinUI ViewM
 `AgentX.Tests.dll` are not self-counted; the gate scopes to `AgentX.Core`, as the finding frames it.
 
 > Excluding the well-covered generated scaffolding lowers the *headline* line number from the raw
-> 55.84% to **51.74%** because that scaffolding is well-covered and inflates the raw figure. ~52% is
-> the honest authored-code baseline; branch (42.51%) tracks the audit's 33.15% closely. The raw and
-> authored *branch* rates are effectively identical — authored branch (42.51%) in fact edges out raw
-> branch (42.20%) — because the excluded scaffolding is line-heavy but has almost no branches, so it
+> 57.10% to **54.33%** because that scaffolding is well-covered and inflates the raw figure. ~54% is
+> the honest authored-code baseline; branch (45.64%) tracks the audit's 33.15% closely. The raw and
+> authored *branch* rates are effectively identical — authored branch (45.64%) in fact edges out raw
+> branch (44.98%) — because the excluded scaffolding is line-heavy but has almost no branches, so it
 > inflates only the line figure.
 
 ### Floors (the ratchet)
 
 Floors are set just below the measured baseline with a small headroom for CI variance. On
-**2026-06-28** `ConversationService` — the largest remaining authored gap at **424 measurable lines,
+**2026-06-28**, three of the largest remaining authored gaps were closed together — all driven by the
+same in-memory-SQLite harness over the real `AgentXDbContext`, with the AI / embedding / config / feature-
+flag collaborators mocked, deterministic length-4 embedding vectors for exact cosine similarity, and a
+real silent Serilog logger (each constructor consumes `logger.ForContext<T>()`, so a loose mock's null
+return would read as a missing logger):
+
+- **`SemanticMemoryService`** (468 measurable lines, **previously 0%**) → **97.86% line / 94.48% branch** —
+  the embedding-based semantic memory store with associative links and temporal decay (retrieve / rank /
+  extract-from-conversation / link / feedback / dismiss).
+- **`WorkflowService`** (601 lines, **previously 22.7%**) → **90.35% line / 88.68% branch** — the workflow /
+  step CRUD, JSON import / export, run-history projection, and built-in-template seeding surface.
+- **`AutoTagService`** (473 lines, **0%**) → **86.26% line / 85.19% branch** — AI tag generation (with a
+  ChatAsync JSON / delimiter fallback) plus manual tag CRUD; real temp files exercise the file-read content
+  fallback.
+
+None is a trust boundary, so none is tracked as a critical namespace; the combined gain flows straight into
+the global denominator, raising the **global** floor **line 51% → 54%** and **branch 42% → 45%**, bounded by
+the global *measured* value (54.33% / 45.64%). This round also fixed a latent always-throws bug in
+`SemanticMemoryService.GetAllMemoriesAsync` (its `OrderBy` evaluated the un-translatable
+`GetEffectiveImportance`, so EF threw `InvalidOperationException` on **every** call) by materialising the
+active set before the in-memory sort, and added three `OAuth` constructor null-guard tests (branch
+**74.55% → 78.18%**) after the larger suite perturbed async-branch scheduling toward the unchanged 75%
+OAuth floor — the guard branches restore deterministic headroom without moving the floor.
+
+Earlier the same day, `ConversationService` — the largest remaining authored gap at **424 measurable lines,
 previously 0%** — was lifted to **98.82% line / 100.00% branch** (419 / 424 lines). It is the EF-Core
 CRUD surface for chat conversations and messages (create / query / search / rename / pin / archive /
 delete, message add / delete / edit / truncate with conversation-metadata bookkeeping, token + count
@@ -93,7 +117,7 @@ not tracked as a critical namespace — its gain flows straight into the global 
 **global** floor: **line 50% → 51%** and **branch 41% → 42%**, bounded by the global *measured* value
 (51.74% / 42.51%).
 
-Earlier the same day, `InboxService` — the largest authored gap at that point (**438 measurable lines,
+Before that, `InboxService` — the largest authored gap at that point (**438 measurable lines,
 previously 0%**) — was lifted to **97.95% line / 96.00% branch** (429 / 438 lines): the Smart-Inbox
 triage queue over EF Core, with an in-memory-SQLite harness mocking `ICollectionService` / `IAiService`
 (token-streamed through a hand-rolled `IAsyncEnumerable`) / `IDocumentService`, real-temp-file ingestion
@@ -130,7 +154,7 @@ critical floor sits **at or above** the repository-wide minimum, as AX-QA-009 re
 
 | Scope | Line floor | Branch floor | Measured (baseline) |
 |---|---|---|---|
-| Global (`AgentX.Core`, authored) | 51% | 42% | 51.74% / 42.51% |
+| Global (`AgentX.Core`, authored) | 54% | 45% | 54.33% / 45.64% |
 | `AgentX.Core.Services.Security` | 80% | 62% | 82.41% / 66.22% |
 | `AgentX.Core.Services.Privacy` | 95% | 85% | 100% / 90.62% |
 | `AgentX.Core.Services.OAuth` | 80% | 75% | 82.57% / 77.27% |
@@ -151,17 +175,22 @@ The gate prevents regression; it does not by itself lift the 0%-covered services
 branch, 2026-06-27) — the global floor was ratcheted up as each landed. With those done, **`OAuth`**
 — the namespace that had been pinning the global floor — was lifted **45.18% → 82.57% line and
 34.55% → 77.27% branch** (2026-06-27), unpinning both global floors. Then, with the global floor free
-to ratchet on overall coverage, the four largest remaining authored gaps were attacked on
+to ratchet on overall coverage, the largest remaining authored gaps were attacked on
 **2026-06-28**. First **`BackupService`** (then the single biggest uncovered service at 493 lines) was
 lifted **15.10% → 78.66% line / 70.00% branch**, raising the global floor to 47% line / 38% branch.
 Then **`DocumentService`** (452 measurable lines, 0%) was lifted **0% → 91.15% line / 69.36% branch**,
 raising the global floor to 48% line / 40% branch. Then **`InboxService`** (438 lines, 0%) was lifted
 **0% → 97.95% line / 96.00% branch**, raising it to 50% line / 41% branch. Then **`ConversationService`**
 (the next-biggest at 424 measurable lines, also 0%) was lifted **0% → 98.82% line / 100.00% branch**,
-raising the global floor again to **51% line / 42% branch**. The next lever for the global floor remains
-overall measured coverage itself (51.74% line / 42.51% branch): no single critical namespace caps it —
-any authored-code coverage gain can raise it. The next-largest authored gaps are `SemanticMemoryService`
-(383 lines, 0%), `WorkflowService` (377, 22.7%), and `AutoTagService` (370, 0%).
+raising the global floor again to **51% line / 42% branch**. Then **`SemanticMemoryService`** (468 lines,
+0%), **`WorkflowService`** (601 lines, 22.7%), and **`AutoTagService`** (473 lines, 0%) were closed
+together — **0% → 97.86% / 94.48%**, **22.7% → 90.35% / 88.68%**, and **0% → 86.26% / 85.19%**
+respectively — raising the global floor to **54% line / 45% branch** (and, along the way, fixing a latent
+always-throws bug in `SemanticMemoryService.GetAllMemoriesAsync`). The next lever for the global floor
+remains overall measured coverage itself (54.33% line / 45.64% branch): no single critical namespace caps
+it — any authored-code coverage gain can raise it. The next-largest authored gaps are
+`CollaborationService` (431 lines, 0%), `ConversationBranchService` (421, 0%), and `SemanticSearchService`
+(412, 0%).
 
 ### Running it locally
 

@@ -450,12 +450,19 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
     /// <inheritdoc />
     public async Task<IReadOnlyList<MemoryEntity>> GetAllMemoriesAsync(CancellationToken ct = default)
     {
-        return await _db.Memories
+        // Effective importance is a temporal-decay computation (DateTime.UtcNow + Math.Exp via
+        // GetEffectiveImportance) that EF cannot translate to SQL. Materialize the active set
+        // first, then rank it in memory — the active-memory set is bounded (user facts), so the
+        // client-side sort is cheap and, unlike an in-query OrderBy, actually executes.
+        var active = await _db.Memories
             .AsNoTracking()
             .Where(m => m.IsActive)
-            .OrderByDescending(m => GetEffectiveImportance(m))
-            .ThenByDescending(m => m.LastUsedAt)
             .ToListAsync(ct);
+
+        return active
+            .OrderByDescending(GetEffectiveImportance)
+            .ThenByDescending(m => m.LastUsedAt)
+            .ToList();
     }
 
     /// <inheritdoc />
