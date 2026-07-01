@@ -71,16 +71,36 @@ async/LINQ logic. `IncludeTestAssembly` stays `false`, so the linked WinUI ViewM
 `AgentX.Tests.dll` are not self-counted; the gate scopes to `AgentX.Core`, as the finding frames it.
 
 > Excluding the well-covered generated scaffolding lowers the *headline* line number from the raw
-> 58.72% to **56.36%** because that scaffolding is well-covered and inflates the raw figure. ~56% is
-> the honest authored-code baseline; branch (47.03%) tracks the audit's 33.15% closely. The raw and
-> authored *branch* rates are effectively identical — authored branch (47.03%) in fact edges out raw
-> branch (46.30%) — because the excluded scaffolding is line-heavy but has almost no branches, so it
+> 59.59% to **57.40%** because that scaffolding is well-covered and inflates the raw figure. ~57% is
+> the honest authored-code baseline; branch (47.85%) tracks the audit's 33.15% closely. The raw and
+> authored *branch* rates are effectively identical — authored branch (47.85%) in fact edges out raw
+> branch (47.08%) — because the excluded scaffolding is line-heavy but has almost no branches, so it
 > inflates only the line figure.
 
 ### Floors (the ratchet)
 
 Floors are set just below the measured baseline with a small headroom for CI variance. On
-**2026-06-30** `ConversationBranchService` — the next-largest authored gap at **421 measurable lines,
+**2026-06-30** `SemanticSearchService` — the next-largest authored gap at **412 measurable lines,
+previously 0%** — was lifted to **97.33% line / 93.00% branch** (401 / 412 lines, 93 / 100 branches). It is
+the semantic-search pipeline: embed the query, run a vector ANN search, enrich hits with EF-Core document
+metadata, filter by embedding-model version + collection / file-type / date, build display excerpts, and
+sort / truncate to TopK — plus the search-history and saved-filter CRUD. It composes three mockable
+collaborators over a real `AgentXDbContext`: `IEmbeddingService` (query embedding + `ModelVersion` for the
+compatibility gate), `IVectorStore` (the ANN search), and an optional `IRagConfiguration` (retrieval
+multiplier / cap; absent → built-in fallbacks 3 / 500). Vector hits are seeded by `Distance` because
+`VectorSearchResult.Similarity` is the computed inverse `1 - Distance`; the version gate compares each
+chunk's `EmbeddingModelVersion` to the service's `ModelVersion` (null / empty = legacy-compatible). The
+three OCE-rethrow-vs-generic-swallow arms (embed / vector / chunk-load) are covered by a throwing mock for
+the cancellation path and a generic-exception mock (or a disposed context) for the swallow path; a
+pre-canceled token drives the chunk-load OCE rethrow. It is **not** a trust boundary, so it is not a
+critical namespace — its gain raised the **global** floor **line 56% → 57%** (measured 57.40%) **and
+branch 46% → 47%** (measured 47.85%), comfortably locking the branch headroom the prior
+`ConversationBranchService` round could not. Its small residual is a handful of unreachable defensive
+log / guard arms. *(Sidebar: `Backup` line wobbled to 75.9% again under the larger suite — still above its
+75% floor, but a recurring thin margin; its residual is the deliberately-uncovered restore-swap body, so
+more Backup tests cannot safely raise it. Watch it; never lower the floor.)*
+
+Earlier the same day, `ConversationBranchService` — the next-largest authored gap at **421 measurable lines,
 previously 0%** — was lifted to **98.34% line / 96.97% branch** (414 / 421 lines, 64 / 66 branches). It is
 the EF-Core engine for conversation branching: forking a conversation at a message (copying all messages up
 to the branch point with token / count aggregation), branch-tree and root-walk queries, cross-conversation
@@ -188,7 +208,7 @@ critical floor sits **at or above** the repository-wide minimum, as AX-QA-009 re
 
 | Scope | Line floor | Branch floor | Measured (baseline) |
 |---|---|---|---|
-| Global (`AgentX.Core`, authored) | 56% | 46% | 56.36% / 47.03% |
+| Global (`AgentX.Core`, authored) | 57% | 47% | 57.40% / 47.85% |
 | `AgentX.Core.Services.Security` | 80% | 62% | 82.41% / 66.22% |
 | `AgentX.Core.Services.Privacy` | 95% | 85% | 100% / 90.62% |
 | `AgentX.Core.Services.OAuth` | 80% | 75% | 82.57% / 77.27% |
@@ -225,12 +245,16 @@ lines, 0%) — the `HttpListener`-based real-time hub — was lifted **0% → 84
 injecting a non-privileged localhost listener and driving the service's real request handlers over HTTP,
 raising the global floor to **55% line / 46% branch**. Then **`ConversationBranchService`** (421 lines,
 0%) — the EF-Core conversation-forking engine — was lifted **0% → 98.34% line / 96.97% branch**, raising
-the global **line** floor to **56%** (the branch floor is held at 46%: measured branch is 47.03%, and a 47%
-floor would leave only 0.03 pt of headroom against the known async-branch variance band). The next lever
-for the global floor remains overall measured coverage itself (56.36% line / 47.03% branch): no single
+the global **line** floor to **56%** (the branch floor was held at 46% that round: measured branch was
+47.03%, and a 47% floor would have left only 0.03 pt of headroom against the known async-branch variance
+band). Then **`SemanticSearchService`** (412 lines, 0%) — the embed → vector-search → metadata-enrich →
+filter → excerpt pipeline plus search-history CRUD — was lifted **0% → 97.33% line / 93.00% branch**,
+raising the global floor to **57% line / 47% branch** (the branch gain the prior round could not safely lock
+is now comfortably above the 47% floor at 47.85% measured). The next lever
+for the global floor remains overall measured coverage itself (57.40% line / 47.85% branch): no single
 critical namespace caps it — any authored-code coverage gain can raise it. The next-largest authored gaps
-are `SemanticSearchService` (412 lines, 0%), `ComparisonService` (408, 5%), and `KeywordSearchService`
-(399, 0%).
+are `ComparisonService` (408 lines, 5%), `KeywordSearchService` (399, 0%), and `TemporalIdentityService`
+(~395, 17%).
 
 ### Running it locally
 

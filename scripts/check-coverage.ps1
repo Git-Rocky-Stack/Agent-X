@@ -45,7 +45,23 @@ $ErrorActionPreference = 'Stop'
 # ─────────────────────────────────────────────────────────────────────────────
 # Floors are set just below the measured baseline (shown in comments) so the gate locks in current
 # coverage with a small headroom for CI variance, and every critical floor sits at or above the
-# global minimum as AX-QA-009 requires. On 2026-06-30 ConversationBranchService (421 measurable lines,
+# global minimum as AX-QA-009 requires. On 2026-06-30 SemanticSearchService (412 measurable lines, previously
+# 0%) — the semantic-search pipeline (embed query -> vector ANN search -> EF-Core metadata enrichment ->
+# embedding-model-version + collection/file-type/date filtering -> excerpt building -> TopK sort) plus the
+# search-history / saved-filter CRUD — was lifted to 97.33 line / 93.00 branch (401/412, 93/100). It composes
+# three mockable collaborators over a real AgentXDbContext: IEmbeddingService (query embedding + ModelVersion
+# for the compatibility gate), IVectorStore (the ANN search), and an optional IRagConfiguration (retrieval
+# multiplier/cap; absent -> built-in fallbacks 3/500). Vector hits are seeded by Distance because
+# VectorSearchResult.Similarity is the computed inverse 1-Distance; the version gate compares each chunk's
+# EmbeddingModelVersion to the service's ModelVersion (null/empty = legacy-compatible). The three
+# OCE-rethrow-vs-generic-swallow arms (embed / vector / chunk-load) are covered by a throwing mock for the OCE
+# path and a generic-exception mock (or a disposed context) for the swallow path; a pre-canceled token drives
+# the chunk-load OCE rethrow. Not a trust boundary, so NOT a critical namespace; its gain raised the GLOBAL
+# floor LINE 56 -> 57 (measured 57.40) and BRANCH 46 -> 47 (measured 47.85) — the branch headroom the prior
+# ConversationBranchService round could not safely lock is now comfortably locked. (Sidebar: Backup line
+# wobbled to 75.9 again under the larger suite — still >= its 75 floor but a recurring thin margin; its
+# residual is the deliberately-uncovered restore-swap body, so more Backup tests can't safely raise it —
+# watch, don't lower.) Earlier the same day, ConversationBranchService (421 measurable lines,
 # previously 0%) — the EF-backed engine for conversation forking (branch-at-message with message copy +
 # token/count aggregation), branch-tree / root queries, cross-conversation message merge, and recursive
 # branch deletion — was lifted to 98.34 line / 96.97 branch via the EF-SQLite harness (real AgentXDbContext;
@@ -96,7 +112,7 @@ $ErrorActionPreference = 'Stop'
 # (global line -> 44); 2026-06-24 PluginService/WorkflowEngine (global line 41 -> 42); 2026-06-21
 # ApiHostService. Critical-namespace baselines (Security/Privacy/MigrationRunner) are from 2026-06-20.
 $Policy = [ordered]@{
-    Global = @{ Line = 56.0; Branch = 46.0 }          # measured 56.36 / 47.03 (2026-06-30); branch floor held at 46 (47 = only 0.03pt headroom)
+    Global = @{ Line = 57.0; Branch = 47.0 }          # measured 57.40 / 47.85 (2026-06-30, SemanticSearchService)
     CriticalNamespaces = [ordered]@{
         # Security-critical: DB key material, DPAPI secret encryption, encryption-state migration,
         # security status. A regression here is a trust/compliance regression. Its branch floor (62)
