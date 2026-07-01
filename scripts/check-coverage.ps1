@@ -45,7 +45,28 @@ $ErrorActionPreference = 'Stop'
 # ─────────────────────────────────────────────────────────────────────────────
 # Floors are set just below the measured baseline (shown in comments) so the gate locks in current
 # coverage with a small headroom for CI variance, and every critical floor sits at or above the
-# global minimum as AX-QA-009 requires. On 2026-06-30 SemanticSearchService (412 measurable lines, previously
+# global minimum as AX-QA-009 requires. On 2026-06-30 ComparisonService (previously a 5% stub —
+# only its guard clauses were tested) — the AI cross-document comparison pipeline (resolve document
+# metadata -> retrieve each document's most-relevant chunks via ISemanticSearchService, scoping /
+# ordering by ChunkIndex -> assemble a ComparisonSynthesisRequest -> synthesize a JSON analysis via
+# an injected IDocumentSynthesisService -> parse into a ComparisonReport, with a plain-text section
+# scanner as the fallback when the response isn't valid JSON) plus the Markdown export renderer — was
+# lifted to 100.00 line / 99.02 branch (367/367, 101/102). The key seam is the optional
+# IDocumentSynthesisService ctor parameter: injecting a mock lets each test drive the parser
+# deterministically (valid JSON with case-insensitive uniquePoints keys + list sanitisation, prose /
+# code-fence-wrapped JSON, malformed-body -> fallback, OperationCanceled rethrow vs generic-wrap, empty
+# response), while ONE integration test omits the seam so the ctor builds the real
+# DocumentSynthesisService from IAiService and the default path runs end to end. This round also removed
+# genuinely dead code that had been capping coverage: ComparisonService's private BuildSystemPrompt /
+# BuildUserPrompt methods and its AnalysisChatOptions field were leftovers from before the AI call was
+# extracted into DocumentSynthesisService (which holds the live copies) — provably unreferenced
+# (private, non-partial class), so their removal is a pure maintainability win, not a behaviour change.
+# The single remaining uncovered branch is the defensive `?? throw JsonException("Deserialisation
+# returned null")` guard, unreachable because a brace-delimited substring never deserializes to JSON
+# null. Not a trust boundary, so NOT a critical namespace; its gain raised the GLOBAL floor LINE 57 -> 58
+# (measured 58.59) and BRANCH 47 -> 48 (measured 48.68). (Backup line recovered to 77.41 this round —
+# the prior round's 75.9 dip was the expected async-timing wobble, not a regression.) Earlier the same
+# day, SemanticSearchService (412 measurable lines, previously
 # 0%) — the semantic-search pipeline (embed query -> vector ANN search -> EF-Core metadata enrichment ->
 # embedding-model-version + collection/file-type/date filtering -> excerpt building -> TopK sort) plus the
 # search-history / saved-filter CRUD — was lifted to 97.33 line / 93.00 branch (401/412, 93/100). It composes
@@ -112,7 +133,7 @@ $ErrorActionPreference = 'Stop'
 # (global line -> 44); 2026-06-24 PluginService/WorkflowEngine (global line 41 -> 42); 2026-06-21
 # ApiHostService. Critical-namespace baselines (Security/Privacy/MigrationRunner) are from 2026-06-20.
 $Policy = [ordered]@{
-    Global = @{ Line = 57.0; Branch = 47.0 }          # measured 57.40 / 47.85 (2026-06-30, SemanticSearchService)
+    Global = @{ Line = 58.0; Branch = 48.0 }          # measured 58.59 / 48.68 (2026-06-30, ComparisonService)
     CriticalNamespaces = [ordered]@{
         # Security-critical: DB key material, DPAPI secret encryption, encryption-state migration,
         # security status. A regression here is a trust/compliance regression. Its branch floor (62)

@@ -3,7 +3,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using AgentX.Core.AI;
-using AgentX.Core.AI.Models;
 using AgentX.Core.Documents;
 using AgentX.Core.Search;
 using AgentX.Core.Search.Models;
@@ -39,16 +38,6 @@ public sealed class ComparisonService : IComparisonService
     private readonly ILogger _log;
 
     // ── Constants ────────────────────────────────────────────────────────────
-
-    /// <summary>
-    /// AI inference options tuned for analytical, structured output.
-    /// Low temperature keeps the JSON schema intact and reduces hallucination.
-    /// </summary>
-    private static readonly ChatOptions AnalysisChatOptions = new()
-    {
-        Temperature = 0.2,
-        MaxTokens = 4096,
-    };
 
     /// <summary>
     /// Chars-per-token approximation used when the provider does not return an
@@ -445,88 +434,6 @@ public sealed class ComparisonService : IComparisonService
         }
 
         return resolved;
-    }
-
-    // ── Private helpers — prompt construction ────────────────────────────────
-
-    /// <summary>
-    /// Builds the system prompt that sets the AI's role and specifies the exact
-    /// JSON schema it must output. The schema mirrors <see cref="ComparisonReport"/>
-    /// field-by-field.
-    /// </summary>
-    private static string BuildSystemPrompt(ComparisonOptions options)
-    {
-        var detailInstruction = string.Equals(options.DetailLevel, "summary",
-            StringComparison.OrdinalIgnoreCase)
-            ? "Keep each list concise — a maximum of 3 bullet points per section."
-            : "Be thorough — include all meaningful points in each section.";
-
-        return $$"""
-                You are an expert document analyst. Your task is to perform a rigorous comparative analysis of the documents provided by the user and return your findings as a single, valid JSON object.
-
-                CRITICAL: Your ENTIRE response must be a valid JSON object. Do not include any text, markdown, explanation, or code fences outside the JSON object. Begin your response with '{' and end with '}'.
-
-                The JSON object must conform exactly to this schema:
-
-                {
-                  "summary":         "<string: 2-4 sentence executive summary of the overall comparison>",
-                  "similarities":    ["<string>", ...],
-                  "differences":     ["<string>", ...],
-                  "contradictions":  ["<string>", ...],
-                  "uniquePoints":    {
-                    "<documentName>": ["<string>", ...],
-                    ...
-                  }
-                }
-
-                Field definitions:
-                - summary:        A concise narrative overview of what the comparison reveals. Write in plain English; 2-4 sentences.
-                - similarities:   Themes, claims, or facts that appear consistently across ALL compared documents. Each entry is a single, complete sentence.
-                - differences:    Significant ways in which the documents diverge (scope, methodology, conclusions, tone, depth). Each entry is a single, complete sentence naming which documents differ.
-                - contradictions: Direct, mutually exclusive claims where one document states X and another states not-X about the same topic. Each entry names the specific conflict and the documents involved.
-                - uniquePoints:   An object whose keys are exact document names (as provided) and whose values are lists of facts, arguments, or data that appear ONLY in that document and nowhere else. Each entry is a single, complete sentence.
-
-                {{detailInstruction}}
-
-                If a section has no relevant findings, use an empty array [].
-                For uniquePoints, include a key for every document name even if its list is empty.
-                """;
-    }
-
-    /// <summary>
-    /// Builds the user-facing prompt that embeds each document's chunk content
-    /// and poses the comparison request.
-    /// </summary>
-    private static string BuildUserPrompt(
-        Dictionary<string, string> contentByDoc,
-        ComparisonOptions options)
-    {
-        var sb = new StringBuilder(4096);
-
-        // Optional focus instruction
-        if (!string.IsNullOrWhiteSpace(options.FocusQuery))
-        {
-            sb.AppendLine(
-                $"FOCUS TOPIC: Pay special attention to how each document addresses the following topic: \"{options.FocusQuery}\"");
-            sb.AppendLine();
-        }
-
-        sb.AppendLine(
-            $"Compare the following {contentByDoc.Count} documents and return the JSON analysis as instructed:");
-        sb.AppendLine();
-
-        var docIndex = 1;
-        foreach (var (name, content) in contentByDoc)
-        {
-            sb.AppendLine($"--- DOCUMENT {docIndex}: {name} ---");
-            sb.AppendLine(content);
-            sb.AppendLine();
-            docIndex++;
-        }
-
-        sb.AppendLine("Return the JSON comparison object now.");
-
-        return sb.ToString();
     }
 
     // ── Private helpers — response parsing ───────────────────────────────────

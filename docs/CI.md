@@ -71,16 +71,39 @@ async/LINQ logic. `IncludeTestAssembly` stays `false`, so the linked WinUI ViewM
 `AgentX.Tests.dll` are not self-counted; the gate scopes to `AgentX.Core`, as the finding frames it.
 
 > Excluding the well-covered generated scaffolding lowers the *headline* line number from the raw
-> 59.59% to **57.40%** because that scaffolding is well-covered and inflates the raw figure. ~57% is
-> the honest authored-code baseline; branch (47.85%) tracks the audit's 33.15% closely. The raw and
-> authored *branch* rates are effectively identical — authored branch (47.85%) in fact edges out raw
-> branch (47.08%) — because the excluded scaffolding is line-heavy but has almost no branches, so it
+> 60.56% to **58.59%** because that scaffolding is well-covered and inflates the raw figure. ~59% is
+> the honest authored-code baseline; branch (48.68%) tracks the audit's 33.15% closely. The raw and
+> authored *branch* rates are effectively identical — authored branch (48.68%) in fact edges out raw
+> branch (47.89%) — because the excluded scaffolding is line-heavy but has almost no branches, so it
 > inflates only the line figure.
 
 ### Floors (the ratchet)
 
 Floors are set just below the measured baseline with a small headroom for CI variance. On
-**2026-06-30** `SemanticSearchService` — the next-largest authored gap at **412 measurable lines,
+**2026-06-30** `ComparisonService` — previously a **5% stub** (only its three guard clauses were
+tested) — was lifted to **100.00% line / 99.02% branch** (367 / 367 lines, 101 / 102 branches). It is
+the AI cross-document comparison pipeline: resolve document metadata, retrieve each document's most-
+relevant chunks via `ISemanticSearchService` (scoping and ordering by `ChunkIndex`), assemble a
+`ComparisonSynthesisRequest`, synthesize a JSON analysis via an injected `IDocumentSynthesisService`,
+and parse it into a `ComparisonReport` — with a plain-text section scanner as the fallback when the
+response is not valid JSON — plus the Markdown export renderer. The key seam is the optional
+`IDocumentSynthesisService` constructor parameter: injecting a mock lets each test drive the parser
+deterministically (valid JSON with case-insensitive `uniquePoints` keys and list sanitisation, prose /
+code-fence-wrapped JSON, malformed body → fallback, `OperationCanceled` rethrow vs generic wrap, empty
+response), while **one** integration test omits the seam so the constructor builds the real
+`DocumentSynthesisService` from `IAiService` and the default path runs end to end. This round also
+**removed genuinely dead code** that had been capping coverage: the class's private `BuildSystemPrompt`
+/ `BuildUserPrompt` methods and its `AnalysisChatOptions` field were leftovers from before the AI call
+was extracted into `DocumentSynthesisService` (which holds the live copies) — provably unreferenced
+(`private`, non-`partial` class), so their removal is a pure maintainability win, not a behaviour
+change. The single remaining uncovered branch is the defensive `?? throw JsonException("Deserialisation
+returned null")` guard, unreachable because a brace-delimited substring never deserializes to JSON
+`null`. It is **not** a trust boundary, so it is not a critical namespace — its gain raised the
+**global** floor **line 57% → 58%** (measured 58.59%) **and branch 47% → 48%** (measured 48.68%).
+*(Backup line recovered to 77.41% this round — the prior round's 75.9% dip was the expected async-timing
+wobble, not a regression.)*
+
+Earlier the same day, `SemanticSearchService` — the next-largest authored gap at **412 measurable lines,
 previously 0%** — was lifted to **97.33% line / 93.00% branch** (401 / 412 lines, 93 / 100 branches). It is
 the semantic-search pipeline: embed the query, run a vector ANN search, enrich hits with EF-Core document
 metadata, filter by embedding-model version + collection / file-type / date, build display excerpts, and
@@ -208,7 +231,7 @@ critical floor sits **at or above** the repository-wide minimum, as AX-QA-009 re
 
 | Scope | Line floor | Branch floor | Measured (baseline) |
 |---|---|---|---|
-| Global (`AgentX.Core`, authored) | 57% | 47% | 57.40% / 47.85% |
+| Global (`AgentX.Core`, authored) | 58% | 48% | 58.59% / 48.68% |
 | `AgentX.Core.Services.Security` | 80% | 62% | 82.41% / 66.22% |
 | `AgentX.Core.Services.Privacy` | 95% | 85% | 100% / 90.62% |
 | `AgentX.Core.Services.OAuth` | 80% | 75% | 82.57% / 77.27% |
@@ -250,11 +273,15 @@ the global **line** floor to **56%** (the branch floor was held at 46% that roun
 band). Then **`SemanticSearchService`** (412 lines, 0%) — the embed → vector-search → metadata-enrich →
 filter → excerpt pipeline plus search-history CRUD — was lifted **0% → 97.33% line / 93.00% branch**,
 raising the global floor to **57% line / 47% branch** (the branch gain the prior round could not safely lock
-is now comfortably above the 47% floor at 47.85% measured). The next lever
-for the global floor remains overall measured coverage itself (57.40% line / 47.85% branch): no single
+is now comfortably above the 47% floor at 47.85% measured). Then **`ComparisonService`** — a **5% stub**
+(only its guard clauses were tested) — was lifted **5% → 100.00% line / 99.02% branch**, raising the global
+floor to **58% line / 48% branch**; that round also removed the class's dead `BuildSystemPrompt` /
+`BuildUserPrompt` / `AnalysisChatOptions` leftovers (superseded by `DocumentSynthesisService`), which had
+been the sole cap on its coverage. The next lever
+for the global floor remains overall measured coverage itself (58.59% line / 48.68% branch): no single
 critical namespace caps it — any authored-code coverage gain can raise it. The next-largest authored gaps
-are `ComparisonService` (408 lines, 5%), `KeywordSearchService` (399, 0%), and `TemporalIdentityService`
-(~395, 17%).
+are `KeywordSearchService` (399 lines, 0%), `TemporalIdentityService` (~395, 17%), and `LocalLlmProvider`
+(383, 0%).
 
 ### Running it locally
 
