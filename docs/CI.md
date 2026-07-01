@@ -71,16 +71,36 @@ async/LINQ logic. `IncludeTestAssembly` stays `false`, so the linked WinUI ViewM
 `AgentX.Tests.dll` are not self-counted; the gate scopes to `AgentX.Core`, as the finding frames it.
 
 > Excluding the well-covered generated scaffolding lowers the *headline* line number from the raw
-> 57.89% to **55.26%** because that scaffolding is well-covered and inflates the raw figure. ~55% is
-> the honest authored-code baseline; branch (46.47%) tracks the audit's 33.15% closely. The raw and
-> authored *branch* rates are effectively identical — authored branch (46.47%) in fact edges out raw
-> branch (45.77%) — because the excluded scaffolding is line-heavy but has almost no branches, so it
+> 58.72% to **56.36%** because that scaffolding is well-covered and inflates the raw figure. ~56% is
+> the honest authored-code baseline; branch (47.03%) tracks the audit's 33.15% closely. The raw and
+> authored *branch* rates are effectively identical — authored branch (47.03%) in fact edges out raw
+> branch (46.30%) — because the excluded scaffolding is line-heavy but has almost no branches, so it
 > inflates only the line figure.
 
 ### Floors (the ratchet)
 
 Floors are set just below the measured baseline with a small headroom for CI variance. On
-**2026-06-28** `CollaborationService` — the next-largest authored gap at **431 measurable lines,
+**2026-06-30** `ConversationBranchService` — the next-largest authored gap at **421 measurable lines,
+previously 0%** — was lifted to **98.34% line / 96.97% branch** (414 / 421 lines, 64 / 66 branches). It is
+the EF-Core engine for conversation branching: forking a conversation at a message (copying all messages up
+to the branch point with token / count aggregation), branch-tree and root-walk queries, cross-conversation
+message merge, branch counting / existence checks, and recursive branch deletion. Two model facts shaped the
+harness: the self-referencing `ParentConversation → Branches` FK is `DeleteBehavior.Restrict` — so a
+**non-recursive** delete of a branch that still has children is rejected by the database
+(`DbUpdateException`) and recursive deletes must remove the deepest descendant first — while
+`Messages → Conversation` is `Cascade`. The injected `IConversationService` is null-guarded by the
+constructor but consumed by no method, so it is supplied as a bare mock; the logger flows through
+`logger.ForContext<T>()`, so a real silent Serilog logger is supplied. The generic `catch (Exception)`
+rethrow arms are reached with a pre-canceled token (an `OperationCanceledException` bypasses the earlier
+`catch (InvalidOperationException)` arms), the circular-reference `maxDepth` guard via a self-parent row,
+and the orphaned-parent walk-stop via a raw FK-off `DELETE` of the parent. It is **not** a trust boundary,
+so it is not a critical namespace — its gain raised the **global** floor **line 55% → 56%** (measured
+56.36%), while the **branch** floor is **held at 46%** (measured 47.03% — a 47% floor would leave only
+0.03 pt of headroom, inside the run-to-run async-branch variance band this file repeatedly observes). Its
+small residual is `LoadEntireTreeAsync`'s two safety-limit arms (an unreachable `root is null` guard and
+the 100-level BFS runaway guard).
+
+Earlier, on **2026-06-28** `CollaborationService` — the next-largest authored gap at **431 measurable lines,
 previously 0%** — was lifted to **84.22% line / 81.03% branch** (363 / 431 lines). It is a lightweight
 real-time collaboration hub built on `HttpListener` + `HttpClient` (no EF, no external runtime libs). Its
 public `StartHostingAsync` binds the strong-wildcard prefix `http://+:{port}/`, which needs an elevated
@@ -168,7 +188,7 @@ critical floor sits **at or above** the repository-wide minimum, as AX-QA-009 re
 
 | Scope | Line floor | Branch floor | Measured (baseline) |
 |---|---|---|---|
-| Global (`AgentX.Core`, authored) | 55% | 46% | 55.26% / 46.47% |
+| Global (`AgentX.Core`, authored) | 56% | 46% | 56.36% / 47.03% |
 | `AgentX.Core.Services.Security` | 80% | 62% | 82.41% / 66.22% |
 | `AgentX.Core.Services.Privacy` | 95% | 85% | 100% / 90.62% |
 | `AgentX.Core.Services.OAuth` | 80% | 75% | 82.57% / 77.27% |
@@ -203,10 +223,14 @@ respectively — raising the global floor to **54% line / 45% branch** (and, alo
 always-throws bug in `SemanticMemoryService.GetAllMemoriesAsync`). Then **`CollaborationService`** (431
 lines, 0%) — the `HttpListener`-based real-time hub — was lifted **0% → 84.22% line / 81.03% branch** by
 injecting a non-privileged localhost listener and driving the service's real request handlers over HTTP,
-raising the global floor to **55% line / 46% branch**. The next lever for the global floor remains overall
-measured coverage itself (55.26% line / 46.47% branch): no single critical namespace caps it — any
-authored-code coverage gain can raise it. The next-largest authored gaps are `ConversationBranchService`
-(421 lines, 0%), `SemanticSearchService` (412, 0%), and `ComparisonService` (408, 5%).
+raising the global floor to **55% line / 46% branch**. Then **`ConversationBranchService`** (421 lines,
+0%) — the EF-Core conversation-forking engine — was lifted **0% → 98.34% line / 96.97% branch**, raising
+the global **line** floor to **56%** (the branch floor is held at 46%: measured branch is 47.03%, and a 47%
+floor would leave only 0.03 pt of headroom against the known async-branch variance band). The next lever
+for the global floor remains overall measured coverage itself (56.36% line / 47.03% branch): no single
+critical namespace caps it — any authored-code coverage gain can raise it. The next-largest authored gaps
+are `SemanticSearchService` (412 lines, 0%), `ComparisonService` (408, 5%), and `KeywordSearchService`
+(399, 0%).
 
 ### Running it locally
 

@@ -45,7 +45,22 @@ $ErrorActionPreference = 'Stop'
 # ─────────────────────────────────────────────────────────────────────────────
 # Floors are set just below the measured baseline (shown in comments) so the gate locks in current
 # coverage with a small headroom for CI variance, and every critical floor sits at or above the
-# global minimum as AX-QA-009 requires. On 2026-06-28 CollaborationService (431 measurable lines,
+# global minimum as AX-QA-009 requires. On 2026-06-30 ConversationBranchService (421 measurable lines,
+# previously 0%) — the EF-backed engine for conversation forking (branch-at-message with message copy +
+# token/count aggregation), branch-tree / root queries, cross-conversation message merge, and recursive
+# branch deletion — was lifted to 98.34 line / 96.97 branch via the EF-SQLite harness (real AgentXDbContext;
+# the injected IConversationService is null-guarded by the ctor but consumed by no method, so supplied as a
+# bare mock; a real silent Serilog logger for the ForContext<T>() ctor). Two model facts shaped the tests:
+# the self-referencing ParentConversation->Branches FK is DeleteBehavior.Restrict (so a NON-recursive delete
+# of a branch that still has children is DB-rejected with DbUpdateException, and recursive deletes must remove
+# the deepest descendant first), while Messages->Conversation is Cascade; the generic catch(Exception) rethrow
+# arms were reached with a pre-canceled token (OperationCanceledException bypasses the earlier
+# catch(InvalidOperationException) arms), the circular-reference maxDepth guard via a self-parent row, and the
+# orphaned-parent walk-stop via a raw FK-off DELETE of the parent. Not a trust boundary, so NOT a critical
+# namespace; its gain raised the GLOBAL floor LINE 55 -> 56 (measured 56.36) while the BRANCH floor is HELD at
+# 46 (measured 47.03 — a 47 floor would leave only 0.03pt of headroom, inside the run-to-run async-branch
+# variance band this file repeatedly observes, e.g. OAuth and Backup). Earlier, on 2026-06-28
+# CollaborationService (431 measurable lines,
 # previously 0%) — a real-time collaboration hub on HttpListener + HttpClient (no EF) — was lifted to
 # 84.22 line / 81.03 branch. Its public StartHostingAsync binds the strong-wildcard prefix
 # http://+:{port}/ (needs an elevated URL-ACL reservation, unrunnable unprivileged in CI), so the harness
@@ -81,7 +96,7 @@ $ErrorActionPreference = 'Stop'
 # (global line -> 44); 2026-06-24 PluginService/WorkflowEngine (global line 41 -> 42); 2026-06-21
 # ApiHostService. Critical-namespace baselines (Security/Privacy/MigrationRunner) are from 2026-06-20.
 $Policy = [ordered]@{
-    Global = @{ Line = 55.0; Branch = 46.0 }          # measured 55.26 / 46.47 (2026-06-28)
+    Global = @{ Line = 56.0; Branch = 46.0 }          # measured 56.36 / 47.03 (2026-06-30); branch floor held at 46 (47 = only 0.03pt headroom)
     CriticalNamespaces = [ordered]@{
         # Security-critical: DB key material, DPAPI secret encryption, encryption-state migration,
         # security status. A regression here is a trust/compliance regression. Its branch floor (62)
