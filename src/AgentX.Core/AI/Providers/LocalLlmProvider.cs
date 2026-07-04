@@ -32,6 +32,21 @@ public sealed class LocalLlmProvider : IAiProvider
     private readonly SemaphoreSlim _loadLock = new(1, 1);
     private readonly SemaphoreSlim _inferenceLock = new(1, 1);
 
+    /// <summary>
+    /// Test seam (AX-QA-009): when set, replaces the StatelessExecutor-based inference stream so
+    /// the chat pipeline (prompt formatting, inference lock, token accounting, truncation warning,
+    /// cancellation) is unit-testable without loading a native GGUF model. Never set in production;
+    /// follows the ComparisonService optional-collaborator-seam precedent.
+    /// </summary>
+    internal Func<string, InferenceParams, CancellationToken, IAsyncEnumerable<string>>? InferenceOverride { get; set; }
+
+    /// <summary>
+    /// Test seam (AX-QA-009): overrides the HuggingFace URL lookup in <see cref="PullModelAsync"/>
+    /// so the download pipeline (streaming copy, progress, atomic .part move, failure cleanup) is
+    /// testable against a localhost HTTP stub. Never set in production.
+    /// </summary>
+    internal Func<string, string?>? DownloadUrlResolver { get; set; }
+
     /// <inheritdoc />
     public string ProviderId => "local";
 
@@ -161,7 +176,9 @@ public sealed class LocalLlmProvider : IAiProvider
         var targetPath = Path.Combine(_modelsDirectory, modelName);
         Directory.CreateDirectory(_modelsDirectory);
 
-        var url = ResolveDownloadUrl(modelName);
+        var url = DownloadUrlResolver is not null
+            ? DownloadUrlResolver(modelName)
+            : ResolveDownloadUrl(modelName);
         if (string.IsNullOrEmpty(url))
         {
             _logger.Warning("No download URL known for model: {Model}", modelName);
@@ -262,13 +279,19 @@ public sealed class LocalLlmProvider : IAiProvider
         [EnumeratorCancellation] CancellationToken ct = default)
     {
         ThrowIfDisposed();
-        await EnsureModelLoadedAsync(ct).ConfigureAwait(false);
+        if (InferenceOverride is null)
+        {
+            await EnsureModelLoadedAsync(ct).ConfigureAwait(false);
+        }
 
         var prompt = FormatChatPrompt(messages, options?.ResponseFormat == ResponseFormat.JsonObject);
         var inferenceParams = BuildInferenceParams(options);
 
-        // StatelessExecutor creates its own context per call — thread-safe
-        var executor = new StatelessExecutor(_weights!, _chatParams!);
+        // StatelessExecutor creates its own context per call — thread-safe. The override
+        // substitutes the token source only; lock, accounting, and cancellation are unchanged.
+        var tokenStream = InferenceOverride is not null
+            ? InferenceOverride(prompt, inferenceParams, ct)
+            : new StatelessExecutor(_weights!, _chatParams!).InferAsync(prompt, inferenceParams, ct);
 
         // Track emitted tokens so we can warn on MaxTokens truncation (P0-6).
         // LLamaSharp StatelessExecutor stops naturally on antiprompt or MaxTokens —
@@ -279,8 +302,7 @@ public sealed class LocalLlmProvider : IAiProvider
         await _inferenceLock.WaitAsync(ct).ConfigureAwait(false);
         try
         {
-            await foreach (var token in executor.InferAsync(prompt, inferenceParams, ct)
-                .ConfigureAwait(false))
+            await foreach (var token in tokenStream.ConfigureAwait(false))
             {
                 if (ct.IsCancellationRequested) yield break;
                 emittedTokens++;
