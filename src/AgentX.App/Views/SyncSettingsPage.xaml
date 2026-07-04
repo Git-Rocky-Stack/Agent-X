@@ -60,9 +60,9 @@
 
                 <!-- Title and subtitle -->
                 <StackPanel Spacing="4">
-                    <TextBlock Text="Collaborative Sync"
+                    <TextBlock x:Uid="Sync_Title" Text="Collaborative Sync"
                                Style="{StaticResource DisplaySmallStyle}" />
-                    <TextBlock Text="Configure encrypted sync between Agent-X installations."
+                    <TextBlock x:Uid="Sync_Subtitle" Text="Configure encrypted sync between Agent-X installations."
                                Style="{StaticResource BodySecondaryStyle}" />
                 </StackPanel>
 
@@ -93,7 +93,7 @@
                         Visibility="{x:Bind ViewModel.IsConfigured, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE895;" FontSize="14" />
-                        <TextBlock Text="Sync Now" />
+                        <TextBlock x:Uid="Sync_SyncNowLabel" Text="Sync Now" />
                     </StackPanel>
                 </Button>
             </Grid>
@@ -196,7 +196,7 @@
                 <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
                               Width="40" Height="40"
                               Foreground="{ThemeResource AccentPrimaryBrush}" />
-                <TextBlock Text="Loading sync settings..."
+                <TextBlock x:Uid="Sync_LoadingSettings" Text="Loading sync settings..."
                            Style="{StaticResource BodySecondaryStyle}"
                            HorizontalAlignment="Center" />
             </StackPanel>
@@ -217,11 +217,11 @@
                     <FontIcon Glyph="&#xE895;" FontSize="48"
                               Foreground="{ThemeResource TextTertiaryBrush}"
                               HorizontalAlignment="Center" />
-                    <TextBlock Text="Sync not configured"
+                    <TextBlock x:Uid="Sync_NotConfiguredTitle" Text="Sync not configured"
                                Style="{StaticResource HeadingSmallStyle}"
                                HorizontalAlignment="Center"
                                Foreground="{ThemeResource TextSecondaryBrush}" />
-                    <TextBlock Text="Set up a shared sync folder and encryption key to securely synchronize your knowledge vault, collections, and settings between Agent-X installations."
+                    <TextBlock x:Uid="Sync_NotConfiguredHint" Text="Set up a shared sync folder and encryption key to securely synchronize your knowledge vault, collections, and settings between Agent-X installations."
                                Style="{StaticResource BodySecondaryStyle}"
                                TextAlignment="Center"
                                MaxWidth="460"
@@ -231,7 +231,7 @@
                         <FontIcon Glyph="&#xE72E;" FontSize="14"
                                   Foreground="{ThemeResource TextAccentBrush}"
                                   VerticalAlignment="Center" />
-                        <TextBlock Text="All sync data is encrypted end-to-end with your key."
+                        <TextBlock x:Uid="Sync_E2ENote" Text="All sync data is encrypted end-to-end with your key."
                                    Style="{StaticResource BodySmallStyle}"
                                    Foreground="{ThemeResource TextAccentBrush}" />
                     </StackPanel>
@@ -258,10 +258,10 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE713;" FontSize="18"
                                       Foreground="{ThemeResource TextAccentBrush}" />
-                            <TextBlock Text="Configuration"
+                            <TextBlock x:Uid="Sync_ConfigTitle" Text="Configuration"
                                        Style="{StaticResource HeadingMediumStyle}" />
                         </StackPanel>
-                        <TextBlock Text="Set the shared folder path and encryption key used to sync data between devices."
+                        <TextBlock x:Uid="Sync_ConfigSubtitle" Text="Set the shared folder path and encryption key used to sync data between devices."
                                    Style="{StaticResource BodySecondaryStyle}"
                                    Margin="28,0,0,0" />
                     </StackPanel>
@@ -270,7 +270,7 @@
 
                     <!-- Sync Folder Path -->
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Sync Folder"
+                        <TextBlock x:Uid="Sync_FolderLabel" Text="Sync Folder"
                                    Style="{StaticResource LabelStyle}" />
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
@@ -280,7 +280,7 @@
 
                             <TextBox Style="{StaticResource InputTextBoxStyle}"
                                      Text="{x:Bind ViewModel.SyncFolderPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     PlaceholderText="C:\Users\Shared\AgentX-Sync or \\NAS\AgentX"
+                                     x:Uid="Sync_FolderBox" PlaceholderText="C:\Users\Shared\AgentX-Sync or \\NAS\AgentX"
                                      IsEnabled="{x:Bind ViewModel.IsSyncing, Mode=OneWay, Converter={StaticResource InverseBool}}" />
 
                             <Button Grid.Column="1"
@@ -289,22 +289,22 @@
                                     IsEnabled="{x:Bind ViewModel.IsSyncing, Mode=OneWay, Converter={StaticResource InverseBool}}">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xED25;" FontSize="14" />
-                                    <TextBlock Text="Browse" />
+                                    <TextBlock x:Uid="Sync_BrowseLabel" Text="Browse" />
                                 </StackPanel>
                             </Button>
                         </Grid>
-                        <TextBlock Text="Choose a network share, cloud-synced folder (OneDrive, Dropbox), or any shared location."
+                        <TextBlock x:Uid="Sync_FolderHint" Text="Choose a network share, cloud-synced folder (OneDrive, Dropbox), or any shared location."
                                    Style="{StaticResource CaptionStyle}"
                                    Margin="0,2,0,0" />
                     </StackPanel>
 
                     <!-- Encryption Key -->
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Encryption Key"
+                        <TextBlock x:Uid="Sync_KeyLabel" Text="Encryption Key"
                                    Style="{StaticResource LabelStyle}" />
                         <PasswordBox x:Name="EncryptionKeyBox"
                                      Password="{x:Bind ViewModel.EncryptionKey, Mode=TwoWay}"
-                                     PlaceholderText="Enter a strong passphrase for AES-256 encryption"
+                                     x:Uid="Sync_KeyBox" PlaceholderText="Enter a strong passphrase for AES-256 encryption"
                                      PasswordRevealMode="Peek"
                                      Background="{ThemeResource InputBackgroundBrush}"
                                      Foreground="{ThemeResource TextPrimaryBrush}"
@@ -318,7 +318,7 @@
                             <FontIcon Glyph="&#xE72E;" FontSize="10"
                                       Foreground="{ThemeResource TextTertiaryBrush}"
                                       VerticalAlignment="Center" />
-                            <TextBlock Text="Must be identical on all installations. Use a strong passphrase you will remember."
+                            <TextBlock x:Uid="Sync_KeyHint" Text="Must be identical on all installations. Use a strong passphrase you will remember."
                                        Style="{StaticResource CaptionStyle}" />
                         </StackPanel>
                     </StackPanel>
@@ -333,22 +333,22 @@
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Auto-Sync"
+                            <TextBlock x:Uid="Sync_AutoSyncTitle" Text="Auto-Sync"
                                        Style="{StaticResource HeadingSmallStyle}" />
-                            <TextBlock Text="Automatically synchronize changes at a regular interval."
+                            <TextBlock x:Uid="Sync_AutoSyncSubtitle" Text="Automatically synchronize changes at a regular interval."
                                        Style="{StaticResource BodySecondaryStyle}" />
                         </StackPanel>
 
                         <ToggleSwitch Grid.Column="1"
                                       IsOn="{x:Bind ViewModel.AutoSyncEnabled, Mode=TwoWay}"
                                       VerticalAlignment="Center"
-                                      OnContent="On" OffContent="Off" />
+                                      x:Uid="Sync_AutoToggle" OnContent="On" OffContent="Off" />
                     </Grid>
 
                     <!-- Sync Interval (visible when auto-sync is on) -->
                     <StackPanel Spacing="6"
                                 Visibility="{x:Bind ViewModel.AutoSyncEnabled, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                        <TextBlock Text="Sync Interval"
+                        <TextBlock x:Uid="Sync_IntervalLabel" Text="Sync Interval"
                                    Style="{StaticResource LabelStyle}" />
                         <ComboBox ItemsSource="{x:Bind ViewModel.IntervalOptions}"
                                   SelectedIndex="{x:Bind ViewModel.SelectedIntervalIndex, Mode=TwoWay}"
@@ -360,14 +360,14 @@
 
                     <!-- Sync Scope Selector -->
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Sync Scope"
+                        <TextBlock x:Uid="Sync_ScopeLabel" Text="Sync Scope"
                                    Style="{StaticResource LabelStyle}" />
                         <ComboBox ItemsSource="{x:Bind ViewModel.SyncScopeOptions, Mode=OneWay}"
                                   SelectedItem="{x:Bind ViewModel.SyncScope, Mode=TwoWay}"
                                   HorizontalAlignment="Stretch"
                                   MinWidth="240">
                         </ComboBox>
-                        <TextBlock Text="Choose whether to sync all data or only selected collections."
+                        <TextBlock x:Uid="Sync_ScopeHint" Text="Choose whether to sync all data or only selected collections."
                                    Style="{StaticResource CaptionStyle}"
                                    Margin="0,2,0,0" />
                     </StackPanel>
@@ -375,7 +375,7 @@
                     <StackPanel Spacing="10"
                                 Visibility="{x:Bind ViewModel.ShowSelectedCollectionsPicker, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Collections to Sync"
+                            <TextBlock x:Uid="Sync_CollectionsLabel" Text="Collections to Sync"
                                        Style="{StaticResource LabelStyle}" />
                             <TextBlock Text="{x:Bind ViewModel.SelectedCollectionSummary, Mode=OneWay}"
                                        Style="{StaticResource CaptionStyle}" />
@@ -388,7 +388,7 @@
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
 
-                                <TextBlock Text="Only documents assigned to the selected collections will be included in sync exports."
+                                <TextBlock x:Uid="Sync_ScopedNote" Text="Only documents assigned to the selected collections will be included in sync exports."
                                            Style="{StaticResource BodySecondaryStyle}"
                                            TextWrapping="Wrap" />
 
@@ -416,7 +416,7 @@
                                 </ScrollViewer>
 
                                 <TextBlock Grid.Row="1"
-                                           Text="No collections are available yet. Create a collection before using selected-collection sync."
+                                           x:Uid="Sync_NoCollections" Text="No collections are available yet. Create a collection before using selected-collection sync."
                                            Style="{StaticResource CaptionStyle}"
                                            TextWrapping="Wrap"
                                            Visibility="{x:Bind ViewModel.HasAvailableCollections, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
@@ -445,7 +445,7 @@
                         Command="{x:Bind ViewModel.SaveConfigurationCommand}">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE74E;" FontSize="14" />
-                        <TextBlock Text="Save Configuration" />
+                        <TextBlock x:Uid="Sync_SaveLabel" Text="Save Configuration" />
                     </StackPanel>
                 </Button>
 
@@ -457,7 +457,7 @@
                     <ProgressRing IsActive="{x:Bind ViewModel.IsSaving, Mode=OneWay}"
                                   Width="16" Height="16"
                                   Foreground="{ThemeResource AccentPrimaryBrush}" />
-                    <TextBlock Text="Saving..."
+                    <TextBlock x:Uid="Sync_SavingLabel" Text="Saving..."
                                Style="{StaticResource BodySmallStyle}"
                                Foreground="{ThemeResource TextSecondaryBrush}" />
                 </StackPanel>
@@ -487,14 +487,14 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE895;" FontSize="18"
                                       Foreground="{ThemeResource TextAccentBrush}" />
-                            <TextBlock Text="Sync Status"
+                            <TextBlock x:Uid="Sync_StatusTitle" Text="Sync Status"
                                        Style="{StaticResource HeadingMediumStyle}" />
                         </StackPanel>
 
                         <Button Grid.Column="1"
                                 Style="{StaticResource IconButtonStyle}"
                                 Command="{x:Bind ViewModel.RefreshCommand}"
-                                ToolTipService.ToolTip="Refresh sync status">
+                                x:Uid="Sync_RefreshStatusBtn" ToolTipService.ToolTip="Refresh sync status">
                             <FontIcon Glyph="&#xE72C;" FontSize="14"
                                       Foreground="{ThemeResource TextSecondaryBrush}" />
                         </Button>
@@ -512,7 +512,7 @@
                         <!-- Last Synced -->
                         <Border Grid.Column="0" Style="{StaticResource CardInsetStyle}">
                             <StackPanel Spacing="6">
-                                <TextBlock Text="LAST SYNCED"
+                                <TextBlock x:Uid="Sync_LastSyncedOverline" Text="LAST SYNCED"
                                            Style="{StaticResource OverlineStyle}" />
                                 <TextBlock Text="{x:Bind ViewModel.LastSyncAt, Mode=OneWay}"
                                            Style="{StaticResource HeadingSmallStyle}" />
@@ -522,12 +522,12 @@
                         <!-- Pending Changes -->
                         <Border Grid.Column="1" Style="{StaticResource CardInsetStyle}">
                             <StackPanel Spacing="6">
-                                <TextBlock Text="PENDING CHANGES"
+                                <TextBlock x:Uid="Sync_PendingOverline" Text="PENDING CHANGES"
                                            Style="{StaticResource OverlineStyle}" />
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <TextBlock Text="{x:Bind ViewModel.PendingChanges, Mode=OneWay}"
                                                Style="{StaticResource HeadingSmallStyle}" />
-                                    <TextBlock Text="items"
+                                    <TextBlock x:Uid="Sync_ItemsLabel" Text="items"
                                                Style="{StaticResource BodySecondaryStyle}"
                                                VerticalAlignment="Bottom"
                                                Margin="0,0,0,1" />
@@ -538,7 +538,7 @@
                         <!-- Last Duration -->
                         <Border Grid.Column="2" Style="{StaticResource CardInsetStyle}">
                             <StackPanel Spacing="6">
-                                <TextBlock Text="DURATION"
+                                <TextBlock x:Uid="Sync_DurationOverline" Text="DURATION"
                                            Style="{StaticResource OverlineStyle}" />
                                 <TextBlock Text="{x:Bind ViewModel.LastSyncDuration, Mode=OneWay}"
                                            Style="{StaticResource HeadingSmallStyle}" />
@@ -548,7 +548,7 @@
                         <!-- Current Sync State -->
                         <Border Grid.Column="3" Style="{StaticResource CardInsetStyle}">
                             <StackPanel Spacing="6">
-                                <TextBlock Text="STATE"
+                                <TextBlock x:Uid="Sync_StateOverline" Text="STATE"
                                            Style="{StaticResource OverlineStyle}" />
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <Ellipse Width="8" Height="8"
@@ -571,7 +571,7 @@
                         <ProgressRing IsActive="{x:Bind ViewModel.IsSyncing, Mode=OneWay}"
                                       Width="20" Height="20"
                                       Foreground="{ThemeResource AccentPrimaryBrush}" />
-                        <TextBlock Text="Synchronizing..."
+                        <TextBlock x:Uid="Sync_Synchronizing" Text="Synchronizing..."
                                    Style="{StaticResource BodySmallStyle}"
                                    Foreground="{ThemeResource TextSecondaryBrush}"
                                    VerticalAlignment="Center" />
@@ -586,7 +586,7 @@
                                       Foreground="{ThemeResource TextAccentBrush}" />
                             <TextBlock Style="{StaticResource BadgeStyle}"
                                        Foreground="{ThemeResource TextAccentBrush}">
-                                <Run Text="AUTO-SYNC ENABLED" />
+                                <Run x:Uid="Sync_AutoBadgeRun" Text="AUTO-SYNC ENABLED" />
                             </TextBlock>
                         </StackPanel>
                     </Border>
@@ -612,7 +612,7 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Orientation="Horizontal" Spacing="12">
-                        <TextBlock Text="Sync History"
+                        <TextBlock x:Uid="Sync_HistoryTitle" Text="Sync History"
                                    Style="{StaticResource HeadingMediumStyle}" />
                         <Border Style="{StaticResource BadgeDefaultStyle}"
                                 VerticalAlignment="Center"
@@ -630,7 +630,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon Glyph="&#xE74D;" FontSize="12"
                                       Foreground="{ThemeResource TextTertiaryBrush}" />
-                            <TextBlock Text="Clear History"
+                            <TextBlock x:Uid="Sync_ClearHistoryLabel" Text="Clear History"
                                        FontSize="12"
                                        Foreground="{ThemeResource TextSecondaryBrush}" />
                         </StackPanel>
@@ -650,20 +650,20 @@
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Focused Sync History Entry"
+                            <TextBlock x:Uid="Sync_FocusedTitle" Text="Focused Sync History Entry"
                                        Style="{StaticResource BodyStyle}"
                                        FontWeight="SemiBold"
                                        Foreground="{ThemeResource AccentPrimaryBrush}" />
                             <TextBlock Text="{x:Bind ViewModel.FocusedSyncSourceLabel, Mode=OneWay}"
                                        Style="{StaticResource BodySecondaryStyle}"
                                        TextWrapping="Wrap" />
-                            <TextBlock Text="The matching sync record stays pinned and marked until you dismiss this focus state."
+                            <TextBlock x:Uid="Sync_FocusedHint" Text="The matching sync record stays pinned and marked until you dismiss this focus state."
                                        Style="{StaticResource CaptionStyle}"
                                        TextWrapping="Wrap" />
                         </StackPanel>
 
                         <Button Grid.Column="1"
-                                Content="Dismiss"
+                                x:Uid="Sync_DismissBtn" Content="Dismiss"
                                 Command="{x:Bind ViewModel.DismissFocusedSyncLandingCommand}"
                                 Style="{StaticResource GhostButtonStyle}"
                                 VerticalAlignment="Top" />
@@ -678,7 +678,7 @@
                     <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
                                   Width="40" Height="40"
                                   Foreground="{ThemeResource AccentPrimaryBrush}" />
-                    <TextBlock Text="Loading sync history..."
+                    <TextBlock x:Uid="Sync_LoadingHistory" Text="Loading sync history..."
                                Style="{StaticResource BodySecondaryStyle}"
                                HorizontalAlignment="Center" />
                 </StackPanel>
@@ -764,7 +764,7 @@
                                                 Orientation="Horizontal" Spacing="8">
                                         <Border Style="{StaticResource BadgeAccentStyle}"
                                                 Visibility="{x:Bind IsFocused, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                                            <TextBlock Text="Opened from Operations"
+                                            <TextBlock x:Uid="Sync_OpenedFromOpsBadge" Text="Opened from Operations"
                                                        Style="{StaticResource BadgeStyle}"
                                                        Foreground="{ThemeResource TextAccentBrush}" />
                                         </Border>
@@ -776,7 +776,7 @@
                                                           Foreground="{ThemeResource TextTertiaryBrush}" />
                                                 <TextBlock Style="{StaticResource BadgeStyle}">
                                                     <Run Text="{x:Bind ChangesApplied, Mode=OneWay}" />
-                                                    <Run Text=" changes" />
+                                                    <Run x:Uid="Sync_ChangesRun" Text=" changes" />
                                                 </TextBlock>
                                             </StackPanel>
                                         </Border>
@@ -800,7 +800,7 @@
                                                 <TextBlock Style="{StaticResource BadgeStyle}"
                                                            Foreground="{ThemeResource WarningBrush}">
                                                     <Run Text="{x:Bind ConflictsDetected, Mode=OneWay}" />
-                                                    <Run Text=" conflicts" />
+                                                    <Run x:Uid="Sync_ConflictsRun" Text=" conflicts" />
                                                 </TextBlock>
                                             </StackPanel>
                                         </Border>
@@ -839,11 +839,11 @@
                         <FontIcon Glyph="&#xE81C;" FontSize="32"
                                   Foreground="{ThemeResource TextTertiaryBrush}"
                                   HorizontalAlignment="Center" />
-                        <TextBlock Text="No sync history yet"
+                        <TextBlock x:Uid="Sync_EmptyHistoryTitle" Text="No sync history yet"
                                    Style="{StaticResource HeadingSmallStyle}"
                                    HorizontalAlignment="Center"
                                    Foreground="{ThemeResource TextSecondaryBrush}" />
-                        <TextBlock Text="Sync history will appear here after your first sync operation."
+                        <TextBlock x:Uid="Sync_EmptyHistoryHint" Text="Sync history will appear here after your first sync operation."
                                    Style="{StaticResource BodySecondaryStyle}"
                                    TextAlignment="Center"
                                    MaxWidth="360"

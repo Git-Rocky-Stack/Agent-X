@@ -616,4 +616,294 @@
   <data name="UserGuide_Sync_Feature2_Description.Text" xml:space="preserve"><value>La résolution de conflits basée sur l'horodatage détermine quel changement l'emporte lorsque le même élément a été modifié sur deux appareils — aucune fusion manuelle requise.</value></data>
   <data name="UserGuide_Sync_Feature3_Title.Text" xml:space="preserve"><value>Sessions de collaboration locales</value></data>
   <data name="UserGuide_Sync_Feature3_Description.Text" xml:space="preserve"><value>Sur un réseau local de confiance, les installations d'Agent-X peuvent aussi héberger des sessions de collaboration en direct — partage de présence et d'événements d'activité directement entre pairs, sans que rien ne quitte votre réseau.</value></data>
+
+  <!-- Page localization pass 2026-07: Smart Inbox / Comparison / Operations / Analytics / Collaborative Sync / Onboarding -->
+  <data name="Inbox_Title.Text" xml:space="preserve"><value>Smart Inbox</value></data>
+  <data name="Inbox_PendingRun.Text" xml:space="preserve"><value>en attente</value></data>
+  <data name="Inbox_StatusOverline.Text" xml:space="preserve"><value>STATUT</value></data>
+  <data name="Inbox_TargetCollectionOverline.Text" xml:space="preserve"><value>COLLECTION CIBLE</value></data>
+  <data name="Inbox_AutoSuggestPlaceholder.PlaceholderText" xml:space="preserve"><value>Suggestion automatique</value></data>
+  <data name="Inbox_ActionsOverline.Text" xml:space="preserve"><value>ACTIONS</value></data>
+  <data name="Inbox_AcceptAllBtn.Content" xml:space="preserve"><value>Tout accepter</value></data>
+  <data name="Inbox_GeneratePreviewsBtn.Content" xml:space="preserve"><value>Générer les aperçus IA</value></data>
+  <data name="Inbox_CleanupBtn.Content" xml:space="preserve"><value>Nettoyer les éléments traités</value></data>
+  <data name="Inbox_TriageTitle.Text" xml:space="preserve"><value>Tri des documents</value></data>
+  <data name="Inbox_TriageSubtitle.Text" xml:space="preserve"><value>Examinez les nouveaux fichiers avant leur entrée dans votre base de connaissances. L'IA suggère des collections et des étiquettes.</value></data>
+  <data name="Inbox_FocusedTitle.Text" xml:space="preserve"><value>Élément de boîte de réception ciblé</value></data>
+  <data name="Inbox_FocusedDismissBtn.Content" xml:space="preserve"><value>Ignorer</value></data>
+  <data name="Inbox_OpenedFromOpsBadge.Text" xml:space="preserve"><value>Ouvert depuis Operations</value></data>
+  <data name="Inbox_WebClipBadge.Text" xml:space="preserve"><value>Web Clip</value></data>
+  <data name="Inbox_AcceptBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Accepter</value></data>
+  <data name="Inbox_AcceptBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Accepter</value></data>
+  <data name="Inbox_DeferBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Reporter</value></data>
+  <data name="Inbox_DeferBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Reporter</value></data>
+  <data name="Inbox_RejectBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Rejeter</value></data>
+  <data name="Inbox_RejectBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Rejeter</value></data>
+  <data name="Inbox_AiPreviewLabel.Text" xml:space="preserve"><value>Aperçu IA</value></data>
+  <data name="Inbox_SuggestedLabel.Text" xml:space="preserve"><value>Suggestion :</value></data>
+  <data name="Inbox_EmptyTitle.Text" xml:space="preserve"><value>La boîte de réception est vide</value></data>
+  <data name="Inbox_EmptyHint.Text" xml:space="preserve"><value>Les nouveaux fichiers des dossiers surveillés apparaîtront ici pour le tri.</value></data>
+  <data name="Comp_SelectTitle.Text" xml:space="preserve"><value>Sélectionner des documents</value></data>
+  <data name="Comp_SelectedRun.Text" xml:space="preserve"><value>sélectionnés</value></data>
+  <data name="Comp_FocusPlaceholder.PlaceholderText" xml:space="preserve"><value>Sujet à privilégier (facultatif)...</value></data>
+  <data name="Comp_DetailLevelBox.Header" xml:space="preserve"><value>Niveau de détail</value></data>
+  <data name="Comp_CompareBtn.Content" xml:space="preserve"><value>Comparer les documents</value></data>
+  <data name="Comp_CancelBtn.Content" xml:space="preserve"><value>Annuler</value></data>
+  <data name="Comp_Title.Text" xml:space="preserve"><value>Analyse comparative</value></data>
+  <data name="Comp_Subtitle.Text" xml:space="preserve"><value>Sélectionnez au moins deux documents pour générer une comparaison structurée côte à côte.</value></data>
+  <data name="Comp_SummaryTitle.Text" xml:space="preserve"><value>Résumé</value></data>
+  <data name="Comp_TokensRun.Text" xml:space="preserve"><value>tokens</value></data>
+  <data name="Comp_MsRun.Text" xml:space="preserve"><value>ms</value></data>
+  <data name="Comp_SimilaritiesTitle.Text" xml:space="preserve"><value>Similitudes</value></data>
+  <data name="Comp_DifferencesTitle.Text" xml:space="preserve"><value>Différences</value></data>
+  <data name="Comp_ContradictionsTitle.Text" xml:space="preserve"><value>Contradictions</value></data>
+  <data name="Comp_UniqueTitle.Text" xml:space="preserve"><value>Points uniques par document</value></data>
+  <data name="Comp_NoUniquePoints.Text" xml:space="preserve"><value>Aucun point unique propre à un document n'a été identifié dans cette comparaison.</value></data>
+  <data name="Comp_ExportBtn.Content" xml:space="preserve"><value>Exporter le rapport</value></data>
+  <data name="Comp_EmptyState.Text" xml:space="preserve"><value>Sélectionnez des documents et comparez-les</value></data>
+  <data name="Ops_RetryIndexBtn.Content" xml:space="preserve"><value>Réessayer l'indexation</value></data>
+  <data name="Ops_EnableConnectorBtn.Content" xml:space="preserve"><value>Activer le connecteur</value></data>
+  <data name="Ops_OpenPluginBtn.Content" xml:space="preserve"><value>Ouvrir le plugin</value></data>
+  <data name="Ops_Title.Text" xml:space="preserve"><value>Operations</value></data>
+  <data name="Ops_Subtitle.Text" xml:space="preserve"><value>Statut unifié de l'intelligence des conversations, de l'état de synchronisation, du backlog d'ingestion, de l'activité des workflows et des connecteurs.</value></data>
+  <data name="Ops_DashboardBtn.Content" xml:space="preserve"><value>Tableau de bord</value></data>
+  <data name="Ops_RefreshBtn.Content" xml:space="preserve"><value>Actualiser</value></data>
+  <data name="Ops_Loading.Text" xml:space="preserve"><value>Chargement du statut des opérations...</value></data>
+  <data name="Ops_CurrentStatusOverline.Text" xml:space="preserve"><value>STATUT ACTUEL DES OPÉRATIONS</value></data>
+  <data name="Ops_SuggestedFixesTitle.Text" xml:space="preserve"><value>Correctifs suggérés</value></data>
+  <data name="Ops_SuggestedFixesSubtitle.Text" xml:space="preserve"><value>Les actions correctives à plus fort impact d'après l'instantané actuel des opérations.</value></data>
+  <data name="Ops_ConvIntelOverline.Text" xml:space="preserve"><value>INTELLIGENCE DES CONVERSATIONS</value></data>
+  <data name="Ops_RecentSummariesLabel.Text" xml:space="preserve"><value>Résumés récents</value></data>
+  <data name="Ops_RefreshSummariesBtn.Content" xml:space="preserve"><value>Actualiser les résumés</value></data>
+  <data name="Ops_OpenAnalyticsBtn.Content" xml:space="preserve"><value>Ouvrir Analytics</value></data>
+  <data name="Ops_SyncHealthOverline.Text" xml:space="preserve"><value>SANTÉ DE LA SYNCHRONISATION</value></data>
+  <data name="Ops_RecentSyncPassesLabel.Text" xml:space="preserve"><value>Passes de synchronisation récentes</value></data>
+  <data name="Ops_SyncNowBtn.Content" xml:space="preserve"><value>Synchroniser maintenant</value></data>
+  <data name="Ops_OpenSyncBtn.Content" xml:space="preserve"><value>Ouvrir la synchronisation</value></data>
+  <data name="Ops_IngestionOverline.Text" xml:space="preserve"><value>BACKLOG D'INGESTION</value></data>
+  <data name="Ops_PendingItemsLabel.Text" xml:space="preserve"><value>Éléments en attente</value></data>
+  <data name="Ops_RecentImportedLabel.Text" xml:space="preserve"><value>Documents importés récemment</value></data>
+  <data name="Ops_GeneratePreviewsBtn.Content" xml:space="preserve"><value>Générer les aperçus</value></data>
+  <data name="Ops_OpenInboxBtn.Content" xml:space="preserve"><value>Ouvrir la boîte de réception</value></data>
+  <data name="Ops_OpenVaultBtn.Content" xml:space="preserve"><value>Ouvrir le coffre-fort</value></data>
+  <data name="Ops_WorkflowOverline.Text" xml:space="preserve"><value>ACTIVITÉ DES WORKFLOWS</value></data>
+  <data name="Ops_RecentRunsLabel.Text" xml:space="preserve"><value>Exécutions récentes</value></data>
+  <data name="Ops_OpenWorkflowsBtn.Content" xml:space="preserve"><value>Ouvrir les workflows</value></data>
+  <data name="Ops_ConnectorsOverline.Text" xml:space="preserve"><value>CONNECTEURS ET PLUGINS</value></data>
+  <data name="Ops_ConnectorPreviewLabel.Text" xml:space="preserve"><value>Aperçu des connecteurs</value></data>
+  <data name="Ops_OpenPluginManagerBtn.Content" xml:space="preserve"><value>Ouvrir le gestionnaire de plugins</value></data>
+  <data name="Ana_Title.Text" xml:space="preserve"><value>Analytics</value></data>
+  <data name="Ana_Subtitle.Text" xml:space="preserve"><value>Statistiques d'utilisation, métriques de performance et tendances d'activité</value></data>
+  <data name="Ana_RefreshBtn.Content" xml:space="preserve"><value>Actualiser</value></data>
+  <data name="Ana_Loading.Text" xml:space="preserve"><value>Chargement des données d'analyse...</value></data>
+  <data name="Ana_ConvOverline.Text" xml:space="preserve"><value>CONVERSATIONS</value></data>
+  <data name="Ana_ConvCaption.Text" xml:space="preserve"><value>Nombre total de sessions démarrées</value></data>
+  <data name="Ana_MsgOverline.Text" xml:space="preserve"><value>MESSAGES</value></data>
+  <data name="Ana_MsgCaption.Text" xml:space="preserve"><value>Envoyés et reçus</value></data>
+  <data name="Ana_TokensOverline.Text" xml:space="preserve"><value>TOKENS UTILISÉS</value></data>
+  <data name="Ana_AvgPerMsgLabel.Text" xml:space="preserve"><value>moy. / message</value></data>
+  <data name="Ana_DocsOverline.Text" xml:space="preserve"><value>DOCUMENTS</value></data>
+  <data name="Ana_IndexedDotLabel.Text" xml:space="preserve"><value>indexés ·</value></data>
+  <data name="Ana_PendingLabel.Text" xml:space="preserve"><value>en attente</value></data>
+  <data name="Ana_SearchesOverline.Text" xml:space="preserve"><value>RECHERCHES</value></data>
+  <data name="Ana_SearchesCaption.Text" xml:space="preserve"><value>Requêtes sémantiques et par mots-clés</value></data>
+  <data name="Ana_AvgRespOverline.Text" xml:space="preserve"><value>RÉPONSE MOYENNE</value></data>
+  <data name="Ana_AvgRespCaption.Text" xml:space="preserve"><value>Latence de génération de l'IA</value></data>
+  <data name="Ana_IndexingOverline.Text" xml:space="preserve"><value>INDEXATION DES CONNAISSANCES</value></data>
+  <data name="Ana_IndexedRun.Text" xml:space="preserve"><value> indexés</value></data>
+  <data name="Ana_PendingRun.Text" xml:space="preserve"><value> en attente</value></data>
+  <data name="Ana_TokensPerConvOverline.Text" xml:space="preserve"><value>TOKENS / CONV.</value></data>
+  <data name="Ana_WorkflowIntelTitle.Text" xml:space="preserve"><value>Intelligence des workflows</value></data>
+  <data name="Ana_WorkflowIntelSubtitle.Text" xml:space="preserve"><value>Adoption, fiabilité et résultats récents des workflows, dérivés de l'historique d'exécution stocké</value></data>
+  <data name="Ana_TotalRunsOverline.Text" xml:space="preserve"><value>EXÉCUTIONS TOTALES</value></data>
+  <data name="Ana_TotalRunsCaption.Text" xml:space="preserve"><value>Toutes les exécutions de workflows enregistrées</value></data>
+  <data name="Ana_SuccessRateOverline.Text" xml:space="preserve"><value>TAUX DE RÉUSSITE</value></data>
+  <data name="Ana_SuccessRateCaption.Text" xml:space="preserve"><value>Résultats aboutis parmi les exécutions terminées</value></data>
+  <data name="Ana_AvgRunDurOverline.Text" xml:space="preserve"><value>DURÉE MOYENNE</value></data>
+  <data name="Ana_AvgRunDurCaption.Text" xml:space="preserve"><value>Durée moyenne des exécutions de workflows terminées</value></data>
+  <data name="Ana_ActiveWfOverline.Text" xml:space="preserve"><value>WORKFLOWS ACTIFS (30 J)</value></data>
+  <data name="Ana_ActiveWfCaption.Text" xml:space="preserve"><value>Workflows distincts utilisés au cours des 30 derniers jours</value></data>
+  <data name="Ana_WfTrendLabel.Text" xml:space="preserve"><value>Tendance des exécutions sur 30 jours</value></data>
+  <data name="Ana_WfTrendEmpty.Text" xml:space="preserve"><value>Aucune exécution de workflow au cours des 30 derniers jours.</value></data>
+  <data name="Ana_TopWfTitle.Text" xml:space="preserve"><value>Workflows les plus utilisés</value></data>
+  <data name="Ana_TopWfSubtitle.Text" xml:space="preserve"><value>Les workflows au plus fort volume, classés d'après l'historique réel des exécutions plutôt que des compteurs en cache.</value></data>
+  <data name="Ana_TopWfEmpty.Text" xml:space="preserve"><value>Pas encore de workflows en tête.</value></data>
+  <data name="Ana_RecentWfTitle.Text" xml:space="preserve"><value>Exécutions récentes de workflows</value></data>
+  <data name="Ana_RecentWfSubtitle.Text" xml:space="preserve"><value>Derniers résultats stockés, avec de courts aperçus de sortie ou d'erreur pour inspection.</value></data>
+  <data name="Ana_RecentWfEmpty.Text" xml:space="preserve"><value>Pas encore d'exécutions récentes.</value></data>
+  <data name="Ana_ConvIntelTitle.Text" xml:space="preserve"><value>Intelligence des conversations</value></data>
+  <data name="Ana_ConvIntelSubtitle.Text" xml:space="preserve"><value>Résumés durables pour les conversations longues, avec fraîcheur et couverture visibles au même endroit</value></data>
+  <data name="Ana_SummarizedOverline.Text" xml:space="preserve"><value>CONVERSATIONS RÉSUMÉES</value></data>
+  <data name="Ana_SummarizedCaption.Text" xml:space="preserve"><value>Conversations distinctes avec instantanés stockés</value></data>
+  <data name="Ana_SnapshotsOverline.Text" xml:space="preserve"><value>INSTANTANÉS ACTUELS</value></data>
+  <data name="Ana_SnapshotsCaption.Text" xml:space="preserve"><value>Versions de résumé immuables stockées sur disque</value></data>
+  <data name="Ana_StaleOverline.Text" xml:space="preserve"><value>RÉSUMÉS OBSOLÈTES</value></data>
+  <data name="Ana_StaleCaption.Text" xml:space="preserve"><value>Résumés stockés ne reflétant plus l'état le plus récent du fil</value></data>
+  <data name="Ana_PendingRefreshOverline.Text" xml:space="preserve"><value>ACTUALISATIONS EN ATTENTE</value></data>
+  <data name="Ana_PendingRefreshCaption.Text" xml:space="preserve"><value>Conversations en attente d'une première passe ou d'une actualisation incrémentale</value></data>
+  <data name="Ana_FocusedConvTitle.Text" xml:space="preserve"><value>Résumé de conversation ciblé</value></data>
+  <data name="Ana_FocusedConvHint.Text" xml:space="preserve"><value>Le résumé durable correspondant a été placé en haut de la liste afin que vous puissiez le consulter sans fouiller Analytics.</value></data>
+  <data name="Ana_RefreshSummaryBtn.Content" xml:space="preserve"><value>Actualiser le résumé</value></data>
+  <data name="Ana_DismissBtn.Content" xml:space="preserve"><value>Ignorer</value></data>
+  <data name="Ana_NoSummaries.Text" xml:space="preserve"><value>Pas encore de résumés durables de conversations. Rouvrez Analytics après quelques discussions pour générer les premiers instantanés.</value></data>
+  <data name="Ana_OpenedFromOpsBadge.Text" xml:space="preserve"><value>Ouvert depuis Operations</value></data>
+  <data name="Ana_RecallTitle.Text" xml:space="preserve"><value>Sonde de rappel sémantique</value></data>
+  <data name="Ana_RecallSubtitle.Text" xml:space="preserve"><value>Les embeddings durables de messages permettent de sonder des tours passés sémantiquement similaires entre conversations, sans dépendre de la mémoire transitoire du chat.</value></data>
+  <data name="Ana_EmbeddedOverline.Text" xml:space="preserve"><value>MESSAGES AVEC EMBEDDING</value></data>
+  <data name="Ana_EmbeddedCaption.Text" xml:space="preserve"><value>Messages actuellement prêts pour le rappel</value></data>
+  <data name="Ana_PendingEmbOverline.Text" xml:space="preserve"><value>EMBEDDINGS EN ATTENTE</value></data>
+  <data name="Ana_PendingEmbCaption.Text" xml:space="preserve"><value>Messages éligibles en attente d'embeddings durables</value></data>
+  <data name="Ana_RecallReadyOverline.Text" xml:space="preserve"><value>CONVERSATIONS PRÊTES AU RAPPEL</value></data>
+  <data name="Ana_RecallQueryBox.PlaceholderText" xml:space="preserve"><value>Essayez : dérive de la feuille de route, discussion tarifaire, analyses du tableau de bord, actualisation des résumés</value></data>
+  <data name="Ana_SearchRecallBtn.Content" xml:space="preserve"><value>Rechercher un rappel</value></data>
+  <data name="Ana_NoRecallMatches.Text" xml:space="preserve"><value>Pas encore de correspondances. Lancez une requête une fois les discussions intégrées.</value></data>
+  <data name="Ana_ThemesTitle.Text" xml:space="preserve"><value>Thèmes de conversation</value></data>
+  <data name="Ana_ThemesSubtitle.Text" xml:space="preserve"><value>Clusters inter-conversations matérialisés à partir des résumés durables. C'est la première couche de thèmes persistante au-dessus des résumés stockés et du rappel.</value></data>
+  <data name="Ana_ActiveClustersOverline.Text" xml:space="preserve"><value>CLUSTERS DE THÈMES ACTIFS</value></data>
+  <data name="Ana_ActiveClustersCaption.Text" xml:space="preserve"><value>Thèmes de conversation persistés actuellement matérialisés</value></data>
+  <data name="Ana_ClusteredConvOverline.Text" xml:space="preserve"><value>CONVERSATIONS REGROUPÉES</value></data>
+  <data name="Ana_ClusteredConvCaption.Text" xml:space="preserve"><value>Conversations avec une affectation de thème durable en cours</value></data>
+  <data name="Ana_NewThemesOverline.Text" xml:space="preserve"><value>NOUVEAUX THÈMES (7 J)</value></data>
+  <data name="Ana_NewThemesCaption.Text" xml:space="preserve"><value>Clusters de thèmes apparus pour la première fois au cours des 7 derniers jours</value></data>
+  <data name="Ana_LastMaterializedOverline.Text" xml:space="preserve"><value>DERNIÈRE MATÉRIALISATION</value></data>
+  <data name="Ana_LastMaterializedCaption.Text" xml:space="preserve"><value>Dernier recalcul durable des clusters</value></data>
+  <data name="Ana_NoThemes.Text" xml:space="preserve"><value>Pas encore de thèmes de conversation. Une fois les résumés durables accumulés, Analytics affichera ici les premiers clusters inter-conversations.</value></data>
+  <data name="Ana_ThemeTrendsTitle.Text" xml:space="preserve"><value>Tendances des thèmes</value></data>
+  <data name="Ana_ThemeTrendsSubtitle.Text" xml:space="preserve"><value>Fenêtres d'activité quotidiennes persistées pour la couche de thèmes matérialisée. Analytics ne lit ici que des lignes stockées, les cartes de tendances restent donc stables et rapides à charger.</value></data>
+  <data name="Ana_TrendingOverline.Text" xml:space="preserve"><value>THÈMES EN TENDANCE</value></data>
+  <data name="Ana_TrendingCaption.Text" xml:space="preserve"><value>Thèmes plus actifs sur 7 jours que sur la fenêtre précédente de 7 jours</value></data>
+  <data name="Ana_NewEntriesOverline.Text" xml:space="preserve"><value>NOUVELLES ENTRÉES DE THÈMES (7 J)</value></data>
+  <data name="Ana_NewEntriesCaption.Text" xml:space="preserve"><value>Affectations de cluster actuelles matérialisées pour la première fois au cours des 7 derniers jours</value></data>
+  <data name="Ana_MostActiveOverline.Text" xml:space="preserve"><value>THÈME LE PLUS ACTIF</value></data>
+  <data name="Ana_MostActiveCaption.Text" xml:space="preserve"><value>Total d'activité persistée sur 7 jours le plus élevé de la couche de thèmes</value></data>
+  <data name="Ana_LastTrendOverline.Text" xml:space="preserve"><value>DERNIÈRE ACTUALISATION DES TENDANCES</value></data>
+  <data name="Ana_LastTrendCaption.Text" xml:space="preserve"><value>Dernière matérialisation persistée des tendances de thèmes</value></data>
+  <data name="Ana_NoTrendRows.Text" xml:space="preserve"><value>Pas encore de lignes durables de tendances. Une fois les clusters actualisés, Analytics affichera ici leurs fenêtres d'activité quotidiennes.</value></data>
+  <data name="Ana_ActivityTitle.Text" xml:space="preserve"><value>Tendances d'activité</value></data>
+  <data name="Ana_ActivitySubtitle.Text" xml:space="preserve"><value>Activité quotidienne des 30 derniers jours</value></data>
+  <data name="Ana_ConvSeriesLabel.Text" xml:space="preserve"><value>Conversations</value></data>
+  <data name="Ana_NoConvData.Text" xml:space="preserve"><value>Pas encore de données de conversation. Commencez à discuter pour voir les tendances.</value></data>
+  <data name="Ana_DocsSeriesLabel.Text" xml:space="preserve"><value>Documents importés</value></data>
+  <data name="Ana_NoDocData.Text" xml:space="preserve"><value>Pas encore de données d'importation. Importez des fichiers pour voir les tendances.</value></data>
+  <data name="Ana_SearchSeriesLabel.Text" xml:space="preserve"><value>Recherches</value></data>
+  <data name="Ana_NoSearchData.Text" xml:space="preserve"><value>Pas encore de données de recherche. Utilisez la recherche sémantique ou par mots-clés pour voir les tendances.</value></data>
+  <data name="Ana_ModelUsageTitle.Text" xml:space="preserve"><value>Utilisation des modèles</value></data>
+  <data name="Ana_ModelUsageSubtitle.Text" xml:space="preserve"><value>Répartition des modèles d'IA par nombre de conversations</value></data>
+  <data name="Ana_NoModelData.Text" xml:space="preserve"><value>Pas encore de données de modèles. Démarrez une conversation pour voir l'utilisation.</value></data>
+  <data name="Ana_DocTypesTitle.Text" xml:space="preserve"><value>Types de documents</value></data>
+  <data name="Ana_DocTypesSubtitle.Text" xml:space="preserve"><value>Répartition par type de fichier dans votre coffre-fort de connaissances</value></data>
+  <data name="Ana_NoDocsImported.Text" xml:space="preserve"><value>Aucun document importé pour le moment. Ajoutez des fichiers à votre coffre-fort de connaissances pour voir la répartition par type.</value></data>
+  <data name="Ana_PerfTitle.Text" xml:space="preserve"><value>Métriques de performance</value></data>
+  <data name="Ana_PerfSubtitle.Text" xml:space="preserve"><value>Statistiques de temps d'inférence de l'IA sur toutes les réponses de l'assistant</value></data>
+  <data name="Ana_NoTimingData.Text" xml:space="preserve"><value>Pas encore de données de temps. Les temps de réponse sont suivis automatiquement après la première réponse de l'IA.</value></data>
+  <data name="Ana_AvgOverline.Text" xml:space="preserve"><value>MOYENNE</value></data>
+  <data name="Ana_AvgCaption.Text" xml:space="preserve"><value>Temps de réponse moyen</value></data>
+  <data name="Ana_MedianOverline.Text" xml:space="preserve"><value>MÉDIANE (P50)</value></data>
+  <data name="Ana_MedianCaption.Text" xml:space="preserve"><value>La moitié des réponses sont plus rapides</value></data>
+  <data name="Ana_P95Overline.Text" xml:space="preserve"><value>P95</value></data>
+  <data name="Ana_P95Caption.Text" xml:space="preserve"><value>Latence au 95e percentile</value></data>
+  <data name="Ana_ThroughputOverline.Text" xml:space="preserve"><value>DÉBIT</value></data>
+  <data name="Ana_ThroughputCaption.Text" xml:space="preserve"><value>Tokens par seconde (moyenne)</value></data>
+  <data name="Ana_FastestOverline.Text" xml:space="preserve"><value>LA PLUS RAPIDE</value></data>
+  <data name="Ana_FastestCaption.Text" xml:space="preserve"><value>Meilleure réponse observée</value></data>
+  <data name="Ana_SlowestOverline.Text" xml:space="preserve"><value>LA PLUS LENTE</value></data>
+  <data name="Ana_SlowestCaption.Text" xml:space="preserve"><value>Pire réponse observée</value></data>
+  <data name="Ana_TotalInfOverline.Text" xml:space="preserve"><value>TEMPS D'INFÉRENCE TOTAL</value></data>
+  <data name="Ana_TotalInfCaption.Text" xml:space="preserve"><value>Temps cumulé de génération de l'IA sur toutes les sessions</value></data>
+  <data name="Sync_Title.Text" xml:space="preserve"><value>Collaborative Sync</value></data>
+  <data name="Sync_Subtitle.Text" xml:space="preserve"><value>Configurez la synchronisation chiffrée entre les installations Agent-X.</value></data>
+  <data name="Sync_SyncNowLabel.Text" xml:space="preserve"><value>Synchroniser maintenant</value></data>
+  <data name="Sync_LoadingSettings.Text" xml:space="preserve"><value>Chargement des paramètres de synchronisation...</value></data>
+  <data name="Sync_NotConfiguredTitle.Text" xml:space="preserve"><value>Synchronisation non configurée</value></data>
+  <data name="Sync_NotConfiguredHint.Text" xml:space="preserve"><value>Configurez un dossier de synchronisation partagé et une clé de chiffrement pour synchroniser en toute sécurité votre coffre-fort de connaissances, vos collections et vos paramètres entre installations Agent-X.</value></data>
+  <data name="Sync_E2ENote.Text" xml:space="preserve"><value>Toutes les données de synchronisation sont chiffrées de bout en bout avec votre clé.</value></data>
+  <data name="Sync_ConfigTitle.Text" xml:space="preserve"><value>Configuration</value></data>
+  <data name="Sync_ConfigSubtitle.Text" xml:space="preserve"><value>Définissez le chemin du dossier partagé et la clé de chiffrement utilisés pour synchroniser les données entre appareils.</value></data>
+  <data name="Sync_FolderLabel.Text" xml:space="preserve"><value>Dossier de synchronisation</value></data>
+  <data name="Sync_FolderBox.PlaceholderText" xml:space="preserve"><value>C:\Users\Shared\AgentX-Sync ou \\NAS\AgentX</value></data>
+  <data name="Sync_BrowseLabel.Text" xml:space="preserve"><value>Parcourir</value></data>
+  <data name="Sync_FolderHint.Text" xml:space="preserve"><value>Choisissez un partage réseau, un dossier synchronisé dans le cloud (OneDrive, Dropbox) ou tout autre emplacement partagé.</value></data>
+  <data name="Sync_KeyLabel.Text" xml:space="preserve"><value>Clé de chiffrement</value></data>
+  <data name="Sync_KeyBox.PlaceholderText" xml:space="preserve"><value>Saisissez une phrase secrète robuste pour le chiffrement AES-256</value></data>
+  <data name="Sync_KeyHint.Text" xml:space="preserve"><value>Doit être identique sur toutes les installations. Utilisez une phrase secrète robuste dont vous vous souviendrez.</value></data>
+  <data name="Sync_AutoSyncTitle.Text" xml:space="preserve"><value>Synchronisation automatique</value></data>
+  <data name="Sync_AutoSyncSubtitle.Text" xml:space="preserve"><value>Synchronisez automatiquement les modifications à intervalle régulier.</value></data>
+  <data name="Sync_AutoToggle.OnContent" xml:space="preserve"><value>Activé</value></data>
+  <data name="Sync_AutoToggle.OffContent" xml:space="preserve"><value>Désactivé</value></data>
+  <data name="Sync_IntervalLabel.Text" xml:space="preserve"><value>Intervalle de synchronisation</value></data>
+  <data name="Sync_ScopeLabel.Text" xml:space="preserve"><value>Portée de la synchronisation</value></data>
+  <data name="Sync_ScopeHint.Text" xml:space="preserve"><value>Choisissez de synchroniser toutes les données ou seulement certaines collections.</value></data>
+  <data name="Sync_CollectionsLabel.Text" xml:space="preserve"><value>Collections à synchroniser</value></data>
+  <data name="Sync_ScopedNote.Text" xml:space="preserve"><value>Seuls les documents affectés aux collections sélectionnées seront inclus dans les exports de synchronisation.</value></data>
+  <data name="Sync_NoCollections.Text" xml:space="preserve"><value>Aucune collection disponible pour le moment. Créez une collection avant d'utiliser la synchronisation par collections sélectionnées.</value></data>
+  <data name="Sync_SaveLabel.Text" xml:space="preserve"><value>Enregistrer la configuration</value></data>
+  <data name="Sync_SavingLabel.Text" xml:space="preserve"><value>Enregistrement...</value></data>
+  <data name="Sync_StatusTitle.Text" xml:space="preserve"><value>Statut de synchronisation</value></data>
+  <data name="Sync_RefreshStatusBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Actualiser le statut de synchronisation</value></data>
+  <data name="Sync_LastSyncedOverline.Text" xml:space="preserve"><value>DERNIÈRE SYNCHRO</value></data>
+  <data name="Sync_PendingOverline.Text" xml:space="preserve"><value>MODIFICATIONS EN ATTENTE</value></data>
+  <data name="Sync_ItemsLabel.Text" xml:space="preserve"><value>éléments</value></data>
+  <data name="Sync_DurationOverline.Text" xml:space="preserve"><value>DURÉE</value></data>
+  <data name="Sync_StateOverline.Text" xml:space="preserve"><value>ÉTAT</value></data>
+  <data name="Sync_Synchronizing.Text" xml:space="preserve"><value>Synchronisation...</value></data>
+  <data name="Sync_AutoBadgeRun.Text" xml:space="preserve"><value>SYNCHRO AUTO ACTIVÉE</value></data>
+  <data name="Sync_HistoryTitle.Text" xml:space="preserve"><value>Historique de synchronisation</value></data>
+  <data name="Sync_ClearHistoryLabel.Text" xml:space="preserve"><value>Effacer l'historique</value></data>
+  <data name="Sync_FocusedTitle.Text" xml:space="preserve"><value>Entrée d'historique ciblée</value></data>
+  <data name="Sync_FocusedHint.Text" xml:space="preserve"><value>L'enregistrement de synchronisation correspondant reste épinglé et marqué jusqu'à ce que vous fermiez cet état de focus.</value></data>
+  <data name="Sync_DismissBtn.Content" xml:space="preserve"><value>Ignorer</value></data>
+  <data name="Sync_LoadingHistory.Text" xml:space="preserve"><value>Chargement de l'historique de synchronisation...</value></data>
+  <data name="Sync_OpenedFromOpsBadge.Text" xml:space="preserve"><value>Ouvert depuis Operations</value></data>
+  <data name="Sync_ChangesRun.Text" xml:space="preserve"><value> modifications</value></data>
+  <data name="Sync_ConflictsRun.Text" xml:space="preserve"><value> conflits</value></data>
+  <data name="Sync_EmptyHistoryTitle.Text" xml:space="preserve"><value>Pas encore d'historique de synchronisation</value></data>
+  <data name="Sync_EmptyHistoryHint.Text" xml:space="preserve"><value>L'historique apparaîtra ici après votre première synchronisation.</value></data>
+  <data name="Onb_WelcomeTitle.Text" xml:space="preserve"><value>Bienvenue dans Agent-X</value></data>
+  <data name="Onb_WelcomeSubtitle.Text" xml:space="preserve"><value>Votre hub d'intelligence IA local-first</value></data>
+  <data name="Onb_PrivateTitle.Text" xml:space="preserve"><value>Privé et sécurisé</value></data>
+  <data name="Onb_PrivateDesc.Text" xml:space="preserve"><value>Tout s'exécute localement sur votre machine. Vos données ne quittent jamais votre appareil.</value></data>
+  <data name="Onb_FreeTitle.Text" xml:space="preserve"><value>Illimité et gratuit</value></data>
+  <data name="Onb_FreeDesc.Text" xml:space="preserve"><value>Propulsé par des modèles d'IA open source locaux via Ollama. Connectez éventuellement OpenAI ou Anthropic Claude pour des modèles cloud.</value></data>
+  <data name="Onb_DataTitle.Text" xml:space="preserve"><value>Vos données, vos règles</value></data>
+  <data name="Onb_DataDesc.Text" xml:space="preserve"><value>Indexez vos documents, recherchez sémantiquement et discutez avec vos fichiers. Utilisez l'IA locale pour une confidentialité totale, ou des fournisseurs cloud optionnels pour plus de choix de modèles.</value></data>
+  <data name="Onb_OllamaTitle.Text" xml:space="preserve"><value>Se connecter à Ollama</value></data>
+  <data name="Onb_OllamaDesc.Text" xml:space="preserve"><value>Agent-X utilise Ollama pour exécuter des modèles d'IA localement sur votre machine. Ollama est un outil gratuit et open source qui gère et sert les modèles d'IA. Vous pourrez aussi configurer les fournisseurs OpenAI ou Anthropic plus tard dans les Paramètres.</value></data>
+  <data name="Onb_EndpointOverline.Text" xml:space="preserve"><value>POINT DE TERMINAISON OLLAMA</value></data>
+  <data name="Onb_TestConnBtn.Content" xml:space="preserve"><value>Tester la connexion</value></data>
+  <data name="Onb_OllamaHelpRun1.Text" xml:space="preserve"><value>Vous n'avez pas Ollama ? Rendez-vous sur</value></data>
+  <data name="Onb_OllamaHelpRun2.Text" xml:space="preserve"><value>pour l'installer.</value></data>
+  <data name="Onb_SkipBtn.Content" xml:space="preserve"><value>Ignorer pour l'instant — je le configurerai plus tard</value></data>
+  <data name="Onb_ModelsTitle.Text" xml:space="preserve"><value>Choisissez vos modèles</value></data>
+  <data name="Onb_ModelsDesc.Text" xml:space="preserve"><value>Sélectionnez un modèle de discussion par défaut et un modèle d'embedding pour la recherche sémantique.</value></data>
+  <data name="Onb_LoadingModels.Text" xml:space="preserve"><value>Chargement des modèles disponibles...</value></data>
+  <data name="Onb_ChatModelOverline.Text" xml:space="preserve"><value>MODÈLE DE CHAT</value></data>
+  <data name="Onb_ChatModelDesc.Text" xml:space="preserve"><value>Sélectionnez le modèle utilisé pour les conversations IA et la génération de texte.</value></data>
+  <data name="Onb_EmbModelOverline.Text" xml:space="preserve"><value>MODÈLE D'EMBEDDING</value></data>
+  <data name="Onb_EmbModelDesc.Text" xml:space="preserve"><value>Sélectionnez le modèle utilisé pour la recherche sémantique et l'indexation des documents.</value></data>
+  <data name="Onb_NoModelsTitle.Text" xml:space="preserve"><value>Aucun modèle disponible</value></data>
+  <data name="Onb_NoModelsDesc.Text" xml:space="preserve"><value>Ollama n'est pas connecté, les modèles ne peuvent donc pas être listés. Vous pourrez les configurer plus tard dans les Paramètres ou le Gestionnaire de modèles.</value></data>
+  <data name="Onb_DefaultChatRun.Text" xml:space="preserve"><value>Modèle de chat par défaut :</value></data>
+  <data name="Onb_DefaultEmbRun.Text" xml:space="preserve"><value>  |  Modèle d'embedding par défaut :</value></data>
+  <data name="Onb_ReadyTitle.Text" xml:space="preserve"><value>Votre IA est prête</value></data>
+  <data name="Onb_ReadyDesc.Text" xml:space="preserve"><value>Agent-X inclut un modèle d'IA intégré pour un fonctionnement entièrement hors ligne. Ajoutez éventuellement des clés d'API cloud pour des modèles supplémentaires.</value></data>
+  <data name="Onb_BuiltinOverline.Text" xml:space="preserve"><value>MODÈLE LOCAL INTÉGRÉ</value></data>
+  <data name="Onb_QuantCaption.Text" xml:space="preserve"><value>Quantification Q4_K_M  |  ~2 Go  |  S'exécute entièrement sur votre appareil</value></data>
+  <data name="Onb_DownloadModelBtn.Content" xml:space="preserve"><value>Télécharger le modèle intégré (~1,9 Go)</value></data>
+  <data name="Onb_CloudOverline.Text" xml:space="preserve"><value>FOURNISSEURS CLOUD (FACULTATIF)</value></data>
+  <data name="Onb_CloudDesc.Text" xml:space="preserve"><value>Connectez des fournisseurs d'IA cloud pour accéder à GPT-4o, Claude et d'autres modèles avancés.</value></data>
+  <data name="Onb_ApiKeysNote.Text" xml:space="preserve"><value>Les clés d'API sont stockées localement sur votre appareil et ne sont envoyées qu'au fournisseur concerné.</value></data>
+  <data name="Onb_AllSetTitle.Text" xml:space="preserve"><value>Tout est prêt !</value></data>
+  <data name="Onb_AllSetDesc.Text" xml:space="preserve"><value>Agent-X est configuré et prêt à l'emploi. Tous les paramètres peuvent être modifiés à tout moment depuis la page Paramètres.</value></data>
+  <data name="Onb_SummaryOverline.Text" xml:space="preserve"><value>RÉCAPITULATIF DE LA CONFIGURATION</value></data>
+  <data name="Onb_OllamaStatusLabel.Text" xml:space="preserve"><value>Statut d'Ollama</value></data>
+  <data name="Onb_ChatModelLabel.Text" xml:space="preserve"><value>Modèle de chat</value></data>
+  <data name="Onb_EmbModelLabel.Text" xml:space="preserve"><value>Modèle d'embedding</value></data>
+  <data name="Onb_BuiltinModelLabel.Text" xml:space="preserve"><value>Modèle intégré</value></data>
+  <data name="Onb_CloudProvidersLabel.Text" xml:space="preserve"><value>Fournisseurs cloud</value></data>
+  <data name="Onb_StorageLabel.Text" xml:space="preserve"><value>Stockage des données</value></data>
+  <data name="Onb_StorageValue.Text" xml:space="preserve"><value>Local (%LOCALAPPDATA%\AgentX)</value></data>
+  <data name="Onb_BackBtn.Content" xml:space="preserve"><value>Retour</value></data>
+  <data name="Onb_GetStartedBtn.Content" xml:space="preserve"><value>Commencer</value></data>
+  <data name="Onb_NextBtn.Content" xml:space="preserve"><value>Suivant</value></data>
+  <data name="Onb_LaunchBtn.Content" xml:space="preserve"><value>Lancer Agent-X</value></data>
 </root>

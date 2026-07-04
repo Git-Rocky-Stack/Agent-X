@@ -42,14 +42,14 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Spacing="4">
-                    <TextBlock Text="Analytics"
+                    <TextBlock x:Uid="Ana_Title" Text="Analytics"
                                Style="{StaticResource DisplaySmallStyle}" />
-                    <TextBlock Text="Usage statistics, performance metrics, and activity trends"
+                    <TextBlock x:Uid="Ana_Subtitle" Text="Usage statistics, performance metrics, and activity trends"
                                Style="{StaticResource BodySecondaryStyle}" />
                 </StackPanel>
 
                 <Button Grid.Column="1"
-                        Content="Refresh"
+                        x:Uid="Ana_RefreshBtn" Content="Refresh"
                         Style="{StaticResource SecondaryButtonStyle}"
                         Command="{x:Bind ViewModel.RefreshCommand}"
                         VerticalAlignment="Center" />
@@ -66,7 +66,7 @@
                     <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
                                   Width="20" Height="20"
                                   Foreground="{ThemeResource TextAccentBrush}" />
-                    <TextBlock Text="Loading analytics data..."
+                    <TextBlock x:Uid="Ana_Loading" Text="Loading analytics data..."
                                Style="{StaticResource BodySecondaryStyle}"
                                VerticalAlignment="Center" />
                 </StackPanel>
@@ -95,11 +95,11 @@
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8BD;" FontSize="13"
                                           Foreground="{ThemeResource TextAccentBrush}" />
-                                <TextBlock Text="CONVERSATIONS" Style="{StaticResource OverlineStyle}" />
+                                <TextBlock x:Uid="Ana_ConvOverline" Text="CONVERSATIONS" Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
                             <TextBlock Text="{x:Bind ViewModel.TotalConversations, Mode=OneWay}"
                                        Style="{StaticResource MetricMediumStyle}" />
-                            <TextBlock Text="Total sessions started"
+                            <TextBlock x:Uid="Ana_ConvCaption" Text="Total sessions started"
                                        Style="{StaticResource CaptionStyle}" />
                         </StackPanel>
                     </Grid>
@@ -112,11 +112,11 @@
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8F2;" FontSize="13"
                                           Foreground="{ThemeResource InfoBrush}" />
-                                <TextBlock Text="MESSAGES" Style="{StaticResource OverlineStyle}" />
+                                <TextBlock x:Uid="Ana_MsgOverline" Text="MESSAGES" Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
                             <TextBlock Text="{x:Bind ViewModel.TotalMessages, Mode=OneWay}"
                                        Style="{StaticResource MetricMediumStyle}" />
-                            <TextBlock Text="Sent and received"
+                            <TextBlock x:Uid="Ana_MsgCaption" Text="Sent and received"
                                        Style="{StaticResource CaptionStyle}" />
                         </StackPanel>
                     </Grid>
@@ -129,14 +129,14 @@
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE9D9;" FontSize="13"
                                           Foreground="{ThemeResource WarningBrush}" />
-                                <TextBlock Text="TOKENS USED" Style="{StaticResource OverlineStyle}" />
+                                <TextBlock x:Uid="Ana_TokensOverline" Text="TOKENS USED" Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
                             <TextBlock Text="{x:Bind ViewModel.TotalTokensUsed, Mode=OneWay}"
                                        Style="{StaticResource MetricMediumStyle}" />
                             <StackPanel Orientation="Horizontal" Spacing="4">
                                 <TextBlock Text="{x:Bind ViewModel.AverageTokensPerMessage, Mode=OneWay}"
                                            Style="{StaticResource CaptionStyle}" />
-                                <TextBlock Text="avg / message"
+                                <TextBlock x:Uid="Ana_AvgPerMsgLabel" Text="avg / message"
                                            Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
                         </StackPanel>
@@ -150,7 +150,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8F1;" FontSize="13"
                                           Foreground="{ThemeResource SuccessBrush}" />
-                                <TextBlock Text="DOCUMENTS" Style="{StaticResource OverlineStyle}" />
+                                <TextBlock x:Uid="Ana_DocsOverline" Text="DOCUMENTS" Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
                             <TextBlock Text="{x:Bind ViewModel.TotalDocuments, Mode=OneWay}"
                                        Style="{StaticResource MetricMediumStyle}" />
@@ -158,11 +158,11 @@
                                 <TextBlock Text="{x:Bind ViewModel.DocumentsIndexed, Mode=OneWay}"
                                            Style="{StaticResource CaptionStyle}"
                                            Foreground="{ThemeResource SuccessBrush}" />
-                                <TextBlock Text="indexed ·" Style="{StaticResource CaptionStyle}" />
+                                <TextBlock x:Uid="Ana_IndexedDotLabel" Text="indexed ·" Style="{StaticResource CaptionStyle}" />
                                 <TextBlock Text="{x:Bind ViewModel.DocumentsPending, Mode=OneWay}"
                                            Style="{StaticResource CaptionStyle}"
                                            Foreground="{ThemeResource WarningBrush}" />
-                                <TextBlock Text="pending" Style="{StaticResource CaptionStyle}" />
+                                <TextBlock x:Uid="Ana_PendingLabel" Text="pending" Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
                         </StackPanel>
                     </Grid>
@@ -175,11 +175,11 @@
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE721;" FontSize="13"
                                           Foreground="{ThemeResource AccentHoverBrush}" />
-                                <TextBlock Text="SEARCHES" Style="{StaticResource OverlineStyle}" />
+                                <TextBlock x:Uid="Ana_SearchesOverline" Text="SEARCHES" Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
                             <TextBlock Text="{x:Bind ViewModel.TotalSearches, Mode=OneWay}"
                                        Style="{StaticResource MetricMediumStyle}" />
-                            <TextBlock Text="Semantic and keyword queries"
+                            <TextBlock x:Uid="Ana_SearchesCaption" Text="Semantic and keyword queries"
                                        Style="{StaticResource CaptionStyle}" />
                         </StackPanel>
                     </Grid>
@@ -192,11 +192,11 @@
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE916;" FontSize="13"
                                           Foreground="{ThemeResource InfoBrush}" />
-                                <TextBlock Text="AVG RESPONSE" Style="{StaticResource OverlineStyle}" />
+                                <TextBlock x:Uid="Ana_AvgRespOverline" Text="AVG RESPONSE" Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
                             <TextBlock Text="{x:Bind ViewModel.AverageResponseTime, Mode=OneWay}"
                                        Style="{StaticResource MetricMediumStyle}" />
-                            <TextBlock Text="AI generation latency"
+                            <TextBlock x:Uid="Ana_AvgRespCaption" Text="AI generation latency"
                                        Style="{StaticResource CaptionStyle}" />
                         </StackPanel>
                     </Grid>
@@ -218,7 +218,7 @@
 
                     <!-- Label + % -->
                     <StackPanel Spacing="2" VerticalAlignment="Center">
-                        <TextBlock Text="KNOWLEDGE INDEXING"
+                        <TextBlock x:Uid="Ana_IndexingOverline" Text="KNOWLEDGE INDEXING"
                                    Style="{StaticResource OverlineStyle}" />
                         <TextBlock Text="{x:Bind ViewModel.IndexingCompletionLabel, Mode=OneWay}"
                                    Style="{StaticResource HeadingSmallStyle}" />
@@ -237,7 +237,7 @@
                                          VerticalAlignment="Center" />
                                 <TextBlock Style="{StaticResource CaptionStyle}">
                                     <Run Text="{x:Bind ViewModel.DocumentsIndexed, Mode=OneWay}" />
-                                    <Run Text=" indexed" />
+                                    <Run x:Uid="Ana_IndexedRun" Text=" indexed" />
                                 </TextBlock>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="4">
@@ -246,7 +246,7 @@
                                          VerticalAlignment="Center" />
                                 <TextBlock Style="{StaticResource CaptionStyle}">
                                     <Run Text="{x:Bind ViewModel.DocumentsPending, Mode=OneWay}" />
-                                    <Run Text=" pending" />
+                                    <Run x:Uid="Ana_PendingRun" Text=" pending" />
                                 </TextBlock>
                             </StackPanel>
                         </StackPanel>
@@ -255,7 +255,7 @@
                     <!-- Tokens / conversation insight -->
                     <StackPanel Grid.Column="2" Spacing="2"
                                 VerticalAlignment="Center" HorizontalAlignment="Right">
-                        <TextBlock Text="TOKENS / CONV"
+                        <TextBlock x:Uid="Ana_TokensPerConvOverline" Text="TOKENS / CONV"
                                    Style="{StaticResource OverlineStyle}"
                                    TextAlignment="Right" />
                         <TextBlock Text="{x:Bind ViewModel.TokensPerConversation, Mode=OneWay}"
@@ -277,10 +277,10 @@
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE8AF;" FontSize="14"
                                       Foreground="{ThemeResource TextAccentBrush}" />
-                            <TextBlock Text="Workflow Intelligence"
+                            <TextBlock x:Uid="Ana_WorkflowIntelTitle" Text="Workflow Intelligence"
                                        Style="{StaticResource HeadingSmallStyle}" />
                         </StackPanel>
-                        <TextBlock Text="Workflow adoption, reliability, and recent results derived from stored workflow-run history"
+                        <TextBlock x:Uid="Ana_WorkflowIntelSubtitle" Text="Workflow adoption, reliability, and recent results derived from stored workflow-run history"
                                    Style="{StaticResource BodySecondaryStyle}" />
                     </StackPanel>
 
@@ -306,10 +306,10 @@
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Padding="16,12,16,12">
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="TOTAL RUNS" Style="{StaticResource OverlineStyle}" />
+                                    <TextBlock x:Uid="Ana_TotalRunsOverline" Text="TOTAL RUNS" Style="{StaticResource OverlineStyle}" />
                                     <TextBlock Text="{x:Bind ViewModel.WorkflowRunsTotal, Mode=OneWay}"
                                                Style="{StaticResource MetricSmallStyle}" />
-                                    <TextBlock Text="All recorded workflow executions"
+                                    <TextBlock x:Uid="Ana_TotalRunsCaption" Text="All recorded workflow executions"
                                                Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
                             </Border>
@@ -321,10 +321,10 @@
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Padding="16,12,16,12">
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="SUCCESS RATE" Style="{StaticResource OverlineStyle}" />
+                                    <TextBlock x:Uid="Ana_SuccessRateOverline" Text="SUCCESS RATE" Style="{StaticResource OverlineStyle}" />
                                     <TextBlock Text="{x:Bind ViewModel.WorkflowSuccessRate, Mode=OneWay}"
                                                Style="{StaticResource MetricSmallStyle}" />
-                                    <TextBlock Text="Completed outcomes across finished runs"
+                                    <TextBlock x:Uid="Ana_SuccessRateCaption" Text="Completed outcomes across finished runs"
                                                Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
                             </Border>
@@ -336,10 +336,10 @@
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Padding="16,12,16,12">
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="AVG RUN DURATION" Style="{StaticResource OverlineStyle}" />
+                                    <TextBlock x:Uid="Ana_AvgRunDurOverline" Text="AVG RUN DURATION" Style="{StaticResource OverlineStyle}" />
                                     <TextBlock Text="{x:Bind ViewModel.WorkflowAverageRunDuration, Mode=OneWay}"
                                                Style="{StaticResource MetricSmallStyle}" />
-                                    <TextBlock Text="Mean duration across completed workflow runs"
+                                    <TextBlock x:Uid="Ana_AvgRunDurCaption" Text="Mean duration across completed workflow runs"
                                                Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
                             </Border>
@@ -351,11 +351,11 @@
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Padding="16,12,16,12">
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="ACTIVE WORKFLOWS (30D)" Style="{StaticResource OverlineStyle}" />
+                                    <TextBlock x:Uid="Ana_ActiveWfOverline" Text="ACTIVE WORKFLOWS (30D)" Style="{StaticResource OverlineStyle}" />
                                     <TextBlock Text="{x:Bind ViewModel.WorkflowActiveRecently, Mode=OneWay}"
                                                Style="{StaticResource MetricSmallStyle}"
                                                Foreground="{ThemeResource TextAccentBrush}" />
-                                    <TextBlock Text="Distinct workflows used during the recent 30-day window"
+                                    <TextBlock x:Uid="Ana_ActiveWfCaption" Text="Distinct workflows used during the recent 30-day window"
                                                Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
                             </Border>
@@ -366,10 +366,10 @@
                         <StackPanel Spacing="10">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <Ellipse Width="8" Height="8" Fill="{ThemeResource ChartSeriesBrush}" VerticalAlignment="Center" />
-                                <TextBlock Text="30-Day Workflow Run Trend" Style="{StaticResource LabelStyle}" />
+                                <TextBlock x:Uid="Ana_WfTrendLabel" Text="30-Day Workflow Run Trend" Style="{StaticResource LabelStyle}" />
                             </StackPanel>
 
-                            <TextBlock Text="No workflow runs landed in the last 30 days yet."
+                            <TextBlock x:Uid="Ana_WfTrendEmpty" Text="No workflow runs landed in the last 30 days yet."
                                        Style="{StaticResource CaptionStyle}"
                                        Visibility="{x:Bind ViewModel.HasWorkflowTrendData, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}" />
 
@@ -408,13 +408,13 @@
 
                             <StackPanel Grid.Column="0" Spacing="12">
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="Top Workflows"
+                                    <TextBlock x:Uid="Ana_TopWfTitle" Text="Top Workflows"
                                                Style="{StaticResource HeadingSmallStyle}" />
-                                    <TextBlock Text="Highest-volume workflows, ranked from actual run history rather than cached counters."
+                                    <TextBlock x:Uid="Ana_TopWfSubtitle" Text="Highest-volume workflows, ranked from actual run history rather than cached counters."
                                                Style="{StaticResource BodySecondaryStyle}" />
                                 </StackPanel>
 
-                                <TextBlock Text="No workflow leaders yet."
+                                <TextBlock x:Uid="Ana_TopWfEmpty" Text="No workflow leaders yet."
                                            Style="{StaticResource BodySecondaryStyle}"
                                            Visibility="{x:Bind ViewModel.HasTopWorkflows, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}" />
 
@@ -467,13 +467,13 @@
 
                             <StackPanel Grid.Column="1" Spacing="12">
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="Recent Workflow Runs"
+                                    <TextBlock x:Uid="Ana_RecentWfTitle" Text="Recent Workflow Runs"
                                                Style="{StaticResource HeadingSmallStyle}" />
-                                    <TextBlock Text="Latest stored outcomes, including short output or error previews for inspection."
+                                    <TextBlock x:Uid="Ana_RecentWfSubtitle" Text="Latest stored outcomes, including short output or error previews for inspection."
                                                Style="{StaticResource BodySecondaryStyle}" />
                                 </StackPanel>
 
-                                <TextBlock Text="No recent workflow runs yet."
+                                <TextBlock x:Uid="Ana_RecentWfEmpty" Text="No recent workflow runs yet."
                                            Style="{StaticResource BodySecondaryStyle}"
                                            Visibility="{x:Bind ViewModel.HasRecentWorkflowRuns, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}" />
 
@@ -540,10 +540,10 @@
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE8BD;" FontSize="14"
                                       Foreground="{ThemeResource TextAccentBrush}" />
-                            <TextBlock Text="Conversation Intelligence"
+                            <TextBlock x:Uid="Ana_ConvIntelTitle" Text="Conversation Intelligence"
                                        Style="{StaticResource HeadingSmallStyle}" />
                         </StackPanel>
-                        <TextBlock Text="Durable summaries for long-running conversations, with freshness and coverage visible in one place"
+                        <TextBlock x:Uid="Ana_ConvIntelSubtitle" Text="Durable summaries for long-running conversations, with freshness and coverage visible in one place"
                                    Style="{StaticResource BodySecondaryStyle}" />
                     </StackPanel>
 
@@ -562,10 +562,10 @@
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="16,12,16,12">
                             <StackPanel Spacing="4">
-                                <TextBlock Text="SUMMARIZED CONVERSATIONS" Style="{StaticResource OverlineStyle}" />
+                                <TextBlock x:Uid="Ana_SummarizedOverline" Text="SUMMARIZED CONVERSATIONS" Style="{StaticResource OverlineStyle}" />
                                 <TextBlock Text="{x:Bind ViewModel.SummarizedConversations, Mode=OneWay}"
                                            Style="{StaticResource MetricSmallStyle}" />
-                                <TextBlock Text="Distinct conversations with stored snapshots"
+                                <TextBlock x:Uid="Ana_SummarizedCaption" Text="Distinct conversations with stored snapshots"
                                            Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
                         </Border>
@@ -577,10 +577,10 @@
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="16,12,16,12">
                             <StackPanel Spacing="4">
-                                <TextBlock Text="CURRENT SNAPSHOTS" Style="{StaticResource OverlineStyle}" />
+                                <TextBlock x:Uid="Ana_SnapshotsOverline" Text="CURRENT SNAPSHOTS" Style="{StaticResource OverlineStyle}" />
                                 <TextBlock Text="{x:Bind ViewModel.CurrentSummarySnapshots, Mode=OneWay}"
                                            Style="{StaticResource MetricSmallStyle}" />
-                                <TextBlock Text="Immutable summary versions stored on disk"
+                                <TextBlock x:Uid="Ana_SnapshotsCaption" Text="Immutable summary versions stored on disk"
                                            Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
                         </Border>
@@ -592,10 +592,10 @@
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="16,12,16,12">
                             <StackPanel Spacing="4">
-                                <TextBlock Text="STALE SUMMARIES" Style="{StaticResource OverlineStyle}" />
+                                <TextBlock x:Uid="Ana_StaleOverline" Text="STALE SUMMARIES" Style="{StaticResource OverlineStyle}" />
                                 <TextBlock Text="{x:Bind ViewModel.StaleConversationSummaries, Mode=OneWay}"
                                            Style="{StaticResource MetricSmallStyle}" />
-                                <TextBlock Text="Stored summaries that no longer reflect the latest thread state"
+                                <TextBlock x:Uid="Ana_StaleCaption" Text="Stored summaries that no longer reflect the latest thread state"
                                            Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
                         </Border>
@@ -607,11 +607,11 @@
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="16,12,16,12">
                             <StackPanel Spacing="4">
-                                <TextBlock Text="PENDING REFRESHES" Style="{StaticResource OverlineStyle}" />
+                                <TextBlock x:Uid="Ana_PendingRefreshOverline" Text="PENDING REFRESHES" Style="{StaticResource OverlineStyle}" />
                                 <TextBlock Text="{x:Bind ViewModel.PendingSummaryRefreshes, Mode=OneWay}"
                                            Style="{StaticResource MetricSmallStyle}"
                                            Foreground="{ThemeResource TextAccentBrush}" />
-                                <TextBlock Text="Conversations waiting for first-pass or incremental refresh"
+                                <TextBlock x:Uid="Ana_PendingRefreshCaption" Text="Conversations waiting for first-pass or incremental refresh"
                                            Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
                         </Border>
@@ -632,14 +632,14 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Spacing="6">
-                                <TextBlock Text="Focused Conversation Summary"
+                                <TextBlock x:Uid="Ana_FocusedConvTitle" Text="Focused Conversation Summary"
                                            Style="{StaticResource BodyStyle}"
                                            FontWeight="SemiBold"
                                            Foreground="{ThemeResource AccentPrimaryBrush}" />
                                 <TextBlock Text="{x:Bind ViewModel.FocusedConversationSourceLabel, Mode=OneWay}"
                                            Style="{StaticResource BodySecondaryStyle}"
                                            TextWrapping="Wrap" />
-                                <TextBlock Text="The matching durable summary was moved to the top of the list so you can review it without hunting through Analytics."
+                                <TextBlock x:Uid="Ana_FocusedConvHint" Text="The matching durable summary was moved to the top of the list so you can review it without hunting through Analytics."
                                            Style="{StaticResource CaptionStyle}"
                                            TextWrapping="Wrap" />
                             </StackPanel>
@@ -647,10 +647,10 @@
                             <StackPanel Grid.Column="1"
                                         Spacing="8"
                                         VerticalAlignment="Top">
-                                <Button Content="Refresh Summary"
+                                <Button x:Uid="Ana_RefreshSummaryBtn" Content="Refresh Summary"
                                         Command="{x:Bind ViewModel.RefreshFocusedConversationSummaryCommand}"
                                         Style="{StaticResource GhostButtonStyle}" />
-                                <Button Content="Dismiss"
+                                <Button x:Uid="Ana_DismissBtn" Content="Dismiss"
                                         Command="{x:Bind ViewModel.DismissFocusedConversationLandingCommand}"
                                         Style="{StaticResource GhostButtonStyle}" />
                             </StackPanel>
@@ -668,7 +668,7 @@
                                    TextWrapping="Wrap" />
                     </Border>
 
-                    <TextBlock Text="No durable conversation summaries yet. Open Analytics again after a few chats to seed the first snapshots."
+                    <TextBlock x:Uid="Ana_NoSummaries" Text="No durable conversation summaries yet. Open Analytics again after a few chats to seed the first snapshots."
                                Style="{StaticResource BodySecondaryStyle}"
                                Visibility="{x:Bind ViewModel.HasRecentConversationSummaries, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}" />
 
@@ -720,7 +720,7 @@
                                         <Border Style="{StaticResource BadgeAccentStyle}"
                                                 HorizontalAlignment="Left"
                                                 Visibility="{x:Bind HasSourceLabel, Converter={StaticResource BoolToVis}, Mode=OneWay}">
-                                            <TextBlock Text="Opened from Operations"
+                                            <TextBlock x:Uid="Ana_OpenedFromOpsBadge" Text="Opened from Operations"
                                                        Style="{StaticResource BadgeStyle}"
                                                        Foreground="{ThemeResource TextAccentBrush}" />
                                         </Border>
@@ -739,9 +739,9 @@
 
                     <StackPanel Spacing="12">
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Semantic Recall Probe"
+                            <TextBlock x:Uid="Ana_RecallTitle" Text="Semantic Recall Probe"
                                        Style="{StaticResource HeadingSmallStyle}" />
-                            <TextBlock Text="Durable message embeddings let you probe semantically similar past turns across conversations without relying on transient chat memory."
+                            <TextBlock x:Uid="Ana_RecallSubtitle" Text="Durable message embeddings let you probe semantically similar past turns across conversations without relying on transient chat memory."
                                        Style="{StaticResource BodySecondaryStyle}" />
                         </StackPanel>
 
@@ -759,10 +759,10 @@
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Padding="16,12,16,12">
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="EMBEDDED MESSAGES" Style="{StaticResource OverlineStyle}" />
+                                    <TextBlock x:Uid="Ana_EmbeddedOverline" Text="EMBEDDED MESSAGES" Style="{StaticResource OverlineStyle}" />
                                     <TextBlock Text="{x:Bind ViewModel.EmbeddedMessages, Mode=OneWay}"
                                                Style="{StaticResource MetricSmallStyle}" />
-                                    <TextBlock Text="Messages currently recall-ready"
+                                    <TextBlock x:Uid="Ana_EmbeddedCaption" Text="Messages currently recall-ready"
                                                Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
                             </Border>
@@ -774,10 +774,10 @@
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Padding="16,12,16,12">
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="PENDING EMBEDDINGS" Style="{StaticResource OverlineStyle}" />
+                                    <TextBlock x:Uid="Ana_PendingEmbOverline" Text="PENDING EMBEDDINGS" Style="{StaticResource OverlineStyle}" />
                                     <TextBlock Text="{x:Bind ViewModel.PendingMessageEmbeddings, Mode=OneWay}"
                                                Style="{StaticResource MetricSmallStyle}" />
-                                    <TextBlock Text="Eligible messages still waiting for durable embeddings"
+                                    <TextBlock x:Uid="Ana_PendingEmbCaption" Text="Eligible messages still waiting for durable embeddings"
                                                Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
                             </Border>
@@ -789,7 +789,7 @@
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Padding="16,12,16,12">
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="RECALL-READY CONVERSATIONS" Style="{StaticResource OverlineStyle}" />
+                                    <TextBlock x:Uid="Ana_RecallReadyOverline" Text="RECALL-READY CONVERSATIONS" Style="{StaticResource OverlineStyle}" />
                                     <TextBlock Text="{x:Bind ViewModel.RecallReadyConversations, Mode=OneWay}"
                                                Style="{StaticResource MetricSmallStyle}"
                                                Foreground="{ThemeResource TextAccentBrush}" />
@@ -806,12 +806,12 @@
                             </Grid.ColumnDefinitions>
 
                             <TextBox Grid.Column="0"
-                                     PlaceholderText="Try: product roadmap drift, pricing discussion, dashboard analytics, summary refresh"
+                                     x:Uid="Ana_RecallQueryBox" PlaceholderText="Try: product roadmap drift, pricing discussion, dashboard analytics, summary refresh"
                                      Text="{x:Bind ViewModel.RecallQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
                             <Button Grid.Column="1"
                                     Command="{x:Bind ViewModel.RunConversationRecallCommand}"
-                                    Content="Search Recall"
+                                    x:Uid="Ana_SearchRecallBtn" Content="Search Recall"
                                     Style="{StaticResource SecondaryButtonStyle}"
                                     MinWidth="140" />
                         </Grid>
@@ -819,7 +819,7 @@
                         <TextBlock Text="{x:Bind ViewModel.RecallStatusMessage, Mode=OneWay}"
                                    Style="{StaticResource CaptionStyle}" />
 
-                        <TextBlock Text="No recall matches yet. Run a probe query after chats have been embedded."
+                        <TextBlock x:Uid="Ana_NoRecallMatches" Text="No recall matches yet. Run a probe query after chats have been embedded."
                                    Style="{StaticResource BodySecondaryStyle}"
                                    Visibility="{x:Bind ViewModel.HasConversationRecallResults, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}" />
 
@@ -881,9 +881,9 @@
 
                         <StackPanel Spacing="12">
                             <StackPanel Spacing="4">
-                                <TextBlock Text="Conversation Themes"
+                                <TextBlock x:Uid="Ana_ThemesTitle" Text="Conversation Themes"
                                            Style="{StaticResource HeadingSmallStyle}" />
-                                <TextBlock Text="Materialized cross-conversation clusters built from durable summaries. This is the first persistent theme layer above stored summaries and recall."
+                                <TextBlock x:Uid="Ana_ThemesSubtitle" Text="Materialized cross-conversation clusters built from durable summaries. This is the first persistent theme layer above stored summaries and recall."
                                            Style="{StaticResource BodySecondaryStyle}" />
                             </StackPanel>
 
@@ -902,10 +902,10 @@
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Padding="16,12,16,12">
                                     <StackPanel Spacing="4">
-                                        <TextBlock Text="ACTIVE THEME CLUSTERS" Style="{StaticResource OverlineStyle}" />
+                                        <TextBlock x:Uid="Ana_ActiveClustersOverline" Text="ACTIVE THEME CLUSTERS" Style="{StaticResource OverlineStyle}" />
                                         <TextBlock Text="{x:Bind ViewModel.ActiveThemeClusters, Mode=OneWay}"
                                                    Style="{StaticResource MetricSmallStyle}" />
-                                        <TextBlock Text="Persisted conversation themes currently materialized"
+                                        <TextBlock x:Uid="Ana_ActiveClustersCaption" Text="Persisted conversation themes currently materialized"
                                                    Style="{StaticResource CaptionStyle}" />
                                     </StackPanel>
                                 </Border>
@@ -917,10 +917,10 @@
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Padding="16,12,16,12">
                                     <StackPanel Spacing="4">
-                                        <TextBlock Text="CLUSTERED CONVERSATIONS" Style="{StaticResource OverlineStyle}" />
+                                        <TextBlock x:Uid="Ana_ClusteredConvOverline" Text="CLUSTERED CONVERSATIONS" Style="{StaticResource OverlineStyle}" />
                                         <TextBlock Text="{x:Bind ViewModel.ClusteredThemeConversations, Mode=OneWay}"
                                                    Style="{StaticResource MetricSmallStyle}" />
-                                        <TextBlock Text="Conversations with a current durable theme assignment"
+                                        <TextBlock x:Uid="Ana_ClusteredConvCaption" Text="Conversations with a current durable theme assignment"
                                                    Style="{StaticResource CaptionStyle}" />
                                     </StackPanel>
                                 </Border>
@@ -932,10 +932,10 @@
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Padding="16,12,16,12">
                                     <StackPanel Spacing="4">
-                                        <TextBlock Text="NEW THEMES (7D)" Style="{StaticResource OverlineStyle}" />
+                                        <TextBlock x:Uid="Ana_NewThemesOverline" Text="NEW THEMES (7D)" Style="{StaticResource OverlineStyle}" />
                                         <TextBlock Text="{x:Bind ViewModel.NewThemeClusters7d, Mode=OneWay}"
                                                    Style="{StaticResource MetricSmallStyle}" />
-                                        <TextBlock Text="Theme clusters first seen during the last 7 days"
+                                        <TextBlock x:Uid="Ana_NewThemesCaption" Text="Theme clusters first seen during the last 7 days"
                                                    Style="{StaticResource CaptionStyle}" />
                                     </StackPanel>
                                 </Border>
@@ -947,17 +947,17 @@
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Padding="16,12,16,12">
                                     <StackPanel Spacing="4">
-                                        <TextBlock Text="LAST MATERIALIZED" Style="{StaticResource OverlineStyle}" />
+                                        <TextBlock x:Uid="Ana_LastMaterializedOverline" Text="LAST MATERIALIZED" Style="{StaticResource OverlineStyle}" />
                                         <TextBlock Text="{x:Bind ViewModel.LastThemeMaterialized, Mode=OneWay}"
                                                    Style="{StaticResource MetricSmallStyle}"
                                                    Foreground="{ThemeResource TextAccentBrush}" />
-                                        <TextBlock Text="Latest durable cluster recomputation"
+                                        <TextBlock x:Uid="Ana_LastMaterializedCaption" Text="Latest durable cluster recomputation"
                                                    Style="{StaticResource CaptionStyle}" />
                                     </StackPanel>
                                 </Border>
                             </Grid>
 
-                            <TextBlock Text="No conversation themes yet. Once durable summaries accumulate, Analytics will surface the first cross-conversation clusters here."
+                            <TextBlock x:Uid="Ana_NoThemes" Text="No conversation themes yet. Once durable summaries accumulate, Analytics will surface the first cross-conversation clusters here."
                                        Style="{StaticResource BodySecondaryStyle}"
                                        Visibility="{x:Bind ViewModel.HasConversationThemeClusters, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}" />
 
@@ -1022,9 +1022,9 @@
 
                             <StackPanel Spacing="12">
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="Theme Trends"
+                                    <TextBlock x:Uid="Ana_ThemeTrendsTitle" Text="Theme Trends"
                                                Style="{StaticResource HeadingSmallStyle}" />
-                                    <TextBlock Text="Daily persisted activity windows for the materialized theme layer. Analytics reads only stored rows here, so trend cards stay stable and cheap to load."
+                                    <TextBlock x:Uid="Ana_ThemeTrendsSubtitle" Text="Daily persisted activity windows for the materialized theme layer. Analytics reads only stored rows here, so trend cards stay stable and cheap to load."
                                                Style="{StaticResource BodySecondaryStyle}" />
                                 </StackPanel>
 
@@ -1043,10 +1043,10 @@
                                             CornerRadius="{StaticResource RadiusMD}"
                                             Padding="16,12,16,12">
                                         <StackPanel Spacing="4">
-                                            <TextBlock Text="TRENDING THEMES" Style="{StaticResource OverlineStyle}" />
+                                            <TextBlock x:Uid="Ana_TrendingOverline" Text="TRENDING THEMES" Style="{StaticResource OverlineStyle}" />
                                             <TextBlock Text="{x:Bind ViewModel.TrendingThemes, Mode=OneWay}"
                                                        Style="{StaticResource MetricSmallStyle}" />
-                                            <TextBlock Text="Themes with stronger 7-day activity than the prior 7-day window"
+                                            <TextBlock x:Uid="Ana_TrendingCaption" Text="Themes with stronger 7-day activity than the prior 7-day window"
                                                        Style="{StaticResource CaptionStyle}" />
                                         </StackPanel>
                                     </Border>
@@ -1058,10 +1058,10 @@
                                             CornerRadius="{StaticResource RadiusMD}"
                                             Padding="16,12,16,12">
                                         <StackPanel Spacing="4">
-                                            <TextBlock Text="NEW THEME ENTRIES (7D)" Style="{StaticResource OverlineStyle}" />
+                                            <TextBlock x:Uid="Ana_NewEntriesOverline" Text="NEW THEME ENTRIES (7D)" Style="{StaticResource OverlineStyle}" />
                                             <TextBlock Text="{x:Bind ViewModel.NewThemeEntries7d, Mode=OneWay}"
                                                        Style="{StaticResource MetricSmallStyle}" />
-                                            <TextBlock Text="Current cluster assignments first materialized during the last 7 days"
+                                            <TextBlock x:Uid="Ana_NewEntriesCaption" Text="Current cluster assignments first materialized during the last 7 days"
                                                        Style="{StaticResource CaptionStyle}" />
                                         </StackPanel>
                                     </Border>
@@ -1073,12 +1073,12 @@
                                             CornerRadius="{StaticResource RadiusMD}"
                                             Padding="16,12,16,12">
                                         <StackPanel Spacing="4">
-                                            <TextBlock Text="MOST ACTIVE THEME" Style="{StaticResource OverlineStyle}" />
+                                            <TextBlock x:Uid="Ana_MostActiveOverline" Text="MOST ACTIVE THEME" Style="{StaticResource OverlineStyle}" />
                                             <TextBlock Text="{x:Bind ViewModel.MostActiveTheme, Mode=OneWay}"
                                                        Style="{StaticResource HeadingSmallStyle}"
                                                        TextWrapping="WrapWholeWords"
                                                        MaxLines="2" />
-                                            <TextBlock Text="Highest persisted 7-day activity total across the theme layer"
+                                            <TextBlock x:Uid="Ana_MostActiveCaption" Text="Highest persisted 7-day activity total across the theme layer"
                                                        Style="{StaticResource CaptionStyle}" />
                                         </StackPanel>
                                     </Border>
@@ -1090,17 +1090,17 @@
                                             CornerRadius="{StaticResource RadiusMD}"
                                             Padding="16,12,16,12">
                                         <StackPanel Spacing="4">
-                                            <TextBlock Text="LAST TREND REFRESH" Style="{StaticResource OverlineStyle}" />
+                                            <TextBlock x:Uid="Ana_LastTrendOverline" Text="LAST TREND REFRESH" Style="{StaticResource OverlineStyle}" />
                                             <TextBlock Text="{x:Bind ViewModel.LastThemeTrendRefresh, Mode=OneWay}"
                                                        Style="{StaticResource MetricSmallStyle}"
                                                        Foreground="{ThemeResource TextAccentBrush}" />
-                                            <TextBlock Text="Latest persisted theme-trend materialization"
+                                            <TextBlock x:Uid="Ana_LastTrendCaption" Text="Latest persisted theme-trend materialization"
                                                        Style="{StaticResource CaptionStyle}" />
                                         </StackPanel>
                                     </Border>
                                 </Grid>
 
-                                <TextBlock Text="No durable theme trend rows yet. Once clusters are refreshed, Analytics will surface their daily activity windows here."
+                                <TextBlock x:Uid="Ana_NoTrendRows" Text="No durable theme trend rows yet. Once clusters are refreshed, Analytics will surface their daily activity windows here."
                                            Style="{StaticResource BodySecondaryStyle}"
                                            Visibility="{x:Bind ViewModel.HasConversationThemeTrends, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}" />
 
@@ -1201,10 +1201,10 @@
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE9D9;" FontSize="14"
                                       Foreground="{ThemeResource TextAccentBrush}" />
-                            <TextBlock Text="Activity Trends"
+                            <TextBlock x:Uid="Ana_ActivityTitle" Text="Activity Trends"
                                        Style="{StaticResource HeadingSmallStyle}" />
                         </StackPanel>
-                        <TextBlock Text="Daily activity over the last 30 days"
+                        <TextBlock x:Uid="Ana_ActivitySubtitle" Text="Daily activity over the last 30 days"
                                    Style="{StaticResource BodySecondaryStyle}" />
                     </StackPanel>
 
@@ -1212,10 +1212,10 @@
                     <StackPanel Spacing="10">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Ellipse Width="8" Height="8" Fill="#C41E3A" VerticalAlignment="Center" />
-                            <TextBlock Text="Conversations" Style="{StaticResource LabelStyle}" />
+                            <TextBlock x:Uid="Ana_ConvSeriesLabel" Text="Conversations" Style="{StaticResource LabelStyle}" />
                         </StackPanel>
 
-                        <TextBlock Text="No conversation data yet. Start chatting to see trends."
+                        <TextBlock x:Uid="Ana_NoConvData" Text="No conversation data yet. Start chatting to see trends."
                                    Style="{StaticResource CaptionStyle}"
                                    Visibility="{x:Bind ViewModel.HasDailyConversationData, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}" />
 
@@ -1250,10 +1250,10 @@
                     <StackPanel Spacing="10">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Ellipse Width="8" Height="8" Fill="#3B82F6" VerticalAlignment="Center" />
-                            <TextBlock Text="Documents Imported" Style="{StaticResource LabelStyle}" />
+                            <TextBlock x:Uid="Ana_DocsSeriesLabel" Text="Documents Imported" Style="{StaticResource LabelStyle}" />
                         </StackPanel>
 
-                        <TextBlock Text="No document import data yet. Import files to see trends."
+                        <TextBlock x:Uid="Ana_NoDocData" Text="No document import data yet. Import files to see trends."
                                    Style="{StaticResource CaptionStyle}"
                                    Visibility="{x:Bind ViewModel.HasDailyDocumentData, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}" />
 
@@ -1288,10 +1288,10 @@
                     <StackPanel Spacing="10">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Ellipse Width="8" Height="8" Fill="#22C55E" VerticalAlignment="Center" />
-                            <TextBlock Text="Searches" Style="{StaticResource LabelStyle}" />
+                            <TextBlock x:Uid="Ana_SearchSeriesLabel" Text="Searches" Style="{StaticResource LabelStyle}" />
                         </StackPanel>
 
-                        <TextBlock Text="No search data yet. Use semantic or keyword search to see trends."
+                        <TextBlock x:Uid="Ana_NoSearchData" Text="No search data yet. Use semantic or keyword search to see trends."
                                    Style="{StaticResource CaptionStyle}"
                                    Visibility="{x:Bind ViewModel.HasDailySearchData, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}" />
 
@@ -1335,13 +1335,13 @@
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE950;" FontSize="14"
                                       Foreground="{ThemeResource TextAccentBrush}" />
-                            <TextBlock Text="Model Usage" Style="{StaticResource HeadingSmallStyle}" />
+                            <TextBlock x:Uid="Ana_ModelUsageTitle" Text="Model Usage" Style="{StaticResource HeadingSmallStyle}" />
                         </StackPanel>
-                        <TextBlock Text="AI model distribution by conversation count"
+                        <TextBlock x:Uid="Ana_ModelUsageSubtitle" Text="AI model distribution by conversation count"
                                    Style="{StaticResource BodySecondaryStyle}" />
                     </StackPanel>
 
-                    <TextBlock Text="No model data yet. Start a conversation to see model usage."
+                    <TextBlock x:Uid="Ana_NoModelData" Text="No model data yet. Start a conversation to see model usage."
                                Style="{StaticResource BodySecondaryStyle}"
                                Visibility="{x:Bind ViewModel.HasModelData, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}" />
 
@@ -1415,13 +1415,13 @@
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE8F1;" FontSize="14"
                                       Foreground="{ThemeResource TextAccentBrush}" />
-                            <TextBlock Text="Document Types" Style="{StaticResource HeadingSmallStyle}" />
+                            <TextBlock x:Uid="Ana_DocTypesTitle" Text="Document Types" Style="{StaticResource HeadingSmallStyle}" />
                         </StackPanel>
-                        <TextBlock Text="File type breakdown across your knowledge vault"
+                        <TextBlock x:Uid="Ana_DocTypesSubtitle" Text="File type breakdown across your knowledge vault"
                                    Style="{StaticResource BodySecondaryStyle}" />
                     </StackPanel>
 
-                    <TextBlock Text="No documents imported yet. Add files to your Knowledge Vault to see type distribution."
+                    <TextBlock x:Uid="Ana_NoDocsImported" Text="No documents imported yet. Add files to your Knowledge Vault to see type distribution."
                                Style="{StaticResource BodySecondaryStyle}"
                                Visibility="{x:Bind ViewModel.HasFileTypeData, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}" />
 
@@ -1505,14 +1505,14 @@
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE916;" FontSize="14"
                                       Foreground="{ThemeResource TextAccentBrush}" />
-                            <TextBlock Text="Performance Metrics" Style="{StaticResource HeadingSmallStyle}" />
+                            <TextBlock x:Uid="Ana_PerfTitle" Text="Performance Metrics" Style="{StaticResource HeadingSmallStyle}" />
                         </StackPanel>
-                        <TextBlock Text="AI inference timing statistics across all assistant responses"
+                        <TextBlock x:Uid="Ana_PerfSubtitle" Text="AI inference timing statistics across all assistant responses"
                                    Style="{StaticResource BodySecondaryStyle}" />
                     </StackPanel>
 
                     <!-- No-data fallback -->
-                    <TextBlock Text="No timing data yet. Response times are tracked automatically after the first AI reply."
+                    <TextBlock x:Uid="Ana_NoTimingData" Text="No timing data yet. Response times are tracked automatically after the first AI reply."
                                Style="{StaticResource BodySecondaryStyle}"
                                Visibility="{x:Bind ViewModel.HasPerformanceData, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}" />
 
@@ -1538,10 +1538,10 @@
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="16,12,16,12">
                             <StackPanel Spacing="4">
-                                <TextBlock Text="AVERAGE" Style="{StaticResource OverlineStyle}" />
+                                <TextBlock x:Uid="Ana_AvgOverline" Text="AVERAGE" Style="{StaticResource OverlineStyle}" />
                                 <TextBlock Text="{x:Bind ViewModel.PerfAverage, Mode=OneWay}"
                                            Style="{StaticResource MetricSmallStyle}" />
-                                <TextBlock Text="Mean response time" Style="{StaticResource CaptionStyle}" />
+                                <TextBlock x:Uid="Ana_AvgCaption" Text="Mean response time" Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
                         </Border>
 
@@ -1553,10 +1553,10 @@
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="16,12,16,12">
                             <StackPanel Spacing="4">
-                                <TextBlock Text="MEDIAN (P50)" Style="{StaticResource OverlineStyle}" />
+                                <TextBlock x:Uid="Ana_MedianOverline" Text="MEDIAN (P50)" Style="{StaticResource OverlineStyle}" />
                                 <TextBlock Text="{x:Bind ViewModel.PerfMedian, Mode=OneWay}"
                                            Style="{StaticResource MetricSmallStyle}" />
-                                <TextBlock Text="Half of responses are faster" Style="{StaticResource CaptionStyle}" />
+                                <TextBlock x:Uid="Ana_MedianCaption" Text="Half of responses are faster" Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
                         </Border>
 
@@ -1568,10 +1568,10 @@
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="16,12,16,12">
                             <StackPanel Spacing="4">
-                                <TextBlock Text="P95" Style="{StaticResource OverlineStyle}" />
+                                <TextBlock x:Uid="Ana_P95Overline" Text="P95" Style="{StaticResource OverlineStyle}" />
                                 <TextBlock Text="{x:Bind ViewModel.PerfP95, Mode=OneWay}"
                                            Style="{StaticResource MetricSmallStyle}" />
-                                <TextBlock Text="95th-percentile latency" Style="{StaticResource CaptionStyle}" />
+                                <TextBlock x:Uid="Ana_P95Caption" Text="95th-percentile latency" Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
                         </Border>
 
@@ -1583,11 +1583,11 @@
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="16,12,16,12">
                             <StackPanel Spacing="4">
-                                <TextBlock Text="THROUGHPUT" Style="{StaticResource OverlineStyle}" />
+                                <TextBlock x:Uid="Ana_ThroughputOverline" Text="THROUGHPUT" Style="{StaticResource OverlineStyle}" />
                                 <TextBlock Text="{x:Bind ViewModel.PerfTokensPerSecond, Mode=OneWay}"
                                            Style="{StaticResource MetricSmallStyle}"
                                            Foreground="{ThemeResource TextAccentBrush}" />
-                                <TextBlock Text="Avg tokens per second" Style="{StaticResource CaptionStyle}" />
+                                <TextBlock x:Uid="Ana_ThroughputCaption" Text="Avg tokens per second" Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
                         </Border>
 
@@ -1602,12 +1602,12 @@
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon Glyph="&#xE72A;" FontSize="11"
                                               Foreground="{ThemeResource SuccessBrush}" />
-                                    <TextBlock Text="FASTEST" Style="{StaticResource OverlineStyle}" />
+                                    <TextBlock x:Uid="Ana_FastestOverline" Text="FASTEST" Style="{StaticResource OverlineStyle}" />
                                 </StackPanel>
                                 <TextBlock Text="{x:Bind ViewModel.PerfFastest, Mode=OneWay}"
                                            Style="{StaticResource MetricSmallStyle}"
                                            Foreground="{ThemeResource SuccessBrush}" />
-                                <TextBlock Text="Best observed response" Style="{StaticResource CaptionStyle}" />
+                                <TextBlock x:Uid="Ana_FastestCaption" Text="Best observed response" Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
                         </Border>
 
@@ -1622,12 +1622,12 @@
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon Glyph="&#xE72B;" FontSize="11"
                                               Foreground="{ThemeResource WarningBrush}" />
-                                    <TextBlock Text="SLOWEST" Style="{StaticResource OverlineStyle}" />
+                                    <TextBlock x:Uid="Ana_SlowestOverline" Text="SLOWEST" Style="{StaticResource OverlineStyle}" />
                                 </StackPanel>
                                 <TextBlock Text="{x:Bind ViewModel.PerfSlowest, Mode=OneWay}"
                                            Style="{StaticResource MetricSmallStyle}"
                                            Foreground="{ThemeResource WarningBrush}" />
-                                <TextBlock Text="Worst observed response" Style="{StaticResource CaptionStyle}" />
+                                <TextBlock x:Uid="Ana_SlowestCaption" Text="Worst observed response" Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
                         </Border>
 
@@ -1639,10 +1639,10 @@
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="16,12,16,12">
                             <StackPanel Spacing="4">
-                                <TextBlock Text="TOTAL INFERENCE TIME" Style="{StaticResource OverlineStyle}" />
+                                <TextBlock x:Uid="Ana_TotalInfOverline" Text="TOTAL INFERENCE TIME" Style="{StaticResource OverlineStyle}" />
                                 <TextBlock Text="{x:Bind ViewModel.PerfTotalInference, Mode=OneWay}"
                                            Style="{StaticResource MetricSmallStyle}" />
-                                <TextBlock Text="Cumulative AI generation time across all sessions"
+                                <TextBlock x:Uid="Ana_TotalInfCaption" Text="Cumulative AI generation time across all sessions"
                                            Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
                         </Border>

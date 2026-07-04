@@ -135,7 +135,7 @@
                     </Button>
 
                     <Button Grid.Column="1"
-                            Content="Retry Index"
+                            x:Uid="Ops_RetryIndexBtn" Content="Retry Index"
                             Style="{StaticResource SecondaryButtonStyle}"
                             Command="{Binding ViewModel.RetryImportedDocumentIndexingCommand, ElementName=OperationsRoot}"
                             CommandParameter="{Binding}"
@@ -228,12 +228,12 @@
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <Button Content="Enable Connector"
+                        <Button x:Uid="Ops_EnableConnectorBtn" Content="Enable Connector"
                                 Style="{StaticResource SecondaryButtonStyle}"
                                 Visibility="{Binding CanEnableFromOperations, Converter={StaticResource BoolToVis}}"
                                 Command="{Binding ViewModel.EnableConnectorCommand, ElementName=OperationsRoot}"
                                 CommandParameter="{Binding}" />
-                        <Button Content="Open Plugin"
+                        <Button x:Uid="Ops_OpenPluginBtn" Content="Open Plugin"
                                 Style="{StaticResource GhostButtonStyle}"
                                 Command="{Binding ViewModel.OpenConnectorPreviewCommand, ElementName=OperationsRoot}"
                                 CommandParameter="{Binding}" />
@@ -376,22 +376,22 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Spacing="4">
-                    <TextBlock Text="Operations"
+                    <TextBlock x:Uid="Ops_Title" Text="Operations"
                                Style="{StaticResource DisplaySmallStyle}" />
-                    <TextBlock Text="Unified status for conversation intelligence, sync posture, ingestion backlog, workflow activity, and connectors."
+                    <TextBlock x:Uid="Ops_Subtitle" Text="Unified status for conversation intelligence, sync posture, ingestion backlog, workflow activity, and connectors."
                                Style="{StaticResource BodySecondaryStyle}"
                                TextWrapping="Wrap" />
                 </StackPanel>
 
                 <Button Grid.Column="1"
-                        Content="Dashboard"
+                        x:Uid="Ops_DashboardBtn" Content="Dashboard"
                         Style="{StaticResource GhostButtonStyle}"
                         Command="{x:Bind ViewModel.NavigateToDashboardCommand}"
                         VerticalAlignment="Center"
                         Margin="0,0,12,0" />
 
                 <Button Grid.Column="2"
-                        Content="Refresh"
+                        x:Uid="Ops_RefreshBtn" Content="Refresh"
                         Style="{StaticResource SecondaryButtonStyle}"
                         Command="{x:Bind ViewModel.RefreshCommand}"
                         VerticalAlignment="Center" />
@@ -405,7 +405,7 @@
                     <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
                                   Width="20" Height="20"
                                   Foreground="{ThemeResource TextAccentBrush}" />
-                    <TextBlock Text="Loading operations status..."
+                    <TextBlock x:Uid="Ops_Loading" Text="Loading operations status..."
                                Style="{StaticResource BodySecondaryStyle}"
                                VerticalAlignment="Center" />
                 </StackPanel>
@@ -421,7 +421,7 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Spacing="10">
-                        <TextBlock Text="CURRENT OPERATIONS STATUS"
+                        <TextBlock x:Uid="Ops_CurrentStatusOverline" Text="CURRENT OPERATIONS STATUS"
                                    Style="{StaticResource OverlineStyle}" />
                         <TextBlock Text="{x:Bind ViewModel.SummaryHeadline, Mode=OneWay}"
                                    Style="{StaticResource HeadingLargeStyle}"
@@ -480,9 +480,9 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Spacing="4">
-                                <TextBlock Text="Suggested Fixes"
+                                <TextBlock x:Uid="Ops_SuggestedFixesTitle" Text="Suggested Fixes"
                                            Style="{StaticResource HeadingMediumStyle}" />
-                                <TextBlock Text="The highest-leverage remediation steps based on the current Operations snapshot."
+                                <TextBlock x:Uid="Ops_SuggestedFixesSubtitle" Text="The highest-leverage remediation steps based on the current Operations snapshot."
                                            Style="{StaticResource BodySecondaryStyle}"
                                            TextWrapping="Wrap" />
                             </StackPanel>
@@ -537,7 +537,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE9D2;" FontSize="14"
                                           Foreground="{ThemeResource TextAccentBrush}" />
-                                <TextBlock Text="CONVERSATION INTELLIGENCE"
+                                <TextBlock x:Uid="Ops_ConvIntelOverline" Text="CONVERSATION INTELLIGENCE"
                                            Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
                             <TextBlock Text="{x:Bind ViewModel.ConversationIntelligence.Headline, Mode=OneWay}"
@@ -549,7 +549,7 @@
                             <TextBlock Text="{x:Bind ViewModel.ConversationIntelligence.Detail, Mode=OneWay}"
                                        Style="{StaticResource CaptionStyle}"
                                        TextWrapping="Wrap" />
-                            <TextBlock Text="Recent summaries"
+                            <TextBlock x:Uid="Ops_RecentSummariesLabel" Text="Recent summaries"
                                        Style="{StaticResource CaptionStyle}"
                                        Margin="0,6,0,0" />
                             <ItemsControl ItemsSource="{x:Bind ViewModel.RecentConversationSummaries, Mode=OneWay}"
@@ -557,11 +557,11 @@
                         </StackPanel>
 
                         <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
-                            <Button Content="Refresh Summaries"
+                            <Button x:Uid="Ops_RefreshSummariesBtn" Content="Refresh Summaries"
                                     Style="{StaticResource SecondaryButtonStyle}"
                                     HorizontalAlignment="Left"
                                     Command="{x:Bind ViewModel.RefreshConversationSummariesCommand}" />
-                            <Button Content="Open Analytics"
+                            <Button x:Uid="Ops_OpenAnalyticsBtn" Content="Open Analytics"
                                     Style="{StaticResource GhostButtonStyle}"
                                     HorizontalAlignment="Left"
                                     Command="{x:Bind ViewModel.NavigateToAnalyticsCommand}" />
@@ -581,7 +581,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE895;" FontSize="14"
                                           Foreground="{ThemeResource InfoBrush}" />
-                                <TextBlock Text="SYNC HEALTH"
+                                <TextBlock x:Uid="Ops_SyncHealthOverline" Text="SYNC HEALTH"
                                            Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
                             <TextBlock Text="{x:Bind ViewModel.SyncHealth.Headline, Mode=OneWay}"
@@ -593,7 +593,7 @@
                             <TextBlock Text="{x:Bind ViewModel.SyncHealth.Detail, Mode=OneWay}"
                                        Style="{StaticResource CaptionStyle}"
                                        TextWrapping="Wrap" />
-                            <TextBlock Text="Recent sync passes"
+                            <TextBlock x:Uid="Ops_RecentSyncPassesLabel" Text="Recent sync passes"
                                        Style="{StaticResource CaptionStyle}"
                                        Margin="0,6,0,0" />
                             <ItemsControl ItemsSource="{x:Bind ViewModel.RecentSyncPasses, Mode=OneWay}"
@@ -601,11 +601,11 @@
                         </StackPanel>
 
                         <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
-                            <Button Content="Sync Now"
+                            <Button x:Uid="Ops_SyncNowBtn" Content="Sync Now"
                                     Style="{StaticResource SecondaryButtonStyle}"
                                     HorizontalAlignment="Left"
                                     Command="{x:Bind ViewModel.RunManualSyncCommand}" />
-                            <Button Content="Open Sync"
+                            <Button x:Uid="Ops_OpenSyncBtn" Content="Open Sync"
                                     Style="{StaticResource GhostButtonStyle}"
                                     HorizontalAlignment="Left"
                                     Command="{x:Bind ViewModel.NavigateToSyncSettingsCommand}" />
@@ -625,7 +625,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8B7;" FontSize="14"
                                           Foreground="{ThemeResource WarningBrush}" />
-                                <TextBlock Text="INGESTION BACKLOG"
+                                <TextBlock x:Uid="Ops_IngestionOverline" Text="INGESTION BACKLOG"
                                            Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
                             <TextBlock Text="{x:Bind ViewModel.IngestionBacklog.Headline, Mode=OneWay}"
@@ -637,12 +637,12 @@
                             <TextBlock Text="{x:Bind ViewModel.IngestionBacklog.Detail, Mode=OneWay}"
                                        Style="{StaticResource CaptionStyle}"
                                        TextWrapping="Wrap" />
-                            <TextBlock Text="Pending items"
+                            <TextBlock x:Uid="Ops_PendingItemsLabel" Text="Pending items"
                                        Style="{StaticResource CaptionStyle}"
                                        Margin="0,6,0,0" />
                             <ItemsControl ItemsSource="{x:Bind ViewModel.PendingInboxItems, Mode=OneWay}"
                                           ItemTemplate="{StaticResource OperationsInboxPreviewTemplate}" />
-                            <TextBlock Text="Recent imported documents"
+                            <TextBlock x:Uid="Ops_RecentImportedLabel" Text="Recent imported documents"
                                        Style="{StaticResource CaptionStyle}"
                                        Margin="0,6,0,0" />
                             <ItemsControl ItemsSource="{x:Bind ViewModel.RecentImportedDocuments, Mode=OneWay}"
@@ -650,15 +650,15 @@
                         </StackPanel>
 
                         <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
-                            <Button Content="Generate Previews"
+                            <Button x:Uid="Ops_GeneratePreviewsBtn" Content="Generate Previews"
                                     Style="{StaticResource SecondaryButtonStyle}"
                                     HorizontalAlignment="Left"
                                     Command="{x:Bind ViewModel.GenerateInboxPreviewsCommand}" />
-                            <Button Content="Open Inbox"
+                            <Button x:Uid="Ops_OpenInboxBtn" Content="Open Inbox"
                                     Style="{StaticResource GhostButtonStyle}"
                                     HorizontalAlignment="Left"
                                     Command="{x:Bind ViewModel.NavigateToInboxCommand}" />
-                            <Button Content="Open Vault"
+                            <Button x:Uid="Ops_OpenVaultBtn" Content="Open Vault"
                                     Style="{StaticResource GhostButtonStyle}"
                                     HorizontalAlignment="Left"
                                     Command="{x:Bind ViewModel.NavigateToKnowledgeVaultCommand}" />
@@ -678,7 +678,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8C7;" FontSize="14"
                                           Foreground="{ThemeResource SuccessBrush}" />
-                                <TextBlock Text="WORKFLOW ACTIVITY"
+                                <TextBlock x:Uid="Ops_WorkflowOverline" Text="WORKFLOW ACTIVITY"
                                            Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
                             <TextBlock Text="{x:Bind ViewModel.WorkflowActivity.Headline, Mode=OneWay}"
@@ -702,7 +702,7 @@
                             <TextBlock Text="{x:Bind ViewModel.WorkflowActivity.Detail, Mode=OneWay}"
                                        Style="{StaticResource CaptionStyle}"
                                        TextWrapping="Wrap" />
-                            <TextBlock Text="Recent runs"
+                            <TextBlock x:Uid="Ops_RecentRunsLabel" Text="Recent runs"
                                        Style="{StaticResource CaptionStyle}"
                                        Margin="0,6,0,0" />
                             <ItemsControl ItemsSource="{x:Bind ViewModel.RecentWorkflowRuns, Mode=OneWay}"
@@ -710,7 +710,7 @@
                         </StackPanel>
 
                         <Button Grid.Row="2"
-                                Content="Open Workflows"
+                                x:Uid="Ops_OpenWorkflowsBtn" Content="Open Workflows"
                                 Style="{StaticResource GhostButtonStyle}"
                                 HorizontalAlignment="Left"
                                 Command="{x:Bind ViewModel.NavigateToWorkflowsCommand}" />
@@ -729,7 +729,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE943;" FontSize="14"
                                           Foreground="{ThemeResource SuccessBrush}" />
-                                <TextBlock Text="CONNECTORS &amp; PLUGINS"
+                                <TextBlock x:Uid="Ops_ConnectorsOverline" Text="CONNECTORS &amp; PLUGINS"
                                            Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
                             <TextBlock Text="{x:Bind ViewModel.Connectors.Headline, Mode=OneWay}"
@@ -741,7 +741,7 @@
                             <TextBlock Text="{x:Bind ViewModel.Connectors.Detail, Mode=OneWay}"
                                        Style="{StaticResource CaptionStyle}"
                                        TextWrapping="Wrap" />
-                            <TextBlock Text="Connector preview"
+                            <TextBlock x:Uid="Ops_ConnectorPreviewLabel" Text="Connector preview"
                                        Style="{StaticResource CaptionStyle}"
                                        Margin="0,6,0,0" />
                             <ItemsControl ItemsSource="{x:Bind ViewModel.ConnectorPreviews, Mode=OneWay}"
@@ -749,7 +749,7 @@
                         </StackPanel>
 
                         <Button Grid.Row="2"
-                                Content="Open Plugin Manager"
+                                x:Uid="Ops_OpenPluginManagerBtn" Content="Open Plugin Manager"
                                 Style="{StaticResource GhostButtonStyle}"
                                 HorizontalAlignment="Left"
                                 Command="{x:Bind ViewModel.NavigateToPluginManagerCommand}" />

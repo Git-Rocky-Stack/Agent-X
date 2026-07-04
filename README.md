@@ -59,7 +59,7 @@ Requirements: Windows 10 build 19041+ or Windows 11, x64. No account, no subscri
 - Calendar & email connectors (Outlook, Google Workspace, CalDAV / IMAP / EWS) — read-only by default, OAuth tokens stored encrypted
 
 **Platform**
-- Six fully localized UI locales (en-US, de, es, fr, ja, zh-CN)
+- Six UI languages (en-US, de, es, fr, ja, zh-CN) — user guide, onboarding, and core pages localized, with coverage expanding release by release
 - Dark, light, and high-contrast themes; WCAG-minded WinUI 3 design
 - Android mobile companion (.NET MAUI) and a browser extension for capture on the go
 - 29 navigation destinations, ~88 services, 2,773 unit tests, in-app onboarding and user guide

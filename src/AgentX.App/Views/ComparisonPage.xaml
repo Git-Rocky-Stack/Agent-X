@@ -66,23 +66,23 @@
 
                 <!-- Header -->
                 <StackPanel Grid.Row="0" Padding="20,20,20,12" Spacing="4">
-                    <TextBlock Text="Select Documents"
+                    <TextBlock x:Uid="Comp_SelectTitle" Text="Select Documents"
                                Style="{StaticResource HeadingSmallStyle}"
                                FontWeight="Bold" />
                     <TextBlock Style="{StaticResource CaptionStyle}">
                         <Run Text="{x:Bind ViewModel.SelectedDocuments.Count, Mode=OneWay}" />
-                        <Run Text="selected" />
+                        <Run x:Uid="Comp_SelectedRun" Text="selected" />
                     </TextBlock>
                 </StackPanel>
 
                 <!-- Options -->
                 <StackPanel Grid.Row="1" Padding="20,0,20,12" Spacing="10">
                     <TextBox Text="{x:Bind ViewModel.FocusQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             PlaceholderText="Focus topic (optional)..."
+                             x:Uid="Comp_FocusPlaceholder" PlaceholderText="Focus topic (optional)..."
                              Style="{StaticResource InputTextBoxStyle}" />
                     <ComboBox ItemsSource="{x:Bind ViewModel.DetailLevels}"
                               SelectedItem="{x:Bind ViewModel.DetailLevel, Mode=TwoWay}"
-                              Header="Detail Level"
+                              x:Uid="Comp_DetailLevelBox" Header="Detail Level"
                               HorizontalAlignment="Stretch" />
                 </StackPanel>
 
@@ -114,12 +114,12 @@
 
                 <!-- Compare Button -->
                 <StackPanel Grid.Row="3" Padding="20,12" Spacing="8">
-                    <Button Content="Compare Documents"
+                    <Button x:Uid="Comp_CompareBtn" Content="Compare Documents"
                             Command="{x:Bind ViewModel.CompareDocumentsCommand}"
                             IsEnabled="{x:Bind ViewModel.IsComparing, Mode=OneWay, Converter={StaticResource InverseBool}}"
                             Style="{StaticResource AccentButtonStyle}"
                             HorizontalAlignment="Stretch" />
-                    <Button Content="Cancel"
+                    <Button x:Uid="Comp_CancelBtn" Content="Cancel"
                             Command="{x:Bind ViewModel.CancelComparisonCommand}"
                             Visibility="{x:Bind ViewModel.IsComparing, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                             Style="{StaticResource SecondaryButtonStyle}"
@@ -147,9 +147,9 @@
 
                     <!-- Header -->
                     <StackPanel Grid.Row="0" Spacing="4">
-                        <TextBlock Text="Comparative Analysis"
+                        <TextBlock x:Uid="Comp_Title" Text="Comparative Analysis"
                                    Style="{StaticResource DisplaySmallStyle}" />
-                        <TextBlock Text="Select 2+ documents to generate a structured side-by-side comparison."
+                        <TextBlock x:Uid="Comp_Subtitle" Text="Select 2+ documents to generate a structured side-by-side comparison."
                                    Style="{StaticResource BodySecondaryStyle}" />
                     </StackPanel>
 
@@ -177,16 +177,16 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="Summary"
+                                <TextBlock x:Uid="Comp_SummaryTitle" Text="Summary"
                                            Style="{StaticResource HeadingSmallStyle}" />
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="16">
                                     <TextBlock Style="{StaticResource CaptionStyle}">
                                         <Run Text="{x:Bind ViewModel.ReportTokensUsed, Mode=OneWay}" />
-                                        <Run Text="tokens" />
+                                        <Run x:Uid="Comp_TokensRun" Text="tokens" />
                                     </TextBlock>
                                     <TextBlock Style="{StaticResource CaptionStyle}">
                                         <Run Text="{x:Bind ViewModel.ReportDurationMs, Mode=OneWay}" />
-                                        <Run Text="ms" />
+                                        <Run x:Uid="Comp_MsRun" Text="ms" />
                                     </TextBlock>
                                 </StackPanel>
                             </Grid>
@@ -203,7 +203,7 @@
                             Padding="24"
                             Visibility="{x:Bind ViewModel.HasReport, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <StackPanel Spacing="12">
-                            <TextBlock Text="Similarities" Style="{StaticResource HeadingSmallStyle}" />
+                            <TextBlock x:Uid="Comp_SimilaritiesTitle" Text="Similarities" Style="{StaticResource HeadingSmallStyle}" />
                             <ItemsRepeater ItemsSource="{x:Bind ViewModel.Similarities}">
                                 <ItemsRepeater.Layout><StackLayout Spacing="6" /></ItemsRepeater.Layout>
                                 <ItemsRepeater.ItemTemplate>
@@ -232,7 +232,7 @@
                             Padding="24"
                             Visibility="{x:Bind ViewModel.HasReport, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <StackPanel Spacing="12">
-                            <TextBlock Text="Differences" Style="{StaticResource HeadingSmallStyle}" />
+                            <TextBlock x:Uid="Comp_DifferencesTitle" Text="Differences" Style="{StaticResource HeadingSmallStyle}" />
                             <ItemsRepeater ItemsSource="{x:Bind ViewModel.Differences}">
                                 <ItemsRepeater.Layout><StackLayout Spacing="6" /></ItemsRepeater.Layout>
                                 <ItemsRepeater.ItemTemplate>
@@ -261,7 +261,7 @@
                             Padding="24"
                             Visibility="{x:Bind ViewModel.HasReport, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <StackPanel Spacing="12">
-                            <TextBlock Text="Contradictions" Style="{StaticResource HeadingSmallStyle}" />
+                            <TextBlock x:Uid="Comp_ContradictionsTitle" Text="Contradictions" Style="{StaticResource HeadingSmallStyle}" />
                             <ItemsRepeater ItemsSource="{x:Bind ViewModel.Contradictions}">
                                 <ItemsRepeater.Layout><StackLayout Spacing="6" /></ItemsRepeater.Layout>
                                 <ItemsRepeater.ItemTemplate>
@@ -290,10 +290,10 @@
                             Padding="24"
                             Visibility="{x:Bind ViewModel.HasReport, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <StackPanel Spacing="12">
-                            <TextBlock Text="Unique Points by Document"
+                            <TextBlock x:Uid="Comp_UniqueTitle" Text="Unique Points by Document"
                                        Style="{StaticResource HeadingSmallStyle}" />
 
-                            <TextBlock Text="No document-specific unique points were identified in this comparison."
+                            <TextBlock x:Uid="Comp_NoUniquePoints" Text="No document-specific unique points were identified in this comparison."
                                        Style="{StaticResource BodySecondaryStyle}"
                                        Visibility="{x:Bind ViewModel.HasUniquePoints, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
 
@@ -352,7 +352,7 @@
 
                     <StackPanel Grid.Row="7"
                                 Spacing="8">
-                        <Button Content="Export Report"
+                        <Button x:Uid="Comp_ExportBtn" Content="Export Report"
                                 Command="{x:Bind ViewModel.ExportReportCommand}"
                                 Visibility="{x:Bind ViewModel.HasReport, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                 Style="{StaticResource SecondaryButtonStyle}" />
@@ -372,7 +372,7 @@
                                   FontSize="48"
                                   Foreground="{ThemeResource TextTertiaryBrush}"
                                   HorizontalAlignment="Center" />
-                        <TextBlock Text="Select documents and compare"
+                        <TextBlock x:Uid="Comp_EmptyState" Text="Select documents and compare"
                                    Style="{StaticResource BodySecondaryStyle}"
                                    HorizontalAlignment="Center" />
                     </StackPanel>

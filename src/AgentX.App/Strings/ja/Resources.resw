@@ -616,4 +616,294 @@
   <data name="UserGuide_Sync_Feature2_Description.Text" xml:space="preserve"><value>同じアイテムが 2 台のデバイスで編集された場合は、タイムスタンプに基づく競合解決がどちらの変更を採用するかを決定します。手動でのマージ作業は不要です。</value></data>
   <data name="UserGuide_Sync_Feature3_Title.Text" xml:space="preserve"><value>ローカルコラボレーションセッション</value></data>
   <data name="UserGuide_Sync_Feature3_Description.Text" xml:space="preserve"><value>信頼できるローカルネットワーク上では、Agent-X 同士でライブコラボレーションセッションをホストすることもできます。プレゼンスとアクティビティイベントをピア間で直接共有し、ネットワークの外には何も出ません。</value></data>
+
+  <!-- Page localization pass 2026-07: Smart Inbox / Comparison / Operations / Analytics / Collaborative Sync / Onboarding -->
+  <data name="Inbox_Title.Text" xml:space="preserve"><value>Smart Inbox</value></data>
+  <data name="Inbox_PendingRun.Text" xml:space="preserve"><value>件が保留中</value></data>
+  <data name="Inbox_StatusOverline.Text" xml:space="preserve"><value>ステータス</value></data>
+  <data name="Inbox_TargetCollectionOverline.Text" xml:space="preserve"><value>対象コレクション</value></data>
+  <data name="Inbox_AutoSuggestPlaceholder.PlaceholderText" xml:space="preserve"><value>自動提案</value></data>
+  <data name="Inbox_ActionsOverline.Text" xml:space="preserve"><value>操作</value></data>
+  <data name="Inbox_AcceptAllBtn.Content" xml:space="preserve"><value>保留中をすべて承認</value></data>
+  <data name="Inbox_GeneratePreviewsBtn.Content" xml:space="preserve"><value>AI プレビューを生成</value></data>
+  <data name="Inbox_CleanupBtn.Content" xml:space="preserve"><value>処理済みを整理</value></data>
+  <data name="Inbox_TriageTitle.Text" xml:space="preserve"><value>ドキュメントの仕分け</value></data>
+  <data name="Inbox_TriageSubtitle.Text" xml:space="preserve"><value>ナレッジベースに取り込む前に新しいファイルを確認します。AI がコレクションとタグを提案します。</value></data>
+  <data name="Inbox_FocusedTitle.Text" xml:space="preserve"><value>フォーカス中の受信アイテム</value></data>
+  <data name="Inbox_FocusedDismissBtn.Content" xml:space="preserve"><value>閉じる</value></data>
+  <data name="Inbox_OpenedFromOpsBadge.Text" xml:space="preserve"><value>Operations から開きました</value></data>
+  <data name="Inbox_WebClipBadge.Text" xml:space="preserve"><value>Web クリップ</value></data>
+  <data name="Inbox_AcceptBtn.ToolTipService.ToolTip" xml:space="preserve"><value>承認</value></data>
+  <data name="Inbox_AcceptBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>承認</value></data>
+  <data name="Inbox_DeferBtn.ToolTipService.ToolTip" xml:space="preserve"><value>保留</value></data>
+  <data name="Inbox_DeferBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>保留</value></data>
+  <data name="Inbox_RejectBtn.ToolTipService.ToolTip" xml:space="preserve"><value>却下</value></data>
+  <data name="Inbox_RejectBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>却下</value></data>
+  <data name="Inbox_AiPreviewLabel.Text" xml:space="preserve"><value>AI プレビュー</value></data>
+  <data name="Inbox_SuggestedLabel.Text" xml:space="preserve"><value>候補:</value></data>
+  <data name="Inbox_EmptyTitle.Text" xml:space="preserve"><value>受信トレイは空です</value></data>
+  <data name="Inbox_EmptyHint.Text" xml:space="preserve"><value>監視フォルダーの新しいファイルがここに表示され、仕分けできます。</value></data>
+  <data name="Comp_SelectTitle.Text" xml:space="preserve"><value>ドキュメントを選択</value></data>
+  <data name="Comp_SelectedRun.Text" xml:space="preserve"><value>件選択中</value></data>
+  <data name="Comp_FocusPlaceholder.PlaceholderText" xml:space="preserve"><value>重点トピック(任意)...</value></data>
+  <data name="Comp_DetailLevelBox.Header" xml:space="preserve"><value>詳細レベル</value></data>
+  <data name="Comp_CompareBtn.Content" xml:space="preserve"><value>ドキュメントを比較</value></data>
+  <data name="Comp_CancelBtn.Content" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="Comp_Title.Text" xml:space="preserve"><value>比較分析</value></data>
+  <data name="Comp_Subtitle.Text" xml:space="preserve"><value>2 つ以上のドキュメントを選択すると、構造化された並列比較を生成します。</value></data>
+  <data name="Comp_SummaryTitle.Text" xml:space="preserve"><value>要約</value></data>
+  <data name="Comp_TokensRun.Text" xml:space="preserve"><value>トークン</value></data>
+  <data name="Comp_MsRun.Text" xml:space="preserve"><value>ms</value></data>
+  <data name="Comp_SimilaritiesTitle.Text" xml:space="preserve"><value>類似点</value></data>
+  <data name="Comp_DifferencesTitle.Text" xml:space="preserve"><value>相違点</value></data>
+  <data name="Comp_ContradictionsTitle.Text" xml:space="preserve"><value>矛盾点</value></data>
+  <data name="Comp_UniqueTitle.Text" xml:space="preserve"><value>ドキュメントごとの固有ポイント</value></data>
+  <data name="Comp_NoUniquePoints.Text" xml:space="preserve"><value>この比較では、ドキュメント固有のポイントは見つかりませんでした。</value></data>
+  <data name="Comp_ExportBtn.Content" xml:space="preserve"><value>レポートをエクスポート</value></data>
+  <data name="Comp_EmptyState.Text" xml:space="preserve"><value>ドキュメントを選択して比較してください</value></data>
+  <data name="Ops_RetryIndexBtn.Content" xml:space="preserve"><value>インデックスを再試行</value></data>
+  <data name="Ops_EnableConnectorBtn.Content" xml:space="preserve"><value>コネクタを有効化</value></data>
+  <data name="Ops_OpenPluginBtn.Content" xml:space="preserve"><value>プラグインを開く</value></data>
+  <data name="Ops_Title.Text" xml:space="preserve"><value>Operations(運用状況)</value></data>
+  <data name="Ops_Subtitle.Text" xml:space="preserve"><value>会話インテリジェンス、同期状態、取り込みバックログ、ワークフロー アクティビティ、コネクタの状態をまとめて表示します。</value></data>
+  <data name="Ops_DashboardBtn.Content" xml:space="preserve"><value>ダッシュボード</value></data>
+  <data name="Ops_RefreshBtn.Content" xml:space="preserve"><value>更新</value></data>
+  <data name="Ops_Loading.Text" xml:space="preserve"><value>運用状況を読み込んでいます...</value></data>
+  <data name="Ops_CurrentStatusOverline.Text" xml:space="preserve"><value>現在の運用状況</value></data>
+  <data name="Ops_SuggestedFixesTitle.Text" xml:space="preserve"><value>推奨される修正</value></data>
+  <data name="Ops_SuggestedFixesSubtitle.Text" xml:space="preserve"><value>現在の運用スナップショットに基づく、効果の高い修復手順です。</value></data>
+  <data name="Ops_ConvIntelOverline.Text" xml:space="preserve"><value>会話インテリジェンス</value></data>
+  <data name="Ops_RecentSummariesLabel.Text" xml:space="preserve"><value>最近の要約</value></data>
+  <data name="Ops_RefreshSummariesBtn.Content" xml:space="preserve"><value>要約を更新</value></data>
+  <data name="Ops_OpenAnalyticsBtn.Content" xml:space="preserve"><value>Analytics を開く</value></data>
+  <data name="Ops_SyncHealthOverline.Text" xml:space="preserve"><value>同期の状態</value></data>
+  <data name="Ops_RecentSyncPassesLabel.Text" xml:space="preserve"><value>最近の同期実行</value></data>
+  <data name="Ops_SyncNowBtn.Content" xml:space="preserve"><value>今すぐ同期</value></data>
+  <data name="Ops_OpenSyncBtn.Content" xml:space="preserve"><value>同期設定を開く</value></data>
+  <data name="Ops_IngestionOverline.Text" xml:space="preserve"><value>取り込みバックログ</value></data>
+  <data name="Ops_PendingItemsLabel.Text" xml:space="preserve"><value>保留中のアイテム</value></data>
+  <data name="Ops_RecentImportedLabel.Text" xml:space="preserve"><value>最近インポートしたドキュメント</value></data>
+  <data name="Ops_GeneratePreviewsBtn.Content" xml:space="preserve"><value>プレビューを生成</value></data>
+  <data name="Ops_OpenInboxBtn.Content" xml:space="preserve"><value>受信トレイを開く</value></data>
+  <data name="Ops_OpenVaultBtn.Content" xml:space="preserve"><value>Vault を開く</value></data>
+  <data name="Ops_WorkflowOverline.Text" xml:space="preserve"><value>ワークフロー アクティビティ</value></data>
+  <data name="Ops_RecentRunsLabel.Text" xml:space="preserve"><value>最近の実行</value></data>
+  <data name="Ops_OpenWorkflowsBtn.Content" xml:space="preserve"><value>ワークフローを開く</value></data>
+  <data name="Ops_ConnectorsOverline.Text" xml:space="preserve"><value>コネクタとプラグイン</value></data>
+  <data name="Ops_ConnectorPreviewLabel.Text" xml:space="preserve"><value>コネクタのプレビュー</value></data>
+  <data name="Ops_OpenPluginManagerBtn.Content" xml:space="preserve"><value>プラグイン マネージャーを開く</value></data>
+  <data name="Ana_Title.Text" xml:space="preserve"><value>Analytics(分析)</value></data>
+  <data name="Ana_Subtitle.Text" xml:space="preserve"><value>利用統計、パフォーマンス指標、アクティビティの傾向</value></data>
+  <data name="Ana_RefreshBtn.Content" xml:space="preserve"><value>更新</value></data>
+  <data name="Ana_Loading.Text" xml:space="preserve"><value>分析データを読み込んでいます...</value></data>
+  <data name="Ana_ConvOverline.Text" xml:space="preserve"><value>会話</value></data>
+  <data name="Ana_ConvCaption.Text" xml:space="preserve"><value>開始したセッションの合計</value></data>
+  <data name="Ana_MsgOverline.Text" xml:space="preserve"><value>メッセージ</value></data>
+  <data name="Ana_MsgCaption.Text" xml:space="preserve"><value>送受信の合計</value></data>
+  <data name="Ana_TokensOverline.Text" xml:space="preserve"><value>使用トークン</value></data>
+  <data name="Ana_AvgPerMsgLabel.Text" xml:space="preserve"><value>平均 / メッセージ</value></data>
+  <data name="Ana_DocsOverline.Text" xml:space="preserve"><value>ドキュメント</value></data>
+  <data name="Ana_IndexedDotLabel.Text" xml:space="preserve"><value>件インデックス済み ·</value></data>
+  <data name="Ana_PendingLabel.Text" xml:space="preserve"><value>件待機中</value></data>
+  <data name="Ana_SearchesOverline.Text" xml:space="preserve"><value>検索</value></data>
+  <data name="Ana_SearchesCaption.Text" xml:space="preserve"><value>セマンティック検索とキーワード検索</value></data>
+  <data name="Ana_AvgRespOverline.Text" xml:space="preserve"><value>平均応答</value></data>
+  <data name="Ana_AvgRespCaption.Text" xml:space="preserve"><value>AI 生成のレイテンシ</value></data>
+  <data name="Ana_IndexingOverline.Text" xml:space="preserve"><value>ナレッジのインデックス作成</value></data>
+  <data name="Ana_IndexedRun.Text" xml:space="preserve"><value> 件インデックス済み</value></data>
+  <data name="Ana_PendingRun.Text" xml:space="preserve"><value> 件待機中</value></data>
+  <data name="Ana_TokensPerConvOverline.Text" xml:space="preserve"><value>トークン / 会話</value></data>
+  <data name="Ana_WorkflowIntelTitle.Text" xml:space="preserve"><value>ワークフロー インテリジェンス</value></data>
+  <data name="Ana_WorkflowIntelSubtitle.Text" xml:space="preserve"><value>保存されたワークフロー実行履歴から導出した、利用状況・信頼性・最近の結果</value></data>
+  <data name="Ana_TotalRunsOverline.Text" xml:space="preserve"><value>実行回数合計</value></data>
+  <data name="Ana_TotalRunsCaption.Text" xml:space="preserve"><value>記録されたすべてのワークフロー実行</value></data>
+  <data name="Ana_SuccessRateOverline.Text" xml:space="preserve"><value>成功率</value></data>
+  <data name="Ana_SuccessRateCaption.Text" xml:space="preserve"><value>完了した実行のうち成功した割合</value></data>
+  <data name="Ana_AvgRunDurOverline.Text" xml:space="preserve"><value>平均実行時間</value></data>
+  <data name="Ana_AvgRunDurCaption.Text" xml:space="preserve"><value>完了したワークフロー実行の平均時間</value></data>
+  <data name="Ana_ActiveWfOverline.Text" xml:space="preserve"><value>アクティブなワークフロー(30日)</value></data>
+  <data name="Ana_ActiveWfCaption.Text" xml:space="preserve"><value>直近 30 日間に使用された個別のワークフロー数</value></data>
+  <data name="Ana_WfTrendLabel.Text" xml:space="preserve"><value>ワークフロー実行の 30 日間トレンド</value></data>
+  <data name="Ana_WfTrendEmpty.Text" xml:space="preserve"><value>過去 30 日間のワークフロー実行はまだありません。</value></data>
+  <data name="Ana_TopWfTitle.Text" xml:space="preserve"><value>上位ワークフロー</value></data>
+  <data name="Ana_TopWfSubtitle.Text" xml:space="preserve"><value>キャッシュされたカウンターではなく、実際の実行履歴に基づいてランク付けした高頻度ワークフロー。</value></data>
+  <data name="Ana_TopWfEmpty.Text" xml:space="preserve"><value>上位のワークフローはまだありません。</value></data>
+  <data name="Ana_RecentWfTitle.Text" xml:space="preserve"><value>最近のワークフロー実行</value></data>
+  <data name="Ana_RecentWfSubtitle.Text" xml:space="preserve"><value>確認用の短い出力またはエラーのプレビューを含む、最新の保存結果。</value></data>
+  <data name="Ana_RecentWfEmpty.Text" xml:space="preserve"><value>最近のワークフロー実行はまだありません。</value></data>
+  <data name="Ana_ConvIntelTitle.Text" xml:space="preserve"><value>会話インテリジェンス</value></data>
+  <data name="Ana_ConvIntelSubtitle.Text" xml:space="preserve"><value>長期にわたる会話の永続的な要約。鮮度とカバレッジを 1 か所で確認できます</value></data>
+  <data name="Ana_SummarizedOverline.Text" xml:space="preserve"><value>要約済みの会話</value></data>
+  <data name="Ana_SummarizedCaption.Text" xml:space="preserve"><value>スナップショットが保存された個別の会話</value></data>
+  <data name="Ana_SnapshotsOverline.Text" xml:space="preserve"><value>現在のスナップショット</value></data>
+  <data name="Ana_SnapshotsCaption.Text" xml:space="preserve"><value>ディスクに保存された不変の要約バージョン</value></data>
+  <data name="Ana_StaleOverline.Text" xml:space="preserve"><value>古くなった要約</value></data>
+  <data name="Ana_StaleCaption.Text" xml:space="preserve"><value>スレッドの最新状態を反映しなくなった保存済み要約</value></data>
+  <data name="Ana_PendingRefreshOverline.Text" xml:space="preserve"><value>保留中の更新</value></data>
+  <data name="Ana_PendingRefreshCaption.Text" xml:space="preserve"><value>初回またはインクリメンタルな更新を待つ会話</value></data>
+  <data name="Ana_FocusedConvTitle.Text" xml:space="preserve"><value>フォーカス中の会話要約</value></data>
+  <data name="Ana_FocusedConvHint.Text" xml:space="preserve"><value>該当する永続的な要約をリストの先頭に移動しました。Analytics 内を探し回らずに確認できます。</value></data>
+  <data name="Ana_RefreshSummaryBtn.Content" xml:space="preserve"><value>要約を更新</value></data>
+  <data name="Ana_DismissBtn.Content" xml:space="preserve"><value>閉じる</value></data>
+  <data name="Ana_NoSummaries.Text" xml:space="preserve"><value>永続的な会話要約はまだありません。何度かチャットした後に Analytics を再度開くと、最初のスナップショットが作成されます。</value></data>
+  <data name="Ana_OpenedFromOpsBadge.Text" xml:space="preserve"><value>Operations から開きました</value></data>
+  <data name="Ana_RecallTitle.Text" xml:space="preserve"><value>セマンティック リコール プローブ</value></data>
+  <data name="Ana_RecallSubtitle.Text" xml:space="preserve"><value>永続的なメッセージ埋め込みにより、一時的なチャット メモリに頼らず、会話をまたいで意味的に類似した過去の発言を探索できます。</value></data>
+  <data name="Ana_EmbeddedOverline.Text" xml:space="preserve"><value>埋め込み済みメッセージ</value></data>
+  <data name="Ana_EmbeddedCaption.Text" xml:space="preserve"><value>現在リコール可能なメッセージ</value></data>
+  <data name="Ana_PendingEmbOverline.Text" xml:space="preserve"><value>保留中の埋め込み</value></data>
+  <data name="Ana_PendingEmbCaption.Text" xml:space="preserve"><value>永続的な埋め込みを待っている対象メッセージ</value></data>
+  <data name="Ana_RecallReadyOverline.Text" xml:space="preserve"><value>リコール可能な会話</value></data>
+  <data name="Ana_RecallQueryBox.PlaceholderText" xml:space="preserve"><value>例: 製品ロードマップの変化、価格の議論、ダッシュボード分析、要約の更新</value></data>
+  <data name="Ana_SearchRecallBtn.Content" xml:space="preserve"><value>リコールを検索</value></data>
+  <data name="Ana_NoRecallMatches.Text" xml:space="preserve"><value>リコールの一致はまだありません。チャットの埋め込み後にプローブ クエリを実行してください。</value></data>
+  <data name="Ana_ThemesTitle.Text" xml:space="preserve"><value>会話テーマ</value></data>
+  <data name="Ana_ThemesSubtitle.Text" xml:space="preserve"><value>永続的な要約から構築された、会話横断のクラスター。保存済み要約とリコールの上に位置する初の永続テーマ層です。</value></data>
+  <data name="Ana_ActiveClustersOverline.Text" xml:space="preserve"><value>アクティブなテーマ クラスター</value></data>
+  <data name="Ana_ActiveClustersCaption.Text" xml:space="preserve"><value>現在マテリアライズされている永続的な会話テーマ</value></data>
+  <data name="Ana_ClusteredConvOverline.Text" xml:space="preserve"><value>クラスター化された会話</value></data>
+  <data name="Ana_ClusteredConvCaption.Text" xml:space="preserve"><value>現在有効な永続テーマが割り当てられた会話</value></data>
+  <data name="Ana_NewThemesOverline.Text" xml:space="preserve"><value>新しいテーマ(7日)</value></data>
+  <data name="Ana_NewThemesCaption.Text" xml:space="preserve"><value>過去 7 日間に初めて出現したテーマ クラスター</value></data>
+  <data name="Ana_LastMaterializedOverline.Text" xml:space="preserve"><value>最終マテリアライズ</value></data>
+  <data name="Ana_LastMaterializedCaption.Text" xml:space="preserve"><value>最新の永続クラスター再計算</value></data>
+  <data name="Ana_NoThemes.Text" xml:space="preserve"><value>会話テーマはまだありません。永続的な要約が蓄積されると、Analytics が最初の会話横断クラスターをここに表示します。</value></data>
+  <data name="Ana_ThemeTrendsTitle.Text" xml:space="preserve"><value>テーマのトレンド</value></data>
+  <data name="Ana_ThemeTrendsSubtitle.Text" xml:space="preserve"><value>マテリアライズされたテーマ層の、日次で永続化されたアクティビティ ウィンドウ。Analytics はここでは保存済みの行のみを読み取るため、トレンド カードは安定して軽快に表示されます。</value></data>
+  <data name="Ana_TrendingOverline.Text" xml:space="preserve"><value>上昇中のテーマ</value></data>
+  <data name="Ana_TrendingCaption.Text" xml:space="preserve"><value>直前の 7 日間より活動が活発なテーマ</value></data>
+  <data name="Ana_NewEntriesOverline.Text" xml:space="preserve"><value>新しいテーマ エントリ(7日)</value></data>
+  <data name="Ana_NewEntriesCaption.Text" xml:space="preserve"><value>過去 7 日間に初めてマテリアライズされた現在のクラスター割り当て</value></data>
+  <data name="Ana_MostActiveOverline.Text" xml:space="preserve"><value>最も活発なテーマ</value></data>
+  <data name="Ana_MostActiveCaption.Text" xml:space="preserve"><value>テーマ層全体で 7 日間の永続アクティビティ合計が最大のもの</value></data>
+  <data name="Ana_LastTrendOverline.Text" xml:space="preserve"><value>最終トレンド更新</value></data>
+  <data name="Ana_LastTrendCaption.Text" xml:space="preserve"><value>テーマ トレンドの最新の永続マテリアライズ</value></data>
+  <data name="Ana_NoTrendRows.Text" xml:space="preserve"><value>永続的なテーマ トレンドの行はまだありません。クラスターが更新されると、Analytics が日次アクティビティ ウィンドウをここに表示します。</value></data>
+  <data name="Ana_ActivityTitle.Text" xml:space="preserve"><value>アクティビティの傾向</value></data>
+  <data name="Ana_ActivitySubtitle.Text" xml:space="preserve"><value>過去 30 日間の日次アクティビティ</value></data>
+  <data name="Ana_ConvSeriesLabel.Text" xml:space="preserve"><value>会話</value></data>
+  <data name="Ana_NoConvData.Text" xml:space="preserve"><value>会話データはまだありません。チャットを開始するとトレンドが表示されます。</value></data>
+  <data name="Ana_DocsSeriesLabel.Text" xml:space="preserve"><value>インポートしたドキュメント</value></data>
+  <data name="Ana_NoDocData.Text" xml:space="preserve"><value>ドキュメントのインポート データはまだありません。ファイルをインポートするとトレンドが表示されます。</value></data>
+  <data name="Ana_SearchSeriesLabel.Text" xml:space="preserve"><value>検索</value></data>
+  <data name="Ana_NoSearchData.Text" xml:space="preserve"><value>検索データはまだありません。セマンティック検索またはキーワード検索を使うとトレンドが表示されます。</value></data>
+  <data name="Ana_ModelUsageTitle.Text" xml:space="preserve"><value>モデル使用状況</value></data>
+  <data name="Ana_ModelUsageSubtitle.Text" xml:space="preserve"><value>会話数による AI モデルの分布</value></data>
+  <data name="Ana_NoModelData.Text" xml:space="preserve"><value>モデル データはまだありません。会話を開始するとモデル使用状況が表示されます。</value></data>
+  <data name="Ana_DocTypesTitle.Text" xml:space="preserve"><value>ドキュメントの種類</value></data>
+  <data name="Ana_DocTypesSubtitle.Text" xml:space="preserve"><value>Knowledge Vault 内のファイル タイプの内訳</value></data>
+  <data name="Ana_NoDocsImported.Text" xml:space="preserve"><value>インポートされたドキュメントはまだありません。Knowledge Vault にファイルを追加すると種類別の分布が表示されます。</value></data>
+  <data name="Ana_PerfTitle.Text" xml:space="preserve"><value>パフォーマンス指標</value></data>
+  <data name="Ana_PerfSubtitle.Text" xml:space="preserve"><value>すべてのアシスタント応答にわたる AI 推論時間の統計</value></data>
+  <data name="Ana_NoTimingData.Text" xml:space="preserve"><value>時間データはまだありません。最初の AI 応答の後、応答時間は自動的に記録されます。</value></data>
+  <data name="Ana_AvgOverline.Text" xml:space="preserve"><value>平均</value></data>
+  <data name="Ana_AvgCaption.Text" xml:space="preserve"><value>平均応答時間</value></data>
+  <data name="Ana_MedianOverline.Text" xml:space="preserve"><value>中央値(P50)</value></data>
+  <data name="Ana_MedianCaption.Text" xml:space="preserve"><value>応答の半数はこれより速い</value></data>
+  <data name="Ana_P95Overline.Text" xml:space="preserve"><value>P95</value></data>
+  <data name="Ana_P95Caption.Text" xml:space="preserve"><value>95 パーセンタイルのレイテンシ</value></data>
+  <data name="Ana_ThroughputOverline.Text" xml:space="preserve"><value>スループット</value></data>
+  <data name="Ana_ThroughputCaption.Text" xml:space="preserve"><value>1 秒あたりの平均トークン数</value></data>
+  <data name="Ana_FastestOverline.Text" xml:space="preserve"><value>最速</value></data>
+  <data name="Ana_FastestCaption.Text" xml:space="preserve"><value>観測された最速の応答</value></data>
+  <data name="Ana_SlowestOverline.Text" xml:space="preserve"><value>最も遅い</value></data>
+  <data name="Ana_SlowestCaption.Text" xml:space="preserve"><value>観測された最も遅い応答</value></data>
+  <data name="Ana_TotalInfOverline.Text" xml:space="preserve"><value>推論時間合計</value></data>
+  <data name="Ana_TotalInfCaption.Text" xml:space="preserve"><value>全セッションにわたる AI 生成時間の累計</value></data>
+  <data name="Sync_Title.Text" xml:space="preserve"><value>Collaborative Sync(コラボ同期)</value></data>
+  <data name="Sync_Subtitle.Text" xml:space="preserve"><value>Agent-X インストール間の暗号化同期を設定します。</value></data>
+  <data name="Sync_SyncNowLabel.Text" xml:space="preserve"><value>今すぐ同期</value></data>
+  <data name="Sync_LoadingSettings.Text" xml:space="preserve"><value>同期設定を読み込んでいます...</value></data>
+  <data name="Sync_NotConfiguredTitle.Text" xml:space="preserve"><value>同期は未設定です</value></data>
+  <data name="Sync_NotConfiguredHint.Text" xml:space="preserve"><value>共有同期フォルダーと暗号化キーを設定すると、Agent-X インストール間で Knowledge Vault、コレクション、設定を安全に同期できます。</value></data>
+  <data name="Sync_E2ENote.Text" xml:space="preserve"><value>すべての同期データは、お客様のキーでエンドツーエンド暗号化されます。</value></data>
+  <data name="Sync_ConfigTitle.Text" xml:space="preserve"><value>構成</value></data>
+  <data name="Sync_ConfigSubtitle.Text" xml:space="preserve"><value>デバイス間のデータ同期に使用する共有フォルダーのパスと暗号化キーを設定します。</value></data>
+  <data name="Sync_FolderLabel.Text" xml:space="preserve"><value>同期フォルダー</value></data>
+  <data name="Sync_FolderBox.PlaceholderText" xml:space="preserve"><value>C:\Users\Shared\AgentX-Sync または \\NAS\AgentX</value></data>
+  <data name="Sync_BrowseLabel.Text" xml:space="preserve"><value>参照</value></data>
+  <data name="Sync_FolderHint.Text" xml:space="preserve"><value>ネットワーク共有、クラウド同期フォルダー(OneDrive、Dropbox)、または任意の共有場所を選択します。</value></data>
+  <data name="Sync_KeyLabel.Text" xml:space="preserve"><value>暗号化キー</value></data>
+  <data name="Sync_KeyBox.PlaceholderText" xml:space="preserve"><value>AES-256 暗号化用の強力なパスフレーズを入力</value></data>
+  <data name="Sync_KeyHint.Text" xml:space="preserve"><value>すべてのインストールで同一である必要があります。覚えやすく強力なパスフレーズを使用してください。</value></data>
+  <data name="Sync_AutoSyncTitle.Text" xml:space="preserve"><value>自動同期</value></data>
+  <data name="Sync_AutoSyncSubtitle.Text" xml:space="preserve"><value>一定の間隔で変更を自動的に同期します。</value></data>
+  <data name="Sync_AutoToggle.OnContent" xml:space="preserve"><value>オン</value></data>
+  <data name="Sync_AutoToggle.OffContent" xml:space="preserve"><value>オフ</value></data>
+  <data name="Sync_IntervalLabel.Text" xml:space="preserve"><value>同期間隔</value></data>
+  <data name="Sync_ScopeLabel.Text" xml:space="preserve"><value>同期範囲</value></data>
+  <data name="Sync_ScopeHint.Text" xml:space="preserve"><value>すべてのデータを同期するか、選択したコレクションのみを同期するかを選びます。</value></data>
+  <data name="Sync_CollectionsLabel.Text" xml:space="preserve"><value>同期するコレクション</value></data>
+  <data name="Sync_ScopedNote.Text" xml:space="preserve"><value>選択したコレクションに割り当てられたドキュメントのみが同期エクスポートに含まれます。</value></data>
+  <data name="Sync_NoCollections.Text" xml:space="preserve"><value>コレクションはまだありません。選択コレクション同期を使う前にコレクションを作成してください。</value></data>
+  <data name="Sync_SaveLabel.Text" xml:space="preserve"><value>構成を保存</value></data>
+  <data name="Sync_SavingLabel.Text" xml:space="preserve"><value>保存しています...</value></data>
+  <data name="Sync_StatusTitle.Text" xml:space="preserve"><value>同期ステータス</value></data>
+  <data name="Sync_RefreshStatusBtn.ToolTipService.ToolTip" xml:space="preserve"><value>同期ステータスを更新</value></data>
+  <data name="Sync_LastSyncedOverline.Text" xml:space="preserve"><value>最終同期</value></data>
+  <data name="Sync_PendingOverline.Text" xml:space="preserve"><value>保留中の変更</value></data>
+  <data name="Sync_ItemsLabel.Text" xml:space="preserve"><value>件</value></data>
+  <data name="Sync_DurationOverline.Text" xml:space="preserve"><value>所要時間</value></data>
+  <data name="Sync_StateOverline.Text" xml:space="preserve"><value>状態</value></data>
+  <data name="Sync_Synchronizing.Text" xml:space="preserve"><value>同期しています...</value></data>
+  <data name="Sync_AutoBadgeRun.Text" xml:space="preserve"><value>自動同期オン</value></data>
+  <data name="Sync_HistoryTitle.Text" xml:space="preserve"><value>同期履歴</value></data>
+  <data name="Sync_ClearHistoryLabel.Text" xml:space="preserve"><value>履歴をクリア</value></data>
+  <data name="Sync_FocusedTitle.Text" xml:space="preserve"><value>フォーカス中の同期履歴エントリ</value></data>
+  <data name="Sync_FocusedHint.Text" xml:space="preserve"><value>該当する同期レコードは、このフォーカス状態を閉じるまで固定・マークされたままになります。</value></data>
+  <data name="Sync_DismissBtn.Content" xml:space="preserve"><value>閉じる</value></data>
+  <data name="Sync_LoadingHistory.Text" xml:space="preserve"><value>同期履歴を読み込んでいます...</value></data>
+  <data name="Sync_OpenedFromOpsBadge.Text" xml:space="preserve"><value>Operations から開きました</value></data>
+  <data name="Sync_ChangesRun.Text" xml:space="preserve"><value> 件の変更</value></data>
+  <data name="Sync_ConflictsRun.Text" xml:space="preserve"><value> 件の競合</value></data>
+  <data name="Sync_EmptyHistoryTitle.Text" xml:space="preserve"><value>同期履歴はまだありません</value></data>
+  <data name="Sync_EmptyHistoryHint.Text" xml:space="preserve"><value>最初の同期を実行すると、ここに同期履歴が表示されます。</value></data>
+  <data name="Onb_WelcomeTitle.Text" xml:space="preserve"><value>Agent-X へようこそ</value></data>
+  <data name="Onb_WelcomeSubtitle.Text" xml:space="preserve"><value>ローカルファーストの AI インテリジェンス ハブ</value></data>
+  <data name="Onb_PrivateTitle.Text" xml:space="preserve"><value>プライベートで安全</value></data>
+  <data name="Onb_PrivateDesc.Text" xml:space="preserve"><value>すべてがお使いのマシン上でローカルに動作します。データがデバイスの外に出ることはありません。</value></data>
+  <data name="Onb_FreeTitle.Text" xml:space="preserve"><value>無制限・無料</value></data>
+  <data name="Onb_FreeDesc.Text" xml:space="preserve"><value>Ollama によるローカルのオープンソース AI モデルで動作します。必要に応じて OpenAI や Anthropic Claude のクラウド モデルにも接続できます。</value></data>
+  <data name="Onb_DataTitle.Text" xml:space="preserve"><value>あなたのデータ、あなたのルール</value></data>
+  <data name="Onb_DataDesc.Text" xml:space="preserve"><value>ドキュメントをインデックス化し、セマンティック検索を行い、ファイルとチャットできます。完全なプライバシーにはローカル AI を、モデルの選択肢を増やすには任意のクラウド プロバイダーを利用してください。</value></data>
+  <data name="Onb_OllamaTitle.Text" xml:space="preserve"><value>Ollama に接続</value></data>
+  <data name="Onb_OllamaDesc.Text" xml:space="preserve"><value>Agent-X は Ollama を使って AI モデルをローカルで実行します。Ollama は AI モデルを管理・提供する無料のオープンソース ツールです。OpenAI や Anthropic のプロバイダーは、後から設定で構成することもできます。</value></data>
+  <data name="Onb_EndpointOverline.Text" xml:space="preserve"><value>OLLAMA エンドポイント</value></data>
+  <data name="Onb_TestConnBtn.Content" xml:space="preserve"><value>接続をテスト</value></data>
+  <data name="Onb_OllamaHelpRun1.Text" xml:space="preserve"><value>Ollama をお持ちでない場合は</value></data>
+  <data name="Onb_OllamaHelpRun2.Text" xml:space="preserve"><value>からインストールしてください。</value></data>
+  <data name="Onb_SkipBtn.Content" xml:space="preserve"><value>今はスキップ — 後で設定します</value></data>
+  <data name="Onb_ModelsTitle.Text" xml:space="preserve"><value>モデルを選択</value></data>
+  <data name="Onb_ModelsDesc.Text" xml:space="preserve"><value>既定のチャット モデルと、セマンティック検索用の埋め込みモデルを選択します。</value></data>
+  <data name="Onb_LoadingModels.Text" xml:space="preserve"><value>利用可能なモデルを読み込んでいます...</value></data>
+  <data name="Onb_ChatModelOverline.Text" xml:space="preserve"><value>チャット モデル</value></data>
+  <data name="Onb_ChatModelDesc.Text" xml:space="preserve"><value>AI との会話とテキスト生成に使用するモデルを選択します。</value></data>
+  <data name="Onb_EmbModelOverline.Text" xml:space="preserve"><value>埋め込みモデル</value></data>
+  <data name="Onb_EmbModelDesc.Text" xml:space="preserve"><value>セマンティック検索とドキュメントのインデックス作成に使用するモデルを選択します。</value></data>
+  <data name="Onb_NoModelsTitle.Text" xml:space="preserve"><value>利用可能なモデルがありません</value></data>
+  <data name="Onb_NoModelsDesc.Text" xml:space="preserve"><value>Ollama が接続されていないため、モデルを一覧表示できません。モデルは後から設定またはモデル マネージャーで構成できます。</value></data>
+  <data name="Onb_DefaultChatRun.Text" xml:space="preserve"><value>既定のチャット モデル:</value></data>
+  <data name="Onb_DefaultEmbRun.Text" xml:space="preserve"><value>  |  既定の埋め込みモデル:</value></data>
+  <data name="Onb_ReadyTitle.Text" xml:space="preserve"><value>AI の準備ができました</value></data>
+  <data name="Onb_ReadyDesc.Text" xml:space="preserve"><value>Agent-X には完全オフラインで動作する組み込み AI モデルが含まれています。必要に応じてクラウド API キーを追加し、モデルを増やせます。</value></data>
+  <data name="Onb_BuiltinOverline.Text" xml:space="preserve"><value>組み込みローカル モデル</value></data>
+  <data name="Onb_QuantCaption.Text" xml:space="preserve"><value>Q4_K_M 量子化  |  約 2 GB  |  完全にデバイス上で動作</value></data>
+  <data name="Onb_DownloadModelBtn.Content" xml:space="preserve"><value>組み込みモデルをダウンロード(約 1.9 GB)</value></data>
+  <data name="Onb_CloudOverline.Text" xml:space="preserve"><value>クラウド プロバイダー(任意)</value></data>
+  <data name="Onb_CloudDesc.Text" xml:space="preserve"><value>クラウド AI プロバイダーに接続すると、GPT-4o、Claude などの高度なモデルを利用できます。</value></data>
+  <data name="Onb_ApiKeysNote.Text" xml:space="preserve"><value>API キーはデバイスにローカル保存され、該当プロバイダー以外に送信されることはありません。</value></data>
+  <data name="Onb_AllSetTitle.Text" xml:space="preserve"><value>準備完了!</value></data>
+  <data name="Onb_AllSetDesc.Text" xml:space="preserve"><value>Agent-X の構成が完了し、使用できる状態になりました。設定はいつでも設定ページから変更できます。</value></data>
+  <data name="Onb_SummaryOverline.Text" xml:space="preserve"><value>構成の概要</value></data>
+  <data name="Onb_OllamaStatusLabel.Text" xml:space="preserve"><value>Ollama の状態</value></data>
+  <data name="Onb_ChatModelLabel.Text" xml:space="preserve"><value>チャット モデル</value></data>
+  <data name="Onb_EmbModelLabel.Text" xml:space="preserve"><value>埋め込みモデル</value></data>
+  <data name="Onb_BuiltinModelLabel.Text" xml:space="preserve"><value>組み込みモデル</value></data>
+  <data name="Onb_CloudProvidersLabel.Text" xml:space="preserve"><value>クラウド プロバイダー</value></data>
+  <data name="Onb_StorageLabel.Text" xml:space="preserve"><value>データの保存先</value></data>
+  <data name="Onb_StorageValue.Text" xml:space="preserve"><value>ローカル (%LOCALAPPDATA%\AgentX)</value></data>
+  <data name="Onb_BackBtn.Content" xml:space="preserve"><value>戻る</value></data>
+  <data name="Onb_GetStartedBtn.Content" xml:space="preserve"><value>始める</value></data>
+  <data name="Onb_NextBtn.Content" xml:space="preserve"><value>次へ</value></data>
+  <data name="Onb_LaunchBtn.Content" xml:space="preserve"><value>Agent-X を起動</value></data>
 </root>

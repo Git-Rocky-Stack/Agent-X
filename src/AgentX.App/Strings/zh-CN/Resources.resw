@@ -616,4 +616,294 @@
   <data name="UserGuide_Sync_Feature2_Description.Text" xml:space="preserve"><value>当同一条目在两台设备上都被编辑时，基于时间戳的冲突解决机制会决定哪个变更生效 — 无需手动合并。</value></data>
   <data name="UserGuide_Sync_Feature3_Title.Text" xml:space="preserve"><value>本地协作会话</value></data>
   <data name="UserGuide_Sync_Feature3_Description.Text" xml:space="preserve"><value>在可信的本地网络中，Agent-X 安装之间还可以承载实时协作会话 — 在对等设备之间直接共享在线状态和活动事件，任何数据都不会离开您的网络。</value></data>
+
+  <!-- Page localization pass 2026-07: Smart Inbox / Comparison / Operations / Analytics / Collaborative Sync / Onboarding -->
+  <data name="Inbox_Title.Text" xml:space="preserve"><value>Smart Inbox(智能收件箱)</value></data>
+  <data name="Inbox_PendingRun.Text" xml:space="preserve"><value>个待处理</value></data>
+  <data name="Inbox_StatusOverline.Text" xml:space="preserve"><value>状态</value></data>
+  <data name="Inbox_TargetCollectionOverline.Text" xml:space="preserve"><value>目标合集</value></data>
+  <data name="Inbox_AutoSuggestPlaceholder.PlaceholderText" xml:space="preserve"><value>自动建议</value></data>
+  <data name="Inbox_ActionsOverline.Text" xml:space="preserve"><value>操作</value></data>
+  <data name="Inbox_AcceptAllBtn.Content" xml:space="preserve"><value>接受全部待处理</value></data>
+  <data name="Inbox_GeneratePreviewsBtn.Content" xml:space="preserve"><value>生成 AI 预览</value></data>
+  <data name="Inbox_CleanupBtn.Content" xml:space="preserve"><value>清理已处理项</value></data>
+  <data name="Inbox_TriageTitle.Text" xml:space="preserve"><value>文档分拣</value></data>
+  <data name="Inbox_TriageSubtitle.Text" xml:space="preserve"><value>在新文件进入知识库之前先行审阅。AI 会推荐合集与标签。</value></data>
+  <data name="Inbox_FocusedTitle.Text" xml:space="preserve"><value>聚焦的收件项</value></data>
+  <data name="Inbox_FocusedDismissBtn.Content" xml:space="preserve"><value>关闭</value></data>
+  <data name="Inbox_OpenedFromOpsBadge.Text" xml:space="preserve"><value>从 Operations 打开</value></data>
+  <data name="Inbox_WebClipBadge.Text" xml:space="preserve"><value>网页剪藏</value></data>
+  <data name="Inbox_AcceptBtn.ToolTipService.ToolTip" xml:space="preserve"><value>接受</value></data>
+  <data name="Inbox_AcceptBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>接受</value></data>
+  <data name="Inbox_DeferBtn.ToolTipService.ToolTip" xml:space="preserve"><value>推迟</value></data>
+  <data name="Inbox_DeferBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>推迟</value></data>
+  <data name="Inbox_RejectBtn.ToolTipService.ToolTip" xml:space="preserve"><value>拒绝</value></data>
+  <data name="Inbox_RejectBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>拒绝</value></data>
+  <data name="Inbox_AiPreviewLabel.Text" xml:space="preserve"><value>AI 预览</value></data>
+  <data name="Inbox_SuggestedLabel.Text" xml:space="preserve"><value>建议:</value></data>
+  <data name="Inbox_EmptyTitle.Text" xml:space="preserve"><value>收件箱为空</value></data>
+  <data name="Inbox_EmptyHint.Text" xml:space="preserve"><value>来自监视文件夹的新文件将显示在此处以供分拣。</value></data>
+  <data name="Comp_SelectTitle.Text" xml:space="preserve"><value>选择文档</value></data>
+  <data name="Comp_SelectedRun.Text" xml:space="preserve"><value>个已选</value></data>
+  <data name="Comp_FocusPlaceholder.PlaceholderText" xml:space="preserve"><value>聚焦主题(可选)...</value></data>
+  <data name="Comp_DetailLevelBox.Header" xml:space="preserve"><value>详细程度</value></data>
+  <data name="Comp_CompareBtn.Content" xml:space="preserve"><value>对比文档</value></data>
+  <data name="Comp_CancelBtn.Content" xml:space="preserve"><value>取消</value></data>
+  <data name="Comp_Title.Text" xml:space="preserve"><value>对比分析</value></data>
+  <data name="Comp_Subtitle.Text" xml:space="preserve"><value>选择 2 份以上文档,生成结构化的并排对比。</value></data>
+  <data name="Comp_SummaryTitle.Text" xml:space="preserve"><value>摘要</value></data>
+  <data name="Comp_TokensRun.Text" xml:space="preserve"><value>token</value></data>
+  <data name="Comp_MsRun.Text" xml:space="preserve"><value>ms</value></data>
+  <data name="Comp_SimilaritiesTitle.Text" xml:space="preserve"><value>相同点</value></data>
+  <data name="Comp_DifferencesTitle.Text" xml:space="preserve"><value>差异</value></data>
+  <data name="Comp_ContradictionsTitle.Text" xml:space="preserve"><value>矛盾</value></data>
+  <data name="Comp_UniqueTitle.Text" xml:space="preserve"><value>各文档独有要点</value></data>
+  <data name="Comp_NoUniquePoints.Text" xml:space="preserve"><value>本次对比未发现各文档特有的要点。</value></data>
+  <data name="Comp_ExportBtn.Content" xml:space="preserve"><value>导出报告</value></data>
+  <data name="Comp_EmptyState.Text" xml:space="preserve"><value>请选择文档并开始对比</value></data>
+  <data name="Ops_RetryIndexBtn.Content" xml:space="preserve"><value>重试索引</value></data>
+  <data name="Ops_EnableConnectorBtn.Content" xml:space="preserve"><value>启用连接器</value></data>
+  <data name="Ops_OpenPluginBtn.Content" xml:space="preserve"><value>打开插件</value></data>
+  <data name="Ops_Title.Text" xml:space="preserve"><value>Operations(运行状况)</value></data>
+  <data name="Ops_Subtitle.Text" xml:space="preserve"><value>统一显示会话智能、同步状态、摄取积压、工作流活动与连接器的状况。</value></data>
+  <data name="Ops_DashboardBtn.Content" xml:space="preserve"><value>仪表板</value></data>
+  <data name="Ops_RefreshBtn.Content" xml:space="preserve"><value>刷新</value></data>
+  <data name="Ops_Loading.Text" xml:space="preserve"><value>正在加载运行状况...</value></data>
+  <data name="Ops_CurrentStatusOverline.Text" xml:space="preserve"><value>当前运行状况</value></data>
+  <data name="Ops_SuggestedFixesTitle.Text" xml:space="preserve"><value>建议修复</value></data>
+  <data name="Ops_SuggestedFixesSubtitle.Text" xml:space="preserve"><value>基于当前运行快照、影响最大的修复步骤。</value></data>
+  <data name="Ops_ConvIntelOverline.Text" xml:space="preserve"><value>会话智能</value></data>
+  <data name="Ops_RecentSummariesLabel.Text" xml:space="preserve"><value>最近的摘要</value></data>
+  <data name="Ops_RefreshSummariesBtn.Content" xml:space="preserve"><value>刷新摘要</value></data>
+  <data name="Ops_OpenAnalyticsBtn.Content" xml:space="preserve"><value>打开 Analytics</value></data>
+  <data name="Ops_SyncHealthOverline.Text" xml:space="preserve"><value>同步健康状况</value></data>
+  <data name="Ops_RecentSyncPassesLabel.Text" xml:space="preserve"><value>最近的同步运行</value></data>
+  <data name="Ops_SyncNowBtn.Content" xml:space="preserve"><value>立即同步</value></data>
+  <data name="Ops_OpenSyncBtn.Content" xml:space="preserve"><value>打开同步</value></data>
+  <data name="Ops_IngestionOverline.Text" xml:space="preserve"><value>摄取积压</value></data>
+  <data name="Ops_PendingItemsLabel.Text" xml:space="preserve"><value>待处理项</value></data>
+  <data name="Ops_RecentImportedLabel.Text" xml:space="preserve"><value>最近导入的文档</value></data>
+  <data name="Ops_GeneratePreviewsBtn.Content" xml:space="preserve"><value>生成预览</value></data>
+  <data name="Ops_OpenInboxBtn.Content" xml:space="preserve"><value>打开收件箱</value></data>
+  <data name="Ops_OpenVaultBtn.Content" xml:space="preserve"><value>打开 Vault</value></data>
+  <data name="Ops_WorkflowOverline.Text" xml:space="preserve"><value>工作流活动</value></data>
+  <data name="Ops_RecentRunsLabel.Text" xml:space="preserve"><value>最近的运行</value></data>
+  <data name="Ops_OpenWorkflowsBtn.Content" xml:space="preserve"><value>打开工作流</value></data>
+  <data name="Ops_ConnectorsOverline.Text" xml:space="preserve"><value>连接器与插件</value></data>
+  <data name="Ops_ConnectorPreviewLabel.Text" xml:space="preserve"><value>连接器预览</value></data>
+  <data name="Ops_OpenPluginManagerBtn.Content" xml:space="preserve"><value>打开插件管理器</value></data>
+  <data name="Ana_Title.Text" xml:space="preserve"><value>Analytics(分析)</value></data>
+  <data name="Ana_Subtitle.Text" xml:space="preserve"><value>使用统计、性能指标与活动趋势</value></data>
+  <data name="Ana_RefreshBtn.Content" xml:space="preserve"><value>刷新</value></data>
+  <data name="Ana_Loading.Text" xml:space="preserve"><value>正在加载分析数据...</value></data>
+  <data name="Ana_ConvOverline.Text" xml:space="preserve"><value>会话</value></data>
+  <data name="Ana_ConvCaption.Text" xml:space="preserve"><value>启动的会话总数</value></data>
+  <data name="Ana_MsgOverline.Text" xml:space="preserve"><value>消息</value></data>
+  <data name="Ana_MsgCaption.Text" xml:space="preserve"><value>发送与接收</value></data>
+  <data name="Ana_TokensOverline.Text" xml:space="preserve"><value>已用 token</value></data>
+  <data name="Ana_AvgPerMsgLabel.Text" xml:space="preserve"><value>平均 / 条消息</value></data>
+  <data name="Ana_DocsOverline.Text" xml:space="preserve"><value>文档</value></data>
+  <data name="Ana_IndexedDotLabel.Text" xml:space="preserve"><value>已索引 ·</value></data>
+  <data name="Ana_PendingLabel.Text" xml:space="preserve"><value>待处理</value></data>
+  <data name="Ana_SearchesOverline.Text" xml:space="preserve"><value>搜索</value></data>
+  <data name="Ana_SearchesCaption.Text" xml:space="preserve"><value>语义与关键词查询</value></data>
+  <data name="Ana_AvgRespOverline.Text" xml:space="preserve"><value>平均响应</value></data>
+  <data name="Ana_AvgRespCaption.Text" xml:space="preserve"><value>AI 生成延迟</value></data>
+  <data name="Ana_IndexingOverline.Text" xml:space="preserve"><value>知识索引</value></data>
+  <data name="Ana_IndexedRun.Text" xml:space="preserve"><value> 已索引</value></data>
+  <data name="Ana_PendingRun.Text" xml:space="preserve"><value> 待处理</value></data>
+  <data name="Ana_TokensPerConvOverline.Text" xml:space="preserve"><value>token / 会话</value></data>
+  <data name="Ana_WorkflowIntelTitle.Text" xml:space="preserve"><value>工作流智能</value></data>
+  <data name="Ana_WorkflowIntelSubtitle.Text" xml:space="preserve"><value>基于已存储的工作流运行历史,呈现采用度、可靠性与最近结果</value></data>
+  <data name="Ana_TotalRunsOverline.Text" xml:space="preserve"><value>总运行次数</value></data>
+  <data name="Ana_TotalRunsCaption.Text" xml:space="preserve"><value>所有已记录的工作流执行</value></data>
+  <data name="Ana_SuccessRateOverline.Text" xml:space="preserve"><value>成功率</value></data>
+  <data name="Ana_SuccessRateCaption.Text" xml:space="preserve"><value>已结束运行中成功完成的占比</value></data>
+  <data name="Ana_AvgRunDurOverline.Text" xml:space="preserve"><value>平均运行时长</value></data>
+  <data name="Ana_AvgRunDurCaption.Text" xml:space="preserve"><value>已完成工作流运行的平均时长</value></data>
+  <data name="Ana_ActiveWfOverline.Text" xml:space="preserve"><value>活跃工作流(30 天)</value></data>
+  <data name="Ana_ActiveWfCaption.Text" xml:space="preserve"><value>最近 30 天内使用过的不同工作流</value></data>
+  <data name="Ana_WfTrendLabel.Text" xml:space="preserve"><value>30 天工作流运行趋势</value></data>
+  <data name="Ana_WfTrendEmpty.Text" xml:space="preserve"><value>最近 30 天暂无工作流运行。</value></data>
+  <data name="Ana_TopWfTitle.Text" xml:space="preserve"><value>热门工作流</value></data>
+  <data name="Ana_TopWfSubtitle.Text" xml:space="preserve"><value>按实际运行历史(而非缓存计数)排序的高频工作流。</value></data>
+  <data name="Ana_TopWfEmpty.Text" xml:space="preserve"><value>暂无领先的工作流。</value></data>
+  <data name="Ana_RecentWfTitle.Text" xml:space="preserve"><value>最近的工作流运行</value></data>
+  <data name="Ana_RecentWfSubtitle.Text" xml:space="preserve"><value>最新存储的结果,含简短输出或错误预览以便检查。</value></data>
+  <data name="Ana_RecentWfEmpty.Text" xml:space="preserve"><value>暂无最近的工作流运行。</value></data>
+  <data name="Ana_ConvIntelTitle.Text" xml:space="preserve"><value>会话智能</value></data>
+  <data name="Ana_ConvIntelSubtitle.Text" xml:space="preserve"><value>长会话的持久摘要,新鲜度与覆盖范围一目了然</value></data>
+  <data name="Ana_SummarizedOverline.Text" xml:space="preserve"><value>已摘要会话</value></data>
+  <data name="Ana_SummarizedCaption.Text" xml:space="preserve"><value>拥有已存快照的不同会话</value></data>
+  <data name="Ana_SnapshotsOverline.Text" xml:space="preserve"><value>当前快照</value></data>
+  <data name="Ana_SnapshotsCaption.Text" xml:space="preserve"><value>存储在磁盘上的不可变摘要版本</value></data>
+  <data name="Ana_StaleOverline.Text" xml:space="preserve"><value>过期摘要</value></data>
+  <data name="Ana_StaleCaption.Text" xml:space="preserve"><value>不再反映最新会话状态的已存摘要</value></data>
+  <data name="Ana_PendingRefreshOverline.Text" xml:space="preserve"><value>待刷新</value></data>
+  <data name="Ana_PendingRefreshCaption.Text" xml:space="preserve"><value>等待首次或增量刷新的会话</value></data>
+  <data name="Ana_FocusedConvTitle.Text" xml:space="preserve"><value>聚焦的会话摘要</value></data>
+  <data name="Ana_FocusedConvHint.Text" xml:space="preserve"><value>匹配的持久摘要已移至列表顶部,无需在 Analytics 中查找即可查看。</value></data>
+  <data name="Ana_RefreshSummaryBtn.Content" xml:space="preserve"><value>刷新摘要</value></data>
+  <data name="Ana_DismissBtn.Content" xml:space="preserve"><value>关闭</value></data>
+  <data name="Ana_NoSummaries.Text" xml:space="preserve"><value>尚无持久会话摘要。进行几次聊天后重新打开 Analytics 即可生成首批快照。</value></data>
+  <data name="Ana_OpenedFromOpsBadge.Text" xml:space="preserve"><value>从 Operations 打开</value></data>
+  <data name="Ana_RecallTitle.Text" xml:space="preserve"><value>语义回忆探测</value></data>
+  <data name="Ana_RecallSubtitle.Text" xml:space="preserve"><value>持久的消息嵌入让您跨会话探查语义相似的历史发言,而无需依赖临时聊天记忆。</value></data>
+  <data name="Ana_EmbeddedOverline.Text" xml:space="preserve"><value>已嵌入消息</value></data>
+  <data name="Ana_EmbeddedCaption.Text" xml:space="preserve"><value>当前可回忆的消息</value></data>
+  <data name="Ana_PendingEmbOverline.Text" xml:space="preserve"><value>待嵌入</value></data>
+  <data name="Ana_PendingEmbCaption.Text" xml:space="preserve"><value>仍在等待持久嵌入的合格消息</value></data>
+  <data name="Ana_RecallReadyOverline.Text" xml:space="preserve"><value>可回忆的会话</value></data>
+  <data name="Ana_RecallQueryBox.PlaceholderText" xml:space="preserve"><value>试试:产品路线图变化、定价讨论、仪表板分析、摘要刷新</value></data>
+  <data name="Ana_SearchRecallBtn.Content" xml:space="preserve"><value>搜索回忆</value></data>
+  <data name="Ana_NoRecallMatches.Text" xml:space="preserve"><value>暂无回忆匹配。待聊天完成嵌入后再运行探测查询。</value></data>
+  <data name="Ana_ThemesTitle.Text" xml:space="preserve"><value>会话主题</value></data>
+  <data name="Ana_ThemesSubtitle.Text" xml:space="preserve"><value>由持久摘要构建的跨会话聚类。这是位于已存摘要与回忆之上的首个持久主题层。</value></data>
+  <data name="Ana_ActiveClustersOverline.Text" xml:space="preserve"><value>活跃主题聚类</value></data>
+  <data name="Ana_ActiveClustersCaption.Text" xml:space="preserve"><value>当前已物化的持久会话主题</value></data>
+  <data name="Ana_ClusteredConvOverline.Text" xml:space="preserve"><value>已聚类会话</value></data>
+  <data name="Ana_ClusteredConvCaption.Text" xml:space="preserve"><value>拥有当前持久主题分配的会话</value></data>
+  <data name="Ana_NewThemesOverline.Text" xml:space="preserve"><value>新主题(7 天)</value></data>
+  <data name="Ana_NewThemesCaption.Text" xml:space="preserve"><value>最近 7 天内首次出现的主题聚类</value></data>
+  <data name="Ana_LastMaterializedOverline.Text" xml:space="preserve"><value>上次物化</value></data>
+  <data name="Ana_LastMaterializedCaption.Text" xml:space="preserve"><value>最近一次持久聚类重算</value></data>
+  <data name="Ana_NoThemes.Text" xml:space="preserve"><value>尚无会话主题。持久摘要积累后,Analytics 会在此显示首批跨会话聚类。</value></data>
+  <data name="Ana_ThemeTrendsTitle.Text" xml:space="preserve"><value>主题趋势</value></data>
+  <data name="Ana_ThemeTrendsSubtitle.Text" xml:space="preserve"><value>物化主题层的每日持久活动窗口。Analytics 在此只读取已存行,因此趋势卡片稳定且加载开销低。</value></data>
+  <data name="Ana_TrendingOverline.Text" xml:space="preserve"><value>趋势主题</value></data>
+  <data name="Ana_TrendingCaption.Text" xml:space="preserve"><value>近 7 天活跃度高于前一个 7 天窗口的主题</value></data>
+  <data name="Ana_NewEntriesOverline.Text" xml:space="preserve"><value>新主题条目(7 天)</value></data>
+  <data name="Ana_NewEntriesCaption.Text" xml:space="preserve"><value>最近 7 天内首次物化的当前聚类分配</value></data>
+  <data name="Ana_MostActiveOverline.Text" xml:space="preserve"><value>最活跃主题</value></data>
+  <data name="Ana_MostActiveCaption.Text" xml:space="preserve"><value>主题层中 7 天持久活跃度总量最高者</value></data>
+  <data name="Ana_LastTrendOverline.Text" xml:space="preserve"><value>上次趋势刷新</value></data>
+  <data name="Ana_LastTrendCaption.Text" xml:space="preserve"><value>最近一次持久化的主题趋势物化</value></data>
+  <data name="Ana_NoTrendRows.Text" xml:space="preserve"><value>尚无持久主题趋势数据。聚类刷新后,Analytics 会在此显示其每日活动窗口。</value></data>
+  <data name="Ana_ActivityTitle.Text" xml:space="preserve"><value>活动趋势</value></data>
+  <data name="Ana_ActivitySubtitle.Text" xml:space="preserve"><value>最近 30 天的每日活动</value></data>
+  <data name="Ana_ConvSeriesLabel.Text" xml:space="preserve"><value>会话</value></data>
+  <data name="Ana_NoConvData.Text" xml:space="preserve"><value>暂无会话数据。开始聊天即可查看趋势。</value></data>
+  <data name="Ana_DocsSeriesLabel.Text" xml:space="preserve"><value>已导入文档</value></data>
+  <data name="Ana_NoDocData.Text" xml:space="preserve"><value>暂无文档导入数据。导入文件即可查看趋势。</value></data>
+  <data name="Ana_SearchSeriesLabel.Text" xml:space="preserve"><value>搜索</value></data>
+  <data name="Ana_NoSearchData.Text" xml:space="preserve"><value>暂无搜索数据。使用语义或关键词搜索即可查看趋势。</value></data>
+  <data name="Ana_ModelUsageTitle.Text" xml:space="preserve"><value>模型使用情况</value></data>
+  <data name="Ana_ModelUsageSubtitle.Text" xml:space="preserve"><value>按会话数统计的 AI 模型分布</value></data>
+  <data name="Ana_NoModelData.Text" xml:space="preserve"><value>暂无模型数据。开始会话即可查看模型使用情况。</value></data>
+  <data name="Ana_DocTypesTitle.Text" xml:space="preserve"><value>文档类型</value></data>
+  <data name="Ana_DocTypesSubtitle.Text" xml:space="preserve"><value>Knowledge Vault 中的文件类型分布</value></data>
+  <data name="Ana_NoDocsImported.Text" xml:space="preserve"><value>尚未导入文档。向 Knowledge Vault 添加文件即可查看类型分布。</value></data>
+  <data name="Ana_PerfTitle.Text" xml:space="preserve"><value>性能指标</value></data>
+  <data name="Ana_PerfSubtitle.Text" xml:space="preserve"><value>所有助手回复的 AI 推理耗时统计</value></data>
+  <data name="Ana_NoTimingData.Text" xml:space="preserve"><value>暂无耗时数据。首次 AI 回复后将自动跟踪响应时间。</value></data>
+  <data name="Ana_AvgOverline.Text" xml:space="preserve"><value>平均</value></data>
+  <data name="Ana_AvgCaption.Text" xml:space="preserve"><value>平均响应时间</value></data>
+  <data name="Ana_MedianOverline.Text" xml:space="preserve"><value>中位数(P50)</value></data>
+  <data name="Ana_MedianCaption.Text" xml:space="preserve"><value>一半的响应快于此值</value></data>
+  <data name="Ana_P95Overline.Text" xml:space="preserve"><value>P95</value></data>
+  <data name="Ana_P95Caption.Text" xml:space="preserve"><value>第 95 百分位延迟</value></data>
+  <data name="Ana_ThroughputOverline.Text" xml:space="preserve"><value>吞吐量</value></data>
+  <data name="Ana_ThroughputCaption.Text" xml:space="preserve"><value>平均每秒 token 数</value></data>
+  <data name="Ana_FastestOverline.Text" xml:space="preserve"><value>最快</value></data>
+  <data name="Ana_FastestCaption.Text" xml:space="preserve"><value>观测到的最快响应</value></data>
+  <data name="Ana_SlowestOverline.Text" xml:space="preserve"><value>最慢</value></data>
+  <data name="Ana_SlowestCaption.Text" xml:space="preserve"><value>观测到的最慢响应</value></data>
+  <data name="Ana_TotalInfOverline.Text" xml:space="preserve"><value>总推理时间</value></data>
+  <data name="Ana_TotalInfCaption.Text" xml:space="preserve"><value>所有会话累计的 AI 生成时间</value></data>
+  <data name="Sync_Title.Text" xml:space="preserve"><value>Collaborative Sync(协作同步)</value></data>
+  <data name="Sync_Subtitle.Text" xml:space="preserve"><value>配置 Agent-X 安装实例之间的加密同步。</value></data>
+  <data name="Sync_SyncNowLabel.Text" xml:space="preserve"><value>立即同步</value></data>
+  <data name="Sync_LoadingSettings.Text" xml:space="preserve"><value>正在加载同步设置...</value></data>
+  <data name="Sync_NotConfiguredTitle.Text" xml:space="preserve"><value>尚未配置同步</value></data>
+  <data name="Sync_NotConfiguredHint.Text" xml:space="preserve"><value>设置共享同步文件夹和加密密钥,即可在 Agent-X 安装实例之间安全同步 Knowledge Vault、合集与设置。</value></data>
+  <data name="Sync_E2ENote.Text" xml:space="preserve"><value>所有同步数据均使用您的密钥进行端到端加密。</value></data>
+  <data name="Sync_ConfigTitle.Text" xml:space="preserve"><value>配置</value></data>
+  <data name="Sync_ConfigSubtitle.Text" xml:space="preserve"><value>设置用于在设备间同步数据的共享文件夹路径和加密密钥。</value></data>
+  <data name="Sync_FolderLabel.Text" xml:space="preserve"><value>同步文件夹</value></data>
+  <data name="Sync_FolderBox.PlaceholderText" xml:space="preserve"><value>C:\Users\Shared\AgentX-Sync 或 \\NAS\AgentX</value></data>
+  <data name="Sync_BrowseLabel.Text" xml:space="preserve"><value>浏览</value></data>
+  <data name="Sync_FolderHint.Text" xml:space="preserve"><value>选择网络共享、云同步文件夹(OneDrive、Dropbox)或任意共享位置。</value></data>
+  <data name="Sync_KeyLabel.Text" xml:space="preserve"><value>加密密钥</value></data>
+  <data name="Sync_KeyBox.PlaceholderText" xml:space="preserve"><value>输入用于 AES-256 加密的强密码短语</value></data>
+  <data name="Sync_KeyHint.Text" xml:space="preserve"><value>所有安装实例必须使用相同密钥。请使用您能记住的强密码短语。</value></data>
+  <data name="Sync_AutoSyncTitle.Text" xml:space="preserve"><value>自动同步</value></data>
+  <data name="Sync_AutoSyncSubtitle.Text" xml:space="preserve"><value>按固定间隔自动同步更改。</value></data>
+  <data name="Sync_AutoToggle.OnContent" xml:space="preserve"><value>开</value></data>
+  <data name="Sync_AutoToggle.OffContent" xml:space="preserve"><value>关</value></data>
+  <data name="Sync_IntervalLabel.Text" xml:space="preserve"><value>同步间隔</value></data>
+  <data name="Sync_ScopeLabel.Text" xml:space="preserve"><value>同步范围</value></data>
+  <data name="Sync_ScopeHint.Text" xml:space="preserve"><value>选择同步全部数据还是仅同步所选合集。</value></data>
+  <data name="Sync_CollectionsLabel.Text" xml:space="preserve"><value>要同步的合集</value></data>
+  <data name="Sync_ScopedNote.Text" xml:space="preserve"><value>只有分配到所选合集的文档才会包含在同步导出中。</value></data>
+  <data name="Sync_NoCollections.Text" xml:space="preserve"><value>尚无可用合集。使用所选合集同步前请先创建合集。</value></data>
+  <data name="Sync_SaveLabel.Text" xml:space="preserve"><value>保存配置</value></data>
+  <data name="Sync_SavingLabel.Text" xml:space="preserve"><value>正在保存...</value></data>
+  <data name="Sync_StatusTitle.Text" xml:space="preserve"><value>同步状态</value></data>
+  <data name="Sync_RefreshStatusBtn.ToolTipService.ToolTip" xml:space="preserve"><value>刷新同步状态</value></data>
+  <data name="Sync_LastSyncedOverline.Text" xml:space="preserve"><value>上次同步</value></data>
+  <data name="Sync_PendingOverline.Text" xml:space="preserve"><value>待同步更改</value></data>
+  <data name="Sync_ItemsLabel.Text" xml:space="preserve"><value>项</value></data>
+  <data name="Sync_DurationOverline.Text" xml:space="preserve"><value>耗时</value></data>
+  <data name="Sync_StateOverline.Text" xml:space="preserve"><value>状态</value></data>
+  <data name="Sync_Synchronizing.Text" xml:space="preserve"><value>正在同步...</value></data>
+  <data name="Sync_AutoBadgeRun.Text" xml:space="preserve"><value>自动同步已启用</value></data>
+  <data name="Sync_HistoryTitle.Text" xml:space="preserve"><value>同步历史</value></data>
+  <data name="Sync_ClearHistoryLabel.Text" xml:space="preserve"><value>清除历史</value></data>
+  <data name="Sync_FocusedTitle.Text" xml:space="preserve"><value>聚焦的同步历史条目</value></data>
+  <data name="Sync_FocusedHint.Text" xml:space="preserve"><value>匹配的同步记录将保持置顶并标记,直到您关闭此聚焦状态。</value></data>
+  <data name="Sync_DismissBtn.Content" xml:space="preserve"><value>关闭</value></data>
+  <data name="Sync_LoadingHistory.Text" xml:space="preserve"><value>正在加载同步历史...</value></data>
+  <data name="Sync_OpenedFromOpsBadge.Text" xml:space="preserve"><value>从 Operations 打开</value></data>
+  <data name="Sync_ChangesRun.Text" xml:space="preserve"><value> 项更改</value></data>
+  <data name="Sync_ConflictsRun.Text" xml:space="preserve"><value> 项冲突</value></data>
+  <data name="Sync_EmptyHistoryTitle.Text" xml:space="preserve"><value>暂无同步历史</value></data>
+  <data name="Sync_EmptyHistoryHint.Text" xml:space="preserve"><value>首次同步后,同步历史将显示在此处。</value></data>
+  <data name="Onb_WelcomeTitle.Text" xml:space="preserve"><value>欢迎使用 Agent-X</value></data>
+  <data name="Onb_WelcomeSubtitle.Text" xml:space="preserve"><value>您的本地优先 AI 智能中心</value></data>
+  <data name="Onb_PrivateTitle.Text" xml:space="preserve"><value>私密且安全</value></data>
+  <data name="Onb_PrivateDesc.Text" xml:space="preserve"><value>一切都在您的电脑本地运行。您的数据永远不会离开设备。</value></data>
+  <data name="Onb_FreeTitle.Text" xml:space="preserve"><value>无限制且免费</value></data>
+  <data name="Onb_FreeDesc.Text" xml:space="preserve"><value>由 Ollama 驱动的本地开源 AI 模型提供支持。也可选择连接 OpenAI 或 Anthropic Claude 使用云端模型。</value></data>
+  <data name="Onb_DataTitle.Text" xml:space="preserve"><value>您的数据,您做主</value></data>
+  <data name="Onb_DataDesc.Text" xml:space="preserve"><value>为文档建立索引、进行语义搜索并与文件对话。使用本地 AI 获得完全隐私,或选用云服务商获取更多模型选择。</value></data>
+  <data name="Onb_OllamaTitle.Text" xml:space="preserve"><value>连接 Ollama</value></data>
+  <data name="Onb_OllamaDesc.Text" xml:space="preserve"><value>Agent-X 使用 Ollama 在您的电脑本地运行 AI 模型。Ollama 是一款免费开源工具,用于管理和提供 AI 模型。您也可以稍后在设置中配置 OpenAI 或 Anthropic。</value></data>
+  <data name="Onb_EndpointOverline.Text" xml:space="preserve"><value>OLLAMA 端点</value></data>
+  <data name="Onb_TestConnBtn.Content" xml:space="preserve"><value>测试连接</value></data>
+  <data name="Onb_OllamaHelpRun1.Text" xml:space="preserve"><value>没有 Ollama?请访问</value></data>
+  <data name="Onb_OllamaHelpRun2.Text" xml:space="preserve"><value>进行安装。</value></data>
+  <data name="Onb_SkipBtn.Content" xml:space="preserve"><value>暂时跳过 — 稍后再设置</value></data>
+  <data name="Onb_ModelsTitle.Text" xml:space="preserve"><value>选择您的模型</value></data>
+  <data name="Onb_ModelsDesc.Text" xml:space="preserve"><value>选择默认聊天模型和用于语义搜索的嵌入模型。</value></data>
+  <data name="Onb_LoadingModels.Text" xml:space="preserve"><value>正在加载可用模型...</value></data>
+  <data name="Onb_ChatModelOverline.Text" xml:space="preserve"><value>聊天模型</value></data>
+  <data name="Onb_ChatModelDesc.Text" xml:space="preserve"><value>选择用于 AI 对话和文本生成的模型。</value></data>
+  <data name="Onb_EmbModelOverline.Text" xml:space="preserve"><value>嵌入模型</value></data>
+  <data name="Onb_EmbModelDesc.Text" xml:space="preserve"><value>选择用于语义搜索和文档索引的模型。</value></data>
+  <data name="Onb_NoModelsTitle.Text" xml:space="preserve"><value>没有可用模型</value></data>
+  <data name="Onb_NoModelsDesc.Text" xml:space="preserve"><value>Ollama 未连接,无法列出模型。您可以稍后在设置或模型管理器中配置模型。</value></data>
+  <data name="Onb_DefaultChatRun.Text" xml:space="preserve"><value>默认聊天模型:</value></data>
+  <data name="Onb_DefaultEmbRun.Text" xml:space="preserve"><value>  |  默认嵌入模型:</value></data>
+  <data name="Onb_ReadyTitle.Text" xml:space="preserve"><value>您的 AI 已就绪</value></data>
+  <data name="Onb_ReadyDesc.Text" xml:space="preserve"><value>Agent-X 内置 AI 模型,可完全离线运行。您也可选择添加云 API 密钥以使用更多模型。</value></data>
+  <data name="Onb_BuiltinOverline.Text" xml:space="preserve"><value>内置本地模型</value></data>
+  <data name="Onb_QuantCaption.Text" xml:space="preserve"><value>Q4_K_M 量化  |  约 2 GB  |  完全在您的设备上运行</value></data>
+  <data name="Onb_DownloadModelBtn.Content" xml:space="preserve"><value>下载内置模型(约 1.9 GB)</value></data>
+  <data name="Onb_CloudOverline.Text" xml:space="preserve"><value>云服务商(可选)</value></data>
+  <data name="Onb_CloudDesc.Text" xml:space="preserve"><value>连接云 AI 服务商即可使用 GPT-4o、Claude 及其他先进模型。</value></data>
+  <data name="Onb_ApiKeysNote.Text" xml:space="preserve"><value>API 密钥保存在您的设备本地,除相应服务商外不会发送到任何地方。</value></data>
+  <data name="Onb_AllSetTitle.Text" xml:space="preserve"><value>一切就绪!</value></data>
+  <data name="Onb_AllSetDesc.Text" xml:space="preserve"><value>Agent-X 已配置完毕,随时可用。所有设置均可随时在设置页面中更改。</value></data>
+  <data name="Onb_SummaryOverline.Text" xml:space="preserve"><value>配置摘要</value></data>
+  <data name="Onb_OllamaStatusLabel.Text" xml:space="preserve"><value>Ollama 状态</value></data>
+  <data name="Onb_ChatModelLabel.Text" xml:space="preserve"><value>聊天模型</value></data>
+  <data name="Onb_EmbModelLabel.Text" xml:space="preserve"><value>嵌入模型</value></data>
+  <data name="Onb_BuiltinModelLabel.Text" xml:space="preserve"><value>内置模型</value></data>
+  <data name="Onb_CloudProvidersLabel.Text" xml:space="preserve"><value>云服务商</value></data>
+  <data name="Onb_StorageLabel.Text" xml:space="preserve"><value>数据存储</value></data>
+  <data name="Onb_StorageValue.Text" xml:space="preserve"><value>本地 (%LOCALAPPDATA%\AgentX)</value></data>
+  <data name="Onb_BackBtn.Content" xml:space="preserve"><value>返回</value></data>
+  <data name="Onb_GetStartedBtn.Content" xml:space="preserve"><value>开始使用</value></data>
+  <data name="Onb_NextBtn.Content" xml:space="preserve"><value>下一步</value></data>
+  <data name="Onb_LaunchBtn.Content" xml:space="preserve"><value>启动 Agent-X</value></data>
 </root>

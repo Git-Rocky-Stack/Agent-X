@@ -138,11 +138,11 @@
 
                         <!-- Hero Text -->
                         <StackPanel Spacing="12" HorizontalAlignment="Center">
-                            <TextBlock Text="Welcome to Agent-X"
+                            <TextBlock x:Uid="Onb_WelcomeTitle" Text="Welcome to Agent-X"
                                        Style="{StaticResource DisplayLargeStyle}"
                                        HorizontalAlignment="Center"
                                        TextAlignment="Center" />
-                            <TextBlock Text="Your Local-First AI Intelligence Hub"
+                            <TextBlock x:Uid="Onb_WelcomeSubtitle" Text="Your Local-First AI Intelligence Hub"
                                        Style="{StaticResource HeadingMediumStyle}"
                                        Foreground="{ThemeResource TextSecondaryBrush}"
                                        HorizontalAlignment="Center"
@@ -170,9 +170,9 @@
                                                   VerticalAlignment="Center" />
                                     </Border>
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
-                                        <TextBlock Text="Private &amp; Secure"
+                                        <TextBlock x:Uid="Onb_PrivateTitle" Text="Private &amp; Secure"
                                                    Style="{StaticResource HeadingSmallStyle}" />
-                                        <TextBlock Text="Everything runs locally on your machine. Your data never leaves your device."
+                                        <TextBlock x:Uid="Onb_PrivateDesc" Text="Everything runs locally on your machine. Your data never leaves your device."
                                                    Style="{StaticResource BodySecondaryStyle}" />
                                     </StackPanel>
                                 </Grid>
@@ -195,9 +195,9 @@
                                                   VerticalAlignment="Center" />
                                     </Border>
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
-                                        <TextBlock Text="Unlimited &amp; Free"
+                                        <TextBlock x:Uid="Onb_FreeTitle" Text="Unlimited &amp; Free"
                                                    Style="{StaticResource HeadingSmallStyle}" />
-                                        <TextBlock Text="Powered by local open-source AI models via Ollama. Optionally connect to OpenAI or Anthropic Claude for cloud-based models."
+                                        <TextBlock x:Uid="Onb_FreeDesc" Text="Powered by local open-source AI models via Ollama. Optionally connect to OpenAI or Anthropic Claude for cloud-based models."
                                                    Style="{StaticResource BodySecondaryStyle}" />
                                     </StackPanel>
                                 </Grid>
@@ -220,9 +220,9 @@
                                                   VerticalAlignment="Center" />
                                     </Border>
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
-                                        <TextBlock Text="Your Data, Your Rules"
+                                        <TextBlock x:Uid="Onb_DataTitle" Text="Your Data, Your Rules"
                                                    Style="{StaticResource HeadingSmallStyle}" />
-                                        <TextBlock Text="Index your documents, search semantically, and chat with your files. Use local AI for full privacy, or optional cloud providers for additional model choices."
+                                        <TextBlock x:Uid="Onb_DataDesc" Text="Index your documents, search semantically, and chat with your files. Use local AI for full privacy, or optional cloud providers for additional model choices."
                                                    Style="{StaticResource BodySecondaryStyle}" />
                                     </StackPanel>
                                 </Grid>
@@ -239,11 +239,11 @@
 
                         <!-- Header -->
                         <StackPanel Spacing="8" HorizontalAlignment="Center">
-                            <TextBlock Text="Connect to Ollama"
+                            <TextBlock x:Uid="Onb_OllamaTitle" Text="Connect to Ollama"
                                        Style="{StaticResource DisplayMediumStyle}"
                                        HorizontalAlignment="Center"
                                        TextAlignment="Center" />
-                            <TextBlock Text="Agent-X uses Ollama to run AI models locally on your machine. Ollama is a free, open-source tool that manages and serves AI models. You can also configure OpenAI or Anthropic providers later in Settings."
+                            <TextBlock x:Uid="Onb_OllamaDesc" Text="Agent-X uses Ollama to run AI models locally on your machine. Ollama is a free, open-source tool that manages and serves AI models. You can also configure OpenAI or Anthropic providers later in Settings."
                                        Style="{StaticResource BodySecondaryStyle}"
                                        HorizontalAlignment="Center"
                                        TextAlignment="Center"
@@ -254,7 +254,7 @@
                         <Border Style="{StaticResource CardStyle}"
                                 Margin="0,8,0,0">
                             <StackPanel Spacing="16">
-                                <TextBlock Text="OLLAMA ENDPOINT"
+                                <TextBlock x:Uid="Onb_EndpointOverline" Text="OLLAMA ENDPOINT"
                                            Style="{StaticResource OverlineStyle}" />
                                 <TextBox Text="{x:Bind ViewModel.OllamaEndpoint, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          Style="{StaticResource InputTextBoxStyle}"
@@ -267,7 +267,7 @@
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
 
-                                    <Button Content="Test Connection"
+                                    <Button x:Uid="Onb_TestConnBtn" Content="Test Connection"
                                             Style="{StaticResource AccentButtonStyle}"
                                             Command="{x:Bind ViewModel.TestConnectionCommand}" />
 
@@ -304,12 +304,12 @@
                             <TextBlock Style="{StaticResource BodySecondaryStyle}"
                                        HorizontalAlignment="Center"
                                        TextAlignment="Center">
-                                <Run Text="Don't have Ollama? Visit" />
+                                <Run x:Uid="Onb_OllamaHelpRun1" Text="Don't have Ollama? Visit" />
                                 <Run Text="ollama.com" Foreground="{ThemeResource TextAccentBrush}" FontWeight="SemiBold" />
-                                <Run Text="to install it." />
+                                <Run x:Uid="Onb_OllamaHelpRun2" Text="to install it." />
                             </TextBlock>
 
-                            <Button Content="Skip for now — I'll set it up later"
+                            <Button x:Uid="Onb_SkipBtn" Content="Skip for now — I'll set it up later"
                                     Style="{StaticResource GhostButtonStyle}"
                                     HorizontalAlignment="Center"
                                     Command="{x:Bind ViewModel.SkipOllamaSetupCommand}" />
@@ -325,11 +325,11 @@
 
                         <!-- Header -->
                         <StackPanel Spacing="8" HorizontalAlignment="Center">
-                            <TextBlock Text="Choose Your Models"
+                            <TextBlock x:Uid="Onb_ModelsTitle" Text="Choose Your Models"
                                        Style="{StaticResource DisplayMediumStyle}"
                                        HorizontalAlignment="Center"
                                        TextAlignment="Center" />
-                            <TextBlock Text="Select a default chat model and an embedding model for semantic search."
+                            <TextBlock x:Uid="Onb_ModelsDesc" Text="Select a default chat model and an embedding model for semantic search."
                                        Style="{StaticResource BodySecondaryStyle}"
                                        HorizontalAlignment="Center"
                                        TextAlignment="Center"
@@ -355,7 +355,7 @@
                             <ProgressRing IsActive="True"
                                           Width="32" Height="32"
                                           Foreground="{ThemeResource AccentPrimaryBrush}" />
-                            <TextBlock Text="Loading available models..."
+                            <TextBlock x:Uid="Onb_LoadingModels" Text="Loading available models..."
                                        Style="{StaticResource BodySecondaryStyle}"
                                        HorizontalAlignment="Center" />
                         </StackPanel>
@@ -370,10 +370,10 @@
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <FontIcon Glyph="&#xE8BD;" FontSize="16"
                                                   Foreground="{ThemeResource AccentPrimaryBrush}" />
-                                        <TextBlock Text="CHAT MODEL"
+                                        <TextBlock x:Uid="Onb_ChatModelOverline" Text="CHAT MODEL"
                                                    Style="{StaticResource OverlineStyle}" />
                                     </StackPanel>
-                                    <TextBlock Text="Select the model used for AI conversations and text generation."
+                                    <TextBlock x:Uid="Onb_ChatModelDesc" Text="Select the model used for AI conversations and text generation."
                                                Style="{StaticResource BodySecondaryStyle}" />
                                     <ComboBox ItemsSource="{x:Bind ViewModel.AvailableModels, Mode=OneWay}"
                                               SelectedValue="{x:Bind ViewModel.SelectedChatModel, Mode=TwoWay}"
@@ -392,10 +392,10 @@
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <FontIcon Glyph="&#xE773;" FontSize="16"
                                                   Foreground="{ThemeResource AccentPrimaryBrush}" />
-                                        <TextBlock Text="EMBEDDING MODEL"
+                                        <TextBlock x:Uid="Onb_EmbModelOverline" Text="EMBEDDING MODEL"
                                                    Style="{StaticResource OverlineStyle}" />
                                     </StackPanel>
-                                    <TextBlock Text="Select the model used for semantic search and document indexing."
+                                    <TextBlock x:Uid="Onb_EmbModelDesc" Text="Select the model used for semantic search and document indexing."
                                                Style="{StaticResource BodySecondaryStyle}" />
                                     <ComboBox ItemsSource="{x:Bind ViewModel.AvailableModels, Mode=OneWay}"
                                               SelectedValue="{x:Bind ViewModel.SelectedEmbeddingModel, Mode=TwoWay}"
@@ -417,10 +417,10 @@
                                 <FontIcon Glyph="&#xE946;" FontSize="36"
                                           Foreground="{ThemeResource TextTertiaryBrush}"
                                           HorizontalAlignment="Center" />
-                                <TextBlock Text="No models available"
+                                <TextBlock x:Uid="Onb_NoModelsTitle" Text="No models available"
                                            Style="{StaticResource HeadingSmallStyle}"
                                            HorizontalAlignment="Center" />
-                                <TextBlock Text="Ollama is not connected, so models cannot be listed. You can configure models later in Settings or the Model Manager."
+                                <TextBlock x:Uid="Onb_NoModelsDesc" Text="Ollama is not connected, so models cannot be listed. You can configure models later in Settings or the Model Manager."
                                            Style="{StaticResource BodySecondaryStyle}"
                                            HorizontalAlignment="Center"
                                            TextAlignment="Center"
@@ -428,9 +428,9 @@
                                 <TextBlock Style="{StaticResource CaptionStyle}"
                                            HorizontalAlignment="Center"
                                            Margin="0,8,0,0">
-                                    <Run Text="Default chat model:" />
+                                    <Run x:Uid="Onb_DefaultChatRun" Text="Default chat model:" />
                                     <Run Text="llama3.2" Foreground="{ThemeResource TextAccentBrush}" FontWeight="SemiBold" />
-                                    <Run Text="  |  Default embedding model:" />
+                                    <Run x:Uid="Onb_DefaultEmbRun" Text="  |  Default embedding model:" />
                                     <Run Text="all-minilm" Foreground="{ThemeResource TextAccentBrush}" FontWeight="SemiBold" />
                                 </TextBlock>
                             </StackPanel>
@@ -446,11 +446,11 @@
 
                         <!-- Header -->
                         <StackPanel Spacing="8" HorizontalAlignment="Center">
-                            <TextBlock Text="Your AI is Ready"
+                            <TextBlock x:Uid="Onb_ReadyTitle" Text="Your AI is Ready"
                                        Style="{StaticResource DisplayMediumStyle}"
                                        HorizontalAlignment="Center"
                                        TextAlignment="Center" />
-                            <TextBlock Text="Agent-X includes a built-in AI model for fully offline operation. Optionally add cloud API keys for additional models."
+                            <TextBlock x:Uid="Onb_ReadyDesc" Text="Agent-X includes a built-in AI model for fully offline operation. Optionally add cloud API keys for additional models."
                                        Style="{StaticResource BodySecondaryStyle}"
                                        HorizontalAlignment="Center"
                                        TextAlignment="Center"
@@ -461,7 +461,7 @@
                         <Border Style="{StaticResource CardAccentStyle}"
                                 Margin="0,8,0,0">
                             <StackPanel Spacing="16">
-                                <TextBlock Text="BUILT-IN LOCAL MODEL"
+                                <TextBlock x:Uid="Onb_BuiltinOverline" Text="BUILT-IN LOCAL MODEL"
                                            Style="{StaticResource OverlineStyle}" />
 
                                 <!-- Model Name & Status -->
@@ -484,7 +484,7 @@
                                         <TextBlock Text="{x:Bind ViewModel.LocalModelName, Mode=OneWay}"
                                                    Style="{StaticResource BodyStyle}"
                                                    FontWeight="SemiBold" />
-                                        <TextBlock Text="Q4_K_M quantization  |  ~2 GB  |  Runs entirely on your device"
+                                        <TextBlock x:Uid="Onb_QuantCaption" Text="Q4_K_M quantization  |  ~2 GB  |  Runs entirely on your device"
                                                    Style="{StaticResource CaptionStyle}"
                                                    Foreground="{ThemeResource TextTertiaryBrush}" />
                                     </StackPanel>
@@ -507,7 +507,7 @@
                                                Style="{StaticResource BodySecondaryStyle}"
                                                TextWrapping="Wrap" />
 
-                                    <Button Content="Download built-in model (~1.9 GB)"
+                                    <Button x:Uid="Onb_DownloadModelBtn" Content="Download built-in model (~1.9 GB)"
                                             Style="{StaticResource AccentButtonStyle}"
                                             HorizontalAlignment="Left"
                                             Command="{x:Bind ViewModel.DownloadLocalModelCommand}"
@@ -547,9 +547,9 @@
                         <Border Style="{StaticResource CardStyle}">
                             <StackPanel Spacing="16">
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="CLOUD PROVIDERS (OPTIONAL)"
+                                    <TextBlock x:Uid="Onb_CloudOverline" Text="CLOUD PROVIDERS (OPTIONAL)"
                                                Style="{StaticResource OverlineStyle}" />
-                                    <TextBlock Text="Connect cloud AI providers for access to GPT-4o, Claude, and other advanced models."
+                                    <TextBlock x:Uid="Onb_CloudDesc" Text="Connect cloud AI providers for access to GPT-4o, Claude, and other advanced models."
                                                Style="{StaticResource CaptionStyle}"
                                                Foreground="{ThemeResource TextTertiaryBrush}" />
                                 </StackPanel>
@@ -603,7 +603,7 @@
                                 </StackPanel>
 
                                 <!-- Note -->
-                                <TextBlock Text="API keys are stored locally on your device and never sent anywhere except the respective provider."
+                                <TextBlock x:Uid="Onb_ApiKeysNote" Text="API keys are stored locally on your device and never sent anywhere except the respective provider."
                                            Style="{StaticResource CaptionStyle}"
                                            Foreground="{ThemeResource TextTertiaryBrush}"
                                            FontStyle="Italic"
@@ -635,11 +635,11 @@
 
                         <!-- Hero Text -->
                         <StackPanel Spacing="12" HorizontalAlignment="Center">
-                            <TextBlock Text="You're All Set!"
+                            <TextBlock x:Uid="Onb_AllSetTitle" Text="You're All Set!"
                                        Style="{StaticResource DisplayLargeStyle}"
                                        HorizontalAlignment="Center"
                                        TextAlignment="Center" />
-                            <TextBlock Text="Agent-X is configured and ready to use. All settings can be changed anytime from the Settings page."
+                            <TextBlock x:Uid="Onb_AllSetDesc" Text="Agent-X is configured and ready to use. All settings can be changed anytime from the Settings page."
                                        Style="{StaticResource HeadingMediumStyle}"
                                        Foreground="{ThemeResource TextSecondaryBrush}"
                                        HorizontalAlignment="Center"
@@ -651,7 +651,7 @@
                         <Border Style="{StaticResource CardStyle}"
                                 MinWidth="480">
                             <StackPanel Spacing="16">
-                                <TextBlock Text="CONFIGURATION SUMMARY"
+                                <TextBlock x:Uid="Onb_SummaryOverline" Text="CONFIGURATION SUMMARY"
                                            Style="{StaticResource OverlineStyle}" />
 
                                 <!-- Ollama Status -->
@@ -660,7 +660,7 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Ollama Status"
+                                    <TextBlock x:Uid="Onb_OllamaStatusLabel" Text="Ollama Status"
                                                Style="{StaticResource BodySecondaryStyle}" />
                                     <TextBlock Grid.Column="1"
                                                Text="{x:Bind ViewModel.SummaryOllamaStatus, Mode=OneWay}"
@@ -676,7 +676,7 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Chat Model"
+                                    <TextBlock x:Uid="Onb_ChatModelLabel" Text="Chat Model"
                                                Style="{StaticResource BodySecondaryStyle}" />
                                     <TextBlock Grid.Column="1"
                                                Text="{x:Bind ViewModel.SummaryChatModel, Mode=OneWay}"
@@ -693,7 +693,7 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Embedding Model"
+                                    <TextBlock x:Uid="Onb_EmbModelLabel" Text="Embedding Model"
                                                Style="{StaticResource BodySecondaryStyle}" />
                                     <TextBlock Grid.Column="1"
                                                Text="{x:Bind ViewModel.SummaryEmbeddingModel, Mode=OneWay}"
@@ -710,7 +710,7 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Built-in Model"
+                                    <TextBlock x:Uid="Onb_BuiltinModelLabel" Text="Built-in Model"
                                                Style="{StaticResource BodySecondaryStyle}" />
                                     <TextBlock Grid.Column="1"
                                                Text="{x:Bind ViewModel.SummaryLocalModel, Mode=OneWay}"
@@ -727,7 +727,7 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Cloud Providers"
+                                    <TextBlock x:Uid="Onb_CloudProvidersLabel" Text="Cloud Providers"
                                                Style="{StaticResource BodySecondaryStyle}" />
                                     <TextBlock Grid.Column="1"
                                                Text="{x:Bind ViewModel.SummaryCloudProviders, Mode=OneWay}"
@@ -743,10 +743,10 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Data Storage"
+                                    <TextBlock x:Uid="Onb_StorageLabel" Text="Data Storage"
                                                Style="{StaticResource BodySecondaryStyle}" />
                                     <TextBlock Grid.Column="1"
-                                               Text="Local (%LOCALAPPDATA%\AgentX)"
+                                               x:Uid="Onb_StorageValue" Text="Local (%LOCALAPPDATA%\AgentX)"
                                                Style="{StaticResource MonoSmallStyle}"
                                                HorizontalAlignment="Right"
                                                VerticalAlignment="Center" />
@@ -774,7 +774,7 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Back Button (hidden on first step) -->
-                    <Button Content="Back"
+                    <Button x:Uid="Onb_BackBtn" Content="Back"
                             Style="{StaticResource SecondaryButtonStyle}"
                             Command="{x:Bind ViewModel.PreviousStepCommand}"
                             Visibility="{x:Bind ViewModel.CanGoBack, Mode=OneWay, Converter={StaticResource BoolToVis}}"
@@ -786,21 +786,21 @@
                                 Spacing="12">
 
                         <!-- "Get Started" — Only on Step 0 -->
-                        <Button Content="Get Started"
+                        <Button x:Uid="Onb_GetStartedBtn" Content="Get Started"
                                 Style="{StaticResource AccentButtonStyle}"
                                 Command="{x:Bind ViewModel.NextStepCommand}"
                                 Visibility="{x:Bind ViewModel.IsStep0Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                 Padding="32,12,32,12" />
 
                         <!-- "Next" — Steps 1, 2, 3 (not 0 or 4) -->
-                        <Button Content="Next"
+                        <Button x:Uid="Onb_NextBtn" Content="Next"
                                 Style="{StaticResource AccentButtonStyle}"
                                 Command="{x:Bind ViewModel.NextStepCommand}"
                                 Visibility="{x:Bind ViewModel.ShowNextButton, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                 Padding="32,12,32,12" />
 
                         <!-- "Launch Agent-X" — Only on Step 4 -->
-                        <Button Content="Launch Agent-X"
+                        <Button x:Uid="Onb_LaunchBtn" Content="Launch Agent-X"
                                 Style="{StaticResource AccentButtonStyle}"
                                 Command="{x:Bind ViewModel.CompleteOnboardingCommand}"
                                 Visibility="{x:Bind ViewModel.IsStep4Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}"
