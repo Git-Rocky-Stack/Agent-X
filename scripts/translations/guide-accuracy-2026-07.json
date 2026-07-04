@@ -1,0 +1,427 @@
+{
+  "_comment": "2026-07 user-guide accuracy pass. Removes guide sections for features that were never implemented (Scheduled Queries, Automation Rules), rewrites the Workflows section to match the real engine (5 on-demand step types: AiPrompt, DocumentLookup, TextTransform, ConditionalBranch, OutputFormat), drops the phantom 'triggers in Workflows' claim from Integrations, and adds sections for the five navigation pages that shipped without guide coverage (Comparison, Smart Inbox, Analytics, Operations, Collaborative Sync). Section titles keep the English page names users see in the (unlocalized) page headers. Applied by scripts/apply-guide-accuracy.py.",
+  "removePrefixes": [
+    "UserGuide_ScheduledQueries_",
+    "UserGuide_AutomationRules_"
+  ],
+  "update": {
+    "UserGuide_Workflows_Description.Text": {
+      "en-US": "Workflows are multi-step AI pipelines you compose from five building blocks — AI prompts, document lookups, text transforms, conditional branches, and output formatting — and run on demand. Chain them to turn repetitive work into a single click: summarize a document set, extract key points and reformat them as a report, or drive any custom text pipeline you would otherwise execute by hand. Build and run them visually in the Workflow Builder (Ctrl+Shift+W).",
+      "de": "Workflows sind mehrstufige KI-Pipelines, die Sie aus fünf Bausteinen zusammensetzen — KI-Prompts, Dokumenten-Lookups, Texttransformationen, bedingte Verzweigungen und Ausgabeformatierung — und bei Bedarf ausführen. Verketten Sie sie, um wiederkehrende Arbeit auf einen Klick zu reduzieren: einen Dokumentensatz zusammenfassen, Kernpunkte extrahieren und als Bericht formatieren oder eine beliebige Text-Pipeline abbilden, die Sie sonst von Hand ausführen würden. Erstellen und starten Sie sie visuell im Workflow Builder (Strg+Umschalt+W).",
+      "es": "Los workflows son canalizaciones de IA de varios pasos que usted compone a partir de cinco bloques — prompts de IA, búsquedas de documentos, transformaciones de texto, ramificaciones condicionales y formato de salida — y ejecuta bajo demanda. Encadénelos para convertir el trabajo repetitivo en un solo clic: resumir un conjunto de documentos, extraer puntos clave y reformatearlos como informe, o reproducir cualquier canalización de texto que de otro modo ejecutaría a mano. Créelos y ejecútelos visualmente en el Workflow Builder (Ctrl+Mayús+W).",
+      "fr": "Les workflows sont des pipelines d'IA à plusieurs étapes que vous composez à partir de cinq briques — prompts d'IA, recherches de documents, transformations de texte, branchements conditionnels et mise en forme de sortie — et que vous exécutez à la demande. Enchaînez-les pour réduire un travail répétitif à un seul clic : résumer un ensemble de documents, extraire les points clés et les reformater en rapport, ou reproduire n'importe quel pipeline de texte que vous exécuteriez sinon à la main. Créez-les et lancez-les visuellement dans le Workflow Builder (Ctrl+Maj+W).",
+      "ja": "ワークフローは、5 つのビルディングブロック — AI プロンプト、ドキュメント検索、テキスト変換、条件分岐、出力フォーマット — から組み立てる多段階の AI パイプラインで、必要なときにオンデマンドで実行します。繰り返し作業をワンクリックに変えられます。ドキュメント一式の要約、要点の抽出とレポート整形、手作業で行っていた任意のテキスト処理の自動化などに最適です。Workflow Builder(Ctrl+Shift+W)で視覚的に作成・実行できます。",
+      "zh-CN": "工作流是由五种构建块组成的多步骤 AI 管道 — AI 提示、文档查找、文本转换、条件分支和输出格式化 — 可按需运行。将它们串联起来，把重复性工作变成一次点击：汇总一组文档、提取要点并整理成报告，或复现任何原本需要手动执行的文本处理流程。在 Workflow Builder(Ctrl+Shift+W)中可视化地创建和运行。"
+    },
+    "UserGuide_Workflows_Triggers_Title.Text": {
+      "en-US": "Running Workflows",
+      "de": "Workflows ausführen",
+      "es": "Ejecutar workflows",
+      "fr": "Exécuter des workflows",
+      "ja": "ワークフローの実行",
+      "zh-CN": "运行工作流"
+    },
+    "UserGuide_Workflows_Trigger1_Title.Text": {
+      "en-US": "On-Demand Runs",
+      "de": "Ausführung bei Bedarf",
+      "es": "Ejecución bajo demanda",
+      "fr": "Exécution à la demande",
+      "ja": "オンデマンド実行",
+      "zh-CN": "按需运行"
+    },
+    "UserGuide_Workflows_Trigger1_Description.Text": {
+      "en-US": "Run any workflow from the Workflows page or the Workflow Builder whenever you need it. Each run takes your input text, feeds it through the step chain, and presents the final output.",
+      "de": "Starten Sie jeden Workflow direkt von der Workflows-Seite oder aus dem Workflow Builder, wann immer Sie ihn brauchen. Jeder Lauf nimmt Ihren Eingabetext, führt ihn durch die Schrittkette und liefert das Endergebnis.",
+      "es": "Ejecute cualquier workflow desde la página Workflows o desde el Workflow Builder cuando lo necesite. Cada ejecución toma su texto de entrada, lo hace pasar por la cadena de pasos y presenta el resultado final.",
+      "fr": "Lancez n'importe quel workflow depuis la page Workflows ou le Workflow Builder dès que vous en avez besoin. Chaque exécution prend votre texte d'entrée, le fait passer par la chaîne d'étapes et présente le résultat final.",
+      "ja": "Workflows ページまたは Workflow Builder から、必要なときにいつでもワークフローを実行できます。実行のたびに入力テキストがステップチェーンを通過し、最終出力が表示されます。",
+      "zh-CN": "随时从 Workflows 页面或 Workflow Builder 运行任何工作流。每次运行都会将您的输入文本送入步骤链，并呈现最终输出。"
+    },
+    "UserGuide_Workflows_Trigger2_Title.Text": {
+      "en-US": "Step Library",
+      "de": "Schritt-Bibliothek",
+      "es": "Biblioteca de pasos",
+      "fr": "Bibliothèque d'étapes",
+      "ja": "ステップライブラリ",
+      "zh-CN": "步骤库"
+    },
+    "UserGuide_Workflows_Trigger2_Description.Text": {
+      "en-US": "Five step types compose every workflow: AI Prompt (call a model with a templated prompt), Document Lookup (pull content from your vault), Text Transform (case, extraction, dedupe, and more), Conditional Branch (if-then logic on step output), and Output Format (Markdown, HTML, or JSON).",
+      "de": "Fünf Schritttypen bilden jeden Workflow: KI-Prompt (Modellaufruf mit Prompt-Vorlage), Dokumenten-Lookup (Inhalte aus Ihrem Tresor laden), Texttransformation (Groß-/Kleinschreibung, Extraktion, Deduplizierung u. a.), Bedingte Verzweigung (Wenn-dann-Logik auf Schrittausgaben) und Ausgabeformat (Markdown, HTML oder JSON).",
+      "es": "Cinco tipos de paso componen cada workflow: Prompt de IA (llamar a un modelo con una plantilla de prompt), Búsqueda de documentos (extraer contenido de su bóveda), Transformación de texto (mayúsculas, extracción, deduplicación y más), Ramificación condicional (lógica si-entonces sobre la salida de un paso) y Formato de salida (Markdown, HTML o JSON).",
+      "fr": "Cinq types d'étapes composent chaque workflow : Prompt d'IA (appeler un modèle avec un prompt à gabarit), Recherche de documents (extraire du contenu de votre coffre), Transformation de texte (casse, extraction, dédoublonnage, etc.), Branchement conditionnel (logique si-alors sur la sortie d'une étape) et Format de sortie (Markdown, HTML ou JSON).",
+      "ja": "すべてのワークフローは 5 種類のステップで構成されます。AI プロンプト(テンプレート化したプロンプトでモデルを呼び出す)、ドキュメント検索(ボールトからコンテンツを取得)、テキスト変換(大文字小文字、抽出、重複排除など)、条件分岐(ステップ出力に対する if-then ロジック)、出力フォーマット(Markdown、HTML、JSON)です。",
+      "zh-CN": "每个工作流由五种步骤类型组成：AI 提示(用模板化提示调用模型)、文档查找(从您的库中提取内容)、文本转换(大小写、提取、去重等)、条件分支(基于步骤输出的 if-then 逻辑)和输出格式化(Markdown、HTML 或 JSON)。"
+    },
+    "UserGuide_Workflows_Trigger3_Title.Text": {
+      "en-US": "Run History",
+      "de": "Lauf-Historie",
+      "es": "Historial de ejecuciones",
+      "fr": "Historique des exécutions",
+      "ja": "実行履歴",
+      "zh-CN": "运行历史"
+    },
+    "UserGuide_Workflows_Trigger3_Description.Text": {
+      "en-US": "Every run is recorded with per-step output, duration, and success status, so you can inspect exactly what each step produced and where a pipeline needs adjustment.",
+      "de": "Jeder Lauf wird mit Ausgabe, Dauer und Status pro Schritt aufgezeichnet. So sehen Sie genau, was jeder Schritt erzeugt hat und wo eine Pipeline nachjustiert werden muss.",
+      "es": "Cada ejecución se registra con la salida, la duración y el estado de cada paso, de modo que puede inspeccionar exactamente qué produjo cada paso y dónde necesita ajustes una canalización.",
+      "fr": "Chaque exécution est enregistrée avec la sortie, la durée et le statut de chaque étape, ce qui permet d'inspecter précisément ce que chaque étape a produit et où un pipeline doit être ajusté.",
+      "ja": "すべての実行はステップごとの出力・所要時間・成否とともに記録されます。各ステップが何を生成したか、パイプラインのどこを調整すべきかを正確に確認できます。",
+      "zh-CN": "每次运行都会记录每个步骤的输出、耗时和成功状态，让您可以准确检查每个步骤产生了什么，以及管道哪里需要调整。"
+    },
+    "UserGuide_Workflows_Example1.Text": {
+      "en-US": "\"Meeting Minutes\" — paste a raw transcript, extract decisions and action items with an AI Prompt step, and format the result as a Markdown summary you can file or share.",
+      "de": "„Meeting-Protokoll\" — Fügen Sie ein Roh-Transkript ein, extrahieren Sie Entscheidungen und Aufgaben mit einem KI-Prompt-Schritt und formatieren Sie das Ergebnis als Markdown-Zusammenfassung zum Ablegen oder Teilen.",
+      "es": "\"Acta de reunión\" — pegue una transcripción sin procesar, extraiga decisiones y tareas con un paso de Prompt de IA y dé formato al resultado como un resumen en Markdown para archivar o compartir.",
+      "fr": "« Compte rendu de réunion » — collez une transcription brute, extrayez décisions et actions avec une étape Prompt d'IA, puis mettez le résultat en forme en résumé Markdown à classer ou partager.",
+      "ja": "「議事録」 — 生の文字起こしを貼り付け、AI プロンプトステップで決定事項とアクションアイテムを抽出し、結果を保存・共有できる Markdown サマリーに整形します。",
+      "zh-CN": "\"会议纪要\" — 粘贴原始转录文本，用 AI 提示步骤提取决策和行动项，并将结果整理成可归档或分享的 Markdown 摘要。"
+    },
+    "UserGuide_Workflows_Example2.Text": {
+      "en-US": "\"Research Digest\" — look up documents from your Research collection with a Document Lookup step, have the model pull out key findings, and produce a structured briefing on demand.",
+      "de": "„Recherche-Digest\" — Laden Sie Dokumente aus Ihrer Recherche-Sammlung über einen Dokumenten-Lookup-Schritt, lassen Sie das Modell die Kernergebnisse herausarbeiten und erzeugen Sie bei Bedarf ein strukturiertes Briefing.",
+      "es": "\"Resumen de investigación\" — busque documentos de su colección de investigación con un paso de Búsqueda de documentos, deje que el modelo extraiga los hallazgos clave y genere un informe estructurado bajo demanda.",
+      "fr": "« Synthèse de recherche » — récupérez des documents de votre collection Recherche via une étape Recherche de documents, laissez le modèle en dégager les conclusions clés et produisez un briefing structuré à la demande.",
+      "ja": "「リサーチダイジェスト」 — ドキュメント検索ステップで Research コレクションの文書を取得し、モデルに主要な知見を抽出させ、必要なときに構造化されたブリーフィングを生成します。",
+      "zh-CN": "\"研究摘要\" — 用文档查找步骤从您的研究合集中调取文档，让模型提炼关键发现，按需生成结构化简报。"
+    },
+    "UserGuide_Workflows_Example3.Text": {
+      "en-US": "\"Content Repurposer\" — condense a long document with an AI Prompt step, then use a Conditional Branch: short outputs become social posts, longer ones become a formatted article draft.",
+      "de": "„Content-Verwerter\" — Verdichten Sie ein langes Dokument mit einem KI-Prompt-Schritt und nutzen Sie dann eine bedingte Verzweigung: Kurze Ausgaben werden zu Social-Media-Posts, längere zu einem formatierten Artikelentwurf.",
+      "es": "\"Reutilizador de contenido\" — condense un documento largo con un paso de Prompt de IA y use después una Ramificación condicional: las salidas cortas se convierten en publicaciones sociales y las largas en un borrador de artículo con formato.",
+      "fr": "« Recycleur de contenu » — condensez un long document avec une étape Prompt d'IA, puis utilisez un Branchement conditionnel : les sorties courtes deviennent des posts sociaux, les plus longues un brouillon d'article mis en forme.",
+      "ja": "「コンテンツ再利用」 — AI プロンプトステップで長文ドキュメントを要約し、条件分岐を使います。短い出力は SNS 投稿に、長い出力は整形済みの記事ドラフトになります。",
+      "zh-CN": "\"内容再利用\" — 用 AI 提示步骤压缩长文档，再用条件分支：较短的输出变成社交帖子，较长的输出变成排版好的文章草稿。"
+    },
+    "UserGuide_Integrations_Description.Text": {
+      "en-US": "Connect Microsoft Outlook, Google Workspace, or any standard CalDAV / IMAP / Exchange Web Services source and Agent-X starts treating your calendar events and emails as first-class knowledge — searchable, queryable, and summarizable alongside your documents. The integration is read-only by default; opt-in send and respond capabilities require explicit additional permission grants.",
+      "de": "Verbinden Sie Microsoft Outlook, Google Workspace oder eine beliebige standardkonforme CalDAV- / IMAP- / Exchange-Web-Services-Quelle, und Agent-X behandelt Ihre Kalendereinträge und E-Mails als vollwertiges Wissen — durchsuchbar, abfragbar und zusammenfassbar, direkt neben Ihren Dokumenten. Die Integration ist standardmäßig schreibgeschützt; Senden und Antworten erfordern ausdrückliche zusätzliche Berechtigungen.",
+      "es": "Conecte Microsoft Outlook, Google Workspace o cualquier origen estándar CalDAV / IMAP / Exchange Web Services y Agent-X empezará a tratar sus eventos de calendario y correos como conocimiento de primera clase: buscable, consultable y resumible junto a sus documentos. La integración es de solo lectura por defecto; las capacidades de envío y respuesta requieren permisos adicionales explícitos.",
+      "fr": "Connectez Microsoft Outlook, Google Workspace ou toute source standard CalDAV / IMAP / Exchange Web Services : Agent-X traite alors vos événements de calendrier et vos e-mails comme des connaissances à part entière — consultables, interrogeables et résumables aux côtés de vos documents. L'intégration est en lecture seule par défaut ; l'envoi et la réponse nécessitent des autorisations supplémentaires explicites.",
+      "ja": "Microsoft Outlook、Google Workspace、または標準的な CalDAV / IMAP / Exchange Web Services ソースを接続すると、Agent-X はカレンダーの予定とメールをドキュメントと並ぶ第一級の知識として扱います — 検索、照会、要約が可能です。統合は既定で読み取り専用です。送信・返信機能はオプトインで、明示的な追加権限が必要です。",
+      "zh-CN": "连接 Microsoft Outlook、Google Workspace 或任何标准 CalDAV / IMAP / Exchange Web Services 源后，Agent-X 会将您的日历事件和电子邮件作为一等知识来对待 — 可与文档一起搜索、查询和汇总。集成默认只读；发送和回复功能需要明确的额外权限授予。"
+    }
+  },
+  "add": {
+    "UserGuide_Comparison_Title.Text": {
+      "en-US": "Document Comparison",
+      "de": "Dokumentvergleich (Comparison)",
+      "es": "Comparación de documentos (Comparison)",
+      "fr": "Comparaison de documents (Comparison)",
+      "ja": "ドキュメント比較(Comparison)",
+      "zh-CN": "文档对比(Comparison)"
+    },
+    "UserGuide_Comparison_Description.Text": {
+      "en-US": "The Comparison page generates a structured, AI-written comparative analysis of two or more documents from your Knowledge Vault. Select the documents, optionally set a focus topic to steer the analysis, and Agent-X retrieves each document's most relevant passages and synthesizes a side-by-side report.",
+      "de": "Die Comparison-Seite erzeugt eine strukturierte, KI-verfasste Vergleichsanalyse von zwei oder mehr Dokumenten aus Ihrem Wissens-Tresor. Wählen Sie die Dokumente aus, geben Sie optional ein Fokusthema vor, und Agent-X ruft die relevantesten Passagen jedes Dokuments ab und synthetisiert einen Seite-an-Seite-Bericht.",
+      "es": "La página Comparison genera un análisis comparativo estructurado, redactado por IA, de dos o más documentos de su bóveda de conocimiento. Seleccione los documentos, defina opcionalmente un tema de enfoque para orientar el análisis, y Agent-X recuperará los pasajes más relevantes de cada documento y sintetizará un informe comparativo.",
+      "fr": "La page Comparison génère une analyse comparative structurée, rédigée par l'IA, de deux documents ou plus de votre coffre de connaissances. Sélectionnez les documents, définissez éventuellement un sujet de focalisation pour orienter l'analyse, et Agent-X récupère les passages les plus pertinents de chaque document pour synthétiser un rapport côte à côte.",
+      "ja": "Comparison ページは、Knowledge Vault 内の 2 つ以上のドキュメントについて、AI が執筆する構造化された比較分析を生成します。ドキュメントを選択し、必要に応じてフォーカストピックを設定すると、Agent-X が各ドキュメントの最も関連性の高い箇所を取得し、対照レポートを合成します。",
+      "zh-CN": "Comparison 页面可对知识库中两个或更多文档生成结构化的 AI 对比分析。选择文档，可选地设置一个聚焦主题来引导分析，Agent-X 会检索每个文档最相关的段落并合成一份并列对比报告。"
+    },
+    "UserGuide_Comparison_Feature1_Title.Text": {
+      "en-US": "Structured Analysis",
+      "de": "Strukturierte Analyse",
+      "es": "Análisis estructurado",
+      "fr": "Analyse structurée",
+      "ja": "構造化された分析",
+      "zh-CN": "结构化分析"
+    },
+    "UserGuide_Comparison_Feature1_Description.Text": {
+      "en-US": "Reports break down into shared themes, key differences, and the unique points each document contributes — with an overall summary up top.",
+      "de": "Berichte gliedern sich in gemeinsame Themen, zentrale Unterschiede und die Alleinstellungspunkte jedes Dokuments — mit einer Gesamtzusammenfassung an erster Stelle.",
+      "es": "Los informes se desglosan en temas compartidos, diferencias clave y los puntos únicos que aporta cada documento, con un resumen general al principio.",
+      "fr": "Les rapports se décomposent en thèmes communs, différences clés et points uniques apportés par chaque document — avec une synthèse générale en tête.",
+      "ja": "レポートは、共通テーマ、主要な相違点、各ドキュメント固有のポイントに分解され、冒頭に全体サマリーが付きます。",
+      "zh-CN": "报告分为共同主题、关键差异以及每个文档贡献的独特观点 — 顶部附有整体摘要。"
+    },
+    "UserGuide_Comparison_Feature2_Title.Text": {
+      "en-US": "Focus Topics",
+      "de": "Fokusthemen",
+      "es": "Temas de enfoque",
+      "fr": "Sujets de focalisation",
+      "ja": "フォーカストピック",
+      "zh-CN": "聚焦主题"
+    },
+    "UserGuide_Comparison_Feature2_Description.Text": {
+      "en-US": "Add an optional focus topic (\"pricing terms\", \"methodology\") and the comparison concentrates on that dimension instead of a general overview.",
+      "de": "Geben Sie optional ein Fokusthema an („Preiskonditionen\", „Methodik\"), und der Vergleich konzentriert sich auf diese Dimension statt auf einen allgemeinen Überblick.",
+      "es": "Añada un tema de enfoque opcional (\"condiciones de precio\", \"metodología\") y la comparación se concentrará en esa dimensión en lugar de en una visión general.",
+      "fr": "Ajoutez un sujet de focalisation facultatif (« conditions tarifaires », « méthodologie ») et la comparaison se concentre sur cette dimension plutôt que sur une vue d'ensemble.",
+      "ja": "任意のフォーカストピック(「価格条件」「方法論」など)を追加すると、比較は全体的な概要ではなくその観点に集中します。",
+      "zh-CN": "添加可选的聚焦主题(如\"定价条款\"、\"方法论\")，对比将集中在该维度上，而不是泛泛的概览。"
+    },
+    "UserGuide_Comparison_Feature3_Title.Text": {
+      "en-US": "Markdown Export",
+      "de": "Markdown-Export",
+      "es": "Exportación a Markdown",
+      "fr": "Export Markdown",
+      "ja": "Markdown エクスポート",
+      "zh-CN": "Markdown 导出"
+    },
+    "UserGuide_Comparison_Feature3_Description.Text": {
+      "en-US": "Export any comparison report to Markdown for sharing, archiving, or pasting into your own documents.",
+      "de": "Exportieren Sie jeden Vergleichsbericht als Markdown — zum Teilen, Archivieren oder Einfügen in eigene Dokumente.",
+      "es": "Exporte cualquier informe de comparación a Markdown para compartirlo, archivarlo o pegarlo en sus propios documentos.",
+      "fr": "Exportez n'importe quel rapport de comparaison en Markdown pour le partager, l'archiver ou le coller dans vos propres documents.",
+      "ja": "比較レポートは Markdown にエクスポートして、共有、保管、自分のドキュメントへの貼り付けに使えます。",
+      "zh-CN": "任何对比报告都可导出为 Markdown，便于分享、归档或粘贴到您自己的文档中。"
+    },
+    "UserGuide_Inbox_Title.Text": {
+      "en-US": "Smart Inbox",
+      "de": "Smart Inbox",
+      "es": "Smart Inbox",
+      "fr": "Smart Inbox",
+      "ja": "Smart Inbox",
+      "zh-CN": "Smart Inbox(智能收件箱)"
+    },
+    "UserGuide_Inbox_Description.Text": {
+      "en-US": "The Smart Inbox is the triage queue for content entering your knowledge base. Captures from the browser extension, the mobile companion, and plugins land here first, so you decide what is worth keeping — instead of letting everything pile into the vault unsorted.",
+      "de": "Die Smart Inbox ist die Triage-Warteschlange für Inhalte auf dem Weg in Ihre Wissensbasis. Erfassungen aus der Browser-Erweiterung, dem Mobile Companion und von Plugins landen zuerst hier — Sie entscheiden, was es wert ist, behalten zu werden, statt alles unsortiert in den Tresor laufen zu lassen.",
+      "es": "La Smart Inbox es la cola de clasificación del contenido que entra en su base de conocimiento. Las capturas de la extensión del navegador, del companion móvil y de los plugins llegan aquí primero, de modo que usted decide qué merece conservarse en lugar de dejar que todo se acumule sin clasificar en la bóveda.",
+      "fr": "La Smart Inbox est la file de triage du contenu qui entre dans votre base de connaissances. Les captures de l'extension de navigateur, du compagnon mobile et des plugins y arrivent d'abord : c'est vous qui décidez ce qui mérite d'être conservé, au lieu de laisser tout s'entasser sans tri dans le coffre.",
+      "ja": "Smart Inbox は、ナレッジベースに入ってくるコンテンツのトリアージキューです。ブラウザ拡張機能、モバイルコンパニオン、プラグインからのキャプチャはまずここに届きます。すべてを未整理のままボールトに流し込むのではなく、残す価値があるものをあなたが判断できます。",
+      "zh-CN": "Smart Inbox 是内容进入知识库前的分拣队列。来自浏览器扩展、移动伴侣应用和插件的捕获内容会先到达这里，由您决定哪些值得保留 — 而不是让所有内容未经整理就堆进知识库。"
+    },
+    "UserGuide_Inbox_Feature1_Title.Text": {
+      "en-US": "AI Previews",
+      "de": "KI-Vorschauen",
+      "es": "Vistas previas con IA",
+      "fr": "Aperçus par l'IA",
+      "ja": "AI プレビュー",
+      "zh-CN": "AI 预览"
+    },
+    "UserGuide_Inbox_Feature1_Description.Text": {
+      "en-US": "Agent-X drafts a preview for each item — a suggested summary, target collection, and tags — so most triage decisions take one glance and one click.",
+      "de": "Agent-X erstellt zu jedem Element eine Vorschau — mit vorgeschlagener Zusammenfassung, Ziel-Sammlung und Tags — sodass die meisten Triage-Entscheidungen einen Blick und einen Klick kosten.",
+      "es": "Agent-X redacta una vista previa de cada elemento — con resumen sugerido, colección de destino y etiquetas — de modo que la mayoría de las decisiones de clasificación requieren un vistazo y un clic.",
+      "fr": "Agent-X rédige un aperçu pour chaque élément — résumé suggéré, collection cible et étiquettes — de sorte que la plupart des décisions de tri se prennent d'un coup d'œil et d'un clic.",
+      "ja": "Agent-X は各アイテムのプレビュー(要約案、振り分け先コレクション、タグ)を下書きします。ほとんどのトリアージ判断は一目見てワンクリックで済みます。",
+      "zh-CN": "Agent-X 为每个条目起草预览 — 建议的摘要、目标合集和标签 — 大多数分拣决定只需一瞥和一次点击。"
+    },
+    "UserGuide_Inbox_Feature2_Title.Text": {
+      "en-US": "Accept, Defer, or Reject",
+      "de": "Annehmen, Zurückstellen oder Ablehnen",
+      "es": "Aceptar, aplazar o rechazar",
+      "fr": "Accepter, reporter ou rejeter",
+      "ja": "承認・保留・却下",
+      "zh-CN": "接受、暂缓或拒绝"
+    },
+    "UserGuide_Inbox_Feature2_Description.Text": {
+      "en-US": "Accept an item to import it into the vault under your chosen collection, defer it to decide later, or reject it to discard. Batch actions clear a full queue in seconds.",
+      "de": "Nehmen Sie ein Element an, um es in der gewählten Sammlung in den Tresor zu importieren, stellen Sie es zurück, um später zu entscheiden, oder lehnen Sie es ab. Stapelaktionen leeren eine volle Warteschlange in Sekunden.",
+      "es": "Acepte un elemento para importarlo a la bóveda en la colección elegida, aplácelo para decidir más tarde o rechácelo para descartarlo. Las acciones por lotes despejan una cola completa en segundos.",
+      "fr": "Acceptez un élément pour l'importer dans le coffre sous la collection choisie, reportez-le pour décider plus tard, ou rejetez-le pour l'écarter. Les actions par lot vident une file complète en quelques secondes.",
+      "ja": "承認するとアイテムは選択したコレクションの下でボールトに取り込まれます。保留すれば後で判断でき、却下すれば破棄されます。バッチ操作なら満杯のキューも数秒で片付きます。",
+      "zh-CN": "接受即可将条目导入所选合集下的知识库，暂缓可稍后决定，拒绝则丢弃。批量操作几秒钟即可清空整个队列。"
+    },
+    "UserGuide_Inbox_Feature3_Title.Text": {
+      "en-US": "Capture Sources",
+      "de": "Erfassungsquellen",
+      "es": "Fuentes de captura",
+      "fr": "Sources de capture",
+      "ja": "キャプチャソース",
+      "zh-CN": "捕获来源"
+    },
+    "UserGuide_Inbox_Feature3_Description.Text": {
+      "en-US": "Web captures from the browser extension, items sent from the mobile companion, and content contributed by plugins all flow into one queue with a consistent triage workflow.",
+      "de": "Web-Erfassungen aus der Browser-Erweiterung, vom Mobile Companion gesendete Elemente und von Plugins beigesteuerte Inhalte laufen in einer Warteschlange mit einheitlichem Triage-Ablauf zusammen.",
+      "es": "Las capturas web de la extensión del navegador, los elementos enviados desde el companion móvil y el contenido aportado por plugins confluyen en una única cola con un flujo de clasificación coherente.",
+      "fr": "Les captures web de l'extension de navigateur, les éléments envoyés depuis le compagnon mobile et les contenus fournis par les plugins convergent dans une seule file, avec un flux de triage cohérent.",
+      "ja": "ブラウザ拡張機能からの Web キャプチャ、モバイルコンパニオンから送信されたアイテム、プラグインが提供するコンテンツが、一貫したトリアージワークフローを持つ 1 つのキューに集まります。",
+      "zh-CN": "来自浏览器扩展的网页捕获、移动伴侣应用发送的条目以及插件贡献的内容，都汇入同一个队列，采用一致的分拣流程。"
+    },
+    "UserGuide_Analytics_Title.Text": {
+      "en-US": "Analytics",
+      "de": "Analytics",
+      "es": "Analytics",
+      "fr": "Analytics",
+      "ja": "Analytics(分析)",
+      "zh-CN": "Analytics(分析)"
+    },
+    "UserGuide_Analytics_Description.Text": {
+      "en-US": "The Analytics page shows how your knowledge base and AI usage evolve: usage statistics, performance metrics, and activity trends across conversations, documents, and tokens — all computed locally from your own data.",
+      "de": "Die Analytics-Seite zeigt, wie sich Ihre Wissensbasis und Ihre KI-Nutzung entwickeln: Nutzungsstatistiken, Leistungskennzahlen und Aktivitätstrends über Konversationen, Dokumente und Tokens — vollständig lokal aus Ihren eigenen Daten berechnet.",
+      "es": "La página Analytics muestra cómo evolucionan su base de conocimiento y su uso de IA: estadísticas de uso, métricas de rendimiento y tendencias de actividad de conversaciones, documentos y tokens — todo calculado localmente a partir de sus propios datos.",
+      "fr": "La page Analytics montre l'évolution de votre base de connaissances et de votre usage de l'IA : statistiques d'utilisation, métriques de performance et tendances d'activité pour les conversations, les documents et les tokens — le tout calculé localement à partir de vos propres données.",
+      "ja": "Analytics ページでは、ナレッジベースと AI 利用の推移を確認できます。会話、ドキュメント、トークンにわたる利用統計、パフォーマンス指標、アクティビティトレンド — すべてあなた自身のデータからローカルで算出されます。",
+      "zh-CN": "Analytics 页面展示您的知识库和 AI 使用情况的演变：涵盖会话、文档和令牌的使用统计、性能指标和活动趋势 — 全部由您自己的数据在本地计算。"
+    },
+    "UserGuide_Analytics_Feature1_Title.Text": {
+      "en-US": "Usage Overview",
+      "de": "Nutzungsübersicht",
+      "es": "Resumen de uso",
+      "fr": "Vue d'ensemble de l'utilisation",
+      "ja": "利用状況の概要",
+      "zh-CN": "使用概览"
+    },
+    "UserGuide_Analytics_Feature1_Description.Text": {
+      "en-US": "Headline counters for conversations, messages, documents, and token consumption keep the size and activity of your workspace visible at all times.",
+      "de": "Kennzahlen zu Konversationen, Nachrichten, Dokumenten und Token-Verbrauch machen Größe und Aktivität Ihres Arbeitsbereichs jederzeit sichtbar.",
+      "es": "Contadores principales de conversaciones, mensajes, documentos y consumo de tokens mantienen visibles en todo momento el tamaño y la actividad de su espacio de trabajo.",
+      "fr": "Des compteurs de synthèse pour les conversations, messages, documents et la consommation de tokens gardent en permanence visibles la taille et l'activité de votre espace de travail.",
+      "ja": "会話、メッセージ、ドキュメント、トークン消費の主要カウンターにより、ワークスペースの規模とアクティビティを常に把握できます。",
+      "zh-CN": "会话、消息、文档和令牌消耗的核心计数器，让您随时了解工作区的规模与活跃度。"
+    },
+    "UserGuide_Analytics_Feature2_Title.Text": {
+      "en-US": "Activity Trends",
+      "de": "Aktivitätstrends",
+      "es": "Tendencias de actividad",
+      "fr": "Tendances d'activité",
+      "ja": "アクティビティトレンド",
+      "zh-CN": "活动趋势"
+    },
+    "UserGuide_Analytics_Feature2_Description.Text": {
+      "en-US": "Daily charts of conversations and document imports reveal your working patterns and how your knowledge base grows over time.",
+      "de": "Tagesdiagramme zu Konversationen und Dokumentimporten zeigen Ihre Arbeitsmuster und das Wachstum Ihrer Wissensbasis im Zeitverlauf.",
+      "es": "Los gráficos diarios de conversaciones e importaciones de documentos revelan sus patrones de trabajo y cómo crece su base de conocimiento con el tiempo.",
+      "fr": "Des graphiques quotidiens des conversations et des imports de documents révèlent vos habitudes de travail et la croissance de votre base de connaissances au fil du temps.",
+      "ja": "会話とドキュメント取り込みの日次チャートから、作業パターンとナレッジベースの成長を読み取れます。",
+      "zh-CN": "会话和文档导入的每日图表揭示您的工作模式以及知识库随时间的增长。"
+    },
+    "UserGuide_Analytics_Feature3_Title.Text": {
+      "en-US": "Indexing Health",
+      "de": "Indexierungsstatus",
+      "es": "Estado de indexación",
+      "fr": "État de l'indexation",
+      "ja": "インデックスの状態",
+      "zh-CN": "索引健康度"
+    },
+    "UserGuide_Analytics_Feature3_Description.Text": {
+      "en-US": "A live indexing-completion indicator shows how much of your vault is fully embedded and searchable.",
+      "de": "Ein Live-Indikator zur Indexierungsvollständigkeit zeigt, wie viel Ihres Tresors vollständig eingebettet und durchsuchbar ist.",
+      "es": "Un indicador en vivo del progreso de indexación muestra qué parte de su bóveda está completamente incrustada y lista para búsquedas.",
+      "fr": "Un indicateur en direct de l'avancement de l'indexation montre quelle part de votre coffre est entièrement vectorisée et interrogeable.",
+      "ja": "インデックス完了率のライブインジケーターで、ボールトのどれだけが埋め込み済みで検索可能かが分かります。",
+      "zh-CN": "实时的索引完成度指示器显示您的库中有多少内容已完成向量化并可搜索。"
+    },
+    "UserGuide_Operations_Title.Text": {
+      "en-US": "Operations",
+      "de": "Operations",
+      "es": "Operations",
+      "fr": "Operations",
+      "ja": "Operations(運用状況)",
+      "zh-CN": "Operations(运行状况)"
+    },
+    "UserGuide_Operations_Description.Text": {
+      "en-US": "The Operations page (Ctrl+Shift+O) is the health console for everything running behind the scenes: connector status, collaborative sync state, indexing progress, and recent background activity — in one live snapshot.",
+      "de": "Die Operations-Seite (Strg+Umschalt+O) ist die Statuskonsole für alles, was im Hintergrund läuft: Konnektor-Status, Zustand der kollaborativen Synchronisierung, Indexierungsfortschritt und jüngste Hintergrundaktivität — in einem Live-Überblick.",
+      "es": "La página Operations (Ctrl+Mayús+O) es la consola de estado de todo lo que ocurre entre bastidores: estado de los conectores, estado de la sincronización colaborativa, progreso de indexación y actividad reciente en segundo plano — en una instantánea en vivo.",
+      "fr": "La page Operations (Ctrl+Maj+O) est la console de santé de tout ce qui tourne en arrière-plan : état des connecteurs, état de la synchronisation collaborative, avancement de l'indexation et activité récente — dans un instantané en direct.",
+      "ja": "Operations ページ(Ctrl+Shift+O)は、バックグラウンドで動くすべてのものの状態コンソールです。コネクタの状態、コラボレーション同期の状態、インデックス作成の進捗、最近のバックグラウンドアクティビティを 1 つのライブスナップショットで確認できます。",
+      "zh-CN": "Operations 页面(Ctrl+Shift+O)是后台运行事务的健康控制台：连接器状态、协作同步状态、索引进度和最近的后台活动 — 集中在一个实时快照中。"
+    },
+    "UserGuide_Operations_Feature1_Title.Text": {
+      "en-US": "Status Snapshot",
+      "de": "Status-Überblick",
+      "es": "Instantánea de estado",
+      "fr": "Instantané d'état",
+      "ja": "ステータススナップショット",
+      "zh-CN": "状态快照"
+    },
+    "UserGuide_Operations_Feature1_Description.Text": {
+      "en-US": "See at a glance whether calendar and email connectors, collaborative sync, and indexing are healthy, idle, or need attention.",
+      "de": "Sehen Sie auf einen Blick, ob Kalender- und E-Mail-Konnektoren, kollaborative Synchronisierung und Indexierung gesund oder inaktiv sind — oder Aufmerksamkeit brauchen.",
+      "es": "Vea de un vistazo si los conectores de calendario y correo, la sincronización colaborativa y la indexación están en buen estado, inactivos o necesitan atención.",
+      "fr": "Voyez d'un coup d'œil si les connecteurs calendrier et e-mail, la synchronisation collaborative et l'indexation sont sains, inactifs ou nécessitent une intervention.",
+      "ja": "カレンダー・メールコネクタ、コラボレーション同期、インデックス作成が正常か、待機中か、対応が必要かを一目で確認できます。",
+      "zh-CN": "一眼看清日历和邮件连接器、协作同步及索引是健康、空闲还是需要处理。"
+    },
+    "UserGuide_Operations_Feature2_Title.Text": {
+      "en-US": "Suggested Fixes",
+      "de": "Empfohlene Korrekturen",
+      "es": "Correcciones sugeridas",
+      "fr": "Correctifs suggérés",
+      "ja": "推奨される修正",
+      "zh-CN": "建议修复"
+    },
+    "UserGuide_Operations_Feature2_Description.Text": {
+      "en-US": "When something is off, Operations lists the highest-leverage remediation steps based on the current snapshot — connect a live source, enable sync, or finish configuration.",
+      "de": "Wenn etwas nicht stimmt, listet Operations die wirkungsvollsten Abhilfeschritte auf Basis des aktuellen Überblicks auf — eine Live-Quelle verbinden, die Synchronisierung aktivieren oder die Konfiguration abschließen.",
+      "es": "Cuando algo falla, Operations enumera los pasos de corrección de mayor impacto según la instantánea actual: conectar una fuente en vivo, habilitar la sincronización o completar la configuración.",
+      "fr": "Quand quelque chose cloche, Operations liste les actions correctives à plus fort levier selon l'instantané actuel — connecter une source, activer la synchronisation ou terminer la configuration.",
+      "ja": "問題があるとき、Operations は現在のスナップショットに基づいて最も効果的な対処手順を提示します — ライブソースの接続、同期の有効化、設定の完了など。",
+      "zh-CN": "出现问题时，Operations 会根据当前快照列出杠杆效应最高的补救步骤 — 连接实时数据源、启用同步或完成配置。"
+    },
+    "UserGuide_Operations_Feature3_Title.Text": {
+      "en-US": "Live Monitoring",
+      "de": "Live-Überwachung",
+      "es": "Supervisión en vivo",
+      "fr": "Suivi en direct",
+      "ja": "ライブモニタリング",
+      "zh-CN": "实时监控"
+    },
+    "UserGuide_Operations_Feature3_Description.Text": {
+      "en-US": "The snapshot refreshes as operations progress, so long-running work like bulk imports and re-indexing can be watched without leaving the page.",
+      "de": "Der Überblick aktualisiert sich mit dem Fortschritt der Vorgänge — langlaufende Arbeiten wie Massenimporte und Neuindexierung lassen sich beobachten, ohne die Seite zu verlassen.",
+      "es": "La instantánea se actualiza a medida que avanzan las operaciones, de modo que trabajos largos como importaciones masivas y reindexaciones pueden seguirse sin salir de la página.",
+      "fr": "L'instantané se rafraîchit au fil des opérations : les travaux longs comme les imports massifs et la réindexation se suivent sans quitter la page.",
+      "ja": "スナップショットは処理の進行に合わせて更新されます。一括インポートや再インデックスのような長時間の処理も、ページを離れずに見守れます。",
+      "zh-CN": "快照会随操作进展而刷新，批量导入、重建索引等长时间任务无需离开页面即可跟踪。"
+    },
+    "UserGuide_Sync_Title.Text": {
+      "en-US": "Collaborative Sync",
+      "de": "Collaborative Sync",
+      "es": "Collaborative Sync",
+      "fr": "Collaborative Sync",
+      "ja": "Collaborative Sync(コラボ同期)",
+      "zh-CN": "Collaborative Sync(协作同步)"
+    },
+    "UserGuide_Sync_Description.Text": {
+      "en-US": "Collaborative Sync keeps multiple Agent-X installations in step using an encrypted, file-based transport: point every device at a shared folder — OneDrive, Google Drive, a NAS, or even a USB drive — and changes flow between them with no server and no cloud account required.",
+      "de": "Collaborative Sync hält mehrere Agent-X-Installationen über einen verschlüsselten, dateibasierten Transport synchron: Richten Sie jedes Gerät auf einen gemeinsamen Ordner — OneDrive, Google Drive, ein NAS oder sogar einen USB-Stick — und Änderungen fließen zwischen ihnen, ganz ohne Server und ohne Cloud-Konto.",
+      "es": "Collaborative Sync mantiene varias instalaciones de Agent-X sincronizadas mediante un transporte cifrado basado en archivos: apunte cada dispositivo a una carpeta compartida — OneDrive, Google Drive, un NAS o incluso una unidad USB — y los cambios fluirán entre ellos sin servidor y sin cuenta en la nube.",
+      "fr": "Collaborative Sync maintient plusieurs installations d'Agent-X au diapason grâce à un transport chiffré basé sur des fichiers : pointez chaque appareil vers un dossier partagé — OneDrive, Google Drive, un NAS ou même une clé USB — et les changements circulent entre eux, sans serveur ni compte cloud.",
+      "ja": "Collaborative Sync は、暗号化されたファイルベースのトランスポートで複数の Agent-X インストールを同期します。各デバイスを共有フォルダー(OneDrive、Google Drive、NAS、USB ドライブでも可)に向けるだけで、サーバーもクラウドアカウントも不要のまま変更が行き来します。",
+      "zh-CN": "Collaborative Sync 通过加密的基于文件的传输，让多个 Agent-X 安装保持同步：将每台设备指向一个共享文件夹 — OneDrive、Google Drive、NAS 甚至 U 盘 — 变更即可在设备间流转，无需服务器，也无需云账户。"
+    },
+    "UserGuide_Sync_Feature1_Title.Text": {
+      "en-US": "Shared-Folder Transport",
+      "de": "Transport über gemeinsamen Ordner",
+      "es": "Transporte por carpeta compartida",
+      "fr": "Transport par dossier partagé",
+      "ja": "共有フォルダートランスポート",
+      "zh-CN": "共享文件夹传输"
+    },
+    "UserGuide_Sync_Feature1_Description.Text": {
+      "en-US": "Any folder every machine can reach works as the sync channel. Agent-X writes encrypted change packages to it — the shared location never holds readable data.",
+      "de": "Jeder Ordner, den alle Rechner erreichen, taugt als Sync-Kanal. Agent-X legt dort verschlüsselte Änderungspakete ab — im gemeinsamen Speicherort liegen nie lesbare Daten.",
+      "es": "Cualquier carpeta accesible por todas las máquinas sirve como canal de sincronización. Agent-X escribe en ella paquetes de cambios cifrados: la ubicación compartida nunca contiene datos legibles.",
+      "fr": "N'importe quel dossier accessible à toutes les machines sert de canal de synchronisation. Agent-X y écrit des paquets de changements chiffrés — l'emplacement partagé ne contient jamais de données lisibles.",
+      "ja": "すべてのマシンからアクセスできるフォルダーなら何でも同期チャネルになります。Agent-X はそこに暗号化された変更パッケージを書き込みます — 共有場所に読み取り可能なデータが置かれることはありません。",
+      "zh-CN": "任何所有设备都能访问的文件夹都可作为同步通道。Agent-X 向其中写入加密的变更包 — 共享位置绝不存放可读数据。"
+    },
+    "UserGuide_Sync_Feature2_Title.Text": {
+      "en-US": "Conflict Resolution",
+      "de": "Konfliktauflösung",
+      "es": "Resolución de conflictos",
+      "fr": "Résolution des conflits",
+      "ja": "競合解決",
+      "zh-CN": "冲突解决"
+    },
+    "UserGuide_Sync_Feature2_Description.Text": {
+      "en-US": "Timestamp-based conflict resolution decides which change wins when the same item was edited on two devices — no manual merge steps required.",
+      "de": "Eine zeitstempelbasierte Konfliktauflösung entscheidet, welche Änderung gewinnt, wenn dasselbe Element auf zwei Geräten bearbeitet wurde — manuelle Merge-Schritte sind nicht nötig.",
+      "es": "La resolución de conflictos basada en marcas de tiempo decide qué cambio prevalece cuando el mismo elemento se editó en dos dispositivos, sin pasos de fusión manuales.",
+      "fr": "La résolution de conflits basée sur l'horodatage détermine quel changement l'emporte lorsque le même élément a été modifié sur deux appareils — aucune fusion manuelle requise.",
+      "ja": "同じアイテムが 2 台のデバイスで編集された場合は、タイムスタンプに基づく競合解決がどちらの変更を採用するかを決定します。手動でのマージ作業は不要です。",
+      "zh-CN": "当同一条目在两台设备上都被编辑时，基于时间戳的冲突解决机制会决定哪个变更生效 — 无需手动合并。"
+    },
+    "UserGuide_Sync_Feature3_Title.Text": {
+      "en-US": "Local Collaboration Sessions",
+      "de": "Lokale Kollaborationssitzungen",
+      "es": "Sesiones de colaboración locales",
+      "fr": "Sessions de collaboration locales",
+      "ja": "ローカルコラボレーションセッション",
+      "zh-CN": "本地协作会话"
+    },
+    "UserGuide_Sync_Feature3_Description.Text": {
+      "en-US": "On a trusted local network, Agent-X installations can also host live collaboration sessions — sharing presence and activity events directly between peers, with nothing leaving your network.",
+      "de": "In einem vertrauenswürdigen lokalen Netzwerk können Agent-X-Installationen zusätzlich Live-Kollaborationssitzungen hosten — Präsenz- und Aktivitätsereignisse werden direkt zwischen den Geräten geteilt, ohne dass etwas Ihr Netzwerk verlässt.",
+      "es": "En una red local de confianza, las instalaciones de Agent-X también pueden alojar sesiones de colaboración en vivo, compartiendo presencia y eventos de actividad directamente entre pares, sin que nada salga de su red.",
+      "fr": "Sur un réseau local de confiance, les installations d'Agent-X peuvent aussi héberger des sessions de collaboration en direct — partage de présence et d'événements d'activité directement entre pairs, sans que rien ne quitte votre réseau.",
+      "ja": "信頼できるローカルネットワーク上では、Agent-X 同士でライブコラボレーションセッションをホストすることもできます。プレゼンスとアクティビティイベントをピア間で直接共有し、ネットワークの外には何も出ません。",
+      "zh-CN": "在可信的本地网络中，Agent-X 安装之间还可以承载实时协作会话 — 在对等设备之间直接共享在线状态和活动事件，任何数据都不会离开您的网络。"
+    }
+  }
+}

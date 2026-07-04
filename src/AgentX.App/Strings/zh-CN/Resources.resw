@@ -466,58 +466,23 @@
   <data name="UserGuide_MobileCompanion_Sync_Title.Text" xml:space="preserve"><value>数据同步与安全</value></data>
   <data name="UserGuide_MobileCompanion_Sync_Description.Text" xml:space="preserve"><value>同步走您本地桌面 API 主机。在同一局域网中是直连;远程时可通过 Tailscale、Zerotier 或您自己的反向代理配对。桌面始终为权威——手机只保留当前视图所需的数据,在“设置”中撤销已配对设备会立即使其密钥失效,并在下次启动时清空其本地缓存。</value></data>
   <data name="UserGuide_Workflows_Title.Text" xml:space="preserve"><value>工作流与自动化</value></data>
-  <data name="UserGuide_Workflows_Description.Text" xml:space="preserve"><value>工作流是基于动作节点库构建的多步、声明式自动化——查询、文档操作、网页搜索、文件生成、通知、模型调用、条件分支以及插件贡献的步骤。它们是把 Agent-X 从聊天工具升级为个人自动化平台的“胶水”:按计划摄取文档、自动生成周报、运行晨间研究简报,或驱动一条您本会手工执行的自定义管道。可在 Workflow Builder(Ctrl+Shift+W)中可视化搭建。</value></data>
+  <data name="UserGuide_Workflows_Description.Text" xml:space="preserve"><value>工作流是由五种构建块组成的多步骤 AI 管道 — AI 提示、文档查找、文本转换、条件分支和输出格式化 — 可按需运行。将它们串联起来，把重复性工作变成一次点击：汇总一组文档、提取要点并整理成报告，或复现任何原本需要手动执行的文本处理流程。在 Workflow Builder(Ctrl+Shift+W)中可视化地创建和运行。</value></data>
   <data name="UserGuide_Workflows_Creating_Title.Text" xml:space="preserve"><value>创建工作流</value></data>
   <data name="UserGuide_Workflows_CreateStep1.Text" xml:space="preserve"><value>从“设置”或 Quick Actions 菜单打开工作流面板。点击“创建新工作流”开始。</value></data>
   <data name="UserGuide_Workflows_CreateStep2.Text" xml:space="preserve"><value>定义触发器——可以是计划(每天上午 9 点)、事件(新增文档),或手动执行。</value></data>
   <data name="UserGuide_Workflows_CreateStep3.Text" xml:space="preserve"><value>添加动作——每个工作流可包含多个动作,如 AI 查询、文档建索引或通知。</value></data>
   <data name="UserGuide_Workflows_CreateStep4.Text" xml:space="preserve"><value>先用手动执行测试工作流,然后启用。监控执行日志以确认其按预期工作。</value></data>
-  <data name="UserGuide_Workflows_Triggers_Title.Text" xml:space="preserve"><value>工作流触发器</value></data>
-  <data name="UserGuide_Workflows_Trigger1_Title.Text" xml:space="preserve"><value>计划</value></data>
-  <data name="UserGuide_Workflows_Trigger1_Description.Text" xml:space="preserve"><value>按计划运行——每小时、每天、每周或自定义 cron 表达式。非常适合日常简报与周期性分析。</value></data>
-  <data name="UserGuide_Workflows_Trigger2_Title.Text" xml:space="preserve"><value>事件驱动</value></data>
-  <data name="UserGuide_Workflows_Trigger2_Description.Text" xml:space="preserve"><value>由应用事件触发,例如文档导入、会话完成或达到 insight 阈值。</value></data>
-  <data name="UserGuide_Workflows_Trigger3_Title.Text" xml:space="preserve"><value>手动</value></data>
-  <data name="UserGuide_Workflows_Trigger3_Description.Text" xml:space="preserve"><value>从工作流面板或经 Quick Actions 按需运行。适合临时性的自动化任务。</value></data>
+  <data name="UserGuide_Workflows_Triggers_Title.Text" xml:space="preserve"><value>运行工作流</value></data>
+  <data name="UserGuide_Workflows_Trigger1_Title.Text" xml:space="preserve"><value>按需运行</value></data>
+  <data name="UserGuide_Workflows_Trigger1_Description.Text" xml:space="preserve"><value>随时从 Workflows 页面或 Workflow Builder 运行任何工作流。每次运行都会将您的输入文本送入步骤链，并呈现最终输出。</value></data>
+  <data name="UserGuide_Workflows_Trigger2_Title.Text" xml:space="preserve"><value>步骤库</value></data>
+  <data name="UserGuide_Workflows_Trigger2_Description.Text" xml:space="preserve"><value>每个工作流由五种步骤类型组成：AI 提示(用模板化提示调用模型)、文档查找(从您的库中提取内容)、文本转换(大小写、提取、去重等)、条件分支(基于步骤输出的 if-then 逻辑)和输出格式化(Markdown、HTML 或 JSON)。</value></data>
+  <data name="UserGuide_Workflows_Trigger3_Title.Text" xml:space="preserve"><value>运行历史</value></data>
+  <data name="UserGuide_Workflows_Trigger3_Description.Text" xml:space="preserve"><value>每次运行都会记录每个步骤的输出、耗时和成功状态，让您可以准确检查每个步骤产生了什么，以及管道哪里需要调整。</value></data>
   <data name="UserGuide_Workflows_Examples_Title.Text" xml:space="preserve"><value>示例工作流</value></data>
-  <data name="UserGuide_Workflows_Example1.Text" xml:space="preserve"><value>“每日简报” — 每天上午 8 点查询您最近的文档与 insight,生成关于“有什么新内容、需要关注什么”的总结。</value></data>
-  <data name="UserGuide_Workflows_Example2.Text" xml:space="preserve"><value>“研究助手” — 当 Research 合集新增 PDF 时,自动提取要点、生成引用,并标记重要发现。</value></data>
-  <data name="UserGuide_Workflows_Example3.Text" xml:space="preserve"><value>“每周回顾” — 每周日汇总过去一周的所有会话,识别主要主题,并生成反思提示。</value></data>
-  <data name="UserGuide_ScheduledQueries_Title.Text" xml:space="preserve"><value>计划查询</value></data>
-  <data name="UserGuide_ScheduledQueries_Description.Text" xml:space="preserve"><value>计划查询按您选择的计划自动运行,免手工就能交付洞见。非常适合日常简报、周期研究更新与重复性分析任务。</value></data>
-  <data name="UserGuide_ScheduledQueries_Setup_Title.Text" xml:space="preserve"><value>配置计划查询</value></data>
-  <data name="UserGuide_ScheduledQueries_Step1.Text" xml:space="preserve"><value>在任意会话中,点击消息输入框上方的“计划”按钮(时钟图标)。</value></data>
-  <data name="UserGuide_ScheduledQueries_Step2.Text" xml:space="preserve"><value>选择计划——每天、每周或自定义时间。选择要查询的合集或文档。</value></data>
-  <data name="UserGuide_ScheduledQueries_Step3.Text" xml:space="preserve"><value>为计划查询命名并确认。它将在指定时间自动运行。</value></data>
-  <data name="UserGuide_ScheduledQueries_Schedules_Title.Text" xml:space="preserve"><value>计划选项</value></data>
-  <data name="UserGuide_ScheduledQueries_Schedule1_Title.Text" xml:space="preserve"><value>一次</value></data>
-  <data name="UserGuide_ScheduledQueries_Schedule1_Description.Text" xml:space="preserve"><value>在未来的特定日期与时间运行一次。适合提醒和受截止日期驱动的查询。</value></data>
-  <data name="UserGuide_ScheduledQueries_Schedule2_Title.Text" xml:space="preserve"><value>重复</value></data>
-  <data name="UserGuide_ScheduledQueries_Schedule2_Description.Text" xml:space="preserve"><value>每天、每周或每月运行。每次执行创建一条带结果的新会话条目。</value></data>
-  <data name="UserGuide_ScheduledQueries_Schedule3_Title.Text" xml:space="preserve"><value>Cron 表达式</value></data>
-  <data name="UserGuide_ScheduledQueries_Schedule3_Description.Text" xml:space="preserve"><value>以 cron 语法进行高级调度,适配“每周一和周四下午 2 点”或“每月第一天”等复杂模式。</value></data>
-  <data name="UserGuide_ScheduledQueries_Results_Title.Text" xml:space="preserve"><value>管理结果</value></data>
-  <data name="UserGuide_ScheduledQueries_Results_Description.Text" xml:space="preserve"><value>计划查询的结果以新会话的形式出现:</value></data>
-  <data name="UserGuide_ScheduledQueries_Result1.Text" xml:space="preserve"><value>结果以查询名称和时间戳打标签,便于识别。</value></data>
-  <data name="UserGuide_ScheduledQueries_Result2.Text" xml:space="preserve"><value>计划查询完成时,通知会附带关键发现的摘要提醒您。</value></data>
-  <data name="UserGuide_AutomationRules_Title.Text" xml:space="preserve"><value>自动化规则</value></data>
-  <data name="UserGuide_AutomationRules_Description.Text" xml:space="preserve"><value>自动化规则创建对 Agent-X 事件作出响应的 if-then 逻辑。当触发条件满足时,规则会自动执行一个或多个动作。无需任何编码即可构建智能行为。</value></data>
-  <data name="UserGuide_AutomationRules_Structure_Title.Text" xml:space="preserve"><value>规则结构</value></data>
-  <data name="UserGuide_AutomationRules_Structure_Description.Text" xml:space="preserve"><value>每条规则由三部分组成:</value></data>
-  <data name="UserGuide_AutomationRules_Structure1.Text" xml:space="preserve"><value>触发器——启动规则的事件,如文档被导入或检测到 insight。</value></data>
-  <data name="UserGuide_AutomationRules_Structure2.Text" xml:space="preserve"><value>条件——可选的过滤器,精细化规则适用范围,如“仅当文档被标记为‘Research’时”。</value></data>
-  <data name="UserGuide_AutomationRules_Structure3.Text" xml:space="preserve"><value>动作——规则运行时发生的事情,如发送通知、运行查询或添加标签。</value></data>
-  <data name="UserGuide_AutomationRules_Triggers_Title.Text" xml:space="preserve"><value>可用触发器</value></data>
-  <data name="UserGuide_AutomationRules_Trigger1_Title.Text" xml:space="preserve"><value>文档事件</value></data>
-  <data name="UserGuide_AutomationRules_Trigger1_Description.Text" xml:space="preserve"><value>文档被导入、更新或删除。可按文件类型、合集或元数据过滤。</value></data>
-  <data name="UserGuide_AutomationRules_Trigger2_Title.Text" xml:space="preserve"><value>会话事件</value></data>
-  <data name="UserGuide_AutomationRules_Trigger2_Description.Text" xml:space="preserve"><value>新建会话、会话达到消息数阈值,或提及特定关键词。</value></data>
-  <data name="UserGuide_AutomationRules_Trigger3_Title.Text" xml:space="preserve"><value>Insight 事件</value></data>
-  <data name="UserGuide_AutomationRules_Trigger3_Description.Text" xml:space="preserve"><value>检测到新的 insight、insight 匹配某些关键词,或 insight 超过置信度阈值。</value></data>
-  <data name="UserGuide_AutomationRules_Examples_Title.Text" xml:space="preserve"><value>示例规则</value></data>
-  <data name="UserGuide_AutomationRules_Example1.Text" xml:space="preserve"><value>“自动标记研究” — 当导入 PDF 时,自动分析其内容并用您现有分类法中的相关主题打标签。</value></data>
-  <data name="UserGuide_AutomationRules_Example2.Text" xml:space="preserve"><value>“Insight 提醒” — 当检测到含“urgent”或“important”的 insight 时,立即发送桌面通知。</value></data>
-  <data name="UserGuide_AutomationRules_Example3.Text" xml:space="preserve"><value>“每周总结” — 每周日下午 6 点,创建过去一周所有会话的摘要,并加入您的 Weekly Digest 合集。</value></data>
+  <data name="UserGuide_Workflows_Example1.Text" xml:space="preserve"><value>"会议纪要" — 粘贴原始转录文本，用 AI 提示步骤提取决策和行动项，并将结果整理成可归档或分享的 Markdown 摘要。</value></data>
+  <data name="UserGuide_Workflows_Example2.Text" xml:space="preserve"><value>"研究摘要" — 用文档查找步骤从您的研究合集中调取文档，让模型提炼关键发现，按需生成结构化简报。</value></data>
+  <data name="UserGuide_Workflows_Example3.Text" xml:space="preserve"><value>"内容再利用" — 用 AI 提示步骤压缩长文档，再用条件分支：较短的输出变成社交帖子，较长的输出变成排版好的文章草稿。</value></data>
   <data name="UserGuide_AdvancedQueries_Title.Text" xml:space="preserve"><value>高级查询</value></data>
   <data name="UserGuide_AdvancedQueries_Description.Text" xml:space="preserve"><value>在简单提问之外,Agent-X 提供一组深入的查询技巧,可实质改善精确度、召回率与答案质量。措辞越审慎,结果越好——这些技巧把“有用”的答案与“出色”的答案区分开来,尤其当您的 Vault 超过几百份文档之后。</value></data>
   <data name="UserGuide_AdvancedQueries_Techniques_Title.Text" xml:space="preserve"><value>查询技巧</value></data>
@@ -578,7 +543,7 @@
   <data name="UserGuide_Plugins_Capability3.Text" xml:space="preserve"><value>工作流节点与 Quick Actions — 贡献新的动作节点(发送到 Slack、推送到 webhook、追加到电子表格、运行脚本)或新的 Quick Action 模板。插件扩展用户已熟悉的同一构建器 UI。</value></data>
   <data name="UserGuide_Plugins_Capability4.Text" xml:space="preserve"><value>侧边栏页面与集成 — 插件可添加带自有 UI 的新页面、与 Calendar/Email/Inbox 集成,或为知识图谱做贡献。插件 SDK 使用与应用其余部分一致的 WinUI 3 组件,以保持视觉一致性。</value></data>
   <data name="UserGuide_Integrations_Title.Text" xml:space="preserve"><value>日历与邮件集成</value></data>
-  <data name="UserGuide_Integrations_Description.Text" xml:space="preserve"><value>接入 Microsoft Outlook、Google Workspace 或任何标准 CalDAV / IMAP / Exchange Web Services 来源,Agent-X 即把您的日历事件与邮件视为一等知识——可搜索、可查询、可摘要,也可作为 Workflows 的触发器。集成默认只读;可选的发送与回复能力需要额外的明示权限授予。</value></data>
+  <data name="UserGuide_Integrations_Description.Text" xml:space="preserve"><value>连接 Microsoft Outlook、Google Workspace 或任何标准 CalDAV / IMAP / Exchange Web Services 源后，Agent-X 会将您的日历事件和电子邮件作为一等知识来对待 — 可与文档一起搜索、查询和汇总。集成默认只读；发送和回复功能需要明确的额外权限授予。</value></data>
   <data name="UserGuide_Integrations_Calendar_Title.Text" xml:space="preserve"><value>日历集成</value></data>
   <data name="UserGuide_Integrations_Calendar1.Text" xml:space="preserve"><value>接入 Outlook(经 Microsoft Graph 的 OAuth)、Google Calendar(经 Google 的 OAuth)或任何 CalDAV 提供方。CalendarSyncService 按计划拉取事件(默认每 15 分钟),尊重按日历的可见性过滤,并把事件作为可搜索条目建索引。</value></data>
   <data name="UserGuide_Integrations_Calendar2.Text" xml:space="preserve"><value>用自然语言对您的日历提问——“下周我有什么安排?”“我会见 Acme 的谁?”“找出所有超过 60 分钟的重复会议”“按参与者汇总第三季度的会议负担”。回答会引用具体事件并提供回到来源应用的点击链接。</value></data>
@@ -609,4 +574,46 @@
   <data name="UserGuide_Export_Backup.Text" xml:space="preserve"><value>在“设置 &gt; 备份”中安排自动备份。备份捕获 SQLite 数据库(会话、insights、beliefs、voice profile、设置)、文档存储与插件数据。可用口令加密以安全地存放云端;压缩默认开启。设定保留策略(保留最近 N 个、最近 M 天)、选择目标(本地文件夹、网络共享,或 OneDrive/Dropbox/Google Drive 文件夹)与频率(每日、每周)。</value></data>
   <data name="UserGuide_Export_Restore_Title.Text" xml:space="preserve"><value>还原数据</value></data>
   <data name="UserGuide_Export_Restore.Text" xml:space="preserve"><value>可从“设置 &gt; 备份 &gt; 还原”导入任何过往备份,或在全新安装的引导流程中导入。还原模式:替换(清除当前状态并加载备份)、合并(与当前状态合并,冲突按 last-write-wins 处理),或 Cherry-Pick(可勾选要带过来的会话、文档与设置)。跨版本迁移自动进行——打开任何更早版本 Agent-X 的备份,迁移流水线会就地升级 schema。</value></data>
+
+  <!-- Guide accuracy pass 2026-07: Comparison / Smart Inbox / Analytics / Operations / Collaborative Sync sections -->
+  <data name="UserGuide_Comparison_Title.Text" xml:space="preserve"><value>文档对比(Comparison)</value></data>
+  <data name="UserGuide_Comparison_Description.Text" xml:space="preserve"><value>Comparison 页面可对知识库中两个或更多文档生成结构化的 AI 对比分析。选择文档，可选地设置一个聚焦主题来引导分析，Agent-X 会检索每个文档最相关的段落并合成一份并列对比报告。</value></data>
+  <data name="UserGuide_Comparison_Feature1_Title.Text" xml:space="preserve"><value>结构化分析</value></data>
+  <data name="UserGuide_Comparison_Feature1_Description.Text" xml:space="preserve"><value>报告分为共同主题、关键差异以及每个文档贡献的独特观点 — 顶部附有整体摘要。</value></data>
+  <data name="UserGuide_Comparison_Feature2_Title.Text" xml:space="preserve"><value>聚焦主题</value></data>
+  <data name="UserGuide_Comparison_Feature2_Description.Text" xml:space="preserve"><value>添加可选的聚焦主题(如"定价条款"、"方法论")，对比将集中在该维度上，而不是泛泛的概览。</value></data>
+  <data name="UserGuide_Comparison_Feature3_Title.Text" xml:space="preserve"><value>Markdown 导出</value></data>
+  <data name="UserGuide_Comparison_Feature3_Description.Text" xml:space="preserve"><value>任何对比报告都可导出为 Markdown，便于分享、归档或粘贴到您自己的文档中。</value></data>
+  <data name="UserGuide_Inbox_Title.Text" xml:space="preserve"><value>Smart Inbox(智能收件箱)</value></data>
+  <data name="UserGuide_Inbox_Description.Text" xml:space="preserve"><value>Smart Inbox 是内容进入知识库前的分拣队列。来自浏览器扩展、移动伴侣应用和插件的捕获内容会先到达这里，由您决定哪些值得保留 — 而不是让所有内容未经整理就堆进知识库。</value></data>
+  <data name="UserGuide_Inbox_Feature1_Title.Text" xml:space="preserve"><value>AI 预览</value></data>
+  <data name="UserGuide_Inbox_Feature1_Description.Text" xml:space="preserve"><value>Agent-X 为每个条目起草预览 — 建议的摘要、目标合集和标签 — 大多数分拣决定只需一瞥和一次点击。</value></data>
+  <data name="UserGuide_Inbox_Feature2_Title.Text" xml:space="preserve"><value>接受、暂缓或拒绝</value></data>
+  <data name="UserGuide_Inbox_Feature2_Description.Text" xml:space="preserve"><value>接受即可将条目导入所选合集下的知识库，暂缓可稍后决定，拒绝则丢弃。批量操作几秒钟即可清空整个队列。</value></data>
+  <data name="UserGuide_Inbox_Feature3_Title.Text" xml:space="preserve"><value>捕获来源</value></data>
+  <data name="UserGuide_Inbox_Feature3_Description.Text" xml:space="preserve"><value>来自浏览器扩展的网页捕获、移动伴侣应用发送的条目以及插件贡献的内容，都汇入同一个队列，采用一致的分拣流程。</value></data>
+  <data name="UserGuide_Analytics_Title.Text" xml:space="preserve"><value>Analytics(分析)</value></data>
+  <data name="UserGuide_Analytics_Description.Text" xml:space="preserve"><value>Analytics 页面展示您的知识库和 AI 使用情况的演变：涵盖会话、文档和令牌的使用统计、性能指标和活动趋势 — 全部由您自己的数据在本地计算。</value></data>
+  <data name="UserGuide_Analytics_Feature1_Title.Text" xml:space="preserve"><value>使用概览</value></data>
+  <data name="UserGuide_Analytics_Feature1_Description.Text" xml:space="preserve"><value>会话、消息、文档和令牌消耗的核心计数器，让您随时了解工作区的规模与活跃度。</value></data>
+  <data name="UserGuide_Analytics_Feature2_Title.Text" xml:space="preserve"><value>活动趋势</value></data>
+  <data name="UserGuide_Analytics_Feature2_Description.Text" xml:space="preserve"><value>会话和文档导入的每日图表揭示您的工作模式以及知识库随时间的增长。</value></data>
+  <data name="UserGuide_Analytics_Feature3_Title.Text" xml:space="preserve"><value>索引健康度</value></data>
+  <data name="UserGuide_Analytics_Feature3_Description.Text" xml:space="preserve"><value>实时的索引完成度指示器显示您的库中有多少内容已完成向量化并可搜索。</value></data>
+  <data name="UserGuide_Operations_Title.Text" xml:space="preserve"><value>Operations(运行状况)</value></data>
+  <data name="UserGuide_Operations_Description.Text" xml:space="preserve"><value>Operations 页面(Ctrl+Shift+O)是后台运行事务的健康控制台：连接器状态、协作同步状态、索引进度和最近的后台活动 — 集中在一个实时快照中。</value></data>
+  <data name="UserGuide_Operations_Feature1_Title.Text" xml:space="preserve"><value>状态快照</value></data>
+  <data name="UserGuide_Operations_Feature1_Description.Text" xml:space="preserve"><value>一眼看清日历和邮件连接器、协作同步及索引是健康、空闲还是需要处理。</value></data>
+  <data name="UserGuide_Operations_Feature2_Title.Text" xml:space="preserve"><value>建议修复</value></data>
+  <data name="UserGuide_Operations_Feature2_Description.Text" xml:space="preserve"><value>出现问题时，Operations 会根据当前快照列出杠杆效应最高的补救步骤 — 连接实时数据源、启用同步或完成配置。</value></data>
+  <data name="UserGuide_Operations_Feature3_Title.Text" xml:space="preserve"><value>实时监控</value></data>
+  <data name="UserGuide_Operations_Feature3_Description.Text" xml:space="preserve"><value>快照会随操作进展而刷新，批量导入、重建索引等长时间任务无需离开页面即可跟踪。</value></data>
+  <data name="UserGuide_Sync_Title.Text" xml:space="preserve"><value>Collaborative Sync(协作同步)</value></data>
+  <data name="UserGuide_Sync_Description.Text" xml:space="preserve"><value>Collaborative Sync 通过加密的基于文件的传输，让多个 Agent-X 安装保持同步：将每台设备指向一个共享文件夹 — OneDrive、Google Drive、NAS 甚至 U 盘 — 变更即可在设备间流转，无需服务器，也无需云账户。</value></data>
+  <data name="UserGuide_Sync_Feature1_Title.Text" xml:space="preserve"><value>共享文件夹传输</value></data>
+  <data name="UserGuide_Sync_Feature1_Description.Text" xml:space="preserve"><value>任何所有设备都能访问的文件夹都可作为同步通道。Agent-X 向其中写入加密的变更包 — 共享位置绝不存放可读数据。</value></data>
+  <data name="UserGuide_Sync_Feature2_Title.Text" xml:space="preserve"><value>冲突解决</value></data>
+  <data name="UserGuide_Sync_Feature2_Description.Text" xml:space="preserve"><value>当同一条目在两台设备上都被编辑时，基于时间戳的冲突解决机制会决定哪个变更生效 — 无需手动合并。</value></data>
+  <data name="UserGuide_Sync_Feature3_Title.Text" xml:space="preserve"><value>本地协作会话</value></data>
+  <data name="UserGuide_Sync_Feature3_Description.Text" xml:space="preserve"><value>在可信的本地网络中，Agent-X 安装之间还可以承载实时协作会话 — 在对等设备之间直接共享在线状态和活动事件，任何数据都不会离开您的网络。</value></data>
 </root>

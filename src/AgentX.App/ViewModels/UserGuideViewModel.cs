@@ -115,6 +115,13 @@ public partial class UserGuideViewModel : ObservableObject
                 DisplayOrder: 12
             ),
 
+            new UserGuideSection(
+                TitleKey: "UserGuide_Comparison_Title",
+                IconGlyph: "",
+                TemplateKey: "ComparisonTemplate",
+                DisplayOrder: 13
+            ),
+
             // ═══════════════════════════════════════════════════════════════
             // RESEARCH & WEB (NEW SECTIONS)
             // ═══════════════════════════════════════════════════════════════
@@ -123,35 +130,42 @@ public partial class UserGuideViewModel : ObservableObject
                 TitleKey: "UserGuide_WebSearch_Title",
                 IconGlyph: "",
                 TemplateKey: "WebSearchTemplate",
-                DisplayOrder: 13
+                DisplayOrder: 14
             ),
 
             new UserGuideSection(
                 TitleKey: "UserGuide_WebImport_Title",
                 IconGlyph: "",
                 TemplateKey: "WebImportTemplate",
-                DisplayOrder: 14
+                DisplayOrder: 15
             ),
 
             new UserGuideSection(
                 TitleKey: "UserGuide_Citations_Title",
                 IconGlyph: "",
                 TemplateKey: "CitationsTemplate",
-                DisplayOrder: 15
+                DisplayOrder: 16
             ),
 
             new UserGuideSection(
                 TitleKey: "UserGuide_BrowserExtension_Title",
                 IconGlyph: "",
                 TemplateKey: "BrowserExtensionTemplate",
-                DisplayOrder: 16
+                DisplayOrder: 17
             ),
 
             new UserGuideSection(
                 TitleKey: "UserGuide_MobileCompanion_Title",
                 IconGlyph: "",
                 TemplateKey: "MobileCompanionTemplate",
-                DisplayOrder: 17
+                DisplayOrder: 18
+            ),
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_Inbox_Title",
+                IconGlyph: "",
+                TemplateKey: "InboxTemplate",
+                DisplayOrder: 19
             ),
 
             // ═══════════════════════════════════════════════════════════════
@@ -162,14 +176,14 @@ public partial class UserGuideViewModel : ObservableObject
                 TitleKey: "UserGuide_Annotations_Title",
                 IconGlyph: "",
                 TemplateKey: "AnnotationsTemplate",
-                DisplayOrder: 18
+                DisplayOrder: 20
             ),
 
             new UserGuideSection(
                 TitleKey: "UserGuide_AudioTranscription_Title",
                 IconGlyph: "",
                 TemplateKey: "AudioTranscriptionTemplate",
-                DisplayOrder: 19
+                DisplayOrder: 21
             ),
 
             // ═══════════════════════════════════════════════════════════════
@@ -180,35 +194,42 @@ public partial class UserGuideViewModel : ObservableObject
                 TitleKey: "UserGuide_TemporalIdentity_Title",
                 IconGlyph: "",
                 TemplateKey: "TemporalIdentityTemplate",
-                DisplayOrder: 20
+                DisplayOrder: 22
             ),
 
             new UserGuideSection(
                 TitleKey: "UserGuide_PastSelf_Title",
                 IconGlyph: "",
                 TemplateKey: "PastSelfTemplate",
-                DisplayOrder: 21
+                DisplayOrder: 23
             ),
 
             new UserGuideSection(
                 TitleKey: "UserGuide_GenerativeIdentity_Title",
                 IconGlyph: "",
                 TemplateKey: "GenerativeIdentityTemplate",
-                DisplayOrder: 22
+                DisplayOrder: 24
             ),
 
             new UserGuideSection(
                 TitleKey: "UserGuide_InsightHarvesting_Title",
                 IconGlyph: "",
                 TemplateKey: "InsightHarvestingTemplate",
-                DisplayOrder: 23
+                DisplayOrder: 25
             ),
 
             new UserGuideSection(
                 TitleKey: "UserGuide_WeeklyDigest_Title",
                 IconGlyph: "",
                 TemplateKey: "WeeklyDigestTemplate",
-                DisplayOrder: 24
+                DisplayOrder: 26
+            ),
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_Analytics_Title",
+                IconGlyph: "",
+                TemplateKey: "AnalyticsTemplate",
+                DisplayOrder: 27
             ),
 
             // ═══════════════════════════════════════════════════════════════
@@ -219,21 +240,7 @@ public partial class UserGuideViewModel : ObservableObject
                 TitleKey: "UserGuide_Workflows_Title",
                 IconGlyph: "",
                 TemplateKey: "WorkflowsTemplate",
-                DisplayOrder: 25
-            ),
-
-            new UserGuideSection(
-                TitleKey: "UserGuide_ScheduledQueries_Title",
-                IconGlyph: "",
-                TemplateKey: "ScheduledQueriesTemplate",
-                DisplayOrder: 26
-            ),
-
-            new UserGuideSection(
-                TitleKey: "UserGuide_AutomationRules_Title",
-                IconGlyph: "",
-                TemplateKey: "AutomationRulesTemplate",
-                DisplayOrder: 27
+                DisplayOrder: 28
             ),
 
             // ═══════════════════════════════════════════════════════════════
@@ -244,42 +251,56 @@ public partial class UserGuideViewModel : ObservableObject
                 TitleKey: "UserGuide_ModelManager_Title",
                 IconGlyph: "",
                 TemplateKey: "ModelManagerTemplate",
-                DisplayOrder: 28
+                DisplayOrder: 29
             ),
 
             new UserGuideSection(
                 TitleKey: "UserGuide_HardwareAdvisor_Title",
                 IconGlyph: "",
                 TemplateKey: "HardwareAdvisorTemplate",
-                DisplayOrder: 29
+                DisplayOrder: 30
             ),
 
             new UserGuideSection(
                 TitleKey: "UserGuide_Settings_Title",
                 IconGlyph: "",
                 TemplateKey: "SettingsTemplate",
-                DisplayOrder: 30
+                DisplayOrder: 31
             ),
 
             new UserGuideSection(
                 TitleKey: "UserGuide_WorkspaceProfiles_Title",
                 IconGlyph: "",
                 TemplateKey: "WorkspaceProfilesTemplate",
-                DisplayOrder: 31
+                DisplayOrder: 32
             ),
 
             new UserGuideSection(
                 TitleKey: "UserGuide_Plugins_Title",
                 IconGlyph: "",
                 TemplateKey: "PluginsTemplate",
-                DisplayOrder: 32
+                DisplayOrder: 33
             ),
 
             new UserGuideSection(
                 TitleKey: "UserGuide_Integrations_Title",
                 IconGlyph: "",
                 TemplateKey: "IntegrationsTemplate",
-                DisplayOrder: 33
+                DisplayOrder: 34
+            ),
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_Sync_Title",
+                IconGlyph: "",
+                TemplateKey: "SyncTemplate",
+                DisplayOrder: 35
+            ),
+
+            new UserGuideSection(
+                TitleKey: "UserGuide_Operations_Title",
+                IconGlyph: "",
+                TemplateKey: "OperationsTemplate",
+                DisplayOrder: 36
             ),
 
             // ═══════════════════════════════════════════════════════════════
@@ -290,28 +311,28 @@ public partial class UserGuideViewModel : ObservableObject
                 TitleKey: "UserGuide_CommandPalette_Title",
                 IconGlyph: "",
                 TemplateKey: "CommandPaletteTemplate",
-                DisplayOrder: 34
+                DisplayOrder: 37
             ),
 
             new UserGuideSection(
                 TitleKey: "UserGuide_KeyboardShortcuts_Title",
                 IconGlyph: "",
                 TemplateKey: "KeyboardShortcutsTemplate",
-                DisplayOrder: 35
+                DisplayOrder: 38
             ),
 
             new UserGuideSection(
                 TitleKey: "UserGuide_AdvancedQueries_Title",
                 IconGlyph: "",
                 TemplateKey: "AdvancedQueriesTemplate",
-                DisplayOrder: 36
+                DisplayOrder: 39
             ),
 
             new UserGuideSection(
                 TitleKey: "UserGuide_PerformanceTuning_Title",
                 IconGlyph: "",
                 TemplateKey: "PerformanceTuningTemplate",
-                DisplayOrder: 37
+                DisplayOrder: 40
             ),
 
             // ═══════════════════════════════════════════════════════════════
@@ -322,42 +343,42 @@ public partial class UserGuideViewModel : ObservableObject
                 TitleKey: "UserGuide_SupportedFileFormats_Title",
                 IconGlyph: "",
                 TemplateKey: "SupportedFileFormatsTemplate",
-                DisplayOrder: 38
+                DisplayOrder: 41
             ),
 
             new UserGuideSection(
                 TitleKey: "UserGuide_Export_Title",
                 IconGlyph: "",
                 TemplateKey: "ExportTemplate",
-                DisplayOrder: 39
+                DisplayOrder: 42
             ),
 
             new UserGuideSection(
                 TitleKey: "UserGuide_BackupRestore_Title",
                 IconGlyph: "",
                 TemplateKey: "BackupRestoreTemplate",
-                DisplayOrder: 40
+                DisplayOrder: 43
             ),
 
             new UserGuideSection(
                 TitleKey: "UserGuide_Troubleshooting_Title",
                 IconGlyph: "",
                 TemplateKey: "TroubleshootingTemplate",
-                DisplayOrder: 41
+                DisplayOrder: 44
             ),
 
             new UserGuideSection(
                 TitleKey: "UserGuide_PrivacySecurity_Title",
                 IconGlyph: "",
                 TemplateKey: "PrivacyAndSecurityTemplate",
-                DisplayOrder: 42
+                DisplayOrder: 45
             ),
 
             new UserGuideSection(
                 TitleKey: "UserGuide_GettingHelp_Title",
                 IconGlyph: "",
                 TemplateKey: "GettingHelpTemplate",
-                DisplayOrder: 43
+                DisplayOrder: 46
             )
         };
     }

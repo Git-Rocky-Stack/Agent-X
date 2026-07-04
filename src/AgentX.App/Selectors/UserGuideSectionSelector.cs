@@ -44,8 +44,6 @@ public class UserGuideSectionSelector : DataTemplateSelector
 
     // Automation (NEW)
     public DataTemplate? WorkflowsTemplate { get; set; }
-    public DataTemplate? ScheduledQueriesTemplate { get; set; }
-    public DataTemplate? AutomationRulesTemplate { get; set; }
 
     // Configuration
     public DataTemplate? ModelManagerTemplate { get; set; }
@@ -72,6 +70,13 @@ public class UserGuideSectionSelector : DataTemplateSelector
     public DataTemplate? PluginsTemplate { get; set; }
     public DataTemplate? IntegrationsTemplate { get; set; }
     public DataTemplate? BackupRestoreTemplate { get; set; }
+
+    // Insights & operations: pages shipped without guide coverage until 2026-07
+    public DataTemplate? ComparisonTemplate { get; set; }
+    public DataTemplate? InboxTemplate { get; set; }
+    public DataTemplate? AnalyticsTemplate { get; set; }
+    public DataTemplate? OperationsTemplate { get; set; }
+    public DataTemplate? SyncTemplate { get; set; }
 
     // NOTE: WinUI 3's ItemsControl invokes the *two-argument* SelectTemplateCore
     // overload (item + container), NOT the single-argument one. If only the
@@ -122,8 +127,6 @@ public class UserGuideSectionSelector : DataTemplateSelector
 
                 // Automation
                 "WorkflowsTemplate" => WorkflowsTemplate,
-                "ScheduledQueriesTemplate" => ScheduledQueriesTemplate,
-                "AutomationRulesTemplate" => AutomationRulesTemplate,
 
                 // Configuration
                 "ModelManagerTemplate" => ModelManagerTemplate,
@@ -150,6 +153,13 @@ public class UserGuideSectionSelector : DataTemplateSelector
                 "PluginsTemplate" => PluginsTemplate,
                 "IntegrationsTemplate" => IntegrationsTemplate,
                 "BackupRestoreTemplate" => BackupRestoreTemplate,
+
+                // Insights & operations
+                "ComparisonTemplate" => ComparisonTemplate,
+                "InboxTemplate" => InboxTemplate,
+                "AnalyticsTemplate" => AnalyticsTemplate,
+                "OperationsTemplate" => OperationsTemplate,
+                "SyncTemplate" => SyncTemplate,
 
                 _ => null
             };

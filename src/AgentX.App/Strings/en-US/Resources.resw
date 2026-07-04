@@ -546,62 +546,27 @@
 
   <!-- UserGuide: Workflows (Row 23) -->
   <data name="UserGuide_Workflows_Title.Text" xml:space="preserve"><value>Workflows &amp; Automation</value></data>
-  <data name="UserGuide_Workflows_Description.Text" xml:space="preserve"><value>Workflows are multi-step, declarative automations built from a library of action nodes — queries, document operations, web search, file generation, notifications, model calls, conditional branches, and plugin-contributed steps. They are the "glue" that turns Agent-X from a chat tool into a personal automation platform: ingest documents on a schedule, generate weekly reports automatically, run morning research briefings, or drive a custom pipeline you would otherwise execute by hand. Build them visually in the Workflow Builder (Ctrl+Shift+W).</value></data>
+  <data name="UserGuide_Workflows_Description.Text" xml:space="preserve"><value>Workflows are multi-step AI pipelines you compose from five building blocks — AI prompts, document lookups, text transforms, conditional branches, and output formatting — and run on demand. Chain them to turn repetitive work into a single click: summarize a document set, extract key points and reformat them as a report, or drive any custom text pipeline you would otherwise execute by hand. Build and run them visually in the Workflow Builder (Ctrl+Shift+W).</value></data>
   <data name="UserGuide_Workflows_Creating_Title.Text" xml:space="preserve"><value>Creating Workflows</value></data>
   <data name="UserGuide_Workflows_CreateStep1.Text" xml:space="preserve"><value>Open the Workflows panel from Settings or the Quick Actions menu. Click "Create New Workflow" to start.</value></data>
   <data name="UserGuide_Workflows_CreateStep2.Text" xml:space="preserve"><value>Define a trigger — this could be a schedule (daily at 9 AM), an event (new document added), or manual execution.</value></data>
   <data name="UserGuide_Workflows_CreateStep3.Text" xml:space="preserve"><value>Add actions — each workflow can include multiple actions like AI queries, document indexing, or notifications.</value></data>
   <data name="UserGuide_Workflows_CreateStep4.Text" xml:space="preserve"><value>Test your workflow with a manual run, then activate it. Monitor execution logs to verify it works as expected.</value></data>
-  <data name="UserGuide_Workflows_Triggers_Title.Text" xml:space="preserve"><value>Workflow Triggers</value></data>
-  <data name="UserGuide_Workflows_Trigger1_Title.Text" xml:space="preserve"><value>Scheduled</value></data>
-  <data name="UserGuide_Workflows_Trigger1_Description.Text" xml:space="preserve"><value>Run on a schedule — hourly, daily, weekly, or custom cron expressions. Perfect for daily briefings and periodic analysis.</value></data>
-  <data name="UserGuide_Workflows_Trigger2_Title.Text" xml:space="preserve"><value>Event-Based</value></data>
-  <data name="UserGuide_Workflows_Trigger2_Description.Text" xml:space="preserve"><value>Triggered by app events like document import, conversation completion, or reaching an insight threshold.</value></data>
-  <data name="UserGuide_Workflows_Trigger3_Title.Text" xml:space="preserve"><value>Manual</value></data>
-  <data name="UserGuide_Workflows_Trigger3_Description.Text" xml:space="preserve"><value>Run on-demand from the Workflows panel or via Quick Actions. Useful for ad-hoc automation tasks.</value></data>
+  <data name="UserGuide_Workflows_Triggers_Title.Text" xml:space="preserve"><value>Running Workflows</value></data>
+  <data name="UserGuide_Workflows_Trigger1_Title.Text" xml:space="preserve"><value>On-Demand Runs</value></data>
+  <data name="UserGuide_Workflows_Trigger1_Description.Text" xml:space="preserve"><value>Run any workflow from the Workflows page or the Workflow Builder whenever you need it. Each run takes your input text, feeds it through the step chain, and presents the final output.</value></data>
+  <data name="UserGuide_Workflows_Trigger2_Title.Text" xml:space="preserve"><value>Step Library</value></data>
+  <data name="UserGuide_Workflows_Trigger2_Description.Text" xml:space="preserve"><value>Five step types compose every workflow: AI Prompt (call a model with a templated prompt), Document Lookup (pull content from your vault), Text Transform (case, extraction, dedupe, and more), Conditional Branch (if-then logic on step output), and Output Format (Markdown, HTML, or JSON).</value></data>
+  <data name="UserGuide_Workflows_Trigger3_Title.Text" xml:space="preserve"><value>Run History</value></data>
+  <data name="UserGuide_Workflows_Trigger3_Description.Text" xml:space="preserve"><value>Every run is recorded with per-step output, duration, and success status, so you can inspect exactly what each step produced and where a pipeline needs adjustment.</value></data>
   <data name="UserGuide_Workflows_Examples_Title.Text" xml:space="preserve"><value>Example Workflows</value></data>
-  <data name="UserGuide_Workflows_Example1.Text" xml:space="preserve"><value>"Daily Briefing" — Every morning at 8 AM, query your recent documents and insights to generate a summary of what is new and what needs attention.</value></data>
-  <data name="UserGuide_Workflows_Example2.Text" xml:space="preserve"><value>"Research Assistant" — When new PDFs are added to your Research collection, automatically extract key points, generate citations, and flag important findings.</value></data>
-  <data name="UserGuide_Workflows_Example3.Text" xml:space="preserve"><value>"Weekly Review" — Each Sunday, compile all conversations from the past week, identify major themes, and create a reflection prompt.</value></data>
+  <data name="UserGuide_Workflows_Example1.Text" xml:space="preserve"><value>"Meeting Minutes" — paste a raw transcript, extract decisions and action items with an AI Prompt step, and format the result as a Markdown summary you can file or share.</value></data>
+  <data name="UserGuide_Workflows_Example2.Text" xml:space="preserve"><value>"Research Digest" — look up documents from your Research collection with a Document Lookup step, have the model pull out key findings, and produce a structured briefing on demand.</value></data>
+  <data name="UserGuide_Workflows_Example3.Text" xml:space="preserve"><value>"Content Repurposer" — condense a long document with an AI Prompt step, then use a Conditional Branch: short outputs become social posts, longer ones become a formatted article draft.</value></data>
 
   <!-- UserGuide: Scheduled Queries (Row 24) -->
-  <data name="UserGuide_ScheduledQueries_Title.Text" xml:space="preserve"><value>Scheduled Queries</value></data>
-  <data name="UserGuide_ScheduledQueries_Description.Text" xml:space="preserve"><value>Scheduled queries run automatically on your chosen schedule, delivering insights without manual effort. Perfect for daily briefings, periodic research updates, and recurring analysis tasks.</value></data>
-  <data name="UserGuide_ScheduledQueries_Setup_Title.Text" xml:space="preserve"><value>Setting Up Scheduled Queries</value></data>
-  <data name="UserGuide_ScheduledQueries_Step1.Text" xml:space="preserve"><value>In any conversation, click the "Schedule" button (clock icon) above the message input.</value></data>
-  <data name="UserGuide_ScheduledQueries_Step2.Text" xml:space="preserve"><value>Choose your schedule — daily, weekly, or a custom time. Select which collections or documents to query.</value></data>
-  <data name="UserGuide_ScheduledQueries_Step3.Text" xml:space="preserve"><value>Give your scheduled query a name and confirm. It will now run automatically at the specified time.</value></data>
-  <data name="UserGuide_ScheduledQueries_Schedules_Title.Text" xml:space="preserve"><value>Schedule Options</value></data>
-  <data name="UserGuide_ScheduledQueries_Schedule1_Title.Text" xml:space="preserve"><value>Once</value></data>
-  <data name="UserGuide_ScheduledQueries_Schedule1_Description.Text" xml:space="preserve"><value>Run once at a specific future date and time. Useful for reminders and deadline-driven queries.</value></data>
-  <data name="UserGuide_ScheduledQueries_Schedule2_Title.Text" xml:space="preserve"><value>Recurring</value></data>
-  <data name="UserGuide_ScheduledQueries_Schedule2_Description.Text" xml:space="preserve"><value>Run daily, weekly, or monthly. Each execution creates a new conversation entry with the results.</value></data>
-  <data name="UserGuide_ScheduledQueries_Schedule3_Title.Text" xml:space="preserve"><value>Cron Expression</value></data>
-  <data name="UserGuide_ScheduledQueries_Schedule3_Description.Text" xml:space="preserve"><value>Advanced scheduling with cron syntax for complex patterns like "every Monday and Thursday at 2 PM" or "first day of each month."</value></data>
-  <data name="UserGuide_ScheduledQueries_Results_Title.Text" xml:space="preserve"><value>Managing Results</value></data>
-  <data name="UserGuide_ScheduledQueries_Results_Description.Text" xml:space="preserve"><value>Scheduled query results appear as new conversations:</value></data>
-  <data name="UserGuide_ScheduledQueries_Result1.Text" xml:space="preserve"><value>Results are tagged with the query name and timestamp for easy identification.</value></data>
-  <data name="UserGuide_ScheduledQueries_Result2.Text" xml:space="preserve"><value>Notifications alert you when scheduled queries complete, with a summary of key findings.</value></data>
 
   <!-- UserGuide: Automation Rules (Row 25) -->
-  <data name="UserGuide_AutomationRules_Title.Text" xml:space="preserve"><value>Automation Rules</value></data>
-  <data name="UserGuide_AutomationRules_Description.Text" xml:space="preserve"><value>Automation rules create if-then logic that responds to events in Agent-X. When a trigger condition is met, the rule executes one or more actions automatically. Build intelligent behaviors without any coding.</value></data>
-  <data name="UserGuide_AutomationRules_Structure_Title.Text" xml:space="preserve"><value>Rule Structure</value></data>
-  <data name="UserGuide_AutomationRules_Structure_Description.Text" xml:space="preserve"><value>Each rule consists of three parts:</value></data>
-  <data name="UserGuide_AutomationRules_Structure1.Text" xml:space="preserve"><value>Trigger — The event that starts the rule, such as a document being imported or an insight being detected.</value></data>
-  <data name="UserGuide_AutomationRules_Structure2.Text" xml:space="preserve"><value>Condition — Optional filters that refine when the rule applies, such as "only if the document is tagged 'Research'"</value></data>
-  <data name="UserGuide_AutomationRules_Structure3.Text" xml:space="preserve"><value>Actions — What happens when the rule runs, such as sending a notification, running a query, or adding tags.</value></data>
-  <data name="UserGuide_AutomationRules_Triggers_Title.Text" xml:space="preserve"><value>Available Triggers</value></data>
-  <data name="UserGuide_AutomationRules_Trigger1_Title.Text" xml:space="preserve"><value>Document Events</value></data>
-  <data name="UserGuide_AutomationRules_Trigger1_Description.Text" xml:space="preserve"><value>Document imported, updated, or deleted. Filter by file type, collection, or metadata.</value></data>
-  <data name="UserGuide_AutomationRules_Trigger2_Title.Text" xml:space="preserve"><value>Conversation Events</value></data>
-  <data name="UserGuide_AutomationRules_Trigger2_Description.Text" xml:space="preserve"><value>New conversation created, conversation reaches message threshold, or specific keywords mentioned.</value></data>
-  <data name="UserGuide_AutomationRules_Trigger3_Title.Text" xml:space="preserve"><value>Insight Events</value></data>
-  <data name="UserGuide_AutomationRules_Trigger3_Description.Text" xml:space="preserve"><value>New insight detected, insight matches certain keywords, or insight exceeds confidence threshold.</value></data>
-  <data name="UserGuide_AutomationRules_Examples_Title.Text" xml:space="preserve"><value>Example Rules</value></data>
-  <data name="UserGuide_AutomationRules_Example1.Text" xml:space="preserve"><value>"Auto-Tag Research" — When a PDF is imported, automatically analyze its content and tag it with relevant topics from your existing taxonomy.</value></data>
-  <data name="UserGuide_AutomationRules_Example2.Text" xml:space="preserve"><value>"Insight Alerts" — When an insight is detected containing "urgent" or "important," send a desktop notification immediately.</value></data>
-  <data name="UserGuide_AutomationRules_Example3.Text" xml:space="preserve"><value>"Weekly Summarizer" — Every Sunday at 6 PM, create a summary of all conversations from the past week and add it to your Weekly Digest collection.</value></data>
 
   <!-- ═════════════════════════════════════════════════════════════════════
        USER GUIDE: POWER USER (NEW SECTIONS)
@@ -684,7 +649,7 @@
 
   <!-- UserGuide: Calendar & Email Integrations -->
   <data name="UserGuide_Integrations_Title.Text" xml:space="preserve"><value>Calendar &amp; Email Integrations</value></data>
-  <data name="UserGuide_Integrations_Description.Text" xml:space="preserve"><value>Connect Microsoft Outlook, Google Workspace, or any standard CalDAV / IMAP / Exchange Web Services source and Agent-X starts treating your calendar events and emails as first-class knowledge — searchable, queryable, summarizable, and usable as triggers in Workflows. The integration is read-only by default; opt-in send and respond capabilities require explicit additional permission grants.</value></data>
+  <data name="UserGuide_Integrations_Description.Text" xml:space="preserve"><value>Connect Microsoft Outlook, Google Workspace, or any standard CalDAV / IMAP / Exchange Web Services source and Agent-X starts treating your calendar events and emails as first-class knowledge — searchable, queryable, and summarizable alongside your documents. The integration is read-only by default; opt-in send and respond capabilities require explicit additional permission grants.</value></data>
   <data name="UserGuide_Integrations_Calendar_Title.Text" xml:space="preserve"><value>Calendar Integration</value></data>
   <data name="UserGuide_Integrations_Calendar1.Text" xml:space="preserve"><value>Connect Outlook (OAuth via Microsoft Graph), Google Calendar (OAuth via Google), or any CalDAV provider. The CalendarSyncService pulls events on a schedule (default every 15 minutes), respects per-calendar visibility filters, and indexes events as searchable items.</value></data>
   <data name="UserGuide_Integrations_Calendar2.Text" xml:space="preserve"><value>Ask natural-language questions across your calendar — "What's on my plate next week?", "Who am I meeting from Acme?", "Find every recurring meeting longer than 60 minutes," "Summarize Q3 meeting load by participant." Answers cite specific events with click-through to the source app.</value></data>
@@ -721,4 +686,46 @@
   <data name="UserGuide_Export_Restore_Title.Text" xml:space="preserve"><value>Restoring Data</value></data>
   <data name="UserGuide_Export_Restore.Text" xml:space="preserve"><value>Import any previous backup from Settings &gt; Backup &gt; Restore, or from a fresh install during onboarding. Restore modes: Replace (wipe current state and load the backup), Merge (combine with current state, last-write-wins on conflicts), or Cherry-Pick (a checklist of conversations, documents, and settings to bring over). Cross-version migration runs automatically — open a backup from any prior Agent-X version and the migration pipeline upgrades the schema in place.</value></data>
 
+
+  <!-- Guide accuracy pass 2026-07: Comparison / Smart Inbox / Analytics / Operations / Collaborative Sync sections -->
+  <data name="UserGuide_Comparison_Title.Text" xml:space="preserve"><value>Document Comparison</value></data>
+  <data name="UserGuide_Comparison_Description.Text" xml:space="preserve"><value>The Comparison page generates a structured, AI-written comparative analysis of two or more documents from your Knowledge Vault. Select the documents, optionally set a focus topic to steer the analysis, and Agent-X retrieves each document's most relevant passages and synthesizes a side-by-side report.</value></data>
+  <data name="UserGuide_Comparison_Feature1_Title.Text" xml:space="preserve"><value>Structured Analysis</value></data>
+  <data name="UserGuide_Comparison_Feature1_Description.Text" xml:space="preserve"><value>Reports break down into shared themes, key differences, and the unique points each document contributes — with an overall summary up top.</value></data>
+  <data name="UserGuide_Comparison_Feature2_Title.Text" xml:space="preserve"><value>Focus Topics</value></data>
+  <data name="UserGuide_Comparison_Feature2_Description.Text" xml:space="preserve"><value>Add an optional focus topic ("pricing terms", "methodology") and the comparison concentrates on that dimension instead of a general overview.</value></data>
+  <data name="UserGuide_Comparison_Feature3_Title.Text" xml:space="preserve"><value>Markdown Export</value></data>
+  <data name="UserGuide_Comparison_Feature3_Description.Text" xml:space="preserve"><value>Export any comparison report to Markdown for sharing, archiving, or pasting into your own documents.</value></data>
+  <data name="UserGuide_Inbox_Title.Text" xml:space="preserve"><value>Smart Inbox</value></data>
+  <data name="UserGuide_Inbox_Description.Text" xml:space="preserve"><value>The Smart Inbox is the triage queue for content entering your knowledge base. Captures from the browser extension, the mobile companion, and plugins land here first, so you decide what is worth keeping — instead of letting everything pile into the vault unsorted.</value></data>
+  <data name="UserGuide_Inbox_Feature1_Title.Text" xml:space="preserve"><value>AI Previews</value></data>
+  <data name="UserGuide_Inbox_Feature1_Description.Text" xml:space="preserve"><value>Agent-X drafts a preview for each item — a suggested summary, target collection, and tags — so most triage decisions take one glance and one click.</value></data>
+  <data name="UserGuide_Inbox_Feature2_Title.Text" xml:space="preserve"><value>Accept, Defer, or Reject</value></data>
+  <data name="UserGuide_Inbox_Feature2_Description.Text" xml:space="preserve"><value>Accept an item to import it into the vault under your chosen collection, defer it to decide later, or reject it to discard. Batch actions clear a full queue in seconds.</value></data>
+  <data name="UserGuide_Inbox_Feature3_Title.Text" xml:space="preserve"><value>Capture Sources</value></data>
+  <data name="UserGuide_Inbox_Feature3_Description.Text" xml:space="preserve"><value>Web captures from the browser extension, items sent from the mobile companion, and content contributed by plugins all flow into one queue with a consistent triage workflow.</value></data>
+  <data name="UserGuide_Analytics_Title.Text" xml:space="preserve"><value>Analytics</value></data>
+  <data name="UserGuide_Analytics_Description.Text" xml:space="preserve"><value>The Analytics page shows how your knowledge base and AI usage evolve: usage statistics, performance metrics, and activity trends across conversations, documents, and tokens — all computed locally from your own data.</value></data>
+  <data name="UserGuide_Analytics_Feature1_Title.Text" xml:space="preserve"><value>Usage Overview</value></data>
+  <data name="UserGuide_Analytics_Feature1_Description.Text" xml:space="preserve"><value>Headline counters for conversations, messages, documents, and token consumption keep the size and activity of your workspace visible at all times.</value></data>
+  <data name="UserGuide_Analytics_Feature2_Title.Text" xml:space="preserve"><value>Activity Trends</value></data>
+  <data name="UserGuide_Analytics_Feature2_Description.Text" xml:space="preserve"><value>Daily charts of conversations and document imports reveal your working patterns and how your knowledge base grows over time.</value></data>
+  <data name="UserGuide_Analytics_Feature3_Title.Text" xml:space="preserve"><value>Indexing Health</value></data>
+  <data name="UserGuide_Analytics_Feature3_Description.Text" xml:space="preserve"><value>A live indexing-completion indicator shows how much of your vault is fully embedded and searchable.</value></data>
+  <data name="UserGuide_Operations_Title.Text" xml:space="preserve"><value>Operations</value></data>
+  <data name="UserGuide_Operations_Description.Text" xml:space="preserve"><value>The Operations page (Ctrl+Shift+O) is the health console for everything running behind the scenes: connector status, collaborative sync state, indexing progress, and recent background activity — in one live snapshot.</value></data>
+  <data name="UserGuide_Operations_Feature1_Title.Text" xml:space="preserve"><value>Status Snapshot</value></data>
+  <data name="UserGuide_Operations_Feature1_Description.Text" xml:space="preserve"><value>See at a glance whether calendar and email connectors, collaborative sync, and indexing are healthy, idle, or need attention.</value></data>
+  <data name="UserGuide_Operations_Feature2_Title.Text" xml:space="preserve"><value>Suggested Fixes</value></data>
+  <data name="UserGuide_Operations_Feature2_Description.Text" xml:space="preserve"><value>When something is off, Operations lists the highest-leverage remediation steps based on the current snapshot — connect a live source, enable sync, or finish configuration.</value></data>
+  <data name="UserGuide_Operations_Feature3_Title.Text" xml:space="preserve"><value>Live Monitoring</value></data>
+  <data name="UserGuide_Operations_Feature3_Description.Text" xml:space="preserve"><value>The snapshot refreshes as operations progress, so long-running work like bulk imports and re-indexing can be watched without leaving the page.</value></data>
+  <data name="UserGuide_Sync_Title.Text" xml:space="preserve"><value>Collaborative Sync</value></data>
+  <data name="UserGuide_Sync_Description.Text" xml:space="preserve"><value>Collaborative Sync keeps multiple Agent-X installations in step using an encrypted, file-based transport: point every device at a shared folder — OneDrive, Google Drive, a NAS, or even a USB drive — and changes flow between them with no server and no cloud account required.</value></data>
+  <data name="UserGuide_Sync_Feature1_Title.Text" xml:space="preserve"><value>Shared-Folder Transport</value></data>
+  <data name="UserGuide_Sync_Feature1_Description.Text" xml:space="preserve"><value>Any folder every machine can reach works as the sync channel. Agent-X writes encrypted change packages to it — the shared location never holds readable data.</value></data>
+  <data name="UserGuide_Sync_Feature2_Title.Text" xml:space="preserve"><value>Conflict Resolution</value></data>
+  <data name="UserGuide_Sync_Feature2_Description.Text" xml:space="preserve"><value>Timestamp-based conflict resolution decides which change wins when the same item was edited on two devices — no manual merge steps required.</value></data>
+  <data name="UserGuide_Sync_Feature3_Title.Text" xml:space="preserve"><value>Local Collaboration Sessions</value></data>
+  <data name="UserGuide_Sync_Feature3_Description.Text" xml:space="preserve"><value>On a trusted local network, Agent-X installations can also host live collaboration sessions — sharing presence and activity events directly between peers, with nothing leaving your network.</value></data>
 </root>

@@ -20,6 +20,7 @@
         <ResourceDictionary Source="ms-appx:///Styles/UserGuideSections.Automation.xaml" />
         <ResourceDictionary Source="ms-appx:///Styles/UserGuideSections.PowerUser.xaml" />
         <ResourceDictionary Source="ms-appx:///Styles/UserGuideSections.Extended.xaml" />
+        <ResourceDictionary Source="ms-appx:///Styles/UserGuideSections.Insights.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <!-- DataTemplateSelector for UserGuide sections -->
@@ -47,8 +48,6 @@
                                          GenerativeIdentityTemplate="{StaticResource GenerativeIdentityTemplate}"
                                          InsightHarvestingTemplate="{StaticResource InsightHarvestingTemplate}"
                                          WorkflowsTemplate="{StaticResource WorkflowsTemplate}"
-                                         ScheduledQueriesTemplate="{StaticResource ScheduledQueriesTemplate}"
-                                         AutomationRulesTemplate="{StaticResource AutomationRulesTemplate}"
                                          ModelManagerTemplate="{StaticResource ModelManagerTemplate}"
                                          HardwareAdvisorTemplate="{StaticResource HardwareAdvisorTemplate}"
                                          SettingsTemplate="{StaticResource SettingsTemplate}"
@@ -66,6 +65,11 @@
                                          WorkspaceProfilesTemplate="{StaticResource WorkspaceProfilesTemplate}"
                                          PluginsTemplate="{StaticResource PluginsTemplate}"
                                          IntegrationsTemplate="{StaticResource IntegrationsTemplate}"
-                                         BackupRestoreTemplate="{StaticResource BackupRestoreTemplate}" />
+                                         BackupRestoreTemplate="{StaticResource BackupRestoreTemplate}"
+                                         ComparisonTemplate="{StaticResource ComparisonTemplate}"
+                                         InboxTemplate="{StaticResource InboxTemplate}"
+                                         AnalyticsTemplate="{StaticResource AnalyticsTemplate}"
+                                         OperationsTemplate="{StaticResource OperationsTemplate}"
+                                         SyncTemplate="{StaticResource SyncTemplate}" />
 
 </ResourceDictionary>

@@ -466,58 +466,23 @@
   <data name="UserGuide_MobileCompanion_Sync_Title.Text" xml:space="preserve"><value>データ同期とセキュリティ</value></data>
   <data name="UserGuide_MobileCompanion_Sync_Description.Text" xml:space="preserve"><value>同期はあなたのローカル デスクトップ API ホスト経由で行われます。共有 LAN 上では直接、リモートでは Tailscale、Zerotier、または独自のリバース プロキシを介してペアリングできます。デスクトップが常に権威 — 電話機は現在のビューに必要なものだけを保持し、設定からペアリング済みデバイスを取り消すと、そのキーは即座に無効化され、次回起動時にローカル キャッシュがワイプされます。</value></data>
   <data name="UserGuide_Workflows_Title.Text" xml:space="preserve"><value>ワークフローと自動化</value></data>
-  <data name="UserGuide_Workflows_Description.Text" xml:space="preserve"><value>ワークフローは、アクション ノード ライブラリから構成される宣言型の複数ステップ自動化です — クエリ、ドキュメント操作、Web 検索、ファイル生成、通知、モデル呼び出し、条件分岐、プラグイン提供ステップなど。これらは Agent-X をチャット ツールからパーソナルな自動化プラットフォームに変える「接着剤」です: スケジュールでドキュメントを取り込み、週次レポートを自動生成、朝のリサーチ ブリーフィングを実行、または手動でやるであろうカスタム パイプラインを駆動します。Workflow Builder(Ctrl+Shift+W)で視覚的に作成できます。</value></data>
+  <data name="UserGuide_Workflows_Description.Text" xml:space="preserve"><value>ワークフローは、5 つのビルディングブロック — AI プロンプト、ドキュメント検索、テキスト変換、条件分岐、出力フォーマット — から組み立てる多段階の AI パイプラインで、必要なときにオンデマンドで実行します。繰り返し作業をワンクリックに変えられます。ドキュメント一式の要約、要点の抽出とレポート整形、手作業で行っていた任意のテキスト処理の自動化などに最適です。Workflow Builder(Ctrl+Shift+W)で視覚的に作成・実行できます。</value></data>
   <data name="UserGuide_Workflows_Creating_Title.Text" xml:space="preserve"><value>ワークフローの作成</value></data>
   <data name="UserGuide_Workflows_CreateStep1.Text" xml:space="preserve"><value>設定または Quick Actions メニューから Workflows パネルを開きます。「新しいワークフローを作成」をクリックして開始します。</value></data>
   <data name="UserGuide_Workflows_CreateStep2.Text" xml:space="preserve"><value>トリガーを定義します — スケジュール(毎日 9 時)、イベント(新しいドキュメントの追加)、または手動実行が可能です。</value></data>
   <data name="UserGuide_Workflows_CreateStep3.Text" xml:space="preserve"><value>アクションを追加します — 各ワークフローには AI クエリ、ドキュメント インデックス作成、通知などの複数のアクションを含められます。</value></data>
   <data name="UserGuide_Workflows_CreateStep4.Text" xml:space="preserve"><value>手動実行でワークフローをテストしてから有効化します。実行ログを監視して期待通りに動作するか検証します。</value></data>
-  <data name="UserGuide_Workflows_Triggers_Title.Text" xml:space="preserve"><value>ワークフロー トリガー</value></data>
-  <data name="UserGuide_Workflows_Trigger1_Title.Text" xml:space="preserve"><value>スケジュール</value></data>
-  <data name="UserGuide_Workflows_Trigger1_Description.Text" xml:space="preserve"><value>スケジュールで実行 — 1 時間ごと、毎日、毎週、またはカスタム cron 式。日次ブリーフィングや定期分析に最適です。</value></data>
-  <data name="UserGuide_Workflows_Trigger2_Title.Text" xml:space="preserve"><value>イベント駆動</value></data>
-  <data name="UserGuide_Workflows_Trigger2_Description.Text" xml:space="preserve"><value>ドキュメント インポート、会話完了、insight しきい値到達などのアプリ イベントによってトリガー。</value></data>
-  <data name="UserGuide_Workflows_Trigger3_Title.Text" xml:space="preserve"><value>手動</value></data>
-  <data name="UserGuide_Workflows_Trigger3_Description.Text" xml:space="preserve"><value>Workflows パネルまたは Quick Actions から必要に応じて実行。アドホックな自動化タスクに便利です。</value></data>
+  <data name="UserGuide_Workflows_Triggers_Title.Text" xml:space="preserve"><value>ワークフローの実行</value></data>
+  <data name="UserGuide_Workflows_Trigger1_Title.Text" xml:space="preserve"><value>オンデマンド実行</value></data>
+  <data name="UserGuide_Workflows_Trigger1_Description.Text" xml:space="preserve"><value>Workflows ページまたは Workflow Builder から、必要なときにいつでもワークフローを実行できます。実行のたびに入力テキストがステップチェーンを通過し、最終出力が表示されます。</value></data>
+  <data name="UserGuide_Workflows_Trigger2_Title.Text" xml:space="preserve"><value>ステップライブラリ</value></data>
+  <data name="UserGuide_Workflows_Trigger2_Description.Text" xml:space="preserve"><value>すべてのワークフローは 5 種類のステップで構成されます。AI プロンプト(テンプレート化したプロンプトでモデルを呼び出す)、ドキュメント検索(ボールトからコンテンツを取得)、テキスト変換(大文字小文字、抽出、重複排除など)、条件分岐(ステップ出力に対する if-then ロジック)、出力フォーマット(Markdown、HTML、JSON)です。</value></data>
+  <data name="UserGuide_Workflows_Trigger3_Title.Text" xml:space="preserve"><value>実行履歴</value></data>
+  <data name="UserGuide_Workflows_Trigger3_Description.Text" xml:space="preserve"><value>すべての実行はステップごとの出力・所要時間・成否とともに記録されます。各ステップが何を生成したか、パイプラインのどこを調整すべきかを正確に確認できます。</value></data>
   <data name="UserGuide_Workflows_Examples_Title.Text" xml:space="preserve"><value>ワークフローの例</value></data>
-  <data name="UserGuide_Workflows_Example1.Text" xml:space="preserve"><value>「日次ブリーフィング」 — 毎朝 8 時に最近のドキュメントと insight をクエリして、新しい内容と注意が必要な事項のサマリーを生成します。</value></data>
-  <data name="UserGuide_Workflows_Example2.Text" xml:space="preserve"><value>「リサーチ アシスタント」 — Research コレクションに新しい PDF が追加された時、自動的に重要点を抽出し、引用を生成し、重要な発見をフラグ付けします。</value></data>
-  <data name="UserGuide_Workflows_Example3.Text" xml:space="preserve"><value>「週次レビュー」 — 毎週日曜、過去 1 週間の全会話をまとめ、主要テーマを特定し、振り返りプロンプトを作成します。</value></data>
-  <data name="UserGuide_ScheduledQueries_Title.Text" xml:space="preserve"><value>スケジュール済みクエリ</value></data>
-  <data name="UserGuide_ScheduledQueries_Description.Text" xml:space="preserve"><value>スケジュール済みクエリは選択したスケジュールで自動実行され、手動の手間なく insight を届けます。日次ブリーフィング、定期的なリサーチ更新、繰り返しの分析タスクに最適です。</value></data>
-  <data name="UserGuide_ScheduledQueries_Setup_Title.Text" xml:space="preserve"><value>スケジュール済みクエリの設定</value></data>
-  <data name="UserGuide_ScheduledQueries_Step1.Text" xml:space="preserve"><value>任意の会話で、メッセージ入力欄の上にある「スケジュール」ボタン(時計アイコン)をクリックします。</value></data>
-  <data name="UserGuide_ScheduledQueries_Step2.Text" xml:space="preserve"><value>スケジュールを選択 — 毎日、毎週、またはカスタム時刻。クエリ対象のコレクションまたはドキュメントを選択します。</value></data>
-  <data name="UserGuide_ScheduledQueries_Step3.Text" xml:space="preserve"><value>スケジュール済みクエリに名前を付けて確定します。指定した時刻に自動的に実行されるようになります。</value></data>
-  <data name="UserGuide_ScheduledQueries_Schedules_Title.Text" xml:space="preserve"><value>スケジュール オプション</value></data>
-  <data name="UserGuide_ScheduledQueries_Schedule1_Title.Text" xml:space="preserve"><value>一回</value></data>
-  <data name="UserGuide_ScheduledQueries_Schedule1_Description.Text" xml:space="preserve"><value>特定の将来の日付と時刻に一度実行。リマインダーや期限駆動のクエリに有用です。</value></data>
-  <data name="UserGuide_ScheduledQueries_Schedule2_Title.Text" xml:space="preserve"><value>繰り返し</value></data>
-  <data name="UserGuide_ScheduledQueries_Schedule2_Description.Text" xml:space="preserve"><value>毎日、毎週、または毎月実行。各実行は結果を伴う新しい会話エントリーを作成します。</value></data>
-  <data name="UserGuide_ScheduledQueries_Schedule3_Title.Text" xml:space="preserve"><value>cron 式</value></data>
-  <data name="UserGuide_ScheduledQueries_Schedule3_Description.Text" xml:space="preserve"><value>「毎週月曜と木曜の 14 時」「毎月初日」などの複雑なパターンに対応する cron 構文による高度なスケジュール。</value></data>
-  <data name="UserGuide_ScheduledQueries_Results_Title.Text" xml:space="preserve"><value>結果の管理</value></data>
-  <data name="UserGuide_ScheduledQueries_Results_Description.Text" xml:space="preserve"><value>スケジュール済みクエリの結果は新しい会話として表示されます:</value></data>
-  <data name="UserGuide_ScheduledQueries_Result1.Text" xml:space="preserve"><value>結果はクエリ名とタイムスタンプでタグ付けされ、識別が容易です。</value></data>
-  <data name="UserGuide_ScheduledQueries_Result2.Text" xml:space="preserve"><value>スケジュール済みクエリが完了すると、主要な発見のサマリー付き通知でお知らせします。</value></data>
-  <data name="UserGuide_AutomationRules_Title.Text" xml:space="preserve"><value>自動化ルール</value></data>
-  <data name="UserGuide_AutomationRules_Description.Text" xml:space="preserve"><value>自動化ルールは、Agent-X のイベントに応答する if-then ロジックを作成します。トリガー条件が満たされると、ルールは 1 つ以上のアクションを自動的に実行します。コードを書かずにインテリジェントな動作を構築できます。</value></data>
-  <data name="UserGuide_AutomationRules_Structure_Title.Text" xml:space="preserve"><value>ルール構造</value></data>
-  <data name="UserGuide_AutomationRules_Structure_Description.Text" xml:space="preserve"><value>各ルールは 3 つの部分で構成されます:</value></data>
-  <data name="UserGuide_AutomationRules_Structure1.Text" xml:space="preserve"><value>トリガー — ドキュメントのインポートや insight 検出など、ルールを開始するイベント。</value></data>
-  <data name="UserGuide_AutomationRules_Structure2.Text" xml:space="preserve"><value>条件 — 「ドキュメントが ‘Research’ タグの場合のみ」などのオプション フィルター。ルール適用条件を絞り込みます。</value></data>
-  <data name="UserGuide_AutomationRules_Structure3.Text" xml:space="preserve"><value>アクション — 通知の送信、クエリの実行、タグ追加など、ルール実行時の挙動。</value></data>
-  <data name="UserGuide_AutomationRules_Triggers_Title.Text" xml:space="preserve"><value>利用可能なトリガー</value></data>
-  <data name="UserGuide_AutomationRules_Trigger1_Title.Text" xml:space="preserve"><value>ドキュメント イベント</value></data>
-  <data name="UserGuide_AutomationRules_Trigger1_Description.Text" xml:space="preserve"><value>ドキュメントのインポート、更新、削除。ファイル タイプ、コレクション、メタデータでフィルター可能。</value></data>
-  <data name="UserGuide_AutomationRules_Trigger2_Title.Text" xml:space="preserve"><value>会話イベント</value></data>
-  <data name="UserGuide_AutomationRules_Trigger2_Description.Text" xml:space="preserve"><value>新規会話の作成、会話のメッセージ数しきい値到達、特定キーワードの言及。</value></data>
-  <data name="UserGuide_AutomationRules_Trigger3_Title.Text" xml:space="preserve"><value>Insight イベント</value></data>
-  <data name="UserGuide_AutomationRules_Trigger3_Description.Text" xml:space="preserve"><value>新規 insight 検出、insight が特定のキーワードに一致、または insight が信頼度しきい値を超過。</value></data>
-  <data name="UserGuide_AutomationRules_Examples_Title.Text" xml:space="preserve"><value>ルールの例</value></data>
-  <data name="UserGuide_AutomationRules_Example1.Text" xml:space="preserve"><value>「リサーチ自動タグ」 — PDF がインポートされた時、内容を自動分析し、既存の分類体系の関連トピックでタグ付けします。</value></data>
-  <data name="UserGuide_AutomationRules_Example2.Text" xml:space="preserve"><value>「Insight アラート」 — 「urgent」または「important」を含む insight が検出された時、即座にデスクトップ通知を送信します。</value></data>
-  <data name="UserGuide_AutomationRules_Example3.Text" xml:space="preserve"><value>「週次サマライザー」 — 毎週日曜 18 時、過去 1 週間のすべての会話のサマリーを作成し、Weekly Digest コレクションに追加します。</value></data>
+  <data name="UserGuide_Workflows_Example1.Text" xml:space="preserve"><value>「議事録」 — 生の文字起こしを貼り付け、AI プロンプトステップで決定事項とアクションアイテムを抽出し、結果を保存・共有できる Markdown サマリーに整形します。</value></data>
+  <data name="UserGuide_Workflows_Example2.Text" xml:space="preserve"><value>「リサーチダイジェスト」 — ドキュメント検索ステップで Research コレクションの文書を取得し、モデルに主要な知見を抽出させ、必要なときに構造化されたブリーフィングを生成します。</value></data>
+  <data name="UserGuide_Workflows_Example3.Text" xml:space="preserve"><value>「コンテンツ再利用」 — AI プロンプトステップで長文ドキュメントを要約し、条件分岐を使います。短い出力は SNS 投稿に、長い出力は整形済みの記事ドラフトになります。</value></data>
   <data name="UserGuide_AdvancedQueries_Title.Text" xml:space="preserve"><value>高度なクエリ</value></data>
   <data name="UserGuide_AdvancedQueries_Description.Text" xml:space="preserve"><value>単純な質問を超えて、Agent-X は精度、リコール、回答品質を実質的に向上させる豊富なクエリ技法をサポートします。表現が意図的であるほど結果も良くなります — これらの技法は「役に立つ」回答と「驚くほど良い」回答を分けるもので、特に Vault が数百ドキュメントを超えた時に効果を発揮します。</value></data>
   <data name="UserGuide_AdvancedQueries_Techniques_Title.Text" xml:space="preserve"><value>クエリ技法</value></data>
@@ -578,7 +543,7 @@
   <data name="UserGuide_Plugins_Capability3.Text" xml:space="preserve"><value>ワークフロー ノードと Quick Actions — 新しいアクション ノード(Slack へ送信、webhook へ POST、スプレッドシートに追記、スクリプト実行)や新しい Quick Action テンプレートを提供します。プラグインはユーザーが既に知っている同じビルダー UI を拡張します。</value></data>
   <data name="UserGuide_Plugins_Capability4.Text" xml:space="preserve"><value>サイドバー ページと統合 — プラグインは独自 UI を持つ新ページを追加、Calendar/Email/Inbox と統合、またはナレッジ グラフに貢献できます。プラグイン SDK は視覚的一貫性のためアプリの他の部分と同じ WinUI 3 コンポーネントを使用します。</value></data>
   <data name="UserGuide_Integrations_Title.Text" xml:space="preserve"><value>カレンダーと Email の統合</value></data>
-  <data name="UserGuide_Integrations_Description.Text" xml:space="preserve"><value>Microsoft Outlook、Google Workspace、または任意の標準 CalDAV / IMAP / Exchange Web Services ソースを接続すると、Agent-X はあなたのカレンダー イベントとメールを一級のナレッジとして扱い始めます — 検索可能、クエリ可能、要約可能、Workflows のトリガーとしても使用可能。統合は既定で読み取り専用です。送信と返信のオプトイン機能は明示的な追加権限の付与が必要です。</value></data>
+  <data name="UserGuide_Integrations_Description.Text" xml:space="preserve"><value>Microsoft Outlook、Google Workspace、または標準的な CalDAV / IMAP / Exchange Web Services ソースを接続すると、Agent-X はカレンダーの予定とメールをドキュメントと並ぶ第一級の知識として扱います — 検索、照会、要約が可能です。統合は既定で読み取り専用です。送信・返信機能はオプトインで、明示的な追加権限が必要です。</value></data>
   <data name="UserGuide_Integrations_Calendar_Title.Text" xml:space="preserve"><value>カレンダー統合</value></data>
   <data name="UserGuide_Integrations_Calendar1.Text" xml:space="preserve"><value>Outlook(Microsoft Graph 経由 OAuth)、Google Calendar(Google 経由 OAuth)、または任意の CalDAV プロバイダーを接続します。CalendarSyncService はスケジュール(既定 15 分ごと)でイベントを取得し、カレンダーごとの可視性フィルターを尊重し、イベントを検索可能項目としてインデックスします。</value></data>
   <data name="UserGuide_Integrations_Calendar2.Text" xml:space="preserve"><value>カレンダーに自然言語で質問 — 「来週の予定は?」「Acme から誰と会う?」「60 分超の繰り返し会議をすべて見つけて」「Q3 の会議負荷を参加者別に要約して」。回答はソース アプリへのクリックスルー付きで具体的なイベントを引用します。</value></data>
@@ -609,4 +574,46 @@
   <data name="UserGuide_Export_Backup.Text" xml:space="preserve"><value>設定 &gt; Backup で自動バックアップをスケジュール。バックアップは SQLite データベース(会話、insights、beliefs、voice profile、設定)、ドキュメント ストア、プラグイン データをキャプチャします。安全なクラウド ストレージのためパスフレーズで暗号化、圧縮は既定で有効。保持ポリシー(直近 N 件、直近 M 日)を設定し、宛先(ローカル フォルダー、ネットワーク共有、OneDrive/Dropbox/Google Drive フォルダー)、頻度(毎日、毎週)を選択します。</value></data>
   <data name="UserGuide_Export_Restore_Title.Text" xml:space="preserve"><value>データの復元</value></data>
   <data name="UserGuide_Export_Restore.Text" xml:space="preserve"><value>以前のバックアップを 設定 &gt; Backup &gt; Restore から、またはオンボーディング中の新規インストールから、インポートします。復元モード: 置換(現状態を消去してバックアップを読み込み)、マージ(現状態と結合、競合は last-write-wins)、Cherry-Pick(持ち越す会話、ドキュメント、設定のチェックリスト)。バージョン間移行は自動実行 — 任意の以前の Agent-X バージョンのバックアップを開けば、移行パイプラインがその場でスキーマをアップグレードします。</value></data>
+
+  <!-- Guide accuracy pass 2026-07: Comparison / Smart Inbox / Analytics / Operations / Collaborative Sync sections -->
+  <data name="UserGuide_Comparison_Title.Text" xml:space="preserve"><value>ドキュメント比較(Comparison)</value></data>
+  <data name="UserGuide_Comparison_Description.Text" xml:space="preserve"><value>Comparison ページは、Knowledge Vault 内の 2 つ以上のドキュメントについて、AI が執筆する構造化された比較分析を生成します。ドキュメントを選択し、必要に応じてフォーカストピックを設定すると、Agent-X が各ドキュメントの最も関連性の高い箇所を取得し、対照レポートを合成します。</value></data>
+  <data name="UserGuide_Comparison_Feature1_Title.Text" xml:space="preserve"><value>構造化された分析</value></data>
+  <data name="UserGuide_Comparison_Feature1_Description.Text" xml:space="preserve"><value>レポートは、共通テーマ、主要な相違点、各ドキュメント固有のポイントに分解され、冒頭に全体サマリーが付きます。</value></data>
+  <data name="UserGuide_Comparison_Feature2_Title.Text" xml:space="preserve"><value>フォーカストピック</value></data>
+  <data name="UserGuide_Comparison_Feature2_Description.Text" xml:space="preserve"><value>任意のフォーカストピック(「価格条件」「方法論」など)を追加すると、比較は全体的な概要ではなくその観点に集中します。</value></data>
+  <data name="UserGuide_Comparison_Feature3_Title.Text" xml:space="preserve"><value>Markdown エクスポート</value></data>
+  <data name="UserGuide_Comparison_Feature3_Description.Text" xml:space="preserve"><value>比較レポートは Markdown にエクスポートして、共有、保管、自分のドキュメントへの貼り付けに使えます。</value></data>
+  <data name="UserGuide_Inbox_Title.Text" xml:space="preserve"><value>Smart Inbox</value></data>
+  <data name="UserGuide_Inbox_Description.Text" xml:space="preserve"><value>Smart Inbox は、ナレッジベースに入ってくるコンテンツのトリアージキューです。ブラウザ拡張機能、モバイルコンパニオン、プラグインからのキャプチャはまずここに届きます。すべてを未整理のままボールトに流し込むのではなく、残す価値があるものをあなたが判断できます。</value></data>
+  <data name="UserGuide_Inbox_Feature1_Title.Text" xml:space="preserve"><value>AI プレビュー</value></data>
+  <data name="UserGuide_Inbox_Feature1_Description.Text" xml:space="preserve"><value>Agent-X は各アイテムのプレビュー(要約案、振り分け先コレクション、タグ)を下書きします。ほとんどのトリアージ判断は一目見てワンクリックで済みます。</value></data>
+  <data name="UserGuide_Inbox_Feature2_Title.Text" xml:space="preserve"><value>承認・保留・却下</value></data>
+  <data name="UserGuide_Inbox_Feature2_Description.Text" xml:space="preserve"><value>承認するとアイテムは選択したコレクションの下でボールトに取り込まれます。保留すれば後で判断でき、却下すれば破棄されます。バッチ操作なら満杯のキューも数秒で片付きます。</value></data>
+  <data name="UserGuide_Inbox_Feature3_Title.Text" xml:space="preserve"><value>キャプチャソース</value></data>
+  <data name="UserGuide_Inbox_Feature3_Description.Text" xml:space="preserve"><value>ブラウザ拡張機能からの Web キャプチャ、モバイルコンパニオンから送信されたアイテム、プラグインが提供するコンテンツが、一貫したトリアージワークフローを持つ 1 つのキューに集まります。</value></data>
+  <data name="UserGuide_Analytics_Title.Text" xml:space="preserve"><value>Analytics(分析)</value></data>
+  <data name="UserGuide_Analytics_Description.Text" xml:space="preserve"><value>Analytics ページでは、ナレッジベースと AI 利用の推移を確認できます。会話、ドキュメント、トークンにわたる利用統計、パフォーマンス指標、アクティビティトレンド — すべてあなた自身のデータからローカルで算出されます。</value></data>
+  <data name="UserGuide_Analytics_Feature1_Title.Text" xml:space="preserve"><value>利用状況の概要</value></data>
+  <data name="UserGuide_Analytics_Feature1_Description.Text" xml:space="preserve"><value>会話、メッセージ、ドキュメント、トークン消費の主要カウンターにより、ワークスペースの規模とアクティビティを常に把握できます。</value></data>
+  <data name="UserGuide_Analytics_Feature2_Title.Text" xml:space="preserve"><value>アクティビティトレンド</value></data>
+  <data name="UserGuide_Analytics_Feature2_Description.Text" xml:space="preserve"><value>会話とドキュメント取り込みの日次チャートから、作業パターンとナレッジベースの成長を読み取れます。</value></data>
+  <data name="UserGuide_Analytics_Feature3_Title.Text" xml:space="preserve"><value>インデックスの状態</value></data>
+  <data name="UserGuide_Analytics_Feature3_Description.Text" xml:space="preserve"><value>インデックス完了率のライブインジケーターで、ボールトのどれだけが埋め込み済みで検索可能かが分かります。</value></data>
+  <data name="UserGuide_Operations_Title.Text" xml:space="preserve"><value>Operations(運用状況)</value></data>
+  <data name="UserGuide_Operations_Description.Text" xml:space="preserve"><value>Operations ページ(Ctrl+Shift+O)は、バックグラウンドで動くすべてのものの状態コンソールです。コネクタの状態、コラボレーション同期の状態、インデックス作成の進捗、最近のバックグラウンドアクティビティを 1 つのライブスナップショットで確認できます。</value></data>
+  <data name="UserGuide_Operations_Feature1_Title.Text" xml:space="preserve"><value>ステータススナップショット</value></data>
+  <data name="UserGuide_Operations_Feature1_Description.Text" xml:space="preserve"><value>カレンダー・メールコネクタ、コラボレーション同期、インデックス作成が正常か、待機中か、対応が必要かを一目で確認できます。</value></data>
+  <data name="UserGuide_Operations_Feature2_Title.Text" xml:space="preserve"><value>推奨される修正</value></data>
+  <data name="UserGuide_Operations_Feature2_Description.Text" xml:space="preserve"><value>問題があるとき、Operations は現在のスナップショットに基づいて最も効果的な対処手順を提示します — ライブソースの接続、同期の有効化、設定の完了など。</value></data>
+  <data name="UserGuide_Operations_Feature3_Title.Text" xml:space="preserve"><value>ライブモニタリング</value></data>
+  <data name="UserGuide_Operations_Feature3_Description.Text" xml:space="preserve"><value>スナップショットは処理の進行に合わせて更新されます。一括インポートや再インデックスのような長時間の処理も、ページを離れずに見守れます。</value></data>
+  <data name="UserGuide_Sync_Title.Text" xml:space="preserve"><value>Collaborative Sync(コラボ同期)</value></data>
+  <data name="UserGuide_Sync_Description.Text" xml:space="preserve"><value>Collaborative Sync は、暗号化されたファイルベースのトランスポートで複数の Agent-X インストールを同期します。各デバイスを共有フォルダー(OneDrive、Google Drive、NAS、USB ドライブでも可)に向けるだけで、サーバーもクラウドアカウントも不要のまま変更が行き来します。</value></data>
+  <data name="UserGuide_Sync_Feature1_Title.Text" xml:space="preserve"><value>共有フォルダートランスポート</value></data>
+  <data name="UserGuide_Sync_Feature1_Description.Text" xml:space="preserve"><value>すべてのマシンからアクセスできるフォルダーなら何でも同期チャネルになります。Agent-X はそこに暗号化された変更パッケージを書き込みます — 共有場所に読み取り可能なデータが置かれることはありません。</value></data>
+  <data name="UserGuide_Sync_Feature2_Title.Text" xml:space="preserve"><value>競合解決</value></data>
+  <data name="UserGuide_Sync_Feature2_Description.Text" xml:space="preserve"><value>同じアイテムが 2 台のデバイスで編集された場合は、タイムスタンプに基づく競合解決がどちらの変更を採用するかを決定します。手動でのマージ作業は不要です。</value></data>
+  <data name="UserGuide_Sync_Feature3_Title.Text" xml:space="preserve"><value>ローカルコラボレーションセッション</value></data>
+  <data name="UserGuide_Sync_Feature3_Description.Text" xml:space="preserve"><value>信頼できるローカルネットワーク上では、Agent-X 同士でライブコラボレーションセッションをホストすることもできます。プレゼンスとアクティビティイベントをピア間で直接共有し、ネットワークの外には何も出ません。</value></data>
 </root>

@@ -3,10 +3,11 @@
 
     <!--
     ╔══════════════════════════════════════════════════════════════════╗
-    ║          USER GUIDE AUTOMATION SECTIONS (NEW)                     ║
+    ║          USER GUIDE AUTOMATION SECTIONS                          ║
     ║                                                                  ║
-    ║  WorkflowsTemplate, ScheduledQueriesTemplate,                    ║
-    ║  AutomationRulesTemplate                                         ║
+    ║  WorkflowsTemplate — on-demand multi-step pipelines. Scheduled   ║
+    ║  and event-triggered automation are not shipped features; guide  ║
+    ║  sections describing them were removed (2026-07 accuracy pass).  ║
     ╚══════════════════════════════════════════════════════════════════╝
     -->
 
@@ -126,7 +127,7 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <FontIcon Glyph="&#xE916;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                            <FontIcon Glyph="&#xE768;" FontFamily="Segoe MDL2 Assets" FontSize="16"
                                       Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
                                 <TextBlock x:Uid="UserGuide_Workflows_Trigger1_Title"
@@ -143,7 +144,7 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <FontIcon Glyph="&#xE917;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                            <FontIcon Glyph="&#xE8FD;" FontFamily="Segoe MDL2 Assets" FontSize="16"
                                       Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
                                 <TextBlock x:Uid="UserGuide_Workflows_Trigger2_Title"
@@ -160,7 +161,7 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <FontIcon Glyph="&#xE82D;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                            <FontIcon Glyph="&#xE81C;" FontFamily="Segoe MDL2 Assets" FontSize="16"
                                       Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
                                 <TextBlock x:Uid="UserGuide_Workflows_Trigger3_Title"
@@ -210,356 +211,6 @@
                                   Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Workflows_Example3" />
-                    </Grid>
-                </StackPanel>
-            </StackPanel>
-        </Border>
-    </DataTemplate>
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         SCHEDULED QUERIES
-         ═══════════════════════════════════════════════════════════════ -->
-    <DataTemplate x:Key="ScheduledQueriesTemplate">
-        <Border Style="{StaticResource CardStyle}">
-            <StackPanel Spacing="16">
-                <!-- Section Header -->
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <FontIcon Glyph="&#xE916;"
-                              FontFamily="Segoe MDL2 Assets"
-                              FontSize="20"
-                              Foreground="{ThemeResource TextAccentBrush}" />
-                    <TextBlock Grid.Column="1"
-                               x:Uid="UserGuide_ScheduledQueries_Title"
-                               Style="{StaticResource HeadingMediumStyle}"
-                               AutomationProperties.HeadingLevel="Level2" />
-                </Grid>
-
-                <TextBlock Style="{StaticResource BodyStyle}"
-                           x:Uid="UserGuide_ScheduledQueries_Description" />
-
-                <!-- Setting Up Scheduled Queries -->
-                <TextBlock x:Uid="UserGuide_ScheduledQueries_Setup_Title"
-                           Style="{StaticResource HeadingSmallStyle}" />
-
-                <StackPanel Spacing="10">
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusFull}"
-                                Background="{ThemeResource AccentSubtleBrush}"
-                                HorizontalAlignment="Center" VerticalAlignment="Top">
-                            <TextBlock Text="1"
-                                       FontSize="13" FontWeight="Bold"
-                                       Foreground="{ThemeResource TextAccentBrush}"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
-                                   x:Uid="UserGuide_ScheduledQueries_Step1" />
-                    </Grid>
-
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusFull}"
-                                Background="{ThemeResource AccentSubtleBrush}"
-                                HorizontalAlignment="Center" VerticalAlignment="Top">
-                            <TextBlock Text="2"
-                                       FontSize="13" FontWeight="Bold"
-                                       Foreground="{ThemeResource TextAccentBrush}"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
-                                   x:Uid="UserGuide_ScheduledQueries_Step2" />
-                    </Grid>
-
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusFull}"
-                                Background="{ThemeResource AccentSubtleBrush}"
-                                HorizontalAlignment="Center" VerticalAlignment="Top">
-                            <TextBlock Text="3"
-                                       FontSize="13" FontWeight="Bold"
-                                       Foreground="{ThemeResource TextAccentBrush}"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}" VerticalAlignment="Center"
-                                   x:Uid="UserGuide_ScheduledQueries_Step3" />
-                    </Grid>
-                </StackPanel>
-
-                <Border Style="{StaticResource SeparatorStyle}" />
-
-                <!-- Schedule Options -->
-                <TextBlock x:Uid="UserGuide_ScheduledQueries_Schedules_Title"
-                           Style="{StaticResource HeadingSmallStyle}" />
-
-                <StackPanel Spacing="10">
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <FontIcon Glyph="&#xE916;" FontFamily="Segoe MDL2 Assets" FontSize="16"
-                                      Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
-                            <StackPanel Grid.Column="1" Spacing="2">
-                                <TextBlock x:Uid="UserGuide_ScheduledQueries_Schedule1_Title"
-                                           Style="{StaticResource AccentBodyStyle}" />
-                                <TextBlock x:Uid="UserGuide_ScheduledQueries_Schedule1_Description"
-                                           Style="{StaticResource BodySecondaryStyle}" />
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <FontIcon Glyph="&#xE917;" FontFamily="Segoe MDL2 Assets" FontSize="16"
-                                      Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
-                            <StackPanel Grid.Column="1" Spacing="2">
-                                <TextBlock x:Uid="UserGuide_ScheduledQueries_Schedule2_Title"
-                                           Style="{StaticResource AccentBodyStyle}" />
-                                <TextBlock x:Uid="UserGuide_ScheduledQueries_Schedule2_Description"
-                                           Style="{StaticResource BodySecondaryStyle}" />
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <FontIcon Glyph="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="16"
-                                      Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
-                            <StackPanel Grid.Column="1" Spacing="2">
-                                <TextBlock x:Uid="UserGuide_ScheduledQueries_Schedule3_Title"
-                                           Style="{StaticResource AccentBodyStyle}" />
-                                <TextBlock x:Uid="UserGuide_ScheduledQueries_Schedule3_Description"
-                                           Style="{StaticResource BodySecondaryStyle}" />
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-                </StackPanel>
-
-                <Border Style="{StaticResource SeparatorStyle}" />
-
-                <!-- Managing Results -->
-                <TextBlock x:Uid="UserGuide_ScheduledQueries_Results_Title"
-                           Style="{StaticResource HeadingSmallStyle}" />
-
-                <TextBlock Style="{StaticResource BodyStyle}"
-                           x:Uid="UserGuide_ScheduledQueries_Results_Description" />
-
-                <StackPanel Spacing="8">
-                    <Grid ColumnSpacing="10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
-                                   x:Uid="UserGuide_ScheduledQueries_Result1" />
-                    </Grid>
-
-                    <Grid ColumnSpacing="10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
-                                   x:Uid="UserGuide_ScheduledQueries_Result2" />
-                    </Grid>
-                </StackPanel>
-            </StackPanel>
-        </Border>
-    </DataTemplate>
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         AUTOMATION RULES
-         ═══════════════════════════════════════════════════════════════ -->
-    <DataTemplate x:Key="AutomationRulesTemplate">
-        <Border Style="{StaticResource CardStyle}">
-            <StackPanel Spacing="16">
-                <!-- Section Header -->
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <FontIcon Glyph="&#xEDE1;"
-                              FontFamily="Segoe MDL2 Assets"
-                              FontSize="20"
-                              Foreground="{ThemeResource TextAccentBrush}" />
-                    <TextBlock Grid.Column="1"
-                               x:Uid="UserGuide_AutomationRules_Title"
-                               Style="{StaticResource HeadingMediumStyle}"
-                               AutomationProperties.HeadingLevel="Level2" />
-                </Grid>
-
-                <TextBlock Style="{StaticResource BodyStyle}"
-                           x:Uid="UserGuide_AutomationRules_Description" />
-
-                <!-- Rule Structure -->
-                <TextBlock x:Uid="UserGuide_AutomationRules_Structure_Title"
-                           Style="{StaticResource HeadingSmallStyle}" />
-
-                <TextBlock Style="{StaticResource BodyStyle}"
-                           x:Uid="UserGuide_AutomationRules_Structure_Description" />
-
-                <StackPanel Spacing="8">
-                    <Grid ColumnSpacing="10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <FontIcon Glyph="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="#FF22C55E" VerticalAlignment="Top" Margin="0,3,0,0" />
-                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
-                                   x:Uid="UserGuide_AutomationRules_Structure1" />
-                    </Grid>
-
-                    <Grid ColumnSpacing="10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <FontIcon Glyph="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="#FF22C55E" VerticalAlignment="Top" Margin="0,3,0,0" />
-                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
-                                   x:Uid="UserGuide_AutomationRules_Structure2" />
-                    </Grid>
-
-                    <Grid ColumnSpacing="10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <FontIcon Glyph="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="#FF22C55E" VerticalAlignment="Top" Margin="0,3,0,0" />
-                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
-                                   x:Uid="UserGuide_AutomationRules_Structure3" />
-                    </Grid>
-                </StackPanel>
-
-                <Border Style="{StaticResource SeparatorStyle}" />
-
-                <!-- Event Triggers -->
-                <TextBlock x:Uid="UserGuide_AutomationRules_Triggers_Title"
-                           Style="{StaticResource HeadingSmallStyle}" />
-
-                <StackPanel Spacing="10">
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <FontIcon Glyph="&#xE82D;" FontFamily="Segoe MDL2 Assets" FontSize="16"
-                                      Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
-                            <StackPanel Grid.Column="1" Spacing="2">
-                                <TextBlock x:Uid="UserGuide_AutomationRules_Trigger1_Title"
-                                           Style="{StaticResource AccentBodyStyle}" />
-                                <TextBlock x:Uid="UserGuide_AutomationRules_Trigger1_Description"
-                                           Style="{StaticResource BodySecondaryStyle}" />
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="16"
-                                      Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
-                            <StackPanel Grid.Column="1" Spacing="2">
-                                <TextBlock x:Uid="UserGuide_AutomationRules_Trigger2_Title"
-                                           Style="{StaticResource AccentBodyStyle}" />
-                                <TextBlock x:Uid="UserGuide_AutomationRules_Trigger2_Description"
-                                           Style="{StaticResource BodySecondaryStyle}" />
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <FontIcon Glyph="&#xE90F;" FontFamily="Segoe MDL2 Assets" FontSize="16"
-                                      Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
-                            <StackPanel Grid.Column="1" Spacing="2">
-                                <TextBlock x:Uid="UserGuide_AutomationRules_Trigger3_Title"
-                                           Style="{StaticResource AccentBodyStyle}" />
-                                <TextBlock x:Uid="UserGuide_AutomationRules_Trigger3_Description"
-                                           Style="{StaticResource BodySecondaryStyle}" />
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-                </StackPanel>
-
-                <Border Style="{StaticResource SeparatorStyle}" />
-
-                <!-- Example Rules -->
-                <TextBlock x:Uid="UserGuide_AutomationRules_Examples_Title"
-                           Style="{StaticResource HeadingSmallStyle}" />
-
-                <StackPanel Spacing="8">
-                    <Grid ColumnSpacing="10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
-                                   x:Uid="UserGuide_AutomationRules_Example1" />
-                    </Grid>
-
-                    <Grid ColumnSpacing="10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
-                                   x:Uid="UserGuide_AutomationRules_Example2" />
-                    </Grid>
-
-                    <Grid ColumnSpacing="10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <FontIcon Glyph="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
-                        <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
-                                   x:Uid="UserGuide_AutomationRules_Example3" />
                     </Grid>
                 </StackPanel>
             </StackPanel>
