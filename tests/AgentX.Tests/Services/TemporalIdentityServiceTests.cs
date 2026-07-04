@@ -139,7 +139,10 @@ public sealed class TemporalIdentityServiceTests : IDisposable
         await db.SaveChangesAsync();
         var msg = new MessageEntity
         {
-            ConversationId = conv.Id, Role = role, Content = content, Timestamp = DateTime.UtcNow,
+            ConversationId = conv.Id,
+            Role = role,
+            Content = content,
+            Timestamp = DateTime.UtcNow,
         };
         db.Messages.Add(msg);
         await db.SaveChangesAsync();
@@ -332,20 +335,47 @@ public sealed class TemporalIdentityServiceTests : IDisposable
     {
         using var db = _dbFactory.CreateContext();
         db.Set<InsightMomentEntity>().AddRange(
-            new InsightMomentEntity { Topic = "d", InsightText = "container insight", SignificanceScore = 0.9,
-                CapturedAt = DateTime.UtcNow, RelatedTopicsJson = """["docker"]""" },                    // topic overlap (case-insensitive)
-            new InsightMomentEntity { Topic = "k", InsightText = "we should docker-ise this", SignificanceScore = 0.8,
-                CapturedAt = DateTime.UtcNow, RelatedTopicsJson = """["k8s"]""" },                       // text contains
-            new InsightMomentEntity { Topic = "p", InsightText = "php memories", SignificanceScore = 0.9,
-                CapturedAt = DateTime.UtcNow, RelatedTopicsJson = """["php"]""" },                       // no match
-            new InsightMomentEntity { Topic = "weak", InsightText = "docker but insignificant", SignificanceScore = 0.4,
-                CapturedAt = DateTime.UtcNow, RelatedTopicsJson = """["docker"]""" });                   // filtered: <= 0.5
+            new InsightMomentEntity
+            {
+                Topic = "d",
+                InsightText = "container insight",
+                SignificanceScore = 0.9,
+                CapturedAt = DateTime.UtcNow,
+                RelatedTopicsJson = """["docker"]"""
+            },                    // topic overlap (case-insensitive)
+            new InsightMomentEntity
+            {
+                Topic = "k",
+                InsightText = "we should docker-ise this",
+                SignificanceScore = 0.8,
+                CapturedAt = DateTime.UtcNow,
+                RelatedTopicsJson = """["k8s"]"""
+            },                       // text contains
+            new InsightMomentEntity
+            {
+                Topic = "p",
+                InsightText = "php memories",
+                SignificanceScore = 0.9,
+                CapturedAt = DateTime.UtcNow,
+                RelatedTopicsJson = """["php"]"""
+            },                       // no match
+            new InsightMomentEntity
+            {
+                Topic = "weak",
+                InsightText = "docker but insignificant",
+                SignificanceScore = 0.4,
+                CapturedAt = DateTime.UtcNow,
+                RelatedTopicsJson = """["docker"]"""
+            });                   // filtered: <= 0.5
         for (int i = 0; i < 6; i++)
         {
             db.Set<InsightMomentEntity>().Add(new InsightMomentEntity
             {
-                Topic = $"extra{i}", InsightText = $"extra docker note {i}", SignificanceScore = 0.6 + i * 0.01,
-                CapturedAt = DateTime.UtcNow, RelatedTopicsJson = """["docker"]""",
+                Topic = $"extra{i}",
+                InsightText = $"extra docker note {i}",
+                SignificanceScore = 0.6 + i * 0.01,
+                CapturedAt = DateTime.UtcNow,
+                RelatedTopicsJson = """["docker"]""",
             });
         }
         await db.SaveChangesAsync();
@@ -392,12 +422,30 @@ public sealed class TemporalIdentityServiceTests : IDisposable
         using var db = _dbFactory.CreateContext();
         var now = DateTime.UtcNow;
         db.Set<EngagementMetricsEntity>().AddRange(
-            new EngagementMetricsEntity { TargetType = EngagementTargetType.Document, TargetId = 1,
-                LastEngagedAt = now.AddDays(-1), TotalSecondsSpent = 100, Depth = EngagementDepth.Deep },   // 100*3=300
-            new EngagementMetricsEntity { TargetType = EngagementTargetType.Document, TargetId = 2,
-                LastEngagedAt = now.AddDays(-2), TotalSecondsSpent = 200, Depth = EngagementDepth.Read },   // 200*1=200
-            new EngagementMetricsEntity { TargetType = EngagementTargetType.Document, TargetId = 3,
-                LastEngagedAt = now.AddDays(-40), TotalSecondsSpent = 9999, Depth = EngagementDepth.Core }); // outside window
+            new EngagementMetricsEntity
+            {
+                TargetType = EngagementTargetType.Document,
+                TargetId = 1,
+                LastEngagedAt = now.AddDays(-1),
+                TotalSecondsSpent = 100,
+                Depth = EngagementDepth.Deep
+            },   // 100*3=300
+            new EngagementMetricsEntity
+            {
+                TargetType = EngagementTargetType.Document,
+                TargetId = 2,
+                LastEngagedAt = now.AddDays(-2),
+                TotalSecondsSpent = 200,
+                Depth = EngagementDepth.Read
+            },   // 200*1=200
+            new EngagementMetricsEntity
+            {
+                TargetType = EngagementTargetType.Document,
+                TargetId = 3,
+                LastEngagedAt = now.AddDays(-40),
+                TotalSecondsSpent = 9999,
+                Depth = EngagementDepth.Core
+            }); // outside window
         await db.SaveChangesAsync();
 
         var top = await new TemporalIdentityService(db)
@@ -466,8 +514,13 @@ public sealed class TemporalIdentityServiceTests : IDisposable
         using var db = _dbFactory.CreateContext();
         db.Set<VoiceProfileEntity>().Add(new VoiceProfileEntity
         {
-            SampleCount = 8, FormalityScore = 0.2, AvgSentenceLength = 18,
-            CharacteristicPhrasesJson = "[]", SentencePatternsJson = "[]", BookendsJson = "{}", StylisticTraitsJson = "{}",
+            SampleCount = 8,
+            FormalityScore = 0.2,
+            AvgSentenceLength = 18,
+            CharacteristicPhrasesJson = "[]",
+            SentencePatternsJson = "[]",
+            BookendsJson = "{}",
+            StylisticTraitsJson = "{}",
         });
         await db.SaveChangesAsync();
 
@@ -484,8 +537,13 @@ public sealed class TemporalIdentityServiceTests : IDisposable
         using var db = _dbFactory.CreateContext();
         db.Set<VoiceProfileEntity>().Add(new VoiceProfileEntity
         {
-            SampleCount = 8, FormalityScore = 0.5, AvgSentenceLength = 8, // <=10 -> 3 sentences
-            CharacteristicPhrasesJson = "[]", SentencePatternsJson = "[]", BookendsJson = "{}", StylisticTraitsJson = "{}",
+            SampleCount = 8,
+            FormalityScore = 0.5,
+            AvgSentenceLength = 8, // <=10 -> 3 sentences
+            CharacteristicPhrasesJson = "[]",
+            SentencePatternsJson = "[]",
+            BookendsJson = "{}",
+            StylisticTraitsJson = "{}",
         });
         await db.SaveChangesAsync();
 
@@ -565,8 +623,11 @@ public sealed class TemporalIdentityServiceTests : IDisposable
         await db.SaveChangesAsync();
         var ann = new AnnotationEntity
         {
-            DocumentId = doc.Id, HighlightedText = highlighted, NoteText = note,
-            CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow,
+            DocumentId = doc.Id,
+            HighlightedText = highlighted,
+            NoteText = note,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
         };
         db.Annotations.Add(ann);
         await db.SaveChangesAsync();
@@ -633,14 +694,34 @@ public sealed class TemporalIdentityServiceTests : IDisposable
         await db.SaveChangesAsync();
         var longTail = new string('x', 520);
         db.Messages.AddRange(
-            new MessageEntity { ConversationId = conv.Id, Role = "assistant", Timestamp = DateTime.UtcNow.AddMinutes(-3),
-                Content = "This is the key insight about cache stampedes. " + longTail },   // breakthrough, >500 chars
-            new MessageEntity { ConversationId = conv.Id, Role = "assistant", Timestamp = DateTime.UtcNow.AddMinutes(-2),
-                Content = "The results look amazing overall." },                            // excitement
-            new MessageEntity { ConversationId = conv.Id, Role = "assistant", Timestamp = DateTime.UtcNow.AddMinutes(-1),
-                Content = "Routine summary of steps." },                                    // neither
-            new MessageEntity { ConversationId = conv.Id, Role = "user", Timestamp = DateTime.UtcNow,
-                Content = "What a breakthrough." });                                        // wrong role
+            new MessageEntity
+            {
+                ConversationId = conv.Id,
+                Role = "assistant",
+                Timestamp = DateTime.UtcNow.AddMinutes(-3),
+                Content = "This is the key insight about cache stampedes. " + longTail
+            },   // breakthrough, >500 chars
+            new MessageEntity
+            {
+                ConversationId = conv.Id,
+                Role = "assistant",
+                Timestamp = DateTime.UtcNow.AddMinutes(-2),
+                Content = "The results look amazing overall."
+            },                            // excitement
+            new MessageEntity
+            {
+                ConversationId = conv.Id,
+                Role = "assistant",
+                Timestamp = DateTime.UtcNow.AddMinutes(-1),
+                Content = "Routine summary of steps."
+            },                                    // neither
+            new MessageEntity
+            {
+                ConversationId = conv.Id,
+                Role = "user",
+                Timestamp = DateTime.UtcNow,
+                Content = "What a breakthrough."
+            });                                        // wrong role
         await db.SaveChangesAsync();
 
         await new TemporalIdentityService(db).DetectInsightsAsync(conv.Id);
