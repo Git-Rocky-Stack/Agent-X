@@ -80,7 +80,7 @@
                                        Foreground="{ThemeResource TextTertiaryBrush}"
                                        FontSize="9">
                                 <Run Text="{x:Bind MessageCount}" />
-                                <Run Text="msgs" />
+                                <Run x:Uid="Chat_MsgsLabel" Text="msgs" />
                             </TextBlock>
                         </Border>
                     </StackPanel>
@@ -153,7 +153,7 @@
                         Margin="8,6,24,0"
                         Click="OnInspectInlineContextClick"
                         Tag="{x:Bind}"
-                        ToolTipService.ToolTip="Inspect the full context used for this response"
+                        x:Uid="Chat_InspectContextTip" ToolTipService.ToolTip="Inspect the full context used for this response"
                         Visibility="{x:Bind HasInlineContextNote, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                     <Border Background="{ThemeResource AccentSubtleBrush}"
                             BorderBrush="{ThemeResource BorderSubtleBrush}"
@@ -161,7 +161,7 @@
                             CornerRadius="{StaticResource RadiusMD}"
                             Padding="10,8,10,8">
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Context Used"
+                            <TextBlock x:Uid="Chat_ContextUsedLabel" Text="Context Used"
                                        Style="{StaticResource CaptionStyle}"
                                        Foreground="{ThemeResource TextAccentBrush}" />
                             <TextBlock Text="{x:Bind InlineContextStoryText, Mode=OneWay}"
@@ -353,7 +353,7 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Text="Conversations"
+                    <TextBlock x:Uid="Chat_ConversationsTitle" Text="Conversations"
                                Style="{StaticResource HeadingSmallStyle}"
                                VerticalAlignment="Center" />
 
@@ -362,10 +362,10 @@
                             Padding="10,6,10,6"
                             MinHeight="32"
                             Command="{x:Bind ViewModel.NewConversationCommand}"
-                            ToolTipService.ToolTip="New conversation">
+                            x:Uid="Chat_NewConversationTip" ToolTipService.ToolTip="New conversation">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon Glyph="&#xE710;" FontSize="12" />
-                            <TextBlock Text="New" FontSize="12" FontWeight="SemiBold" />
+                            <TextBlock x:Uid="Chat_NewLabel" Text="New" FontSize="12" FontWeight="SemiBold" />
                         </StackPanel>
                     </Button>
                 </Grid>
@@ -374,7 +374,7 @@
             <!-- Search Bar -->
             <Border Grid.Row="1" Padding="12,8,12,8">
                 <TextBox Style="{StaticResource SearchInputStyle}"
-                         PlaceholderText="Search conversations..."
+                         x:Uid="Chat_SearchConvBox" PlaceholderText="Search conversations..."
                          Text="{x:Bind ViewModel.ConversationSearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
             </Border>
 
@@ -385,7 +385,7 @@
                               VerticalScrollBarVisibility="Disabled"
                               HorizontalScrollMode="Enabled">
                     <StackPanel Orientation="Horizontal" Spacing="6">
-                        <Button Content="All"
+                        <Button x:Uid="Chat_AllFilterBtn" Content="All"
                                 Style="{StaticResource GhostButtonStyle}"
                                 Padding="10,4,10,4"
                                 MinHeight="28"
@@ -434,7 +434,7 @@
             <!-- Branch Tree Panel -->
             <Expander Grid.Row="4"
                       x:Name="BranchPanel"
-                      Header="Branches"
+                      x:Uid="Chat_BranchesHeader" Header="Branches"
                       IsExpanded="False"
                       Margin="12,4,12,4"
                       Visibility="{x:Bind ViewModel.HasBranches, Mode=OneWay}">
@@ -458,7 +458,7 @@
                                            VerticalAlignment="Center"
                                            Style="{StaticResource CaptionStyle}" />
                                 <Button Grid.Column="2"
-                                        ToolTipService.ToolTip="Merge to main"
+                                        x:Uid="Chat_MergeToMainTip" ToolTipService.ToolTip="Merge to main"
                                         Click="MergeBranch_Click"
                                         Tag="{Binding Conversation.Id}"
                                         Padding="4,2,4,2"
@@ -467,7 +467,7 @@
                                     <FontIcon Glyph="&#xE8A5;" FontSize="10" Foreground="{ThemeResource TextSecondaryBrush}" />
                                 </Button>
                                 <Button Grid.Column="3"
-                                        ToolTipService.ToolTip="Delete branch"
+                                        x:Uid="Chat_DeleteBranchTip" ToolTipService.ToolTip="Delete branch"
                                         Click="DeleteBranch_Click"
                                         Tag="{Binding Conversation.Id}"
                                         Padding="4,2,4,2"
@@ -491,7 +491,7 @@
                               Foreground="{ThemeResource TextTertiaryBrush}" />
                     <TextBlock Style="{StaticResource CaptionStyle}">
                         <Run Text="{x:Bind ViewModel.Conversations.Count, Mode=OneWay}" />
-                        <Run Text="conversations" />
+                        <Run x:Uid="Chat_ConversationsCountRun" Text="conversations" />
                     </TextBlock>
                 </StackPanel>
             </Border>
@@ -536,7 +536,7 @@
                     <Button Grid.Column="0"
                             Style="{StaticResource IconButtonStyle}"
                             Command="{x:Bind ViewModel.ToggleConversationPaneCommand}"
-                            ToolTipService.ToolTip="Toggle sidebar"
+                            x:Uid="Chat_ToggleSidebarBtn" ToolTipService.ToolTip="Toggle sidebar"
                             AutomationProperties.Name="Toggle sidebar"
                             Margin="0,0,8,0">
                         <FontIcon Glyph="&#xE700;" FontSize="16"
@@ -548,7 +548,7 @@
                               x:Name="ModelSelector"
                               ItemsSource="{x:Bind ViewModel.AvailableModels, Mode=OneWay}"
                               DisplayMemberPath="Name"
-                              PlaceholderText="Select model..."
+                              x:Uid="Chat_SelectModelBox" PlaceholderText="Select model..."
                               MinWidth="180"
                               Background="{ThemeResource InputBackgroundBrush}"
                               BorderBrush="{ThemeResource BorderSubtleBrush}"
@@ -576,7 +576,7 @@
                             MinHeight="32"
                             VerticalAlignment="Center"
                             Margin="0,0,4,0"
-                            ToolTipService.ToolTip="System prompt">
+                            x:Uid="Chat_SystemPromptTip" ToolTipService.ToolTip="System prompt">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon Glyph="&#xE771;" FontSize="14"
                                       Foreground="{ThemeResource TextSecondaryBrush}" />
@@ -591,9 +591,9 @@
                         <Button.Flyout>
                             <Flyout Placement="Bottom">
                                 <StackPanel Width="280" Spacing="8">
-                                    <TextBlock Text="System Prompt"
+                                    <TextBlock x:Uid="Chat_SystemPromptTitle" Text="System Prompt"
                                                Style="{StaticResource HeadingSmallStyle}" />
-                                    <TextBlock Text="Set the AI's behavior and personality for this conversation."
+                                    <TextBlock x:Uid="Chat_SystemPromptHint" Text="Set the AI's behavior and personality for this conversation."
                                                Style="{StaticResource CaptionStyle}"
                                                TextWrapping="Wrap" />
                                     <Border Style="{StaticResource SeparatorStyle}" Margin="0,4,0,4" />
@@ -608,7 +608,7 @@
                                         <StackPanel Orientation="Horizontal" Spacing="8">
                                             <FontIcon Glyph="&#xE711;" FontSize="12"
                                                       Foreground="{ThemeResource TextTertiaryBrush}" />
-                                            <TextBlock Text="No system prompt"
+                                            <TextBlock x:Uid="Chat_NoSystemPrompt" Text="No system prompt"
                                                        Style="{StaticResource BodySmallStyle}" />
                                         </StackPanel>
                                     </Button>
@@ -642,7 +642,7 @@
                             MinHeight="32"
                             VerticalAlignment="Center"
                             Margin="0,0,4,0"
-                            ToolTipService.ToolTip="Assign folder">
+                            x:Uid="Chat_AssignFolderTip" ToolTipService.ToolTip="Assign folder">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon Glyph="&#xE8B7;" FontSize="14"
                                       Foreground="{ThemeResource TextSecondaryBrush}" />
@@ -657,33 +657,33 @@
                         <Button.Flyout>
                             <Flyout Placement="Bottom">
                                 <StackPanel Width="200" Spacing="8">
-                                    <TextBlock Text="Move to Folder"
+                                    <TextBlock x:Uid="Chat_MoveToFolderTitle" Text="Move to Folder"
                                                Style="{StaticResource HeadingSmallStyle}" />
-                                    <Button Content="None (remove folder)"
+                                    <Button x:Uid="Chat_NoFolderItem" Content="None (remove folder)"
                                             Style="{StaticResource GhostButtonStyle}"
                                             HorizontalAlignment="Stretch"
                                             HorizontalContentAlignment="Left"
                                             Click="OnSetFolderClick"
                                             Tag="" />
-                                    <Button Content="Work"
+                                    <Button x:Uid="Chat_FolderWork" Content="Work"
                                             Style="{StaticResource GhostButtonStyle}"
                                             HorizontalAlignment="Stretch"
                                             HorizontalContentAlignment="Left"
                                             Click="OnSetFolderClick"
                                             Tag="Work" />
-                                    <Button Content="Research"
+                                    <Button x:Uid="Chat_FolderResearch" Content="Research"
                                             Style="{StaticResource GhostButtonStyle}"
                                             HorizontalAlignment="Stretch"
                                             HorizontalContentAlignment="Left"
                                             Click="OnSetFolderClick"
                                             Tag="Research" />
-                                    <Button Content="Personal"
+                                    <Button x:Uid="Chat_FolderPersonal" Content="Personal"
                                             Style="{StaticResource GhostButtonStyle}"
                                             HorizontalAlignment="Stretch"
                                             HorizontalContentAlignment="Left"
                                             Click="OnSetFolderClick"
                                             Tag="Personal" />
-                                    <Button Content="Archive"
+                                    <Button x:Uid="Chat_FolderArchive" Content="Archive"
                                             Style="{StaticResource GhostButtonStyle}"
                                             HorizontalAlignment="Stretch"
                                             HorizontalContentAlignment="Left"
@@ -692,7 +692,7 @@
                                     <Border Style="{StaticResource SeparatorStyle}" />
                                     <TextBox x:Name="CustomFolderBox"
                                              Style="{StaticResource InputTextBoxStyle}"
-                                             PlaceholderText="Custom folder name..."
+                                             x:Uid="Chat_CustomFolderBox" PlaceholderText="Custom folder name..."
                                              KeyDown="OnCustomFolderKeyDown" />
                                 </StackPanel>
                             </Flyout>
@@ -713,7 +713,7 @@
                             <TextBlock Style="{StaticResource MonoSmallStyle}"
                                        Foreground="{ThemeResource TextTertiaryBrush}">
                                 <Run Text="{x:Bind ViewModel.TokenCount, Mode=OneWay}" />
-                                <Run Text="tok" />
+                                <Run x:Uid="Chat_TokLabel" Text="tok" />
                             </TextBlock>
                         </StackPanel>
                     </Border>
@@ -722,7 +722,7 @@
                     <Button Grid.Column="7"
                             Style="{StaticResource IconButtonStyle}"
                             Command="{x:Bind ViewModel.CompareBranchesCommand}"
-                            ToolTipService.ToolTip="Compare branches"
+                            x:Uid="Chat_CompareBranchesBtn" ToolTipService.ToolTip="Compare branches"
                             AutomationProperties.Name="Compare branches"
                             Margin="0,0,4,0"
                             Visibility="{x:Bind ViewModel.HasBranches, Mode=OneWay}">
@@ -734,7 +734,7 @@
                     <Button Grid.Column="8"
                             Style="{StaticResource IconButtonStyle}"
                             Command="{x:Bind ViewModel.RefreshConnectionCommand}"
-                            ToolTipService.ToolTip="Refresh connection"
+                            x:Uid="Chat_RefreshConnBtn" ToolTipService.ToolTip="Refresh connection"
                             AutomationProperties.Name="Refresh connection">
                         <FontIcon Glyph="&#xE72C;" FontSize="14"
                                   Foreground="{ThemeResource TextSecondaryBrush}" />
@@ -743,7 +743,7 @@
                     <!-- Export conversation button -->
                     <Button Grid.Column="9"
                             Style="{StaticResource IconButtonStyle}"
-                            ToolTipService.ToolTip="Export conversation"
+                            x:Uid="Chat_ExportConvBtn" ToolTipService.ToolTip="Export conversation"
                             AutomationProperties.Name="Export conversation"
                             Click="ExportButton_Click"
                             Margin="4,0,0,0">
@@ -833,7 +833,7 @@
                                 Visibility="{x:Bind ViewModel.ShowConversationSummaryRefreshAction, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
                                 Padding="10,6,10,6"
                                 MinHeight="32"
-                                ToolTipService.ToolTip="Refresh the durable summary for this conversation">
+                                x:Uid="Chat_RefreshSummaryTip" ToolTipService.ToolTip="Refresh the durable summary for this conversation">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE72C;" FontSize="12"
                                           Foreground="{ThemeResource TextSecondaryBrush}" />
@@ -847,11 +847,11 @@
                                 Command="{x:Bind ViewModel.ToggleContextInspectorCommand}"
                                 Padding="10,6,10,6"
                                 MinHeight="32"
-                                ToolTipService.ToolTip="Open the full context inspector">
+                                x:Uid="Chat_OpenInspectorTip" ToolTipService.ToolTip="Open the full context inspector">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE8F1;" FontSize="12"
                                           Foreground="{ThemeResource TextSecondaryBrush}" />
-                                <TextBlock Text="Inspect Context"
+                                <TextBlock x:Uid="Chat_InspectContextLabel" Text="Inspect Context"
                                            Style="{StaticResource CaptionStyle}"
                                            Foreground="{ThemeResource TextSecondaryBrush}" />
                             </StackPanel>
@@ -884,10 +884,10 @@
                         </Border>
 
                         <StackPanel Spacing="8" HorizontalAlignment="Center">
-                            <TextBlock Text="Start a Conversation"
+                            <TextBlock x:Uid="Chat_EmptyTitle" Text="Start a Conversation"
                                        Style="{StaticResource HeadingMediumStyle}"
                                        HorizontalAlignment="Center" />
-                            <TextBlock Text="Chat with local AI models powered by Ollama. Your messages stay on this device. No data leaves your machine."
+                            <TextBlock x:Uid="Chat_EmptyHint" Text="Chat with local AI models powered by Ollama. Your messages stay on this device. No data leaves your machine."
                                        Style="{StaticResource BodySecondaryStyle}"
                                        TextWrapping="Wrap"
                                        TextAlignment="Center"
@@ -898,7 +898,7 @@
                         <StackPanel Spacing="8" HorizontalAlignment="Center">
                             <Border Style="{StaticResource BadgeAccentStyle}"
                                     HorizontalAlignment="Center">
-                                <TextBlock Text="100% Private"
+                                <TextBlock x:Uid="Chat_PrivateBadge" Text="100% Private"
                                            Style="{StaticResource CaptionStyle}"
                                            Foreground="{ThemeResource TextAccentBrush}"
                                            FontWeight="SemiBold" />
@@ -911,7 +911,7 @@
                                     <StackPanel Orientation="Horizontal" Spacing="4">
                                         <FontIcon Glyph="&#xE765;" FontSize="10"
                                                   Foreground="{ThemeResource TextTertiaryBrush}" />
-                                        <TextBlock Text="Enter to send"
+                                        <TextBlock x:Uid="Chat_EnterToSend" Text="Enter to send"
                                                    Style="{StaticResource CaptionStyle}" />
                                     </StackPanel>
                                 </Border>
@@ -919,7 +919,7 @@
                                     <StackPanel Orientation="Horizontal" Spacing="4">
                                         <FontIcon Glyph="&#xE765;" FontSize="10"
                                                   Foreground="{ThemeResource TextTertiaryBrush}" />
-                                        <TextBlock Text="Shift+Enter for new line"
+                                        <TextBlock x:Uid="Chat_ShiftEnterNewLine" Text="Shift+Enter for new line"
                                                    Style="{StaticResource CaptionStyle}" />
                                     </StackPanel>
                                 </Border>
@@ -973,13 +973,13 @@
                                                             Spacing="6"
                                                             HorizontalAlignment="Right">
                                                     <Button Style="{StaticResource GhostButtonStyle}"
-                                                            Content="Cancel"
+                                                            x:Uid="Chat_CancelEditBtn" Content="Cancel"
                                                             Padding="10,4,10,4"
                                                             MinHeight="28"
                                                             Click="OnCancelEditClick"
                                                             Tag="{x:Bind}" />
                                                     <Button Style="{StaticResource AccentButtonStyle}"
-                                                            Content="Save &amp; Resend"
+                                                            x:Uid="Chat_SaveResendBtn" Content="Save &amp; Resend"
                                                             Padding="10,4,10,4"
                                                             MinHeight="28"
                                                             Click="OnSaveEditClick"
@@ -1017,7 +1017,7 @@
                                             <Button Style="{StaticResource MessageActionButtonStyle}"
                                                     Click="OnEditMessageClick"
                                                     Tag="{x:Bind}"
-                                                    ToolTipService.ToolTip="Edit message">
+                                                    x:Uid="Chat_EditMessageTip" ToolTipService.ToolTip="Edit message">
                                                 <FontIcon Glyph="&#xE70F;" FontSize="12" />
                                             </Button>
 
@@ -1025,7 +1025,7 @@
                                             <Button Style="{StaticResource MessageActionButtonStyle}"
                                                     Click="OnCopyMessageClick"
                                                     Tag="{x:Bind}"
-                                                    ToolTipService.ToolTip="Copy to clipboard">
+                                                    x:Uid="Chat_CopyUserMsgTip" ToolTipService.ToolTip="Copy to clipboard">
                                                 <FontIcon Glyph="&#xE8C8;" FontSize="12" />
                                             </Button>
 
@@ -1033,7 +1033,7 @@
                                             <Button Style="{StaticResource MessageActionButtonStyle}"
                                                     Click="BranchFromMessage_Click"
                                                     Tag="{x:Bind}"
-                                                    ToolTipService.ToolTip="Branch from here">
+                                                    x:Uid="Chat_BranchFromHereTip" ToolTipService.ToolTip="Branch from here">
                                                 <FontIcon Glyph="&#xE735;" FontSize="12" />
                                             </Button>
 
@@ -1041,7 +1041,7 @@
                                             <Button Style="{StaticResource MessageActionButtonStyle}"
                                                     Click="OnDeleteMessageClick"
                                                     Tag="{x:Bind}"
-                                                    ToolTipService.ToolTip="Delete message">
+                                                    x:Uid="Chat_DeleteUserMsgTip" ToolTipService.ToolTip="Delete message">
                                                 <FontIcon Glyph="&#xE74D;" FontSize="12" />
                                             </Button>
                                         </StackPanel>
@@ -1108,7 +1108,7 @@
                                                         Click="OnThumbsUpClick"
                                                         Tag="{x:Bind}"
                                                         Opacity="{x:Bind IsThumbsUp, Mode=OneWay, Converter={StaticResource BoolToOpacityConverter}}"
-                                                        ToolTipService.ToolTip="Good response">
+                                                        x:Uid="Chat_GoodResponseTip" ToolTipService.ToolTip="Good response">
                                                     <FontIcon Glyph="&#xE8E1;" FontSize="12" />
                                                 </Button>
 
@@ -1117,7 +1117,7 @@
                                                         Click="OnThumbsDownClick"
                                                         Tag="{x:Bind}"
                                                         Opacity="{x:Bind IsThumbsDown, Mode=OneWay, Converter={StaticResource BoolToOpacityConverter}}"
-                                                        ToolTipService.ToolTip="Poor response">
+                                                        x:Uid="Chat_PoorResponseTip" ToolTipService.ToolTip="Poor response">
                                                     <FontIcon Glyph="&#xE8E0;" FontSize="12" />
                                                 </Button>
 
@@ -1125,7 +1125,7 @@
                                                 <Button Style="{StaticResource MessageActionButtonStyle}"
                                                         Click="OnCopyMessageClick"
                                                         Tag="{x:Bind}"
-                                                        ToolTipService.ToolTip="Copy to clipboard">
+                                                        x:Uid="Chat_CopyAiMsgTip" ToolTipService.ToolTip="Copy to clipboard">
                                                     <FontIcon Glyph="&#xE8C8;" FontSize="12" />
                                                 </Button>
 
@@ -1133,7 +1133,7 @@
                                                 <Button Style="{StaticResource MessageActionButtonStyle}"
                                                         Click="OnRegenerateMessageClick"
                                                         Tag="{x:Bind}"
-                                                        ToolTipService.ToolTip="Regenerate response">
+                                                        x:Uid="Chat_RegenerateTip" ToolTipService.ToolTip="Regenerate response">
                                                     <FontIcon Glyph="&#xE72C;" FontSize="12" />
                                                 </Button>
 
@@ -1141,7 +1141,7 @@
                                                 <Button Style="{StaticResource MessageActionButtonStyle}"
                                                         Click="OnDeleteMessageClick"
                                                         Tag="{x:Bind}"
-                                                        ToolTipService.ToolTip="Delete message">
+                                                        x:Uid="Chat_DeleteAiMsgTip" ToolTipService.ToolTip="Delete message">
                                                     <FontIcon Glyph="&#xE74D;" FontSize="12" />
                                                 </Button>
                                             </StackPanel>
@@ -1177,7 +1177,7 @@
                             Padding="16">
                         <StackPanel Spacing="14">
                             <StackPanel Spacing="4">
-                                <TextBlock Text="Context Inspection"
+                                <TextBlock x:Uid="Chat_ContextInspectionTitle" Text="Context Inspection"
                                            Style="{StaticResource BodyStyle}"
                                            FontWeight="SemiBold" />
                                 <TextBlock Text="{x:Bind ViewModel.ContextInspectionStatus, Mode=OneWay}"
@@ -1191,7 +1191,7 @@
                                     Padding="12"
                                     Visibility="{x:Bind ViewModel.HasContextStory, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                                 <StackPanel Spacing="8">
-                                    <TextBlock Text="Context Story"
+                                    <TextBlock x:Uid="Chat_ContextStoryTitle" Text="Context Story"
                                                Style="{StaticResource CaptionStyle}"
                                                Foreground="{ThemeResource TextAccentBrush}" />
                                     <TextBlock Text="{x:Bind ViewModel.ContextStoryText, Mode=OneWay}"
@@ -1221,23 +1221,23 @@
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Padding="12">
                                     <StackPanel Spacing="6">
-                                        <TextBlock Text="Assembly Overview"
+                                        <TextBlock x:Uid="Chat_AssemblyOverviewTitle" Text="Assembly Overview"
                                                    Style="{StaticResource CaptionStyle}"
                                                    Foreground="{ThemeResource TextAccentBrush}" />
                                         <TextBlock Style="{StaticResource CaptionStyle}">
-                                            <Run Text="Mode: " />
+                                            <Run x:Uid="Chat_ModeRun" Text="Mode: " />
                                             <Run Text="{x:Bind ViewModel.ContextAssemblyMode, Mode=OneWay}" />
                                         </TextBlock>
                                         <TextBlock Style="{StaticResource CaptionStyle}">
-                                            <Run Text="Selected: " />
+                                            <Run x:Uid="Chat_SelectedRun" Text="Selected: " />
                                             <Run Text="{x:Bind ViewModel.ContextSelectedMessages, Mode=OneWay}" />
-                                            <Run Text=" · Anchors: " />
+                                            <Run x:Uid="Chat_AnchorsRun" Text=" · Anchors: " />
                                             <Run Text="{x:Bind ViewModel.ContextAnchorMessages, Mode=OneWay}" />
                                         </TextBlock>
                                         <TextBlock Style="{StaticResource CaptionStyle}">
-                                            <Run Text="Overflow: " />
+                                            <Run x:Uid="Chat_OverflowRun" Text="Overflow: " />
                                             <Run Text="{x:Bind ViewModel.ContextOverflowMessages, Mode=OneWay}" />
-                                            <Run Text=" · Prompt est: " />
+                                            <Run x:Uid="Chat_PromptEstRun" Text=" · Prompt est: " />
                                             <Run Text="{x:Bind ViewModel.ContextEstimatedPromptTokens, Mode=OneWay}" />
                                         </TextBlock>
                                         <TextBlock Text="{x:Bind ViewModel.ContextAssemblyExplanation, Mode=OneWay}"
@@ -1259,7 +1259,7 @@
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
 
-                                            <TextBlock Text="Durable Summary"
+                                            <TextBlock x:Uid="Chat_DurableSummaryTitle" Text="Durable Summary"
                                                        Style="{StaticResource CaptionStyle}"
                                                        Foreground="{ThemeResource TextAccentBrush}"
                                                        VerticalAlignment="Center" />
@@ -1271,7 +1271,7 @@
                                                     Visibility="{x:Bind ViewModel.HasConversationIntelligenceStrip, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
                                                     Padding="8,4,8,4"
                                                     MinHeight="28"
-                                                    ToolTipService.ToolTip="Refresh the durable summary for this conversation">
+                                                    x:Uid="Chat_RefreshSummaryTip2" ToolTipService.ToolTip="Refresh the durable summary for this conversation">
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <FontIcon Glyph="&#xE72C;" FontSize="11"
                                                               Foreground="{ThemeResource TextSecondaryBrush}" />
@@ -1323,7 +1323,7 @@
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Padding="12">
                                     <StackPanel Spacing="6">
-                                        <TextBlock Text="Durable Recall"
+                                        <TextBlock x:Uid="Chat_DurableRecallTitle" Text="Durable Recall"
                                                    Style="{StaticResource CaptionStyle}"
                                                    Foreground="{ThemeResource TextAccentBrush}" />
                                         <TextBlock Text="{x:Bind ViewModel.ContextRecallStatus, Mode=OneWay}"
@@ -1369,7 +1369,7 @@
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Padding="12">
                                 <StackPanel Spacing="6">
-                                    <TextBlock Text="Why This Context"
+                                    <TextBlock x:Uid="Chat_WhyThisContextTitle" Text="Why This Context"
                                                Style="{StaticResource CaptionStyle}"
                                                Foreground="{ThemeResource TextAccentBrush}" />
                                     <TextBlock Text="{x:Bind ViewModel.ContextCompressionExplanation, Mode=OneWay}"
@@ -1379,7 +1379,7 @@
                                                Style="{StaticResource CaptionStyle}"
                                                TextWrapping="WrapWholeWords" />
                                     <TextBlock Style="{StaticResource CaptionStyle}">
-                                        <Run Text="Captured " />
+                                        <Run x:Uid="Chat_CapturedRun" Text="Captured " />
                                         <Run Text="{x:Bind ViewModel.ContextCapturedAt, Mode=OneWay}" />
                                     </TextBlock>
                                 </StackPanel>
@@ -1423,7 +1423,7 @@
                                           Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock Style="{StaticResource CaptionStyle}"
                                            Foreground="{ThemeResource TextAccentBrush}">
-                                    <Run Text="Prompt:" />
+                                    <Run x:Uid="Chat_PromptRun" Text="Prompt:" />
                                     <Run Text="{x:Bind ViewModel.ActiveSystemPromptName, Mode=OneWay}" />
                                 </TextBlock>
                             </StackPanel>
@@ -1444,7 +1444,7 @@
                         <!-- Multi-line input TextBox -->
                         <TextBox x:Name="ChatInputBox"
                                  Style="{StaticResource ChatInputStyle}"
-                                 PlaceholderText="Message Agent-X..."
+                                 x:Uid="Chat_MessageBox" PlaceholderText="Message Agent-X..."
                                  Text="{x:Bind ViewModel.UserInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  KeyDown="ChatInputBox_KeyDown"
                                  MaxHeight="160"
@@ -1463,7 +1463,7 @@
                                     MinWidth="44"
                                     Command="{x:Bind ViewModel.ToggleVoiceRecordingCommand}"
                                     Visibility="{x:Bind ViewModel.IsVoiceActive, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}"
-                                    ToolTipService.ToolTip="Voice input — click to record"
+                                    x:Uid="Chat_VoiceInputTip" ToolTipService.ToolTip="Voice input — click to record"
                                     RightTapped="OnMicRightTapped">
                                 <FontIcon Glyph="&#xE720;" FontSize="16"
                                           Foreground="{ThemeResource TextSecondaryBrush}" />
@@ -1477,7 +1477,7 @@
                                     BorderBrush="{ThemeResource ErrorBrush}"
                                     Command="{x:Bind ViewModel.ToggleVoiceRecordingCommand}"
                                     Visibility="{x:Bind ViewModel.IsRecording, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
-                                    ToolTipService.ToolTip="Stop recording and transcribe">
+                                    x:Uid="Chat_StopRecordingTip" ToolTipService.ToolTip="Stop recording and transcribe">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <Ellipse Width="8" Height="8"
                                              Fill="{ThemeResource ErrorBrush}" />
@@ -1517,7 +1517,7 @@
                                       MinHeight="44"
                                       MinWidth="44"
                                       IsChecked="{x:Bind ViewModel.IsContextInspectorOpen, Mode=TwoWay}"
-                                      ToolTipService.ToolTip="Inspect the latest assembled chat context">
+                                      x:Uid="Chat_InspectAssembledTip" ToolTipService.ToolTip="Inspect the latest assembled chat context">
                             <FontIcon Glyph="&#xE8F1;" FontSize="16"
                                       Foreground="{ThemeResource TextSecondaryBrush}" />
                         </ToggleButton>
@@ -1533,21 +1533,21 @@
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon Glyph="&#xE77B;" FontSize="12"
                                               Foreground="{ThemeResource TextSecondaryBrush}" />
-                                    <TextBlock Text="Solo" Style="{StaticResource CaptionStyle}" />
+                                    <TextBlock x:Uid="Chat_ModeSolo" Text="Solo" Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
                             </ComboBoxItem>
                             <ComboBoxItem>
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon Glyph="&#xE8FD;" FontSize="12"
                                               Foreground="{ThemeResource TextSecondaryBrush}" />
-                                    <TextBlock Text="Multi" Style="{StaticResource CaptionStyle}" />
+                                    <TextBlock x:Uid="Chat_ModeMulti" Text="Multi" Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
                             </ComboBoxItem>
                             <ComboBoxItem>
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon Glyph="&#xE8F2;" FontSize="12"
                                               Foreground="{ThemeResource TextSecondaryBrush}" />
-                                    <TextBlock Text="Debate" Style="{StaticResource CaptionStyle}" />
+                                    <TextBlock x:Uid="Chat_ModeDebate" Text="Debate" Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
                             </ComboBoxItem>
                         </ComboBox>
@@ -1565,7 +1565,7 @@
                                     MinWidth="44"
                                     Command="{x:Bind ViewModel.SendMessageCommand}"
                                     Visibility="{x:Bind ViewModel.IsGenerating, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}"
-                                    ToolTipService.ToolTip="Send message (Enter)"
+                                    x:Uid="Chat_SendBtn" ToolTipService.ToolTip="Send message (Enter)"
                                     AutomationProperties.Name="Send message">
                                 <FontIcon Glyph="&#xE724;" FontSize="16" />
                             </Button>
@@ -1578,7 +1578,7 @@
                                     BorderBrush="{ThemeResource ErrorBrush}"
                                     Command="{x:Bind ViewModel.StopGenerationCommand}"
                                     Visibility="{x:Bind ViewModel.IsGenerating, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
-                                    ToolTipService.ToolTip="Stop generation"
+                                    x:Uid="Chat_StopGenBtn" ToolTipService.ToolTip="Stop generation"
                                     AutomationProperties.Name="Stop generation">
                                 <FontIcon Glyph="&#xE71A;" FontSize="16"
                                           Foreground="{ThemeResource ErrorBrush}" />

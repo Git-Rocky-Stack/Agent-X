@@ -224,7 +224,7 @@
                                     </StackPanel>
                                     <Border Style="{StaticResource BadgeAccentStyle}"
                                             Visibility="{x:Bind IsFocused, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                                        <TextBlock Text="Opened from Operations"
+                                        <TextBlock x:Uid="Plugin_OpenedFromOperations" Text="Opened from Operations"
                                                    Style="{StaticResource BadgeStyle}"
                                                    Foreground="{ThemeResource TextAccentBrush}" />
                                     </Border>
@@ -426,7 +426,7 @@
                                                   Foreground="{ThemeResource AccentPrimaryBrush}"
                                                   VerticalAlignment="Top" />
                                         <StackPanel Spacing="3">
-                                            <TextBlock Text="Focused Connector"
+                                            <TextBlock x:Uid="Plugin_FocusedConnector" Text="Focused Connector"
                                                        Style="{StaticResource CaptionStyle}"
                                                        FontWeight="SemiBold"
                                                        Foreground="{ThemeResource AccentPrimaryBrush}" />
@@ -437,7 +437,7 @@
                                     </StackPanel>
 
                                     <Button Grid.Column="1"
-                                            Content="Dismiss"
+                                            x:Uid="Plugin_Dismiss" Content="Dismiss"
                                             Command="{x:Bind ViewModel.DismissFocusedPluginLandingCommand}"
                                             Style="{StaticResource GhostButtonStyle}"
                                             VerticalAlignment="Top" />

@@ -906,4 +906,1059 @@
   <data name="Onb_GetStartedBtn.Content" xml:space="preserve"><value>开始使用</value></data>
   <data name="Onb_NextBtn.Content" xml:space="preserve"><value>下一步</value></data>
   <data name="Onb_LaunchBtn.Content" xml:space="preserve"><value>启动 Agent-X</value></data>
+
+  <!-- Localization changeset: app-l10n-2026-07 -->
+  <data name="Main_Intelligence.Content" xml:space="preserve"><value>智能</value></data>
+  <data name="Main_Dashboard.Content" xml:space="preserve"><value>仪表板</value></data>
+  <data name="Main_Operations.Content" xml:space="preserve"><value>Operations(运行状况)</value></data>
+  <data name="Main_WeeklyDigest.Content" xml:space="preserve"><value>每周摘要</value></data>
+  <data name="Main_Analytics.Content" xml:space="preserve"><value>Analytics(分析)</value></data>
+  <data name="Main_PastSelf.Content" xml:space="preserve"><value>过往的自己</value></data>
+  <data name="Main_AiChat.Content" xml:space="preserve"><value>AI Chat</value></data>
+  <data name="Main_AskYourFiles.Content" xml:space="preserve"><value>向您的文件提问</value></data>
+  <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
+  <data name="Main_Workflows.Content" xml:space="preserve"><value>工作流</value></data>
+  <data name="Main_Knowledge.Content" xml:space="preserve"><value>知识</value></data>
+  <data name="Main_KnowledgeVault.Content" xml:space="preserve"><value>Knowledge Vault</value></data>
+  <data name="Main_WebImport.Content" xml:space="preserve"><value>网页导入</value></data>
+  <data name="Main_Collections.Content" xml:space="preserve"><value>合集</value></data>
+  <data name="Main_SemanticSearch.Content" xml:space="preserve"><value>语义搜索</value></data>
+  <data name="Main_KnowledgeGraph.Content" xml:space="preserve"><value>知识图谱</value></data>
+  <data name="Main_CompareDocuments.Content" xml:space="preserve"><value>文档对比</value></data>
+  <data name="Main_Triage.Content" xml:space="preserve"><value>分拣</value></data>
+  <data name="Main_SmartInbox.Content" xml:space="preserve"><value>Smart Inbox(智能收件箱)</value></data>
+  <data name="Main_System.Content" xml:space="preserve"><value>系统</value></data>
+  <data name="Main_ModelManager.Content" xml:space="preserve"><value>模型管理器</value></data>
+  <data name="Main_HardwareAdvisor.Content" xml:space="preserve"><value>硬件顾问</value></data>
+  <data name="Main_BackupRestore.Content" xml:space="preserve"><value>备份与还原</value></data>
+  <data name="Main_WorkspaceProfiles.Content" xml:space="preserve"><value>工作区配置文件</value></data>
+  <data name="Main_PluginManager.Content" xml:space="preserve"><value>插件管理器</value></data>
+  <data name="Main_CollaborativeSync.Content" xml:space="preserve"><value>Collaborative Sync(协作同步)</value></data>
+  <data name="Main_Calendar.Content" xml:space="preserve"><value>日历</value></data>
+  <data name="Main_Email.Content" xml:space="preserve"><value>邮件</value></data>
+  <data name="Main_Annotations.Content" xml:space="preserve"><value>注释</value></data>
+  <data name="Main_Support.Content" xml:space="preserve"><value>支持</value></data>
+  <data name="Main_UserGuide.Content" xml:space="preserve"><value>用户指南</value></data>
+  <data name="Main_PrivacyPolicy.Content" xml:space="preserve"><value>隐私政策</value></data>
+  <data name="Main_TermsOfService.Content" xml:space="preserve"><value>服务条款</value></data>
+  <data name="Main_Settings.Content" xml:space="preserve"><value>设置</value></data>
+  <data name="Main_Initializing.Text" xml:space="preserve"><value>正在初始化...</value></data>
+  <data name="Main_OpenAgentX.Text" xml:space="preserve"><value>打开 Agent-X</value></data>
+  <data name="Main_QuickChat.Text" xml:space="preserve"><value>快速聊天</value></data>
+  <data name="Main_Settings2.Text" xml:space="preserve"><value>设置</value></data>
+  <data name="Main_Exit.Text" xml:space="preserve"><value>退出</value></data>
+  <data name="Dash_Title.Text" xml:space="preserve"><value>仪表板</value></data>
+  <data name="Dash_Subtitle.Text" xml:space="preserve"><value>您的私人 AI 智能中心。一切都在您的电脑上运行。</value></data>
+  <data name="Dash_RefreshBtn.Content" xml:space="preserve"><value>刷新</value></data>
+  <data name="Dash_ConnectOllamaHint.Text" xml:space="preserve"><value>连接 Ollama 即可解锁 AI 聊天、语义搜索和文件智能。</value></data>
+  <data name="Dash_SetupAiBtn.Content" xml:space="preserve"><value>设置 AI</value></data>
+  <data name="Dash_SearchBox.PlaceholderText" xml:space="preserve"><value>搜索 Knowledge Vault...  (Ctrl+K)</value></data>
+  <data name="Dash_DocsOverline.Text" xml:space="preserve"><value>文档</value></data>
+  <data name="Dash_AcrossRun.Text" xml:space="preserve"><value> / </value></data>
+  <data name="Dash_CollectionsRun.Text" xml:space="preserve"><value> 个合集</value></data>
+  <data name="Dash_StorageOverline.Text" xml:space="preserve"><value>存储</value></data>
+  <data name="Dash_AiSessionsOverline.Text" xml:space="preserve"><value>AI 会话</value></data>
+  <data name="Dash_TokensUsedRun.Text" xml:space="preserve"><value> token 已用</value></data>
+  <data name="Dash_SystemOverline.Text" xml:space="preserve"><value>系统</value></data>
+  <data name="Dash_OpsOverviewTitle.Text" xml:space="preserve"><value>运行状况概览</value></data>
+  <data name="Dash_OpsOverviewSubtitle.Text" xml:space="preserve"><value>在一个界面上查看会话智能、同步状态、连接器、摄取积压与工作流活动。</value></data>
+  <data name="Dash_OpenOperationsBtn.Content" xml:space="preserve"><value>打开 Operations</value></data>
+  <data name="Dash_ConvIntelOverline.Text" xml:space="preserve"><value>会话智能</value></data>
+  <data name="Dash_OpenAnalyticsBtn.Content" xml:space="preserve"><value>打开 Analytics</value></data>
+  <data name="Dash_SyncHealthOverline.Text" xml:space="preserve"><value>同步健康状况</value></data>
+  <data name="Dash_OpenSyncBtn.Content" xml:space="preserve"><value>打开同步</value></data>
+  <data name="Dash_ConnectorsOverline.Text" xml:space="preserve"><value>连接器与插件</value></data>
+  <data name="Dash_OpenPluginsBtn.Content" xml:space="preserve"><value>打开插件</value></data>
+  <data name="Dash_IngestionOverline.Text" xml:space="preserve"><value>摄取积压</value></data>
+  <data name="Dash_OpenInboxBtn.Content" xml:space="preserve"><value>打开收件箱</value></data>
+  <data name="Dash_WorkflowOverline.Text" xml:space="preserve"><value>工作流活动</value></data>
+  <data name="Dash_OpenWorkflowsBtn.Content" xml:space="preserve"><value>打开工作流</value></data>
+  <data name="Dash_RecentDocsTitle.Text" xml:space="preserve"><value>最近的文档</value></data>
+  <data name="Dash_ViewAllDocsBtn.Content" xml:space="preserve"><value>查看全部</value></data>
+  <data name="Dash_NoDocsTitle.Text" xml:space="preserve"><value>尚未导入文档</value></data>
+  <data name="Dash_NoDocsHint.Text" xml:space="preserve"><value>导入文件,开始构建您的 Knowledge Vault</value></data>
+  <data name="Dash_RecentConvTitle.Text" xml:space="preserve"><value>最近的会话</value></data>
+  <data name="Dash_ViewAllConvBtn.Content" xml:space="preserve"><value>查看全部</value></data>
+  <data name="Dash_NoConvTitle.Text" xml:space="preserve"><value>暂无会话</value></data>
+  <data name="Dash_NoConvHint.Text" xml:space="preserve"><value>开始聊天后,您的会话将显示在此处</value></data>
+  <data name="Dash_MsgsRun.Text" xml:space="preserve"><value> 条</value></data>
+  <data name="Dash_FileTypesTitle.Text" xml:space="preserve"><value>文件类型分布</value></data>
+  <data name="Dash_NoDataYet.Text" xml:space="preserve"><value>暂无数据</value></data>
+  <data name="Dash_TopCollectionsTitle.Text" xml:space="preserve"><value>热门合集</value></data>
+  <data name="Dash_NoCollectionsYet.Text" xml:space="preserve"><value>暂无合集</value></data>
+  <data name="Dash_BeliefTitle.Text" xml:space="preserve"><value>您的观点演变</value></data>
+  <data name="Dash_MagnitudeRun.Text" xml:space="preserve"><value>变化幅度: </value></data>
+  <data name="Dash_PreviouslyRun.Text" xml:space="preserve"><value>以前: </value></data>
+  <data name="Dash_CurrentlyRun.Text" xml:space="preserve"><value>现在: </value></data>
+  <data name="Dash_NoBeliefTitle.Text" xml:space="preserve"><value>尚未检测到观点演变。</value></data>
+  <data name="Dash_NoBeliefHint.Text" xml:space="preserve"><value>随着您使用应用,它会跟踪您对各主题看法随时间的演变。</value></data>
+  <data name="Dash_ExplorePastSelfBtn.Content" xml:space="preserve"><value>探索过往的自己</value></data>
+  <data name="Dash_NextStepsTitle.Text" xml:space="preserve"><value>建议的后续步骤</value></data>
+  <data name="Dash_NextStepsSubtitle.Text" xml:space="preserve"><value>基于当前 AI 就绪度、摄取压力、同步状态与工作流势头的最高杠杆行动。</value></data>
+  <data name="Dash_NewChatLabel.Text" xml:space="preserve"><value>新建聊天</value></data>
+  <data name="Dash_ImportFilesLabel.Text" xml:space="preserve"><value>导入文件</value></data>
+  <data name="Dash_SearchLabel.Text" xml:space="preserve"><value>搜索</value></data>
+  <data name="Dash_AskFilesLabel.Text" xml:space="preserve"><value>文件问答</value></data>
+  <data name="Dash_AvailableRamLabel.Text" xml:space="preserve"><value>可用内存</value></data>
+  <data name="Dash_VaultStorageLabel.Text" xml:space="preserve"><value>Vault 存储</value></data>
+  <data name="Chat_MsgsLabel.Text" xml:space="preserve"><value>条</value></data>
+  <data name="Chat_InspectContextTip.ToolTipService.ToolTip" xml:space="preserve"><value>查看此回复所用的完整上下文</value></data>
+  <data name="Chat_ContextUsedLabel.Text" xml:space="preserve"><value>已用上下文</value></data>
+  <data name="Chat_ConversationsTitle.Text" xml:space="preserve"><value>会话</value></data>
+  <data name="Chat_NewConversationTip.ToolTipService.ToolTip" xml:space="preserve"><value>新建会话</value></data>
+  <data name="Chat_NewLabel.Text" xml:space="preserve"><value>新建</value></data>
+  <data name="Chat_SearchConvBox.PlaceholderText" xml:space="preserve"><value>搜索会话...</value></data>
+  <data name="Chat_AllFilterBtn.Content" xml:space="preserve"><value>全部</value></data>
+  <data name="Chat_BranchesHeader.Header" xml:space="preserve"><value>分支</value></data>
+  <data name="Chat_MergeToMainTip.ToolTipService.ToolTip" xml:space="preserve"><value>合并到主线</value></data>
+  <data name="Chat_DeleteBranchTip.ToolTipService.ToolTip" xml:space="preserve"><value>删除分支</value></data>
+  <data name="Chat_ConversationsCountRun.Text" xml:space="preserve"><value>个会话</value></data>
+  <data name="Chat_ToggleSidebarBtn.ToolTipService.ToolTip" xml:space="preserve"><value>切换侧边栏</value></data>
+  <data name="Chat_ToggleSidebarBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>切换侧边栏</value></data>
+  <data name="Chat_SelectModelBox.PlaceholderText" xml:space="preserve"><value>选择模型...</value></data>
+  <data name="Chat_SystemPromptTip.ToolTipService.ToolTip" xml:space="preserve"><value>系统提示词</value></data>
+  <data name="Chat_SystemPromptTitle.Text" xml:space="preserve"><value>系统提示词</value></data>
+  <data name="Chat_SystemPromptHint.Text" xml:space="preserve"><value>为此会话设置 AI 的行为与个性。</value></data>
+  <data name="Chat_NoSystemPrompt.Text" xml:space="preserve"><value>无系统提示词</value></data>
+  <data name="Chat_AssignFolderTip.ToolTipService.ToolTip" xml:space="preserve"><value>分配文件夹</value></data>
+  <data name="Chat_MoveToFolderTitle.Text" xml:space="preserve"><value>移动到文件夹</value></data>
+  <data name="Chat_NoFolderItem.Content" xml:space="preserve"><value>无(移除文件夹)</value></data>
+  <data name="Chat_FolderWork.Content" xml:space="preserve"><value>工作</value></data>
+  <data name="Chat_FolderResearch.Content" xml:space="preserve"><value>研究</value></data>
+  <data name="Chat_FolderPersonal.Content" xml:space="preserve"><value>个人</value></data>
+  <data name="Chat_FolderArchive.Content" xml:space="preserve"><value>归档</value></data>
+  <data name="Chat_CustomFolderBox.PlaceholderText" xml:space="preserve"><value>自定义文件夹名称...</value></data>
+  <data name="Chat_TokLabel.Text" xml:space="preserve"><value>token</value></data>
+  <data name="Chat_CompareBranchesBtn.ToolTipService.ToolTip" xml:space="preserve"><value>对比分支</value></data>
+  <data name="Chat_CompareBranchesBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>对比分支</value></data>
+  <data name="Chat_RefreshConnBtn.ToolTipService.ToolTip" xml:space="preserve"><value>刷新连接</value></data>
+  <data name="Chat_RefreshConnBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>刷新连接</value></data>
+  <data name="Chat_ExportConvBtn.ToolTipService.ToolTip" xml:space="preserve"><value>导出会话</value></data>
+  <data name="Chat_ExportConvBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>导出会话</value></data>
+  <data name="Chat_RefreshSummaryTip.ToolTipService.ToolTip" xml:space="preserve"><value>刷新此会话的持久摘要</value></data>
+  <data name="Chat_OpenInspectorTip.ToolTipService.ToolTip" xml:space="preserve"><value>打开完整上下文检查器</value></data>
+  <data name="Chat_InspectContextLabel.Text" xml:space="preserve"><value>检查上下文</value></data>
+  <data name="Chat_EmptyTitle.Text" xml:space="preserve"><value>开始会话</value></data>
+  <data name="Chat_EmptyHint.Text" xml:space="preserve"><value>与 Ollama 驱动的本地 AI 模型聊天。您的消息保留在此设备上,任何数据都不会离开您的电脑。</value></data>
+  <data name="Chat_PrivateBadge.Text" xml:space="preserve"><value>100% 私密</value></data>
+  <data name="Chat_EnterToSend.Text" xml:space="preserve"><value>Enter 发送</value></data>
+  <data name="Chat_ShiftEnterNewLine.Text" xml:space="preserve"><value>Shift+Enter 换行</value></data>
+  <data name="Chat_CancelEditBtn.Content" xml:space="preserve"><value>取消</value></data>
+  <data name="Chat_SaveResendBtn.Content" xml:space="preserve"><value>保存并重新发送</value></data>
+  <data name="Chat_EditMessageTip.ToolTipService.ToolTip" xml:space="preserve"><value>编辑消息</value></data>
+  <data name="Chat_CopyUserMsgTip.ToolTipService.ToolTip" xml:space="preserve"><value>复制到剪贴板</value></data>
+  <data name="Chat_BranchFromHereTip.ToolTipService.ToolTip" xml:space="preserve"><value>从此处创建分支</value></data>
+  <data name="Chat_DeleteUserMsgTip.ToolTipService.ToolTip" xml:space="preserve"><value>删除消息</value></data>
+  <data name="Chat_GoodResponseTip.ToolTipService.ToolTip" xml:space="preserve"><value>回复不错</value></data>
+  <data name="Chat_PoorResponseTip.ToolTipService.ToolTip" xml:space="preserve"><value>回复不佳</value></data>
+  <data name="Chat_CopyAiMsgTip.ToolTipService.ToolTip" xml:space="preserve"><value>复制到剪贴板</value></data>
+  <data name="Chat_RegenerateTip.ToolTipService.ToolTip" xml:space="preserve"><value>重新生成回复</value></data>
+  <data name="Chat_DeleteAiMsgTip.ToolTipService.ToolTip" xml:space="preserve"><value>删除消息</value></data>
+  <data name="Chat_ContextInspectionTitle.Text" xml:space="preserve"><value>上下文检查</value></data>
+  <data name="Chat_ContextStoryTitle.Text" xml:space="preserve"><value>上下文脉络</value></data>
+  <data name="Chat_AssemblyOverviewTitle.Text" xml:space="preserve"><value>组装概览</value></data>
+  <data name="Chat_ModeRun.Text" xml:space="preserve"><value>模式: </value></data>
+  <data name="Chat_SelectedRun.Text" xml:space="preserve"><value>已选: </value></data>
+  <data name="Chat_AnchorsRun.Text" xml:space="preserve"><value> · 锚点: </value></data>
+  <data name="Chat_OverflowRun.Text" xml:space="preserve"><value>溢出: </value></data>
+  <data name="Chat_PromptEstRun.Text" xml:space="preserve"><value> · 提示词估计: </value></data>
+  <data name="Chat_DurableSummaryTitle.Text" xml:space="preserve"><value>持久摘要</value></data>
+  <data name="Chat_RefreshSummaryTip2.ToolTipService.ToolTip" xml:space="preserve"><value>刷新此会话的持久摘要</value></data>
+  <data name="Chat_DurableRecallTitle.Text" xml:space="preserve"><value>持久回忆</value></data>
+  <data name="Chat_WhyThisContextTitle.Text" xml:space="preserve"><value>为何选用此上下文</value></data>
+  <data name="Chat_CapturedRun.Text" xml:space="preserve"><value>捕获于 </value></data>
+  <data name="Chat_PromptRun.Text" xml:space="preserve"><value>提示词:</value></data>
+  <data name="Chat_MessageBox.PlaceholderText" xml:space="preserve"><value>给 Agent-X 发消息...</value></data>
+  <data name="Chat_VoiceInputTip.ToolTipService.ToolTip" xml:space="preserve"><value>语音输入 — 点击开始录音</value></data>
+  <data name="Chat_StopRecordingTip.ToolTipService.ToolTip" xml:space="preserve"><value>停止录音并转写</value></data>
+  <data name="Chat_InspectAssembledTip.ToolTipService.ToolTip" xml:space="preserve"><value>查看最近组装的聊天上下文</value></data>
+  <data name="Chat_ModeSolo.Text" xml:space="preserve"><value>单模型</value></data>
+  <data name="Chat_ModeMulti.Text" xml:space="preserve"><value>多模型</value></data>
+  <data name="Chat_ModeDebate.Text" xml:space="preserve"><value>辩论</value></data>
+  <data name="Chat_SendBtn.ToolTipService.ToolTip" xml:space="preserve"><value>发送消息 (Enter)</value></data>
+  <data name="Chat_SendBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>发送消息</value></data>
+  <data name="Chat_StopGenBtn.ToolTipService.ToolTip" xml:space="preserve"><value>停止生成</value></data>
+  <data name="Chat_StopGenBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>停止生成</value></data>
+  <data name="AskFiles_Title.Text" xml:space="preserve"><value>向您的文件提问</value></data>
+  <data name="AskFiles_Subtitle.Text" xml:space="preserve"><value>以您的文档为依据的 AI 回答。</value></data>
+  <data name="AskFiles_AllCollectionsBox.PlaceholderText" xml:space="preserve"><value>全部合集</value></data>
+  <data name="AskFiles_ClearConvBtn.ToolTipService.ToolTip" xml:space="preserve"><value>清空会话</value></data>
+  <data name="AskFiles_ClearConvBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>清空会话</value></data>
+  <data name="AskFiles_ClearLabel.Text" xml:space="preserve"><value>清空</value></data>
+  <data name="AskFiles_EmptyTitle.Text" xml:space="preserve"><value>就您的文档提问</value></data>
+  <data name="AskFiles_SearchPrefixRun.Text" xml:space="preserve"><value>AI 将搜索 </value></data>
+  <data name="AskFiles_SearchSuffixRun.Text" xml:space="preserve"><value> 个知识块以寻找答案,并引用其来源。</value></data>
+  <data name="AskFiles_RagBadge.Text" xml:space="preserve"><value>带引用的 RAG 回答</value></data>
+  <data name="AskFiles_TryAskingOverline.Text" xml:space="preserve"><value>试试这样问</value></data>
+  <data name="AskFiles_Example1.Text" xml:space="preserve"><value>我的研究中有哪些关键发现?</value></data>
+  <data name="AskFiles_Example2.Text" xml:space="preserve"><value>总结我会议记录中的要点</value></data>
+  <data name="AskFiles_Example3.Text" xml:space="preserve"><value>比较我论文中讨论的方法</value></data>
+  <data name="AskFiles_EnterToSend.Text" xml:space="preserve"><value>Enter 发送</value></data>
+  <data name="AskFiles_QuestionBox.PlaceholderText" xml:space="preserve"><value>就您的文档提问...</value></data>
+  <data name="AskFiles_SendBtn.ToolTipService.ToolTip" xml:space="preserve"><value>发送问题 (Enter)</value></data>
+  <data name="AskFiles_SendBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>发送问题</value></data>
+  <data name="AskFiles_SourcesTitle.Text" xml:space="preserve"><value>来源</value></data>
+  <data name="AskFiles_NoCitationsTitle.Text" xml:space="preserve"><value>暂无引用</value></data>
+  <data name="AskFiles_NoCitationsHint.Text" xml:space="preserve"><value>提问后,来源将显示在此处。</value></data>
+  <data name="AskFiles_OpenSourceBtn.ToolTipService.ToolTip" xml:space="preserve"><value>打开源文档</value></data>
+  <data name="AskFiles_OpenSourceBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>打开源文档</value></data>
+  <data name="AskFiles_PageLabel.Text" xml:space="preserve"><value>页</value></data>
+  <data name="AskFiles_GroundedNote.Text" xml:space="preserve"><value>所有回答均以您的文档为依据。</value></data>
+  <data name="Search_Title.Text" xml:space="preserve"><value>搜索</value></data>
+  <data name="Search_Subtitle.Text" xml:space="preserve"><value>使用语义 AI、关键词或两者结合搜索整个文档库。</value></data>
+  <data name="Search_InputBox.PlaceholderText" xml:space="preserve"><value>搜索您的文档...</value></data>
+  <data name="Search_SearchBtn.ToolTipService.ToolTip" xml:space="preserve"><value>搜索 (Enter)</value></data>
+  <data name="Search_SearchLabel.Text" xml:space="preserve"><value>搜索</value></data>
+  <data name="Search_ClearBtn.ToolTipService.ToolTip" xml:space="preserve"><value>清空搜索</value></data>
+  <data name="Search_ClearBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>清空搜索</value></data>
+  <data name="Search_SearchModeOverline.Text" xml:space="preserve"><value>搜索模式</value></data>
+  <data name="Search_ModeSemantic.Content" xml:space="preserve"><value>语义</value></data>
+  <data name="Search_ModeSemantic.ToolTipService.ToolTip" xml:space="preserve"><value>基于 AI 嵌入的向量相似度搜索</value></data>
+  <data name="Search_ModeKeyword.Content" xml:space="preserve"><value>关键词</value></data>
+  <data name="Search_ModeKeyword.ToolTipService.ToolTip" xml:space="preserve"><value>基于 BM25 排序的全文关键词搜索</value></data>
+  <data name="Search_ModeHybrid.Content" xml:space="preserve"><value>混合</value></data>
+  <data name="Search_ModeHybrid.ToolTipService.ToolTip" xml:space="preserve"><value>语义 + 关键词组合搜索,获得最佳结果</value></data>
+  <data name="Search_CollectionOverline.Text" xml:space="preserve"><value>合集</value></data>
+  <data name="Search_AdvancedBtn.ToolTipService.ToolTip" xml:space="preserve"><value>切换高级搜索筛选器</value></data>
+  <data name="Search_AdvancedLabel.Text" xml:space="preserve"><value>高级</value></data>
+  <data name="Search_FileTypeOverline.Text" xml:space="preserve"><value>文件类型</value></data>
+  <data name="Search_FilterAllTypes.Content" xml:space="preserve"><value>全部类型</value></data>
+  <data name="Search_FilterText.Text" xml:space="preserve"><value>文本</value></data>
+  <data name="Search_FilterCode.Text" xml:space="preserve"><value>代码</value></data>
+  <data name="Search_FilterCalendar.Text" xml:space="preserve"><value>日历</value></data>
+  <data name="Search_FilterEmail.Text" xml:space="preserve"><value>邮件</value></data>
+  <data name="Search_MinRelevanceOverline.Text" xml:space="preserve"><value>最低相关性</value></data>
+  <data name="Search_MaxResultsOverline.Text" xml:space="preserve"><value>最多结果数</value></data>
+  <data name="Search_ResetBtn.ToolTipService.ToolTip" xml:space="preserve"><value>重置所有高级筛选器</value></data>
+  <data name="Search_ResetLabel.Text" xml:space="preserve"><value>重置</value></data>
+  <data name="Search_CreatedAfterOverline.Text" xml:space="preserve"><value>创建于之后</value></data>
+  <data name="Search_CreatedAfterPicker.PlaceholderText" xml:space="preserve"><value>任意日期</value></data>
+  <data name="Search_CreatedBeforeOverline.Text" xml:space="preserve"><value>创建于之前</value></data>
+  <data name="Search_CreatedBeforePicker.PlaceholderText" xml:space="preserve"><value>任意日期</value></data>
+  <data name="Search_SortRelevance.Content" xml:space="preserve"><value>相关性</value></data>
+  <data name="Search_SortNewest.Content" xml:space="preserve"><value>最新优先</value></data>
+  <data name="Search_SortOldest.Content" xml:space="preserve"><value>最早优先</value></data>
+  <data name="Search_SortFileName.Content" xml:space="preserve"><value>文件名</value></data>
+  <data name="Search_SaveFilterBtn.ToolTipService.ToolTip" xml:space="preserve"><value>将当前搜索保存为筛选器</value></data>
+  <data name="Search_SaveLabel.Text" xml:space="preserve"><value>保存</value></data>
+  <data name="Search_ResultsRun.Text" xml:space="preserve"><value>条结果</value></data>
+  <data name="Search_EmptyTitle.Text" xml:space="preserve"><value>搜索您的文档</value></data>
+  <data name="Search_EmptyBody.Text" xml:space="preserve"><value>使用自然语言搜索整个文档库。即使措辞不同,向量嵌入也能找到语义相似的内容。</value></data>
+  <data name="Search_EnterToSearch.Text" xml:space="preserve"><value>Enter 搜索</value></data>
+  <data name="Search_SemanticAiBadge.Text" xml:space="preserve"><value>语义 AI 搜索</value></data>
+  <data name="Search_NoResultsTitle.Text" xml:space="preserve"><value>未找到结果</value></data>
+  <data name="Search_NoResultsPrefixRun.Text" xml:space="preserve"><value>未找到“</value></data>
+  <data name="Search_NoResultsSuffixRun.Text" xml:space="preserve"><value>”的相关结果。请尝试其他关键词或放宽筛选条件。</value></data>
+  <data name="Search_ClearFiltersBtn.Content" xml:space="preserve"><value>清除筛选器</value></data>
+  <data name="Search_RelevanceLabel.Text" xml:space="preserve"><value>相关性</value></data>
+  <data name="Search_PageRun.Text" xml:space="preserve"><value>页</value></data>
+  <data name="Search_ChunkRun.Text" xml:space="preserve"><value>块</value></data>
+  <data name="Search_OpenBtn.ToolTipService.ToolTip" xml:space="preserve"><value>在文件资源管理器中打开</value></data>
+  <data name="Search_OpenLabel.Text" xml:space="preserve"><value>打开</value></data>
+  <data name="Search_WorkflowBtn.ToolTipService.ToolTip" xml:space="preserve"><value>在工作流中使用此结果</value></data>
+  <data name="Search_WorkflowLabel.Text" xml:space="preserve"><value>工作流</value></data>
+  <data name="Search_HistoryTitle.Text" xml:space="preserve"><value>搜索历史</value></data>
+  <data name="Search_ClearHistoryBtn.ToolTipService.ToolTip" xml:space="preserve"><value>清空搜索历史</value></data>
+  <data name="Search_ClearHistoryLabel.Text" xml:space="preserve"><value>清空</value></data>
+  <data name="Search_HistoryResultsRun.Text" xml:space="preserve"><value>条结果</value></data>
+  <data name="Search_SavedFiltersTitle.Text" xml:space="preserve"><value>已保存的筛选器</value></data>
+  <data name="Search_ApplyFilterBtn.ToolTipService.ToolTip" xml:space="preserve"><value>应用此筛选器</value></data>
+  <data name="Search_ApplyFilterBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>应用此筛选器</value></data>
+  <data name="Search_RemoveFilterBtn.ToolTipService.ToolTip" xml:space="preserve"><value>删除已保存的筛选器</value></data>
+  <data name="Search_RemoveFilterBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>删除已保存的筛选器</value></data>
+  <data name="Search_RecentSearchesRun.Text" xml:space="preserve"><value>条最近搜索</value></data>
+  <data name="Vault_ImportOrganizeAndIndex.Text" xml:space="preserve"><value>导入、整理并索引您的文档,用于 AI 搜索。</value></data>
+  <data name="Vault_ImportFiles.Text" xml:space="preserve"><value>导入文件</value></data>
+  <data name="Vault_ImportFolder.Text" xml:space="preserve"><value>导入文件夹</value></data>
+  <data name="Vault_ToggleMultiSelectModeTip.ToolTipService.ToolTip" xml:space="preserve"><value>切换多选模式</value></data>
+  <data name="Vault_Select.Text" xml:space="preserve"><value>选择</value></data>
+  <data name="Vault_RefreshDocumentsTip.ToolTipService.ToolTip" xml:space="preserve"><value>刷新文档</value></data>
+  <data name="Vault_RefreshDocumentsTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>刷新文档</value></data>
+  <data name="Vault_DuplicateDocumentsDetected.Text" xml:space="preserve"><value>检测到重复文档</value></data>
+  <data name="Vault_SkipDuplicates.Content" xml:space="preserve"><value>跳过重复项</value></data>
+  <data name="Vault_ImportAll.Content" xml:space="preserve"><value>全部导入</value></data>
+  <data name="Vault_Documents.Text" xml:space="preserve"><value>文档</value></data>
+  <data name="Vault_StorageUsed.Text" xml:space="preserve"><value>已用存储</value></data>
+  <data name="Vault_InQueue.Text" xml:space="preserve"><value>队列中</value></data>
+  <data name="Vault_FileType.Text" xml:space="preserve"><value>文件类型</value></data>
+  <data name="Vault_All.Content" xml:space="preserve"><value>全部</value></data>
+  <data name="Vault_Documents2.Text" xml:space="preserve"><value>文档</value></data>
+  <data name="Vault_Text.Text" xml:space="preserve"><value>文本</value></data>
+  <data name="Vault_Code.Text" xml:space="preserve"><value>代码</value></data>
+  <data name="Vault_Images.Text" xml:space="preserve"><value>图片</value></data>
+  <data name="Vault_Status.Text" xml:space="preserve"><value>状态</value></data>
+  <data name="Vault_All2.Content" xml:space="preserve"><value>全部</value></data>
+  <data name="Vault_Completed.Text" xml:space="preserve"><value>已完成</value></data>
+  <data name="Vault_Processing.Text" xml:space="preserve"><value>处理中</value></data>
+  <data name="Vault_Pending.Text" xml:space="preserve"><value>待处理</value></data>
+  <data name="Vault_Failed.Text" xml:space="preserve"><value>失败</value></data>
+  <data name="Vault_Tags.Text" xml:space="preserve"><value>标签</value></data>
+  <data name="Vault_Collection.Text" xml:space="preserve"><value>合集</value></data>
+  <data name="Vault_AllCollectionsPh.PlaceholderText" xml:space="preserve"><value>全部合集</value></data>
+  <data name="Vault_ImportedAfter.Text" xml:space="preserve"><value>导入于之后</value></data>
+  <data name="Vault_StartDatePh.PlaceholderText" xml:space="preserve"><value>开始日期</value></data>
+  <data name="Vault_ImportedBefore.Text" xml:space="preserve"><value>导入于之前</value></data>
+  <data name="Vault_EndDatePh.PlaceholderText" xml:space="preserve"><value>结束日期</value></data>
+  <data name="Vault_SortBy.Text" xml:space="preserve"><value>排序方式</value></data>
+  <data name="Vault_DatePh.PlaceholderText" xml:space="preserve"><value>日期</value></data>
+  <data name="Vault_Date.Content" xml:space="preserve"><value>日期</value></data>
+  <data name="Vault_Name.Content" xml:space="preserve"><value>名称</value></data>
+  <data name="Vault_Size.Content" xml:space="preserve"><value>大小</value></data>
+  <data name="Vault_Type.Content" xml:space="preserve"><value>类型</value></data>
+  <data name="Vault_SearchDocumentsByNamePh.PlaceholderText" xml:space="preserve"><value>按名称、内容或标签搜索文档...</value></data>
+  <data name="Vault_ClearAllFiltersTip.ToolTipService.ToolTip" xml:space="preserve"><value>清除所有筛选器</value></data>
+  <data name="Vault_ClearAllFiltersTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>清除所有筛选器</value></data>
+  <data name="Vault_ClearAll.Text" xml:space="preserve"><value>全部清除</value></data>
+  <data name="Vault_Selected.Text" xml:space="preserve"><value> 项已选择</value></data>
+  <data name="Vault_SelectAll.Content" xml:space="preserve"><value>全选</value></data>
+  <data name="Vault_ReIndex.Text" xml:space="preserve"><value>重新索引</value></data>
+  <data name="Vault_Delete.Text" xml:space="preserve"><value>删除</value></data>
+  <data name="Vault_DragAndDropFiles.Text" xml:space="preserve"><value>将文件拖放到此处</value></data>
+  <data name="Vault_OrClickImportTo.Text" xml:space="preserve"><value>或点击“导入”浏览文件</value></data>
+  <data name="Vault_LoadingDocuments.Text" xml:space="preserve"><value>正在加载文档...</value></data>
+  <data name="Vault_Pages.Text" xml:space="preserve"><value>页</value></data>
+  <data name="Vault_Words.Text" xml:space="preserve"><value>词</value></data>
+  <data name="Vault_Chunks.Text" xml:space="preserve"><value>块</value></data>
+  <data name="Vault_GenerateAiTitleTip.ToolTipService.ToolTip" xml:space="preserve"><value>生成 AI 标题</value></data>
+  <data name="Vault_GenerateAiTitleTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>生成 AI 标题</value></data>
+  <data name="Vault_AiTitle.Text" xml:space="preserve"><value>AI 标题</value></data>
+  <data name="Vault_ViewDetailsTip.ToolTipService.ToolTip" xml:space="preserve"><value>查看详情</value></data>
+  <data name="Vault_Detail.Text" xml:space="preserve"><value>详情</value></data>
+  <data name="Vault_UseThisDocumentInTip.ToolTipService.ToolTip" xml:space="preserve"><value>在工作流中使用此文档</value></data>
+  <data name="Vault_Workflow.Text" xml:space="preserve"><value>工作流</value></data>
+  <data name="Vault_ReIndexDocumentTip.ToolTipService.ToolTip" xml:space="preserve"><value>重新索引文档</value></data>
+  <data name="Vault_ReIndexDocumentTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>重新索引文档</value></data>
+  <data name="Vault_OpenFileLocationTip.ToolTipService.ToolTip" xml:space="preserve"><value>打开文件位置</value></data>
+  <data name="Vault_OpenFileLocationTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>打开文件位置</value></data>
+  <data name="Vault_DeleteDocumentTip.ToolTipService.ToolTip" xml:space="preserve"><value>删除文档</value></data>
+  <data name="Vault_DeleteDocumentTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>删除文档</value></data>
+  <data name="Vault_NoDocumentsYet.Text" xml:space="preserve"><value>暂无文档</value></data>
+  <data name="Vault_ImportYourFirstDocuments.Text" xml:space="preserve"><value>导入您的第一批文档,开始构建 Knowledge Vault。支持 PDF、Word 文件、Markdown、文本文件等。</value></data>
+  <data name="Vault_ImportYourFirstFiles.Text" xml:space="preserve"><value>导入您的第一批文件</value></data>
+  <data name="Vault_IndexingInProgress.Text" xml:space="preserve"><value>正在建立索引...</value></data>
+  <data name="Vault_Remaining.Text" xml:space="preserve"><value>个剩余</value></data>
+  <data name="Vault_DocumentPreview.Text" xml:space="preserve"><value>文档预览</value></data>
+  <data name="Vault_ClosePreviewTip.ToolTipService.ToolTip" xml:space="preserve"><value>关闭预览</value></data>
+  <data name="Vault_ClosePreviewTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>关闭预览</value></data>
+  <data name="Vault_FocusedDocument.Text" xml:space="preserve"><value>聚焦文档</value></data>
+  <data name="Vault_Dismiss.Content" xml:space="preserve"><value>关闭</value></data>
+  <data name="Vault_ExtractedTitle.Text" xml:space="preserve"><value>提取的标题</value></data>
+  <data name="Vault_AiSummary.Text" xml:space="preserve"><value>AI 摘要</value></data>
+  <data name="Vault_Details.Text" xml:space="preserve"><value>详细信息</value></data>
+  <data name="Vault_Pages2.Text" xml:space="preserve"><value> 页</value></data>
+  <data name="Vault_Words2.Text" xml:space="preserve"><value> 词</value></data>
+  <data name="Vault_Chunks2.Text" xml:space="preserve"><value> 块</value></data>
+  <data name="Vault_Size2.Text" xml:space="preserve"><value> 大小</value></data>
+  <data name="Vault_DateImported.Text" xml:space="preserve"><value> 导入日期</value></data>
+  <data name="Vault_Tags2.Text" xml:space="preserve"><value>标签</value></data>
+  <data name="Vault_GenerateAnAiPoweredTip.ToolTipService.ToolTip" xml:space="preserve"><value>为此文档生成 AI 标题</value></data>
+  <data name="Vault_GenerateTitle.Text" xml:space="preserve"><value>生成标题</value></data>
+  <data name="Vault_OpenFileLocationInTip.ToolTipService.ToolTip" xml:space="preserve"><value>在文件资源管理器中打开文件位置</value></data>
+  <data name="Vault_OpenInExplorer.Text" xml:space="preserve"><value>在文件资源管理器中打开</value></data>
+  <data name="Vault_ReIndexThisDocumentTip.ToolTipService.ToolTip" xml:space="preserve"><value>重新索引此文档</value></data>
+  <data name="Vault_ReIndex2.Text" xml:space="preserve"><value>重新索引</value></data>
+  <data name="CollMgr_Collections.Text" xml:space="preserve"><value>合集</value></data>
+  <data name="CollMgr_RefreshCollectionsTip.ToolTipService.ToolTip" xml:space="preserve"><value>刷新合集</value></data>
+  <data name="CollMgr_RefreshCollectionsTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>刷新合集</value></data>
+  <data name="CollMgr_NewCollectionNamePh.PlaceholderText" xml:space="preserve"><value>新合集名称...</value></data>
+  <data name="CollMgr_DescriptionOptionalPh.PlaceholderText" xml:space="preserve"><value>描述(可选)</value></data>
+  <data name="CollMgr_CreateCollection.Text" xml:space="preserve"><value>创建合集</value></data>
+  <data name="CollMgr_Loading.Text" xml:space="preserve"><value>正在加载...</value></data>
+  <data name="CollMgr_DeleteCollectionTip.ToolTipService.ToolTip" xml:space="preserve"><value>删除合集</value></data>
+  <data name="CollMgr_DeleteCollectionTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>删除合集</value></data>
+  <data name="CollMgr_DeleteCollectionTip2.ToolTipService.ToolTip" xml:space="preserve"><value>删除合集</value></data>
+  <data name="CollMgr_DeleteCollectionTip2.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>删除合集</value></data>
+  <data name="CollMgr_Collections2.Text" xml:space="preserve"><value>个合集</value></data>
+  <data name="CollMgr_SelectACollection.Text" xml:space="preserve"><value>选择一个合集</value></data>
+  <data name="CollMgr_ChooseACollectionFrom.Text" xml:space="preserve"><value>在左侧面板中选择一个合集以查看其文档。合集可帮助您将 Knowledge Vault 整理为主题分组。</value></data>
+  <data name="CollMgr_AddDocuments.Text" xml:space="preserve"><value>添加文档</value></data>
+  <data name="CollMgr_Documents.Text" xml:space="preserve"><value> 个文档</value></data>
+  <data name="CollMgr_Updated.Text" xml:space="preserve"><value>更新于 </value></data>
+  <data name="CollMgr_DocumentsInThisCollection.Text" xml:space="preserve"><value>此合集中的文档</value></data>
+  <data name="CollMgr_RemoveFromCollectionTip.ToolTipService.ToolTip" xml:space="preserve"><value>从合集中移除</value></data>
+  <data name="CollMgr_RemoveFromCollectionTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>从合集中移除</value></data>
+  <data name="CollMgr_NoDocumentsInThis.Text" xml:space="preserve"><value>此合集中没有文档</value></data>
+  <data name="CollMgr_ClickAddDocumentsTo.Text" xml:space="preserve"><value>点击“添加文档”,将 Knowledge Vault 中的文件分配到此合集。</value></data>
+  <data name="Graph_KnowledgeGraph.Text" xml:space="preserve"><value>知识图谱</value></data>
+  <data name="Graph_VisualizeRelationshipsBetweenD.Text" xml:space="preserve"><value>可视化文档、合集和标签之间的关系。</value></data>
+  <data name="Graph_SearchNodesPh.PlaceholderText" xml:space="preserve"><value>搜索节点...</value></data>
+  <data name="Graph_Docs.Text" xml:space="preserve"><value>文档</value></data>
+  <data name="Graph_Collections.Text" xml:space="preserve"><value>合集</value></data>
+  <data name="Graph_Tags.Text" xml:space="preserve"><value>标签</value></data>
+  <data name="Graph_Connections.Text" xml:space="preserve"><value>个连接</value></data>
+  <data name="Graph_RebuildTheKnowledgeGraphTip.ToolTipService.ToolTip" xml:space="preserve"><value>重建知识图谱</value></data>
+  <data name="Graph_Refresh.Text" xml:space="preserve"><value>刷新</value></data>
+  <data name="Graph_ZoomOutTip.ToolTipService.ToolTip" xml:space="preserve"><value>缩小</value></data>
+  <data name="Graph_ZoomInTip.ToolTipService.ToolTip" xml:space="preserve"><value>放大</value></data>
+  <data name="Graph_ResetZoomTip.ToolTipService.ToolTip" xml:space="preserve"><value>重置缩放</value></data>
+  <data name="Graph_NoGraphData.Text" xml:space="preserve"><value>暂无图谱数据</value></data>
+  <data name="Graph_ImportDocumentsAndOrganize.Text" xml:space="preserve"><value>导入文档并整理到合集中,即可在此查看可视化的关系。</value></data>
+  <data name="Graph_Legend.Text" xml:space="preserve"><value>图例</value></data>
+  <data name="Graph_Document.Text" xml:space="preserve"><value>文档</value></data>
+  <data name="Graph_Collection.Text" xml:space="preserve"><value>合集</value></data>
+  <data name="Graph_Tag.Text" xml:space="preserve"><value>标签</value></data>
+  <data name="Graph_ClusterActive.Text" xml:space="preserve"><value>聚类已激活</value></data>
+  <data name="Graph_ClearClusterHighlightTip.ToolTipService.ToolTip" xml:space="preserve"><value>清除聚类高亮</value></data>
+  <data name="Graph_Show.Text" xml:space="preserve"><value>显示</value></data>
+  <data name="Graph_Documents.Content" xml:space="preserve"><value>文档</value></data>
+  <data name="Graph_Collections2.Content" xml:space="preserve"><value>合集</value></data>
+  <data name="Graph_Tags2.Content" xml:space="preserve"><value>标签</value></data>
+  <data name="Graph_NodeDetails.Text" xml:space="preserve"><value>节点详情</value></data>
+  <data name="Graph_CloseDetailsPanelTip.ToolTipService.ToolTip" xml:space="preserve"><value>关闭详情面板</value></data>
+  <data name="Graph_Name.Text" xml:space="preserve"><value>名称</value></data>
+  <data name="Graph_Type.Text" xml:space="preserve"><value>类型</value></data>
+  <data name="Graph_Connections2.Text" xml:space="preserve"><value>连接</value></data>
+  <data name="Graph_Edges.Text" xml:space="preserve"><value>条边</value></data>
+  <data name="Graph_Position.Text" xml:space="preserve"><value>位置</value></data>
+  <data name="Annot_Annotations.Text" xml:space="preserve"><value>注释</value></data>
+  <data name="Annot_Highlights.Text" xml:space="preserve"><value>条高亮</value></data>
+  <data name="Annot_SearchAnnotationsPh.PlaceholderText" xml:space="preserve"><value>搜索注释...</value></data>
+  <data name="Annot_Search.Content" xml:space="preserve"><value>搜索</value></data>
+  <data name="Annot_FilterByColor.Text" xml:space="preserve"><value>按颜色筛选</value></data>
+  <data name="Annot_Distribution.Text" xml:space="preserve"><value>分布</value></data>
+  <data name="Annot_ExportAsMarkdown.Content" xml:space="preserve"><value>导出为 Markdown</value></data>
+  <data name="Annot_AllAnnotations.Text" xml:space="preserve"><value>全部注释</value></data>
+  <data name="Annot_YourHighlightsAndNotes.Text" xml:space="preserve"><value>您在所有文档中的高亮和笔记。</value></data>
+  <data name="Annot_DeleteAnnotationTip.ToolTipService.ToolTip" xml:space="preserve"><value>删除注释</value></data>
+  <data name="Annot_DeleteAnnotationTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>删除注释</value></data>
+  <data name="Annot_NoAnnotationsYet.Text" xml:space="preserve"><value>暂无注释</value></data>
+  <data name="Annot_HighlightTextInYour.Text" xml:space="preserve"><value>在文档中高亮文本即可创建注释。</value></data>
+  <data name="WebImport_WebImport.Text" xml:space="preserve"><value>网页导入</value></data>
+  <data name="WebImport_PasteUrlsToExtract.Text" xml:space="preserve"><value>粘贴 URL,提取网页文章并导入 Knowledge Vault。</value></data>
+  <data name="WebImport_EnterUrls.Text" xml:space="preserve"><value>输入 URL</value></data>
+  <data name="WebImport_OneUrlPerLine.Text" xml:space="preserve"><value>每行一个 URL。支持网页文章和 YouTube 视频。</value></data>
+  <data name="WebImport_AddToCollectionOptional.Text" xml:space="preserve"><value>添加到合集(可选)</value></data>
+  <data name="WebImport_NoCollectionPh.PlaceholderText" xml:space="preserve"><value>无合集</value></data>
+  <data name="WebImport_PreviewFirstUrl.Content" xml:space="preserve"><value>预览第一个 URL</value></data>
+  <data name="WebImport_ImportAll.Content" xml:space="preserve"><value>全部导入</value></data>
+  <data name="WebImport_Cancel.Content" xml:space="preserve"><value>取消</value></data>
+  <data name="WebImport_Importing.Text" xml:space="preserve"><value>正在导入</value></data>
+  <data name="WebImport_Of.Text" xml:space="preserve"><value>/</value></data>
+  <data name="WebImport_ExtractingContent.Text" xml:space="preserve"><value>正在提取内容...</value></data>
+  <data name="WebImport_Preview.Text" xml:space="preserve"><value>预览</value></data>
+  <data name="WebImport_Title.Text" xml:space="preserve"><value>标题</value></data>
+  <data name="WebImport_Site.Text" xml:space="preserve"><value>站点</value></data>
+  <data name="WebImport_Author.Text" xml:space="preserve"><value>作者</value></data>
+  <data name="WebImport_Words.Text" xml:space="preserve"><value>词数</value></data>
+  <data name="WebImport_ImportResults.Text" xml:space="preserve"><value>导入结果</value></data>
+  <data name="WebImport_Imported.Text" xml:space="preserve"><value>个已导入</value></data>
+  <data name="WebImport_Failed.Text" xml:space="preserve"><value>个失败</value></data>
+  <data name="WebImport_Words2.Text" xml:space="preserve"><value>词</value></data>
+  <data name="WebImport_ClearResults.Content" xml:space="preserve"><value>清空结果</value></data>
+  <data name="WebImport_RssAtomFeed.Text" xml:space="preserve"><value>RSS / Atom 源</value></data>
+  <data name="WebImport_SubscribeToAFeed.Text" xml:space="preserve"><value>订阅源并将所有条目导入 Knowledge Vault。</value></data>
+  <data name="WebImport_FeedUrl.Header" xml:space="preserve"><value>源 URL</value></data>
+  <data name="WebImport_SubscribeImport.Content" xml:space="preserve"><value>订阅并导入</value></data>
+  <data name="WebImport_SitemapImport.Text" xml:space="preserve"><value>站点地图导入</value></data>
+  <data name="WebImport_ImportPagesDiscoveredFrom.Text" xml:space="preserve"><value>从 sitemap.xml 文件中发现并导入页面。最多导入 100 个页面。</value></data>
+  <data name="WebImport_SitemapUrl.Header" xml:space="preserve"><value>站点地图 URL</value></data>
+  <data name="WebImport_ImportFromSitemap.Content" xml:space="preserve"><value>从站点地图导入</value></data>
+  <data name="WebImport_ImportsUpTo100.Text" xml:space="preserve"><value>从站点地图最多导入 100 个页面</value></data>
+  <data name="Digest_WeeklyDigest.Text" xml:space="preserve"><value>每周摘要</value></data>
+  <data name="Digest_GenerateNewDigest.Text" xml:space="preserve"><value>生成新摘要</value></data>
+  <data name="Digest_NewDocuments.Text" xml:space="preserve"><value>新增文档</value></data>
+  <data name="Digest_Conversations.Text" xml:space="preserve"><value>会话</value></data>
+  <data name="Digest_Searches.Text" xml:space="preserve"><value>搜索</value></data>
+  <data name="Digest_TokensUsed.Text" xml:space="preserve"><value>已用 Token</value></data>
+  <data name="Digest_StorageDelta.Text" xml:space="preserve"><value>存储增量</value></data>
+  <data name="Digest_LoadingDigestReports.Text" xml:space="preserve"><value>正在加载摘要报告...</value></data>
+  <data name="Digest_NoDigestReportsYet.Text" xml:space="preserve"><value>暂无摘要报告</value></data>
+  <data name="Digest_GenerateYourFirstWeekly.Text" xml:space="preserve"><value>生成您的第一份每周摘要,查看活动汇总、搜索趋势和会话亮点。</value></data>
+  <data name="Digest_GenerateFirstDigest.Text" xml:space="preserve"><value>生成第一份摘要</value></data>
+  <data name="Digest_TopSearches.Text" xml:space="preserve"><value>热门搜索</value></data>
+  <data name="Digest_NoSearchesRecordedThis.Text" xml:space="preserve"><value>本时段未记录任何搜索</value></data>
+  <data name="Digest_TopCollections.Text" xml:space="preserve"><value>热门合集</value></data>
+  <data name="Digest_Docs.Text" xml:space="preserve"><value> 个文档</value></data>
+  <data name="Digest_NoCollectionsConfiguredYet.Text" xml:space="preserve"><value>尚未配置任何合集</value></data>
+  <data name="Digest_FileTypesImported.Text" xml:space="preserve"><value>已导入的文件类型</value></data>
+  <data name="Digest_Files.Text" xml:space="preserve"><value> 个文件</value></data>
+  <data name="Digest_NoFilesImportedThis.Text" xml:space="preserve"><value>本时段未导入任何文件</value></data>
+  <data name="Digest_ConversationHighlights.Text" xml:space="preserve"><value>会话亮点</value></data>
+  <data name="Digest_Messages.Text" xml:space="preserve"><value> 条消息</value></data>
+  <data name="Digest_Tokens.Text" xml:space="preserve"><value> 个 Token</value></data>
+  <data name="Digest_NoConversationsThisPeriod.Text" xml:space="preserve"><value>本时段没有会话</value></data>
+  <data name="Digest_ReportHistory.Text" xml:space="preserve"><value>报告历史</value></data>
+  <data name="Digest_SelectAPreviousReport.Text" xml:space="preserve"><value>选择要查看的历史报告</value></data>
+  <data name="Digest_Docs2.Text" xml:space="preserve"><value> 个文档</value></data>
+  <data name="Digest_Searches2.Text" xml:space="preserve"><value> 次搜索</value></data>
+  <data name="PastSelf_PastSelf.Text" xml:space="preserve"><value>过往的自己</value></data>
+  <data name="PastSelf_QueryYourBeliefsInsights.Text" xml:space="preserve"><value>查询您的观点、洞见及其随时间的演变。</value></data>
+  <data name="PastSelf_WhatDidIThink.Text" xml:space="preserve"><value>我当时是怎么想的...</value></data>
+  <data name="PastSelf_EnterATopicEPh.PlaceholderText" xml:space="preserve"><value>输入主题(例如“远程办公”“AI 安全”“微服务”)</value></data>
+  <data name="PastSelf_SearchPastSelf.Content" xml:space="preserve"><value>搜索过往的自己</value></data>
+  <data name="PastSelf_TimePeriod.Text" xml:space="preserve"><value>时间范围</value></data>
+  <data name="PastSelf_AllTime.Content" xml:space="preserve"><value>全部时间</value></data>
+  <data name="PastSelf_PastWeek.Content" xml:space="preserve"><value>过去一周</value></data>
+  <data name="PastSelf_PastMonth.Content" xml:space="preserve"><value>过去一个月</value></data>
+  <data name="PastSelf_PastYear.Content" xml:space="preserve"><value>过去一年</value></data>
+  <data name="PastSelf_CustomDate.Content" xml:space="preserve"><value>自定义日期</value></data>
+  <data name="PastSelf_QuickActions.Text" xml:space="preserve"><value>快捷操作</value></data>
+  <data name="PastSelf_GetRelevantInsights.Content" xml:space="preserve"><value>获取相关洞见</value></data>
+  <data name="PastSelf_ShowBeliefEvolution.Content" xml:space="preserve"><value>显示观点演变</value></data>
+  <data name="PastSelf_GetActiveTopics.Content" xml:space="preserve"><value>获取活跃主题</value></data>
+  <data name="PastSelf_SearchingYourPast.Text" xml:space="preserve"><value>正在搜索您的过往...</value></data>
+  <data name="PastSelf_YourViewHasEvolved.Text" xml:space="preserve"><value>您的观点已发生演变</value></data>
+  <data name="PastSelf_Confidence.Text" xml:space="preserve"><value>置信度</value></data>
+  <data name="PastSelf_EvidenceFromYourConversations.Text" xml:space="preserve"><value>来自会话的证据</value></data>
+  <data name="PastSelf_RelatedConversations.Text" xml:space="preserve"><value>相关会话</value></data>
+  <data name="PastSelf_RelatedDocuments.Text" xml:space="preserve"><value>相关文档</value></data>
+  <data name="PastSelf_RelevantInsightsFromYour.Text" xml:space="preserve"><value>来自过往的相关洞见</value></data>
+  <data name="PastSelf_TopicsYouVeBeen.Text" xml:space="preserve"><value>您一直在探索的主题</value></data>
+  <data name="PastSelf_DraftAsMe.Text" xml:space="preserve"><value>以我的口吻起草</value></data>
+  <data name="PastSelf_GenerateTextInYour.Text" xml:space="preserve"><value>通过 AI 分析您的写作模式,生成符合您语气的文本。</value></data>
+  <data name="PastSelf_LoadProfile.Content" xml:space="preserve"><value>加载画像</value></data>
+  <data name="PastSelf_Samples.Text" xml:space="preserve"><value>样本</value></data>
+  <data name="PastSelf_AvgSentenceLength.Text" xml:space="preserve"><value>平均句长</value></data>
+  <data name="PastSelf_Words.Text" xml:space="preserve"><value> 词</value></data>
+  <data name="PastSelf_Style.Text" xml:space="preserve"><value>风格</value></data>
+  <data name="PastSelf_Context.Text" xml:space="preserve"><value>上下文</value></data>
+  <data name="PastSelf_DescribeWhatYouRePh.PlaceholderText" xml:space="preserve"><value>描述您要写的内容(例如“给团队的一封关于 Q4 路线图的邮件”)</value></data>
+  <data name="PastSelf_Goal.Text" xml:space="preserve"><value>目标</value></data>
+  <data name="PastSelf_WhatYouWantToPh.PlaceholderText" xml:space="preserve"><value>您想达成的目标(可选,例如“说服他们采用新时间表”)</value></data>
+  <data name="PastSelf_GenerateDraft.Content" xml:space="preserve"><value>生成草稿</value></data>
+  <data name="PastSelf_GeneratedDraft.Text" xml:space="preserve"><value>已生成的草稿</value></data>
+  <data name="PastSelf_Copy.Content" xml:space="preserve"><value>复制</value></data>
+  <data name="PastSelf_CopyForChat.Content" xml:space="preserve"><value>复制到聊天</value></data>
+  <data name="QuickAct_QuickActions.Text" xml:space="preserve"><value>Quick Actions</value></data>
+  <data name="QuickAct_AiPoweredDocumentIntelligence.Text" xml:space="preserve"><value>AI 驱动的文档智能工具。可总结、翻译、检测重复并进行整理。</value></data>
+  <data name="QuickAct_RecommendedForThisContext.Text" xml:space="preserve"><value>针对当前上下文的推荐</value></data>
+  <data name="QuickAct_UseTheSelectedDocument.Text" xml:space="preserve"><value>根据所选文档和当前摄取状态,直接跳转到最有用的下一步操作。</value></data>
+  <data name="QuickAct_Summarize.Text" xml:space="preserve"><value>总结</value></data>
+  <data name="QuickAct_KeyPoints.Text" xml:space="preserve"><value>要点</value></data>
+  <data name="QuickAct_Translate.Text" xml:space="preserve"><value>翻译</value></data>
+  <data name="QuickAct_Duplicates.Text" xml:space="preserve"><value>重复项</value></data>
+  <data name="QuickAct_Organize.Text" xml:space="preserve"><value>整理</value></data>
+  <data name="QuickAct_GenerateASectionAware.Text" xml:space="preserve"><value>生成分节感知的摘要</value></data>
+  <data name="QuickAct_BuildsAConciseBrief.Text" xml:space="preserve"><value>先将已索引的知识块合成为分节摘要,再生成最终总览,形成简明的简报。</value></data>
+  <data name="QuickAct_ChooseADocumentPh.PlaceholderText" xml:space="preserve"><value>选择文档...</value></data>
+  <data name="QuickAct_GenerateLayeredSummary.Content" xml:space="preserve"><value>生成分层摘要</value></data>
+  <data name="QuickAct_Summary.Text" xml:space="preserve"><value>摘要</value></data>
+  <data name="QuickAct_Layered.Text" xml:space="preserve"><value>分层</value></data>
+  <data name="QuickAct_SynthesizedFromIndexedSections.Text" xml:space="preserve"><value>先由已索引的章节合成,再进行最终归纳。</value></data>
+  <data name="QuickAct_SelectADocumentTo.Text" xml:space="preserve"><value>选择文档以提取要点</value></data>
+  <data name="QuickAct_ChooseADocumentPh2.PlaceholderText" xml:space="preserve"><value>选择文档...</value></data>
+  <data name="QuickAct_ExtractKeyPoints.Content" xml:space="preserve"><value>提取要点</value></data>
+  <data name="QuickAct_KeyPoints2.Text" xml:space="preserve"><value>要点</value></data>
+  <data name="QuickAct_TranslateTextWithAi.Text" xml:space="preserve"><value>使用 AI 翻译文本</value></data>
+  <data name="QuickAct_InputText.Text" xml:space="preserve"><value>输入文本</value></data>
+  <data name="QuickAct_EnterOrPasteTextPh.PlaceholderText" xml:space="preserve"><value>输入或粘贴要翻译的文本...</value></data>
+  <data name="QuickAct_TargetLanguage.Text" xml:space="preserve"><value>目标语言</value></data>
+  <data name="QuickAct_Translate2.Content" xml:space="preserve"><value>翻译</value></data>
+  <data name="QuickAct_Translation.Text" xml:space="preserve"><value>译文</value></data>
+  <data name="QuickAct_DuplicateDetection.Text" xml:space="preserve"><value>重复检测</value></data>
+  <data name="QuickAct_RunExactHashScans.Text" xml:space="preserve"><value>对完全相同的文件运行精确哈希扫描,或利用已存储的嵌入对近似重复项运行语义扫描。</value></data>
+  <data name="QuickAct_ScanExactDuplicates.Content" xml:space="preserve"><value>扫描完全重复项</value></data>
+  <data name="QuickAct_ScanSemanticNearDuplicates.Content" xml:space="preserve"><value>扫描语义近似重复项</value></data>
+  <data name="QuickAct_Wasted.Text" xml:space="preserve"><value> 被浪费</value></data>
+  <data name="QuickAct_Imported.Text" xml:space="preserve"><value> · 导入于 </value></data>
+  <data name="QuickAct_AiOrganizationAssistant.Text" xml:space="preserve"><value>AI 整理助手</value></data>
+  <data name="QuickAct_AnalyzesUncategorizedDocuments.Text" xml:space="preserve"><value>分析未分类的文档,并根据内容推荐合集和标签。</value></data>
+  <data name="QuickAct_AnalyzeSuggest.Content" xml:space="preserve"><value>分析并推荐</value></data>
+  <data name="QuickAct_Collection.Text" xml:space="preserve"><value>合集:</value></data>
+  <data name="QuickAct_Tags.Text" xml:space="preserve"><value>标签:</value></data>
+  <data name="QuickAct_Reasoning.Text" xml:space="preserve"><value>推理依据</value></data>
+  <data name="QuickAct_DocumentsAvailable.Text" xml:space="preserve"><value> 个文档可用</value></data>
+  <data name="ModelMgr_ManageYourLocalAi.Text" xml:space="preserve"><value>管理由 Ollama 驱动的本地 AI 模型。</value></data>
+  <data name="ModelMgr_Refresh.Content" xml:space="preserve"><value>刷新</value></data>
+  <data name="ModelMgr_Models.Text" xml:space="preserve"><value> 个模型</value></data>
+  <data name="ModelMgr_BrowseModels.Text" xml:space="preserve"><value>浏览模型</value></data>
+  <data name="ModelMgr_PullNewModel.Text" xml:space="preserve"><value>拉取新模型</value></data>
+  <data name="ModelMgr_EnterAModelName.Text" xml:space="preserve"><value>输入 Ollama 库中的模型名称,即可下载到本机。</value></data>
+  <data name="ModelMgr_EGLlama32Ph.PlaceholderText" xml:space="preserve"><value>例如 llama3.2、mistral、phi3、deepseek-r1</value></data>
+  <data name="ModelMgr_PullModel.Text" xml:space="preserve"><value>拉取模型</value></data>
+  <data name="ModelMgr_Cancel.Content" xml:space="preserve"><value>取消</value></data>
+  <data name="ModelMgr_PopularModels.Text" xml:space="preserve"><value>热门模型:</value></data>
+  <data name="ModelMgr_InstalledModels.Text" xml:space="preserve"><value>已安装的模型</value></data>
+  <data name="ModelMgr_LoadingModels.Text" xml:space="preserve"><value>正在加载模型...</value></data>
+  <data name="ModelMgr_Active.Text" xml:space="preserve"><value>当前使用</value></data>
+  <data name="ModelMgr_SetActive.Text" xml:space="preserve"><value>设为当前</value></data>
+  <data name="ModelMgr_CopyModelNameTip.ToolTipService.ToolTip" xml:space="preserve"><value>复制模型名称</value></data>
+  <data name="ModelMgr_CopyModelNameTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>复制模型名称</value></data>
+  <data name="ModelMgr_DeleteModelTip.ToolTipService.ToolTip" xml:space="preserve"><value>删除模型</value></data>
+  <data name="ModelMgr_DeleteModelTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>删除模型</value></data>
+  <data name="ModelMgr_Params.Text" xml:space="preserve"><value>参数</value></data>
+  <data name="ModelMgr_Ctx.Text" xml:space="preserve"><value>上下文</value></data>
+  <data name="ModelMgr_Digest.Text" xml:space="preserve"><value>摘要:</value></data>
+  <data name="ModelMgr_NoModelsInstalled.Text" xml:space="preserve"><value>未安装任何模型</value></data>
+  <data name="ModelMgr_PullAModelFrom.Text" xml:space="preserve"><value>从 Ollama 库拉取一个模型即可开始。热门选择包括 llama3.2、mistral 和 phi3。</value></data>
+  <data name="HwAdvisor_AnalyzeYourSystemTo.Text" xml:space="preserve"><value>分析您的系统,为您的硬件找到最合适的 AI 模型。</value></data>
+  <data name="HwAdvisor_ReScan.Text" xml:space="preserve"><value>重新扫描</value></data>
+  <data name="HwAdvisor_ScanningYourHardware.Text" xml:space="preserve"><value>正在扫描您的硬件...</value></data>
+  <data name="HwAdvisor_DetectingGpuCpuMemory.Text" xml:space="preserve"><value>正在检测 GPU、CPU、内存和 NPU 能力。</value></data>
+  <data name="HwAdvisor_SomeHardwareDetailsAre.Title" xml:space="preserve"><value>部分硬件信息不可用</value></data>
+  <data name="HwAdvisor_Graphics.Text" xml:space="preserve"><value>显卡</value></data>
+  <data name="HwAdvisor_Device.Text" xml:space="preserve"><value>设备</value></data>
+  <data name="HwAdvisor_VideoMemory.Text" xml:space="preserve"><value>显存</value></data>
+  <data name="HwAdvisor_Processor.Text" xml:space="preserve"><value>处理器</value></data>
+  <data name="HwAdvisor_Processor2.Text" xml:space="preserve"><value>处理器</value></data>
+  <data name="HwAdvisor_LogicalCores.Text" xml:space="preserve"><value>逻辑核心</value></data>
+  <data name="HwAdvisor_Cores.Text" xml:space="preserve"><value>核心</value></data>
+  <data name="HwAdvisor_Memory.Text" xml:space="preserve"><value>内存</value></data>
+  <data name="HwAdvisor_SystemRam.Text" xml:space="preserve"><value>系统内存</value></data>
+  <data name="HwAdvisor_TotalRam.Text" xml:space="preserve"><value>总内存</value></data>
+  <data name="HwAdvisor_Available.Text" xml:space="preserve"><value>可用</value></data>
+  <data name="HwAdvisor_NoNpu.Text" xml:space="preserve"><value>无 NPU</value></data>
+  <data name="HwAdvisor_RecommendedConfiguration.Text" xml:space="preserve"><value>推荐配置</value></data>
+  <data name="HwAdvisor_PerformanceTier.Text" xml:space="preserve"><value>性能等级</value></data>
+  <data name="HwAdvisor_RecommendedModelsForYour.Text" xml:space="preserve"><value>适合您系统的推荐模型</value></data>
+  <data name="HwAdvisor_TheseModelsAreOptimized.Text" xml:space="preserve"><value>这些模型已针对检测到的硬件能力进行优化。</value></data>
+  <data name="HwAdvisor_ChatModels.Text" xml:space="preserve"><value>聊天模型</value></data>
+  <data name="HwAdvisor_Chat.Text" xml:space="preserve"><value>聊天</value></data>
+  <data name="HwAdvisor_Installed.Text" xml:space="preserve"><value>已安装</value></data>
+  <data name="HwAdvisor_Install.Text" xml:space="preserve"><value>安装</value></data>
+  <data name="HwAdvisor_CodeModels.Text" xml:space="preserve"><value>代码模型</value></data>
+  <data name="HwAdvisor_Code.Text" xml:space="preserve"><value>代码</value></data>
+  <data name="HwAdvisor_Installed2.Text" xml:space="preserve"><value>已安装</value></data>
+  <data name="HwAdvisor_Install2.Text" xml:space="preserve"><value>安装</value></data>
+  <data name="HwAdvisor_EmbeddingModels.Text" xml:space="preserve"><value>嵌入模型</value></data>
+  <data name="HwAdvisor_Embedding.Text" xml:space="preserve"><value>嵌入</value></data>
+  <data name="HwAdvisor_Installed3.Text" xml:space="preserve"><value>已安装</value></data>
+  <data name="HwAdvisor_Install3.Text" xml:space="preserve"><value>安装</value></data>
+  <data name="HwAdvisor_LocalAiOnly.Text" xml:space="preserve"><value>仅本地 AI</value></data>
+  <data name="HwAdvisor_AllModelsRunEntirely.Text" xml:space="preserve"><value> — 所有模型完全在您的硬件上运行。不会向外部服务器发送任何数据,您的硬件信息也绝不会离开本机。</value></data>
+  <data name="WfBuilder_Workflows.Text" xml:space="preserve"><value>工作流</value></data>
+  <data name="WfBuilder_MultiStepAiPipelines.Text" xml:space="preserve"><value>多步骤 AI 管道</value></data>
+  <data name="WfBuilder_NewWorkflow.Content" xml:space="preserve"><value>新建工作流</value></data>
+  <data name="WfBuilder_ImportWorkflow.Content" xml:space="preserve"><value>导入工作流</value></data>
+  <data name="WfBuilder_Steps.Text" xml:space="preserve"><value> 个步骤</value></data>
+  <data name="WfBuilder_Template.Text" xml:space="preserve"><value>模板</value></data>
+  <data name="WfBuilder_Runs.Text" xml:space="preserve"><value> 次运行</value></data>
+  <data name="WfBuilder_UseTemplate.Content" xml:space="preserve"><value>使用模板</value></data>
+  <data name="WfBuilder_Edit.Content" xml:space="preserve"><value>编辑</value></data>
+  <data name="WfBuilder_Delete.Content" xml:space="preserve"><value>删除</value></data>
+  <data name="WfBuilder_BuildMultiStepAi.Text" xml:space="preserve"><value>构建多步骤 AI 管道。每一步的输出都会传入下一步。</value></data>
+  <data name="WfBuilder_WorkflowEditor.Text" xml:space="preserve"><value>工作流编辑器</value></data>
+  <data name="WfBuilder_Name.Text" xml:space="preserve"><value>名称</value></data>
+  <data name="WfBuilder_MyWorkflowPh.PlaceholderText" xml:space="preserve"><value>我的工作流</value></data>
+  <data name="WfBuilder_Description.Text" xml:space="preserve"><value>描述</value></data>
+  <data name="WfBuilder_WhatDoesThisWorkflowPh.PlaceholderText" xml:space="preserve"><value>此工作流的用途是什么?</value></data>
+  <data name="WfBuilder_Category.Text" xml:space="preserve"><value>类别</value></data>
+  <data name="WfBuilder_Steps2.Text" xml:space="preserve"><value>步骤</value></data>
+  <data name="WfBuilder_AddStep.Content" xml:space="preserve"><value>添加步骤</value></data>
+  <data name="WfBuilder_StepNamePh.PlaceholderText" xml:space="preserve"><value>步骤名称</value></data>
+  <data name="WfBuilder_MoveUpTip.ToolTipService.ToolTip" xml:space="preserve"><value>上移</value></data>
+  <data name="WfBuilder_MoveDownTip.ToolTipService.ToolTip" xml:space="preserve"><value>下移</value></data>
+  <data name="WfBuilder_RemoveStepTip.ToolTipService.ToolTip" xml:space="preserve"><value>移除步骤</value></data>
+  <data name="WfBuilder_StepType.Header" xml:space="preserve"><value>步骤类型</value></data>
+  <data name="WfBuilder_EnterPromptUseInputPh.PlaceholderText" xml:space="preserve"><value>输入提示词... 使用 {{input}} 表示原始输入,{{previous_output}} 表示上一步的输出</value></data>
+  <data name="WfBuilder_EnterPromptUseInputPh.Header" xml:space="preserve"><value>提示词模板</value></data>
+  <data name="WfBuilder_Cancel.Content" xml:space="preserve"><value>取消</value></data>
+  <data name="WfBuilder_SaveWorkflow.Content" xml:space="preserve"><value>保存工作流</value></data>
+  <data name="WfBuilder_FocusedWorkflowRun.Text" xml:space="preserve"><value>聚焦的工作流运行</value></data>
+  <data name="WfBuilder_TheMatchingWorkflowAnd.Text" xml:space="preserve"><value>匹配的工作流及其已保存的结果已置于页面顶部,便于查看。</value></data>
+  <data name="WfBuilder_Dismiss.Content" xml:space="preserve"><value>关闭</value></data>
+  <data name="WfBuilder_RunWorkflow.Text" xml:space="preserve"><value>运行工作流</value></data>
+  <data name="WfBuilder_ExportJson.Content" xml:space="preserve"><value>导出 JSON</value></data>
+  <data name="WfBuilder_TemplateGuide.Text" xml:space="preserve"><value>模板指南</value></data>
+  <data name="WfBuilder_BestFor.Text" xml:space="preserve"><value>最适用于</value></data>
+  <data name="WfBuilder_YouLlGet.Text" xml:space="preserve"><value>您将获得</value></data>
+  <data name="WfBuilder_TryItWith.Text" xml:space="preserve"><value>试试用于</value></data>
+  <data name="WfBuilder_RunTheTemplateAs.Text" xml:space="preserve"><value>如果模板已经合适,可直接运行。若想先自定义步骤再保存自己的版本,请使用“使用模板”。</value></data>
+  <data name="WfBuilder_Input.Text" xml:space="preserve"><value>输入</value></data>
+  <data name="WfBuilder_PasteOrTypeThePh.PlaceholderText" xml:space="preserve"><value>粘贴或输入要处理的内容...</value></data>
+  <data name="WfBuilder_Run.Content" xml:space="preserve"><value>运行</value></data>
+  <data name="WfBuilder_Cancel2.Content" xml:space="preserve"><value>取消</value></data>
+  <data name="WfBuilder_Running.Text" xml:space="preserve"><value>正在运行:</value></data>
+  <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>最近运行</value></data>
+  <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>已保存的工作流结果,无需重新运行即可再次打开。</value></data>
+  <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>从 Operations 打开</value></data>
+  <data name="WfBuilder_OpenResult.Content" xml:space="preserve"><value>打开结果</value></data>
+  <data name="WfBuilder_SaveAsDocument.Content" xml:space="preserve"><value>另存为文档</value></data>
+  <data name="WfBuilder_ExportResult.Content" xml:space="preserve"><value>导出结果</value></data>
+  <data name="WfBuilder_NoRunsRecordedYet.Text" xml:space="preserve"><value>所选工作流尚无运行记录。</value></data>
+  <data name="WfBuilder_StepOutputs.Text" xml:space="preserve"><value>步骤输出</value></data>
+  <data name="WfBuilder_Tokens.Text" xml:space="preserve"><value>个 Token</value></data>
+  <data name="WfBuilder_Tok.Text" xml:space="preserve"><value> Token</value></data>
+  <data name="WfBuilder_FinalOutput.Text" xml:space="preserve"><value>最终输出</value></data>
+  <data name="WfBuilder_CopyToClipboard.Content" xml:space="preserve"><value>复制到剪贴板</value></data>
+  <data name="WfBuilder_SaveAsDocument2.Content" xml:space="preserve"><value>另存为文档</value></data>
+  <data name="WfBuilder_ExportResult2.Content" xml:space="preserve"><value>导出结果</value></data>
+  <data name="WfBuilder_OpenVault.Content" xml:space="preserve"><value>打开 Knowledge Vault</value></data>
+  <data name="WfBuilder_StartWithATemplate.Text" xml:space="preserve"><value>从模板开始</value></data>
+  <data name="WfBuilder_WorkflowsHelpYouTurn.Text" xml:space="preserve"><value>工作流可将一段输入转化为可重复的多步骤结果。在下方选择一个入门模板,直接运行或稍后自定义。</value></data>
+  <data name="WfBuilder_SelectTemplate.Content" xml:space="preserve"><value>选择模板</value></data>
+  <data name="WfBuilder_BestFor2.Text" xml:space="preserve"><value>最适用于:</value></data>
+  <data name="WfBuilder_NoStarterTemplatesAre.Text" xml:space="preserve"><value>当前没有可用的入门模板。</value></data>
+  <data name="WfBuilder_CreateBlankWorkflow.Content" xml:space="preserve"><value>创建空白工作流</value></data>
+  <data name="WfBuilder_YouCanAlsoBuild.Text" xml:space="preserve"><value>如果没有合适的入门模板,您也可以从头构建工作流。</value></data>
+  <data name="Workspace_Profiles.Text" xml:space="preserve"><value>配置文件</value></data>
+  <data name="Workspace_RefreshProfilesTip.ToolTipService.ToolTip" xml:space="preserve"><value>刷新配置文件</value></data>
+  <data name="Workspace_NewProfileNamePh.PlaceholderText" xml:space="preserve"><value>新配置文件名称...</value></data>
+  <data name="Workspace_DescriptionOptionalPh.PlaceholderText" xml:space="preserve"><value>描述(可选)</value></data>
+  <data name="Workspace_CreateProfile.Text" xml:space="preserve"><value>创建配置文件</value></data>
+  <data name="Workspace_LoadingProfiles.Text" xml:space="preserve"><value>正在加载配置文件...</value></data>
+  <data name="Workspace_Default.Text" xml:space="preserve"><value>默认</value></data>
+  <data name="Workspace_NoProfilesYet.Text" xml:space="preserve"><value>暂无配置文件</value></data>
+  <data name="Workspace_CreateOneAboveTo.Text" xml:space="preserve"><value>在上方创建一个配置文件,即可保存您的工作区配置。</value></data>
+  <data name="Workspace_Profiles2.Text" xml:space="preserve"><value>个配置文件</value></data>
+  <data name="Workspace_SelectAProfile.Text" xml:space="preserve"><value>选择一个配置文件</value></data>
+  <data name="Workspace_ChooseAWorkspaceProfile.Text" xml:space="preserve"><value>在左侧面板中选择一个工作区配置文件以查看和编辑其配置。配置文件可保存模型、合集和设置预设。</value></data>
+  <data name="Workspace_Default2.Text" xml:space="preserve"><value>默认</value></data>
+  <data name="Workspace_Duplicate.Text" xml:space="preserve"><value>复制</value></data>
+  <data name="Workspace_Created.Text" xml:space="preserve"><value>创建于 </value></data>
+  <data name="Workspace_Updated.Text" xml:space="preserve"><value>更新于 </value></data>
+  <data name="Workspace_ProfileConfiguration.Text" xml:space="preserve"><value>配置文件设置</value></data>
+  <data name="Workspace_EditThisProfileS.Text" xml:space="preserve"><value>编辑此配置文件的工作区设置。点击“保存”后更改才会生效。</value></data>
+  <data name="Workspace_ProfileName.Text" xml:space="preserve"><value>配置文件名称</value></data>
+  <data name="Workspace_EnterADisplayNamePh.PlaceholderText" xml:space="preserve"><value>输入此配置文件的显示名称</value></data>
+  <data name="Workspace_Description.Text" xml:space="preserve"><value>描述</value></data>
+  <data name="Workspace_OptionalDescriptionOfThisPh.PlaceholderText" xml:space="preserve"><value>此配置文件用途的说明(可选)</value></data>
+  <data name="Workspace_ActiveModelId.Text" xml:space="preserve"><value>当前模型 ID</value></data>
+  <data name="Workspace_EGLlama32Ph.PlaceholderText" xml:space="preserve"><value>例如 llama3.2、mistral、phi3</value></data>
+  <data name="Workspace_TheOllamaModelIdentifier.Text" xml:space="preserve"><value>加载此配置文件时要激活的 Ollama 模型标识符。</value></data>
+  <data name="Workspace_ActiveCollectionIds.Text" xml:space="preserve"><value>启用的合集 ID</value></data>
+  <data name="Workspace_EG13Ph.PlaceholderText" xml:space="preserve"><value>例如 1,3,7(逗号分隔)</value></data>
+  <data name="Workspace_CommaSeparatedListOf.Text" xml:space="preserve"><value>加载此配置文件时要启用的合集 ID 列表(逗号分隔)。</value></data>
+  <data name="Workspace_CustomSettings.Text" xml:space="preserve"><value>自定义设置</value></data>
+  <data name="Workspace_JsonOrKeyValuePh.PlaceholderText" xml:space="preserve"><value>用于附加配置的 JSON 或 key=value 键值对</value></data>
+  <data name="Workspace_FreeFormSettingsStored.Text" xml:space="preserve"><value>与此配置文件一起保存的自由格式设置。可使用 JSON 或任意结构化格式。</value></data>
+  <data name="Workspace_DefaultProfile.Text" xml:space="preserve"><value>默认配置文件</value></data>
+  <data name="Workspace_ThisProfileWillBe.Text" xml:space="preserve"><value>应用启动时将自动加载此配置文件。</value></data>
+  <data name="Workspace_SaveProfile.Text" xml:space="preserve"><value>保存配置文件</value></data>
+  <data name="Workspace_SetAsDefault.Text" xml:space="preserve"><value>设为默认</value></data>
+  <data name="Workspace_DeleteProfile.Text" xml:space="preserve"><value>删除配置文件</value></data>
+  <data name="Settings_Settings.Text" xml:space="preserve"><value>设置</value></data>
+  <data name="Settings_ConfigureYourAiProviders.Text" xml:space="preserve"><value>配置您的 AI 提供商、推理参数和 Knowledge Vault 设置。</value></data>
+  <data name="Settings_AiProviders.Text" xml:space="preserve"><value>AI 提供商</value></data>
+  <data name="Settings_ApiKeysSecured.Title" xml:space="preserve"><value>API 密钥已受保护</value></data>
+  <data name="Settings_ActiveProvider.Text" xml:space="preserve"><value>当前提供商</value></data>
+  <data name="Settings_OllamaLocal.Text" xml:space="preserve"><value>Ollama(本地)</value></data>
+  <data name="Settings_Free.Text" xml:space="preserve"><value>免费</value></data>
+  <data name="Settings_Endpoint.Text" xml:space="preserve"><value>端点</value></data>
+  <data name="Settings_DefaultChatModel.Text" xml:space="preserve"><value>默认聊天模型</value></data>
+  <data name="Settings_EmbeddingModel.Text" xml:space="preserve"><value>嵌入模型</value></data>
+  <data name="Settings_TestConnection.Content" xml:space="preserve"><value>测试连接</value></data>
+  <data name="Settings_Cloud.Text" xml:space="preserve"><value>云端</value></data>
+  <data name="Settings_ApiKey.Text" xml:space="preserve"><value>API 密钥</value></data>
+  <data name="Settings_Endpoint2.Text" xml:space="preserve"><value>端点</value></data>
+  <data name="Settings_DefaultModel.Text" xml:space="preserve"><value>默认模型</value></data>
+  <data name="Settings_TestConnection2.Content" xml:space="preserve"><value>测试连接</value></data>
+  <data name="Settings_Cloud2.Text" xml:space="preserve"><value>云端</value></data>
+  <data name="Settings_ApiKey2.Text" xml:space="preserve"><value>API 密钥</value></data>
+  <data name="Settings_Endpoint3.Text" xml:space="preserve"><value>端点</value></data>
+  <data name="Settings_DefaultModel2.Text" xml:space="preserve"><value>默认模型</value></data>
+  <data name="Settings_NoteAnthropicDoesNot.Text" xml:space="preserve"><value>注意:Anthropic 不支持嵌入。请使用 Ollama 或 OpenAI 进行文档索引。</value></data>
+  <data name="Settings_TestConnection3.Content" xml:space="preserve"><value>测试连接</value></data>
+  <data name="Settings_Appearance.Text" xml:space="preserve"><value>外观</value></data>
+  <data name="Settings_Theme.Text" xml:space="preserve"><value>主题</value></data>
+  <data name="Settings_ChangesApplyImmediatelySystem.Text" xml:space="preserve"><value>更改立即生效。“系统默认”跟随您的 Windows 主题。</value></data>
+  <data name="Settings_MultiModelRouting.Text" xml:space="preserve"><value>多模型路由</value></data>
+  <data name="Settings_AutomaticallyRoutePromptsTo.Text" xml:space="preserve"><value>根据任务类型自动将提示词路由到最合适的 AI 模型。提取和聊天优先使用快速本地模型;分析和代码优先使用高质量云端模型。</value></data>
+  <data name="Settings_EnableAutoRouting.Header" xml:space="preserve"><value>启用自动路由</value></data>
+  <data name="Settings_RoutingProfile.Text" xml:space="preserve"><value>路由配置</value></data>
+  <data name="Settings_CostOptimizedLocalModels.Text" xml:space="preserve"><value>成本优先 — 所有任务使用本地模型,云端仅作后备</value></data>
+  <data name="Settings_QualityOptimizedCloudModels.Text" xml:space="preserve"><value>质量优先 — 分析、代码、创意任务使用云端模型</value></data>
+  <data name="Settings_BalancedLocalForSimple.Text" xml:space="preserve"><value>均衡 — 简单任务用本地,质量关键任务用云端</value></data>
+  <data name="Settings_CostTracking.Text" xml:space="preserve"><value>成本跟踪</value></data>
+  <data name="Settings_EstimatedApiCostsFor.Text" xml:space="preserve"><value>云端提供商的预估 API 费用。本地 Ollama 模型免费。</value></data>
+  <data name="Settings_TotalSpend.Text" xml:space="preserve"><value>总支出</value></data>
+  <data name="Settings_Today.Text" xml:space="preserve"><value>今日</value></data>
+  <data name="Settings_TotalTokens.Text" xml:space="preserve"><value>总 Token 数</value></data>
+  <data name="Settings_Inference.Text" xml:space="preserve"><value>推理</value></data>
+  <data name="Settings_Temperature.Text" xml:space="preserve"><value>温度</value></data>
+  <data name="Settings_MaxTokens.Text" xml:space="preserve"><value>最大 Token 数</value></data>
+  <data name="Settings_ContextWindow.Text" xml:space="preserve"><value>上下文窗口</value></data>
+  <data name="Settings_KnowledgeVault.Text" xml:space="preserve"><value>Knowledge Vault</value></data>
+  <data name="Settings_ChunkSizeTokens.Text" xml:space="preserve"><value>块大小(Token)</value></data>
+  <data name="Settings_ChunkOverlap.Text" xml:space="preserve"><value>块重叠</value></data>
+  <data name="Settings_TopKResults.Text" xml:space="preserve"><value>Top-K 结果数</value></data>
+  <data name="Settings_AutoIndexWatchFolders.Header" xml:space="preserve"><value>自动索引监视文件夹</value></data>
+  <data name="Settings_ResearchMode.Text" xml:space="preserve"><value>研究模式</value></data>
+  <data name="Settings_AugmentAiAnswersWith.Text" xml:space="preserve"><value>用实时网络来源增强 AI 回答。启用后,查询将搜索网络,并将结果与本地 Knowledge Vault 融合。</value></data>
+  <data name="Settings_EnableResearchMode.Header" xml:space="preserve"><value>启用研究模式</value></data>
+  <data name="Settings_EnableResearchMode.OffContent" xml:space="preserve"><value>仅本地知识库</value></data>
+  <data name="Settings_EnableResearchMode.OnContent" xml:space="preserve"><value>本地知识库 + 网络搜索</value></data>
+  <data name="Settings_SearchProvider.Text" xml:space="preserve"><value>搜索提供商</value></data>
+  <data name="Settings_SearchApiKey.Text" xml:space="preserve"><value>搜索 API 密钥</value></data>
+  <data name="Settings_EnterYourSearchApiPh.PlaceholderText" xml:space="preserve"><value>输入您的搜索 API 密钥</value></data>
+  <data name="Settings_MaxSearchResults.Text" xml:space="preserve"><value>最多搜索结果数</value></data>
+  <data name="Settings_CacheDurationMinutes.Text" xml:space="preserve"><value>缓存时长(分钟)</value></data>
+  <data name="Settings_Storage.Text" xml:space="preserve"><value>存储</value></data>
+  <data name="Settings_DataLocation.Text" xml:space="preserve"><value>数据位置</value></data>
+  <data name="Settings_Encrypted.OnContent" xml:space="preserve"><value>已加密</value></data>
+  <data name="Settings_Encrypted.OffContent" xml:space="preserve"><value>未加密</value></data>
+  <data name="Settings_Connections.Text" xml:space="preserve"><value>连接</value></data>
+  <data name="Settings_EnableLocalApi.Header" xml:space="preserve"><value>启用本地 API</value></data>
+  <data name="Settings_EnableLocalApi.OffContent" xml:space="preserve"><value>已禁用</value></data>
+  <data name="Settings_EnableLocalApi.OnContent" xml:space="preserve"><value>已启用(需身份验证)</value></data>
+  <data name="Settings_ApiToken.Text" xml:space="preserve"><value>API 令牌</value></data>
+  <data name="Settings_NoTokenYetClickPh.PlaceholderText" xml:space="preserve"><value>尚无令牌 — 请点击“重新生成”</value></data>
+  <data name="Settings_Copy.Content" xml:space="preserve"><value>复制</value></data>
+  <data name="Settings_Regenerate.Content" xml:space="preserve"><value>重新生成</value></data>
+  <data name="Settings_KeepThisTokenSecret.Text" xml:space="preserve"><value>请妥善保管此令牌。重新生成后,现有客户端将解除配对,直到粘贴新令牌。开关更改将在下次启动时生效。</value></data>
+  <data name="Settings_SaveSettings.Content" xml:space="preserve"><value>保存设置</value></data>
+  <data name="Settings_ResetToDefaults.Content" xml:space="preserve"><value>恢复默认值</value></data>
+  <data name="Backup_BackupRestore.Text" xml:space="preserve"><value>备份与还原</value></data>
+  <data name="Backup_ProtectYourKnowledgeBase.Text" xml:space="preserve"><value>使用加密备份和一键还原保护您的知识库。</value></data>
+  <data name="Backup_Database.Text" xml:space="preserve"><value>数据库</value></data>
+  <data name="Backup_Documents.Text" xml:space="preserve"><value>文档</value></data>
+  <data name="Backup_TotalEstimated.Text" xml:space="preserve"><value>预计总计</value></data>
+  <data name="Backup_Documents2.Text" xml:space="preserve"><value>文档</value></data>
+  <data name="Backup_CreateBackup.Text" xml:space="preserve"><value>创建备份</value></data>
+  <data name="Backup_DestinationFolder.Text" xml:space="preserve"><value>目标文件夹</value></data>
+  <data name="Backup_SelectBackupDestinationPh.PlaceholderText" xml:space="preserve"><value>选择备份目标位置...</value></data>
+  <data name="Backup_Browse.Content" xml:space="preserve"><value>浏览</value></data>
+  <data name="Backup_EncryptBackupAes256.Content" xml:space="preserve"><value>加密备份(AES-256)</value></data>
+  <data name="Backup_EncryptionPasswordPh.PlaceholderText" xml:space="preserve"><value>加密密码</value></data>
+  <data name="Backup_IncludeIndexedDocuments.Content" xml:space="preserve"><value>包含已索引的文档</value></data>
+  <data name="Backup_NotesOptional.Text" xml:space="preserve"><value>备注(可选)</value></data>
+  <data name="Backup_AddANoteAboutPh.PlaceholderText" xml:space="preserve"><value>为此备份添加备注...</value></data>
+  <data name="Backup_CreateBackup2.Content" xml:space="preserve"><value>创建备份</value></data>
+  <data name="Backup_RestoreFromBackup.Text" xml:space="preserve"><value>从备份还原</value></data>
+  <data name="Backup_BackupFile.Text" xml:space="preserve"><value>备份文件</value></data>
+  <data name="Backup_SelectAgentxbakFilePh.PlaceholderText" xml:space="preserve"><value>选择 .agentxbak 文件...</value></data>
+  <data name="Backup_Browse2.Content" xml:space="preserve"><value>浏览</value></data>
+  <data name="Backup_RestoreComplete.Text" xml:space="preserve"><value>还原完成</value></data>
+  <data name="Backup_Restore.Content" xml:space="preserve"><value>还原</value></data>
+  <data name="Backup_BackupHistory.Text" xml:space="preserve"><value>备份历史</value></data>
+  <data name="Backup_RestoreThisBackupTip.ToolTipService.ToolTip" xml:space="preserve"><value>还原此备份</value></data>
+  <data name="Backup_RestoreThisBackupTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>还原此备份</value></data>
+  <data name="Backup_DeleteBackupTip.ToolTipService.ToolTip" xml:space="preserve"><value>删除备份</value></data>
+  <data name="Backup_DeleteBackupTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>删除备份</value></data>
+  <data name="EmailSet_EmailConnector.Text" xml:space="preserve"><value>邮件连接器</value></data>
+  <data name="EmailSet_SyncGmailAndOutlook.Text" xml:space="preserve"><value>将 Gmail 和 Outlook 邮件同步到 Knowledge Vault,用于 AI 搜索和分拣。</value></data>
+  <data name="EmailSet_Error.Title" xml:space="preserve"><value>错误</value></data>
+  <data name="EmailSet_ConnectedAccounts.Text" xml:space="preserve"><value>已连接的账户</value></data>
+  <data name="EmailSet_Connect.Content" xml:space="preserve"><value>连接</value></data>
+  <data name="EmailSet_Disconnect.Content" xml:space="preserve"><value>断开连接</value></data>
+  <data name="EmailSet_OutlookEmail.Text" xml:space="preserve"><value>Outlook 邮件</value></data>
+  <data name="EmailSet_Connect2.Content" xml:space="preserve"><value>连接</value></data>
+  <data name="EmailSet_Disconnect2.Content" xml:space="preserve"><value>断开连接</value></data>
+  <data name="EmailSet_SyncSettings.Text" xml:space="preserve"><value>同步设置</value></data>
+  <data name="EmailSet_EmailSync.Header" xml:space="preserve"><value>邮件同步</value></data>
+  <data name="EmailSet_EmailSync.OffContent" xml:space="preserve"><value>关</value></data>
+  <data name="EmailSet_EmailSync.OnContent" xml:space="preserve"><value>开</value></data>
+  <data name="EmailSet_SyncIntervalMinutes.Text" xml:space="preserve"><value>同步间隔(分钟)</value></data>
+  <data name="EmailSet_MaxMessagesPerSync.Text" xml:space="preserve"><value>每次同步的最大邮件数</value></data>
+  <data name="EmailSet_SyncDaysBack.Text" xml:space="preserve"><value>同步回溯天数</value></data>
+  <data name="EmailSet_AiEmailCategorization.Header" xml:space="preserve"><value>AI 邮件分类</value></data>
+  <data name="EmailSet_AiEmailCategorization.OffContent" xml:space="preserve"><value>关</value></data>
+  <data name="EmailSet_AiEmailCategorization.OnContent" xml:space="preserve"><value>开</value></data>
+  <data name="EmailSet_IncludeAttachmentNamesIn.Header" xml:space="preserve"><value>将附件名称纳入搜索索引</value></data>
+  <data name="EmailSet_IncludeAttachmentNamesIn.OffContent" xml:space="preserve"><value>不包含</value></data>
+  <data name="EmailSet_IncludeAttachmentNamesIn.OnContent" xml:space="preserve"><value>包含</value></data>
+  <data name="EmailSet_SaveSettings.Content" xml:space="preserve"><value>保存设置</value></data>
+  <data name="EmailSet_SyncNow.Content" xml:space="preserve"><value>立即同步</value></data>
+  <data name="EmailSet_LastSynced.Text" xml:space="preserve"><value>上次同步</value></data>
+  <data name="EmailSet_NextSync.Text" xml:space="preserve"><value>下次同步</value></data>
+  <data name="EmailSet_Status.Text" xml:space="preserve"><value>状态</value></data>
+  <data name="CalSet_CalendarConnector.Text" xml:space="preserve"><value>日历连接器</value></data>
+  <data name="CalSet_SyncGoogleCalendarAnd.Text" xml:space="preserve"><value>将 Google 日历和 Microsoft Outlook 事件同步到 Knowledge Vault,用于 AI 搜索。</value></data>
+  <data name="CalSet_Error.Title" xml:space="preserve"><value>错误</value></data>
+  <data name="CalSet_ConnectedAccounts.Text" xml:space="preserve"><value>已连接的账户</value></data>
+  <data name="CalSet_GoogleCalendar.Text" xml:space="preserve"><value>Google 日历</value></data>
+  <data name="CalSet_Connect.Content" xml:space="preserve"><value>连接</value></data>
+  <data name="CalSet_Disconnect.Content" xml:space="preserve"><value>断开连接</value></data>
+  <data name="CalSet_OutlookCalendar.Text" xml:space="preserve"><value>Outlook 日历</value></data>
+  <data name="CalSet_Connect2.Content" xml:space="preserve"><value>连接</value></data>
+  <data name="CalSet_Disconnect2.Content" xml:space="preserve"><value>断开连接</value></data>
+  <data name="CalSet_SyncSettings.Text" xml:space="preserve"><value>同步设置</value></data>
+  <data name="CalSet_CalendarSync.Header" xml:space="preserve"><value>日历同步</value></data>
+  <data name="CalSet_CalendarSync.OffContent" xml:space="preserve"><value>关</value></data>
+  <data name="CalSet_CalendarSync.OnContent" xml:space="preserve"><value>开</value></data>
+  <data name="CalSet_SyncIntervalMinutes.Text" xml:space="preserve"><value>同步间隔(分钟)</value></data>
+  <data name="CalSet_SyncRangePastDays.Text" xml:space="preserve"><value>同步范围:过去天数</value></data>
+  <data name="CalSet_SyncRangeFutureDays.Text" xml:space="preserve"><value>同步范围:未来天数</value></data>
+  <data name="CalSet_ConflictResolution.Text" xml:space="preserve"><value>冲突解决</value></data>
+  <data name="CalSet_IncludeAttendeeDetails.Header" xml:space="preserve"><value>包含参与者详情</value></data>
+  <data name="CalSet_IncludeAttendeeDetails.OffContent" xml:space="preserve"><value>不包含</value></data>
+  <data name="CalSet_IncludeAttendeeDetails.OnContent" xml:space="preserve"><value>包含</value></data>
+  <data name="CalSet_IncludeEventDescriptions.Header" xml:space="preserve"><value>包含事件描述</value></data>
+  <data name="CalSet_IncludeEventDescriptions.OffContent" xml:space="preserve"><value>不包含</value></data>
+  <data name="CalSet_IncludeEventDescriptions.OnContent" xml:space="preserve"><value>包含</value></data>
+  <data name="CalSet_SaveSettings.Content" xml:space="preserve"><value>保存设置</value></data>
+  <data name="CalSet_SyncNow.Content" xml:space="preserve"><value>立即同步</value></data>
+  <data name="CalSet_LastSynced.Text" xml:space="preserve"><value>上次同步</value></data>
+  <data name="CalSet_NextSync.Text" xml:space="preserve"><value>下次同步</value></data>
+  <data name="CalSet_Status.Text" xml:space="preserve"><value>状态</value></data>
+  <data name="Plugin_OpenedFromOperations.Text" xml:space="preserve"><value>从 Operations 打开</value></data>
+  <data name="Plugin_FocusedConnector.Text" xml:space="preserve"><value>聚焦的连接器</value></data>
+  <data name="Plugin_Dismiss.Content" xml:space="preserve"><value>关闭</value></data>
+  <data name="ExportDlg_ExportConversation.Title" xml:space="preserve"><value>导出会话</value></data>
+  <data name="ExportDlg_ExportConversation.PrimaryButtonText" xml:space="preserve"><value>导出</value></data>
+  <data name="ExportDlg_ExportConversation.CloseButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="ExportDlg_Format.Header" xml:space="preserve"><value>格式</value></data>
+  <data name="ExportDlg_TemplateOptional.Header" xml:space="preserve"><value>模板(可选)</value></data>
+  <data name="ExportDlg_IncludeCitations.Header" xml:space="preserve"><value>包含引用</value></data>
+  <data name="ExportDlg_IncludeMetadata.Header" xml:space="preserve"><value>包含元数据</value></data>
+  <data name="ExportDlg_IncludeTimestamps.Header" xml:space="preserve"><value>包含时间戳</value></data>
+  <data name="ExportDlg_IncludeBranches.Header" xml:space="preserve"><value>包含分支</value></data>
+  <data name="JumpTo_JumpToPageDocumentPh.PlaceholderText" xml:space="preserve"><value>跳转到页面、文档或会话...</value></data>
+  <data name="Privacy_PrivacyPolicy.Text" xml:space="preserve"><value>隐私政策</value></data>
+  <data name="Privacy_EffectiveDateFebruary26.Text" xml:space="preserve"><value>生效日期:2026 年 2 月 26 日</value></data>
+  <data name="Privacy_StrategiaXWeUs.Text" xml:space="preserve"><value>Strategia-X(以下称“我们”)运营 Agent-X。本隐私政策说明您使用我们的桌面应用程序时,我们如何处理您的信息。</value></data>
+  <data name="Privacy_LocalFirstPrivacy.Text" xml:space="preserve"><value>本地优先的隐私保护</value></data>
+  <data name="Privacy_YourDataNeverLeaves.Text" xml:space="preserve"><value>您的数据绝不会离开您的设备。所有 AI 处理、文档存储和会话完全保留在您的计算机上。</value></data>
+  <data name="Privacy_Verified.Text" xml:space="preserve"><value>已验证</value></data>
+  <data name="Privacy_OurCommitmentToPrivacy.Text" xml:space="preserve"><value>我们的隐私承诺</value></data>
+  <data name="Privacy_AgentXIsDesigned.Text" xml:space="preserve"><value>Agent-X 以隐私为核心原则设计。您的所有数据 — 文档、会话、嵌入和设置 — 均存储在您的本地设备上。我们不运营任何处理或存储您个人数据的云服务器。</value></data>
+  <data name="Privacy_OurLocalFirstArchitecture.Text" xml:space="preserve"><value>我们的本地优先架构意味着,您对在 Agent-X 中创建或导入的每一条信息都保有完全的所有权和控制权。无需创建账户,没有数据同步,也不传输任何遥测数据。</value></data>
+  <data name="Privacy_InformationWeCollect.Text" xml:space="preserve"><value>我们收集的信息</value></data>
+  <data name="Privacy_InformationYouProvide.Text" xml:space="preserve"><value>您提供的信息</value></data>
+  <data name="Privacy_WhenYouUseAgent.Text" xml:space="preserve"><value>当您使用 Agent-X 时,以下信息将在您的设备上创建并本地存储:</value></data>
+  <data name="Privacy_DocumentsYouImportInto.Text" xml:space="preserve"><value>您导入 Knowledge Vault 的文档</value></data>
+  <data name="Privacy_ConversationsWithAiModels.Text" xml:space="preserve"><value>与 AI 模型的会话</value></data>
+  <data name="Privacy_SettingsAndPreferencesYou.Text" xml:space="preserve"><value>您配置的设置和偏好</value></data>
+  <data name="Privacy_CollectionNamesAndOrganization.Text" xml:space="preserve"><value>合集名称和组织标签</value></data>
+  <data name="Privacy_AutomaticallyCollectedInformat.Text" xml:space="preserve"><value>自动收集的信息</value></data>
+  <data name="Privacy_AgentXMayAutomatically.Text" xml:space="preserve"><value>Agent-X 可能自动收集以下信息,所有信息均保存在本地,绝不会被传输:</value></data>
+  <data name="Privacy_ApplicationLogsStoredLocally.Text" xml:space="preserve"><value>应用程序日志(仅本地存储)</value></data>
+  <data name="Privacy_HardwareCapabilityInformationF.Text" xml:space="preserve"><value>硬件能力信息(用于模型推荐)</value></data>
+  <data name="Privacy_UsageStatisticsStoredLocally.Text" xml:space="preserve"><value>使用统计(本地存储,绝不传输)</value></data>
+  <data name="Privacy_InformationWeDoNot.Text" xml:space="preserve"><value>我们不收集的信息</value></data>
+  <data name="Privacy_WeDoNotCollect.Text" xml:space="preserve"><value>我们不收集个人身份信息</value></data>
+  <data name="Privacy_WeDoNotTransmit.Text" xml:space="preserve"><value>我们不向外部服务器传输数据</value></data>
+  <data name="Privacy_WeDoNotUse.Text" xml:space="preserve"><value>我们不使用 Cookie 或跟踪技术</value></data>
+  <data name="Privacy_WeDoNotCollect2.Text" xml:space="preserve"><value>我们不通过应用收集付款信息</value></data>
+  <data name="Privacy_HowYourDataIs.Text" xml:space="preserve"><value>您的数据如何存储</value></data>
+  <data name="Privacy_AllDataGeneratedAnd.Text" xml:space="preserve"><value>Agent-X 生成和管理的所有数据均本地存储在您的设备上。不存在任何云端组件。</value></data>
+  <data name="Privacy_AllDataStoredIn.Text" xml:space="preserve"><value>所有数据存储在设备上的本地 SQLite 数据库中</value></data>
+  <data name="Privacy_DocumentEmbeddingsStoredIn.Text" xml:space="preserve"><value>文档嵌入存储在本地向量数据库(sqlite-vec)中</value></data>
+  <data name="Privacy_ApplicationLogsStoredIn.Text" xml:space="preserve"><value>应用程序日志存储于 </value></data>
+  <data name="Privacy_SettingsStoredLocallyNever.Text" xml:space="preserve"><value>设置本地存储 — 绝不同步到云端</value></data>
+  <data name="Privacy_YouHaveFullControl.Text" xml:space="preserve"><value>您拥有完全控制权:删除应用程序数据文件夹即可删除所有数据</value></data>
+  <data name="Privacy_ThirdPartyServices.Text" xml:space="preserve"><value>第三方服务</value></data>
+  <data name="Privacy_OllamaLocalAiRuntime.Text" xml:space="preserve"><value>Ollama(本地 AI 运行时)</value></data>
+  <data name="Privacy_AgentXConnectsTo.Text" xml:space="preserve"><value>Agent-X 连接在您计算机上本地运行的 Ollama。Ollama 在本地处理 AI 推理。除非您明确配置远程 Ollama 端点,否则不会向外部服务器发送任何数据。</value></data>
+  <data name="Privacy_IfYouConfigureA.Text" xml:space="preserve"><value>如果您配置了远程端点,发送到该端点的数据将受远程服务器隐私政策的约束。为获得最大隐私保护,我们建议使用本地推理。</value></data>
+  <data name="Privacy_NoAnalyticsServices.Text" xml:space="preserve"><value>无分析服务</value></data>
+  <data name="Privacy_WeDoNotUse2.Text" xml:space="preserve"><value>我们不使用 Google Analytics、Mixpanel 或任何第三方分析服务。不收集或传输任何使用数据。</value></data>
+  <data name="Privacy_NoAdvertising.Text" xml:space="preserve"><value>无广告</value></data>
+  <data name="Privacy_WeDoNotDisplay.Text" xml:space="preserve"><value>我们不展示广告,也不与广告商共享数据。Agent-X 是付费产品;用户是我们的客户,而不是我们的商品。</value></data>
+  <data name="Privacy_YourRightsUnderGdpr.Text" xml:space="preserve"><value>您在 GDPR 下的权利</value></data>
+  <data name="Privacy_IfYouAreLocated.Text" xml:space="preserve"><value>如果您位于欧洲经济区(EEA),您根据《通用数据保护条例》(GDPR)享有特定的数据保护权利。</value></data>
+  <data name="Privacy_RightToAccess.Text" xml:space="preserve"><value>访问权</value></data>
+  <data name="Privacy_YouCanAccessAll.Text" xml:space="preserve"><value>您可以直接在设备上访问您的所有数据,无需向我们提出请求。</value></data>
+  <data name="Privacy_RightToRectification.Text" xml:space="preserve"><value>更正权</value></data>
+  <data name="Privacy_YouCanModifyYour.Text" xml:space="preserve"><value>您可以随时通过应用界面修改您的数据。</value></data>
+  <data name="Privacy_RightToErasureRight.Text" xml:space="preserve"><value>删除权(“被遗忘权”)</value></data>
+  <data name="Privacy_DeleteDocumentsConversationsAn.Text" xml:space="preserve"><value>可通过应用或删除应用程序数据文件夹来删除文档、会话及所有数据。</value></data>
+  <data name="Privacy_RightToDataPortability.Text" xml:space="preserve"><value>数据可携权</value></data>
+  <data name="Privacy_YourDataIsStored.Text" xml:space="preserve"><value>您的数据以标准 SQLite 格式存储,可自由导出或迁移。</value></data>
+  <data name="Privacy_RightToRestrictProcessing.Text" xml:space="preserve"><value>限制处理权</value></data>
+  <data name="Privacy_YouControlAllProcessing.Text" xml:space="preserve"><value>所有处理均由您掌控 — 只需关闭应用即可停止全部数据处理。</value></data>
+  <data name="Privacy_RightToObject.Text" xml:space="preserve"><value>反对权</value></data>
+  <data name="Privacy_YouCanStopUsing.Text" xml:space="preserve"><value>您可以随时停止使用应用。卸载后即不再有任何处理。</value></data>
+  <data name="Privacy_SinceAllDataIs.Text" xml:space="preserve"><value>由于所有数据均本地存储在您的设备上,您可直接行使这些权利,无需联系我们。您是自己数据的唯一控制者。</value></data>
+  <data name="Privacy_YourRightsUnderCcpa.Text" xml:space="preserve"><value>您在 CCPA 下的权利</value></data>
+  <data name="Privacy_IfYouAreA.Text" xml:space="preserve"><value>如果您是加利福尼亚州居民,您根据《加州消费者隐私法》(CCPA)享有特定权利。</value></data>
+  <data name="Privacy_RightToKnow.Text" xml:space="preserve"><value>知情权</value></data>
+  <data name="Privacy_WhatPersonalInformationIs.Text" xml:space="preserve"><value>收集了哪些个人信息 — 完整列表请参见上文“我们收集的信息”。</value></data>
+  <data name="Privacy_RightToDelete.Text" xml:space="preserve"><value>删除权</value></data>
+  <data name="Privacy_RemoveAllDataBy.Text" xml:space="preserve"><value>卸载应用或删除应用程序数据目录即可移除所有数据。</value></data>
+  <data name="Privacy_RightToOptOut.Text" xml:space="preserve"><value>拒绝出售权</value></data>
+  <data name="Privacy_WeDoNotSell.Text" xml:space="preserve"><value>我们不出售您的个人信息。过去从未,将来也绝不会。</value></data>
+  <data name="Privacy_RightToNonDiscrimination.Text" xml:space="preserve"><value>非歧视权</value></data>
+  <data name="Privacy_WeDoNotDiscriminate.Text" xml:space="preserve"><value>我们不会歧视行使隐私权利的用户。</value></data>
+  <data name="Privacy_CategoriesOfPersonalInformatio.Text" xml:space="preserve"><value>个人信息类别</value></data>
+  <data name="Privacy_DocumentsAndFilesYou.Text" xml:space="preserve"><value>您导入的文档和文件</value></data>
+  <data name="Privacy_AiConversationHistory.Text" xml:space="preserve"><value>AI 会话历史</value></data>
+  <data name="Privacy_ApplicationPreferences.Text" xml:space="preserve"><value>应用程序偏好</value></data>
+  <data name="Privacy_NoSaleOfData.Text" xml:space="preserve"><value>不出售数据</value></data>
+  <data name="Privacy_StrategiaXDoesNot.Text" xml:space="preserve"><value>Strategia-X 不出售、出租或交易任何用户数据。您的信息只属于您自己。</value></data>
+  <data name="Privacy_DataSecurity.Text" xml:space="preserve"><value>数据安全</value></data>
+  <data name="Privacy_YourDataSecurityDepends.Text" xml:space="preserve"><value>您的数据安全取决于设备的安全性。由于所有数据都保留在本地,您可受益于操作系统的内置保护。</value></data>
+  <data name="Privacy_WeRecommendTheFollowing.Text" xml:space="preserve"><value>我们建议采取以下做法来保护您的数据:</value></data>
+  <data name="Privacy_KeepYourOperatingSystem.Text" xml:space="preserve"><value>保持操作系统和软件为最新版本</value></data>
+  <data name="Privacy_UseStrongDevicePasswords.Text" xml:space="preserve"><value>使用强设备密码,并在可用时启用生物识别锁</value></data>
+  <data name="Privacy_EncryptYourHardDrive.Text" xml:space="preserve"><value>加密您的硬盘(例如 Windows 上的 BitLocker)</value></data>
+  <data name="Privacy_AgentXDoesNot.Text" xml:space="preserve"><value>Agent-X 不在操作系统提供的加密之外实施额外加密。</value></data>
+  <data name="Privacy_NetworkSecurityByDefault.Text" xml:space="preserve"><value>网络安全:默认情况下,所有 AI 处理均在本地进行。数据不会离开您的网络。</value></data>
+  <data name="Privacy_ChildrenSPrivacy.Text" xml:space="preserve"><value>儿童隐私</value></data>
+  <data name="Privacy_AgentXIsNot.Text" xml:space="preserve"><value>Agent-X 不面向 13 岁以下的儿童。我们不会有意收集 13 岁以下儿童的个人信息。如果您是家长或监护人,并认为您的孩子通过应用提供了信息,请联系我们以便协助处理。</value></data>
+  <data name="Privacy_ChangesToThisPrivacy.Text" xml:space="preserve"><value>本隐私政策的变更</value></data>
+  <data name="Privacy_WeMayUpdateThis.Text" xml:space="preserve"><value>我们可能不时更新本隐私政策。做出更改时,我们会修订本页顶部的生效日期。更改将随更新后的生效日期反映在应用中。</value></data>
+  <data name="Privacy_WeEncourageYouTo.Text" xml:space="preserve"><value>我们建议您定期查看本隐私政策,以了解我们如何保护您的信息。</value></data>
+  <data name="Privacy_ContactUs.Text" xml:space="preserve"><value>联系我们</value></data>
+  <data name="Privacy_IfYouHaveAny.Text" xml:space="preserve"><value>如果您对本隐私政策或我们的数据实践有任何疑问、顾虑或请求,请与我们联系。</value></data>
+  <data name="Privacy_Company.Text" xml:space="preserve"><value>公司</value></data>
+  <data name="Privacy_PrivacyQuestions.Text" xml:space="preserve"><value>隐私相关问题</value></data>
+  <data name="Privacy_GdprDataProtectionContact.Text" xml:space="preserve"><value>GDPR 数据保护联系人</value></data>
+  <data name="Privacy_ForGdprInquiriesOur.Text" xml:space="preserve"><value>如有 GDPR 相关咨询,请联系我们的数据保护联系人:support@strategia-x.com</value></data>
+  <data name="Privacy_CcpaRequestsCaliforniaResident.Text" xml:space="preserve"><value>CCPA 请求(加州居民)</value></data>
+  <data name="Privacy_CaliforniaResidentsMayContact.Text" xml:space="preserve"><value>加州居民可通过 support@strategia-x.com 与我们联系,提出任何 CCPA 相关请求。</value></data>
+  <data name="Privacy_2026RockyElsalaymehFree.Text" xml:space="preserve"><value>© 2026 Rocky Elsalaymeh。基于 MIT 许可证,免费且开源。</value></data>
+  <data name="Privacy_AgentXLocalFirst.Text" xml:space="preserve"><value>Agent-X — 本地优先的 AI 个人智能中枢</value></data>
+  <data name="Terms_Legal.Text" xml:space="preserve"><value>法律条款</value></data>
+  <data name="Terms_TermsOfService.Text" xml:space="preserve"><value>服务条款</value></data>
+  <data name="Terms_EffectiveDateFebruary26.Text" xml:space="preserve"><value>生效日期:2026 年 2 月 26 日</value></data>
+  <data name="Terms_PleaseReadTheseTerms.Text" xml:space="preserve"><value>在使用 Agent-X(由 Strategia-X,以下称“公司”“我们”,开发的桌面应用程序)之前,请仔细阅读本服务条款(以下称“条款”)。安装或使用 Agent-X,即表示您同意受本条款约束。</value></data>
+  <data name="Terms_1AcceptanceOfTerms.Text" xml:space="preserve"><value>1. 条款的接受</value></data>
+  <data name="Terms_ByDownloadingInstallingOr.Text" xml:space="preserve"><value>下载、安装或使用 Agent-X,即表示您确认已阅读、理解并同意受本条款约束。如果您不同意本条款,则不得使用 Agent-X。您继续使用本应用即表示持续接受任何更新后的条款。</value></data>
+  <data name="Terms_2DescriptionOfService.Text" xml:space="preserve"><value>2. 服务说明</value></data>
+  <data name="Terms_AgentXIsA.Text" xml:space="preserve"><value>Agent-X 是面向 Windows 的本地优先 AI 个人智能中枢。它提供以下功能:</value></data>
+  <data name="Terms_LocalAiChatVia.Text" xml:space="preserve"><value>通过 Ollama 集成实现本地 AI 聊天</value></data>
+  <data name="Terms_DocumentManagementAndIndexing.Text" xml:space="preserve"><value>文档管理与索引</value></data>
+  <data name="Terms_RetrievalAugmentedGenerationRa.Text" xml:space="preserve"><value>检索增强生成(RAG)</value></data>
+  <data name="Terms_SemanticSearchAcrossYour.Text" xml:space="preserve"><value>跨文档的语义搜索</value></data>
+  <data name="Terms_ModelManagement.Text" xml:space="preserve"><value>模型管理</value></data>
+  <data name="Terms_HardwareCapabilityAnalysis.Text" xml:space="preserve"><value>硬件能力分析</value></data>
+  <data name="Terms_AllProcessingOccursLocally.Text" xml:space="preserve"><value>所有处理均在您的设备本地进行。Agent-X 不会将您的数据传输到外部服务器进行 AI 推理。</value></data>
+  <data name="Terms_3LicenseGrant.Text" xml:space="preserve"><value>3. 许可授予</value></data>
+  <data name="Terms_UnderTheMitLicense.Text" xml:space="preserve"><value>根据 MIT 许可证,您可以自由地:</value></data>
+  <data name="Terms_UseAgentXFor.Text" xml:space="preserve"><value>将 Agent-X 用于任何目的 — 个人、商业或其他</value></data>
+  <data name="Terms_StudyModifyAndBuild.Text" xml:space="preserve"><value>研究、修改源代码并在其基础上构建</value></data>
+  <data name="Terms_DistributeAndSublicenseCopies.Text" xml:space="preserve"><value>分发副本并再许可,无论是否经过修改</value></data>
+  <data name="Terms_IncludeAgentXIn.Text" xml:space="preserve"><value>免费将 Agent-X 纳入您自己的项目</value></data>
+  <data name="Terms_TheOnlyConditionIs.Text" xml:space="preserve"><value>唯一的条件是,在软件的所有副本或实质部分中包含 MIT 版权声明和许可声明。</value></data>
+  <data name="Terms_4UserResponsibilities.Text" xml:space="preserve"><value>4. 用户责任</value></data>
+  <data name="Terms_YouAreResponsibleFor.Text" xml:space="preserve"><value>您负责:</value></data>
+  <data name="Terms_EnsuringYourSystemMeets.Text" xml:space="preserve"><value>确保您的系统满足 Agent-X 的最低硬件和软件要求</value></data>
+  <data name="Terms_InstallingAndMaintainingOllama.Text" xml:space="preserve"><value>单独安装和维护 Ollama(其未与 Agent-X 捆绑)</value></data>
+  <data name="Terms_TheContentOfAny.Text" xml:space="preserve"><value>您导入或通过 Agent-X 处理的任何文档的内容</value></data>
+  <data name="Terms_ComplianceWithAllApplicable.Text" xml:space="preserve"><value>在使用本应用时遵守所有适用的法律法规</value></data>
+  <data name="Terms_MaintainingTheSecurityOf.Text" xml:space="preserve"><value>维护您的设备及本地存储的任何凭据的安全</value></data>
+  <data name="Terms_BackingUpYourData.Text" xml:space="preserve"><value>定期备份您的数据,Strategia-X 不对数据丢失负责</value></data>
+  <data name="Terms_5IntellectualProperty.Text" xml:space="preserve"><value>5. 知识产权</value></data>
+  <data name="Terms_AgentXIsOpen.Text" xml:space="preserve"><value>Agent-X 是开源软件。源代码、文档及其他材料依据 MIT 许可证提供,版权归该许可证所述的原作者和贡献者所有。您可以按照 MIT 许可证条款自由使用这些材料并在其基础上开发。</value></data>
+  <data name="Terms_YourDocumentsAndData.Text" xml:space="preserve"><value>您的文档和数据始终归您所有。我们不主张对您通过 Agent-X 处理的内容拥有任何所有权。您保留对自己知识产权的全部权利。</value></data>
+  <data name="Terms_6ThirdPartySoftware.Text" xml:space="preserve"><value>6. 第三方软件</value></data>
+  <data name="Terms_AgentXIntegratesWith.Text" xml:space="preserve"><value>Agent-X 与 Ollama 集成,后者是由 Ollama, Inc. 开发的开源项目。Ollama 受其自身的许可条款约束,独立于本条款。您有责任查阅并遵守 Ollama 的服务条款。</value></data>
+  <data name="Terms_AgentXAlsoUses.Text" xml:space="preserve"><value>Agent-X 还使用多个开源库,各自受其相应许可证约束。这些许可证包含在应用分发包中。您使用 Agent-X 即表示接受这些第三方许可条款。</value></data>
+  <data name="Terms_7Privacy.Text" xml:space="preserve"><value>7. 隐私</value></data>
+  <data name="Terms_YourUseOfAgent.Text" xml:space="preserve"><value>您对 Agent-X 的使用还受我们的隐私政策约束,该政策可在应用内查看。隐私政策说明了我们如何处理数据、收集哪些信息(如有)以及您对个人数据享有的权利。</value></data>
+  <data name="Terms_ByUsingAgentX.Text" xml:space="preserve"><value>使用 Agent-X 即表示您确认并同意隐私政策所述的数据实践。隐私政策以引用方式纳入本条款。</value></data>
+  <data name="Terms_8DisclaimerOfWarranties.Text" xml:space="preserve"><value>8. 免责声明</value></data>
+  <data name="Terms_AgentXIsProvided.Text" xml:space="preserve"><value>AGENT-X 按“现状”和“可用”状态提供,不附带任何明示或默示的保证。在法律允许的最大范围内,STRATEGIA-X 否认所有保证,包括但不限于对适销性、特定用途适用性和不侵权的默示保证。</value></data>
+  <data name="Terms_WeDoNotWarrant.Text" xml:space="preserve"><value>我们不保证:</value></data>
+  <data name="Terms_TheApplicationWillBe.Text" xml:space="preserve"><value>应用程序无错误或不中断</value></data>
+  <data name="Terms_AiGeneratedResponsesWill.Text" xml:space="preserve"><value>AI 生成的回答准确、完整或可靠</value></data>
+  <data name="Terms_TheApplicationWillMeet.Text" xml:space="preserve"><value>应用程序满足您的特定需求</value></data>
+  <data name="Terms_DefectsInTheApplication.Text" xml:space="preserve"><value>应用程序的缺陷会被及时修复</value></data>
+  <data name="Terms_9LimitationOfLiability.Text" xml:space="preserve"><value>9. 责任限制</value></data>
+  <data name="Terms_ToTheMaximumExtent.Text" xml:space="preserve"><value>在适用法律允许的最大范围内,STRATEGIA-X 不对任何间接、附带、特殊、后果性或惩罚性损害承担责任,包括但不限于因您使用或无法使用 AGENT-X 而导致的数据或文档丢失、利润或收入损失、硬件或软件损坏、业务中断或任何其他无形损失。</value></data>
+  <data name="Terms_ThisLimitationAppliesRegardles.Text" xml:space="preserve"><value>无论索赔所依据的法律理论为何,无论我们是否被告知此类损害的可能性,即使某种救济未能实现其基本目的,本限制均适用。</value></data>
+  <data name="Terms_AgentXIsProvided2.Text" xml:space="preserve"><value>Agent-X 依据 MIT 许可证免费提供给您。在法律允许的最大范围内,作者和版权持有人对因 Agent-X 引起或与之相关的任何索赔不承担任何责任。</value></data>
+  <data name="Terms_10AiGeneratedContent.Text" xml:space="preserve"><value>10. AI 生成内容免责声明</value></data>
+  <data name="Terms_AgentXUsesLocally.Text" xml:space="preserve"><value>Agent-X 使用本地运行的 AI 模型生成回答并执行分析。请务必理解以下内容:</value></data>
+  <data name="Terms_AiOutputMayContain.Text" xml:space="preserve"><value>AI 输出可能包含底层模型固有的不准确、错误或偏见</value></data>
+  <data name="Terms_YouShouldIndependentlyVerify.Text" xml:space="preserve"><value>在依赖 AI 生成的任何重要信息之前,您应独立核实</value></data>
+  <data name="Terms_StrategiaXIsNot.Text" xml:space="preserve"><value>Strategia-X 不对基于 AI 生成内容作出的任何决定负责</value></data>
+  <data name="Terms_AiResponsesDoNot.Text" xml:space="preserve"><value>AI 回答不构成任何形式的专业建议,包括但不限于法律、医疗、财务或工程建议</value></data>
+  <data name="Terms_11Indemnification.Text" xml:space="preserve"><value>11. 赔偿</value></data>
+  <data name="Terms_YouAgreeToIndemnify.Text" xml:space="preserve"><value>您同意就以下原因产生的任何及所有索赔、损害、义务、损失、责任、成本或费用(包括合理的律师费),对 Strategia-X 及其高管、董事、员工、代理人和关联方进行赔偿、辩护并使其免受损害:</value></data>
+  <data name="Terms_YourUseOrMisuse.Text" xml:space="preserve"><value>您对应用程序的使用或滥用</value></data>
+  <data name="Terms_YourViolationOfThese.Text" xml:space="preserve"><value>您违反本条款的行为</value></data>
+  <data name="Terms_YourViolationOfAny.Text" xml:space="preserve"><value>您侵犯任何第三方权利(包括知识产权)的行为</value></data>
+  <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>您通过应用程序处理、导入或生成的内容</value></data>
+  <data name="Terms_12Termination.Text" xml:space="preserve"><value>12. 终止</value></data>
+  <data name="Terms_TheRightsGrantedTo.Text" xml:space="preserve"><value>根据 MIT 许可证授予您的权利是永久且不可撤销的,不受本条款影响。无论本条款有任何其他规定,您对 Agent-X 源代码和软件的使用均受 MIT 许可证约束。</value></data>
+  <data name="Terms_YouMayStopUsing.Text" xml:space="preserve"><value>您可以随时通过卸载应用并从设备中删除所有相关数据来停止使用 Agent-X。</value></data>
+  <data name="Terms_TheDisclaimerOfWarranties.Text" xml:space="preserve"><value>免责声明和责任限制条款反映了 MIT 标准的“现状”条款,只要您使用 Agent-X,这些条款就持续适用。</value></data>
+  <data name="Terms_13ModificationsToTerms.Text" xml:space="preserve"><value>13. 条款的修改</value></data>
+  <data name="Terms_WeReserveTheRight.Text" xml:space="preserve"><value>我们保留随时自行决定修改本条款的权利。当我们做出重大更改时,将通过应用程序或其他适当方式通知您。</value></data>
+  <data name="Terms_YourContinuedUseOf.Text" xml:space="preserve"><value>在任何此类修改后继续使用 Agent-X,即表示您接受修订后的条款。如果您不同意修改后的条款,则必须停止使用本应用。</value></data>
+  <data name="Terms_14GoverningLaw.Text" xml:space="preserve"><value>14. 适用法律</value></data>
+  <data name="Terms_TheseTermsShallBe.Text" xml:space="preserve"><value>本条款受美国加利福尼亚州法律管辖并据其解释,不考虑其法律冲突规定。</value></data>
+  <data name="Terms_AnyDisputesArisingOut.Text" xml:space="preserve"><value>因本条款或您使用 Agent-X 引起或与之相关的任何争议,应由位于加利福尼亚州的州法院或联邦法院专属解决。您同意接受该等法院的属人管辖,并放弃对审判地的任何异议。</value></data>
+  <data name="Terms_15Severability.Text" xml:space="preserve"><value>15. 可分割性</value></data>
+  <data name="Terms_IfAnyProvisionOf.Text" xml:space="preserve"><value>如果本条款的任何规定被有管辖权的法院认定为无效、非法或不可执行,其余规定仍完全有效。无效规定将在保留原意的前提下,以使其有效且可执行所需的最小限度进行修改。</value></data>
+  <data name="Terms_16EntireAgreement.Text" xml:space="preserve"><value>16. 完整协议</value></data>
+  <data name="Terms_TheseTermsTogetherWith.Text" xml:space="preserve"><value>本条款连同隐私政策及本条款援引的任何附加条款,构成您与 Strategia-X 之间关于使用 Agent-X 的完整协议。本条款取代此前就本主题达成的所有书面和口头协议、谅解、陈述与保证。</value></data>
+  <data name="Terms_17ContactInformation.Text" xml:space="preserve"><value>17. 联系信息</value></data>
+  <data name="Terms_IfYouHaveAny.Text" xml:space="preserve"><value>如果您对本服务条款有任何疑问、顾虑或请求,请联系我们:</value></data>
+  <data name="Terms_Email.Text" xml:space="preserve"><value>邮箱</value></data>
+  <data name="Terms_Company.Text" xml:space="preserve"><value>公司</value></data>
+  <data name="Terms_AgentXByStrategia.Text" xml:space="preserve"><value>Agent-X(由 Strategia-X 出品)</value></data>
+  <data name="Terms_TheseTermsOfService.Text" xml:space="preserve"><value>本服务条款最后更新于 2026 年 2 月 26 日。</value></data>
 </root>

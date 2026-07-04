@@ -1,0 +1,11 @@
+{
+  "file": "src/AgentX.App/Views/PluginManagerPage.xaml",
+  "entries": [
+    { "uid": "Plugin_OpenedFromOperations", "attr": "Text", "en": "Opened from Operations",
+      "t": { "de": "Aus Operations geöffnet", "es": "Abierto desde Operations", "fr": "Ouvert depuis Operations", "ja": "Operations から開きました", "zh-CN": "从 Operations 打开" } },
+    { "uid": "Plugin_FocusedConnector", "attr": "Text", "en": "Focused Connector",
+      "t": { "de": "Fokussierter Connector", "es": "Conector enfocado", "fr": "Connecteur ciblé", "ja": "フォーカス中のコネクタ", "zh-CN": "聚焦的连接器" } },
+    { "uid": "Plugin_Dismiss", "attr": "Content", "en": "Dismiss",
+      "t": { "de": "Schließen", "es": "Descartar", "fr": "Ignorer", "ja": "閉じる", "zh-CN": "关闭" } }
+  ]
+}

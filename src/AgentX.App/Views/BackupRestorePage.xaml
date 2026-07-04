@@ -29,9 +29,9 @@
 
             <!-- ═══ PAGE HEADER ═══ -->
             <StackPanel Grid.Row="0" Spacing="4">
-                <TextBlock Text="Backup &amp; Restore"
+                <TextBlock x:Uid="Backup_BackupRestore" Text="Backup &amp; Restore"
                            Style="{StaticResource DisplaySmallStyle}" />
-                <TextBlock Text="Protect your knowledge base with encrypted backups and one-click restore."
+                <TextBlock x:Uid="Backup_ProtectYourKnowledgeBase" Text="Protect your knowledge base with encrypted backups and one-click restore."
                            Style="{StaticResource BodySecondaryStyle}" />
             </StackPanel>
 
@@ -48,7 +48,7 @@
 
                     <!-- Database Size -->
                     <StackPanel Grid.Column="0" Spacing="4">
-                        <TextBlock Text="Database" Style="{StaticResource CaptionStyle}" />
+                        <TextBlock x:Uid="Backup_Database" Text="Database" Style="{StaticResource CaptionStyle}" />
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <TextBlock Style="{StaticResource HeadingSmallStyle}" FontWeight="Bold">
                                 <Run Text="{x:Bind ViewModel.DatabaseSizeMB, Mode=OneWay}" />
@@ -60,7 +60,7 @@
 
                     <!-- Documents Size -->
                     <StackPanel Grid.Column="1" Spacing="4">
-                        <TextBlock Text="Documents" Style="{StaticResource CaptionStyle}" />
+                        <TextBlock x:Uid="Backup_Documents" Text="Documents" Style="{StaticResource CaptionStyle}" />
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <TextBlock Style="{StaticResource HeadingSmallStyle}" FontWeight="Bold">
                                 <Run Text="{x:Bind ViewModel.DocumentsSizeMB, Mode=OneWay}" />
@@ -72,7 +72,7 @@
 
                     <!-- Total Estimate -->
                     <StackPanel Grid.Column="2" Spacing="4">
-                        <TextBlock Text="Total Estimated" Style="{StaticResource CaptionStyle}" />
+                        <TextBlock x:Uid="Backup_TotalEstimated" Text="Total Estimated" Style="{StaticResource CaptionStyle}" />
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <TextBlock Style="{StaticResource HeadingSmallStyle}" FontWeight="Bold"
                                        Foreground="{ThemeResource AccentPrimaryBrush}">
@@ -85,7 +85,7 @@
 
                     <!-- Document Count -->
                     <StackPanel Grid.Column="3" Spacing="4">
-                        <TextBlock Text="Documents" Style="{StaticResource CaptionStyle}" />
+                        <TextBlock x:Uid="Backup_Documents2" Text="Documents" Style="{StaticResource CaptionStyle}" />
                         <TextBlock Style="{StaticResource HeadingSmallStyle}" FontWeight="Bold">
                             <Run Text="{x:Bind ViewModel.EstimatedDocCount, Mode=OneWay}" />
                         </TextBlock>
@@ -96,21 +96,21 @@
             <!-- ═══ CREATE BACKUP CARD ═══ -->
             <Border Grid.Row="2" Style="{StaticResource CardStyle}" Padding="24">
                 <StackPanel Spacing="20">
-                    <TextBlock Text="Create Backup"
+                    <TextBlock x:Uid="Backup_CreateBackup" Text="Create Backup"
                                Style="{StaticResource HeadingSmallStyle}" />
 
                     <!-- Destination -->
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Destination Folder" Style="{StaticResource LabelStyle}" />
+                        <TextBlock x:Uid="Backup_DestinationFolder" Text="Destination Folder" Style="{StaticResource LabelStyle}" />
                         <Grid ColumnSpacing="8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBox Text="{x:Bind ViewModel.BackupDestination, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     PlaceholderText="Select backup destination..."
+                                     x:Uid="Backup_SelectBackupDestinationPh" PlaceholderText="Select backup destination..."
                                      Style="{StaticResource InputTextBoxStyle}" />
-                            <Button Grid.Column="1" Content="Browse"
+                            <Button Grid.Column="1" x:Uid="Backup_Browse" Content="Browse"
                                     Click="BrowseBackupDestination"
                                     Style="{StaticResource SecondaryButtonStyle}" />
                         </Grid>
@@ -125,25 +125,25 @@
 
                         <!-- Encryption -->
                         <StackPanel Grid.Column="0" Spacing="8">
-                            <CheckBox Content="Encrypt backup (AES-256)"
+                            <CheckBox x:Uid="Backup_EncryptBackupAes256" Content="Encrypt backup (AES-256)"
                                       IsChecked="{x:Bind ViewModel.UseEncryption, Mode=TwoWay}" />
                             <PasswordBox Password="{x:Bind ViewModel.EncryptionPassword, Mode=TwoWay}"
-                                         PlaceholderText="Encryption password"
+                                         x:Uid="Backup_EncryptionPasswordPh" PlaceholderText="Encryption password"
                                          Visibility="{x:Bind ViewModel.UseEncryption, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
                         </StackPanel>
 
                         <!-- Include Documents -->
                         <StackPanel Grid.Column="1" Spacing="8">
-                            <CheckBox Content="Include indexed documents"
+                            <CheckBox x:Uid="Backup_IncludeIndexedDocuments" Content="Include indexed documents"
                                       IsChecked="{x:Bind ViewModel.IncludeDocuments, Mode=TwoWay}" />
                         </StackPanel>
                     </Grid>
 
                     <!-- Notes -->
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Notes (optional)" Style="{StaticResource LabelStyle}" />
+                        <TextBlock x:Uid="Backup_NotesOptional" Text="Notes (optional)" Style="{StaticResource LabelStyle}" />
                         <TextBox Text="{x:Bind ViewModel.BackupNotes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 PlaceholderText="Add a note about this backup..."
+                                 x:Uid="Backup_AddANoteAboutPh" PlaceholderText="Add a note about this backup..."
                                  Style="{StaticResource InputTextBoxStyle}" />
                     </StackPanel>
 
@@ -160,7 +160,7 @@
                     </StackPanel>
 
                     <!-- Backup Button -->
-                    <Button Content="Create Backup"
+                    <Button x:Uid="Backup_CreateBackup2" Content="Create Backup"
                             Command="{x:Bind ViewModel.CreateBackupCommand}"
                             IsEnabled="{x:Bind ViewModel.IsBackingUp, Mode=OneWay, Converter={StaticResource InverseBool}}"
                             Style="{StaticResource AccentButtonStyle}" />
@@ -170,20 +170,20 @@
             <!-- ═══ RESTORE CARD ═══ -->
             <Border Grid.Row="3" Style="{StaticResource CardStyle}" Padding="24">
                 <StackPanel Spacing="20">
-                    <TextBlock Text="Restore from Backup"
+                    <TextBlock x:Uid="Backup_RestoreFromBackup" Text="Restore from Backup"
                                Style="{StaticResource HeadingSmallStyle}" />
 
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Backup File" Style="{StaticResource LabelStyle}" />
+                        <TextBlock x:Uid="Backup_BackupFile" Text="Backup File" Style="{StaticResource LabelStyle}" />
                         <Grid ColumnSpacing="8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBox Text="{x:Bind ViewModel.RestoreFilePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     PlaceholderText="Select .agentxbak file..."
+                                     x:Uid="Backup_SelectAgentxbakFilePh" PlaceholderText="Select .agentxbak file..."
                                      Style="{StaticResource InputTextBoxStyle}" />
-                            <Button Grid.Column="1" Content="Browse"
+                            <Button Grid.Column="1" x:Uid="Backup_Browse2" Content="Browse"
                                     Click="BrowseRestoreFile"
                                     Style="{StaticResource SecondaryButtonStyle}" />
                         </Grid>
@@ -205,7 +205,7 @@
                             CornerRadius="{StaticResource RadiusSM}"
                             Padding="16">
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Restore Complete"
+                            <TextBlock x:Uid="Backup_RestoreComplete" Text="Restore Complete"
                                        Style="{StaticResource BodyStyle}"
                                        FontWeight="SemiBold"
                                        Foreground="{ThemeResource SuccessBrush}" />
@@ -215,7 +215,7 @@
                         </StackPanel>
                     </Border>
 
-                    <Button Content="Restore"
+                    <Button x:Uid="Backup_Restore" Content="Restore"
                             Click="OnRestoreClick"
                             IsEnabled="{x:Bind ViewModel.IsRestoring, Mode=OneWay, Converter={StaticResource InverseBool}}"
                             Style="{StaticResource SecondaryButtonStyle}" />
@@ -226,7 +226,7 @@
             <Border Grid.Row="4" Style="{StaticResource CardStyle}" Padding="24"
                     Visibility="{x:Bind ViewModel.HasHistory, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                 <StackPanel Spacing="16">
-                    <TextBlock Text="Backup History"
+                    <TextBlock x:Uid="Backup_BackupHistory" Text="Backup History"
                                Style="{StaticResource HeadingSmallStyle}" />
 
                     <ItemsRepeater ItemsSource="{x:Bind ViewModel.BackupHistory}">
@@ -285,13 +285,13 @@
                                                     VerticalAlignment="Center">
                                             <Button Content="&#xE72C;"
                                                     FontFamily="{ThemeResource SymbolThemeFontFamily}"
-                                                    ToolTipService.ToolTip="Restore this backup"
+                                                    x:Uid="Backup_RestoreThisBackupTip" ToolTipService.ToolTip="Restore this backup"
                                                     AutomationProperties.Name="Restore this backup"
                                                     Style="{StaticResource GhostButtonStyle}"
                                                     Padding="8" MinWidth="0" MinHeight="0" />
                                             <Button Content="&#xE74D;"
                                                     FontFamily="{ThemeResource SymbolThemeFontFamily}"
-                                                    ToolTipService.ToolTip="Delete backup"
+                                                    x:Uid="Backup_DeleteBackupTip" ToolTipService.ToolTip="Delete backup"
                                                     AutomationProperties.Name="Delete backup"
                                                     Foreground="{ThemeResource ErrorBrush}"
                                                     Style="{StaticResource GhostButtonStyle}"

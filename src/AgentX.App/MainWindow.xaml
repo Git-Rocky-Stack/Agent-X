@@ -85,13 +85,13 @@
             <NavigationView.MenuItems>
 
                 <!-- PRIMARY SECTION -->
-                <NavigationViewItemHeader Content="INTELLIGENCE"
+                <NavigationViewItemHeader x:Uid="Main_Intelligence" Content="INTELLIGENCE"
                                           Foreground="{ThemeResource TextTertiaryBrush}"
                                           FontSize="10"
                                           FontWeight="SemiBold" />
 
                 <NavigationViewItem x:Name="NavDashboard"
-                                    Content="Dashboard"
+                                    x:Uid="Main_Dashboard" Content="Dashboard"
                                     Tag="Dashboard"
                                     Style="{StaticResource AgentXNavItemStyle}"
                                     IsSelected="True">
@@ -101,7 +101,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem x:Name="NavOperations"
-                                    Content="Operations"
+                                    x:Uid="Main_Operations" Content="Operations"
                                     Tag="Operations"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -110,7 +110,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem x:Name="NavDigest"
-                                    Content="Weekly Digest"
+                                    x:Uid="Main_WeeklyDigest" Content="Weekly Digest"
                                     Tag="Digest"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -119,7 +119,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem x:Name="NavAnalytics"
-                                    Content="Analytics"
+                                    x:Uid="Main_Analytics" Content="Analytics"
                                     Tag="Analytics"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -128,7 +128,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem x:Name="NavPastSelf"
-                                    Content="Past Self"
+                                    x:Uid="Main_PastSelf" Content="Past Self"
                                     Tag="PastSelf"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -137,7 +137,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem x:Name="NavChat"
-                                    Content="AI Chat"
+                                    x:Uid="Main_AiChat" Content="AI Chat"
                                     Tag="Chat"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -146,7 +146,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem x:Name="NavAskFiles"
-                                    Content="Ask Your Files"
+                                    x:Uid="Main_AskYourFiles" Content="Ask Your Files"
                                     Tag="AskFiles"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -155,7 +155,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem x:Name="NavQuickActions"
-                                    Content="Quick Actions"
+                                    x:Uid="Main_QuickActions" Content="Quick Actions"
                                     Tag="QuickActions"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -164,7 +164,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem x:Name="NavWorkflows"
-                                    Content="Workflows"
+                                    x:Uid="Main_Workflows" Content="Workflows"
                                     Tag="Workflows"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -175,13 +175,13 @@
                 <NavigationViewItemSeparator Margin="12,6" />
 
                 <!-- KNOWLEDGE SECTION -->
-                <NavigationViewItemHeader Content="KNOWLEDGE"
+                <NavigationViewItemHeader x:Uid="Main_Knowledge" Content="KNOWLEDGE"
                                           Foreground="{ThemeResource TextTertiaryBrush}"
                                           FontSize="10"
                                           FontWeight="SemiBold" />
 
                 <NavigationViewItem x:Name="NavVault"
-                                    Content="Knowledge Vault"
+                                    x:Uid="Main_KnowledgeVault" Content="Knowledge Vault"
                                     Tag="KnowledgeVault"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -190,7 +190,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem x:Name="NavWebImport"
-                                    Content="Web Import"
+                                    x:Uid="Main_WebImport" Content="Web Import"
                                     Tag="WebImport"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -199,7 +199,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem x:Name="NavCollections"
-                                    Content="Collections"
+                                    x:Uid="Main_Collections" Content="Collections"
                                     Tag="Collections"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -208,7 +208,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem x:Name="NavSearch"
-                                    Content="Semantic Search"
+                                    x:Uid="Main_SemanticSearch" Content="Semantic Search"
                                     Tag="Search"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -217,7 +217,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem x:Name="NavKnowledgeGraph"
-                                    Content="Knowledge Graph"
+                                    x:Uid="Main_KnowledgeGraph" Content="Knowledge Graph"
                                     Tag="KnowledgeGraph"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -226,7 +226,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem x:Name="NavComparison"
-                                    Content="Compare Documents"
+                                    x:Uid="Main_CompareDocuments" Content="Compare Documents"
                                     Tag="Comparison"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -237,13 +237,13 @@
                 <NavigationViewItemSeparator Margin="12,6" />
 
                 <!-- TRIAGE SECTION -->
-                <NavigationViewItemHeader Content="TRIAGE"
+                <NavigationViewItemHeader x:Uid="Main_Triage" Content="TRIAGE"
                                           Foreground="{ThemeResource TextTertiaryBrush}"
                                           FontSize="10"
                                           FontWeight="SemiBold" />
 
                 <NavigationViewItem x:Name="NavInbox"
-                                    Content="Smart Inbox"
+                                    x:Uid="Main_SmartInbox" Content="Smart Inbox"
                                     Tag="Inbox"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -254,13 +254,13 @@
                 <NavigationViewItemSeparator Margin="12,6" />
 
                 <!-- SYSTEM SECTION -->
-                <NavigationViewItemHeader Content="SYSTEM"
+                <NavigationViewItemHeader x:Uid="Main_System" Content="SYSTEM"
                                           Foreground="{ThemeResource TextTertiaryBrush}"
                                           FontSize="10"
                                           FontWeight="SemiBold" />
 
                 <NavigationViewItem x:Name="NavModels"
-                                    Content="Model Manager"
+                                    x:Uid="Main_ModelManager" Content="Model Manager"
                                     Tag="ModelManager"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -269,7 +269,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem x:Name="NavHardware"
-                                    Content="Hardware Advisor"
+                                    x:Uid="Main_HardwareAdvisor" Content="Hardware Advisor"
                                     Tag="HardwareAdvisor"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -278,7 +278,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem x:Name="NavBackupRestore"
-                                    Content="Backup &amp; Restore"
+                                    x:Uid="Main_BackupRestore" Content="Backup &amp; Restore"
                                     Tag="BackupRestore"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -287,7 +287,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem x:Name="NavWorkspaceProfiles"
-                                    Content="Workspace Profiles"
+                                    x:Uid="Main_WorkspaceProfiles" Content="Workspace Profiles"
                                     Tag="WorkspaceProfiles"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -296,7 +296,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem x:Name="NavPluginManager"
-                                    Content="Plugin Manager"
+                                    x:Uid="Main_PluginManager" Content="Plugin Manager"
                                     Tag="PluginManager"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -305,7 +305,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem x:Name="NavSyncSettings"
-                                    Content="Collaborative Sync"
+                                    x:Uid="Main_CollaborativeSync" Content="Collaborative Sync"
                                     Tag="SyncSettings"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -314,7 +314,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem x:Name="NavCalendarSettings"
-                                    Content="Calendar"
+                                    x:Uid="Main_Calendar" Content="Calendar"
                                     Tag="CalendarSettings"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -323,7 +323,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem x:Name="NavEmailSettings"
-                                    Content="Email"
+                                    x:Uid="Main_Email" Content="Email"
                                     Tag="EmailSettings"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -335,7 +335,7 @@
 
                 <!-- ANNOTATIONS SECTION -->
                 <NavigationViewItem x:Name="NavAnnotations"
-                                    Content="Annotations"
+                                    x:Uid="Main_Annotations" Content="Annotations"
                                     Tag="Annotations"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -346,13 +346,13 @@
                 <NavigationViewItemSeparator Margin="12,6" />
 
                 <!-- SUPPORT SECTION -->
-                <NavigationViewItemHeader Content="SUPPORT"
+                <NavigationViewItemHeader x:Uid="Main_Support" Content="SUPPORT"
                                           Foreground="{ThemeResource TextTertiaryBrush}"
                                           FontSize="10"
                                           FontWeight="SemiBold" />
 
                 <NavigationViewItem x:Name="NavUserGuide"
-                                    Content="User Guide"
+                                    x:Uid="Main_UserGuide" Content="User Guide"
                                     Tag="UserGuide"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -361,7 +361,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem x:Name="NavPrivacyPolicy"
-                                    Content="Privacy Policy"
+                                    x:Uid="Main_PrivacyPolicy" Content="Privacy Policy"
                                     Tag="PrivacyPolicy"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -370,7 +370,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem x:Name="NavTermsOfService"
-                                    Content="Terms of Service"
+                                    x:Uid="Main_TermsOfService" Content="Terms of Service"
                                     Tag="TermsOfService"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -385,7 +385,7 @@
                  ═══════════════════════════════════════════════════ -->
             <NavigationView.FooterMenuItems>
                 <NavigationViewItem x:Name="NavSettings"
-                                    Content="Settings"
+                                    x:Uid="Main_Settings" Content="Settings"
                                     Tag="Settings"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
@@ -453,7 +453,7 @@
                              Width="6" Height="6"
                              Fill="{ThemeResource OfflineBrush}" />
                     <TextBlock x:Name="StatusText"
-                               Text="Initializing..."
+                               x:Uid="Main_Initializing" Text="Initializing..."
                                Style="{StaticResource CaptionStyle}"
                                VerticalAlignment="Center" />
 
@@ -540,23 +540,23 @@
             </tb:TaskbarIcon.IconSource>
             <tb:TaskbarIcon.ContextFlyout>
                 <MenuFlyout>
-                    <MenuFlyoutItem Text="Open Agent-X" Click="TrayMenu_OpenAgentX">
+                    <MenuFlyoutItem x:Uid="Main_OpenAgentX" Text="Open Agent-X" Click="TrayMenu_OpenAgentX">
                         <MenuFlyoutItem.Icon>
                             <FontIcon Glyph="&#xE80F;" />
                         </MenuFlyoutItem.Icon>
                     </MenuFlyoutItem>
-                    <MenuFlyoutItem Text="Quick Chat" Click="TrayMenu_QuickChat">
+                    <MenuFlyoutItem x:Uid="Main_QuickChat" Text="Quick Chat" Click="TrayMenu_QuickChat">
                         <MenuFlyoutItem.Icon>
                             <FontIcon Glyph="&#xE8BD;" />
                         </MenuFlyoutItem.Icon>
                     </MenuFlyoutItem>
-                    <MenuFlyoutItem Text="Settings" Click="TrayMenu_Settings">
+                    <MenuFlyoutItem x:Uid="Main_Settings2" Text="Settings" Click="TrayMenu_Settings">
                         <MenuFlyoutItem.Icon>
                             <FontIcon Glyph="&#xE713;" />
                         </MenuFlyoutItem.Icon>
                     </MenuFlyoutItem>
                     <MenuFlyoutSeparator />
-                    <MenuFlyoutItem Text="Exit" Click="TrayMenu_Exit">
+                    <MenuFlyoutItem x:Uid="Main_Exit" Text="Exit" Click="TrayMenu_Exit">
                         <MenuFlyoutItem.Icon>
                             <FontIcon Glyph="&#xE8BB;" />
                         </MenuFlyoutItem.Icon>

@@ -83,7 +83,7 @@
 
                     <StackPanel Orientation="Horizontal" Spacing="10"
                                 VerticalAlignment="Center">
-                        <TextBlock Text="Profiles"
+                        <TextBlock x:Uid="Workspace_Profiles" Text="Profiles"
                                    Style="{StaticResource HeadingSmallStyle}" />
                         <Border Style="{StaticResource BadgeDefaultStyle}"
                                 Padding="6,2,6,2">
@@ -96,7 +96,7 @@
                     <Button Grid.Column="1"
                             Style="{StaticResource IconButtonStyle}"
                             Command="{x:Bind ViewModel.LoadProfilesCommand}"
-                            ToolTipService.ToolTip="Refresh profiles">
+                            x:Uid="Workspace_RefreshProfilesTip" ToolTipService.ToolTip="Refresh profiles">
                         <FontIcon Glyph="&#xE72C;" FontSize="14"
                                   Foreground="{ThemeResource TextSecondaryBrush}" />
                     </Button>
@@ -110,17 +110,17 @@
                     BorderThickness="0,0,0,1">
                 <StackPanel Spacing="8">
                     <TextBox Style="{StaticResource InputTextBoxStyle}"
-                             PlaceholderText="New profile name..."
+                             x:Uid="Workspace_NewProfileNamePh" PlaceholderText="New profile name..."
                              Text="{x:Bind ViewModel.NewProfileName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBox Style="{StaticResource InputTextBoxStyle}"
-                             PlaceholderText="Description (optional)"
+                             x:Uid="Workspace_DescriptionOptionalPh" PlaceholderText="Description (optional)"
                              Text="{x:Bind ViewModel.NewProfileDescription, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <Button Style="{StaticResource AccentButtonStyle}"
                             HorizontalAlignment="Stretch"
                             Command="{x:Bind ViewModel.CreateProfileCommand}">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon Glyph="&#xE710;" FontSize="12" />
-                            <TextBlock Text="Create Profile" FontSize="12" FontWeight="SemiBold" />
+                            <TextBlock x:Uid="Workspace_CreateProfile" Text="Create Profile" FontSize="12" FontWeight="SemiBold" />
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -135,7 +135,7 @@
                 <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
                               Width="32" Height="32"
                               Foreground="{ThemeResource AccentPrimaryBrush}" />
-                <TextBlock Text="Loading profiles..."
+                <TextBlock x:Uid="Workspace_LoadingProfiles" Text="Loading profiles..."
                            Style="{StaticResource CaptionStyle}"
                            HorizontalAlignment="Center" />
             </StackPanel>
@@ -195,7 +195,7 @@
                                                 CornerRadius="{StaticResource RadiusRound}"
                                                 Padding="6,2,6,2"
                                                 Visibility="{x:Bind IsDefault, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                                            <TextBlock Text="DEFAULT"
+                                            <TextBlock x:Uid="Workspace_Default" Text="DEFAULT"
                                                        FontSize="9" FontWeight="Bold"
                                                        Foreground="{ThemeResource SuccessBrush}"
                                                        CharacterSpacing="60" />
@@ -229,10 +229,10 @@
                 <FontIcon Glyph="&#xE77B;" FontSize="32"
                           Foreground="{ThemeResource TextTertiaryBrush}"
                           HorizontalAlignment="Center" />
-                <TextBlock Text="No profiles yet"
+                <TextBlock x:Uid="Workspace_NoProfilesYet" Text="No profiles yet"
                            Style="{StaticResource BodySecondaryStyle}"
                            HorizontalAlignment="Center" />
-                <TextBlock Text="Create one above to save your workspace configuration."
+                <TextBlock x:Uid="Workspace_CreateOneAboveTo" Text="Create one above to save your workspace configuration."
                            Style="{StaticResource CaptionStyle}"
                            TextAlignment="Center"
                            MaxWidth="200"
@@ -249,7 +249,7 @@
                               Foreground="{ThemeResource TextTertiaryBrush}" />
                     <TextBlock Style="{StaticResource CaptionStyle}">
                         <Run Text="{x:Bind ViewModel.Profiles.Count, Mode=OneWay}" />
-                        <Run Text="profiles" />
+                        <Run x:Uid="Workspace_Profiles2" Text="profiles" />
                     </TextBlock>
                 </StackPanel>
             </Border>
@@ -277,10 +277,10 @@
                     </Border>
 
                     <StackPanel Spacing="8" HorizontalAlignment="Center">
-                        <TextBlock Text="Select a Profile"
+                        <TextBlock x:Uid="Workspace_SelectAProfile" Text="Select a Profile"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    HorizontalAlignment="Center" />
-                        <TextBlock Text="Choose a workspace profile from the left panel to view and edit its configuration. Profiles let you save model, collection, and settings presets."
+                        <TextBlock x:Uid="Workspace_ChooseAWorkspaceProfile" Text="Choose a workspace profile from the left panel to view and edit its configuration. Profiles let you save model, collection, and settings presets."
                                    Style="{StaticResource BodySecondaryStyle}"
                                    TextWrapping="Wrap"
                                    TextAlignment="Center"
@@ -327,7 +327,7 @@
                                         Padding="10,3,10,3"
                                         Visibility="{x:Bind ViewModel.SelectedProfile.IsDefault, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                         VerticalAlignment="Center">
-                                    <TextBlock Text="DEFAULT"
+                                    <TextBlock x:Uid="Workspace_Default2" Text="DEFAULT"
                                                FontSize="10" FontWeight="Bold"
                                                Foreground="{ThemeResource SuccessBrush}"
                                                CharacterSpacing="60" />
@@ -346,7 +346,7 @@
                                 VerticalAlignment="Top">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8C8;" FontSize="14" />
-                                <TextBlock Text="Duplicate" />
+                                <TextBlock x:Uid="Workspace_Duplicate" Text="Duplicate" />
                             </StackPanel>
                         </Button>
                     </Grid>
@@ -402,7 +402,7 @@
                                 <FontIcon Glyph="&#xE787;" FontSize="11"
                                           Foreground="{ThemeResource TextTertiaryBrush}" />
                                 <TextBlock Style="{StaticResource BadgeStyle}">
-                                    <Run Text="Created " />
+                                    <Run x:Uid="Workspace_Created" Text="Created " />
                                     <Run Text="{x:Bind ViewModel.SelectedProfile.CreatedAtFormatted, Mode=OneWay}" />
                                 </TextBlock>
                             </StackPanel>
@@ -414,7 +414,7 @@
                                 <FontIcon Glyph="&#xE72C;" FontSize="11"
                                           Foreground="{ThemeResource TextTertiaryBrush}" />
                                 <TextBlock Style="{StaticResource BadgeStyle}">
-                                    <Run Text="Updated " />
+                                    <Run x:Uid="Workspace_Updated" Text="Updated " />
                                     <Run Text="{x:Bind ViewModel.SelectedProfile.UpdatedAtFormatted, Mode=OneWay}" />
                                 </TextBlock>
                             </StackPanel>
@@ -448,29 +448,29 @@
                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                     <FontIcon Glyph="&#xE70F;" FontSize="18"
                                               Foreground="{ThemeResource TextAccentBrush}" />
-                                    <TextBlock Text="Profile Configuration"
+                                    <TextBlock x:Uid="Workspace_ProfileConfiguration" Text="Profile Configuration"
                                                Style="{StaticResource HeadingMediumStyle}" />
                                 </StackPanel>
-                                <TextBlock Text="Edit this profile's workspace settings. Changes are saved when you click Save."
+                                <TextBlock x:Uid="Workspace_EditThisProfileS" Text="Edit this profile's workspace settings. Changes are saved when you click Save."
                                            Style="{StaticResource BodySecondaryStyle}"
                                            Margin="28,0,0,0" />
                             </StackPanel>
 
                             <!-- Name field -->
                             <StackPanel Spacing="6">
-                                <TextBlock Text="PROFILE NAME"
+                                <TextBlock x:Uid="Workspace_ProfileName" Text="PROFILE NAME"
                                            Style="{StaticResource OverlineStyle}" />
                                 <TextBox Style="{StaticResource InputTextBoxStyle}"
-                                         PlaceholderText="Enter a display name for this profile"
+                                         x:Uid="Workspace_EnterADisplayNamePh" PlaceholderText="Enter a display name for this profile"
                                          Text="{x:Bind ViewModel.EditName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
 
                             <!-- Description field -->
                             <StackPanel Spacing="6">
-                                <TextBlock Text="DESCRIPTION"
+                                <TextBlock x:Uid="Workspace_Description" Text="DESCRIPTION"
                                            Style="{StaticResource OverlineStyle}" />
                                 <TextBox Style="{StaticResource InputTextBoxStyle}"
-                                         PlaceholderText="Optional description of this profile's purpose"
+                                         x:Uid="Workspace_OptionalDescriptionOfThisPh" PlaceholderText="Optional description of this profile's purpose"
                                          Text="{x:Bind ViewModel.EditDescription, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          AcceptsReturn="True"
                                          TextWrapping="Wrap"
@@ -479,39 +479,39 @@
 
                             <!-- Active Model ID field -->
                             <StackPanel Spacing="6">
-                                <TextBlock Text="ACTIVE MODEL ID"
+                                <TextBlock x:Uid="Workspace_ActiveModelId" Text="ACTIVE MODEL ID"
                                            Style="{StaticResource OverlineStyle}" />
                                 <TextBox Style="{StaticResource InputTextBoxStyle}"
-                                         PlaceholderText="e.g., llama3.2, mistral, phi3"
+                                         x:Uid="Workspace_EGLlama32Ph" PlaceholderText="e.g., llama3.2, mistral, phi3"
                                          Text="{x:Bind ViewModel.EditActiveModelId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                <TextBlock Text="The Ollama model identifier to activate when this profile is loaded."
+                                <TextBlock x:Uid="Workspace_TheOllamaModelIdentifier" Text="The Ollama model identifier to activate when this profile is loaded."
                                            Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
 
                             <!-- Active Collection IDs field -->
                             <StackPanel Spacing="6">
-                                <TextBlock Text="ACTIVE COLLECTION IDS"
+                                <TextBlock x:Uid="Workspace_ActiveCollectionIds" Text="ACTIVE COLLECTION IDS"
                                            Style="{StaticResource OverlineStyle}" />
                                 <TextBox Style="{StaticResource InputTextBoxStyle}"
-                                         PlaceholderText="e.g., 1,3,7 (comma-separated)"
+                                         x:Uid="Workspace_EG13Ph" PlaceholderText="e.g., 1,3,7 (comma-separated)"
                                          Text="{x:Bind ViewModel.EditActiveCollectionIds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                <TextBlock Text="Comma-separated list of collection IDs to enable when this profile is loaded."
+                                <TextBlock x:Uid="Workspace_CommaSeparatedListOf" Text="Comma-separated list of collection IDs to enable when this profile is loaded."
                                            Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
 
                             <!-- Custom Settings field -->
                             <StackPanel Spacing="6">
-                                <TextBlock Text="CUSTOM SETTINGS"
+                                <TextBlock x:Uid="Workspace_CustomSettings" Text="CUSTOM SETTINGS"
                                            Style="{StaticResource OverlineStyle}" />
                                 <TextBox Style="{StaticResource InputTextBoxStyle}"
-                                         PlaceholderText="JSON or key=value pairs for additional configuration"
+                                         x:Uid="Workspace_JsonOrKeyValuePh" PlaceholderText="JSON or key=value pairs for additional configuration"
                                          Text="{x:Bind ViewModel.EditCustomSettings, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          AcceptsReturn="True"
                                          TextWrapping="Wrap"
                                          MaxHeight="160"
                                          FontFamily="Cascadia Code, Cascadia Mono, Consolas, monospace"
                                          FontSize="13" />
-                                <TextBlock Text="Free-form settings stored with this profile. Use JSON or any structured format."
+                                <TextBlock x:Uid="Workspace_FreeFormSettingsStored" Text="Free-form settings stored with this profile. Use JSON or any structured format."
                                            Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
 
@@ -528,10 +528,10 @@
                                     </Grid.ColumnDefinitions>
 
                                     <StackPanel Spacing="4" VerticalAlignment="Center">
-                                        <TextBlock Text="Default Profile"
+                                        <TextBlock x:Uid="Workspace_DefaultProfile" Text="Default Profile"
                                                    Style="{StaticResource BodyStyle}"
                                                    FontWeight="SemiBold" />
-                                        <TextBlock Text="This profile will be loaded automatically when the app starts."
+                                        <TextBlock x:Uid="Workspace_ThisProfileWillBe" Text="This profile will be loaded automatically when the app starts."
                                                    Style="{StaticResource CaptionStyle}" />
                                     </StackPanel>
 
@@ -562,7 +562,7 @@
                                 Command="{x:Bind ViewModel.SaveProfileCommand}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE74E;" FontSize="14" />
-                                <TextBlock Text="Save Profile" />
+                                <TextBlock x:Uid="Workspace_SaveProfile" Text="Save Profile" />
                             </StackPanel>
                         </Button>
 
@@ -573,7 +573,7 @@
                                 IsEnabled="{x:Bind ViewModel.EditIsDefault, Mode=OneWay, Converter={StaticResource InverseBool}}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE735;" FontSize="14" />
-                                <TextBlock Text="Set as Default" />
+                                <TextBlock x:Uid="Workspace_SetAsDefault" Text="Set as Default" />
                             </StackPanel>
                         </Button>
 
@@ -584,7 +584,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE74D;" FontSize="14"
                                           Foreground="{ThemeResource ErrorBrush}" />
-                                <TextBlock Text="Delete Profile"
+                                <TextBlock x:Uid="Workspace_DeleteProfile" Text="Delete Profile"
                                            Foreground="{ThemeResource ErrorBrush}" />
                             </StackPanel>
                         </Button>

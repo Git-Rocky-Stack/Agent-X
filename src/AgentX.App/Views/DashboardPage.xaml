@@ -43,14 +43,14 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Spacing="4">
-                    <TextBlock Text="Dashboard"
+                    <TextBlock x:Uid="Dash_Title" Text="Dashboard"
                                Style="{StaticResource DisplaySmallStyle}" />
-                    <TextBlock Text="Your private AI intelligence center. Everything runs on your machine."
+                    <TextBlock x:Uid="Dash_Subtitle" Text="Your private AI intelligence center. Everything runs on your machine."
                                Style="{StaticResource BodySecondaryStyle}" />
                 </StackPanel>
 
                 <Button Grid.Column="1"
-                        Content="Refresh"
+                        x:Uid="Dash_RefreshBtn" Content="Refresh"
                         Style="{StaticResource SecondaryButtonStyle}"
                         Command="{x:Bind ViewModel.RefreshCommand}"
                         VerticalAlignment="Center" />
@@ -78,14 +78,14 @@
                         <TextBlock Text="{x:Bind ViewModel.ActiveModelName, Mode=OneWay}"
                                    Style="{StaticResource HeadingLargeStyle}" />
 
-                        <TextBlock Text="Connect Ollama to unlock AI chat, semantic search, and file intelligence."
+                        <TextBlock x:Uid="Dash_ConnectOllamaHint" Text="Connect Ollama to unlock AI chat, semantic search, and file intelligence."
                                    Style="{StaticResource BodySecondaryStyle}"
                                    MaxWidth="500"
                                    TextWrapping="Wrap" />
                     </StackPanel>
 
                     <Button Grid.Column="1"
-                            Content="Setup AI"
+                            x:Uid="Dash_SetupAiBtn" Content="Setup AI"
                             Style="{StaticResource AccentButtonStyle}"
                             VerticalAlignment="Center"
                             Command="{x:Bind ViewModel.SetupAiCommand}" />
@@ -109,7 +109,7 @@
                               VerticalAlignment="Center" />
 
                     <TextBox Grid.Column="1"
-                             PlaceholderText="Search your knowledge vault...  (Ctrl+K)"
+                             x:Uid="Dash_SearchBox" PlaceholderText="Search your knowledge vault...  (Ctrl+K)"
                              Style="{StaticResource SearchInputStyle}"
                              Text="{x:Bind ViewModel.QuickSearchQuery, Mode=TwoWay}"
                              BorderThickness="0"
@@ -142,17 +142,17 @@
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8F1;" FontSize="14"
                                           Foreground="{ThemeResource TextAccentBrush}" />
-                                <TextBlock Text="DOCUMENTS"
+                                <TextBlock x:Uid="Dash_DocsOverline" Text="DOCUMENTS"
                                            Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
                             <TextBlock Text="{x:Bind ViewModel.TotalDocuments, Mode=OneWay}"
                                        Style="{StaticResource MetricMediumStyle}" />
                             <TextBlock Style="{StaticResource CaptionStyle}">
-                                <Run Text="across " />
+                                <Run x:Uid="Dash_AcrossRun" Text="across " />
                                 <Run Text="{x:Bind ViewModel.TotalCollections, Mode=OneWay}"
                                      FontWeight="SemiBold"
                                      Foreground="{ThemeResource TextSecondaryBrush}" />
-                                <Run Text=" collections" />
+                                <Run x:Uid="Dash_CollectionsRun" Text=" collections" />
                             </TextBlock>
                         </StackPanel>
                     </Grid>
@@ -164,7 +164,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xEDA2;" FontSize="14"
                                           Foreground="{ThemeResource InfoBrush}" />
-                                <TextBlock Text="STORAGE"
+                                <TextBlock x:Uid="Dash_StorageOverline" Text="STORAGE"
                                            Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
                             <TextBlock Text="{x:Bind ViewModel.TotalStorageSize, Mode=OneWay}"
@@ -190,7 +190,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8BD;" FontSize="14"
                                           Foreground="{ThemeResource WarningBrush}" />
-                                <TextBlock Text="AI SESSIONS"
+                                <TextBlock x:Uid="Dash_AiSessionsOverline" Text="AI SESSIONS"
                                            Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
                             <TextBlock Text="{x:Bind ViewModel.TotalConversations, Mode=OneWay}"
@@ -199,7 +199,7 @@
                                 <Run Text="{x:Bind ViewModel.TotalTokensUsed, Mode=OneWay}"
                                      FontWeight="SemiBold"
                                      Foreground="{ThemeResource TextSecondaryBrush}" />
-                                <Run Text=" tokens used" />
+                                <Run x:Uid="Dash_TokensUsedRun" Text=" tokens used" />
                             </TextBlock>
                         </StackPanel>
                     </Grid>
@@ -211,7 +211,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE964;" FontSize="14"
                                           Foreground="{ThemeResource SuccessBrush}" />
-                                <TextBlock Text="SYSTEM"
+                                <TextBlock x:Uid="Dash_SystemOverline" Text="SYSTEM"
                                            Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
                             <TextBlock Text="{x:Bind ViewModel.GpuName, Mode=OneWay}"
@@ -240,15 +240,15 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Spacing="4">
-                        <TextBlock Text="Operations Overview"
+                        <TextBlock x:Uid="Dash_OpsOverviewTitle" Text="Operations Overview"
                                    Style="{StaticResource HeadingMediumStyle}" />
-                        <TextBlock Text="Conversation intelligence, sync posture, connectors, ingestion backlog, and workflow activity from one surface."
+                        <TextBlock x:Uid="Dash_OpsOverviewSubtitle" Text="Conversation intelligence, sync posture, connectors, ingestion backlog, and workflow activity from one surface."
                                    Style="{StaticResource BodySecondaryStyle}"
                                    TextWrapping="Wrap" />
                     </StackPanel>
 
                     <Button Grid.Column="1"
-                            Content="Open Operations"
+                            x:Uid="Dash_OpenOperationsBtn" Content="Open Operations"
                             Style="{StaticResource SecondaryButtonStyle}"
                             Command="{x:Bind ViewModel.NavigateToOperationsCommand}"
                             VerticalAlignment="Center" />
@@ -277,7 +277,7 @@
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE9D2;" FontSize="14"
                                               Foreground="{ThemeResource TextAccentBrush}" />
-                                    <TextBlock Text="CONVERSATION INTELLIGENCE"
+                                    <TextBlock x:Uid="Dash_ConvIntelOverline" Text="CONVERSATION INTELLIGENCE"
                                                Style="{StaticResource OverlineStyle}" />
                                 </StackPanel>
                                 <TextBlock Text="{x:Bind ViewModel.ConversationIntelligenceHeadline, Mode=OneWay}"
@@ -292,7 +292,7 @@
                             </StackPanel>
 
                             <Button Grid.Row="2"
-                                    Content="Open Analytics"
+                                    x:Uid="Dash_OpenAnalyticsBtn" Content="Open Analytics"
                                     Style="{StaticResource GhostButtonStyle}"
                                     HorizontalAlignment="Left"
                                     Padding="8,4"
@@ -313,7 +313,7 @@
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE895;" FontSize="14"
                                               Foreground="{ThemeResource InfoBrush}" />
-                                    <TextBlock Text="SYNC HEALTH"
+                                    <TextBlock x:Uid="Dash_SyncHealthOverline" Text="SYNC HEALTH"
                                                Style="{StaticResource OverlineStyle}" />
                                 </StackPanel>
                                 <TextBlock Text="{x:Bind ViewModel.SyncHealthHeadline, Mode=OneWay}"
@@ -328,7 +328,7 @@
                             </StackPanel>
 
                             <Button Grid.Row="2"
-                                    Content="Open Sync"
+                                    x:Uid="Dash_OpenSyncBtn" Content="Open Sync"
                                     Style="{StaticResource GhostButtonStyle}"
                                     HorizontalAlignment="Left"
                                     Padding="8,4"
@@ -349,7 +349,7 @@
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE943;" FontSize="14"
                                               Foreground="{ThemeResource SuccessBrush}" />
-                                    <TextBlock Text="CONNECTORS &amp; PLUGINS"
+                                    <TextBlock x:Uid="Dash_ConnectorsOverline" Text="CONNECTORS &amp; PLUGINS"
                                                Style="{StaticResource OverlineStyle}" />
                                 </StackPanel>
                                 <TextBlock Text="{x:Bind ViewModel.ConnectorsHeadline, Mode=OneWay}"
@@ -364,7 +364,7 @@
                             </StackPanel>
 
                             <Button Grid.Row="2"
-                                    Content="Open Plugins"
+                                    x:Uid="Dash_OpenPluginsBtn" Content="Open Plugins"
                                     Style="{StaticResource GhostButtonStyle}"
                                     HorizontalAlignment="Left"
                                     Padding="8,4"
@@ -385,7 +385,7 @@
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE8B7;" FontSize="14"
                                               Foreground="{ThemeResource WarningBrush}" />
-                                    <TextBlock Text="INGESTION BACKLOG"
+                                    <TextBlock x:Uid="Dash_IngestionOverline" Text="INGESTION BACKLOG"
                                                Style="{StaticResource OverlineStyle}" />
                                 </StackPanel>
                                 <TextBlock Text="{x:Bind ViewModel.InboxHeadline, Mode=OneWay}"
@@ -400,7 +400,7 @@
                             </StackPanel>
 
                             <Button Grid.Row="2"
-                                    Content="Open Inbox"
+                                    x:Uid="Dash_OpenInboxBtn" Content="Open Inbox"
                                     Style="{StaticResource GhostButtonStyle}"
                                     HorizontalAlignment="Left"
                                     Padding="8,4"
@@ -421,7 +421,7 @@
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE8C7;" FontSize="14"
                                               Foreground="{ThemeResource SuccessBrush}" />
-                                    <TextBlock Text="WORKFLOW ACTIVITY"
+                                    <TextBlock x:Uid="Dash_WorkflowOverline" Text="WORKFLOW ACTIVITY"
                                                Style="{StaticResource OverlineStyle}" />
                                 </StackPanel>
                                 <TextBlock Text="{x:Bind ViewModel.WorkflowHeadline, Mode=OneWay}"
@@ -448,7 +448,7 @@
                             </StackPanel>
 
                             <Button Grid.Row="2"
-                                    Content="Open Workflows"
+                                    x:Uid="Dash_OpenWorkflowsBtn" Content="Open Workflows"
                                     Style="{StaticResource GhostButtonStyle}"
                                     HorizontalAlignment="Left"
                                     Padding="8,4"
@@ -480,12 +480,12 @@
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Glyph="&#xE8F1;" FontSize="16"
                                           Foreground="{ThemeResource TextAccentBrush}" />
-                                <TextBlock Text="Recent Documents"
+                                <TextBlock x:Uid="Dash_RecentDocsTitle" Text="Recent Documents"
                                            Style="{StaticResource HeadingSmallStyle}" />
                             </StackPanel>
 
                             <Button Grid.Column="1"
-                                    Content="View All"
+                                    x:Uid="Dash_ViewAllDocsBtn" Content="View All"
                                     Style="{StaticResource GhostButtonStyle}"
                                     Padding="8,4"
                                     FontSize="12"
@@ -501,10 +501,10 @@
                                       Foreground="{ThemeResource TextTertiaryBrush}"
                                       HorizontalAlignment="Center"
                                       Opacity="0.4" />
-                            <TextBlock Text="No documents imported yet"
+                            <TextBlock x:Uid="Dash_NoDocsTitle" Text="No documents imported yet"
                                        Style="{StaticResource BodySecondaryStyle}"
                                        HorizontalAlignment="Center" />
-                            <TextBlock Text="Import files to start building your knowledge vault"
+                            <TextBlock x:Uid="Dash_NoDocsHint" Text="Import files to start building your knowledge vault"
                                        Style="{StaticResource CaptionStyle}"
                                        HorizontalAlignment="Center" />
                         </StackPanel>
@@ -576,12 +576,12 @@
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Glyph="&#xE8BD;" FontSize="16"
                                           Foreground="{ThemeResource WarningBrush}" />
-                                <TextBlock Text="Recent Conversations"
+                                <TextBlock x:Uid="Dash_RecentConvTitle" Text="Recent Conversations"
                                            Style="{StaticResource HeadingSmallStyle}" />
                             </StackPanel>
 
                             <Button Grid.Column="1"
-                                    Content="View All"
+                                    x:Uid="Dash_ViewAllConvBtn" Content="View All"
                                     Style="{StaticResource GhostButtonStyle}"
                                     Padding="8,4"
                                     FontSize="12"
@@ -597,10 +597,10 @@
                                       Foreground="{ThemeResource TextTertiaryBrush}"
                                       HorizontalAlignment="Center"
                                       Opacity="0.4" />
-                            <TextBlock Text="No conversations yet"
+                            <TextBlock x:Uid="Dash_NoConvTitle" Text="No conversations yet"
                                        Style="{StaticResource BodySecondaryStyle}"
                                        HorizontalAlignment="Center" />
-                            <TextBlock Text="Start a chat to see your conversations here"
+                            <TextBlock x:Uid="Dash_NoConvHint" Text="Start a chat to see your conversations here"
                                        Style="{StaticResource CaptionStyle}"
                                        HorizontalAlignment="Center" />
                         </StackPanel>
@@ -657,7 +657,7 @@
                                                         HorizontalAlignment="Right">
                                                     <TextBlock Style="{StaticResource CaptionStyle}" FontSize="10">
                                                         <Run Text="{x:Bind MessageCount}" />
-                                                        <Run Text=" msgs" />
+                                                        <Run x:Uid="Dash_MsgsRun" Text=" msgs" />
                                                     </TextBlock>
                                                 </Border>
                                             </StackPanel>
@@ -685,7 +685,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE9D9;" FontSize="16"
                                       Foreground="{ThemeResource InfoBrush}" />
-                            <TextBlock Text="File Type Distribution"
+                            <TextBlock x:Uid="Dash_FileTypesTitle" Text="File Type Distribution"
                                        Style="{StaticResource HeadingSmallStyle}" />
                         </StackPanel>
 
@@ -698,7 +698,7 @@
                                       Foreground="{ThemeResource TextTertiaryBrush}"
                                       HorizontalAlignment="Center"
                                       Opacity="0.4" />
-                            <TextBlock Text="No data yet"
+                            <TextBlock x:Uid="Dash_NoDataYet" Text="No data yet"
                                        Style="{StaticResource BodySecondaryStyle}"
                                        HorizontalAlignment="Center" />
                         </StackPanel>
@@ -758,7 +758,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xF168;" FontSize="16"
                                       Foreground="{ThemeResource SuccessBrush}" />
-                            <TextBlock Text="Top Collections"
+                            <TextBlock x:Uid="Dash_TopCollectionsTitle" Text="Top Collections"
                                        Style="{StaticResource HeadingSmallStyle}" />
                         </StackPanel>
 
@@ -771,7 +771,7 @@
                                       Foreground="{ThemeResource TextTertiaryBrush}"
                                       HorizontalAlignment="Center"
                                       Opacity="0.4" />
-                            <TextBlock Text="No collections yet"
+                            <TextBlock x:Uid="Dash_NoCollectionsYet" Text="No collections yet"
                                        Style="{StaticResource BodySecondaryStyle}"
                                        HorizontalAlignment="Center" />
                         </StackPanel>
@@ -851,7 +851,7 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0" Spacing="4">
-                                <TextBlock Text="Your Belief Evolution"
+                                <TextBlock x:Uid="Dash_BeliefTitle" Text="Your Belief Evolution"
                                            Style="{StaticResource HeadingMediumStyle}" />
                                 <TextBlock Text="{x:Bind ViewModel.BeliefConflictsDetail, Mode=OneWay}"
                                            Style="{StaticResource BodySecondaryStyle}"
@@ -898,7 +898,7 @@
                                                 <TextBlock Grid.Column="1"
                                                            Style="{StaticResource CaptionStyle}"
                                                            Foreground="{ThemeResource WarningBrush}">
-                                                    <Run Text="Magnitude: " />
+                                                    <Run x:Uid="Dash_MagnitudeRun" Text="Magnitude: " />
                                                     <Run Text="{x:Bind ConflictMagnitude, Mode=OneWay, Converter={StaticResource DoubleToStringConverter}}" />
                                                 </TextBlock>
                                             </Grid>
@@ -906,7 +906,7 @@
                                             <TextBlock Grid.Row="1"
                                                        Style="{StaticResource BodySecondaryStyle}"
                                                        TextWrapping="Wrap">
-                                                <Run Text="Previously: " />
+                                                <Run x:Uid="Dash_PreviouslyRun" Text="Previously: " />
                                                 <Run Text="{x:Bind PreviousStance, Mode=OneWay}"
                                                      Foreground="{ThemeResource TextSecondaryBrush}"
                                                      FontSize="11" />
@@ -915,7 +915,7 @@
                                             <TextBlock Grid.Row="2"
                                                        Style="{StaticResource BodySecondaryStyle}"
                                                        TextWrapping="Wrap">
-                                                <Run Text="Currently: " />
+                                                <Run x:Uid="Dash_CurrentlyRun" Text="Currently: " />
                                                 <Run Text="{x:Bind CurrentStance, Mode=OneWay}"
                                                      Foreground="{ThemeResource TextPrimaryBrush}"
                                                      FontWeight="SemiBold" />
@@ -930,15 +930,15 @@
                         <StackPanel Spacing="8"
                                     Visibility="{x:Bind ViewModel.HasBeliefConflicts, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}"
                                     Padding="0,8">
-                            <TextBlock Text="No belief evolution detected yet."
+                            <TextBlock x:Uid="Dash_NoBeliefTitle" Text="No belief evolution detected yet."
                                        Style="{StaticResource BodySecondaryStyle}" />
-                            <TextBlock Text="As you use the app, it will track when your views on topics evolve over time."
+                            <TextBlock x:Uid="Dash_NoBeliefHint" Text="As you use the app, it will track when your views on topics evolve over time."
                                        Style="{StaticResource CaptionStyle}"
                                        Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                         </StackPanel>
 
                         <!-- Action Button -->
-                        <Button Content="Explore Past Self"
+                        <Button x:Uid="Dash_ExplorePastSelfBtn" Content="Explore Past Self"
                                 Style="{StaticResource SecondaryButtonStyle}"
                                 Command="{x:Bind ViewModel.NavigateToPastSelfCommand}"
                                 HorizontalAlignment="Left" />
@@ -959,9 +959,9 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Spacing="4">
-                                <TextBlock Text="Recommended Next Steps"
+                                <TextBlock x:Uid="Dash_NextStepsTitle" Text="Recommended Next Steps"
                                            Style="{StaticResource HeadingMediumStyle}" />
-                                <TextBlock Text="The highest-leverage actions based on your current AI readiness, intake pressure, sync posture, and workflow momentum."
+                                <TextBlock x:Uid="Dash_NextStepsSubtitle" Text="The highest-leverage actions based on your current AI readiness, intake pressure, sync posture, and workflow momentum."
                                            Style="{StaticResource BodySecondaryStyle}"
                                            TextWrapping="Wrap" />
                             </StackPanel>
@@ -1067,7 +1067,7 @@
                                     HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE8BD;" FontSize="16"
                                       Foreground="{ThemeResource TextAccentBrush}" />
-                            <TextBlock Text="New Chat"
+                            <TextBlock x:Uid="Dash_NewChatLabel" Text="New Chat"
                                        Style="{StaticResource BodyStyle}"
                                        FontWeight="SemiBold"
                                        VerticalAlignment="Center" />
@@ -1084,7 +1084,7 @@
                                     HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE8B5;" FontSize="16"
                                       Foreground="{ThemeResource InfoBrush}" />
-                            <TextBlock Text="Import Files"
+                            <TextBlock x:Uid="Dash_ImportFilesLabel" Text="Import Files"
                                        Style="{StaticResource BodyStyle}"
                                        FontWeight="SemiBold"
                                        VerticalAlignment="Center" />
@@ -1101,7 +1101,7 @@
                                     HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE721;" FontSize="16"
                                       Foreground="{ThemeResource SuccessBrush}" />
-                            <TextBlock Text="Search"
+                            <TextBlock x:Uid="Dash_SearchLabel" Text="Search"
                                        Style="{StaticResource BodyStyle}"
                                        FontWeight="SemiBold"
                                        VerticalAlignment="Center" />
@@ -1118,7 +1118,7 @@
                                     HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE9D9;" FontSize="16"
                                       Foreground="{ThemeResource WarningBrush}" />
-                            <TextBlock Text="Ask Files"
+                            <TextBlock x:Uid="Dash_AskFilesLabel" Text="Ask Files"
                                        Style="{StaticResource BodyStyle}"
                                        FontWeight="SemiBold"
                                        VerticalAlignment="Center" />
@@ -1171,7 +1171,7 @@
                                   Foreground="{ThemeResource TextTertiaryBrush}"
                                   VerticalAlignment="Center" />
                         <StackPanel Grid.Column="1" Spacing="2">
-                            <TextBlock Text="Available RAM" Style="{StaticResource LabelStyle}" />
+                            <TextBlock x:Uid="Dash_AvailableRamLabel" Text="Available RAM" Style="{StaticResource LabelStyle}" />
                             <TextBlock Text="{x:Bind ViewModel.AvailableRam, Mode=OneWay}"
                                        Style="{StaticResource BodySmallStyle}" />
                         </StackPanel>
@@ -1190,7 +1190,7 @@
                                   Foreground="{ThemeResource TextTertiaryBrush}"
                                   VerticalAlignment="Center" />
                         <StackPanel Grid.Column="1" Spacing="2">
-                            <TextBlock Text="Vault Storage" Style="{StaticResource LabelStyle}" />
+                            <TextBlock x:Uid="Dash_VaultStorageLabel" Text="Vault Storage" Style="{StaticResource LabelStyle}" />
                             <TextBlock Text="{x:Bind ViewModel.TotalStorageSize, Mode=OneWay}"
                                        Style="{StaticResource BodySmallStyle}" />
                         </StackPanel>

@@ -906,4 +906,1059 @@
   <data name="Onb_GetStartedBtn.Content" xml:space="preserve"><value>Loslegen</value></data>
   <data name="Onb_NextBtn.Content" xml:space="preserve"><value>Weiter</value></data>
   <data name="Onb_LaunchBtn.Content" xml:space="preserve"><value>Agent-X starten</value></data>
+
+  <!-- Localization changeset: app-l10n-2026-07 -->
+  <data name="Main_Intelligence.Content" xml:space="preserve"><value>INTELLIGENZ</value></data>
+  <data name="Main_Dashboard.Content" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="Main_Operations.Content" xml:space="preserve"><value>Operations</value></data>
+  <data name="Main_WeeklyDigest.Content" xml:space="preserve"><value>Wochen-Digest</value></data>
+  <data name="Main_Analytics.Content" xml:space="preserve"><value>Analytics</value></data>
+  <data name="Main_PastSelf.Content" xml:space="preserve"><value>Vergangenes Ich</value></data>
+  <data name="Main_AiChat.Content" xml:space="preserve"><value>AI Chat</value></data>
+  <data name="Main_AskYourFiles.Content" xml:space="preserve"><value>Fragen Sie Ihre Dateien</value></data>
+  <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
+  <data name="Main_Workflows.Content" xml:space="preserve"><value>Workflows</value></data>
+  <data name="Main_Knowledge.Content" xml:space="preserve"><value>WISSEN</value></data>
+  <data name="Main_KnowledgeVault.Content" xml:space="preserve"><value>Wissens-Tresor</value></data>
+  <data name="Main_WebImport.Content" xml:space="preserve"><value>Web-Import</value></data>
+  <data name="Main_Collections.Content" xml:space="preserve"><value>Sammlungen</value></data>
+  <data name="Main_SemanticSearch.Content" xml:space="preserve"><value>Semantische Suche</value></data>
+  <data name="Main_KnowledgeGraph.Content" xml:space="preserve"><value>Wissensgraph</value></data>
+  <data name="Main_CompareDocuments.Content" xml:space="preserve"><value>Dokumente vergleichen</value></data>
+  <data name="Main_Triage.Content" xml:space="preserve"><value>TRIAGE</value></data>
+  <data name="Main_SmartInbox.Content" xml:space="preserve"><value>Smart Inbox</value></data>
+  <data name="Main_System.Content" xml:space="preserve"><value>SYSTEM</value></data>
+  <data name="Main_ModelManager.Content" xml:space="preserve"><value>Modellverwaltung</value></data>
+  <data name="Main_HardwareAdvisor.Content" xml:space="preserve"><value>Hardware-Berater</value></data>
+  <data name="Main_BackupRestore.Content" xml:space="preserve"><value>Backup &amp; Wiederherstellung</value></data>
+  <data name="Main_WorkspaceProfiles.Content" xml:space="preserve"><value>Workspace-Profile</value></data>
+  <data name="Main_PluginManager.Content" xml:space="preserve"><value>Plugin-Verwaltung</value></data>
+  <data name="Main_CollaborativeSync.Content" xml:space="preserve"><value>Collaborative Sync</value></data>
+  <data name="Main_Calendar.Content" xml:space="preserve"><value>Kalender</value></data>
+  <data name="Main_Email.Content" xml:space="preserve"><value>E-Mail</value></data>
+  <data name="Main_Annotations.Content" xml:space="preserve"><value>Annotationen</value></data>
+  <data name="Main_Support.Content" xml:space="preserve"><value>SUPPORT</value></data>
+  <data name="Main_UserGuide.Content" xml:space="preserve"><value>Benutzerhandbuch</value></data>
+  <data name="Main_PrivacyPolicy.Content" xml:space="preserve"><value>Datenschutzerklärung</value></data>
+  <data name="Main_TermsOfService.Content" xml:space="preserve"><value>Nutzungsbedingungen</value></data>
+  <data name="Main_Settings.Content" xml:space="preserve"><value>Einstellungen</value></data>
+  <data name="Main_Initializing.Text" xml:space="preserve"><value>Initialisiere...</value></data>
+  <data name="Main_OpenAgentX.Text" xml:space="preserve"><value>Agent-X öffnen</value></data>
+  <data name="Main_QuickChat.Text" xml:space="preserve"><value>Quick Chat</value></data>
+  <data name="Main_Settings2.Text" xml:space="preserve"><value>Einstellungen</value></data>
+  <data name="Main_Exit.Text" xml:space="preserve"><value>Beenden</value></data>
+  <data name="Dash_Title.Text" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="Dash_Subtitle.Text" xml:space="preserve"><value>Ihre private KI-Intelligenzzentrale. Alles läuft auf Ihrem Rechner.</value></data>
+  <data name="Dash_RefreshBtn.Content" xml:space="preserve"><value>Aktualisieren</value></data>
+  <data name="Dash_ConnectOllamaHint.Text" xml:space="preserve"><value>Verbinden Sie Ollama, um KI-Chat, semantische Suche und Datei-Intelligenz freizuschalten.</value></data>
+  <data name="Dash_SetupAiBtn.Content" xml:space="preserve"><value>KI einrichten</value></data>
+  <data name="Dash_SearchBox.PlaceholderText" xml:space="preserve"><value>Wissens-Tresor durchsuchen...  (Strg+K)</value></data>
+  <data name="Dash_DocsOverline.Text" xml:space="preserve"><value>DOKUMENTE</value></data>
+  <data name="Dash_AcrossRun.Text" xml:space="preserve"><value>in </value></data>
+  <data name="Dash_CollectionsRun.Text" xml:space="preserve"><value> Sammlungen</value></data>
+  <data name="Dash_StorageOverline.Text" xml:space="preserve"><value>SPEICHER</value></data>
+  <data name="Dash_AiSessionsOverline.Text" xml:space="preserve"><value>KI-SITZUNGEN</value></data>
+  <data name="Dash_TokensUsedRun.Text" xml:space="preserve"><value> Tokens verbraucht</value></data>
+  <data name="Dash_SystemOverline.Text" xml:space="preserve"><value>SYSTEM</value></data>
+  <data name="Dash_OpsOverviewTitle.Text" xml:space="preserve"><value>Operations-Überblick</value></data>
+  <data name="Dash_OpsOverviewSubtitle.Text" xml:space="preserve"><value>Konversationsintelligenz, Sync-Zustand, Connectoren, Import-Rückstand und Workflow-Aktivität auf einer Oberfläche.</value></data>
+  <data name="Dash_OpenOperationsBtn.Content" xml:space="preserve"><value>Operations öffnen</value></data>
+  <data name="Dash_ConvIntelOverline.Text" xml:space="preserve"><value>KONVERSATIONSINTELLIGENZ</value></data>
+  <data name="Dash_OpenAnalyticsBtn.Content" xml:space="preserve"><value>Analytics öffnen</value></data>
+  <data name="Dash_SyncHealthOverline.Text" xml:space="preserve"><value>SYNC-ZUSTAND</value></data>
+  <data name="Dash_OpenSyncBtn.Content" xml:space="preserve"><value>Sync öffnen</value></data>
+  <data name="Dash_ConnectorsOverline.Text" xml:space="preserve"><value>CONNECTOREN &amp; PLUGINS</value></data>
+  <data name="Dash_OpenPluginsBtn.Content" xml:space="preserve"><value>Plugins öffnen</value></data>
+  <data name="Dash_IngestionOverline.Text" xml:space="preserve"><value>IMPORT-RÜCKSTAND</value></data>
+  <data name="Dash_OpenInboxBtn.Content" xml:space="preserve"><value>Posteingang öffnen</value></data>
+  <data name="Dash_WorkflowOverline.Text" xml:space="preserve"><value>WORKFLOW-AKTIVITÄT</value></data>
+  <data name="Dash_OpenWorkflowsBtn.Content" xml:space="preserve"><value>Workflows öffnen</value></data>
+  <data name="Dash_RecentDocsTitle.Text" xml:space="preserve"><value>Neueste Dokumente</value></data>
+  <data name="Dash_ViewAllDocsBtn.Content" xml:space="preserve"><value>Alle anzeigen</value></data>
+  <data name="Dash_NoDocsTitle.Text" xml:space="preserve"><value>Noch keine Dokumente importiert</value></data>
+  <data name="Dash_NoDocsHint.Text" xml:space="preserve"><value>Importieren Sie Dateien, um Ihren Wissens-Tresor aufzubauen</value></data>
+  <data name="Dash_RecentConvTitle.Text" xml:space="preserve"><value>Neueste Konversationen</value></data>
+  <data name="Dash_ViewAllConvBtn.Content" xml:space="preserve"><value>Alle anzeigen</value></data>
+  <data name="Dash_NoConvTitle.Text" xml:space="preserve"><value>Noch keine Konversationen</value></data>
+  <data name="Dash_NoConvHint.Text" xml:space="preserve"><value>Starten Sie einen Chat, um Ihre Konversationen hier zu sehen</value></data>
+  <data name="Dash_MsgsRun.Text" xml:space="preserve"><value> Nachr.</value></data>
+  <data name="Dash_FileTypesTitle.Text" xml:space="preserve"><value>Dateityp-Verteilung</value></data>
+  <data name="Dash_NoDataYet.Text" xml:space="preserve"><value>Noch keine Daten</value></data>
+  <data name="Dash_TopCollectionsTitle.Text" xml:space="preserve"><value>Top-Sammlungen</value></data>
+  <data name="Dash_NoCollectionsYet.Text" xml:space="preserve"><value>Noch keine Sammlungen</value></data>
+  <data name="Dash_BeliefTitle.Text" xml:space="preserve"><value>Ihre Überzeugungsentwicklung</value></data>
+  <data name="Dash_MagnitudeRun.Text" xml:space="preserve"><value>Ausmaß: </value></data>
+  <data name="Dash_PreviouslyRun.Text" xml:space="preserve"><value>Früher: </value></data>
+  <data name="Dash_CurrentlyRun.Text" xml:space="preserve"><value>Aktuell: </value></data>
+  <data name="Dash_NoBeliefTitle.Text" xml:space="preserve"><value>Noch keine Überzeugungsentwicklung erkannt.</value></data>
+  <data name="Dash_NoBeliefHint.Text" xml:space="preserve"><value>Während Sie die App nutzen, verfolgt sie, wie sich Ihre Ansichten zu Themen im Laufe der Zeit verändern.</value></data>
+  <data name="Dash_ExplorePastSelfBtn.Content" xml:space="preserve"><value>Vergangenes Ich erkunden</value></data>
+  <data name="Dash_NextStepsTitle.Text" xml:space="preserve"><value>Empfohlene nächste Schritte</value></data>
+  <data name="Dash_NextStepsSubtitle.Text" xml:space="preserve"><value>Die wirkungsvollsten Aktionen auf Basis Ihrer aktuellen KI-Bereitschaft, des Eingangsdrucks, des Sync-Zustands und der Workflow-Dynamik.</value></data>
+  <data name="Dash_NewChatLabel.Text" xml:space="preserve"><value>Neuer Chat</value></data>
+  <data name="Dash_ImportFilesLabel.Text" xml:space="preserve"><value>Dateien importieren</value></data>
+  <data name="Dash_SearchLabel.Text" xml:space="preserve"><value>Suche</value></data>
+  <data name="Dash_AskFilesLabel.Text" xml:space="preserve"><value>Dateien fragen</value></data>
+  <data name="Dash_AvailableRamLabel.Text" xml:space="preserve"><value>Verfügbarer RAM</value></data>
+  <data name="Dash_VaultStorageLabel.Text" xml:space="preserve"><value>Tresor-Speicher</value></data>
+  <data name="Chat_MsgsLabel.Text" xml:space="preserve"><value>Nachr.</value></data>
+  <data name="Chat_InspectContextTip.ToolTipService.ToolTip" xml:space="preserve"><value>Den vollständigen Kontext dieser Antwort einsehen</value></data>
+  <data name="Chat_ContextUsedLabel.Text" xml:space="preserve"><value>Verwendeter Kontext</value></data>
+  <data name="Chat_ConversationsTitle.Text" xml:space="preserve"><value>Konversationen</value></data>
+  <data name="Chat_NewConversationTip.ToolTipService.ToolTip" xml:space="preserve"><value>Neue Konversation</value></data>
+  <data name="Chat_NewLabel.Text" xml:space="preserve"><value>Neu</value></data>
+  <data name="Chat_SearchConvBox.PlaceholderText" xml:space="preserve"><value>Konversationen durchsuchen...</value></data>
+  <data name="Chat_AllFilterBtn.Content" xml:space="preserve"><value>Alle</value></data>
+  <data name="Chat_BranchesHeader.Header" xml:space="preserve"><value>Zweige</value></data>
+  <data name="Chat_MergeToMainTip.ToolTipService.ToolTip" xml:space="preserve"><value>In Hauptzweig zusammenführen</value></data>
+  <data name="Chat_DeleteBranchTip.ToolTipService.ToolTip" xml:space="preserve"><value>Zweig löschen</value></data>
+  <data name="Chat_ConversationsCountRun.Text" xml:space="preserve"><value>Konversationen</value></data>
+  <data name="Chat_ToggleSidebarBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Seitenleiste umschalten</value></data>
+  <data name="Chat_ToggleSidebarBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Seitenleiste umschalten</value></data>
+  <data name="Chat_SelectModelBox.PlaceholderText" xml:space="preserve"><value>Modell auswählen...</value></data>
+  <data name="Chat_SystemPromptTip.ToolTipService.ToolTip" xml:space="preserve"><value>Systemprompt</value></data>
+  <data name="Chat_SystemPromptTitle.Text" xml:space="preserve"><value>Systemprompt</value></data>
+  <data name="Chat_SystemPromptHint.Text" xml:space="preserve"><value>Legen Sie Verhalten und Persönlichkeit der KI für diese Konversation fest.</value></data>
+  <data name="Chat_NoSystemPrompt.Text" xml:space="preserve"><value>Kein Systemprompt</value></data>
+  <data name="Chat_AssignFolderTip.ToolTipService.ToolTip" xml:space="preserve"><value>Ordner zuweisen</value></data>
+  <data name="Chat_MoveToFolderTitle.Text" xml:space="preserve"><value>In Ordner verschieben</value></data>
+  <data name="Chat_NoFolderItem.Content" xml:space="preserve"><value>Keiner (Ordner entfernen)</value></data>
+  <data name="Chat_FolderWork.Content" xml:space="preserve"><value>Arbeit</value></data>
+  <data name="Chat_FolderResearch.Content" xml:space="preserve"><value>Forschung</value></data>
+  <data name="Chat_FolderPersonal.Content" xml:space="preserve"><value>Privat</value></data>
+  <data name="Chat_FolderArchive.Content" xml:space="preserve"><value>Archiv</value></data>
+  <data name="Chat_CustomFolderBox.PlaceholderText" xml:space="preserve"><value>Eigener Ordnername...</value></data>
+  <data name="Chat_TokLabel.Text" xml:space="preserve"><value>Tok.</value></data>
+  <data name="Chat_CompareBranchesBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Zweige vergleichen</value></data>
+  <data name="Chat_CompareBranchesBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Zweige vergleichen</value></data>
+  <data name="Chat_RefreshConnBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Verbindung aktualisieren</value></data>
+  <data name="Chat_RefreshConnBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Verbindung aktualisieren</value></data>
+  <data name="Chat_ExportConvBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Konversation exportieren</value></data>
+  <data name="Chat_ExportConvBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Konversation exportieren</value></data>
+  <data name="Chat_RefreshSummaryTip.ToolTipService.ToolTip" xml:space="preserve"><value>Dauerhafte Zusammenfassung dieser Konversation aktualisieren</value></data>
+  <data name="Chat_OpenInspectorTip.ToolTipService.ToolTip" xml:space="preserve"><value>Vollständigen Kontext-Inspektor öffnen</value></data>
+  <data name="Chat_InspectContextLabel.Text" xml:space="preserve"><value>Kontext einsehen</value></data>
+  <data name="Chat_EmptyTitle.Text" xml:space="preserve"><value>Konversation starten</value></data>
+  <data name="Chat_EmptyHint.Text" xml:space="preserve"><value>Chatten Sie mit lokalen KI-Modellen über Ollama. Ihre Nachrichten bleiben auf diesem Gerät. Keine Daten verlassen Ihren Rechner.</value></data>
+  <data name="Chat_PrivateBadge.Text" xml:space="preserve"><value>100 % privat</value></data>
+  <data name="Chat_EnterToSend.Text" xml:space="preserve"><value>Enter zum Senden</value></data>
+  <data name="Chat_ShiftEnterNewLine.Text" xml:space="preserve"><value>Umschalt+Enter für neue Zeile</value></data>
+  <data name="Chat_CancelEditBtn.Content" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="Chat_SaveResendBtn.Content" xml:space="preserve"><value>Speichern &amp; erneut senden</value></data>
+  <data name="Chat_EditMessageTip.ToolTipService.ToolTip" xml:space="preserve"><value>Nachricht bearbeiten</value></data>
+  <data name="Chat_CopyUserMsgTip.ToolTipService.ToolTip" xml:space="preserve"><value>In Zwischenablage kopieren</value></data>
+  <data name="Chat_BranchFromHereTip.ToolTipService.ToolTip" xml:space="preserve"><value>Ab hier verzweigen</value></data>
+  <data name="Chat_DeleteUserMsgTip.ToolTipService.ToolTip" xml:space="preserve"><value>Nachricht löschen</value></data>
+  <data name="Chat_GoodResponseTip.ToolTipService.ToolTip" xml:space="preserve"><value>Gute Antwort</value></data>
+  <data name="Chat_PoorResponseTip.ToolTipService.ToolTip" xml:space="preserve"><value>Schlechte Antwort</value></data>
+  <data name="Chat_CopyAiMsgTip.ToolTipService.ToolTip" xml:space="preserve"><value>In Zwischenablage kopieren</value></data>
+  <data name="Chat_RegenerateTip.ToolTipService.ToolTip" xml:space="preserve"><value>Antwort neu generieren</value></data>
+  <data name="Chat_DeleteAiMsgTip.ToolTipService.ToolTip" xml:space="preserve"><value>Nachricht löschen</value></data>
+  <data name="Chat_ContextInspectionTitle.Text" xml:space="preserve"><value>Kontextprüfung</value></data>
+  <data name="Chat_ContextStoryTitle.Text" xml:space="preserve"><value>Kontextverlauf</value></data>
+  <data name="Chat_AssemblyOverviewTitle.Text" xml:space="preserve"><value>Zusammenstellungsübersicht</value></data>
+  <data name="Chat_ModeRun.Text" xml:space="preserve"><value>Modus: </value></data>
+  <data name="Chat_SelectedRun.Text" xml:space="preserve"><value>Ausgewählt: </value></data>
+  <data name="Chat_AnchorsRun.Text" xml:space="preserve"><value> · Anker: </value></data>
+  <data name="Chat_OverflowRun.Text" xml:space="preserve"><value>Überlauf: </value></data>
+  <data name="Chat_PromptEstRun.Text" xml:space="preserve"><value> · Prompt ca.: </value></data>
+  <data name="Chat_DurableSummaryTitle.Text" xml:space="preserve"><value>Dauerhafte Zusammenfassung</value></data>
+  <data name="Chat_RefreshSummaryTip2.ToolTipService.ToolTip" xml:space="preserve"><value>Dauerhafte Zusammenfassung dieser Konversation aktualisieren</value></data>
+  <data name="Chat_DurableRecallTitle.Text" xml:space="preserve"><value>Dauerhafter Recall</value></data>
+  <data name="Chat_WhyThisContextTitle.Text" xml:space="preserve"><value>Warum dieser Kontext</value></data>
+  <data name="Chat_CapturedRun.Text" xml:space="preserve"><value>Erfasst </value></data>
+  <data name="Chat_PromptRun.Text" xml:space="preserve"><value>Prompt:</value></data>
+  <data name="Chat_MessageBox.PlaceholderText" xml:space="preserve"><value>Nachricht an Agent-X...</value></data>
+  <data name="Chat_VoiceInputTip.ToolTipService.ToolTip" xml:space="preserve"><value>Spracheingabe — zum Aufnehmen klicken</value></data>
+  <data name="Chat_StopRecordingTip.ToolTipService.ToolTip" xml:space="preserve"><value>Aufnahme beenden und transkribieren</value></data>
+  <data name="Chat_InspectAssembledTip.ToolTipService.ToolTip" xml:space="preserve"><value>Zuletzt zusammengestellten Chat-Kontext einsehen</value></data>
+  <data name="Chat_ModeSolo.Text" xml:space="preserve"><value>Solo</value></data>
+  <data name="Chat_ModeMulti.Text" xml:space="preserve"><value>Multi</value></data>
+  <data name="Chat_ModeDebate.Text" xml:space="preserve"><value>Debatte</value></data>
+  <data name="Chat_SendBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Nachricht senden (Enter)</value></data>
+  <data name="Chat_SendBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Nachricht senden</value></data>
+  <data name="Chat_StopGenBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Generierung stoppen</value></data>
+  <data name="Chat_StopGenBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Generierung stoppen</value></data>
+  <data name="AskFiles_Title.Text" xml:space="preserve"><value>Fragen Sie Ihre Dateien</value></data>
+  <data name="AskFiles_Subtitle.Text" xml:space="preserve"><value>KI-gestützte Antworten, die auf Ihren Dokumenten basieren.</value></data>
+  <data name="AskFiles_AllCollectionsBox.PlaceholderText" xml:space="preserve"><value>Alle Sammlungen</value></data>
+  <data name="AskFiles_ClearConvBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Konversation leeren</value></data>
+  <data name="AskFiles_ClearConvBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Konversation leeren</value></data>
+  <data name="AskFiles_ClearLabel.Text" xml:space="preserve"><value>Leeren</value></data>
+  <data name="AskFiles_EmptyTitle.Text" xml:space="preserve"><value>Stellen Sie Fragen zu Ihren Dokumenten</value></data>
+  <data name="AskFiles_SearchPrefixRun.Text" xml:space="preserve"><value>Ihre KI durchsucht </value></data>
+  <data name="AskFiles_SearchSuffixRun.Text" xml:space="preserve"><value> Wissensabschnitte, um Antworten zu finden – mit Quellenangaben.</value></data>
+  <data name="AskFiles_RagBadge.Text" xml:space="preserve"><value>RAG-gestützte Antworten mit Quellenangaben</value></data>
+  <data name="AskFiles_TryAskingOverline.Text" xml:space="preserve"><value>FRAGEN SIE ZUM BEISPIEL</value></data>
+  <data name="AskFiles_Example1.Text" xml:space="preserve"><value>Was sind die wichtigsten Erkenntnisse meiner Forschung?</value></data>
+  <data name="AskFiles_Example2.Text" xml:space="preserve"><value>Fasse die Hauptpunkte meiner Meeting-Notizen zusammen</value></data>
+  <data name="AskFiles_Example3.Text" xml:space="preserve"><value>Vergleiche die in meinen Papieren diskutierten Ansätze</value></data>
+  <data name="AskFiles_EnterToSend.Text" xml:space="preserve"><value>Enter zum Senden</value></data>
+  <data name="AskFiles_QuestionBox.PlaceholderText" xml:space="preserve"><value>Stellen Sie eine Frage zu Ihren Dokumenten...</value></data>
+  <data name="AskFiles_SendBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Frage senden (Enter)</value></data>
+  <data name="AskFiles_SendBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Frage senden</value></data>
+  <data name="AskFiles_SourcesTitle.Text" xml:space="preserve"><value>Quellen</value></data>
+  <data name="AskFiles_NoCitationsTitle.Text" xml:space="preserve"><value>Noch keine Quellenangaben</value></data>
+  <data name="AskFiles_NoCitationsHint.Text" xml:space="preserve"><value>Stellen Sie eine Frage – die Quellen erscheinen hier.</value></data>
+  <data name="AskFiles_OpenSourceBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Quelldokument öffnen</value></data>
+  <data name="AskFiles_OpenSourceBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Quelldokument öffnen</value></data>
+  <data name="AskFiles_PageLabel.Text" xml:space="preserve"><value>Seite</value></data>
+  <data name="AskFiles_GroundedNote.Text" xml:space="preserve"><value>Alle Antworten basieren auf Ihren Dokumenten.</value></data>
+  <data name="Search_Title.Text" xml:space="preserve"><value>Suche</value></data>
+  <data name="Search_Subtitle.Text" xml:space="preserve"><value>Durchsuchen Sie Ihre gesamte Dokumentbibliothek mit semantischer KI, Stichwörtern oder beidem.</value></data>
+  <data name="Search_InputBox.PlaceholderText" xml:space="preserve"><value>Dokumente durchsuchen...</value></data>
+  <data name="Search_SearchBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Suchen (Enter)</value></data>
+  <data name="Search_SearchLabel.Text" xml:space="preserve"><value>Suchen</value></data>
+  <data name="Search_ClearBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Suche leeren</value></data>
+  <data name="Search_ClearBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Suche leeren</value></data>
+  <data name="Search_SearchModeOverline.Text" xml:space="preserve"><value>SUCHMODUS</value></data>
+  <data name="Search_ModeSemantic.Content" xml:space="preserve"><value>Semantisch</value></data>
+  <data name="Search_ModeSemantic.ToolTipService.ToolTip" xml:space="preserve"><value>Vektor-Ähnlichkeitssuche mit KI-Embeddings</value></data>
+  <data name="Search_ModeKeyword.Content" xml:space="preserve"><value>Stichwort</value></data>
+  <data name="Search_ModeKeyword.ToolTipService.ToolTip" xml:space="preserve"><value>Volltext-Stichwortsuche mit BM25-Ranking</value></data>
+  <data name="Search_ModeHybrid.Content" xml:space="preserve"><value>Hybrid</value></data>
+  <data name="Search_ModeHybrid.ToolTipService.ToolTip" xml:space="preserve"><value>Kombinierte semantische + Stichwortsuche für beste Ergebnisse</value></data>
+  <data name="Search_CollectionOverline.Text" xml:space="preserve"><value>SAMMLUNG</value></data>
+  <data name="Search_AdvancedBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Erweiterte Suchfilter ein-/ausblenden</value></data>
+  <data name="Search_AdvancedLabel.Text" xml:space="preserve"><value>Erweitert</value></data>
+  <data name="Search_FileTypeOverline.Text" xml:space="preserve"><value>DATEITYP</value></data>
+  <data name="Search_FilterAllTypes.Content" xml:space="preserve"><value>Alle Typen</value></data>
+  <data name="Search_FilterText.Text" xml:space="preserve"><value>Text</value></data>
+  <data name="Search_FilterCode.Text" xml:space="preserve"><value>Code</value></data>
+  <data name="Search_FilterCalendar.Text" xml:space="preserve"><value>Kalender</value></data>
+  <data name="Search_FilterEmail.Text" xml:space="preserve"><value>E-Mail</value></data>
+  <data name="Search_MinRelevanceOverline.Text" xml:space="preserve"><value>MIN. RELEVANZ</value></data>
+  <data name="Search_MaxResultsOverline.Text" xml:space="preserve"><value>MAX. ERGEBNISSE</value></data>
+  <data name="Search_ResetBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Alle erweiterten Filter zurücksetzen</value></data>
+  <data name="Search_ResetLabel.Text" xml:space="preserve"><value>Zurücksetzen</value></data>
+  <data name="Search_CreatedAfterOverline.Text" xml:space="preserve"><value>ERSTELLT NACH</value></data>
+  <data name="Search_CreatedAfterPicker.PlaceholderText" xml:space="preserve"><value>Beliebiges Datum</value></data>
+  <data name="Search_CreatedBeforeOverline.Text" xml:space="preserve"><value>ERSTELLT VOR</value></data>
+  <data name="Search_CreatedBeforePicker.PlaceholderText" xml:space="preserve"><value>Beliebiges Datum</value></data>
+  <data name="Search_SortRelevance.Content" xml:space="preserve"><value>Relevanz</value></data>
+  <data name="Search_SortNewest.Content" xml:space="preserve"><value>Neueste zuerst</value></data>
+  <data name="Search_SortOldest.Content" xml:space="preserve"><value>Älteste zuerst</value></data>
+  <data name="Search_SortFileName.Content" xml:space="preserve"><value>Dateiname</value></data>
+  <data name="Search_SaveFilterBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Aktuelle Suche als Filter speichern</value></data>
+  <data name="Search_SaveLabel.Text" xml:space="preserve"><value>Speichern</value></data>
+  <data name="Search_ResultsRun.Text" xml:space="preserve"><value>Ergebnisse</value></data>
+  <data name="Search_EmptyTitle.Text" xml:space="preserve"><value>Durchsuchen Sie Ihre Dokumente</value></data>
+  <data name="Search_EmptyBody.Text" xml:space="preserve"><value>Durchsuchen Sie Ihre gesamte Dokumentbibliothek in natürlicher Sprache. Vektor-Embeddings finden semantisch ähnliche Inhalte, selbst wenn die genauen Wörter abweichen.</value></data>
+  <data name="Search_EnterToSearch.Text" xml:space="preserve"><value>Enter zum Suchen</value></data>
+  <data name="Search_SemanticAiBadge.Text" xml:space="preserve"><value>Semantische KI-Suche</value></data>
+  <data name="Search_NoResultsTitle.Text" xml:space="preserve"><value>Keine Ergebnisse gefunden</value></data>
+  <data name="Search_NoResultsPrefixRun.Text" xml:space="preserve"><value>Keine Ergebnisse für '</value></data>
+  <data name="Search_NoResultsSuffixRun.Text" xml:space="preserve"><value>'. Versuchen Sie andere Suchbegriffe oder erweitern Sie Ihre Filter.</value></data>
+  <data name="Search_ClearFiltersBtn.Content" xml:space="preserve"><value>Filter zurücksetzen</value></data>
+  <data name="Search_RelevanceLabel.Text" xml:space="preserve"><value>Relevanz</value></data>
+  <data name="Search_PageRun.Text" xml:space="preserve"><value>Seite</value></data>
+  <data name="Search_ChunkRun.Text" xml:space="preserve"><value>Abschnitt</value></data>
+  <data name="Search_OpenBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Im Explorer öffnen</value></data>
+  <data name="Search_OpenLabel.Text" xml:space="preserve"><value>Öffnen</value></data>
+  <data name="Search_WorkflowBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Dieses Ergebnis in einem Workflow verwenden</value></data>
+  <data name="Search_WorkflowLabel.Text" xml:space="preserve"><value>Workflow</value></data>
+  <data name="Search_HistoryTitle.Text" xml:space="preserve"><value>Suchverlauf</value></data>
+  <data name="Search_ClearHistoryBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Suchverlauf löschen</value></data>
+  <data name="Search_ClearHistoryLabel.Text" xml:space="preserve"><value>Löschen</value></data>
+  <data name="Search_HistoryResultsRun.Text" xml:space="preserve"><value>Ergebnisse</value></data>
+  <data name="Search_SavedFiltersTitle.Text" xml:space="preserve"><value>Gespeicherte Filter</value></data>
+  <data name="Search_ApplyFilterBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Diesen Filter anwenden</value></data>
+  <data name="Search_ApplyFilterBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Diesen Filter anwenden</value></data>
+  <data name="Search_RemoveFilterBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Gespeicherten Filter entfernen</value></data>
+  <data name="Search_RemoveFilterBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Gespeicherten Filter entfernen</value></data>
+  <data name="Search_RecentSearchesRun.Text" xml:space="preserve"><value>letzte Suchvorgänge</value></data>
+  <data name="Vault_ImportOrganizeAndIndex.Text" xml:space="preserve"><value>Importieren, organisieren und indexieren Sie Ihre Dokumente für die KI-gestützte Suche.</value></data>
+  <data name="Vault_ImportFiles.Text" xml:space="preserve"><value>Dateien importieren</value></data>
+  <data name="Vault_ImportFolder.Text" xml:space="preserve"><value>Ordner importieren</value></data>
+  <data name="Vault_ToggleMultiSelectModeTip.ToolTipService.ToolTip" xml:space="preserve"><value>Mehrfachauswahl umschalten</value></data>
+  <data name="Vault_Select.Text" xml:space="preserve"><value>Auswählen</value></data>
+  <data name="Vault_RefreshDocumentsTip.ToolTipService.ToolTip" xml:space="preserve"><value>Dokumente aktualisieren</value></data>
+  <data name="Vault_RefreshDocumentsTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Dokumente aktualisieren</value></data>
+  <data name="Vault_DuplicateDocumentsDetected.Text" xml:space="preserve"><value>Doppelte Dokumente erkannt</value></data>
+  <data name="Vault_SkipDuplicates.Content" xml:space="preserve"><value>Duplikate überspringen</value></data>
+  <data name="Vault_ImportAll.Content" xml:space="preserve"><value>Alle importieren</value></data>
+  <data name="Vault_Documents.Text" xml:space="preserve"><value>Dokumente</value></data>
+  <data name="Vault_StorageUsed.Text" xml:space="preserve"><value>Belegter Speicher</value></data>
+  <data name="Vault_InQueue.Text" xml:space="preserve"><value>In Warteschlange</value></data>
+  <data name="Vault_FileType.Text" xml:space="preserve"><value>DATEITYP</value></data>
+  <data name="Vault_All.Content" xml:space="preserve"><value>Alle</value></data>
+  <data name="Vault_Documents2.Text" xml:space="preserve"><value>Dokumente</value></data>
+  <data name="Vault_Text.Text" xml:space="preserve"><value>Text</value></data>
+  <data name="Vault_Code.Text" xml:space="preserve"><value>Code</value></data>
+  <data name="Vault_Images.Text" xml:space="preserve"><value>Bilder</value></data>
+  <data name="Vault_Status.Text" xml:space="preserve"><value>STATUS</value></data>
+  <data name="Vault_All2.Content" xml:space="preserve"><value>Alle</value></data>
+  <data name="Vault_Completed.Text" xml:space="preserve"><value>Abgeschlossen</value></data>
+  <data name="Vault_Processing.Text" xml:space="preserve"><value>In Verarbeitung</value></data>
+  <data name="Vault_Pending.Text" xml:space="preserve"><value>Ausstehend</value></data>
+  <data name="Vault_Failed.Text" xml:space="preserve"><value>Fehlgeschlagen</value></data>
+  <data name="Vault_Tags.Text" xml:space="preserve"><value>TAGS</value></data>
+  <data name="Vault_Collection.Text" xml:space="preserve"><value>SAMMLUNG</value></data>
+  <data name="Vault_AllCollectionsPh.PlaceholderText" xml:space="preserve"><value>Alle Sammlungen</value></data>
+  <data name="Vault_ImportedAfter.Text" xml:space="preserve"><value>IMPORTIERT NACH</value></data>
+  <data name="Vault_StartDatePh.PlaceholderText" xml:space="preserve"><value>Startdatum</value></data>
+  <data name="Vault_ImportedBefore.Text" xml:space="preserve"><value>IMPORTIERT VOR</value></data>
+  <data name="Vault_EndDatePh.PlaceholderText" xml:space="preserve"><value>Enddatum</value></data>
+  <data name="Vault_SortBy.Text" xml:space="preserve"><value>SORTIEREN NACH</value></data>
+  <data name="Vault_DatePh.PlaceholderText" xml:space="preserve"><value>Datum</value></data>
+  <data name="Vault_Date.Content" xml:space="preserve"><value>Datum</value></data>
+  <data name="Vault_Name.Content" xml:space="preserve"><value>Name</value></data>
+  <data name="Vault_Size.Content" xml:space="preserve"><value>Größe</value></data>
+  <data name="Vault_Type.Content" xml:space="preserve"><value>Typ</value></data>
+  <data name="Vault_SearchDocumentsByNamePh.PlaceholderText" xml:space="preserve"><value>Dokumente nach Name, Inhalt oder Tags durchsuchen...</value></data>
+  <data name="Vault_ClearAllFiltersTip.ToolTipService.ToolTip" xml:space="preserve"><value>Alle Filter zurücksetzen</value></data>
+  <data name="Vault_ClearAllFiltersTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Alle Filter zurücksetzen</value></data>
+  <data name="Vault_ClearAll.Text" xml:space="preserve"><value>Alle zurücksetzen</value></data>
+  <data name="Vault_Selected.Text" xml:space="preserve"><value> ausgewählt</value></data>
+  <data name="Vault_SelectAll.Content" xml:space="preserve"><value>Alle auswählen</value></data>
+  <data name="Vault_ReIndex.Text" xml:space="preserve"><value>Neu indexieren</value></data>
+  <data name="Vault_Delete.Text" xml:space="preserve"><value>Löschen</value></data>
+  <data name="Vault_DragAndDropFiles.Text" xml:space="preserve"><value>Dateien hierher ziehen</value></data>
+  <data name="Vault_OrClickImportTo.Text" xml:space="preserve"><value>oder klicken Sie auf „Importieren“, um Dateien auszuwählen</value></data>
+  <data name="Vault_LoadingDocuments.Text" xml:space="preserve"><value>Dokumente werden geladen...</value></data>
+  <data name="Vault_Pages.Text" xml:space="preserve"><value>Seiten</value></data>
+  <data name="Vault_Words.Text" xml:space="preserve"><value>Wörter</value></data>
+  <data name="Vault_Chunks.Text" xml:space="preserve"><value>Abschnitte</value></data>
+  <data name="Vault_GenerateAiTitleTip.ToolTipService.ToolTip" xml:space="preserve"><value>KI-Titel generieren</value></data>
+  <data name="Vault_GenerateAiTitleTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>KI-Titel generieren</value></data>
+  <data name="Vault_AiTitle.Text" xml:space="preserve"><value>KI-Titel</value></data>
+  <data name="Vault_ViewDetailsTip.ToolTipService.ToolTip" xml:space="preserve"><value>Details anzeigen</value></data>
+  <data name="Vault_Detail.Text" xml:space="preserve"><value>Details</value></data>
+  <data name="Vault_UseThisDocumentInTip.ToolTipService.ToolTip" xml:space="preserve"><value>Dieses Dokument in einem Workflow verwenden</value></data>
+  <data name="Vault_Workflow.Text" xml:space="preserve"><value>Workflow</value></data>
+  <data name="Vault_ReIndexDocumentTip.ToolTipService.ToolTip" xml:space="preserve"><value>Dokument neu indexieren</value></data>
+  <data name="Vault_ReIndexDocumentTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Dokument neu indexieren</value></data>
+  <data name="Vault_OpenFileLocationTip.ToolTipService.ToolTip" xml:space="preserve"><value>Dateispeicherort öffnen</value></data>
+  <data name="Vault_OpenFileLocationTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Dateispeicherort öffnen</value></data>
+  <data name="Vault_DeleteDocumentTip.ToolTipService.ToolTip" xml:space="preserve"><value>Dokument löschen</value></data>
+  <data name="Vault_DeleteDocumentTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Dokument löschen</value></data>
+  <data name="Vault_NoDocumentsYet.Text" xml:space="preserve"><value>Noch keine Dokumente</value></data>
+  <data name="Vault_ImportYourFirstDocuments.Text" xml:space="preserve"><value>Importieren Sie Ihre ersten Dokumente, um Ihren Wissens-Tresor aufzubauen. PDFs, Word-Dateien, Markdown, Textdateien und mehr werden unterstützt.</value></data>
+  <data name="Vault_ImportYourFirstFiles.Text" xml:space="preserve"><value>Importieren Sie Ihre ersten Dateien</value></data>
+  <data name="Vault_IndexingInProgress.Text" xml:space="preserve"><value>Indexierung läuft...</value></data>
+  <data name="Vault_Remaining.Text" xml:space="preserve"><value>verbleibend</value></data>
+  <data name="Vault_DocumentPreview.Text" xml:space="preserve"><value>Dokumentvorschau</value></data>
+  <data name="Vault_ClosePreviewTip.ToolTipService.ToolTip" xml:space="preserve"><value>Vorschau schließen</value></data>
+  <data name="Vault_ClosePreviewTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Vorschau schließen</value></data>
+  <data name="Vault_FocusedDocument.Text" xml:space="preserve"><value>Fokussiertes Dokument</value></data>
+  <data name="Vault_Dismiss.Content" xml:space="preserve"><value>Schließen</value></data>
+  <data name="Vault_ExtractedTitle.Text" xml:space="preserve"><value>EXTRAHIERTER TITEL</value></data>
+  <data name="Vault_AiSummary.Text" xml:space="preserve"><value>KI-ZUSAMMENFASSUNG</value></data>
+  <data name="Vault_Details.Text" xml:space="preserve"><value>DETAILS</value></data>
+  <data name="Vault_Pages2.Text" xml:space="preserve"><value> Seiten</value></data>
+  <data name="Vault_Words2.Text" xml:space="preserve"><value> Wörter</value></data>
+  <data name="Vault_Chunks2.Text" xml:space="preserve"><value> Abschnitte</value></data>
+  <data name="Vault_Size2.Text" xml:space="preserve"><value> Größe</value></data>
+  <data name="Vault_DateImported.Text" xml:space="preserve"><value> Importdatum</value></data>
+  <data name="Vault_Tags2.Text" xml:space="preserve"><value>TAGS</value></data>
+  <data name="Vault_GenerateAnAiPoweredTip.ToolTipService.ToolTip" xml:space="preserve"><value>Einen KI-generierten Titel für dieses Dokument erstellen</value></data>
+  <data name="Vault_GenerateTitle.Text" xml:space="preserve"><value>Titel generieren</value></data>
+  <data name="Vault_OpenFileLocationInTip.ToolTipService.ToolTip" xml:space="preserve"><value>Dateispeicherort im Explorer öffnen</value></data>
+  <data name="Vault_OpenInExplorer.Text" xml:space="preserve"><value>Im Explorer öffnen</value></data>
+  <data name="Vault_ReIndexThisDocumentTip.ToolTipService.ToolTip" xml:space="preserve"><value>Dieses Dokument neu indexieren</value></data>
+  <data name="Vault_ReIndex2.Text" xml:space="preserve"><value>Neu indexieren</value></data>
+  <data name="CollMgr_Collections.Text" xml:space="preserve"><value>Sammlungen</value></data>
+  <data name="CollMgr_RefreshCollectionsTip.ToolTipService.ToolTip" xml:space="preserve"><value>Sammlungen aktualisieren</value></data>
+  <data name="CollMgr_RefreshCollectionsTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Sammlungen aktualisieren</value></data>
+  <data name="CollMgr_NewCollectionNamePh.PlaceholderText" xml:space="preserve"><value>Name der neuen Sammlung...</value></data>
+  <data name="CollMgr_DescriptionOptionalPh.PlaceholderText" xml:space="preserve"><value>Beschreibung (optional)</value></data>
+  <data name="CollMgr_CreateCollection.Text" xml:space="preserve"><value>Sammlung erstellen</value></data>
+  <data name="CollMgr_Loading.Text" xml:space="preserve"><value>Wird geladen...</value></data>
+  <data name="CollMgr_DeleteCollectionTip.ToolTipService.ToolTip" xml:space="preserve"><value>Sammlung löschen</value></data>
+  <data name="CollMgr_DeleteCollectionTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Sammlung löschen</value></data>
+  <data name="CollMgr_DeleteCollectionTip2.ToolTipService.ToolTip" xml:space="preserve"><value>Sammlung löschen</value></data>
+  <data name="CollMgr_DeleteCollectionTip2.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Sammlung löschen</value></data>
+  <data name="CollMgr_Collections2.Text" xml:space="preserve"><value>Sammlungen</value></data>
+  <data name="CollMgr_SelectACollection.Text" xml:space="preserve"><value>Sammlung auswählen</value></data>
+  <data name="CollMgr_ChooseACollectionFrom.Text" xml:space="preserve"><value>Wählen Sie links eine Sammlung aus, um ihre Dokumente anzuzeigen. Sammlungen helfen Ihnen, Ihren Wissens-Tresor in thematische Gruppen zu gliedern.</value></data>
+  <data name="CollMgr_AddDocuments.Text" xml:space="preserve"><value>Dokumente hinzufügen</value></data>
+  <data name="CollMgr_Documents.Text" xml:space="preserve"><value> Dokumente</value></data>
+  <data name="CollMgr_Updated.Text" xml:space="preserve"><value>Aktualisiert </value></data>
+  <data name="CollMgr_DocumentsInThisCollection.Text" xml:space="preserve"><value>Dokumente in dieser Sammlung</value></data>
+  <data name="CollMgr_RemoveFromCollectionTip.ToolTipService.ToolTip" xml:space="preserve"><value>Aus Sammlung entfernen</value></data>
+  <data name="CollMgr_RemoveFromCollectionTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Aus Sammlung entfernen</value></data>
+  <data name="CollMgr_NoDocumentsInThis.Text" xml:space="preserve"><value>Keine Dokumente in dieser Sammlung</value></data>
+  <data name="CollMgr_ClickAddDocumentsTo.Text" xml:space="preserve"><value>Klicken Sie auf „Dokumente hinzufügen“, um Dateien aus Ihrem Wissens-Tresor dieser Sammlung zuzuweisen.</value></data>
+  <data name="Graph_KnowledgeGraph.Text" xml:space="preserve"><value>Wissensgraph</value></data>
+  <data name="Graph_VisualizeRelationshipsBetweenD.Text" xml:space="preserve"><value>Visualisieren Sie Beziehungen zwischen Dokumenten, Sammlungen und Tags.</value></data>
+  <data name="Graph_SearchNodesPh.PlaceholderText" xml:space="preserve"><value>Knoten suchen...</value></data>
+  <data name="Graph_Docs.Text" xml:space="preserve"><value>Dok.</value></data>
+  <data name="Graph_Collections.Text" xml:space="preserve"><value>Sammlungen</value></data>
+  <data name="Graph_Tags.Text" xml:space="preserve"><value>Tags</value></data>
+  <data name="Graph_Connections.Text" xml:space="preserve"><value>Verbindungen</value></data>
+  <data name="Graph_RebuildTheKnowledgeGraphTip.ToolTipService.ToolTip" xml:space="preserve"><value>Wissensgraph neu aufbauen</value></data>
+  <data name="Graph_Refresh.Text" xml:space="preserve"><value>Aktualisieren</value></data>
+  <data name="Graph_ZoomOutTip.ToolTipService.ToolTip" xml:space="preserve"><value>Verkleinern</value></data>
+  <data name="Graph_ZoomInTip.ToolTipService.ToolTip" xml:space="preserve"><value>Vergrößern</value></data>
+  <data name="Graph_ResetZoomTip.ToolTipService.ToolTip" xml:space="preserve"><value>Zoom zurücksetzen</value></data>
+  <data name="Graph_NoGraphData.Text" xml:space="preserve"><value>Keine Graphdaten</value></data>
+  <data name="Graph_ImportDocumentsAndOrganize.Text" xml:space="preserve"><value>Importieren Sie Dokumente und ordnen Sie sie Sammlungen zu, um hier ihre Beziehungen zu sehen.</value></data>
+  <data name="Graph_Legend.Text" xml:space="preserve"><value>LEGENDE</value></data>
+  <data name="Graph_Document.Text" xml:space="preserve"><value>Dokument</value></data>
+  <data name="Graph_Collection.Text" xml:space="preserve"><value>Sammlung</value></data>
+  <data name="Graph_Tag.Text" xml:space="preserve"><value>Tag</value></data>
+  <data name="Graph_ClusterActive.Text" xml:space="preserve"><value>Cluster aktiv</value></data>
+  <data name="Graph_ClearClusterHighlightTip.ToolTipService.ToolTip" xml:space="preserve"><value>Cluster-Hervorhebung aufheben</value></data>
+  <data name="Graph_Show.Text" xml:space="preserve"><value>ANZEIGEN</value></data>
+  <data name="Graph_Documents.Content" xml:space="preserve"><value>Dokumente</value></data>
+  <data name="Graph_Collections2.Content" xml:space="preserve"><value>Sammlungen</value></data>
+  <data name="Graph_Tags2.Content" xml:space="preserve"><value>Tags</value></data>
+  <data name="Graph_NodeDetails.Text" xml:space="preserve"><value>Knotendetails</value></data>
+  <data name="Graph_CloseDetailsPanelTip.ToolTipService.ToolTip" xml:space="preserve"><value>Detailbereich schließen</value></data>
+  <data name="Graph_Name.Text" xml:space="preserve"><value>NAME</value></data>
+  <data name="Graph_Type.Text" xml:space="preserve"><value>TYP</value></data>
+  <data name="Graph_Connections2.Text" xml:space="preserve"><value>VERBINDUNGEN</value></data>
+  <data name="Graph_Edges.Text" xml:space="preserve"><value>Kanten</value></data>
+  <data name="Graph_Position.Text" xml:space="preserve"><value>POSITION</value></data>
+  <data name="Annot_Annotations.Text" xml:space="preserve"><value>Annotationen</value></data>
+  <data name="Annot_Highlights.Text" xml:space="preserve"><value>Hervorhebungen</value></data>
+  <data name="Annot_SearchAnnotationsPh.PlaceholderText" xml:space="preserve"><value>Annotationen durchsuchen...</value></data>
+  <data name="Annot_Search.Content" xml:space="preserve"><value>Suchen</value></data>
+  <data name="Annot_FilterByColor.Text" xml:space="preserve"><value>NACH FARBE FILTERN</value></data>
+  <data name="Annot_Distribution.Text" xml:space="preserve"><value>VERTEILUNG</value></data>
+  <data name="Annot_ExportAsMarkdown.Content" xml:space="preserve"><value>Als Markdown exportieren</value></data>
+  <data name="Annot_AllAnnotations.Text" xml:space="preserve"><value>Alle Annotationen</value></data>
+  <data name="Annot_YourHighlightsAndNotes.Text" xml:space="preserve"><value>Ihre Hervorhebungen und Notizen aus allen Dokumenten.</value></data>
+  <data name="Annot_DeleteAnnotationTip.ToolTipService.ToolTip" xml:space="preserve"><value>Annotation löschen</value></data>
+  <data name="Annot_DeleteAnnotationTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Annotation löschen</value></data>
+  <data name="Annot_NoAnnotationsYet.Text" xml:space="preserve"><value>Noch keine Annotationen</value></data>
+  <data name="Annot_HighlightTextInYour.Text" xml:space="preserve"><value>Markieren Sie Text in Ihren Dokumenten, um Annotationen zu erstellen.</value></data>
+  <data name="WebImport_WebImport.Text" xml:space="preserve"><value>Web-Import</value></data>
+  <data name="WebImport_PasteUrlsToExtract.Text" xml:space="preserve"><value>Fügen Sie URLs ein, um Webartikel zu extrahieren und in Ihren Wissens-Tresor aufzunehmen.</value></data>
+  <data name="WebImport_EnterUrls.Text" xml:space="preserve"><value>URLs eingeben</value></data>
+  <data name="WebImport_OneUrlPerLine.Text" xml:space="preserve"><value>Eine URL pro Zeile. Unterstützt Webartikel und YouTube-Videos.</value></data>
+  <data name="WebImport_AddToCollectionOptional.Text" xml:space="preserve"><value>Zu Sammlung hinzufügen (optional)</value></data>
+  <data name="WebImport_NoCollectionPh.PlaceholderText" xml:space="preserve"><value>Keine Sammlung</value></data>
+  <data name="WebImport_PreviewFirstUrl.Content" xml:space="preserve"><value>Erste URL in Vorschau</value></data>
+  <data name="WebImport_ImportAll.Content" xml:space="preserve"><value>Alle importieren</value></data>
+  <data name="WebImport_Cancel.Content" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="WebImport_Importing.Text" xml:space="preserve"><value>Importiere</value></data>
+  <data name="WebImport_Of.Text" xml:space="preserve"><value>von</value></data>
+  <data name="WebImport_ExtractingContent.Text" xml:space="preserve"><value>Inhalt wird extrahiert...</value></data>
+  <data name="WebImport_Preview.Text" xml:space="preserve"><value>Vorschau</value></data>
+  <data name="WebImport_Title.Text" xml:space="preserve"><value>Titel</value></data>
+  <data name="WebImport_Site.Text" xml:space="preserve"><value>Website</value></data>
+  <data name="WebImport_Author.Text" xml:space="preserve"><value>Autor</value></data>
+  <data name="WebImport_Words.Text" xml:space="preserve"><value>Wörter</value></data>
+  <data name="WebImport_ImportResults.Text" xml:space="preserve"><value>Importergebnisse</value></data>
+  <data name="WebImport_Imported.Text" xml:space="preserve"><value>importiert</value></data>
+  <data name="WebImport_Failed.Text" xml:space="preserve"><value>fehlgeschlagen</value></data>
+  <data name="WebImport_Words2.Text" xml:space="preserve"><value>Wörter</value></data>
+  <data name="WebImport_ClearResults.Content" xml:space="preserve"><value>Ergebnisse leeren</value></data>
+  <data name="WebImport_RssAtomFeed.Text" xml:space="preserve"><value>RSS-/Atom-Feed</value></data>
+  <data name="WebImport_SubscribeToAFeed.Text" xml:space="preserve"><value>Abonnieren Sie einen Feed und importieren Sie alle Einträge in Ihren Wissens-Tresor.</value></data>
+  <data name="WebImport_FeedUrl.Header" xml:space="preserve"><value>Feed-URL</value></data>
+  <data name="WebImport_SubscribeImport.Content" xml:space="preserve"><value>Abonnieren &amp; importieren</value></data>
+  <data name="WebImport_SitemapImport.Text" xml:space="preserve"><value>Sitemap-Import</value></data>
+  <data name="WebImport_ImportPagesDiscoveredFrom.Text" xml:space="preserve"><value>Importieren Sie Seiten aus einer sitemap.xml-Datei. Bis zu 100 Seiten werden importiert.</value></data>
+  <data name="WebImport_SitemapUrl.Header" xml:space="preserve"><value>Sitemap-URL</value></data>
+  <data name="WebImport_ImportFromSitemap.Content" xml:space="preserve"><value>Aus Sitemap importieren</value></data>
+  <data name="WebImport_ImportsUpTo100.Text" xml:space="preserve"><value>Importiert bis zu 100 Seiten aus der Sitemap</value></data>
+  <data name="Digest_WeeklyDigest.Text" xml:space="preserve"><value>Wochen-Digest</value></data>
+  <data name="Digest_GenerateNewDigest.Text" xml:space="preserve"><value>Neuen Digest erstellen</value></data>
+  <data name="Digest_NewDocuments.Text" xml:space="preserve"><value>Neue Dokumente</value></data>
+  <data name="Digest_Conversations.Text" xml:space="preserve"><value>Konversationen</value></data>
+  <data name="Digest_Searches.Text" xml:space="preserve"><value>Suchanfragen</value></data>
+  <data name="Digest_TokensUsed.Text" xml:space="preserve"><value>Verwendete Tokens</value></data>
+  <data name="Digest_StorageDelta.Text" xml:space="preserve"><value>Speicher-Delta</value></data>
+  <data name="Digest_LoadingDigestReports.Text" xml:space="preserve"><value>Digest-Berichte werden geladen...</value></data>
+  <data name="Digest_NoDigestReportsYet.Text" xml:space="preserve"><value>Noch keine Digest-Berichte</value></data>
+  <data name="Digest_GenerateYourFirstWeekly.Text" xml:space="preserve"><value>Erstellen Sie Ihren ersten Wochen-Digest, um Aktivitätszusammenfassungen, Suchtrends und Konversations-Highlights zu sehen.</value></data>
+  <data name="Digest_GenerateFirstDigest.Text" xml:space="preserve"><value>Ersten Digest erstellen</value></data>
+  <data name="Digest_TopSearches.Text" xml:space="preserve"><value>Top-Suchanfragen</value></data>
+  <data name="Digest_NoSearchesRecordedThis.Text" xml:space="preserve"><value>In diesem Zeitraum keine Suchanfragen erfasst</value></data>
+  <data name="Digest_TopCollections.Text" xml:space="preserve"><value>Top-Sammlungen</value></data>
+  <data name="Digest_Docs.Text" xml:space="preserve"><value> Dok.</value></data>
+  <data name="Digest_NoCollectionsConfiguredYet.Text" xml:space="preserve"><value>Noch keine Sammlungen eingerichtet</value></data>
+  <data name="Digest_FileTypesImported.Text" xml:space="preserve"><value>Importierte Dateitypen</value></data>
+  <data name="Digest_Files.Text" xml:space="preserve"><value> Dateien</value></data>
+  <data name="Digest_NoFilesImportedThis.Text" xml:space="preserve"><value>In diesem Zeitraum keine Dateien importiert</value></data>
+  <data name="Digest_ConversationHighlights.Text" xml:space="preserve"><value>Konversations-Highlights</value></data>
+  <data name="Digest_Messages.Text" xml:space="preserve"><value> Nachrichten</value></data>
+  <data name="Digest_Tokens.Text" xml:space="preserve"><value> Tokens</value></data>
+  <data name="Digest_NoConversationsThisPeriod.Text" xml:space="preserve"><value>In diesem Zeitraum keine Konversationen</value></data>
+  <data name="Digest_ReportHistory.Text" xml:space="preserve"><value>BERICHTSVERLAUF</value></data>
+  <data name="Digest_SelectAPreviousReport.Text" xml:space="preserve"><value>Wählen Sie einen früheren Bericht aus</value></data>
+  <data name="Digest_Docs2.Text" xml:space="preserve"><value> Dok.</value></data>
+  <data name="Digest_Searches2.Text" xml:space="preserve"><value> Suchanfragen</value></data>
+  <data name="PastSelf_PastSelf.Text" xml:space="preserve"><value>Vergangenes Ich</value></data>
+  <data name="PastSelf_QueryYourBeliefsInsights.Text" xml:space="preserve"><value>Fragen Sie Ihre Überzeugungen, Erkenntnisse und Entwicklung im Zeitverlauf ab.</value></data>
+  <data name="PastSelf_WhatDidIThink.Text" xml:space="preserve"><value>Was dachte ich über...</value></data>
+  <data name="PastSelf_EnterATopicEPh.PlaceholderText" xml:space="preserve"><value>Thema eingeben (z. B. „Remote-Arbeit“, „KI-Sicherheit“, „Microservices“)</value></data>
+  <data name="PastSelf_SearchPastSelf.Content" xml:space="preserve"><value>Vergangenes Ich durchsuchen</value></data>
+  <data name="PastSelf_TimePeriod.Text" xml:space="preserve"><value>Zeitraum</value></data>
+  <data name="PastSelf_AllTime.Content" xml:space="preserve"><value>Gesamter Zeitraum</value></data>
+  <data name="PastSelf_PastWeek.Content" xml:space="preserve"><value>Letzte Woche</value></data>
+  <data name="PastSelf_PastMonth.Content" xml:space="preserve"><value>Letzter Monat</value></data>
+  <data name="PastSelf_PastYear.Content" xml:space="preserve"><value>Letztes Jahr</value></data>
+  <data name="PastSelf_CustomDate.Content" xml:space="preserve"><value>Benutzerdefiniertes Datum</value></data>
+  <data name="PastSelf_QuickActions.Text" xml:space="preserve"><value>Schnellaktionen</value></data>
+  <data name="PastSelf_GetRelevantInsights.Content" xml:space="preserve"><value>Relevante Erkenntnisse abrufen</value></data>
+  <data name="PastSelf_ShowBeliefEvolution.Content" xml:space="preserve"><value>Entwicklung der Überzeugungen anzeigen</value></data>
+  <data name="PastSelf_GetActiveTopics.Content" xml:space="preserve"><value>Aktive Themen abrufen</value></data>
+  <data name="PastSelf_SearchingYourPast.Text" xml:space="preserve"><value>Ihre Vergangenheit wird durchsucht...</value></data>
+  <data name="PastSelf_YourViewHasEvolved.Text" xml:space="preserve"><value>Ihre Sichtweise hat sich weiterentwickelt</value></data>
+  <data name="PastSelf_Confidence.Text" xml:space="preserve"><value>Konfidenz</value></data>
+  <data name="PastSelf_EvidenceFromYourConversations.Text" xml:space="preserve"><value>Belege aus Ihren Konversationen</value></data>
+  <data name="PastSelf_RelatedConversations.Text" xml:space="preserve"><value>Zugehörige Konversationen</value></data>
+  <data name="PastSelf_RelatedDocuments.Text" xml:space="preserve"><value>Zugehörige Dokumente</value></data>
+  <data name="PastSelf_RelevantInsightsFromYour.Text" xml:space="preserve"><value>Relevante Erkenntnisse aus Ihrer Vergangenheit</value></data>
+  <data name="PastSelf_TopicsYouVeBeen.Text" xml:space="preserve"><value>Themen, die Sie beschäftigt haben</value></data>
+  <data name="PastSelf_DraftAsMe.Text" xml:space="preserve"><value>Als ich entwerfen</value></data>
+  <data name="PastSelf_GenerateTextInYour.Text" xml:space="preserve"><value>Erzeugen Sie Texte in Ihrem Stil – auf Basis einer KI-Analyse Ihrer Schreibmuster.</value></data>
+  <data name="PastSelf_LoadProfile.Content" xml:space="preserve"><value>Profil laden</value></data>
+  <data name="PastSelf_Samples.Text" xml:space="preserve"><value>Beispiele</value></data>
+  <data name="PastSelf_AvgSentenceLength.Text" xml:space="preserve"><value>Ø Satzlänge</value></data>
+  <data name="PastSelf_Words.Text" xml:space="preserve"><value> Wörter</value></data>
+  <data name="PastSelf_Style.Text" xml:space="preserve"><value>Stil</value></data>
+  <data name="PastSelf_Context.Text" xml:space="preserve"><value>Kontext</value></data>
+  <data name="PastSelf_DescribeWhatYouRePh.PlaceholderText" xml:space="preserve"><value>Beschreiben Sie, worüber Sie schreiben (z. B. „Eine E-Mail an das Team zur Q4-Roadmap“)</value></data>
+  <data name="PastSelf_Goal.Text" xml:space="preserve"><value>Ziel</value></data>
+  <data name="PastSelf_WhatYouWantToPh.PlaceholderText" xml:space="preserve"><value>Was Sie erreichen möchten (optional, z. B. „Sie vom neuen Zeitplan überzeugen“)</value></data>
+  <data name="PastSelf_GenerateDraft.Content" xml:space="preserve"><value>Entwurf erstellen</value></data>
+  <data name="PastSelf_GeneratedDraft.Text" xml:space="preserve"><value>Erstellter Entwurf</value></data>
+  <data name="PastSelf_Copy.Content" xml:space="preserve"><value>Kopieren</value></data>
+  <data name="PastSelf_CopyForChat.Content" xml:space="preserve"><value>Für Chat kopieren</value></data>
+  <data name="QuickAct_QuickActions.Text" xml:space="preserve"><value>Quick Actions</value></data>
+  <data name="QuickAct_AiPoweredDocumentIntelligence.Text" xml:space="preserve"><value>KI-gestützte Dokumentintelligenz-Tools. Zusammenfassen, übersetzen, Duplikate erkennen und organisieren.</value></data>
+  <data name="QuickAct_RecommendedForThisContext.Text" xml:space="preserve"><value>Für diesen Kontext empfohlen</value></data>
+  <data name="QuickAct_UseTheSelectedDocument.Text" xml:space="preserve"><value>Nutzen Sie das ausgewählte Dokument und den aktuellen Intake-Status, um direkt zur nützlichsten nächsten Aktion zu springen.</value></data>
+  <data name="QuickAct_Summarize.Text" xml:space="preserve"><value>Zusammenfassen</value></data>
+  <data name="QuickAct_KeyPoints.Text" xml:space="preserve"><value>Kernpunkte</value></data>
+  <data name="QuickAct_Translate.Text" xml:space="preserve"><value>Übersetzen</value></data>
+  <data name="QuickAct_Duplicates.Text" xml:space="preserve"><value>Duplikate</value></data>
+  <data name="QuickAct_Organize.Text" xml:space="preserve"><value>Organisieren</value></data>
+  <data name="QuickAct_GenerateASectionAware.Text" xml:space="preserve"><value>Abschnittsbasierte Zusammenfassung erstellen</value></data>
+  <data name="QuickAct_BuildsAConciseBrief.Text" xml:space="preserve"><value>Erstellt eine prägnante Übersicht, indem indexierte Abschnitte zunächst zu Abschnittszusammenfassungen und dann zu einem Gesamtüberblick verdichtet werden.</value></data>
+  <data name="QuickAct_ChooseADocumentPh.PlaceholderText" xml:space="preserve"><value>Dokument auswählen...</value></data>
+  <data name="QuickAct_GenerateLayeredSummary.Content" xml:space="preserve"><value>Mehrstufige Zusammenfassung erstellen</value></data>
+  <data name="QuickAct_Summary.Text" xml:space="preserve"><value>Zusammenfassung</value></data>
+  <data name="QuickAct_Layered.Text" xml:space="preserve"><value>Mehrstufig</value></data>
+  <data name="QuickAct_SynthesizedFromIndexedSections.Text" xml:space="preserve"><value>Aus indexierten Abschnitten synthetisiert und anschließend final verdichtet.</value></data>
+  <data name="QuickAct_SelectADocumentTo.Text" xml:space="preserve"><value>Wählen Sie ein Dokument aus, um Kernpunkte zu extrahieren</value></data>
+  <data name="QuickAct_ChooseADocumentPh2.PlaceholderText" xml:space="preserve"><value>Dokument auswählen...</value></data>
+  <data name="QuickAct_ExtractKeyPoints.Content" xml:space="preserve"><value>Kernpunkte extrahieren</value></data>
+  <data name="QuickAct_KeyPoints2.Text" xml:space="preserve"><value>Kernpunkte</value></data>
+  <data name="QuickAct_TranslateTextWithAi.Text" xml:space="preserve"><value>Text mit KI übersetzen</value></data>
+  <data name="QuickAct_InputText.Text" xml:space="preserve"><value>Eingabetext</value></data>
+  <data name="QuickAct_EnterOrPasteTextPh.PlaceholderText" xml:space="preserve"><value>Zu übersetzenden Text eingeben oder einfügen...</value></data>
+  <data name="QuickAct_TargetLanguage.Text" xml:space="preserve"><value>Zielsprache</value></data>
+  <data name="QuickAct_Translate2.Content" xml:space="preserve"><value>Übersetzen</value></data>
+  <data name="QuickAct_Translation.Text" xml:space="preserve"><value>Übersetzung</value></data>
+  <data name="QuickAct_DuplicateDetection.Text" xml:space="preserve"><value>Duplikaterkennung</value></data>
+  <data name="QuickAct_RunExactHashScans.Text" xml:space="preserve"><value>Führen Sie exakte Hash-Scans für identische Dateien oder semantische Scans für Beinahe-Duplikate auf Basis gespeicherter Embeddings durch.</value></data>
+  <data name="QuickAct_ScanExactDuplicates.Content" xml:space="preserve"><value>Exakte Duplikate scannen</value></data>
+  <data name="QuickAct_ScanSemanticNearDuplicates.Content" xml:space="preserve"><value>Semantische Beinahe-Duplikate scannen</value></data>
+  <data name="QuickAct_Wasted.Text" xml:space="preserve"><value> verschwendet</value></data>
+  <data name="QuickAct_Imported.Text" xml:space="preserve"><value> · Importiert </value></data>
+  <data name="QuickAct_AiOrganizationAssistant.Text" xml:space="preserve"><value>KI-Organisationsassistent</value></data>
+  <data name="QuickAct_AnalyzesUncategorizedDocuments.Text" xml:space="preserve"><value>Analysiert unkategorisierte Dokumente und schlägt anhand des Inhalts Sammlungen und Tags vor.</value></data>
+  <data name="QuickAct_AnalyzeSuggest.Content" xml:space="preserve"><value>Analysieren &amp; vorschlagen</value></data>
+  <data name="QuickAct_Collection.Text" xml:space="preserve"><value>Sammlung:</value></data>
+  <data name="QuickAct_Tags.Text" xml:space="preserve"><value>Tags:</value></data>
+  <data name="QuickAct_Reasoning.Text" xml:space="preserve"><value>Begründung</value></data>
+  <data name="QuickAct_DocumentsAvailable.Text" xml:space="preserve"><value> Dokumente verfügbar</value></data>
+  <data name="ModelMgr_ManageYourLocalAi.Text" xml:space="preserve"><value>Verwalten Sie Ihre lokalen KI-Modelle auf Basis von Ollama.</value></data>
+  <data name="ModelMgr_Refresh.Content" xml:space="preserve"><value>Aktualisieren</value></data>
+  <data name="ModelMgr_Models.Text" xml:space="preserve"><value> Modelle</value></data>
+  <data name="ModelMgr_BrowseModels.Text" xml:space="preserve"><value>Modelle durchsuchen</value></data>
+  <data name="ModelMgr_PullNewModel.Text" xml:space="preserve"><value>Neues Modell laden</value></data>
+  <data name="ModelMgr_EnterAModelName.Text" xml:space="preserve"><value>Geben Sie einen Modellnamen aus der Ollama-Bibliothek ein, um ihn auf Ihren Rechner herunterzuladen.</value></data>
+  <data name="ModelMgr_EGLlama32Ph.PlaceholderText" xml:space="preserve"><value>z. B. llama3.2, mistral, phi3, deepseek-r1</value></data>
+  <data name="ModelMgr_PullModel.Text" xml:space="preserve"><value>Modell laden</value></data>
+  <data name="ModelMgr_Cancel.Content" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="ModelMgr_PopularModels.Text" xml:space="preserve"><value>Beliebte Modelle:</value></data>
+  <data name="ModelMgr_InstalledModels.Text" xml:space="preserve"><value>Installierte Modelle</value></data>
+  <data name="ModelMgr_LoadingModels.Text" xml:space="preserve"><value>Modelle werden geladen...</value></data>
+  <data name="ModelMgr_Active.Text" xml:space="preserve"><value>AKTIV</value></data>
+  <data name="ModelMgr_SetActive.Text" xml:space="preserve"><value>Aktivieren</value></data>
+  <data name="ModelMgr_CopyModelNameTip.ToolTipService.ToolTip" xml:space="preserve"><value>Modellnamen kopieren</value></data>
+  <data name="ModelMgr_CopyModelNameTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Modellnamen kopieren</value></data>
+  <data name="ModelMgr_DeleteModelTip.ToolTipService.ToolTip" xml:space="preserve"><value>Modell löschen</value></data>
+  <data name="ModelMgr_DeleteModelTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Modell löschen</value></data>
+  <data name="ModelMgr_Params.Text" xml:space="preserve"><value>Parameter</value></data>
+  <data name="ModelMgr_Ctx.Text" xml:space="preserve"><value>Kontext</value></data>
+  <data name="ModelMgr_Digest.Text" xml:space="preserve"><value>Digest:</value></data>
+  <data name="ModelMgr_NoModelsInstalled.Text" xml:space="preserve"><value>Keine Modelle installiert</value></data>
+  <data name="ModelMgr_PullAModelFrom.Text" xml:space="preserve"><value>Laden Sie zum Einstieg ein Modell aus der Ollama-Bibliothek. Beliebte Optionen sind llama3.2, mistral und phi3.</value></data>
+  <data name="HwAdvisor_AnalyzeYourSystemTo.Text" xml:space="preserve"><value>Analysieren Sie Ihr System, um die besten KI-Modelle für Ihre Hardware zu finden.</value></data>
+  <data name="HwAdvisor_ReScan.Text" xml:space="preserve"><value>Erneut scannen</value></data>
+  <data name="HwAdvisor_ScanningYourHardware.Text" xml:space="preserve"><value>Hardware wird gescannt...</value></data>
+  <data name="HwAdvisor_DetectingGpuCpuMemory.Text" xml:space="preserve"><value>GPU-, CPU-, Speicher- und NPU-Fähigkeiten werden erkannt.</value></data>
+  <data name="HwAdvisor_SomeHardwareDetailsAre.Title" xml:space="preserve"><value>Einige Hardwaredetails sind nicht verfügbar</value></data>
+  <data name="HwAdvisor_Graphics.Text" xml:space="preserve"><value>Grafik</value></data>
+  <data name="HwAdvisor_Device.Text" xml:space="preserve"><value>Gerät</value></data>
+  <data name="HwAdvisor_VideoMemory.Text" xml:space="preserve"><value>Videospeicher</value></data>
+  <data name="HwAdvisor_Processor.Text" xml:space="preserve"><value>Prozessor</value></data>
+  <data name="HwAdvisor_Processor2.Text" xml:space="preserve"><value>Prozessor</value></data>
+  <data name="HwAdvisor_LogicalCores.Text" xml:space="preserve"><value>Logische Kerne</value></data>
+  <data name="HwAdvisor_Cores.Text" xml:space="preserve"><value>Kerne</value></data>
+  <data name="HwAdvisor_Memory.Text" xml:space="preserve"><value>ARBEITSSPEICHER</value></data>
+  <data name="HwAdvisor_SystemRam.Text" xml:space="preserve"><value>System-RAM</value></data>
+  <data name="HwAdvisor_TotalRam.Text" xml:space="preserve"><value>RAM gesamt</value></data>
+  <data name="HwAdvisor_Available.Text" xml:space="preserve"><value>Verfügbar</value></data>
+  <data name="HwAdvisor_NoNpu.Text" xml:space="preserve"><value>Kein NPU</value></data>
+  <data name="HwAdvisor_RecommendedConfiguration.Text" xml:space="preserve"><value>Empfohlene Konfiguration</value></data>
+  <data name="HwAdvisor_PerformanceTier.Text" xml:space="preserve"><value>LEISTUNGSSTUFE</value></data>
+  <data name="HwAdvisor_RecommendedModelsForYour.Text" xml:space="preserve"><value>Empfohlene Modelle für Ihr System</value></data>
+  <data name="HwAdvisor_TheseModelsAreOptimized.Text" xml:space="preserve"><value>Diese Modelle sind für Ihre erkannten Hardware-Fähigkeiten optimiert.</value></data>
+  <data name="HwAdvisor_ChatModels.Text" xml:space="preserve"><value>Chat-Modelle</value></data>
+  <data name="HwAdvisor_Chat.Text" xml:space="preserve"><value>Chat</value></data>
+  <data name="HwAdvisor_Installed.Text" xml:space="preserve"><value>Installiert</value></data>
+  <data name="HwAdvisor_Install.Text" xml:space="preserve"><value>Installieren</value></data>
+  <data name="HwAdvisor_CodeModels.Text" xml:space="preserve"><value>Code-Modelle</value></data>
+  <data name="HwAdvisor_Code.Text" xml:space="preserve"><value>Code</value></data>
+  <data name="HwAdvisor_Installed2.Text" xml:space="preserve"><value>Installiert</value></data>
+  <data name="HwAdvisor_Install2.Text" xml:space="preserve"><value>Installieren</value></data>
+  <data name="HwAdvisor_EmbeddingModels.Text" xml:space="preserve"><value>Embedding-Modelle</value></data>
+  <data name="HwAdvisor_Embedding.Text" xml:space="preserve"><value>Embedding</value></data>
+  <data name="HwAdvisor_Installed3.Text" xml:space="preserve"><value>Installiert</value></data>
+  <data name="HwAdvisor_Install3.Text" xml:space="preserve"><value>Installieren</value></data>
+  <data name="HwAdvisor_LocalAiOnly.Text" xml:space="preserve"><value>Nur lokale KI</value></data>
+  <data name="HwAdvisor_AllModelsRunEntirely.Text" xml:space="preserve"><value> — Alle Modelle laufen vollständig auf Ihrer Hardware. Es werden keine Daten an externe Server gesendet. Ihre Hardware-Informationen verlassen diesen Rechner nie.</value></data>
+  <data name="WfBuilder_Workflows.Text" xml:space="preserve"><value>Workflows</value></data>
+  <data name="WfBuilder_MultiStepAiPipelines.Text" xml:space="preserve"><value>Mehrstufige KI-Pipelines</value></data>
+  <data name="WfBuilder_NewWorkflow.Content" xml:space="preserve"><value>Neuer Workflow</value></data>
+  <data name="WfBuilder_ImportWorkflow.Content" xml:space="preserve"><value>Workflow importieren</value></data>
+  <data name="WfBuilder_Steps.Text" xml:space="preserve"><value> Schritte</value></data>
+  <data name="WfBuilder_Template.Text" xml:space="preserve"><value>Vorlage</value></data>
+  <data name="WfBuilder_Runs.Text" xml:space="preserve"><value> Ausführungen</value></data>
+  <data name="WfBuilder_UseTemplate.Content" xml:space="preserve"><value>Vorlage verwenden</value></data>
+  <data name="WfBuilder_Edit.Content" xml:space="preserve"><value>Bearbeiten</value></data>
+  <data name="WfBuilder_Delete.Content" xml:space="preserve"><value>Löschen</value></data>
+  <data name="WfBuilder_BuildMultiStepAi.Text" xml:space="preserve"><value>Erstellen Sie mehrstufige KI-Pipelines. Die Ausgabe jedes Schritts fließt in den nächsten ein.</value></data>
+  <data name="WfBuilder_WorkflowEditor.Text" xml:space="preserve"><value>Workflow-Editor</value></data>
+  <data name="WfBuilder_Name.Text" xml:space="preserve"><value>Name</value></data>
+  <data name="WfBuilder_MyWorkflowPh.PlaceholderText" xml:space="preserve"><value>Mein Workflow</value></data>
+  <data name="WfBuilder_Description.Text" xml:space="preserve"><value>Beschreibung</value></data>
+  <data name="WfBuilder_WhatDoesThisWorkflowPh.PlaceholderText" xml:space="preserve"><value>Was macht dieser Workflow?</value></data>
+  <data name="WfBuilder_Category.Text" xml:space="preserve"><value>Kategorie</value></data>
+  <data name="WfBuilder_Steps2.Text" xml:space="preserve"><value>Schritte</value></data>
+  <data name="WfBuilder_AddStep.Content" xml:space="preserve"><value>Schritt hinzufügen</value></data>
+  <data name="WfBuilder_StepNamePh.PlaceholderText" xml:space="preserve"><value>Schrittname</value></data>
+  <data name="WfBuilder_MoveUpTip.ToolTipService.ToolTip" xml:space="preserve"><value>Nach oben</value></data>
+  <data name="WfBuilder_MoveDownTip.ToolTipService.ToolTip" xml:space="preserve"><value>Nach unten</value></data>
+  <data name="WfBuilder_RemoveStepTip.ToolTipService.ToolTip" xml:space="preserve"><value>Schritt entfernen</value></data>
+  <data name="WfBuilder_StepType.Header" xml:space="preserve"><value>Schritttyp</value></data>
+  <data name="WfBuilder_EnterPromptUseInputPh.PlaceholderText" xml:space="preserve"><value>Prompt eingeben... Verwenden Sie {{input}} für die ursprüngliche Eingabe, {{previous_output}} für die Ausgabe des letzten Schritts</value></data>
+  <data name="WfBuilder_EnterPromptUseInputPh.Header" xml:space="preserve"><value>Prompt-Vorlage</value></data>
+  <data name="WfBuilder_Cancel.Content" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="WfBuilder_SaveWorkflow.Content" xml:space="preserve"><value>Workflow speichern</value></data>
+  <data name="WfBuilder_FocusedWorkflowRun.Text" xml:space="preserve"><value>Fokussierte Workflow-Ausführung</value></data>
+  <data name="WfBuilder_TheMatchingWorkflowAnd.Text" xml:space="preserve"><value>Der passende Workflow und das gespeicherte Ergebnis wurden zur Überprüfung an den Seitenanfang geholt.</value></data>
+  <data name="WfBuilder_Dismiss.Content" xml:space="preserve"><value>Schließen</value></data>
+  <data name="WfBuilder_RunWorkflow.Text" xml:space="preserve"><value>Workflow ausführen</value></data>
+  <data name="WfBuilder_ExportJson.Content" xml:space="preserve"><value>JSON exportieren</value></data>
+  <data name="WfBuilder_TemplateGuide.Text" xml:space="preserve"><value>Vorlagen-Leitfaden</value></data>
+  <data name="WfBuilder_BestFor.Text" xml:space="preserve"><value>Ideal für</value></data>
+  <data name="WfBuilder_YouLlGet.Text" xml:space="preserve"><value>Sie erhalten</value></data>
+  <data name="WfBuilder_TryItWith.Text" xml:space="preserve"><value>Ausprobieren mit</value></data>
+  <data name="WfBuilder_RunTheTemplateAs.Text" xml:space="preserve"><value>Führen Sie die Vorlage unverändert aus, wenn sie bereits passt. Nutzen Sie „Vorlage verwenden“, um die Schritte anzupassen, bevor Sie Ihre eigene Version speichern.</value></data>
+  <data name="WfBuilder_Input.Text" xml:space="preserve"><value>Eingabe</value></data>
+  <data name="WfBuilder_PasteOrTypeThePh.PlaceholderText" xml:space="preserve"><value>Fügen Sie den zu verarbeitenden Inhalt ein oder geben Sie ihn ein...</value></data>
+  <data name="WfBuilder_Run.Content" xml:space="preserve"><value>Ausführen</value></data>
+  <data name="WfBuilder_Cancel2.Content" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="WfBuilder_Running.Text" xml:space="preserve"><value>Läuft:</value></data>
+  <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>Letzte Ausführungen</value></data>
+  <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>Gespeicherte Workflow-Ergebnisse, die Sie ohne erneute Ausführung öffnen können.</value></data>
+  <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Aus Operations geöffnet</value></data>
+  <data name="WfBuilder_OpenResult.Content" xml:space="preserve"><value>Ergebnis öffnen</value></data>
+  <data name="WfBuilder_SaveAsDocument.Content" xml:space="preserve"><value>Als Dokument speichern</value></data>
+  <data name="WfBuilder_ExportResult.Content" xml:space="preserve"><value>Ergebnis exportieren</value></data>
+  <data name="WfBuilder_NoRunsRecordedYet.Text" xml:space="preserve"><value>Für den ausgewählten Workflow wurden noch keine Ausführungen aufgezeichnet.</value></data>
+  <data name="WfBuilder_StepOutputs.Text" xml:space="preserve"><value>Schritt-Ausgaben</value></data>
+  <data name="WfBuilder_Tokens.Text" xml:space="preserve"><value>Tokens</value></data>
+  <data name="WfBuilder_Tok.Text" xml:space="preserve"><value> Tok.</value></data>
+  <data name="WfBuilder_FinalOutput.Text" xml:space="preserve"><value>Endergebnis</value></data>
+  <data name="WfBuilder_CopyToClipboard.Content" xml:space="preserve"><value>In Zwischenablage kopieren</value></data>
+  <data name="WfBuilder_SaveAsDocument2.Content" xml:space="preserve"><value>Als Dokument speichern</value></data>
+  <data name="WfBuilder_ExportResult2.Content" xml:space="preserve"><value>Ergebnis exportieren</value></data>
+  <data name="WfBuilder_OpenVault.Content" xml:space="preserve"><value>Tresor öffnen</value></data>
+  <data name="WfBuilder_StartWithATemplate.Text" xml:space="preserve"><value>Mit einer Vorlage starten</value></data>
+  <data name="WfBuilder_WorkflowsHelpYouTurn.Text" xml:space="preserve"><value>Workflows verwandeln eine Eingabe in ein wiederholbares, mehrstufiges Ergebnis. Wählen Sie unten eine Startvorlage und führen Sie sie direkt aus oder passen Sie sie später an.</value></data>
+  <data name="WfBuilder_SelectTemplate.Content" xml:space="preserve"><value>Vorlage auswählen</value></data>
+  <data name="WfBuilder_BestFor2.Text" xml:space="preserve"><value>Ideal für: </value></data>
+  <data name="WfBuilder_NoStarterTemplatesAre.Text" xml:space="preserve"><value>Derzeit sind keine Startvorlagen verfügbar.</value></data>
+  <data name="WfBuilder_CreateBlankWorkflow.Content" xml:space="preserve"><value>Leeren Workflow erstellen</value></data>
+  <data name="WfBuilder_YouCanAlsoBuild.Text" xml:space="preserve"><value>Wenn keine Startvorlage passt, können Sie einen Workflow auch von Grund auf erstellen.</value></data>
+  <data name="Workspace_Profiles.Text" xml:space="preserve"><value>Profile</value></data>
+  <data name="Workspace_RefreshProfilesTip.ToolTipService.ToolTip" xml:space="preserve"><value>Profile aktualisieren</value></data>
+  <data name="Workspace_NewProfileNamePh.PlaceholderText" xml:space="preserve"><value>Name des neuen Profils...</value></data>
+  <data name="Workspace_DescriptionOptionalPh.PlaceholderText" xml:space="preserve"><value>Beschreibung (optional)</value></data>
+  <data name="Workspace_CreateProfile.Text" xml:space="preserve"><value>Profil erstellen</value></data>
+  <data name="Workspace_LoadingProfiles.Text" xml:space="preserve"><value>Profile werden geladen...</value></data>
+  <data name="Workspace_Default.Text" xml:space="preserve"><value>STANDARD</value></data>
+  <data name="Workspace_NoProfilesYet.Text" xml:space="preserve"><value>Noch keine Profile</value></data>
+  <data name="Workspace_CreateOneAboveTo.Text" xml:space="preserve"><value>Erstellen Sie oben ein Profil, um Ihre Workspace-Konfiguration zu speichern.</value></data>
+  <data name="Workspace_Profiles2.Text" xml:space="preserve"><value>Profile</value></data>
+  <data name="Workspace_SelectAProfile.Text" xml:space="preserve"><value>Profil auswählen</value></data>
+  <data name="Workspace_ChooseAWorkspaceProfile.Text" xml:space="preserve"><value>Wählen Sie links ein Workspace-Profil aus, um seine Konfiguration anzuzeigen und zu bearbeiten. Mit Profilen speichern Sie Voreinstellungen für Modell, Sammlungen und Einstellungen.</value></data>
+  <data name="Workspace_Default2.Text" xml:space="preserve"><value>STANDARD</value></data>
+  <data name="Workspace_Duplicate.Text" xml:space="preserve"><value>Duplizieren</value></data>
+  <data name="Workspace_Created.Text" xml:space="preserve"><value>Erstellt </value></data>
+  <data name="Workspace_Updated.Text" xml:space="preserve"><value>Aktualisiert </value></data>
+  <data name="Workspace_ProfileConfiguration.Text" xml:space="preserve"><value>Profilkonfiguration</value></data>
+  <data name="Workspace_EditThisProfileS.Text" xml:space="preserve"><value>Bearbeiten Sie die Workspace-Einstellungen dieses Profils. Änderungen werden beim Klick auf „Speichern“ gesichert.</value></data>
+  <data name="Workspace_ProfileName.Text" xml:space="preserve"><value>PROFILNAME</value></data>
+  <data name="Workspace_EnterADisplayNamePh.PlaceholderText" xml:space="preserve"><value>Anzeigenamen für dieses Profil eingeben</value></data>
+  <data name="Workspace_Description.Text" xml:space="preserve"><value>BESCHREIBUNG</value></data>
+  <data name="Workspace_OptionalDescriptionOfThisPh.PlaceholderText" xml:space="preserve"><value>Optionale Beschreibung des Zwecks dieses Profils</value></data>
+  <data name="Workspace_ActiveModelId.Text" xml:space="preserve"><value>AKTIVE MODELL-ID</value></data>
+  <data name="Workspace_EGLlama32Ph.PlaceholderText" xml:space="preserve"><value>z. B. llama3.2, mistral, phi3</value></data>
+  <data name="Workspace_TheOllamaModelIdentifier.Text" xml:space="preserve"><value>Die Ollama-Modellkennung, die beim Laden dieses Profils aktiviert wird.</value></data>
+  <data name="Workspace_ActiveCollectionIds.Text" xml:space="preserve"><value>AKTIVE SAMMLUNGS-IDS</value></data>
+  <data name="Workspace_EG13Ph.PlaceholderText" xml:space="preserve"><value>z. B. 1,3,7 (kommagetrennt)</value></data>
+  <data name="Workspace_CommaSeparatedListOf.Text" xml:space="preserve"><value>Kommagetrennte Liste der Sammlungs-IDs, die beim Laden dieses Profils aktiviert werden.</value></data>
+  <data name="Workspace_CustomSettings.Text" xml:space="preserve"><value>BENUTZERDEFINIERTE EINSTELLUNGEN</value></data>
+  <data name="Workspace_JsonOrKeyValuePh.PlaceholderText" xml:space="preserve"><value>JSON oder key=value-Paare für zusätzliche Konfiguration</value></data>
+  <data name="Workspace_FreeFormSettingsStored.Text" xml:space="preserve"><value>Frei definierbare Einstellungen, die mit diesem Profil gespeichert werden. Verwenden Sie JSON oder ein beliebiges strukturiertes Format.</value></data>
+  <data name="Workspace_DefaultProfile.Text" xml:space="preserve"><value>Standardprofil</value></data>
+  <data name="Workspace_ThisProfileWillBe.Text" xml:space="preserve"><value>Dieses Profil wird beim App-Start automatisch geladen.</value></data>
+  <data name="Workspace_SaveProfile.Text" xml:space="preserve"><value>Profil speichern</value></data>
+  <data name="Workspace_SetAsDefault.Text" xml:space="preserve"><value>Als Standard festlegen</value></data>
+  <data name="Workspace_DeleteProfile.Text" xml:space="preserve"><value>Profil löschen</value></data>
+  <data name="Settings_Settings.Text" xml:space="preserve"><value>Einstellungen</value></data>
+  <data name="Settings_ConfigureYourAiProviders.Text" xml:space="preserve"><value>Konfigurieren Sie Ihre KI-Anbieter, Inferenzparameter und Wissens-Tresor-Einstellungen.</value></data>
+  <data name="Settings_AiProviders.Text" xml:space="preserve"><value>KI-Anbieter</value></data>
+  <data name="Settings_ApiKeysSecured.Title" xml:space="preserve"><value>API-Schlüssel gesichert</value></data>
+  <data name="Settings_ActiveProvider.Text" xml:space="preserve"><value>Aktiver Anbieter</value></data>
+  <data name="Settings_OllamaLocal.Text" xml:space="preserve"><value>Ollama (lokal)</value></data>
+  <data name="Settings_Free.Text" xml:space="preserve"><value>KOSTENLOS</value></data>
+  <data name="Settings_Endpoint.Text" xml:space="preserve"><value>Endpunkt</value></data>
+  <data name="Settings_DefaultChatModel.Text" xml:space="preserve"><value>Standard-Chat-Modell</value></data>
+  <data name="Settings_EmbeddingModel.Text" xml:space="preserve"><value>Embedding-Modell</value></data>
+  <data name="Settings_TestConnection.Content" xml:space="preserve"><value>Verbindung testen</value></data>
+  <data name="Settings_Cloud.Text" xml:space="preserve"><value>CLOUD</value></data>
+  <data name="Settings_ApiKey.Text" xml:space="preserve"><value>API-Schlüssel</value></data>
+  <data name="Settings_Endpoint2.Text" xml:space="preserve"><value>Endpunkt</value></data>
+  <data name="Settings_DefaultModel.Text" xml:space="preserve"><value>Standardmodell</value></data>
+  <data name="Settings_TestConnection2.Content" xml:space="preserve"><value>Verbindung testen</value></data>
+  <data name="Settings_Cloud2.Text" xml:space="preserve"><value>CLOUD</value></data>
+  <data name="Settings_ApiKey2.Text" xml:space="preserve"><value>API-Schlüssel</value></data>
+  <data name="Settings_Endpoint3.Text" xml:space="preserve"><value>Endpunkt</value></data>
+  <data name="Settings_DefaultModel2.Text" xml:space="preserve"><value>Standardmodell</value></data>
+  <data name="Settings_NoteAnthropicDoesNot.Text" xml:space="preserve"><value>Hinweis: Anthropic unterstützt keine Embeddings. Verwenden Sie Ollama oder OpenAI für die Dokumentindexierung.</value></data>
+  <data name="Settings_TestConnection3.Content" xml:space="preserve"><value>Verbindung testen</value></data>
+  <data name="Settings_Appearance.Text" xml:space="preserve"><value>Darstellung</value></data>
+  <data name="Settings_Theme.Text" xml:space="preserve"><value>Design</value></data>
+  <data name="Settings_ChangesApplyImmediatelySystem.Text" xml:space="preserve"><value>Änderungen gelten sofort. „Systemstandard“ folgt Ihrem Windows-Design.</value></data>
+  <data name="Settings_MultiModelRouting.Text" xml:space="preserve"><value>Multi-Modell-Routing</value></data>
+  <data name="Settings_AutomaticallyRoutePromptsTo.Text" xml:space="preserve"><value>Leitet Prompts je nach Aufgabentyp automatisch an das beste KI-Modell weiter. Extraktion und Chat bevorzugen schnelle lokale Modelle; Analyse und Code bevorzugen hochwertige Cloud-Modelle.</value></data>
+  <data name="Settings_EnableAutoRouting.Header" xml:space="preserve"><value>Auto-Routing aktivieren</value></data>
+  <data name="Settings_RoutingProfile.Text" xml:space="preserve"><value>Routing-Profil</value></data>
+  <data name="Settings_CostOptimizedLocalModels.Text" xml:space="preserve"><value>Kostenoptimiert — Lokale Modelle für alle Aufgaben, Cloud nur als Fallback</value></data>
+  <data name="Settings_QualityOptimizedCloudModels.Text" xml:space="preserve"><value>Qualitätsoptimiert — Cloud-Modelle für Analyse, Code und Kreatives</value></data>
+  <data name="Settings_BalancedLocalForSimple.Text" xml:space="preserve"><value>Ausgewogen — Lokal für einfache Aufgaben, Cloud für qualitätskritische Aufgaben</value></data>
+  <data name="Settings_CostTracking.Text" xml:space="preserve"><value>Kostenverfolgung</value></data>
+  <data name="Settings_EstimatedApiCostsFor.Text" xml:space="preserve"><value>Geschätzte API-Kosten für Cloud-Anbieter. Lokale Ollama-Modelle sind kostenlos.</value></data>
+  <data name="Settings_TotalSpend.Text" xml:space="preserve"><value>GESAMTAUSGABEN</value></data>
+  <data name="Settings_Today.Text" xml:space="preserve"><value>HEUTE</value></data>
+  <data name="Settings_TotalTokens.Text" xml:space="preserve"><value>TOKENS GESAMT</value></data>
+  <data name="Settings_Inference.Text" xml:space="preserve"><value>Inferenz</value></data>
+  <data name="Settings_Temperature.Text" xml:space="preserve"><value>Temperatur</value></data>
+  <data name="Settings_MaxTokens.Text" xml:space="preserve"><value>Max. Tokens</value></data>
+  <data name="Settings_ContextWindow.Text" xml:space="preserve"><value>Kontextfenster</value></data>
+  <data name="Settings_KnowledgeVault.Text" xml:space="preserve"><value>Wissens-Tresor</value></data>
+  <data name="Settings_ChunkSizeTokens.Text" xml:space="preserve"><value>Chunk-Größe (Tokens)</value></data>
+  <data name="Settings_ChunkOverlap.Text" xml:space="preserve"><value>Chunk-Überlappung</value></data>
+  <data name="Settings_TopKResults.Text" xml:space="preserve"><value>Top-K-Ergebnisse</value></data>
+  <data name="Settings_AutoIndexWatchFolders.Header" xml:space="preserve"><value>Überwachte Ordner automatisch indexieren</value></data>
+  <data name="Settings_ResearchMode.Text" xml:space="preserve"><value>Recherchemodus</value></data>
+  <data name="Settings_AugmentAiAnswersWith.Text" xml:space="preserve"><value>Ergänzen Sie KI-Antworten mit Live-Webquellen. Wenn aktiviert, durchsuchen Anfragen das Web und kombinieren die Ergebnisse mit Ihrem lokalen Wissens-Tresor.</value></data>
+  <data name="Settings_EnableResearchMode.Header" xml:space="preserve"><value>Recherchemodus aktivieren</value></data>
+  <data name="Settings_EnableResearchMode.OffContent" xml:space="preserve"><value>Nur lokaler Tresor</value></data>
+  <data name="Settings_EnableResearchMode.OnContent" xml:space="preserve"><value>Lokaler Tresor + Websuche</value></data>
+  <data name="Settings_SearchProvider.Text" xml:space="preserve"><value>Suchanbieter</value></data>
+  <data name="Settings_SearchApiKey.Text" xml:space="preserve"><value>Such-API-Schlüssel</value></data>
+  <data name="Settings_EnterYourSearchApiPh.PlaceholderText" xml:space="preserve"><value>Such-API-Schlüssel eingeben</value></data>
+  <data name="Settings_MaxSearchResults.Text" xml:space="preserve"><value>Max. Suchergebnisse</value></data>
+  <data name="Settings_CacheDurationMinutes.Text" xml:space="preserve"><value>Cache-Dauer (Minuten)</value></data>
+  <data name="Settings_Storage.Text" xml:space="preserve"><value>Speicher</value></data>
+  <data name="Settings_DataLocation.Text" xml:space="preserve"><value>Datenspeicherort</value></data>
+  <data name="Settings_Encrypted.OnContent" xml:space="preserve"><value>Verschlüsselt</value></data>
+  <data name="Settings_Encrypted.OffContent" xml:space="preserve"><value>Nicht verschlüsselt</value></data>
+  <data name="Settings_Connections.Text" xml:space="preserve"><value>Verbindungen</value></data>
+  <data name="Settings_EnableLocalApi.Header" xml:space="preserve"><value>Lokale API aktivieren</value></data>
+  <data name="Settings_EnableLocalApi.OffContent" xml:space="preserve"><value>Deaktiviert</value></data>
+  <data name="Settings_EnableLocalApi.OnContent" xml:space="preserve"><value>Aktiviert (authentifiziert)</value></data>
+  <data name="Settings_ApiToken.Text" xml:space="preserve"><value>API-Token</value></data>
+  <data name="Settings_NoTokenYetClickPh.PlaceholderText" xml:space="preserve"><value>Noch kein Token — klicken Sie auf „Neu generieren“</value></data>
+  <data name="Settings_Copy.Content" xml:space="preserve"><value>Kopieren</value></data>
+  <data name="Settings_Regenerate.Content" xml:space="preserve"><value>Neu generieren</value></data>
+  <data name="Settings_KeepThisTokenSecret.Text" xml:space="preserve"><value>Halten Sie dieses Token geheim. Beim Neugenerieren werden bestehende Clients getrennt, bis Sie das neue Token einfügen. Änderungen am Schalter gelten ab dem nächsten Start.</value></data>
+  <data name="Settings_SaveSettings.Content" xml:space="preserve"><value>Einstellungen speichern</value></data>
+  <data name="Settings_ResetToDefaults.Content" xml:space="preserve"><value>Auf Standard zurücksetzen</value></data>
+  <data name="Backup_BackupRestore.Text" xml:space="preserve"><value>Backup &amp; Wiederherstellung</value></data>
+  <data name="Backup_ProtectYourKnowledgeBase.Text" xml:space="preserve"><value>Schützen Sie Ihre Wissensbasis mit verschlüsselten Backups und Ein-Klick-Wiederherstellung.</value></data>
+  <data name="Backup_Database.Text" xml:space="preserve"><value>Datenbank</value></data>
+  <data name="Backup_Documents.Text" xml:space="preserve"><value>Dokumente</value></data>
+  <data name="Backup_TotalEstimated.Text" xml:space="preserve"><value>Geschätzt gesamt</value></data>
+  <data name="Backup_Documents2.Text" xml:space="preserve"><value>Dokumente</value></data>
+  <data name="Backup_CreateBackup.Text" xml:space="preserve"><value>Backup erstellen</value></data>
+  <data name="Backup_DestinationFolder.Text" xml:space="preserve"><value>Zielordner</value></data>
+  <data name="Backup_SelectBackupDestinationPh.PlaceholderText" xml:space="preserve"><value>Backup-Ziel auswählen...</value></data>
+  <data name="Backup_Browse.Content" xml:space="preserve"><value>Durchsuchen</value></data>
+  <data name="Backup_EncryptBackupAes256.Content" xml:space="preserve"><value>Backup verschlüsseln (AES-256)</value></data>
+  <data name="Backup_EncryptionPasswordPh.PlaceholderText" xml:space="preserve"><value>Verschlüsselungspasswort</value></data>
+  <data name="Backup_IncludeIndexedDocuments.Content" xml:space="preserve"><value>Indexierte Dokumente einbeziehen</value></data>
+  <data name="Backup_NotesOptional.Text" xml:space="preserve"><value>Notizen (optional)</value></data>
+  <data name="Backup_AddANoteAboutPh.PlaceholderText" xml:space="preserve"><value>Notiz zu diesem Backup hinzufügen...</value></data>
+  <data name="Backup_CreateBackup2.Content" xml:space="preserve"><value>Backup erstellen</value></data>
+  <data name="Backup_RestoreFromBackup.Text" xml:space="preserve"><value>Aus Backup wiederherstellen</value></data>
+  <data name="Backup_BackupFile.Text" xml:space="preserve"><value>Backup-Datei</value></data>
+  <data name="Backup_SelectAgentxbakFilePh.PlaceholderText" xml:space="preserve"><value>.agentxbak-Datei auswählen...</value></data>
+  <data name="Backup_Browse2.Content" xml:space="preserve"><value>Durchsuchen</value></data>
+  <data name="Backup_RestoreComplete.Text" xml:space="preserve"><value>Wiederherstellung abgeschlossen</value></data>
+  <data name="Backup_Restore.Content" xml:space="preserve"><value>Wiederherstellen</value></data>
+  <data name="Backup_BackupHistory.Text" xml:space="preserve"><value>Backup-Verlauf</value></data>
+  <data name="Backup_RestoreThisBackupTip.ToolTipService.ToolTip" xml:space="preserve"><value>Dieses Backup wiederherstellen</value></data>
+  <data name="Backup_RestoreThisBackupTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Dieses Backup wiederherstellen</value></data>
+  <data name="Backup_DeleteBackupTip.ToolTipService.ToolTip" xml:space="preserve"><value>Backup löschen</value></data>
+  <data name="Backup_DeleteBackupTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Backup löschen</value></data>
+  <data name="EmailSet_EmailConnector.Text" xml:space="preserve"><value>E-Mail-Connector</value></data>
+  <data name="EmailSet_SyncGmailAndOutlook.Text" xml:space="preserve"><value>Synchronisieren Sie Gmail- und Outlook-E-Mails in Ihren Wissens-Tresor für KI-gestützte Suche und Triage.</value></data>
+  <data name="EmailSet_Error.Title" xml:space="preserve"><value>Fehler</value></data>
+  <data name="EmailSet_ConnectedAccounts.Text" xml:space="preserve"><value>Verbundene Konten</value></data>
+  <data name="EmailSet_Connect.Content" xml:space="preserve"><value>Verbinden</value></data>
+  <data name="EmailSet_Disconnect.Content" xml:space="preserve"><value>Trennen</value></data>
+  <data name="EmailSet_OutlookEmail.Text" xml:space="preserve"><value>Outlook-E-Mail</value></data>
+  <data name="EmailSet_Connect2.Content" xml:space="preserve"><value>Verbinden</value></data>
+  <data name="EmailSet_Disconnect2.Content" xml:space="preserve"><value>Trennen</value></data>
+  <data name="EmailSet_SyncSettings.Text" xml:space="preserve"><value>Synchronisierungseinstellungen</value></data>
+  <data name="EmailSet_EmailSync.Header" xml:space="preserve"><value>E-Mail-Synchronisierung</value></data>
+  <data name="EmailSet_EmailSync.OffContent" xml:space="preserve"><value>Aus</value></data>
+  <data name="EmailSet_EmailSync.OnContent" xml:space="preserve"><value>Ein</value></data>
+  <data name="EmailSet_SyncIntervalMinutes.Text" xml:space="preserve"><value>Sync-Intervall (Minuten)</value></data>
+  <data name="EmailSet_MaxMessagesPerSync.Text" xml:space="preserve"><value>Max. Nachrichten pro Sync</value></data>
+  <data name="EmailSet_SyncDaysBack.Text" xml:space="preserve"><value>Sync-Zeitraum (Tage zurück)</value></data>
+  <data name="EmailSet_AiEmailCategorization.Header" xml:space="preserve"><value>KI-E-Mail-Kategorisierung</value></data>
+  <data name="EmailSet_AiEmailCategorization.OffContent" xml:space="preserve"><value>Aus</value></data>
+  <data name="EmailSet_AiEmailCategorization.OnContent" xml:space="preserve"><value>Ein</value></data>
+  <data name="EmailSet_IncludeAttachmentNamesIn.Header" xml:space="preserve"><value>Anhangsnamen in Suchindex aufnehmen</value></data>
+  <data name="EmailSet_IncludeAttachmentNamesIn.OffContent" xml:space="preserve"><value>Ausschließen</value></data>
+  <data name="EmailSet_IncludeAttachmentNamesIn.OnContent" xml:space="preserve"><value>Einschließen</value></data>
+  <data name="EmailSet_SaveSettings.Content" xml:space="preserve"><value>Einstellungen speichern</value></data>
+  <data name="EmailSet_SyncNow.Content" xml:space="preserve"><value>Jetzt synchronisieren</value></data>
+  <data name="EmailSet_LastSynced.Text" xml:space="preserve"><value>Zuletzt synchronisiert</value></data>
+  <data name="EmailSet_NextSync.Text" xml:space="preserve"><value>Nächste Synchronisierung</value></data>
+  <data name="EmailSet_Status.Text" xml:space="preserve"><value>Status</value></data>
+  <data name="CalSet_CalendarConnector.Text" xml:space="preserve"><value>Kalender-Connector</value></data>
+  <data name="CalSet_SyncGoogleCalendarAnd.Text" xml:space="preserve"><value>Synchronisieren Sie Google Kalender- und Microsoft Outlook-Termine in Ihren Wissens-Tresor für die KI-gestützte Suche.</value></data>
+  <data name="CalSet_Error.Title" xml:space="preserve"><value>Fehler</value></data>
+  <data name="CalSet_ConnectedAccounts.Text" xml:space="preserve"><value>Verbundene Konten</value></data>
+  <data name="CalSet_GoogleCalendar.Text" xml:space="preserve"><value>Google Kalender</value></data>
+  <data name="CalSet_Connect.Content" xml:space="preserve"><value>Verbinden</value></data>
+  <data name="CalSet_Disconnect.Content" xml:space="preserve"><value>Trennen</value></data>
+  <data name="CalSet_OutlookCalendar.Text" xml:space="preserve"><value>Outlook-Kalender</value></data>
+  <data name="CalSet_Connect2.Content" xml:space="preserve"><value>Verbinden</value></data>
+  <data name="CalSet_Disconnect2.Content" xml:space="preserve"><value>Trennen</value></data>
+  <data name="CalSet_SyncSettings.Text" xml:space="preserve"><value>Synchronisierungseinstellungen</value></data>
+  <data name="CalSet_CalendarSync.Header" xml:space="preserve"><value>Kalendersynchronisierung</value></data>
+  <data name="CalSet_CalendarSync.OffContent" xml:space="preserve"><value>Aus</value></data>
+  <data name="CalSet_CalendarSync.OnContent" xml:space="preserve"><value>Ein</value></data>
+  <data name="CalSet_SyncIntervalMinutes.Text" xml:space="preserve"><value>Sync-Intervall (Minuten)</value></data>
+  <data name="CalSet_SyncRangePastDays.Text" xml:space="preserve"><value>Sync-Bereich: Tage zurück</value></data>
+  <data name="CalSet_SyncRangeFutureDays.Text" xml:space="preserve"><value>Sync-Bereich: Tage voraus</value></data>
+  <data name="CalSet_ConflictResolution.Text" xml:space="preserve"><value>Konfliktlösung</value></data>
+  <data name="CalSet_IncludeAttendeeDetails.Header" xml:space="preserve"><value>Teilnehmerdetails einbeziehen</value></data>
+  <data name="CalSet_IncludeAttendeeDetails.OffContent" xml:space="preserve"><value>Ausschließen</value></data>
+  <data name="CalSet_IncludeAttendeeDetails.OnContent" xml:space="preserve"><value>Einschließen</value></data>
+  <data name="CalSet_IncludeEventDescriptions.Header" xml:space="preserve"><value>Terminbeschreibungen einbeziehen</value></data>
+  <data name="CalSet_IncludeEventDescriptions.OffContent" xml:space="preserve"><value>Ausschließen</value></data>
+  <data name="CalSet_IncludeEventDescriptions.OnContent" xml:space="preserve"><value>Einschließen</value></data>
+  <data name="CalSet_SaveSettings.Content" xml:space="preserve"><value>Einstellungen speichern</value></data>
+  <data name="CalSet_SyncNow.Content" xml:space="preserve"><value>Jetzt synchronisieren</value></data>
+  <data name="CalSet_LastSynced.Text" xml:space="preserve"><value>Zuletzt synchronisiert</value></data>
+  <data name="CalSet_NextSync.Text" xml:space="preserve"><value>Nächste Synchronisierung</value></data>
+  <data name="CalSet_Status.Text" xml:space="preserve"><value>Status</value></data>
+  <data name="Plugin_OpenedFromOperations.Text" xml:space="preserve"><value>Aus Operations geöffnet</value></data>
+  <data name="Plugin_FocusedConnector.Text" xml:space="preserve"><value>Fokussierter Connector</value></data>
+  <data name="Plugin_Dismiss.Content" xml:space="preserve"><value>Schließen</value></data>
+  <data name="ExportDlg_ExportConversation.Title" xml:space="preserve"><value>Konversation exportieren</value></data>
+  <data name="ExportDlg_ExportConversation.PrimaryButtonText" xml:space="preserve"><value>Exportieren</value></data>
+  <data name="ExportDlg_ExportConversation.CloseButtonText" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="ExportDlg_Format.Header" xml:space="preserve"><value>Format</value></data>
+  <data name="ExportDlg_TemplateOptional.Header" xml:space="preserve"><value>Vorlage (optional)</value></data>
+  <data name="ExportDlg_IncludeCitations.Header" xml:space="preserve"><value>Quellenangaben einschließen</value></data>
+  <data name="ExportDlg_IncludeMetadata.Header" xml:space="preserve"><value>Metadaten einschließen</value></data>
+  <data name="ExportDlg_IncludeTimestamps.Header" xml:space="preserve"><value>Zeitstempel einschließen</value></data>
+  <data name="ExportDlg_IncludeBranches.Header" xml:space="preserve"><value>Verzweigungen einschließen</value></data>
+  <data name="JumpTo_JumpToPageDocumentPh.PlaceholderText" xml:space="preserve"><value>Zu Seite, Dokument oder Konversation springen...</value></data>
+  <data name="Privacy_PrivacyPolicy.Text" xml:space="preserve"><value>Datenschutzerklärung</value></data>
+  <data name="Privacy_EffectiveDateFebruary26.Text" xml:space="preserve"><value>Gültig ab: 26. Februar 2026</value></data>
+  <data name="Privacy_StrategiaXWeUs.Text" xml:space="preserve"><value>Strategia-X („wir“, „uns“, „unser“) betreibt Agent-X. Diese Datenschutzerklärung erläutert, wie wir mit Ihren Informationen umgehen, wenn Sie unsere Desktop-Anwendung nutzen.</value></data>
+  <data name="Privacy_LocalFirstPrivacy.Text" xml:space="preserve"><value>Local-First-Datenschutz</value></data>
+  <data name="Privacy_YourDataNeverLeaves.Text" xml:space="preserve"><value>Ihre Daten verlassen niemals Ihr Gerät. Sämtliche KI-Verarbeitung, Dokumentenspeicherung und Konversationen verbleiben vollständig auf Ihrem Rechner.</value></data>
+  <data name="Privacy_Verified.Text" xml:space="preserve"><value>VERIFIZIERT</value></data>
+  <data name="Privacy_OurCommitmentToPrivacy.Text" xml:space="preserve"><value>Unser Datenschutzversprechen</value></data>
+  <data name="Privacy_AgentXIsDesigned.Text" xml:space="preserve"><value>Agent-X wurde mit Datenschutz als Grundprinzip entwickelt. Alle Ihre Daten — Dokumente, Konversationen, Embeddings und Einstellungen — werden lokal auf Ihrem Gerät gespeichert. Wir betreiben keine Cloud-Server, die Ihre personenbezogenen Daten verarbeiten oder speichern.</value></data>
+  <data name="Privacy_OurLocalFirstArchitecture.Text" xml:space="preserve"><value>Unsere Local-First-Architektur bedeutet, dass Sie die volle Eigentümerschaft und Kontrolle über jede Information behalten, die Sie in Agent-X erstellen oder importieren. Es gibt keine Konten, keine Datensynchronisierung und keine Telemetrie-Übertragung.</value></data>
+  <data name="Privacy_InformationWeCollect.Text" xml:space="preserve"><value>Welche Informationen wir erfassen</value></data>
+  <data name="Privacy_InformationYouProvide.Text" xml:space="preserve"><value>Von Ihnen bereitgestellte Informationen</value></data>
+  <data name="Privacy_WhenYouUseAgent.Text" xml:space="preserve"><value>Bei der Nutzung von Agent-X werden folgende Informationen erstellt und lokal auf Ihrem Gerät gespeichert:</value></data>
+  <data name="Privacy_DocumentsYouImportInto.Text" xml:space="preserve"><value>Dokumente, die Sie in den Wissens-Tresor importieren</value></data>
+  <data name="Privacy_ConversationsWithAiModels.Text" xml:space="preserve"><value>Konversationen mit KI-Modellen</value></data>
+  <data name="Privacy_SettingsAndPreferencesYou.Text" xml:space="preserve"><value>Von Ihnen konfigurierte Einstellungen und Präferenzen</value></data>
+  <data name="Privacy_CollectionNamesAndOrganization.Text" xml:space="preserve"><value>Sammlungsnamen und Organisations-Tags</value></data>
+  <data name="Privacy_AutomaticallyCollectedInformat.Text" xml:space="preserve"><value>Automatisch erfasste Informationen</value></data>
+  <data name="Privacy_AgentXMayAutomatically.Text" xml:space="preserve"><value>Agent-X kann Folgendes automatisch erfassen; alles bleibt lokal gespeichert und wird niemals übertragen:</value></data>
+  <data name="Privacy_ApplicationLogsStoredLocally.Text" xml:space="preserve"><value>Anwendungsprotokolle (nur lokal gespeichert)</value></data>
+  <data name="Privacy_HardwareCapabilityInformationF.Text" xml:space="preserve"><value>Hardware-Informationen (für Modellempfehlungen)</value></data>
+  <data name="Privacy_UsageStatisticsStoredLocally.Text" xml:space="preserve"><value>Nutzungsstatistiken (lokal gespeichert, niemals übertragen)</value></data>
+  <data name="Privacy_InformationWeDoNot.Text" xml:space="preserve"><value>Informationen, die wir NICHT erfassen</value></data>
+  <data name="Privacy_WeDoNotCollect.Text" xml:space="preserve"><value>Wir erfassen keine personenbezogenen Identifikationsdaten</value></data>
+  <data name="Privacy_WeDoNotTransmit.Text" xml:space="preserve"><value>Wir übertragen keine Daten an externe Server</value></data>
+  <data name="Privacy_WeDoNotUse.Text" xml:space="preserve"><value>Wir verwenden keine Cookies oder Tracking-Technologien</value></data>
+  <data name="Privacy_WeDoNotCollect2.Text" xml:space="preserve"><value>Wir erfassen keine Zahlungsinformationen über die App</value></data>
+  <data name="Privacy_HowYourDataIs.Text" xml:space="preserve"><value>Wie Ihre Daten gespeichert werden</value></data>
+  <data name="Privacy_AllDataGeneratedAnd.Text" xml:space="preserve"><value>Alle von Agent-X erzeugten und verwalteten Daten werden lokal auf Ihrem Gerät gespeichert. Es gibt keine Cloud-Komponente.</value></data>
+  <data name="Privacy_AllDataStoredIn.Text" xml:space="preserve"><value>Alle Daten in lokalen SQLite-Datenbanken auf Ihrem Gerät</value></data>
+  <data name="Privacy_DocumentEmbeddingsStoredIn.Text" xml:space="preserve"><value>Dokument-Embeddings in lokaler Vektordatenbank (sqlite-vec)</value></data>
+  <data name="Privacy_ApplicationLogsStoredIn.Text" xml:space="preserve"><value>Anwendungsprotokolle gespeichert in </value></data>
+  <data name="Privacy_SettingsStoredLocallyNever.Text" xml:space="preserve"><value>Einstellungen lokal gespeichert — niemals in die Cloud synchronisiert</value></data>
+  <data name="Privacy_YouHaveFullControl.Text" xml:space="preserve"><value>Sie haben die volle Kontrolle: Alle Daten lassen sich durch Entfernen des Anwendungsdatenordners löschen</value></data>
+  <data name="Privacy_ThirdPartyServices.Text" xml:space="preserve"><value>Dienste von Drittanbietern</value></data>
+  <data name="Privacy_OllamaLocalAiRuntime.Text" xml:space="preserve"><value>Ollama (lokale KI-Laufzeit)</value></data>
+  <data name="Privacy_AgentXConnectsTo.Text" xml:space="preserve"><value>Agent-X verbindet sich mit dem lokal auf Ihrem Rechner laufenden Ollama. Ollama führt die KI-Inferenz lokal aus. Es werden keine Daten an externe Server gesendet, es sei denn, Sie konfigurieren ausdrücklich einen Remote-Ollama-Endpunkt.</value></data>
+  <data name="Privacy_IfYouConfigureA.Text" xml:space="preserve"><value>Wenn Sie einen Remote-Endpunkt konfigurieren, unterliegen die an diesen Endpunkt gesendeten Daten der Datenschutzerklärung des Remote-Servers. Für maximalen Datenschutz empfehlen wir lokale Inferenz.</value></data>
+  <data name="Privacy_NoAnalyticsServices.Text" xml:space="preserve"><value>Keine Analysedienste</value></data>
+  <data name="Privacy_WeDoNotUse2.Text" xml:space="preserve"><value>Wir verwenden weder Google Analytics noch Mixpanel oder andere Analysedienste von Drittanbietern. Es werden keine Nutzungsdaten erfasst oder übertragen.</value></data>
+  <data name="Privacy_NoAdvertising.Text" xml:space="preserve"><value>Keine Werbung</value></data>
+  <data name="Privacy_WeDoNotDisplay.Text" xml:space="preserve"><value>Wir zeigen keine Werbung an und teilen keine Daten mit Werbetreibenden. Agent-X ist ein Bezahlprodukt; unsere Nutzer sind unsere Kunden, nicht unser Produkt.</value></data>
+  <data name="Privacy_YourRightsUnderGdpr.Text" xml:space="preserve"><value>Ihre Rechte nach der DSGVO</value></data>
+  <data name="Privacy_IfYouAreLocated.Text" xml:space="preserve"><value>Wenn Sie sich im Europäischen Wirtschaftsraum (EWR) befinden, stehen Ihnen bestimmte Datenschutzrechte nach der Datenschutz-Grundverordnung (DSGVO) zu.</value></data>
+  <data name="Privacy_RightToAccess.Text" xml:space="preserve"><value>Auskunftsrecht</value></data>
+  <data name="Privacy_YouCanAccessAll.Text" xml:space="preserve"><value>Sie können auf alle Ihre Daten direkt auf Ihrem Gerät zugreifen. Eine Anfrage an uns ist nicht erforderlich.</value></data>
+  <data name="Privacy_RightToRectification.Text" xml:space="preserve"><value>Recht auf Berichtigung</value></data>
+  <data name="Privacy_YouCanModifyYour.Text" xml:space="preserve"><value>Sie können Ihre Daten jederzeit über die Anwendungsoberfläche ändern.</value></data>
+  <data name="Privacy_RightToErasureRight.Text" xml:space="preserve"><value>Recht auf Löschung („Recht auf Vergessenwerden“)</value></data>
+  <data name="Privacy_DeleteDocumentsConversationsAn.Text" xml:space="preserve"><value>Löschen Sie Dokumente, Konversationen und alle Daten über die App oder durch Entfernen des Anwendungsdatenordners.</value></data>
+  <data name="Privacy_RightToDataPortability.Text" xml:space="preserve"><value>Recht auf Datenübertragbarkeit</value></data>
+  <data name="Privacy_YourDataIsStored.Text" xml:space="preserve"><value>Ihre Daten liegen im Standard-SQLite-Format vor und können frei exportiert oder verschoben werden.</value></data>
+  <data name="Privacy_RightToRestrictProcessing.Text" xml:space="preserve"><value>Recht auf Einschränkung der Verarbeitung</value></data>
+  <data name="Privacy_YouControlAllProcessing.Text" xml:space="preserve"><value>Sie kontrollieren die gesamte Verarbeitung — schließen Sie einfach die Anwendung, um jede Datenverarbeitung zu stoppen.</value></data>
+  <data name="Privacy_RightToObject.Text" xml:space="preserve"><value>Widerspruchsrecht</value></data>
+  <data name="Privacy_YouCanStopUsing.Text" xml:space="preserve"><value>Sie können die Nutzung der Anwendung jederzeit beenden. Mit der Deinstallation endet jede Verarbeitung.</value></data>
+  <data name="Privacy_SinceAllDataIs.Text" xml:space="preserve"><value>Da alle Daten lokal auf Ihrem Gerät gespeichert sind, üben Sie diese Rechte direkt aus, ohne uns kontaktieren zu müssen. Sie allein kontrollieren Ihre Daten.</value></data>
+  <data name="Privacy_YourRightsUnderCcpa.Text" xml:space="preserve"><value>Ihre Rechte nach dem CCPA</value></data>
+  <data name="Privacy_IfYouAreA.Text" xml:space="preserve"><value>Wenn Sie in Kalifornien ansässig sind, stehen Ihnen bestimmte Rechte nach dem California Consumer Privacy Act (CCPA) zu.</value></data>
+  <data name="Privacy_RightToKnow.Text" xml:space="preserve"><value>Recht auf Auskunft</value></data>
+  <data name="Privacy_WhatPersonalInformationIs.Text" xml:space="preserve"><value>Welche personenbezogenen Informationen erfasst werden — siehe oben „Welche Informationen wir erfassen“ für eine vollständige Aufzählung.</value></data>
+  <data name="Privacy_RightToDelete.Text" xml:space="preserve"><value>Recht auf Löschung</value></data>
+  <data name="Privacy_RemoveAllDataBy.Text" xml:space="preserve"><value>Entfernen Sie alle Daten, indem Sie die App deinstallieren oder das Anwendungsdatenverzeichnis löschen.</value></data>
+  <data name="Privacy_RightToOptOut.Text" xml:space="preserve"><value>Recht auf Widerspruch gegen den Verkauf</value></data>
+  <data name="Privacy_WeDoNotSell.Text" xml:space="preserve"><value>Wir verkaufen Ihre personenbezogenen Daten nicht. Das haben wir nie getan und werden es nie tun.</value></data>
+  <data name="Privacy_RightToNonDiscrimination.Text" xml:space="preserve"><value>Recht auf Nichtdiskriminierung</value></data>
+  <data name="Privacy_WeDoNotDiscriminate.Text" xml:space="preserve"><value>Wir benachteiligen keine Nutzer, die ihre Datenschutzrechte ausüben.</value></data>
+  <data name="Privacy_CategoriesOfPersonalInformatio.Text" xml:space="preserve"><value>Kategorien personenbezogener Informationen</value></data>
+  <data name="Privacy_DocumentsAndFilesYou.Text" xml:space="preserve"><value>Von Ihnen importierte Dokumente und Dateien</value></data>
+  <data name="Privacy_AiConversationHistory.Text" xml:space="preserve"><value>KI-Konversationsverlauf</value></data>
+  <data name="Privacy_ApplicationPreferences.Text" xml:space="preserve"><value>Anwendungseinstellungen</value></data>
+  <data name="Privacy_NoSaleOfData.Text" xml:space="preserve"><value>Kein Datenverkauf</value></data>
+  <data name="Privacy_StrategiaXDoesNot.Text" xml:space="preserve"><value>Strategia-X verkauft, vermietet oder handelt mit keinerlei Nutzerdaten. Ihre Informationen gehören allein Ihnen.</value></data>
+  <data name="Privacy_DataSecurity.Text" xml:space="preserve"><value>Datensicherheit</value></data>
+  <data name="Privacy_YourDataSecurityDepends.Text" xml:space="preserve"><value>Die Sicherheit Ihrer Daten hängt von der Sicherheit Ihres Geräts ab. Da alle Daten lokal bleiben, profitieren Sie von den integrierten Schutzmechanismen Ihres Betriebssystems.</value></data>
+  <data name="Privacy_WeRecommendTheFollowing.Text" xml:space="preserve"><value>Wir empfehlen folgende Maßnahmen, um Ihre Daten zu schützen:</value></data>
+  <data name="Privacy_KeepYourOperatingSystem.Text" xml:space="preserve"><value>Halten Sie Betriebssystem und Software aktuell</value></data>
+  <data name="Privacy_UseStrongDevicePasswords.Text" xml:space="preserve"><value>Verwenden Sie starke Gerätepasswörter und, wo verfügbar, biometrische Sperren</value></data>
+  <data name="Privacy_EncryptYourHardDrive.Text" xml:space="preserve"><value>Verschlüsseln Sie Ihre Festplatte (z. B. BitLocker unter Windows)</value></data>
+  <data name="Privacy_AgentXDoesNot.Text" xml:space="preserve"><value>Agent-X implementiert keine zusätzliche Verschlüsselung über die Ihres Betriebssystems hinaus.</value></data>
+  <data name="Privacy_NetworkSecurityByDefault.Text" xml:space="preserve"><value>Netzwerksicherheit: Standardmäßig erfolgt die gesamte KI-Verarbeitung lokal. Keine Daten verlassen Ihr Netzwerk.</value></data>
+  <data name="Privacy_ChildrenSPrivacy.Text" xml:space="preserve"><value>Datenschutz für Kinder</value></data>
+  <data name="Privacy_AgentXIsNot.Text" xml:space="preserve"><value>Agent-X richtet sich nicht an Kinder unter 13 Jahren. Wir erfassen wissentlich keine personenbezogenen Daten von Kindern unter 13 Jahren. Wenn Sie als Elternteil oder Erziehungsberechtigter glauben, dass Ihr Kind über die Anwendung Informationen bereitgestellt hat, kontaktieren Sie uns bitte, damit wir helfen können.</value></data>
+  <data name="Privacy_ChangesToThisPrivacy.Text" xml:space="preserve"><value>Änderungen dieser Datenschutzerklärung</value></data>
+  <data name="Privacy_WeMayUpdateThis.Text" xml:space="preserve"><value>Wir können diese Datenschutzerklärung von Zeit zu Zeit aktualisieren. Bei Änderungen passen wir das Gültigkeitsdatum oben auf dieser Seite an. Änderungen werden in der Anwendung mit aktualisiertem Gültigkeitsdatum angezeigt.</value></data>
+  <data name="Privacy_WeEncourageYouTo.Text" xml:space="preserve"><value>Wir empfehlen, diese Datenschutzerklärung regelmäßig zu lesen, um informiert zu bleiben, wie wir Ihre Informationen schützen.</value></data>
+  <data name="Privacy_ContactUs.Text" xml:space="preserve"><value>Kontakt</value></data>
+  <data name="Privacy_IfYouHaveAny.Text" xml:space="preserve"><value>Bei Fragen, Anliegen oder Anfragen zu dieser Datenschutzerklärung oder unseren Datenpraktiken kontaktieren Sie uns bitte.</value></data>
+  <data name="Privacy_Company.Text" xml:space="preserve"><value>Unternehmen</value></data>
+  <data name="Privacy_PrivacyQuestions.Text" xml:space="preserve"><value>Fragen zum Datenschutz</value></data>
+  <data name="Privacy_GdprDataProtectionContact.Text" xml:space="preserve"><value>DSGVO-Datenschutzkontakt</value></data>
+  <data name="Privacy_ForGdprInquiriesOur.Text" xml:space="preserve"><value>Für DSGVO-Anfragen erreichen Sie unseren Datenschutzkontakt unter support@strategia-x.com</value></data>
+  <data name="Privacy_CcpaRequestsCaliforniaResident.Text" xml:space="preserve"><value>CCPA-Anfragen (Einwohner Kaliforniens)</value></data>
+  <data name="Privacy_CaliforniaResidentsMayContact.Text" xml:space="preserve"><value>Einwohner Kaliforniens können uns für CCPA-bezogene Anfragen unter support@strategia-x.com kontaktieren.</value></data>
+  <data name="Privacy_2026RockyElsalaymehFree.Text" xml:space="preserve"><value>© 2026 Rocky Elsalaymeh. Kostenlos und Open Source unter der MIT-Lizenz.</value></data>
+  <data name="Privacy_AgentXLocalFirst.Text" xml:space="preserve"><value>Agent-X — Local-First-KI-Hub für persönliche Intelligenz</value></data>
+  <data name="Terms_Legal.Text" xml:space="preserve"><value>RECHTLICHES</value></data>
+  <data name="Terms_TermsOfService.Text" xml:space="preserve"><value>Nutzungsbedingungen</value></data>
+  <data name="Terms_EffectiveDateFebruary26.Text" xml:space="preserve"><value>Gültig ab: 26. Februar 2026</value></data>
+  <data name="Terms_PleaseReadTheseTerms.Text" xml:space="preserve"><value>Bitte lesen Sie diese Nutzungsbedingungen („Bedingungen“) sorgfältig, bevor Sie Agent-X verwenden, eine von Strategia-X („Unternehmen“, „wir“, „uns“, „unser“) entwickelte Desktop-Anwendung. Durch Installation oder Nutzung von Agent-X erklären Sie sich mit diesen Bedingungen einverstanden.</value></data>
+  <data name="Terms_1AcceptanceOfTerms.Text" xml:space="preserve"><value>1. Annahme der Bedingungen</value></data>
+  <data name="Terms_ByDownloadingInstallingOr.Text" xml:space="preserve"><value>Durch Herunterladen, Installieren oder Nutzen von Agent-X bestätigen Sie, dass Sie diese Bedingungen gelesen und verstanden haben und sich an sie gebunden fühlen. Wenn Sie diesen Bedingungen nicht zustimmen, dürfen Sie Agent-X nicht verwenden. Ihre fortgesetzte Nutzung der Anwendung gilt als fortlaufende Annahme aktualisierter Bedingungen.</value></data>
+  <data name="Terms_2DescriptionOfService.Text" xml:space="preserve"><value>2. Beschreibung des Dienstes</value></data>
+  <data name="Terms_AgentXIsA.Text" xml:space="preserve"><value>Agent-X ist ein Local-First-KI-Hub für persönliche Intelligenz unter Windows. Er bietet folgende Funktionen:</value></data>
+  <data name="Terms_LocalAiChatVia.Text" xml:space="preserve"><value>Lokaler KI-Chat über Ollama-Integration</value></data>
+  <data name="Terms_DocumentManagementAndIndexing.Text" xml:space="preserve"><value>Dokumentverwaltung und Indexierung</value></data>
+  <data name="Terms_RetrievalAugmentedGenerationRa.Text" xml:space="preserve"><value>Retrieval-Augmented Generation (RAG)</value></data>
+  <data name="Terms_SemanticSearchAcrossYour.Text" xml:space="preserve"><value>Semantische Suche in Ihren Dokumenten</value></data>
+  <data name="Terms_ModelManagement.Text" xml:space="preserve"><value>Modellverwaltung</value></data>
+  <data name="Terms_HardwareCapabilityAnalysis.Text" xml:space="preserve"><value>Analyse der Hardware-Fähigkeiten</value></data>
+  <data name="Terms_AllProcessingOccursLocally.Text" xml:space="preserve"><value>Die gesamte Verarbeitung erfolgt lokal auf Ihrem Gerät. Agent-X überträgt Ihre Daten nicht zur KI-Inferenz an externe Server.</value></data>
+  <data name="Terms_3LicenseGrant.Text" xml:space="preserve"><value>3. Lizenzgewährung</value></data>
+  <data name="Terms_UnderTheMitLicense.Text" xml:space="preserve"><value>Unter der MIT-Lizenz dürfen Sie frei:</value></data>
+  <data name="Terms_UseAgentXFor.Text" xml:space="preserve"><value>Agent-X für jeden Zweck nutzen — privat, kommerziell oder anderweitig</value></data>
+  <data name="Terms_StudyModifyAndBuild.Text" xml:space="preserve"><value>Den Quellcode studieren, verändern und darauf aufbauen</value></data>
+  <data name="Terms_DistributeAndSublicenseCopies.Text" xml:space="preserve"><value>Kopien mit oder ohne Änderungen verbreiten und unterlizenzieren</value></data>
+  <data name="Terms_IncludeAgentXIn.Text" xml:space="preserve"><value>Agent-X kostenlos in eigene Projekte einbinden</value></data>
+  <data name="Terms_TheOnlyConditionIs.Text" xml:space="preserve"><value>Die einzige Bedingung ist, dass der MIT-Copyright-Hinweis und der Genehmigungshinweis in allen Kopien oder wesentlichen Teilen der Software enthalten sind.</value></data>
+  <data name="Terms_4UserResponsibilities.Text" xml:space="preserve"><value>4. Pflichten des Nutzers</value></data>
+  <data name="Terms_YouAreResponsibleFor.Text" xml:space="preserve"><value>Sie sind verantwortlich für:</value></data>
+  <data name="Terms_EnsuringYourSystemMeets.Text" xml:space="preserve"><value>Sicherstellen, dass Ihr System die Mindestanforderungen an Hardware und Software für Agent-X erfüllt</value></data>
+  <data name="Terms_InstallingAndMaintainingOllama.Text" xml:space="preserve"><value>Separate Installation und Pflege von Ollama, da es nicht mit Agent-X gebündelt ist</value></data>
+  <data name="Terms_TheContentOfAny.Text" xml:space="preserve"><value>Den Inhalt aller Dokumente, die Sie in Agent-X importieren oder damit verarbeiten</value></data>
+  <data name="Terms_ComplianceWithAllApplicable.Text" xml:space="preserve"><value>Einhaltung aller geltenden Gesetze und Vorschriften bei der Nutzung der Anwendung</value></data>
+  <data name="Terms_MaintainingTheSecurityOf.Text" xml:space="preserve"><value>Aufrechterhaltung der Sicherheit Ihres Geräts und aller lokal gespeicherten Zugangsdaten</value></data>
+  <data name="Terms_BackingUpYourData.Text" xml:space="preserve"><value>Regelmäßige Sicherung Ihrer Daten, da Strategia-X nicht für Datenverlust haftet</value></data>
+  <data name="Terms_5IntellectualProperty.Text" xml:space="preserve"><value>5. Geistiges Eigentum</value></data>
+  <data name="Terms_AgentXIsOpen.Text" xml:space="preserve"><value>Agent-X ist Open-Source-Software. Quellcode, Dokumentation und weitere Materialien werden unter der MIT-Lizenz bereitgestellt; das Urheberrecht verbleibt gemäß dieser Lizenz bei den ursprünglichen Autoren und Mitwirkenden. Sie dürfen diese Materialien im Einklang mit den MIT-Lizenzbedingungen frei nutzen und darauf aufbauen.</value></data>
+  <data name="Terms_YourDocumentsAndData.Text" xml:space="preserve"><value>Ihre Dokumente und Daten bleiben jederzeit Ihr Eigentum. Wir beanspruchen kein Eigentum an Inhalten, die Sie mit Agent-X verarbeiten. Sie behalten alle Rechte an Ihrem geistigen Eigentum.</value></data>
+  <data name="Terms_6ThirdPartySoftware.Text" xml:space="preserve"><value>6. Software von Drittanbietern</value></data>
+  <data name="Terms_AgentXIntegratesWith.Text" xml:space="preserve"><value>Agent-X integriert Ollama, ein Open-Source-Projekt von Ollama, Inc. Ollama unterliegt eigenen Lizenzbedingungen, die von diesen Bedingungen getrennt sind. Sie sind dafür verantwortlich, die Nutzungsbedingungen von Ollama zu prüfen und einzuhalten.</value></data>
+  <data name="Terms_AgentXAlsoUses.Text" xml:space="preserve"><value>Agent-X verwendet außerdem verschiedene Open-Source-Bibliotheken, die jeweils ihren eigenen Lizenzen unterliegen. Diese Lizenzen sind in der Anwendungsdistribution enthalten. Mit der Nutzung von Agent-X akzeptieren Sie diese Drittanbieter-Lizenzbedingungen.</value></data>
+  <data name="Terms_7Privacy.Text" xml:space="preserve"><value>7. Datenschutz</value></data>
+  <data name="Terms_YourUseOfAgent.Text" xml:space="preserve"><value>Ihre Nutzung von Agent-X unterliegt außerdem unserer Datenschutzerklärung, die in der Anwendung einsehbar ist. Die Datenschutzerklärung beschreibt, wie wir mit Daten umgehen, welche Informationen (falls überhaupt) erfasst werden und welche Rechte Sie in Bezug auf Ihre personenbezogenen Daten haben.</value></data>
+  <data name="Terms_ByUsingAgentX.Text" xml:space="preserve"><value>Mit der Nutzung von Agent-X erkennen Sie unsere in der Datenschutzerklärung beschriebenen Datenpraktiken an und stimmen ihnen zu. Die Datenschutzerklärung ist durch Verweis Bestandteil dieser Bedingungen.</value></data>
+  <data name="Terms_8DisclaimerOfWarranties.Text" xml:space="preserve"><value>8. Gewährleistungsausschluss</value></data>
+  <data name="Terms_AgentXIsProvided.Text" xml:space="preserve"><value>AGENT-X WIRD „WIE BESEHEN“ UND „WIE VERFÜGBAR“ OHNE JEGLICHE AUSDRÜCKLICHE ODER STILLSCHWEIGENDE GEWÄHRLEISTUNG BEREITGESTELLT. SOWEIT GESETZLICH ZULÄSSIG, SCHLIESST STRATEGIA-X ALLE GEWÄHRLEISTUNGEN AUS, EINSCHLIESSLICH, ABER NICHT BESCHRÄNKT AUF STILLSCHWEIGENDE GEWÄHRLEISTUNGEN DER MARKTGÄNGIGKEIT, DER EIGNUNG FÜR EINEN BESTIMMTEN ZWECK UND DER NICHTVERLETZUNG VON RECHTEN DRITTER.</value></data>
+  <data name="Terms_WeDoNotWarrant.Text" xml:space="preserve"><value>Wir gewährleisten nicht, dass:</value></data>
+  <data name="Terms_TheApplicationWillBe.Text" xml:space="preserve"><value>Die Anwendung fehlerfrei oder unterbrechungsfrei läuft</value></data>
+  <data name="Terms_AiGeneratedResponsesWill.Text" xml:space="preserve"><value>KI-generierte Antworten korrekt, vollständig oder zuverlässig sind</value></data>
+  <data name="Terms_TheApplicationWillMeet.Text" xml:space="preserve"><value>Die Anwendung Ihre spezifischen Anforderungen erfüllt</value></data>
+  <data name="Terms_DefectsInTheApplication.Text" xml:space="preserve"><value>Mängel der Anwendung zeitnah behoben werden</value></data>
+  <data name="Terms_9LimitationOfLiability.Text" xml:space="preserve"><value>9. Haftungsbeschränkung</value></data>
+  <data name="Terms_ToTheMaximumExtent.Text" xml:space="preserve"><value>SOWEIT NACH GELTENDEM RECHT ZULÄSSIG, HAFTET STRATEGIA-X NICHT FÜR INDIREKTE, BEILÄUFIGE, BESONDERE, FOLGE- ODER STRAFSCHÄDEN, EINSCHLIESSLICH, ABER NICHT BESCHRÄNKT AUF DEN VERLUST VON DATEN ODER DOKUMENTEN, ENTGANGENE GEWINNE ODER EINNAHMEN, SCHÄDEN AN HARDWARE ODER SOFTWARE, BETRIEBSUNTERBRECHUNGEN ODER SONSTIGE IMMATERIELLE VERLUSTE, DIE AUS DER NUTZUNG ODER DER UNMÖGLICHKEIT DER NUTZUNG VON AGENT-X ENTSTEHEN.</value></data>
+  <data name="Terms_ThisLimitationAppliesRegardles.Text" xml:space="preserve"><value>Diese Beschränkung gilt unabhängig von der Rechtsgrundlage des Anspruchs, unabhängig davon, ob wir auf die Möglichkeit solcher Schäden hingewiesen wurden, und selbst wenn ein Rechtsbehelf seinen wesentlichen Zweck verfehlt.</value></data>
+  <data name="Terms_AgentXIsProvided2.Text" xml:space="preserve"><value>Agent-X wird Ihnen unter der MIT-Lizenz kostenlos zur Verfügung gestellt. Soweit gesetzlich zulässig, haften die Autoren und Rechteinhaber Ihnen gegenüber nicht für Ansprüche, die aus oder im Zusammenhang mit Agent-X entstehen.</value></data>
+  <data name="Terms_10AiGeneratedContent.Text" xml:space="preserve"><value>10. Haftungsausschluss für KI-generierte Inhalte</value></data>
+  <data name="Terms_AgentXUsesLocally.Text" xml:space="preserve"><value>Agent-X verwendet lokal laufende KI-Modelle, um Antworten zu generieren und Analysen durchzuführen. Bitte beachten Sie Folgendes:</value></data>
+  <data name="Terms_AiOutputMayContain.Text" xml:space="preserve"><value>KI-Ausgaben können Ungenauigkeiten, Fehler oder modellbedingte Verzerrungen enthalten</value></data>
+  <data name="Terms_YouShouldIndependentlyVerify.Text" xml:space="preserve"><value>Wichtige, von KI generierte Informationen sollten Sie unabhängig überprüfen, bevor Sie sich darauf verlassen</value></data>
+  <data name="Terms_StrategiaXIsNot.Text" xml:space="preserve"><value>Strategia-X ist nicht verantwortlich für Entscheidungen, die auf KI-generierten Inhalten basieren</value></data>
+  <data name="Terms_AiResponsesDoNot.Text" xml:space="preserve"><value>KI-Antworten stellen keine professionelle Beratung dar, einschließlich, aber nicht beschränkt auf rechtliche, medizinische, finanzielle oder technische Beratung</value></data>
+  <data name="Terms_11Indemnification.Text" xml:space="preserve"><value>11. Freistellung</value></data>
+  <data name="Terms_YouAgreeToIndemnify.Text" xml:space="preserve"><value>Sie verpflichten sich, Strategia-X sowie dessen Führungskräfte, Direktoren, Mitarbeiter, Vertreter und verbundene Unternehmen von sämtlichen Ansprüchen, Schäden, Verpflichtungen, Verlusten, Haftungen, Kosten oder Ausgaben (einschließlich angemessener Anwaltskosten) freizustellen, zu verteidigen und schadlos zu halten, die entstehen aus:</value></data>
+  <data name="Terms_YourUseOrMisuse.Text" xml:space="preserve"><value>Ihrer Nutzung oder missbräuchlichen Nutzung der Anwendung</value></data>
+  <data name="Terms_YourViolationOfThese.Text" xml:space="preserve"><value>Ihrem Verstoß gegen diese Bedingungen</value></data>
+  <data name="Terms_YourViolationOfAny.Text" xml:space="preserve"><value>Ihrer Verletzung von Rechten Dritter, einschließlich geistiger Eigentumsrechte</value></data>
+  <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>Inhalten, die Sie mit der Anwendung verarbeiten, importieren oder erzeugen</value></data>
+  <data name="Terms_12Termination.Text" xml:space="preserve"><value>12. Beendigung</value></data>
+  <data name="Terms_TheRightsGrantedTo.Text" xml:space="preserve"><value>Die Ihnen unter der MIT-Lizenz gewährten Rechte sind dauerhaft und unwiderruflich und werden von diesen Bedingungen nicht berührt. Die MIT-Lizenz regelt Ihre Nutzung des Agent-X-Quellcodes und der Software unabhängig von allen anderen Bestimmungen dieser Bedingungen.</value></data>
+  <data name="Terms_YouMayStopUsing.Text" xml:space="preserve"><value>Sie können die Nutzung von Agent-X jederzeit beenden, indem Sie die Anwendung deinstallieren und alle zugehörigen Daten von Ihrem Gerät löschen.</value></data>
+  <data name="Terms_TheDisclaimerOfWarranties.Text" xml:space="preserve"><value>Die Abschnitte „Gewährleistungsausschluss“ und „Haftungsbeschränkung“ entsprechen den standardmäßigen „AS IS“-Bedingungen der MIT-Lizenz und gelten fort, solange Sie Agent-X nutzen.</value></data>
+  <data name="Terms_13ModificationsToTerms.Text" xml:space="preserve"><value>13. Änderungen der Bedingungen</value></data>
+  <data name="Terms_WeReserveTheRight.Text" xml:space="preserve"><value>Wir behalten uns das Recht vor, diese Bedingungen jederzeit nach eigenem Ermessen zu ändern. Bei wesentlichen Änderungen benachrichtigen wir Sie über die Anwendung oder auf andere geeignete Weise.</value></data>
+  <data name="Terms_YourContinuedUseOf.Text" xml:space="preserve"><value>Ihre fortgesetzte Nutzung von Agent-X nach solchen Änderungen gilt als Annahme der überarbeiteten Bedingungen. Wenn Sie den geänderten Bedingungen nicht zustimmen, müssen Sie die Nutzung der Anwendung einstellen.</value></data>
+  <data name="Terms_14GoverningLaw.Text" xml:space="preserve"><value>14. Anwendbares Recht</value></data>
+  <data name="Terms_TheseTermsShallBe.Text" xml:space="preserve"><value>Diese Bedingungen unterliegen dem Recht des US-Bundesstaates Kalifornien und werden entsprechend ausgelegt, ohne Berücksichtigung kollisionsrechtlicher Bestimmungen.</value></data>
+  <data name="Terms_AnyDisputesArisingOut.Text" xml:space="preserve"><value>Streitigkeiten aus oder im Zusammenhang mit diesen Bedingungen oder Ihrer Nutzung von Agent-X werden ausschließlich vor den Staats- oder Bundesgerichten in Kalifornien beigelegt. Sie stimmen der persönlichen Zuständigkeit dieser Gerichte zu und verzichten auf Einwände gegen den Gerichtsstand.</value></data>
+  <data name="Terms_15Severability.Text" xml:space="preserve"><value>15. Salvatorische Klausel</value></data>
+  <data name="Terms_IfAnyProvisionOf.Text" xml:space="preserve"><value>Sollte eine Bestimmung dieser Bedingungen von einem zuständigen Gericht für ungültig, rechtswidrig oder nicht durchsetzbar erklärt werden, bleiben die übrigen Bestimmungen in vollem Umfang wirksam. Die ungültige Bestimmung wird nur so weit wie nötig geändert, um sie unter Wahrung der ursprünglichen Absicht gültig und durchsetzbar zu machen.</value></data>
+  <data name="Terms_16EntireAgreement.Text" xml:space="preserve"><value>16. Gesamte Vereinbarung</value></data>
+  <data name="Terms_TheseTermsTogetherWith.Text" xml:space="preserve"><value>Diese Bedingungen bilden zusammen mit der Datenschutzerklärung und allen hierin genannten Zusatzbedingungen die gesamte Vereinbarung zwischen Ihnen und Strategia-X bezüglich Ihrer Nutzung von Agent-X. Sie ersetzen alle früheren schriftlichen und mündlichen Vereinbarungen, Absprachen, Zusicherungen und Gewährleistungen zu diesem Gegenstand.</value></data>
+  <data name="Terms_17ContactInformation.Text" xml:space="preserve"><value>17. Kontaktinformationen</value></data>
+  <data name="Terms_IfYouHaveAny.Text" xml:space="preserve"><value>Bei Fragen, Anliegen oder Anfragen zu diesen Nutzungsbedingungen kontaktieren Sie uns bitte:</value></data>
+  <data name="Terms_Email.Text" xml:space="preserve"><value>E-Mail</value></data>
+  <data name="Terms_Company.Text" xml:space="preserve"><value>Unternehmen</value></data>
+  <data name="Terms_AgentXByStrategia.Text" xml:space="preserve"><value>Agent-X von Strategia-X</value></data>
+  <data name="Terms_TheseTermsOfService.Text" xml:space="preserve"><value>Diese Nutzungsbedingungen wurden zuletzt am 26. Februar 2026 aktualisiert.</value></data>
 </root>

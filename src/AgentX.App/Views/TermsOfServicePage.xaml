@@ -76,13 +76,13 @@
                     <FontIcon Glyph="&#xE7BA;"
                               FontSize="14"
                               Foreground="{ThemeResource TextAccentBrush}" />
-                    <TextBlock Text="LEGAL"
+                    <TextBlock x:Uid="Terms_Legal" Text="LEGAL"
                                Style="{StaticResource OverlineStyle}"
                                Foreground="{ThemeResource TextAccentBrush}" />
                 </StackPanel>
 
                 <!-- Title -->
-                <TextBlock Text="Terms of Service"
+                <TextBlock x:Uid="Terms_TermsOfService" Text="Terms of Service"
                            Style="{StaticResource DisplaySmallStyle}"
                            AutomationProperties.HeadingLevel="Level1" />
 
@@ -91,14 +91,14 @@
                     <FontIcon Glyph="&#xE787;"
                               FontSize="12"
                               Foreground="{ThemeResource TextTertiaryBrush}" />
-                    <TextBlock Text="Effective Date: February 26, 2026"
+                    <TextBlock x:Uid="Terms_EffectiveDateFebruary26" Text="Effective Date: February 26, 2026"
                                Style="{StaticResource CaptionStyle}" />
                 </StackPanel>
 
                 <!-- Intro paragraph -->
                 <TextBlock Style="{StaticResource BodySecondaryStyle}"
                            Margin="0,4,0,0"
-                           Text="Please read these Terms of Service ('Terms') carefully before using Agent-X, a desktop application developed by Strategia-X ('Company', 'we', 'us', 'our'). By installing or using Agent-X, you agree to be bound by these Terms." />
+                           x:Uid="Terms_PleaseReadTheseTerms" Text="Please read these Terms of Service ('Terms') carefully before using Agent-X, a desktop application developed by Strategia-X ('Company', 'we', 'us', 'our'). By installing or using Agent-X, you agree to be bound by these Terms." />
             </StackPanel>
 
 
@@ -111,12 +111,12 @@
                         <FontIcon Glyph="&#xE8FB;"
                                   FontSize="18"
                                   Foreground="{ThemeResource TextAccentBrush}" />
-                        <TextBlock Text="1. Acceptance of Terms"
+                        <TextBlock x:Uid="Terms_1AcceptanceOfTerms" Text="1. Acceptance of Terms"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="By downloading, installing, or using Agent-X, you acknowledge that you have read, understood, and agree to be bound by these Terms. If you do not agree to these Terms, you must not use Agent-X. Your continued use of the application constitutes your ongoing acceptance of any updated Terms." />
+                               x:Uid="Terms_ByDownloadingInstallingOr" Text="By downloading, installing, or using Agent-X, you acknowledge that you have read, understood, and agree to be bound by these Terms. If you do not agree to these Terms, you must not use Agent-X. Your continued use of the application constitutes your ongoing acceptance of any updated Terms." />
                 </StackPanel>
             </Border>
 
@@ -130,12 +130,12 @@
                         <FontIcon Glyph="&#xE946;"
                                   FontSize="18"
                                   Foreground="{ThemeResource TextAccentBrush}" />
-                        <TextBlock Text="2. Description of Service"
+                        <TextBlock x:Uid="Terms_2DescriptionOfService" Text="2. Description of Service"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="Agent-X is a local-first AI personal intelligence hub for Windows. It provides the following capabilities:" />
+                               x:Uid="Terms_AgentXIsA" Text="Agent-X is a local-first AI personal intelligence hub for Windows. It provides the following capabilities:" />
 
                     <!-- Feature list -->
                     <StackPanel Spacing="8" Margin="8,0,0,0">
@@ -145,7 +145,7 @@
                                       Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Local AI chat via Ollama integration" />
+                                       x:Uid="Terms_LocalAiChatVia" Text="Local AI chat via Ollama integration" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE73E;"
@@ -153,7 +153,7 @@
                                       Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Document management and indexing" />
+                                       x:Uid="Terms_DocumentManagementAndIndexing" Text="Document management and indexing" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE73E;"
@@ -161,7 +161,7 @@
                                       Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Retrieval-augmented generation (RAG)" />
+                                       x:Uid="Terms_RetrievalAugmentedGenerationRa" Text="Retrieval-augmented generation (RAG)" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE73E;"
@@ -169,7 +169,7 @@
                                       Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Semantic search across your documents" />
+                                       x:Uid="Terms_SemanticSearchAcrossYour" Text="Semantic search across your documents" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE73E;"
@@ -177,7 +177,7 @@
                                       Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Model management" />
+                                       x:Uid="Terms_ModelManagement" Text="Model management" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE73E;"
@@ -185,13 +185,13 @@
                                       Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Hardware capability analysis" />
+                                       x:Uid="Terms_HardwareCapabilityAnalysis" Text="Hardware capability analysis" />
                         </StackPanel>
                     </StackPanel>
 
                     <TextBlock Style="{StaticResource BodySecondaryStyle}"
                                Margin="0,4,0,0"
-                               Text="All processing occurs locally on your device. Agent-X does not transmit your data to external servers for AI inference." />
+                               x:Uid="Terms_AllProcessingOccursLocally" Text="All processing occurs locally on your device. Agent-X does not transmit your data to external servers for AI inference." />
                 </StackPanel>
             </Border>
 
@@ -205,7 +205,7 @@
                         <FontIcon Glyph="&#xE8D7;"
                                   FontSize="18"
                                   Foreground="{ThemeResource TextAccentBrush}" />
-                        <TextBlock Text="3. License Grant"
+                        <TextBlock x:Uid="Terms_3LicenseGrant" Text="3. License Grant"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
@@ -213,7 +213,7 @@
                                Text="Agent-X is free and open-source software released under the MIT License. You are granted a perpetual, worldwide, royalty-free right to use, copy, modify, merge, publish, distribute, sublicense, and even sell copies of the software, subject only to the terms of the MIT License. The complete source code and MIT License are available at https://github.com/Git-Rocky-Stack/Agent-X." />
 
                     <TextBlock Style="{StaticResource HeadingSmallStyle}"
-                               Text="Under the MIT License you may freely:"
+                               x:Uid="Terms_UnderTheMitLicense" Text="Under the MIT License you may freely:"
                                Margin="0,4,0,0" />
 
                     <StackPanel Spacing="8" Margin="8,0,0,0">
@@ -223,7 +223,7 @@
                                       Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Use Agent-X for any purpose — personal, commercial, or otherwise" />
+                                       x:Uid="Terms_UseAgentXFor" Text="Use Agent-X for any purpose — personal, commercial, or otherwise" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE73E;"
@@ -231,7 +231,7 @@
                                       Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Study, modify, and build upon the source code" />
+                                       x:Uid="Terms_StudyModifyAndBuild" Text="Study, modify, and build upon the source code" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE73E;"
@@ -239,7 +239,7 @@
                                       Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Distribute and sublicense copies, with or without modification" />
+                                       x:Uid="Terms_DistributeAndSublicenseCopies" Text="Distribute and sublicense copies, with or without modification" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE73E;"
@@ -247,13 +247,13 @@
                                       Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Include Agent-X in your own projects, free of charge" />
+                                       x:Uid="Terms_IncludeAgentXIn" Text="Include Agent-X in your own projects, free of charge" />
                         </StackPanel>
                     </StackPanel>
 
                     <TextBlock Style="{StaticResource BodySecondaryStyle}"
                                Margin="0,4,0,0"
-                               Text="The only condition is that the MIT copyright notice and permission notice be included in all copies or substantial portions of the software." />
+                               x:Uid="Terms_TheOnlyConditionIs" Text="The only condition is that the MIT copyright notice and permission notice be included in all copies or substantial portions of the software." />
                 </StackPanel>
             </Border>
 
@@ -267,12 +267,12 @@
                         <FontIcon Glyph="&#xE77B;"
                                   FontSize="18"
                                   Foreground="{ThemeResource TextAccentBrush}" />
-                        <TextBlock Text="4. User Responsibilities"
+                        <TextBlock x:Uid="Terms_4UserResponsibilities" Text="4. User Responsibilities"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="You are responsible for:" />
+                               x:Uid="Terms_YouAreResponsibleFor" Text="You are responsible for:" />
 
                     <StackPanel Spacing="8" Margin="8,0,0,0">
                         <StackPanel Orientation="Horizontal" Spacing="10">
@@ -281,7 +281,7 @@
                                       Foreground="{ThemeResource TextSecondaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Ensuring your system meets the minimum hardware and software requirements for Agent-X" />
+                                       x:Uid="Terms_EnsuringYourSystemMeets" Text="Ensuring your system meets the minimum hardware and software requirements for Agent-X" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xEA3C;"
@@ -289,7 +289,7 @@
                                       Foreground="{ThemeResource TextSecondaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Installing and maintaining Ollama separately, as it is not bundled with Agent-X" />
+                                       x:Uid="Terms_InstallingAndMaintainingOllama" Text="Installing and maintaining Ollama separately, as it is not bundled with Agent-X" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xEA3C;"
@@ -297,7 +297,7 @@
                                       Foreground="{ThemeResource TextSecondaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="The content of any documents you import into or process through Agent-X" />
+                                       x:Uid="Terms_TheContentOfAny" Text="The content of any documents you import into or process through Agent-X" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xEA3C;"
@@ -305,7 +305,7 @@
                                       Foreground="{ThemeResource TextSecondaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Compliance with all applicable laws and regulations regarding your use of the application" />
+                                       x:Uid="Terms_ComplianceWithAllApplicable" Text="Compliance with all applicable laws and regulations regarding your use of the application" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xEA3C;"
@@ -313,7 +313,7 @@
                                       Foreground="{ThemeResource TextSecondaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Maintaining the security of your device and any credentials stored locally" />
+                                       x:Uid="Terms_MaintainingTheSecurityOf" Text="Maintaining the security of your device and any credentials stored locally" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xEA3C;"
@@ -321,7 +321,7 @@
                                       Foreground="{ThemeResource TextSecondaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Backing up your data regularly, as Strategia-X is not responsible for data loss" />
+                                       x:Uid="Terms_BackingUpYourData" Text="Backing up your data regularly, as Strategia-X is not responsible for data loss" />
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
@@ -337,14 +337,14 @@
                         <FontIcon Glyph="&#xE82D;"
                                   FontSize="18"
                                   Foreground="{ThemeResource TextAccentBrush}" />
-                        <TextBlock Text="5. Intellectual Property"
+                        <TextBlock x:Uid="Terms_5IntellectualProperty" Text="5. Intellectual Property"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="Agent-X is open-source software. The source code, documentation, and other materials are made available under the MIT License, and copyright is retained by the original authors and contributors as noted in that license. You are free to use and build upon these materials in accordance with the MIT License terms." />
+                               x:Uid="Terms_AgentXIsOpen" Text="Agent-X is open-source software. The source code, documentation, and other materials are made available under the MIT License, and copyright is retained by the original authors and contributors as noted in that license. You are free to use and build upon these materials in accordance with the MIT License terms." />
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="Your documents and data remain your property at all times. We claim no ownership of content you process through Agent-X. You retain all rights to your intellectual property." />
+                               x:Uid="Terms_YourDocumentsAndData" Text="Your documents and data remain your property at all times. We claim no ownership of content you process through Agent-X. You retain all rights to your intellectual property." />
                 </StackPanel>
             </Border>
 
@@ -358,14 +358,14 @@
                         <FontIcon Glyph="&#xE71B;"
                                   FontSize="18"
                                   Foreground="{ThemeResource TextAccentBrush}" />
-                        <TextBlock Text="6. Third-Party Software"
+                        <TextBlock x:Uid="Terms_6ThirdPartySoftware" Text="6. Third-Party Software"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="Agent-X integrates with Ollama, an open-source project developed by Ollama, Inc. Ollama is subject to its own license terms and conditions, which are separate from these Terms. You are responsible for reviewing and complying with Ollama's terms of service." />
+                               x:Uid="Terms_AgentXIntegratesWith" Text="Agent-X integrates with Ollama, an open-source project developed by Ollama, Inc. Ollama is subject to its own license terms and conditions, which are separate from these Terms. You are responsible for reviewing and complying with Ollama's terms of service." />
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="Agent-X also uses various open-source libraries, each governed by their respective licenses. These licenses are included in the application distribution. Your use of Agent-X constitutes acceptance of these third-party license terms." />
+                               x:Uid="Terms_AgentXAlsoUses" Text="Agent-X also uses various open-source libraries, each governed by their respective licenses. These licenses are included in the application distribution. Your use of Agent-X constitutes acceptance of these third-party license terms." />
                 </StackPanel>
             </Border>
 
@@ -379,14 +379,14 @@
                         <FontIcon Glyph="&#xE72E;"
                                   FontSize="18"
                                   Foreground="{ThemeResource TextAccentBrush}" />
-                        <TextBlock Text="7. Privacy"
+                        <TextBlock x:Uid="Terms_7Privacy" Text="7. Privacy"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="Your use of Agent-X is also governed by our Privacy Policy, which is accessible within the application. The Privacy Policy describes how we handle data, what information (if any) is collected, and your rights regarding your personal data." />
+                               x:Uid="Terms_YourUseOfAgent" Text="Your use of Agent-X is also governed by our Privacy Policy, which is accessible within the application. The Privacy Policy describes how we handle data, what information (if any) is collected, and your rights regarding your personal data." />
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="By using Agent-X, you acknowledge and agree to our data practices as described in the Privacy Policy. The Privacy Policy is incorporated into these Terms by reference." />
+                               x:Uid="Terms_ByUsingAgentX" Text="By using Agent-X, you acknowledge and agree to our data practices as described in the Privacy Policy. The Privacy Policy is incorporated into these Terms by reference." />
                 </StackPanel>
             </Border>
 
@@ -406,7 +406,7 @@
                         <FontIcon Glyph="&#xE7BA;"
                                   FontSize="18"
                                   Foreground="{ThemeResource WarningBrush}" />
-                        <TextBlock Text="8. Disclaimer of Warranties"
+                        <TextBlock x:Uid="Terms_8DisclaimerOfWarranties" Text="8. Disclaimer of Warranties"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
@@ -420,11 +420,11 @@
                         <TextBlock Style="{StaticResource BodyStyle}"
                                    FontWeight="SemiBold"
                                    Foreground="{ThemeResource TextSecondaryBrush}"
-                                   Text="AGENT-X IS PROVIDED &quot;AS IS&quot; AND &quot;AS AVAILABLE&quot; WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED. TO THE FULLEST EXTENT PERMITTED BY LAW, STRATEGIA-X DISCLAIMS ALL WARRANTIES INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT." />
+                                   x:Uid="Terms_AgentXIsProvided" Text="AGENT-X IS PROVIDED &quot;AS IS&quot; AND &quot;AS AVAILABLE&quot; WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED. TO THE FULLEST EXTENT PERMITTED BY LAW, STRATEGIA-X DISCLAIMS ALL WARRANTIES INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT." />
                     </Border>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="We do not warrant that:" />
+                               x:Uid="Terms_WeDoNotWarrant" Text="We do not warrant that:" />
 
                     <StackPanel Spacing="8" Margin="8,0,0,0">
                         <StackPanel Orientation="Horizontal" Spacing="10">
@@ -433,7 +433,7 @@
                                       Foreground="{ThemeResource WarningBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="The application will be error-free or uninterrupted" />
+                                       x:Uid="Terms_TheApplicationWillBe" Text="The application will be error-free or uninterrupted" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE711;"
@@ -441,7 +441,7 @@
                                       Foreground="{ThemeResource WarningBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="AI-generated responses will be accurate, complete, or reliable" />
+                                       x:Uid="Terms_AiGeneratedResponsesWill" Text="AI-generated responses will be accurate, complete, or reliable" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE711;"
@@ -449,7 +449,7 @@
                                       Foreground="{ThemeResource WarningBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="The application will meet your specific requirements" />
+                                       x:Uid="Terms_TheApplicationWillMeet" Text="The application will meet your specific requirements" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE711;"
@@ -457,7 +457,7 @@
                                       Foreground="{ThemeResource WarningBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Defects in the application will be corrected in a timely manner" />
+                                       x:Uid="Terms_DefectsInTheApplication" Text="Defects in the application will be corrected in a timely manner" />
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
@@ -479,7 +479,7 @@
                         <FontIcon Glyph="&#xE7BA;"
                                   FontSize="18"
                                   Foreground="{ThemeResource WarningBrush}" />
-                        <TextBlock Text="9. Limitation of Liability"
+                        <TextBlock x:Uid="Terms_9LimitationOfLiability" Text="9. Limitation of Liability"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
@@ -493,15 +493,15 @@
                         <TextBlock Style="{StaticResource BodyStyle}"
                                    FontWeight="SemiBold"
                                    Foreground="{ThemeResource TextSecondaryBrush}"
-                                   Text="TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, STRATEGIA-X SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DOCUMENTS, LOSS OF PROFITS OR REVENUE, DAMAGE TO HARDWARE OR SOFTWARE, BUSINESS INTERRUPTION, OR ANY OTHER INTANGIBLE LOSSES ARISING FROM YOUR USE OF OR INABILITY TO USE AGENT-X." />
+                                   x:Uid="Terms_ToTheMaximumExtent" Text="TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, STRATEGIA-X SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DOCUMENTS, LOSS OF PROFITS OR REVENUE, DAMAGE TO HARDWARE OR SOFTWARE, BUSINESS INTERRUPTION, OR ANY OTHER INTANGIBLE LOSSES ARISING FROM YOUR USE OF OR INABILITY TO USE AGENT-X." />
                     </Border>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="This limitation applies regardless of the legal theory on which the claim is based, whether we have been advised of the possibility of such damages, and even if a remedy fails of its essential purpose." />
+                               x:Uid="Terms_ThisLimitationAppliesRegardles" Text="This limitation applies regardless of the legal theory on which the claim is based, whether we have been advised of the possibility of such damages, and even if a remedy fails of its essential purpose." />
 
                     <TextBlock Style="{StaticResource BodyStyle}"
                                FontWeight="SemiBold"
-                               Text="Agent-X is provided to you free of charge under the MIT License. To the fullest extent permitted by law, the authors and copyright holders shall have no liability to you for any claims arising from or relating to Agent-X." />
+                               x:Uid="Terms_AgentXIsProvided2" Text="Agent-X is provided to you free of charge under the MIT License. To the fullest extent permitted by law, the authors and copyright holders shall have no liability to you for any claims arising from or relating to Agent-X." />
                 </StackPanel>
             </Border>
 
@@ -515,12 +515,12 @@
                         <FontIcon Glyph="&#xE99A;"
                                   FontSize="18"
                                   Foreground="{ThemeResource TextAccentBrush}" />
-                        <TextBlock Text="10. AI-Generated Content Disclaimer"
+                        <TextBlock x:Uid="Terms_10AiGeneratedContent" Text="10. AI-Generated Content Disclaimer"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="Agent-X uses locally-running AI models to generate responses and perform analysis. It is important that you understand the following:" />
+                               x:Uid="Terms_AgentXUsesLocally" Text="Agent-X uses locally-running AI models to generate responses and perform analysis. It is important that you understand the following:" />
 
                     <StackPanel Spacing="8" Margin="8,0,0,0">
                         <StackPanel Orientation="Horizontal" Spacing="10">
@@ -529,7 +529,7 @@
                                       Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="AI output may contain inaccuracies, errors, or biases inherent in the underlying models" />
+                                       x:Uid="Terms_AiOutputMayContain" Text="AI output may contain inaccuracies, errors, or biases inherent in the underlying models" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE946;"
@@ -537,7 +537,7 @@
                                       Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="You should independently verify any important information generated by AI before relying on it" />
+                                       x:Uid="Terms_YouShouldIndependentlyVerify" Text="You should independently verify any important information generated by AI before relying on it" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE946;"
@@ -545,7 +545,7 @@
                                       Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Strategia-X is not responsible for any decisions made based on AI-generated content" />
+                                       x:Uid="Terms_StrategiaXIsNot" Text="Strategia-X is not responsible for any decisions made based on AI-generated content" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE946;"
@@ -553,7 +553,7 @@
                                       Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="AI responses do not constitute professional advice of any kind, including but not limited to legal, medical, financial, or engineering advice" />
+                                       x:Uid="Terms_AiResponsesDoNot" Text="AI responses do not constitute professional advice of any kind, including but not limited to legal, medical, financial, or engineering advice" />
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
@@ -569,12 +569,12 @@
                         <FontIcon Glyph="&#xE83D;"
                                   FontSize="18"
                                   Foreground="{ThemeResource TextAccentBrush}" />
-                        <TextBlock Text="11. Indemnification"
+                        <TextBlock x:Uid="Terms_11Indemnification" Text="11. Indemnification"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="You agree to indemnify, defend, and hold harmless Strategia-X, its officers, directors, employees, agents, and affiliates from and against any and all claims, damages, obligations, losses, liabilities, costs, or expenses (including reasonable attorneys' fees) arising from:" />
+                               x:Uid="Terms_YouAgreeToIndemnify" Text="You agree to indemnify, defend, and hold harmless Strategia-X, its officers, directors, employees, agents, and affiliates from and against any and all claims, damages, obligations, losses, liabilities, costs, or expenses (including reasonable attorneys' fees) arising from:" />
 
                     <StackPanel Spacing="8" Margin="8,0,0,0">
                         <StackPanel Orientation="Horizontal" Spacing="10">
@@ -583,7 +583,7 @@
                                       Foreground="{ThemeResource TextSecondaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Your use or misuse of the application" />
+                                       x:Uid="Terms_YourUseOrMisuse" Text="Your use or misuse of the application" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xEA3C;"
@@ -591,7 +591,7 @@
                                       Foreground="{ThemeResource TextSecondaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Your violation of these Terms" />
+                                       x:Uid="Terms_YourViolationOfThese" Text="Your violation of these Terms" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xEA3C;"
@@ -599,7 +599,7 @@
                                       Foreground="{ThemeResource TextSecondaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Your violation of any third-party rights, including intellectual property rights" />
+                                       x:Uid="Terms_YourViolationOfAny" Text="Your violation of any third-party rights, including intellectual property rights" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xEA3C;"
@@ -607,7 +607,7 @@
                                       Foreground="{ThemeResource TextSecondaryBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Content you process, import, or generate through the application" />
+                                       x:Uid="Terms_ContentYouProcessImport" Text="Content you process, import, or generate through the application" />
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
@@ -623,16 +623,16 @@
                         <FontIcon Glyph="&#xE7E8;"
                                   FontSize="18"
                                   Foreground="{ThemeResource TextAccentBrush}" />
-                        <TextBlock Text="12. Termination"
+                        <TextBlock x:Uid="Terms_12Termination" Text="12. Termination"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="The rights granted to you under the MIT License are perpetual and irrevocable, and are not affected by these Terms. The MIT License governs your use of the Agent-X source code and software regardless of any other provision here." />
+                               x:Uid="Terms_TheRightsGrantedTo" Text="The rights granted to you under the MIT License are perpetual and irrevocable, and are not affected by these Terms. The MIT License governs your use of the Agent-X source code and software regardless of any other provision here." />
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="You may stop using Agent-X at any time by uninstalling the application and deleting all associated data from your device." />
+                               x:Uid="Terms_YouMayStopUsing" Text="You may stop using Agent-X at any time by uninstalling the application and deleting all associated data from your device." />
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="The Disclaimer of Warranties and Limitation of Liability sections reflect the standard MIT 'AS IS' terms and continue to apply for as long as you use Agent-X." />
+                               x:Uid="Terms_TheDisclaimerOfWarranties" Text="The Disclaimer of Warranties and Limitation of Liability sections reflect the standard MIT 'AS IS' terms and continue to apply for as long as you use Agent-X." />
                 </StackPanel>
             </Border>
 
@@ -646,14 +646,14 @@
                         <FontIcon Glyph="&#xE70F;"
                                   FontSize="18"
                                   Foreground="{ThemeResource TextAccentBrush}" />
-                        <TextBlock Text="13. Modifications to Terms"
+                        <TextBlock x:Uid="Terms_13ModificationsToTerms" Text="13. Modifications to Terms"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="We reserve the right to modify these Terms at any time at our sole discretion. When we make material changes, we will notify you through the application or by other appropriate means." />
+                               x:Uid="Terms_WeReserveTheRight" Text="We reserve the right to modify these Terms at any time at our sole discretion. When we make material changes, we will notify you through the application or by other appropriate means." />
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="Your continued use of Agent-X after any such modifications constitutes your acceptance of the revised Terms. If you do not agree to the modified Terms, you must discontinue use of the application." />
+                               x:Uid="Terms_YourContinuedUseOf" Text="Your continued use of Agent-X after any such modifications constitutes your acceptance of the revised Terms. If you do not agree to the modified Terms, you must discontinue use of the application." />
                 </StackPanel>
             </Border>
 
@@ -667,14 +667,14 @@
                         <FontIcon Glyph="&#xE909;"
                                   FontSize="18"
                                   Foreground="{ThemeResource TextAccentBrush}" />
-                        <TextBlock Text="14. Governing Law"
+                        <TextBlock x:Uid="Terms_14GoverningLaw" Text="14. Governing Law"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="These Terms shall be governed by and construed in accordance with the laws of the State of California, United States, without regard to its conflict of law provisions." />
+                               x:Uid="Terms_TheseTermsShallBe" Text="These Terms shall be governed by and construed in accordance with the laws of the State of California, United States, without regard to its conflict of law provisions." />
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="Any disputes arising out of or relating to these Terms or your use of Agent-X shall be resolved exclusively in the state or federal courts located in California. You consent to the personal jurisdiction of such courts and waive any objection to venue." />
+                               x:Uid="Terms_AnyDisputesArisingOut" Text="Any disputes arising out of or relating to these Terms or your use of Agent-X shall be resolved exclusively in the state or federal courts located in California. You consent to the personal jurisdiction of such courts and waive any objection to venue." />
                 </StackPanel>
             </Border>
 
@@ -688,12 +688,12 @@
                         <FontIcon Glyph="&#xE8C8;"
                                   FontSize="18"
                                   Foreground="{ThemeResource TextAccentBrush}" />
-                        <TextBlock Text="15. Severability"
+                        <TextBlock x:Uid="Terms_15Severability" Text="15. Severability"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="If any provision of these Terms is found to be invalid, illegal, or unenforceable by a court of competent jurisdiction, the remaining provisions of these Terms shall remain in full force and effect. The invalid provision shall be modified to the minimum extent necessary to make it valid and enforceable while preserving the original intent." />
+                               x:Uid="Terms_IfAnyProvisionOf" Text="If any provision of these Terms is found to be invalid, illegal, or unenforceable by a court of competent jurisdiction, the remaining provisions of these Terms shall remain in full force and effect. The invalid provision shall be modified to the minimum extent necessary to make it valid and enforceable while preserving the original intent." />
                 </StackPanel>
             </Border>
 
@@ -707,12 +707,12 @@
                         <FontIcon Glyph="&#xE8A5;"
                                   FontSize="18"
                                   Foreground="{ThemeResource TextAccentBrush}" />
-                        <TextBlock Text="16. Entire Agreement"
+                        <TextBlock x:Uid="Terms_16EntireAgreement" Text="16. Entire Agreement"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="These Terms, together with the Privacy Policy and any additional terms referenced herein, constitute the entire agreement between you and Strategia-X regarding your use of Agent-X. These Terms supersede all prior agreements, understandings, representations, and warranties, both written and oral, regarding the subject matter." />
+                               x:Uid="Terms_TheseTermsTogetherWith" Text="These Terms, together with the Privacy Policy and any additional terms referenced herein, constitute the entire agreement between you and Strategia-X regarding your use of Agent-X. These Terms supersede all prior agreements, understandings, representations, and warranties, both written and oral, regarding the subject matter." />
                 </StackPanel>
             </Border>
 
@@ -726,12 +726,12 @@
                         <FontIcon Glyph="&#xE715;"
                                   FontSize="18"
                                   Foreground="{ThemeResource TextAccentBrush}" />
-                        <TextBlock Text="17. Contact Information"
+                        <TextBlock x:Uid="Terms_17ContactInformation" Text="17. Contact Information"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="If you have any questions, concerns, or requests regarding these Terms of Service, please contact us:" />
+                               x:Uid="Terms_IfYouHaveAny" Text="If you have any questions, concerns, or requests regarding these Terms of Service, please contact us:" />
 
                     <!-- Contact details card -->
                     <Border Background="{ThemeResource InputBackgroundBrush}"
@@ -746,7 +746,7 @@
                                           Foreground="{ThemeResource TextAccentBrush}"
                                           VerticalAlignment="Center" />
                                 <StackPanel Spacing="2">
-                                    <TextBlock Text="Email"
+                                    <TextBlock x:Uid="Terms_Email" Text="Email"
                                                Style="{StaticResource LabelStyle}" />
                                     <TextBlock Text="support@strategia-x.com"
                                                Style="{StaticResource AccentBodyStyle}" />
@@ -761,7 +761,7 @@
                                           Foreground="{ThemeResource TextAccentBrush}"
                                           VerticalAlignment="Center" />
                                 <StackPanel Spacing="2">
-                                    <TextBlock Text="Company"
+                                    <TextBlock x:Uid="Terms_Company" Text="Company"
                                                Style="{StaticResource LabelStyle}" />
                                     <TextBlock Text="Strategia-X"
                                                Style="{StaticResource BodyStyle}" />
@@ -782,11 +782,11 @@
                         Margin="0,8,0,16">
                 <TextBlock Style="{StaticResource CaptionStyle}"
                            HorizontalAlignment="Center"
-                           Text="Agent-X by Strategia-X" />
+                           x:Uid="Terms_AgentXByStrategia" Text="Agent-X by Strategia-X" />
                 <TextBlock Style="{StaticResource CaptionStyle}"
                            HorizontalAlignment="Center"
                            Foreground="{ThemeResource TextTertiaryBrush}"
-                           Text="These Terms of Service were last updated on February 26, 2026." />
+                           x:Uid="Terms_TheseTermsOfService" Text="These Terms of Service were last updated on February 26, 2026." />
             </StackPanel>
 
         </Grid>

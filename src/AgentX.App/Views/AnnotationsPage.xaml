@@ -59,27 +59,27 @@
             <StackPanel Padding="20" Spacing="20">
                 <!-- Header -->
                 <StackPanel Spacing="4">
-                    <TextBlock Text="Annotations"
+                    <TextBlock x:Uid="Annot_Annotations" Text="Annotations"
                                Style="{StaticResource HeadingSmallStyle}"
                                FontWeight="Bold" />
                     <TextBlock Style="{StaticResource CaptionStyle}">
                         <Run Text="{x:Bind ViewModel.TotalCount, Mode=OneWay}" />
-                        <Run Text="highlights" />
+                        <Run x:Uid="Annot_Highlights" Text="highlights" />
                     </TextBlock>
                 </StackPanel>
 
                 <!-- Search -->
                 <TextBox Text="{x:Bind ViewModel.SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         PlaceholderText="Search annotations..."
+                         x:Uid="Annot_SearchAnnotationsPh" PlaceholderText="Search annotations..."
                          Style="{StaticResource InputTextBoxStyle}" />
-                <Button Content="Search"
+                <Button x:Uid="Annot_Search" Content="Search"
                         Command="{x:Bind ViewModel.SearchCommand}"
                         Style="{StaticResource SecondaryButtonStyle}"
                         HorizontalAlignment="Stretch" />
 
                 <!-- Color Filter -->
                 <StackPanel Spacing="8">
-                    <TextBlock Text="FILTER BY COLOR"
+                    <TextBlock x:Uid="Annot_FilterByColor" Text="FILTER BY COLOR"
                                Style="{StaticResource OverlineStyle}" />
                     <ItemsRepeater ItemsSource="{x:Bind ViewModel.ColorOptions}">
                         <ItemsRepeater.Layout>
@@ -100,7 +100,7 @@
                 <!-- Color Stats -->
                 <StackPanel Spacing="8"
                             Visibility="{x:Bind ViewModel.HasAnnotations, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                    <TextBlock Text="DISTRIBUTION"
+                    <TextBlock x:Uid="Annot_Distribution" Text="DISTRIBUTION"
                                Style="{StaticResource OverlineStyle}" />
                     <ItemsRepeater ItemsSource="{x:Bind ViewModel.ColorStats}">
                         <ItemsRepeater.Layout>
@@ -133,7 +133,7 @@
                 </StackPanel>
 
                 <!-- Export -->
-                <Button Content="Export as Markdown"
+                <Button x:Uid="Annot_ExportAsMarkdown" Content="Export as Markdown"
                         Command="{x:Bind ViewModel.ExportAnnotationsCommand}"
                         Style="{StaticResource SecondaryButtonStyle}"
                         HorizontalAlignment="Stretch" />
@@ -155,9 +155,9 @@
 
                     <!-- Page Header -->
                     <StackPanel Grid.Row="0" Spacing="4">
-                        <TextBlock Text="All Annotations"
+                        <TextBlock x:Uid="Annot_AllAnnotations" Text="All Annotations"
                                    Style="{StaticResource DisplaySmallStyle}" />
-                        <TextBlock Text="Your highlights and notes across all documents."
+                        <TextBlock x:Uid="Annot_YourHighlightsAndNotes" Text="Your highlights and notes across all documents."
                                    Style="{StaticResource BodySecondaryStyle}" />
                     </StackPanel>
 
@@ -205,7 +205,7 @@
                                                     Foreground="{ThemeResource ErrorBrush}"
                                                     Style="{StaticResource GhostButtonStyle}"
                                                     Padding="6" MinWidth="0" MinHeight="0"
-                                                    ToolTipService.ToolTip="Delete annotation"
+                                                    x:Uid="Annot_DeleteAnnotationTip" ToolTipService.ToolTip="Delete annotation"
                                                     AutomationProperties.Name="Delete annotation" />
                                         </Grid>
 
@@ -244,10 +244,10 @@
                                   FontSize="48"
                                   Foreground="{ThemeResource TextTertiaryBrush}"
                                   HorizontalAlignment="Center" />
-                        <TextBlock Text="No annotations yet"
+                        <TextBlock x:Uid="Annot_NoAnnotationsYet" Text="No annotations yet"
                                    Style="{StaticResource BodySecondaryStyle}"
                                    HorizontalAlignment="Center" />
-                        <TextBlock Text="Highlight text in your documents to create annotations."
+                        <TextBlock x:Uid="Annot_HighlightTextInYour" Text="Highlight text in your documents to create annotations."
                                    Style="{StaticResource CaptionStyle}"
                                    HorizontalAlignment="Center" />
                     </StackPanel>

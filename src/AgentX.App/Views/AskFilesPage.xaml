@@ -93,9 +93,9 @@
 
                     <!-- Title -->
                     <StackPanel Spacing="2" VerticalAlignment="Center">
-                        <TextBlock Text="Ask Your Files"
+                        <TextBlock x:Uid="AskFiles_Title" Text="Ask Your Files"
                                    Style="{StaticResource HeadingSmallStyle}" />
-                        <TextBlock Text="AI-powered answers grounded in your documents."
+                        <TextBlock x:Uid="AskFiles_Subtitle" Text="AI-powered answers grounded in your documents."
                                    Style="{StaticResource CaptionStyle}" />
                     </StackPanel>
 
@@ -104,7 +104,7 @@
                               x:Name="CollectionScopeCombo"
                               ItemsSource="{x:Bind ViewModel.AvailableCollections, Mode=OneWay}"
                               DisplayMemberPath="Name"
-                              PlaceholderText="All Collections"
+                              x:Uid="AskFiles_AllCollectionsBox" PlaceholderText="All Collections"
                               MinWidth="180"
                               Background="{ThemeResource InputBackgroundBrush}"
                               BorderBrush="{ThemeResource BorderSubtleBrush}"
@@ -131,14 +131,14 @@
                             Style="{StaticResource GhostButtonStyle}"
                             Padding="8,4,8,4" MinHeight="32"
                             Command="{x:Bind ViewModel.ClearConversationCommand}"
-                            ToolTipService.ToolTip="Clear conversation"
+                            x:Uid="AskFiles_ClearConvBtn" ToolTipService.ToolTip="Clear conversation"
                             AutomationProperties.Name="Clear conversation"
                             VerticalAlignment="Center"
                             Margin="4,0,0,0">
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <FontIcon Glyph="&#xE711;" FontSize="12"
                                       Foreground="{ThemeResource TextSecondaryBrush}" />
-                            <TextBlock Text="Clear"
+                            <TextBlock x:Uid="AskFiles_ClearLabel" Text="Clear"
                                        Style="{StaticResource CaptionStyle}"
                                        Foreground="{ThemeResource TextSecondaryBrush}" />
                         </StackPanel>
@@ -172,7 +172,7 @@
                         </Border>
 
                         <StackPanel Spacing="8" HorizontalAlignment="Center">
-                            <TextBlock Text="Ask Questions About Your Documents"
+                            <TextBlock x:Uid="AskFiles_EmptyTitle" Text="Ask Questions About Your Documents"
                                        Style="{StaticResource HeadingMediumStyle}"
                                        HorizontalAlignment="Center" />
                             <TextBlock Style="{StaticResource BodySecondaryStyle}"
@@ -180,14 +180,14 @@
                                        TextAlignment="Center"
                                        MaxWidth="440"
                                        HorizontalAlignment="Center">
-                                <Run Text="Your AI will search through " /><Run Text="{x:Bind ViewModel.IndexedChunkCount, Mode=OneWay}" FontWeight="SemiBold" /><Run Text=" knowledge chunks to find answers, citing its sources." />
+                                <Run x:Uid="AskFiles_SearchPrefixRun" Text="Your AI will search through " /><Run Text="{x:Bind ViewModel.IndexedChunkCount, Mode=OneWay}" FontWeight="SemiBold" /><Run x:Uid="AskFiles_SearchSuffixRun" Text=" knowledge chunks to find answers, citing its sources." />
                             </TextBlock>
                         </StackPanel>
 
                         <!-- Feature badge -->
                         <Border Style="{StaticResource BadgeAccentStyle}"
                                 HorizontalAlignment="Center">
-                            <TextBlock Text="RAG-Powered Answers with Citations"
+                            <TextBlock x:Uid="AskFiles_RagBadge" Text="RAG-Powered Answers with Citations"
                                        Style="{StaticResource CaptionStyle}"
                                        Foreground="{ThemeResource TextAccentBrush}"
                                        FontWeight="SemiBold" />
@@ -195,7 +195,7 @@
 
                         <!-- Example question cards -->
                         <StackPanel Spacing="8" MaxWidth="440">
-                            <TextBlock Text="TRY ASKING"
+                            <TextBlock x:Uid="AskFiles_TryAskingOverline" Text="TRY ASKING"
                                        Style="{StaticResource OverlineStyle}"
                                        HorizontalAlignment="Center" />
 
@@ -207,7 +207,7 @@
                                     <FontIcon Glyph="&#xE8BD;" FontSize="12"
                                               Foreground="{ThemeResource TextTertiaryBrush}"
                                               VerticalAlignment="Center" />
-                                    <TextBlock Text="What are the key findings in my research?"
+                                    <TextBlock x:Uid="AskFiles_Example1" Text="What are the key findings in my research?"
                                                Style="{StaticResource BodySmallStyle}"
                                                Foreground="{ThemeResource TextSecondaryBrush}" />
                                 </StackPanel>
@@ -221,7 +221,7 @@
                                     <FontIcon Glyph="&#xE8BD;" FontSize="12"
                                               Foreground="{ThemeResource TextTertiaryBrush}"
                                               VerticalAlignment="Center" />
-                                    <TextBlock Text="Summarize the main points from my meeting notes"
+                                    <TextBlock x:Uid="AskFiles_Example2" Text="Summarize the main points from my meeting notes"
                                                Style="{StaticResource BodySmallStyle}"
                                                Foreground="{ThemeResource TextSecondaryBrush}" />
                                 </StackPanel>
@@ -235,7 +235,7 @@
                                     <FontIcon Glyph="&#xE8BD;" FontSize="12"
                                               Foreground="{ThemeResource TextTertiaryBrush}"
                                               VerticalAlignment="Center" />
-                                    <TextBlock Text="Compare the approaches discussed in my papers"
+                                    <TextBlock x:Uid="AskFiles_Example3" Text="Compare the approaches discussed in my papers"
                                                Style="{StaticResource BodySmallStyle}"
                                                Foreground="{ThemeResource TextSecondaryBrush}" />
                                 </StackPanel>
@@ -250,7 +250,7 @@
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <FontIcon Glyph="&#xE765;" FontSize="10"
                                               Foreground="{ThemeResource TextTertiaryBrush}" />
-                                    <TextBlock Text="Enter to send"
+                                    <TextBlock x:Uid="AskFiles_EnterToSend" Text="Enter to send"
                                                Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
                             </Border>
@@ -375,7 +375,7 @@
                     <!-- Question TextBox -->
                     <TextBox x:Name="QuestionInputBox"
                              Style="{StaticResource ChatInputStyle}"
-                             PlaceholderText="Ask a question about your documents..."
+                             x:Uid="AskFiles_QuestionBox" PlaceholderText="Ask a question about your documents..."
                              Text="{x:Bind ViewModel.QuestionText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              KeyDown="QuestionInputBox_KeyDown"
                              AcceptsReturn="False"
@@ -395,7 +395,7 @@
                                 MinWidth="44"
                                 Command="{x:Bind ViewModel.AskCommand}"
                                 Visibility="{x:Bind ViewModel.IsGenerating, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}"
-                                ToolTipService.ToolTip="Send question (Enter)"
+                                x:Uid="AskFiles_SendBtn" ToolTipService.ToolTip="Send question (Enter)"
                                 AutomationProperties.Name="Send question">
                             <FontIcon Glyph="&#xE724;" FontSize="16" />
                         </Button>
@@ -432,7 +432,7 @@
                     <FontIcon Glyph="&#xE82D;" FontSize="14"
                               Foreground="{ThemeResource TextAccentBrush}"
                               VerticalAlignment="Center" />
-                    <TextBlock Text="Sources"
+                    <TextBlock x:Uid="AskFiles_SourcesTitle" Text="Sources"
                                Style="{StaticResource HeadingSmallStyle}"
                                VerticalAlignment="Center" />
 
@@ -468,10 +468,10 @@
                                   Foreground="{ThemeResource TextTertiaryBrush}"
                                   HorizontalAlignment="Center"
                                   Opacity="0.4" />
-                        <TextBlock Text="No citations yet"
+                        <TextBlock x:Uid="AskFiles_NoCitationsTitle" Text="No citations yet"
                                    Style="{StaticResource BodySecondaryStyle}"
                                    HorizontalAlignment="Center" />
-                        <TextBlock Text="Ask a question and sources will appear here."
+                        <TextBlock x:Uid="AskFiles_NoCitationsHint" Text="Ask a question and sources will appear here."
                                    Style="{StaticResource CaptionStyle}"
                                    TextAlignment="Center"
                                    TextWrapping="Wrap"
@@ -533,7 +533,7 @@
                                                     Padding="6,4,6,4" MinHeight="24"
                                                     Tag="{x:Bind FilePath}"
                                                     Click="OnOpenCitationClick"
-                                                    ToolTipService.ToolTip="Open source document"
+                                                    x:Uid="AskFiles_OpenSourceBtn" ToolTipService.ToolTip="Open source document"
                                                     AutomationProperties.Name="Open source document">
                                                 <FontIcon Glyph="&#xE8DA;" FontSize="10"
                                                           Foreground="{ThemeResource TextSecondaryBrush}" />
@@ -547,7 +547,7 @@
                                                 <FontIcon Glyph="&#xE8A1;" FontSize="9"
                                                           Foreground="{ThemeResource TextTertiaryBrush}" />
                                                 <TextBlock Style="{StaticResource CaptionStyle}">
-                                                    <Run Text="Page" />
+                                                    <Run x:Uid="AskFiles_PageLabel" Text="Page" />
                                                     <Run Text="{x:Bind PageNumber}" />
                                                 </TextBlock>
                                             </StackPanel>
@@ -587,7 +587,7 @@
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <FontIcon Glyph="&#xE946;" FontSize="11"
                               Foreground="{ThemeResource TextTertiaryBrush}" />
-                    <TextBlock Text="All answers are grounded in your documents."
+                    <TextBlock x:Uid="AskFiles_GroundedNote" Text="All answers are grounded in your documents."
                                Style="{StaticResource CaptionStyle}" />
                 </StackPanel>
             </Border>

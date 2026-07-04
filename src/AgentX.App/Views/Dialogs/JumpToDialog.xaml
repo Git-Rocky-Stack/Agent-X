@@ -16,7 +16,7 @@
 
         <TextBox
             x:Name="SearchBox"
-            PlaceholderText="Jump to page, document, or conversation..."
+            x:Uid="JumpTo_JumpToPageDocumentPh" PlaceholderText="Jump to page, document, or conversation..."
             TextChanged="SearchBox_TextChanged"
             KeyDown="SearchBox_KeyDown" />
 

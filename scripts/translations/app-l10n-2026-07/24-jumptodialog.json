@@ -1,0 +1,7 @@
+{
+  "file": "src/AgentX.App/Views/Dialogs/JumpToDialog.xaml",
+  "entries": [
+    { "uid": "JumpTo_JumpToPageDocumentPh", "attr": "PlaceholderText", "en": "Jump to page, document, or conversation...",
+      "t": { "de": "Zu Seite, Dokument oder Konversation springen...", "es": "Ir a una página, documento o conversación...", "fr": "Aller à une page, un document ou une conversation...", "ja": "ページ、ドキュメント、会話にジャンプ...", "zh-CN": "跳转到页面、文档或会话..." } }
+  ]
+}

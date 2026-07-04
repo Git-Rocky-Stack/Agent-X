@@ -1,0 +1,23 @@
+{
+  "file": "src/AgentX.App/Views/ExportDialog.xaml",
+  "entries": [
+    { "uid": "ExportDlg_ExportConversation", "attr": "Title", "en": "Export Conversation",
+      "t": { "de": "Konversation exportieren", "es": "Exportar conversación", "fr": "Exporter la conversation", "ja": "会話をエクスポート", "zh-CN": "导出会话" } },
+    { "uid": "ExportDlg_ExportConversation", "attr": "PrimaryButtonText", "en": "Export", "skipUid": true,
+      "t": { "de": "Exportieren", "es": "Exportar", "fr": "Exporter", "ja": "エクスポート", "zh-CN": "导出" } },
+    { "uid": "ExportDlg_ExportConversation", "attr": "CloseButtonText", "en": "Cancel", "skipUid": true,
+      "t": { "de": "Abbrechen", "es": "Cancelar", "fr": "Annuler", "ja": "キャンセル", "zh-CN": "取消" } },
+    { "uid": "ExportDlg_Format", "attr": "Header", "en": "Format",
+      "t": { "de": "Format", "es": "Formato", "fr": "Format", "ja": "形式", "zh-CN": "格式" } },
+    { "uid": "ExportDlg_TemplateOptional", "attr": "Header", "en": "Template (optional)",
+      "t": { "de": "Vorlage (optional)", "es": "Plantilla (opcional)", "fr": "Modèle (facultatif)", "ja": "テンプレート (省略可)", "zh-CN": "模板(可选)" } },
+    { "uid": "ExportDlg_IncludeCitations", "attr": "Header", "en": "Include citations",
+      "t": { "de": "Quellenangaben einschließen", "es": "Incluir citas", "fr": "Inclure les citations", "ja": "引用を含める", "zh-CN": "包含引用" } },
+    { "uid": "ExportDlg_IncludeMetadata", "attr": "Header", "en": "Include metadata",
+      "t": { "de": "Metadaten einschließen", "es": "Incluir metadatos", "fr": "Inclure les métadonnées", "ja": "メタデータを含める", "zh-CN": "包含元数据" } },
+    { "uid": "ExportDlg_IncludeTimestamps", "attr": "Header", "en": "Include timestamps",
+      "t": { "de": "Zeitstempel einschließen", "es": "Incluir marcas de tiempo", "fr": "Inclure les horodatages", "ja": "タイムスタンプを含める", "zh-CN": "包含时间戳" } },
+    { "uid": "ExportDlg_IncludeBranches", "attr": "Header", "en": "Include branches",
+      "t": { "de": "Verzweigungen einschließen", "es": "Incluir ramas", "fr": "Inclure les branches", "ja": "ブランチを含める", "zh-CN": "包含分支" } }
+  ]
+}

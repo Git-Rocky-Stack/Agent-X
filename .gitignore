@@ -89,3 +89,6 @@ browser-extension/dist/
 
 ## gstack QA tooling (run artifacts: reports, screenshots, evidence, coverage)
 .gstack/
+
+## LocaleAudit JSON report (generated when the tool runs from repo root)
+audit-report.json

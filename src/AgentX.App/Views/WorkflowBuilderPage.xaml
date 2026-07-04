@@ -68,10 +68,10 @@
 
                 <!-- Header -->
                 <StackPanel Grid.Row="0" Padding="20,20,20,12" Spacing="4">
-                    <TextBlock Text="Workflows"
+                    <TextBlock x:Uid="WfBuilder_Workflows" Text="Workflows"
                                Style="{StaticResource HeadingSmallStyle}"
                                FontWeight="Bold" />
-                    <TextBlock Text="Multi-step AI pipelines"
+                    <TextBlock x:Uid="WfBuilder_MultiStepAiPipelines" Text="Multi-step AI pipelines"
                                Style="{StaticResource CaptionStyle}" />
                 </StackPanel>
 
@@ -85,13 +85,13 @@
                     </Grid.ColumnDefinitions>
 
                     <Button Grid.Column="0"
-                            Content="New Workflow"
+                            x:Uid="WfBuilder_NewWorkflow" Content="New Workflow"
                             Command="{x:Bind ViewModel.CreateWorkflowCommand}"
                             Style="{StaticResource AccentButtonStyle}"
                             HorizontalAlignment="Stretch" />
 
                     <Button Grid.Column="1"
-                            Content="Import Workflow"
+                            x:Uid="WfBuilder_ImportWorkflow" Content="Import Workflow"
                             Click="ImportWorkflow_Click"
                             Style="{StaticResource SecondaryButtonStyle}" />
                 </Grid>
@@ -139,20 +139,20 @@
                                                    Style="{StaticResource CaptionStyle}" />
                                         <TextBlock Style="{StaticResource CaptionStyle}">
                                             <Run Text="{x:Bind StepCount}" />
-                                            <Run Text=" steps" />
+                                            <Run x:Uid="WfBuilder_Steps" Text=" steps" />
                                         </TextBlock>
                                         <Border CornerRadius="{StaticResource RadiusSM}"
                                                 Background="{ThemeResource AccentSubtleBrush}"
                                                 Padding="8,2"
                                                 Visibility="{x:Bind IsBuiltIn, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                                            <TextBlock Text="Template"
+                                            <TextBlock x:Uid="WfBuilder_Template" Text="Template"
                                                        Style="{StaticResource CaptionStyle}"
                                                        Foreground="{ThemeResource AccentPrimaryBrush}" />
                                         </Border>
                                         <TextBlock Style="{StaticResource CaptionStyle}"
                                                    Visibility="{x:Bind views:WorkflowBuilderPage.IntToVisibility(RunCount)}">
                                             <Run Text="{x:Bind RunCount}" />
-                                            <Run Text=" runs" />
+                                            <Run x:Uid="WfBuilder_Runs" Text=" runs" />
                                         </TextBlock>
                                     </StackPanel>
                                 </StackPanel>
@@ -161,7 +161,7 @@
                                 <StackPanel Grid.Column="2"
                                             VerticalAlignment="Center"
                                             Spacing="6">
-                                    <Button Content="Use Template"
+                                    <Button x:Uid="WfBuilder_UseTemplate" Content="Use Template"
                                             Command="{Binding ViewModel.UseTemplateCommand, ElementName=WorkflowPage}"
                                             CommandParameter="{Binding Id}"
                                             Style="{StaticResource SecondaryButtonStyle}"
@@ -169,11 +169,11 @@
                                     <StackPanel Orientation="Horizontal"
                                                 Spacing="6"
                                                 Visibility="{x:Bind IsBuiltIn, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
-                                        <Button Content="Edit"
+                                        <Button x:Uid="WfBuilder_Edit" Content="Edit"
                                                 Command="{Binding ViewModel.EditWorkflowCommand, ElementName=WorkflowPage}"
                                                 CommandParameter="{Binding Id}"
                                                 Style="{StaticResource GhostButtonStyle}" />
-                                        <Button Content="Delete"
+                                        <Button x:Uid="WfBuilder_Delete" Content="Delete"
                                                 Command="{Binding ViewModel.DeleteWorkflowCommand, ElementName=WorkflowPage}"
                                                 CommandParameter="{Binding Id}"
                                                 Style="{StaticResource GhostButtonStyle}"
@@ -208,7 +208,7 @@
                     <StackPanel Grid.Row="0" Spacing="4">
                         <TextBlock Text="{x:Bind ViewModel.PageTitle, Mode=OneWay}"
                                    Style="{StaticResource DisplaySmallStyle}" />
-                        <TextBlock Text="Build multi-step AI pipelines. Each step's output feeds the next."
+                        <TextBlock x:Uid="WfBuilder_BuildMultiStepAi" Text="Build multi-step AI pipelines. Each step's output feeds the next."
                                    Style="{StaticResource BodySecondaryStyle}" />
                     </StackPanel>
 
@@ -218,28 +218,28 @@
                             Padding="24"
                             Visibility="{x:Bind ViewModel.IsEditing, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <StackPanel Spacing="20">
-                            <TextBlock Text="Workflow Editor"
+                            <TextBlock x:Uid="WfBuilder_WorkflowEditor" Text="Workflow Editor"
                                        Style="{StaticResource HeadingSmallStyle}" />
 
                             <!-- Name -->
                             <StackPanel Spacing="6">
-                                <TextBlock Text="Name" Style="{StaticResource LabelStyle}" />
+                                <TextBlock x:Uid="WfBuilder_Name" Text="Name" Style="{StaticResource LabelStyle}" />
                                 <TextBox Text="{x:Bind ViewModel.EditName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                         PlaceholderText="My Workflow"
+                                         x:Uid="WfBuilder_MyWorkflowPh" PlaceholderText="My Workflow"
                                          Style="{StaticResource InputTextBoxStyle}" />
                             </StackPanel>
 
                             <!-- Description -->
                             <StackPanel Spacing="6">
-                                <TextBlock Text="Description" Style="{StaticResource LabelStyle}" />
+                                <TextBlock x:Uid="WfBuilder_Description" Text="Description" Style="{StaticResource LabelStyle}" />
                                 <TextBox Text="{x:Bind ViewModel.EditDescription, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                         PlaceholderText="What does this workflow do?"
+                                         x:Uid="WfBuilder_WhatDoesThisWorkflowPh" PlaceholderText="What does this workflow do?"
                                          Style="{StaticResource InputTextBoxStyle}" />
                             </StackPanel>
 
                             <!-- Category -->
                             <StackPanel Spacing="6">
-                                <TextBlock Text="Category" Style="{StaticResource LabelStyle}" />
+                                <TextBlock x:Uid="WfBuilder_Category" Text="Category" Style="{StaticResource LabelStyle}" />
                                 <ComboBox ItemsSource="{x:Bind ViewModel.Categories}"
                                           SelectedItem="{x:Bind ViewModel.EditCategory, Mode=TwoWay}"
                                           HorizontalAlignment="Stretch" />
@@ -251,11 +251,11 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="Steps"
+                                <TextBlock x:Uid="WfBuilder_Steps2" Text="Steps"
                                            Style="{StaticResource HeadingSmallStyle}"
                                            VerticalAlignment="Center" />
                                 <Button Grid.Column="1"
-                                        Content="Add Step"
+                                        x:Uid="WfBuilder_AddStep" Content="Add Step"
                                         Command="{x:Bind ViewModel.AddStepCommand}"
                                         Style="{StaticResource SecondaryButtonStyle}" />
                             </Grid>
@@ -296,7 +296,7 @@
                                                     <!-- Step Name -->
                                                     <TextBox Grid.Column="1"
                                                              Text="{x:Bind Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                             PlaceholderText="Step name"
+                                                             x:Uid="WfBuilder_StepNamePh" PlaceholderText="Step name"
                                                              Margin="12,0,0,0"
                                                              Style="{StaticResource InputTextBoxStyle}" />
 
@@ -309,14 +309,14 @@
                                                                 FontSize="12"
                                                                 Padding="6"
                                                                 MinWidth="0" MinHeight="0"
-                                                                ToolTipService.ToolTip="Move Up"
+                                                                x:Uid="WfBuilder_MoveUpTip" ToolTipService.ToolTip="Move Up"
                                                                 Style="{StaticResource GhostButtonStyle}" />
                                                         <Button Content="&#xE70D;"
                                                                 FontFamily="{ThemeResource SymbolThemeFontFamily}"
                                                                 FontSize="12"
                                                                 Padding="6"
                                                                 MinWidth="0" MinHeight="0"
-                                                                ToolTipService.ToolTip="Move Down"
+                                                                x:Uid="WfBuilder_MoveDownTip" ToolTipService.ToolTip="Move Down"
                                                                 Style="{StaticResource GhostButtonStyle}" />
                                                         <Button Content="&#xE74D;"
                                                                 FontFamily="{ThemeResource SymbolThemeFontFamily}"
@@ -324,7 +324,7 @@
                                                                 Padding="6"
                                                                 MinWidth="0" MinHeight="0"
                                                                 Foreground="{ThemeResource ErrorBrush}"
-                                                                ToolTipService.ToolTip="Remove Step"
+                                                                x:Uid="WfBuilder_RemoveStepTip" ToolTipService.ToolTip="Remove Step"
                                                                 Style="{StaticResource GhostButtonStyle}" />
                                                     </StackPanel>
                                                 </Grid>
@@ -333,11 +333,11 @@
                                                 <ComboBox ItemsSource="{Binding ViewModel.StepTypes, ElementName=WorkflowPage}"
                                                           SelectedItem="{x:Bind StepType, Mode=TwoWay}"
                                                           HorizontalAlignment="Stretch"
-                                                          Header="Step Type" />
+                                                          x:Uid="WfBuilder_StepType" Header="Step Type" />
 
                                                 <!-- Prompt Template -->
                                                 <TextBox Text="{x:Bind PromptTemplate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                         PlaceholderText="Enter prompt... Use {{input}} for original input, {{previous_output}} for last step's output"
+                                                         x:Uid="WfBuilder_EnterPromptUseInputPh" PlaceholderText="Enter prompt... Use {{input}} for original input, {{previous_output}} for last step's output"
                                                          AcceptsReturn="True"
                                                          TextWrapping="Wrap"
                                                          MinHeight="80"
@@ -352,10 +352,10 @@
 
                             <!-- Action Buttons -->
                             <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
-                                <Button Content="Cancel"
+                                <Button x:Uid="WfBuilder_Cancel" Content="Cancel"
                                         Command="{x:Bind ViewModel.CancelEditCommand}"
                                         Style="{StaticResource SecondaryButtonStyle}" />
-                                <Button Content="Save Workflow"
+                                <Button x:Uid="WfBuilder_SaveWorkflow" Content="Save Workflow"
                                         Command="{x:Bind ViewModel.SaveWorkflowCommand}"
                                         Style="{StaticResource AccentButtonStyle}" />
                             </StackPanel>
@@ -381,20 +381,20 @@
                                     </Grid.ColumnDefinitions>
 
                                     <StackPanel Spacing="6">
-                                        <TextBlock Text="Focused Workflow Run"
+                                        <TextBlock x:Uid="WfBuilder_FocusedWorkflowRun" Text="Focused Workflow Run"
                                                    Style="{StaticResource BodyStyle}"
                                                    FontWeight="SemiBold"
                                                    Foreground="{ThemeResource AccentPrimaryBrush}" />
                                         <TextBlock Text="{x:Bind ViewModel.FocusedWorkflowRunSourceLabel, Mode=OneWay}"
                                                    Style="{StaticResource BodySecondaryStyle}"
                                                    TextWrapping="Wrap" />
-                                        <TextBlock Text="The matching workflow and stored result were brought to the top of the page for review."
+                                        <TextBlock x:Uid="WfBuilder_TheMatchingWorkflowAnd" Text="The matching workflow and stored result were brought to the top of the page for review."
                                                    Style="{StaticResource CaptionStyle}"
                                                    TextWrapping="Wrap" />
                                     </StackPanel>
 
                                     <Button Grid.Column="1"
-                                            Content="Dismiss"
+                                            x:Uid="WfBuilder_Dismiss" Content="Dismiss"
                                             Command="{x:Bind ViewModel.DismissFocusedWorkflowRunLandingCommand}"
                                             Style="{StaticResource GhostButtonStyle}"
                                             VerticalAlignment="Top" />
@@ -408,14 +408,14 @@
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="Run Workflow"
+                                    <TextBlock x:Uid="WfBuilder_RunWorkflow" Text="Run Workflow"
                                                Style="{StaticResource HeadingSmallStyle}" />
                                     <TextBlock Text="{x:Bind ViewModel.SelectedWorkflowName, Mode=OneWay}"
                                                Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
 
                                 <Button Grid.Column="1"
-                                        Content="Export JSON"
+                                        x:Uid="WfBuilder_ExportJson" Content="Export JSON"
                                         Click="ExportWorkflowToClipboard_Click"
                                         Tag="{x:Bind ViewModel.SelectedWorkflowId, Mode=OneWay}"
                                         Style="{StaticResource SecondaryButtonStyle}"
@@ -431,7 +431,7 @@
                                     Visibility="{x:Bind ViewModel.HasSelectedTemplateGuide, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                                 <StackPanel Spacing="14">
                                     <StackPanel Spacing="4">
-                                        <TextBlock Text="Template Guide"
+                                        <TextBlock x:Uid="WfBuilder_TemplateGuide" Text="Template Guide"
                                                    Style="{StaticResource HeadingSmallStyle}" />
                                         <TextBlock Text="{x:Bind ViewModel.SelectedTemplateGuideSummary, Mode=OneWay}"
                                                    Style="{StaticResource BodySecondaryStyle}"
@@ -445,7 +445,7 @@
                                         </Grid.ColumnDefinitions>
 
                                         <StackPanel Spacing="6">
-                                            <TextBlock Text="Best For"
+                                            <TextBlock x:Uid="WfBuilder_BestFor" Text="Best For"
                                                        Style="{StaticResource LabelStyle}" />
                                             <TextBlock Text="{x:Bind ViewModel.SelectedTemplateGuideBestFor, Mode=OneWay}"
                                                        Style="{StaticResource BodyStyle}"
@@ -453,7 +453,7 @@
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="1" Spacing="6">
-                                            <TextBlock Text="You'll Get"
+                                            <TextBlock x:Uid="WfBuilder_YouLlGet" Text="You'll Get"
                                                        Style="{StaticResource LabelStyle}" />
                                             <TextBlock Text="{x:Bind ViewModel.SelectedTemplateGuideOutcome, Mode=OneWay}"
                                                        Style="{StaticResource BodyStyle}"
@@ -463,7 +463,7 @@
 
                                     <StackPanel Spacing="8"
                                                 Visibility="{x:Bind ViewModel.HasSelectedTemplateGuideExamples, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                                        <TextBlock Text="Try It With"
+                                        <TextBlock x:Uid="WfBuilder_TryItWith" Text="Try It With"
                                                    Style="{StaticResource LabelStyle}" />
                                         <ItemsRepeater ItemsSource="{x:Bind ViewModel.SelectedTemplateGuideExamples, Mode=OneWay}">
                                             <ItemsRepeater.Layout>
@@ -491,7 +491,7 @@
                                         </ItemsRepeater>
                                     </StackPanel>
 
-                                    <TextBlock Text="Run the template as-is if it already fits. Use Template if you want to customize the steps before saving your own version."
+                                    <TextBlock x:Uid="WfBuilder_RunTheTemplateAs" Text="Run the template as-is if it already fits. Use Template if you want to customize the steps before saving your own version."
                                                Style="{StaticResource CaptionStyle}"
                                                TextWrapping="Wrap" />
                                 </StackPanel>
@@ -499,9 +499,9 @@
 
                             <!-- Input -->
                             <StackPanel Spacing="6">
-                                <TextBlock Text="Input" Style="{StaticResource LabelStyle}" />
+                                <TextBlock x:Uid="WfBuilder_Input" Text="Input" Style="{StaticResource LabelStyle}" />
                                 <TextBox Text="{x:Bind ViewModel.RunInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                         PlaceholderText="Paste or type the content you want to process..."
+                                         x:Uid="WfBuilder_PasteOrTypeThePh" PlaceholderText="Paste or type the content you want to process..."
                                          AcceptsReturn="True"
                                          TextWrapping="Wrap"
                                          MinHeight="120"
@@ -511,12 +511,12 @@
 
                             <!-- Run / Cancel Buttons -->
                             <StackPanel Orientation="Horizontal" Spacing="12">
-                                <Button Content="Run"
+                                <Button x:Uid="WfBuilder_Run" Content="Run"
                                         Command="{x:Bind ViewModel.RunWorkflowCommand}"
                                         CommandParameter="{x:Bind ViewModel.SelectedWorkflowId, Mode=OneWay}"
                                         IsEnabled="{x:Bind ViewModel.CanRunSelectedWorkflow, Mode=OneWay}"
                                         Style="{StaticResource AccentButtonStyle}" />
-                                <Button Content="Cancel"
+                                <Button x:Uid="WfBuilder_Cancel2" Content="Cancel"
                                         Command="{x:Bind ViewModel.CancelRunCommand}"
                                         Visibility="{x:Bind ViewModel.IsRunning, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                         Style="{StaticResource SecondaryButtonStyle}" />
@@ -529,7 +529,7 @@
                                              Maximum="{x:Bind ViewModel.RunTotalSteps, Mode=OneWay}"
                                              IsIndeterminate="False" />
                                 <TextBlock Style="{StaticResource CaptionStyle}">
-                                    <Run Text="Running:" />
+                                    <Run x:Uid="WfBuilder_Running" Text="Running:" />
                                     <Run Text="{x:Bind ViewModel.CurrentStepName, Mode=OneWay}" />
                                     <Run Text="(" /><Run Text="{x:Bind ViewModel.RunProgress, Mode=OneWay}" />
                                     <Run Text="/" /><Run Text="{x:Bind ViewModel.RunTotalSteps, Mode=OneWay}" /><Run Text=")" />
@@ -549,7 +549,7 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="Recent Runs"
+                                <TextBlock x:Uid="WfBuilder_RecentRuns" Text="Recent Runs"
                                            Style="{StaticResource HeadingSmallStyle}" />
                                 <TextBlock Grid.Column="1"
                                            Text="{x:Bind ViewModel.SelectedWorkflowName, Mode=OneWay}"
@@ -557,7 +557,7 @@
                                            VerticalAlignment="Center" />
                             </Grid>
 
-                            <TextBlock Text="Stored workflow results you can reopen without rerunning."
+                            <TextBlock x:Uid="WfBuilder_StoredWorkflowResultsYou" Text="Stored workflow results you can reopen without rerunning."
                                        Style="{StaticResource CaptionStyle}" />
 
                             <ItemsRepeater ItemsSource="{x:Bind ViewModel.RecentRuns, Mode=OneWay}"
@@ -578,7 +578,7 @@
                                                         Padding="10,4"
                                                         HorizontalAlignment="Left"
                                                         Visibility="{x:Bind IsFocused, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                                                    <TextBlock Text="Opened from Operations"
+                                                    <TextBlock x:Uid="WfBuilder_OpenedFromOperations" Text="Opened from Operations"
                                                                Style="{StaticResource CaptionStyle}"
                                                                Foreground="{ThemeResource AccentPrimaryBrush}"
                                                                FontWeight="SemiBold" />
@@ -600,15 +600,15 @@
 
                                                     <StackPanel Grid.Column="1"
                                                                 Spacing="8">
-                                                        <Button Content="Open Result"
+                                                        <Button x:Uid="WfBuilder_OpenResult" Content="Open Result"
                                                                 Command="{Binding ViewModel.OpenHistoricalRunCommand, ElementName=WorkflowPage}"
                                                                 CommandParameter="{Binding}"
                                                                 Style="{StaticResource SecondaryButtonStyle}" />
-                                                        <Button Content="Save as Document"
+                                                        <Button x:Uid="WfBuilder_SaveAsDocument" Content="Save as Document"
                                                                 Command="{Binding ViewModel.SaveHistoricalRunToVaultCommand, ElementName=WorkflowPage}"
                                                                 CommandParameter="{Binding}"
                                                                 Style="{StaticResource GhostButtonStyle}" />
-                                                        <Button Content="Export Result"
+                                                        <Button x:Uid="WfBuilder_ExportResult" Content="Export Result"
                                                                 Click="ExportHistoricalRun_Click"
                                                                 Tag="{x:Bind}"
                                                                 Style="{StaticResource GhostButtonStyle}" />
@@ -635,7 +635,7 @@
                                 </ItemsRepeater.ItemTemplate>
                             </ItemsRepeater>
 
-                            <TextBlock Text="No runs recorded yet for the selected workflow."
+                            <TextBlock x:Uid="WfBuilder_NoRunsRecordedYet" Text="No runs recorded yet for the selected workflow."
                                        Style="{StaticResource BodySecondaryStyle}"
                                        Visibility="{x:Bind ViewModel.ShowRecentRunsEmptyState, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
                         </StackPanel>
@@ -653,7 +653,7 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="Step Outputs"
+                                    <TextBlock x:Uid="WfBuilder_StepOutputs" Text="Step Outputs"
                                                Style="{StaticResource HeadingSmallStyle}" />
                                     <TextBlock Text="{x:Bind ViewModel.RunResultContextText, Mode=OneWay}"
                                                Style="{StaticResource CaptionStyle}"
@@ -665,7 +665,7 @@
                                     <TextBlock Style="{StaticResource CaptionStyle}"
                                                VerticalAlignment="Center">
                                         <Run Text="{x:Bind ViewModel.RunTotalTokens, Mode=OneWay}" />
-                                        <Run Text="tokens" />
+                                        <Run x:Uid="WfBuilder_Tokens" Text="tokens" />
                                     </TextBlock>
                                     <TextBlock Style="{StaticResource CaptionStyle}"
                                                VerticalAlignment="Center">
@@ -709,7 +709,7 @@
                                                     <TextBlock Grid.Column="2"
                                                                Style="{StaticResource CaptionStyle}"
                                                                VerticalAlignment="Center">
-                                                        <Run Text="{x:Bind TokensUsed}" /><Run Text=" tok" />
+                                                        <Run Text="{x:Bind TokensUsed}" /><Run x:Uid="WfBuilder_Tok" Text=" tok" />
                                                     </TextBlock>
                                                 </Grid>
                                                 <TextBlock Text="{x:Bind Output}"
@@ -731,7 +731,7 @@
                             Padding="24"
                             Visibility="{x:Bind ViewModel.HasRunOutputOrError, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <StackPanel Spacing="12">
-                            <TextBlock Text="Final Output"
+                            <TextBlock x:Uid="WfBuilder_FinalOutput" Text="Final Output"
                                        Style="{StaticResource HeadingSmallStyle}" />
                             <TextBlock Text="{x:Bind ViewModel.RunErrorMessage, Mode=OneWay}"
                                        Style="{StaticResource CaptionStyle}"
@@ -746,17 +746,17 @@
                                      Style="{StaticResource InputTextBoxStyle}" />
                             <StackPanel Orientation="Horizontal"
                                         Spacing="12">
-                                <Button Content="Copy to Clipboard"
+                                <Button x:Uid="WfBuilder_CopyToClipboard" Content="Copy to Clipboard"
                                         Click="CopyOutputToClipboard"
                                         Style="{StaticResource SecondaryButtonStyle}" />
-                                <Button Content="Save as Document"
+                                <Button x:Uid="WfBuilder_SaveAsDocument2" Content="Save as Document"
                                         Command="{x:Bind ViewModel.SaveCurrentResultToVaultCommand}"
                                         IsEnabled="{x:Bind ViewModel.CanSaveCurrentResultToVault, Mode=OneWay}"
                                         Style="{StaticResource AccentButtonStyle}" />
-                                <Button Content="Export Result"
+                                <Button x:Uid="WfBuilder_ExportResult2" Content="Export Result"
                                         Click="ExportCurrentResult_Click"
                                         Style="{StaticResource SecondaryButtonStyle}" />
-                                <Button Content="Open Vault"
+                                <Button x:Uid="WfBuilder_OpenVault" Content="Open Vault"
                                         Command="{x:Bind ViewModel.OpenKnowledgeVaultCommand}"
                                         Style="{StaticResource GhostButtonStyle}" />
                             </StackPanel>
@@ -780,9 +780,9 @@
                                 <FontIcon Glyph="&#xE945;"
                                           FontSize="42"
                                           Foreground="{ThemeResource AccentPrimaryBrush}" />
-                                <TextBlock Text="Start with a template"
+                                <TextBlock x:Uid="WfBuilder_StartWithATemplate" Text="Start with a template"
                                            Style="{StaticResource DisplaySmallStyle}" />
-                                <TextBlock Text="Workflows help you turn one block of input into a repeatable multi-step result. Pick a starter template below, then run it as-is or customize it later."
+                                <TextBlock x:Uid="WfBuilder_WorkflowsHelpYouTurn" Text="Workflows help you turn one block of input into a repeatable multi-step result. Pick a starter template below, then run it as-is or customize it later."
                                            Style="{StaticResource BodySecondaryStyle}"
                                            TextWrapping="Wrap" />
                             </StackPanel>
@@ -824,7 +824,7 @@
                                                     </StackPanel>
 
                                                     <Button Grid.Column="1"
-                                                            Content="Select Template"
+                                                            x:Uid="WfBuilder_SelectTemplate" Content="Select Template"
                                                             Command="{Binding ViewModel.SelectTemplateCommand, ElementName=WorkflowPage}"
                                                             CommandParameter="{Binding Id}"
                                                             Style="{StaticResource SecondaryButtonStyle}"
@@ -833,7 +833,7 @@
 
                                                 <TextBlock Style="{StaticResource CaptionStyle}"
                                                            TextWrapping="Wrap">
-                                                    <Run Text="Best for: " />
+                                                    <Run x:Uid="WfBuilder_BestFor2" Text="Best for: " />
                                                     <Run Text="{x:Bind BestFor}" />
                                                 </TextBlock>
                                             </StackPanel>
@@ -842,16 +842,16 @@
                                 </ItemsRepeater.ItemTemplate>
                             </ItemsRepeater>
 
-                            <TextBlock Text="No starter templates are available right now."
+                            <TextBlock x:Uid="WfBuilder_NoStarterTemplatesAre" Text="No starter templates are available right now."
                                        Style="{StaticResource BodySecondaryStyle}"
                                        Visibility="{x:Bind ViewModel.HasWorkflowStarterTemplates, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
 
                             <StackPanel Orientation="Horizontal"
                                         Spacing="12">
-                                <Button Content="Create Blank Workflow"
+                                <Button x:Uid="WfBuilder_CreateBlankWorkflow" Content="Create Blank Workflow"
                                         Command="{x:Bind ViewModel.CreateWorkflowCommand}"
                                         Style="{StaticResource AccentButtonStyle}" />
-                                <TextBlock Text="You can also build a workflow from scratch if none of the starters fit."
+                                <TextBlock x:Uid="WfBuilder_YouCanAlsoBuild" Text="You can also build a workflow from scratch if none of the starters fit."
                                            Style="{StaticResource CaptionStyle}"
                                            VerticalAlignment="Center"
                                            TextWrapping="Wrap" />

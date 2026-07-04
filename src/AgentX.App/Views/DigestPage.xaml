@@ -44,7 +44,7 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Spacing="4">
-                        <TextBlock Text="Weekly Digest"
+                        <TextBlock x:Uid="Digest_WeeklyDigest" Text="Weekly Digest"
                                    Style="{StaticResource DisplaySmallStyle}" />
                         <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
                                    Style="{StaticResource BodySecondaryStyle}" />
@@ -77,7 +77,7 @@
                                               Visibility="{x:Bind ViewModel.IsGenerating, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
                                 <FontIcon Glyph="&#xE9D2;" FontSize="14"
                                           Visibility="{x:Bind ViewModel.IsGenerating, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
-                                <TextBlock Text="Generate New Digest" />
+                                <TextBlock x:Uid="Digest_GenerateNewDigest" Text="Generate New Digest" />
                             </StackPanel>
                         </Button>
                     </StackPanel>
@@ -105,7 +105,7 @@
                                     <TextBlock Style="{StaticResource MetricSmallStyle}">
                                         <Run Text="{x:Bind ViewModel.CurrentReport.NewDocumentsCount, Mode=OneWay}" />
                                     </TextBlock>
-                                    <TextBlock Text="New Documents"
+                                    <TextBlock x:Uid="Digest_NewDocuments" Text="New Documents"
                                                Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
                             </StackPanel>
@@ -126,7 +126,7 @@
                                     <TextBlock Style="{StaticResource MetricSmallStyle}">
                                         <Run Text="{x:Bind ViewModel.CurrentReport.NewConversationsCount, Mode=OneWay}" />
                                     </TextBlock>
-                                    <TextBlock Text="Conversations"
+                                    <TextBlock x:Uid="Digest_Conversations" Text="Conversations"
                                                Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
                             </StackPanel>
@@ -147,7 +147,7 @@
                                     <TextBlock Style="{StaticResource MetricSmallStyle}">
                                         <Run Text="{x:Bind ViewModel.CurrentReport.TotalSearches, Mode=OneWay}" />
                                     </TextBlock>
-                                    <TextBlock Text="Searches"
+                                    <TextBlock x:Uid="Digest_Searches" Text="Searches"
                                                Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
                             </StackPanel>
@@ -167,7 +167,7 @@
                                 <StackPanel Spacing="2" VerticalAlignment="Center">
                                     <TextBlock Text="{x:Bind ViewModel.CurrentReport.TokensFormatted, Mode=OneWay}"
                                                Style="{StaticResource MetricSmallStyle}" />
-                                    <TextBlock Text="Tokens Used"
+                                    <TextBlock x:Uid="Digest_TokensUsed" Text="Tokens Used"
                                                Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
                             </StackPanel>
@@ -187,7 +187,7 @@
                                 <StackPanel Spacing="2" VerticalAlignment="Center">
                                     <TextBlock Text="{x:Bind ViewModel.CurrentReport.StorageDelta, Mode=OneWay}"
                                                Style="{StaticResource MetricSmallStyle}" />
-                                    <TextBlock Text="Storage Delta"
+                                    <TextBlock x:Uid="Digest_StorageDelta" Text="Storage Delta"
                                                Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
                             </StackPanel>
@@ -207,7 +207,7 @@
                                 Margin="0,48,0,48">
                         <ProgressRing IsActive="True" Width="32" Height="32"
                                       Foreground="{ThemeResource AccentPrimaryBrush}" />
-                        <TextBlock Text="Loading digest reports..."
+                        <TextBlock x:Uid="Digest_LoadingDigestReports" Text="Loading digest reports..."
                                    Style="{StaticResource BodySecondaryStyle}"
                                    HorizontalAlignment="Center" />
                     </StackPanel>
@@ -227,10 +227,10 @@
                                           HorizontalAlignment="Center"
                                           VerticalAlignment="Center" />
                             </Border>
-                            <TextBlock Text="No Digest Reports Yet"
+                            <TextBlock x:Uid="Digest_NoDigestReportsYet" Text="No Digest Reports Yet"
                                        Style="{StaticResource HeadingMediumStyle}"
                                        HorizontalAlignment="Center" />
-                            <TextBlock Text="Generate your first weekly digest to see activity summaries, search trends, and conversation highlights."
+                            <TextBlock x:Uid="Digest_GenerateYourFirstWeekly" Text="Generate your first weekly digest to see activity summaries, search trends, and conversation highlights."
                                        Style="{StaticResource BodySecondaryStyle}"
                                        HorizontalAlignment="Center"
                                        TextAlignment="Center"
@@ -241,7 +241,7 @@
                                     Margin="0,8,0,0">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE9D2;" FontSize="14" />
-                                    <TextBlock Text="Generate First Digest" />
+                                    <TextBlock x:Uid="Digest_GenerateFirstDigest" Text="Generate First Digest" />
                                 </StackPanel>
                             </Button>
                         </StackPanel>
@@ -270,7 +270,7 @@
                                                       HorizontalAlignment="Center"
                                                       VerticalAlignment="Center" />
                                         </Border>
-                                        <TextBlock Text="Top Searches"
+                                        <TextBlock x:Uid="Digest_TopSearches" Text="Top Searches"
                                                    Style="{StaticResource HeadingSmallStyle}"
                                                    VerticalAlignment="Center" />
                                     </StackPanel>
@@ -309,7 +309,7 @@
                                     </ItemsRepeater>
 
                                     <!-- Empty state for no searches -->
-                                    <TextBlock Text="No searches recorded this period"
+                                    <TextBlock x:Uid="Digest_NoSearchesRecordedThis" Text="No searches recorded this period"
                                                Style="{StaticResource CaptionStyle}"
                                                HorizontalAlignment="Center"
                                                Margin="0,8" />
@@ -328,7 +328,7 @@
                                                       HorizontalAlignment="Center"
                                                       VerticalAlignment="Center" />
                                         </Border>
-                                        <TextBlock Text="Top Collections"
+                                        <TextBlock x:Uid="Digest_TopCollections" Text="Top Collections"
                                                    Style="{StaticResource HeadingSmallStyle}"
                                                    VerticalAlignment="Center" />
                                     </StackPanel>
@@ -356,7 +356,7 @@
                                                     <TextBlock Grid.Column="1"
                                                                Style="{StaticResource CaptionStyle}">
                                                         <Run Text="{x:Bind DocumentCount}" />
-                                                        <Run Text=" docs" />
+                                                        <Run x:Uid="Digest_Docs" Text=" docs" />
                                                     </TextBlock>
                                                 </Grid>
                                             </DataTemplate>
@@ -364,7 +364,7 @@
                                     </ItemsRepeater>
 
                                     <!-- Empty state for no collections -->
-                                    <TextBlock Text="No collections configured yet"
+                                    <TextBlock x:Uid="Digest_NoCollectionsConfiguredYet" Text="No collections configured yet"
                                                Style="{StaticResource CaptionStyle}"
                                                HorizontalAlignment="Center"
                                                Margin="0,8" />
@@ -391,7 +391,7 @@
                                                       HorizontalAlignment="Center"
                                                       VerticalAlignment="Center" />
                                         </Border>
-                                        <TextBlock Text="File Types Imported"
+                                        <TextBlock x:Uid="Digest_FileTypesImported" Text="File Types Imported"
                                                    Style="{StaticResource HeadingSmallStyle}"
                                                    VerticalAlignment="Center" />
                                     </StackPanel>
@@ -427,7 +427,7 @@
                                                     <TextBlock Grid.Column="2"
                                                                Style="{StaticResource BodyStyle}">
                                                         <Run Text="{x:Bind Count}" />
-                                                        <Run Text=" files" />
+                                                        <Run x:Uid="Digest_Files" Text=" files" />
                                                     </TextBlock>
                                                 </Grid>
                                             </DataTemplate>
@@ -435,7 +435,7 @@
                                     </ItemsRepeater>
 
                                     <!-- Empty state -->
-                                    <TextBlock Text="No files imported this period"
+                                    <TextBlock x:Uid="Digest_NoFilesImportedThis" Text="No files imported this period"
                                                Style="{StaticResource CaptionStyle}"
                                                HorizontalAlignment="Center"
                                                Margin="0,8" />
@@ -454,7 +454,7 @@
                                                       HorizontalAlignment="Center"
                                                       VerticalAlignment="Center" />
                                         </Border>
-                                        <TextBlock Text="Conversation Highlights"
+                                        <TextBlock x:Uid="Digest_ConversationHighlights" Text="Conversation Highlights"
                                                    Style="{StaticResource HeadingSmallStyle}"
                                                    VerticalAlignment="Center" />
                                     </StackPanel>
@@ -481,7 +481,7 @@
                                                                           Foreground="{ThemeResource TextSecondaryBrush}" />
                                                                 <TextBlock Style="{StaticResource CaptionStyle}">
                                                                     <Run Text="{x:Bind MessageCount}" />
-                                                                    <Run Text=" messages" />
+                                                                    <Run x:Uid="Digest_Messages" Text=" messages" />
                                                                 </TextBlock>
                                                             </StackPanel>
                                                             <StackPanel Orientation="Horizontal" Spacing="4">
@@ -489,7 +489,7 @@
                                                                           Foreground="{ThemeResource TextSecondaryBrush}" />
                                                                 <TextBlock Style="{StaticResource CaptionStyle}">
                                                                     <Run Text="{x:Bind TokensUsed}" />
-                                                                    <Run Text=" tokens" />
+                                                                    <Run x:Uid="Digest_Tokens" Text=" tokens" />
                                                                 </TextBlock>
                                                             </StackPanel>
                                                         </StackPanel>
@@ -500,7 +500,7 @@
                                     </ItemsRepeater>
 
                                     <!-- Empty state -->
-                                    <TextBlock Text="No conversations this period"
+                                    <TextBlock x:Uid="Digest_NoConversationsThisPeriod" Text="No conversations this period"
                                                Style="{StaticResource CaptionStyle}"
                                                HorizontalAlignment="Center"
                                                Margin="0,8" />
@@ -530,9 +530,9 @@
 
                 <!-- Sidebar Header -->
                 <StackPanel Grid.Row="0" Spacing="4">
-                    <TextBlock Text="REPORT HISTORY"
+                    <TextBlock x:Uid="Digest_ReportHistory" Text="REPORT HISTORY"
                                Style="{StaticResource OverlineStyle}" />
-                    <TextBlock Text="Select a previous report to view"
+                    <TextBlock x:Uid="Digest_SelectAPreviousReport" Text="Select a previous report to view"
                                Style="{StaticResource CaptionStyle}" />
                 </StackPanel>
 
@@ -561,11 +561,11 @@
                                         <StackPanel Orientation="Horizontal" Spacing="12">
                                             <TextBlock Style="{StaticResource CaptionStyle}">
                                                 <Run Text="{x:Bind NewDocumentsCount}" />
-                                                <Run Text=" docs" />
+                                                <Run x:Uid="Digest_Docs2" Text=" docs" />
                                             </TextBlock>
                                             <TextBlock Style="{StaticResource CaptionStyle}">
                                                 <Run Text="{x:Bind TotalSearches}" />
-                                                <Run Text=" searches" />
+                                                <Run x:Uid="Digest_Searches2" Text=" searches" />
                                             </TextBlock>
                                         </StackPanel>
                                         <TextBlock Text="{x:Bind GeneratedAtFormatted}"

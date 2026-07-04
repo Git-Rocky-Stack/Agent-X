@@ -1,0 +1,31 @@
+{
+  "file": "src/AgentX.App/Views/AnnotationsPage.xaml",
+  "entries": [
+    { "uid": "Annot_Annotations", "attr": "Text", "en": "Annotations",
+      "t": { "de": "Annotationen", "es": "Anotaciones", "fr": "Annotations", "ja": "注釈", "zh-CN": "注释" } },
+    { "uid": "Annot_Highlights", "attr": "Text", "en": "highlights",
+      "t": { "de": "Hervorhebungen", "es": "resaltados", "fr": "surlignages", "ja": "件のハイライト", "zh-CN": "条高亮" } },
+    { "uid": "Annot_SearchAnnotationsPh", "attr": "PlaceholderText", "en": "Search annotations...",
+      "t": { "de": "Annotationen durchsuchen...", "es": "Buscar anotaciones...", "fr": "Rechercher des annotations...", "ja": "注釈を検索...", "zh-CN": "搜索注释..." } },
+    { "uid": "Annot_Search", "attr": "Content", "en": "Search",
+      "t": { "de": "Suchen", "es": "Buscar", "fr": "Rechercher", "ja": "検索", "zh-CN": "搜索" } },
+    { "uid": "Annot_FilterByColor", "attr": "Text", "en": "FILTER BY COLOR",
+      "t": { "de": "NACH FARBE FILTERN", "es": "FILTRAR POR COLOR", "fr": "FILTRER PAR COULEUR", "ja": "色でフィルター", "zh-CN": "按颜色筛选" } },
+    { "uid": "Annot_Distribution", "attr": "Text", "en": "DISTRIBUTION",
+      "t": { "de": "VERTEILUNG", "es": "DISTRIBUCIÓN", "fr": "RÉPARTITION", "ja": "分布", "zh-CN": "分布" } },
+    { "uid": "Annot_ExportAsMarkdown", "attr": "Content", "en": "Export as Markdown",
+      "t": { "de": "Als Markdown exportieren", "es": "Exportar como Markdown", "fr": "Exporter en Markdown", "ja": "Markdown としてエクスポート", "zh-CN": "导出为 Markdown" } },
+    { "uid": "Annot_AllAnnotations", "attr": "Text", "en": "All Annotations",
+      "t": { "de": "Alle Annotationen", "es": "Todas las anotaciones", "fr": "Toutes les annotations", "ja": "すべての注釈", "zh-CN": "全部注释" } },
+    { "uid": "Annot_YourHighlightsAndNotes", "attr": "Text", "en": "Your highlights and notes across all documents.",
+      "t": { "de": "Ihre Hervorhebungen und Notizen aus allen Dokumenten.", "es": "Sus resaltados y notas de todos los documentos.", "fr": "Vos surlignages et notes dans tous les documents.", "ja": "すべてのドキュメントのハイライトとメモ。", "zh-CN": "您在所有文档中的高亮和笔记。" } },
+    { "uid": "Annot_DeleteAnnotationTip", "attr": "ToolTipService.ToolTip", "en": "Delete annotation",
+      "t": { "de": "Annotation löschen", "es": "Eliminar anotación", "fr": "Supprimer l'annotation", "ja": "注釈を削除", "zh-CN": "删除注释" } },
+    { "uid": "Annot_DeleteAnnotationTip", "attr": "AutomationProperties.Name", "en": "Delete annotation", "skipUid": true,
+      "t": { "de": "Annotation löschen", "es": "Eliminar anotación", "fr": "Supprimer l'annotation", "ja": "注釈を削除", "zh-CN": "删除注释" } },
+    { "uid": "Annot_NoAnnotationsYet", "attr": "Text", "en": "No annotations yet",
+      "t": { "de": "Noch keine Annotationen", "es": "Aún no hay anotaciones", "fr": "Pas encore d'annotations", "ja": "注釈はまだありません", "zh-CN": "暂无注释" } },
+    { "uid": "Annot_HighlightTextInYour", "attr": "Text", "en": "Highlight text in your documents to create annotations.",
+      "t": { "de": "Markieren Sie Text in Ihren Dokumenten, um Annotationen zu erstellen.", "es": "Resalte texto en sus documentos para crear anotaciones.", "fr": "Surlignez du texte dans vos documents pour créer des annotations.", "ja": "ドキュメント内のテキストをハイライトすると注釈を作成できます。", "zh-CN": "在文档中高亮文本即可创建注释。" } }
+  ]
+}

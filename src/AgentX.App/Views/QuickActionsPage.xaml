@@ -36,9 +36,9 @@
                      ROW 0: PAGE HEADER
                      ========================================================== -->
                 <StackPanel Grid.Row="0" Spacing="4">
-                    <TextBlock Text="Quick Actions"
+                    <TextBlock x:Uid="QuickAct_QuickActions" Text="Quick Actions"
                                Style="{StaticResource DisplaySmallStyle}" />
-                    <TextBlock Text="AI-powered document intelligence tools. Summarize, translate, detect duplicates, and organize."
+                    <TextBlock x:Uid="QuickAct_AiPoweredDocumentIntelligence" Text="AI-powered document intelligence tools. Summarize, translate, detect duplicates, and organize."
                                Style="{StaticResource BodySecondaryStyle}" />
                 </StackPanel>
 
@@ -56,9 +56,9 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Spacing="4">
-                                <TextBlock Text="Recommended For This Context"
+                                <TextBlock x:Uid="QuickAct_RecommendedForThisContext" Text="Recommended For This Context"
                                            Style="{StaticResource HeadingMediumStyle}" />
-                                <TextBlock Text="Use the selected document and current intake state to jump straight to the most useful next action."
+                                <TextBlock x:Uid="QuickAct_UseTheSelectedDocument" Text="Use the selected document and current intake state to jump straight to the most useful next action."
                                            Style="{StaticResource BodySecondaryStyle}"
                                            TextWrapping="Wrap" />
                             </StackPanel>
@@ -175,7 +175,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="8"
                                         HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE8C8;" FontSize="14" />
-                                <TextBlock Text="Summarize" FontSize="13" FontWeight="SemiBold" />
+                                <TextBlock x:Uid="QuickAct_Summarize" Text="Summarize" FontSize="13" FontWeight="SemiBold" />
                             </StackPanel>
                         </RadioButton>
 
@@ -187,7 +187,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="8"
                                         HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE8FD;" FontSize="14" />
-                                <TextBlock Text="Key Points" FontSize="13" FontWeight="SemiBold" />
+                                <TextBlock x:Uid="QuickAct_KeyPoints" Text="Key Points" FontSize="13" FontWeight="SemiBold" />
                             </StackPanel>
                         </RadioButton>
 
@@ -199,7 +199,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="8"
                                         HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE8C1;" FontSize="14" />
-                                <TextBlock Text="Translate" FontSize="13" FontWeight="SemiBold" />
+                                <TextBlock x:Uid="QuickAct_Translate" Text="Translate" FontSize="13" FontWeight="SemiBold" />
                             </StackPanel>
                         </RadioButton>
 
@@ -211,7 +211,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="8"
                                         HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE8C6;" FontSize="14" />
-                                <TextBlock Text="Duplicates" FontSize="13" FontWeight="SemiBold" />
+                                <TextBlock x:Uid="QuickAct_Duplicates" Text="Duplicates" FontSize="13" FontWeight="SemiBold" />
                             </StackPanel>
                         </RadioButton>
 
@@ -223,7 +223,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="8"
                                         HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE8B7;" FontSize="14" />
-                                <TextBlock Text="Organize" FontSize="13" FontWeight="SemiBold" />
+                                <TextBlock x:Uid="QuickAct_Organize" Text="Organize" FontSize="13" FontWeight="SemiBold" />
                             </StackPanel>
                         </RadioButton>
                     </Grid>
@@ -243,9 +243,9 @@
                         <Border Style="{StaticResource CardStyle}">
                             <StackPanel Spacing="16">
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="Generate a section-aware summary"
+                                    <TextBlock x:Uid="QuickAct_GenerateASectionAware" Text="Generate a section-aware summary"
                                                Style="{StaticResource HeadingSmallStyle}" />
-                                    <TextBlock Text="Builds a concise brief by synthesizing indexed chunks into section summaries first, then a final overview."
+                                    <TextBlock x:Uid="QuickAct_BuildsAConciseBrief" Text="Builds a concise brief by synthesizing indexed chunks into section summaries first, then a final overview."
                                                Style="{StaticResource BodySecondaryStyle}" />
                                 </StackPanel>
 
@@ -253,10 +253,10 @@
                                           SelectedItem="{x:Bind ViewModel.SelectedDocument, Mode=TwoWay}"
                                           DisplayMemberPath="DisplayLabel"
                                           HorizontalAlignment="Stretch"
-                                          PlaceholderText="Choose a document..."
+                                          x:Uid="QuickAct_ChooseADocumentPh" PlaceholderText="Choose a document..."
                                           CornerRadius="{StaticResource RadiusMD}" />
 
-                                <Button Content="Generate Layered Summary"
+                                <Button x:Uid="QuickAct_GenerateLayeredSummary" Content="Generate Layered Summary"
                                         Style="{StaticResource AccentButtonStyle}"
                                         Command="{x:Bind ViewModel.SummarizeCommand}"
                                         IsEnabled="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource InverseBool}}" />
@@ -284,17 +284,17 @@
                                     <StackPanel Orientation="Horizontal" Spacing="10">
                                         <FontIcon Glyph="&#xE8C8;" FontSize="16"
                                                   Foreground="{ThemeResource TextAccentBrush}" />
-                                        <TextBlock Text="Summary"
+                                        <TextBlock x:Uid="QuickAct_Summary" Text="Summary"
                                                    Style="{StaticResource HeadingSmallStyle}" />
                                     </StackPanel>
                                     <Border Grid.Column="1"
                                             Style="{StaticResource BadgeDefaultStyle}">
-                                        <TextBlock Text="Layered"
+                                        <TextBlock x:Uid="QuickAct_Layered" Text="Layered"
                                                    Style="{StaticResource BadgeStyle}" />
                                     </Border>
                                 </Grid>
                                 <Border Style="{StaticResource SeparatorStyle}" />
-                                <TextBlock Text="Synthesized from indexed sections before final reduction."
+                                <TextBlock x:Uid="QuickAct_SynthesizedFromIndexedSections" Text="Synthesized from indexed sections before final reduction."
                                            Style="{StaticResource CaptionStyle}" />
                                 <TextBlock Text="{x:Bind ViewModel.SummaryResult, Mode=OneWay}"
                                            Style="{StaticResource BodyStyle}"
@@ -312,17 +312,17 @@
                         <!-- Document Picker -->
                         <Border Style="{StaticResource CardStyle}">
                             <StackPanel Spacing="16">
-                                <TextBlock Text="Select a document to extract key points"
+                                <TextBlock x:Uid="QuickAct_SelectADocumentTo" Text="Select a document to extract key points"
                                            Style="{StaticResource HeadingSmallStyle}" />
 
                                 <ComboBox ItemsSource="{x:Bind ViewModel.AvailableDocuments, Mode=OneWay}"
                                           SelectedItem="{x:Bind ViewModel.SelectedDocument, Mode=TwoWay}"
                                           DisplayMemberPath="DisplayLabel"
                                           HorizontalAlignment="Stretch"
-                                          PlaceholderText="Choose a document..."
+                                          x:Uid="QuickAct_ChooseADocumentPh2" PlaceholderText="Choose a document..."
                                           CornerRadius="{StaticResource RadiusMD}" />
 
-                                <Button Content="Extract Key Points"
+                                <Button x:Uid="QuickAct_ExtractKeyPoints" Content="Extract Key Points"
                                         Style="{StaticResource AccentButtonStyle}"
                                         Command="{x:Bind ViewModel.ExtractKeyPointsCommand}"
                                         IsEnabled="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource InverseBool}}" />
@@ -345,7 +345,7 @@
                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                     <FontIcon Glyph="&#xE8FD;" FontSize="16"
                                               Foreground="{ThemeResource TextAccentBrush}" />
-                                    <TextBlock Text="Key Points"
+                                    <TextBlock x:Uid="QuickAct_KeyPoints2" Text="Key Points"
                                                Style="{StaticResource HeadingSmallStyle}" />
                                 </StackPanel>
                                 <Border Style="{StaticResource SeparatorStyle}" />
@@ -390,31 +390,31 @@
 
                         <Border Style="{StaticResource CardStyle}">
                             <StackPanel Spacing="16">
-                                <TextBlock Text="Translate text with AI"
+                                <TextBlock x:Uid="QuickAct_TranslateTextWithAi" Text="Translate text with AI"
                                            Style="{StaticResource HeadingSmallStyle}" />
 
                                 <!-- Input -->
                                 <StackPanel Spacing="8">
-                                    <TextBlock Text="Input Text" Style="{StaticResource LabelStyle}" />
+                                    <TextBlock x:Uid="QuickAct_InputText" Text="Input Text" Style="{StaticResource LabelStyle}" />
                                     <TextBox Text="{x:Bind ViewModel.TranslationInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                              Style="{StaticResource InputTextBoxStyle}"
                                              AcceptsReturn="True"
                                              TextWrapping="Wrap"
                                              MinHeight="100"
                                              MaxHeight="200"
-                                             PlaceholderText="Enter or paste text to translate..." />
+                                             x:Uid="QuickAct_EnterOrPasteTextPh" PlaceholderText="Enter or paste text to translate..." />
                                 </StackPanel>
 
                                 <!-- Language Picker -->
                                 <StackPanel Spacing="8">
-                                    <TextBlock Text="Target Language" Style="{StaticResource LabelStyle}" />
+                                    <TextBlock x:Uid="QuickAct_TargetLanguage" Text="Target Language" Style="{StaticResource LabelStyle}" />
                                     <ComboBox ItemsSource="{x:Bind ViewModel.AvailableLanguages, Mode=OneWay}"
                                               SelectedItem="{x:Bind ViewModel.SelectedLanguage, Mode=TwoWay}"
                                               HorizontalAlignment="Stretch"
                                               CornerRadius="{StaticResource RadiusMD}" />
                                 </StackPanel>
 
-                                <Button Content="Translate"
+                                <Button x:Uid="QuickAct_Translate2" Content="Translate"
                                         Style="{StaticResource AccentButtonStyle}"
                                         Command="{x:Bind ViewModel.TranslateCommand}"
                                         IsEnabled="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource InverseBool}}" />
@@ -437,7 +437,7 @@
                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                     <FontIcon Glyph="&#xE8C1;" FontSize="16"
                                               Foreground="{ThemeResource TextAccentBrush}" />
-                                    <TextBlock Text="Translation"
+                                    <TextBlock x:Uid="QuickAct_Translation" Text="Translation"
                                                Style="{StaticResource HeadingSmallStyle}" />
                                 </StackPanel>
                                 <Border Style="{StaticResource SeparatorStyle}" />
@@ -460,19 +460,19 @@
                         <Border Style="{StaticResource CardStyle}">
                             <StackPanel Spacing="16">
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="Duplicate Detection"
+                                    <TextBlock x:Uid="QuickAct_DuplicateDetection" Text="Duplicate Detection"
                                                Style="{StaticResource HeadingSmallStyle}" />
-                                    <TextBlock Text="Run exact hash scans for identical files or semantic scans for near-duplicates using stored embeddings."
+                                    <TextBlock x:Uid="QuickAct_RunExactHashScans" Text="Run exact hash scans for identical files or semantic scans for near-duplicates using stored embeddings."
                                                Style="{StaticResource BodySecondaryStyle}" />
                                 </StackPanel>
 
                                 <StackPanel Orientation="Horizontal"
                                             Spacing="12">
-                                    <Button Content="Scan Exact Duplicates"
+                                    <Button x:Uid="QuickAct_ScanExactDuplicates" Content="Scan Exact Duplicates"
                                             Style="{StaticResource AccentButtonStyle}"
                                             Command="{x:Bind ViewModel.FindDuplicatesCommand}"
                                             IsEnabled="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource InverseBool}}" />
-                                    <Button Content="Scan Semantic Near-Duplicates"
+                                    <Button x:Uid="QuickAct_ScanSemanticNearDuplicates" Content="Scan Semantic Near-Duplicates"
                                             Style="{StaticResource SecondaryButtonStyle}"
                                             Command="{x:Bind ViewModel.FindNearDuplicatesCommand}"
                                             IsEnabled="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource InverseBool}}" />
@@ -541,7 +541,7 @@
                                                         <TextBlock Style="{StaticResource CaptionStyle}"
                                                                    Foreground="{ThemeResource TextAccentBrush}">
                                                             <Run Text="{x:Bind WastedStorage}" />
-                                                            <Run Text=" wasted" />
+                                                            <Run x:Uid="QuickAct_Wasted" Text=" wasted" />
                                                         </TextBlock>
                                                     </Border>
                                                 </Grid>
@@ -576,7 +576,7 @@
                                                                                    TextTrimming="CharacterEllipsis" />
                                                                         <TextBlock Style="{StaticResource CaptionStyle}">
                                                                             <Run Text="{x:Bind FileSize}" />
-                                                                            <Run Text=" · Imported " />
+                                                                            <Run x:Uid="QuickAct_Imported" Text=" · Imported " />
                                                                             <Run Text="{x:Bind ImportedAt}" />
                                                                         </TextBlock>
                                                                         <TextBlock Text="{x:Bind EvidenceLabel}"
@@ -604,13 +604,13 @@
                         <Border Style="{StaticResource CardStyle}">
                             <StackPanel Spacing="16">
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="AI Organization Assistant"
+                                    <TextBlock x:Uid="QuickAct_AiOrganizationAssistant" Text="AI Organization Assistant"
                                                Style="{StaticResource HeadingSmallStyle}" />
-                                    <TextBlock Text="Analyzes uncategorized documents and suggests collections and tags based on content."
+                                    <TextBlock x:Uid="QuickAct_AnalyzesUncategorizedDocuments" Text="Analyzes uncategorized documents and suggests collections and tags based on content."
                                                Style="{StaticResource BodySecondaryStyle}" />
                                 </StackPanel>
 
-                                <Button Content="Analyze &amp; Suggest"
+                                <Button x:Uid="QuickAct_AnalyzeSuggest" Content="Analyze &amp; Suggest"
                                         Style="{StaticResource AccentButtonStyle}"
                                         Command="{x:Bind ViewModel.SuggestOrganizationCommand}"
                                         IsEnabled="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource InverseBool}}" />
@@ -683,7 +683,7 @@
                                                         <ColumnDefinition Width="Auto" />
                                                         <ColumnDefinition Width="*" />
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Collection:"
+                                                    <TextBlock x:Uid="QuickAct_Collection" Text="Collection:"
                                                                Style="{StaticResource LabelStyle}"
                                                                VerticalAlignment="Center" />
                                                     <Border Grid.Column="1"
@@ -702,7 +702,7 @@
                                                         <ColumnDefinition Width="Auto" />
                                                         <ColumnDefinition Width="*" />
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Tags:"
+                                                    <TextBlock x:Uid="QuickAct_Tags" Text="Tags:"
                                                                Style="{StaticResource LabelStyle}"
                                                                VerticalAlignment="Center" />
                                                     <TextBlock Grid.Column="1"
@@ -718,7 +718,7 @@
                                                 <!-- Reasoning -->
                                                 <Border Style="{StaticResource CardInsetStyle}" Padding="12,8">
                                                     <StackPanel Spacing="4">
-                                                        <TextBlock Text="Reasoning"
+                                                        <TextBlock x:Uid="QuickAct_Reasoning" Text="Reasoning"
                                                                    Style="{StaticResource LabelStyle}"
                                                                    FontSize="10" />
                                                         <TextBlock Text="{x:Bind Reasoning}"
@@ -767,7 +767,7 @@
                            Style="{StaticResource CaptionStyle}"
                            VerticalAlignment="Center">
                     <Run Text="{x:Bind ViewModel.AvailableDocuments.Count, Mode=OneWay}" />
-                    <Run Text=" documents available" />
+                    <Run x:Uid="QuickAct_DocumentsAvailable" Text=" documents available" />
                 </TextBlock>
             </Grid>
         </Border>

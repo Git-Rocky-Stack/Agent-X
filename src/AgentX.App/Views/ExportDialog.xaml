@@ -2,7 +2,7 @@
     x:Class="AgentX.App.Views.ExportDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="Export Conversation"
+    x:Uid="ExportDlg_ExportConversation" Title="Export Conversation"
     PrimaryButtonText="Export"
     CloseButtonText="Cancel"
     DefaultButton="Primary"
@@ -10,29 +10,29 @@
 
     <StackPanel Spacing="12" MinWidth="400">
         <ComboBox x:Name="FormatCombo"
-                  Header="Format"
+                  x:Uid="ExportDlg_Format" Header="Format"
                   HorizontalAlignment="Stretch"
                   SelectedIndex="0" />
 
         <ComboBox x:Name="TemplateCombo"
-                  Header="Template (optional)"
+                  x:Uid="ExportDlg_TemplateOptional" Header="Template (optional)"
                   HorizontalAlignment="Stretch"
                   SelectedIndex="0" />
 
         <ToggleSwitch x:Name="IncludeCitationsToggle"
-                      Header="Include citations"
+                      x:Uid="ExportDlg_IncludeCitations" Header="Include citations"
                       IsOn="True" />
 
         <ToggleSwitch x:Name="IncludeMetadataToggle"
-                      Header="Include metadata"
+                      x:Uid="ExportDlg_IncludeMetadata" Header="Include metadata"
                       IsOn="True" />
 
         <ToggleSwitch x:Name="IncludeTimestampsToggle"
-                      Header="Include timestamps"
+                      x:Uid="ExportDlg_IncludeTimestamps" Header="Include timestamps"
                       IsOn="True" />
 
         <ToggleSwitch x:Name="IncludeBranchesToggle"
-                      Header="Include branches"
+                      x:Uid="ExportDlg_IncludeBranches" Header="Include branches"
                       IsOn="True" />
 
         <InfoBar x:Name="StatusInfoBar"

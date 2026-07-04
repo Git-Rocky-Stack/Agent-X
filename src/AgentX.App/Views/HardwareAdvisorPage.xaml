@@ -40,7 +40,7 @@
                 <StackPanel Spacing="4">
                     <TextBlock Text="{x:Bind ViewModel.PageTitle, Mode=OneWay}"
                                Style="{StaticResource DisplaySmallStyle}" />
-                    <TextBlock Text="Analyze your system to find the best AI models for your hardware."
+                    <TextBlock x:Uid="HwAdvisor_AnalyzeYourSystemTo" Text="Analyze your system to find the best AI models for your hardware."
                                Style="{StaticResource BodySecondaryStyle}" />
                 </StackPanel>
 
@@ -50,7 +50,7 @@
                         VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE72C;" FontSize="14" />
-                        <TextBlock Text="Re-scan" />
+                        <TextBlock x:Uid="HwAdvisor_ReScan" Text="Re-scan" />
                     </StackPanel>
                 </Button>
             </Grid>
@@ -66,10 +66,10 @@
                     <ProgressRing IsActive="{x:Bind ViewModel.IsDetecting, Mode=OneWay}"
                                   Width="48" Height="48"
                                   Foreground="{ThemeResource AccentPrimaryBrush}" />
-                    <TextBlock Text="Scanning your hardware..."
+                    <TextBlock x:Uid="HwAdvisor_ScanningYourHardware" Text="Scanning your hardware..."
                                Style="{StaticResource HeadingSmallStyle}"
                                HorizontalAlignment="Center" />
-                    <TextBlock Text="Detecting GPU, CPU, memory, and NPU capabilities."
+                    <TextBlock x:Uid="HwAdvisor_DetectingGpuCpuMemory" Text="Detecting GPU, CPU, memory, and NPU capabilities."
                                Style="{StaticResource BodySecondaryStyle}"
                                HorizontalAlignment="Center" />
                 </StackPanel>
@@ -90,7 +90,7 @@
                      Severity="Informational"
                      IsOpen="{x:Bind ViewModel.IsDetectionIncomplete, Mode=OneWay}"
                      IsClosable="False"
-                     Title="Some hardware details are unavailable"
+                     x:Uid="HwAdvisor_SomeHardwareDetailsAre" Title="Some hardware details are unavailable"
                      Message="Run Agent-X as administrator for full GPU, VRAM, and sensor detection. Without elevation, some readings may be incomplete." />
 
             <!-- =======================================================
@@ -120,7 +120,7 @@
                             <StackPanel Spacing="2" VerticalAlignment="Center">
                                 <TextBlock Text="GPU"
                                            Style="{StaticResource OverlineStyle}" />
-                                <TextBlock Text="Graphics"
+                                <TextBlock x:Uid="HwAdvisor_Graphics" Text="Graphics"
                                            Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
                         </StackPanel>
@@ -129,7 +129,7 @@
 
                         <!-- GPU Name -->
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Device"
+                            <TextBlock x:Uid="HwAdvisor_Device" Text="Device"
                                        Style="{StaticResource LabelStyle}" />
                             <TextBlock Text="{x:Bind ViewModel.GpuName, Mode=OneWay}"
                                        Style="{StaticResource BodyStyle}"
@@ -139,7 +139,7 @@
 
                         <!-- VRAM -->
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Video Memory"
+                            <TextBlock x:Uid="HwAdvisor_VideoMemory" Text="Video Memory"
                                        Style="{StaticResource LabelStyle}" />
                             <TextBlock Text="{x:Bind ViewModel.GpuVram, Mode=OneWay}"
                                        Style="{StaticResource MetricSmallStyle}" />
@@ -175,7 +175,7 @@
                             <StackPanel Spacing="2" VerticalAlignment="Center">
                                 <TextBlock Text="CPU"
                                            Style="{StaticResource OverlineStyle}" />
-                                <TextBlock Text="Processor"
+                                <TextBlock x:Uid="HwAdvisor_Processor" Text="Processor"
                                            Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
                         </StackPanel>
@@ -184,7 +184,7 @@
 
                         <!-- CPU Name -->
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Processor"
+                            <TextBlock x:Uid="HwAdvisor_Processor2" Text="Processor"
                                        Style="{StaticResource LabelStyle}" />
                             <TextBlock Text="{x:Bind ViewModel.CpuName, Mode=OneWay}"
                                        Style="{StaticResource BodyStyle}"
@@ -194,13 +194,13 @@
 
                         <!-- Cores -->
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Logical Cores"
+                            <TextBlock x:Uid="HwAdvisor_LogicalCores" Text="Logical Cores"
                                        Style="{StaticResource LabelStyle}" />
                             <StackPanel Orientation="Horizontal" Spacing="4"
                                         VerticalAlignment="Bottom">
                                 <TextBlock Text="{x:Bind ViewModel.CpuCores, Mode=OneWay}"
                                            Style="{StaticResource MetricSmallStyle}" />
-                                <TextBlock Text="cores"
+                                <TextBlock x:Uid="HwAdvisor_Cores" Text="cores"
                                            Style="{StaticResource MetricUnitStyle}"
                                            VerticalAlignment="Bottom"
                                            Margin="0,0,0,4" />
@@ -234,9 +234,9 @@
                                           VerticalAlignment="Center" />
                             </Grid>
                             <StackPanel Spacing="2" VerticalAlignment="Center">
-                                <TextBlock Text="MEMORY"
+                                <TextBlock x:Uid="HwAdvisor_Memory" Text="MEMORY"
                                            Style="{StaticResource OverlineStyle}" />
-                                <TextBlock Text="System RAM"
+                                <TextBlock x:Uid="HwAdvisor_SystemRam" Text="System RAM"
                                            Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
                         </StackPanel>
@@ -245,7 +245,7 @@
 
                         <!-- Total RAM -->
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Total RAM"
+                            <TextBlock x:Uid="HwAdvisor_TotalRam" Text="Total RAM"
                                        Style="{StaticResource LabelStyle}" />
                             <TextBlock Text="{x:Bind ViewModel.TotalRam, Mode=OneWay}"
                                        Style="{StaticResource MetricSmallStyle}" />
@@ -253,7 +253,7 @@
 
                         <!-- Available RAM -->
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Available"
+                            <TextBlock x:Uid="HwAdvisor_Available" Text="Available"
                                        Style="{StaticResource LabelStyle}" />
                             <TextBlock Text="{x:Bind ViewModel.AvailableRam, Mode=OneWay}"
                                        Style="{StaticResource BodyStyle}" />
@@ -281,7 +281,7 @@
                         <Border Style="{StaticResource BadgeDefaultStyle}"
                                 HorizontalAlignment="Left"
                                 Visibility="{x:Bind ViewModel.HasNpu, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
-                            <TextBlock Text="No NPU"
+                            <TextBlock x:Uid="HwAdvisor_NoNpu" Text="No NPU"
                                        Style="{StaticResource BadgeStyle}"
                                        Foreground="{ThemeResource TextTertiaryBrush}" />
                         </Border>
@@ -304,7 +304,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE945;" FontSize="20"
                                       Foreground="{ThemeResource TextAccentBrush}" />
-                            <TextBlock Text="Recommended Configuration"
+                            <TextBlock x:Uid="HwAdvisor_RecommendedConfiguration" Text="Recommended Configuration"
                                        Style="{StaticResource HeadingMediumStyle}" />
                         </StackPanel>
 
@@ -324,7 +324,7 @@
                                 VerticalAlignment="Center"
                                 HorizontalAlignment="Center"
                                 MinWidth="120">
-                        <TextBlock Text="PERFORMANCE TIER"
+                        <TextBlock x:Uid="HwAdvisor_PerformanceTier" Text="PERFORMANCE TIER"
                                    Style="{StaticResource OverlineStyle}"
                                    HorizontalAlignment="Center" />
                         <Border Style="{StaticResource BadgeAccentStyle}"
@@ -368,9 +368,9 @@
 
                 <!-- Section heading -->
                 <StackPanel Spacing="4">
-                    <TextBlock Text="Recommended Models for Your System"
+                    <TextBlock x:Uid="HwAdvisor_RecommendedModelsForYour" Text="Recommended Models for Your System"
                                Style="{StaticResource HeadingMediumStyle}" />
-                    <TextBlock Text="These models are optimized for your detected hardware capabilities."
+                    <TextBlock x:Uid="HwAdvisor_TheseModelsAreOptimized" Text="These models are optimized for your detected hardware capabilities."
                                Style="{StaticResource BodySecondaryStyle}" />
                 </StackPanel>
 
@@ -380,7 +380,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE8BD;" FontSize="16"
                                   Foreground="{ThemeResource TextAccentBrush}" />
-                        <TextBlock Text="Chat Models"
+                        <TextBlock x:Uid="HwAdvisor_ChatModels" Text="Chat Models"
                                    Style="{StaticResource HeadingSmallStyle}" />
                         <Border Style="{StaticResource BadgeDefaultStyle}"
                                 VerticalAlignment="Center">
@@ -413,7 +413,7 @@
 
                                             <Border Grid.Column="1"
                                                     Style="{StaticResource BadgeAccentStyle}">
-                                                <TextBlock Text="Chat"
+                                                <TextBlock x:Uid="HwAdvisor_Chat" Text="Chat"
                                                            Style="{StaticResource BadgeStyle}"
                                                            Foreground="{ThemeResource TextAccentBrush}" />
                                             </Border>
@@ -452,7 +452,7 @@
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <FontIcon Glyph="&#xE73E;" FontSize="12"
                                                               Foreground="{ThemeResource SuccessBrush}" />
-                                                    <TextBlock Text="Installed"
+                                                    <TextBlock x:Uid="HwAdvisor_Installed" Text="Installed"
                                                                FontSize="12" FontWeight="SemiBold"
                                                                Foreground="{ThemeResource SuccessBrush}" />
                                                 </StackPanel>
@@ -466,7 +466,7 @@
                                                     Click="OnInstallModelClick">
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <FontIcon Glyph="&#xE896;" FontSize="12" />
-                                                    <TextBlock Text="Install" FontSize="12" />
+                                                    <TextBlock x:Uid="HwAdvisor_Install" Text="Install" FontSize="12" />
                                                 </StackPanel>
                                             </Button>
                                         </Grid>
@@ -483,7 +483,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE943;" FontSize="16"
                                   Foreground="{ThemeResource InfoBrush}" />
-                        <TextBlock Text="Code Models"
+                        <TextBlock x:Uid="HwAdvisor_CodeModels" Text="Code Models"
                                    Style="{StaticResource HeadingSmallStyle}" />
                         <Border Style="{StaticResource BadgeDefaultStyle}"
                                 VerticalAlignment="Center">
@@ -517,7 +517,7 @@
                                                     Background="{ThemeResource InfoSubtleBrush}"
                                                     CornerRadius="{StaticResource RadiusRound}"
                                                     Padding="10,4,10,4">
-                                                <TextBlock Text="Code"
+                                                <TextBlock x:Uid="HwAdvisor_Code" Text="Code"
                                                            Style="{StaticResource BadgeStyle}"
                                                            Foreground="{ThemeResource InfoBrush}" />
                                             </Border>
@@ -553,7 +553,7 @@
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <FontIcon Glyph="&#xE73E;" FontSize="12"
                                                               Foreground="{ThemeResource SuccessBrush}" />
-                                                    <TextBlock Text="Installed"
+                                                    <TextBlock x:Uid="HwAdvisor_Installed2" Text="Installed"
                                                                FontSize="12" FontWeight="SemiBold"
                                                                Foreground="{ThemeResource SuccessBrush}" />
                                                 </StackPanel>
@@ -567,7 +567,7 @@
                                                     Click="OnInstallModelClick">
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <FontIcon Glyph="&#xE896;" FontSize="12" />
-                                                    <TextBlock Text="Install" FontSize="12" />
+                                                    <TextBlock x:Uid="HwAdvisor_Install2" Text="Install" FontSize="12" />
                                                 </StackPanel>
                                             </Button>
                                         </Grid>
@@ -584,7 +584,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xF168;" FontSize="16"
                                   Foreground="{ThemeResource SuccessBrush}" />
-                        <TextBlock Text="Embedding Models"
+                        <TextBlock x:Uid="HwAdvisor_EmbeddingModels" Text="Embedding Models"
                                    Style="{StaticResource HeadingSmallStyle}" />
                         <Border Style="{StaticResource BadgeDefaultStyle}"
                                 VerticalAlignment="Center">
@@ -618,7 +618,7 @@
                                                     Background="{ThemeResource SuccessSubtleBrush}"
                                                     CornerRadius="{StaticResource RadiusRound}"
                                                     Padding="10,4,10,4">
-                                                <TextBlock Text="Embedding"
+                                                <TextBlock x:Uid="HwAdvisor_Embedding" Text="Embedding"
                                                            Style="{StaticResource BadgeStyle}"
                                                            Foreground="{ThemeResource SuccessBrush}" />
                                             </Border>
@@ -654,7 +654,7 @@
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <FontIcon Glyph="&#xE73E;" FontSize="12"
                                                               Foreground="{ThemeResource SuccessBrush}" />
-                                                    <TextBlock Text="Installed"
+                                                    <TextBlock x:Uid="HwAdvisor_Installed3" Text="Installed"
                                                                FontSize="12" FontWeight="SemiBold"
                                                                Foreground="{ThemeResource SuccessBrush}" />
                                                 </StackPanel>
@@ -668,7 +668,7 @@
                                                     Click="OnInstallModelClick">
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <FontIcon Glyph="&#xE896;" FontSize="12" />
-                                                    <TextBlock Text="Install" FontSize="12" />
+                                                    <TextBlock x:Uid="HwAdvisor_Install3" Text="Install" FontSize="12" />
                                                 </StackPanel>
                                             </Button>
                                         </Grid>
@@ -692,8 +692,8 @@
                               Foreground="{ThemeResource SuccessBrush}" />
                     <TextBlock Style="{StaticResource BodySmallStyle}"
                                Foreground="{ThemeResource TextTertiaryBrush}">
-                        <Run Text="Local AI Only" FontWeight="SemiBold" Foreground="{ThemeResource TextSecondaryBrush}" />
-                        <Run Text=" — All models run entirely on your hardware. No data is sent to external servers. Your hardware information never leaves this machine." />
+                        <Run x:Uid="HwAdvisor_LocalAiOnly" Text="Local AI Only" FontWeight="SemiBold" Foreground="{ThemeResource TextSecondaryBrush}" />
+                        <Run x:Uid="HwAdvisor_AllModelsRunEntirely" Text=" — All models run entirely on your hardware. No data is sent to external servers. Your hardware information never leaves this machine." />
                     </TextBlock>
                 </StackPanel>
             </Border>

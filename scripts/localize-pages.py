@@ -3,12 +3,14 @@
 localize-pages.py
 =================
 
-Applies the 2026-07 page-localization changeset
-(scripts/translations/pages-l10n-2026-07/*.json) that retrofits x:Uid
-localization onto the six previously hardcoded-English pages:
+Applies an x:Uid localization changeset directory
+(scripts/translations/<changeset>/*.json) onto hardcoded-English XAML.
+Originally written for the six-page 2026-07 pass (pages-l10n-2026-07);
+now generalized — pass the changeset directory name as the first argument:
 
-  InboxPage, ComparisonPage, OperationsPage, AnalyticsPage,
-  SyncSettingsPage, OnboardingPage
+  python scripts/localize-pages.py app-l10n-2026-07
+
+(no argument = the original pages-l10n-2026-07 changeset).
 
 For every changeset entry the script:
 
@@ -38,7 +40,8 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 STRINGS_DIR = ROOT / "src" / "AgentX.App" / "Strings"
 TRANSLATIONS_DIR = ROOT / "scripts" / "translations"
-CHANGESET_DIR = TRANSLATIONS_DIR / "pages-l10n-2026-07"
+CHANGESET_NAME = sys.argv[1] if len(sys.argv) > 1 else "pages-l10n-2026-07"
+CHANGESET_DIR = TRANSLATIONS_DIR / CHANGESET_NAME
 
 LOCALES = ["en-US", "de", "es", "fr", "ja", "zh-CN"]
 LEGACY_JSON_LOCALES = ["de", "es", "fr", "ja", "zh-CN"]
@@ -55,15 +58,24 @@ RESW_PROP = {
     "PlaceholderText": "PlaceholderText",
     "OnContent": "OnContent",
     "OffContent": "OffContent",
+    "Title": "Title",
+    "PaneTitle": "PaneTitle",
+    "PrimaryButtonText": "PrimaryButtonText",
+    "SecondaryButtonText": "SecondaryButtonText",
+    "CloseButtonText": "CloseButtonText",
     "ToolTipService.ToolTip": "ToolTipService.ToolTip",
     "AutomationProperties.Name": "[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name",
 }
 
 
 def xml_unescape(s: str) -> str:
+    # Numeric character references first (&#x2014; / &#8212;), then named
+    # entities; &amp; last so escaped ampersands round-trip correctly.
+    s = re.sub(r"&#x([0-9A-Fa-f]+);", lambda m: chr(int(m.group(1), 16)), s)
+    s = re.sub(r"&#([0-9]+);", lambda m: chr(int(m.group(1))), s)
     return (s.replace("&lt;", "<").replace("&gt;", ">")
              .replace("&quot;", '"').replace("&apos;", "'")
-             .replace("&#39;", "'").replace("&amp;", "&"))
+             .replace("&amp;", "&"))
 
 
 def xml_escape(s: str) -> str:
@@ -130,8 +142,7 @@ def append_resw(locale: str, entries: dict[str, dict[str, str]]) -> int:
         lines.append(f'  <data name="{name}" xml:space="preserve"><value>{value}</value></data>')
     if not lines:
         return 0
-    block = ("\n  <!-- Page localization pass 2026-07: Smart Inbox / Comparison / "
-             "Operations / Analytics / Collaborative Sync / Onboarding -->\n"
+    block = (f"\n  <!-- Localization changeset: {CHANGESET_NAME} -->\n"
              + "\n".join(lines) + "\n")
     if "</root>" not in text:
         raise RuntimeError(f"No </root> in {resw}")

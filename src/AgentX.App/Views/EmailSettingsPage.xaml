@@ -34,10 +34,10 @@
                  ROW 0: PAGE HEADER
                  ========================================================== -->
             <StackPanel Grid.Row="0" Spacing="4">
-                <TextBlock Text="Email Connector"
+                <TextBlock x:Uid="EmailSet_EmailConnector" Text="Email Connector"
                            Style="{StaticResource DisplaySmallStyle}"
                            AutomationProperties.HeadingLevel="Level1"/>
-                <TextBlock Text="Sync Gmail and Outlook emails into your knowledge vault for AI-powered search and triage."
+                <TextBlock x:Uid="EmailSet_SyncGmailAndOutlook" Text="Sync Gmail and Outlook emails into your knowledge vault for AI-powered search and triage."
                            Style="{StaticResource BodySecondaryStyle}"/>
             </StackPanel>
 
@@ -45,7 +45,7 @@
                  ROW 1: ERROR BAR
                  ========================================================== -->
             <InfoBar Grid.Row="1"
-                     Title="Error"
+                     x:Uid="EmailSet_Error" Title="Error"
                      Severity="Error"
                      IsOpen="{x:Bind ViewModel.HasError, Mode=OneWay}"
                      Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
@@ -56,7 +56,7 @@
                  ========================================================== -->
             <Border Grid.Row="2" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
-                    <TextBlock Text="Connected Accounts"
+                    <TextBlock x:Uid="EmailSet_ConnectedAccounts" Text="Connected Accounts"
                                Style="{StaticResource HeadingSmallStyle}"
                                AutomationProperties.HeadingLevel="Level2"/>
 
@@ -79,13 +79,13 @@
                                        Style="{StaticResource BodySecondaryStyle}"/>
                         </StackPanel>
                         <Button Grid.Column="2"
-                                Content="Connect"
+                                x:Uid="EmailSet_Connect" Content="Connect"
                                 Command="{x:Bind ViewModel.ConnectGoogleCommand, Mode=OneWay}"
                                 Visibility="{x:Bind ViewModel.IsGoogleConnected, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}"
                                 Style="{StaticResource AccentButtonStyle}"
                                 MinWidth="120"/>
                         <Button Grid.Column="2"
-                                Content="Disconnect"
+                                x:Uid="EmailSet_Disconnect" Content="Disconnect"
                                 Click="OnDisconnectGoogleClick"
                                 Visibility="{x:Bind ViewModel.IsGoogleConnected, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
                                 Style="{StaticResource SecondaryButtonStyle}"
@@ -105,19 +105,19 @@
                                   FontSize="24"
                                   Foreground="{ThemeResource TextSecondaryBrush}"/>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                            <TextBlock Text="Outlook Email"
+                            <TextBlock x:Uid="EmailSet_OutlookEmail" Text="Outlook Email"
                                        Style="{StaticResource BodyStrongStyle}"/>
                             <TextBlock Text="{x:Bind ViewModel.MicrosoftStatusText, Mode=OneWay}"
                                        Style="{StaticResource BodySecondaryStyle}"/>
                         </StackPanel>
                         <Button Grid.Column="2"
-                                Content="Connect"
+                                x:Uid="EmailSet_Connect2" Content="Connect"
                                 Command="{x:Bind ViewModel.ConnectMicrosoftCommand, Mode=OneWay}"
                                 Visibility="{x:Bind ViewModel.IsMicrosoftConnected, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}"
                                 Style="{StaticResource AccentButtonStyle}"
                                 MinWidth="120"/>
                         <Button Grid.Column="2"
-                                Content="Disconnect"
+                                x:Uid="EmailSet_Disconnect2" Content="Disconnect"
                                 Click="OnDisconnectMicrosoftClick"
                                 Visibility="{x:Bind ViewModel.IsMicrosoftConnected, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
                                 Style="{StaticResource SecondaryButtonStyle}"
@@ -131,16 +131,16 @@
                  ========================================================== -->
             <Border Grid.Row="3" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
-                    <TextBlock Text="Sync Settings"
+                    <TextBlock x:Uid="EmailSet_SyncSettings" Text="Sync Settings"
                                Style="{StaticResource HeadingSmallStyle}"
                                AutomationProperties.HeadingLevel="Level2"/>
 
-                    <ToggleSwitch Header="Email sync"
+                    <ToggleSwitch x:Uid="EmailSet_EmailSync" Header="Email sync"
                                   IsOn="{x:Bind ViewModel.EnableEmailSync, Mode=TwoWay}"
                                   OffContent="Off" OnContent="On"/>
 
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Sync interval (minutes)"
+                        <TextBlock x:Uid="EmailSet_SyncIntervalMinutes" Text="Sync interval (minutes)"
                                    Style="{StaticResource LabelStyle}"/>
                         <ComboBox ItemsSource="{x:Bind ViewModel.SyncIntervalOptions, Mode=OneWay}"
                                   SelectedIndex="{x:Bind ViewModel.SyncIntervalIndex, Mode=TwoWay}"
@@ -148,7 +148,7 @@
                     </StackPanel>
 
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Max messages per sync"
+                        <TextBlock x:Uid="EmailSet_MaxMessagesPerSync" Text="Max messages per sync"
                                    Style="{StaticResource LabelStyle}"/>
                         <NumberBox Value="{x:Bind ViewModel.MaxMessagesPerSync, Mode=TwoWay}"
                                    Minimum="1" Maximum="500"
@@ -157,7 +157,7 @@
                     </StackPanel>
 
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Sync days back"
+                        <TextBlock x:Uid="EmailSet_SyncDaysBack" Text="Sync days back"
                                    Style="{StaticResource LabelStyle}"/>
                         <NumberBox Value="{x:Bind ViewModel.SyncDaysBack, Mode=TwoWay}"
                                    Minimum="1" Maximum="365"
@@ -165,11 +165,11 @@
                                    MinWidth="200"/>
                     </StackPanel>
 
-                    <ToggleSwitch Header="AI email categorization"
+                    <ToggleSwitch x:Uid="EmailSet_AiEmailCategorization" Header="AI email categorization"
                                   IsOn="{x:Bind ViewModel.EnableAiCategorization, Mode=TwoWay}"
                                   OffContent="Off" OnContent="On"/>
 
-                    <ToggleSwitch Header="Include attachment names in search index"
+                    <ToggleSwitch x:Uid="EmailSet_IncludeAttachmentNamesIn" Header="Include attachment names in search index"
                                   IsOn="{x:Bind ViewModel.IncludeAttachmentNames, Mode=TwoWay}"
                                   OffContent="Exclude" OnContent="Include"/>
                 </StackPanel>
@@ -179,10 +179,10 @@
                  ROW 4: ACTIONS
                  ========================================================== -->
             <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="12">
-                <Button Content="Save Settings"
+                <Button x:Uid="EmailSet_SaveSettings" Content="Save Settings"
                         Command="{x:Bind ViewModel.SaveSettingsCommand, Mode=OneWay}"
                         Style="{StaticResource AccentButtonStyle}"/>
-                <Button Content="Sync Now"
+                <Button x:Uid="EmailSet_SyncNow" Content="Sync Now"
                         Command="{x:Bind ViewModel.SyncNowCommand, Mode=OneWay}"
                         Style="{StaticResource SecondaryButtonStyle}"/>
                 <ProgressBar IsIndeterminate="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
@@ -203,19 +203,19 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" Spacing="4">
-                        <TextBlock Text="Last synced"
+                        <TextBlock x:Uid="EmailSet_LastSynced" Text="Last synced"
                                    Style="{StaticResource LabelStyle}"/>
                         <TextBlock Text="{x:Bind ViewModel.LastSyncTime, Mode=OneWay}"
                                    Style="{StaticResource BodyStyle}"/>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Spacing="4">
-                        <TextBlock Text="Next sync"
+                        <TextBlock x:Uid="EmailSet_NextSync" Text="Next sync"
                                    Style="{StaticResource LabelStyle}"/>
                         <TextBlock Text="{x:Bind ViewModel.NextSyncTime, Mode=OneWay}"
                                    Style="{StaticResource BodyStyle}"/>
                     </StackPanel>
                     <StackPanel Grid.Column="2" Spacing="4">
-                        <TextBlock Text="Status"
+                        <TextBlock x:Uid="EmailSet_Status" Text="Status"
                                    Style="{StaticResource LabelStyle}"/>
                         <TextBlock Text="{x:Bind ViewModel.SyncStatusText, Mode=OneWay}"
                                    TextWrapping="Wrap"

@@ -39,12 +39,12 @@
                 <StackPanel Spacing="4">
                     <TextBlock Text="{x:Bind ViewModel.PageTitle, Mode=OneWay}"
                                Style="{StaticResource DisplaySmallStyle}" />
-                    <TextBlock Text="Manage your local AI models powered by Ollama."
+                    <TextBlock x:Uid="ModelMgr_ManageYourLocalAi" Text="Manage your local AI models powered by Ollama."
                                Style="{StaticResource BodySecondaryStyle}" />
                 </StackPanel>
 
                 <Button Grid.Column="1"
-                        Content="Refresh"
+                        x:Uid="ModelMgr_Refresh" Content="Refresh"
                         Style="{StaticResource SecondaryButtonStyle}"
                         Command="{x:Bind ViewModel.RefreshModelsCommand}"
                         VerticalAlignment="Center" />
@@ -83,7 +83,7 @@
                                               Foreground="{ThemeResource TextAccentBrush}" />
                                     <TextBlock Style="{StaticResource BadgeStyle}">
                                         <Run Text="{x:Bind ViewModel.TotalModels, Mode=OneWay}" />
-                                        <Run Text=" Models" />
+                                        <Run x:Uid="ModelMgr_Models" Text=" Models" />
                                     </TextBlock>
                                 </StackPanel>
                             </Border>
@@ -107,7 +107,7 @@
                             Command="{x:Bind ViewModel.OpenOllamaLibraryCommand}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE774;" FontSize="14" />
-                            <TextBlock Text="Browse Models" />
+                            <TextBlock x:Uid="ModelMgr_BrowseModels" Text="Browse Models" />
                         </StackPanel>
                     </Button>
                 </Grid>
@@ -123,10 +123,10 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE896;" FontSize="18"
                                       Foreground="{ThemeResource TextAccentBrush}" />
-                            <TextBlock Text="Pull New Model"
+                            <TextBlock x:Uid="ModelMgr_PullNewModel" Text="Pull New Model"
                                        Style="{StaticResource HeadingMediumStyle}" />
                         </StackPanel>
-                        <TextBlock Text="Enter a model name from the Ollama library to download it to your machine."
+                        <TextBlock x:Uid="ModelMgr_EnterAModelName" Text="Enter a model name from the Ollama library to download it to your machine."
                                    Style="{StaticResource BodySecondaryStyle}"
                                    Margin="28,0,0,0" />
                     </StackPanel>
@@ -140,7 +140,7 @@
                         </Grid.ColumnDefinitions>
 
                         <TextBox Style="{StaticResource InputTextBoxStyle}"
-                                 PlaceholderText="e.g., llama3.2, mistral, phi3, deepseek-r1"
+                                 x:Uid="ModelMgr_EGLlama32Ph" PlaceholderText="e.g., llama3.2, mistral, phi3, deepseek-r1"
                                  Text="{x:Bind ViewModel.DownloadModelName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  IsEnabled="{x:Bind ViewModel.IsDownloading, Mode=OneWay, Converter={StaticResource InverseBool}}" />
 
@@ -149,14 +149,14 @@
                                 Command="{x:Bind ViewModel.PullModelCommand}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE896;" FontSize="14" />
-                                <TextBlock Text="Pull Model" />
+                                <TextBlock x:Uid="ModelMgr_PullModel" Text="Pull Model" />
                             </StackPanel>
                         </Button>
 
                         <!-- Cancel button (visible during download) -->
                         <Button Grid.Column="2"
                                 Style="{StaticResource SecondaryButtonStyle}"
-                                Content="Cancel"
+                                x:Uid="ModelMgr_Cancel" Content="Cancel"
                                 Command="{x:Bind ViewModel.CancelDownloadCommand}"
                                 Visibility="{x:Bind ViewModel.IsDownloading, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
                     </Grid>
@@ -182,7 +182,7 @@
 
                     <!-- Common model suggestions -->
                     <StackPanel Spacing="10">
-                        <TextBlock Text="Popular models:"
+                        <TextBlock x:Uid="ModelMgr_PopularModels" Text="Popular models:"
                                    Style="{StaticResource LabelStyle}" />
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Button Style="{StaticResource GhostButtonStyle}"
@@ -271,7 +271,7 @@
             <StackPanel Grid.Row="4" Spacing="16">
                 <!-- Section heading with count -->
                 <StackPanel Orientation="Horizontal" Spacing="12">
-                    <TextBlock Text="Installed Models"
+                    <TextBlock x:Uid="ModelMgr_InstalledModels" Text="Installed Models"
                                Style="{StaticResource HeadingMediumStyle}" />
                     <Border Style="{StaticResource BadgeDefaultStyle}"
                             VerticalAlignment="Center">
@@ -289,7 +289,7 @@
                     <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
                                   Width="40" Height="40"
                                   Foreground="{ThemeResource AccentPrimaryBrush}" />
-                    <TextBlock Text="Loading models..."
+                    <TextBlock x:Uid="ModelMgr_LoadingModels" Text="Loading models..."
                                Style="{StaticResource BodySecondaryStyle}"
                                HorizontalAlignment="Center" />
                 </StackPanel>
@@ -329,7 +329,7 @@
                                                 CornerRadius="{StaticResource RadiusRound}"
                                                 Padding="10,3,10,3"
                                                 Visibility="{x:Bind IsActive, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                                            <TextBlock Text="ACTIVE"
+                                            <TextBlock x:Uid="ModelMgr_Active" Text="ACTIVE"
                                                        FontSize="10" FontWeight="Bold"
                                                        Foreground="{ThemeResource SuccessBrush}"
                                                        CharacterSpacing="60" />
@@ -344,12 +344,12 @@
                                                 Tag="{x:Bind Id, Mode=OneWay}"
                                                 Click="OnSetActiveModelClick"
                                                 IsEnabled="{x:Bind IsActive, Mode=OneWay, Converter={StaticResource InverseBool}}">
-                                            <TextBlock Text="Set Active" FontSize="12" FontWeight="SemiBold" />
+                                            <TextBlock x:Uid="ModelMgr_SetActive" Text="Set Active" FontSize="12" FontWeight="SemiBold" />
                                         </Button>
                                         <Button Style="{StaticResource GhostButtonStyle}"
                                                 Padding="12,8,12,8" MinHeight="34"
                                                 Tag="{x:Bind Name, Mode=OneWay}"
-                                                ToolTipService.ToolTip="Copy model name"
+                                                x:Uid="ModelMgr_CopyModelNameTip" ToolTipService.ToolTip="Copy model name"
                                                 AutomationProperties.Name="Copy model name"
                                                 Click="OnCopyModelNameClick">
                                             <FontIcon Glyph="&#xE8C8;" FontSize="14"
@@ -358,7 +358,7 @@
                                         <Button Style="{StaticResource GhostButtonStyle}"
                                                 Padding="12,8,12,8" MinHeight="34"
                                                 Tag="{x:Bind Id, Mode=OneWay}"
-                                                ToolTipService.ToolTip="Delete model"
+                                                x:Uid="ModelMgr_DeleteModelTip" ToolTipService.ToolTip="Delete model"
                                                 AutomationProperties.Name="Delete model"
                                                 Click="OnDeleteModelClick">
                                             <FontIcon Glyph="&#xE74D;" FontSize="14"
@@ -400,7 +400,7 @@
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <TextBlock Text="{x:Bind ParameterCountFormatted, Mode=OneWay}"
                                                            Style="{StaticResource BadgeStyle}" />
-                                                <TextBlock Text="params"
+                                                <TextBlock x:Uid="ModelMgr_Params" Text="params"
                                                            Style="{StaticResource BadgeStyle}"
                                                            Foreground="{ThemeResource TextTertiaryBrush}" />
                                             </StackPanel>
@@ -411,7 +411,7 @@
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <TextBlock Text="{x:Bind ContextLengthFormatted, Mode=OneWay}"
                                                            Style="{StaticResource BadgeStyle}" />
-                                                <TextBlock Text="ctx"
+                                                <TextBlock x:Uid="ModelMgr_Ctx" Text="ctx"
                                                            Style="{StaticResource BadgeStyle}"
                                                            Foreground="{ThemeResource TextTertiaryBrush}" />
                                             </StackPanel>
@@ -422,7 +422,7 @@
                                     <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
                                                 Orientation="Horizontal" Spacing="16">
                                         <StackPanel Orientation="Horizontal" Spacing="6">
-                                            <TextBlock Text="Digest:"
+                                            <TextBlock x:Uid="ModelMgr_Digest" Text="Digest:"
                                                        Style="{StaticResource CaptionStyle}" />
                                             <TextBlock Text="{x:Bind DigestShort, Mode=OneWay}"
                                                        Style="{StaticResource MonoSmallStyle}" />
@@ -449,11 +449,11 @@
                         <FontIcon Glyph="&#xE964;" FontSize="40"
                                   Foreground="{ThemeResource TextTertiaryBrush}"
                                   HorizontalAlignment="Center" />
-                        <TextBlock Text="No models installed"
+                        <TextBlock x:Uid="ModelMgr_NoModelsInstalled" Text="No models installed"
                                    Style="{StaticResource HeadingSmallStyle}"
                                    HorizontalAlignment="Center"
                                    Foreground="{ThemeResource TextSecondaryBrush}" />
-                        <TextBlock Text="Pull a model from the Ollama library to get started. Popular choices include llama3.2, mistral, and phi3."
+                        <TextBlock x:Uid="ModelMgr_PullAModelFrom" Text="Pull a model from the Ollama library to get started. Popular choices include llama3.2, mistral, and phi3."
                                    Style="{StaticResource BodySecondaryStyle}"
                                    TextAlignment="Center"
                                    MaxWidth="400"

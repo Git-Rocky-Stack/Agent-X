@@ -906,4 +906,1059 @@
   <data name="Onb_GetStartedBtn.Content" xml:space="preserve"><value>始める</value></data>
   <data name="Onb_NextBtn.Content" xml:space="preserve"><value>次へ</value></data>
   <data name="Onb_LaunchBtn.Content" xml:space="preserve"><value>Agent-X を起動</value></data>
+
+  <!-- Localization changeset: app-l10n-2026-07 -->
+  <data name="Main_Intelligence.Content" xml:space="preserve"><value>インテリジェンス</value></data>
+  <data name="Main_Dashboard.Content" xml:space="preserve"><value>ダッシュボード</value></data>
+  <data name="Main_Operations.Content" xml:space="preserve"><value>Operations(運用状況)</value></data>
+  <data name="Main_WeeklyDigest.Content" xml:space="preserve"><value>週次ダイジェスト</value></data>
+  <data name="Main_Analytics.Content" xml:space="preserve"><value>Analytics(分析)</value></data>
+  <data name="Main_PastSelf.Content" xml:space="preserve"><value>Past Self</value></data>
+  <data name="Main_AiChat.Content" xml:space="preserve"><value>AI Chat</value></data>
+  <data name="Main_AskYourFiles.Content" xml:space="preserve"><value>ファイルに質問する</value></data>
+  <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
+  <data name="Main_Workflows.Content" xml:space="preserve"><value>ワークフロー</value></data>
+  <data name="Main_Knowledge.Content" xml:space="preserve"><value>ナレッジ</value></data>
+  <data name="Main_KnowledgeVault.Content" xml:space="preserve"><value>Knowledge Vault</value></data>
+  <data name="Main_WebImport.Content" xml:space="preserve"><value>Web インポート</value></data>
+  <data name="Main_Collections.Content" xml:space="preserve"><value>コレクション</value></data>
+  <data name="Main_SemanticSearch.Content" xml:space="preserve"><value>セマンティック検索</value></data>
+  <data name="Main_KnowledgeGraph.Content" xml:space="preserve"><value>ナレッジ グラフ</value></data>
+  <data name="Main_CompareDocuments.Content" xml:space="preserve"><value>ドキュメント比較</value></data>
+  <data name="Main_Triage.Content" xml:space="preserve"><value>仕分け</value></data>
+  <data name="Main_SmartInbox.Content" xml:space="preserve"><value>Smart Inbox</value></data>
+  <data name="Main_System.Content" xml:space="preserve"><value>システム</value></data>
+  <data name="Main_ModelManager.Content" xml:space="preserve"><value>モデル マネージャー</value></data>
+  <data name="Main_HardwareAdvisor.Content" xml:space="preserve"><value>ハードウェア アドバイザー</value></data>
+  <data name="Main_BackupRestore.Content" xml:space="preserve"><value>バックアップと復元</value></data>
+  <data name="Main_WorkspaceProfiles.Content" xml:space="preserve"><value>ワークスペース プロファイル</value></data>
+  <data name="Main_PluginManager.Content" xml:space="preserve"><value>プラグイン マネージャー</value></data>
+  <data name="Main_CollaborativeSync.Content" xml:space="preserve"><value>Collaborative Sync(コラボ同期)</value></data>
+  <data name="Main_Calendar.Content" xml:space="preserve"><value>カレンダー</value></data>
+  <data name="Main_Email.Content" xml:space="preserve"><value>メール</value></data>
+  <data name="Main_Annotations.Content" xml:space="preserve"><value>注釈</value></data>
+  <data name="Main_Support.Content" xml:space="preserve"><value>サポート</value></data>
+  <data name="Main_UserGuide.Content" xml:space="preserve"><value>ユーザー ガイド</value></data>
+  <data name="Main_PrivacyPolicy.Content" xml:space="preserve"><value>プライバシー ポリシー</value></data>
+  <data name="Main_TermsOfService.Content" xml:space="preserve"><value>利用規約</value></data>
+  <data name="Main_Settings.Content" xml:space="preserve"><value>設定</value></data>
+  <data name="Main_Initializing.Text" xml:space="preserve"><value>初期化しています...</value></data>
+  <data name="Main_OpenAgentX.Text" xml:space="preserve"><value>Agent-X を開く</value></data>
+  <data name="Main_QuickChat.Text" xml:space="preserve"><value>クイック チャット</value></data>
+  <data name="Main_Settings2.Text" xml:space="preserve"><value>設定</value></data>
+  <data name="Main_Exit.Text" xml:space="preserve"><value>終了</value></data>
+  <data name="Dash_Title.Text" xml:space="preserve"><value>ダッシュボード</value></data>
+  <data name="Dash_Subtitle.Text" xml:space="preserve"><value>あなた専用のプライベート AI インテリジェンス センター。すべてお使いのマシン上で動作します。</value></data>
+  <data name="Dash_RefreshBtn.Content" xml:space="preserve"><value>更新</value></data>
+  <data name="Dash_ConnectOllamaHint.Text" xml:space="preserve"><value>Ollama に接続すると、AI チャット、セマンティック検索、ファイル インテリジェンスが利用できます。</value></data>
+  <data name="Dash_SetupAiBtn.Content" xml:space="preserve"><value>AI をセットアップ</value></data>
+  <data name="Dash_SearchBox.PlaceholderText" xml:space="preserve"><value>Knowledge Vault を検索...  (Ctrl+K)</value></data>
+  <data name="Dash_DocsOverline.Text" xml:space="preserve"><value>ドキュメント</value></data>
+  <data name="Dash_AcrossRun.Text" xml:space="preserve"><value> / </value></data>
+  <data name="Dash_CollectionsRun.Text" xml:space="preserve"><value> コレクション</value></data>
+  <data name="Dash_StorageOverline.Text" xml:space="preserve"><value>ストレージ</value></data>
+  <data name="Dash_AiSessionsOverline.Text" xml:space="preserve"><value>AI セッション</value></data>
+  <data name="Dash_TokensUsedRun.Text" xml:space="preserve"><value> トークン使用</value></data>
+  <data name="Dash_SystemOverline.Text" xml:space="preserve"><value>システム</value></data>
+  <data name="Dash_OpsOverviewTitle.Text" xml:space="preserve"><value>Operations の概要</value></data>
+  <data name="Dash_OpsOverviewSubtitle.Text" xml:space="preserve"><value>会話インテリジェンス、同期状態、コネクタ、取り込みバックログ、ワークフロー アクティビティを 1 つの画面で確認できます。</value></data>
+  <data name="Dash_OpenOperationsBtn.Content" xml:space="preserve"><value>Operations を開く</value></data>
+  <data name="Dash_ConvIntelOverline.Text" xml:space="preserve"><value>会話インテリジェンス</value></data>
+  <data name="Dash_OpenAnalyticsBtn.Content" xml:space="preserve"><value>Analytics を開く</value></data>
+  <data name="Dash_SyncHealthOverline.Text" xml:space="preserve"><value>同期の状態</value></data>
+  <data name="Dash_OpenSyncBtn.Content" xml:space="preserve"><value>同期設定を開く</value></data>
+  <data name="Dash_ConnectorsOverline.Text" xml:space="preserve"><value>コネクタとプラグイン</value></data>
+  <data name="Dash_OpenPluginsBtn.Content" xml:space="preserve"><value>プラグインを開く</value></data>
+  <data name="Dash_IngestionOverline.Text" xml:space="preserve"><value>取り込みバックログ</value></data>
+  <data name="Dash_OpenInboxBtn.Content" xml:space="preserve"><value>受信トレイを開く</value></data>
+  <data name="Dash_WorkflowOverline.Text" xml:space="preserve"><value>ワークフロー アクティビティ</value></data>
+  <data name="Dash_OpenWorkflowsBtn.Content" xml:space="preserve"><value>ワークフローを開く</value></data>
+  <data name="Dash_RecentDocsTitle.Text" xml:space="preserve"><value>最近のドキュメント</value></data>
+  <data name="Dash_ViewAllDocsBtn.Content" xml:space="preserve"><value>すべて表示</value></data>
+  <data name="Dash_NoDocsTitle.Text" xml:space="preserve"><value>インポートされたドキュメントはまだありません</value></data>
+  <data name="Dash_NoDocsHint.Text" xml:space="preserve"><value>ファイルをインポートして Knowledge Vault の構築を始めましょう</value></data>
+  <data name="Dash_RecentConvTitle.Text" xml:space="preserve"><value>最近の会話</value></data>
+  <data name="Dash_ViewAllConvBtn.Content" xml:space="preserve"><value>すべて表示</value></data>
+  <data name="Dash_NoConvTitle.Text" xml:space="preserve"><value>会話はまだありません</value></data>
+  <data name="Dash_NoConvHint.Text" xml:space="preserve"><value>チャットを開始すると、ここに会話が表示されます</value></data>
+  <data name="Dash_MsgsRun.Text" xml:space="preserve"><value> 件</value></data>
+  <data name="Dash_FileTypesTitle.Text" xml:space="preserve"><value>ファイル タイプの分布</value></data>
+  <data name="Dash_NoDataYet.Text" xml:space="preserve"><value>データはまだありません</value></data>
+  <data name="Dash_TopCollectionsTitle.Text" xml:space="preserve"><value>上位コレクション</value></data>
+  <data name="Dash_NoCollectionsYet.Text" xml:space="preserve"><value>コレクションはまだありません</value></data>
+  <data name="Dash_BeliefTitle.Text" xml:space="preserve"><value>信念の変化</value></data>
+  <data name="Dash_MagnitudeRun.Text" xml:space="preserve"><value>変化の大きさ: </value></data>
+  <data name="Dash_PreviouslyRun.Text" xml:space="preserve"><value>以前: </value></data>
+  <data name="Dash_CurrentlyRun.Text" xml:space="preserve"><value>現在: </value></data>
+  <data name="Dash_NoBeliefTitle.Text" xml:space="preserve"><value>信念の変化はまだ検出されていません。</value></data>
+  <data name="Dash_NoBeliefHint.Text" xml:space="preserve"><value>アプリを使ううちに、トピックに対する見方の変化が時間とともに記録されていきます。</value></data>
+  <data name="Dash_ExplorePastSelfBtn.Content" xml:space="preserve"><value>Past Self を見る</value></data>
+  <data name="Dash_NextStepsTitle.Text" xml:space="preserve"><value>推奨される次のステップ</value></data>
+  <data name="Dash_NextStepsSubtitle.Text" xml:space="preserve"><value>現在の AI の準備状況、取り込み量、同期状態、ワークフローの勢いに基づく、効果の高いアクションです。</value></data>
+  <data name="Dash_NewChatLabel.Text" xml:space="preserve"><value>新しいチャット</value></data>
+  <data name="Dash_ImportFilesLabel.Text" xml:space="preserve"><value>ファイルをインポート</value></data>
+  <data name="Dash_SearchLabel.Text" xml:space="preserve"><value>検索</value></data>
+  <data name="Dash_AskFilesLabel.Text" xml:space="preserve"><value>ファイルに質問</value></data>
+  <data name="Dash_AvailableRamLabel.Text" xml:space="preserve"><value>利用可能な RAM</value></data>
+  <data name="Dash_VaultStorageLabel.Text" xml:space="preserve"><value>Vault ストレージ</value></data>
+  <data name="Chat_MsgsLabel.Text" xml:space="preserve"><value>件</value></data>
+  <data name="Chat_InspectContextTip.ToolTipService.ToolTip" xml:space="preserve"><value>この応答に使われた完全なコンテキストを確認</value></data>
+  <data name="Chat_ContextUsedLabel.Text" xml:space="preserve"><value>使用されたコンテキスト</value></data>
+  <data name="Chat_ConversationsTitle.Text" xml:space="preserve"><value>会話</value></data>
+  <data name="Chat_NewConversationTip.ToolTipService.ToolTip" xml:space="preserve"><value>新しい会話</value></data>
+  <data name="Chat_NewLabel.Text" xml:space="preserve"><value>新規</value></data>
+  <data name="Chat_SearchConvBox.PlaceholderText" xml:space="preserve"><value>会話を検索...</value></data>
+  <data name="Chat_AllFilterBtn.Content" xml:space="preserve"><value>すべて</value></data>
+  <data name="Chat_BranchesHeader.Header" xml:space="preserve"><value>ブランチ</value></data>
+  <data name="Chat_MergeToMainTip.ToolTipService.ToolTip" xml:space="preserve"><value>メインにマージ</value></data>
+  <data name="Chat_DeleteBranchTip.ToolTipService.ToolTip" xml:space="preserve"><value>ブランチを削除</value></data>
+  <data name="Chat_ConversationsCountRun.Text" xml:space="preserve"><value>件の会話</value></data>
+  <data name="Chat_ToggleSidebarBtn.ToolTipService.ToolTip" xml:space="preserve"><value>サイドバーの表示切替</value></data>
+  <data name="Chat_ToggleSidebarBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>サイドバーの表示切替</value></data>
+  <data name="Chat_SelectModelBox.PlaceholderText" xml:space="preserve"><value>モデルを選択...</value></data>
+  <data name="Chat_SystemPromptTip.ToolTipService.ToolTip" xml:space="preserve"><value>システム プロンプト</value></data>
+  <data name="Chat_SystemPromptTitle.Text" xml:space="preserve"><value>システム プロンプト</value></data>
+  <data name="Chat_SystemPromptHint.Text" xml:space="preserve"><value>この会話での AI の振る舞いと性格を設定します。</value></data>
+  <data name="Chat_NoSystemPrompt.Text" xml:space="preserve"><value>システム プロンプトなし</value></data>
+  <data name="Chat_AssignFolderTip.ToolTipService.ToolTip" xml:space="preserve"><value>フォルダーを割り当て</value></data>
+  <data name="Chat_MoveToFolderTitle.Text" xml:space="preserve"><value>フォルダーへ移動</value></data>
+  <data name="Chat_NoFolderItem.Content" xml:space="preserve"><value>なし(フォルダーを解除)</value></data>
+  <data name="Chat_FolderWork.Content" xml:space="preserve"><value>仕事</value></data>
+  <data name="Chat_FolderResearch.Content" xml:space="preserve"><value>リサーチ</value></data>
+  <data name="Chat_FolderPersonal.Content" xml:space="preserve"><value>プライベート</value></data>
+  <data name="Chat_FolderArchive.Content" xml:space="preserve"><value>アーカイブ</value></data>
+  <data name="Chat_CustomFolderBox.PlaceholderText" xml:space="preserve"><value>カスタム フォルダー名...</value></data>
+  <data name="Chat_TokLabel.Text" xml:space="preserve"><value>トークン</value></data>
+  <data name="Chat_CompareBranchesBtn.ToolTipService.ToolTip" xml:space="preserve"><value>ブランチを比較</value></data>
+  <data name="Chat_CompareBranchesBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>ブランチを比較</value></data>
+  <data name="Chat_RefreshConnBtn.ToolTipService.ToolTip" xml:space="preserve"><value>接続を更新</value></data>
+  <data name="Chat_RefreshConnBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>接続を更新</value></data>
+  <data name="Chat_ExportConvBtn.ToolTipService.ToolTip" xml:space="preserve"><value>会話をエクスポート</value></data>
+  <data name="Chat_ExportConvBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>会話をエクスポート</value></data>
+  <data name="Chat_RefreshSummaryTip.ToolTipService.ToolTip" xml:space="preserve"><value>この会話の永続的な要約を更新</value></data>
+  <data name="Chat_OpenInspectorTip.ToolTipService.ToolTip" xml:space="preserve"><value>コンテキスト インスペクターを開く</value></data>
+  <data name="Chat_InspectContextLabel.Text" xml:space="preserve"><value>コンテキストを確認</value></data>
+  <data name="Chat_EmptyTitle.Text" xml:space="preserve"><value>会話を始めましょう</value></data>
+  <data name="Chat_EmptyHint.Text" xml:space="preserve"><value>Ollama によるローカル AI モデルとチャットできます。メッセージはこのデバイスに保存され、データが外部に送信されることはありません。</value></data>
+  <data name="Chat_PrivateBadge.Text" xml:space="preserve"><value>100% プライベート</value></data>
+  <data name="Chat_EnterToSend.Text" xml:space="preserve"><value>Enter で送信</value></data>
+  <data name="Chat_ShiftEnterNewLine.Text" xml:space="preserve"><value>Shift+Enter で改行</value></data>
+  <data name="Chat_CancelEditBtn.Content" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="Chat_SaveResendBtn.Content" xml:space="preserve"><value>保存して再送信</value></data>
+  <data name="Chat_EditMessageTip.ToolTipService.ToolTip" xml:space="preserve"><value>メッセージを編集</value></data>
+  <data name="Chat_CopyUserMsgTip.ToolTipService.ToolTip" xml:space="preserve"><value>クリップボードにコピー</value></data>
+  <data name="Chat_BranchFromHereTip.ToolTipService.ToolTip" xml:space="preserve"><value>ここから分岐</value></data>
+  <data name="Chat_DeleteUserMsgTip.ToolTipService.ToolTip" xml:space="preserve"><value>メッセージを削除</value></data>
+  <data name="Chat_GoodResponseTip.ToolTipService.ToolTip" xml:space="preserve"><value>良い応答</value></data>
+  <data name="Chat_PoorResponseTip.ToolTipService.ToolTip" xml:space="preserve"><value>悪い応答</value></data>
+  <data name="Chat_CopyAiMsgTip.ToolTipService.ToolTip" xml:space="preserve"><value>クリップボードにコピー</value></data>
+  <data name="Chat_RegenerateTip.ToolTipService.ToolTip" xml:space="preserve"><value>応答を再生成</value></data>
+  <data name="Chat_DeleteAiMsgTip.ToolTipService.ToolTip" xml:space="preserve"><value>メッセージを削除</value></data>
+  <data name="Chat_ContextInspectionTitle.Text" xml:space="preserve"><value>コンテキストの検査</value></data>
+  <data name="Chat_ContextStoryTitle.Text" xml:space="preserve"><value>コンテキスト ストーリー</value></data>
+  <data name="Chat_AssemblyOverviewTitle.Text" xml:space="preserve"><value>アセンブリの概要</value></data>
+  <data name="Chat_ModeRun.Text" xml:space="preserve"><value>モード: </value></data>
+  <data name="Chat_SelectedRun.Text" xml:space="preserve"><value>選択: </value></data>
+  <data name="Chat_AnchorsRun.Text" xml:space="preserve"><value> · アンカー: </value></data>
+  <data name="Chat_OverflowRun.Text" xml:space="preserve"><value>オーバーフロー: </value></data>
+  <data name="Chat_PromptEstRun.Text" xml:space="preserve"><value> · プロンプト推定: </value></data>
+  <data name="Chat_DurableSummaryTitle.Text" xml:space="preserve"><value>永続的な要約</value></data>
+  <data name="Chat_RefreshSummaryTip2.ToolTipService.ToolTip" xml:space="preserve"><value>この会話の永続的な要約を更新</value></data>
+  <data name="Chat_DurableRecallTitle.Text" xml:space="preserve"><value>永続リコール</value></data>
+  <data name="Chat_WhyThisContextTitle.Text" xml:space="preserve"><value>このコンテキストの理由</value></data>
+  <data name="Chat_CapturedRun.Text" xml:space="preserve"><value>取得: </value></data>
+  <data name="Chat_PromptRun.Text" xml:space="preserve"><value>プロンプト:</value></data>
+  <data name="Chat_MessageBox.PlaceholderText" xml:space="preserve"><value>Agent-X にメッセージ...</value></data>
+  <data name="Chat_VoiceInputTip.ToolTipService.ToolTip" xml:space="preserve"><value>音声入力 — クリックで録音</value></data>
+  <data name="Chat_StopRecordingTip.ToolTipService.ToolTip" xml:space="preserve"><value>録音を停止して文字起こし</value></data>
+  <data name="Chat_InspectAssembledTip.ToolTipService.ToolTip" xml:space="preserve"><value>最新のチャット コンテキストを確認</value></data>
+  <data name="Chat_ModeSolo.Text" xml:space="preserve"><value>ソロ</value></data>
+  <data name="Chat_ModeMulti.Text" xml:space="preserve"><value>マルチ</value></data>
+  <data name="Chat_ModeDebate.Text" xml:space="preserve"><value>ディベート</value></data>
+  <data name="Chat_SendBtn.ToolTipService.ToolTip" xml:space="preserve"><value>メッセージを送信 (Enter)</value></data>
+  <data name="Chat_SendBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>メッセージを送信</value></data>
+  <data name="Chat_StopGenBtn.ToolTipService.ToolTip" xml:space="preserve"><value>生成を停止</value></data>
+  <data name="Chat_StopGenBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>生成を停止</value></data>
+  <data name="AskFiles_Title.Text" xml:space="preserve"><value>ファイルに質問する</value></data>
+  <data name="AskFiles_Subtitle.Text" xml:space="preserve"><value>ドキュメントに基づく AI 回答。</value></data>
+  <data name="AskFiles_AllCollectionsBox.PlaceholderText" xml:space="preserve"><value>すべてのコレクション</value></data>
+  <data name="AskFiles_ClearConvBtn.ToolTipService.ToolTip" xml:space="preserve"><value>会話をクリア</value></data>
+  <data name="AskFiles_ClearConvBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>会話をクリア</value></data>
+  <data name="AskFiles_ClearLabel.Text" xml:space="preserve"><value>クリア</value></data>
+  <data name="AskFiles_EmptyTitle.Text" xml:space="preserve"><value>ドキュメントについて質問しましょう</value></data>
+  <data name="AskFiles_SearchPrefixRun.Text" xml:space="preserve"><value>AI が </value></data>
+  <data name="AskFiles_SearchSuffixRun.Text" xml:space="preserve"><value> 件のナレッジ チャンクを検索し、出典を示しながら回答します。</value></data>
+  <data name="AskFiles_RagBadge.Text" xml:space="preserve"><value>出典付きの RAG 回答</value></data>
+  <data name="AskFiles_TryAskingOverline.Text" xml:space="preserve"><value>質問の例</value></data>
+  <data name="AskFiles_Example1.Text" xml:space="preserve"><value>私のリサーチの主要な発見は何ですか?</value></data>
+  <data name="AskFiles_Example2.Text" xml:space="preserve"><value>会議メモの要点をまとめて</value></data>
+  <data name="AskFiles_Example3.Text" xml:space="preserve"><value>論文で扱われているアプローチを比較して</value></data>
+  <data name="AskFiles_EnterToSend.Text" xml:space="preserve"><value>Enter で送信</value></data>
+  <data name="AskFiles_QuestionBox.PlaceholderText" xml:space="preserve"><value>ドキュメントについて質問...</value></data>
+  <data name="AskFiles_SendBtn.ToolTipService.ToolTip" xml:space="preserve"><value>質問を送信 (Enter)</value></data>
+  <data name="AskFiles_SendBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>質問を送信</value></data>
+  <data name="AskFiles_SourcesTitle.Text" xml:space="preserve"><value>出典</value></data>
+  <data name="AskFiles_NoCitationsTitle.Text" xml:space="preserve"><value>引用はまだありません</value></data>
+  <data name="AskFiles_NoCitationsHint.Text" xml:space="preserve"><value>質問すると、ここに出典が表示されます。</value></data>
+  <data name="AskFiles_OpenSourceBtn.ToolTipService.ToolTip" xml:space="preserve"><value>元のドキュメントを開く</value></data>
+  <data name="AskFiles_OpenSourceBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>元のドキュメントを開く</value></data>
+  <data name="AskFiles_PageLabel.Text" xml:space="preserve"><value>ページ</value></data>
+  <data name="AskFiles_GroundedNote.Text" xml:space="preserve"><value>すべての回答はドキュメントに基づいています。</value></data>
+  <data name="Search_Title.Text" xml:space="preserve"><value>検索</value></data>
+  <data name="Search_Subtitle.Text" xml:space="preserve"><value>セマンティック AI、キーワード、またはその両方でドキュメント ライブラリ全体を検索します。</value></data>
+  <data name="Search_InputBox.PlaceholderText" xml:space="preserve"><value>ドキュメントを検索...</value></data>
+  <data name="Search_SearchBtn.ToolTipService.ToolTip" xml:space="preserve"><value>検索 (Enter)</value></data>
+  <data name="Search_SearchLabel.Text" xml:space="preserve"><value>検索</value></data>
+  <data name="Search_ClearBtn.ToolTipService.ToolTip" xml:space="preserve"><value>検索をクリア</value></data>
+  <data name="Search_ClearBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>検索をクリア</value></data>
+  <data name="Search_SearchModeOverline.Text" xml:space="preserve"><value>検索モード</value></data>
+  <data name="Search_ModeSemantic.Content" xml:space="preserve"><value>セマンティック</value></data>
+  <data name="Search_ModeSemantic.ToolTipService.ToolTip" xml:space="preserve"><value>AI 埋め込みによるベクトル類似検索</value></data>
+  <data name="Search_ModeKeyword.Content" xml:space="preserve"><value>キーワード</value></data>
+  <data name="Search_ModeKeyword.ToolTipService.ToolTip" xml:space="preserve"><value>BM25 ランキングによる全文キーワード検索</value></data>
+  <data name="Search_ModeHybrid.Content" xml:space="preserve"><value>ハイブリッド</value></data>
+  <data name="Search_ModeHybrid.ToolTipService.ToolTip" xml:space="preserve"><value>セマンティック検索とキーワード検索を組み合わせて最良の結果を取得</value></data>
+  <data name="Search_CollectionOverline.Text" xml:space="preserve"><value>コレクション</value></data>
+  <data name="Search_AdvancedBtn.ToolTipService.ToolTip" xml:space="preserve"><value>詳細検索フィルターの表示切り替え</value></data>
+  <data name="Search_AdvancedLabel.Text" xml:space="preserve"><value>詳細</value></data>
+  <data name="Search_FileTypeOverline.Text" xml:space="preserve"><value>ファイルの種類</value></data>
+  <data name="Search_FilterAllTypes.Content" xml:space="preserve"><value>すべての種類</value></data>
+  <data name="Search_FilterText.Text" xml:space="preserve"><value>テキスト</value></data>
+  <data name="Search_FilterCode.Text" xml:space="preserve"><value>コード</value></data>
+  <data name="Search_FilterCalendar.Text" xml:space="preserve"><value>カレンダー</value></data>
+  <data name="Search_FilterEmail.Text" xml:space="preserve"><value>メール</value></data>
+  <data name="Search_MinRelevanceOverline.Text" xml:space="preserve"><value>最小関連度</value></data>
+  <data name="Search_MaxResultsOverline.Text" xml:space="preserve"><value>最大結果数</value></data>
+  <data name="Search_ResetBtn.ToolTipService.ToolTip" xml:space="preserve"><value>すべての詳細フィルターをリセット</value></data>
+  <data name="Search_ResetLabel.Text" xml:space="preserve"><value>リセット</value></data>
+  <data name="Search_CreatedAfterOverline.Text" xml:space="preserve"><value>作成日 (以降)</value></data>
+  <data name="Search_CreatedAfterPicker.PlaceholderText" xml:space="preserve"><value>任意の日付</value></data>
+  <data name="Search_CreatedBeforeOverline.Text" xml:space="preserve"><value>作成日 (以前)</value></data>
+  <data name="Search_CreatedBeforePicker.PlaceholderText" xml:space="preserve"><value>任意の日付</value></data>
+  <data name="Search_SortRelevance.Content" xml:space="preserve"><value>関連度</value></data>
+  <data name="Search_SortNewest.Content" xml:space="preserve"><value>新しい順</value></data>
+  <data name="Search_SortOldest.Content" xml:space="preserve"><value>古い順</value></data>
+  <data name="Search_SortFileName.Content" xml:space="preserve"><value>ファイル名</value></data>
+  <data name="Search_SaveFilterBtn.ToolTipService.ToolTip" xml:space="preserve"><value>現在の検索をフィルターとして保存</value></data>
+  <data name="Search_SaveLabel.Text" xml:space="preserve"><value>保存</value></data>
+  <data name="Search_ResultsRun.Text" xml:space="preserve"><value>件の結果</value></data>
+  <data name="Search_EmptyTitle.Text" xml:space="preserve"><value>ドキュメントを検索しましょう</value></data>
+  <data name="Search_EmptyBody.Text" xml:space="preserve"><value>自然言語でドキュメント ライブラリ全体を検索できます。ベクトル埋め込みにより、単語が完全に一致しなくても意味的に類似したコンテンツが見つかります。</value></data>
+  <data name="Search_EnterToSearch.Text" xml:space="preserve"><value>Enter で検索</value></data>
+  <data name="Search_SemanticAiBadge.Text" xml:space="preserve"><value>セマンティック AI 検索</value></data>
+  <data name="Search_NoResultsTitle.Text" xml:space="preserve"><value>結果が見つかりません</value></data>
+  <data name="Search_NoResultsPrefixRun.Text" xml:space="preserve"><value>「</value></data>
+  <data name="Search_NoResultsSuffixRun.Text" xml:space="preserve"><value>」の結果は見つかりませんでした。キーワードを変更するか、フィルターを広げてください。</value></data>
+  <data name="Search_ClearFiltersBtn.Content" xml:space="preserve"><value>フィルターをクリア</value></data>
+  <data name="Search_RelevanceLabel.Text" xml:space="preserve"><value>関連度</value></data>
+  <data name="Search_PageRun.Text" xml:space="preserve"><value>ページ</value></data>
+  <data name="Search_ChunkRun.Text" xml:space="preserve"><value>チャンク</value></data>
+  <data name="Search_OpenBtn.ToolTipService.ToolTip" xml:space="preserve"><value>エクスプローラーで開く</value></data>
+  <data name="Search_OpenLabel.Text" xml:space="preserve"><value>開く</value></data>
+  <data name="Search_WorkflowBtn.ToolTipService.ToolTip" xml:space="preserve"><value>この結果をワークフローで使用</value></data>
+  <data name="Search_WorkflowLabel.Text" xml:space="preserve"><value>ワークフロー</value></data>
+  <data name="Search_HistoryTitle.Text" xml:space="preserve"><value>検索履歴</value></data>
+  <data name="Search_ClearHistoryBtn.ToolTipService.ToolTip" xml:space="preserve"><value>検索履歴をクリア</value></data>
+  <data name="Search_ClearHistoryLabel.Text" xml:space="preserve"><value>クリア</value></data>
+  <data name="Search_HistoryResultsRun.Text" xml:space="preserve"><value>件の結果</value></data>
+  <data name="Search_SavedFiltersTitle.Text" xml:space="preserve"><value>保存済みフィルター</value></data>
+  <data name="Search_ApplyFilterBtn.ToolTipService.ToolTip" xml:space="preserve"><value>このフィルターを適用</value></data>
+  <data name="Search_ApplyFilterBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>このフィルターを適用</value></data>
+  <data name="Search_RemoveFilterBtn.ToolTipService.ToolTip" xml:space="preserve"><value>保存済みフィルターを削除</value></data>
+  <data name="Search_RemoveFilterBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>保存済みフィルターを削除</value></data>
+  <data name="Search_RecentSearchesRun.Text" xml:space="preserve"><value>件の最近の検索</value></data>
+  <data name="Vault_ImportOrganizeAndIndex.Text" xml:space="preserve"><value>ドキュメントをインポート・整理・インデックス化して、AI 検索に活用しましょう。</value></data>
+  <data name="Vault_ImportFiles.Text" xml:space="preserve"><value>ファイルをインポート</value></data>
+  <data name="Vault_ImportFolder.Text" xml:space="preserve"><value>フォルダーをインポート</value></data>
+  <data name="Vault_ToggleMultiSelectModeTip.ToolTipService.ToolTip" xml:space="preserve"><value>複数選択モードの切り替え</value></data>
+  <data name="Vault_Select.Text" xml:space="preserve"><value>選択</value></data>
+  <data name="Vault_RefreshDocumentsTip.ToolTipService.ToolTip" xml:space="preserve"><value>ドキュメントを更新</value></data>
+  <data name="Vault_RefreshDocumentsTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>ドキュメントを更新</value></data>
+  <data name="Vault_DuplicateDocumentsDetected.Text" xml:space="preserve"><value>重複ドキュメントを検出しました</value></data>
+  <data name="Vault_SkipDuplicates.Content" xml:space="preserve"><value>重複をスキップ</value></data>
+  <data name="Vault_ImportAll.Content" xml:space="preserve"><value>すべてインポート</value></data>
+  <data name="Vault_Documents.Text" xml:space="preserve"><value>ドキュメント</value></data>
+  <data name="Vault_StorageUsed.Text" xml:space="preserve"><value>使用ストレージ</value></data>
+  <data name="Vault_InQueue.Text" xml:space="preserve"><value>キュー内</value></data>
+  <data name="Vault_FileType.Text" xml:space="preserve"><value>ファイルの種類</value></data>
+  <data name="Vault_All.Content" xml:space="preserve"><value>すべて</value></data>
+  <data name="Vault_Documents2.Text" xml:space="preserve"><value>ドキュメント</value></data>
+  <data name="Vault_Text.Text" xml:space="preserve"><value>テキスト</value></data>
+  <data name="Vault_Code.Text" xml:space="preserve"><value>コード</value></data>
+  <data name="Vault_Images.Text" xml:space="preserve"><value>画像</value></data>
+  <data name="Vault_Status.Text" xml:space="preserve"><value>状態</value></data>
+  <data name="Vault_All2.Content" xml:space="preserve"><value>すべて</value></data>
+  <data name="Vault_Completed.Text" xml:space="preserve"><value>完了</value></data>
+  <data name="Vault_Processing.Text" xml:space="preserve"><value>処理中</value></data>
+  <data name="Vault_Pending.Text" xml:space="preserve"><value>保留中</value></data>
+  <data name="Vault_Failed.Text" xml:space="preserve"><value>失敗</value></data>
+  <data name="Vault_Tags.Text" xml:space="preserve"><value>タグ</value></data>
+  <data name="Vault_Collection.Text" xml:space="preserve"><value>コレクション</value></data>
+  <data name="Vault_AllCollectionsPh.PlaceholderText" xml:space="preserve"><value>すべてのコレクション</value></data>
+  <data name="Vault_ImportedAfter.Text" xml:space="preserve"><value>インポート日 (以降)</value></data>
+  <data name="Vault_StartDatePh.PlaceholderText" xml:space="preserve"><value>開始日</value></data>
+  <data name="Vault_ImportedBefore.Text" xml:space="preserve"><value>インポート日 (以前)</value></data>
+  <data name="Vault_EndDatePh.PlaceholderText" xml:space="preserve"><value>終了日</value></data>
+  <data name="Vault_SortBy.Text" xml:space="preserve"><value>並べ替え</value></data>
+  <data name="Vault_DatePh.PlaceholderText" xml:space="preserve"><value>日付</value></data>
+  <data name="Vault_Date.Content" xml:space="preserve"><value>日付</value></data>
+  <data name="Vault_Name.Content" xml:space="preserve"><value>名前</value></data>
+  <data name="Vault_Size.Content" xml:space="preserve"><value>サイズ</value></data>
+  <data name="Vault_Type.Content" xml:space="preserve"><value>種類</value></data>
+  <data name="Vault_SearchDocumentsByNamePh.PlaceholderText" xml:space="preserve"><value>名前、内容、タグでドキュメントを検索...</value></data>
+  <data name="Vault_ClearAllFiltersTip.ToolTipService.ToolTip" xml:space="preserve"><value>すべてのフィルターをクリア</value></data>
+  <data name="Vault_ClearAllFiltersTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>すべてのフィルターをクリア</value></data>
+  <data name="Vault_ClearAll.Text" xml:space="preserve"><value>すべてクリア</value></data>
+  <data name="Vault_Selected.Text" xml:space="preserve"><value> 件選択中</value></data>
+  <data name="Vault_SelectAll.Content" xml:space="preserve"><value>すべて選択</value></data>
+  <data name="Vault_ReIndex.Text" xml:space="preserve"><value>再インデックス</value></data>
+  <data name="Vault_Delete.Text" xml:space="preserve"><value>削除</value></data>
+  <data name="Vault_DragAndDropFiles.Text" xml:space="preserve"><value>ここにファイルをドラッグ アンド ドロップ</value></data>
+  <data name="Vault_OrClickImportTo.Text" xml:space="preserve"><value>または [インポート] をクリックしてファイルを選択</value></data>
+  <data name="Vault_LoadingDocuments.Text" xml:space="preserve"><value>ドキュメントを読み込んでいます...</value></data>
+  <data name="Vault_Pages.Text" xml:space="preserve"><value>ページ</value></data>
+  <data name="Vault_Words.Text" xml:space="preserve"><value>語</value></data>
+  <data name="Vault_Chunks.Text" xml:space="preserve"><value>チャンク</value></data>
+  <data name="Vault_GenerateAiTitleTip.ToolTipService.ToolTip" xml:space="preserve"><value>AI タイトルを生成</value></data>
+  <data name="Vault_GenerateAiTitleTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>AI タイトルを生成</value></data>
+  <data name="Vault_AiTitle.Text" xml:space="preserve"><value>AI タイトル</value></data>
+  <data name="Vault_ViewDetailsTip.ToolTipService.ToolTip" xml:space="preserve"><value>詳細を表示</value></data>
+  <data name="Vault_Detail.Text" xml:space="preserve"><value>詳細</value></data>
+  <data name="Vault_UseThisDocumentInTip.ToolTipService.ToolTip" xml:space="preserve"><value>このドキュメントをワークフローで使用</value></data>
+  <data name="Vault_Workflow.Text" xml:space="preserve"><value>ワークフロー</value></data>
+  <data name="Vault_ReIndexDocumentTip.ToolTipService.ToolTip" xml:space="preserve"><value>ドキュメントを再インデックス</value></data>
+  <data name="Vault_ReIndexDocumentTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>ドキュメントを再インデックス</value></data>
+  <data name="Vault_OpenFileLocationTip.ToolTipService.ToolTip" xml:space="preserve"><value>ファイルの場所を開く</value></data>
+  <data name="Vault_OpenFileLocationTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>ファイルの場所を開く</value></data>
+  <data name="Vault_DeleteDocumentTip.ToolTipService.ToolTip" xml:space="preserve"><value>ドキュメントを削除</value></data>
+  <data name="Vault_DeleteDocumentTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>ドキュメントを削除</value></data>
+  <data name="Vault_NoDocumentsYet.Text" xml:space="preserve"><value>ドキュメントはまだありません</value></data>
+  <data name="Vault_ImportYourFirstDocuments.Text" xml:space="preserve"><value>最初のドキュメントをインポートして、Knowledge Vault の構築を始めましょう。PDF、Word ファイル、Markdown、テキスト ファイルなどに対応しています。</value></data>
+  <data name="Vault_ImportYourFirstFiles.Text" xml:space="preserve"><value>最初のファイルをインポート</value></data>
+  <data name="Vault_IndexingInProgress.Text" xml:space="preserve"><value>インデックスを作成しています...</value></data>
+  <data name="Vault_Remaining.Text" xml:space="preserve"><value>件残り</value></data>
+  <data name="Vault_DocumentPreview.Text" xml:space="preserve"><value>ドキュメント プレビュー</value></data>
+  <data name="Vault_ClosePreviewTip.ToolTipService.ToolTip" xml:space="preserve"><value>プレビューを閉じる</value></data>
+  <data name="Vault_ClosePreviewTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>プレビューを閉じる</value></data>
+  <data name="Vault_FocusedDocument.Text" xml:space="preserve"><value>フォーカス中のドキュメント</value></data>
+  <data name="Vault_Dismiss.Content" xml:space="preserve"><value>閉じる</value></data>
+  <data name="Vault_ExtractedTitle.Text" xml:space="preserve"><value>抽出されたタイトル</value></data>
+  <data name="Vault_AiSummary.Text" xml:space="preserve"><value>AI 要約</value></data>
+  <data name="Vault_Details.Text" xml:space="preserve"><value>詳細</value></data>
+  <data name="Vault_Pages2.Text" xml:space="preserve"><value> ページ</value></data>
+  <data name="Vault_Words2.Text" xml:space="preserve"><value> 語</value></data>
+  <data name="Vault_Chunks2.Text" xml:space="preserve"><value> チャンク</value></data>
+  <data name="Vault_Size2.Text" xml:space="preserve"><value> サイズ</value></data>
+  <data name="Vault_DateImported.Text" xml:space="preserve"><value> インポート日</value></data>
+  <data name="Vault_Tags2.Text" xml:space="preserve"><value>タグ</value></data>
+  <data name="Vault_GenerateAnAiPoweredTip.ToolTipService.ToolTip" xml:space="preserve"><value>このドキュメントの AI タイトルを生成</value></data>
+  <data name="Vault_GenerateTitle.Text" xml:space="preserve"><value>タイトルを生成</value></data>
+  <data name="Vault_OpenFileLocationInTip.ToolTipService.ToolTip" xml:space="preserve"><value>ファイルの場所をエクスプローラーで開く</value></data>
+  <data name="Vault_OpenInExplorer.Text" xml:space="preserve"><value>エクスプローラーで開く</value></data>
+  <data name="Vault_ReIndexThisDocumentTip.ToolTipService.ToolTip" xml:space="preserve"><value>このドキュメントを再インデックス</value></data>
+  <data name="Vault_ReIndex2.Text" xml:space="preserve"><value>再インデックス</value></data>
+  <data name="CollMgr_Collections.Text" xml:space="preserve"><value>コレクション</value></data>
+  <data name="CollMgr_RefreshCollectionsTip.ToolTipService.ToolTip" xml:space="preserve"><value>コレクションを更新</value></data>
+  <data name="CollMgr_RefreshCollectionsTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>コレクションを更新</value></data>
+  <data name="CollMgr_NewCollectionNamePh.PlaceholderText" xml:space="preserve"><value>新しいコレクション名...</value></data>
+  <data name="CollMgr_DescriptionOptionalPh.PlaceholderText" xml:space="preserve"><value>説明 (省略可)</value></data>
+  <data name="CollMgr_CreateCollection.Text" xml:space="preserve"><value>コレクションを作成</value></data>
+  <data name="CollMgr_Loading.Text" xml:space="preserve"><value>読み込んでいます...</value></data>
+  <data name="CollMgr_DeleteCollectionTip.ToolTipService.ToolTip" xml:space="preserve"><value>コレクションを削除</value></data>
+  <data name="CollMgr_DeleteCollectionTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>コレクションを削除</value></data>
+  <data name="CollMgr_DeleteCollectionTip2.ToolTipService.ToolTip" xml:space="preserve"><value>コレクションを削除</value></data>
+  <data name="CollMgr_DeleteCollectionTip2.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>コレクションを削除</value></data>
+  <data name="CollMgr_Collections2.Text" xml:space="preserve"><value>個のコレクション</value></data>
+  <data name="CollMgr_SelectACollection.Text" xml:space="preserve"><value>コレクションを選択</value></data>
+  <data name="CollMgr_ChooseACollectionFrom.Text" xml:space="preserve"><value>左側のパネルからコレクションを選択すると、そのドキュメントが表示されます。コレクションを使うと、Knowledge Vault をテーマごとのグループに整理できます。</value></data>
+  <data name="CollMgr_AddDocuments.Text" xml:space="preserve"><value>ドキュメントを追加</value></data>
+  <data name="CollMgr_Documents.Text" xml:space="preserve"><value> 件のドキュメント</value></data>
+  <data name="CollMgr_Updated.Text" xml:space="preserve"><value>更新: </value></data>
+  <data name="CollMgr_DocumentsInThisCollection.Text" xml:space="preserve"><value>このコレクションのドキュメント</value></data>
+  <data name="CollMgr_RemoveFromCollectionTip.ToolTipService.ToolTip" xml:space="preserve"><value>コレクションから削除</value></data>
+  <data name="CollMgr_RemoveFromCollectionTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>コレクションから削除</value></data>
+  <data name="CollMgr_NoDocumentsInThis.Text" xml:space="preserve"><value>このコレクションにはドキュメントがありません</value></data>
+  <data name="CollMgr_ClickAddDocumentsTo.Text" xml:space="preserve"><value>[ドキュメントを追加] をクリックして、Knowledge Vault のファイルをこのコレクションに割り当てます。</value></data>
+  <data name="Graph_KnowledgeGraph.Text" xml:space="preserve"><value>ナレッジ グラフ</value></data>
+  <data name="Graph_VisualizeRelationshipsBetweenD.Text" xml:space="preserve"><value>ドキュメント、コレクション、タグ間の関係を可視化します。</value></data>
+  <data name="Graph_SearchNodesPh.PlaceholderText" xml:space="preserve"><value>ノードを検索...</value></data>
+  <data name="Graph_Docs.Text" xml:space="preserve"><value>ドキュメント</value></data>
+  <data name="Graph_Collections.Text" xml:space="preserve"><value>コレクション</value></data>
+  <data name="Graph_Tags.Text" xml:space="preserve"><value>タグ</value></data>
+  <data name="Graph_Connections.Text" xml:space="preserve"><value>個の接続</value></data>
+  <data name="Graph_RebuildTheKnowledgeGraphTip.ToolTipService.ToolTip" xml:space="preserve"><value>ナレッジ グラフを再構築</value></data>
+  <data name="Graph_Refresh.Text" xml:space="preserve"><value>更新</value></data>
+  <data name="Graph_ZoomOutTip.ToolTipService.ToolTip" xml:space="preserve"><value>縮小</value></data>
+  <data name="Graph_ZoomInTip.ToolTipService.ToolTip" xml:space="preserve"><value>拡大</value></data>
+  <data name="Graph_ResetZoomTip.ToolTipService.ToolTip" xml:space="preserve"><value>ズームをリセット</value></data>
+  <data name="Graph_NoGraphData.Text" xml:space="preserve"><value>グラフ データがありません</value></data>
+  <data name="Graph_ImportDocumentsAndOrganize.Text" xml:space="preserve"><value>ドキュメントをインポートしてコレクションに整理すると、ここに関係が可視化されます。</value></data>
+  <data name="Graph_Legend.Text" xml:space="preserve"><value>凡例</value></data>
+  <data name="Graph_Document.Text" xml:space="preserve"><value>ドキュメント</value></data>
+  <data name="Graph_Collection.Text" xml:space="preserve"><value>コレクション</value></data>
+  <data name="Graph_Tag.Text" xml:space="preserve"><value>タグ</value></data>
+  <data name="Graph_ClusterActive.Text" xml:space="preserve"><value>クラスター アクティブ</value></data>
+  <data name="Graph_ClearClusterHighlightTip.ToolTipService.ToolTip" xml:space="preserve"><value>クラスターの強調表示を解除</value></data>
+  <data name="Graph_Show.Text" xml:space="preserve"><value>表示</value></data>
+  <data name="Graph_Documents.Content" xml:space="preserve"><value>ドキュメント</value></data>
+  <data name="Graph_Collections2.Content" xml:space="preserve"><value>コレクション</value></data>
+  <data name="Graph_Tags2.Content" xml:space="preserve"><value>タグ</value></data>
+  <data name="Graph_NodeDetails.Text" xml:space="preserve"><value>ノードの詳細</value></data>
+  <data name="Graph_CloseDetailsPanelTip.ToolTipService.ToolTip" xml:space="preserve"><value>詳細パネルを閉じる</value></data>
+  <data name="Graph_Name.Text" xml:space="preserve"><value>名前</value></data>
+  <data name="Graph_Type.Text" xml:space="preserve"><value>種類</value></data>
+  <data name="Graph_Connections2.Text" xml:space="preserve"><value>接続</value></data>
+  <data name="Graph_Edges.Text" xml:space="preserve"><value>本のエッジ</value></data>
+  <data name="Graph_Position.Text" xml:space="preserve"><value>位置</value></data>
+  <data name="Annot_Annotations.Text" xml:space="preserve"><value>注釈</value></data>
+  <data name="Annot_Highlights.Text" xml:space="preserve"><value>件のハイライト</value></data>
+  <data name="Annot_SearchAnnotationsPh.PlaceholderText" xml:space="preserve"><value>注釈を検索...</value></data>
+  <data name="Annot_Search.Content" xml:space="preserve"><value>検索</value></data>
+  <data name="Annot_FilterByColor.Text" xml:space="preserve"><value>色でフィルター</value></data>
+  <data name="Annot_Distribution.Text" xml:space="preserve"><value>分布</value></data>
+  <data name="Annot_ExportAsMarkdown.Content" xml:space="preserve"><value>Markdown としてエクスポート</value></data>
+  <data name="Annot_AllAnnotations.Text" xml:space="preserve"><value>すべての注釈</value></data>
+  <data name="Annot_YourHighlightsAndNotes.Text" xml:space="preserve"><value>すべてのドキュメントのハイライトとメモ。</value></data>
+  <data name="Annot_DeleteAnnotationTip.ToolTipService.ToolTip" xml:space="preserve"><value>注釈を削除</value></data>
+  <data name="Annot_DeleteAnnotationTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>注釈を削除</value></data>
+  <data name="Annot_NoAnnotationsYet.Text" xml:space="preserve"><value>注釈はまだありません</value></data>
+  <data name="Annot_HighlightTextInYour.Text" xml:space="preserve"><value>ドキュメント内のテキストをハイライトすると注釈を作成できます。</value></data>
+  <data name="WebImport_WebImport.Text" xml:space="preserve"><value>Web インポート</value></data>
+  <data name="WebImport_PasteUrlsToExtract.Text" xml:space="preserve"><value>URL を貼り付けると、Web 記事を抽出して Knowledge Vault に取り込めます。</value></data>
+  <data name="WebImport_EnterUrls.Text" xml:space="preserve"><value>URL を入力</value></data>
+  <data name="WebImport_OneUrlPerLine.Text" xml:space="preserve"><value>1 行につき 1 つの URL。Web 記事と YouTube 動画に対応しています。</value></data>
+  <data name="WebImport_AddToCollectionOptional.Text" xml:space="preserve"><value>コレクションに追加 (省略可)</value></data>
+  <data name="WebImport_NoCollectionPh.PlaceholderText" xml:space="preserve"><value>コレクションなし</value></data>
+  <data name="WebImport_PreviewFirstUrl.Content" xml:space="preserve"><value>最初の URL をプレビュー</value></data>
+  <data name="WebImport_ImportAll.Content" xml:space="preserve"><value>すべてインポート</value></data>
+  <data name="WebImport_Cancel.Content" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="WebImport_Importing.Text" xml:space="preserve"><value>インポート中</value></data>
+  <data name="WebImport_Of.Text" xml:space="preserve"><value>/</value></data>
+  <data name="WebImport_ExtractingContent.Text" xml:space="preserve"><value>コンテンツを抽出しています...</value></data>
+  <data name="WebImport_Preview.Text" xml:space="preserve"><value>プレビュー</value></data>
+  <data name="WebImport_Title.Text" xml:space="preserve"><value>タイトル</value></data>
+  <data name="WebImport_Site.Text" xml:space="preserve"><value>サイト</value></data>
+  <data name="WebImport_Author.Text" xml:space="preserve"><value>著者</value></data>
+  <data name="WebImport_Words.Text" xml:space="preserve"><value>語数</value></data>
+  <data name="WebImport_ImportResults.Text" xml:space="preserve"><value>インポート結果</value></data>
+  <data name="WebImport_Imported.Text" xml:space="preserve"><value>件インポート済み</value></data>
+  <data name="WebImport_Failed.Text" xml:space="preserve"><value>件失敗</value></data>
+  <data name="WebImport_Words2.Text" xml:space="preserve"><value>語</value></data>
+  <data name="WebImport_ClearResults.Content" xml:space="preserve"><value>結果をクリア</value></data>
+  <data name="WebImport_RssAtomFeed.Text" xml:space="preserve"><value>RSS / Atom フィード</value></data>
+  <data name="WebImport_SubscribeToAFeed.Text" xml:space="preserve"><value>フィードを購読して、すべてのアイテムを Knowledge Vault にインポートします。</value></data>
+  <data name="WebImport_FeedUrl.Header" xml:space="preserve"><value>フィード URL</value></data>
+  <data name="WebImport_SubscribeImport.Content" xml:space="preserve"><value>購読してインポート</value></data>
+  <data name="WebImport_SitemapImport.Text" xml:space="preserve"><value>サイトマップ インポート</value></data>
+  <data name="WebImport_ImportPagesDiscoveredFrom.Text" xml:space="preserve"><value>sitemap.xml ファイルから検出されたページをインポートします。最大 100 ページまでインポートされます。</value></data>
+  <data name="WebImport_SitemapUrl.Header" xml:space="preserve"><value>サイトマップ URL</value></data>
+  <data name="WebImport_ImportFromSitemap.Content" xml:space="preserve"><value>サイトマップからインポート</value></data>
+  <data name="WebImport_ImportsUpTo100.Text" xml:space="preserve"><value>サイトマップから最大 100 ページをインポートします</value></data>
+  <data name="Digest_WeeklyDigest.Text" xml:space="preserve"><value>週次ダイジェスト</value></data>
+  <data name="Digest_GenerateNewDigest.Text" xml:space="preserve"><value>新しいダイジェストを生成</value></data>
+  <data name="Digest_NewDocuments.Text" xml:space="preserve"><value>新規ドキュメント</value></data>
+  <data name="Digest_Conversations.Text" xml:space="preserve"><value>会話</value></data>
+  <data name="Digest_Searches.Text" xml:space="preserve"><value>検索</value></data>
+  <data name="Digest_TokensUsed.Text" xml:space="preserve"><value>使用トークン</value></data>
+  <data name="Digest_StorageDelta.Text" xml:space="preserve"><value>ストレージ増減</value></data>
+  <data name="Digest_LoadingDigestReports.Text" xml:space="preserve"><value>ダイジェスト レポートを読み込んでいます...</value></data>
+  <data name="Digest_NoDigestReportsYet.Text" xml:space="preserve"><value>ダイジェスト レポートはまだありません</value></data>
+  <data name="Digest_GenerateYourFirstWeekly.Text" xml:space="preserve"><value>最初の週次ダイジェストを生成すると、アクティビティの概要、検索トレンド、会話のハイライトが表示されます。</value></data>
+  <data name="Digest_GenerateFirstDigest.Text" xml:space="preserve"><value>最初のダイジェストを生成</value></data>
+  <data name="Digest_TopSearches.Text" xml:space="preserve"><value>上位の検索</value></data>
+  <data name="Digest_NoSearchesRecordedThis.Text" xml:space="preserve"><value>この期間に記録された検索はありません</value></data>
+  <data name="Digest_TopCollections.Text" xml:space="preserve"><value>上位のコレクション</value></data>
+  <data name="Digest_Docs.Text" xml:space="preserve"><value> 件</value></data>
+  <data name="Digest_NoCollectionsConfiguredYet.Text" xml:space="preserve"><value>コレクションはまだ設定されていません</value></data>
+  <data name="Digest_FileTypesImported.Text" xml:space="preserve"><value>インポートされたファイルの種類</value></data>
+  <data name="Digest_Files.Text" xml:space="preserve"><value> 件のファイル</value></data>
+  <data name="Digest_NoFilesImportedThis.Text" xml:space="preserve"><value>この期間にインポートされたファイルはありません</value></data>
+  <data name="Digest_ConversationHighlights.Text" xml:space="preserve"><value>会話のハイライト</value></data>
+  <data name="Digest_Messages.Text" xml:space="preserve"><value> 件のメッセージ</value></data>
+  <data name="Digest_Tokens.Text" xml:space="preserve"><value> トークン</value></data>
+  <data name="Digest_NoConversationsThisPeriod.Text" xml:space="preserve"><value>この期間の会話はありません</value></data>
+  <data name="Digest_ReportHistory.Text" xml:space="preserve"><value>レポート履歴</value></data>
+  <data name="Digest_SelectAPreviousReport.Text" xml:space="preserve"><value>表示する過去のレポートを選択</value></data>
+  <data name="Digest_Docs2.Text" xml:space="preserve"><value> 件</value></data>
+  <data name="Digest_Searches2.Text" xml:space="preserve"><value> 件の検索</value></data>
+  <data name="PastSelf_PastSelf.Text" xml:space="preserve"><value>Past Self</value></data>
+  <data name="PastSelf_QueryYourBeliefsInsights.Text" xml:space="preserve"><value>自分の考え、気づき、変化を時間軸で振り返りましょう。</value></data>
+  <data name="PastSelf_WhatDidIThink.Text" xml:space="preserve"><value>私は何を考えていた?</value></data>
+  <data name="PastSelf_EnterATopicEPh.PlaceholderText" xml:space="preserve"><value>トピックを入力 (例: 「リモートワーク」「AI の安全性」「マイクロサービス」)</value></data>
+  <data name="PastSelf_SearchPastSelf.Content" xml:space="preserve"><value>Past Self を検索</value></data>
+  <data name="PastSelf_TimePeriod.Text" xml:space="preserve"><value>期間</value></data>
+  <data name="PastSelf_AllTime.Content" xml:space="preserve"><value>全期間</value></data>
+  <data name="PastSelf_PastWeek.Content" xml:space="preserve"><value>過去 1 週間</value></data>
+  <data name="PastSelf_PastMonth.Content" xml:space="preserve"><value>過去 1 か月</value></data>
+  <data name="PastSelf_PastYear.Content" xml:space="preserve"><value>過去 1 年</value></data>
+  <data name="PastSelf_CustomDate.Content" xml:space="preserve"><value>カスタム日付</value></data>
+  <data name="PastSelf_QuickActions.Text" xml:space="preserve"><value>クイック アクション</value></data>
+  <data name="PastSelf_GetRelevantInsights.Content" xml:space="preserve"><value>関連するインサイトを取得</value></data>
+  <data name="PastSelf_ShowBeliefEvolution.Content" xml:space="preserve"><value>考えの変遷を表示</value></data>
+  <data name="PastSelf_GetActiveTopics.Content" xml:space="preserve"><value>アクティブなトピックを取得</value></data>
+  <data name="PastSelf_SearchingYourPast.Text" xml:space="preserve"><value>過去を検索しています...</value></data>
+  <data name="PastSelf_YourViewHasEvolved.Text" xml:space="preserve"><value>あなたの見方は変化しています</value></data>
+  <data name="PastSelf_Confidence.Text" xml:space="preserve"><value>確信度</value></data>
+  <data name="PastSelf_EvidenceFromYourConversations.Text" xml:space="preserve"><value>会話からの根拠</value></data>
+  <data name="PastSelf_RelatedConversations.Text" xml:space="preserve"><value>関連する会話</value></data>
+  <data name="PastSelf_RelatedDocuments.Text" xml:space="preserve"><value>関連ドキュメント</value></data>
+  <data name="PastSelf_RelevantInsightsFromYour.Text" xml:space="preserve"><value>過去からの関連インサイト</value></data>
+  <data name="PastSelf_TopicsYouVeBeen.Text" xml:space="preserve"><value>最近探求しているトピック</value></data>
+  <data name="PastSelf_DraftAsMe.Text" xml:space="preserve"><value>自分らしく下書き</value></data>
+  <data name="PastSelf_GenerateTextInYour.Text" xml:space="preserve"><value>AI があなたの文章パターンを分析し、あなたらしい文章を生成します。</value></data>
+  <data name="PastSelf_LoadProfile.Content" xml:space="preserve"><value>プロファイルを読み込む</value></data>
+  <data name="PastSelf_Samples.Text" xml:space="preserve"><value>サンプル</value></data>
+  <data name="PastSelf_AvgSentenceLength.Text" xml:space="preserve"><value>平均文長</value></data>
+  <data name="PastSelf_Words.Text" xml:space="preserve"><value> 語</value></data>
+  <data name="PastSelf_Style.Text" xml:space="preserve"><value>スタイル</value></data>
+  <data name="PastSelf_Context.Text" xml:space="preserve"><value>コンテキスト</value></data>
+  <data name="PastSelf_DescribeWhatYouRePh.PlaceholderText" xml:space="preserve"><value>何について書くかを入力 (例: 「Q4 ロードマップについてチームへのメール」)</value></data>
+  <data name="PastSelf_Goal.Text" xml:space="preserve"><value>ゴール</value></data>
+  <data name="PastSelf_WhatYouWantToPh.PlaceholderText" xml:space="preserve"><value>達成したいこと (省略可。例: 「新しいスケジュールの採用を説得する」)</value></data>
+  <data name="PastSelf_GenerateDraft.Content" xml:space="preserve"><value>下書きを生成</value></data>
+  <data name="PastSelf_GeneratedDraft.Text" xml:space="preserve"><value>生成された下書き</value></data>
+  <data name="PastSelf_Copy.Content" xml:space="preserve"><value>コピー</value></data>
+  <data name="PastSelf_CopyForChat.Content" xml:space="preserve"><value>チャット用にコピー</value></data>
+  <data name="QuickAct_QuickActions.Text" xml:space="preserve"><value>Quick Actions</value></data>
+  <data name="QuickAct_AiPoweredDocumentIntelligence.Text" xml:space="preserve"><value>AI によるドキュメント インテリジェンス ツール。要約、翻訳、重複検出、整理ができます。</value></data>
+  <data name="QuickAct_RecommendedForThisContext.Text" xml:space="preserve"><value>このコンテキストへのおすすめ</value></data>
+  <data name="QuickAct_UseTheSelectedDocument.Text" xml:space="preserve"><value>選択中のドキュメントと現在の取り込み状況から、最も有用な次のアクションに直接ジャンプします。</value></data>
+  <data name="QuickAct_Summarize.Text" xml:space="preserve"><value>要約</value></data>
+  <data name="QuickAct_KeyPoints.Text" xml:space="preserve"><value>要点</value></data>
+  <data name="QuickAct_Translate.Text" xml:space="preserve"><value>翻訳</value></data>
+  <data name="QuickAct_Duplicates.Text" xml:space="preserve"><value>重複</value></data>
+  <data name="QuickAct_Organize.Text" xml:space="preserve"><value>整理</value></data>
+  <data name="QuickAct_GenerateASectionAware.Text" xml:space="preserve"><value>セクションを考慮した要約を生成</value></data>
+  <data name="QuickAct_BuildsAConciseBrief.Text" xml:space="preserve"><value>インデックス済みチャンクをまずセクション要約に統合し、最後に全体概要へとまとめた簡潔なブリーフを作成します。</value></data>
+  <data name="QuickAct_ChooseADocumentPh.PlaceholderText" xml:space="preserve"><value>ドキュメントを選択...</value></data>
+  <data name="QuickAct_GenerateLayeredSummary.Content" xml:space="preserve"><value>階層要約を生成</value></data>
+  <data name="QuickAct_Summary.Text" xml:space="preserve"><value>要約</value></data>
+  <data name="QuickAct_Layered.Text" xml:space="preserve"><value>階層</value></data>
+  <data name="QuickAct_SynthesizedFromIndexedSections.Text" xml:space="preserve"><value>インデックス済みセクションから統合した後、最終要約を作成しています。</value></data>
+  <data name="QuickAct_SelectADocumentTo.Text" xml:space="preserve"><value>要点を抽出するドキュメントを選択</value></data>
+  <data name="QuickAct_ChooseADocumentPh2.PlaceholderText" xml:space="preserve"><value>ドキュメントを選択...</value></data>
+  <data name="QuickAct_ExtractKeyPoints.Content" xml:space="preserve"><value>要点を抽出</value></data>
+  <data name="QuickAct_KeyPoints2.Text" xml:space="preserve"><value>要点</value></data>
+  <data name="QuickAct_TranslateTextWithAi.Text" xml:space="preserve"><value>AI でテキストを翻訳</value></data>
+  <data name="QuickAct_InputText.Text" xml:space="preserve"><value>入力テキスト</value></data>
+  <data name="QuickAct_EnterOrPasteTextPh.PlaceholderText" xml:space="preserve"><value>翻訳するテキストを入力または貼り付け...</value></data>
+  <data name="QuickAct_TargetLanguage.Text" xml:space="preserve"><value>翻訳先の言語</value></data>
+  <data name="QuickAct_Translate2.Content" xml:space="preserve"><value>翻訳</value></data>
+  <data name="QuickAct_Translation.Text" xml:space="preserve"><value>翻訳結果</value></data>
+  <data name="QuickAct_DuplicateDetection.Text" xml:space="preserve"><value>重複検出</value></data>
+  <data name="QuickAct_RunExactHashScans.Text" xml:space="preserve"><value>同一ファイルには正確なハッシュ スキャンを、類似ファイルには保存済み埋め込みを使ったセマンティック スキャンを実行します。</value></data>
+  <data name="QuickAct_ScanExactDuplicates.Content" xml:space="preserve"><value>完全一致の重複をスキャン</value></data>
+  <data name="QuickAct_ScanSemanticNearDuplicates.Content" xml:space="preserve"><value>セマンティックな類似重複をスキャン</value></data>
+  <data name="QuickAct_Wasted.Text" xml:space="preserve"><value> の無駄</value></data>
+  <data name="QuickAct_Imported.Text" xml:space="preserve"><value> · インポート: </value></data>
+  <data name="QuickAct_AiOrganizationAssistant.Text" xml:space="preserve"><value>AI 整理アシスタント</value></data>
+  <data name="QuickAct_AnalyzesUncategorizedDocuments.Text" xml:space="preserve"><value>未分類のドキュメントを分析し、内容に基づいてコレクションとタグを提案します。</value></data>
+  <data name="QuickAct_AnalyzeSuggest.Content" xml:space="preserve"><value>分析して提案</value></data>
+  <data name="QuickAct_Collection.Text" xml:space="preserve"><value>コレクション:</value></data>
+  <data name="QuickAct_Tags.Text" xml:space="preserve"><value>タグ:</value></data>
+  <data name="QuickAct_Reasoning.Text" xml:space="preserve"><value>根拠</value></data>
+  <data name="QuickAct_DocumentsAvailable.Text" xml:space="preserve"><value> 件のドキュメントが利用可能</value></data>
+  <data name="ModelMgr_ManageYourLocalAi.Text" xml:space="preserve"><value>Ollama を利用してローカル AI モデルを管理します。</value></data>
+  <data name="ModelMgr_Refresh.Content" xml:space="preserve"><value>更新</value></data>
+  <data name="ModelMgr_Models.Text" xml:space="preserve"><value> モデル</value></data>
+  <data name="ModelMgr_BrowseModels.Text" xml:space="preserve"><value>モデルを参照</value></data>
+  <data name="ModelMgr_PullNewModel.Text" xml:space="preserve"><value>新しいモデルをプル</value></data>
+  <data name="ModelMgr_EnterAModelName.Text" xml:space="preserve"><value>Ollama ライブラリのモデル名を入力すると、マシンにダウンロードできます。</value></data>
+  <data name="ModelMgr_EGLlama32Ph.PlaceholderText" xml:space="preserve"><value>例: llama3.2、mistral、phi3、deepseek-r1</value></data>
+  <data name="ModelMgr_PullModel.Text" xml:space="preserve"><value>モデルをプル</value></data>
+  <data name="ModelMgr_Cancel.Content" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="ModelMgr_PopularModels.Text" xml:space="preserve"><value>人気のモデル:</value></data>
+  <data name="ModelMgr_InstalledModels.Text" xml:space="preserve"><value>インストール済みモデル</value></data>
+  <data name="ModelMgr_LoadingModels.Text" xml:space="preserve"><value>モデルを読み込んでいます...</value></data>
+  <data name="ModelMgr_Active.Text" xml:space="preserve"><value>アクティブ</value></data>
+  <data name="ModelMgr_SetActive.Text" xml:space="preserve"><value>アクティブに設定</value></data>
+  <data name="ModelMgr_CopyModelNameTip.ToolTipService.ToolTip" xml:space="preserve"><value>モデル名をコピー</value></data>
+  <data name="ModelMgr_CopyModelNameTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>モデル名をコピー</value></data>
+  <data name="ModelMgr_DeleteModelTip.ToolTipService.ToolTip" xml:space="preserve"><value>モデルを削除</value></data>
+  <data name="ModelMgr_DeleteModelTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>モデルを削除</value></data>
+  <data name="ModelMgr_Params.Text" xml:space="preserve"><value>パラメーター</value></data>
+  <data name="ModelMgr_Ctx.Text" xml:space="preserve"><value>コンテキスト</value></data>
+  <data name="ModelMgr_Digest.Text" xml:space="preserve"><value>ダイジェスト:</value></data>
+  <data name="ModelMgr_NoModelsInstalled.Text" xml:space="preserve"><value>モデルがインストールされていません</value></data>
+  <data name="ModelMgr_PullAModelFrom.Text" xml:space="preserve"><value>まずは Ollama ライブラリからモデルをプルしましょう。人気の選択肢は llama3.2、mistral、phi3 などです。</value></data>
+  <data name="HwAdvisor_AnalyzeYourSystemTo.Text" xml:space="preserve"><value>システムを分析して、ハードウェアに最適な AI モデルを見つけます。</value></data>
+  <data name="HwAdvisor_ReScan.Text" xml:space="preserve"><value>再スキャン</value></data>
+  <data name="HwAdvisor_ScanningYourHardware.Text" xml:space="preserve"><value>ハードウェアをスキャンしています...</value></data>
+  <data name="HwAdvisor_DetectingGpuCpuMemory.Text" xml:space="preserve"><value>GPU、CPU、メモリ、NPU の性能を検出しています。</value></data>
+  <data name="HwAdvisor_SomeHardwareDetailsAre.Title" xml:space="preserve"><value>一部のハードウェア情報を取得できません</value></data>
+  <data name="HwAdvisor_Graphics.Text" xml:space="preserve"><value>グラフィックス</value></data>
+  <data name="HwAdvisor_Device.Text" xml:space="preserve"><value>デバイス</value></data>
+  <data name="HwAdvisor_VideoMemory.Text" xml:space="preserve"><value>ビデオ メモリ</value></data>
+  <data name="HwAdvisor_Processor.Text" xml:space="preserve"><value>プロセッサ</value></data>
+  <data name="HwAdvisor_Processor2.Text" xml:space="preserve"><value>プロセッサ</value></data>
+  <data name="HwAdvisor_LogicalCores.Text" xml:space="preserve"><value>論理コア</value></data>
+  <data name="HwAdvisor_Cores.Text" xml:space="preserve"><value>コア</value></data>
+  <data name="HwAdvisor_Memory.Text" xml:space="preserve"><value>メモリ</value></data>
+  <data name="HwAdvisor_SystemRam.Text" xml:space="preserve"><value>システム RAM</value></data>
+  <data name="HwAdvisor_TotalRam.Text" xml:space="preserve"><value>合計 RAM</value></data>
+  <data name="HwAdvisor_Available.Text" xml:space="preserve"><value>空き</value></data>
+  <data name="HwAdvisor_NoNpu.Text" xml:space="preserve"><value>NPU なし</value></data>
+  <data name="HwAdvisor_RecommendedConfiguration.Text" xml:space="preserve"><value>推奨構成</value></data>
+  <data name="HwAdvisor_PerformanceTier.Text" xml:space="preserve"><value>パフォーマンス ティア</value></data>
+  <data name="HwAdvisor_RecommendedModelsForYour.Text" xml:space="preserve"><value>お使いのシステムへの推奨モデル</value></data>
+  <data name="HwAdvisor_TheseModelsAreOptimized.Text" xml:space="preserve"><value>これらのモデルは、検出されたハードウェア性能に合わせて最適化されています。</value></data>
+  <data name="HwAdvisor_ChatModels.Text" xml:space="preserve"><value>チャット モデル</value></data>
+  <data name="HwAdvisor_Chat.Text" xml:space="preserve"><value>チャット</value></data>
+  <data name="HwAdvisor_Installed.Text" xml:space="preserve"><value>インストール済み</value></data>
+  <data name="HwAdvisor_Install.Text" xml:space="preserve"><value>インストール</value></data>
+  <data name="HwAdvisor_CodeModels.Text" xml:space="preserve"><value>コード モデル</value></data>
+  <data name="HwAdvisor_Code.Text" xml:space="preserve"><value>コード</value></data>
+  <data name="HwAdvisor_Installed2.Text" xml:space="preserve"><value>インストール済み</value></data>
+  <data name="HwAdvisor_Install2.Text" xml:space="preserve"><value>インストール</value></data>
+  <data name="HwAdvisor_EmbeddingModels.Text" xml:space="preserve"><value>埋め込みモデル</value></data>
+  <data name="HwAdvisor_Embedding.Text" xml:space="preserve"><value>埋め込み</value></data>
+  <data name="HwAdvisor_Installed3.Text" xml:space="preserve"><value>インストール済み</value></data>
+  <data name="HwAdvisor_Install3.Text" xml:space="preserve"><value>インストール</value></data>
+  <data name="HwAdvisor_LocalAiOnly.Text" xml:space="preserve"><value>ローカル AI のみ</value></data>
+  <data name="HwAdvisor_AllModelsRunEntirely.Text" xml:space="preserve"><value> — すべてのモデルはお使いのハードウェア上でのみ動作します。外部サーバーにデータが送信されることはなく、ハードウェア情報がこのマシンの外に出ることもありません。</value></data>
+  <data name="WfBuilder_Workflows.Text" xml:space="preserve"><value>ワークフロー</value></data>
+  <data name="WfBuilder_MultiStepAiPipelines.Text" xml:space="preserve"><value>マルチステップ AI パイプライン</value></data>
+  <data name="WfBuilder_NewWorkflow.Content" xml:space="preserve"><value>新しいワークフロー</value></data>
+  <data name="WfBuilder_ImportWorkflow.Content" xml:space="preserve"><value>ワークフローをインポート</value></data>
+  <data name="WfBuilder_Steps.Text" xml:space="preserve"><value> ステップ</value></data>
+  <data name="WfBuilder_Template.Text" xml:space="preserve"><value>テンプレート</value></data>
+  <data name="WfBuilder_Runs.Text" xml:space="preserve"><value> 回の実行</value></data>
+  <data name="WfBuilder_UseTemplate.Content" xml:space="preserve"><value>テンプレートを使用</value></data>
+  <data name="WfBuilder_Edit.Content" xml:space="preserve"><value>編集</value></data>
+  <data name="WfBuilder_Delete.Content" xml:space="preserve"><value>削除</value></data>
+  <data name="WfBuilder_BuildMultiStepAi.Text" xml:space="preserve"><value>マルチステップの AI パイプラインを構築します。各ステップの出力が次のステップに渡されます。</value></data>
+  <data name="WfBuilder_WorkflowEditor.Text" xml:space="preserve"><value>ワークフロー エディター</value></data>
+  <data name="WfBuilder_Name.Text" xml:space="preserve"><value>名前</value></data>
+  <data name="WfBuilder_MyWorkflowPh.PlaceholderText" xml:space="preserve"><value>マイ ワークフロー</value></data>
+  <data name="WfBuilder_Description.Text" xml:space="preserve"><value>説明</value></data>
+  <data name="WfBuilder_WhatDoesThisWorkflowPh.PlaceholderText" xml:space="preserve"><value>このワークフローは何をしますか?</value></data>
+  <data name="WfBuilder_Category.Text" xml:space="preserve"><value>カテゴリ</value></data>
+  <data name="WfBuilder_Steps2.Text" xml:space="preserve"><value>ステップ</value></data>
+  <data name="WfBuilder_AddStep.Content" xml:space="preserve"><value>ステップを追加</value></data>
+  <data name="WfBuilder_StepNamePh.PlaceholderText" xml:space="preserve"><value>ステップ名</value></data>
+  <data name="WfBuilder_MoveUpTip.ToolTipService.ToolTip" xml:space="preserve"><value>上へ移動</value></data>
+  <data name="WfBuilder_MoveDownTip.ToolTipService.ToolTip" xml:space="preserve"><value>下へ移動</value></data>
+  <data name="WfBuilder_RemoveStepTip.ToolTipService.ToolTip" xml:space="preserve"><value>ステップを削除</value></data>
+  <data name="WfBuilder_StepType.Header" xml:space="preserve"><value>ステップの種類</value></data>
+  <data name="WfBuilder_EnterPromptUseInputPh.PlaceholderText" xml:space="preserve"><value>プロンプトを入力... 元の入力には {{input}}、直前のステップの出力には {{previous_output}} を使用します</value></data>
+  <data name="WfBuilder_EnterPromptUseInputPh.Header" xml:space="preserve"><value>プロンプト テンプレート</value></data>
+  <data name="WfBuilder_Cancel.Content" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="WfBuilder_SaveWorkflow.Content" xml:space="preserve"><value>ワークフローを保存</value></data>
+  <data name="WfBuilder_FocusedWorkflowRun.Text" xml:space="preserve"><value>フォーカス中のワークフロー実行</value></data>
+  <data name="WfBuilder_TheMatchingWorkflowAnd.Text" xml:space="preserve"><value>該当するワークフローと保存済みの結果を、確認のためページ上部に表示しました。</value></data>
+  <data name="WfBuilder_Dismiss.Content" xml:space="preserve"><value>閉じる</value></data>
+  <data name="WfBuilder_RunWorkflow.Text" xml:space="preserve"><value>ワークフローを実行</value></data>
+  <data name="WfBuilder_ExportJson.Content" xml:space="preserve"><value>JSON をエクスポート</value></data>
+  <data name="WfBuilder_TemplateGuide.Text" xml:space="preserve"><value>テンプレート ガイド</value></data>
+  <data name="WfBuilder_BestFor.Text" xml:space="preserve"><value>最適な用途</value></data>
+  <data name="WfBuilder_YouLlGet.Text" xml:space="preserve"><value>得られる結果</value></data>
+  <data name="WfBuilder_TryItWith.Text" xml:space="preserve"><value>試してみる</value></data>
+  <data name="WfBuilder_RunTheTemplateAs.Text" xml:space="preserve"><value>そのままで合う場合はテンプレートを直接実行できます。ステップをカスタマイズして自分用に保存したい場合は [テンプレートを使用] を選択してください。</value></data>
+  <data name="WfBuilder_Input.Text" xml:space="preserve"><value>入力</value></data>
+  <data name="WfBuilder_PasteOrTypeThePh.PlaceholderText" xml:space="preserve"><value>処理したいコンテンツを貼り付けまたは入力...</value></data>
+  <data name="WfBuilder_Run.Content" xml:space="preserve"><value>実行</value></data>
+  <data name="WfBuilder_Cancel2.Content" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="WfBuilder_Running.Text" xml:space="preserve"><value>実行中:</value></data>
+  <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>最近の実行</value></data>
+  <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>再実行せずに開ける、保存済みのワークフロー結果です。</value></data>
+  <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Operations から開きました</value></data>
+  <data name="WfBuilder_OpenResult.Content" xml:space="preserve"><value>結果を開く</value></data>
+  <data name="WfBuilder_SaveAsDocument.Content" xml:space="preserve"><value>ドキュメントとして保存</value></data>
+  <data name="WfBuilder_ExportResult.Content" xml:space="preserve"><value>結果をエクスポート</value></data>
+  <data name="WfBuilder_NoRunsRecordedYet.Text" xml:space="preserve"><value>選択したワークフローの実行記録はまだありません。</value></data>
+  <data name="WfBuilder_StepOutputs.Text" xml:space="preserve"><value>ステップの出力</value></data>
+  <data name="WfBuilder_Tokens.Text" xml:space="preserve"><value>トークン</value></data>
+  <data name="WfBuilder_Tok.Text" xml:space="preserve"><value> トークン</value></data>
+  <data name="WfBuilder_FinalOutput.Text" xml:space="preserve"><value>最終出力</value></data>
+  <data name="WfBuilder_CopyToClipboard.Content" xml:space="preserve"><value>クリップボードにコピー</value></data>
+  <data name="WfBuilder_SaveAsDocument2.Content" xml:space="preserve"><value>ドキュメントとして保存</value></data>
+  <data name="WfBuilder_ExportResult2.Content" xml:space="preserve"><value>結果をエクスポート</value></data>
+  <data name="WfBuilder_OpenVault.Content" xml:space="preserve"><value>Knowledge Vault を開く</value></data>
+  <data name="WfBuilder_StartWithATemplate.Text" xml:space="preserve"><value>テンプレートから始める</value></data>
+  <data name="WfBuilder_WorkflowsHelpYouTurn.Text" xml:space="preserve"><value>ワークフローを使うと、1 つの入力を再利用可能なマルチステップの結果に変換できます。下のスターター テンプレートを選んで、そのまま実行するか、後でカスタマイズしましょう。</value></data>
+  <data name="WfBuilder_SelectTemplate.Content" xml:space="preserve"><value>テンプレートを選択</value></data>
+  <data name="WfBuilder_BestFor2.Text" xml:space="preserve"><value>最適な用途: </value></data>
+  <data name="WfBuilder_NoStarterTemplatesAre.Text" xml:space="preserve"><value>現在利用できるスターター テンプレートはありません。</value></data>
+  <data name="WfBuilder_CreateBlankWorkflow.Content" xml:space="preserve"><value>空のワークフローを作成</value></data>
+  <data name="WfBuilder_YouCanAlsoBuild.Text" xml:space="preserve"><value>合うテンプレートがない場合は、ゼロからワークフローを作成することもできます。</value></data>
+  <data name="Workspace_Profiles.Text" xml:space="preserve"><value>プロファイル</value></data>
+  <data name="Workspace_RefreshProfilesTip.ToolTipService.ToolTip" xml:space="preserve"><value>プロファイルを更新</value></data>
+  <data name="Workspace_NewProfileNamePh.PlaceholderText" xml:space="preserve"><value>新しいプロファイル名...</value></data>
+  <data name="Workspace_DescriptionOptionalPh.PlaceholderText" xml:space="preserve"><value>説明 (省略可)</value></data>
+  <data name="Workspace_CreateProfile.Text" xml:space="preserve"><value>プロファイルを作成</value></data>
+  <data name="Workspace_LoadingProfiles.Text" xml:space="preserve"><value>プロファイルを読み込んでいます...</value></data>
+  <data name="Workspace_Default.Text" xml:space="preserve"><value>既定</value></data>
+  <data name="Workspace_NoProfilesYet.Text" xml:space="preserve"><value>プロファイルはまだありません</value></data>
+  <data name="Workspace_CreateOneAboveTo.Text" xml:space="preserve"><value>上でプロファイルを作成すると、ワークスペース構成を保存できます。</value></data>
+  <data name="Workspace_Profiles2.Text" xml:space="preserve"><value>個のプロファイル</value></data>
+  <data name="Workspace_SelectAProfile.Text" xml:space="preserve"><value>プロファイルを選択</value></data>
+  <data name="Workspace_ChooseAWorkspaceProfile.Text" xml:space="preserve"><value>左側のパネルからワークスペース プロファイルを選択すると、構成を表示・編集できます。プロファイルには、モデル、コレクション、設定のプリセットを保存できます。</value></data>
+  <data name="Workspace_Default2.Text" xml:space="preserve"><value>既定</value></data>
+  <data name="Workspace_Duplicate.Text" xml:space="preserve"><value>複製</value></data>
+  <data name="Workspace_Created.Text" xml:space="preserve"><value>作成: </value></data>
+  <data name="Workspace_Updated.Text" xml:space="preserve"><value>更新: </value></data>
+  <data name="Workspace_ProfileConfiguration.Text" xml:space="preserve"><value>プロファイル構成</value></data>
+  <data name="Workspace_EditThisProfileS.Text" xml:space="preserve"><value>このプロファイルのワークスペース設定を編集します。[保存] をクリックすると変更が保存されます。</value></data>
+  <data name="Workspace_ProfileName.Text" xml:space="preserve"><value>プロファイル名</value></data>
+  <data name="Workspace_EnterADisplayNamePh.PlaceholderText" xml:space="preserve"><value>このプロファイルの表示名を入力</value></data>
+  <data name="Workspace_Description.Text" xml:space="preserve"><value>説明</value></data>
+  <data name="Workspace_OptionalDescriptionOfThisPh.PlaceholderText" xml:space="preserve"><value>このプロファイルの目的の説明 (省略可)</value></data>
+  <data name="Workspace_ActiveModelId.Text" xml:space="preserve"><value>アクティブなモデル ID</value></data>
+  <data name="Workspace_EGLlama32Ph.PlaceholderText" xml:space="preserve"><value>例: llama3.2、mistral、phi3</value></data>
+  <data name="Workspace_TheOllamaModelIdentifier.Text" xml:space="preserve"><value>このプロファイルの読み込み時にアクティブ化する Ollama モデルの識別子。</value></data>
+  <data name="Workspace_ActiveCollectionIds.Text" xml:space="preserve"><value>アクティブなコレクション ID</value></data>
+  <data name="Workspace_EG13Ph.PlaceholderText" xml:space="preserve"><value>例: 1,3,7 (カンマ区切り)</value></data>
+  <data name="Workspace_CommaSeparatedListOf.Text" xml:space="preserve"><value>このプロファイルの読み込み時に有効化するコレクション ID のカンマ区切りリスト。</value></data>
+  <data name="Workspace_CustomSettings.Text" xml:space="preserve"><value>カスタム設定</value></data>
+  <data name="Workspace_JsonOrKeyValuePh.PlaceholderText" xml:space="preserve"><value>追加構成用の JSON または key=value ペア</value></data>
+  <data name="Workspace_FreeFormSettingsStored.Text" xml:space="preserve"><value>このプロファイルと一緒に保存される自由形式の設定です。JSON などの構造化形式を使用してください。</value></data>
+  <data name="Workspace_DefaultProfile.Text" xml:space="preserve"><value>既定のプロファイル</value></data>
+  <data name="Workspace_ThisProfileWillBe.Text" xml:space="preserve"><value>アプリの起動時に、このプロファイルが自動的に読み込まれます。</value></data>
+  <data name="Workspace_SaveProfile.Text" xml:space="preserve"><value>プロファイルを保存</value></data>
+  <data name="Workspace_SetAsDefault.Text" xml:space="preserve"><value>既定に設定</value></data>
+  <data name="Workspace_DeleteProfile.Text" xml:space="preserve"><value>プロファイルを削除</value></data>
+  <data name="Settings_Settings.Text" xml:space="preserve"><value>設定</value></data>
+  <data name="Settings_ConfigureYourAiProviders.Text" xml:space="preserve"><value>AI プロバイダー、推論パラメーター、Knowledge Vault の設定を構成します。</value></data>
+  <data name="Settings_AiProviders.Text" xml:space="preserve"><value>AI プロバイダー</value></data>
+  <data name="Settings_ApiKeysSecured.Title" xml:space="preserve"><value>API キーは保護されています</value></data>
+  <data name="Settings_ActiveProvider.Text" xml:space="preserve"><value>アクティブなプロバイダー</value></data>
+  <data name="Settings_OllamaLocal.Text" xml:space="preserve"><value>Ollama (ローカル)</value></data>
+  <data name="Settings_Free.Text" xml:space="preserve"><value>無料</value></data>
+  <data name="Settings_Endpoint.Text" xml:space="preserve"><value>エンドポイント</value></data>
+  <data name="Settings_DefaultChatModel.Text" xml:space="preserve"><value>既定のチャット モデル</value></data>
+  <data name="Settings_EmbeddingModel.Text" xml:space="preserve"><value>埋め込みモデル</value></data>
+  <data name="Settings_TestConnection.Content" xml:space="preserve"><value>接続をテスト</value></data>
+  <data name="Settings_Cloud.Text" xml:space="preserve"><value>クラウド</value></data>
+  <data name="Settings_ApiKey.Text" xml:space="preserve"><value>API キー</value></data>
+  <data name="Settings_Endpoint2.Text" xml:space="preserve"><value>エンドポイント</value></data>
+  <data name="Settings_DefaultModel.Text" xml:space="preserve"><value>既定のモデル</value></data>
+  <data name="Settings_TestConnection2.Content" xml:space="preserve"><value>接続をテスト</value></data>
+  <data name="Settings_Cloud2.Text" xml:space="preserve"><value>クラウド</value></data>
+  <data name="Settings_ApiKey2.Text" xml:space="preserve"><value>API キー</value></data>
+  <data name="Settings_Endpoint3.Text" xml:space="preserve"><value>エンドポイント</value></data>
+  <data name="Settings_DefaultModel2.Text" xml:space="preserve"><value>既定のモデル</value></data>
+  <data name="Settings_NoteAnthropicDoesNot.Text" xml:space="preserve"><value>注: Anthropic は埋め込みに対応していません。ドキュメントのインデックス作成には Ollama または OpenAI をご利用ください。</value></data>
+  <data name="Settings_TestConnection3.Content" xml:space="preserve"><value>接続をテスト</value></data>
+  <data name="Settings_Appearance.Text" xml:space="preserve"><value>外観</value></data>
+  <data name="Settings_Theme.Text" xml:space="preserve"><value>テーマ</value></data>
+  <data name="Settings_ChangesApplyImmediatelySystem.Text" xml:space="preserve"><value>変更は即座に適用されます。「システム既定」は Windows のテーマに従います。</value></data>
+  <data name="Settings_MultiModelRouting.Text" xml:space="preserve"><value>マルチモデル ルーティング</value></data>
+  <data name="Settings_AutomaticallyRoutePromptsTo.Text" xml:space="preserve"><value>タスクの種類に応じて、プロンプトを最適な AI モデルに自動でルーティングします。抽出とチャットは高速なローカル モデル、分析とコードは高品質なクラウド モデルを優先します。</value></data>
+  <data name="Settings_EnableAutoRouting.Header" xml:space="preserve"><value>自動ルーティングを有効化</value></data>
+  <data name="Settings_RoutingProfile.Text" xml:space="preserve"><value>ルーティング プロファイル</value></data>
+  <data name="Settings_CostOptimizedLocalModels.Text" xml:space="preserve"><value>コスト最適化 — すべてのタスクをローカル モデルで処理し、クラウドはフォールバックのみ</value></data>
+  <data name="Settings_QualityOptimizedCloudModels.Text" xml:space="preserve"><value>品質最適化 — 分析、コード、クリエイティブにクラウド モデルを使用</value></data>
+  <data name="Settings_BalancedLocalForSimple.Text" xml:space="preserve"><value>バランス — 単純なタスクはローカル、品質重視のタスクはクラウド</value></data>
+  <data name="Settings_CostTracking.Text" xml:space="preserve"><value>コスト追跡</value></data>
+  <data name="Settings_EstimatedApiCostsFor.Text" xml:space="preserve"><value>クラウド プロバイダーの API コストの概算です。ローカルの Ollama モデルは無料です。</value></data>
+  <data name="Settings_TotalSpend.Text" xml:space="preserve"><value>合計支出</value></data>
+  <data name="Settings_Today.Text" xml:space="preserve"><value>今日</value></data>
+  <data name="Settings_TotalTokens.Text" xml:space="preserve"><value>合計トークン</value></data>
+  <data name="Settings_Inference.Text" xml:space="preserve"><value>推論</value></data>
+  <data name="Settings_Temperature.Text" xml:space="preserve"><value>温度</value></data>
+  <data name="Settings_MaxTokens.Text" xml:space="preserve"><value>最大トークン数</value></data>
+  <data name="Settings_ContextWindow.Text" xml:space="preserve"><value>コンテキスト ウィンドウ</value></data>
+  <data name="Settings_KnowledgeVault.Text" xml:space="preserve"><value>Knowledge Vault</value></data>
+  <data name="Settings_ChunkSizeTokens.Text" xml:space="preserve"><value>チャンク サイズ (トークン)</value></data>
+  <data name="Settings_ChunkOverlap.Text" xml:space="preserve"><value>チャンクの重なり</value></data>
+  <data name="Settings_TopKResults.Text" xml:space="preserve"><value>上位 K 件の結果</value></data>
+  <data name="Settings_AutoIndexWatchFolders.Header" xml:space="preserve"><value>監視フォルダーを自動インデックス</value></data>
+  <data name="Settings_ResearchMode.Text" xml:space="preserve"><value>リサーチ モード</value></data>
+  <data name="Settings_AugmentAiAnswersWith.Text" xml:space="preserve"><value>AI の回答をライブの Web ソースで補強します。有効にすると、クエリは Web を検索し、結果をローカルの Knowledge Vault と組み合わせます。</value></data>
+  <data name="Settings_EnableResearchMode.Header" xml:space="preserve"><value>リサーチ モードを有効化</value></data>
+  <data name="Settings_EnableResearchMode.OffContent" xml:space="preserve"><value>ローカル ボールトのみ</value></data>
+  <data name="Settings_EnableResearchMode.OnContent" xml:space="preserve"><value>ローカル ボールト + Web 検索</value></data>
+  <data name="Settings_SearchProvider.Text" xml:space="preserve"><value>検索プロバイダー</value></data>
+  <data name="Settings_SearchApiKey.Text" xml:space="preserve"><value>検索 API キー</value></data>
+  <data name="Settings_EnterYourSearchApiPh.PlaceholderText" xml:space="preserve"><value>検索 API キーを入力</value></data>
+  <data name="Settings_MaxSearchResults.Text" xml:space="preserve"><value>最大検索結果数</value></data>
+  <data name="Settings_CacheDurationMinutes.Text" xml:space="preserve"><value>キャッシュ期間 (分)</value></data>
+  <data name="Settings_Storage.Text" xml:space="preserve"><value>ストレージ</value></data>
+  <data name="Settings_DataLocation.Text" xml:space="preserve"><value>データの場所</value></data>
+  <data name="Settings_Encrypted.OnContent" xml:space="preserve"><value>暗号化済み</value></data>
+  <data name="Settings_Encrypted.OffContent" xml:space="preserve"><value>暗号化なし</value></data>
+  <data name="Settings_Connections.Text" xml:space="preserve"><value>接続</value></data>
+  <data name="Settings_EnableLocalApi.Header" xml:space="preserve"><value>ローカル API を有効化</value></data>
+  <data name="Settings_EnableLocalApi.OffContent" xml:space="preserve"><value>無効</value></data>
+  <data name="Settings_EnableLocalApi.OnContent" xml:space="preserve"><value>有効 (認証あり)</value></data>
+  <data name="Settings_ApiToken.Text" xml:space="preserve"><value>API トークン</value></data>
+  <data name="Settings_NoTokenYetClickPh.PlaceholderText" xml:space="preserve"><value>トークンがありません — [再生成] をクリック</value></data>
+  <data name="Settings_Copy.Content" xml:space="preserve"><value>コピー</value></data>
+  <data name="Settings_Regenerate.Content" xml:space="preserve"><value>再生成</value></data>
+  <data name="Settings_KeepThisTokenSecret.Text" xml:space="preserve"><value>このトークンは秘密にしてください。再生成すると、新しいトークンを貼り付けるまで既存のクライアントとのペアリングが解除されます。トグルの変更は次回起動時に適用されます。</value></data>
+  <data name="Settings_SaveSettings.Content" xml:space="preserve"><value>設定を保存</value></data>
+  <data name="Settings_ResetToDefaults.Content" xml:space="preserve"><value>既定値にリセット</value></data>
+  <data name="Backup_BackupRestore.Text" xml:space="preserve"><value>バックアップと復元</value></data>
+  <data name="Backup_ProtectYourKnowledgeBase.Text" xml:space="preserve"><value>暗号化バックアップとワンクリック復元でナレッジ ベースを保護します。</value></data>
+  <data name="Backup_Database.Text" xml:space="preserve"><value>データベース</value></data>
+  <data name="Backup_Documents.Text" xml:space="preserve"><value>ドキュメント</value></data>
+  <data name="Backup_TotalEstimated.Text" xml:space="preserve"><value>推定合計</value></data>
+  <data name="Backup_Documents2.Text" xml:space="preserve"><value>ドキュメント</value></data>
+  <data name="Backup_CreateBackup.Text" xml:space="preserve"><value>バックアップを作成</value></data>
+  <data name="Backup_DestinationFolder.Text" xml:space="preserve"><value>保存先フォルダー</value></data>
+  <data name="Backup_SelectBackupDestinationPh.PlaceholderText" xml:space="preserve"><value>バックアップの保存先を選択...</value></data>
+  <data name="Backup_Browse.Content" xml:space="preserve"><value>参照</value></data>
+  <data name="Backup_EncryptBackupAes256.Content" xml:space="preserve"><value>バックアップを暗号化 (AES-256)</value></data>
+  <data name="Backup_EncryptionPasswordPh.PlaceholderText" xml:space="preserve"><value>暗号化パスワード</value></data>
+  <data name="Backup_IncludeIndexedDocuments.Content" xml:space="preserve"><value>インデックス済みドキュメントを含める</value></data>
+  <data name="Backup_NotesOptional.Text" xml:space="preserve"><value>メモ (省略可)</value></data>
+  <data name="Backup_AddANoteAboutPh.PlaceholderText" xml:space="preserve"><value>このバックアップについてのメモを追加...</value></data>
+  <data name="Backup_CreateBackup2.Content" xml:space="preserve"><value>バックアップを作成</value></data>
+  <data name="Backup_RestoreFromBackup.Text" xml:space="preserve"><value>バックアップから復元</value></data>
+  <data name="Backup_BackupFile.Text" xml:space="preserve"><value>バックアップ ファイル</value></data>
+  <data name="Backup_SelectAgentxbakFilePh.PlaceholderText" xml:space="preserve"><value>.agentxbak ファイルを選択...</value></data>
+  <data name="Backup_Browse2.Content" xml:space="preserve"><value>参照</value></data>
+  <data name="Backup_RestoreComplete.Text" xml:space="preserve"><value>復元が完了しました</value></data>
+  <data name="Backup_Restore.Content" xml:space="preserve"><value>復元</value></data>
+  <data name="Backup_BackupHistory.Text" xml:space="preserve"><value>バックアップ履歴</value></data>
+  <data name="Backup_RestoreThisBackupTip.ToolTipService.ToolTip" xml:space="preserve"><value>このバックアップを復元</value></data>
+  <data name="Backup_RestoreThisBackupTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>このバックアップを復元</value></data>
+  <data name="Backup_DeleteBackupTip.ToolTipService.ToolTip" xml:space="preserve"><value>バックアップを削除</value></data>
+  <data name="Backup_DeleteBackupTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>バックアップを削除</value></data>
+  <data name="EmailSet_EmailConnector.Text" xml:space="preserve"><value>メール コネクタ</value></data>
+  <data name="EmailSet_SyncGmailAndOutlook.Text" xml:space="preserve"><value>Gmail と Outlook のメールを Knowledge Vault に同期して、AI 検索と仕分けに活用します。</value></data>
+  <data name="EmailSet_Error.Title" xml:space="preserve"><value>エラー</value></data>
+  <data name="EmailSet_ConnectedAccounts.Text" xml:space="preserve"><value>接続済みアカウント</value></data>
+  <data name="EmailSet_Connect.Content" xml:space="preserve"><value>接続</value></data>
+  <data name="EmailSet_Disconnect.Content" xml:space="preserve"><value>切断</value></data>
+  <data name="EmailSet_OutlookEmail.Text" xml:space="preserve"><value>Outlook メール</value></data>
+  <data name="EmailSet_Connect2.Content" xml:space="preserve"><value>接続</value></data>
+  <data name="EmailSet_Disconnect2.Content" xml:space="preserve"><value>切断</value></data>
+  <data name="EmailSet_SyncSettings.Text" xml:space="preserve"><value>同期設定</value></data>
+  <data name="EmailSet_EmailSync.Header" xml:space="preserve"><value>メール同期</value></data>
+  <data name="EmailSet_EmailSync.OffContent" xml:space="preserve"><value>オフ</value></data>
+  <data name="EmailSet_EmailSync.OnContent" xml:space="preserve"><value>オン</value></data>
+  <data name="EmailSet_SyncIntervalMinutes.Text" xml:space="preserve"><value>同期間隔 (分)</value></data>
+  <data name="EmailSet_MaxMessagesPerSync.Text" xml:space="preserve"><value>1 回の同期の最大メッセージ数</value></data>
+  <data name="EmailSet_SyncDaysBack.Text" xml:space="preserve"><value>同期する過去日数</value></data>
+  <data name="EmailSet_AiEmailCategorization.Header" xml:space="preserve"><value>AI メール分類</value></data>
+  <data name="EmailSet_AiEmailCategorization.OffContent" xml:space="preserve"><value>オフ</value></data>
+  <data name="EmailSet_AiEmailCategorization.OnContent" xml:space="preserve"><value>オン</value></data>
+  <data name="EmailSet_IncludeAttachmentNamesIn.Header" xml:space="preserve"><value>添付ファイル名を検索インデックスに含める</value></data>
+  <data name="EmailSet_IncludeAttachmentNamesIn.OffContent" xml:space="preserve"><value>含めない</value></data>
+  <data name="EmailSet_IncludeAttachmentNamesIn.OnContent" xml:space="preserve"><value>含める</value></data>
+  <data name="EmailSet_SaveSettings.Content" xml:space="preserve"><value>設定を保存</value></data>
+  <data name="EmailSet_SyncNow.Content" xml:space="preserve"><value>今すぐ同期</value></data>
+  <data name="EmailSet_LastSynced.Text" xml:space="preserve"><value>前回の同期</value></data>
+  <data name="EmailSet_NextSync.Text" xml:space="preserve"><value>次回の同期</value></data>
+  <data name="EmailSet_Status.Text" xml:space="preserve"><value>状態</value></data>
+  <data name="CalSet_CalendarConnector.Text" xml:space="preserve"><value>カレンダー コネクタ</value></data>
+  <data name="CalSet_SyncGoogleCalendarAnd.Text" xml:space="preserve"><value>Google カレンダーと Microsoft Outlook の予定を Knowledge Vault に同期して、AI 検索に活用します。</value></data>
+  <data name="CalSet_Error.Title" xml:space="preserve"><value>エラー</value></data>
+  <data name="CalSet_ConnectedAccounts.Text" xml:space="preserve"><value>接続済みアカウント</value></data>
+  <data name="CalSet_GoogleCalendar.Text" xml:space="preserve"><value>Google カレンダー</value></data>
+  <data name="CalSet_Connect.Content" xml:space="preserve"><value>接続</value></data>
+  <data name="CalSet_Disconnect.Content" xml:space="preserve"><value>切断</value></data>
+  <data name="CalSet_OutlookCalendar.Text" xml:space="preserve"><value>Outlook 予定表</value></data>
+  <data name="CalSet_Connect2.Content" xml:space="preserve"><value>接続</value></data>
+  <data name="CalSet_Disconnect2.Content" xml:space="preserve"><value>切断</value></data>
+  <data name="CalSet_SyncSettings.Text" xml:space="preserve"><value>同期設定</value></data>
+  <data name="CalSet_CalendarSync.Header" xml:space="preserve"><value>カレンダー同期</value></data>
+  <data name="CalSet_CalendarSync.OffContent" xml:space="preserve"><value>オフ</value></data>
+  <data name="CalSet_CalendarSync.OnContent" xml:space="preserve"><value>オン</value></data>
+  <data name="CalSet_SyncIntervalMinutes.Text" xml:space="preserve"><value>同期間隔 (分)</value></data>
+  <data name="CalSet_SyncRangePastDays.Text" xml:space="preserve"><value>同期範囲: 過去日数</value></data>
+  <data name="CalSet_SyncRangeFutureDays.Text" xml:space="preserve"><value>同期範囲: 未来日数</value></data>
+  <data name="CalSet_ConflictResolution.Text" xml:space="preserve"><value>競合の解決</value></data>
+  <data name="CalSet_IncludeAttendeeDetails.Header" xml:space="preserve"><value>参加者の詳細を含める</value></data>
+  <data name="CalSet_IncludeAttendeeDetails.OffContent" xml:space="preserve"><value>含めない</value></data>
+  <data name="CalSet_IncludeAttendeeDetails.OnContent" xml:space="preserve"><value>含める</value></data>
+  <data name="CalSet_IncludeEventDescriptions.Header" xml:space="preserve"><value>予定の説明を含める</value></data>
+  <data name="CalSet_IncludeEventDescriptions.OffContent" xml:space="preserve"><value>含めない</value></data>
+  <data name="CalSet_IncludeEventDescriptions.OnContent" xml:space="preserve"><value>含める</value></data>
+  <data name="CalSet_SaveSettings.Content" xml:space="preserve"><value>設定を保存</value></data>
+  <data name="CalSet_SyncNow.Content" xml:space="preserve"><value>今すぐ同期</value></data>
+  <data name="CalSet_LastSynced.Text" xml:space="preserve"><value>前回の同期</value></data>
+  <data name="CalSet_NextSync.Text" xml:space="preserve"><value>次回の同期</value></data>
+  <data name="CalSet_Status.Text" xml:space="preserve"><value>状態</value></data>
+  <data name="Plugin_OpenedFromOperations.Text" xml:space="preserve"><value>Operations から開きました</value></data>
+  <data name="Plugin_FocusedConnector.Text" xml:space="preserve"><value>フォーカス中のコネクタ</value></data>
+  <data name="Plugin_Dismiss.Content" xml:space="preserve"><value>閉じる</value></data>
+  <data name="ExportDlg_ExportConversation.Title" xml:space="preserve"><value>会話をエクスポート</value></data>
+  <data name="ExportDlg_ExportConversation.PrimaryButtonText" xml:space="preserve"><value>エクスポート</value></data>
+  <data name="ExportDlg_ExportConversation.CloseButtonText" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="ExportDlg_Format.Header" xml:space="preserve"><value>形式</value></data>
+  <data name="ExportDlg_TemplateOptional.Header" xml:space="preserve"><value>テンプレート (省略可)</value></data>
+  <data name="ExportDlg_IncludeCitations.Header" xml:space="preserve"><value>引用を含める</value></data>
+  <data name="ExportDlg_IncludeMetadata.Header" xml:space="preserve"><value>メタデータを含める</value></data>
+  <data name="ExportDlg_IncludeTimestamps.Header" xml:space="preserve"><value>タイムスタンプを含める</value></data>
+  <data name="ExportDlg_IncludeBranches.Header" xml:space="preserve"><value>ブランチを含める</value></data>
+  <data name="JumpTo_JumpToPageDocumentPh.PlaceholderText" xml:space="preserve"><value>ページ、ドキュメント、会話にジャンプ...</value></data>
+  <data name="Privacy_PrivacyPolicy.Text" xml:space="preserve"><value>プライバシー ポリシー</value></data>
+  <data name="Privacy_EffectiveDateFebruary26.Text" xml:space="preserve"><value>発効日: 2026 年 2 月 26 日</value></data>
+  <data name="Privacy_StrategiaXWeUs.Text" xml:space="preserve"><value>Strategia-X(以下「当社」)は Agent-X を運営しています。本プライバシー ポリシーは、当社のデスクトップ アプリケーションをご利用いただく際の情報の取り扱いについて説明するものです。</value></data>
+  <data name="Privacy_LocalFirstPrivacy.Text" xml:space="preserve"><value>ローカルファーストのプライバシー</value></data>
+  <data name="Privacy_YourDataNeverLeaves.Text" xml:space="preserve"><value>データがデバイスの外に出ることはありません。AI 処理、ドキュメント保存、会話はすべてお使いのマシン内で完結します。</value></data>
+  <data name="Privacy_Verified.Text" xml:space="preserve"><value>検証済み</value></data>
+  <data name="Privacy_OurCommitmentToPrivacy.Text" xml:space="preserve"><value>プライバシーへの取り組み</value></data>
+  <data name="Privacy_AgentXIsDesigned.Text" xml:space="preserve"><value>Agent-X はプライバシーを基本原則として設計されています。ドキュメント、会話、埋め込み、設定など、すべてのデータはデバイスにローカル保存されます。当社は、お客様の個人データを処理・保存するクラウド サーバーを運用していません。</value></data>
+  <data name="Privacy_OurLocalFirstArchitecture.Text" xml:space="preserve"><value>ローカルファーストのアーキテクチャにより、Agent-X で作成またはインポートしたすべての情報の所有権と管理権はお客様が完全に保持します。アカウント作成、データ同期、テレメトリ送信は一切ありません。</value></data>
+  <data name="Privacy_InformationWeCollect.Text" xml:space="preserve"><value>収集する情報</value></data>
+  <data name="Privacy_InformationYouProvide.Text" xml:space="preserve"><value>お客様が提供する情報</value></data>
+  <data name="Privacy_WhenYouUseAgent.Text" xml:space="preserve"><value>Agent-X の利用時には、次の情報が作成され、デバイスにローカル保存されます:</value></data>
+  <data name="Privacy_DocumentsYouImportInto.Text" xml:space="preserve"><value>Knowledge Vault にインポートしたドキュメント</value></data>
+  <data name="Privacy_ConversationsWithAiModels.Text" xml:space="preserve"><value>AI モデルとの会話</value></data>
+  <data name="Privacy_SettingsAndPreferencesYou.Text" xml:space="preserve"><value>設定した各種オプション</value></data>
+  <data name="Privacy_CollectionNamesAndOrganization.Text" xml:space="preserve"><value>コレクション名と整理用タグ</value></data>
+  <data name="Privacy_AutomaticallyCollectedInformat.Text" xml:space="preserve"><value>自動的に収集される情報</value></data>
+  <data name="Privacy_AgentXMayAutomatically.Text" xml:space="preserve"><value>Agent-X は次の情報を自動的に収集することがありますが、すべてローカルに保存され、外部に送信されることはありません:</value></data>
+  <data name="Privacy_ApplicationLogsStoredLocally.Text" xml:space="preserve"><value>アプリケーション ログ (ローカル保存のみ)</value></data>
+  <data name="Privacy_HardwareCapabilityInformationF.Text" xml:space="preserve"><value>ハードウェア性能情報 (モデル推奨のため)</value></data>
+  <data name="Privacy_UsageStatisticsStoredLocally.Text" xml:space="preserve"><value>使用統計 (ローカル保存のみ、送信されません)</value></data>
+  <data name="Privacy_InformationWeDoNot.Text" xml:space="preserve"><value>収集しない情報</value></data>
+  <data name="Privacy_WeDoNotCollect.Text" xml:space="preserve"><value>個人識別情報を収集しません</value></data>
+  <data name="Privacy_WeDoNotTransmit.Text" xml:space="preserve"><value>外部サーバーにデータを送信しません</value></data>
+  <data name="Privacy_WeDoNotUse.Text" xml:space="preserve"><value>Cookie やトラッキング技術を使用しません</value></data>
+  <data name="Privacy_WeDoNotCollect2.Text" xml:space="preserve"><value>アプリを通じて支払い情報を収集しません</value></data>
+  <data name="Privacy_HowYourDataIs.Text" xml:space="preserve"><value>データの保存方法</value></data>
+  <data name="Privacy_AllDataGeneratedAnd.Text" xml:space="preserve"><value>Agent-X が生成・管理するすべてのデータは、デバイスにローカル保存されます。クラウド コンポーネントは存在しません。</value></data>
+  <data name="Privacy_AllDataStoredIn.Text" xml:space="preserve"><value>すべてのデータはデバイス上のローカル SQLite データベースに保存</value></data>
+  <data name="Privacy_DocumentEmbeddingsStoredIn.Text" xml:space="preserve"><value>ドキュメントの埋め込みはローカル ベクトル データベース (sqlite-vec) に保存</value></data>
+  <data name="Privacy_ApplicationLogsStoredIn.Text" xml:space="preserve"><value>アプリケーション ログの保存先: </value></data>
+  <data name="Privacy_SettingsStoredLocallyNever.Text" xml:space="preserve"><value>設定はローカル保存 — クラウドに同期されません</value></data>
+  <data name="Privacy_YouHaveFullControl.Text" xml:space="preserve"><value>完全な管理が可能: アプリケーション データ フォルダーを削除すれば、すべてのデータを消去できます</value></data>
+  <data name="Privacy_ThirdPartyServices.Text" xml:space="preserve"><value>サードパーティ サービス</value></data>
+  <data name="Privacy_OllamaLocalAiRuntime.Text" xml:space="preserve"><value>Ollama (ローカル AI ランタイム)</value></data>
+  <data name="Privacy_AgentXConnectsTo.Text" xml:space="preserve"><value>Agent-X は、マシン上でローカルに動作する Ollama に接続します。Ollama は AI 推論をローカルで処理します。リモートの Ollama エンドポイントを明示的に設定しない限り、外部サーバーにデータが送信されることはありません。</value></data>
+  <data name="Privacy_IfYouConfigureA.Text" xml:space="preserve"><value>リモート エンドポイントを設定した場合、そこに送信されるデータはリモート サーバーのプライバシー ポリシーに従います。最大限のプライバシーのため、ローカル推論のご利用をおすすめします。</value></data>
+  <data name="Privacy_NoAnalyticsServices.Text" xml:space="preserve"><value>分析サービスなし</value></data>
+  <data name="Privacy_WeDoNotUse2.Text" xml:space="preserve"><value>Google Analytics、Mixpanel などのサードパーティ分析サービスは使用していません。使用データの収集・送信は一切ありません。</value></data>
+  <data name="Privacy_NoAdvertising.Text" xml:space="preserve"><value>広告なし</value></data>
+  <data name="Privacy_WeDoNotDisplay.Text" xml:space="preserve"><value>広告の表示や広告主とのデータ共有は行いません。Agent-X は有料製品であり、ユーザーは当社の顧客であって商品ではありません。</value></data>
+  <data name="Privacy_YourRightsUnderGdpr.Text" xml:space="preserve"><value>GDPR に基づく権利</value></data>
+  <data name="Privacy_IfYouAreLocated.Text" xml:space="preserve"><value>欧州経済領域 (EEA) にお住まいの場合、一般データ保護規則 (GDPR) に基づく一定のデータ保護の権利を有します。</value></data>
+  <data name="Privacy_RightToAccess.Text" xml:space="preserve"><value>アクセス権</value></data>
+  <data name="Privacy_YouCanAccessAll.Text" xml:space="preserve"><value>すべてのデータにはデバイス上で直接アクセスできます。当社への請求は不要です。</value></data>
+  <data name="Privacy_RightToRectification.Text" xml:space="preserve"><value>訂正権</value></data>
+  <data name="Privacy_YouCanModifyYour.Text" xml:space="preserve"><value>アプリケーションの画面から、いつでもデータを変更できます。</value></data>
+  <data name="Privacy_RightToErasureRight.Text" xml:space="preserve"><value>消去権 (「忘れられる権利」)</value></data>
+  <data name="Privacy_DeleteDocumentsConversationsAn.Text" xml:space="preserve"><value>アプリ内の操作またはアプリケーション データ フォルダーの削除により、ドキュメント、会話、すべてのデータを削除できます。</value></data>
+  <data name="Privacy_RightToDataPortability.Text" xml:space="preserve"><value>データ ポータビリティの権利</value></data>
+  <data name="Privacy_YourDataIsStored.Text" xml:space="preserve"><value>データは標準の SQLite 形式で保存されており、自由にエクスポートや移動ができます。</value></data>
+  <data name="Privacy_RightToRestrictProcessing.Text" xml:space="preserve"><value>処理制限の権利</value></data>
+  <data name="Privacy_YouControlAllProcessing.Text" xml:space="preserve"><value>すべての処理はお客様の管理下にあります — アプリケーションを終了するだけで、あらゆるデータ処理が停止します。</value></data>
+  <data name="Privacy_RightToObject.Text" xml:space="preserve"><value>異議申し立ての権利</value></data>
+  <data name="Privacy_YouCanStopUsing.Text" xml:space="preserve"><value>アプリケーションの利用はいつでも中止できます。アンインストールすればすべての処理がなくなります。</value></data>
+  <data name="Privacy_SinceAllDataIs.Text" xml:space="preserve"><value>すべてのデータはデバイスにローカル保存されているため、当社に連絡することなく、これらの権利を直接行使できます。データの管理者はお客様ご自身です。</value></data>
+  <data name="Privacy_YourRightsUnderCcpa.Text" xml:space="preserve"><value>CCPA に基づく権利</value></data>
+  <data name="Privacy_IfYouAreA.Text" xml:space="preserve"><value>カリフォルニア州にお住まいの場合、カリフォルニア州消費者プライバシー法 (CCPA) に基づく特定の権利を有します。</value></data>
+  <data name="Privacy_RightToKnow.Text" xml:space="preserve"><value>知る権利</value></data>
+  <data name="Privacy_WhatPersonalInformationIs.Text" xml:space="preserve"><value>収集される個人情報について — 完全な一覧は上記の「収集する情報」をご覧ください。</value></data>
+  <data name="Privacy_RightToDelete.Text" xml:space="preserve"><value>削除権</value></data>
+  <data name="Privacy_RemoveAllDataBy.Text" xml:space="preserve"><value>アプリのアンインストールまたはアプリケーション データ ディレクトリの削除により、すべてのデータを消去できます。</value></data>
+  <data name="Privacy_RightToOptOut.Text" xml:space="preserve"><value>販売のオプトアウト権</value></data>
+  <data name="Privacy_WeDoNotSell.Text" xml:space="preserve"><value>当社がお客様の個人情報を販売することはありません。これまでも、これからもありません。</value></data>
+  <data name="Privacy_RightToNonDiscrimination.Text" xml:space="preserve"><value>差別を受けない権利</value></data>
+  <data name="Privacy_WeDoNotDiscriminate.Text" xml:space="preserve"><value>プライバシーの権利を行使したユーザーを差別することはありません。</value></data>
+  <data name="Privacy_CategoriesOfPersonalInformatio.Text" xml:space="preserve"><value>個人情報のカテゴリ</value></data>
+  <data name="Privacy_DocumentsAndFilesYou.Text" xml:space="preserve"><value>インポートしたドキュメントとファイル</value></data>
+  <data name="Privacy_AiConversationHistory.Text" xml:space="preserve"><value>AI 会話履歴</value></data>
+  <data name="Privacy_ApplicationPreferences.Text" xml:space="preserve"><value>アプリケーション設定</value></data>
+  <data name="Privacy_NoSaleOfData.Text" xml:space="preserve"><value>データ販売なし</value></data>
+  <data name="Privacy_StrategiaXDoesNot.Text" xml:space="preserve"><value>Strategia-X がユーザー データを販売、貸与、取引することはありません。あなたの情報はあなただけのものです。</value></data>
+  <data name="Privacy_DataSecurity.Text" xml:space="preserve"><value>データ セキュリティ</value></data>
+  <data name="Privacy_YourDataSecurityDepends.Text" xml:space="preserve"><value>データの安全性は、デバイスのセキュリティに依存します。すべてのデータがローカルに保たれるため、OS 標準の保護機能の恩恵を受けられます。</value></data>
+  <data name="Privacy_WeRecommendTheFollowing.Text" xml:space="preserve"><value>データを安全に保つため、次の対策をおすすめします:</value></data>
+  <data name="Privacy_KeepYourOperatingSystem.Text" xml:space="preserve"><value>OS とソフトウェアを常に最新の状態に保つ</value></data>
+  <data name="Privacy_UseStrongDevicePasswords.Text" xml:space="preserve"><value>強力なデバイス パスワードと、利用可能な場合は生体認証ロックを使用する</value></data>
+  <data name="Privacy_EncryptYourHardDrive.Text" xml:space="preserve"><value>ハード ドライブを暗号化する (例: Windows の BitLocker)</value></data>
+  <data name="Privacy_AgentXDoesNot.Text" xml:space="preserve"><value>Agent-X は、OS が提供する以上の追加暗号化は実装していません。</value></data>
+  <data name="Privacy_NetworkSecurityByDefault.Text" xml:space="preserve"><value>ネットワーク セキュリティ: 既定では、AI 処理はすべてローカルで行われます。データがネットワークの外に出ることはありません。</value></data>
+  <data name="Privacy_ChildrenSPrivacy.Text" xml:space="preserve"><value>児童のプライバシー</value></data>
+  <data name="Privacy_AgentXIsNot.Text" xml:space="preserve"><value>Agent-X は 13 歳未満の児童を対象としていません。13 歳未満の児童から故意に個人情報を収集することはありません。保護者の方で、お子様がアプリケーションを通じて情報を提供したと思われる場合は、対応いたしますので当社までご連絡ください。</value></data>
+  <data name="Privacy_ChangesToThisPrivacy.Text" xml:space="preserve"><value>本プライバシー ポリシーの変更</value></data>
+  <data name="Privacy_WeMayUpdateThis.Text" xml:space="preserve"><value>本プライバシー ポリシーは随時更新されることがあります。変更の際は、このページ上部の発効日を改定します。変更内容は、更新された発効日とともにアプリケーションに反映されます。</value></data>
+  <data name="Privacy_WeEncourageYouTo.Text" xml:space="preserve"><value>情報保護の取り組みを把握いただくため、本プライバシー ポリシーを定期的にご確認いただくことをおすすめします。</value></data>
+  <data name="Privacy_ContactUs.Text" xml:space="preserve"><value>お問い合わせ</value></data>
+  <data name="Privacy_IfYouHaveAny.Text" xml:space="preserve"><value>本プライバシー ポリシーまたはデータの取り扱いについてご質問、ご懸念、ご要望がある場合は、お気軽にお問い合わせください。</value></data>
+  <data name="Privacy_Company.Text" xml:space="preserve"><value>会社</value></data>
+  <data name="Privacy_PrivacyQuestions.Text" xml:space="preserve"><value>プライバシーに関するご質問</value></data>
+  <data name="Privacy_GdprDataProtectionContact.Text" xml:space="preserve"><value>GDPR データ保護窓口</value></data>
+  <data name="Privacy_ForGdprInquiriesOur.Text" xml:space="preserve"><value>GDPR に関するお問い合わせは、データ保護窓口 support@strategia-x.com までご連絡ください</value></data>
+  <data name="Privacy_CcpaRequestsCaliforniaResident.Text" xml:space="preserve"><value>CCPA 関連のご請求 (カリフォルニア州民)</value></data>
+  <data name="Privacy_CaliforniaResidentsMayContact.Text" xml:space="preserve"><value>カリフォルニア州民の方は、CCPA 関連のご請求について support@strategia-x.com までご連絡ください。</value></data>
+  <data name="Privacy_2026RockyElsalaymehFree.Text" xml:space="preserve"><value>© 2026 Rocky Elsalaymeh. MIT ライセンスの下で無料かつオープンソース。</value></data>
+  <data name="Privacy_AgentXLocalFirst.Text" xml:space="preserve"><value>Agent-X — ローカルファーストの AI パーソナル インテリジェンス ハブ</value></data>
+  <data name="Terms_Legal.Text" xml:space="preserve"><value>法的情報</value></data>
+  <data name="Terms_TermsOfService.Text" xml:space="preserve"><value>利用規約</value></data>
+  <data name="Terms_EffectiveDateFebruary26.Text" xml:space="preserve"><value>発効日: 2026 年 2 月 26 日</value></data>
+  <data name="Terms_PleaseReadTheseTerms.Text" xml:space="preserve"><value>Strategia-X(以下「当社」)が開発したデスクトップ アプリケーション Agent-X をご利用になる前に、本利用規約(以下「本規約」)をよくお読みください。Agent-X をインストールまたは使用することにより、本規約に拘束されることに同意したものとみなされます。</value></data>
+  <data name="Terms_1AcceptanceOfTerms.Text" xml:space="preserve"><value>1. 規約への同意</value></data>
+  <data name="Terms_ByDownloadingInstallingOr.Text" xml:space="preserve"><value>Agent-X をダウンロード、インストール、または使用することにより、本規約を読み、理解し、これに拘束されることに同意したものとみなされます。本規約に同意いただけない場合は、Agent-X を使用しないでください。アプリケーションの継続的な使用は、更新された規約への継続的な同意を意味します。</value></data>
+  <data name="Terms_2DescriptionOfService.Text" xml:space="preserve"><value>2. サービスの説明</value></data>
+  <data name="Terms_AgentXIsA.Text" xml:space="preserve"><value>Agent-X は、Windows 向けのローカルファースト AI パーソナル インテリジェンス ハブです。次の機能を提供します:</value></data>
+  <data name="Terms_LocalAiChatVia.Text" xml:space="preserve"><value>Ollama 連携によるローカル AI チャット</value></data>
+  <data name="Terms_DocumentManagementAndIndexing.Text" xml:space="preserve"><value>ドキュメントの管理とインデックス作成</value></data>
+  <data name="Terms_RetrievalAugmentedGenerationRa.Text" xml:space="preserve"><value>検索拡張生成 (RAG)</value></data>
+  <data name="Terms_SemanticSearchAcrossYour.Text" xml:space="preserve"><value>ドキュメント全体のセマンティック検索</value></data>
+  <data name="Terms_ModelManagement.Text" xml:space="preserve"><value>モデル管理</value></data>
+  <data name="Terms_HardwareCapabilityAnalysis.Text" xml:space="preserve"><value>ハードウェア性能の分析</value></data>
+  <data name="Terms_AllProcessingOccursLocally.Text" xml:space="preserve"><value>すべての処理はデバイス上でローカルに行われます。Agent-X が AI 推論のためにデータを外部サーバーへ送信することはありません。</value></data>
+  <data name="Terms_3LicenseGrant.Text" xml:space="preserve"><value>3. ライセンスの付与</value></data>
+  <data name="Terms_UnderTheMitLicense.Text" xml:space="preserve"><value>MIT ライセンスの下では、次のことを自由に行えます:</value></data>
+  <data name="Terms_UseAgentXFor.Text" xml:space="preserve"><value>個人・商用を問わず、あらゆる目的で Agent-X を使用する</value></data>
+  <data name="Terms_StudyModifyAndBuild.Text" xml:space="preserve"><value>ソース コードを調査、改変し、それを基に開発する</value></data>
+  <data name="Terms_DistributeAndSublicenseCopies.Text" xml:space="preserve"><value>改変の有無を問わず、複製物を配布およびサブライセンスする</value></data>
+  <data name="Terms_IncludeAgentXIn.Text" xml:space="preserve"><value>自分のプロジェクトに Agent-X を無償で組み込む</value></data>
+  <data name="Terms_TheOnlyConditionIs.Text" xml:space="preserve"><value>唯一の条件は、ソフトウェアのすべての複製物または実質的な部分に、MIT の著作権表示および許諾表示を含めることです。</value></data>
+  <data name="Terms_4UserResponsibilities.Text" xml:space="preserve"><value>4. ユーザーの責任</value></data>
+  <data name="Terms_YouAreResponsibleFor.Text" xml:space="preserve"><value>お客様は次の事項について責任を負います:</value></data>
+  <data name="Terms_EnsuringYourSystemMeets.Text" xml:space="preserve"><value>システムが Agent-X の最小ハードウェア・ソフトウェア要件を満たしていることの確認</value></data>
+  <data name="Terms_InstallingAndMaintainingOllama.Text" xml:space="preserve"><value>Ollama の個別のインストールと維持管理 (Agent-X には同梱されていません)</value></data>
+  <data name="Terms_TheContentOfAny.Text" xml:space="preserve"><value>Agent-X にインポートまたは Agent-X で処理するドキュメントの内容</value></data>
+  <data name="Terms_ComplianceWithAllApplicable.Text" xml:space="preserve"><value>アプリケーションの使用に関する、適用されるすべての法令の遵守</value></data>
+  <data name="Terms_MaintainingTheSecurityOf.Text" xml:space="preserve"><value>デバイスおよびローカルに保存された認証情報のセキュリティの維持</value></data>
+  <data name="Terms_BackingUpYourData.Text" xml:space="preserve"><value>定期的なデータのバックアップ (Strategia-X はデータ損失について責任を負いません)</value></data>
+  <data name="Terms_5IntellectualProperty.Text" xml:space="preserve"><value>5. 知的財産</value></data>
+  <data name="Terms_AgentXIsOpen.Text" xml:space="preserve"><value>Agent-X はオープンソース ソフトウェアです。ソース コード、ドキュメント、その他の資料は MIT ライセンスの下で提供され、著作権は同ライセンスに記載のとおり原著作者および貢献者に帰属します。MIT ライセンスの条件に従い、これらの資料を自由に利用し、それを基に開発できます。</value></data>
+  <data name="Terms_YourDocumentsAndData.Text" xml:space="preserve"><value>お客様のドキュメントとデータは、常にお客様の財産です。Agent-X で処理されたコンテンツについて、当社が所有権を主張することはありません。知的財産に関するすべての権利はお客様に帰属します。</value></data>
+  <data name="Terms_6ThirdPartySoftware.Text" xml:space="preserve"><value>6. サードパーティ ソフトウェア</value></data>
+  <data name="Terms_AgentXIntegratesWith.Text" xml:space="preserve"><value>Agent-X は、Ollama, Inc. が開発するオープンソース プロジェクト Ollama と連携します。Ollama には本規約とは別の独自のライセンス条件が適用されます。Ollama の利用規約の確認と遵守はお客様の責任となります。</value></data>
+  <data name="Terms_AgentXAlsoUses.Text" xml:space="preserve"><value>Agent-X は、それぞれ固有のライセンスが適用される各種オープンソース ライブラリも使用しています。これらのライセンスはアプリケーションの配布物に含まれています。Agent-X の使用は、これらのサードパーティ ライセンス条件への同意を意味します。</value></data>
+  <data name="Terms_7Privacy.Text" xml:space="preserve"><value>7. プライバシー</value></data>
+  <data name="Terms_YourUseOfAgent.Text" xml:space="preserve"><value>Agent-X のご利用には、アプリケーション内で確認できる当社のプライバシー ポリシーも適用されます。プライバシー ポリシーでは、データの取り扱い、収集される情報 (ある場合)、および個人データに関するお客様の権利について説明しています。</value></data>
+  <data name="Terms_ByUsingAgentX.Text" xml:space="preserve"><value>Agent-X を使用することにより、プライバシー ポリシーに記載されたデータの取り扱いを認め、これに同意したものとみなされます。プライバシー ポリシーは、参照により本規約に組み込まれます。</value></data>
+  <data name="Terms_8DisclaimerOfWarranties.Text" xml:space="preserve"><value>8. 保証の否認</value></data>
+  <data name="Terms_AgentXIsProvided.Text" xml:space="preserve"><value>AGENT-X は「現状有姿」および「提供可能な状態」で提供され、明示・黙示を問わずいかなる保証もありません。法律で認められる最大限の範囲において、STRATEGIA-X は、商品性、特定目的への適合性、権利非侵害の黙示的保証を含むがこれに限られない、すべての保証を否認します。</value></data>
+  <data name="Terms_WeDoNotWarrant.Text" xml:space="preserve"><value>当社は以下について保証しません:</value></data>
+  <data name="Terms_TheApplicationWillBe.Text" xml:space="preserve"><value>アプリケーションにエラーや中断がないこと</value></data>
+  <data name="Terms_AiGeneratedResponsesWill.Text" xml:space="preserve"><value>AI が生成する回答が正確、完全、または信頼できること</value></data>
+  <data name="Terms_TheApplicationWillMeet.Text" xml:space="preserve"><value>アプリケーションがお客様固有の要件を満たすこと</value></data>
+  <data name="Terms_DefectsInTheApplication.Text" xml:space="preserve"><value>アプリケーションの欠陥が速やかに修正されること</value></data>
+  <data name="Terms_9LimitationOfLiability.Text" xml:space="preserve"><value>9. 責任の制限</value></data>
+  <data name="Terms_ToTheMaximumExtent.Text" xml:space="preserve"><value>適用法で認められる最大限の範囲において、STRATEGIA-X は、AGENT-X の使用または使用不能に起因する、データまたはドキュメントの損失、利益または収益の損失、ハードウェアまたはソフトウェアの損傷、事業の中断、その他の無形の損失を含むがこれに限られない、間接損害、付随的損害、特別損害、結果損害、懲罰的損害について、一切責任を負いません。</value></data>
+  <data name="Terms_ThisLimitationAppliesRegardles.Text" xml:space="preserve"><value>この制限は、請求の根拠となる法的理論を問わず、当社がそのような損害の可能性を知らされていたかどうかにかかわらず、また救済手段がその本質的目的を達成できない場合でも適用されます。</value></data>
+  <data name="Terms_AgentXIsProvided2.Text" xml:space="preserve"><value>Agent-X は MIT ライセンスの下で無償で提供されます。法律で認められる最大限の範囲において、著作者および著作権者は、Agent-X に起因または関連する請求について、お客様に対し一切の責任を負いません。</value></data>
+  <data name="Terms_10AiGeneratedContent.Text" xml:space="preserve"><value>10. AI 生成コンテンツに関する免責事項</value></data>
+  <data name="Terms_AgentXUsesLocally.Text" xml:space="preserve"><value>Agent-X は、ローカルで動作する AI モデルを使用して回答の生成と分析を行います。次の点を必ずご理解ください:</value></data>
+  <data name="Terms_AiOutputMayContain.Text" xml:space="preserve"><value>AI の出力には、基盤モデルに内在する不正確さ、誤り、バイアスが含まれる場合があります</value></data>
+  <data name="Terms_YouShouldIndependentlyVerify.Text" xml:space="preserve"><value>AI が生成した重要な情報は、信頼する前にご自身で検証してください</value></data>
+  <data name="Terms_StrategiaXIsNot.Text" xml:space="preserve"><value>AI 生成コンテンツに基づいて行われた判断について、Strategia-X は責任を負いません</value></data>
+  <data name="Terms_AiResponsesDoNot.Text" xml:space="preserve"><value>AI の回答は、法律、医療、金融、エンジニアリングに関する助言を含むがこれに限られない、いかなる種類の専門的助言にも該当しません</value></data>
+  <data name="Terms_11Indemnification.Text" xml:space="preserve"><value>11. 補償</value></data>
+  <data name="Terms_YouAgreeToIndemnify.Text" xml:space="preserve"><value>お客様は、以下に起因するあらゆる請求、損害、義務、損失、責任、費用または経費 (合理的な弁護士費用を含む) について、Strategia-X ならびにその役員、取締役、従業員、代理人および関連会社を補償し、防御し、免責することに同意します:</value></data>
+  <data name="Terms_YourUseOrMisuse.Text" xml:space="preserve"><value>アプリケーションの使用または誤用</value></data>
+  <data name="Terms_YourViolationOfThese.Text" xml:space="preserve"><value>本規約への違反</value></data>
+  <data name="Terms_YourViolationOfAny.Text" xml:space="preserve"><value>知的財産権を含む第三者の権利の侵害</value></data>
+  <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>アプリケーションを通じて処理、インポート、または生成したコンテンツ</value></data>
+  <data name="Terms_12Termination.Text" xml:space="preserve"><value>12. 終了</value></data>
+  <data name="Terms_TheRightsGrantedTo.Text" xml:space="preserve"><value>MIT ライセンスに基づきお客様に付与される権利は永続的かつ取消不能であり、本規約の影響を受けません。本規約の他の規定にかかわらず、Agent-X のソース コードおよびソフトウェアの使用には MIT ライセンスが適用されます。</value></data>
+  <data name="Terms_YouMayStopUsing.Text" xml:space="preserve"><value>アプリケーションをアンインストールし、関連するすべてのデータをデバイスから削除することで、いつでも Agent-X の利用を終了できます。</value></data>
+  <data name="Terms_TheDisclaimerOfWarranties.Text" xml:space="preserve"><value>「保証の否認」および「責任の制限」の各条項は、MIT ライセンス標準の「現状有姿」条件を反映したものであり、Agent-X をご利用の間、引き続き適用されます。</value></data>
+  <data name="Terms_13ModificationsToTerms.Text" xml:space="preserve"><value>13. 規約の変更</value></data>
+  <data name="Terms_WeReserveTheRight.Text" xml:space="preserve"><value>当社は、独自の裁量により、いつでも本規約を変更する権利を留保します。重要な変更を行う場合は、アプリケーションまたはその他の適切な手段でお知らせします。</value></data>
+  <data name="Terms_YourContinuedUseOf.Text" xml:space="preserve"><value>変更後も Agent-X の利用を継続した場合、改定された規約に同意したものとみなされます。変更後の規約に同意いただけない場合は、アプリケーションの利用を中止してください。</value></data>
+  <data name="Terms_14GoverningLaw.Text" xml:space="preserve"><value>14. 準拠法</value></data>
+  <data name="Terms_TheseTermsShallBe.Text" xml:space="preserve"><value>本規約は、抵触法の規定にかかわらず、米国カリフォルニア州法に準拠し、同法に従って解釈されます。</value></data>
+  <data name="Terms_AnyDisputesArisingOut.Text" xml:space="preserve"><value>本規約または Agent-X の利用に起因または関連する紛争は、カリフォルニア州に所在する州裁判所または連邦裁判所においてのみ解決されるものとします。お客様は、これらの裁判所の対人管轄権に同意し、裁判地に対する異議を放棄します。</value></data>
+  <data name="Terms_15Severability.Text" xml:space="preserve"><value>15. 可分性</value></data>
+  <data name="Terms_IfAnyProvisionOf.Text" xml:space="preserve"><value>本規約のいずれかの条項が管轄裁判所により無効、違法、または執行不能と判断された場合でも、残りの条項は引き続き完全に有効です。無効とされた条項は、当初の意図を保ちつつ、有効かつ執行可能とするために必要な最小限の範囲で修正されるものとします。</value></data>
+  <data name="Terms_16EntireAgreement.Text" xml:space="preserve"><value>16. 完全合意</value></data>
+  <data name="Terms_TheseTermsTogetherWith.Text" xml:space="preserve"><value>本規約は、プライバシー ポリシーおよび本規約で参照される追加条件とあわせて、Agent-X の利用に関するお客様と Strategia-X との間の完全な合意を構成します。本規約は、本件に関する従前の書面または口頭による合意、了解、表明および保証のすべてに優先します。</value></data>
+  <data name="Terms_17ContactInformation.Text" xml:space="preserve"><value>17. 連絡先</value></data>
+  <data name="Terms_IfYouHaveAny.Text" xml:space="preserve"><value>本利用規約についてご質問、ご懸念、ご要望がある場合は、下記までお問い合わせください:</value></data>
+  <data name="Terms_Email.Text" xml:space="preserve"><value>メール</value></data>
+  <data name="Terms_Company.Text" xml:space="preserve"><value>会社</value></data>
+  <data name="Terms_AgentXByStrategia.Text" xml:space="preserve"><value>Agent-X (Strategia-X 提供)</value></data>
+  <data name="Terms_TheseTermsOfService.Text" xml:space="preserve"><value>本利用規約の最終更新日は 2026 年 2 月 26 日です。</value></data>
 </root>

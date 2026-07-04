@@ -31,9 +31,9 @@
 
             <!-- Header -->
             <StackPanel Grid.Row="0" Spacing="4">
-                <TextBlock Text="Settings"
+                <TextBlock x:Uid="Settings_Settings" Text="Settings"
                            Style="{StaticResource DisplaySmallStyle}" />
-                <TextBlock Text="Configure your AI providers, inference parameters, and knowledge vault settings."
+                <TextBlock x:Uid="Settings_ConfigureYourAiProviders" Text="Configure your AI providers, inference parameters, and knowledge vault settings."
                            Style="{StaticResource BodySecondaryStyle}" />
             </StackPanel>
 
@@ -42,19 +42,19 @@
                  ════════════════════════════════════════════════════════ -->
             <Border Grid.Row="1" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="20">
-                    <TextBlock Text="AI Providers"
+                    <TextBlock x:Uid="Settings_AiProviders" Text="AI Providers"
                                Style="{StaticResource HeadingSmallStyle}" />
 
                     <!-- Encryption Status -->
                     <InfoBar IsOpen="{x:Bind ViewModel.AreKeysEncrypted, Mode=OneWay}"
                              Severity="Success"
-                             Title="API Keys Secured"
+                             x:Uid="Settings_ApiKeysSecured" Title="API Keys Secured"
                              Message="{x:Bind ViewModel.EncryptionStatusDescription, Mode=OneWay}"
                              IsClosable="False" />
 
                     <!-- Active Provider Selector -->
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Active Provider"
+                        <TextBlock x:Uid="Settings_ActiveProvider" Text="Active Provider"
                                    Style="{StaticResource LabelStyle}" />
                         <ComboBox ItemsSource="{x:Bind ViewModel.ProviderOptions}"
                                   SelectedIndex="{x:Bind ViewModel.ActiveProviderIndex, Mode=TwoWay}"
@@ -68,18 +68,18 @@
                     <!-- ── Ollama (Local) ─────────────────────────── -->
                     <StackPanel Spacing="12">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="Ollama (Local)"
+                            <TextBlock x:Uid="Settings_OllamaLocal" Text="Ollama (Local)"
                                        Style="{StaticResource HeadingSmallStyle}"
                                        VerticalAlignment="Center" />
                             <Border Style="{StaticResource BadgeSuccessStyle}">
-                                <TextBlock Text="FREE"
+                                <TextBlock x:Uid="Settings_Free" Text="FREE"
                                            Style="{StaticResource BadgeStyle}"
                                            Foreground="{ThemeResource SuccessBrush}" />
                             </Border>
                         </StackPanel>
 
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Endpoint"
+                            <TextBlock x:Uid="Settings_Endpoint" Text="Endpoint"
                                        Style="{StaticResource LabelStyle}" />
                             <TextBox Style="{StaticResource InputTextBoxStyle}"
                                      Text="{x:Bind ViewModel.OllamaEndpoint, Mode=TwoWay}"
@@ -93,7 +93,7 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Spacing="6">
-                                <TextBlock Text="Default Chat Model"
+                                <TextBlock x:Uid="Settings_DefaultChatModel" Text="Default Chat Model"
                                            Style="{StaticResource LabelStyle}" />
                                 <TextBox Style="{StaticResource InputTextBoxStyle}"
                                          Text="{x:Bind ViewModel.DefaultModel, Mode=TwoWay}"
@@ -101,7 +101,7 @@
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" Spacing="6">
-                                <TextBlock Text="Embedding Model"
+                                <TextBlock x:Uid="Settings_EmbeddingModel" Text="Embedding Model"
                                            Style="{StaticResource LabelStyle}" />
                                 <TextBox Style="{StaticResource InputTextBoxStyle}"
                                          Text="{x:Bind ViewModel.EmbeddingModel, Mode=TwoWay}"
@@ -110,7 +110,7 @@
                         </Grid>
 
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Button Content="Test Connection"
+                            <Button x:Uid="Settings_TestConnection" Content="Test Connection"
                                     Style="{StaticResource SecondaryButtonStyle}"
                                     Command="{x:Bind ViewModel.TestOllamaConnectionCommand}" />
                             <TextBlock Text="{x:Bind ViewModel.OllamaConnectionStatus, Mode=OneWay}"
@@ -130,14 +130,14 @@
                                        Style="{StaticResource HeadingSmallStyle}"
                                        VerticalAlignment="Center" />
                             <Border Style="{StaticResource BadgeDefaultStyle}">
-                                <TextBlock Text="CLOUD"
+                                <TextBlock x:Uid="Settings_Cloud" Text="CLOUD"
                                            Style="{StaticResource BadgeStyle}"
                                            Foreground="{ThemeResource TextSecondaryBrush}" />
                             </Border>
                         </StackPanel>
 
                         <StackPanel Spacing="6">
-                            <TextBlock Text="API Key"
+                            <TextBlock x:Uid="Settings_ApiKey" Text="API Key"
                                        Style="{StaticResource LabelStyle}" />
                             <PasswordBox Password="{x:Bind ViewModel.OpenAiApiKey, Mode=TwoWay}"
                                          PlaceholderText="sk-..."
@@ -152,7 +152,7 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Spacing="6">
-                                <TextBlock Text="Endpoint"
+                                <TextBlock x:Uid="Settings_Endpoint2" Text="Endpoint"
                                            Style="{StaticResource LabelStyle}" />
                                 <TextBox Style="{StaticResource InputTextBoxStyle}"
                                          Text="{x:Bind ViewModel.OpenAiEndpoint, Mode=TwoWay}"
@@ -160,7 +160,7 @@
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" Spacing="6">
-                                <TextBlock Text="Default Model"
+                                <TextBlock x:Uid="Settings_DefaultModel" Text="Default Model"
                                            Style="{StaticResource LabelStyle}" />
                                 <TextBox Style="{StaticResource InputTextBoxStyle}"
                                          Text="{x:Bind ViewModel.OpenAiDefaultModel, Mode=TwoWay}"
@@ -169,7 +169,7 @@
                         </Grid>
 
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Button Content="Test Connection"
+                            <Button x:Uid="Settings_TestConnection2" Content="Test Connection"
                                     Style="{StaticResource SecondaryButtonStyle}"
                                     Command="{x:Bind ViewModel.TestOpenAiConnectionCommand}" />
                             <TextBlock Text="{x:Bind ViewModel.OpenAiConnectionStatus, Mode=OneWay}"
@@ -189,14 +189,14 @@
                                        Style="{StaticResource HeadingSmallStyle}"
                                        VerticalAlignment="Center" />
                             <Border Style="{StaticResource BadgeDefaultStyle}">
-                                <TextBlock Text="CLOUD"
+                                <TextBlock x:Uid="Settings_Cloud2" Text="CLOUD"
                                            Style="{StaticResource BadgeStyle}"
                                            Foreground="{ThemeResource TextSecondaryBrush}" />
                             </Border>
                         </StackPanel>
 
                         <StackPanel Spacing="6">
-                            <TextBlock Text="API Key"
+                            <TextBlock x:Uid="Settings_ApiKey2" Text="API Key"
                                        Style="{StaticResource LabelStyle}" />
                             <PasswordBox Password="{x:Bind ViewModel.AnthropicApiKey, Mode=TwoWay}"
                                          PlaceholderText="sk-ant-..."
@@ -211,7 +211,7 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Spacing="6">
-                                <TextBlock Text="Endpoint"
+                                <TextBlock x:Uid="Settings_Endpoint3" Text="Endpoint"
                                            Style="{StaticResource LabelStyle}" />
                                 <TextBox Style="{StaticResource InputTextBoxStyle}"
                                          Text="{x:Bind ViewModel.AnthropicEndpoint, Mode=TwoWay}"
@@ -219,7 +219,7 @@
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" Spacing="6">
-                                <TextBlock Text="Default Model"
+                                <TextBlock x:Uid="Settings_DefaultModel2" Text="Default Model"
                                            Style="{StaticResource LabelStyle}" />
                                 <TextBox Style="{StaticResource InputTextBoxStyle}"
                                          Text="{x:Bind ViewModel.AnthropicDefaultModel, Mode=TwoWay}"
@@ -227,11 +227,11 @@
                             </StackPanel>
                         </Grid>
 
-                        <TextBlock Text="Note: Anthropic does not support embeddings. Use Ollama or OpenAI for document indexing."
+                        <TextBlock x:Uid="Settings_NoteAnthropicDoesNot" Text="Note: Anthropic does not support embeddings. Use Ollama or OpenAI for document indexing."
                                    Style="{StaticResource CaptionStyle}" />
 
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Button Content="Test Connection"
+                            <Button x:Uid="Settings_TestConnection3" Content="Test Connection"
                                     Style="{StaticResource SecondaryButtonStyle}"
                                     Command="{x:Bind ViewModel.TestAnthropicConnectionCommand}" />
                             <TextBlock Text="{x:Bind ViewModel.AnthropicConnectionStatus, Mode=OneWay}"
@@ -248,17 +248,17 @@
                  ════════════════════════════════════════════════════════ -->
             <Border Grid.Row="2" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
-                    <TextBlock Text="Appearance"
+                    <TextBlock x:Uid="Settings_Appearance" Text="Appearance"
                                Style="{StaticResource HeadingSmallStyle}" />
 
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Theme"
+                        <TextBlock x:Uid="Settings_Theme" Text="Theme"
                                    Style="{StaticResource LabelStyle}" />
                         <ComboBox ItemsSource="{x:Bind ViewModel.ThemeOptions}"
                                   SelectedIndex="{x:Bind ViewModel.ThemeIndex, Mode=TwoWay}"
                                   HorizontalAlignment="Stretch"
                                   MinWidth="200" />
-                        <TextBlock Text="Changes apply immediately. 'System Default' follows your Windows theme."
+                        <TextBlock x:Uid="Settings_ChangesApplyImmediatelySystem" Text="Changes apply immediately. 'System Default' follows your Windows theme."
                                    Style="{StaticResource CaptionStyle}" />
                     </StackPanel>
                 </StackPanel>
@@ -270,19 +270,19 @@
             <!-- Multi-Model Routing section -->
             <Border Grid.Row="3" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
-                    <TextBlock Text="Multi-Model Routing"
+                    <TextBlock x:Uid="Settings_MultiModelRouting" Text="Multi-Model Routing"
                                Style="{StaticResource HeadingSmallStyle}" />
 
-                    <TextBlock Text="Automatically route prompts to the best AI model based on task type. Extraction and chat prefer fast local models; analysis and code prefer quality cloud models."
+                    <TextBlock x:Uid="Settings_AutomaticallyRoutePromptsTo" Text="Automatically route prompts to the best AI model based on task type. Extraction and chat prefer fast local models; analysis and code prefer quality cloud models."
                                Style="{StaticResource BodySecondaryStyle}"
                                TextWrapping="Wrap" />
 
-                    <ToggleSwitch Header="Enable Auto-Routing"
+                    <ToggleSwitch x:Uid="Settings_EnableAutoRouting" Header="Enable Auto-Routing"
                                   IsOn="{x:Bind ViewModel.EnableModelRouting, Mode=TwoWay}" />
 
                     <StackPanel Spacing="6"
                                 Visibility="{x:Bind ViewModel.EnableModelRouting, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                        <TextBlock Text="Routing Profile"
+                        <TextBlock x:Uid="Settings_RoutingProfile" Text="Routing Profile"
                                    Style="{StaticResource LabelStyle}" />
                         <ComboBox ItemsSource="{x:Bind ViewModel.RoutingProfileOptions}"
                                   SelectedIndex="{x:Bind ViewModel.RoutingProfileIndex, Mode=TwoWay}"
@@ -291,11 +291,11 @@
                                   IsEnabled="{x:Bind ViewModel.EnableModelRouting, Mode=OneWay}" />
 
                         <StackPanel Spacing="4" Padding="4,0,0,0">
-                            <TextBlock Text="Cost Optimized — Local models for all tasks, cloud only as fallback"
+                            <TextBlock x:Uid="Settings_CostOptimizedLocalModels" Text="Cost Optimized — Local models for all tasks, cloud only as fallback"
                                        Style="{StaticResource CaptionStyle}" />
-                            <TextBlock Text="Quality Optimized — Cloud models for analysis, code, creative"
+                            <TextBlock x:Uid="Settings_QualityOptimizedCloudModels" Text="Quality Optimized — Cloud models for analysis, code, creative"
                                        Style="{StaticResource CaptionStyle}" />
-                            <TextBlock Text="Balanced — Local for simple tasks, cloud for quality-critical tasks"
+                            <TextBlock x:Uid="Settings_BalancedLocalForSimple" Text="Balanced — Local for simple tasks, cloud for quality-critical tasks"
                                        Style="{StaticResource CaptionStyle}" />
                         </StackPanel>
                     </StackPanel>
@@ -304,10 +304,10 @@
 
             <Border Grid.Row="4" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
-                    <TextBlock Text="Cost Tracking"
+                    <TextBlock x:Uid="Settings_CostTracking" Text="Cost Tracking"
                                Style="{StaticResource HeadingSmallStyle}" />
 
-                    <TextBlock Text="Estimated API costs for cloud providers. Local Ollama models are free."
+                    <TextBlock x:Uid="Settings_EstimatedApiCostsFor" Text="Estimated API costs for cloud providers. Local Ollama models are free."
                                Style="{StaticResource BodySmallStyle}" />
 
                     <Grid ColumnSpacing="24">
@@ -319,7 +319,7 @@
 
                         <!-- Total Cost -->
                         <StackPanel Spacing="4">
-                            <TextBlock Text="TOTAL SPEND"
+                            <TextBlock x:Uid="Settings_TotalSpend" Text="TOTAL SPEND"
                                        Style="{StaticResource OverlineStyle}" />
                             <TextBlock Text="{x:Bind ViewModel.TotalCostDisplay, Mode=OneWay}"
                                        Style="{StaticResource MetricSmallStyle}" />
@@ -327,7 +327,7 @@
 
                         <!-- Today's Cost -->
                         <StackPanel Grid.Column="1" Spacing="4">
-                            <TextBlock Text="TODAY"
+                            <TextBlock x:Uid="Settings_Today" Text="TODAY"
                                        Style="{StaticResource OverlineStyle}" />
                             <TextBlock Text="{x:Bind ViewModel.TodayCostDisplay, Mode=OneWay}"
                                        Style="{StaticResource MetricSmallStyle}" />
@@ -335,7 +335,7 @@
 
                         <!-- Total Tokens -->
                         <StackPanel Grid.Column="2" Spacing="4">
-                            <TextBlock Text="TOTAL TOKENS"
+                            <TextBlock x:Uid="Settings_TotalTokens" Text="TOTAL TOKENS"
                                        Style="{StaticResource OverlineStyle}" />
                             <TextBlock Text="{x:Bind ViewModel.TotalTokensDisplay, Mode=OneWay}"
                                        Style="{StaticResource MetricSmallStyle}" />
@@ -349,12 +349,12 @@
                  ════════════════════════════════════════════════════════ -->
             <Border Grid.Row="5" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="20">
-                    <TextBlock Text="Inference"
+                    <TextBlock x:Uid="Settings_Inference" Text="Inference"
                                Style="{StaticResource HeadingSmallStyle}" />
 
                     <StackPanel Spacing="6">
                         <Grid>
-                            <TextBlock Text="Temperature"
+                            <TextBlock x:Uid="Settings_Temperature" Text="Temperature"
                                        Style="{StaticResource LabelStyle}" />
                             <TextBlock Text="{x:Bind ViewModel.Temperature, Mode=OneWay}"
                                        Style="{StaticResource MonoSmallStyle}"
@@ -371,14 +371,14 @@
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Max Tokens"
+                            <TextBlock x:Uid="Settings_MaxTokens" Text="Max Tokens"
                                        Style="{StaticResource LabelStyle}" />
                             <NumberBox Value="{x:Bind ViewModel.MaxTokens, Mode=TwoWay}"
                                        Minimum="256" Maximum="32768" SpinButtonPlacementMode="Compact" />
                         </StackPanel>
 
                         <StackPanel Grid.Column="1" Spacing="6">
-                            <TextBlock Text="Context Window"
+                            <TextBlock x:Uid="Settings_ContextWindow" Text="Context Window"
                                        Style="{StaticResource LabelStyle}" />
                             <NumberBox Value="{x:Bind ViewModel.ContextWindow, Mode=TwoWay}"
                                        Minimum="2048" Maximum="131072" SpinButtonPlacementMode="Compact" />
@@ -392,7 +392,7 @@
                  ════════════════════════════════════════════════════════ -->
             <Border Grid.Row="6" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="20">
-                    <TextBlock Text="Knowledge Vault"
+                    <TextBlock x:Uid="Settings_KnowledgeVault" Text="Knowledge Vault"
                                Style="{StaticResource HeadingSmallStyle}" />
 
                     <Grid ColumnSpacing="16">
@@ -403,28 +403,28 @@
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Chunk Size (tokens)"
+                            <TextBlock x:Uid="Settings_ChunkSizeTokens" Text="Chunk Size (tokens)"
                                        Style="{StaticResource LabelStyle}" />
                             <NumberBox Value="{x:Bind ViewModel.ChunkSize, Mode=TwoWay}"
                                        Minimum="128" Maximum="2048" SpinButtonPlacementMode="Compact" />
                         </StackPanel>
 
                         <StackPanel Grid.Column="1" Spacing="6">
-                            <TextBlock Text="Chunk Overlap"
+                            <TextBlock x:Uid="Settings_ChunkOverlap" Text="Chunk Overlap"
                                        Style="{StaticResource LabelStyle}" />
                             <NumberBox Value="{x:Bind ViewModel.ChunkOverlap, Mode=TwoWay}"
                                        Minimum="0" Maximum="256" SpinButtonPlacementMode="Compact" />
                         </StackPanel>
 
                         <StackPanel Grid.Column="2" Spacing="6">
-                            <TextBlock Text="Top-K Results"
+                            <TextBlock x:Uid="Settings_TopKResults" Text="Top-K Results"
                                        Style="{StaticResource LabelStyle}" />
                             <NumberBox Value="{x:Bind ViewModel.TopKResults, Mode=TwoWay}"
                                        Minimum="1" Maximum="20" SpinButtonPlacementMode="Compact" />
                         </StackPanel>
                     </Grid>
 
-                    <ToggleSwitch Header="Auto-index watch folders"
+                    <ToggleSwitch x:Uid="Settings_AutoIndexWatchFolders" Header="Auto-index watch folders"
                                   IsOn="{x:Bind ViewModel.AutoIndexWatchFolders, Mode=TwoWay}" />
                 </StackPanel>
             </Border>
@@ -434,14 +434,14 @@
                  ════════════════════════════════════════════════════════ -->
             <Border Grid.Row="7" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
-                    <TextBlock Text="Research Mode"
+                    <TextBlock x:Uid="Settings_ResearchMode" Text="Research Mode"
                                Style="{StaticResource HeadingSmallStyle}" />
 
-                    <TextBlock Text="Augment AI answers with live web sources. When enabled, queries will search the web and blend results with your local Knowledge Vault."
+                    <TextBlock x:Uid="Settings_AugmentAiAnswersWith" Text="Augment AI answers with live web sources. When enabled, queries will search the web and blend results with your local Knowledge Vault."
                                Style="{StaticResource BodySecondaryStyle}"
                                TextWrapping="Wrap" />
 
-                    <ToggleSwitch Header="Enable Research Mode"
+                    <ToggleSwitch x:Uid="Settings_EnableResearchMode" Header="Enable Research Mode"
                                   IsOn="{x:Bind ViewModel.EnableResearchMode, Mode=TwoWay}"
                                   OffContent="Local vault only"
                                   OnContent="Local vault + web search" />
@@ -449,7 +449,7 @@
                     <StackPanel Spacing="12"
                                 Visibility="{x:Bind ViewModel.EnableResearchMode, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Search Provider"
+                            <TextBlock x:Uid="Settings_SearchProvider" Text="Search Provider"
                                        Style="{StaticResource LabelStyle}" />
                             <ComboBox ItemsSource="{x:Bind ViewModel.WebSearchProviders, Mode=OneWay}"
                                       SelectedItem="{x:Bind ViewModel.SelectedWebSearchProvider, Mode=TwoWay}"
@@ -458,10 +458,10 @@
                         </StackPanel>
 
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Search API Key"
+                            <TextBlock x:Uid="Settings_SearchApiKey" Text="Search API Key"
                                        Style="{StaticResource LabelStyle}" />
                             <PasswordBox Password="{x:Bind ViewModel.WebSearchApiKey, Mode=TwoWay}"
-                                         PlaceholderText="Enter your search API key"
+                                         x:Uid="Settings_EnterYourSearchApiPh" PlaceholderText="Enter your search API key"
                                          CornerRadius="{StaticResource RadiusMD}"
                                          MinHeight="40" />
                         </StackPanel>
@@ -473,14 +473,14 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Spacing="6">
-                                <TextBlock Text="Max Search Results"
+                                <TextBlock x:Uid="Settings_MaxSearchResults" Text="Max Search Results"
                                            Style="{StaticResource LabelStyle}" />
                                 <NumberBox Value="{x:Bind ViewModel.MaxSearchResults, Mode=TwoWay}"
                                            Minimum="1" Maximum="20" SpinButtonPlacementMode="Compact" />
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" Spacing="6">
-                                <TextBlock Text="Cache Duration (minutes)"
+                                <TextBlock x:Uid="Settings_CacheDurationMinutes" Text="Cache Duration (minutes)"
                                            Style="{StaticResource LabelStyle}" />
                                 <NumberBox Value="{x:Bind ViewModel.SearchCacheTtlMinutes, Mode=TwoWay}"
                                            Minimum="5" Maximum="1440" SpinButtonPlacementMode="Compact" />
@@ -495,10 +495,10 @@
                  ════════════════════════════════════════════════════════ -->
             <Border Grid.Row="8" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Storage"
+                    <TextBlock x:Uid="Settings_Storage" Text="Storage"
                                Style="{StaticResource HeadingSmallStyle}" />
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Data Location"
+                        <TextBlock x:Uid="Settings_DataLocation" Text="Data Location"
                                    Style="{StaticResource LabelStyle}" />
                         <TextBlock Text="{x:Bind ViewModel.StoragePath, Mode=OneWay}"
                                    Style="{StaticResource MonoSmallStyle}"
@@ -519,7 +519,7 @@
                                Text="Encrypt your knowledge vault with AES-256 (SQLCipher). The key is managed automatically and tied to your Windows account."
                                TextWrapping="Wrap" />
                     <ToggleSwitch x:Name="EncryptionToggle"
-                                  OnContent="Encrypted"
+                                  x:Uid="Settings_Encrypted" OnContent="Encrypted"
                                   OffContent="Not encrypted"
                                   IsOn="{x:Bind ViewModel.EncryptionEnabled, Mode=TwoWay}"
                                   Toggled="EncryptionToggle_Toggled" />
@@ -533,21 +533,21 @@
                  ════════════════════════════════════════════════════════ -->
             <Border Grid.Row="10" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="16">
-                    <TextBlock Text="Connections"
+                    <TextBlock x:Uid="Settings_Connections" Text="Connections"
                                Style="{StaticResource HeadingSmallStyle}" />
 
                     <TextBlock Text="The local API lets the AgentX browser extension clip web pages into your Smart Inbox. It runs on http://localhost:9846 and requires the token below — paste it into the extension popup to pair. Only the AgentX extension can use it; web pages are blocked."
                                Style="{StaticResource BodySecondaryStyle}"
                                TextWrapping="Wrap" />
 
-                    <ToggleSwitch Header="Enable Local API"
+                    <ToggleSwitch x:Uid="Settings_EnableLocalApi" Header="Enable Local API"
                                   IsOn="{x:Bind ViewModel.LocalApiEnabled, Mode=TwoWay}"
                                   OffContent="Disabled"
                                   OnContent="Enabled (authenticated)" />
 
                     <StackPanel Spacing="6"
                                 Visibility="{x:Bind ViewModel.LocalApiEnabled, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                        <TextBlock Text="API Token"
+                        <TextBlock x:Uid="Settings_ApiToken" Text="API Token"
                                    Style="{StaticResource LabelStyle}" />
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
@@ -560,19 +560,19 @@
                                      Text="{x:Bind ViewModel.LocalApiToken, Mode=OneWay}"
                                      IsReadOnly="True"
                                      FontFamily="Consolas"
-                                     PlaceholderText="No token yet — click Regenerate" />
+                                     x:Uid="Settings_NoTokenYetClickPh" PlaceholderText="No token yet — click Regenerate" />
 
                             <Button Grid.Column="1"
-                                    Content="Copy"
+                                    x:Uid="Settings_Copy" Content="Copy"
                                     Style="{StaticResource SecondaryButtonStyle}"
                                     Command="{x:Bind ViewModel.CopyApiTokenCommand}" />
 
                             <Button Grid.Column="2"
-                                    Content="Regenerate"
+                                    x:Uid="Settings_Regenerate" Content="Regenerate"
                                     Style="{StaticResource SecondaryButtonStyle}"
                                     Command="{x:Bind ViewModel.RegenerateApiTokenCommand}" />
                         </Grid>
-                        <TextBlock Text="Keep this token secret. Regenerating it unpairs existing clients until you paste the new token. Toggle changes apply on next launch."
+                        <TextBlock x:Uid="Settings_KeepThisTokenSecret" Text="Keep this token secret. Regenerating it unpairs existing clients until you paste the new token. Toggle changes apply on next launch."
                                    Style="{StaticResource CaptionStyle}"
                                    TextWrapping="Wrap" />
                     </StackPanel>
@@ -590,12 +590,12 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <Button Content="Save Settings"
+                <Button x:Uid="Settings_SaveSettings" Content="Save Settings"
                         Style="{StaticResource AccentButtonStyle}"
                         Command="{x:Bind ViewModel.SaveSettingsCommand}" />
 
                 <Button Grid.Column="1"
-                        Content="Reset to Defaults"
+                        x:Uid="Settings_ResetToDefaults" Content="Reset to Defaults"
                         Style="{StaticResource SecondaryButtonStyle}"
                         Click="OnResetToDefaultsClick" />
 

@@ -34,13 +34,13 @@
                  ROW 0: PAGE HEADER
                  ========================================================== -->
             <StackPanel Grid.Row="0" Spacing="8">
-                <TextBlock Text="Privacy Policy"
+                <TextBlock x:Uid="Privacy_PrivacyPolicy" Text="Privacy Policy"
                            Style="{StaticResource DisplaySmallStyle}"
                            AutomationProperties.HeadingLevel="Level1" />
                 <TextBlock Style="{StaticResource BodySecondaryStyle}">
-                    <Run Text="Effective Date: February 26, 2026" />
+                    <Run x:Uid="Privacy_EffectiveDateFebruary26" Text="Effective Date: February 26, 2026" />
                 </TextBlock>
-                <TextBlock Text="Strategia-X ('we', 'us', 'our') operates Agent-X. This Privacy Policy explains how we handle your information when you use our desktop application."
+                <TextBlock x:Uid="Privacy_StrategiaXWeUs" Text="Strategia-X ('we', 'us', 'our') operates Agent-X. This Privacy Policy explains how we handle your information when you use our desktop application."
                            Style="{StaticResource BodyStyle}"
                            Margin="0,4,0,0" />
             </StackPanel>
@@ -74,10 +74,10 @@
 
                     <!-- Banner Text -->
                     <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                        <TextBlock Text="Local-First Privacy"
+                        <TextBlock x:Uid="Privacy_LocalFirstPrivacy" Text="Local-First Privacy"
                                    Style="{StaticResource HeadingSmallStyle}"
                                    Foreground="{ThemeResource TextAccentBrush}" />
-                        <TextBlock Text="Your data never leaves your device. All AI processing, document storage, and conversations remain entirely on your machine."
+                        <TextBlock x:Uid="Privacy_YourDataNeverLeaves" Text="Your data never leaves your device. All AI processing, document storage, and conversations remain entirely on your machine."
                                    Style="{StaticResource BodySecondaryStyle}" />
                     </StackPanel>
 
@@ -90,7 +90,7 @@
                                       FontFamily="Segoe MDL2 Assets"
                                       FontSize="10"
                                       Foreground="{ThemeResource TextAccentBrush}" />
-                            <TextBlock Text="VERIFIED"
+                            <TextBlock x:Uid="Privacy_Verified" Text="VERIFIED"
                                        Style="{StaticResource BadgeStyle}"
                                        Foreground="{ThemeResource TextAccentBrush}" />
                         </StackPanel>
@@ -117,17 +117,17 @@
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
-                        <TextBlock Text="Our Commitment to Privacy"
+                        <TextBlock x:Uid="Privacy_OurCommitmentToPrivacy" Text="Our Commitment to Privacy"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    VerticalAlignment="Center"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="Agent-X is designed with privacy as a core principle. All your data &#x2014; documents, conversations, embeddings, and settings &#x2014; is stored locally on your device. We do not operate cloud servers that process or store your personal data." />
+                               x:Uid="Privacy_AgentXIsDesigned" Text="Agent-X is designed with privacy as a core principle. All your data &#x2014; documents, conversations, embeddings, and settings &#x2014; is stored locally on your device. We do not operate cloud servers that process or store your personal data." />
 
                     <TextBlock Style="{StaticResource BodySecondaryStyle}"
-                               Text="Our local-first architecture means you retain full ownership and control of every piece of information you create or import into Agent-X. There are no accounts to create, no data syncing, and no telemetry being transmitted." />
+                               x:Uid="Privacy_OurLocalFirstArchitecture" Text="Our local-first architecture means you retain full ownership and control of every piece of information you create or import into Agent-X. There are no accounts to create, no data syncing, and no telemetry being transmitted." />
                 </StackPanel>
             </Border>
 
@@ -150,7 +150,7 @@
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
-                        <TextBlock Text="Information We Collect"
+                        <TextBlock x:Uid="Privacy_InformationWeCollect" Text="Information We Collect"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    VerticalAlignment="Center"
                                    AutomationProperties.HeadingLevel="Level2" />
@@ -158,9 +158,9 @@
 
                     <!-- Sub-section: Information You Provide -->
                     <StackPanel Spacing="10">
-                        <TextBlock Text="Information You Provide"
+                        <TextBlock x:Uid="Privacy_InformationYouProvide" Text="Information You Provide"
                                    Style="{StaticResource HeadingSmallStyle}" />
-                        <TextBlock Text="When you use Agent-X, the following information is created and stored locally on your device:"
+                        <TextBlock x:Uid="Privacy_WhenYouUseAgent" Text="When you use Agent-X, the following information is created and stored locally on your device:"
                                    Style="{StaticResource BodySecondaryStyle}" />
                         <StackPanel Spacing="8" Margin="8,0,0,0">
                             <StackPanel Orientation="Horizontal" Spacing="10">
@@ -168,7 +168,7 @@
                                            Style="{StaticResource BodyStyle}"
                                            Foreground="{ThemeResource TextAccentBrush}"
                                            VerticalAlignment="Top" />
-                                <TextBlock Text="Documents you import into the Knowledge Vault"
+                                <TextBlock x:Uid="Privacy_DocumentsYouImportInto" Text="Documents you import into the Knowledge Vault"
                                            Style="{StaticResource BodyStyle}" />
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="10">
@@ -176,7 +176,7 @@
                                            Style="{StaticResource BodyStyle}"
                                            Foreground="{ThemeResource TextAccentBrush}"
                                            VerticalAlignment="Top" />
-                                <TextBlock Text="Conversations with AI models"
+                                <TextBlock x:Uid="Privacy_ConversationsWithAiModels" Text="Conversations with AI models"
                                            Style="{StaticResource BodyStyle}" />
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="10">
@@ -184,7 +184,7 @@
                                            Style="{StaticResource BodyStyle}"
                                            Foreground="{ThemeResource TextAccentBrush}"
                                            VerticalAlignment="Top" />
-                                <TextBlock Text="Settings and preferences you configure"
+                                <TextBlock x:Uid="Privacy_SettingsAndPreferencesYou" Text="Settings and preferences you configure"
                                            Style="{StaticResource BodyStyle}" />
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="10">
@@ -192,7 +192,7 @@
                                            Style="{StaticResource BodyStyle}"
                                            Foreground="{ThemeResource TextAccentBrush}"
                                            VerticalAlignment="Top" />
-                                <TextBlock Text="Collection names and organizational tags"
+                                <TextBlock x:Uid="Privacy_CollectionNamesAndOrganization" Text="Collection names and organizational tags"
                                            Style="{StaticResource BodyStyle}" />
                             </StackPanel>
                         </StackPanel>
@@ -203,9 +203,9 @@
 
                     <!-- Sub-section: Automatically Collected Information -->
                     <StackPanel Spacing="10">
-                        <TextBlock Text="Automatically Collected Information"
+                        <TextBlock x:Uid="Privacy_AutomaticallyCollectedInformat" Text="Automatically Collected Information"
                                    Style="{StaticResource HeadingSmallStyle}" />
-                        <TextBlock Text="Agent-X may automatically gather the following, all of which remains stored locally and is never transmitted:"
+                        <TextBlock x:Uid="Privacy_AgentXMayAutomatically" Text="Agent-X may automatically gather the following, all of which remains stored locally and is never transmitted:"
                                    Style="{StaticResource BodySecondaryStyle}" />
                         <StackPanel Spacing="8" Margin="8,0,0,0">
                             <StackPanel Orientation="Horizontal" Spacing="10">
@@ -213,7 +213,7 @@
                                            Style="{StaticResource BodyStyle}"
                                            Foreground="{ThemeResource TextAccentBrush}"
                                            VerticalAlignment="Top" />
-                                <TextBlock Text="Application logs (stored locally only)"
+                                <TextBlock x:Uid="Privacy_ApplicationLogsStoredLocally" Text="Application logs (stored locally only)"
                                            Style="{StaticResource BodyStyle}" />
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="10">
@@ -221,7 +221,7 @@
                                            Style="{StaticResource BodyStyle}"
                                            Foreground="{ThemeResource TextAccentBrush}"
                                            VerticalAlignment="Top" />
-                                <TextBlock Text="Hardware capability information (for model recommendations)"
+                                <TextBlock x:Uid="Privacy_HardwareCapabilityInformationF" Text="Hardware capability information (for model recommendations)"
                                            Style="{StaticResource BodyStyle}" />
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="10">
@@ -229,7 +229,7 @@
                                            Style="{StaticResource BodyStyle}"
                                            Foreground="{ThemeResource TextAccentBrush}"
                                            VerticalAlignment="Top" />
-                                <TextBlock Text="Usage statistics (stored locally, never transmitted)"
+                                <TextBlock x:Uid="Privacy_UsageStatisticsStoredLocally" Text="Usage statistics (stored locally, never transmitted)"
                                            Style="{StaticResource BodyStyle}" />
                             </StackPanel>
                         </StackPanel>
@@ -240,7 +240,7 @@
 
                     <!-- Sub-section: Information We Do NOT Collect -->
                     <StackPanel Spacing="10">
-                        <TextBlock Text="Information We Do NOT Collect"
+                        <TextBlock x:Uid="Privacy_InformationWeDoNot" Text="Information We Do NOT Collect"
                                    Style="{StaticResource HeadingSmallStyle}" />
                         <StackPanel Spacing="8" Margin="8,0,0,0">
                             <StackPanel Orientation="Horizontal" Spacing="10">
@@ -250,7 +250,7 @@
                                           Foreground="{ThemeResource ErrorBrush}"
                                           VerticalAlignment="Top"
                                           Margin="0,5,0,0" />
-                                <TextBlock Text="We do not collect personal identification information"
+                                <TextBlock x:Uid="Privacy_WeDoNotCollect" Text="We do not collect personal identification information"
                                            Style="{StaticResource BodyStyle}" />
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="10">
@@ -260,7 +260,7 @@
                                           Foreground="{ThemeResource ErrorBrush}"
                                           VerticalAlignment="Top"
                                           Margin="0,5,0,0" />
-                                <TextBlock Text="We do not transmit data to external servers"
+                                <TextBlock x:Uid="Privacy_WeDoNotTransmit" Text="We do not transmit data to external servers"
                                            Style="{StaticResource BodyStyle}" />
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="10">
@@ -270,7 +270,7 @@
                                           Foreground="{ThemeResource ErrorBrush}"
                                           VerticalAlignment="Top"
                                           Margin="0,5,0,0" />
-                                <TextBlock Text="We do not use cookies or tracking technologies"
+                                <TextBlock x:Uid="Privacy_WeDoNotUse" Text="We do not use cookies or tracking technologies"
                                            Style="{StaticResource BodyStyle}" />
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="10">
@@ -280,7 +280,7 @@
                                           Foreground="{ThemeResource ErrorBrush}"
                                           VerticalAlignment="Top"
                                           Margin="0,5,0,0" />
-                                <TextBlock Text="We do not collect payment information through the app"
+                                <TextBlock x:Uid="Privacy_WeDoNotCollect2" Text="We do not collect payment information through the app"
                                            Style="{StaticResource BodyStyle}" />
                             </StackPanel>
                         </StackPanel>
@@ -307,14 +307,14 @@
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
-                        <TextBlock Text="How Your Data Is Stored"
+                        <TextBlock x:Uid="Privacy_HowYourDataIs" Text="How Your Data Is Stored"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    VerticalAlignment="Center"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
 
                     <TextBlock Style="{StaticResource BodySecondaryStyle}"
-                               Text="All data generated and managed by Agent-X is stored locally on your device. There is no cloud component." />
+                               x:Uid="Privacy_AllDataGeneratedAnd" Text="All data generated and managed by Agent-X is stored locally on your device. There is no cloud component." />
 
                     <StackPanel Spacing="8" Margin="8,0,0,0">
                         <StackPanel Orientation="Horizontal" Spacing="10">
@@ -323,7 +323,7 @@
                                        Foreground="{ThemeResource TextAccentBrush}"
                                        VerticalAlignment="Top" />
                             <TextBlock Style="{StaticResource BodyStyle}">
-                                <Run Text="All data stored in local SQLite databases on your device" />
+                                <Run x:Uid="Privacy_AllDataStoredIn" Text="All data stored in local SQLite databases on your device" />
                             </TextBlock>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
@@ -332,7 +332,7 @@
                                        Foreground="{ThemeResource TextAccentBrush}"
                                        VerticalAlignment="Top" />
                             <TextBlock Style="{StaticResource BodyStyle}">
-                                <Run Text="Document embeddings stored in local vector database (sqlite-vec)" />
+                                <Run x:Uid="Privacy_DocumentEmbeddingsStoredIn" Text="Document embeddings stored in local vector database (sqlite-vec)" />
                             </TextBlock>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
@@ -341,7 +341,7 @@
                                        Foreground="{ThemeResource TextAccentBrush}"
                                        VerticalAlignment="Top" />
                             <TextBlock Style="{StaticResource BodyStyle}">
-                                <Run Text="Application logs stored in " />
+                                <Run x:Uid="Privacy_ApplicationLogsStoredIn" Text="Application logs stored in " />
                                 <Run Text="%LOCALAPPDATA%\AgentX\Logs\"
                                      FontFamily="{StaticResource FontMono}"
                                      Foreground="{ThemeResource TextSecondaryBrush}"
@@ -353,7 +353,7 @@
                                        Style="{StaticResource BodyStyle}"
                                        Foreground="{ThemeResource TextAccentBrush}"
                                        VerticalAlignment="Top" />
-                            <TextBlock Text="Settings stored locally &#x2014; never synced to cloud"
+                            <TextBlock x:Uid="Privacy_SettingsStoredLocallyNever" Text="Settings stored locally &#x2014; never synced to cloud"
                                        Style="{StaticResource BodyStyle}" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
@@ -361,7 +361,7 @@
                                        Style="{StaticResource BodyStyle}"
                                        Foreground="{ThemeResource TextAccentBrush}"
                                        VerticalAlignment="Top" />
-                            <TextBlock Text="You have full control: all data can be deleted by removing the application data folder"
+                            <TextBlock x:Uid="Privacy_YouHaveFullControl" Text="You have full control: all data can be deleted by removing the application data folder"
                                        Style="{StaticResource BodyStyle}" />
                         </StackPanel>
                     </StackPanel>
@@ -387,7 +387,7 @@
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
-                        <TextBlock Text="Third-Party Services"
+                        <TextBlock x:Uid="Privacy_ThirdPartyServices" Text="Third-Party Services"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    VerticalAlignment="Center"
                                    AutomationProperties.HeadingLevel="Level2" />
@@ -396,12 +396,12 @@
                     <!-- Ollama Sub-section -->
                     <Border Style="{StaticResource CardInsetStyle}">
                         <StackPanel Spacing="8">
-                            <TextBlock Text="Ollama (Local AI Runtime)"
+                            <TextBlock x:Uid="Privacy_OllamaLocalAiRuntime" Text="Ollama (Local AI Runtime)"
                                        Style="{StaticResource HeadingSmallStyle}" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Agent-X connects to Ollama running locally on your machine. Ollama processes AI inference locally. No data is sent to external servers unless you explicitly configure a remote Ollama endpoint." />
+                                       x:Uid="Privacy_AgentXConnectsTo" Text="Agent-X connects to Ollama running locally on your machine. Ollama processes AI inference locally. No data is sent to external servers unless you explicitly configure a remote Ollama endpoint." />
                             <TextBlock Style="{StaticResource BodySecondaryStyle}"
-                                       Text="If you configure a remote endpoint, data sent to that endpoint is governed by the remote server's privacy policy. We recommend using local inference for maximum privacy." />
+                                       x:Uid="Privacy_IfYouConfigureA" Text="If you configure a remote endpoint, data sent to that endpoint is governed by the remote server's privacy policy. We recommend using local inference for maximum privacy." />
                         </StackPanel>
                     </Border>
 
@@ -413,11 +413,11 @@
                                       FontSize="12"
                                       Foreground="{ThemeResource SuccessBrush}"
                                       VerticalAlignment="Center" />
-                            <TextBlock Text="No Analytics Services"
+                            <TextBlock x:Uid="Privacy_NoAnalyticsServices" Text="No Analytics Services"
                                        Style="{StaticResource AccentBodyStyle}"
                                        Foreground="{ThemeResource SuccessBrush}" />
                         </StackPanel>
-                        <TextBlock Text="We do not use Google Analytics, Mixpanel, or any third-party analytics services. No usage data is collected or transmitted."
+                        <TextBlock x:Uid="Privacy_WeDoNotUse2" Text="We do not use Google Analytics, Mixpanel, or any third-party analytics services. No usage data is collected or transmitted."
                                    Style="{StaticResource BodySecondaryStyle}"
                                    Margin="22,0,0,0" />
                     </StackPanel>
@@ -430,11 +430,11 @@
                                       FontSize="12"
                                       Foreground="{ThemeResource SuccessBrush}"
                                       VerticalAlignment="Center" />
-                            <TextBlock Text="No Advertising"
+                            <TextBlock x:Uid="Privacy_NoAdvertising" Text="No Advertising"
                                        Style="{StaticResource AccentBodyStyle}"
                                        Foreground="{ThemeResource SuccessBrush}" />
                         </StackPanel>
-                        <TextBlock Text="We do not display ads or share data with advertisers. Agent-X is a paid product; our users are our customers, not our product."
+                        <TextBlock x:Uid="Privacy_WeDoNotDisplay" Text="We do not display ads or share data with advertisers. Agent-X is a paid product; our users are our customers, not our product."
                                    Style="{StaticResource BodySecondaryStyle}"
                                    Margin="22,0,0,0" />
                     </StackPanel>
@@ -460,14 +460,14 @@
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
-                        <TextBlock Text="Your Rights Under GDPR"
+                        <TextBlock x:Uid="Privacy_YourRightsUnderGdpr" Text="Your Rights Under GDPR"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    VerticalAlignment="Center"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
 
                     <TextBlock Style="{StaticResource BodySecondaryStyle}"
-                               Text="If you are located in the European Economic Area (EEA), you have certain data protection rights under the General Data Protection Regulation (GDPR)." />
+                               x:Uid="Privacy_IfYouAreLocated" Text="If you are located in the European Economic Area (EEA), you have certain data protection rights under the General Data Protection Regulation (GDPR)." />
 
                     <!-- GDPR Rights Grid -->
                     <StackPanel Spacing="12">
@@ -485,10 +485,10 @@
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
-                                <TextBlock Text="Right to Access"
+                                <TextBlock x:Uid="Privacy_RightToAccess" Text="Right to Access"
                                            Style="{StaticResource LabelStyle}"
                                            Foreground="{ThemeResource TextPrimaryBrush}" />
-                                <TextBlock Text="You can access all your data directly on your device. No request to us is needed."
+                                <TextBlock x:Uid="Privacy_YouCanAccessAll" Text="You can access all your data directly on your device. No request to us is needed."
                                            Style="{StaticResource BodySecondaryStyle}" />
                             </StackPanel>
                         </Grid>
@@ -506,10 +506,10 @@
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
-                                <TextBlock Text="Right to Rectification"
+                                <TextBlock x:Uid="Privacy_RightToRectification" Text="Right to Rectification"
                                            Style="{StaticResource LabelStyle}"
                                            Foreground="{ThemeResource TextPrimaryBrush}" />
-                                <TextBlock Text="You can modify your data at any time through the application interface."
+                                <TextBlock x:Uid="Privacy_YouCanModifyYour" Text="You can modify your data at any time through the application interface."
                                            Style="{StaticResource BodySecondaryStyle}" />
                             </StackPanel>
                         </Grid>
@@ -527,10 +527,10 @@
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
-                                <TextBlock Text="Right to Erasure ('Right to be Forgotten')"
+                                <TextBlock x:Uid="Privacy_RightToErasureRight" Text="Right to Erasure ('Right to be Forgotten')"
                                            Style="{StaticResource LabelStyle}"
                                            Foreground="{ThemeResource TextPrimaryBrush}" />
-                                <TextBlock Text="Delete documents, conversations, and all data through the app or by removing the application data folder."
+                                <TextBlock x:Uid="Privacy_DeleteDocumentsConversationsAn" Text="Delete documents, conversations, and all data through the app or by removing the application data folder."
                                            Style="{StaticResource BodySecondaryStyle}" />
                             </StackPanel>
                         </Grid>
@@ -548,10 +548,10 @@
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
-                                <TextBlock Text="Right to Data Portability"
+                                <TextBlock x:Uid="Privacy_RightToDataPortability" Text="Right to Data Portability"
                                            Style="{StaticResource LabelStyle}"
                                            Foreground="{ThemeResource TextPrimaryBrush}" />
-                                <TextBlock Text="Your data is stored in standard SQLite format and can be exported or moved freely."
+                                <TextBlock x:Uid="Privacy_YourDataIsStored" Text="Your data is stored in standard SQLite format and can be exported or moved freely."
                                            Style="{StaticResource BodySecondaryStyle}" />
                             </StackPanel>
                         </Grid>
@@ -569,10 +569,10 @@
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
-                                <TextBlock Text="Right to Restrict Processing"
+                                <TextBlock x:Uid="Privacy_RightToRestrictProcessing" Text="Right to Restrict Processing"
                                            Style="{StaticResource LabelStyle}"
                                            Foreground="{ThemeResource TextPrimaryBrush}" />
-                                <TextBlock Text="You control all processing &#x2014; simply close the application to stop all data processing."
+                                <TextBlock x:Uid="Privacy_YouControlAllProcessing" Text="You control all processing &#x2014; simply close the application to stop all data processing."
                                            Style="{StaticResource BodySecondaryStyle}" />
                             </StackPanel>
                         </Grid>
@@ -590,10 +590,10 @@
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
-                                <TextBlock Text="Right to Object"
+                                <TextBlock x:Uid="Privacy_RightToObject" Text="Right to Object"
                                            Style="{StaticResource LabelStyle}"
                                            Foreground="{ThemeResource TextPrimaryBrush}" />
-                                <TextBlock Text="You can stop using the application at any time. Uninstalling removes all processing."
+                                <TextBlock x:Uid="Privacy_YouCanStopUsing" Text="You can stop using the application at any time. Uninstalling removes all processing."
                                            Style="{StaticResource BodySecondaryStyle}" />
                             </StackPanel>
                         </Grid>
@@ -612,7 +612,7 @@
                                       VerticalAlignment="Top"
                                       Margin="0,2,0,0" />
                             <TextBlock Style="{StaticResource BodyStyle}"
-                                       Text="Since all data is stored locally on your device, you exercise these rights directly without needing to contact us. You are the sole controller of your data." />
+                                       x:Uid="Privacy_SinceAllDataIs" Text="Since all data is stored locally on your device, you exercise these rights directly without needing to contact us. You are the sole controller of your data." />
                         </StackPanel>
                     </Border>
                 </StackPanel>
@@ -637,14 +637,14 @@
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
-                        <TextBlock Text="Your Rights Under CCPA"
+                        <TextBlock x:Uid="Privacy_YourRightsUnderCcpa" Text="Your Rights Under CCPA"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    VerticalAlignment="Center"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
 
                     <TextBlock Style="{StaticResource BodySecondaryStyle}"
-                               Text="If you are a California resident, you have specific rights under the California Consumer Privacy Act (CCPA)." />
+                               x:Uid="Privacy_IfYouAreA" Text="If you are a California resident, you have specific rights under the California Consumer Privacy Act (CCPA)." />
 
                     <!-- CCPA Rights -->
                     <StackPanel Spacing="12">
@@ -662,10 +662,10 @@
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
-                                <TextBlock Text="Right to Know"
+                                <TextBlock x:Uid="Privacy_RightToKnow" Text="Right to Know"
                                            Style="{StaticResource LabelStyle}"
                                            Foreground="{ThemeResource TextPrimaryBrush}" />
-                                <TextBlock Text="What personal information is collected &#x2014; see 'Information We Collect' above for a complete enumeration."
+                                <TextBlock x:Uid="Privacy_WhatPersonalInformationIs" Text="What personal information is collected &#x2014; see 'Information We Collect' above for a complete enumeration."
                                            Style="{StaticResource BodySecondaryStyle}" />
                             </StackPanel>
                         </Grid>
@@ -683,10 +683,10 @@
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
-                                <TextBlock Text="Right to Delete"
+                                <TextBlock x:Uid="Privacy_RightToDelete" Text="Right to Delete"
                                            Style="{StaticResource LabelStyle}"
                                            Foreground="{ThemeResource TextPrimaryBrush}" />
-                                <TextBlock Text="Remove all data by uninstalling the app or deleting the application data directory."
+                                <TextBlock x:Uid="Privacy_RemoveAllDataBy" Text="Remove all data by uninstalling the app or deleting the application data directory."
                                            Style="{StaticResource BodySecondaryStyle}" />
                             </StackPanel>
                         </Grid>
@@ -704,11 +704,11 @@
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
-                                <TextBlock Text="Right to Opt-Out of Sale"
+                                <TextBlock x:Uid="Privacy_RightToOptOut" Text="Right to Opt-Out of Sale"
                                            Style="{StaticResource LabelStyle}"
                                            Foreground="{ThemeResource TextPrimaryBrush}" />
                                 <TextBlock Style="{StaticResource BodySecondaryStyle}"
-                                           Text="We do not sell your personal information. We never have and never will." />
+                                           x:Uid="Privacy_WeDoNotSell" Text="We do not sell your personal information. We never have and never will." />
                             </StackPanel>
                         </Grid>
 
@@ -725,10 +725,10 @@
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
-                                <TextBlock Text="Right to Non-Discrimination"
+                                <TextBlock x:Uid="Privacy_RightToNonDiscrimination" Text="Right to Non-Discrimination"
                                            Style="{StaticResource LabelStyle}"
                                            Foreground="{ThemeResource TextPrimaryBrush}" />
-                                <TextBlock Text="We do not discriminate against users who exercise their privacy rights."
+                                <TextBlock x:Uid="Privacy_WeDoNotDiscriminate" Text="We do not discriminate against users who exercise their privacy rights."
                                            Style="{StaticResource BodySecondaryStyle}" />
                             </StackPanel>
                         </Grid>
@@ -739,7 +739,7 @@
 
                     <!-- Categories of Personal Information -->
                     <StackPanel Spacing="10">
-                        <TextBlock Text="Categories of Personal Information"
+                        <TextBlock x:Uid="Privacy_CategoriesOfPersonalInformatio" Text="Categories of Personal Information"
                                    Style="{StaticResource HeadingSmallStyle}" />
                         <StackPanel Spacing="8" Margin="8,0,0,0">
                             <StackPanel Orientation="Horizontal" Spacing="10">
@@ -747,7 +747,7 @@
                                            Style="{StaticResource BodyStyle}"
                                            Foreground="{ThemeResource TextAccentBrush}"
                                            VerticalAlignment="Top" />
-                                <TextBlock Text="Documents and files you import"
+                                <TextBlock x:Uid="Privacy_DocumentsAndFilesYou" Text="Documents and files you import"
                                            Style="{StaticResource BodyStyle}" />
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="10">
@@ -755,7 +755,7 @@
                                            Style="{StaticResource BodyStyle}"
                                            Foreground="{ThemeResource TextAccentBrush}"
                                            VerticalAlignment="Top" />
-                                <TextBlock Text="AI conversation history"
+                                <TextBlock x:Uid="Privacy_AiConversationHistory" Text="AI conversation history"
                                            Style="{StaticResource BodyStyle}" />
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="10">
@@ -763,7 +763,7 @@
                                            Style="{StaticResource BodyStyle}"
                                            Foreground="{ThemeResource TextAccentBrush}"
                                            VerticalAlignment="Top" />
-                                <TextBlock Text="Application preferences"
+                                <TextBlock x:Uid="Privacy_ApplicationPreferences" Text="Application preferences"
                                            Style="{StaticResource BodyStyle}" />
                             </StackPanel>
                         </StackPanel>
@@ -782,10 +782,10 @@
                                       VerticalAlignment="Top"
                                       Margin="0,2,0,0" />
                             <StackPanel Spacing="2">
-                                <TextBlock Text="No Sale of Data"
+                                <TextBlock x:Uid="Privacy_NoSaleOfData" Text="No Sale of Data"
                                            Style="{StaticResource LabelStyle}"
                                            Foreground="{ThemeResource TextPrimaryBrush}" />
-                                <TextBlock Text="Strategia-X does not sell, rent, or trade any user data. Your information is yours alone."
+                                <TextBlock x:Uid="Privacy_StrategiaXDoesNot" Text="Strategia-X does not sell, rent, or trade any user data. Your information is yours alone."
                                            Style="{StaticResource BodySecondaryStyle}" />
                             </StackPanel>
                         </StackPanel>
@@ -812,17 +812,17 @@
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
-                        <TextBlock Text="Data Security"
+                        <TextBlock x:Uid="Privacy_DataSecurity" Text="Data Security"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    VerticalAlignment="Center"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="Your data security depends on your device's security. Since all data remains local, you benefit from your operating system's built-in protections." />
+                               x:Uid="Privacy_YourDataSecurityDepends" Text="Your data security depends on your device's security. Since all data remains local, you benefit from your operating system's built-in protections." />
 
                     <TextBlock Style="{StaticResource BodySecondaryStyle}"
-                               Text="We recommend the following practices to keep your data secure:" />
+                               x:Uid="Privacy_WeRecommendTheFollowing" Text="We recommend the following practices to keep your data secure:" />
 
                     <StackPanel Spacing="8" Margin="8,0,0,0">
                         <StackPanel Orientation="Horizontal" Spacing="10">
@@ -832,7 +832,7 @@
                                       Foreground="{ThemeResource SuccessBrush}"
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
-                            <TextBlock Text="Keep your operating system and software updated"
+                            <TextBlock x:Uid="Privacy_KeepYourOperatingSystem" Text="Keep your operating system and software updated"
                                        Style="{StaticResource BodyStyle}" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
@@ -842,7 +842,7 @@
                                       Foreground="{ThemeResource SuccessBrush}"
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
-                            <TextBlock Text="Use strong device passwords and biometric locks where available"
+                            <TextBlock x:Uid="Privacy_UseStrongDevicePasswords" Text="Use strong device passwords and biometric locks where available"
                                        Style="{StaticResource BodyStyle}" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
@@ -852,7 +852,7 @@
                                       Foreground="{ThemeResource SuccessBrush}"
                                       VerticalAlignment="Top"
                                       Margin="0,4,0,0" />
-                            <TextBlock Text="Encrypt your hard drive (e.g., BitLocker on Windows)"
+                            <TextBlock x:Uid="Privacy_EncryptYourHardDrive" Text="Encrypt your hard drive (e.g., BitLocker on Windows)"
                                        Style="{StaticResource BodyStyle}" />
                         </StackPanel>
                     </StackPanel>
@@ -861,7 +861,7 @@
                     <Border Style="{StaticResource SeparatorStyle}" />
 
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Agent-X does not implement additional encryption beyond what your operating system provides."
+                        <TextBlock x:Uid="Privacy_AgentXDoesNot" Text="Agent-X does not implement additional encryption beyond what your operating system provides."
                                    Style="{StaticResource BodySecondaryStyle}" />
                         <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,4,0,0">
                             <FontIcon Glyph="&#xE946;"
@@ -870,7 +870,7 @@
                                       Foreground="{ThemeResource TextAccentBrush}"
                                       VerticalAlignment="Center" />
                             <TextBlock Style="{StaticResource AccentBodyStyle}"
-                                       Text="Network security: by default, all AI processing is local. No data leaves your network." />
+                                       x:Uid="Privacy_NetworkSecurityByDefault" Text="Network security: by default, all AI processing is local. No data leaves your network." />
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
@@ -895,14 +895,14 @@
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
-                        <TextBlock Text="Children's Privacy"
+                        <TextBlock x:Uid="Privacy_ChildrenSPrivacy" Text="Children's Privacy"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    VerticalAlignment="Center"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="Agent-X is not directed at children under the age of 13. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided information through the application, please contact us so we can assist." />
+                               x:Uid="Privacy_AgentXIsNot" Text="Agent-X is not directed at children under the age of 13. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided information through the application, please contact us so we can assist." />
                 </StackPanel>
             </Border>
 
@@ -925,17 +925,17 @@
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
-                        <TextBlock Text="Changes to This Privacy Policy"
+                        <TextBlock x:Uid="Privacy_ChangesToThisPrivacy" Text="Changes to This Privacy Policy"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    VerticalAlignment="Center"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="We may update this Privacy Policy from time to time. When we make changes, we will revise the effective date at the top of this page. Changes will be reflected in the application with an updated effective date." />
+                               x:Uid="Privacy_WeMayUpdateThis" Text="We may update this Privacy Policy from time to time. When we make changes, we will revise the effective date at the top of this page. Changes will be reflected in the application with an updated effective date." />
 
                     <TextBlock Style="{StaticResource BodySecondaryStyle}"
-                               Text="We encourage you to review this Privacy Policy periodically to stay informed about how we protect your information." />
+                               x:Uid="Privacy_WeEncourageYouTo" Text="We encourage you to review this Privacy Policy periodically to stay informed about how we protect your information." />
                 </StackPanel>
             </Border>
 
@@ -958,14 +958,14 @@
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>
-                        <TextBlock Text="Contact Us"
+                        <TextBlock x:Uid="Privacy_ContactUs" Text="Contact Us"
                                    Style="{StaticResource HeadingMediumStyle}"
                                    VerticalAlignment="Center"
                                    AutomationProperties.HeadingLevel="Level2" />
                     </StackPanel>
 
                     <TextBlock Style="{StaticResource BodyStyle}"
-                               Text="If you have any questions, concerns, or requests regarding this Privacy Policy or our data practices, please reach out to us." />
+                               x:Uid="Privacy_IfYouHaveAny" Text="If you have any questions, concerns, or requests regarding this Privacy Policy or our data practices, please reach out to us." />
 
                     <!-- Contact Details -->
                     <Border Style="{StaticResource CardInsetStyle}">
@@ -983,7 +983,7 @@
                                           Foreground="{ThemeResource TextAccentBrush}"
                                           VerticalAlignment="Center" />
                                 <StackPanel Grid.Column="1" Spacing="2">
-                                    <TextBlock Text="Company"
+                                    <TextBlock x:Uid="Privacy_Company" Text="Company"
                                                Style="{StaticResource LabelStyle}" />
                                     <TextBlock Text="Strategia-X"
                                                Style="{StaticResource BodyStyle}" />
@@ -1005,7 +1005,7 @@
                                           Foreground="{ThemeResource TextAccentBrush}"
                                           VerticalAlignment="Center" />
                                 <StackPanel Grid.Column="1" Spacing="2">
-                                    <TextBlock Text="Privacy Questions"
+                                    <TextBlock x:Uid="Privacy_PrivacyQuestions" Text="Privacy Questions"
                                                Style="{StaticResource LabelStyle}" />
                                     <TextBlock Text="support@strategia-x.com"
                                                Style="{StaticResource BodyStyle}"
@@ -1028,9 +1028,9 @@
                                           Foreground="{ThemeResource TextAccentBrush}"
                                           VerticalAlignment="Center" />
                                 <StackPanel Grid.Column="1" Spacing="2">
-                                    <TextBlock Text="GDPR Data Protection Contact"
+                                    <TextBlock x:Uid="Privacy_GdprDataProtectionContact" Text="GDPR Data Protection Contact"
                                                Style="{StaticResource LabelStyle}" />
-                                    <TextBlock Text="For GDPR inquiries, our Data Protection contact can be reached at support@strategia-x.com"
+                                    <TextBlock x:Uid="Privacy_ForGdprInquiriesOur" Text="For GDPR inquiries, our Data Protection contact can be reached at support@strategia-x.com"
                                                Style="{StaticResource BodySecondaryStyle}" />
                                 </StackPanel>
                             </Grid>
@@ -1050,9 +1050,9 @@
                                           Foreground="{ThemeResource TextAccentBrush}"
                                           VerticalAlignment="Center" />
                                 <StackPanel Grid.Column="1" Spacing="2">
-                                    <TextBlock Text="CCPA Requests (California Residents)"
+                                    <TextBlock x:Uid="Privacy_CcpaRequestsCaliforniaResident" Text="CCPA Requests (California Residents)"
                                                Style="{StaticResource LabelStyle}" />
-                                    <TextBlock Text="California residents may contact us at support@strategia-x.com for any CCPA-related requests."
+                                    <TextBlock x:Uid="Privacy_CaliforniaResidentsMayContact" Text="California residents may contact us at support@strategia-x.com for any CCPA-related requests."
                                                Style="{StaticResource BodySecondaryStyle}" />
                                 </StackPanel>
                             </Grid>
@@ -1071,9 +1071,9 @@
                         Margin="0,8,0,24">
                 <TextBlock Style="{StaticResource CaptionStyle}"
                            HorizontalAlignment="Center">
-                    <Run Text="&#x00A9; 2026 Rocky Elsalaymeh. Free and open-source under the MIT License." />
+                    <Run x:Uid="Privacy_2026RockyElsalaymehFree" Text="&#x00A9; 2026 Rocky Elsalaymeh. Free and open-source under the MIT License." />
                 </TextBlock>
-                <TextBlock Text="Agent-X &#x2014; Local-First AI Personal Intelligence Hub"
+                <TextBlock x:Uid="Privacy_AgentXLocalFirst" Text="Agent-X &#x2014; Local-First AI Personal Intelligence Hub"
                            Style="{StaticResource CaptionStyle}"
                            HorizontalAlignment="Center" />
             </StackPanel>

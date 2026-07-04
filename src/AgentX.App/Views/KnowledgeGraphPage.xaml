@@ -64,9 +64,9 @@
 
                     <!-- Title block -->
                     <StackPanel Spacing="4" VerticalAlignment="Center">
-                        <TextBlock Text="Knowledge Graph"
+                        <TextBlock x:Uid="Graph_KnowledgeGraph" Text="Knowledge Graph"
                                    Style="{StaticResource DisplaySmallStyle}" />
-                        <TextBlock Text="Visualize relationships between documents, collections, and tags."
+                        <TextBlock x:Uid="Graph_VisualizeRelationshipsBetweenD" Text="Visualize relationships between documents, collections, and tags."
                                    Style="{StaticResource BodySecondaryStyle}" />
                     </StackPanel>
 
@@ -74,7 +74,7 @@
                     <Grid Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"
                           Margin="24,0,24,0" MinWidth="220" MaxWidth="340">
                         <TextBox x:Name="GraphSearchBox"
-                                 PlaceholderText="Search nodes..."
+                                 x:Uid="Graph_SearchNodesPh" PlaceholderText="Search nodes..."
                                  Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  Padding="36,8,12,8"
                                  CornerRadius="{StaticResource RadiusMD}" />
@@ -108,7 +108,7 @@
                                 <TextBlock Style="{StaticResource CaptionStyle}"
                                            Foreground="{ThemeResource TextSecondaryBrush}">
                                     <Run Text="{x:Bind ViewModel.DocumentCount, Mode=OneWay}" />
-                                    <Run Text="Docs" />
+                                    <Run x:Uid="Graph_Docs" Text="Docs" />
                                 </TextBlock>
                             </StackPanel>
                         </Border>
@@ -120,7 +120,7 @@
                                 <TextBlock Style="{StaticResource CaptionStyle}"
                                            Foreground="{ThemeResource TextSecondaryBrush}">
                                     <Run Text="{x:Bind ViewModel.CollectionCount, Mode=OneWay}" />
-                                    <Run Text="Collections" />
+                                    <Run x:Uid="Graph_Collections" Text="Collections" />
                                 </TextBlock>
                             </StackPanel>
                         </Border>
@@ -132,7 +132,7 @@
                                 <TextBlock Style="{StaticResource CaptionStyle}"
                                            Foreground="{ThemeResource TextSecondaryBrush}">
                                     <Run Text="{x:Bind ViewModel.TagCount, Mode=OneWay}" />
-                                    <Run Text="Tags" />
+                                    <Run x:Uid="Graph_Tags" Text="Tags" />
                                 </TextBlock>
                             </StackPanel>
                         </Border>
@@ -142,7 +142,7 @@
                             <TextBlock Style="{StaticResource MonoSmallStyle}"
                                        Foreground="{ThemeResource TextTertiaryBrush}">
                                 <Run Text="{x:Bind ViewModel.EdgeCount, Mode=OneWay}" />
-                                <Run Text="connections" />
+                                <Run x:Uid="Graph_Connections" Text="connections" />
                             </TextBlock>
                         </Border>
 
@@ -151,10 +151,10 @@
                                 Padding="12,8,12,8"
                                 MinHeight="36"
                                 Command="{x:Bind ViewModel.RefreshGraphCommand}"
-                                ToolTipService.ToolTip="Rebuild the knowledge graph">
+                                x:Uid="Graph_RebuildTheKnowledgeGraphTip" ToolTipService.ToolTip="Rebuild the knowledge graph">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE72C;" FontSize="14" />
-                                <TextBlock Text="Refresh" FontWeight="SemiBold" FontSize="12" />
+                                <TextBlock x:Uid="Graph_Refresh" Text="Refresh" FontWeight="SemiBold" FontSize="12" />
                             </StackPanel>
                         </Button>
                     </StackPanel>
@@ -210,7 +210,7 @@
                         <Button Style="{StaticResource GhostButtonStyle}"
                                 Padding="8,6,8,6" MinHeight="32" MinWidth="32"
                                 Command="{x:Bind ViewModel.ZoomOutCommand}"
-                                ToolTipService.ToolTip="Zoom Out">
+                                x:Uid="Graph_ZoomOutTip" ToolTipService.ToolTip="Zoom Out">
                             <FontIcon Glyph="&#xE738;" FontSize="14" />
                         </Button>
 
@@ -223,7 +223,7 @@
                         <Button Style="{StaticResource GhostButtonStyle}"
                                 Padding="8,6,8,6" MinHeight="32" MinWidth="32"
                                 Command="{x:Bind ViewModel.ZoomInCommand}"
-                                ToolTipService.ToolTip="Zoom In">
+                                x:Uid="Graph_ZoomInTip" ToolTipService.ToolTip="Zoom In">
                             <FontIcon Glyph="&#xE710;" FontSize="14" />
                         </Button>
 
@@ -232,7 +232,7 @@
                         <Button Style="{StaticResource GhostButtonStyle}"
                                 Padding="8,6,8,6" MinHeight="32" MinWidth="32"
                                 Command="{x:Bind ViewModel.ResetZoomCommand}"
-                                ToolTipService.ToolTip="Reset Zoom">
+                                x:Uid="Graph_ResetZoomTip" ToolTipService.ToolTip="Reset Zoom">
                             <FontIcon Glyph="&#xE9A6;" FontSize="14" />
                         </Button>
                     </StackPanel>
@@ -282,10 +282,10 @@
                                       VerticalAlignment="Center" />
                         </Border>
                         <StackPanel Spacing="8" HorizontalAlignment="Center">
-                            <TextBlock Text="No Graph Data"
+                            <TextBlock x:Uid="Graph_NoGraphData" Text="No Graph Data"
                                        Style="{StaticResource HeadingMediumStyle}"
                                        HorizontalAlignment="Center" />
-                            <TextBlock Text="Import documents and organize them into collections to see relationships visualized here."
+                            <TextBlock x:Uid="Graph_ImportDocumentsAndOrganize" Text="Import documents and organize them into collections to see relationships visualized here."
                                        Style="{StaticResource BodySecondaryStyle}"
                                        TextWrapping="Wrap"
                                        TextAlignment="Center"
@@ -312,14 +312,14 @@
                     <!-- Legend -->
                     <StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
 
-                        <TextBlock Text="LEGEND"
+                        <TextBlock x:Uid="Graph_Legend" Text="LEGEND"
                                    Style="{StaticResource OverlineStyle}"
                                    VerticalAlignment="Center" />
 
                         <!-- Document legend item -->
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <Ellipse Width="10" Height="10" Fill="{ThemeResource InfoBrush}" VerticalAlignment="Center" />
-                            <TextBlock Text="Document"
+                            <TextBlock x:Uid="Graph_Document" Text="Document"
                                        Style="{StaticResource CaptionStyle}"
                                        Foreground="{ThemeResource TextSecondaryBrush}"
                                        VerticalAlignment="Center" />
@@ -328,7 +328,7 @@
                         <!-- Collection legend item -->
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <Ellipse Width="10" Height="10" Fill="{ThemeResource GraphTagBrush}" VerticalAlignment="Center" />
-                            <TextBlock Text="Collection"
+                            <TextBlock x:Uid="Graph_Collection" Text="Collection"
                                        Style="{StaticResource CaptionStyle}"
                                        Foreground="{ThemeResource TextSecondaryBrush}"
                                        VerticalAlignment="Center" />
@@ -337,7 +337,7 @@
                         <!-- Tag legend item -->
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <Ellipse Width="10" Height="10" Fill="{ThemeResource WarningBrush}" VerticalAlignment="Center" />
-                            <TextBlock Text="Tag"
+                            <TextBlock x:Uid="Graph_Tag" Text="Tag"
                                        Style="{StaticResource CaptionStyle}"
                                        Foreground="{ThemeResource TextSecondaryBrush}"
                                        VerticalAlignment="Center" />
@@ -358,7 +358,7 @@
                                 Padding="10,4,6,4"
                                 Visibility="{x:Bind ViewModel.IsClusterHighlighted, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <TextBlock Text="Cluster Active"
+                                <TextBlock x:Uid="Graph_ClusterActive" Text="Cluster Active"
                                            Style="{StaticResource CaptionStyle}"
                                            Foreground="{ThemeResource TextAccentBrush}"
                                            FontWeight="SemiBold"
@@ -366,7 +366,7 @@
                                 <Button Style="{StaticResource GhostButtonStyle}"
                                         Padding="4,2,4,2" MinHeight="20" MinWidth="20"
                                         Command="{x:Bind ViewModel.ClearClusterHighlightCommand}"
-                                        ToolTipService.ToolTip="Clear cluster highlight">
+                                        x:Uid="Graph_ClearClusterHighlightTip" ToolTipService.ToolTip="Clear cluster highlight">
                                     <FontIcon Glyph="&#xE711;" FontSize="10"
                                               Foreground="{ThemeResource TextAccentBrush}" />
                                 </Button>
@@ -380,12 +380,12 @@
                                 Spacing="12"
                                 VerticalAlignment="Center">
 
-                        <TextBlock Text="SHOW"
+                        <TextBlock x:Uid="Graph_Show" Text="SHOW"
                                    Style="{StaticResource OverlineStyle}"
                                    VerticalAlignment="Center" />
 
                         <CheckBox x:Name="ShowDocsToggle"
-                                  Content="Documents"
+                                  x:Uid="Graph_Documents" Content="Documents"
                                   IsChecked="{x:Bind ViewModel.ShowDocuments, Mode=TwoWay}"
                                   Checked="OnFilterToggleChanged"
                                   Unchecked="OnFilterToggleChanged"
@@ -394,7 +394,7 @@
                                   Padding="4,0,0,0" />
 
                         <CheckBox x:Name="ShowCollectionsToggle"
-                                  Content="Collections"
+                                  x:Uid="Graph_Collections2" Content="Collections"
                                   IsChecked="{x:Bind ViewModel.ShowCollections, Mode=TwoWay}"
                                   Checked="OnFilterToggleChanged"
                                   Unchecked="OnFilterToggleChanged"
@@ -403,7 +403,7 @@
                                   Padding="4,0,0,0" />
 
                         <CheckBox x:Name="ShowTagsToggle"
-                                  Content="Tags"
+                                  x:Uid="Graph_Tags2" Content="Tags"
                                   IsChecked="{x:Bind ViewModel.ShowTags, Mode=TwoWay}"
                                   Checked="OnFilterToggleChanged"
                                   Unchecked="OnFilterToggleChanged"
@@ -446,7 +446,7 @@
                         <FontIcon Glyph="&#xE946;" FontSize="14"
                                   Foreground="{ThemeResource TextTertiaryBrush}"
                                   VerticalAlignment="Center" />
-                        <TextBlock Text="Node Details"
+                        <TextBlock x:Uid="Graph_NodeDetails" Text="Node Details"
                                    Style="{StaticResource HeadingSmallStyle}"
                                    VerticalAlignment="Center" />
                     </StackPanel>
@@ -455,7 +455,7 @@
                             Style="{StaticResource GhostButtonStyle}"
                             Padding="8,4,8,4" MinHeight="28"
                             Command="{x:Bind ViewModel.ClearSelectionCommand}"
-                            ToolTipService.ToolTip="Close details panel">
+                            x:Uid="Graph_CloseDetailsPanelTip" ToolTipService.ToolTip="Close details panel">
                         <FontIcon Glyph="&#xE711;" FontSize="12"
                                   Foreground="{ThemeResource TextSecondaryBrush}" />
                     </Button>
@@ -481,7 +481,7 @@
 
                     <!-- Node Label -->
                     <StackPanel Spacing="4">
-                        <TextBlock Text="NAME"
+                        <TextBlock x:Uid="Graph_Name" Text="NAME"
                                    Style="{StaticResource OverlineStyle}" />
                         <TextBlock x:Name="NodeLabelText"
                                    Style="{StaticResource HeadingMediumStyle}"
@@ -491,7 +491,7 @@
                     <!-- Subtitle -->
                     <StackPanel Spacing="4"
                                 x:Name="SubtitlePanel">
-                        <TextBlock Text="TYPE"
+                        <TextBlock x:Uid="Graph_Type" Text="TYPE"
                                    Style="{StaticResource OverlineStyle}" />
                         <TextBlock x:Name="NodeSubtitleText"
                                    Style="{StaticResource BodySecondaryStyle}" />
@@ -501,12 +501,12 @@
 
                     <!-- Connection count -->
                     <StackPanel Spacing="4">
-                        <TextBlock Text="CONNECTIONS"
+                        <TextBlock x:Uid="Graph_Connections2" Text="CONNECTIONS"
                                    Style="{StaticResource OverlineStyle}" />
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <TextBlock x:Name="NodeConnectionCountText"
                                        Style="{StaticResource MetricSmallStyle}" />
-                            <TextBlock Text="edges"
+                            <TextBlock x:Uid="Graph_Edges" Text="edges"
                                        Style="{StaticResource CaptionStyle}"
                                        VerticalAlignment="Bottom"
                                        Margin="0,0,0,4" />
@@ -517,7 +517,7 @@
 
                     <!-- Position info -->
                     <StackPanel Spacing="4">
-                        <TextBlock Text="POSITION"
+                        <TextBlock x:Uid="Graph_Position" Text="POSITION"
                                    Style="{StaticResource OverlineStyle}" />
                         <TextBlock x:Name="NodePositionText"
                                    Style="{StaticResource MonoSmallStyle}" />

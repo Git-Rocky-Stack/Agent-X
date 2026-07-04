@@ -62,7 +62,7 @@
                 <StackPanel Spacing="4">
                     <TextBlock Text="{x:Bind ViewModel.PageTitle, Mode=OneWay}"
                                Style="{StaticResource DisplaySmallStyle}" />
-                    <TextBlock Text="Import, organize, and index your documents for AI-powered search."
+                    <TextBlock x:Uid="Vault_ImportOrganizeAndIndex" Text="Import, organize, and index your documents for AI-powered search."
                                Style="{StaticResource BodySecondaryStyle}" />
                 </StackPanel>
 
@@ -77,7 +77,7 @@
                             IsEnabled="{x:Bind ViewModel.IsImporting, Mode=OneWay, Converter={StaticResource InverseBool}}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE8E5;" FontSize="14" />
-                            <TextBlock Text="Import Files" />
+                            <TextBlock x:Uid="Vault_ImportFiles" Text="Import Files" />
                         </StackPanel>
                     </Button>
 
@@ -87,25 +87,25 @@
                             IsEnabled="{x:Bind ViewModel.IsImporting, Mode=OneWay, Converter={StaticResource InverseBool}}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE8B7;" FontSize="14" />
-                            <TextBlock Text="Import Folder" />
+                            <TextBlock x:Uid="Vault_ImportFolder" Text="Import Folder" />
                         </StackPanel>
                     </Button>
 
                     <!-- Multi-Select toggle button -->
                     <Button Style="{StaticResource SecondaryButtonStyle}"
                             Command="{x:Bind ViewModel.ToggleMultiSelectCommand}"
-                            ToolTipService.ToolTip="Toggle multi-select mode"
+                            x:Uid="Vault_ToggleMultiSelectModeTip" ToolTipService.ToolTip="Toggle multi-select mode"
                             Padding="12,6" MinHeight="32">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon Glyph="&#xE762;" FontSize="14" />
-                            <TextBlock Text="Select" />
+                            <TextBlock x:Uid="Vault_Select" Text="Select" />
                         </StackPanel>
                     </Button>
 
                     <!-- Refresh button -->
                     <Button Style="{StaticResource SecondaryButtonStyle}"
                             Command="{x:Bind ViewModel.RefreshCommand}"
-                            ToolTipService.ToolTip="Refresh documents"
+                            x:Uid="Vault_RefreshDocumentsTip" ToolTipService.ToolTip="Refresh documents"
                             AutomationProperties.Name="Refresh documents">
                         <FontIcon Glyph="&#xE72C;" FontSize="14" />
                     </Button>
@@ -129,15 +129,15 @@
                     <FontIcon Glyph="&#xE7BA;" FontSize="20" Foreground="{ThemeResource WarningBrush}"
                               VerticalAlignment="Center" Margin="0,0,12,0" />
                     <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
-                        <TextBlock Text="Duplicate Documents Detected"
+                        <TextBlock x:Uid="Vault_DuplicateDocumentsDetected" Text="Duplicate Documents Detected"
                                    Style="{StaticResource BodyStyle}" FontWeight="SemiBold" />
                         <TextBlock Text="{x:Bind ViewModel.DuplicateWarningMessage, Mode=OneWay}"
                                    Style="{StaticResource CaptionStyle}" />
                     </StackPanel>
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <Button Content="Skip Duplicates" Style="{StaticResource SecondaryButtonStyle}"
+                        <Button x:Uid="Vault_SkipDuplicates" Content="Skip Duplicates" Style="{StaticResource SecondaryButtonStyle}"
                                 Command="{x:Bind ViewModel.SkipDuplicatesCommand}" Padding="12,6" />
-                        <Button Content="Import All" Style="{StaticResource GhostButtonStyle}"
+                        <Button x:Uid="Vault_ImportAll" Content="Import All" Style="{StaticResource GhostButtonStyle}"
                                 Command="{x:Bind ViewModel.ImportAllAnywayCommand}" Padding="12,6" />
                         <Button Style="{StaticResource IconButtonStyle}"
                                 Command="{x:Bind ViewModel.DismissDuplicateWarningCommand}">
@@ -169,7 +169,7 @@
                                 <TextBlock Style="{StaticResource MetricSmallStyle}">
                                     <Run Text="{x:Bind ViewModel.TotalDocuments, Mode=OneWay}" />
                                 </TextBlock>
-                                <TextBlock Text="Documents"
+                                <TextBlock x:Uid="Vault_Documents" Text="Documents"
                                            Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
                         </StackPanel>
@@ -189,7 +189,7 @@
                             <StackPanel Spacing="2" VerticalAlignment="Center">
                                 <TextBlock Text="{x:Bind ViewModel.TotalStorageFormatted, Mode=OneWay}"
                                            Style="{StaticResource MetricSmallStyle}" />
-                                <TextBlock Text="Storage Used"
+                                <TextBlock x:Uid="Vault_StorageUsed" Text="Storage Used"
                                            Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
                         </StackPanel>
@@ -210,7 +210,7 @@
                                 <TextBlock Style="{StaticResource MetricSmallStyle}">
                                     <Run Text="{x:Bind ViewModel.IndexingQueueLength, Mode=OneWay}" />
                                 </TextBlock>
-                                <TextBlock Text="In Queue"
+                                <TextBlock x:Uid="Vault_InQueue" Text="In Queue"
                                            Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
                         </StackPanel>
@@ -250,10 +250,10 @@
 
                     <!-- File type filter chips -->
                     <StackPanel Spacing="6">
-                        <TextBlock Text="FILE TYPE"
+                        <TextBlock x:Uid="Vault_FileType" Text="FILE TYPE"
                                    Style="{StaticResource OverlineStyle}" />
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Button Content="All"
+                            <Button x:Uid="Vault_All" Content="All"
                                     Click="OnFilterTypeClick" Tag=""
                                     Style="{StaticResource FilterChipActiveStyle}" x:Name="FilterTypeAll" />
                             <Button Click="OnFilterTypeClick" Tag="pdf"
@@ -267,28 +267,28 @@
                                     Style="{StaticResource FilterChipStyle}" x:Name="FilterTypeDocx">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <FontIcon Glyph="&#xE8E5;" FontSize="11" />
-                                    <TextBlock Text="Documents" />
+                                    <TextBlock x:Uid="Vault_Documents2" Text="Documents" />
                                 </StackPanel>
                             </Button>
                             <Button Click="OnFilterTypeClick" Tag="txt"
                                     Style="{StaticResource FilterChipStyle}" x:Name="FilterTypeTxt">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <FontIcon Glyph="&#xE8D2;" FontSize="11" />
-                                    <TextBlock Text="Text" />
+                                    <TextBlock x:Uid="Vault_Text" Text="Text" />
                                 </StackPanel>
                             </Button>
                             <Button Click="OnFilterTypeClick" Tag="code"
                                     Style="{StaticResource FilterChipStyle}" x:Name="FilterTypeCode">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <FontIcon Glyph="&#xE943;" FontSize="11" />
-                                    <TextBlock Text="Code" />
+                                    <TextBlock x:Uid="Vault_Code" Text="Code" />
                                 </StackPanel>
                             </Button>
                             <Button Click="OnFilterTypeClick" Tag="image"
                                     Style="{StaticResource FilterChipStyle}" x:Name="FilterTypeImage">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <FontIcon Glyph="&#xEB9F;" FontSize="11" />
-                                    <TextBlock Text="Images" />
+                                    <TextBlock x:Uid="Vault_Images" Text="Images" />
                                 </StackPanel>
                             </Button>
                         </StackPanel>
@@ -296,38 +296,38 @@
 
                     <!-- Status filter chips -->
                     <StackPanel Spacing="6">
-                        <TextBlock Text="STATUS"
+                        <TextBlock x:Uid="Vault_Status" Text="STATUS"
                                    Style="{StaticResource OverlineStyle}" />
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Button Content="All"
+                            <Button x:Uid="Vault_All2" Content="All"
                                     Click="OnFilterStatusClick" Tag=""
                                     Style="{StaticResource FilterChipActiveStyle}" x:Name="FilterStatusAll" />
                             <Button Click="OnFilterStatusClick" Tag="completed"
                                     Style="{StaticResource FilterChipStyle}" x:Name="FilterStatusCompleted">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <Ellipse Width="6" Height="6" Fill="{ThemeResource SuccessBrush}" />
-                                    <TextBlock Text="Completed" />
+                                    <TextBlock x:Uid="Vault_Completed" Text="Completed" />
                                 </StackPanel>
                             </Button>
                             <Button Click="OnFilterStatusClick" Tag="processing"
                                     Style="{StaticResource FilterChipStyle}" x:Name="FilterStatusProcessing">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <Ellipse Width="6" Height="6" Fill="{ThemeResource WarningBrush}" />
-                                    <TextBlock Text="Processing" />
+                                    <TextBlock x:Uid="Vault_Processing" Text="Processing" />
                                 </StackPanel>
                             </Button>
                             <Button Click="OnFilterStatusClick" Tag="pending"
                                     Style="{StaticResource FilterChipStyle}" x:Name="FilterStatusPending">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <Ellipse Width="6" Height="6" Fill="{ThemeResource InfoBrush}" />
-                                    <TextBlock Text="Pending" />
+                                    <TextBlock x:Uid="Vault_Pending" Text="Pending" />
                                 </StackPanel>
                             </Button>
                             <Button Click="OnFilterStatusClick" Tag="failed"
                                     Style="{StaticResource FilterChipStyle}" x:Name="FilterStatusFailed">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <Ellipse Width="6" Height="6" Fill="{ThemeResource ErrorBrush}" />
-                                    <TextBlock Text="Failed" />
+                                    <TextBlock x:Uid="Vault_Failed" Text="Failed" />
                                 </StackPanel>
                             </Button>
                         </StackPanel>
@@ -335,7 +335,7 @@
 
                     <!-- Tag filter chips (Feature 7) -->
                     <StackPanel Spacing="6">
-                        <TextBlock Text="TAGS"
+                        <TextBlock x:Uid="Vault_Tags" Text="TAGS"
                                    Style="{StaticResource OverlineStyle}" />
                         <ItemsRepeater ItemsSource="{x:Bind ViewModel.AllTags, Mode=OneWay}">
                             <ItemsRepeater.Layout>
@@ -371,48 +371,48 @@
 
                         <!-- Collection filter -->
                         <StackPanel Spacing="4">
-                            <TextBlock Text="COLLECTION"
+                            <TextBlock x:Uid="Vault_Collection" Text="COLLECTION"
                                        Style="{StaticResource OverlineStyle}" />
                             <ComboBox x:Name="CollectionFilterCombo"
                                       ItemsSource="{x:Bind ViewModel.AvailableCollections, Mode=OneWay}"
-                                      PlaceholderText="All collections"
+                                      x:Uid="Vault_AllCollectionsPh" PlaceholderText="All collections"
                                       MinWidth="160"
                                       SelectionChanged="OnCollectionFilterChanged" />
                         </StackPanel>
 
                         <!-- Date After filter -->
                         <StackPanel Grid.Column="1" Spacing="4">
-                            <TextBlock Text="IMPORTED AFTER"
+                            <TextBlock x:Uid="Vault_ImportedAfter" Text="IMPORTED AFTER"
                                        Style="{StaticResource OverlineStyle}" />
                             <CalendarDatePicker x:Name="DateAfterPicker"
-                                                PlaceholderText="Start date"
+                                                x:Uid="Vault_StartDatePh" PlaceholderText="Start date"
                                                 MinWidth="140"
                                                 DateChanged="OnDateAfterChanged" />
                         </StackPanel>
 
                         <!-- Date Before filter -->
                         <StackPanel Grid.Column="2" Spacing="4">
-                            <TextBlock Text="IMPORTED BEFORE"
+                            <TextBlock x:Uid="Vault_ImportedBefore" Text="IMPORTED BEFORE"
                                        Style="{StaticResource OverlineStyle}" />
                             <CalendarDatePicker x:Name="DateBeforePicker"
-                                                PlaceholderText="End date"
+                                                x:Uid="Vault_EndDatePh" PlaceholderText="End date"
                                                 MinWidth="140"
                                                 DateChanged="OnDateBeforeChanged" />
                         </StackPanel>
 
                         <!-- Sort dropdown -->
                         <StackPanel Grid.Column="3" Spacing="4">
-                            <TextBlock Text="SORT BY"
+                            <TextBlock x:Uid="Vault_SortBy" Text="SORT BY"
                                        Style="{StaticResource OverlineStyle}" />
                             <ComboBox x:Name="SortByCombo"
-                                      PlaceholderText="Date"
+                                      x:Uid="Vault_DatePh" PlaceholderText="Date"
                                       SelectedIndex="0"
                                       MinWidth="120"
                                       SelectionChanged="OnSortByChanged">
-                                <ComboBoxItem Content="Date" Tag="date" />
-                                <ComboBoxItem Content="Name" Tag="name" />
-                                <ComboBoxItem Content="Size" Tag="size" />
-                                <ComboBoxItem Content="Type" Tag="type" />
+                                <ComboBoxItem x:Uid="Vault_Date" Content="Date" Tag="date" />
+                                <ComboBoxItem x:Uid="Vault_Name" Content="Name" Tag="name" />
+                                <ComboBoxItem x:Uid="Vault_Size" Content="Size" Tag="size" />
+                                <ComboBoxItem x:Uid="Vault_Type" Content="Type" Tag="type" />
                             </ComboBox>
                         </StackPanel>
                     </Grid>
@@ -432,7 +432,7 @@
 
                         <TextBox Grid.Column="1"
                                  Style="{StaticResource SearchInputStyle}"
-                                 PlaceholderText="Search documents by name, content, or tags..."
+                                 x:Uid="Vault_SearchDocumentsByNamePh" PlaceholderText="Search documents by name, content, or tags..."
                                  Text="{x:Bind ViewModel.SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  BorderThickness="0"
                                  Background="Transparent" />
@@ -441,12 +441,12 @@
                                 Style="{StaticResource GhostButtonStyle}"
                                 Command="{x:Bind ViewModel.ClearFiltersCommand}"
                                 Visibility="{x:Bind ViewModel.HasActiveFilters, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                                ToolTipService.ToolTip="Clear all filters"
+                                x:Uid="Vault_ClearAllFiltersTip" ToolTipService.ToolTip="Clear all filters"
                                 AutomationProperties.Name="Clear all filters">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE711;" FontSize="12"
                                           Foreground="{ThemeResource TextAccentBrush}" />
-                                <TextBlock Text="Clear All"
+                                <TextBlock x:Uid="Vault_ClearAll" Text="Clear All"
                                            Style="{StaticResource CaptionStyle}"
                                            Foreground="{ThemeResource TextAccentBrush}" />
                             </StackPanel>
@@ -474,9 +474,9 @@
                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                         <TextBlock Style="{StaticResource BodyStyle}">
                             <Run Text="{x:Bind ViewModel.SelectedCount, Mode=OneWay}" />
-                            <Run Text=" selected" />
+                            <Run x:Uid="Vault_Selected" Text=" selected" />
                         </TextBlock>
-                        <Button Content="Select All" Style="{StaticResource GhostButtonStyle}"
+                        <Button x:Uid="Vault_SelectAll" Content="Select All" Style="{StaticResource GhostButtonStyle}"
                                 Command="{x:Bind ViewModel.SelectAllDocumentsCommand}"
                                 Padding="8,4" MinHeight="28" />
                     </StackPanel>
@@ -485,7 +485,7 @@
                                 Command="{x:Bind ViewModel.BulkReindexCommand}">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE72C;" FontSize="14" />
-                                <TextBlock Text="Re-index" />
+                                <TextBlock x:Uid="Vault_ReIndex" Text="Re-index" />
                             </StackPanel>
                         </Button>
                         <Button Style="{StaticResource GhostButtonStyle}" Padding="12,6"
@@ -493,7 +493,7 @@
                                 Foreground="{ThemeResource ErrorBrush}">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="{ThemeResource ErrorBrush}" />
-                                <TextBlock Text="Delete" Foreground="{ThemeResource ErrorBrush}" />
+                                <TextBlock x:Uid="Vault_Delete" Text="Delete" Foreground="{ThemeResource ErrorBrush}" />
                             </StackPanel>
                         </Button>
                     </StackPanel>
@@ -548,10 +548,10 @@
                     </Border>
 
                     <StackPanel Spacing="4" HorizontalAlignment="Center">
-                        <TextBlock Text="Drag and drop files here"
+                        <TextBlock x:Uid="Vault_DragAndDropFiles" Text="Drag and drop files here"
                                    Style="{StaticResource HeadingSmallStyle}"
                                    HorizontalAlignment="Center" />
-                        <TextBlock Text="or click Import to browse your files"
+                        <TextBlock x:Uid="Vault_OrClickImportTo" Text="or click Import to browse your files"
                                    Style="{StaticResource BodySecondaryStyle}"
                                    HorizontalAlignment="Center" />
                     </StackPanel>
@@ -598,7 +598,7 @@
                     <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
                                   Width="40" Height="40"
                                   Foreground="{ThemeResource AccentPrimaryBrush}" />
-                    <TextBlock Text="Loading documents..."
+                    <TextBlock x:Uid="Vault_LoadingDocuments" Text="Loading documents..."
                                Style="{StaticResource BodySecondaryStyle}"
                                HorizontalAlignment="Center" />
                 </StackPanel>
@@ -713,7 +713,7 @@
                                                       Foreground="{ThemeResource TextTertiaryBrush}" />
                                             <TextBlock Style="{StaticResource CaptionStyle}">
                                                 <Run Text="{x:Bind PageCount}" />
-                                                <Run Text="pages" />
+                                                <Run x:Uid="Vault_Pages" Text="pages" />
                                             </TextBlock>
                                         </StackPanel>
 
@@ -722,7 +722,7 @@
                                                       Foreground="{ThemeResource TextTertiaryBrush}" />
                                             <TextBlock Style="{StaticResource CaptionStyle}">
                                                 <Run Text="{x:Bind WordCountFormatted}" />
-                                                <Run Text="words" />
+                                                <Run x:Uid="Vault_Words" Text="words" />
                                             </TextBlock>
                                         </StackPanel>
 
@@ -731,7 +731,7 @@
                                                       Foreground="{ThemeResource TextTertiaryBrush}" />
                                             <TextBlock Style="{StaticResource CaptionStyle}">
                                                 <Run Text="{x:Bind ChunkCount}" />
-                                                <Run Text="chunks" />
+                                                <Run x:Uid="Vault_Chunks" Text="chunks" />
                                             </TextBlock>
                                         </StackPanel>
                                     </StackPanel>
@@ -779,12 +779,12 @@
                                                 Padding="8,6,8,6" MinHeight="32"
                                                 Tag="{x:Bind Id}"
                                                 Click="OnGenerateTitleClick"
-                                                ToolTipService.ToolTip="Generate AI title"
+                                                x:Uid="Vault_GenerateAiTitleTip" ToolTipService.ToolTip="Generate AI title"
                                                 AutomationProperties.Name="Generate AI title">
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <FontIcon Glyph="&#xE945;" FontSize="12"
                                                           Foreground="{ThemeResource TextAccentBrush}" />
-                                                <TextBlock Text="AI Title"
+                                                <TextBlock x:Uid="Vault_AiTitle" Text="AI Title"
                                                            Style="{StaticResource CaptionStyle}"
                                                            Foreground="{ThemeResource TextAccentBrush}" />
                                             </StackPanel>
@@ -795,11 +795,11 @@
                                                 Padding="8,6,8,6" MinHeight="32"
                                                 Tag="{x:Bind Id}"
                                                 Click="OnViewDetailClick"
-                                                ToolTipService.ToolTip="View details">
+                                                x:Uid="Vault_ViewDetailsTip" ToolTipService.ToolTip="View details">
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <FontIcon Glyph="&#xE8A7;" FontSize="12"
                                                           Foreground="{ThemeResource TextSecondaryBrush}" />
-                                                <TextBlock Text="Detail"
+                                                <TextBlock x:Uid="Vault_Detail" Text="Detail"
                                                            Style="{StaticResource CaptionStyle}"
                                                            Foreground="{ThemeResource TextSecondaryBrush}" />
                                                 </StackPanel>
@@ -810,11 +810,11 @@
                                                 Padding="8,6,8,6" MinHeight="32"
                                                 Tag="{x:Bind Id}"
                                                 Click="OnLaunchDocumentInWorkflowClick"
-                                                ToolTipService.ToolTip="Use this document in a workflow">
+                                                x:Uid="Vault_UseThisDocumentInTip" ToolTipService.ToolTip="Use this document in a workflow">
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <FontIcon Glyph="&#xE945;" FontSize="12"
                                                           Foreground="{ThemeResource AccentPrimaryBrush}" />
-                                                <TextBlock Text="Workflow"
+                                                <TextBlock x:Uid="Vault_Workflow" Text="Workflow"
                                                            Style="{StaticResource CaptionStyle}"
                                                            Foreground="{ThemeResource AccentPrimaryBrush}" />
                                             </StackPanel>
@@ -825,7 +825,7 @@
                                                 Padding="8,6,8,6" MinHeight="32"
                                                 Tag="{x:Bind Id}"
                                                 Click="OnReindexClick"
-                                                ToolTipService.ToolTip="Re-index document"
+                                                x:Uid="Vault_ReIndexDocumentTip" ToolTipService.ToolTip="Re-index document"
                                                 AutomationProperties.Name="Re-index document">
                                             <FontIcon Glyph="&#xE72C;" FontSize="12"
                                                       Foreground="{ThemeResource TextSecondaryBrush}" />
@@ -836,7 +836,7 @@
                                                 Padding="8,6,8,6" MinHeight="32"
                                                 Tag="{x:Bind FilePath}"
                                                 Click="OnOpenInExplorerClick"
-                                                ToolTipService.ToolTip="Open file location"
+                                                x:Uid="Vault_OpenFileLocationTip" ToolTipService.ToolTip="Open file location"
                                                 AutomationProperties.Name="Open file location">
                                             <FontIcon Glyph="&#xE8DA;" FontSize="12"
                                                       Foreground="{ThemeResource TextSecondaryBrush}" />
@@ -847,7 +847,7 @@
                                                 Padding="8,6,8,6" MinHeight="32"
                                                 Tag="{x:Bind Id}"
                                                 Click="OnDeleteDocumentClick"
-                                                ToolTipService.ToolTip="Delete document"
+                                                x:Uid="Vault_DeleteDocumentTip" ToolTipService.ToolTip="Delete document"
                                                 AutomationProperties.Name="Delete document">
                                             <FontIcon Glyph="&#xE74D;" FontSize="12"
                                                       Foreground="{ThemeResource ErrorBrush}" />
@@ -881,10 +881,10 @@
                             </Border>
 
                             <StackPanel Spacing="8" HorizontalAlignment="Center">
-                                <TextBlock Text="No documents yet"
+                                <TextBlock x:Uid="Vault_NoDocumentsYet" Text="No documents yet"
                                            Style="{StaticResource HeadingMediumStyle}"
                                            HorizontalAlignment="Center" />
-                                <TextBlock Text="Import your first documents to start building your knowledge vault. PDFs, Word files, Markdown, text files, and more are supported."
+                                <TextBlock x:Uid="Vault_ImportYourFirstDocuments" Text="Import your first documents to start building your knowledge vault. PDFs, Word files, Markdown, text files, and more are supported."
                                            Style="{StaticResource BodySecondaryStyle}"
                                            TextWrapping="Wrap"
                                            TextAlignment="Center"
@@ -897,7 +897,7 @@
                                     HorizontalAlignment="Center">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE8E5;" FontSize="14" />
-                                    <TextBlock Text="Import Your First Files" />
+                                    <TextBlock x:Uid="Vault_ImportYourFirstFiles" Text="Import Your First Files" />
                                 </StackPanel>
                             </Button>
                         </StackPanel>
@@ -922,7 +922,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <ProgressRing IsActive="True" Width="16" Height="16"
                                       Foreground="{ThemeResource AccentPrimaryBrush}" />
-                        <TextBlock Text="Indexing in progress..."
+                        <TextBlock x:Uid="Vault_IndexingInProgress" Text="Indexing in progress..."
                                    Style="{StaticResource BodySmallStyle}"
                                    Foreground="{ThemeResource TextSecondaryBrush}"
                                    VerticalAlignment="Center" />
@@ -940,7 +940,7 @@
                         <TextBlock Style="{StaticResource MonoSmallStyle}"
                                    Foreground="{ThemeResource TextTertiaryBrush}">
                             <Run Text="{x:Bind ViewModel.IndexingQueueLength, Mode=OneWay}" />
-                            <Run Text="remaining" />
+                            <Run x:Uid="Vault_Remaining" Text="remaining" />
                         </TextBlock>
                     </Border>
                 </Grid>
@@ -972,14 +972,14 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <TextBlock Text="Document Preview"
+                        <TextBlock x:Uid="Vault_DocumentPreview" Text="Document Preview"
                                    Style="{StaticResource HeadingSmallStyle}"
                                    VerticalAlignment="Center" />
 
                         <Button Grid.Column="1"
                                 Style="{StaticResource IconButtonStyle}"
                                 Command="{x:Bind ViewModel.ClosePreviewCommand}"
-                                ToolTipService.ToolTip="Close preview"
+                                x:Uid="Vault_ClosePreviewTip" ToolTipService.ToolTip="Close preview"
                                 AutomationProperties.Name="Close preview">
                             <FontIcon Glyph="&#xE711;" FontSize="12"
                                       Foreground="{ThemeResource TextSecondaryBrush}" />
@@ -1002,7 +1002,7 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Spacing="6">
-                                <TextBlock Text="Focused Document"
+                                <TextBlock x:Uid="Vault_FocusedDocument" Text="Focused Document"
                                            Style="{StaticResource BodyStyle}"
                                            FontWeight="SemiBold"
                                            Foreground="{ThemeResource AccentPrimaryBrush}" />
@@ -1016,7 +1016,7 @@
                             </StackPanel>
 
                             <Button Grid.Column="1"
-                                    Content="Dismiss"
+                                    x:Uid="Vault_Dismiss" Content="Dismiss"
                                     Command="{x:Bind ViewModel.DismissFocusedDocumentLandingCommand}"
                                     Style="{StaticResource GhostButtonStyle}"
                                     VerticalAlignment="Top" />
@@ -1080,7 +1080,7 @@
                     <!-- ── EXTRACTED TITLE (if available) ── -->
                     <StackPanel Spacing="4" Margin="0,0,0,16"
                                 Visibility="{x:Bind ViewModel.SelectedDocument.ExtractedTitle, Mode=OneWay, Converter={StaticResource StringToVis}}">
-                        <TextBlock Text="EXTRACTED TITLE"
+                        <TextBlock x:Uid="Vault_ExtractedTitle" Text="EXTRACTED TITLE"
                                    Style="{StaticResource OverlineStyle}" />
                         <TextBlock Text="{x:Bind ViewModel.SelectedDocument.ExtractedTitle, Mode=OneWay}"
                                    Style="{StaticResource BodyStyle}"
@@ -1092,7 +1092,7 @@
                     <!-- ── AI SUMMARY (if available) ── -->
                     <StackPanel Spacing="4" Margin="0,0,0,16"
                                 Visibility="{x:Bind ViewModel.SelectedDocument.Summary, Mode=OneWay, Converter={StaticResource StringToVis}}">
-                        <TextBlock Text="AI SUMMARY"
+                        <TextBlock x:Uid="Vault_AiSummary" Text="AI SUMMARY"
                                    Style="{StaticResource OverlineStyle}" />
                         <Border Style="{StaticResource CardInsetStyle}" Padding="12">
                             <TextBlock Text="{x:Bind ViewModel.SelectedDocument.Summary, Mode=OneWay}"
@@ -1104,7 +1104,7 @@
 
                     <!-- ── STATS GRID ── -->
                     <StackPanel Spacing="4" Margin="0,0,0,16">
-                        <TextBlock Text="DETAILS"
+                        <TextBlock x:Uid="Vault_Details" Text="DETAILS"
                                    Style="{StaticResource OverlineStyle}"
                                    Margin="0,0,0,8" />
                         <Grid ColumnSpacing="12" RowSpacing="12">
@@ -1125,7 +1125,7 @@
                                     <TextBlock Style="{StaticResource CaptionStyle}"
                                                Foreground="{ThemeResource TextTertiaryBrush}">
                                         <Run Text="&#xE8A1;" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="10" />
-                                        <Run Text=" Pages" />
+                                        <Run x:Uid="Vault_Pages2" Text=" Pages" />
                                     </TextBlock>
                                     <TextBlock Text="{x:Bind ViewModel.SelectedDocument.PageCount, Mode=OneWay}"
                                                Style="{StaticResource HeadingSmallStyle}" />
@@ -1139,7 +1139,7 @@
                                     <TextBlock Style="{StaticResource CaptionStyle}"
                                                Foreground="{ThemeResource TextTertiaryBrush}">
                                         <Run Text="&#xE8C1;" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="10" />
-                                        <Run Text=" Words" />
+                                        <Run x:Uid="Vault_Words2" Text=" Words" />
                                     </TextBlock>
                                     <TextBlock Text="{x:Bind ViewModel.SelectedDocument.WordCountFormatted, Mode=OneWay}"
                                                Style="{StaticResource HeadingSmallStyle}" />
@@ -1153,7 +1153,7 @@
                                     <TextBlock Style="{StaticResource CaptionStyle}"
                                                Foreground="{ThemeResource TextTertiaryBrush}">
                                         <Run Text="&#xE943;" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="10" />
-                                        <Run Text=" Chunks" />
+                                        <Run x:Uid="Vault_Chunks2" Text=" Chunks" />
                                     </TextBlock>
                                     <TextBlock Text="{x:Bind ViewModel.SelectedDocument.ChunkCount, Mode=OneWay}"
                                                Style="{StaticResource HeadingSmallStyle}" />
@@ -1167,7 +1167,7 @@
                                     <TextBlock Style="{StaticResource CaptionStyle}"
                                                Foreground="{ThemeResource TextTertiaryBrush}">
                                         <Run Text="&#xEDA2;" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="10" />
-                                        <Run Text=" Size" />
+                                        <Run x:Uid="Vault_Size2" Text=" Size" />
                                     </TextBlock>
                                     <TextBlock Text="{x:Bind ViewModel.SelectedDocument.FileSizeFormatted, Mode=OneWay}"
                                                Style="{StaticResource HeadingSmallStyle}" />
@@ -1181,7 +1181,7 @@
                                     <TextBlock Style="{StaticResource CaptionStyle}"
                                                Foreground="{ThemeResource TextTertiaryBrush}">
                                         <Run Text="&#xE787;" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="10" />
-                                        <Run Text=" Date Imported" />
+                                        <Run x:Uid="Vault_DateImported" Text=" Date Imported" />
                                     </TextBlock>
                                     <TextBlock Text="{x:Bind ViewModel.SelectedDocument.ImportedAtFormatted, Mode=OneWay}"
                                                Style="{StaticResource HeadingSmallStyle}" />
@@ -1193,7 +1193,7 @@
                     <!-- ── TAGS ── -->
                     <StackPanel Spacing="4" Margin="0,0,0,20"
                                 Visibility="{x:Bind ViewModel.SelectedDocument, Mode=OneWay, Converter={StaticResource NullToVis}}">
-                        <TextBlock Text="TAGS"
+                        <TextBlock x:Uid="Vault_Tags2" Text="TAGS"
                                    Style="{StaticResource OverlineStyle}"
                                    Margin="0,0,0,8" />
                         <ItemsRepeater ItemsSource="{x:Bind ViewModel.SelectedDocument.Tags, Mode=OneWay}">
@@ -1227,11 +1227,11 @@
                                 HorizontalAlignment="Stretch"
                                 Tag="{x:Bind ViewModel.SelectedDocument.Id, Mode=OneWay}"
                                 Click="OnGenerateTitleClick"
-                                ToolTipService.ToolTip="Generate an AI-powered title for this document">
+                                x:Uid="Vault_GenerateAnAiPoweredTip" ToolTipService.ToolTip="Generate an AI-powered title for this document">
                             <StackPanel Orientation="Horizontal" Spacing="8"
                                         HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE945;" FontSize="14" />
-                                <TextBlock Text="Generate Title" />
+                                <TextBlock x:Uid="Vault_GenerateTitle" Text="Generate Title" />
                             </StackPanel>
                         </Button>
 
@@ -1240,11 +1240,11 @@
                                 HorizontalAlignment="Stretch"
                                 Tag="{x:Bind ViewModel.SelectedDocument.FilePath, Mode=OneWay}"
                                 Click="OnOpenInExplorerClick"
-                                ToolTipService.ToolTip="Open file location in Explorer">
+                                x:Uid="Vault_OpenFileLocationInTip" ToolTipService.ToolTip="Open file location in Explorer">
                             <StackPanel Orientation="Horizontal" Spacing="8"
                                         HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE8DA;" FontSize="14" />
-                                <TextBlock Text="Open in Explorer" />
+                                <TextBlock x:Uid="Vault_OpenInExplorer" Text="Open in Explorer" />
                             </StackPanel>
                         </Button>
 
@@ -1253,12 +1253,12 @@
                                 HorizontalAlignment="Stretch"
                                 Tag="{x:Bind ViewModel.SelectedDocument.Id, Mode=OneWay}"
                                 Click="OnReindexClick"
-                                ToolTipService.ToolTip="Re-index this document">
+                                x:Uid="Vault_ReIndexThisDocumentTip" ToolTipService.ToolTip="Re-index this document">
                             <StackPanel Orientation="Horizontal" Spacing="8"
                                         HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE72C;" FontSize="14"
                                           Foreground="{ThemeResource TextSecondaryBrush}" />
-                                <TextBlock Text="Re-index"
+                                <TextBlock x:Uid="Vault_ReIndex2" Text="Re-index"
                                            Foreground="{ThemeResource TextSecondaryBrush}" />
                             </StackPanel>
                         </Button>
