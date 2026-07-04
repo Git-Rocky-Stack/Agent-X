@@ -68,11 +68,14 @@ public interface ITemporalIdentityService
     /// Manually capture an insight moment.
     /// User explicitly marks something as important.
     /// </summary>
+    /// <param name="significance">Optional significance score (0-1). When omitted, the
+    /// user-specified default of 0.7 (high significance) is used.</param>
     Task CaptureInsightAsync(
         string topic,
         string insight,
         InsightSource source,
         long? sourceId,
+        double? significance = null,
         CancellationToken ct = default);
 
     /// <summary>

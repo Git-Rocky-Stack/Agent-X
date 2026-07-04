@@ -139,6 +139,7 @@ public class TemporalIdentityService : ITemporalIdentityService
         string insight,
         InsightSource source,
         long? sourceId,
+        double? significance = null,
         CancellationToken ct = default)
     {
         var insightMoment = new InsightMomentEntity
@@ -147,7 +148,7 @@ public class TemporalIdentityService : ITemporalIdentityService
             UpdatedAt = DateTime.UtcNow,
             Topic = topic,
             InsightText = insight,
-            SignificanceScore = 0.7, // User-specified = high significance
+            SignificanceScore = significance ?? 0.7, // omitted = user-specified = high significance
             SourceType = source,
             SourceId = sourceId,
             RelatedTopicsJson = JsonSerializer.Serialize(new[] { topic }),
@@ -535,23 +536,34 @@ public class TemporalIdentityService : ITemporalIdentityService
 
     private async Task<string[]> GetRelatedConversationsAsync(string topic, DateTime around, CancellationToken ct)
     {
-        return (await _db.Conversations
+        // DateTime subtraction is not translatable by the SQLite provider; materialise the
+        // title matches, then apply the ±30-day window + proximity ordering in memory.
+        var candidates = await _db.Conversations
             .Where(c => c.Title != null && c.Title.Contains(topic))
+            .Select(c => new { c.Title, c.CreatedAt })
+            .ToListAsync(ct);
+
+        return candidates
             .Where(c => Math.Abs((c.CreatedAt - around).TotalDays) < 30)
             .OrderBy(c => Math.Abs((c.CreatedAt - around).TotalDays))
             .Take(3)
             .Select(c => c.Title ?? "")
-            .ToListAsync(ct)).ToArray();
+            .ToArray();
     }
 
     private async Task<string[]> GetRelatedDocumentsAsync(string topic, DateTime around, CancellationToken ct)
     {
-        return (await _db.Documents
+        // Same untranslatable DateTime arithmetic as above; window in memory.
+        var candidates = await _db.Documents
             .Where(d => d.FileName != null && d.FileName.Contains(topic))
+            .Select(d => new { d.FileName, d.ImportedAt })
+            .ToListAsync(ct);
+
+        return candidates
             .Where(d => Math.Abs((d.ImportedAt - around).TotalDays) < 30)
             .Take(3)
             .Select(d => d.FileName ?? "")
-            .ToListAsync(ct)).ToArray();
+            .ToArray();
     }
 
     private VoiceAnalysis AnalyzeVoicePattern(string content)
@@ -623,7 +635,7 @@ public class TemporalIdentityService : ITemporalIdentityService
             !string.IsNullOrWhiteSpace(content) ? content : "User marked this as important",
             InsightSource.DocumentAnnotation,
             annotationId,
-            ct);
+            ct: ct);
     }
 
     public async Task<TemporalBeliefEntity?> GetBeliefEvolutionAsync(string topic, CancellationToken ct = default)
@@ -670,6 +682,7 @@ public class TemporalIdentityService : ITemporalIdentityService
                     insightText,
                     InsightSource.ConversationMessage,
                     message.Id,
+                    significance,
                     ct);
             }
         }
