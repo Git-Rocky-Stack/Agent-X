@@ -8,11 +8,11 @@ namespace AgentX.Tests.ViewModels;
 public class UserGuideViewModelTests
 {
     [Fact]
-    public void Initial_state_populates_all_43_sections()
+    public void Initial_state_populates_all_46_sections()
     {
         var sut = new UserGuideViewModel();
 
-        sut.Sections.Should().HaveCount(43);
+        sut.Sections.Should().HaveCount(46);
     }
 
     [Fact]
@@ -49,6 +49,7 @@ public class UserGuideViewModelTests
             "CollectionsTemplate",
             "KnowledgeGraphTemplate",
             "SemanticSearchTemplate",
+            "ComparisonTemplate",
             // Research & Web
             "WebSearchTemplate",
             "WebImportTemplate",
@@ -56,6 +57,7 @@ public class UserGuideViewModelTests
             "BrowserExtensionTemplate",
             "MobileCompanionTemplate",
             // Document Management
+            "InboxTemplate",
             "AnnotationsTemplate",
             "AudioTranscriptionTemplate",
             // Temporal Identity
@@ -64,10 +66,9 @@ public class UserGuideViewModelTests
             "GenerativeIdentityTemplate",
             "InsightHarvestingTemplate",
             "WeeklyDigestTemplate",
-            // Automation
+            "AnalyticsTemplate",
+            // Automation (on-demand pipelines only — no scheduler/rule engine exists)
             "WorkflowsTemplate",
-            "ScheduledQueriesTemplate",
-            "AutomationRulesTemplate",
             // Configuration
             "ModelManagerTemplate",
             "HardwareAdvisorTemplate",
@@ -75,6 +76,8 @@ public class UserGuideViewModelTests
             "WorkspaceProfilesTemplate",
             "PluginsTemplate",
             "IntegrationsTemplate",
+            "SyncTemplate",
+            "OperationsTemplate",
             // Power User
             "CommandPaletteTemplate",
             "KeyboardShortcutsTemplate",
@@ -133,6 +136,6 @@ public class UserGuideViewModelTests
         var sut = new UserGuideViewModel();
 
         sut.Sections.Last().TemplateKey.Should().Be("GettingHelpTemplate");
-        sut.Sections.Last().DisplayOrder.Should().Be(43);
+        sut.Sections.Last().DisplayOrder.Should().Be(46);
     }
 }
