@@ -305,8 +305,10 @@ public sealed class KeywordSearchService : IKeywordSearchService
         foreach (var raw in filteredResults)
         {
             // Normalize BM25 rank to a 0-1 score.
-            // BM25 returns negative values (lower = better match). We invert and normalize.
-            float score = (float)(1.0 / (1.0 + Math.Abs(raw.Rank)));
+            // BM25 returns negative values (more negative = better match), so |rank|
+            // grows with match quality; |rank| / (1 + |rank|) maps it to 0-1 with
+            // higher = better. (1 / (1 + |rank|) would invert relevance ordering.)
+            float score = (float)(Math.Abs(raw.Rank) / (1.0 + Math.Abs(raw.Rank)));
 
             // Apply MinScore filter
             if (score < query.MinScore)
