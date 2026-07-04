@@ -237,7 +237,11 @@ public class StatusBarServiceTests
 
         service.StartPolling(intervalMs: 25, initialDelayMs: 0);
 
-        var completed = await Task.WhenAny(twoEventsObserved.Task, Task.Delay(500));
+        // Generous ceiling: under full-suite + coverage-instrumentation load a CI
+        // runner can starve the pool long enough that two 25ms poll cycles take
+        // well over 500ms (observed 2026-07-04). The happy path still completes in
+        // ~50ms; only a genuine hang pays this deadline.
+        var completed = await Task.WhenAny(twoEventsObserved.Task, Task.Delay(TimeSpan.FromSeconds(10)));
         service.StopPolling();
 
         completed.Should().Be(twoEventsObserved.Task);
