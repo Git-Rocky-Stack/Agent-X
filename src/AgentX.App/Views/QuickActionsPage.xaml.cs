@@ -69,6 +69,14 @@ public sealed partial class QuickActionsPage : Page
     /// </summary>
     private void SetActivePanel(StackPanel activePanel)
     {
+        // IsChecked="True" on TabSummarize raises Checked mid-parse, before the
+        // panel fields below are connected; bail out until Loaded re-applies the tab.
+        if (PanelSummarize is null || PanelKeyPoints is null || PanelTranslate is null ||
+            PanelDuplicates is null || PanelOrganize is null)
+        {
+            return;
+        }
+
         PanelSummarize.Visibility = Visibility.Collapsed;
         PanelKeyPoints.Visibility = Visibility.Collapsed;
         PanelTranslate.Visibility = Visibility.Collapsed;
