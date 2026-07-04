@@ -45,7 +45,40 @@ $ErrorActionPreference = 'Stop'
 # ─────────────────────────────────────────────────────────────────────────────
 # Floors are set just below the measured baseline (shown in comments) so the gate locks in current
 # coverage with a small headroom for CI variance, and every critical floor sits at or above the
-# global minimum as AX-QA-009 requires. On 2026-06-30 ComparisonService (previously a 5% stub —
+# global minimum as AX-QA-009 requires. On 2026-07-03 the campaign's three tracked next-gaps were
+# closed in one round. KeywordSearchService (previously 0%) — the FTS5 (porter unicode61) BM25
+# keyword-search pipeline (virtual-table init/rebuild, per-document chunk indexing + delta re-index,
+# MATCH sanitisation, file-type/collection/date filters, excerpt building) — was lifted to 89.87 line /
+# 81.48 branch by running REAL FTS5 end-to-end over the shared in-memory SQLite connection (the bundled
+# SQLite ships fts5); the per-document rebuild catch-arm is reached by DROP-TABLE sabotage from inside
+# the progress callback. The tests exposed and fixed a latent relevance-inversion bug: SearchAsync
+# normalised BM25 as 1/(1+|rank|), which orders WORST-first (FTS5 rank is more negative = better), so
+# direct keyword search returned the least-relevant chunks whenever TopK truncated and hybrid RRF
+# fusion inherited the inverted list order; the fix (|rank|/(1+|rank|)) keeps the 0-1 range with
+# higher = better. TemporalIdentityService (previously only 4 regression tests) — belief tracking with
+# EMA sentiment + evolution flags, insight capture/resurfacing, engagement depth, voice-profile
+# learning / generate-as-user, and problem-pattern typing — was lifted to 95.60 line / 75.00 branch
+# over the EF-SQLite harness, exposing TWO more latent bugs, both fixed: (1)
+# GetRelatedConversationsAsync/GetRelatedDocumentsAsync used DateTime subtraction (.TotalDays) in
+# Where/OrderBy — untranslatable on the SQLite provider, so EVERY GetPastSelfAsync call threw
+# (GetAllMemoriesAsync precedent; fixed by materialising the title matches, then windowing/ordering in
+# memory — the Ticks-weighting and keyword-Any probes translated fine and stay server-side); (2)
+# DetectInsightsAsync computed marker-based significance (0.6, +0.2 breakthrough, +0.1 excitement) but
+# never passed it — CaptureInsightAsync hardcoded 0.7 for every insight, flattening GetTopInsights
+# ranking; an optional significance parameter (default 0.7 preserves the user-explicit and annotation
+# contracts) now persists the computed score. LocalLlmProvider (previously 0%) — the LLamaSharp-backed
+# offline provider — was lifted to 85.77 line / 75.00 branch via two internal seams (ComparisonService
+# optional-seam precedent): InferenceOverride substitutes the StatelessExecutor token stream so the
+# chat pipeline (llama3 prompt formatting, JSON priming, options mapping, inference lock, truncation
+# warning, cancellation) runs for real without a native GGUF, and DownloadUrlResolver redirects
+# PullModelAsync to a localhost HttpListener stub (streaming copy, progress reports, atomic .part
+# move, failure cleanup); the deliberate residual is LoadModelAsync's success body plus the real
+# executor/embedder calls (they need a multi-GB native GGUF — the download test's trailing load
+# intentionally fails on the garbage magic, covering the load catch-arm). None of the three is a trust
+# boundary, so none becomes a critical namespace; the combined gain raised the GLOBAL floor LINE
+# 58 -> 62 (measured 62.58) and BRANCH 48 -> 51 (measured 52.43 — a 52 floor would leave only 0.43pt
+# of headroom, inside the run-to-run async-branch variance band this file repeatedly observes).
+# Earlier: on 2026-06-30 ComparisonService (previously a 5% stub —
 # only its guard clauses were tested) — the AI cross-document comparison pipeline (resolve document
 # metadata -> retrieve each document's most-relevant chunks via ISemanticSearchService, scoping /
 # ordering by ChunkIndex -> assemble a ComparisonSynthesisRequest -> synthesize a JSON analysis via
@@ -133,7 +166,7 @@ $ErrorActionPreference = 'Stop'
 # (global line -> 44); 2026-06-24 PluginService/WorkflowEngine (global line 41 -> 42); 2026-06-21
 # ApiHostService. Critical-namespace baselines (Security/Privacy/MigrationRunner) are from 2026-06-20.
 $Policy = [ordered]@{
-    Global = @{ Line = 58.0; Branch = 48.0 }          # measured 58.59 / 48.68 (2026-06-30, ComparisonService)
+    Global = @{ Line = 62.0; Branch = 51.0 }          # measured 62.58 / 52.43 (2026-07-03, KeywordSearch/TemporalIdentity/LocalLlm)
     CriticalNamespaces = [ordered]@{
         # Security-critical: DB key material, DPAPI secret encryption, encryption-state migration,
         # security status. A regression here is a trust/compliance regression. Its branch floor (62)
