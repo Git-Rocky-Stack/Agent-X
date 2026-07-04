@@ -576,4 +576,125 @@ public class MigrationRunnerTests
             await ctx.Database.CloseConnectionAsync();
         }
     }
+
+    private static async Task<System.Collections.Generic.HashSet<string>> GetColumnsAsync(
+        AgentXDbContext ctx, string table)
+    {
+        var cols = new System.Collections.Generic.HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        await using var cmd = ctx.Database.GetDbConnection().CreateCommand();
+        await ctx.Database.OpenConnectionAsync();
+        try
+        {
+            cmd.CommandText = $"PRAGMA table_info(\"{table}\");";
+            await using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                cols.Add(reader.GetString(1));
+            }
+        }
+        finally
+        {
+            await ctx.Database.CloseConnectionAsync();
+        }
+        return cols;
+    }
+
+    [Fact]
+    public async Task RunAsync_heals_stamped_baseline_missing_memories_table_before_pending_replay()
+    {
+        // Regression for the stamped-baseline brick: a database stamped by the pre-AX-QA-002
+        // adopter carries _InitialBaseline in __EFMigrationsHistory but is MISSING the memories
+        // table (the old adopter stamped without verifying schema). AddSemanticMemoryColumns is
+        // pending, so MigrateAsync replays "ALTER TABLE memories ..." against the missing table,
+        // throws "no such table: memories", and the fail-closed startup gate bricks the app on
+        // every launch. The runner must heal the missing baseline table first, fast-forward it
+        // through the ALREADY-STAMPED migrations only, then let the pending replay proceed.
+        var (ctx, dbPath) = CreateContextAtTempPath();
+        try
+        {
+            IMigrationRunner runner = new Core.Data.MigrationRunner.MigrationRunner(ctx);
+            await runner.RunAsync();
+
+            // Sabotage into the pre-heal-adopter state: memories gone, AddSemanticMemoryColumns
+            // un-stamped (pending), everything else still stamped as applied.
+            await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS memories;");
+            await ctx.Database.ExecuteSqlRawAsync(
+                "DELETE FROM __EFMigrationsHistory WHERE MigrationId LIKE '%_AddSemanticMemoryColumns';");
+
+            var result = await runner.RunAsync();
+
+            result.AppliedMigrations.Should().Contain(m => m.EndsWith("_AddSemanticMemoryColumns"));
+
+            var cols = await GetColumnsAsync(ctx, "memories");
+            // Baseline shape + stamped fast-forward (versioning) + pending replay (semantic memory).
+            cols.Should().Contain(["Embedding", "LinkedMemoryId", "DecayRate", "Confidence", "Tags"]);
+            cols.Should().Contain(["EmbeddingModelVersion", "EmbeddingDimensions", "EmbeddedAt"]);
+
+            // Converged: a further run applies nothing.
+            var thirdResult = await runner.RunAsync();
+            thirdResult.AppliedMigrations.Should().BeEmpty();
+        }
+        finally
+        {
+            await ctx.DisposeAsync();
+            SqliteConnection.ClearAllPools();
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
+    public async Task RunAsync_heals_stamped_baseline_when_multiple_memories_migrations_are_pending()
+    {
+        // Same brick, deeper history hole — the exact topology observed on a real dev database:
+        // memories missing AND both AddSemanticMemoryColumns and AddEmbeddingModelVersioning
+        // absent from __EFMigrationsHistory (pending), with document_chunks/messages still at
+        // their pre-versioning shape. The heal must recreate memories at BASELINE shape only
+        // (no stamped migration touches it), so both pending migrations replay cleanly across
+        // memories, document_chunks, and messages without "duplicate column name".
+        var (ctx, dbPath) = CreateContextAtTempPath();
+        try
+        {
+            IMigrationRunner runner = new Core.Data.MigrationRunner.MigrationRunner(ctx);
+            await runner.RunAsync();
+
+            await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS memories;");
+            await ctx.Database.ExecuteSqlRawAsync(
+                "DELETE FROM __EFMigrationsHistory WHERE MigrationId LIKE '%_AddSemanticMemoryColumns';");
+            await ctx.Database.ExecuteSqlRawAsync(
+                "DELETE FROM __EFMigrationsHistory WHERE MigrationId LIKE '%_AddEmbeddingModelVersioning';");
+            // Rewind document_chunks/messages to their pre-versioning shape so the pending
+            // versioning migration has real work to do (indexes first — SQLite cannot drop an
+            // indexed column, and EF's replayed CREATE INDEX has no IF NOT EXISTS).
+            await ctx.Database.ExecuteSqlRawAsync("DROP INDEX IF EXISTS IX_document_chunks_EmbeddingModelVersion;");
+            await ctx.Database.ExecuteSqlRawAsync("DROP INDEX IF EXISTS IX_messages_EmbeddingModel;");
+            await ctx.Database.ExecuteSqlRawAsync("ALTER TABLE document_chunks DROP COLUMN EmbeddingModelVersion;");
+            await ctx.Database.ExecuteSqlRawAsync("ALTER TABLE document_chunks DROP COLUMN EmbeddingDimensions;");
+            await ctx.Database.ExecuteSqlRawAsync("ALTER TABLE document_chunks DROP COLUMN EmbeddedAt;");
+            await ctx.Database.ExecuteSqlRawAsync("ALTER TABLE messages DROP COLUMN EmbeddingDimensions;");
+
+            var result = await runner.RunAsync();
+
+            result.AppliedMigrations.Should().Contain(m => m.EndsWith("_AddSemanticMemoryColumns"));
+            result.AppliedMigrations.Should().Contain(m => m.EndsWith("_AddEmbeddingModelVersioning"));
+
+            var memoryCols = await GetColumnsAsync(ctx, "memories");
+            memoryCols.Should().Contain(["Embedding", "LinkedMemoryId", "DecayRate", "Confidence", "Tags"]);
+            memoryCols.Should().Contain(["EmbeddingModelVersion", "EmbeddingDimensions", "EmbeddedAt"]);
+
+            var chunkCols = await GetColumnsAsync(ctx, "document_chunks");
+            chunkCols.Should().Contain(["EmbeddingModelVersion", "EmbeddingDimensions", "EmbeddedAt"]);
+
+            var messageCols = await GetColumnsAsync(ctx, "messages");
+            messageCols.Should().Contain("EmbeddingDimensions");
+
+            var thirdResult = await runner.RunAsync();
+            thirdResult.AppliedMigrations.Should().BeEmpty();
+        }
+        finally
+        {
+            await ctx.DisposeAsync();
+            SqliteConnection.ClearAllPools();
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
 }

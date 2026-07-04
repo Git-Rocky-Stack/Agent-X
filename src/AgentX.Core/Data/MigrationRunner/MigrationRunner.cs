@@ -252,6 +252,18 @@ public sealed class MigrationRunner : IMigrationRunner
             adoptedMigrations = (await AdoptBaselineAsync(cancellationToken)).ToList();
         }
 
+        // A database stamped by the pre-AX-QA-002 adopter can carry _InitialBaseline in
+        // __EFMigrationsHistory while MISSING some baseline tables (the old adopter stamped
+        // without verifying the schema). Adoption above never runs for it (history exists),
+        // so heal that state here: recreate the missing baseline tables and fast-forward
+        // them through the migrations already stamped as applied. Pending migrations are
+        // deliberately NOT pre-applied — MigrateAsync below replays them normally.
+        // No-op on fresh and healthy databases.
+        if (hadHistoryTable)
+        {
+            await HealStampedBaselineAsync(cancellationToken);
+        }
+
         // Reconcile migrations whose recognized id changed or whose schema is already
         // present, so MigrateAsync below does not replay them against an existing DB.
         // Runs regardless of whether a history table existed (i.e. after any baseline
@@ -589,36 +601,7 @@ public sealed class MigrationRunner : IMigrationRunner
         var missingSet = new HashSet<string>(missing, StringComparer.OrdinalIgnoreCase);
         var sqlGenerator = _context.GetService<IMigrationsSqlGenerator>();
 
-        var baselineMigration = InstantiateMigration(allMigrations, "_InitialBaseline");
-        if (baselineMigration is not null)
-        {
-            // Select only the operations that build the MISSING baseline tables — their
-            // CreateTableOperation (FKs are inline columns on the operation) plus the
-            // CreateIndexOperations targeting those tables. Iterate UpOperations in EF's original
-            // order so dependency ordering (parents before children) is preserved.
-            var operationsToApply = new List<MigrationOperation>();
-            foreach (var operation in baselineMigration.UpOperations)
-            {
-                switch (operation)
-                {
-                    case CreateTableOperation createTable when missingSet.Contains(createTable.Name):
-                        operationsToApply.Add(createTable);
-                        break;
-                    case CreateIndexOperation createIndex when missingSet.Contains(createIndex.Table):
-                        operationsToApply.Add(createIndex);
-                        break;
-                }
-            }
-
-            if (operationsToApply.Count > 0)
-            {
-                var commands = sqlGenerator.Generate(operationsToApply, _context.Model);
-                foreach (var command in commands)
-                {
-                    await _context.Database.ExecuteSqlRawAsync(command.CommandText, cancellationToken);
-                }
-            }
-        }
+        await CreateMissingBaselineTablesAsync(allMigrations, missingSet, sqlGenerator, cancellationToken);
 
         // A healed table is reborn at BASELINE shape, but the surrounding database is at HEAD
         // (it already carries later-migration tables/columns). Bring each healed table forward by
@@ -632,6 +615,93 @@ public sealed class MigrationRunner : IMigrationRunner
 
         // Re-verify: the heal must have produced a complete baseline. If not, refuse to stamp
         // _InitialBaseline so startup can enter a recovery state instead of crashing later.
+        var stillMissing = await GetMissingBaselineTablesAsync(cancellationToken);
+        if (stillMissing.Count > 0)
+        {
+            throw new BaselineSchemaIncompleteException(stillMissing);
+        }
+    }
+
+    /// <summary>
+    /// Creates the given missing baseline tables from <c>_InitialBaseline</c>'s own
+    /// <see cref="Migration.UpOperations"/> — their <see cref="CreateTableOperation"/> (FKs are
+    /// inline columns on the operation) plus the <see cref="CreateIndexOperation"/>s targeting
+    /// them — turned into SQL by EF's <see cref="IMigrationsSqlGenerator"/> (never hand-duplicated
+    /// DDL). Iterates UpOperations in EF's original order so dependency ordering (parents before
+    /// children) is preserved. No-op when the baseline migration is unknown.
+    /// </summary>
+    private async Task CreateMissingBaselineTablesAsync(
+        IReadOnlyList<string> allMigrations,
+        HashSet<string> missingSet,
+        IMigrationsSqlGenerator sqlGenerator,
+        CancellationToken cancellationToken)
+    {
+        var baselineMigration = InstantiateMigration(allMigrations, "_InitialBaseline");
+        if (baselineMigration is null) return;
+
+        var operationsToApply = new List<MigrationOperation>();
+        foreach (var operation in baselineMigration.UpOperations)
+        {
+            switch (operation)
+            {
+                case CreateTableOperation createTable when missingSet.Contains(createTable.Name):
+                    operationsToApply.Add(createTable);
+                    break;
+                case CreateIndexOperation createIndex when missingSet.Contains(createIndex.Table):
+                    operationsToApply.Add(createIndex);
+                    break;
+            }
+        }
+
+        if (operationsToApply.Count > 0)
+        {
+            var commands = sqlGenerator.Generate(operationsToApply, _context.Model);
+            foreach (var command in commands)
+            {
+                await _context.Database.ExecuteSqlRawAsync(command.CommandText, cancellationToken);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Heals a database whose <c>__EFMigrationsHistory</c> already stamps <c>_InitialBaseline</c>
+    /// while some baseline tables are missing — the state left behind by the pre-AX-QA-002
+    /// adopter, which stamped the baseline without verifying its schema. On such a database a
+    /// later pending migration's "ALTER TABLE &lt;missing&gt; …" crashes with "no such table" and
+    /// the fail-closed startup gate bricks the app on every launch.
+    ///
+    /// The heal recreates the missing tables from the baseline migration's own operations, then
+    /// fast-forwards them through the post-baseline migrations ALREADY STAMPED as applied.
+    /// Migrations still pending are deliberately not pre-applied: <c>MigrateAsync</c> replays
+    /// them normally afterwards, and pre-applying their columns here would make that replay fail
+    /// with "duplicate column name". Fail-closed: if healing leaves any baseline table absent,
+    /// <see cref="BaselineSchemaIncompleteException"/> is thrown so startup enters recovery
+    /// instead of crashing later. No-op when the baseline is complete or not stamped (the
+    /// adoption path owns the unstamped case).
+    /// </summary>
+    private async Task HealStampedBaselineAsync(CancellationToken cancellationToken)
+    {
+        var missing = await GetMissingBaselineTablesAsync(cancellationToken);
+        if (missing.Count == 0) return;
+
+        var migrationsAssembly = _context.GetService<IMigrationsAssembly>();
+        var allMigrations = migrationsAssembly.Migrations.Keys
+            .OrderBy(migration => migration, StringComparer.Ordinal)
+            .ToList();
+        var baselineId = FindMigration(allMigrations, "_InitialBaseline");
+        if (baselineId is null) return;
+        if (!await MigrationStampedAsync(baselineId, cancellationToken)) return;
+
+        var missingSet = new HashSet<string>(missing, StringComparer.OrdinalIgnoreCase);
+        var sqlGenerator = _context.GetService<IMigrationsSqlGenerator>();
+
+        await CreateMissingBaselineTablesAsync(allMigrations, missingSet, sqlGenerator, cancellationToken);
+
+        var applied = (await _context.Database.GetAppliedMigrationsAsync(cancellationToken))
+            .ToHashSet(StringComparer.Ordinal);
+        var appliedInOrder = allMigrations.Where(applied.Contains).ToList();
+        await HealPostBaselineColumnsForTablesAsync(appliedInOrder, missingSet, sqlGenerator, cancellationToken);
+
         var stillMissing = await GetMissingBaselineTablesAsync(cancellationToken);
         if (stillMissing.Count > 0)
         {
