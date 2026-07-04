@@ -15,7 +15,7 @@
 - **SQLCipher Encryption** — AES-256-CBC at-rest database encryption with tier-aware key management
 - **GPU Acceleration** — CUDA 12 support with automatic VRAM-based layer offloading
 - **REST API** — Embedded HTTP server (port 9846) for programmatic access
-- **Production Data Layer** — EF Core migrations, 40-table schema, HNSW ANN vector index
+- **Production Data Layer** — EF Core migrations, 37-table schema, HNSW ANN vector index
 
 ---
 
@@ -34,7 +34,7 @@
 | **GPU** | CUDA 12 |
 | **Full-Text Search** | SQLite FTS5 |
 | **Logging** | Serilog |
-| **Testing** | xUnit + 1,909 unit tests |
+| **Testing** | xUnit + 2,773 unit tests |
 
 ### Component Architecture
 
@@ -51,7 +51,7 @@ AgentX.App (WinUI 3)
 │   └── SettingsView
 ├── ViewModels (MVVM)
 │   └── CommunityToolkit.Mvvm
-├── Services (55+ services)
+├── Services (85+ services)
 │   ├── IAIService (multi-provider abstraction)
 │   ├── RetrievalService (6-stage RAG pipeline)
 │   ├── EmbeddingService (vector generation)
@@ -366,7 +366,7 @@ Where:
 
 1. **Use dependency injection** — All services support DI
 2. **Follow MVVM pattern** — ViewModels abstract UI logic
-3. **Write unit tests** — 1,909 tests provide coverage examples
+3. **Write unit tests** — 2,773 tests provide coverage examples
 4. **Use structured logging** — Serilog with contextual information
 5. **Handle exceptions gracefully** — Typed exceptions with clear messages
 
