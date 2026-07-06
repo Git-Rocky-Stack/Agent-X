@@ -8,6 +8,7 @@
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
                 <ResourceDictionary Source="ms-appx:///Styles/Colors.xaml" />
                 <ResourceDictionary Source="ms-appx:///Styles/Typography.xaml" />
+                <ResourceDictionary Source="ms-appx:///Styles/Hardware.xaml" />
                 <ResourceDictionary Source="ms-appx:///Styles/Controls.xaml" />
                 <ResourceDictionary Source="ms-appx:///Styles/Navigation.xaml" />
                 <ResourceDictionary Source="ms-appx:///Styles/Chat.xaml" />

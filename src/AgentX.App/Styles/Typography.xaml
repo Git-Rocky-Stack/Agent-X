@@ -2,45 +2,88 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
-    ╔══════════════════════════════════════════════════════════════════╗
-    ║                    AGENT-X TYPOGRAPHY SYSTEM                     ║
-    ║                                                                  ║
-    ║  Segoe UI Variable for interface. Cascadia Code for monospace.    ║
-    ║  Modular scale with clear hierarchy via weight + size + color.    ║
-    ╚══════════════════════════════════════════════════════════════════╝
+    ====================================================================
+                     AGENT-X TYPOGRAPHY SYSTEM
+              Command Console: four faces, four jobs
+    ====================================================================
+
+    Source of truth: DESIGN.md. Fonts are bundled OFL static instances
+    under Assets/Fonts (local-first: no runtime font downloads, no
+    reliance on installed fonts). Licenses ship next to the files.
+
+      Display / Placards : Archivo Expanded (600/700/800), ALL-CAPS,
+                           CharacterSpacing 50-100 (1/1000 em units).
+                           Stenciled equipment lettering.
+      Body / UI          : Public Sans (400/500/600/700). Prose, UI
+                           copy, form values.
+      Telemetry          : Departure Mono (single weight). Any number
+                           that updates live; LCD wells; kbd hints.
+      Code / Streams     : Iosevka Term (400/700). LLM token streams,
+                           code, logs, file paths.
+
+    Rules:
+      - Live numbers wear Departure Mono in an LCD well; prose numbers
+        are Public Sans; display sizes are always Archivo caps.
+      - XAML TextBlock has no text-transform: placard/stencil strings
+        are uppercased at the source (resource strings or converters)
+        as screens are swept.
+      - Departure Mono has ONE weight - never set a heavier FontWeight
+        on it (synthetic emboldening breaks the pixel grid).
+      - Per-weight FontFamily tokens reference the weight-matched file
+        so face resolution is deterministic regardless of DirectWrite
+        folder-collection behavior.
+      - Segoe UI Variable and Cascadia Code are superseded; unswept
+        screens inherit these styles automatically via the shared keys.
+    ====================================================================
     -->
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         FONT FAMILIES
-         ═══════════════════════════════════════════════════════════════ -->
+    <!-- ===============================================================
+         FONT FAMILIES (bundled assets; #fragment = DirectWrite
+         typographic family name inside the referenced file)
+         =============================================================== -->
 
-    <FontFamily x:Key="FontPrimary">Segoe UI Variable, Segoe UI, sans-serif</FontFamily>
-    <FontFamily x:Key="FontDisplay">Segoe UI Variable Display, Segoe UI, sans-serif</FontFamily>
-    <FontFamily x:Key="FontMono">Cascadia Code, Cascadia Mono, Consolas, monospace</FontFamily>
+    <FontFamily x:Key="FontPrimary">ms-appx:///Assets/Fonts/PublicSans-Regular.ttf#Public Sans</FontFamily>
+    <FontFamily x:Key="FontPrimaryMedium">ms-appx:///Assets/Fonts/PublicSans-Medium.ttf#Public Sans</FontFamily>
+    <FontFamily x:Key="FontPrimarySemiBold">ms-appx:///Assets/Fonts/PublicSans-SemiBold.ttf#Public Sans</FontFamily>
+    <FontFamily x:Key="FontPrimaryBold">ms-appx:///Assets/Fonts/PublicSans-Bold.ttf#Public Sans</FontFamily>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <FontFamily x:Key="FontDisplay">ms-appx:///Assets/Fonts/ArchivoExpanded-SemiBold.ttf#Archivo Expanded</FontFamily>
+    <FontFamily x:Key="FontDisplayBold">ms-appx:///Assets/Fonts/ArchivoExpanded-Bold.ttf#Archivo Expanded</FontFamily>
+    <FontFamily x:Key="FontDisplayHeavy">ms-appx:///Assets/Fonts/ArchivoExpanded-ExtraBold.ttf#Archivo Expanded</FontFamily>
+
+    <FontFamily x:Key="FontTelemetry">ms-appx:///Assets/Fonts/DepartureMono-Regular.otf#Departure Mono</FontFamily>
+
+    <FontFamily x:Key="FontStream">ms-appx:///Assets/Fonts/IosevkaTerm-Regular.ttf#Iosevka Term</FontFamily>
+    <FontFamily x:Key="FontStreamBold">ms-appx:///Assets/Fonts/IosevkaTerm-Bold.ttf#Iosevka Term</FontFamily>
+
+    <!-- Legacy alias: existing FontMono consumers get the stream face -->
+    <FontFamily x:Key="FontMono">ms-appx:///Assets/Fonts/IosevkaTerm-Regular.ttf#Iosevka Term</FontFamily>
+
+    <!-- ===============================================================
          DISPLAY & HEADING STYLES
-         ═══════════════════════════════════════════════════════════════ -->
+         Display = Archivo Expanded caps with positive tracking.
+         Headings = Public Sans 600 (per DESIGN.md scale).
+         =============================================================== -->
 
-    <!-- Display — Hero text, large feature callouts -->
+    <!-- Display - hero text, large feature callouts (ALL-CAPS content) -->
     <Style x:Key="DisplayLargeStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource FontDisplay}" />
+        <Setter Property="FontFamily" Value="{StaticResource FontDisplayBold}" />
         <Setter Property="FontSize" Value="40" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="LineHeight" Value="48" />
         <Setter Property="Foreground" Value="{ThemeResource TextPrimaryBrush}" />
         <Setter Property="TextWrapping" Value="Wrap" />
-        <Setter Property="CharacterSpacing" Value="-20" />
+        <Setter Property="CharacterSpacing" Value="50" />
     </Style>
 
     <Style x:Key="DisplayMediumStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource FontDisplay}" />
+        <Setter Property="FontFamily" Value="{StaticResource FontDisplayBold}" />
         <Setter Property="FontSize" Value="32" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="LineHeight" Value="40" />
         <Setter Property="Foreground" Value="{ThemeResource TextPrimaryBrush}" />
         <Setter Property="TextWrapping" Value="Wrap" />
-        <Setter Property="CharacterSpacing" Value="-15" />
+        <Setter Property="CharacterSpacing" Value="50" />
     </Style>
 
     <Style x:Key="DisplaySmallStyle" TargetType="TextBlock">
@@ -50,11 +93,23 @@
         <Setter Property="LineHeight" Value="36" />
         <Setter Property="Foreground" Value="{ThemeResource TextPrimaryBrush}" />
         <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="CharacterSpacing" Value="50" />
     </Style>
 
-    <!-- Heading — Section titles, page headers -->
+    <!-- Stencil title - section placards (ALL-CAPS content) -->
+    <Style x:Key="StencilTitleStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontDisplayBold}" />
+        <Setter Property="FontSize" Value="22" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="LineHeight" Value="28" />
+        <Setter Property="Foreground" Value="{ThemeResource TextPrimaryBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="CharacterSpacing" Value="80" />
+    </Style>
+
+    <!-- Heading - section titles, page headers (Public Sans 600) -->
     <Style x:Key="HeadingLargeStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimarySemiBold}" />
         <Setter Property="FontSize" Value="24" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="LineHeight" Value="32" />
@@ -63,7 +118,7 @@
     </Style>
 
     <Style x:Key="HeadingMediumStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimarySemiBold}" />
         <Setter Property="FontSize" Value="20" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="LineHeight" Value="28" />
@@ -72,7 +127,7 @@
     </Style>
 
     <Style x:Key="HeadingSmallStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimarySemiBold}" />
         <Setter Property="FontSize" Value="16" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="LineHeight" Value="24" />
@@ -80,9 +135,9 @@
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         BODY TEXT STYLES
-         ═══════════════════════════════════════════════════════════════ -->
+    <!-- ===============================================================
+         BODY TEXT STYLES (Public Sans)
+         =============================================================== -->
 
     <Style x:Key="BodyLargeStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
@@ -103,6 +158,7 @@
     </Style>
 
     <Style x:Key="BodyStrongStyle" TargetType="TextBlock" BasedOn="{StaticResource BodyStyle}">
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimarySemiBold}" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
@@ -124,9 +180,11 @@
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          UTILITY TEXT STYLES
-         ═══════════════════════════════════════════════════════════════ -->
+         Overline/Badge = Archivo placard voice (ALL-CAPS content).
+         Label = Departure Mono UC (console plate forms).
+         =============================================================== -->
 
     <Style x:Key="CaptionStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
@@ -138,35 +196,48 @@
     </Style>
 
     <Style x:Key="OverlineStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+        <Setter Property="FontFamily" Value="{StaticResource FontDisplay}" />
         <Setter Property="FontSize" Value="11" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="LineHeight" Value="16" />
         <Setter Property="Foreground" Value="{ThemeResource TextTertiaryBrush}" />
-        <Setter Property="CharacterSpacing" Value="80" />
+        <Setter Property="CharacterSpacing" Value="100" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
     <Style x:Key="LabelStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
-        <Setter Property="FontSize" Value="12" />
-        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontFamily" Value="{StaticResource FontTelemetry}" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="LineHeight" Value="16" />
         <Setter Property="Foreground" Value="{ThemeResource TextSecondaryBrush}" />
     </Style>
 
     <Style x:Key="BadgeStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+        <Setter Property="FontFamily" Value="{StaticResource FontDisplayBold}" />
         <Setter Property="FontSize" Value="10" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="LineHeight" Value="14" />
         <Setter Property="Foreground" Value="{ThemeResource TextPrimaryBrush}" />
-        <Setter Property="CharacterSpacing" Value="40" />
+        <Setter Property="CharacterSpacing" Value="100" />
     </Style>
 
-    <!-- Monospace — Code blocks, file paths, technical data -->
+    <!-- Placard - silkscreened panel labels (ALL-CAPS content) -->
+    <Style x:Key="PlacardStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontDisplayBold}" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="LineHeight" Value="16" />
+        <Setter Property="Foreground" Value="{ThemeResource TextSecondaryBrush}" />
+        <Setter Property="CharacterSpacing" Value="100" />
+    </Style>
+
+    <!-- ===============================================================
+         MONOSPACE - streams and code (Iosevka Term)
+         =============================================================== -->
+
     <Style x:Key="MonoStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+        <Setter Property="FontFamily" Value="{StaticResource FontStream}" />
         <Setter Property="FontSize" Value="13" />
         <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="LineHeight" Value="20" />
@@ -175,66 +246,113 @@
     </Style>
 
     <Style x:Key="MonoSmallStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+        <Setter Property="FontFamily" Value="{StaticResource FontStream}" />
         <Setter Property="FontSize" Value="11" />
         <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="LineHeight" Value="16" />
         <Setter Property="Foreground" Value="{ThemeResource TextSecondaryBrush}" />
     </Style>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- Stream - LLM token streams and logs inside recessed wells -->
+    <Style x:Key="StreamStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontStream}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="LineHeight" Value="20" />
+        <Setter Property="Foreground" Value="{ThemeResource WellTextBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <!-- ===============================================================
+         TELEMETRY & LCD - live numbers (Departure Mono, single weight)
+         =============================================================== -->
+
+    <Style x:Key="TelemetryStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontTelemetry}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="LineHeight" Value="16" />
+        <Setter Property="Foreground" Value="{ThemeResource TextSecondaryBrush}" />
+    </Style>
+
+    <Style x:Key="TelemetrySmallStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontTelemetry}" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="LineHeight" Value="14" />
+        <Setter Property="Foreground" Value="{ThemeResource TextTertiaryBrush}" />
+    </Style>
+
+    <!-- LCD readouts - phosphor text inside void-black wells -->
+    <Style x:Key="LcdStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontTelemetry}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="LineHeight" Value="16" />
+        <Setter Property="Foreground" Value="{ThemeResource LcdPhosphorBrush}" />
+    </Style>
+
+    <Style x:Key="LcdLargeStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontTelemetry}" />
+        <Setter Property="FontSize" Value="26" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="LineHeight" Value="32" />
+        <Setter Property="Foreground" Value="{ThemeResource LcdPhosphorBrush}" />
+    </Style>
+
+    <!-- ===============================================================
          ACCENT TEXT STYLES
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
 
     <Style x:Key="AccentHeadingStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+        <Setter Property="FontFamily" Value="{StaticResource FontDisplay}" />
         <Setter Property="FontSize" Value="20" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="LineHeight" Value="28" />
         <Setter Property="Foreground" Value="{ThemeResource TextAccentBrush}" />
+        <Setter Property="CharacterSpacing" Value="50" />
     </Style>
 
     <Style x:Key="AccentBodyStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimarySemiBold}" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="LineHeight" Value="20" />
         <Setter Property="Foreground" Value="{ThemeResource TextAccentBrush}" />
     </Style>
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         STAT / METRIC DISPLAY
-         ═══════════════════════════════════════════════════════════════ -->
+    <!-- ===============================================================
+         STAT / METRIC DISPLAY - live values wear Departure Mono.
+         Single weight: FontWeight stays Normal at every size.
+         =============================================================== -->
 
     <Style x:Key="MetricLargeStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource FontDisplay}" />
+        <Setter Property="FontFamily" Value="{StaticResource FontTelemetry}" />
         <Setter Property="FontSize" Value="48" />
-        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="LineHeight" Value="56" />
         <Setter Property="Foreground" Value="{ThemeResource TextPrimaryBrush}" />
-        <Setter Property="CharacterSpacing" Value="-30" />
     </Style>
 
     <Style x:Key="MetricMediumStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource FontDisplay}" />
+        <Setter Property="FontFamily" Value="{StaticResource FontTelemetry}" />
         <Setter Property="FontSize" Value="32" />
-        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="LineHeight" Value="40" />
         <Setter Property="Foreground" Value="{ThemeResource TextPrimaryBrush}" />
-        <Setter Property="CharacterSpacing" Value="-20" />
     </Style>
 
     <Style x:Key="MetricSmallStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource FontDisplay}" />
+        <Setter Property="FontFamily" Value="{StaticResource FontTelemetry}" />
         <Setter Property="FontSize" Value="24" />
-        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="LineHeight" Value="32" />
         <Setter Property="Foreground" Value="{ThemeResource TextPrimaryBrush}" />
     </Style>
 
     <Style x:Key="MetricUnitStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontFamily" Value="{StaticResource FontTelemetry}" />
+        <Setter Property="FontSize" Value="12" />
         <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="Foreground" Value="{ThemeResource TextTertiaryBrush}" />
     </Style>

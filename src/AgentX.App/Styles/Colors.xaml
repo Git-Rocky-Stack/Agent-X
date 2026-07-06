@@ -2,159 +2,219 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
-    ╔══════════════════════════════════════════════════════════════════╗
-    ║                    AGENT-X COLOR ARCHITECTURE                   ║
-    ║                                                                  ║
-    ║  Three-theme system: Default (Dark), Light, HighContrast.        ║
-    ║                                                                  ║
-    ║  Architecture (order matters in WinUI XAML — property elements   ║
-    ║  must come BEFORE content):                                      ║
-    ║    1. ThemeDictionaries (property element, must be first)        ║
-    ║         • Default (Dark) — Agent-X signature palette             ║
-    ║         • Light — executive light, AA-contrast text              ║
-    ║         • HighContrast — binds to OS SystemColor* tokens         ║
-    ║    2. Raw Color tokens — SHARED across themes.                   ║
-    ║         Used by gradient stops, shadow colors, and legacy        ║
-    ║         XAML references that consume colors (not brushes).       ║
-    ║    3. Layout tokens — spacing, radius, padding, breakpoints,     ║
-    ║         shadow geometry. SHARED, theme-invariant.                ║
-    ║                                                                  ║
-    ║  Tier 5a (this PR) ships the architecture + Light + HighContrast ║
-    ║  palettes + a PoC migration of shared style dictionaries and     ║
-    ║  five anchor pages. Tier 5b will mechanically migrate the        ║
-    ║  remaining {StaticResource Brush} references → {ThemeResource}.  ║
-    ║                                                                  ║
-    ║  Flat-elevation system across all themes. NO gradients — depth   ║
-    ║  comes from layered solid surfaces, subtle 1px borders, and      ║
-    ║  confident typography. Gradients read as AI-generated; flat tone ║
-    ║  reads as deliberate, Fortune-10 craft.                          ║
-    ║                                                                  ║
-    ║  The *Gradient* brush keys below are retained as solid brushes   ║
-    ║  for binary back-compat with existing consumers. New code should ║
-    ║  prefer the un-suffixed equivalents (CardBrush, AccentPrimary,   ║
-    ║  BorderSubtle).                                                  ║
-    ╚══════════════════════════════════════════════════════════════════╝
+    ====================================================================
+                     AGENT-X COLOR ARCHITECTURE
+                 Command Console (Carbon Pro chassis)
+    ====================================================================
+
+    Source of truth: DESIGN.md (repo root). Ported from Team-X's
+    Command Console system on 2026-07-05 and adapted for WinUI 3.
+
+    Three-theme system:
+      Default (Night Ops)  - brushed black aluminum on AMOLED carbon,
+                             armed red #AA2024, LED lamp semantics.
+      Light  (Day Shift)   - silver anodized hardware, a deliberately
+                             designed variant, never an auto-invert.
+                             Displays (wells, LCDs, lamp caps) STAY DARK.
+      HighContrast         - fully exempt from the hardware skin. Binds
+                             to OS SystemColor* tokens. Untouchable.
+
+    Architecture (order matters in WinUI XAML - property elements
+    must come BEFORE content):
+      1. ThemeDictionaries (property element, must be first)
+      2. Raw Color tokens - SHARED across themes (gradient stops,
+         shadow colors, legacy consumers of colors-not-brushes)
+      3. Layout tokens - spacing, radius, padding, breakpoints
+
+    Migration state: token layer is Command Console (Tier 1). Screens
+    adopt the four-layer hardware recipes per-screen during the sweep
+    (Tiers 2-3). Legacy keys are preserved with re-pointed values so
+    every existing {ThemeResource}/{StaticResource} keeps resolving.
+    The old flat-elevation doctrine is superseded by DESIGN.md's
+    four-layer raised-hardware depth system.
+
+    LED semantics (the dual-form red rule, non-negotiable):
+      LedGo    #41E25E  steady   - running / healthy / phosphor
+      LedHold  #FFB000  steady   - caution / pending / queued
+      LedWarn  #FF4438  BLINK 1Hz - unacknowledged warning ONLY
+      LedNoGo  #C8453E  steady   - terminal fault (failed, dead)
+      LedScope #58C4BC  steady   - informational (rarest color)
+      Steady red = LIVE/armed. Blinking red = demands acknowledgment.
+      Never blink anything else; never show a steady LedWarn.
+    ====================================================================
     -->
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         THEMED BRUSH SYSTEM
-         ═══════════════════════════════════════════════════════════════
-
-         Brushes are defined per-theme inside ResourceDictionary.ThemeDictionaries.
-         Key names are identical across themes — only the underlying color
-         differs. Consumers must use {ThemeResource} (not {StaticResource})
-         for these brushes to actually re-resolve when the theme switches.
-
-         Light palette principles (executive-light, not "bright white"):
-           • Backgrounds: near-white scale (#FFFFFF → #F0F0F0), never harsh.
-           • Surfaces: ascend FROM white as elevation increases (inverse of
-             dark, where surfaces ascend from black). Surface0 is whitest,
-             Surface4 is deepest off-white.
-           • Borders: low-opacity black (vs low-opacity white in dark).
-           • Text: deep grey (#1A1A1A) primary, never pure black (harsh).
-             Secondary / tertiary cascade down through mid-greys.
-           • Accent: same Red500 brand — works on both palettes. Border
-             focus uses Red600 (slightly darker) in Light for AA contrast
-             against the near-white background.
-           • Contrast targets: WCAG AA (4.5:1) minimum, AAA (7:1) for body.
-
-         HighContrast principles:
-           • Uses WinUI SystemColor* tokens so the app respects the user's
-             OS High Contrast scheme choice (HC Black / HC White / HC #1 /
-             HC #2). XamlControlsResources surfaces these automatically.
-           • Brand red is replaced by SystemColorHighlightColor for
-             accents — users with HC schemes need the system accent to
-             render, not our brand color.
-           • Borders use SystemColorWindowTextColor (full-opacity) — HC
-             schemes require 1px solid full-opacity borders to meet AA.
-         ═══════════════════════════════════════════════════════════════ -->
 
     <ResourceDictionary.ThemeDictionaries>
 
-        <!-- ───────────────────────────────────────────────────────────
-             DEFAULT THEME (DARK) — the Agent-X signature palette
-             ─────────────────────────────────────────────────────────── -->
+        <!-- ===========================================================
+             DEFAULT (NIGHT OPS) - carbon chassis, armed red
+             =========================================================== -->
         <ResourceDictionary x:Key="Default">
 
-            <!-- Window & Page Backgrounds -->
+            <!-- Window & Page Backgrounds (chassis) -->
             <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#FF000000" />
             <SolidColorBrush x:Key="PageBackgroundBrush" Color="#FF050505" />
-            <SolidColorBrush x:Key="BackgroundSecondaryBrush" Color="#FF0A0A0A" />
+            <SolidColorBrush x:Key="BackgroundSecondaryBrush" Color="#FF0D0D0D" />
 
-            <!-- Ambient surface brushes (flat — legacy "Gradient" keys are solids) -->
+            <!-- Ambient surface brushes (legacy "Gradient" keys are solids) -->
             <SolidColorBrush x:Key="WindowGradientBrush" Color="#FF000000" />
-            <SolidColorBrush x:Key="SidebarGradientBrush" Color="#FF0A0A0A" />
+            <SolidColorBrush x:Key="SidebarGradientBrush" Color="#FF0D0D0D" />
             <SolidColorBrush x:Key="HeaderGradientBrush" Color="#FF050505" />
 
-            <!-- Card Surface Brushes (elevation system) -->
-            <SolidColorBrush x:Key="CardBrush" Color="#FF161616" />
+            <!-- Card Surface Brushes (carbon panel bases; faceplate
+                 gradients live in Hardware.xaml for swept screens) -->
+            <SolidColorBrush x:Key="CardBrush" Color="#FF141414" />
             <SolidColorBrush x:Key="CardElevatedBrush" Color="#FF1A1A1A" />
-            <SolidColorBrush x:Key="CardHighBrush" Color="#FF1E1E1E" />
+            <SolidColorBrush x:Key="CardHighBrush" Color="#FF1F1F1F" />
             <SolidColorBrush x:Key="CardHoverBrush" Color="#FF2A2A2A" />
             <SolidColorBrush x:Key="CardPressedBrush" Color="#FF303030" />
 
-            <!-- Legacy Card "Gradient" keys (flat — match the un-suffixed brushes) -->
+            <!-- Legacy Card "Gradient" keys (flat solids) -->
             <SolidColorBrush x:Key="CardGradientBrush" Color="#FF1A1A1A" />
-            <SolidColorBrush x:Key="CardGradientVerticalBrush" Color="#FF1E1E1E" />
-            <SolidColorBrush x:Key="CardGradientSubtleBrush" Color="#FF161616" />
+            <SolidColorBrush x:Key="CardGradientVerticalBrush" Color="#FF1F1F1F" />
+            <SolidColorBrush x:Key="CardGradientSubtleBrush" Color="#FF141414" />
 
             <!-- Accent Card (featured / highlighted elements) -->
-            <SolidColorBrush x:Key="AccentCardGradientBrush" Color="#FF161616" />
-            <SolidColorBrush x:Key="AccentGlowGradientBrush" Color="#26C41E3A" />
+            <SolidColorBrush x:Key="AccentCardGradientBrush" Color="#FF141414" />
+            <SolidColorBrush x:Key="AccentGlowGradientBrush" Color="#26AA2024" />
 
-            <!-- Border Brushes -->
-            <SolidColorBrush x:Key="BorderSubtleBrush" Color="#1AFFFFFF" />
-            <SolidColorBrush x:Key="BorderMediumBrush" Color="#33FFFFFF" />
-            <SolidColorBrush x:Key="BorderStrongBrush" Color="#4DFFFFFF" />
-            <SolidColorBrush x:Key="BorderFocusBrush" Color="#FFC41E3A" />
+            <!-- Border Brushes (hairline discipline: 8% / 16% / 24%) -->
+            <SolidColorBrush x:Key="BorderSubtleBrush" Color="#14FFFFFF" />
+            <SolidColorBrush x:Key="BorderMediumBrush" Color="#29FFFFFF" />
+            <SolidColorBrush x:Key="BorderStrongBrush" Color="#3DFFFFFF" />
+            <SolidColorBrush x:Key="BorderFocusBrush" Color="#FFAA2024" />
 
             <!-- Legacy Border "Gradient" keys -->
-            <SolidColorBrush x:Key="BorderGradientBrush" Color="#1AFFFFFF" />
-            <SolidColorBrush x:Key="BorderAccentGradientBrush" Color="#FFC41E3A" />
+            <SolidColorBrush x:Key="BorderGradientBrush" Color="#14FFFFFF" />
+            <SolidColorBrush x:Key="BorderAccentGradientBrush" Color="#FFAA2024" />
 
-            <!-- Text Brushes -->
-            <SolidColorBrush x:Key="TextPrimaryBrush" Color="#F2FFFFFF" />
-            <SolidColorBrush x:Key="TextSecondaryBrush" Color="#FFB0B0B0" />
-            <SolidColorBrush x:Key="TextTertiaryBrush" Color="#FF808080" />
-            <SolidColorBrush x:Key="TextDisabledBrush" Color="#FF484848" />
+            <!-- Text Brushes (silver ramp - engraved enamel) -->
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FFF5F5F5" />
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="#FFB3B3B3" />
+            <SolidColorBrush x:Key="TextTertiaryBrush" Color="#FF888888" />
+            <SolidColorBrush x:Key="TextDisabledBrush" Color="#FF5A5A5A" />
             <SolidColorBrush x:Key="TextInverseBrush" Color="#FF000000" />
-            <SolidColorBrush x:Key="TextAccentBrush" Color="#FFD4344D" />
-            <SolidColorBrush x:Key="TextLinkBrush" Color="#FFE8546B" />
+            <SolidColorBrush x:Key="TextAccentBrush" Color="#FFE0252B" />
+            <SolidColorBrush x:Key="TextLinkBrush" Color="#FFF08A8E" />
+            <SolidColorBrush x:Key="TextEmphasisBrush" Color="#FFD1D1D1" />
 
-            <!-- Accent Brushes (brand red — identical across Dark/Light, system in HC) -->
-            <SolidColorBrush x:Key="AccentPrimaryBrush" Color="#FFC41E3A" />
-            <SolidColorBrush x:Key="AccentHoverBrush" Color="#FFD4344D" />
-            <SolidColorBrush x:Key="AccentPressedBrush" Color="#FFA51D33" />
-            <SolidColorBrush x:Key="AccentSubtleBrush" Color="#1AC41E3A" />
-            <SolidColorBrush x:Key="AccentGlowBrush" Color="#33C41E3A" />
+            <!-- Accent Brushes (ARMED RED - steady means LIVE) -->
+            <SolidColorBrush x:Key="AccentPrimaryBrush" Color="#FFAA2024" />
+            <SolidColorBrush x:Key="AccentHoverBrush" Color="#FFC8333A" />
+            <SolidColorBrush x:Key="AccentPressedBrush" Color="#FF7F171A" />
+            <SolidColorBrush x:Key="AccentSubtleBrush" Color="#1FAA2024" />
+            <SolidColorBrush x:Key="AccentGlowBrush" Color="#38E0252B" />
+            <SolidColorBrush x:Key="AccentLitBrush" Color="#FFE0252B" />
+            <SolidColorBrush x:Key="AccentDeepBrush" Color="#FF7F171A" />
 
             <!-- Legacy Accent "Gradient" keys -->
-            <SolidColorBrush x:Key="AccentGradientBrush" Color="#FFC41E3A" />
-            <SolidColorBrush x:Key="AccentGradientHoverBrush" Color="#FFD4344D" />
+            <SolidColorBrush x:Key="AccentGradientBrush" Color="#FFAA2024" />
+            <SolidColorBrush x:Key="AccentGradientHoverBrush" Color="#FFC8333A" />
 
-            <!-- Status Brushes (semantic colors stay constant across themes) -->
-            <SolidColorBrush x:Key="SuccessBrush" Color="#FF22C55E" />
-            <SolidColorBrush x:Key="WarningBrush" Color="#FFF59E0B" />
-            <SolidColorBrush x:Key="ErrorBrush" Color="#FFEF4444" />
-            <SolidColorBrush x:Key="InfoBrush" Color="#FF3B82F6" />
-            <SolidColorBrush x:Key="OnlineBrush" Color="#FF10B981" />
-            <SolidColorBrush x:Key="OfflineBrush" Color="#FF6B7280" />
-            <SolidColorBrush x:Key="SuccessSubtleBrush" Color="#2622C55E" />
-            <SolidColorBrush x:Key="WarningSubtleBrush" Color="#26F59E0B" />
-            <SolidColorBrush x:Key="ErrorSubtleBrush" Color="#26EF4444" />
-            <SolidColorBrush x:Key="InfoSubtleBrush" Color="#263B82F6" />
+            <!-- Status Brushes (LED semantics - see the dual-form rule.
+                 ErrorBrush is the steady NO-GO terminal-fault tone; the
+                 blinking warn tone is LedWarnLampBrush, blink-only.) -->
+            <SolidColorBrush x:Key="SuccessBrush" Color="#FF41E25E" />
+            <SolidColorBrush x:Key="WarningBrush" Color="#FFFFB000" />
+            <SolidColorBrush x:Key="ErrorBrush" Color="#FFC8453E" />
+            <SolidColorBrush x:Key="InfoBrush" Color="#FF58C4BC" />
+            <SolidColorBrush x:Key="OnlineBrush" Color="#FF41E25E" />
+            <SolidColorBrush x:Key="OfflineBrush" Color="#FF5A5A5A" />
+            <SolidColorBrush x:Key="SuccessSubtleBrush" Color="#2641E25E" />
+            <SolidColorBrush x:Key="WarningSubtleBrush" Color="#26FFB000" />
+            <SolidColorBrush x:Key="ErrorSubtleBrush" Color="#26C8453E" />
+            <SolidColorBrush x:Key="InfoSubtleBrush" Color="#2658C4BC" />
+
+            <!-- LED lamp brushes (shift-invariant: lamps and dots keep
+                 night values in Day Shift; only LED TEXT darkens) -->
+            <SolidColorBrush x:Key="LedGoLampBrush" Color="#FF41E25E" />
+            <SolidColorBrush x:Key="LedHoldLampBrush" Color="#FFFFB000" />
+            <SolidColorBrush x:Key="LedWarnLampBrush" Color="#FFFF4438" />
+            <SolidColorBrush x:Key="LedNoGoLampBrush" Color="#FFC8453E" />
+            <SolidColorBrush x:Key="LedScopeLampBrush" Color="#FF58C4BC" />
+            <SolidColorBrush x:Key="LedGoTextBrush" Color="#FF41E25E" />
+            <SolidColorBrush x:Key="LedHoldTextBrush" Color="#FFFFB000" />
+            <SolidColorBrush x:Key="LedWarnTextBrush" Color="#FFFF4438" />
+            <SolidColorBrush x:Key="LedNoGoTextBrush" Color="#FFC8453E" />
+            <SolidColorBrush x:Key="LedScopeTextBrush" Color="#FF58C4BC" />
+
+            <!-- Console hardware brushes -->
+            <SolidColorBrush x:Key="ChromeBrush" Color="#FFE6E6E6" />
+            <SolidColorBrush x:Key="RingBrush" Color="#FFE6E6E6" />
+            <SolidColorBrush x:Key="HairlineBrush" Color="#14FFFFFF" />
+            <SolidColorBrush x:Key="HairlineStrongBrush" Color="#29FFFFFF" />
+
+            <!-- Recessed wells (Layer 2 - ALWAYS dark, both shifts) -->
+            <SolidColorBrush x:Key="WellBrush" Color="#FF080808" />
+            <SolidColorBrush x:Key="WellBorderBrush" Color="#B3000000" />
+            <SolidColorBrush x:Key="WellTextBrush" Color="#FFF5F5F5" />
+            <SolidColorBrush x:Key="WellTextSecondaryBrush" Color="#FFB3B3B3" />
+            <SolidColorBrush x:Key="VoidBrush" Color="#FF000000" />
+            <SolidColorBrush x:Key="LcdPhosphorBrush" Color="#FF41E25E" />
+            <SolidColorBrush x:Key="LcdAmberBrush" Color="#FFFFB000" />
+            <SolidColorBrush x:Key="LcdHotBrush" Color="#FFE0252B" />
 
             <!-- Data-Visualization Brushes -->
-            <SolidColorBrush x:Key="GraphTagBrush" Color="#FFB0B0B0" />
-            <SolidColorBrush x:Key="GraphTagSubtleBrush" Color="#26B0B0B0" />
-            <SolidColorBrush x:Key="ChartSeriesBrush" Color="#FFC41E3A" />
-            <SolidColorBrush x:Key="ChartSeriesSubtleBrush" Color="#26C41E3A" />
+            <SolidColorBrush x:Key="GraphTagBrush" Color="#FFB3B3B3" />
+            <SolidColorBrush x:Key="GraphTagSubtleBrush" Color="#26B3B3B3" />
+            <SolidColorBrush x:Key="ChartSeriesBrush" Color="#FFAA2024" />
+            <SolidColorBrush x:Key="ChartSeriesSubtleBrush" Color="#26AA2024" />
 
-            <!-- Input Field Brushes -->
-            <SolidColorBrush x:Key="InputBackgroundBrush" Color="#FF111111" />
-            <SolidColorBrush x:Key="InputBorderBrush" Color="#1AFFFFFF" />
-            <SolidColorBrush x:Key="InputFocusBorderBrush" Color="#FFC41E3A" />
-            <SolidColorBrush x:Key="InputPlaceholderBrush" Color="#FF5C5C5C" />
+            <!-- Input Field Brushes (console plate forms: recessed wells) -->
+            <SolidColorBrush x:Key="InputBackgroundBrush" Color="#FF0A0A0A" />
+            <SolidColorBrush x:Key="InputBorderBrush" Color="#14FFFFFF" />
+            <SolidColorBrush x:Key="InputFocusBorderBrush" Color="#FFAA2024" />
+            <SolidColorBrush x:Key="InputPlaceholderBrush" Color="#FF5A5A5A" />
+
+            <!-- Fluent lightweight overrides: keep TextBox/PasswordBox/
+                 AutoSuggestBox template states inside the dark well in
+                 every interaction state (the template would otherwise
+                 swap its own Background/Foreground on hover and focus). -->
+            <SolidColorBrush x:Key="TextControlBackground" Color="#FF0A0A0A" />
+            <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#FF0D0D0D" />
+            <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#FF080808" />
+            <SolidColorBrush x:Key="TextControlBackgroundDisabled" Color="#FF101010" />
+            <SolidColorBrush x:Key="TextControlForeground" Color="#FFF5F5F5" />
+            <SolidColorBrush x:Key="TextControlForegroundPointerOver" Color="#FFF5F5F5" />
+            <SolidColorBrush x:Key="TextControlForegroundFocused" Color="#FFF5F5F5" />
+            <SolidColorBrush x:Key="TextControlForegroundDisabled" Color="#FF5A5A5A" />
+            <SolidColorBrush x:Key="TextControlBorderBrush" Color="#14FFFFFF" />
+            <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#29FFFFFF" />
+            <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#FFAA2024" />
+            <SolidColorBrush x:Key="TextControlBorderBrushDisabled" Color="#0DFFFFFF" />
+            <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#FF5A5A5A" />
+            <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="#FF6B6B6B" />
+            <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="#FF5A5A5A" />
+            <SolidColorBrush x:Key="TextControlSelectionHighlightColor" Color="#FFAA2024" />
+            <SolidColorBrush x:Key="ComboBoxBackground" Color="#FF0A0A0A" />
+            <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#FF0D0D0D" />
+            <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="#FF080808" />
+            <SolidColorBrush x:Key="ComboBoxForeground" Color="#FFF5F5F5" />
+            <SolidColorBrush x:Key="ComboBoxForegroundPointerOver" Color="#FFF5F5F5" />
+            <SolidColorBrush x:Key="ComboBoxForegroundPressed" Color="#FFF5F5F5" />
+            <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#14FFFFFF" />
+            <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#29FFFFFF" />
+            <SolidColorBrush x:Key="ComboBoxBorderBrushPressed" Color="#FFAA2024" />
+            <SolidColorBrush x:Key="ComboBoxPlaceHolderForeground" Color="#FF5A5A5A" />
+
+            <!-- Bat-lever toggle (DESIGN.md): recessed dark track in both
+                 shifts, machined metal thumb, armed red when on -->
+            <SolidColorBrush x:Key="ToggleSwitchFillOff" Color="#FF0A0A0A" />
+            <SolidColorBrush x:Key="ToggleSwitchFillOffPointerOver" Color="#FF0D0D0D" />
+            <SolidColorBrush x:Key="ToggleSwitchFillOffPressed" Color="#FF080808" />
+            <SolidColorBrush x:Key="ToggleSwitchStrokeOff" Color="#29FFFFFF" />
+            <SolidColorBrush x:Key="ToggleSwitchStrokeOffPointerOver" Color="#3DFFFFFF" />
+            <SolidColorBrush x:Key="ToggleSwitchStrokeOffPressed" Color="#29FFFFFF" />
+            <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#FFAA2024" />
+            <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#FFC8333A" />
+            <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#FF7F171A" />
+            <SolidColorBrush x:Key="ToggleSwitchStrokeOn" Color="#FF7F171A" />
+            <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver" Color="#FF7F171A" />
+            <SolidColorBrush x:Key="ToggleSwitchStrokeOnPressed" Color="#FF5E1114" />
+            <SolidColorBrush x:Key="ToggleSwitchKnobFillOff" Color="#FFD1D1D1" />
+            <SolidColorBrush x:Key="ToggleSwitchKnobFillOffPointerOver" Color="#FFF5F5F5" />
+            <SolidColorBrush x:Key="ToggleSwitchKnobFillOn" Color="#FFF5F5F5" />
+            <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPointerOver" Color="#FFFFFFFF" />
 
             <!-- Scrollbar Brushes -->
             <SolidColorBrush x:Key="ScrollbarTrackBrush" Color="Transparent" />
@@ -167,96 +227,182 @@
 
         </ResourceDictionary>
 
-        <!-- ───────────────────────────────────────────────────────────
-             LIGHT THEME — executive light, premium feel, AA contrast
-             ─────────────────────────────────────────────────────────── -->
+        <!-- ===========================================================
+             LIGHT (DAY SHIFT) - silver anodized hardware.
+             Designed variant, never an auto-invert. The chassis stays
+             darker than the raised plates so silver reads as raised.
+             Displays (wells, LCDs, lamp caps) STAY VOID-DARK.
+             =========================================================== -->
         <ResourceDictionary x:Key="Light">
 
-            <!-- Window & Page Backgrounds -->
-            <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#FFFFFFFF" />
-            <SolidColorBrush x:Key="PageBackgroundBrush" Color="#FFFCFCFC" />
-            <SolidColorBrush x:Key="BackgroundSecondaryBrush" Color="#FFF6F6F6" />
+            <!-- Window & Page Backgrounds (chassis behind the plates) -->
+            <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#FFC4C4BF" />
+            <SolidColorBrush x:Key="PageBackgroundBrush" Color="#FFCBCBC6" />
+            <SolidColorBrush x:Key="BackgroundSecondaryBrush" Color="#FFC0C0BB" />
 
             <!-- Ambient surface brushes -->
-            <SolidColorBrush x:Key="WindowGradientBrush" Color="#FFFFFFFF" />
-            <SolidColorBrush x:Key="SidebarGradientBrush" Color="#FFF6F6F6" />
-            <SolidColorBrush x:Key="HeaderGradientBrush" Color="#FFFCFCFC" />
+            <SolidColorBrush x:Key="WindowGradientBrush" Color="#FFC4C4BF" />
+            <SolidColorBrush x:Key="SidebarGradientBrush" Color="#FFC0C0BB" />
+            <SolidColorBrush x:Key="HeaderGradientBrush" Color="#FFCBCBC6" />
 
-            <!-- Card Surface Brushes (elevation reads as DEEPER tint, not lighter) -->
-            <SolidColorBrush x:Key="CardBrush" Color="#FFFFFFFF" />
-            <SolidColorBrush x:Key="CardElevatedBrush" Color="#FFF8F8F8" />
-            <SolidColorBrush x:Key="CardHighBrush" Color="#FFF1F1F1" />
-            <SolidColorBrush x:Key="CardHoverBrush" Color="#FFECECEC" />
-            <SolidColorBrush x:Key="CardPressedBrush" Color="#FFE2E2E2" />
+            <!-- Card Surface Brushes (silver plates ascend brighter) -->
+            <SolidColorBrush x:Key="CardBrush" Color="#FFEAEAE7" />
+            <SolidColorBrush x:Key="CardElevatedBrush" Color="#FFF0F0ED" />
+            <SolidColorBrush x:Key="CardHighBrush" Color="#FFF5F5F3" />
+            <SolidColorBrush x:Key="CardHoverBrush" Color="#FFF7F7F5" />
+            <SolidColorBrush x:Key="CardPressedBrush" Color="#FFDEDEDA" />
 
             <!-- Legacy Card "Gradient" keys (flat solids) -->
-            <SolidColorBrush x:Key="CardGradientBrush" Color="#FFF8F8F8" />
-            <SolidColorBrush x:Key="CardGradientVerticalBrush" Color="#FFF1F1F1" />
-            <SolidColorBrush x:Key="CardGradientSubtleBrush" Color="#FFFFFFFF" />
+            <SolidColorBrush x:Key="CardGradientBrush" Color="#FFF0F0ED" />
+            <SolidColorBrush x:Key="CardGradientVerticalBrush" Color="#FFF5F5F3" />
+            <SolidColorBrush x:Key="CardGradientSubtleBrush" Color="#FFEAEAE7" />
 
             <!-- Accent Card -->
-            <SolidColorBrush x:Key="AccentCardGradientBrush" Color="#FFFFFFFF" />
-            <SolidColorBrush x:Key="AccentGlowGradientBrush" Color="#1AC41E3A" />
+            <SolidColorBrush x:Key="AccentCardGradientBrush" Color="#FFEAEAE7" />
+            <SolidColorBrush x:Key="AccentGlowGradientBrush" Color="#1FAA2024" />
 
-            <!-- Border Brushes (low-opacity BLACK, not white) -->
-            <SolidColorBrush x:Key="BorderSubtleBrush" Color="#14000000" />
-            <SolidColorBrush x:Key="BorderMediumBrush" Color="#26000000" />
-            <SolidColorBrush x:Key="BorderStrongBrush" Color="#3D000000" />
-            <SolidColorBrush x:Key="BorderFocusBrush" Color="#FFA51D33" />
+            <!-- Border Brushes (low-opacity black on silver) -->
+            <SolidColorBrush x:Key="BorderSubtleBrush" Color="#1F000000" />
+            <SolidColorBrush x:Key="BorderMediumBrush" Color="#2E000000" />
+            <SolidColorBrush x:Key="BorderStrongBrush" Color="#42000000" />
+            <SolidColorBrush x:Key="BorderFocusBrush" Color="#FFAA2024" />
 
             <!-- Legacy Border "Gradient" keys -->
-            <SolidColorBrush x:Key="BorderGradientBrush" Color="#14000000" />
-            <SolidColorBrush x:Key="BorderAccentGradientBrush" Color="#FFA51D33" />
+            <SolidColorBrush x:Key="BorderGradientBrush" Color="#1F000000" />
+            <SolidColorBrush x:Key="BorderAccentGradientBrush" Color="#FFAA2024" />
 
-            <!-- Text Brushes (deep grey, never pure black) -->
+            <!-- Text Brushes (day silver ramp - dark enamel on silver) -->
             <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FF1A1A1A" />
-            <SolidColorBrush x:Key="TextSecondaryBrush" Color="#FF595959" />
-            <SolidColorBrush x:Key="TextTertiaryBrush" Color="#FF7D7D7D" />
-            <SolidColorBrush x:Key="TextDisabledBrush" Color="#FFB0B0B0" />
-            <SolidColorBrush x:Key="TextInverseBrush" Color="#FFFFFFFF" />
-            <SolidColorBrush x:Key="TextAccentBrush" Color="#FFA51D33" />
-            <SolidColorBrush x:Key="TextLinkBrush" Color="#FF8B1A2B" />
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="#FF44443F" />
+            <SolidColorBrush x:Key="TextTertiaryBrush" Color="#FF62625E" />
+            <SolidColorBrush x:Key="TextDisabledBrush" Color="#FF96968F" />
+            <SolidColorBrush x:Key="TextInverseBrush" Color="#FFF5F5F5" />
+            <SolidColorBrush x:Key="TextAccentBrush" Color="#FF941B1F" />
+            <SolidColorBrush x:Key="TextLinkBrush" Color="#FF7F171A" />
+            <SolidColorBrush x:Key="TextEmphasisBrush" Color="#FF2E2E2C" />
 
-            <!-- Accent Brushes (brand red — slightly darker shifts for AA contrast on near-white) -->
-            <SolidColorBrush x:Key="AccentPrimaryBrush" Color="#FFA51D33" />
-            <SolidColorBrush x:Key="AccentHoverBrush" Color="#FFC41E3A" />
-            <SolidColorBrush x:Key="AccentPressedBrush" Color="#FF8B1A2B" />
-            <SolidColorBrush x:Key="AccentSubtleBrush" Color="#1AC41E3A" />
-            <SolidColorBrush x:Key="AccentGlowBrush" Color="#26C41E3A" />
+            <!-- Accent Brushes (armed red; hover darkens on silver) -->
+            <SolidColorBrush x:Key="AccentPrimaryBrush" Color="#FFAA2024" />
+            <SolidColorBrush x:Key="AccentHoverBrush" Color="#FF941B1F" />
+            <SolidColorBrush x:Key="AccentPressedBrush" Color="#FF7F171A" />
+            <SolidColorBrush x:Key="AccentSubtleBrush" Color="#1FAA2024" />
+            <SolidColorBrush x:Key="AccentGlowBrush" Color="#26AA2024" />
+            <SolidColorBrush x:Key="AccentLitBrush" Color="#FFC8333A" />
+            <SolidColorBrush x:Key="AccentDeepBrush" Color="#FF7F171A" />
 
             <!-- Legacy Accent "Gradient" keys -->
-            <SolidColorBrush x:Key="AccentGradientBrush" Color="#FFA51D33" />
-            <SolidColorBrush x:Key="AccentGradientHoverBrush" Color="#FFC41E3A" />
+            <SolidColorBrush x:Key="AccentGradientBrush" Color="#FFAA2024" />
+            <SolidColorBrush x:Key="AccentGradientHoverBrush" Color="#FF941B1F" />
 
-            <!-- Status Brushes (semantic colors — same hues, mostly identical
-                 across themes; subtle variants nudged for visibility on light bg) -->
-            <SolidColorBrush x:Key="SuccessBrush" Color="#FF15803D" />
-            <SolidColorBrush x:Key="WarningBrush" Color="#FFB45309" />
-            <SolidColorBrush x:Key="ErrorBrush" Color="#FFB91C1C" />
-            <SolidColorBrush x:Key="InfoBrush" Color="#FF1D4ED8" />
-            <SolidColorBrush x:Key="OnlineBrush" Color="#FF047857" />
-            <SolidColorBrush x:Key="OfflineBrush" Color="#FF6B7280" />
-            <SolidColorBrush x:Key="SuccessSubtleBrush" Color="#1A22C55E" />
-            <SolidColorBrush x:Key="WarningSubtleBrush" Color="#1AF59E0B" />
-            <SolidColorBrush x:Key="ErrorSubtleBrush" Color="#1AEF4444" />
-            <SolidColorBrush x:Key="InfoSubtleBrush" Color="#1A3B82F6" />
+            <!-- Status Brushes (LED TEXT tones darkened for silver
+                 surfaces; lamps and dots keep night values below) -->
+            <SolidColorBrush x:Key="SuccessBrush" Color="#FF177A3D" />
+            <SolidColorBrush x:Key="WarningBrush" Color="#FF996300" />
+            <SolidColorBrush x:Key="ErrorBrush" Color="#FFC81E13" />
+            <SolidColorBrush x:Key="InfoBrush" Color="#FF256F69" />
+            <SolidColorBrush x:Key="OnlineBrush" Color="#FF177A3D" />
+            <SolidColorBrush x:Key="OfflineBrush" Color="#FF96968F" />
+            <SolidColorBrush x:Key="SuccessSubtleBrush" Color="#2641E25E" />
+            <SolidColorBrush x:Key="WarningSubtleBrush" Color="#26FFB000" />
+            <SolidColorBrush x:Key="ErrorSubtleBrush" Color="#26C8453E" />
+            <SolidColorBrush x:Key="InfoSubtleBrush" Color="#2658C4BC" />
+
+            <!-- LED lamp brushes (night values - shift-invariant) -->
+            <SolidColorBrush x:Key="LedGoLampBrush" Color="#FF41E25E" />
+            <SolidColorBrush x:Key="LedHoldLampBrush" Color="#FFFFB000" />
+            <SolidColorBrush x:Key="LedWarnLampBrush" Color="#FFFF4438" />
+            <SolidColorBrush x:Key="LedNoGoLampBrush" Color="#FFC8453E" />
+            <SolidColorBrush x:Key="LedScopeLampBrush" Color="#FF58C4BC" />
+            <SolidColorBrush x:Key="LedGoTextBrush" Color="#FF177A3D" />
+            <SolidColorBrush x:Key="LedHoldTextBrush" Color="#FF996300" />
+            <SolidColorBrush x:Key="LedWarnTextBrush" Color="#FFC81E13" />
+            <SolidColorBrush x:Key="LedNoGoTextBrush" Color="#FFC81E13" />
+            <SolidColorBrush x:Key="LedScopeTextBrush" Color="#FF256F69" />
+
+            <!-- Console hardware brushes (Ring goes dark graphite in Day) -->
+            <SolidColorBrush x:Key="ChromeBrush" Color="#FF2E2E2C" />
+            <SolidColorBrush x:Key="RingBrush" Color="#FF44443F" />
+            <SolidColorBrush x:Key="HairlineBrush" Color="#1A000000" />
+            <SolidColorBrush x:Key="HairlineStrongBrush" Color="#33000000" />
+
+            <!-- Recessed wells (displays-stay-dark rule: void in Day too) -->
+            <SolidColorBrush x:Key="WellBrush" Color="#FF080808" />
+            <SolidColorBrush x:Key="WellBorderBrush" Color="#B3000000" />
+            <SolidColorBrush x:Key="WellTextBrush" Color="#FFF5F5F5" />
+            <SolidColorBrush x:Key="WellTextSecondaryBrush" Color="#FFB3B3B3" />
+            <SolidColorBrush x:Key="VoidBrush" Color="#FF000000" />
+            <SolidColorBrush x:Key="LcdPhosphorBrush" Color="#FF41E25E" />
+            <SolidColorBrush x:Key="LcdAmberBrush" Color="#FFFFB000" />
+            <SolidColorBrush x:Key="LcdHotBrush" Color="#FFE0252B" />
 
             <!-- Data-Visualization Brushes -->
-            <SolidColorBrush x:Key="GraphTagBrush" Color="#FF595959" />
-            <SolidColorBrush x:Key="GraphTagSubtleBrush" Color="#1A595959" />
-            <SolidColorBrush x:Key="ChartSeriesBrush" Color="#FFA51D33" />
-            <SolidColorBrush x:Key="ChartSeriesSubtleBrush" Color="#1AC41E3A" />
+            <SolidColorBrush x:Key="GraphTagBrush" Color="#FF44443F" />
+            <SolidColorBrush x:Key="GraphTagSubtleBrush" Color="#1A44443F" />
+            <SolidColorBrush x:Key="ChartSeriesBrush" Color="#FFAA2024" />
+            <SolidColorBrush x:Key="ChartSeriesSubtleBrush" Color="#1FAA2024" />
 
-            <!-- Input Field Brushes -->
-            <SolidColorBrush x:Key="InputBackgroundBrush" Color="#FFFFFFFF" />
-            <SolidColorBrush x:Key="InputBorderBrush" Color="#26000000" />
-            <SolidColorBrush x:Key="InputFocusBorderBrush" Color="#FFA51D33" />
-            <SolidColorBrush x:Key="InputPlaceholderBrush" Color="#FF9E9E9E" />
+            <!-- Input Field Brushes (Tier 2 sweep: inputs are recessed
+                 dark wells with light text in Day Shift too - the
+                 displays-stay-dark rule, like black displays on silver
+                 studio hardware) -->
+            <SolidColorBrush x:Key="InputBackgroundBrush" Color="#FF0A0A0A" />
+            <SolidColorBrush x:Key="InputBorderBrush" Color="#66000000" />
+            <SolidColorBrush x:Key="InputFocusBorderBrush" Color="#FFAA2024" />
+            <SolidColorBrush x:Key="InputPlaceholderBrush" Color="#FF5A5A5A" />
+
+            <!-- Fluent lightweight overrides: same dark-well discipline
+                 in Day Shift; the well's edge carves into the silver
+                 plate with a dark border instead of a white hairline. -->
+            <SolidColorBrush x:Key="TextControlBackground" Color="#FF0A0A0A" />
+            <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#FF0D0D0D" />
+            <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#FF080808" />
+            <SolidColorBrush x:Key="TextControlBackgroundDisabled" Color="#FF1A1A1A" />
+            <SolidColorBrush x:Key="TextControlForeground" Color="#FFF5F5F5" />
+            <SolidColorBrush x:Key="TextControlForegroundPointerOver" Color="#FFF5F5F5" />
+            <SolidColorBrush x:Key="TextControlForegroundFocused" Color="#FFF5F5F5" />
+            <SolidColorBrush x:Key="TextControlForegroundDisabled" Color="#FF62625E" />
+            <SolidColorBrush x:Key="TextControlBorderBrush" Color="#66000000" />
+            <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#80000000" />
+            <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#FFAA2024" />
+            <SolidColorBrush x:Key="TextControlBorderBrushDisabled" Color="#33000000" />
+            <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#FF5A5A5A" />
+            <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="#FF6B6B6B" />
+            <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="#FF5A5A5A" />
+            <SolidColorBrush x:Key="TextControlSelectionHighlightColor" Color="#FFAA2024" />
+            <SolidColorBrush x:Key="ComboBoxBackground" Color="#FF0A0A0A" />
+            <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#FF0D0D0D" />
+            <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="#FF080808" />
+            <SolidColorBrush x:Key="ComboBoxForeground" Color="#FFF5F5F5" />
+            <SolidColorBrush x:Key="ComboBoxForegroundPointerOver" Color="#FFF5F5F5" />
+            <SolidColorBrush x:Key="ComboBoxForegroundPressed" Color="#FFF5F5F5" />
+            <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#66000000" />
+            <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#80000000" />
+            <SolidColorBrush x:Key="ComboBoxBorderBrushPressed" Color="#FFAA2024" />
+            <SolidColorBrush x:Key="ComboBoxPlaceHolderForeground" Color="#FF5A5A5A" />
+
+            <!-- Bat-lever toggle: the recessed track stays dark on silver
+                 hardware (displays-stay-dark); hover darkens the armed fill -->
+            <SolidColorBrush x:Key="ToggleSwitchFillOff" Color="#FF0A0A0A" />
+            <SolidColorBrush x:Key="ToggleSwitchFillOffPointerOver" Color="#FF0D0D0D" />
+            <SolidColorBrush x:Key="ToggleSwitchFillOffPressed" Color="#FF080808" />
+            <SolidColorBrush x:Key="ToggleSwitchStrokeOff" Color="#66000000" />
+            <SolidColorBrush x:Key="ToggleSwitchStrokeOffPointerOver" Color="#80000000" />
+            <SolidColorBrush x:Key="ToggleSwitchStrokeOffPressed" Color="#66000000" />
+            <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#FFAA2024" />
+            <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#FF941B1F" />
+            <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#FF7F171A" />
+            <SolidColorBrush x:Key="ToggleSwitchStrokeOn" Color="#FF7F171A" />
+            <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver" Color="#FF7F171A" />
+            <SolidColorBrush x:Key="ToggleSwitchStrokeOnPressed" Color="#FF5E1114" />
+            <SolidColorBrush x:Key="ToggleSwitchKnobFillOff" Color="#FFD1D1D1" />
+            <SolidColorBrush x:Key="ToggleSwitchKnobFillOffPointerOver" Color="#FFF5F5F5" />
+            <SolidColorBrush x:Key="ToggleSwitchKnobFillOn" Color="#FFF5F5F5" />
+            <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPointerOver" Color="#FFFFFFFF" />
 
             <!-- Scrollbar Brushes -->
             <SolidColorBrush x:Key="ScrollbarTrackBrush" Color="Transparent" />
-            <SolidColorBrush x:Key="ScrollbarThumbBrush" Color="#26000000" />
-            <SolidColorBrush x:Key="ScrollbarThumbHoverBrush" Color="#3D000000" />
+            <SolidColorBrush x:Key="ScrollbarThumbBrush" Color="#2E000000" />
+            <SolidColorBrush x:Key="ScrollbarThumbHoverBrush" Color="#42000000" />
 
             <!-- Shadow / Overlay -->
             <SolidColorBrush x:Key="OverlayBrush" Color="#80000000" />
@@ -264,13 +410,15 @@
 
         </ResourceDictionary>
 
-        <!-- ───────────────────────────────────────────────────────────
-             HIGH CONTRAST THEME — respects OS HC scheme choice
+        <!-- ===========================================================
+             HIGH CONTRAST - exempt from the hardware skin, by design.
              All chrome, text, and borders bind to SystemColor* tokens
              so users with HC schemes (HC Black, HC White, HC #1, HC #2)
              see correct contrast. Brand red is replaced by the system
-             accent so user-chosen HC accents render correctly.
-             ─────────────────────────────────────────────────────────── -->
+             accent. Flat surfaces, full-opacity borders, system focus.
+             The aesthetic sweep must never touch this dictionary's
+             bindings - state is carried by stencil words, not color.
+             =========================================================== -->
         <ResourceDictionary x:Key="HighContrast">
 
             <!-- Window & Page Backgrounds -->
@@ -283,7 +431,7 @@
             <SolidColorBrush x:Key="SidebarGradientBrush" Color="{ThemeResource SystemColorWindowColor}" />
             <SolidColorBrush x:Key="HeaderGradientBrush" Color="{ThemeResource SystemColorWindowColor}" />
 
-            <!-- Card Surface Brushes (HC has no elevation system — flat window color) -->
+            <!-- Card Surface Brushes (HC has no elevation system - flat window color) -->
             <SolidColorBrush x:Key="CardBrush" Color="{ThemeResource SystemColorWindowColor}" />
             <SolidColorBrush x:Key="CardElevatedBrush" Color="{ThemeResource SystemColorWindowColor}" />
             <SolidColorBrush x:Key="CardHighBrush" Color="{ThemeResource SystemColorWindowColor}" />
@@ -317,19 +465,22 @@
             <SolidColorBrush x:Key="TextInverseBrush" Color="{ThemeResource SystemColorHighlightTextColor}" />
             <SolidColorBrush x:Key="TextAccentBrush" Color="{ThemeResource SystemColorHotlightColor}" />
             <SolidColorBrush x:Key="TextLinkBrush" Color="{ThemeResource SystemColorHotlightColor}" />
+            <SolidColorBrush x:Key="TextEmphasisBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
 
-            <!-- Accent Brushes (system highlight — what the OS calls "accent") -->
+            <!-- Accent Brushes (system highlight - what the OS calls "accent") -->
             <SolidColorBrush x:Key="AccentPrimaryBrush" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="AccentHoverBrush" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="AccentPressedBrush" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="AccentSubtleBrush" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="AccentGlowBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="AccentLitBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="AccentDeepBrush" Color="{ThemeResource SystemColorHighlightColor}" />
 
             <!-- Legacy Accent "Gradient" keys -->
             <SolidColorBrush x:Key="AccentGradientBrush" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="AccentGradientHoverBrush" Color="{ThemeResource SystemColorHighlightColor}" />
 
-            <!-- Status Brushes (system colors — HC doesn't distinguish status hues) -->
+            <!-- Status Brushes (system colors - HC does not distinguish status hues) -->
             <SolidColorBrush x:Key="SuccessBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
             <SolidColorBrush x:Key="WarningBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
             <SolidColorBrush x:Key="ErrorBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
@@ -340,6 +491,35 @@
             <SolidColorBrush x:Key="WarningSubtleBrush" Color="{ThemeResource SystemColorWindowColor}" />
             <SolidColorBrush x:Key="ErrorSubtleBrush" Color="{ThemeResource SystemColorWindowColor}" />
             <SolidColorBrush x:Key="InfoSubtleBrush" Color="{ThemeResource SystemColorWindowColor}" />
+
+            <!-- LED lamp brushes (HC: state is carried by the stencil
+                 word; lamps render as window text, no color semantics) -->
+            <SolidColorBrush x:Key="LedGoLampBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="LedHoldLampBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="LedWarnLampBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="LedNoGoLampBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="LedScopeLampBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="LedGoTextBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="LedHoldTextBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="LedWarnTextBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="LedNoGoTextBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="LedScopeTextBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+
+            <!-- Console hardware brushes -->
+            <SolidColorBrush x:Key="ChromeBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="RingBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="HairlineBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="HairlineStrongBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+
+            <!-- Recessed wells (HC: flat window surfaces) -->
+            <SolidColorBrush x:Key="WellBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="WellBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="WellTextBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="WellTextSecondaryBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="VoidBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="LcdPhosphorBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="LcdAmberBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="LcdHotBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
 
             <!-- Data-Visualization Brushes -->
             <SolidColorBrush x:Key="GraphTagBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
@@ -366,34 +546,43 @@
 
     </ResourceDictionary.ThemeDictionaries>
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         RAW COLOR TOKENS — shared across themes
+    <!-- ===============================================================
+         RAW COLOR TOKENS - shared across themes
          (Used by gradient stops, shadow colors, and legacy references.
-          These values do NOT swap on theme change — they describe the
-          dark palette as our "default" pigment vocabulary. Theme-aware
-          consumers must use the brushes above, not these raw colors.)
-         ═══════════════════════════════════════════════════════════════ -->
+          These values do NOT swap on theme change - they describe the
+          Night Ops palette as the default pigment vocabulary. Theme-
+          aware consumers must use the brushes above, not these colors.)
+         =============================================================== -->
 
-    <!-- Background Scale (darkest → lightest) -->
+    <!-- Carbon ramp (chassis) -->
+    <Color x:Key="Void">#FF000000</Color>
+    <Color x:Key="Carbon950">#FF050505</Color>
+    <Color x:Key="Carbon900">#FF0D0D0D</Color>
+    <Color x:Key="Carbon850">#FF101010</Color>
+    <Color x:Key="Carbon800">#FF141414</Color>
+    <Color x:Key="Carbon750">#FF1A1A1A</Color>
+    <Color x:Key="Carbon700">#FF262626</Color>
+
+    <!-- Background Scale (legacy keys, re-pointed to carbon) -->
     <Color x:Key="Black">#FF000000</Color>
     <Color x:Key="BackgroundPrimary">#FF050505</Color>
-    <Color x:Key="BackgroundSecondary">#FF0A0A0A</Color>
-    <Color x:Key="BackgroundTertiary">#FF0F0F0F</Color>
+    <Color x:Key="BackgroundSecondary">#FF0D0D0D</Color>
+    <Color x:Key="BackgroundTertiary">#FF101010</Color>
 
     <!-- Surface Scale (card elevations) -->
-    <Color x:Key="Surface0">#FF111111</Color>
-    <Color x:Key="Surface1">#FF161616</Color>
+    <Color x:Key="Surface0">#FF101010</Color>
+    <Color x:Key="Surface1">#FF141414</Color>
     <Color x:Key="Surface2">#FF1A1A1A</Color>
-    <Color x:Key="Surface3">#FF1E1E1E</Color>
+    <Color x:Key="Surface3">#FF1F1F1F</Color>
     <Color x:Key="Surface4">#FF242424</Color>
     <Color x:Key="SurfaceHover">#FF2A2A2A</Color>
     <Color x:Key="SurfacePressed">#FF303030</Color>
 
     <!-- Border Scale -->
-    <Color x:Key="BorderSubtle">#1AFFFFFF</Color>
-    <Color x:Key="BorderMedium">#33FFFFFF</Color>
-    <Color x:Key="BorderStrong">#4DFFFFFF</Color>
-    <Color x:Key="BorderFocus">#FFC41E3A</Color>
+    <Color x:Key="BorderSubtle">#14FFFFFF</Color>
+    <Color x:Key="BorderMedium">#29FFFFFF</Color>
+    <Color x:Key="BorderStrong">#3DFFFFFF</Color>
+    <Color x:Key="BorderFocus">#FFAA2024</Color>
 
     <!-- Charcoal Scale -->
     <Color x:Key="Charcoal900">#FF1A1A1A</Color>
@@ -403,17 +592,17 @@
     <Color x:Key="Charcoal500">#FF484848</Color>
     <Color x:Key="Charcoal400">#FF5C5C5C</Color>
 
-    <!-- Silver / Grey Scale -->
+    <!-- Silver / Grey Scale (text ramp pigments) -->
     <Color x:Key="Silver700">#FF6B6B6B</Color>
-    <Color x:Key="Silver600">#FF808080</Color>
+    <Color x:Key="Silver600">#FF888888</Color>
     <Color x:Key="Silver500">#FF999999</Color>
-    <Color x:Key="Silver400">#FFB0B0B0</Color>
-    <Color x:Key="Silver300">#FFC0C0C0</Color>
+    <Color x:Key="Silver400">#FFB3B3B3</Color>
+    <Color x:Key="Silver300">#FFD1D1D1</Color>
 
-    <!-- Light Grey Scale -->
-    <Color x:Key="LightGrey200">#FFD4D4D4</Color>
-    <Color x:Key="LightGrey100">#FFE0E0E0</Color>
-    <Color x:Key="LightGrey50">#FFECECEC</Color>
+    <!-- Light Grey Scale (Day Shift silver pigments) -->
+    <Color x:Key="LightGrey200">#FFD5D5D1</Color>
+    <Color x:Key="LightGrey100">#FFE0E0DC</Color>
+    <Color x:Key="LightGrey50">#FFEAEAE7</Color>
 
     <!-- White Scale -->
     <Color x:Key="White95">#F2FFFFFF</Color>
@@ -429,60 +618,82 @@
     <Color x:Key="White05">#0DFFFFFF</Color>
     <Color x:Key="PureWhite">#FFFFFFFF</Color>
 
-    <!-- Red / Accent Scale (brand colors — identical across all three themes) -->
-    <Color x:Key="Red950">#FF3D0A12</Color>
-    <Color x:Key="Red900">#FF5C1018</Color>
-    <Color x:Key="Red800">#FF7A1520</Color>
-    <Color x:Key="Red700">#FF8B1A2B</Color>
-    <Color x:Key="Red600">#FFA51D33</Color>
-    <Color x:Key="Red500">#FFC41E3A</Color>
-    <Color x:Key="Red400">#FFD4344D</Color>
-    <Color x:Key="Red300">#FFE8546B</Color>
-    <Color x:Key="Red200">#FFF0899A</Color>
-    <Color x:Key="Red100">#FFF5B3BF</Color>
-    <Color x:Key="Red50">#FFFCE8EB</Color>
+    <!-- Red / Accent Scale (ARMED RED ramp - keys preserved, values
+         rebuilt around Strategia #AA2024 per DESIGN.md D1) -->
+    <Color x:Key="Red950">#FF2C0709</Color>
+    <Color x:Key="Red900">#FF430C0E</Color>
+    <Color x:Key="Red800">#FF5E1114</Color>
+    <Color x:Key="Red700">#FF7F171A</Color>
+    <Color x:Key="Red600">#FF941B1F</Color>
+    <Color x:Key="Red500">#FFAA2024</Color>
+    <Color x:Key="Red400">#FFC8333A</Color>
+    <Color x:Key="Red300">#FFE0252B</Color>
+    <Color x:Key="Red200">#FFF08A8E</Color>
+    <Color x:Key="Red100">#FFF7BDBF</Color>
+    <Color x:Key="Red50">#FFFBE7E8</Color>
 
-    <!-- Red Opacity Variants -->
-    <Color x:Key="RedGlow30">#4DC41E3A</Color>
-    <Color x:Key="RedGlow20">#33C41E3A</Color>
-    <Color x:Key="RedGlow15">#26C41E3A</Color>
-    <Color x:Key="RedGlow10">#1AC41E3A</Color>
-    <Color x:Key="RedGlow05">#0DC41E3A</Color>
+    <!-- Red Opacity Variants (armed glow family) -->
+    <Color x:Key="RedGlow30">#4DAA2024</Color>
+    <Color x:Key="RedGlow20">#33AA2024</Color>
+    <Color x:Key="RedGlow15">#26AA2024</Color>
+    <Color x:Key="RedGlow10">#1AAA2024</Color>
+    <Color x:Key="RedGlow05">#0DAA2024</Color>
 
-    <!-- Status Colors (brand-neutral, identical across themes) -->
-    <Color x:Key="StatusSuccess">#FF22C55E</Color>
-    <Color x:Key="StatusWarning">#FFF59E0B</Color>
-    <Color x:Key="StatusError">#FFEF4444</Color>
-    <Color x:Key="StatusInfo">#FF3B82F6</Color>
-    <Color x:Key="StatusOnline">#FF10B981</Color>
-    <Color x:Key="StatusOffline">#FF6B7280</Color>
-    <Color x:Key="StatusSuccessSubtle">#2622C55E</Color>
-    <Color x:Key="StatusWarningSubtle">#26F59E0B</Color>
-    <Color x:Key="StatusErrorSubtle">#26EF4444</Color>
-    <Color x:Key="StatusInfoSubtle">#263B82F6</Color>
+    <!-- Armed accents (machined-cap gradient stops) -->
+    <Color x:Key="Armed">#FFAA2024</Color>
+    <Color x:Key="ArmedLit">#FFE0252B</Color>
+    <Color x:Key="ArmedDeep">#FF7F171A</Color>
+    <Color x:Key="ArmedCapTop">#FFC8333A</Color>
 
-    <!-- Data-Visualization Colors (kept on-palette).
-         GraphTag was violet (#8B5CF6) — replaced with Silver400 so graph
-         tag pills read as neutral metadata, not a third brand color.
-         ChartSeries was orange (#F97316) — replaced with Red500 so series
-         accents share the primary brand red. Keys preserved for back-compat. -->
-    <Color x:Key="GraphTagColor">#FFB0B0B0</Color>
-    <Color x:Key="GraphTagSubtle">#26B0B0B0</Color>
-    <Color x:Key="ChartSeriesColor">#FFC41E3A</Color>
-    <Color x:Key="ChartSeriesSubtle">#26C41E3A</Color>
+    <!-- LED semantics (lamp vocabulary - see the dual-form rule) -->
+    <Color x:Key="LedGo">#FF41E25E</Color>
+    <Color x:Key="LedHold">#FFFFB000</Color>
+    <Color x:Key="LedWarn">#FFFF4438</Color>
+    <Color x:Key="LedNoGo">#FFC8453E</Color>
+    <Color x:Key="LedScope">#FF58C4BC</Color>
+    <Color x:Key="ChromeAccent">#FFE6E6E6</Color>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- Status Colors (legacy keys, re-pointed to LED semantics) -->
+    <Color x:Key="StatusSuccess">#FF41E25E</Color>
+    <Color x:Key="StatusWarning">#FFFFB000</Color>
+    <Color x:Key="StatusError">#FFC8453E</Color>
+    <Color x:Key="StatusInfo">#FF58C4BC</Color>
+    <Color x:Key="StatusOnline">#FF41E25E</Color>
+    <Color x:Key="StatusOffline">#FF5A5A5A</Color>
+    <Color x:Key="StatusSuccessSubtle">#2641E25E</Color>
+    <Color x:Key="StatusWarningSubtle">#26FFB000</Color>
+    <Color x:Key="StatusErrorSubtle">#26C8453E</Color>
+    <Color x:Key="StatusInfoSubtle">#2658C4BC</Color>
+
+    <!-- Data-Visualization Colors (on-palette; keys preserved) -->
+    <Color x:Key="GraphTagColor">#FFB3B3B3</Color>
+    <Color x:Key="GraphTagSubtle">#26B3B3B3</Color>
+    <Color x:Key="ChartSeriesColor">#FFAA2024</Color>
+    <Color x:Key="ChartSeriesSubtle">#26AA2024</Color>
+
+    <!-- ===============================================================
          ELEVATION SHADOW DEFINITIONS (theme-invariant geometry)
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
 
     <x:String x:Key="ShadowSmall">0 1 3 0</x:String>
     <x:String x:Key="ShadowMedium">0 4 12 0</x:String>
     <x:String x:Key="ShadowLarge">0 8 24 0</x:String>
     <x:String x:Key="ShadowXLarge">0 16 48 0</x:String>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          SPACING & SIZING TOKENS (theme-invariant)
-         ═══════════════════════════════════════════════════════════════ -->
+         Console scale (Sp1-Sp7) is canonical for swept screens; the
+         legacy Spacing* tokens remain valid on unswept screens and
+         retire during the sweep. Both are base-4 compatible.
+         =============================================================== -->
+
+    <x:Double x:Key="Sp1">4</x:Double>
+    <x:Double x:Key="Sp2">8</x:Double>
+    <x:Double x:Key="Sp3">12</x:Double>
+    <x:Double x:Key="Sp4">20</x:Double>
+    <x:Double x:Key="Sp5">32</x:Double>
+    <x:Double x:Key="Sp6">52</x:Double>
+    <x:Double x:Key="Sp7">84</x:Double>
 
     <x:Double x:Key="SpacingXXS">2</x:Double>
     <x:Double x:Key="SpacingXS">4</x:Double>
@@ -494,17 +705,21 @@
     <x:Double x:Key="Spacing3XL">48</x:Double>
     <x:Double x:Key="Spacing4XL">64</x:Double>
 
+    <!-- Machined radii (DESIGN.md): plates 2, caps 4, overlays 8,
+         true circles only for RadiusFull. NEVER uniform radius across
+         surface types. Legacy RadiusLG/XL retire to ROverlay during
+         the sweep. -->
+    <CornerRadius x:Key="RCard">2</CornerRadius>
+    <CornerRadius x:Key="RControl">4</CornerRadius>
+    <CornerRadius x:Key="ROverlay">8</CornerRadius>
+    <CornerRadius x:Key="RPill">9999</CornerRadius>
+
     <CornerRadius x:Key="RadiusNone">0</CornerRadius>
     <CornerRadius x:Key="RadiusXS">2</CornerRadius>
     <CornerRadius x:Key="RadiusSM">4</CornerRadius>
     <CornerRadius x:Key="RadiusMD">8</CornerRadius>
     <CornerRadius x:Key="RadiusLG">12</CornerRadius>
     <CornerRadius x:Key="RadiusXL">16</CornerRadius>
-    <!-- Symmetry: shapes are squares / rounded rectangles / perfect circles —
-         never oblong capsules. Use RadiusFull (9999) only when the element
-         is W=H and you genuinely want a perfect circle (avatars, icon
-         buttons). Everything else: pill capsules are visually loud and
-         "AI generated" — keep corners moderate (RadiusSM/MD). -->
     <CornerRadius x:Key="RadiusRound">4</CornerRadius>
     <CornerRadius x:Key="RadiusFull">9999</CornerRadius>
 
@@ -520,14 +735,14 @@
     <Thickness x:Key="PaddingCard">20</Thickness>
     <Thickness x:Key="PaddingPage">32,24,32,24</Thickness>
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         ADAPTIVE BREAKPOINTS  (Tier 3 — adaptive layout)
-         ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
+         ADAPTIVE BREAKPOINTS  (Tier 3 - adaptive layout)
+         ===============================================================
 
          These thresholds drive AdaptiveTrigger.MinWindowWidth across the
          app. WinUI's AdaptiveTrigger requires literal numeric values, not
-         StaticResource references — these tokens are the *single source
-         of truth* for review, code search, and consistency. When a page
+         StaticResource references - these tokens are the single source
+         of truth for review, code search, and consistency. When a page
          adds an AdaptiveTrigger, copy the numeric value from here and
          leave a sibling XAML comment naming the token (e.g. the literal
          text "BreakpointMedium") so the link to this table stays
@@ -535,9 +750,9 @@
 
          Tier     Min width   Use
          Narrow      0         fallback / always matches (base state)
-         Medium    960         one collapse step — sidebar narrows; chat
+         Medium    960         one collapse step - sidebar narrows; chat
                                top-bar labels collapse to icons
-         Wide     1280         full layout — all labels visible, panes at
+         Wide     1280         full layout - all labels visible, panes at
                                their original design width
          XWide    1600         wider gutters, broader cards (future use) -->
 
