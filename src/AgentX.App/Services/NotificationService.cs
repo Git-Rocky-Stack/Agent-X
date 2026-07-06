@@ -39,10 +39,10 @@ public partial class NotificationItem : ObservableObject
 
     public string SeverityColorKey => Severity switch
     {
-        NotificationSeverity.Success => "SuccessBrush",
-        NotificationSeverity.Warning => "WarningBrush",
-        NotificationSeverity.Error => "ErrorBrush",
-        _ => "InfoBrush"
+        NotificationSeverity.Success => "LedGoLampBrush",
+        NotificationSeverity.Warning => "LedHoldLampBrush",
+        NotificationSeverity.Error => "LedNoGoLampBrush",
+        _ => "LedScopeLampBrush"
     };
 }
 

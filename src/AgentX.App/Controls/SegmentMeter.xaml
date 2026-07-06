@@ -1,0 +1,17 @@
+<UserControl
+    x:Class="AgentX.App.Controls.SegmentMeter"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    IsTabStop="False">
+
+    <!--
+      Segment meter (DESIGN.md component vocabulary): a horizontal LED
+      cascade with green / amber / red zones. DATA-BOUND ONLY - never
+      decorative. Unlit segments stay dark in both shifts; lit segments
+      use the shift-invariant lamp tones. Displayed value approaches the
+      bound value with IEC-style ~300ms ballistics (code-behind), which
+      collapse to an instant snap under reduced motion.
+    -->
+
+    <Grid x:Name="SegmentHost" ColumnSpacing="2" Height="8" />
+</UserControl>

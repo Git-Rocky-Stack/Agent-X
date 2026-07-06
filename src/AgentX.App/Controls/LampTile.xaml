@@ -1,0 +1,50 @@
+<UserControl
+    x:Class="AgentX.App.Controls.LampTile"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    IsTabStop="True"
+    UseSystemFocusVisuals="True"
+    FocusVisualPrimaryBrush="{ThemeResource RingBrush}"
+    FocusVisualPrimaryThickness="2"
+    FocusVisualSecondaryThickness="0">
+
+    <!--
+      Lamp tile (DESIGN.md component vocabulary): a dark machined cap
+      carrying a 2-5 letter stencil word in Archivo caps, lit by LED
+      semantics. The cap stays void-dark in BOTH shifts.
+
+      Behavior contract (code-behind):
+        - Strike: state going live ignites at 80ms with bloom, settles
+          to 85% sustained.
+        - Warn blinks at 1Hz until clicked (the master-caution ack
+          ritual); after acknowledge it holds steady until resolved.
+        - Any other click/Enter/Space raises Invoked (lamps teleport).
+        - Reduced motion (UISettings.AnimationsEnabled=false): no strike,
+          no blink; states stay legible by color and word alone.
+    -->
+
+    <Border x:Name="Cap"
+            Background="{ThemeResource LampCapBrush}"
+            BorderBrush="{ThemeResource HairlineBrush}"
+            BorderThickness="1"
+            CornerRadius="{StaticResource RControl}"
+            Height="26"
+            Padding="10,0">
+        <Grid x:Name="LampContent" VerticalAlignment="Center">
+            <Border x:Name="Tint"
+                    Margin="-6,-4"
+                    CornerRadius="3"
+                    Opacity="0"
+                    IsHitTestVisible="False" />
+            <Grid x:Name="GlowHost" IsHitTestVisible="False" />
+            <TextBlock x:Name="CodeText"
+                       FontFamily="{StaticResource FontDisplayBold}"
+                       FontSize="10"
+                       FontWeight="Bold"
+                       CharacterSpacing="100"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Center"
+                       Foreground="{ThemeResource TextDisabledBrush}" />
+        </Grid>
+    </Border>
+</UserControl>
