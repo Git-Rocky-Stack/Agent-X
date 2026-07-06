@@ -14,7 +14,6 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
     private readonly IModelManager _modelManager;
 
     // ── Page Properties ────────────────────────────────────────
-    [ObservableProperty] private string _pageTitle = "Hardware Advisor";
     [ObservableProperty] private bool _isDetecting = true;
 
     // ── GPU ────────────────────────────────────────────────────

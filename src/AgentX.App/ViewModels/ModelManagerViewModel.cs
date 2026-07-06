@@ -18,7 +18,6 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
     private CancellationTokenSource? _downloadCts;
 
     // ── Page Properties ────────────────────────────────────────
-    [ObservableProperty] private string _pageTitle = "Model Manager";
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _isDownloading;
     [ObservableProperty] private string _downloadModelName = string.Empty;

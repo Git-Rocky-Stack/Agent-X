@@ -39,7 +39,7 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Spacing="4">
-                    <TextBlock Text="{x:Bind ViewModel.PageTitle, Mode=OneWay}"
+                    <TextBlock x:Uid="HwAdvisor_PageTitle" Text="Hardware Advisor"
                                Style="{StaticResource DisplaySmallStyle}" />
                     <TextBlock x:Uid="HwAdvisor_AnalyzeYourSystemTo" Text="Analyze your system to find the best AI models for your hardware."
                                Style="{StaticResource BodySecondaryStyle}" />

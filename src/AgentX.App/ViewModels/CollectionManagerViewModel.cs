@@ -25,7 +25,6 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
     private readonly IDocumentService _documentService;
 
     // ── Page State ─────────────────────────────────────────────
-    [ObservableProperty] private string _pageTitle = "Collections";
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private string _errorMessage = string.Empty;
     [ObservableProperty] private bool _hasError;

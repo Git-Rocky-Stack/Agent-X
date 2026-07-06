@@ -1686,7 +1686,7 @@
   <data name="WfBuilder_SaveAsDocument2.Content" xml:space="preserve"><value>Save as Document</value></data>
   <data name="WfBuilder_ExportResult2.Content" xml:space="preserve"><value>Export Result</value></data>
   <data name="WfBuilder_OpenVault.Content" xml:space="preserve"><value>Open Vault</value></data>
-  <data name="WfBuilder_StartWithATemplate.Text" xml:space="preserve"><value>Start with a template</value></data>
+  <data name="WfBuilder_StartWithATemplate.Text" xml:space="preserve"><value>START WITH A TEMPLATE</value></data>
   <data name="WfBuilder_WorkflowsHelpYouTurn.Text" xml:space="preserve"><value>Workflows help you turn one block of input into a repeatable multi-step result. Pick a starter template below, then run it as-is or customize it later.</value></data>
   <data name="WfBuilder_SelectTemplate.Content" xml:space="preserve"><value>Select Template</value></data>
   <data name="WfBuilder_BestFor2.Text" xml:space="preserve"><value>Best for: </value></data>
@@ -2073,4 +2073,8 @@
   <data name="Terms_Company.Text" xml:space="preserve"><value>Company</value></data>
   <data name="Terms_AgentXByStrategia.Text" xml:space="preserve"><value>Agent-X by Strategia-X</value></data>
   <data name="Terms_TheseTermsOfService.Text" xml:space="preserve"><value>These Terms of Service were last updated on February 26, 2026.</value></data>
+  <data name="ModelMgr_PageTitle.Text" xml:space="preserve"><value>MODEL MANAGER</value></data>
+  <data name="HwAdvisor_PageTitle.Text" xml:space="preserve"><value>HARDWARE ADVISOR</value></data>
+  <data name="Vault_PageTitle.Text" xml:space="preserve"><value>KNOWLEDGE VAULT</value></data>
+  <data name="WfBuilder_PageTitle.Text" xml:space="preserve"><value>PROMPT WORKFLOWS</value></data>
 </root>

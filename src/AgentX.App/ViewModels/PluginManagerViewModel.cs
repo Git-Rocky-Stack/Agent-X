@@ -16,7 +16,6 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
     private readonly IOperationsDrillInService? _operationsDrillInService;
 
     // -- Page Properties --------------------------------------------------
-    [ObservableProperty] private string _pageTitle = "Plugin Manager";
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private string _statusMessage = "Ready";
     [ObservableProperty] private int _pluginCount;

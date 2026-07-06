@@ -1961,4 +1961,8 @@
   <data name="Terms_Company.Text" xml:space="preserve"><value>会社</value></data>
   <data name="Terms_AgentXByStrategia.Text" xml:space="preserve"><value>Agent-X (Strategia-X 提供)</value></data>
   <data name="Terms_TheseTermsOfService.Text" xml:space="preserve"><value>本利用規約の最終更新日は 2026 年 2 月 26 日です。</value></data>
+  <data name="ModelMgr_PageTitle.Text" xml:space="preserve"><value>モデル マネージャー</value></data>
+  <data name="HwAdvisor_PageTitle.Text" xml:space="preserve"><value>ハードウェア アドバイザー</value></data>
+  <data name="Vault_PageTitle.Text" xml:space="preserve"><value>Knowledge Vault</value></data>
+  <data name="WfBuilder_PageTitle.Text" xml:space="preserve"><value>プロンプト ワークフロー</value></data>
 </root>

@@ -44,7 +44,6 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     private int _documentLoadGeneration;
 
     // ── Page State ─────────────────────────────────────────────
-    [ObservableProperty] private string _pageTitle = "Knowledge Vault";
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _isImporting;
     [ObservableProperty] private int _importProgress;

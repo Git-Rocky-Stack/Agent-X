@@ -60,7 +60,7 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Spacing="4">
-                    <TextBlock Text="{x:Bind ViewModel.PageTitle, Mode=OneWay}"
+                    <TextBlock x:Uid="Vault_PageTitle" Text="Knowledge Vault"
                                Style="{StaticResource DisplaySmallStyle}" />
                     <TextBlock x:Uid="Vault_ImportOrganizeAndIndex" Text="Import, organize, and index your documents for AI-powered search."
                                Style="{StaticResource BodySecondaryStyle}" />

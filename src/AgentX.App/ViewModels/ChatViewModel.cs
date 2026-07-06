@@ -37,7 +37,6 @@ namespace AgentX.App.ViewModels;
 public partial class ChatViewModel : ObservableObject, IDisposable
 {
     // ── Page State ─────────────────────────────────────────────
-    [ObservableProperty] private string _pageTitle = "AI Chat";
     [ObservableProperty] private bool _isConnected;
     [ObservableProperty] private bool _isGenerating;
     [ObservableProperty] private string _activeModelName = "No model selected";

@@ -1961,4 +1961,8 @@
   <data name="Terms_Company.Text" xml:space="preserve"><value>公司</value></data>
   <data name="Terms_AgentXByStrategia.Text" xml:space="preserve"><value>Agent-X(由 Strategia-X 出品)</value></data>
   <data name="Terms_TheseTermsOfService.Text" xml:space="preserve"><value>本服务条款最后更新于 2026 年 2 月 26 日。</value></data>
+  <data name="ModelMgr_PageTitle.Text" xml:space="preserve"><value>模型管理器</value></data>
+  <data name="HwAdvisor_PageTitle.Text" xml:space="preserve"><value>硬件顾问</value></data>
+  <data name="Vault_PageTitle.Text" xml:space="preserve"><value>Knowledge Vault</value></data>
+  <data name="WfBuilder_PageTitle.Text" xml:space="preserve"><value>提示词工作流</value></data>
 </root>

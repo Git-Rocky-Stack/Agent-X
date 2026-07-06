@@ -69,7 +69,6 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     private readonly IAppPathService _appPaths;
 
     // ── Page State ───────────────────────────────────────────
-    [ObservableProperty] private string _pageTitle = "Prompt Workflows";
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _isEditing;
     [ObservableProperty] private bool _isRunning;

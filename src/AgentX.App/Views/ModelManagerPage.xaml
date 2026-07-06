@@ -38,7 +38,7 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Spacing="4">
-                    <TextBlock Text="{x:Bind ViewModel.PageTitle, Mode=OneWay}"
+                    <TextBlock x:Uid="ModelMgr_PageTitle" Text="Model Manager"
                                Style="{StaticResource DisplaySmallStyle}" />
                     <TextBlock x:Uid="ModelMgr_ManageYourLocalAi" Text="Manage your local AI models powered by Ollama."
                                Style="{StaticResource BodySecondaryStyle}" />

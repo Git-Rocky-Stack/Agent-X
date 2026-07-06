@@ -1574,7 +1574,7 @@
   <data name="WfBuilder_SaveAsDocument2.Content" xml:space="preserve"><value>Guardar como documento</value></data>
   <data name="WfBuilder_ExportResult2.Content" xml:space="preserve"><value>Exportar resultado</value></data>
   <data name="WfBuilder_OpenVault.Content" xml:space="preserve"><value>Abrir bóveda</value></data>
-  <data name="WfBuilder_StartWithATemplate.Text" xml:space="preserve"><value>Empiece con una plantilla</value></data>
+  <data name="WfBuilder_StartWithATemplate.Text" xml:space="preserve"><value>EMPIECE CON UNA PLANTILLA</value></data>
   <data name="WfBuilder_WorkflowsHelpYouTurn.Text" xml:space="preserve"><value>Los flujos de trabajo convierten un bloque de entrada en un resultado repetible de varios pasos. Elija una plantilla inicial abajo y ejecútela tal cual o personalícela después.</value></data>
   <data name="WfBuilder_SelectTemplate.Content" xml:space="preserve"><value>Seleccionar plantilla</value></data>
   <data name="WfBuilder_BestFor2.Text" xml:space="preserve"><value>Ideal para: </value></data>
@@ -1961,4 +1961,8 @@
   <data name="Terms_Company.Text" xml:space="preserve"><value>Empresa</value></data>
   <data name="Terms_AgentXByStrategia.Text" xml:space="preserve"><value>Agent-X de Strategia-X</value></data>
   <data name="Terms_TheseTermsOfService.Text" xml:space="preserve"><value>Estos Términos del servicio se actualizaron por última vez el 26 de febrero de 2026.</value></data>
+  <data name="ModelMgr_PageTitle.Text" xml:space="preserve"><value>GESTOR DE MODELOS</value></data>
+  <data name="HwAdvisor_PageTitle.Text" xml:space="preserve"><value>ASESOR DE HARDWARE</value></data>
+  <data name="Vault_PageTitle.Text" xml:space="preserve"><value>BÓVEDA DE CONOCIMIENTO</value></data>
+  <data name="WfBuilder_PageTitle.Text" xml:space="preserve"><value>WORKFLOWS DE PROMPTS</value></data>
 </root>

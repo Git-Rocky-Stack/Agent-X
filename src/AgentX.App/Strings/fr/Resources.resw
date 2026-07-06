@@ -1574,7 +1574,7 @@
   <data name="WfBuilder_SaveAsDocument2.Content" xml:space="preserve"><value>Enregistrer comme document</value></data>
   <data name="WfBuilder_ExportResult2.Content" xml:space="preserve"><value>Exporter le résultat</value></data>
   <data name="WfBuilder_OpenVault.Content" xml:space="preserve"><value>Ouvrir le coffre-fort</value></data>
-  <data name="WfBuilder_StartWithATemplate.Text" xml:space="preserve"><value>Commencez avec un modèle</value></data>
+  <data name="WfBuilder_StartWithATemplate.Text" xml:space="preserve"><value>COMMENCEZ AVEC UN MODÈLE</value></data>
   <data name="WfBuilder_WorkflowsHelpYouTurn.Text" xml:space="preserve"><value>Les flux de travail transforment un bloc d'entrée en un résultat reproductible en plusieurs étapes. Choisissez un modèle de départ ci-dessous, puis exécutez-le tel quel ou personnalisez-le plus tard.</value></data>
   <data name="WfBuilder_SelectTemplate.Content" xml:space="preserve"><value>Sélectionner le modèle</value></data>
   <data name="WfBuilder_BestFor2.Text" xml:space="preserve"><value>Idéal pour : </value></data>
@@ -1961,4 +1961,8 @@
   <data name="Terms_Company.Text" xml:space="preserve"><value>Société</value></data>
   <data name="Terms_AgentXByStrategia.Text" xml:space="preserve"><value>Agent-X par Strategia-X</value></data>
   <data name="Terms_TheseTermsOfService.Text" xml:space="preserve"><value>Ces Conditions d'utilisation ont été mises à jour pour la dernière fois le 26 février 2026.</value></data>
+  <data name="ModelMgr_PageTitle.Text" xml:space="preserve"><value>GESTIONNAIRE DE MODÈLES</value></data>
+  <data name="HwAdvisor_PageTitle.Text" xml:space="preserve"><value>CONSEILLER MATÉRIEL</value></data>
+  <data name="Vault_PageTitle.Text" xml:space="preserve"><value>COFFRE-FORT DE CONNAISSANCES</value></data>
+  <data name="WfBuilder_PageTitle.Text" xml:space="preserve"><value>WORKFLOWS DE PROMPTS</value></data>
 </root>

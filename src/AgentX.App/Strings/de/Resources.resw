@@ -1574,7 +1574,7 @@
   <data name="WfBuilder_SaveAsDocument2.Content" xml:space="preserve"><value>Als Dokument speichern</value></data>
   <data name="WfBuilder_ExportResult2.Content" xml:space="preserve"><value>Ergebnis exportieren</value></data>
   <data name="WfBuilder_OpenVault.Content" xml:space="preserve"><value>Tresor öffnen</value></data>
-  <data name="WfBuilder_StartWithATemplate.Text" xml:space="preserve"><value>Mit einer Vorlage starten</value></data>
+  <data name="WfBuilder_StartWithATemplate.Text" xml:space="preserve"><value>MIT EINER VORLAGE STARTEN</value></data>
   <data name="WfBuilder_WorkflowsHelpYouTurn.Text" xml:space="preserve"><value>Workflows verwandeln eine Eingabe in ein wiederholbares, mehrstufiges Ergebnis. Wählen Sie unten eine Startvorlage und führen Sie sie direkt aus oder passen Sie sie später an.</value></data>
   <data name="WfBuilder_SelectTemplate.Content" xml:space="preserve"><value>Vorlage auswählen</value></data>
   <data name="WfBuilder_BestFor2.Text" xml:space="preserve"><value>Ideal für: </value></data>
@@ -1961,4 +1961,8 @@
   <data name="Terms_Company.Text" xml:space="preserve"><value>Unternehmen</value></data>
   <data name="Terms_AgentXByStrategia.Text" xml:space="preserve"><value>Agent-X von Strategia-X</value></data>
   <data name="Terms_TheseTermsOfService.Text" xml:space="preserve"><value>Diese Nutzungsbedingungen wurden zuletzt am 26. Februar 2026 aktualisiert.</value></data>
+  <data name="ModelMgr_PageTitle.Text" xml:space="preserve"><value>MODELLVERWALTUNG</value></data>
+  <data name="HwAdvisor_PageTitle.Text" xml:space="preserve"><value>HARDWARE-BERATER</value></data>
+  <data name="Vault_PageTitle.Text" xml:space="preserve"><value>WISSENS-TRESOR</value></data>
+  <data name="WfBuilder_PageTitle.Text" xml:space="preserve"><value>PROMPT-WORKFLOWS</value></data>
 </root>

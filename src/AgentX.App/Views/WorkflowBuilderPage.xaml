@@ -207,7 +207,7 @@
 
                     <!-- ═══ PAGE HEADER ═══ -->
                     <StackPanel Grid.Row="0" Spacing="4">
-                        <TextBlock Text="{x:Bind ViewModel.PageTitle, Mode=OneWay}"
+                        <TextBlock x:Uid="WfBuilder_PageTitle" Text="Prompt Workflows"
                                    Style="{StaticResource DisplaySmallStyle}" />
                         <TextBlock x:Uid="WfBuilder_BuildMultiStepAi" Text="Build multi-step AI pipelines. Each step's output feeds the next."
                                    Style="{StaticResource BodySecondaryStyle}" />
