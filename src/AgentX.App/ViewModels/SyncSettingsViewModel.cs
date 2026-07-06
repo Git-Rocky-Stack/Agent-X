@@ -98,6 +98,14 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
     /// <summary>Human-readable representation of the current SyncState, e.g. "Idle".</summary>
     [ObservableProperty] private string _syncState = "Idle";
 
+    /// <summary>
+    /// Typed mirror of <see cref="SyncState"/> so the view can pick LED tones
+    /// from the enum instead of keying off a display string.
+    /// </summary>
+    [ObservableProperty]
+    private AgentX.Core.Services.Sync.Models.SyncState _currentSyncState =
+        AgentX.Core.Services.Sync.Models.SyncState.Idle;
+
     /// <summary>Relative timestamp of the last successful sync pass, e.g. "3m ago".</summary>
     [ObservableProperty] private string _lastSyncAt = "Never";
 
@@ -336,6 +344,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         {
             var status = _syncService.Status;
 
+            CurrentSyncState = status.SyncState;
             SyncState = status.SyncState switch
             {
                 AgentX.Core.Services.Sync.Models.SyncState.Idle => "Idle",
@@ -490,6 +499,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         ClearError();
         ClearStatus();
         SyncState = "Syncing";
+        CurrentSyncState = AgentX.Core.Services.Sync.Models.SyncState.Syncing;
         NotifyComputedProperties();
 
         using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
@@ -524,12 +534,14 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         catch (OperationCanceledException)
         {
             SyncState = "Error";
+            CurrentSyncState = AgentX.Core.Services.Sync.Models.SyncState.Error;
             SetError("Sync timed out after 10 minutes. Please check the sync folder connectivity and try again.");
             Log.Warning("Manual sync timed out");
         }
         catch (Exception ex)
         {
             SyncState = "Error";
+            CurrentSyncState = AgentX.Core.Services.Sync.Models.SyncState.Error;
             SetError($"Sync failed: {ex.Message}");
             Log.Error(ex, "Manual sync failed");
         }

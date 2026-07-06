@@ -294,7 +294,7 @@
 
                                         <!-- AI Preview -->
                                         <Border Visibility="{x:Bind HasPreview, Converter={StaticResource BoolToVis}}"
-                                                Background="{ThemeResource InputBackgroundBrush}"
+                                                Background="{ThemeResource CardBrush}"
                                                 CornerRadius="{StaticResource RadiusSM}"
                                                 Padding="12,8"
                                                 BorderBrush="{ThemeResource BorderSubtleBrush}"

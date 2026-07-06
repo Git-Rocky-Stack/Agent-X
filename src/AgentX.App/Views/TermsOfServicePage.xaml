@@ -2,6 +2,7 @@
     x:Class="AgentX.App.Views.TermsOfServicePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:AgentX.App.Controls"
     Background="Transparent"
     NavigationCacheMode="Enabled">
 
@@ -105,7 +106,7 @@
             <!-- ══════════════════════════════════════════════════════════
                  ROW 1: ACCEPTANCE OF TERMS
                  ══════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="1" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="1" Kicker="MOD - TOS - 01">
                 <StackPanel Spacing="12">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE8FB;"
@@ -118,13 +119,13 @@
                     <TextBlock Style="{StaticResource BodyStyle}"
                                x:Uid="Terms_ByDownloadingInstallingOr" Text="By downloading, installing, or using Agent-X, you acknowledge that you have read, understood, and agree to be bound by these Terms. If you do not agree to these Terms, you must not use Agent-X. Your continued use of the application constitutes your ongoing acceptance of any updated Terms." />
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ══════════════════════════════════════════════════════════
                  ROW 2: DESCRIPTION OF SERVICE
                  ══════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="2" Kicker="MOD - TOS - 02">
                 <StackPanel Spacing="12">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE946;"
@@ -193,13 +194,13 @@
                                Margin="0,4,0,0"
                                x:Uid="Terms_AllProcessingOccursLocally" Text="All processing occurs locally on your device. Agent-X does not transmit your data to external servers for AI inference." />
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ══════════════════════════════════════════════════════════
                  ROW 3: LICENSE GRANT
                  ══════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="3" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="3" Kicker="MOD - TOS - 03">
                 <StackPanel Spacing="12">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE8D7;"
@@ -255,13 +256,13 @@
                                Margin="0,4,0,0"
                                x:Uid="Terms_TheOnlyConditionIs" Text="The only condition is that the MIT copyright notice and permission notice be included in all copies or substantial portions of the software." />
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ══════════════════════════════════════════════════════════
                  ROW 4: USER RESPONSIBILITIES
                  ══════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="4" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="4" Kicker="MOD - TOS - 04">
                 <StackPanel Spacing="12">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE77B;"
@@ -325,13 +326,13 @@
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ══════════════════════════════════════════════════════════
                  ROW 5: INTELLECTUAL PROPERTY
                  ══════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="5" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="5" Kicker="MOD - TOS - 05">
                 <StackPanel Spacing="12">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE82D;"
@@ -346,13 +347,13 @@
                     <TextBlock Style="{StaticResource BodyStyle}"
                                x:Uid="Terms_YourDocumentsAndData" Text="Your documents and data remain your property at all times. We claim no ownership of content you process through Agent-X. You retain all rights to your intellectual property." />
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ══════════════════════════════════════════════════════════
                  ROW 6: THIRD-PARTY SOFTWARE
                  ══════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="6" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="6" Kicker="MOD - TOS - 06">
                 <StackPanel Spacing="12">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE71B;"
@@ -367,13 +368,13 @@
                     <TextBlock Style="{StaticResource BodyStyle}"
                                x:Uid="Terms_AgentXAlsoUses" Text="Agent-X also uses various open-source libraries, each governed by their respective licenses. These licenses are included in the application distribution. Your use of Agent-X constitutes acceptance of these third-party license terms." />
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ══════════════════════════════════════════════════════════
                  ROW 7: PRIVACY
                  ══════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="7" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="7" Kicker="MOD - TOS - 07">
                 <StackPanel Spacing="12">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE72E;"
@@ -388,7 +389,7 @@
                     <TextBlock Style="{StaticResource BodyStyle}"
                                x:Uid="Terms_ByUsingAgentX" Text="By using Agent-X, you acknowledge and agree to our data practices as described in the Privacy Policy. The Privacy Policy is incorporated into these Terms by reference." />
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ══════════════════════════════════════════════════════════
@@ -396,7 +397,7 @@
                  ══════════════════════════════════════════════════════════ -->
             <Border Grid.Row="8"
                     Background="{ThemeResource CardElevatedBrush}"
-                    CornerRadius="{StaticResource RadiusLG}"
+                    CornerRadius="{StaticResource ROverlay}"
                     Padding="{StaticResource PaddingCard}"
                     BorderThickness="1"
                     BorderBrush="{ThemeResource WarningBrush}">
@@ -412,7 +413,7 @@
                     </StackPanel>
 
                     <!-- Uppercase legal disclaimer block -->
-                    <Border Background="{ThemeResource InputBackgroundBrush}"
+                    <Border Background="{ThemeResource CardBrush}"
                             CornerRadius="{StaticResource RadiusMD}"
                             Padding="16"
                             BorderBrush="{ThemeResource BorderSubtleBrush}"
@@ -469,7 +470,7 @@
                  ══════════════════════════════════════════════════════════ -->
             <Border Grid.Row="9"
                     Background="{ThemeResource CardElevatedBrush}"
-                    CornerRadius="{StaticResource RadiusLG}"
+                    CornerRadius="{StaticResource ROverlay}"
                     Padding="{StaticResource PaddingCard}"
                     BorderThickness="1"
                     BorderBrush="{ThemeResource WarningBrush}">
@@ -485,7 +486,7 @@
                     </StackPanel>
 
                     <!-- Uppercase legal disclaimer block -->
-                    <Border Background="{ThemeResource InputBackgroundBrush}"
+                    <Border Background="{ThemeResource CardBrush}"
                             CornerRadius="{StaticResource RadiusMD}"
                             Padding="16"
                             BorderBrush="{ThemeResource BorderSubtleBrush}"
@@ -509,7 +510,7 @@
             <!-- ══════════════════════════════════════════════════════════
                  ROW 10: AI-GENERATED CONTENT DISCLAIMER
                  ══════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="10" Style="{StaticResource CardAccentStyle}">
+            <controls:Faceplate Grid.Row="10" Kicker="MOD - TOS - 08">
                 <StackPanel Spacing="12">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE99A;"
@@ -557,13 +558,13 @@
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ══════════════════════════════════════════════════════════
                  ROW 11: INDEMNIFICATION
                  ══════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="11" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="11" Kicker="MOD - TOS - 09">
                 <StackPanel Spacing="12">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE83D;"
@@ -611,13 +612,13 @@
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ══════════════════════════════════════════════════════════
                  ROW 12: TERMINATION
                  ══════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="12" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="12" Kicker="MOD - TOS - 10">
                 <StackPanel Spacing="12">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE7E8;"
@@ -634,13 +635,13 @@
                     <TextBlock Style="{StaticResource BodyStyle}"
                                x:Uid="Terms_TheDisclaimerOfWarranties" Text="The Disclaimer of Warranties and Limitation of Liability sections reflect the standard MIT 'AS IS' terms and continue to apply for as long as you use Agent-X." />
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ══════════════════════════════════════════════════════════
                  ROW 13: MODIFICATIONS TO TERMS
                  ══════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="13" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="13" Kicker="MOD - TOS - 11">
                 <StackPanel Spacing="12">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE70F;"
@@ -655,13 +656,13 @@
                     <TextBlock Style="{StaticResource BodyStyle}"
                                x:Uid="Terms_YourContinuedUseOf" Text="Your continued use of Agent-X after any such modifications constitutes your acceptance of the revised Terms. If you do not agree to the modified Terms, you must discontinue use of the application." />
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ══════════════════════════════════════════════════════════
                  ROW 14: GOVERNING LAW
                  ══════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="14" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="14" Kicker="MOD - TOS - 12">
                 <StackPanel Spacing="12">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE909;"
@@ -676,13 +677,13 @@
                     <TextBlock Style="{StaticResource BodyStyle}"
                                x:Uid="Terms_AnyDisputesArisingOut" Text="Any disputes arising out of or relating to these Terms or your use of Agent-X shall be resolved exclusively in the state or federal courts located in California. You consent to the personal jurisdiction of such courts and waive any objection to venue." />
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ══════════════════════════════════════════════════════════
                  ROW 15: SEVERABILITY
                  ══════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="15" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="15" Kicker="MOD - TOS - 13">
                 <StackPanel Spacing="12">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE8C8;"
@@ -695,13 +696,13 @@
                     <TextBlock Style="{StaticResource BodyStyle}"
                                x:Uid="Terms_IfAnyProvisionOf" Text="If any provision of these Terms is found to be invalid, illegal, or unenforceable by a court of competent jurisdiction, the remaining provisions of these Terms shall remain in full force and effect. The invalid provision shall be modified to the minimum extent necessary to make it valid and enforceable while preserving the original intent." />
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ══════════════════════════════════════════════════════════
                  ROW 16: ENTIRE AGREEMENT
                  ══════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="16" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="16" Kicker="MOD - TOS - 14">
                 <StackPanel Spacing="12">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE8A5;"
@@ -714,13 +715,13 @@
                     <TextBlock Style="{StaticResource BodyStyle}"
                                x:Uid="Terms_TheseTermsTogetherWith" Text="These Terms, together with the Privacy Policy and any additional terms referenced herein, constitute the entire agreement between you and Strategia-X regarding your use of Agent-X. These Terms supersede all prior agreements, understandings, representations, and warranties, both written and oral, regarding the subject matter." />
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ══════════════════════════════════════════════════════════
                  ROW 17: CONTACT INFORMATION
                  ══════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="17" Style="{StaticResource CardAccentStyle}">
+            <controls:Faceplate Grid.Row="17" Kicker="MOD - TOS - 15">
                 <StackPanel Spacing="16">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <FontIcon Glyph="&#xE715;"
@@ -734,7 +735,7 @@
                                x:Uid="Terms_IfYouHaveAny" Text="If you have any questions, concerns, or requests regarding these Terms of Service, please contact us:" />
 
                     <!-- Contact details card -->
-                    <Border Background="{ThemeResource InputBackgroundBrush}"
+                    <Border Background="{ThemeResource CardBrush}"
                             CornerRadius="{StaticResource RadiusMD}"
                             Padding="20"
                             BorderBrush="{ThemeResource BorderSubtleBrush}"
@@ -770,7 +771,7 @@
                         </StackPanel>
                     </Border>
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ══════════════════════════════════════════════════════════

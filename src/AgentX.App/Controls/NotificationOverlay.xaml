@@ -13,11 +13,13 @@
             <StackLayout Spacing="8" />
         </ItemsRepeater.Layout>
         <ItemsRepeater.ItemTemplate>
+            <!-- Annunciator alert row (DESIGN.md): a dark module in both
+                 shifts with an LED dot carrying the severity tone -->
             <DataTemplate x:DataType="services:NotificationItem">
-                <Border Background="{ThemeResource CardHighBrush}"
-                        BorderBrush="{ThemeResource BorderMediumBrush}"
+                <Border Background="{ThemeResource WellBrush}"
+                        BorderBrush="{ThemeResource HairlineBrush}"
                         BorderThickness="1"
-                        CornerRadius="10"
+                        CornerRadius="{StaticResource RControl}"
                         Padding="14,10,14,10"
                         MinWidth="300"
                         MaxWidth="420"
@@ -30,25 +32,25 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <!-- Severity icon -->
-                        <FontIcon Glyph="{x:Bind GlyphIcon}"
-                                  Foreground="{x:Bind SeverityBrush}"
-                                  FontSize="16"
-                                  VerticalAlignment="Top"
-                                  Margin="0,2,0,0" />
+                        <!-- Severity LED dot -->
+                        <Ellipse Width="8" Height="8"
+                                 Fill="{x:Bind SeverityBrush}"
+                                 VerticalAlignment="Top"
+                                 Margin="0,6,0,0" />
 
                         <!-- Text content -->
                         <StackPanel Grid.Column="1" Spacing="2">
                             <TextBlock Text="{x:Bind Title}"
                                        Style="{StaticResource BodyStyle}"
                                        FontWeight="SemiBold"
+                                       Foreground="{ThemeResource WellTextBrush}"
                                        TextTrimming="CharacterEllipsis"
                                        MaxLines="1" />
                             <TextBlock Text="{x:Bind Message}"
                                        Style="{StaticResource CaptionStyle}"
+                                       Foreground="{ThemeResource WellTextSecondaryBrush}"
                                        TextWrapping="Wrap"
-                                       MaxLines="3"
-                                       Opacity="0.8" />
+                                       MaxLines="3" />
                         </StackPanel>
 
                         <!-- Dismiss button -->
@@ -59,7 +61,7 @@
                                 ToolTipService.ToolTip="Dismiss"
                                 VerticalAlignment="Top">
                             <FontIcon Glyph="&#xE711;" FontSize="10"
-                                      Foreground="{ThemeResource TextTertiaryBrush}" />
+                                      Foreground="{ThemeResource WellTextSecondaryBrush}" />
                         </Button>
                     </Grid>
                 </Border>

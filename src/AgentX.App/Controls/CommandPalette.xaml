@@ -28,9 +28,9 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Top"
                 Margin="0,80,0,0"
-                Background="{ThemeResource CardBrush}"
-                CornerRadius="{StaticResource RadiusXL}"
-                BorderBrush="{ThemeResource BorderSubtleBrush}"
+                Background="{ThemeResource FaceplateBrush}"
+                CornerRadius="{StaticResource ROverlay}"
+                BorderBrush="{ThemeResource FaceplateBorderBrush}"
                 BorderThickness="1"
                 Opacity="0"
                 RenderTransformOrigin="0.5,0">
@@ -58,10 +58,11 @@
                                  Height="48"
                                  FontFamily="{StaticResource FontPrimary}"
                                  FontSize="16"
-                                 Foreground="{ThemeResource TextPrimaryBrush}"
-                                 Background="{ThemeResource BackgroundSecondaryBrush}"
-                                 BorderThickness="0"
-                                 CornerRadius="{StaticResource RadiusMD}"
+                                 Foreground="{ThemeResource WellTextBrush}"
+                                 Background="{ThemeResource WellBrush}"
+                                 BorderThickness="1"
+                                 BorderBrush="{ThemeResource HairlineBrush}"
+                                 CornerRadius="{StaticResource RadiusXS}"
                                  Padding="16,12,16,12"
                                  PlaceholderForeground="{ThemeResource InputPlaceholderBrush}"
                                  SelectionHighlightColor="{ThemeResource AccentPrimaryBrush}"
@@ -69,15 +70,18 @@
                                  KeyDown="SearchInput_KeyDown" />
 
                         <Border Grid.Column="1"
-                                Background="{ThemeResource CardElevatedBrush}"
-                                CornerRadius="{StaticResource RadiusSM}"
+                                Background="{ThemeResource VoidBrush}"
+                                BorderBrush="{ThemeResource HairlineBrush}"
+                                BorderThickness="1"
+                                CornerRadius="{StaticResource RadiusXS}"
                                 Padding="8,6"
                                 VerticalAlignment="Center"
                                 Margin="8,0,0,0">
                             <TextBlock Text="ESC"
-                                       FontFamily="{StaticResource FontMono}"
-                                       FontSize="11"
-                                       Foreground="{ThemeResource TextTertiaryBrush}"
+                                       FontFamily="{StaticResource FontTelemetry}"
+                                       FontSize="10"
+                                       Foreground="{ThemeResource WellTextBrush}"
+                                       Opacity="0.5"
                                        VerticalAlignment="Center" />
                         </Border>
                     </Grid>
@@ -102,21 +106,24 @@
                     <!-- ═══════════════════════════════════════
                          FOOTER HINTS
                          ═══════════════════════════════════════ -->
-                    <Border Background="{ThemeResource BackgroundSecondaryBrush}"
-                            CornerRadius="0,0,16,16"
+                    <Border Background="{ThemeResource StripeBrush}"
+                            CornerRadius="0,0,8,8"
                             Padding="16,10">
                         <StackPanel Orientation="Horizontal"
                                     HorizontalAlignment="Center"
                                     Spacing="20">
 
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <Border Background="{ThemeResource CardElevatedBrush}"
-                                        CornerRadius="{StaticResource RadiusSM}"
+                                <Border Background="{ThemeResource VoidBrush}"
+                                        BorderBrush="{ThemeResource HairlineBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="{StaticResource RadiusXS}"
                                         Padding="6,3">
                                     <TextBlock Text="&#x2191;&#x2193;"
-                                               FontFamily="{StaticResource FontMono}"
-                                               FontSize="11"
-                                               Foreground="{ThemeResource TextTertiaryBrush}" />
+                                               FontFamily="{StaticResource FontTelemetry}"
+                                               FontSize="10"
+                                               Foreground="{ThemeResource WellTextBrush}"
+                                               Opacity="0.5" />
                                 </Border>
                                 <TextBlock Text="Navigate"
                                            FontFamily="{StaticResource FontPrimary}"
@@ -126,13 +133,16 @@
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <Border Background="{ThemeResource CardElevatedBrush}"
-                                        CornerRadius="{StaticResource RadiusSM}"
+                                <Border Background="{ThemeResource VoidBrush}"
+                                        BorderBrush="{ThemeResource HairlineBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="{StaticResource RadiusXS}"
                                         Padding="6,3">
                                     <TextBlock Text="&#x21B5;"
-                                               FontFamily="{StaticResource FontMono}"
-                                               FontSize="11"
-                                               Foreground="{ThemeResource TextTertiaryBrush}" />
+                                               FontFamily="{StaticResource FontTelemetry}"
+                                               FontSize="10"
+                                               Foreground="{ThemeResource WellTextBrush}"
+                                               Opacity="0.5" />
                                 </Border>
                                 <TextBlock Text="Open"
                                            FontFamily="{StaticResource FontPrimary}"
@@ -142,13 +152,16 @@
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <Border Background="{ThemeResource CardElevatedBrush}"
-                                        CornerRadius="{StaticResource RadiusSM}"
+                                <Border Background="{ThemeResource VoidBrush}"
+                                        BorderBrush="{ThemeResource HairlineBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="{StaticResource RadiusXS}"
                                         Padding="6,3">
                                     <TextBlock Text="Esc"
-                                               FontFamily="{StaticResource FontMono}"
-                                               FontSize="11"
-                                               Foreground="{ThemeResource TextTertiaryBrush}" />
+                                               FontFamily="{StaticResource FontTelemetry}"
+                                               FontSize="10"
+                                               Foreground="{ThemeResource WellTextBrush}"
+                                               Opacity="0.5" />
                                 </Border>
                                 <TextBlock Text="Close"
                                            FontFamily="{StaticResource FontPrimary}"

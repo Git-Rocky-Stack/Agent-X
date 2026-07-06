@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:AgentX.App.ViewModels"
     xmlns:converters="using:AgentX.App.Converters"
+    xmlns:controls="using:AgentX.App.Controls"
     Background="Transparent"
     NavigationCacheMode="Enabled">
 
@@ -40,7 +41,7 @@
             <!-- ════════════════════════════════════════════════════════
                  AI PROVIDERS
                  ════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="1" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="1" Kicker="MOD - PROV - 01">
                 <StackPanel Spacing="20">
                     <TextBlock x:Uid="Settings_AiProviders" Text="AI Providers"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -141,7 +142,7 @@
                                        Style="{StaticResource LabelStyle}" />
                             <PasswordBox Password="{x:Bind ViewModel.OpenAiApiKey, Mode=TwoWay}"
                                          PlaceholderText="sk-..."
-                                         CornerRadius="{StaticResource RadiusMD}"
+                                         CornerRadius="{StaticResource RadiusXS}"
                                          MinHeight="40" />
                         </StackPanel>
 
@@ -200,7 +201,7 @@
                                        Style="{StaticResource LabelStyle}" />
                             <PasswordBox Password="{x:Bind ViewModel.AnthropicApiKey, Mode=TwoWay}"
                                          PlaceholderText="sk-ant-..."
-                                         CornerRadius="{StaticResource RadiusMD}"
+                                         CornerRadius="{StaticResource RadiusXS}"
                                          MinHeight="40" />
                         </StackPanel>
 
@@ -241,12 +242,12 @@
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
             <!-- ════════════════════════════════════════════════════════
                  APPEARANCE
                  ════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="2" Kicker="MOD - SHIFT - 02">
                 <StackPanel Spacing="16">
                     <TextBlock x:Uid="Settings_Appearance" Text="Appearance"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -262,13 +263,13 @@
                                    Style="{StaticResource CaptionStyle}" />
                     </StackPanel>
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
             <!-- ════════════════════════════════════════════════════════
                  COST TRACKING
                  ════════════════════════════════════════════════════════ -->
             <!-- Multi-Model Routing section -->
-            <Border Grid.Row="3" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="3" Kicker="MOD - ROUTE - 03">
                 <StackPanel Spacing="16">
                     <TextBlock x:Uid="Settings_MultiModelRouting" Text="Multi-Model Routing"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -300,9 +301,9 @@
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
-            <Border Grid.Row="4" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="4" Kicker="MOD - COST - 04">
                 <StackPanel Spacing="16">
                     <TextBlock x:Uid="Settings_CostTracking" Text="Cost Tracking"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -321,33 +322,42 @@
                         <StackPanel Spacing="4">
                             <TextBlock x:Uid="Settings_TotalSpend" Text="TOTAL SPEND"
                                        Style="{StaticResource OverlineStyle}" />
-                            <TextBlock Text="{x:Bind ViewModel.TotalCostDisplay, Mode=OneWay}"
-                                       Style="{StaticResource MetricSmallStyle}" />
+                            <Border Style="{StaticResource WellStyle}" Padding="10,2" HorizontalAlignment="Left">
+                                <TextBlock Text="{x:Bind ViewModel.TotalCostDisplay, Mode=OneWay}"
+                                           Style="{StaticResource MetricSmallStyle}"
+                                           Foreground="{ThemeResource LcdAmberBrush}" />
+                            </Border>
                         </StackPanel>
 
                         <!-- Today's Cost -->
                         <StackPanel Grid.Column="1" Spacing="4">
                             <TextBlock x:Uid="Settings_Today" Text="TODAY"
                                        Style="{StaticResource OverlineStyle}" />
-                            <TextBlock Text="{x:Bind ViewModel.TodayCostDisplay, Mode=OneWay}"
-                                       Style="{StaticResource MetricSmallStyle}" />
+                            <Border Style="{StaticResource WellStyle}" Padding="10,2" HorizontalAlignment="Left">
+                                <TextBlock Text="{x:Bind ViewModel.TodayCostDisplay, Mode=OneWay}"
+                                           Style="{StaticResource MetricSmallStyle}"
+                                           Foreground="{ThemeResource LcdAmberBrush}" />
+                            </Border>
                         </StackPanel>
 
                         <!-- Total Tokens -->
                         <StackPanel Grid.Column="2" Spacing="4">
                             <TextBlock x:Uid="Settings_TotalTokens" Text="TOTAL TOKENS"
                                        Style="{StaticResource OverlineStyle}" />
-                            <TextBlock Text="{x:Bind ViewModel.TotalTokensDisplay, Mode=OneWay}"
-                                       Style="{StaticResource MetricSmallStyle}" />
+                            <Border Style="{StaticResource WellStyle}" Padding="10,2" HorizontalAlignment="Left">
+                                <TextBlock Text="{x:Bind ViewModel.TotalTokensDisplay, Mode=OneWay}"
+                                           Style="{StaticResource MetricSmallStyle}"
+                                           Foreground="{ThemeResource LcdPhosphorBrush}" />
+                            </Border>
                         </StackPanel>
                     </Grid>
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
             <!-- ════════════════════════════════════════════════════════
                  INFERENCE PARAMETERS
                  ════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="5" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="5" Kicker="MOD - INFER - 05">
                 <StackPanel Spacing="20">
                     <TextBlock x:Uid="Settings_Inference" Text="Inference"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -357,7 +367,7 @@
                             <TextBlock x:Uid="Settings_Temperature" Text="Temperature"
                                        Style="{StaticResource LabelStyle}" />
                             <TextBlock Text="{x:Bind ViewModel.Temperature, Mode=OneWay}"
-                                       Style="{StaticResource MonoSmallStyle}"
+                                       Style="{StaticResource TelemetryStyle}"
                                        HorizontalAlignment="Right" />
                         </Grid>
                         <Slider Minimum="0" Maximum="2" StepFrequency="0.1"
@@ -385,12 +395,12 @@
                         </StackPanel>
                     </Grid>
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
             <!-- ════════════════════════════════════════════════════════
                  KNOWLEDGE VAULT
                  ════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="6" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="6" Kicker="MOD - VAULT - 06">
                 <StackPanel Spacing="20">
                     <TextBlock x:Uid="Settings_KnowledgeVault" Text="Knowledge Vault"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -427,12 +437,12 @@
                     <ToggleSwitch x:Uid="Settings_AutoIndexWatchFolders" Header="Auto-index watch folders"
                                   IsOn="{x:Bind ViewModel.AutoIndexWatchFolders, Mode=TwoWay}" />
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
             <!-- ════════════════════════════════════════════════════════
                  LICENSE
                  ════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="7" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="7" Kicker="MOD - RSRCH - 07">
                 <StackPanel Spacing="16">
                     <TextBlock x:Uid="Settings_ResearchMode" Text="Research Mode"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -462,7 +472,7 @@
                                        Style="{StaticResource LabelStyle}" />
                             <PasswordBox Password="{x:Bind ViewModel.WebSearchApiKey, Mode=TwoWay}"
                                          x:Uid="Settings_EnterYourSearchApiPh" PlaceholderText="Enter your search API key"
-                                         CornerRadius="{StaticResource RadiusMD}"
+                                         CornerRadius="{StaticResource RadiusXS}"
                                          MinHeight="40" />
                         </StackPanel>
 
@@ -488,12 +498,12 @@
                         </Grid>
                     </StackPanel>
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
             <!-- ════════════════════════════════════════════════════════
                  STORAGE
                  ════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="8" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="8" Kicker="MOD - STOR - 08">
                 <StackPanel Spacing="12">
                     <TextBlock x:Uid="Settings_Storage" Text="Storage"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -505,12 +515,12 @@
                                    IsTextSelectionEnabled="True" />
                     </StackPanel>
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
             <!-- ════════════════════════════════════════════════════════
                  DATABASE ENCRYPTION
                  ════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="9" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="9" Kicker="MOD - CRYPT - 09">
                 <StackPanel Spacing="12">
                     <TextBlock x:Uid="Encryption_SectionHeader"
                                Text="Database Encryption"
@@ -526,12 +536,12 @@
                     <TextBlock Text="{x:Bind ViewModel.EncryptionStatus, Mode=OneWay}"
                                TextWrapping="Wrap" />
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
             <!-- ════════════════════════════════════════════════════════
                  CONNECTIONS (Local REST API / Browser Extension)
                  ════════════════════════════════════════════════════════ -->
-            <Border Grid.Row="10" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="10" Kicker="MOD - API - 10">
                 <StackPanel Spacing="16">
                     <TextBlock x:Uid="Settings_Connections" Text="Connections"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -559,7 +569,7 @@
                             <TextBox Style="{StaticResource InputTextBoxStyle}"
                                      Text="{x:Bind ViewModel.LocalApiToken, Mode=OneWay}"
                                      IsReadOnly="True"
-                                     FontFamily="Consolas"
+                                     FontFamily="{StaticResource FontMono}"
                                      x:Uid="Settings_NoTokenYetClickPh" PlaceholderText="No token yet — click Regenerate" />
 
                             <Button Grid.Column="1"
@@ -577,7 +587,7 @@
                                    TextWrapping="Wrap" />
                     </StackPanel>
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
             <!-- ════════════════════════════════════════════════════════
                  ACTIONS

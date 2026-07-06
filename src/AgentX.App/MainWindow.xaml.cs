@@ -16,6 +16,8 @@ public sealed partial class MainWindow : Window
 {
     private readonly IAppNavigationService _navigationService;
     private readonly IStatusBarService _statusBarService;
+    private readonly IAnnunciatorService _annunciatorService;
+    private readonly AgentX.Core.Services.Privacy.IPrivacyStatusService _privacyStatusService;
     private readonly IOnboardingService _onboardingService;
     private readonly IChromeService _chromeService;
     private readonly SystemTrayService _systemTrayService;
@@ -73,6 +75,8 @@ public sealed partial class MainWindow : Window
         // Resolve services from DI
         _navigationService = App.GetService<IAppNavigationService>();
         _statusBarService = App.GetService<IStatusBarService>();
+        _annunciatorService = App.GetService<IAnnunciatorService>();
+        _privacyStatusService = App.GetService<AgentX.Core.Services.Privacy.IPrivacyStatusService>();
         _onboardingService = App.GetService<IOnboardingService>();
         _chromeService = App.GetService<IChromeService>();
         _systemTrayService = App.GetService<SystemTrayService>();

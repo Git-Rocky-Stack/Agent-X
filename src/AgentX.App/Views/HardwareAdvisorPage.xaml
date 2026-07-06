@@ -2,6 +2,7 @@
     x:Class="AgentX.App.Views.HardwareAdvisorPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:AgentX.App.Controls"
     xmlns:vm="using:AgentX.App.ViewModels"
     xmlns:converters="using:AgentX.App.Converters"
     Background="Transparent"
@@ -58,10 +59,7 @@
             <!-- =======================================================
                  ROW 1: DETECTING SPINNER (shown while scanning)
                  ======================================================= -->
-            <Border Grid.Row="1"
-                    Style="{StaticResource CardStyle}"
-                    Visibility="{x:Bind ViewModel.IsDetecting, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                    Padding="40,48">
+            <controls:Faceplate Grid.Row="1" Visibility="{x:Bind ViewModel.IsDetecting, Mode=OneWay, Converter={StaticResource BoolToVis}}" Padding="40,48" Kicker="MOD - HW - 01">
                 <StackPanel Spacing="16" HorizontalAlignment="Center">
                     <ProgressRing IsActive="{x:Bind ViewModel.IsDetecting, Mode=OneWay}"
                                   Width="48" Height="48"
@@ -73,7 +71,7 @@
                                Style="{StaticResource BodySecondaryStyle}"
                                HorizontalAlignment="Center" />
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
             <!-- =======================================================
                  ROW 1 (shared): ELEVATION HINT (UAC acknowledgement)
@@ -105,7 +103,7 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- GPU Card -->
-                <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                <controls:Faceplate Grid.Column="0" Kicker="MOD - HW - 02">
                     <StackPanel Spacing="16">
                         <!-- Header -->
                         <StackPanel Orientation="Horizontal" Spacing="12">
@@ -157,10 +155,10 @@
                             </StackPanel>
                         </Border>
                     </StackPanel>
-                </Border>
+                </controls:Faceplate>
 
                 <!-- CPU Card -->
-                <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                <controls:Faceplate Grid.Column="1" Kicker="MOD - HW - 03">
                     <StackPanel Spacing="16">
                         <!-- Header -->
                         <StackPanel Orientation="Horizontal" Spacing="12">
@@ -218,10 +216,10 @@
                             </StackPanel>
                         </Border>
                     </StackPanel>
-                </Border>
+                </controls:Faceplate>
 
                 <!-- Memory Card -->
-                <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                <controls:Faceplate Grid.Column="2" Kicker="MOD - HW - 04">
                     <StackPanel Spacing="16">
                         <!-- Header -->
                         <StackPanel Orientation="Horizontal" Spacing="12">
@@ -257,6 +255,10 @@
                                        Style="{StaticResource LabelStyle}" />
                             <TextBlock Text="{x:Bind ViewModel.AvailableRam, Mode=OneWay}"
                                        Style="{StaticResource BodyStyle}" />
+                            <controls:SegmentMeter Value="{x:Bind ViewModel.RamUsagePercent, Mode=OneWay}"
+                                                   Maximum="100"
+                                                   Margin="0,4,0,0"
+                                                   AutomationProperties.Name="RAM usage percent" />
                         </StackPanel>
 
                         <!-- NPU Badge -->
@@ -286,14 +288,13 @@
                                        Foreground="{ThemeResource TextTertiaryBrush}" />
                         </Border>
                     </StackPanel>
-                </Border>
+                </controls:Faceplate>
             </Grid>
 
             <!-- =======================================================
                  ROW 3: RECOMMENDATION CARD (Accent Hero)
                  ======================================================= -->
-            <Border Grid.Row="3" Style="{StaticResource CardAccentStyle}"
-                    Visibility="{x:Bind ViewModel.IsDetecting, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
+            <controls:Faceplate Grid.Row="3" Visibility="{x:Bind ViewModel.IsDetecting, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" Kicker="MOD - HW - 05">
                 <Grid ColumnSpacing="24">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -337,7 +338,7 @@
                         </Border>
                     </StackPanel>
                 </Grid>
-            </Border>
+            </controls:Faceplate>
 
             <!-- =======================================================
                  ROW 4: ERROR MESSAGE (conditional)

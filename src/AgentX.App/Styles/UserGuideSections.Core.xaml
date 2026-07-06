@@ -109,24 +109,26 @@
                         <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        x:Uid="UserGuide_GettingStarted_Prereq2_Title" />
-                            <Border Background="{ThemeResource InputBackgroundBrush}"
-                                    BorderBrush="{ThemeResource BorderSubtleBrush}"
+                            <Border Background="{ThemeResource WellBrush}"
+                                    BorderBrush="{ThemeResource WellBorderBrush}"
                                     BorderThickness="1"
                                     CornerRadius="{StaticResource RadiusSM}"
                                     Padding="12,6" Margin="0,4,0,0">
                                 <TextBlock Text="ollama pull llama3.2"
-                                           Style="{StaticResource MonoStyle}" />
+                                           Style="{StaticResource MonoStyle}"
+                                           Foreground="{ThemeResource WellTextBrush}" />
                             </Border>
                             <TextBlock Style="{StaticResource BodySecondaryStyle}"
                                        x:Uid="UserGuide_GettingStarted_Prereq2_Description"
                                        Margin="0,4,0,0" />
-                            <Border Background="{ThemeResource InputBackgroundBrush}"
-                                    BorderBrush="{ThemeResource BorderSubtleBrush}"
+                            <Border Background="{ThemeResource WellBrush}"
+                                    BorderBrush="{ThemeResource WellBorderBrush}"
                                     BorderThickness="1"
                                     CornerRadius="{StaticResource RadiusSM}"
                                     Padding="12,6" Margin="0,4,0,0">
                                 <TextBlock Text="ollama pull all-minilm"
-                                           Style="{StaticResource MonoStyle}" />
+                                           Style="{StaticResource MonoStyle}"
+                                           Foreground="{ThemeResource WellTextBrush}" />
                             </Border>
                         </StackPanel>
                     </Grid>
@@ -149,13 +151,14 @@
                         <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                             <TextBlock Style="{StaticResource BodyStyle}"
                                        x:Uid="UserGuide_GettingStarted_Prereq3_Title" />
-                            <Border Background="{ThemeResource InputBackgroundBrush}"
-                                    BorderBrush="{ThemeResource BorderSubtleBrush}"
+                            <Border Background="{ThemeResource WellBrush}"
+                                    BorderBrush="{ThemeResource WellBorderBrush}"
                                     BorderThickness="1"
                                     CornerRadius="{StaticResource RadiusSM}"
                                     Padding="12,6" Margin="0,4,0,0">
                                 <TextBlock Text="ollama serve"
-                                           Style="{StaticResource MonoStyle}" />
+                                           Style="{StaticResource MonoStyle}"
+                                           Foreground="{ThemeResource WellTextBrush}" />
                             </Border>
                         </StackPanel>
                     </Grid>

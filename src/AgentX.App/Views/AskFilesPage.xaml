@@ -106,9 +106,6 @@
                               DisplayMemberPath="Name"
                               x:Uid="AskFiles_AllCollectionsBox" PlaceholderText="All Collections"
                               MinWidth="180"
-                              Background="{ThemeResource InputBackgroundBrush}"
-                              BorderBrush="{ThemeResource BorderSubtleBrush}"
-                              Foreground="{ThemeResource TextPrimaryBrush}"
                               VerticalAlignment="Center"
                               SelectionChanged="OnCollectionSelectionChanged" />
 

@@ -245,7 +245,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="ContextStoryChipTemplate" x:DataType="vm:ChatContextStorySourceDisplayItem">
-            <Border Background="{ThemeResource InputBackgroundBrush}"
+            <Border Background="{ThemeResource CardBrush}"
                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusRound}"
@@ -257,7 +257,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="InlineContextStoryChipTemplate" x:DataType="x:String">
-            <Border Background="{ThemeResource InputBackgroundBrush}"
+            <Border Background="{ThemeResource CardBrush}"
                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusRound}"
@@ -550,10 +550,18 @@
                               DisplayMemberPath="Name"
                               x:Uid="Chat_SelectModelBox" PlaceholderText="Select model..."
                               MinWidth="180"
-                              Background="{ThemeResource InputBackgroundBrush}"
-                              BorderBrush="{ThemeResource BorderSubtleBrush}"
-                              Foreground="{ThemeResource TextPrimaryBrush}"
                               VerticalAlignment="Center" />
+
+                    <!-- GEN lamp: burns steady armed while the model is on
+                         the clock (red = LIVE, the dual-form rule) -->
+                    <controls:LampTile x:Name="GenLamp"
+                                       Grid.Column="2"
+                                       Code="GEN"
+                                       State="Off"
+                                       IsCompact="True"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,12,0" />
 
                     <!-- Connection status -->
                     <StackPanel Grid.Column="3"
@@ -699,23 +707,23 @@
                         </Button.Flyout>
                     </Button>
 
-                    <!-- Token count badge -->
+                    <!-- Token count: a live number wears Departure Mono in
+                         an LCD well (DESIGN.md telemetry rule) -->
                     <Border x:Name="TokenCountBadge"
                             Grid.Column="6"
-                            Style="{StaticResource BadgeDefaultStyle}"
+                            Background="{ThemeResource VoidBrush}"
+                            BorderBrush="{ThemeResource HairlineBrush}"
+                            BorderThickness="1"
+                            CornerRadius="{StaticResource RadiusXS}"
                             Padding="8,3,8,3"
                             VerticalAlignment="Center"
                             Margin="0,0,4,0"
                             Visibility="{x:Bind ViewModel.TokenCount, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                        <StackPanel Orientation="Horizontal" Spacing="4">
-                            <FontIcon Glyph="&#xE8A3;" FontSize="10"
-                                      Foreground="{ThemeResource TextTertiaryBrush}" />
-                            <TextBlock Style="{StaticResource MonoSmallStyle}"
-                                       Foreground="{ThemeResource TextTertiaryBrush}">
-                                <Run Text="{x:Bind ViewModel.TokenCount, Mode=OneWay}" />
-                                <Run x:Uid="Chat_TokLabel" Text="tok" />
-                            </TextBlock>
-                        </StackPanel>
+                        <TextBlock Style="{StaticResource LcdStyle}"
+                                   FontSize="10">
+                            <Run Text="{x:Bind ViewModel.TokenCount, Mode=OneWay}" />
+                            <Run x:Uid="Chat_TokLabel" Text="tok" />
+                        </TextBlock>
                     </Border>
 
                     <!-- Compare branches button -->
@@ -1184,7 +1192,7 @@
                                            Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
 
-                            <Border Background="{ThemeResource InputBackgroundBrush}"
+                            <Border Background="{ThemeResource CardBrush}"
                                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                                     BorderThickness="1"
                                     CornerRadius="{StaticResource RadiusMD}"
@@ -1215,7 +1223,7 @@
                                 </Grid.ColumnDefinitions>
 
                                 <Border Grid.Column="0"
-                                        Background="{ThemeResource InputBackgroundBrush}"
+                                        Background="{ThemeResource CardBrush}"
                                         BorderBrush="{ThemeResource BorderSubtleBrush}"
                                         BorderThickness="1"
                                         CornerRadius="{StaticResource RadiusMD}"
@@ -1247,7 +1255,7 @@
                                 </Border>
 
                                 <Border Grid.Column="1"
-                                        Background="{ThemeResource InputBackgroundBrush}"
+                                        Background="{ThemeResource CardBrush}"
                                         BorderBrush="{ThemeResource BorderSubtleBrush}"
                                         BorderThickness="1"
                                         CornerRadius="{StaticResource RadiusMD}"
@@ -1317,7 +1325,7 @@
                                 </Border>
 
                                 <Border Grid.Column="2"
-                                        Background="{ThemeResource InputBackgroundBrush}"
+                                        Background="{ThemeResource CardBrush}"
                                         BorderBrush="{ThemeResource BorderSubtleBrush}"
                                         BorderThickness="1"
                                         CornerRadius="{StaticResource RadiusMD}"
@@ -1363,7 +1371,7 @@
                                 </Border>
                             </Grid>
 
-                            <Border Background="{ThemeResource InputBackgroundBrush}"
+                            <Border Background="{ThemeResource CardBrush}"
                                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                                     BorderThickness="1"
                                     CornerRadius="{StaticResource RadiusMD}"

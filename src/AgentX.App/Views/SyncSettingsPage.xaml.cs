@@ -46,6 +46,23 @@ public sealed partial class SyncSettingsPage : Page
         await ViewModel.InitializeAsync();
     }
 
+    /// <summary>
+    /// LED tone for the STATE card dot, driven by the typed sync state so the
+    /// indicator can never contradict the SYNC lamp on the instrument strip:
+    /// Idle is GO, Syncing reads scope, Conflict holds amber, Error is NO-GO.
+    /// </summary>
+    private Microsoft.UI.Xaml.Media.Brush SyncStateBrush(AgentX.Core.Services.Sync.Models.SyncState state)
+    {
+        var key = state switch
+        {
+            AgentX.Core.Services.Sync.Models.SyncState.Syncing => "LedScopeLampBrush",
+            AgentX.Core.Services.Sync.Models.SyncState.Conflict => "LedHoldLampBrush",
+            AgentX.Core.Services.Sync.Models.SyncState.Error => "LedNoGoLampBrush",
+            _ => "LedGoLampBrush",
+        };
+        return (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources[key];
+    }
+
     // =========================================================================
     // FOLDER PICKER
     // =========================================================================

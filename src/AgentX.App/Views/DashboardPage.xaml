@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:AgentX.App.ViewModels"
     xmlns:converters="using:AgentX.App.Converters"
+    xmlns:controls="using:AgentX.App.Controls"
     x:Name="DashboardRoot"
     Background="Transparent"
     NavigationCacheMode="Enabled">
@@ -59,7 +60,7 @@
             <!-- ==========================================================
                  ROW 1: AI CONNECTION STATUS (Hero Card)
                  ========================================================== -->
-            <Border Grid.Row="1" Style="{StaticResource CardAccentStyle}">
+            <controls:Faceplate Grid.Row="1" Kicker="MOD - LINK - 01">
                 <Grid ColumnSpacing="24">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -90,12 +91,13 @@
                             VerticalAlignment="Center"
                             Command="{x:Bind ViewModel.SetupAiCommand}" />
                 </Grid>
-            </Border>
+            </controls:Faceplate>
 
             <!-- ==========================================================
                  ROW 2: QUICK SEARCH BAR
                  ========================================================== -->
-            <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+            <!-- Quick search: a recessed dark well carved into the chassis -->
+            <Border Grid.Row="2" Style="{StaticResource WellStyle}" Padding="16,6">
                 <Grid ColumnSpacing="12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -105,7 +107,7 @@
 
                     <FontIcon Glyph="&#xE721;"
                               FontSize="18"
-                              Foreground="{ThemeResource TextTertiaryBrush}"
+                              Foreground="{ThemeResource InputPlaceholderBrush}"
                               VerticalAlignment="Center" />
 
                     <TextBox Grid.Column="1"
@@ -116,11 +118,16 @@
                              Background="Transparent" />
 
                     <Border Grid.Column="2"
-                            Style="{StaticResource BadgeDefaultStyle}"
+                            Background="{ThemeResource VoidBrush}"
+                            BorderBrush="{ThemeResource HairlineBrush}"
+                            BorderThickness="1"
+                            CornerRadius="{StaticResource RadiusXS}"
+                            Padding="8,2"
                             VerticalAlignment="Center">
                         <TextBlock Text="Ctrl+K"
-                                   Style="{StaticResource MonoSmallStyle}"
-                                   Foreground="{ThemeResource TextTertiaryBrush}" />
+                                   Style="{StaticResource TelemetrySmallStyle}"
+                                   Foreground="{ThemeResource WellTextBrush}"
+                                   Opacity="0.45" />
                     </Border>
                 </Grid>
             </Border>
@@ -137,7 +144,7 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Card 1: Documents -->
-                <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                <controls:Faceplate Grid.Column="0" Kicker="MOD - DOCS - 02">
                     <Grid>                        <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8F1;" FontSize="14"
@@ -145,8 +152,11 @@
                                 <TextBlock x:Uid="Dash_DocsOverline" Text="DOCUMENTS"
                                            Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
-                            <TextBlock Text="{x:Bind ViewModel.TotalDocuments, Mode=OneWay}"
-                                       Style="{StaticResource MetricMediumStyle}" />
+                            <Border Style="{StaticResource WellStyle}" Padding="12,2" HorizontalAlignment="Left">
+                                <TextBlock Text="{x:Bind ViewModel.TotalDocuments, Mode=OneWay}"
+                                           Style="{StaticResource MetricMediumStyle}"
+                                           Foreground="{ThemeResource LcdPhosphorBrush}" />
+                            </Border>
                             <TextBlock Style="{StaticResource CaptionStyle}">
                                 <Run x:Uid="Dash_AcrossRun" Text="across " />
                                 <Run Text="{x:Bind ViewModel.TotalCollections, Mode=OneWay}"
@@ -156,10 +166,10 @@
                             </TextBlock>
                         </StackPanel>
                     </Grid>
-                </Border>
+                </controls:Faceplate>
 
                 <!-- Card 2: Storage -->
-                <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                <controls:Faceplate Grid.Column="1" Kicker="MOD - STOR - 03">
                     <Grid>                        <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xEDA2;" FontSize="14"
@@ -167,8 +177,11 @@
                                 <TextBlock x:Uid="Dash_StorageOverline" Text="STORAGE"
                                            Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
-                            <TextBlock Text="{x:Bind ViewModel.TotalStorageSize, Mode=OneWay}"
-                                       Style="{StaticResource MetricMediumStyle}" />
+                            <Border Style="{StaticResource WellStyle}" Padding="12,2" HorizontalAlignment="Left">
+                                <TextBlock Text="{x:Bind ViewModel.TotalStorageSize, Mode=OneWay}"
+                                           Style="{StaticResource MetricMediumStyle}"
+                                           Foreground="{ThemeResource LcdPhosphorBrush}" />
+                            </Border>
                             <StackPanel Spacing="4">
                                 <TextBlock Style="{StaticResource CaptionStyle}">
                                     <Run Text="{x:Bind ViewModel.IndexedPercent, Mode=OneWay}"
@@ -176,16 +189,16 @@
                                          Foreground="{ThemeResource TextSecondaryBrush}" />
                                     <Run Text="% indexed" />
                                 </TextBlock>
-                                <ProgressBar Value="{x:Bind ViewModel.IndexedPercent, Mode=OneWay}"
-                                             Maximum="100"
-                                             Style="{StaticResource AccentProgressBarStyle}" />
+                                <controls:SegmentMeter Value="{x:Bind ViewModel.IndexedPercent, Mode=OneWay}"
+                                                       Maximum="100"
+                                                       AutomationProperties.Name="Indexed percent" />
                             </StackPanel>
                         </StackPanel>
                     </Grid>
-                </Border>
+                </controls:Faceplate>
 
                 <!-- Card 3: AI Sessions -->
-                <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                <controls:Faceplate Grid.Column="2" Kicker="MOD - SESS - 04">
                     <Grid>                        <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8BD;" FontSize="14"
@@ -193,8 +206,11 @@
                                 <TextBlock x:Uid="Dash_AiSessionsOverline" Text="AI SESSIONS"
                                            Style="{StaticResource OverlineStyle}" />
                             </StackPanel>
-                            <TextBlock Text="{x:Bind ViewModel.TotalConversations, Mode=OneWay}"
-                                       Style="{StaticResource MetricMediumStyle}" />
+                            <Border Style="{StaticResource WellStyle}" Padding="12,2" HorizontalAlignment="Left">
+                                <TextBlock Text="{x:Bind ViewModel.TotalConversations, Mode=OneWay}"
+                                           Style="{StaticResource MetricMediumStyle}"
+                                           Foreground="{ThemeResource LcdPhosphorBrush}" />
+                            </Border>
                             <TextBlock Style="{StaticResource CaptionStyle}">
                                 <Run Text="{x:Bind ViewModel.TotalTokensUsed, Mode=OneWay}"
                                      FontWeight="SemiBold"
@@ -203,10 +219,10 @@
                             </TextBlock>
                         </StackPanel>
                     </Grid>
-                </Border>
+                </controls:Faceplate>
 
                 <!-- Card 4: System -->
-                <Border Grid.Column="3" Style="{StaticResource CardStyle}">
+                <controls:Faceplate Grid.Column="3" Kicker="MOD - SYS - 05">
                     <Grid>                        <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE964;" FontSize="14"
@@ -226,7 +242,7 @@
                             </StackPanel>
                         </StackPanel>
                     </Grid>
-                </Border>
+                </controls:Faceplate>
             </Grid>
 
             <!-- ==========================================================
@@ -265,7 +281,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource CardStyle}" MinHeight="196">
+                    <controls:Faceplate Grid.Row="0" Grid.Column="0" MinHeight="196" Kicker="MOD - INTEL - 06">
                         <Grid RowSpacing="16">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
@@ -299,9 +315,9 @@
                                     FontSize="12"
                                     Command="{x:Bind ViewModel.NavigateToAnalyticsCommand}" />
                         </Grid>
-                    </Border>
+                    </controls:Faceplate>
 
-                    <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource CardStyle}" MinHeight="196">
+                    <controls:Faceplate Grid.Row="0" Grid.Column="1" MinHeight="196" Kicker="MOD - SYNC - 07">
                         <Grid RowSpacing="16">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
@@ -335,9 +351,9 @@
                                     FontSize="12"
                                     Command="{x:Bind ViewModel.NavigateToSyncSettingsCommand}" />
                         </Grid>
-                    </Border>
+                    </controls:Faceplate>
 
-                    <Border Grid.Row="0" Grid.Column="2" Style="{StaticResource CardStyle}" MinHeight="196">
+                    <controls:Faceplate Grid.Row="0" Grid.Column="2" MinHeight="196" Kicker="MOD - PLUG - 08">
                         <Grid RowSpacing="16">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
@@ -371,9 +387,9 @@
                                     FontSize="12"
                                     Command="{x:Bind ViewModel.NavigateToPluginManagerCommand}" />
                         </Grid>
-                    </Border>
+                    </controls:Faceplate>
 
-                    <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource CardStyle}" MinHeight="196">
+                    <controls:Faceplate Grid.Row="1" Grid.Column="0" MinHeight="196" Kicker="MOD - INBOX - 09">
                         <Grid RowSpacing="16">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
@@ -407,9 +423,9 @@
                                     FontSize="12"
                                     Command="{x:Bind ViewModel.NavigateToInboxCommand}" />
                         </Grid>
-                    </Border>
+                    </controls:Faceplate>
 
-                    <Border Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource CardStyle}" MinHeight="196">
+                    <controls:Faceplate Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" MinHeight="196" Kicker="MOD - WFLOW - 10">
                         <Grid RowSpacing="16">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
@@ -455,7 +471,7 @@
                                     FontSize="12"
                                     Command="{x:Bind ViewModel.NavigateToWorkflowsCommand}" />
                         </Grid>
-                    </Border>
+                    </controls:Faceplate>
                 </Grid>
             </StackPanel>
 
@@ -469,7 +485,7 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Recent Documents -->
-                <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                <controls:Faceplate Grid.Column="0" Kicker="MOD - RDOC - 11">
                     <StackPanel Spacing="16">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -562,10 +578,10 @@
                             </ItemsRepeater.ItemTemplate>
                         </ItemsRepeater>
                     </StackPanel>
-                </Border>
+                </controls:Faceplate>
 
                 <!-- Recent Conversations -->
-                <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                <controls:Faceplate Grid.Column="1" Kicker="MOD - RCNV - 12">
                     <StackPanel Spacing="16">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -667,7 +683,7 @@
                             </ItemsRepeater.ItemTemplate>
                         </ItemsRepeater>
                     </StackPanel>
-                </Border>
+                </controls:Faceplate>
             </Grid>
 
             <!-- ==========================================================
@@ -680,7 +696,7 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- File Type Distribution -->
-                <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                <controls:Faceplate Grid.Column="0" Kicker="MOD - TYPE - 13">
                     <StackPanel Spacing="16">
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE9D9;" FontSize="16"
@@ -731,7 +747,7 @@
                                                      MinHeight="18"
                                                      MaxHeight="18"
                                                      CornerRadius="{StaticResource RadiusSM}"
-                                                     Background="{ThemeResource InputBackgroundBrush}"
+                                                     Background="{ThemeResource CardPressedBrush}"
                                                      Foreground="{ThemeResource AccentPrimaryBrush}" />
 
                                         <!-- Percentage + Count -->
@@ -750,10 +766,10 @@
                             </ItemsRepeater.ItemTemplate>
                         </ItemsRepeater>
                     </StackPanel>
-                </Border>
+                </controls:Faceplate>
 
                 <!-- Top Collections -->
-                <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                <controls:Faceplate Grid.Column="1" Kicker="MOD - COLL - 14">
                     <StackPanel Spacing="16">
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xF168;" FontSize="16"
@@ -809,20 +825,20 @@
                                                      MinHeight="8"
                                                      MaxHeight="8"
                                                      CornerRadius="{StaticResource RadiusSM}"
-                                                     Background="{ThemeResource InputBackgroundBrush}"
+                                                     Background="{ThemeResource CardPressedBrush}"
                                                      Foreground="{ThemeResource SuccessBrush}" />
                                     </StackPanel>
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>
                         </ItemsRepeater>
                     </StackPanel>
-                </Border>
+                </controls:Faceplate>
             </Grid>
 
             <!-- ==========================================================
                  ROW 7: BELIEF CONFLICTS (Temporal Identity)
                  ========================================================== -->
-            <Border Grid.Row="7" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="7" Kicker="MOD - TID - 15">
                 <Grid ColumnSpacing="16">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -944,13 +960,13 @@
                                 HorizontalAlignment="Left" />
                     </StackPanel>
                 </Grid>
-            </Border>
+            </controls:Faceplate>
 
             <!-- ==========================================================
                  ROW 8: RECOMMENDED NEXT STEPS + QUICK LAUNCH
                  ========================================================== -->
             <StackPanel Grid.Row="8" Spacing="16">
-                <Border Style="{StaticResource CardStyle}">
+                <controls:Faceplate Kicker="MOD - NEXT - 16">
                     <StackPanel Spacing="16">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -1047,7 +1063,7 @@
                             </ItemsRepeater.ItemTemplate>
                         </ItemsRepeater>
                     </StackPanel>
-                </Border>
+                </controls:Faceplate>
 
                 <Grid ColumnSpacing="12">
                     <Grid.ColumnDefinitions>
@@ -1130,7 +1146,7 @@
             <!-- ==========================================================
                  ROW 9: SYSTEM INFO (compact horizontal bar)
                  ========================================================== -->
-            <Border Grid.Row="9" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="9" StripeVisibility="Collapsed" BoltsVisibility="Collapsed">
                 <Grid ColumnSpacing="24">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -1196,26 +1212,30 @@
                         </StackPanel>
                     </Grid>
                 </Grid>
-            </Border>
+            </controls:Faceplate>
 
             <!-- ==========================================================
                  ROW 10: PRIVACY FOOTER
                  ========================================================== -->
+            <!-- Privacy annunciator: a dark module row in both shifts
+                 (DESIGN.md annunciator alerts) with an LED dot carrying
+                 the posture - green LOCAL, amber when cloud is opted in. -->
             <Border Grid.Row="10"
-                    Style="{StaticResource CardInsetStyle}"
+                    Style="{StaticResource WellStyle}"
                     Padding="20,14">
                 <Grid>
                     <!-- Fully local: the strong privacy assurance is accurate. -->
                     <StackPanel Orientation="Horizontal" Spacing="12"
                                 Visibility="{x:Bind ViewModel.IsFullyPrivate, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                        <FontIcon Glyph="&#xE72E;" FontSize="14"
-                                  Foreground="{ThemeResource SuccessBrush}"
-                                  VerticalAlignment="Top" />
+                        <Ellipse Style="{StaticResource LedDotStyle}"
+                                 Fill="{ThemeResource LedGoLampBrush}"
+                                 VerticalAlignment="Top"
+                                 Margin="0,4,0,0" />
                         <TextBlock Style="{StaticResource BodySmallStyle}"
-                                   Foreground="{ThemeResource TextTertiaryBrush}"
+                                   Foreground="{ThemeResource WellTextSecondaryBrush}"
                                    TextWrapping="Wrap">
-                            <Run Text="{x:Bind ViewModel.PrivacyTitle, Mode=OneWay}" FontWeight="SemiBold" Foreground="{ThemeResource TextSecondaryBrush}" />
-                            <Run Text=" &#x2014; " />
+                            <Run Text="{x:Bind ViewModel.PrivacyTitle, Mode=OneWay}" FontWeight="SemiBold" Foreground="{ThemeResource WellTextBrush}" />
+                            <Run Text=" - " />
                             <Run Text="{x:Bind ViewModel.PrivacySummary, Mode=OneWay}" />
                         </TextBlock>
                     </StackPanel>
@@ -1224,14 +1244,15 @@
                     <StackPanel Spacing="10"
                                 Visibility="{x:Bind ViewModel.IsFullyPrivate, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <FontIcon Glyph="&#xE7BA;" FontSize="14"
-                                      Foreground="{ThemeResource WarningBrush}"
-                                      VerticalAlignment="Top" />
+                            <Ellipse Style="{StaticResource LedDotStyle}"
+                                     Fill="{ThemeResource LedHoldLampBrush}"
+                                     VerticalAlignment="Top"
+                                     Margin="0,4,0,0" />
                             <TextBlock Style="{StaticResource BodySmallStyle}"
-                                       Foreground="{ThemeResource TextTertiaryBrush}"
+                                       Foreground="{ThemeResource WellTextSecondaryBrush}"
                                        TextWrapping="Wrap">
-                                <Run Text="{x:Bind ViewModel.PrivacyTitle, Mode=OneWay}" FontWeight="SemiBold" Foreground="{ThemeResource TextSecondaryBrush}" />
-                                <Run Text=" &#x2014; " />
+                                <Run Text="{x:Bind ViewModel.PrivacyTitle, Mode=OneWay}" FontWeight="SemiBold" Foreground="{ThemeResource WellTextBrush}" />
+                                <Run Text=" - " />
                                 <Run Text="{x:Bind ViewModel.PrivacySummary, Mode=OneWay}" />
                             </TextBlock>
                         </StackPanel>
@@ -1243,10 +1264,10 @@
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="vm:DashboardPrivacyDisclosureItem">
                                     <TextBlock Style="{StaticResource CaptionStyle}"
-                                               Foreground="{ThemeResource TextTertiaryBrush}"
+                                               Foreground="{ThemeResource WellTextSecondaryBrush}"
                                                TextWrapping="Wrap">
-                                        <Run Text="{x:Bind Surface}" FontWeight="SemiBold" Foreground="{ThemeResource TextSecondaryBrush}" />
-                                        <Run Text=" &#x2014; " />
+                                        <Run Text="{x:Bind Surface}" FontWeight="SemiBold" Foreground="{ThemeResource WellTextBrush}" />
+                                        <Run Text=" - " />
                                         <Run Text="{x:Bind Detail}" />
                                     </TextBlock>
                                 </DataTemplate>

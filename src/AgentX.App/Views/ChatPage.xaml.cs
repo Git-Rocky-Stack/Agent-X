@@ -84,6 +84,10 @@ public sealed partial class ChatPage : Page
         // Subscribe to collection changes for auto-scroll
         ViewModel.Messages.CollectionChanged += OnMessagesCollectionChanged;
 
+        // GEN lamp: steady armed while the model is generating (red = LIVE)
+        ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+        UpdateGenLamp();
+
         // Focus the input box for immediate typing
         ChatInputBox.Focus(FocusState.Programmatic);
     }
@@ -101,7 +105,19 @@ public sealed partial class ChatPage : Page
         }
 
         ViewModel.Messages.CollectionChanged -= OnMessagesCollectionChanged;
+        ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
     }
+
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ChatViewModel.IsGenerating))
+        {
+            UpdateGenLamp();
+        }
+    }
+
+    private void UpdateGenLamp()
+        => GenLamp.State = ViewModel.IsGenerating ? Controls.LampState.Armed : Controls.LampState.Off;
 
     // ═══════════════════════════════════════════════════════════════
     // KEYBOARD INPUT HANDLING

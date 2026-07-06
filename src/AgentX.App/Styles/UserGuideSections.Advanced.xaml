@@ -397,7 +397,7 @@
                 <StackPanel Spacing="0">
 
                     <!-- Table Header -->
-                    <Border Background="{ThemeResource InputBackgroundBrush}"
+                    <Border Background="{ThemeResource CardBrush}"
                             CornerRadius="8,8,0,0"
                             BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"
@@ -1205,7 +1205,7 @@
                 <StackPanel Spacing="0">
 
                     <!-- Table Header -->
-                    <Border Background="{ThemeResource InputBackgroundBrush}"
+                    <Border Background="{ThemeResource CardBrush}"
                             CornerRadius="8,8,0,0"
                             BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1,1,1,0"

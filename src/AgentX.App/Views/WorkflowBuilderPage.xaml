@@ -2,6 +2,7 @@
     x:Class="AgentX.App.Views.WorkflowBuilderPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:AgentX.App.Controls"
     xmlns:vm="using:AgentX.App.ViewModels"
     xmlns:views="using:AgentX.App.Views"
     xmlns:converters="using:AgentX.App.Converters"
@@ -213,10 +214,7 @@
                     </StackPanel>
 
                     <!-- ═══ EDITOR SECTION ═══ -->
-                    <Border Grid.Row="1"
-                            Style="{StaticResource CardStyle}"
-                            Padding="24"
-                            Visibility="{x:Bind ViewModel.IsEditing, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                    <controls:Faceplate Grid.Row="1" Padding="24" Visibility="{x:Bind ViewModel.IsEditing, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - WFLW - 01">
                         <StackPanel Spacing="20">
                             <TextBlock x:Uid="WfBuilder_WorkflowEditor" Text="Workflow Editor"
                                        Style="{StaticResource HeadingSmallStyle}" />
@@ -360,13 +358,10 @@
                                         Style="{StaticResource AccentButtonStyle}" />
                             </StackPanel>
                         </StackPanel>
-                    </Border>
+                    </controls:Faceplate>
 
                     <!-- ═══ RUNNER SECTION ═══ -->
-                    <Border Grid.Row="2"
-                            Style="{StaticResource CardStyle}"
-                            Padding="24"
-                            Visibility="{x:Bind ViewModel.ShowWorkflowRunnerSection, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                    <controls:Faceplate Grid.Row="2" Padding="24" Visibility="{x:Bind ViewModel.ShowWorkflowRunnerSection, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - WFLW - 02">
                         <StackPanel Spacing="20">
                             <Border Background="{ThemeResource AccentSubtleBrush}"
                                     BorderBrush="{ThemeResource AccentPrimaryBrush}"
@@ -536,13 +531,10 @@
                                 </TextBlock>
                             </StackPanel>
                         </StackPanel>
-                    </Border>
+                    </controls:Faceplate>
 
                     <!-- ═══ RECENT RUNS ═══ -->
-                    <Border Grid.Row="3"
-                            Style="{StaticResource CardStyle}"
-                            Padding="24"
-                            Visibility="{x:Bind ViewModel.HasSelectedWorkflow, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                    <controls:Faceplate Grid.Row="3" Padding="24" Visibility="{x:Bind ViewModel.HasSelectedWorkflow, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - WFLW - 03">
                         <StackPanel Spacing="16">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -639,13 +631,10 @@
                                        Style="{StaticResource BodySecondaryStyle}"
                                        Visibility="{x:Bind ViewModel.ShowRecentRunsEmptyState, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
                         </StackPanel>
-                    </Border>
+                    </controls:Faceplate>
 
                     <!-- ═══ STEP OUTPUTS ═══ -->
-                    <Border Grid.Row="4"
-                            Style="{StaticResource CardStyle}"
-                            Padding="24"
-                            Visibility="{x:Bind ViewModel.HasStepOutputs, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                    <controls:Faceplate Grid.Row="4" Padding="24" Visibility="{x:Bind ViewModel.HasStepOutputs, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - WFLW - 04">
                         <StackPanel Spacing="16">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -723,13 +712,10 @@
                                 </ItemsRepeater.ItemTemplate>
                             </ItemsRepeater>
                         </StackPanel>
-                    </Border>
+                    </controls:Faceplate>
 
                     <!-- ═══ FINAL OUTPUT ═══ -->
-                    <Border Grid.Row="5"
-                            Style="{StaticResource CardStyle}"
-                            Padding="24"
-                            Visibility="{x:Bind ViewModel.HasRunOutputOrError, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                    <controls:Faceplate Grid.Row="5" Padding="24" Visibility="{x:Bind ViewModel.HasRunOutputOrError, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - WFLW - 05">
                         <StackPanel Spacing="12">
                             <TextBlock x:Uid="WfBuilder_FinalOutput" Text="Final Output"
                                        Style="{StaticResource HeadingSmallStyle}" />
@@ -761,7 +747,7 @@
                                         Style="{StaticResource GhostButtonStyle}" />
                             </StackPanel>
                         </StackPanel>
-                    </Border>
+                    </controls:Faceplate>
 
                     <!-- ═══ STATUS MESSAGE ═══ -->
                     <TextBlock Grid.Row="6"
@@ -771,10 +757,7 @@
                                Visibility="{x:Bind ViewModel.StatusMessage, Mode=OneWay, Converter={StaticResource StringToVis}}" />
 
                     <!-- ═══ EMPTY STATE ═══ -->
-                    <Border Grid.Row="2"
-                            Style="{StaticResource CardStyle}"
-                            Padding="28"
-                            Visibility="{x:Bind ViewModel.ShowWorkflowStarterEmptyState, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                    <controls:Faceplate Grid.Row="2" Padding="28" Visibility="{x:Bind ViewModel.ShowWorkflowStarterEmptyState, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - WFLW - 06">
                         <StackPanel Spacing="20">
                             <StackPanel Spacing="8">
                                 <FontIcon Glyph="&#xE945;"
@@ -857,7 +840,7 @@
                                            TextWrapping="Wrap" />
                             </StackPanel>
                         </StackPanel>
-                    </Border>
+                    </controls:Faceplate>
                 </Grid>
             </ScrollViewer>
         </Grid>

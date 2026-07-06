@@ -24,6 +24,17 @@ public sealed partial class ModelManagerPage : Page
     }
 
     /// <summary>
+    /// LED tone for the connection dot: GO when linked to Ollama, HOLD amber
+    /// when not detected. Mirrors the MDL lamp on the instrument strip so the
+    /// page indicator can never contradict the annunciator.
+    /// </summary>
+    private Microsoft.UI.Xaml.Media.Brush ConnectionBrush(bool isConnected)
+    {
+        return (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources[
+            isConnected ? "LedGoLampBrush" : "LedHoldLampBrush"];
+    }
+
+    /// <summary>
     /// Handles the Set Active Model button click from within the ItemsRepeater DataTemplate.
     /// The model ID is passed via the Button's Tag property.
     /// </summary>

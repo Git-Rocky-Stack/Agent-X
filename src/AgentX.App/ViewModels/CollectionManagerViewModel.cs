@@ -125,7 +125,7 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
             Name = entity.Name,
             Description = entity.Description,
             IconGlyph = entity.IconGlyph ?? "\uF168",
-            ColorHex = entity.ColorHex ?? "#C41E3A",
+            ColorHex = entity.ColorHex ?? "#AA2024",
             ParentCollectionId = entity.ParentCollectionId,
             DocumentCount = entity.DocumentCollections?.Count ?? 0,
             CreatedAtFormatted = entity.CreatedAt.ToString("MMM d, yyyy"),
@@ -187,7 +187,7 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
                 Name = entity.Name,
                 Description = entity.Description,
                 IconGlyph = "\uF168",
-                ColorHex = "#C41E3A",
+                ColorHex = "#AA2024",
                 DocumentCount = 0,
                 CreatedAtFormatted = "Just now",
                 UpdatedAtFormatted = "Just now"
@@ -503,10 +503,10 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
 
     private static string GetStatusColor(string status) => status switch
     {
-        "completed" => "#22C55E",
-        "processing" => "#F59E0B",
-        "pending" => "#3B82F6",
-        "failed" => "#EF4444",
+        "completed" => "#41E25E",
+        "processing" => "#FFB000",
+        "pending" => "#58C4BC",
+        "failed" => "#C8453E",
         _ => "#6B7280"
     };
 

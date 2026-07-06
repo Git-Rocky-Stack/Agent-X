@@ -31,7 +31,7 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="DropZoneStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource InputBackgroundBrush}" />
+        <Setter Property="Background" Value="{ThemeResource CardBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource BorderMediumBrush}" />
         <Setter Property="BorderThickness" Value="2" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusXL}" />

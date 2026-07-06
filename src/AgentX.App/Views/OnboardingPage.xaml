@@ -2,6 +2,7 @@
     x:Class="AgentX.App.Views.OnboardingPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:AgentX.App.Controls"
     xmlns:vm="using:AgentX.App.ViewModels"
     xmlns:converters="using:AgentX.App.Converters"
     Background="Transparent"
@@ -123,7 +124,7 @@
                         <Grid Width="80" Height="80"
                               HorizontalAlignment="Center"
                               Margin="0,16,0,0">
-                            <Border CornerRadius="{StaticResource RadiusLG}"
+                            <Border CornerRadius="{StaticResource ROverlay}"
                                     Background="{ThemeResource AccentGradientBrush}">
                                 <TextBlock Text="AX"
                                            FontFamily="{StaticResource FontDisplay}"
@@ -154,7 +155,7 @@
                         <StackPanel Spacing="16" Margin="0,8,0,0">
 
                             <!-- Private & Secure -->
-                            <Border Style="{StaticResource CardStyle}" Padding="20">
+                            <controls:Faceplate Padding="20" Kicker="MOD - ONBD - 01">
                                 <Grid ColumnSpacing="16">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
@@ -176,10 +177,10 @@
                                                    Style="{StaticResource BodySecondaryStyle}" />
                                     </StackPanel>
                                 </Grid>
-                            </Border>
+                            </controls:Faceplate>
 
                             <!-- Unlimited & Free -->
-                            <Border Style="{StaticResource CardStyle}" Padding="20">
+                            <controls:Faceplate Padding="20" Kicker="MOD - ONBD - 02">
                                 <Grid ColumnSpacing="16">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
@@ -201,10 +202,10 @@
                                                    Style="{StaticResource BodySecondaryStyle}" />
                                     </StackPanel>
                                 </Grid>
-                            </Border>
+                            </controls:Faceplate>
 
                             <!-- Your Data, Your Rules -->
-                            <Border Style="{StaticResource CardStyle}" Padding="20">
+                            <controls:Faceplate Padding="20" Kicker="MOD - ONBD - 03">
                                 <Grid ColumnSpacing="16">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
@@ -226,7 +227,7 @@
                                                    Style="{StaticResource BodySecondaryStyle}" />
                                     </StackPanel>
                                 </Grid>
-                            </Border>
+                            </controls:Faceplate>
                         </StackPanel>
                     </StackPanel>
 
@@ -251,8 +252,7 @@
                         </StackPanel>
 
                         <!-- Endpoint Input Card -->
-                        <Border Style="{StaticResource CardStyle}"
-                                Margin="0,8,0,0">
+                        <controls:Faceplate Margin="0,8,0,0" Kicker="MOD - ONBD - 04">
                             <StackPanel Spacing="16">
                                 <TextBlock x:Uid="Onb_EndpointOverline" Text="OLLAMA ENDPOINT"
                                            Style="{StaticResource OverlineStyle}" />
@@ -283,7 +283,7 @@
                                 <Border Visibility="{x:Bind ViewModel.ShowConnectionStatus, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Padding="16,12"
-                                        Background="{ThemeResource InputBackgroundBrush}"
+                                        Background="{ThemeResource CardBrush}"
                                         Margin="0,4,0,0">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
                                         <!-- Dot color reflects the actual connection-test
@@ -297,7 +297,7 @@
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
-                        </Border>
+                        </controls:Faceplate>
 
                         <!-- Help Text & Skip -->
                         <StackPanel HorizontalAlignment="Center" Spacing="8" Margin="0,8,0,0">
@@ -365,7 +365,7 @@
                                     Spacing="20">
 
                             <!-- Chat Model Selection -->
-                            <Border Style="{StaticResource CardStyle}">
+                            <controls:Faceplate Kicker="MOD - ONBD - 05">
                                 <StackPanel Spacing="12">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <FontIcon Glyph="&#xE8BD;" FontSize="16"
@@ -380,14 +380,12 @@
                                               SelectedValuePath="ModelId"
                                               DisplayMemberPath="DisplayName"
                                               HorizontalAlignment="Stretch"
-                                              Background="{ThemeResource InputBackgroundBrush}"
-                                              BorderBrush="{ThemeResource InputBorderBrush}"
                                               CornerRadius="{StaticResource RadiusMD}" />
                                 </StackPanel>
-                            </Border>
+                            </controls:Faceplate>
 
                             <!-- Embedding Model Selection -->
-                            <Border Style="{StaticResource CardStyle}">
+                            <controls:Faceplate Kicker="MOD - ONBD - 06">
                                 <StackPanel Spacing="12">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <FontIcon Glyph="&#xE773;" FontSize="16"
@@ -402,17 +400,13 @@
                                               SelectedValuePath="ModelId"
                                               DisplayMemberPath="DisplayName"
                                               HorizontalAlignment="Stretch"
-                                              Background="{ThemeResource InputBackgroundBrush}"
-                                              BorderBrush="{ThemeResource InputBorderBrush}"
                                               CornerRadius="{StaticResource RadiusMD}" />
                                 </StackPanel>
-                            </Border>
+                            </controls:Faceplate>
                         </StackPanel>
 
                         <!-- No Models / Not Connected State -->
-                        <Border Visibility="{x:Bind ViewModel.HasModels, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}"
-                                Style="{StaticResource CardStyle}"
-                                Margin="0,8,0,0">
+                        <controls:Faceplate Visibility="{x:Bind ViewModel.HasModels, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" Margin="0,8,0,0" Kicker="MOD - ONBD - 07">
                             <StackPanel Spacing="12" HorizontalAlignment="Center" Padding="20">
                                 <FontIcon Glyph="&#xE946;" FontSize="36"
                                           Foreground="{ThemeResource TextTertiaryBrush}"
@@ -434,7 +428,7 @@
                                     <Run Text="all-minilm" Foreground="{ThemeResource TextAccentBrush}" FontWeight="SemiBold" />
                                 </TextBlock>
                             </StackPanel>
-                        </Border>
+                        </controls:Faceplate>
                     </StackPanel>
 
                     <!-- ════════════════════════════════════════════
@@ -458,8 +452,7 @@
                         </StackPanel>
 
                         <!-- Built-in Model Status Card -->
-                        <Border Style="{StaticResource CardAccentStyle}"
-                                Margin="0,8,0,0">
+                        <controls:Faceplate Margin="0,8,0,0" Kicker="MOD - ONBD - 08">
                             <StackPanel Spacing="16">
                                 <TextBlock x:Uid="Onb_BuiltinOverline" Text="BUILT-IN LOCAL MODEL"
                                            Style="{StaticResource OverlineStyle}" />
@@ -541,10 +534,10 @@
                                                VerticalAlignment="Center" />
                                 </Grid>
                             </StackPanel>
-                        </Border>
+                        </controls:Faceplate>
 
                         <!-- Cloud API Keys (Optional) -->
-                        <Border Style="{StaticResource CardStyle}">
+                        <controls:Faceplate Kicker="MOD - ONBD - 09">
                             <StackPanel Spacing="16">
                                 <StackPanel Spacing="4">
                                     <TextBlock x:Uid="Onb_CloudOverline" Text="CLOUD PROVIDERS (OPTIONAL)"
@@ -609,7 +602,7 @@
                                            FontStyle="Italic"
                                            TextWrapping="Wrap" />
                             </StackPanel>
-                        </Border>
+                        </controls:Faceplate>
                     </StackPanel>
 
                     <!-- ════════════════════════════════════════════
@@ -648,8 +641,7 @@
                         </StackPanel>
 
                         <!-- Configuration Summary -->
-                        <Border Style="{StaticResource CardStyle}"
-                                MinWidth="480">
+                        <controls:Faceplate MinWidth="480" Kicker="MOD - ONBD - 10">
                             <StackPanel Spacing="16">
                                 <TextBlock x:Uid="Onb_SummaryOverline" Text="CONFIGURATION SUMMARY"
                                            Style="{StaticResource OverlineStyle}" />
@@ -752,7 +744,7 @@
                                                VerticalAlignment="Center" />
                                 </Grid>
                             </StackPanel>
-                        </Border>
+                        </controls:Faceplate>
                     </StackPanel>
 
                 </Grid>

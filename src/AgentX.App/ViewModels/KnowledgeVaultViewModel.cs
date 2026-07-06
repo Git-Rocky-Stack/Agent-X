@@ -624,7 +624,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
             if (item is not null)
             {
                 item.IndexingStatus = "processing";
-                item.StatusColor = "#F59E0B";
+                item.StatusColor = "#FFB000";
                 item.IndexingError = null;
             }
 
@@ -1248,10 +1248,10 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
 
     private static string GetStatusColor(string status) => status switch
     {
-        "completed" => "#22C55E",
-        "processing" => "#F59E0B",
-        "pending" => "#3B82F6",
-        "failed" => "#EF4444",
+        "completed" => "#41E25E",
+        "processing" => "#FFB000",
+        "pending" => "#58C4BC",
+        "failed" => "#C8453E",
         _ => "#6B7280"
     };
 
@@ -1331,7 +1331,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
 public class DocumentDisplayItem : ObservableObject
 {
     private string _indexingStatus = "pending";
-    private string _statusColor = "#3B82F6";
+    private string _statusColor = "#58C4BC";
     private string? _indexingError;
     private bool _isSelected;
     private string _focusedSourceLabel = string.Empty;

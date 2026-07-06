@@ -2,6 +2,7 @@
     x:Class="AgentX.App.Views.SyncSettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:AgentX.App.Controls"
     xmlns:vm="using:AgentX.App.ViewModels"
     xmlns:vmsync="using:AgentX.App.ViewModels.Sync"
     xmlns:converters="using:AgentX.App.Converters"
@@ -250,7 +251,7 @@
                  - Sync scope selector (ComboBox: All / Selected)
                  - Selected collection picker when scoped sync is enabled
                  ======================================================= -->
-            <Border Grid.Row="6" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="6" Kicker="MOD - SYNC - 01">
                 <StackPanel Spacing="20">
 
                     <!-- Section heading with icon -->
@@ -306,8 +307,6 @@
                                      Password="{x:Bind ViewModel.EncryptionKey, Mode=TwoWay}"
                                      x:Uid="Sync_KeyBox" PlaceholderText="Enter a strong passphrase for AES-256 encryption"
                                      PasswordRevealMode="Peek"
-                                     Background="{ThemeResource InputBackgroundBrush}"
-                                     Foreground="{ThemeResource TextPrimaryBrush}"
                                      BorderBrush="{ThemeResource BorderSubtleBrush}"
                                      BorderThickness="1"
                                      CornerRadius="{StaticResource RadiusMD}"
@@ -425,7 +424,7 @@
                     </StackPanel>
 
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- =======================================================
@@ -472,9 +471,7 @@
                  Includes Refresh button and auto-sync badge.
                  Only visible when sync is configured.
                  ======================================================= -->
-            <Border Grid.Row="8"
-                    Style="{StaticResource CardAccentStyle}"
-                    Visibility="{x:Bind ViewModel.IsConfigured, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+            <controls:Faceplate Grid.Row="8" Visibility="{x:Bind ViewModel.IsConfigured, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - SYNC - 02">
                 <StackPanel Spacing="20">
 
                     <!-- Section heading with refresh action -->
@@ -552,12 +549,8 @@
                                            Style="{StaticResource OverlineStyle}" />
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <Ellipse Width="8" Height="8"
-                                             VerticalAlignment="Center">
-                                        <Ellipse.Fill>
-                                            <SolidColorBrush x:Name="StatusCardDotBrush"
-                                                             Color="{StaticResource StatusOnline}" />
-                                        </Ellipse.Fill>
-                                    </Ellipse>
+                                             VerticalAlignment="Center"
+                                             Fill="{x:Bind SyncStateBrush(ViewModel.CurrentSyncState), Mode=OneWay}" />
                                     <TextBlock Text="{x:Bind ViewModel.SyncStateDisplay, Mode=OneWay}"
                                                Style="{StaticResource HeadingSmallStyle}" />
                                 </StackPanel>
@@ -591,7 +584,7 @@
                         </StackPanel>
                     </Border>
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- =======================================================

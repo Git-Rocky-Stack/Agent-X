@@ -27,173 +27,26 @@
     <Duration x:Key="TransitionSlow">0:0:0.4</Duration>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         PRIMARY ACCENT BUTTON (Red gradient, premium feel)
+         PRIMARY ACCENT BUTTON - the ARMED machined cap (DESIGN.md).
+         Consequential commands only. Rebased onto the Hardware.xaml cap
+         template: gradient cap, 1px press travel at 80ms, sheen hover,
+         neutral Ring focus outline (contrast-safe on the red fill).
          ═══════════════════════════════════════════════════════════════ -->
 
-    <Style x:Key="AccentButtonStyle" TargetType="Button">
-        <Setter Property="Background" Value="{ThemeResource AccentGradientBrush}" />
-        <Setter Property="Foreground" Value="{ThemeResource TextPrimaryBrush}" />
-        <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
+    <Style x:Key="AccentButtonStyle" TargetType="Button" BasedOn="{StaticResource ArmedCapButtonStyle}">
         <Setter Property="Padding" Value="24,12,24,12" />
-        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="HorizontalAlignment" Value="Left" />
         <Setter Property="MinHeight" Value="40" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Grid>
-                        <Border x:Name="BackgroundBorder"
-                                Background="{TemplateBinding Background}"
-                                CornerRadius="{TemplateBinding CornerRadius}"
-                                Padding="{TemplateBinding Padding}"
-                                BorderThickness="0">
-                            <ContentPresenter x:Name="ContentPresenter"
-                                              Content="{TemplateBinding Content}"
-                                              ContentTemplate="{TemplateBinding ContentTemplate}"
-                                              HorizontalAlignment="Center"
-                                              VerticalAlignment="Center" />
-                        </Border>
-
-                        <VisualStateManager.VisualStateGroups>
-                            <VisualStateGroup x:Name="CommonStates">
-                                <VisualState x:Name="Normal" />
-                                <VisualState x:Name="PointerOver">
-                                    <Storyboard>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BackgroundBorder"
-                                                                       Storyboard.TargetProperty="Background">
-                                            <DiscreteObjectKeyFrame KeyTime="0"
-                                                                     Value="{ThemeResource AccentGradientHoverBrush}" />
-                                        </ObjectAnimationUsingKeyFrames>
-                                    </Storyboard>
-                                </VisualState>
-                                <VisualState x:Name="Pressed">
-                                    <Storyboard>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BackgroundBorder"
-                                                                       Storyboard.TargetProperty="Background">
-                                            <DiscreteObjectKeyFrame KeyTime="0"
-                                                                     Value="{ThemeResource AccentPressedBrush}" />
-                                        </ObjectAnimationUsingKeyFrames>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter"
-                                                                       Storyboard.TargetProperty="Foreground">
-                                            <DiscreteObjectKeyFrame KeyTime="0"
-                                                                     Value="{ThemeResource TextPrimaryBrush}" />
-                                        </ObjectAnimationUsingKeyFrames>
-                                    </Storyboard>
-                                </VisualState>
-                                <VisualState x:Name="Disabled">
-                                    <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="BackgroundBorder"
-                                                         Storyboard.TargetProperty="Opacity"
-                                                         To="0.4" Duration="0" />
-                                    </Storyboard>
-                                </VisualState>
-                            </VisualStateGroup>
-                            <VisualStateGroup x:Name="FocusStates">
-                                <VisualState x:Name="Focused">
-                                    <Storyboard>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BackgroundBorder"
-                                                                       Storyboard.TargetProperty="BorderBrush">
-                                            <DiscreteObjectKeyFrame KeyTime="0"
-                                                                     Value="{ThemeResource BorderFocusBrush}" />
-                                        </ObjectAnimationUsingKeyFrames>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BackgroundBorder"
-                                                                       Storyboard.TargetProperty="BorderThickness">
-                                            <DiscreteObjectKeyFrame KeyTime="0">
-                                                <DiscreteObjectKeyFrame.Value>
-                                                    <Thickness>2</Thickness>
-                                                </DiscreteObjectKeyFrame.Value>
-                                            </DiscreteObjectKeyFrame>
-                                        </ObjectAnimationUsingKeyFrames>
-                                    </Storyboard>
-                                </VisualState>
-                                <VisualState x:Name="Unfocused" />
-                            </VisualStateGroup>
-                        </VisualStateManager.VisualStateGroups>
-                    </Grid>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
     </Style>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         SECONDARY BUTTON (Subtle, outlined)
+         SECONDARY BUTTON - neutral machined cap
          ═══════════════════════════════════════════════════════════════ -->
 
-    <Style x:Key="SecondaryButtonStyle" TargetType="Button">
-        <Setter Property="Background" Value="Transparent" />
+    <Style x:Key="SecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource MachinedCapButtonStyle}">
         <Setter Property="Foreground" Value="{ThemeResource TextSecondaryBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource BorderMediumBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
         <Setter Property="Padding" Value="20,10,20,10" />
-        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="MinHeight" Value="40" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Grid>
-                        <Border x:Name="BackgroundBorder"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="{TemplateBinding CornerRadius}"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter x:Name="ContentPresenter"
-                                              Content="{TemplateBinding Content}"
-                                              Foreground="{TemplateBinding Foreground}"
-                                              HorizontalAlignment="Center"
-                                              VerticalAlignment="Center" />
-                        </Border>
-
-                        <VisualStateManager.VisualStateGroups>
-                            <VisualStateGroup x:Name="CommonStates">
-                                <VisualState x:Name="Normal" />
-                                <VisualState x:Name="PointerOver">
-                                    <Storyboard>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BackgroundBorder"
-                                                                       Storyboard.TargetProperty="Background">
-                                            <DiscreteObjectKeyFrame KeyTime="0"
-                                                                     Value="{ThemeResource CardHoverBrush}" />
-                                        </ObjectAnimationUsingKeyFrames>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BackgroundBorder"
-                                                                       Storyboard.TargetProperty="BorderBrush">
-                                            <DiscreteObjectKeyFrame KeyTime="0"
-                                                                     Value="{ThemeResource BorderStrongBrush}" />
-                                        </ObjectAnimationUsingKeyFrames>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter"
-                                                                       Storyboard.TargetProperty="Foreground">
-                                            <DiscreteObjectKeyFrame KeyTime="0"
-                                                                     Value="{ThemeResource TextPrimaryBrush}" />
-                                        </ObjectAnimationUsingKeyFrames>
-                                    </Storyboard>
-                                </VisualState>
-                                <VisualState x:Name="Pressed">
-                                    <Storyboard>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BackgroundBorder"
-                                                                       Storyboard.TargetProperty="Background">
-                                            <DiscreteObjectKeyFrame KeyTime="0"
-                                                                     Value="{ThemeResource CardPressedBrush}" />
-                                        </ObjectAnimationUsingKeyFrames>
-                                    </Storyboard>
-                                </VisualState>
-                                <VisualState x:Name="Disabled">
-                                    <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="BackgroundBorder"
-                                                         Storyboard.TargetProperty="Opacity"
-                                                         To="0.3" Duration="0" />
-                                    </Storyboard>
-                                </VisualState>
-                            </VisualStateGroup>
-                        </VisualStateManager.VisualStateGroups>
-                    </Grid>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
     </Style>
 
     <!-- ═══════════════════════════════════════════════════════════════
@@ -291,8 +144,12 @@
     </Style>
 
     <!-- Inset Card — Recessed input areas, code blocks -->
+    <!-- Inset content card on the faceplate surface. Follows the shift
+         (recessed carbon at night, recessed silver by day): the
+         displays-stay-dark rule covers LCD wells and lamp caps, not
+         generic content cards, so this must NOT use the well tokens. -->
     <Style x:Key="CardInsetStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource InputBackgroundBrush}" />
+        <Setter Property="Background" Value="{ThemeResource CardBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
@@ -303,12 +160,17 @@
          INPUT STYLES
          ═══════════════════════════════════════════════════════════════ -->
 
+    <!-- Console plate forms (DESIGN.md): inputs are recessed dark wells
+         with light text in BOTH shifts - the displays-stay-dark rule.
+         The Fluent TextControl*/ComboBox* lightweight resources are
+         overridden per-theme in Colors.xaml so template hover/focus
+         states cannot flash the well light in Day Shift. -->
     <Style x:Key="InputTextBoxStyle" TargetType="TextBox">
-        <Setter Property="Background" Value="{ThemeResource InputBackgroundBrush}" />
-        <Setter Property="Foreground" Value="{ThemeResource TextPrimaryBrush}" />
+        <Setter Property="Background" Value="{ThemeResource WellBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource WellTextBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource InputBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusXS}" />
         <Setter Property="Padding" Value="14,10,14,10" />
         <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
         <Setter Property="FontSize" Value="14" />
@@ -317,9 +179,9 @@
         <Setter Property="SelectionHighlightColor" Value="{ThemeResource AccentPrimaryBrush}" />
     </Style>
 
-    <!-- Chat Input — Larger, multi-line with premium feel -->
+    <!-- Chat Input - the primary stream well: larger, multi-line -->
     <Style x:Key="ChatInputStyle" TargetType="TextBox" BasedOn="{StaticResource InputTextBoxStyle}">
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusLG}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusXS}" />
         <Setter Property="Padding" Value="18,14,18,14" />
         <Setter Property="FontSize" Value="15" />
         <Setter Property="MinHeight" Value="52" />
@@ -330,7 +192,7 @@
 
     <!-- Search Input -->
     <Style x:Key="SearchInputStyle" TargetType="TextBox" BasedOn="{StaticResource InputTextBoxStyle}">
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusXS}" />
         <Setter Property="Padding" Value="18,10,18,10" />
     </Style>
 
@@ -418,7 +280,7 @@
 
     <Style x:Key="AccentProgressBarStyle" TargetType="ProgressBar">
         <Setter Property="Foreground" Value="{ThemeResource AccentPrimaryBrush}" />
-        <Setter Property="Background" Value="{ThemeResource InputBackgroundBrush}" />
+        <Setter Property="Background" Value="{ThemeResource CardPressedBrush}" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
         <Setter Property="MinHeight" Value="4" />
         <Setter Property="MaxHeight" Value="4" />

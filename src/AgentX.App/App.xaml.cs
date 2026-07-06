@@ -700,6 +700,7 @@ public partial class App : Application
         // ── Window Services (extracted from MainWindow) ──────────
         services.AddSingleton<IAppNavigationService, AppNavigationService>();
         services.AddSingleton<IStatusBarService, StatusBarService>();
+        services.AddSingleton<IAnnunciatorService, AnnunciatorService>();
         services.AddSingleton<IOnboardingService, OnboardingService>();
         services.AddSingleton<IChromeService, ChromeService>();
 

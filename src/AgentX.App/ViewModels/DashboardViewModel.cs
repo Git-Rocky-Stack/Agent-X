@@ -373,7 +373,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             var total = distribution.Values.Sum();
 
             // Color palette for file types
-            var colors = new[] { "#C41E3A", "#3B82F6", "#22C55E", "#F59E0B", "#A855F7", "#EC4899", "#06B6D4", "#F97316" };
+            var colors = new[] { "#AA2024", "#58C4BC", "#41E25E", "#FFB000", "#E6E6E6", "#E0252B", "#B3B3B3", "#7F171A" };
             var colorIndex = 0;
 
             var breakdown = distribution

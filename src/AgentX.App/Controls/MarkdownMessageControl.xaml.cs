@@ -100,8 +100,8 @@ public sealed partial class MarkdownMessageControl : UserControl
         // ── Header: language label + copy button ──────────────────
         var headerBorder = new Border
         {
-            Background = new SolidColorBrush(Color.FromArgb(255, 30, 30, 35)),
-            CornerRadius = new CornerRadius(8, 8, 0, 0),
+            Background = new SolidColorBrush(Color.FromArgb(255, 13, 13, 13)),
+            CornerRadius = new CornerRadius(2, 2, 0, 0),
             Padding = new Thickness(12, 6, 8, 6)
         };
 
@@ -112,8 +112,9 @@ public sealed partial class MarkdownMessageControl : UserControl
         // Language label
         var languageLabel = new TextBlock
         {
-            Text = segment.Language ?? "code",
-            FontSize = 11,
+            Text = (segment.Language ?? "code").ToUpperInvariant(),
+            FontFamily = (FontFamily)Application.Current.Resources["FontTelemetry"],
+            FontSize = 10,
             Foreground = new SolidColorBrush(Color.FromArgb(180, 255, 255, 255)),
             VerticalAlignment = VerticalAlignment.Center,
             CharacterSpacing = 40,
@@ -187,8 +188,8 @@ public sealed partial class MarkdownMessageControl : UserControl
         // ── Code content area (with syntax highlighting) ──────────
         var codeBorder = new Border
         {
-            Background = new SolidColorBrush(Color.FromArgb(255, 24, 24, 28)),
-            CornerRadius = new CornerRadius(0, 0, 8, 8),
+            Background = new SolidColorBrush(Color.FromArgb(255, 8, 8, 8)),
+            CornerRadius = new CornerRadius(0, 0, 2, 2),
             Padding = new Thickness(16, 12, 16, 12)
         };
 
@@ -203,7 +204,7 @@ public sealed partial class MarkdownMessageControl : UserControl
             // Syntax-highlighted code via RichTextBlock with colored Runs
             var richBlock = new RichTextBlock
             {
-                FontFamily = new FontFamily("Cascadia Code, Consolas, Courier New, monospace"),
+                FontFamily = (FontFamily)Application.Current.Resources["FontMono"],
                 FontSize = 13,
                 TextWrapping = TextWrapping.NoWrap,
                 IsTextSelectionEnabled = true,
@@ -226,7 +227,7 @@ public sealed partial class MarkdownMessageControl : UserControl
             var codeText = new TextBlock
             {
                 Text = segment.Content,
-                FontFamily = new FontFamily("Cascadia Code, Consolas, Courier New, monospace"),
+                FontFamily = (FontFamily)Application.Current.Resources["FontMono"],
                 FontSize = 13,
                 Foreground = new SolidColorBrush(Color.FromArgb(230, 220, 220, 230)),
                 TextWrapping = TextWrapping.NoWrap,
@@ -353,7 +354,7 @@ public sealed partial class MarkdownMessageControl : UserControl
                 var codeRun = new Run
                 {
                     Text = match.Groups[4].Value,
-                    FontFamily = new FontFamily("Cascadia Code, Consolas, monospace"),
+                    FontFamily = (FontFamily)Application.Current.Resources["FontMono"],
                     Foreground = new SolidColorBrush(Color.FromArgb(255, 229, 134, 132))
                 };
                 textBlock.Inlines.Add(codeRun);

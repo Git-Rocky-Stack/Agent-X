@@ -384,7 +384,7 @@
                         <!-- Large plugin type icon -->
                         <Border x:Name="DetailIcon"
                                 Background="{ThemeResource AccentSubtleBrush}"
-                                CornerRadius="{StaticResource RadiusLG}"
+                                CornerRadius="{StaticResource ROverlay}"
                                 Width="56" Height="56"
                                 VerticalAlignment="Top"
                                 Margin="0,0,16,0">
@@ -512,7 +512,7 @@
                     <!-- =======================================================
                          DETAIL ROW 2: DESCRIPTION CARD
                          ======================================================= -->
-                    <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                    <controls:Faceplate Grid.Row="2" Kicker="MOD - PLUG - 01">
                         <StackPanel Spacing="12">
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Glyph="&#xE946;" FontSize="16"
@@ -527,13 +527,13 @@
                                        TextWrapping="Wrap"
                                        MaxWidth="700" />
                         </StackPanel>
-                    </Border>
+                    </controls:Faceplate>
 
                     <!-- =======================================================
                          DETAIL ROW 3: DETAILS CARD
                          Install Path, Installed date, Last Activated date
                          ======================================================= -->
-                    <Border Grid.Row="3" Style="{StaticResource CardStyle}">
+                    <controls:Faceplate Grid.Row="3" Kicker="MOD - PLUG - 02">
                         <StackPanel Spacing="16">
                             <!-- Section header -->
                             <StackPanel Orientation="Horizontal" Spacing="10">
@@ -554,11 +554,14 @@
                                            Style="{StaticResource LabelStyle}"
                                            VerticalAlignment="Center" />
                                 <Border Grid.Column="1"
-                                        Background="{ThemeResource InputBackgroundBrush}"
+                                        Background="{ThemeResource WellBrush}"
+                                        BorderBrush="{ThemeResource WellBorderBrush}"
+                                        BorderThickness="1"
                                         CornerRadius="{StaticResource RadiusSM}"
                                         Padding="10,6,10,6">
                                     <TextBlock x:Name="DetailInstallPath"
                                                Style="{StaticResource MonoSmallStyle}"
+                                               Foreground="{ThemeResource WellTextSecondaryBrush}"
                                                TextTrimming="CharacterEllipsis"
                                                MaxLines="1"
                                                IsTextSelectionEnabled="True" />
@@ -607,15 +610,13 @@
                                 </StackPanel>
                             </Grid>
                         </StackPanel>
-                    </Border>
+                    </controls:Faceplate>
 
                     <!-- =======================================================
                          DETAIL ROW 4: CONFIGURATION CARD
                          Only visible when SettingsJson is not null/empty
                          ======================================================= -->
-                    <Border Grid.Row="4" Style="{StaticResource CardStyle}"
-                            x:Name="DetailSettingsCard"
-                            Visibility="Collapsed">
+                    <controls:Faceplate Grid.Row="4" x:Name="DetailSettingsCard" Visibility="Collapsed" Kicker="MOD - PLUG - 03">
                         <StackPanel Spacing="12">
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Glyph="&#xE713;" FontSize="16"
@@ -624,28 +625,27 @@
                                            Style="{StaticResource HeadingSmallStyle}" />
                             </StackPanel>
 
-                            <Border Background="{ThemeResource InputBackgroundBrush}"
+                            <Border Background="{ThemeResource WellBrush}"
                                     CornerRadius="{StaticResource RadiusMD}"
                                     Padding="16,12"
-                                    BorderBrush="{ThemeResource BorderSubtleBrush}"
+                                    BorderBrush="{ThemeResource WellBorderBrush}"
                                     BorderThickness="1">
                                 <TextBlock x:Name="DetailSettingsJson"
                                            Style="{StaticResource MonoSmallStyle}"
+                                           Foreground="{ThemeResource WellTextSecondaryBrush}"
                                            TextWrapping="Wrap"
                                            IsTextSelectionEnabled="True"
                                            MaxLines="20" />
                             </Border>
                         </StackPanel>
-                    </Border>
+                    </controls:Faceplate>
 
                     <!-- =======================================================
                          DETAIL ROW 5: DOCUMENTATION CARD
                          README / documentation rendered as Markdown.
                          Only visible when ReadmeContent is not null/empty.
                          ======================================================= -->
-                    <Border Grid.Row="5" Style="{StaticResource CardStyle}"
-                            x:Name="DetailDocumentationCard"
-                            Visibility="Collapsed">
+                    <controls:Faceplate Grid.Row="5" x:Name="DetailDocumentationCard" Visibility="Collapsed" Kicker="MOD - PLUG - 04">
                         <StackPanel Spacing="16">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE736;" FontSize="16"
@@ -655,7 +655,7 @@
                             </StackPanel>
                             <controls:MarkdownMessageControl x:Name="DetailReadmeContent" />
                         </StackPanel>
-                    </Border>
+                    </controls:Faceplate>
 
                     <!-- =======================================================
                          DETAIL ROW 6: DANGER ZONE
@@ -665,7 +665,7 @@
                             Background="#0DEF4444"
                             BorderBrush="{ThemeResource ErrorSubtleBrush}"
                             BorderThickness="1"
-                            CornerRadius="{StaticResource RadiusLG}"
+                            CornerRadius="{StaticResource ROverlay}"
                             Padding="20">
                         <Grid>
                             <Grid.ColumnDefinitions>

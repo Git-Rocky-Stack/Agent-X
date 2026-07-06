@@ -167,7 +167,7 @@ public sealed partial class KnowledgeVaultPage : Page
         // Reset visual feedback
         if (sender is Border border)
         {
-            border.Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["InputBackgroundBrush"];
+            border.Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CardBrush"];
             border.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["BorderMediumBrush"];
         }
     }
@@ -177,7 +177,7 @@ public sealed partial class KnowledgeVaultPage : Page
         // Reset visual feedback
         if (sender is Border border)
         {
-            border.Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["InputBackgroundBrush"];
+            border.Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CardBrush"];
             border.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["BorderMediumBrush"];
         }
 

@@ -2,6 +2,7 @@
     x:Class="AgentX.App.Views.PrivacyPolicyPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:AgentX.App.Controls"
     Background="Transparent"
     NavigationCacheMode="Enabled">
 
@@ -49,8 +50,7 @@
             <!-- ==========================================================
                  ROW 1: LOCAL-FIRST PRIVACY BANNER
                  ========================================================== -->
-            <Border Grid.Row="1"
-                    Style="{StaticResource CardAccentStyle}">
+            <controls:Faceplate Grid.Row="1" Kicker="MOD - PRIV - 01">
                 <Grid ColumnSpacing="16">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -96,13 +96,13 @@
                         </StackPanel>
                     </Border>
                 </Grid>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ==========================================================
                  ROW 2: OUR COMMITMENT TO PRIVACY
                  ========================================================== -->
-            <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="2" Kicker="MOD - PRIV - 02">
                 <StackPanel Spacing="16">
 
                     <!-- Section Header -->
@@ -129,13 +129,13 @@
                     <TextBlock Style="{StaticResource BodySecondaryStyle}"
                                x:Uid="Privacy_OurLocalFirstArchitecture" Text="Our local-first architecture means you retain full ownership and control of every piece of information you create or import into Agent-X. There are no accounts to create, no data syncing, and no telemetry being transmitted." />
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ==========================================================
                  ROW 3: INFORMATION WE COLLECT
                  ========================================================== -->
-            <Border Grid.Row="3" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="3" Kicker="MOD - PRIV - 03">
                 <StackPanel Spacing="20">
 
                     <!-- Section Header -->
@@ -286,13 +286,13 @@
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ==========================================================
                  ROW 4: HOW YOUR DATA IS STORED
                  ========================================================== -->
-            <Border Grid.Row="4" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="4" Kicker="MOD - PRIV - 04">
                 <StackPanel Spacing="16">
 
                     <!-- Section Header -->
@@ -366,13 +366,13 @@
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ==========================================================
                  ROW 5: THIRD-PARTY SERVICES
                  ========================================================== -->
-            <Border Grid.Row="5" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="5" Kicker="MOD - PRIV - 05">
                 <StackPanel Spacing="16">
 
                     <!-- Section Header -->
@@ -439,13 +439,13 @@
                                    Margin="22,0,0,0" />
                     </StackPanel>
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ==========================================================
                  ROW 6: YOUR RIGHTS UNDER GDPR
                  ========================================================== -->
-            <Border Grid.Row="6" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="6" Kicker="MOD - PRIV - 06">
                 <StackPanel Spacing="16">
 
                     <!-- Section Header -->
@@ -616,13 +616,13 @@
                         </StackPanel>
                     </Border>
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ==========================================================
                  ROW 7: YOUR RIGHTS UNDER CCPA
                  ========================================================== -->
-            <Border Grid.Row="7" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="7" Kicker="MOD - PRIV - 07">
                 <StackPanel Spacing="16">
 
                     <!-- Section Header -->
@@ -791,13 +791,13 @@
                         </StackPanel>
                     </Border>
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ==========================================================
                  ROW 8: DATA SECURITY
                  ========================================================== -->
-            <Border Grid.Row="8" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="8" Kicker="MOD - PRIV - 08">
                 <StackPanel Spacing="16">
 
                     <!-- Section Header -->
@@ -874,13 +874,13 @@
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ==========================================================
                  ROW 9: CHILDREN'S PRIVACY
                  ========================================================== -->
-            <Border Grid.Row="9" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="9" Kicker="MOD - PRIV - 09">
                 <StackPanel Spacing="12">
 
                     <!-- Section Header -->
@@ -904,13 +904,13 @@
                     <TextBlock Style="{StaticResource BodyStyle}"
                                x:Uid="Privacy_AgentXIsNot" Text="Agent-X is not directed at children under the age of 13. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided information through the application, please contact us so we can assist." />
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ==========================================================
                  ROW 10: CHANGES TO THIS PRIVACY POLICY
                  ========================================================== -->
-            <Border Grid.Row="10" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="10" Kicker="MOD - PRIV - 10">
                 <StackPanel Spacing="12">
 
                     <!-- Section Header -->
@@ -937,13 +937,13 @@
                     <TextBlock Style="{StaticResource BodySecondaryStyle}"
                                x:Uid="Privacy_WeEncourageYouTo" Text="We encourage you to review this Privacy Policy periodically to stay informed about how we protect your information." />
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ==========================================================
                  ROW 11: CONTACT US
                  ========================================================== -->
-            <Border Grid.Row="11" Style="{StaticResource CardStyle}">
+            <controls:Faceplate Grid.Row="11" Kicker="MOD - PRIV - 11">
                 <StackPanel Spacing="16">
 
                     <!-- Section Header -->
@@ -1059,7 +1059,7 @@
                         </StackPanel>
                     </Border>
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
 
             <!-- ==========================================================

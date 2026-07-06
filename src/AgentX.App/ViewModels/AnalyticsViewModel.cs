@@ -267,13 +267,13 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
                 _analyticsService.GetDailySearchMetricsAsync(30, ct)
             ).WhenAll();
 
-            DailyConversations = BuildDailyItems(convMetrics, "#C41E3A");
+            DailyConversations = BuildDailyItems(convMetrics, "#AA2024");
             HasDailyConversationData = convMetrics.Any(m => m.Count > 0);
 
-            DailyDocuments = BuildDailyItems(docMetrics, "#3B82F6");
+            DailyDocuments = BuildDailyItems(docMetrics, "#58C4BC");
             HasDailyDocumentData = docMetrics.Any(m => m.Count > 0);
 
-            DailySearches = BuildDailyItems(searchMetrics, "#22C55E");
+            DailySearches = BuildDailyItems(searchMetrics, "#41E25E");
             HasDailySearchData = searchMetrics.Any(m => m.Count > 0);
         }
         catch (Exception ex)
@@ -293,7 +293,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             HasModelData = metrics.Count > 0;
 
             // Color palette cycles through brand-consistent colors
-            var colors = new[] { "#C41E3A", "#3B82F6", "#22C55E", "#F59E0B", "#A855F7", "#EC4899", "#06B6D4", "#F97316" };
+            var colors = new[] { "#AA2024", "#58C4BC", "#41E25E", "#FFB000", "#E6E6E6", "#E0252B", "#B3B3B3", "#7F171A" };
 
             ModelUsage = new ObservableCollection<AnalyticsModelItem>(
                 metrics.Select((m, i) => new AnalyticsModelItem
@@ -324,7 +324,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             var metrics = await _analyticsService.GetFileTypeDistributionAsync(ct);
             HasFileTypeData = metrics.Count > 0;
 
-            var colors = new[] { "#C41E3A", "#3B82F6", "#22C55E", "#F59E0B", "#A855F7", "#EC4899", "#06B6D4", "#F97316" };
+            var colors = new[] { "#AA2024", "#58C4BC", "#41E25E", "#FFB000", "#E6E6E6", "#E0252B", "#B3B3B3", "#7F171A" };
 
             FileTypeDistribution = new ObservableCollection<AnalyticsFileTypeItem>(
                 metrics.Select((m, i) => new AnalyticsFileTypeItem
@@ -405,7 +405,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
                 : "—";
             WorkflowActiveRecently = FormatNumber(overview.ActiveWorkflowsRecently);
 
-            DailyWorkflowRuns = BuildDailyItems(dailyMetrics, "#F97316");
+            DailyWorkflowRuns = BuildDailyItems(dailyMetrics, "#FFB000");
             HasWorkflowTrendData = dailyMetrics.Any(metric => metric.Count > 0);
 
             TopWorkflows = new ObservableCollection<AnalyticsWorkflowTopItem>(
@@ -545,10 +545,10 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
                 GeneratedAt = summary.GeneratedAt,
                 StatusLabel = BuildConversationSummaryStatusLabel(summary),
                 StatusColor = summary.HasRefreshError
-                        ? "#F59E0B"
+                        ? "#FFB000"
                         : summary.IsStale
-                            ? "#C41E3A"
-                            : "#22C55E",
+                            ? "#AA2024"
+                            : "#41E25E",
                 GeneratedAtLabel = BuildRelativeTimeLabel(summary.GeneratedAt)
             })
                 .ToList();
@@ -1123,7 +1123,7 @@ public sealed class AnalyticsDailyItem
     public DateTime Date { get; init; }
     public int Count { get; init; }
     public string Label { get; init; } = string.Empty;
-    public string Color { get; init; } = "#C41E3A";
+    public string Color { get; init; } = "#AA2024";
     public double BarHeightPercent { get; init; }
     public double BarHeight { get; init; }
     public string CountLabel => Count.ToString("N0");
@@ -1173,7 +1173,7 @@ public sealed class AnalyticsModelItem
     public double Percentage { get; init; }
     /// <summary>Bar fill fraction in [0.0, 1.0] for use with <c>PercentToWidthConverter</c>.</summary>
     public double BarWidthFraction { get; init; }
-    public string Color { get; init; } = "#C41E3A";
+    public string Color { get; init; } = "#AA2024";
     public string PercentageLabel { get; init; } = string.Empty;
     public string CountLabel { get; init; } = string.Empty;
     public string DisplayName => string.IsNullOrEmpty(ModelId) ? "Unknown" : ModelId;
@@ -1190,7 +1190,7 @@ public sealed class AnalyticsFileTypeItem
     public double Percentage { get; init; }
     /// <summary>Bar fill fraction in [0.0, 1.0] for use with <c>PercentToWidthConverter</c>.</summary>
     public double BarWidthFraction { get; init; }
-    public string Color { get; init; } = "#3B82F6";
+    public string Color { get; init; } = "#58C4BC";
     public string PercentageLabel { get; init; } = string.Empty;
     public string CountLabel { get; init; } = string.Empty;
 }
@@ -1208,7 +1208,7 @@ public sealed class AnalyticsConversationSummaryItem
     public DateTime GeneratedAt { get; init; }
     public string GeneratedAtLabel { get; init; } = string.Empty;
     public string StatusLabel { get; init; } = string.Empty;
-    public string StatusColor { get; init; } = "#22C55E";
+    public string StatusColor { get; init; } = "#41E25E";
     public bool IsFocused { get; init; }
     public string SourceLabel { get; init; } = string.Empty;
     public bool HasKeyPoints => KeyPoints.Count > 0;

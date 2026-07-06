@@ -167,7 +167,7 @@
                     <StackPanel Spacing="4">
                         <TextBlock x:Uid="Search_SearchModeOverline" Text="SEARCH MODE"
                                    Style="{StaticResource OverlineStyle}" />
-                        <Border Background="{ThemeResource InputBackgroundBrush}"
+                        <Border Background="{ThemeResource CardBrush}"
                                 CornerRadius="{StaticResource RadiusMD}"
                                 Padding="3"
                                 HorizontalAlignment="Left">
@@ -330,7 +330,7 @@
 
             <Border Grid.Row="2" Padding="32,0,32,12"
                     Visibility="{x:Bind ViewModel.IsAdvancedFiltersOpen, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                <Border Background="{ThemeResource InputBackgroundBrush}"
+                <Border Background="{ThemeResource CardBrush}"
                         CornerRadius="{StaticResource RadiusMD}"
                         Padding="20,16,20,16"
                         MaxWidth="900">
@@ -644,7 +644,7 @@
 
                                                 <!-- Score track background -->
                                                 <Border Grid.Column="1"
-                                                        Background="{ThemeResource InputBackgroundBrush}"
+                                                        Background="{ThemeResource CardPressedBrush}"
                                                         CornerRadius="{StaticResource RadiusRound}"
                                                         Height="6"
                                                         VerticalAlignment="Center">

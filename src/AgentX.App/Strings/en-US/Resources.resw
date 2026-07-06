@@ -84,7 +84,7 @@
        ========================================================== -->
 
   <!-- UserGuide: Page Header -->
-  <data name="UserGuide_PageHeaderTitle.Text" xml:space="preserve"><value>User Guide</value></data>
+  <data name="UserGuide_PageHeaderTitle.Text" xml:space="preserve"><value>USER GUIDE</value></data>
   <data name="UserGuide_PageHeaderDescription.Text" xml:space="preserve"><value>Everything you need to know to get the most out of Agent-X.</value></data>
 
   <!-- UserGuide: Welcome (Row 1) -->
@@ -739,7 +739,7 @@
   <data name="Inbox_AcceptAllBtn.Content" xml:space="preserve"><value>Accept All Pending</value></data>
   <data name="Inbox_GeneratePreviewsBtn.Content" xml:space="preserve"><value>Generate AI Previews</value></data>
   <data name="Inbox_CleanupBtn.Content" xml:space="preserve"><value>Clean Up Processed</value></data>
-  <data name="Inbox_TriageTitle.Text" xml:space="preserve"><value>Document Triage</value></data>
+  <data name="Inbox_TriageTitle.Text" xml:space="preserve"><value>DOCUMENT TRIAGE</value></data>
   <data name="Inbox_TriageSubtitle.Text" xml:space="preserve"><value>Review new files before they enter your knowledge base. AI suggests collections and tags.</value></data>
   <data name="Inbox_FocusedTitle.Text" xml:space="preserve"><value>Focused Inbox Item</value></data>
   <data name="Inbox_FocusedDismissBtn.Content" xml:space="preserve"><value>Dismiss</value></data>
@@ -761,7 +761,7 @@
   <data name="Comp_DetailLevelBox.Header" xml:space="preserve"><value>Detail Level</value></data>
   <data name="Comp_CompareBtn.Content" xml:space="preserve"><value>Compare Documents</value></data>
   <data name="Comp_CancelBtn.Content" xml:space="preserve"><value>Cancel</value></data>
-  <data name="Comp_Title.Text" xml:space="preserve"><value>Comparative Analysis</value></data>
+  <data name="Comp_Title.Text" xml:space="preserve"><value>COMPARATIVE ANALYSIS</value></data>
   <data name="Comp_Subtitle.Text" xml:space="preserve"><value>Select 2+ documents to generate a structured side-by-side comparison.</value></data>
   <data name="Comp_SummaryTitle.Text" xml:space="preserve"><value>Summary</value></data>
   <data name="Comp_TokensRun.Text" xml:space="preserve"><value>tokens</value></data>
@@ -776,7 +776,7 @@
   <data name="Ops_RetryIndexBtn.Content" xml:space="preserve"><value>Retry Index</value></data>
   <data name="Ops_EnableConnectorBtn.Content" xml:space="preserve"><value>Enable Connector</value></data>
   <data name="Ops_OpenPluginBtn.Content" xml:space="preserve"><value>Open Plugin</value></data>
-  <data name="Ops_Title.Text" xml:space="preserve"><value>Operations</value></data>
+  <data name="Ops_Title.Text" xml:space="preserve"><value>OPERATIONS</value></data>
   <data name="Ops_Subtitle.Text" xml:space="preserve"><value>Unified status for conversation intelligence, sync posture, ingestion backlog, workflow activity, and connectors.</value></data>
   <data name="Ops_DashboardBtn.Content" xml:space="preserve"><value>Dashboard</value></data>
   <data name="Ops_RefreshBtn.Content" xml:space="preserve"><value>Refresh</value></data>
@@ -804,7 +804,7 @@
   <data name="Ops_ConnectorsOverline.Text" xml:space="preserve"><value>CONNECTORS &amp; PLUGINS</value></data>
   <data name="Ops_ConnectorPreviewLabel.Text" xml:space="preserve"><value>Connector preview</value></data>
   <data name="Ops_OpenPluginManagerBtn.Content" xml:space="preserve"><value>Open Plugin Manager</value></data>
-  <data name="Ana_Title.Text" xml:space="preserve"><value>Analytics</value></data>
+  <data name="Ana_Title.Text" xml:space="preserve"><value>ANALYTICS</value></data>
   <data name="Ana_Subtitle.Text" xml:space="preserve"><value>Usage statistics, performance metrics, and activity trends</value></data>
   <data name="Ana_RefreshBtn.Content" xml:space="preserve"><value>Refresh</value></data>
   <data name="Ana_Loading.Text" xml:space="preserve"><value>Loading analytics data...</value></data>
@@ -922,7 +922,7 @@
   <data name="Ana_SlowestCaption.Text" xml:space="preserve"><value>Worst observed response</value></data>
   <data name="Ana_TotalInfOverline.Text" xml:space="preserve"><value>TOTAL INFERENCE TIME</value></data>
   <data name="Ana_TotalInfCaption.Text" xml:space="preserve"><value>Cumulative AI generation time across all sessions</value></data>
-  <data name="Sync_Title.Text" xml:space="preserve"><value>Collaborative Sync</value></data>
+  <data name="Sync_Title.Text" xml:space="preserve"><value>COLLABORATIVE SYNC</value></data>
   <data name="Sync_Subtitle.Text" xml:space="preserve"><value>Configure encrypted sync between Agent-X installations.</value></data>
   <data name="Sync_SyncNowLabel.Text" xml:space="preserve"><value>Sync Now</value></data>
   <data name="Sync_LoadingSettings.Text" xml:space="preserve"><value>Loading sync settings...</value></data>
@@ -1059,7 +1059,7 @@
   <data name="Main_QuickChat.Text" xml:space="preserve"><value>Quick Chat</value></data>
   <data name="Main_Settings2.Text" xml:space="preserve"><value>Settings</value></data>
   <data name="Main_Exit.Text" xml:space="preserve"><value>Exit</value></data>
-  <data name="Dash_Title.Text" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="Dash_Title.Text" xml:space="preserve"><value>DASHBOARD</value></data>
   <data name="Dash_Subtitle.Text" xml:space="preserve"><value>Your private AI intelligence center. Everything runs on your machine.</value></data>
   <data name="Dash_RefreshBtn.Content" xml:space="preserve"><value>Refresh</value></data>
   <data name="Dash_ConnectOllamaHint.Text" xml:space="preserve"><value>Connect Ollama to unlock AI chat, semantic search, and file intelligence.</value></data>
@@ -1216,7 +1216,7 @@
   <data name="AskFiles_OpenSourceBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Open source document</value></data>
   <data name="AskFiles_PageLabel.Text" xml:space="preserve"><value>Page</value></data>
   <data name="AskFiles_GroundedNote.Text" xml:space="preserve"><value>All answers are grounded in your documents.</value></data>
-  <data name="Search_Title.Text" xml:space="preserve"><value>Search</value></data>
+  <data name="Search_Title.Text" xml:space="preserve"><value>SEARCH</value></data>
   <data name="Search_Subtitle.Text" xml:space="preserve"><value>Search across your entire document library using semantic AI, keywords, or both.</value></data>
   <data name="Search_InputBox.PlaceholderText" xml:space="preserve"><value>Search your documents...</value></data>
   <data name="Search_SearchBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Search (Enter)</value></data>
@@ -1391,7 +1391,7 @@
   <data name="CollMgr_RemoveFromCollectionTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Remove from collection</value></data>
   <data name="CollMgr_NoDocumentsInThis.Text" xml:space="preserve"><value>No documents in this collection</value></data>
   <data name="CollMgr_ClickAddDocumentsTo.Text" xml:space="preserve"><value>Click 'Add Documents' to assign files from your Knowledge Vault to this collection.</value></data>
-  <data name="Graph_KnowledgeGraph.Text" xml:space="preserve"><value>Knowledge Graph</value></data>
+  <data name="Graph_KnowledgeGraph.Text" xml:space="preserve"><value>KNOWLEDGE GRAPH</value></data>
   <data name="Graph_VisualizeRelationshipsBetweenD.Text" xml:space="preserve"><value>Visualize relationships between documents, collections, and tags.</value></data>
   <data name="Graph_SearchNodesPh.PlaceholderText" xml:space="preserve"><value>Search nodes...</value></data>
   <data name="Graph_Docs.Text" xml:space="preserve"><value>Docs</value></data>
@@ -1429,13 +1429,13 @@
   <data name="Annot_FilterByColor.Text" xml:space="preserve"><value>FILTER BY COLOR</value></data>
   <data name="Annot_Distribution.Text" xml:space="preserve"><value>DISTRIBUTION</value></data>
   <data name="Annot_ExportAsMarkdown.Content" xml:space="preserve"><value>Export as Markdown</value></data>
-  <data name="Annot_AllAnnotations.Text" xml:space="preserve"><value>All Annotations</value></data>
+  <data name="Annot_AllAnnotations.Text" xml:space="preserve"><value>ALL ANNOTATIONS</value></data>
   <data name="Annot_YourHighlightsAndNotes.Text" xml:space="preserve"><value>Your highlights and notes across all documents.</value></data>
   <data name="Annot_DeleteAnnotationTip.ToolTipService.ToolTip" xml:space="preserve"><value>Delete annotation</value></data>
   <data name="Annot_DeleteAnnotationTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Delete annotation</value></data>
   <data name="Annot_NoAnnotationsYet.Text" xml:space="preserve"><value>No annotations yet</value></data>
   <data name="Annot_HighlightTextInYour.Text" xml:space="preserve"><value>Highlight text in your documents to create annotations.</value></data>
-  <data name="WebImport_WebImport.Text" xml:space="preserve"><value>Web Import</value></data>
+  <data name="WebImport_WebImport.Text" xml:space="preserve"><value>WEB IMPORT</value></data>
   <data name="WebImport_PasteUrlsToExtract.Text" xml:space="preserve"><value>Paste URLs to extract and ingest web articles into your Knowledge Vault.</value></data>
   <data name="WebImport_EnterUrls.Text" xml:space="preserve"><value>Enter URLs</value></data>
   <data name="WebImport_OneUrlPerLine.Text" xml:space="preserve"><value>One URL per line. Supports web articles and YouTube videos.</value></data>
@@ -1466,7 +1466,7 @@
   <data name="WebImport_SitemapUrl.Header" xml:space="preserve"><value>Sitemap URL</value></data>
   <data name="WebImport_ImportFromSitemap.Content" xml:space="preserve"><value>Import from Sitemap</value></data>
   <data name="WebImport_ImportsUpTo100.Text" xml:space="preserve"><value>Imports up to 100 pages from the sitemap</value></data>
-  <data name="Digest_WeeklyDigest.Text" xml:space="preserve"><value>Weekly Digest</value></data>
+  <data name="Digest_WeeklyDigest.Text" xml:space="preserve"><value>WEEKLY DIGEST</value></data>
   <data name="Digest_GenerateNewDigest.Text" xml:space="preserve"><value>Generate New Digest</value></data>
   <data name="Digest_NewDocuments.Text" xml:space="preserve"><value>New Documents</value></data>
   <data name="Digest_Conversations.Text" xml:space="preserve"><value>Conversations</value></data>
@@ -1493,7 +1493,7 @@
   <data name="Digest_SelectAPreviousReport.Text" xml:space="preserve"><value>Select a previous report to view</value></data>
   <data name="Digest_Docs2.Text" xml:space="preserve"><value> docs</value></data>
   <data name="Digest_Searches2.Text" xml:space="preserve"><value> searches</value></data>
-  <data name="PastSelf_PastSelf.Text" xml:space="preserve"><value>Past Self</value></data>
+  <data name="PastSelf_PastSelf.Text" xml:space="preserve"><value>PAST SELF</value></data>
   <data name="PastSelf_QueryYourBeliefsInsights.Text" xml:space="preserve"><value>Query your beliefs, insights, and evolution across time.</value></data>
   <data name="PastSelf_WhatDidIThink.Text" xml:space="preserve"><value>What did I think about...</value></data>
   <data name="PastSelf_EnterATopicEPh.PlaceholderText" xml:space="preserve"><value>Enter a topic (e.g., 'remote work', 'AI safety', 'microservices')</value></data>
@@ -1531,7 +1531,7 @@
   <data name="PastSelf_GeneratedDraft.Text" xml:space="preserve"><value>Generated Draft</value></data>
   <data name="PastSelf_Copy.Content" xml:space="preserve"><value>Copy</value></data>
   <data name="PastSelf_CopyForChat.Content" xml:space="preserve"><value>Copy for Chat</value></data>
-  <data name="QuickAct_QuickActions.Text" xml:space="preserve"><value>Quick Actions</value></data>
+  <data name="QuickAct_QuickActions.Text" xml:space="preserve"><value>QUICK ACTIONS</value></data>
   <data name="QuickAct_AiPoweredDocumentIntelligence.Text" xml:space="preserve"><value>AI-powered document intelligence tools. Summarize, translate, detect duplicates, and organize.</value></data>
   <data name="QuickAct_RecommendedForThisContext.Text" xml:space="preserve"><value>Recommended For This Context</value></data>
   <data name="QuickAct_UseTheSelectedDocument.Text" xml:space="preserve"><value>Use the selected document and current intake state to jump straight to the most useful next action.</value></data>
@@ -1729,7 +1729,7 @@
   <data name="Workspace_SaveProfile.Text" xml:space="preserve"><value>Save Profile</value></data>
   <data name="Workspace_SetAsDefault.Text" xml:space="preserve"><value>Set as Default</value></data>
   <data name="Workspace_DeleteProfile.Text" xml:space="preserve"><value>Delete Profile</value></data>
-  <data name="Settings_Settings.Text" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings_Settings.Text" xml:space="preserve"><value>SETTINGS</value></data>
   <data name="Settings_ConfigureYourAiProviders.Text" xml:space="preserve"><value>Configure your AI providers, inference parameters, and knowledge vault settings.</value></data>
   <data name="Settings_AiProviders.Text" xml:space="preserve"><value>AI Providers</value></data>
   <data name="Settings_ApiKeysSecured.Title" xml:space="preserve"><value>API Keys Secured</value></data>
@@ -1800,7 +1800,7 @@
   <data name="Settings_KeepThisTokenSecret.Text" xml:space="preserve"><value>Keep this token secret. Regenerating it unpairs existing clients until you paste the new token. Toggle changes apply on next launch.</value></data>
   <data name="Settings_SaveSettings.Content" xml:space="preserve"><value>Save Settings</value></data>
   <data name="Settings_ResetToDefaults.Content" xml:space="preserve"><value>Reset to Defaults</value></data>
-  <data name="Backup_BackupRestore.Text" xml:space="preserve"><value>Backup &amp; Restore</value></data>
+  <data name="Backup_BackupRestore.Text" xml:space="preserve"><value>BACKUP &amp; RESTORE</value></data>
   <data name="Backup_ProtectYourKnowledgeBase.Text" xml:space="preserve"><value>Protect your knowledge base with encrypted backups and one-click restore.</value></data>
   <data name="Backup_Database.Text" xml:space="preserve"><value>Database</value></data>
   <data name="Backup_Documents.Text" xml:space="preserve"><value>Documents</value></data>
@@ -1827,7 +1827,7 @@
   <data name="Backup_RestoreThisBackupTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Restore this backup</value></data>
   <data name="Backup_DeleteBackupTip.ToolTipService.ToolTip" xml:space="preserve"><value>Delete backup</value></data>
   <data name="Backup_DeleteBackupTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Delete backup</value></data>
-  <data name="EmailSet_EmailConnector.Text" xml:space="preserve"><value>Email Connector</value></data>
+  <data name="EmailSet_EmailConnector.Text" xml:space="preserve"><value>EMAIL CONNECTOR</value></data>
   <data name="EmailSet_SyncGmailAndOutlook.Text" xml:space="preserve"><value>Sync Gmail and Outlook emails into your knowledge vault for AI-powered search and triage.</value></data>
   <data name="EmailSet_Error.Title" xml:space="preserve"><value>Error</value></data>
   <data name="EmailSet_ConnectedAccounts.Text" xml:space="preserve"><value>Connected Accounts</value></data>
@@ -1854,7 +1854,7 @@
   <data name="EmailSet_LastSynced.Text" xml:space="preserve"><value>Last synced</value></data>
   <data name="EmailSet_NextSync.Text" xml:space="preserve"><value>Next sync</value></data>
   <data name="EmailSet_Status.Text" xml:space="preserve"><value>Status</value></data>
-  <data name="CalSet_CalendarConnector.Text" xml:space="preserve"><value>Calendar Connector</value></data>
+  <data name="CalSet_CalendarConnector.Text" xml:space="preserve"><value>CALENDAR CONNECTOR</value></data>
   <data name="CalSet_SyncGoogleCalendarAnd.Text" xml:space="preserve"><value>Sync Google Calendar and Microsoft Outlook events into your knowledge vault for AI-powered search.</value></data>
   <data name="CalSet_Error.Title" xml:space="preserve"><value>Error</value></data>
   <data name="CalSet_ConnectedAccounts.Text" xml:space="preserve"><value>Connected Accounts</value></data>
@@ -1896,7 +1896,7 @@
   <data name="ExportDlg_IncludeTimestamps.Header" xml:space="preserve"><value>Include timestamps</value></data>
   <data name="ExportDlg_IncludeBranches.Header" xml:space="preserve"><value>Include branches</value></data>
   <data name="JumpTo_JumpToPageDocumentPh.PlaceholderText" xml:space="preserve"><value>Jump to page, document, or conversation...</value></data>
-  <data name="Privacy_PrivacyPolicy.Text" xml:space="preserve"><value>Privacy Policy</value></data>
+  <data name="Privacy_PrivacyPolicy.Text" xml:space="preserve"><value>PRIVACY POLICY</value></data>
   <data name="Privacy_EffectiveDateFebruary26.Text" xml:space="preserve"><value>Effective Date: February 26, 2026</value></data>
   <data name="Privacy_StrategiaXWeUs.Text" xml:space="preserve"><value>Strategia-X ('we', 'us', 'our') operates Agent-X. This Privacy Policy explains how we handle your information when you use our desktop application.</value></data>
   <data name="Privacy_LocalFirstPrivacy.Text" xml:space="preserve"><value>Local-First Privacy</value></data>
@@ -1992,7 +1992,7 @@
   <data name="Privacy_2026RockyElsalaymehFree.Text" xml:space="preserve"><value>© 2026 Rocky Elsalaymeh. Free and open-source under the MIT License.</value></data>
   <data name="Privacy_AgentXLocalFirst.Text" xml:space="preserve"><value>Agent-X — Local-First AI Personal Intelligence Hub</value></data>
   <data name="Terms_Legal.Text" xml:space="preserve"><value>LEGAL</value></data>
-  <data name="Terms_TermsOfService.Text" xml:space="preserve"><value>Terms of Service</value></data>
+  <data name="Terms_TermsOfService.Text" xml:space="preserve"><value>TERMS OF SERVICE</value></data>
   <data name="Terms_EffectiveDateFebruary26.Text" xml:space="preserve"><value>Effective Date: February 26, 2026</value></data>
   <data name="Terms_PleaseReadTheseTerms.Text" xml:space="preserve"><value>Please read these Terms of Service ('Terms') carefully before using Agent-X, a desktop application developed by Strategia-X ('Company', 'we', 'us', 'our'). By installing or using Agent-X, you agree to be bound by these Terms.</value></data>
   <data name="Terms_1AcceptanceOfTerms.Text" xml:space="preserve"><value>1. Acceptance of Terms</value></data>

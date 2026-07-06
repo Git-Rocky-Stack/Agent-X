@@ -210,7 +210,7 @@
                                         </Grid>
 
                                         <!-- Highlighted Text -->
-                                        <Border Background="{ThemeResource InputBackgroundBrush}"
+                                        <Border Background="{ThemeResource CardBrush}"
                                                 CornerRadius="{StaticResource RadiusSM}"
                                                 Padding="12,8"
                                                 BorderBrush="{ThemeResource BorderSubtleBrush}"

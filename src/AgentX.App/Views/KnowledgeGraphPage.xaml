@@ -170,7 +170,7 @@
                 <!-- Graph canvas container with card styling -->
                 <Border Style="{StaticResource CardInsetStyle}"
                         Padding="0"
-                        CornerRadius="{StaticResource RadiusLG}">
+                        CornerRadius="{StaticResource ROverlay}">
 
                     <!-- The Canvas for programmatic graph rendering -->
                     <Canvas x:Name="GraphCanvas"
@@ -183,7 +183,7 @@
                 <!-- Loading overlay -->
                 <Border Background="{ThemeResource PageBackgroundBrush}"
                         Opacity="0.85"
-                        CornerRadius="{StaticResource RadiusLG}"
+                        CornerRadius="{StaticResource ROverlay}"
                         Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                     <StackPanel HorizontalAlignment="Center"
                                 VerticalAlignment="Center"

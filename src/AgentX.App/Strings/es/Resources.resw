@@ -77,7 +77,7 @@
   <data name="Encryption_SectionHeader.Text" xml:space="preserve"><value>Cifrado de la base de datos</value></data>
   <data name="Encryption_Description.Text" xml:space="preserve"><value>Cifra tu Bóveda de Conocimiento con AES-256 (SQLCipher). La clave se gestiona automáticamente y queda vinculada a tu cuenta de Windows.</value></data>
 
-  <data name="UserGuide_PageHeaderTitle.Text" xml:space="preserve"><value>Guía del usuario</value></data>
+  <data name="UserGuide_PageHeaderTitle.Text" xml:space="preserve"><value>GUÍA DEL USUARIO</value></data>
   <data name="UserGuide_PageHeaderDescription.Text" xml:space="preserve"><value>Todo lo que necesitas saber para sacar el máximo partido a Agent-X.</value></data>
   <data name="UserGuide_Welcome_Title.Text" xml:space="preserve"><value>Te damos la bienvenida a Agent-X</value></data>
   <data name="UserGuide_Welcome_Description1.Text" xml:space="preserve"><value>Agent-X is your local-first AI personal intelligence hub. All processing happens on your machine — your data never leaves your device.</value></data>
@@ -627,7 +627,7 @@
   <data name="Inbox_AcceptAllBtn.Content" xml:space="preserve"><value>Aceptar todos los pendientes</value></data>
   <data name="Inbox_GeneratePreviewsBtn.Content" xml:space="preserve"><value>Generar vistas previas con IA</value></data>
   <data name="Inbox_CleanupBtn.Content" xml:space="preserve"><value>Limpiar procesados</value></data>
-  <data name="Inbox_TriageTitle.Text" xml:space="preserve"><value>Clasificación de documentos</value></data>
+  <data name="Inbox_TriageTitle.Text" xml:space="preserve"><value>CLASIFICACIÓN DE DOCUMENTOS</value></data>
   <data name="Inbox_TriageSubtitle.Text" xml:space="preserve"><value>Revise los archivos nuevos antes de que entren en su base de conocimiento. La IA sugiere colecciones y etiquetas.</value></data>
   <data name="Inbox_FocusedTitle.Text" xml:space="preserve"><value>Elemento de bandeja enfocado</value></data>
   <data name="Inbox_FocusedDismissBtn.Content" xml:space="preserve"><value>Descartar</value></data>
@@ -649,7 +649,7 @@
   <data name="Comp_DetailLevelBox.Header" xml:space="preserve"><value>Nivel de detalle</value></data>
   <data name="Comp_CompareBtn.Content" xml:space="preserve"><value>Comparar documentos</value></data>
   <data name="Comp_CancelBtn.Content" xml:space="preserve"><value>Cancelar</value></data>
-  <data name="Comp_Title.Text" xml:space="preserve"><value>Análisis comparativo</value></data>
+  <data name="Comp_Title.Text" xml:space="preserve"><value>ANÁLISIS COMPARATIVO</value></data>
   <data name="Comp_Subtitle.Text" xml:space="preserve"><value>Seleccione 2 o más documentos para generar una comparación estructurada lado a lado.</value></data>
   <data name="Comp_SummaryTitle.Text" xml:space="preserve"><value>Resumen</value></data>
   <data name="Comp_TokensRun.Text" xml:space="preserve"><value>tokens</value></data>
@@ -664,7 +664,7 @@
   <data name="Ops_RetryIndexBtn.Content" xml:space="preserve"><value>Reintentar indexación</value></data>
   <data name="Ops_EnableConnectorBtn.Content" xml:space="preserve"><value>Habilitar conector</value></data>
   <data name="Ops_OpenPluginBtn.Content" xml:space="preserve"><value>Abrir plugin</value></data>
-  <data name="Ops_Title.Text" xml:space="preserve"><value>Operations</value></data>
+  <data name="Ops_Title.Text" xml:space="preserve"><value>OPERATIONS</value></data>
   <data name="Ops_Subtitle.Text" xml:space="preserve"><value>Estado unificado de la inteligencia de conversaciones, el estado de sincronización, la cola de ingesta, la actividad de workflows y los conectores.</value></data>
   <data name="Ops_DashboardBtn.Content" xml:space="preserve"><value>Panel</value></data>
   <data name="Ops_RefreshBtn.Content" xml:space="preserve"><value>Actualizar</value></data>
@@ -692,7 +692,7 @@
   <data name="Ops_ConnectorsOverline.Text" xml:space="preserve"><value>CONECTORES Y PLUGINS</value></data>
   <data name="Ops_ConnectorPreviewLabel.Text" xml:space="preserve"><value>Vista previa de conectores</value></data>
   <data name="Ops_OpenPluginManagerBtn.Content" xml:space="preserve"><value>Abrir gestor de plugins</value></data>
-  <data name="Ana_Title.Text" xml:space="preserve"><value>Analytics</value></data>
+  <data name="Ana_Title.Text" xml:space="preserve"><value>ANALYTICS</value></data>
   <data name="Ana_Subtitle.Text" xml:space="preserve"><value>Estadísticas de uso, métricas de rendimiento y tendencias de actividad</value></data>
   <data name="Ana_RefreshBtn.Content" xml:space="preserve"><value>Actualizar</value></data>
   <data name="Ana_Loading.Text" xml:space="preserve"><value>Cargando datos de análisis...</value></data>
@@ -810,7 +810,7 @@
   <data name="Ana_SlowestCaption.Text" xml:space="preserve"><value>Peor respuesta observada</value></data>
   <data name="Ana_TotalInfOverline.Text" xml:space="preserve"><value>TIEMPO TOTAL DE INFERENCIA</value></data>
   <data name="Ana_TotalInfCaption.Text" xml:space="preserve"><value>Tiempo acumulado de generación de IA en todas las sesiones</value></data>
-  <data name="Sync_Title.Text" xml:space="preserve"><value>Collaborative Sync</value></data>
+  <data name="Sync_Title.Text" xml:space="preserve"><value>COLLABORATIVE SYNC</value></data>
   <data name="Sync_Subtitle.Text" xml:space="preserve"><value>Configure la sincronización cifrada entre instalaciones de Agent-X.</value></data>
   <data name="Sync_SyncNowLabel.Text" xml:space="preserve"><value>Sincronizar ahora</value></data>
   <data name="Sync_LoadingSettings.Text" xml:space="preserve"><value>Cargando ajustes de sincronización...</value></data>
@@ -947,7 +947,7 @@
   <data name="Main_QuickChat.Text" xml:space="preserve"><value>Chat rápido</value></data>
   <data name="Main_Settings2.Text" xml:space="preserve"><value>Configuración</value></data>
   <data name="Main_Exit.Text" xml:space="preserve"><value>Salir</value></data>
-  <data name="Dash_Title.Text" xml:space="preserve"><value>Panel</value></data>
+  <data name="Dash_Title.Text" xml:space="preserve"><value>PANEL</value></data>
   <data name="Dash_Subtitle.Text" xml:space="preserve"><value>Su centro privado de inteligencia de IA. Todo se ejecuta en su equipo.</value></data>
   <data name="Dash_RefreshBtn.Content" xml:space="preserve"><value>Actualizar</value></data>
   <data name="Dash_ConnectOllamaHint.Text" xml:space="preserve"><value>Conecte Ollama para desbloquear el chat de IA, la búsqueda semántica y la inteligencia de archivos.</value></data>
@@ -1104,7 +1104,7 @@
   <data name="AskFiles_OpenSourceBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Abrir documento fuente</value></data>
   <data name="AskFiles_PageLabel.Text" xml:space="preserve"><value>Página</value></data>
   <data name="AskFiles_GroundedNote.Text" xml:space="preserve"><value>Todas las respuestas se basan en sus documentos.</value></data>
-  <data name="Search_Title.Text" xml:space="preserve"><value>Búsqueda</value></data>
+  <data name="Search_Title.Text" xml:space="preserve"><value>BÚSQUEDA</value></data>
   <data name="Search_Subtitle.Text" xml:space="preserve"><value>Busque en toda su biblioteca de documentos con IA semántica, palabras clave o ambas.</value></data>
   <data name="Search_InputBox.PlaceholderText" xml:space="preserve"><value>Buscar en sus documentos...</value></data>
   <data name="Search_SearchBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Buscar (Enter)</value></data>
@@ -1279,7 +1279,7 @@
   <data name="CollMgr_RemoveFromCollectionTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Quitar de la colección</value></data>
   <data name="CollMgr_NoDocumentsInThis.Text" xml:space="preserve"><value>No hay documentos en esta colección</value></data>
   <data name="CollMgr_ClickAddDocumentsTo.Text" xml:space="preserve"><value>Haga clic en 'Añadir documentos' para asignar archivos de su bóveda de conocimiento a esta colección.</value></data>
-  <data name="Graph_KnowledgeGraph.Text" xml:space="preserve"><value>Grafo de conocimiento</value></data>
+  <data name="Graph_KnowledgeGraph.Text" xml:space="preserve"><value>GRAFO DE CONOCIMIENTO</value></data>
   <data name="Graph_VisualizeRelationshipsBetweenD.Text" xml:space="preserve"><value>Visualice las relaciones entre documentos, colecciones y etiquetas.</value></data>
   <data name="Graph_SearchNodesPh.PlaceholderText" xml:space="preserve"><value>Buscar nodos...</value></data>
   <data name="Graph_Docs.Text" xml:space="preserve"><value>Docs</value></data>
@@ -1317,13 +1317,13 @@
   <data name="Annot_FilterByColor.Text" xml:space="preserve"><value>FILTRAR POR COLOR</value></data>
   <data name="Annot_Distribution.Text" xml:space="preserve"><value>DISTRIBUCIÓN</value></data>
   <data name="Annot_ExportAsMarkdown.Content" xml:space="preserve"><value>Exportar como Markdown</value></data>
-  <data name="Annot_AllAnnotations.Text" xml:space="preserve"><value>Todas las anotaciones</value></data>
+  <data name="Annot_AllAnnotations.Text" xml:space="preserve"><value>TODAS LAS ANOTACIONES</value></data>
   <data name="Annot_YourHighlightsAndNotes.Text" xml:space="preserve"><value>Sus resaltados y notas de todos los documentos.</value></data>
   <data name="Annot_DeleteAnnotationTip.ToolTipService.ToolTip" xml:space="preserve"><value>Eliminar anotación</value></data>
   <data name="Annot_DeleteAnnotationTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Eliminar anotación</value></data>
   <data name="Annot_NoAnnotationsYet.Text" xml:space="preserve"><value>Aún no hay anotaciones</value></data>
   <data name="Annot_HighlightTextInYour.Text" xml:space="preserve"><value>Resalte texto en sus documentos para crear anotaciones.</value></data>
-  <data name="WebImport_WebImport.Text" xml:space="preserve"><value>Importación web</value></data>
+  <data name="WebImport_WebImport.Text" xml:space="preserve"><value>IMPORTACIÓN WEB</value></data>
   <data name="WebImport_PasteUrlsToExtract.Text" xml:space="preserve"><value>Pegue URL para extraer artículos web e incorporarlos a su bóveda de conocimiento.</value></data>
   <data name="WebImport_EnterUrls.Text" xml:space="preserve"><value>Introducir URL</value></data>
   <data name="WebImport_OneUrlPerLine.Text" xml:space="preserve"><value>Una URL por línea. Admite artículos web y vídeos de YouTube.</value></data>
@@ -1354,7 +1354,7 @@
   <data name="WebImport_SitemapUrl.Header" xml:space="preserve"><value>URL del sitemap</value></data>
   <data name="WebImport_ImportFromSitemap.Content" xml:space="preserve"><value>Importar desde sitemap</value></data>
   <data name="WebImport_ImportsUpTo100.Text" xml:space="preserve"><value>Importa hasta 100 páginas del sitemap</value></data>
-  <data name="Digest_WeeklyDigest.Text" xml:space="preserve"><value>Resumen semanal</value></data>
+  <data name="Digest_WeeklyDigest.Text" xml:space="preserve"><value>RESUMEN SEMANAL</value></data>
   <data name="Digest_GenerateNewDigest.Text" xml:space="preserve"><value>Generar nuevo resumen</value></data>
   <data name="Digest_NewDocuments.Text" xml:space="preserve"><value>Documentos nuevos</value></data>
   <data name="Digest_Conversations.Text" xml:space="preserve"><value>Conversaciones</value></data>
@@ -1381,7 +1381,7 @@
   <data name="Digest_SelectAPreviousReport.Text" xml:space="preserve"><value>Seleccione un informe anterior para verlo</value></data>
   <data name="Digest_Docs2.Text" xml:space="preserve"><value> docs</value></data>
   <data name="Digest_Searches2.Text" xml:space="preserve"><value> búsquedas</value></data>
-  <data name="PastSelf_PastSelf.Text" xml:space="preserve"><value>Tu yo del pasado</value></data>
+  <data name="PastSelf_PastSelf.Text" xml:space="preserve"><value>TU YO DEL PASADO</value></data>
   <data name="PastSelf_QueryYourBeliefsInsights.Text" xml:space="preserve"><value>Consulte sus creencias, ideas y evolución a lo largo del tiempo.</value></data>
   <data name="PastSelf_WhatDidIThink.Text" xml:space="preserve"><value>¿Qué pensaba sobre...?</value></data>
   <data name="PastSelf_EnterATopicEPh.PlaceholderText" xml:space="preserve"><value>Introduzca un tema (p. ej., 'trabajo remoto', 'seguridad de la IA', 'microservicios')</value></data>
@@ -1419,7 +1419,7 @@
   <data name="PastSelf_GeneratedDraft.Text" xml:space="preserve"><value>Borrador generado</value></data>
   <data name="PastSelf_Copy.Content" xml:space="preserve"><value>Copiar</value></data>
   <data name="PastSelf_CopyForChat.Content" xml:space="preserve"><value>Copiar para el chat</value></data>
-  <data name="QuickAct_QuickActions.Text" xml:space="preserve"><value>Quick Actions</value></data>
+  <data name="QuickAct_QuickActions.Text" xml:space="preserve"><value>QUICK ACTIONS</value></data>
   <data name="QuickAct_AiPoweredDocumentIntelligence.Text" xml:space="preserve"><value>Herramientas de inteligencia documental con IA. Resuma, traduzca, detecte duplicados y organice.</value></data>
   <data name="QuickAct_RecommendedForThisContext.Text" xml:space="preserve"><value>Recomendado para este contexto</value></data>
   <data name="QuickAct_UseTheSelectedDocument.Text" xml:space="preserve"><value>Use el documento seleccionado y el estado de ingesta actual para ir directamente a la siguiente acción más útil.</value></data>
@@ -1617,7 +1617,7 @@
   <data name="Workspace_SaveProfile.Text" xml:space="preserve"><value>Guardar perfil</value></data>
   <data name="Workspace_SetAsDefault.Text" xml:space="preserve"><value>Establecer como predeterminado</value></data>
   <data name="Workspace_DeleteProfile.Text" xml:space="preserve"><value>Eliminar perfil</value></data>
-  <data name="Settings_Settings.Text" xml:space="preserve"><value>Configuración</value></data>
+  <data name="Settings_Settings.Text" xml:space="preserve"><value>CONFIGURACIÓN</value></data>
   <data name="Settings_ConfigureYourAiProviders.Text" xml:space="preserve"><value>Configure sus proveedores de IA, parámetros de inferencia y ajustes de la bóveda de conocimiento.</value></data>
   <data name="Settings_AiProviders.Text" xml:space="preserve"><value>Proveedores de IA</value></data>
   <data name="Settings_ApiKeysSecured.Title" xml:space="preserve"><value>Claves de API protegidas</value></data>
@@ -1715,7 +1715,7 @@
   <data name="Backup_RestoreThisBackupTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Restaurar esta copia de seguridad</value></data>
   <data name="Backup_DeleteBackupTip.ToolTipService.ToolTip" xml:space="preserve"><value>Eliminar copia de seguridad</value></data>
   <data name="Backup_DeleteBackupTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Eliminar copia de seguridad</value></data>
-  <data name="EmailSet_EmailConnector.Text" xml:space="preserve"><value>Conector de correo</value></data>
+  <data name="EmailSet_EmailConnector.Text" xml:space="preserve"><value>CONECTOR DE CORREO</value></data>
   <data name="EmailSet_SyncGmailAndOutlook.Text" xml:space="preserve"><value>Sincronice correos de Gmail y Outlook con su bóveda de conocimiento para búsqueda y clasificación con IA.</value></data>
   <data name="EmailSet_Error.Title" xml:space="preserve"><value>Error</value></data>
   <data name="EmailSet_ConnectedAccounts.Text" xml:space="preserve"><value>Cuentas conectadas</value></data>
@@ -1742,7 +1742,7 @@
   <data name="EmailSet_LastSynced.Text" xml:space="preserve"><value>Última sincronización</value></data>
   <data name="EmailSet_NextSync.Text" xml:space="preserve"><value>Próxima sincronización</value></data>
   <data name="EmailSet_Status.Text" xml:space="preserve"><value>Estado</value></data>
-  <data name="CalSet_CalendarConnector.Text" xml:space="preserve"><value>Conector de calendario</value></data>
+  <data name="CalSet_CalendarConnector.Text" xml:space="preserve"><value>CONECTOR DE CALENDARIO</value></data>
   <data name="CalSet_SyncGoogleCalendarAnd.Text" xml:space="preserve"><value>Sincronice eventos de Google Calendar y Microsoft Outlook con su bóveda de conocimiento para búsqueda con IA.</value></data>
   <data name="CalSet_Error.Title" xml:space="preserve"><value>Error</value></data>
   <data name="CalSet_ConnectedAccounts.Text" xml:space="preserve"><value>Cuentas conectadas</value></data>
@@ -1784,7 +1784,7 @@
   <data name="ExportDlg_IncludeTimestamps.Header" xml:space="preserve"><value>Incluir marcas de tiempo</value></data>
   <data name="ExportDlg_IncludeBranches.Header" xml:space="preserve"><value>Incluir ramas</value></data>
   <data name="JumpTo_JumpToPageDocumentPh.PlaceholderText" xml:space="preserve"><value>Ir a una página, documento o conversación...</value></data>
-  <data name="Privacy_PrivacyPolicy.Text" xml:space="preserve"><value>Política de privacidad</value></data>
+  <data name="Privacy_PrivacyPolicy.Text" xml:space="preserve"><value>POLÍTICA DE PRIVACIDAD</value></data>
   <data name="Privacy_EffectiveDateFebruary26.Text" xml:space="preserve"><value>Fecha de entrada en vigor: 26 de febrero de 2026</value></data>
   <data name="Privacy_StrategiaXWeUs.Text" xml:space="preserve"><value>Strategia-X ('nosotros', 'nos', 'nuestro') opera Agent-X. Esta Política de privacidad explica cómo tratamos su información cuando utiliza nuestra aplicación de escritorio.</value></data>
   <data name="Privacy_LocalFirstPrivacy.Text" xml:space="preserve"><value>Privacidad local primero</value></data>
@@ -1880,7 +1880,7 @@
   <data name="Privacy_2026RockyElsalaymehFree.Text" xml:space="preserve"><value>© 2026 Rocky Elsalaymeh. Gratuito y de código abierto bajo la licencia MIT.</value></data>
   <data name="Privacy_AgentXLocalFirst.Text" xml:space="preserve"><value>Agent-X — Centro de inteligencia personal con IA local</value></data>
   <data name="Terms_Legal.Text" xml:space="preserve"><value>LEGAL</value></data>
-  <data name="Terms_TermsOfService.Text" xml:space="preserve"><value>Términos del servicio</value></data>
+  <data name="Terms_TermsOfService.Text" xml:space="preserve"><value>TÉRMINOS DEL SERVICIO</value></data>
   <data name="Terms_EffectiveDateFebruary26.Text" xml:space="preserve"><value>Fecha de entrada en vigor: 26 de febrero de 2026</value></data>
   <data name="Terms_PleaseReadTheseTerms.Text" xml:space="preserve"><value>Lea atentamente estos Términos del servicio ('Términos') antes de usar Agent-X, una aplicación de escritorio desarrollada por Strategia-X ('Compañía', 'nosotros', 'nos', 'nuestro'). Al instalar o usar Agent-X, acepta quedar vinculado por estos Términos.</value></data>
   <data name="Terms_1AcceptanceOfTerms.Text" xml:space="preserve"><value>1. Aceptación de los Términos</value></data>

@@ -2,6 +2,7 @@
     x:Class="AgentX.App.Views.WebImportPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:AgentX.App.Controls"
     xmlns:vm="using:AgentX.App.ViewModels"
     xmlns:views="using:AgentX.App.Views"
     xmlns:converters="using:AgentX.App.Converters"
@@ -37,7 +38,7 @@
             </StackPanel>
 
             <!-- ═══ URL INPUT CARD ═══ -->
-            <Border Grid.Row="1" Style="{StaticResource CardStyle}" Padding="24">
+            <controls:Faceplate Grid.Row="1" Padding="24" Kicker="MOD - WEB - 01">
                 <StackPanel Spacing="16">
                     <TextBlock x:Uid="WebImport_EnterUrls" Text="Enter URLs"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -100,13 +101,10 @@
                                    Style="{StaticResource CaptionStyle}" />
                     </StackPanel>
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
             <!-- ═══ PREVIEW CARD ═══ -->
-            <Border Grid.Row="2"
-                    Style="{StaticResource CardStyle}"
-                    Padding="24"
-                    Visibility="{x:Bind ViewModel.HasPreview, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+            <controls:Faceplate Grid.Row="2" Padding="24" Visibility="{x:Bind ViewModel.HasPreview, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - WEB - 02">
                 <StackPanel Spacing="12">
                     <TextBlock x:Uid="WebImport_Preview" Text="Preview"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -149,7 +147,7 @@
                     </Grid>
 
                     <!-- Content Preview -->
-                    <Border Background="{ThemeResource InputBackgroundBrush}"
+                    <Border Background="{ThemeResource CardBrush}"
                             CornerRadius="{StaticResource RadiusSM}"
                             Padding="16"
                             BorderBrush="{ThemeResource BorderSubtleBrush}"
@@ -161,13 +159,10 @@
                                    IsTextSelectionEnabled="True" />
                     </Border>
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
             <!-- ═══ IMPORT RESULTS ═══ -->
-            <Border Grid.Row="3"
-                    Style="{StaticResource CardStyle}"
-                    Padding="24"
-                    Visibility="{x:Bind ViewModel.HasResults, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+            <controls:Faceplate Grid.Row="3" Padding="24" Visibility="{x:Bind ViewModel.HasResults, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - WEB - 03">
                 <StackPanel Spacing="16">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -245,10 +240,10 @@
                             Command="{x:Bind ViewModel.ClearResultsCommand}"
                             Style="{StaticResource SecondaryButtonStyle}" />
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
             <!-- ═══ FEED SUBSCRIPTION CARD ═══ -->
-            <Border Grid.Row="4" Style="{StaticResource CardStyle}" Padding="24">
+            <controls:Faceplate Grid.Row="4" Padding="24" Kicker="MOD - WEB - 04">
                 <StackPanel Spacing="16">
                     <TextBlock x:Uid="WebImport_RssAtomFeed" Text="RSS / Atom Feed"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -273,10 +268,10 @@
                     <TextBlock Text="{x:Bind ViewModel.FeedStatusMessage, Mode=OneWay}"
                                Style="{StaticResource CaptionStyle}" />
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
             <!-- ═══ SITEMAP IMPORT CARD ═══ -->
-            <Border Grid.Row="5" Style="{StaticResource CardStyle}" Padding="24">
+            <controls:Faceplate Grid.Row="5" Padding="24" Kicker="MOD - WEB - 05">
                 <StackPanel Spacing="16">
                     <TextBlock x:Uid="WebImport_SitemapImport" Text="Sitemap Import"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -301,7 +296,7 @@
                     <TextBlock x:Uid="WebImport_ImportsUpTo100" Text="Imports up to 100 pages from the sitemap"
                                Style="{StaticResource CaptionStyle}" />
                 </StackPanel>
-            </Border>
+            </controls:Faceplate>
 
             <!-- ═══ STATUS ═══ -->
             <TextBlock Grid.Row="6"

@@ -2,56 +2,122 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
-    ╔══════════════════════════════════════════════════════════════════╗
-    ║               AGENT-X NAVIGATION VIEW OVERRIDES                 ║
-    ║                                                                  ║
-    ║  Premium dark NavigationView with gradient sidebar, subtle       ║
-    ║  selection indicators, and smooth hover transitions.             ║
-    ╚══════════════════════════════════════════════════════════════════╝
+    ====================================================================
+                AGENT-X NAVIGATION VIEW OVERRIDES
+              Command Console nav rail (DESIGN.md)
+    ====================================================================
+
+    The nav rail is the cockpit floor: carbon at Night, silver chassis
+    in Day Shift, system surfaces in HighContrast. Group headers are
+    Archivo stencil placards; the active item reads as an armed-red
+    tile (armed selection indicator + armed tint + lit icon). Icons
+    survive here - navigation is the one place icons are allowed.
+    ====================================================================
     -->
 
-    <!-- NavigationView Overrides -->
-    <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="{StaticResource BackgroundPrimary}" />
-    <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="{StaticResource BackgroundPrimary}" />
-    <SolidColorBrush x:Key="NavigationViewContentBackground" Color="{StaticResource Black}" />
+    <ResourceDictionary.ThemeDictionaries>
 
-    <!-- NavigationViewItem Selection Indicator (accent red line) -->
-    <SolidColorBrush x:Key="NavigationViewSelectionIndicatorForeground" Color="{StaticResource Red500}" />
+        <!-- NIGHT OPS -->
+        <ResourceDictionary x:Key="Default">
+            <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#FF0D0D0D" />
+            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="#FF0D0D0D" />
+            <SolidColorBrush x:Key="NavigationViewContentBackground" Color="#FF000000" />
 
-    <!-- NavigationViewItem Text Colors -->
-    <SolidColorBrush x:Key="NavigationViewItemForeground" Color="{StaticResource Silver500}" />
-    <SolidColorBrush x:Key="NavigationViewItemForegroundSelected" Color="{StaticResource PureWhite}" />
-    <SolidColorBrush x:Key="NavigationViewItemForegroundPointerOver" Color="{StaticResource LightGrey200}" />
-    <SolidColorBrush x:Key="NavigationViewItemForegroundPressed" Color="{StaticResource Silver300}" />
-    <SolidColorBrush x:Key="NavigationViewItemForegroundDisabled" Color="{StaticResource Charcoal500}" />
+            <!-- Selection indicator: the armed pill -->
+            <SolidColorBrush x:Key="NavigationViewSelectionIndicatorForeground" Color="#FFAA2024" />
 
-    <!-- NavigationViewItem Backgrounds -->
-    <SolidColorBrush x:Key="NavigationViewItemBackground" Color="Transparent" />
-    <SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="{StaticResource White05}" />
-    <SolidColorBrush x:Key="NavigationViewItemBackgroundPointerOver" Color="{StaticResource White05}" />
-    <SolidColorBrush x:Key="NavigationViewItemBackgroundPressed" Color="{StaticResource White10}" />
-    <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPointerOver" Color="{StaticResource White10}" />
-    <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPressed" Color="{StaticResource White10}" />
+            <!-- Item text: silver ramp -->
+            <SolidColorBrush x:Key="NavigationViewItemForeground" Color="#FF999999" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundSelected" Color="#FFF5F5F5" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundPointerOver" Color="#FFD1D1D1" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundPressed" Color="#FFB3B3B3" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundDisabled" Color="#FF484848" />
 
-    <!-- NavigationViewItem Icon Colors -->
-    <SolidColorBrush x:Key="NavigationViewItemIconForeground" Color="{StaticResource Silver600}" />
-    <SolidColorBrush x:Key="NavigationViewItemIconForegroundSelected" Color="{StaticResource Red400}" />
-    <SolidColorBrush x:Key="NavigationViewItemIconForegroundPointerOver" Color="{StaticResource Silver400}" />
+            <!-- Item backgrounds: armed tint when selected -->
+            <SolidColorBrush x:Key="NavigationViewItemBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="#1FAA2024" />
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundPointerOver" Color="#0DFFFFFF" />
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundPressed" Color="#1AFFFFFF" />
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPointerOver" Color="#29AA2024" />
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPressed" Color="#29AA2024" />
 
-    <!-- NavigationView Separator -->
-    <SolidColorBrush x:Key="NavigationViewItemSeparatorForeground" Color="{StaticResource BorderSubtle}" />
+            <!-- Icons: silver, ignited when selected -->
+            <SolidColorBrush x:Key="NavigationViewItemIconForeground" Color="#FF888888" />
+            <SolidColorBrush x:Key="NavigationViewItemIconForegroundSelected" Color="#FFE0252B" />
+            <SolidColorBrush x:Key="NavigationViewItemIconForegroundPointerOver" Color="#FFB3B3B3" />
 
-    <!-- NavigationView Header -->
-    <SolidColorBrush x:Key="NavigationViewHeaderForeground" Color="{StaticResource PureWhite}" />
+            <SolidColorBrush x:Key="NavigationViewItemSeparatorForeground" Color="#14FFFFFF" />
+            <SolidColorBrush x:Key="NavigationViewHeaderForeground" Color="#FFF5F5F5" />
+            <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
+        </ResourceDictionary>
 
-    <!-- NavigationView Content Grid Border -->
-    <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
+        <!-- DAY SHIFT (silver chassis floor) -->
+        <ResourceDictionary x:Key="Light">
+            <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#FFC0C0BB" />
+            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="#FFC0C0BB" />
+            <SolidColorBrush x:Key="NavigationViewContentBackground" Color="#FFC4C4BF" />
 
-    <!-- Top-level NavigationView Border (remove default) -->
+            <SolidColorBrush x:Key="NavigationViewSelectionIndicatorForeground" Color="#FFAA2024" />
+
+            <SolidColorBrush x:Key="NavigationViewItemForeground" Color="#FF44443F" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundSelected" Color="#FF1A1A1A" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundPointerOver" Color="#FF2E2E2C" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundPressed" Color="#FF44443F" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundDisabled" Color="#FF96968F" />
+
+            <SolidColorBrush x:Key="NavigationViewItemBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="#1FAA2024" />
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundPointerOver" Color="#14000000" />
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundPressed" Color="#1F000000" />
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPointerOver" Color="#29AA2024" />
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPressed" Color="#29AA2024" />
+
+            <SolidColorBrush x:Key="NavigationViewItemIconForeground" Color="#FF62625E" />
+            <SolidColorBrush x:Key="NavigationViewItemIconForegroundSelected" Color="#FFAA2024" />
+            <SolidColorBrush x:Key="NavigationViewItemIconForegroundPointerOver" Color="#FF44443F" />
+
+            <SolidColorBrush x:Key="NavigationViewItemSeparatorForeground" Color="#1A000000" />
+            <SolidColorBrush x:Key="NavigationViewHeaderForeground" Color="#FF1A1A1A" />
+            <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
+        </ResourceDictionary>
+
+        <!-- HIGH CONTRAST (system-bound, flat) -->
+        <ResourceDictionary x:Key="HighContrast">
+            <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="NavigationViewContentBackground" Color="{ThemeResource SystemColorWindowColor}" />
+
+            <SolidColorBrush x:Key="NavigationViewSelectionIndicatorForeground" Color="{ThemeResource SystemColorHighlightColor}" />
+
+            <SolidColorBrush x:Key="NavigationViewItemForeground" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundSelected" Color="{ThemeResource SystemColorHighlightTextColor}" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundPointerOver" Color="{ThemeResource SystemColorHighlightTextColor}" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundPressed" Color="{ThemeResource SystemColorHighlightTextColor}" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundDisabled" Color="{ThemeResource SystemColorGrayTextColor}" />
+
+            <SolidColorBrush x:Key="NavigationViewItemBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundPointerOver" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundPressed" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPointerOver" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPressed" Color="{ThemeResource SystemColorHighlightColor}" />
+
+            <SolidColorBrush x:Key="NavigationViewItemIconForeground" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="NavigationViewItemIconForegroundSelected" Color="{ThemeResource SystemColorHighlightTextColor}" />
+            <SolidColorBrush x:Key="NavigationViewItemIconForegroundPointerOver" Color="{ThemeResource SystemColorHighlightTextColor}" />
+
+            <SolidColorBrush x:Key="NavigationViewItemSeparatorForeground" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="NavigationViewHeaderForeground" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
+        </ResourceDictionary>
+
+    </ResourceDictionary.ThemeDictionaries>
+
+    <!-- Top-level NavigationView border (remove default) -->
     <Thickness x:Key="NavigationViewContentGridBorderThickness">0</Thickness>
     <Thickness x:Key="NavigationViewContentPresenterMargin">0</Thickness>
 
-    <!-- NavigationViewItem Style Override -->
+    <!-- Nav item: Public Sans, machined height -->
     <Style x:Key="AgentXNavItemStyle" TargetType="NavigationViewItem">
         <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
         <Setter Property="FontSize" Value="14" />
@@ -59,12 +125,29 @@
         <Setter Property="Margin" Value="4,2,4,2" />
     </Style>
 
-    <!-- Navigation Section Header -->
+    <!-- Group header: Archivo stencil placard (content arrives uppercase
+         from the resource strings - stencil vocabulary) -->
+    <Style x:Key="NavHeaderStyle" TargetType="NavigationViewItemHeader">
+        <Setter Property="ContentTemplate">
+            <Setter.Value>
+                <DataTemplate>
+                    <TextBlock Text="{Binding}"
+                               FontFamily="{StaticResource FontDisplayBold}"
+                               FontSize="10"
+                               FontWeight="Bold"
+                               CharacterSpacing="100"
+                               Foreground="{ThemeResource TextTertiaryBrush}" />
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Legacy: section header TextBlock style (pre-sweep consumers) -->
     <Style x:Key="NavSectionHeaderStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+        <Setter Property="FontFamily" Value="{StaticResource FontDisplayBold}" />
         <Setter Property="FontSize" Value="11" />
-        <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="CharacterSpacing" Value="80" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="CharacterSpacing" Value="100" />
         <Setter Property="Foreground" Value="{ThemeResource TextTertiaryBrush}" />
         <Setter Property="Margin" Value="16,16,0,6" />
     </Style>

@@ -52,7 +52,7 @@ public partial class SyncLogDisplayItem : ObservableObject
     // ── Properties Required by SyncSettingsPage.xaml DataTemplate ─────────────
 
     /// <summary>
-    /// Status color: green (#22C55E) for success, red (#EF4444) for failure.
+    /// Status color: green (#41E25E) for success, red (#C8453E) for failure.
     /// Bound by the XAML DataTemplate via SolidColorBrush Color="{x:Bind StatusColor}".
     /// </summary>
     public Windows.UI.Color StatusColor => IsSuccess

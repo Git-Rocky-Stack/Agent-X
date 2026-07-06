@@ -2,6 +2,7 @@
     x:Class="AgentX.App.Views.DigestPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:AgentX.App.Controls"
     xmlns:vm="using:AgentX.App.ViewModels"
     xmlns:converters="using:AgentX.App.Converters"
     Background="Transparent"
@@ -213,10 +214,7 @@
                     </StackPanel>
 
                     <!-- Empty state (no reports) -->
-                    <Border Visibility="{x:Bind ViewModel.HasReport, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}"
-                            Style="{StaticResource CardStyle}"
-                            Padding="48,64"
-                            Margin="0,0,0,24">
+                    <controls:Faceplate Visibility="{x:Bind ViewModel.HasReport, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" Padding="48,64" Margin="0,0,0,24" Kicker="MOD - DIG - 01">
                         <StackPanel HorizontalAlignment="Center" Spacing="16">
                             <Border Background="{ThemeResource AccentSubtleBrush}"
                                     CornerRadius="{StaticResource RadiusFull}"
@@ -245,7 +243,7 @@
                                 </StackPanel>
                             </Button>
                         </StackPanel>
-                    </Border>
+                    </controls:Faceplate>
 
                     <!-- Report content (when a report exists) -->
                     <StackPanel Visibility="{x:Bind ViewModel.HasReport, Mode=OneWay, Converter={StaticResource BoolToVis}}"
@@ -259,7 +257,7 @@
                             </Grid.ColumnDefinitions>
 
                             <!-- Top Searches Section -->
-                            <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                            <controls:Faceplate Grid.Column="0" Kicker="MOD - DIG - 02">
                                 <StackPanel Spacing="16">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
                                         <Border Background="{ThemeResource WarningSubtleBrush}"
@@ -314,10 +312,10 @@
                                                HorizontalAlignment="Center"
                                                Margin="0,8" />
                                 </StackPanel>
-                            </Border>
+                            </controls:Faceplate>
 
                             <!-- Top Collections Section -->
-                            <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                            <controls:Faceplate Grid.Column="1" Kicker="MOD - DIG - 03">
                                 <StackPanel Spacing="16">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
                                         <Border Background="{ThemeResource InfoSubtleBrush}"
@@ -369,7 +367,7 @@
                                                HorizontalAlignment="Center"
                                                Margin="0,8" />
                                 </StackPanel>
-                            </Border>
+                            </controls:Faceplate>
                         </Grid>
 
                         <!-- ─── Row: File Type Breakdown + Conversation Highlights ─── -->
@@ -380,7 +378,7 @@
                             </Grid.ColumnDefinitions>
 
                             <!-- File Type Breakdown -->
-                            <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                            <controls:Faceplate Grid.Column="0" Kicker="MOD - DIG - 04">
                                 <StackPanel Spacing="16">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
                                         <Border Background="{ThemeResource GraphTagSubtleBrush}"
@@ -440,10 +438,10 @@
                                                HorizontalAlignment="Center"
                                                Margin="0,8" />
                                 </StackPanel>
-                            </Border>
+                            </controls:Faceplate>
 
                             <!-- Conversation Highlights -->
-                            <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                            <controls:Faceplate Grid.Column="1" Kicker="MOD - DIG - 05">
                                 <StackPanel Spacing="16">
                                     <StackPanel Orientation="Horizontal" Spacing="10">
                                         <Border Background="{ThemeResource SuccessSubtleBrush}"
@@ -505,7 +503,7 @@
                                                HorizontalAlignment="Center"
                                                Margin="0,8" />
                                 </StackPanel>
-                            </Border>
+                            </controls:Faceplate>
                         </Grid>
                     </StackPanel>
                 </Grid>

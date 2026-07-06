@@ -2,6 +2,7 @@
     x:Class="AgentX.App.Views.QuickActionsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:AgentX.App.Controls"
     xmlns:vm="using:AgentX.App.ViewModels"
     xmlns:converters="using:AgentX.App.Converters"
     x:Name="QuickActionsRoot"
@@ -45,9 +46,7 @@
                 <!-- ==========================================================
                      ROW 1: CONTEXTUAL ACTIONS
                      ========================================================== -->
-                <Border Grid.Row="1"
-                        Style="{StaticResource CardStyle}"
-                        Visibility="{x:Bind ViewModel.HasRecommendedActions, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <controls:Faceplate Grid.Row="1" Visibility="{x:Bind ViewModel.HasRecommendedActions, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - QACT - 01">
                     <StackPanel Spacing="16">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -151,12 +150,12 @@
                             </ItemsRepeater.ItemTemplate>
                         </ItemsRepeater>
                     </StackPanel>
-                </Border>
+                </controls:Faceplate>
 
                 <!-- ==========================================================
                      ROW 2: TAB NAVIGATION
                      ========================================================== -->
-                <Border Grid.Row="2" Style="{StaticResource CardStyle}" Padding="4">
+                <controls:Faceplate Grid.Row="2" Padding="4" Kicker="MOD - QACT - 02">
                     <Grid ColumnSpacing="4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -227,7 +226,7 @@
                             </StackPanel>
                         </RadioButton>
                     </Grid>
-                </Border>
+                </controls:Faceplate>
 
                 <!-- ==========================================================
                      ROW 3: TAB CONTENT PANELS
@@ -240,7 +239,7 @@
                     <StackPanel x:Name="PanelSummarize" Visibility="Visible" Spacing="16">
 
                         <!-- Document Picker -->
-                        <Border Style="{StaticResource CardStyle}">
+                        <controls:Faceplate Kicker="MOD - QACT - 03">
                             <StackPanel Spacing="16">
                                 <StackPanel Spacing="4">
                                     <TextBlock x:Uid="QuickAct_GenerateASectionAware" Text="Generate a section-aware summary"
@@ -261,7 +260,7 @@
                                         Command="{x:Bind ViewModel.SummarizeCommand}"
                                         IsEnabled="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource InverseBool}}" />
                             </StackPanel>
-                        </Border>
+                        </controls:Faceplate>
 
                         <!-- Processing indicator -->
                         <StackPanel Visibility="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource BoolToVis}}"
@@ -273,8 +272,7 @@
                         </StackPanel>
 
                         <!-- Summary Result -->
-                        <Border Style="{StaticResource CardStyle}"
-                                Visibility="{x:Bind ViewModel.HasSummaryResult, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                        <controls:Faceplate Visibility="{x:Bind ViewModel.HasSummaryResult, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - QACT - 04">
                             <StackPanel Spacing="12">
                                 <Grid ColumnSpacing="12">
                                     <Grid.ColumnDefinitions>
@@ -301,7 +299,7 @@
                                            TextWrapping="Wrap"
                                            IsTextSelectionEnabled="True" />
                             </StackPanel>
-                        </Border>
+                        </controls:Faceplate>
                     </StackPanel>
 
                     <!-- ======================================================
@@ -310,7 +308,7 @@
                     <StackPanel x:Name="PanelKeyPoints" Visibility="Collapsed" Spacing="16">
 
                         <!-- Document Picker -->
-                        <Border Style="{StaticResource CardStyle}">
+                        <controls:Faceplate Kicker="MOD - QACT - 05">
                             <StackPanel Spacing="16">
                                 <TextBlock x:Uid="QuickAct_SelectADocumentTo" Text="Select a document to extract key points"
                                            Style="{StaticResource HeadingSmallStyle}" />
@@ -327,7 +325,7 @@
                                         Command="{x:Bind ViewModel.ExtractKeyPointsCommand}"
                                         IsEnabled="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource InverseBool}}" />
                             </StackPanel>
-                        </Border>
+                        </controls:Faceplate>
 
                         <!-- Processing indicator -->
                         <StackPanel Visibility="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource BoolToVis}}"
@@ -339,8 +337,7 @@
                         </StackPanel>
 
                         <!-- Key Points Result -->
-                        <Border Style="{StaticResource CardStyle}"
-                                Visibility="{x:Bind ViewModel.HasKeyPoints, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                        <controls:Faceplate Visibility="{x:Bind ViewModel.HasKeyPoints, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - QACT - 06">
                             <StackPanel Spacing="12">
                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                     <FontIcon Glyph="&#xE8FD;" FontSize="16"
@@ -380,7 +377,7 @@
                                     </ItemsRepeater.ItemTemplate>
                                 </ItemsRepeater>
                             </StackPanel>
-                        </Border>
+                        </controls:Faceplate>
                     </StackPanel>
 
                     <!-- ======================================================
@@ -388,7 +385,7 @@
                          ====================================================== -->
                     <StackPanel x:Name="PanelTranslate" Visibility="Collapsed" Spacing="16">
 
-                        <Border Style="{StaticResource CardStyle}">
+                        <controls:Faceplate Kicker="MOD - QACT - 07">
                             <StackPanel Spacing="16">
                                 <TextBlock x:Uid="QuickAct_TranslateTextWithAi" Text="Translate text with AI"
                                            Style="{StaticResource HeadingSmallStyle}" />
@@ -419,7 +416,7 @@
                                         Command="{x:Bind ViewModel.TranslateCommand}"
                                         IsEnabled="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource InverseBool}}" />
                             </StackPanel>
-                        </Border>
+                        </controls:Faceplate>
 
                         <!-- Processing indicator -->
                         <StackPanel Visibility="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource BoolToVis}}"
@@ -431,8 +428,7 @@
                         </StackPanel>
 
                         <!-- Translation Output -->
-                        <Border Style="{StaticResource CardStyle}"
-                                Visibility="{x:Bind ViewModel.HasTranslationOutput, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                        <controls:Faceplate Visibility="{x:Bind ViewModel.HasTranslationOutput, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - QACT - 08">
                             <StackPanel Spacing="12">
                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                     <FontIcon Glyph="&#xE8C1;" FontSize="16"
@@ -449,7 +445,7 @@
                                          MinHeight="100"
                                          MaxHeight="300" />
                             </StackPanel>
-                        </Border>
+                        </controls:Faceplate>
                     </StackPanel>
 
                     <!-- ======================================================
@@ -457,7 +453,7 @@
                          ====================================================== -->
                     <StackPanel x:Name="PanelDuplicates" Visibility="Collapsed" Spacing="16">
 
-                        <Border Style="{StaticResource CardStyle}">
+                        <controls:Faceplate Kicker="MOD - QACT - 09">
                             <StackPanel Spacing="16">
                                 <StackPanel Spacing="4">
                                     <TextBlock x:Uid="QuickAct_DuplicateDetection" Text="Duplicate Detection"
@@ -478,7 +474,7 @@
                                             IsEnabled="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource InverseBool}}" />
                                 </StackPanel>
                             </StackPanel>
-                        </Border>
+                        </controls:Faceplate>
 
                         <!-- Processing indicator -->
                         <StackPanel Visibility="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource BoolToVis}}"
@@ -601,7 +597,7 @@
                          ====================================================== -->
                     <StackPanel x:Name="PanelOrganize" Visibility="Collapsed" Spacing="16">
 
-                        <Border Style="{StaticResource CardStyle}">
+                        <controls:Faceplate Kicker="MOD - QACT - 10">
                             <StackPanel Spacing="16">
                                 <StackPanel Spacing="4">
                                     <TextBlock x:Uid="QuickAct_AiOrganizationAssistant" Text="AI Organization Assistant"
@@ -615,7 +611,7 @@
                                         Command="{x:Bind ViewModel.SuggestOrganizationCommand}"
                                         IsEnabled="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource InverseBool}}" />
                             </StackPanel>
-                        </Border>
+                        </controls:Faceplate>
 
                         <!-- Processing indicator -->
                         <StackPanel Visibility="{x:Bind ViewModel.IsProcessing, Mode=OneWay, Converter={StaticResource BoolToVis}}"

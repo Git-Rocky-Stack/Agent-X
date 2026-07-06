@@ -44,11 +44,14 @@
                                         <Border
                                             Grid.Column="1"
                                             Padding="6,2"
-                                            Background="{ThemeResource InputBackgroundBrush}"
+                                            Background="{ThemeResource VoidBrush}"
+                                            BorderBrush="{ThemeResource WellBorderBrush}"
+                                            BorderThickness="1"
                                             CornerRadius="{StaticResource RadiusSM}">
                                             <TextBlock
                                                 Text="{x:Bind DisplayChord}"
-                                                Style="{StaticResource MonoSmallStyle}" />
+                                                Style="{StaticResource MonoSmallStyle}"
+                                                Foreground="{ThemeResource WellTextSecondaryBrush}" />
                                         </Border>
                                     </Grid>
                                 </DataTemplate>

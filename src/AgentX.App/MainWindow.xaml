@@ -14,7 +14,7 @@
                  renders under the system min/max/close caption buttons. -->
             <RowDefinition Height="32"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="28"/>
+            <RowDefinition Height="32"/>
         </Grid.RowDefinitions>
 
         <!-- Removed: AmbientGlow + SecondaryGlow radial gradient decorations.
@@ -49,18 +49,19 @@
                     <StackPanel Orientation="Horizontal"
                                 VerticalAlignment="Center"
                                 Spacing="14">
-                        <!-- Agent-X Logo Mark -->
+                        <!-- Agent-X Logo Mark: armed machined cap -->
                         <Grid Width="36" Height="36">
-                            <Border CornerRadius="{StaticResource RadiusMD}"
-                                    Background="{ThemeResource AccentGradientBrush}">
+                            <Border CornerRadius="{StaticResource RControl}"
+                                    Background="{ThemeResource ArmedCapBrush}"
+                                    BorderBrush="{ThemeResource ArmedCapBorderBrush}"
+                                    BorderThickness="1">
                                 <TextBlock Text="AX"
-                                           FontFamily="{StaticResource FontDisplay}"
-                                           FontSize="15"
-                                           FontWeight="Black"
-                                           Foreground="{ThemeResource TextPrimaryBrush}"
+                                           FontFamily="{StaticResource FontDisplayHeavy}"
+                                           FontSize="14"
+                                           FontWeight="ExtraBold"
+                                           Foreground="{ThemeResource ArmedCapTextBrush}"
                                            HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"
-                                           CharacterSpacing="-30" />
+                                           VerticalAlignment="Center" />
                             </Border>
                         </Grid>
 
@@ -86,9 +87,7 @@
 
                 <!-- PRIMARY SECTION -->
                 <NavigationViewItemHeader x:Uid="Main_Intelligence" Content="INTELLIGENCE"
-                                          Foreground="{ThemeResource TextTertiaryBrush}"
-                                          FontSize="10"
-                                          FontWeight="SemiBold" />
+                                          Style="{StaticResource NavHeaderStyle}" />
 
                 <NavigationViewItem x:Name="NavDashboard"
                                     x:Uid="Main_Dashboard" Content="Dashboard"
@@ -176,9 +175,7 @@
 
                 <!-- KNOWLEDGE SECTION -->
                 <NavigationViewItemHeader x:Uid="Main_Knowledge" Content="KNOWLEDGE"
-                                          Foreground="{ThemeResource TextTertiaryBrush}"
-                                          FontSize="10"
-                                          FontWeight="SemiBold" />
+                                          Style="{StaticResource NavHeaderStyle}" />
 
                 <NavigationViewItem x:Name="NavVault"
                                     x:Uid="Main_KnowledgeVault" Content="Knowledge Vault"
@@ -238,9 +235,7 @@
 
                 <!-- TRIAGE SECTION -->
                 <NavigationViewItemHeader x:Uid="Main_Triage" Content="TRIAGE"
-                                          Foreground="{ThemeResource TextTertiaryBrush}"
-                                          FontSize="10"
-                                          FontWeight="SemiBold" />
+                                          Style="{StaticResource NavHeaderStyle}" />
 
                 <NavigationViewItem x:Name="NavInbox"
                                     x:Uid="Main_SmartInbox" Content="Smart Inbox"
@@ -255,9 +250,7 @@
 
                 <!-- SYSTEM SECTION -->
                 <NavigationViewItemHeader x:Uid="Main_System" Content="SYSTEM"
-                                          Foreground="{ThemeResource TextTertiaryBrush}"
-                                          FontSize="10"
-                                          FontWeight="SemiBold" />
+                                          Style="{StaticResource NavHeaderStyle}" />
 
                 <NavigationViewItem x:Name="NavModels"
                                     x:Uid="Main_ModelManager" Content="Model Manager"
@@ -347,9 +340,7 @@
 
                 <!-- SUPPORT SECTION -->
                 <NavigationViewItemHeader x:Uid="Main_Support" Content="SUPPORT"
-                                          Foreground="{ThemeResource TextTertiaryBrush}"
-                                          FontSize="10"
-                                          FontWeight="SemiBold" />
+                                          Style="{StaticResource NavHeaderStyle}" />
 
                 <NavigationViewItem x:Name="NavUserGuide"
                                     x:Uid="Main_UserGuide" Content="User Guide"
@@ -430,14 +421,19 @@
                 Background="Transparent" />
 
         <!-- ═══════════════════════════════════════════════════════
-             STATUS BAR (Bottom) — Connection status, model info
+             INSTRUMENT STRIP (Bottom) - DESIGN.md signature element.
+             A dark strip in BOTH shifts (displays-stay-dark) carrying
+             recessed LCD readouts and the annunciator lamps. Every
+             value is real: StatusBarService + IPrivacyStatusService.
+             Stencil codes (MDL/IDX/VAULT/LOCAL) are equipment
+             vocabulary and are intentionally not localized.
              ═══════════════════════════════════════════════════════ -->
         <Border Grid.Row="2"
-                Height="28"
-                Background="{ThemeResource PageBackgroundBrush}"
-                BorderBrush="{ThemeResource BorderSubtleBrush}"
+                Height="32"
+                Background="{ThemeResource WellBrush}"
+                BorderBrush="{ThemeResource HairlineBrush}"
                 BorderThickness="0,1,0,0"
-                Padding="16,0">
+                Padding="12,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -445,65 +441,146 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <!-- Left: Connection Status + Keyboard Shortcut Hint -->
+                <!-- Left: MDL lamp + model LCD + Ctrl+K hint -->
                 <StackPanel Orientation="Horizontal"
                             VerticalAlignment="Center"
                             Spacing="8">
-                    <Ellipse x:Name="StatusIndicator"
-                             Width="6" Height="6"
-                             Fill="{ThemeResource OfflineBrush}" />
-                    <TextBlock x:Name="StatusText"
-                               x:Uid="Main_Initializing" Text="Initializing..."
-                               Style="{StaticResource CaptionStyle}"
-                               VerticalAlignment="Center" />
+                    <controls:LampTile x:Name="MdlLamp"
+                                       Code="MDL"
+                                       State="Hold"
+                                       IsCompact="True"
+                                       VerticalAlignment="Center" />
+                    <Border Background="{ThemeResource VoidBrush}"
+                            BorderBrush="{ThemeResource HairlineBrush}"
+                            BorderThickness="1"
+                            CornerRadius="{StaticResource RadiusXS}"
+                            Height="20"
+                            Padding="8,0"
+                            VerticalAlignment="Center">
+                        <Grid VerticalAlignment="Center">
+                            <Grid x:Name="MdlGlowHost" IsHitTestVisible="False" />
+                            <TextBlock x:Name="StatusText"
+                                       x:Uid="Main_Initializing" Text="Initializing..."
+                                       Style="{StaticResource LcdStyle}"
+                                       FontSize="11"
+                                       VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
 
-                    <!-- Ctrl+K shortcut hint -->
-                    <Border Background="{ThemeResource InputBackgroundBrush}"
-                            CornerRadius="3"
+                    <!-- Ctrl+K shortcut hint (kbd well) -->
+                    <Border Background="{ThemeResource VoidBrush}"
+                            CornerRadius="{StaticResource RadiusXS}"
                             Padding="6,1"
-                            Margin="12,0,0,0"
-                            BorderBrush="{ThemeResource BorderSubtleBrush}"
+                            Margin="8,0,0,0"
+                            Height="20"
+                            VerticalAlignment="Center"
+                            BorderBrush="{ThemeResource HairlineBrush}"
                             BorderThickness="1">
                         <TextBlock Text="Ctrl+K"
-                                   Style="{StaticResource CaptionStyle}"
-                                   FontSize="10"
-                                   Opacity="0.4" />
+                                   Style="{StaticResource TelemetrySmallStyle}"
+                                   Foreground="{ThemeResource WellTextBrush}"
+                                   Opacity="0.45"
+                                   VerticalAlignment="Center" />
                     </Border>
                 </StackPanel>
 
-                <!-- Center: Indexing Status -->
+                <!-- Center: IDX (embedding queue) readout -->
                 <StackPanel Grid.Column="1"
                             Orientation="Horizontal"
                             VerticalAlignment="Center"
                             Spacing="6"
                             Margin="0,0,24,0">
-                    <ProgressRing x:Name="IndexingRing"
-                                  IsActive="False"
-                                  Width="12" Height="12" />
-                    <TextBlock x:Name="IndexingText"
-                               Text=""
-                               Style="{StaticResource CaptionStyle}"
-                               VerticalAlignment="Center"
-                               Opacity="0.6" />
+                    <TextBlock Text="IDX"
+                               Style="{StaticResource PlacardStyle}"
+                               FontSize="9"
+                               Foreground="{ThemeResource TextDisabledBrush}"
+                               VerticalAlignment="Center" />
+                    <Border Background="{ThemeResource VoidBrush}"
+                            BorderBrush="{ThemeResource HairlineBrush}"
+                            BorderThickness="1"
+                            CornerRadius="{StaticResource RadiusXS}"
+                            Height="20"
+                            MinWidth="42"
+                            Padding="8,0"
+                            VerticalAlignment="Center">
+                        <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <Grid x:Name="IdxGlowHost" IsHitTestVisible="False" />
+                            <TextBlock x:Name="IndexingText"
+                                       Text="0"
+                                       Style="{StaticResource LcdStyle}"
+                                       FontSize="11"
+                                       Opacity="0.35"
+                                       VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
                 </StackPanel>
 
-                <!-- Right: Document Count + Version -->
+                <!-- Right: VAULT readout + annunciator cluster + version -->
                 <StackPanel Grid.Column="2"
                             Orientation="Horizontal"
-                            Spacing="12"
+                            Spacing="8"
                             VerticalAlignment="Center">
-                    <TextBlock x:Name="DocCountText"
-                               Text=""
-                               Style="{StaticResource CaptionStyle}"
-                               VerticalAlignment="Center"
-                               Opacity="0.4" />
+                    <TextBlock Text="VAULT"
+                               Style="{StaticResource PlacardStyle}"
+                               FontSize="9"
+                               Foreground="{ThemeResource TextDisabledBrush}"
+                               VerticalAlignment="Center" />
+                    <Border Background="{ThemeResource VoidBrush}"
+                            BorderBrush="{ThemeResource HairlineBrush}"
+                            BorderThickness="1"
+                            CornerRadius="{StaticResource RadiusXS}"
+                            Height="20"
+                            MinWidth="42"
+                            Padding="8,0"
+                            VerticalAlignment="Center">
+                        <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <Grid x:Name="VaultGlowHost" IsHitTestVisible="False" />
+                            <TextBlock x:Name="DocCountText"
+                                       Text="0"
+                                       Style="{StaticResource LcdStyle}"
+                                       FontSize="11"
+                                       VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Annunciator cluster (typed sources via
+                         IAnnunciatorService; lit lamps teleport) -->
+                    <controls:LampTile x:Name="InboxLamp"
+                                       Code="INBOX"
+                                       State="Off"
+                                       IsCompact="True"
+                                       Margin="4,0,0,0"
+                                       VerticalAlignment="Center" />
+                    <controls:LampTile x:Name="SyncLamp"
+                                       Code="SYNC"
+                                       State="Off"
+                                       IsCompact="True"
+                                       VerticalAlignment="Center" />
+                    <controls:LampTile x:Name="JobsLamp"
+                                       Code="JOBS"
+                                       State="Off"
+                                       IsCompact="True"
+                                       VerticalAlignment="Center" />
+                    <controls:LampTile x:Name="BakLamp"
+                                       Code="BAK"
+                                       State="Off"
+                                       IsCompact="True"
+                                       VerticalAlignment="Center" />
+                    <controls:LampTile x:Name="LocalLamp"
+                                       Code="LOCAL"
+                                       State="Off"
+                                       IsCompact="True"
+                                       VerticalAlignment="Center" />
+
                     <!-- Text set in code-behind from AppVersionInfo (single source) so it
                          never drifts from the shipped build (AX-QA-014). -->
                     <TextBlock x:Name="AppVersionText"
                                Text="Agent-X"
-                               Style="{StaticResource CaptionStyle}"
-                               VerticalAlignment="Center"
-                               Opacity="0.5" />
+                               Style="{StaticResource TelemetrySmallStyle}"
+                               Foreground="{ThemeResource WellTextBrush}"
+                               Opacity="0.45"
+                               Margin="8,0,0,0"
+                               VerticalAlignment="Center" />
                 </StackPanel>
             </Grid>
         </Border>

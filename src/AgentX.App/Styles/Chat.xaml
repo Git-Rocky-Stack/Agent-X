@@ -20,7 +20,7 @@
         <Setter Property="Background" Value="{ThemeResource CardHighBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="12,12,2,12" />
+        <Setter Property="CornerRadius" Value="4,4,2,4" />
         <Setter Property="Padding" Value="16,12,16,12" />
         <Setter Property="MaxWidth" Value="680" />
         <Setter Property="HorizontalAlignment" Value="Right" />
@@ -35,7 +35,7 @@
         <Setter Property="Background" Value="{ThemeResource CardBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="2,12,12,12" />
+        <Setter Property="CornerRadius" Value="2,4,4,4" />
         <Setter Property="Padding" Value="16,12,16,12" />
         <Setter Property="MaxWidth" Value="720" />
         <Setter Property="HorizontalAlignment" Value="Left" />
@@ -87,7 +87,7 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="ChatTimestampStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+        <Setter Property="FontFamily" Value="{StaticResource FontTelemetry}" />
         <Setter Property="FontSize" Value="10" />
         <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="LineHeight" Value="14" />
@@ -100,7 +100,7 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="MessageMetaStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+        <Setter Property="FontFamily" Value="{StaticResource FontTelemetry}" />
         <Setter Property="FontSize" Value="10" />
         <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="LineHeight" Value="14" />
@@ -114,10 +114,10 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="CodeBlockStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource InputBackgroundBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource WellBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource HairlineBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusXS}" />
         <Setter Property="Padding" Value="14,10,14,10" />
     </Style>
 
@@ -220,8 +220,8 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="ChatTopBarStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource CardGradientBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource StripeBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource StripeRuleBrush}" />
         <Setter Property="BorderThickness" Value="0,0,0,1" />
         <Setter Property="Padding" Value="16,8,16,8" />
     </Style>
@@ -266,7 +266,7 @@
         <Setter Property="Background" Value="{ThemeResource CardGradientSubtleBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusXL}" />
+        <Setter Property="CornerRadius" Value="{StaticResource ROverlay}" />
         <Setter Property="Padding" Value="48,40,48,40" />
         <Setter Property="MaxWidth" Value="520" />
         <Setter Property="HorizontalAlignment" Value="Center" />
