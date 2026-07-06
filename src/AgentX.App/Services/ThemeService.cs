@@ -13,7 +13,12 @@ namespace AgentX.App.Services;
 public class ThemeService : IThemeService
 {
     private readonly ISettingsService _settingsService;
-    private const string ThemeSettingKey = "app.theme";
+
+    // Must be an AppSettings property NAME: SettingsService resolves
+    // Get/SetValueAsync keys via reflection over AppSettings. The old
+    // "app.theme" key matched no property, so the theme choice was
+    // silently never persisted and every launch fell back to Dark.
+    private const string ThemeSettingKey = "Theme";
 
     /// <inheritdoc />
     public ElementTheme CurrentTheme { get; private set; } = ElementTheme.Dark;

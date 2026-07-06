@@ -7,6 +7,11 @@ public class AppSettings
     // Onboarding
     public bool OnboardingCompleted { get; set; } = false;
 
+    // Appearance - ElementTheme name ("Dark" Night Ops / "Light" Day Shift /
+    // "Default" follows Windows). SettingsService.Get/SetValueAsync resolve
+    // keys by AppSettings property name, so ThemeService must use "Theme".
+    public string Theme { get; set; } = "Dark";
+
     // AI Provider — Active selection ("local", "ollama", "openai", "anthropic")
     public string ActiveProviderId { get; set; } = "local";
 
