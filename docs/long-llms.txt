@@ -16,6 +16,7 @@
 - **GPU Acceleration** — CUDA 12 support with automatic VRAM-based layer offloading
 - **REST API** — Embedded HTTP server (port 9846) for programmatic access
 - **Production Data Layer** — EF Core migrations, 37-table schema, HNSW ANN vector index
+- **Command Console UI** — A hardware-instrument design system (DESIGN.md): faceplate modules, LCD readouts, live status lamps with click-to-navigate, in dark / light / high-contrast themes, fully localized in six languages
 
 ---
 

@@ -36,7 +36,7 @@ Version 2.1.2 | Last updated: June 21, 2026
 26. [Annotations](#26-annotations)
 27. [Settings](#27-settings)
 28. [Command Palette, Jump To, and Shortcuts](#28-command-palette-jump-to-and-shortcuts)
-29. [Status Bar, Notifications, and Tray](#29-status-bar-notifications-and-tray)
+29. [Instrument Strip, Notifications, and Tray](#29-instrument-strip-notifications-and-tray)
 30. [Privacy and Security](#30-privacy-and-security)
 31. [Troubleshooting](#31-troubleshooting)
 32. [FAQ](#32-faq)
@@ -1027,18 +1027,21 @@ Open the shortcuts cheatsheet with `F1` or `Ctrl+Shift+?`.
 
 ---
 
-## 29. Status Bar, Notifications, and Tray
+## 29. Instrument Strip, Notifications, and Tray
 
-### Status bar
+### Instrument strip (status bar)
 
-The bottom status bar shows:
+The bottom of the main window is an instrument strip: a row of live readouts and stencil word-lamps that stays dark in both the dark and light themes. Every value is real and updates on a background poll.
 
-- Provider connection indicator.
-- Current status text.
-- `Ctrl+K` hint.
-- Indexing spinner and progress text.
-- Document count.
+- `MDL` lamp and readout: the loaded model name when the AI provider is linked (green), or an amber caution with "Ollama not detected" when it is not.
+- `Ctrl+K` key hint for the command palette.
+- `IDX` readout: the embedding queue depth. It burns amber while indexing and rests dim at zero.
+- `VAULT` readout: total document count.
+- Annunciator lamps: `INBOX` (amber when triage items are waiting), `SYNC` (green when configured and idle, teal while syncing, red on a sync error, unlit when not configured), `JOBS` (teal while a workflow runs, red if the latest run failed), `BAK` (green when the last backup is under a week old, amber when older, unlit if no backup exists).
+- `LOCAL` / `NET` privacy lamp: green `LOCAL` when every configured provider is local, amber `NET` when a cloud provider is active.
 - Version label.
+
+Clicking any lit lamp jumps to its source page (for example, `INBOX` opens the Smart Inbox and `BAK` opens Backup & Restore). A blinking lamp indicates an unacknowledged warning; clicking it once acknowledges it and stops the blink.
 
 ### Notifications
 

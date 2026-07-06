@@ -386,7 +386,7 @@ private readonly Dictionary<string, Type> _pageMap = new()
 
 Navigation is driven by `NavigationView.SelectionChanged`, which reads the `Tag` property of the selected `NavigationViewItem` and looks up the corresponding `Type` in `_pageMap`. A parallel `_navItemMap` keeps the `NavigationViewItem` references so that programmatic navigation (from keyboard shortcuts or the command palette) can synchronize the NavigationView selection indicator with the `Frame`.
 
-**Status bar:** A `DispatcherTimer` polls every 30 seconds (after a 5-second initial delay) to update three status indicators: AI connection dot + model name, indexing progress ring + queue count, and total document count.
+**Instrument strip (status bar):** two typed pollers feed the bottom strip. `StatusBarService` polls every 30 seconds (after a 5-second initial delay) for AI connection state + model name (the `MDL` lamp and LCD readout), indexing queue depth (`IDX`), and total document count (`VAULT`); each cycle also re-evaluates the `LOCAL`/`NET` privacy lamp through `IPrivacyStatusService`. `AnnunciatorService` drives the `INBOX`/`SYNC`/`JOBS`/`BAK` lamps on a two-cadence poll (inbox count and sync posture every cycle, backup age and workflow-run health every 4th), querying typed service APIs and failing soft per source. Lit lamps navigate to their source page on click.
 
 **Onboarding override:** On first run (`settings.OnboardingCompleted == false`), the NavigationView pane is hidden and the Frame navigates to `OnboardingPage`. A `_suppressNavigation` flag prevents `SelectionChanged` from re-navigating away during setup. `CompleteOnboarding()` is a public method called by `OnboardingViewModel` when the wizard finishes.
 
@@ -464,14 +464,15 @@ Six resource dictionaries in `Styles/` form the design system:
 
 | File | Contents |
 |---|---|
-| `Colors.xaml` | Brand color palette, semantic colors (online/offline brushes, status colors), dark theme overrides |
-| `Typography.xaml` | Font sizes, weights, and line heights for heading and body scales |
+| `Colors.xaml` | Command Console token layer: armed red `#AA2024` accent, LED status vocabulary, well/LCD display tokens, spacing and radius scales, and Fluent lightweight overrides - defined per theme in `ThemeDictionaries` (dark, light, high contrast) |
+| `Typography.xaml` | Four bundled typefaces (Public Sans body, Archivo Expanded stencil placards, Departure Mono telemetry, Iosevka Term streams/code) and the heading/body/metric style scales |
+| `Hardware.xaml` | Faceplate, recessed-well, lamp-tile, and machined/armed cap button recipes (the hardware depth system) |
 | `Controls.xaml` | Custom button styles, card styles, input field styles |
-| `Navigation.xaml` | NavigationView item styles, pane width, icon sizing |
+| `Navigation.xaml` | NavigationView theme overrides, item styles, section header placards |
 | `Chat.xaml` | Message bubble styles, role-specific colors, streaming indicator |
 | `Documents.xaml` | Document card layouts, status badge styles, file type icon maps |
 
-The application runs exclusively in dark mode. Light mode support was deferred. The `MicaBackdrop` or `DesktopAcrylicBackdrop` system backdrop provides the underlying material effect behind the XAML content.
+The visual system is defined in [`DESIGN.md`](../DESIGN.md) at the repository root - the source of truth for all tokens, recipes, and rules. The application ships three themes: dark (Night Shift, the default), light (Day Shift, brushed silver), and high contrast (bound to `SystemColor*` tokens and exempt from the hardware skin). Display surfaces - LCD wells, lamp caps, and the instrument strip - stay dark in both the dark and light themes by design. The `MicaBackdrop` or `DesktopAcrylicBackdrop` system backdrop provides the underlying material effect behind the XAML content.
 
 ### 5.7 Keyboard Shortcut System
 

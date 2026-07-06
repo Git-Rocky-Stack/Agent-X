@@ -45,6 +45,31 @@ All notable changes to Agent-X are documented in this file.
 
 The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed - Command Console redesign (2026-07-05)
+
+The entire UI adopts the **Command Console design system** from the Strategia family, defined in [`DESIGN.md`](DESIGN.md) (the new source of truth for all visual work):
+
+- **Armed red `#AA2024`** replaces the cardinal `#C41E3A` accent across all 29 views, with a full LED status vocabulary (go green, hold amber, warn red, no-go red, scope teal) replacing ad-hoc status colors.
+- **Four bundled typefaces** (SIL OFL, no runtime downloads): Public Sans for body text, Archivo Expanded for stencil placards and page titles, Departure Mono for telemetry readouts, Iosevka Term for streams and code (retiring Cascadia Code).
+- **Hardware depth**: pages are built from faceplate modules with machined kickers and corner bolts; metrics render in recessed LCD wells with phosphor glow; buttons are machined and armed caps with physical press travel.
+- **Instrument strip**: the bottom status bar is reborn as a live instrument row - `MDL` model lamp and readout, `IDX` embedding-queue and `VAULT` document-count LCDs, the `LOCAL`/`NET` privacy lamp, and a new annunciator cluster (`INBOX`/`SYNC`/`JOBS`/`BAK`) fed by a typed aggregation service. Lit lamps navigate to their source page; blinking lamps acknowledge on click.
+- **Three themes**: dark (Night Shift, default), light (Day Shift, brushed silver), and high contrast (bound to system colors, exempt from the hardware skin). Display surfaces stay dark in both regular themes by design. Status text tones are shift-aware for contrast on light surfaces.
+- **Reduced motion respected**: lamp strikes, meter ballistics, and cap travel snap instantly when Windows animations are disabled.
+
+### Added
+
+- All UI now available in six languages (en-US, de, es, fr, ja, zh-CN): every page, dialog, MainWindow chrome, and the Privacy/Terms pages are x:Uid-instrumented with full resw key parity, enforced by the LocaleAudit CI gate (2026-07-04).
+- `SegmentMeter` control: a 12-segment instrument meter with zone tones and needle ballistics, driving the Dashboard indexing gauge and the Hardware Advisor RAM gauge.
+
+### Fixed
+
+- **Theme choice now persists across restarts.** The theme was saved under a key that matched no settings property, so every launch silently reverted to dark.
+- **Model Manager connection dot and Sync Settings state dot now reflect live state.** Both were initialized green and never updated, showing "go" even when disconnected or errored.
+- Quick Actions page could fail to open due to a tab handler firing during XAML parse (2026-07-04).
+- Databases with a stamped baseline but missing tables now self-heal at startup instead of bricking the app (2026-07-04).
+
 ## [2.1.2] — 2026-06-21 — "Bedrock" security & supply-chain hardening
 
 Security and hardening release. Closes the full **Codex security audit** and the **Comprehensive QA Audit (2026-06-19)** — every finding **AX-QA-001 through AX-QA-016** — makes the release pipeline signing-ready, and brings the mobile companion to a verified build. No breaking changes; no database schema changes.

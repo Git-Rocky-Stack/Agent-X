@@ -602,17 +602,16 @@ The application startup follows this sequence:
    - Calls `aiService.InitializeAsync()` — registers providers, checks connection
 4. `MainWindow` constructor — sets up the `_pageMap`, `_navItemMap`, keyboard shortcuts, command palette callbacks, window configuration, title bar, backdrop, then navigates to `DashboardPage`
 5. `CheckOnboardingAsync()` — if `OnboardingCompleted` is false, hides the nav pane and navigates to `OnboardingPage`
-6. `InitializeStatusBar()` — starts a 30-second polling timer that updates connection status, indexing progress, and document count
+6. `ConfigureStatusBar()` — wires the instrument strip and starts the `StatusBarService` and `AnnunciatorService` polling loops
 
-### 4.6 Status Bar
+### 4.6 Instrument Strip (Status Bar)
 
-The status bar at the bottom of `MainWindow` polls three services every 30 seconds (with an initial 5-second delay):
+The instrument strip at the bottom of `MainWindow` is fed by two typed pollers:
 
-- **Connection dot and text**: `IAiService.ActiveProvider.CheckConnectionAsync()` — 3-second timeout
-- **Indexing ring**: `IIndexingService.IsProcessing` and `GetQueueLengthAsync()`
-- **Document count**: `IDocumentService.GetTotalDocumentCountAsync()`
+- **`StatusBarService`** (every 30 seconds, initial 5-second delay): connection state and model name for the `MDL` lamp and LCD readout (`IAiService.ActiveProvider.CheckConnectionAsync()`, 3-second timeout), indexing queue depth for `IDX` (`IIndexingService`), and document count for `VAULT` (`IDocumentService`). Each cycle also refreshes the `LOCAL`/`NET` privacy lamp via `IPrivacyStatusService`.
+- **`AnnunciatorService`** (two-cadence): inbox pending count (`IInboxService`) and sync posture (`ISyncService`) every cycle; backup age (`IBackupService`) and workflow-run health (`IAnalyticsService`) every 4th cycle. Drives the `INBOX`/`SYNC`/`JOBS`/`BAK` lamps. Lamp tones are typed enum mappings, never display-string comparisons.
 
-Status bar errors are silently swallowed — status display is non-critical.
+Both pollers fail soft per source — status display is non-critical, and a failed query leaves the previous lamp state in place. Lit lamps navigate to their source page on click (`LampTile.Invoked`).
 
 ### 4.7 Error Handling Strategy
 
@@ -1856,7 +1855,7 @@ dotnet publish src/AgentX.App/AgentX.App.csproj \
 
 ### 11.2 Ollama Not Detected
 
-**Symptom:** Status bar shows "Ollama not detected" or the connection dot is red.
+**Symptom:** The instrument strip shows "Ollama not detected" in amber and the `MDL` lamp holds amber.
 
 **Diagnostic steps:**
 
@@ -2050,6 +2049,7 @@ Interface and implementation files are kept adjacent. For `IMyService.cs` and `M
 - Binding paths match ViewModel property names exactly
 - Resource keys in `Styles/` use PascalCase: `TextPrimaryBrush`, `AccentPrimaryBrush`
 - Font icon glyphs use Unicode escape: `&#xE8BD;` in XAML or `"\uE8BD"` in code
+- Visual decisions (colors, fonts, spacing, depth, status semantics) anchor to [`DESIGN.md`](../DESIGN.md) at the repository root - read it before any UI work. Brushes are consumed via `ThemeResource` so all three themes resolve; a `ThemeResource` key must exist in every theme dictionary or the app crashes at parse time. The high-contrast theme stays bound to `SystemColor*` tokens and is exempt from the hardware skin.
 
 ### 12.7 Interface Design
 

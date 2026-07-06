@@ -347,7 +347,7 @@ AgentX.sln
 The application host project. Responsibilities:
 
 - **Dependency Injection Composition Root:** `App.xaml.cs` builds the `IHost` using `Microsoft.Extensions.Hosting`, registers every service and view model as singleton or transient, and resolves the dependency graph before the main window is shown.
-- **Main Window Shell:** `MainWindow.xaml.cs` manages the `NavigationView`, `Frame`, command palette overlay, keyboard shortcut dispatch, live status bar (Ollama connection state, indexing progress, document count), and system backdrop (Mica Alt with Acrylic fallback).
+- **Main Window Shell:** `MainWindow.xaml.cs` manages the `NavigationView`, `Frame`, command palette overlay, keyboard shortcut dispatch, the live instrument strip (model lamp and LCD readout, indexing queue, document count, and the INBOX/SYNC/JOBS/BAK annunciator lamps plus the LOCAL/NET privacy lamp), and system backdrop (Mica Alt with Acrylic fallback).
 - **Views:** WinUI 3 pages span intelligence, knowledge, triage, system, onboarding, help, and legal surfaces, each resolved through the DI container.
 - **ViewModels:** Page-specific, dialog, and support ViewModels use `CommunityToolkit.Mvvm.ComponentModel.ObservableObject`, `[ObservableProperty]`, and `[RelayCommand]` source generation.
 - **Onboarding Flow:** First-run detection hides the navigation pane and presents a focused onboarding wizard; navigation is restored and Dashboard is loaded on completion.
@@ -382,7 +382,7 @@ var aiService = App.GetService<IAiService>();
 2. `InitializeCoreServicesAsync` (fire-and-forget): reads the `%LocalAppData%\AgentX\encryption.info.json` keystore (when present) and unlocks the database key via `IDatabaseKeyService` (DPAPI-wrap, or PBKDF2-HMAC-SHA256 passphrase for legacy keystores); applies pending EF Core migrations via `IMigrationRunner.RunAsync()` with baseline-adoption for pre-B9 installs; initializes FTS5 virtual tables; and calls `IAiService.InitializeAsync` to connect to Ollama.
 3. `MainWindow` is instantiated and shown immediately — initialization continues in the background.
 4. The main window checks onboarding status; if not completed, it hides the navigation pane and navigates to `OnboardingPage`.
-5. The status bar polling timer fires after a 5-second delay and every 30 seconds thereafter, updating the Ollama connection dot, active model name, indexing progress ring, and document count.
+5. The instrument strip pollers start: `StatusBarService` fires after a 5-second delay and every 30 seconds thereafter (model lamp and name, indexing queue depth, document count, privacy lamp), and `AnnunciatorService` feeds the INBOX/SYNC/JOBS/BAK lamps on its own two-cadence poll.
 
 ### System Backdrop
 
