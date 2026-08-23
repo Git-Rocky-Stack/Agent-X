@@ -2005,4 +2005,32 @@
   <data name="Plugin_BulkUninstall.Content" xml:space="preserve"><value>卸载</value></data>
   <data name="Plugin_SelectPluginBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>选择插件</value></data>
   <data name="Sync_ReloadHistoryLabel.Text" xml:space="preserve"><value>重新加载</value></data>
+  <data name="Chat_ResearchModeToggle.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>研究模式</value></data>
+  <data name="Vault_DismissDuplicateWarning.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>关闭重复项警告</value></data>
+  <data name="Notification_Dismiss.ToolTipService.ToolTip" xml:space="preserve"><value>关闭</value></data>
+  <data name="Notification_Dismiss.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>关闭</value></data>
+  <data name="Chat_MergeToMainTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>合并到主线</value></data>
+  <data name="Chat_DeleteBranchTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>删除分支</value></data>
+  <data name="Chat_EditMessageTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>编辑消息</value></data>
+  <data name="Chat_CopyUserMsgTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>复制到剪贴板</value></data>
+  <data name="Chat_BranchFromHereTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>从此处创建分支</value></data>
+  <data name="Chat_DeleteUserMsgTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>删除消息</value></data>
+  <data name="Chat_GoodResponseTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>回复不错</value></data>
+  <data name="Chat_PoorResponseTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>回复不佳</value></data>
+  <data name="Chat_CopyAiMsgTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>复制到剪贴板</value></data>
+  <data name="Chat_RegenerateTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>重新生成回复</value></data>
+  <data name="Chat_DeleteAiMsgTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>删除消息</value></data>
+  <data name="Chat_VoiceInputTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>语音输入 — 点击开始录音</value></data>
+  <data name="Chat_StopRecordingTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>停止录音并转写</value></data>
+  <data name="Chat_InspectAssembledTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>查看最近组装的聊天上下文</value></data>
+  <data name="Graph_ZoomOutTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>缩小</value></data>
+  <data name="Graph_ZoomInTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>放大</value></data>
+  <data name="Graph_ResetZoomTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>重置缩放</value></data>
+  <data name="Graph_ClearClusterHighlightTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>清除聚类高亮</value></data>
+  <data name="Graph_CloseDetailsPanelTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>关闭详情面板</value></data>
+  <data name="Plugin_Install.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>&amp;#20174;&amp;#25991;&amp;#20214;&amp;#23433;&amp;#35013;&amp;#25554;&amp;#20214;</value></data>
+  <data name="Plugin_Refresh.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>&amp;#21047;&amp;#26032;&amp;#25554;&amp;#20214;</value></data>
+  <data name="Plugin_Uninstall.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>&amp;#21368;&amp;#36733;&amp;#27492;&amp;#25554;&amp;#20214;</value></data>
+  <data name="Sync_RefreshStatusBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>刷新同步状态</value></data>
+  <data name="Workspace_RefreshProfilesTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>刷新配置文件</value></data>
 </root>

@@ -58,6 +58,8 @@
                                 Style="{StaticResource MessageActionButtonStyle}"
                                 Click="OnDismissClick"
                                 Tag="{x:Bind Id}"
+                                x:Uid="Notification_Dismiss"
+                                AutomationProperties.Name="Dismiss"
                                 ToolTipService.ToolTip="Dismiss"
                                 VerticalAlignment="Top">
                             <FontIcon Glyph="&#xE711;" FontSize="10"

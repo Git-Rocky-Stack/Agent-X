@@ -118,10 +118,11 @@
                              Text="{x:Bind ViewModel.NewProfileDescription, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <Button Style="{StaticResource AccentButtonStyle}"
                             HorizontalAlignment="Stretch"
-                            Command="{x:Bind ViewModel.CreateProfileCommand}">
+                            Command="{x:Bind ViewModel.CreateProfileCommand}"
+                            AutomationProperties.LabeledBy="{x:Bind CreateProfileLabel}">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon Glyph="&#xE710;" FontSize="12" />
-                            <TextBlock x:Uid="Workspace_CreateProfile" Text="Create Profile" FontSize="12" FontWeight="SemiBold" />
+                            <TextBlock x:Name="CreateProfileLabel" x:Uid="Workspace_CreateProfile" Text="Create Profile" FontSize="12" FontWeight="SemiBold" />
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -344,10 +345,11 @@
                         <Button Grid.Column="1"
                                 Style="{StaticResource SecondaryButtonStyle}"
                                 Command="{x:Bind ViewModel.DuplicateProfileCommand}"
-                                VerticalAlignment="Top">
+                                VerticalAlignment="Top"
+                                AutomationProperties.LabeledBy="{x:Bind DuplicateLabel}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8C8;" FontSize="14" />
-                                <TextBlock x:Uid="Workspace_Duplicate" Text="Duplicate" />
+                                <TextBlock x:Name="DuplicateLabel" x:Uid="Workspace_Duplicate" Text="Duplicate" />
                             </StackPanel>
                         </Button>
                     </Grid>
@@ -560,10 +562,11 @@
                         <!-- Save button -->
                         <Button Grid.Column="0"
                                 Style="{StaticResource AccentButtonStyle}"
-                                Command="{x:Bind ViewModel.SaveProfileCommand}">
+                                Command="{x:Bind ViewModel.SaveProfileCommand}"
+                                AutomationProperties.LabeledBy="{x:Bind SaveProfileLabel}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE74E;" FontSize="14" />
-                                <TextBlock x:Uid="Workspace_SaveProfile" Text="Save Profile" />
+                                <TextBlock x:Name="SaveProfileLabel" x:Uid="Workspace_SaveProfile" Text="Save Profile" />
                             </StackPanel>
                         </Button>
 
@@ -571,21 +574,23 @@
                         <Button Grid.Column="1"
                                 Style="{StaticResource SecondaryButtonStyle}"
                                 Command="{x:Bind ViewModel.SetDefaultCommand}"
-                                IsEnabled="{x:Bind ViewModel.EditIsDefault, Mode=OneWay, Converter={StaticResource InverseBool}}">
+                                IsEnabled="{x:Bind ViewModel.EditIsDefault, Mode=OneWay, Converter={StaticResource InverseBool}}"
+                                AutomationProperties.LabeledBy="{x:Bind SetAsDefaultLabel}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE735;" FontSize="14" />
-                                <TextBlock x:Uid="Workspace_SetAsDefault" Text="Set as Default" />
+                                <TextBlock x:Name="SetAsDefaultLabel" x:Uid="Workspace_SetAsDefault" Text="Set as Default" />
                             </StackPanel>
                         </Button>
 
                         <!-- Delete button (right-aligned) -->
                         <Button Grid.Column="3"
                                 Style="{StaticResource GhostButtonStyle}"
-                                Command="{x:Bind ViewModel.DeleteProfileCommand}">
+                                Command="{x:Bind ViewModel.DeleteProfileCommand}"
+                                AutomationProperties.LabeledBy="{x:Bind DeleteProfileLabel}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE74D;" FontSize="14"
                                           Foreground="{ThemeResource ErrorBrush}" />
-                                <TextBlock x:Uid="Workspace_DeleteProfile" Text="Delete Profile"
+                                <TextBlock x:Name="DeleteProfileLabel" x:Uid="Workspace_DeleteProfile" Text="Delete Profile"
                                            Foreground="{ThemeResource ErrorBrush}" />
                             </StackPanel>
                         </Button>

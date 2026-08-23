@@ -48,10 +48,11 @@
                 <Button Grid.Column="1"
                         Style="{StaticResource SecondaryButtonStyle}"
                         Command="{x:Bind ViewModel.RefreshHardwareCommand}"
-                        VerticalAlignment="Center">
+                        VerticalAlignment="Center"
+                        AutomationProperties.LabeledBy="{x:Bind ReScanLabel}">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE72C;" FontSize="14" />
-                        <TextBlock x:Uid="HwAdvisor_ReScan" Text="Re-scan" />
+                        <TextBlock x:Name="ReScanLabel" x:Uid="HwAdvisor_ReScan" Text="Re-scan" />
                     </StackPanel>
                 </Button>
             </Grid>
@@ -464,10 +465,11 @@
                                                     Padding="16,8,16,8" MinHeight="34"
                                                     Visibility="{x:Bind IsInstalled, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}"
                                                     Tag="{x:Bind Name, Mode=OneWay}"
-                                                    Click="OnInstallModelClick">
+                                                    Click="OnInstallModelClick"
+                                                    AutomationProperties.LabeledBy="{Binding ElementName=InstallLabel3}">
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <FontIcon Glyph="&#xE896;" FontSize="12" />
-                                                    <TextBlock x:Uid="HwAdvisor_Install" Text="Install" FontSize="12" />
+                                                    <TextBlock x:Name="InstallLabel3" x:Uid="HwAdvisor_Install" Text="Install" FontSize="12" />
                                                 </StackPanel>
                                             </Button>
                                         </Grid>
@@ -565,10 +567,11 @@
                                                     Padding="16,8,16,8" MinHeight="34"
                                                     Visibility="{x:Bind IsInstalled, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}"
                                                     Tag="{x:Bind Name, Mode=OneWay}"
-                                                    Click="OnInstallModelClick">
+                                                    Click="OnInstallModelClick"
+                                                    AutomationProperties.LabeledBy="{Binding ElementName=InstallLabel2}">
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <FontIcon Glyph="&#xE896;" FontSize="12" />
-                                                    <TextBlock x:Uid="HwAdvisor_Install2" Text="Install" FontSize="12" />
+                                                    <TextBlock x:Name="InstallLabel2" x:Uid="HwAdvisor_Install2" Text="Install" FontSize="12" />
                                                 </StackPanel>
                                             </Button>
                                         </Grid>
@@ -666,10 +669,11 @@
                                                     Padding="16,8,16,8" MinHeight="34"
                                                     Visibility="{x:Bind IsInstalled, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}"
                                                     Tag="{x:Bind Name, Mode=OneWay}"
-                                                    Click="OnInstallModelClick">
+                                                    Click="OnInstallModelClick"
+                                                    AutomationProperties.LabeledBy="{Binding ElementName=InstallLabel}">
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <FontIcon Glyph="&#xE896;" FontSize="12" />
-                                                    <TextBlock x:Uid="HwAdvisor_Install3" Text="Install" FontSize="12" />
+                                                    <TextBlock x:Name="InstallLabel" x:Uid="HwAdvisor_Install3" Text="Install" FontSize="12" />
                                                 </StackPanel>
                                             </Button>
                                         </Grid>

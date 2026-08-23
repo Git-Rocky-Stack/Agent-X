@@ -91,10 +91,11 @@
                         Style="{StaticResource AccentButtonStyle}"
                         Command="{x:Bind ViewModel.SyncNowCommand}"
                         VerticalAlignment="Center"
-                        Visibility="{x:Bind ViewModel.IsConfigured, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                        Visibility="{x:Bind ViewModel.IsConfigured, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                        AutomationProperties.LabeledBy="{x:Bind SyncNowLabel}">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE895;" FontSize="14" />
-                        <TextBlock x:Uid="Sync_SyncNowLabel" Text="Sync Now" />
+                        <TextBlock x:Name="SyncNowLabel" x:Uid="Sync_SyncNowLabel" Text="Sync Now" />
                     </StackPanel>
                 </Button>
             </Grid>
@@ -287,10 +288,11 @@
                             <Button Grid.Column="1"
                                     Style="{StaticResource SecondaryButtonStyle}"
                                     Click="BrowseSyncFolder_Click"
-                                    IsEnabled="{x:Bind ViewModel.IsSyncing, Mode=OneWay, Converter={StaticResource InverseBool}}">
+                                    IsEnabled="{x:Bind ViewModel.IsSyncing, Mode=OneWay, Converter={StaticResource InverseBool}}"
+                                    AutomationProperties.LabeledBy="{x:Bind BrowseLabel}">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xED25;" FontSize="14" />
-                                    <TextBlock x:Uid="Sync_BrowseLabel" Text="Browse" />
+                                    <TextBlock x:Name="BrowseLabel" x:Uid="Sync_BrowseLabel" Text="Browse" />
                                 </StackPanel>
                             </Button>
                         </Grid>
@@ -441,10 +443,11 @@
                 </Grid.ColumnDefinitions>
 
                 <Button Style="{StaticResource AccentButtonStyle}"
-                        Command="{x:Bind ViewModel.SaveConfigurationCommand}">
+                        Command="{x:Bind ViewModel.SaveConfigurationCommand}"
+                        AutomationProperties.LabeledBy="{x:Bind SaveConfigurationLabel}">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE74E;" FontSize="14" />
-                        <TextBlock x:Uid="Sync_SaveLabel" Text="Save Configuration" />
+                        <TextBlock x:Name="SaveConfigurationLabel" x:Uid="Sync_SaveLabel" Text="Save Configuration" />
                     </StackPanel>
                 </Button>
 

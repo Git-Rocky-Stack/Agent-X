@@ -335,10 +335,11 @@
                             HorizontalAlignment="Center"
                             Padding="16,8,16,8"
                             MinHeight="34"
-                            Command="{x:Bind ViewModel.InstallPluginCommand}">
+                            Command="{x:Bind ViewModel.InstallPluginCommand}"
+                            AutomationProperties.LabeledBy="{x:Bind InstallButtonLabel}">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon Glyph="&#xE710;" FontSize="12" />
-                            <TextBlock x:Uid="Plugin_InstallButton" FontSize="12" FontWeight="SemiBold" />
+                            <TextBlock x:Name="InstallButtonLabel" x:Uid="Plugin_InstallButton" FontSize="12" FontWeight="SemiBold" />
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -752,11 +753,12 @@
                                     x:Name="DetailUninstallButton"
                                     Style="{StaticResource SecondaryButtonStyle}"
                                     Click="OnUninstallPluginClick"
-                                    VerticalAlignment="Center">
+                                    VerticalAlignment="Center"
+                                    AutomationProperties.LabeledBy="{x:Bind DetailUninstallButtonLabel}">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE74D;" FontSize="14"
                                               Foreground="{ThemeResource ErrorBrush}" />
-                                    <TextBlock x:Uid="Plugin_UninstallButton"
+                                    <TextBlock x:Name="DetailUninstallButtonLabel" x:Uid="Plugin_UninstallButton"
                                                Foreground="{ThemeResource ErrorBrush}"
                                                FontWeight="SemiBold"
                                                FontSize="13" />

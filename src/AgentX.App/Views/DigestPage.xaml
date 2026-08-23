@@ -71,14 +71,15 @@
                         <!-- Generate button -->
                         <Button Style="{StaticResource AccentButtonStyle}"
                                 Command="{x:Bind ViewModel.GenerateDigestCommand}"
-                                IsEnabled="{x:Bind ViewModel.IsGenerating, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}">
+                                IsEnabled="{x:Bind ViewModel.IsGenerating, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"
+                                AutomationProperties.LabeledBy="{x:Bind GenerateNewDigestLabel}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <ProgressRing IsActive="{x:Bind ViewModel.IsGenerating, Mode=OneWay}"
                                               Width="14" Height="14"
                                               Visibility="{x:Bind ViewModel.IsGenerating, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
                                 <FontIcon Glyph="&#xE9D2;" FontSize="14"
                                           Visibility="{x:Bind ViewModel.IsGenerating, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
-                                <TextBlock x:Uid="Digest_GenerateNewDigest" Text="Generate New Digest" />
+                                <TextBlock x:Name="GenerateNewDigestLabel" x:Uid="Digest_GenerateNewDigest" Text="Generate New Digest" />
                             </StackPanel>
                         </Button>
                     </StackPanel>
@@ -236,10 +237,11 @@
                             <Button Style="{StaticResource AccentButtonStyle}"
                                     Command="{x:Bind ViewModel.GenerateDigestCommand}"
                                     HorizontalAlignment="Center"
-                                    Margin="0,8,0,0">
+                                    Margin="0,8,0,0"
+                                    AutomationProperties.LabeledBy="{x:Bind GenerateFirstDigestLabel}">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE9D2;" FontSize="14" />
-                                    <TextBlock x:Uid="Digest_GenerateFirstDigest" Text="Generate First Digest" />
+                                    <TextBlock x:Name="GenerateFirstDigestLabel" x:Uid="Digest_GenerateFirstDigest" Text="Generate First Digest" />
                                 </StackPanel>
                             </Button>
                         </StackPanel>
@@ -551,9 +553,10 @@
                                         HorizontalContentAlignment="Left"
                                         Padding="12,10"
                                         Tag="{x:Bind}"
-                                        Click="OnReportHistoryItemClick">
+                                        Click="OnReportHistoryItemClick"
+                                        AutomationProperties.LabeledBy="{Binding ElementName=DigestPageLabel}">
                                     <StackPanel Spacing="4">
-                                        <TextBlock Text="{x:Bind ShortPeriodFormatted}"
+                                        <TextBlock x:Name="DigestPageLabel" Text="{x:Bind ShortPeriodFormatted}"
                                                    Style="{StaticResource BodySmallStyle}"
                                                    FontWeight="SemiBold" />
                                         <StackPanel Orientation="Horizontal" Spacing="12">

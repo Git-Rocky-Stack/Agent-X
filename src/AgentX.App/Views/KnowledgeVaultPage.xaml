@@ -74,20 +74,22 @@
                     <!-- Import Files button -->
                     <Button Style="{StaticResource AccentButtonStyle}"
                             Click="OnImportFilesClick"
-                            IsEnabled="{x:Bind ViewModel.IsImporting, Mode=OneWay, Converter={StaticResource InverseBool}}">
+                            IsEnabled="{x:Bind ViewModel.IsImporting, Mode=OneWay, Converter={StaticResource InverseBool}}"
+                            AutomationProperties.LabeledBy="{x:Bind ImportFilesLabel}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE8E5;" FontSize="14" />
-                            <TextBlock x:Uid="Vault_ImportFiles" Text="Import Files" />
+                            <TextBlock x:Name="ImportFilesLabel" x:Uid="Vault_ImportFiles" Text="Import Files" />
                         </StackPanel>
                     </Button>
 
                     <!-- Import Folder button -->
                     <Button Style="{StaticResource SecondaryButtonStyle}"
                             Click="OnImportFolderClick"
-                            IsEnabled="{x:Bind ViewModel.IsImporting, Mode=OneWay, Converter={StaticResource InverseBool}}">
+                            IsEnabled="{x:Bind ViewModel.IsImporting, Mode=OneWay, Converter={StaticResource InverseBool}}"
+                            AutomationProperties.LabeledBy="{x:Bind ImportFolderLabel}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE8B7;" FontSize="14" />
-                            <TextBlock x:Uid="Vault_ImportFolder" Text="Import Folder" />
+                            <TextBlock x:Name="ImportFolderLabel" x:Uid="Vault_ImportFolder" Text="Import Folder" />
                         </StackPanel>
                     </Button>
 
@@ -140,6 +142,8 @@
                         <Button x:Uid="Vault_ImportAll" Content="Import All" Style="{StaticResource GhostButtonStyle}"
                                 Command="{x:Bind ViewModel.ImportAllAnywayCommand}" Padding="12,6" />
                         <Button Style="{StaticResource IconButtonStyle}"
+                                x:Uid="Vault_DismissDuplicateWarning"
+                                AutomationProperties.Name="Dismiss duplicate warning"
                                 Command="{x:Bind ViewModel.DismissDuplicateWarningCommand}">
                             <FontIcon Glyph="&#xE711;" FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}" />
                         </Button>
@@ -257,38 +261,43 @@
                                     Click="OnFilterTypeClick" Tag=""
                                     Style="{StaticResource FilterChipActiveStyle}" x:Name="FilterTypeAll" />
                             <Button Click="OnFilterTypeClick" Tag="pdf"
-                                    Style="{StaticResource FilterChipStyle}" x:Name="FilterTypePdf">
+                                    Style="{StaticResource FilterChipStyle}" x:Name="FilterTypePdf"
+                                    AutomationProperties.LabeledBy="{x:Bind FilterTypePdfLabel}">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <FontIcon Glyph="&#xEA90;" FontSize="11" />
-                                    <TextBlock Text="PDF" />
+                                    <TextBlock x:Name="FilterTypePdfLabel" Text="PDF" />
                                 </StackPanel>
                             </Button>
                             <Button Click="OnFilterTypeClick" Tag="docx"
-                                    Style="{StaticResource FilterChipStyle}" x:Name="FilterTypeDocx">
+                                    Style="{StaticResource FilterChipStyle}" x:Name="FilterTypeDocx"
+                                    AutomationProperties.LabeledBy="{x:Bind FilterTypeDocxLabel}">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <FontIcon Glyph="&#xE8E5;" FontSize="11" />
-                                    <TextBlock x:Uid="Vault_Documents2" Text="Documents" />
+                                    <TextBlock x:Name="FilterTypeDocxLabel" x:Uid="Vault_Documents2" Text="Documents" />
                                 </StackPanel>
                             </Button>
                             <Button Click="OnFilterTypeClick" Tag="txt"
-                                    Style="{StaticResource FilterChipStyle}" x:Name="FilterTypeTxt">
+                                    Style="{StaticResource FilterChipStyle}" x:Name="FilterTypeTxt"
+                                    AutomationProperties.LabeledBy="{x:Bind FilterTypeTxtLabel}">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <FontIcon Glyph="&#xE8D2;" FontSize="11" />
-                                    <TextBlock x:Uid="Vault_Text" Text="Text" />
+                                    <TextBlock x:Name="FilterTypeTxtLabel" x:Uid="Vault_Text" Text="Text" />
                                 </StackPanel>
                             </Button>
                             <Button Click="OnFilterTypeClick" Tag="code"
-                                    Style="{StaticResource FilterChipStyle}" x:Name="FilterTypeCode">
+                                    Style="{StaticResource FilterChipStyle}" x:Name="FilterTypeCode"
+                                    AutomationProperties.LabeledBy="{x:Bind FilterTypeCodeLabel}">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <FontIcon Glyph="&#xE943;" FontSize="11" />
-                                    <TextBlock x:Uid="Vault_Code" Text="Code" />
+                                    <TextBlock x:Name="FilterTypeCodeLabel" x:Uid="Vault_Code" Text="Code" />
                                 </StackPanel>
                             </Button>
                             <Button Click="OnFilterTypeClick" Tag="image"
-                                    Style="{StaticResource FilterChipStyle}" x:Name="FilterTypeImage">
+                                    Style="{StaticResource FilterChipStyle}" x:Name="FilterTypeImage"
+                                    AutomationProperties.LabeledBy="{x:Bind FilterTypeImageLabel}">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <FontIcon Glyph="&#xEB9F;" FontSize="11" />
-                                    <TextBlock x:Uid="Vault_Images" Text="Images" />
+                                    <TextBlock x:Name="FilterTypeImageLabel" x:Uid="Vault_Images" Text="Images" />
                                 </StackPanel>
                             </Button>
                         </StackPanel>
@@ -303,31 +312,35 @@
                                     Click="OnFilterStatusClick" Tag=""
                                     Style="{StaticResource FilterChipActiveStyle}" x:Name="FilterStatusAll" />
                             <Button Click="OnFilterStatusClick" Tag="completed"
-                                    Style="{StaticResource FilterChipStyle}" x:Name="FilterStatusCompleted">
+                                    Style="{StaticResource FilterChipStyle}" x:Name="FilterStatusCompleted"
+                                    AutomationProperties.LabeledBy="{x:Bind FilterStatusCompletedLabel}">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <Ellipse Width="6" Height="6" Fill="{ThemeResource SuccessBrush}" />
-                                    <TextBlock x:Uid="Vault_Completed" Text="Completed" />
+                                    <TextBlock x:Name="FilterStatusCompletedLabel" x:Uid="Vault_Completed" Text="Completed" />
                                 </StackPanel>
                             </Button>
                             <Button Click="OnFilterStatusClick" Tag="processing"
-                                    Style="{StaticResource FilterChipStyle}" x:Name="FilterStatusProcessing">
+                                    Style="{StaticResource FilterChipStyle}" x:Name="FilterStatusProcessing"
+                                    AutomationProperties.LabeledBy="{x:Bind FilterStatusProcessingLabel}">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <Ellipse Width="6" Height="6" Fill="{ThemeResource WarningBrush}" />
-                                    <TextBlock x:Uid="Vault_Processing" Text="Processing" />
+                                    <TextBlock x:Name="FilterStatusProcessingLabel" x:Uid="Vault_Processing" Text="Processing" />
                                 </StackPanel>
                             </Button>
                             <Button Click="OnFilterStatusClick" Tag="pending"
-                                    Style="{StaticResource FilterChipStyle}" x:Name="FilterStatusPending">
+                                    Style="{StaticResource FilterChipStyle}" x:Name="FilterStatusPending"
+                                    AutomationProperties.LabeledBy="{x:Bind FilterStatusPendingLabel}">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <Ellipse Width="6" Height="6" Fill="{ThemeResource InfoBrush}" />
-                                    <TextBlock x:Uid="Vault_Pending" Text="Pending" />
+                                    <TextBlock x:Name="FilterStatusPendingLabel" x:Uid="Vault_Pending" Text="Pending" />
                                 </StackPanel>
                             </Button>
                             <Button Click="OnFilterStatusClick" Tag="failed"
-                                    Style="{StaticResource FilterChipStyle}" x:Name="FilterStatusFailed">
+                                    Style="{StaticResource FilterChipStyle}" x:Name="FilterStatusFailed"
+                                    AutomationProperties.LabeledBy="{x:Bind FilterStatusFailedLabel}">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <Ellipse Width="6" Height="6" Fill="{ThemeResource ErrorBrush}" />
-                                    <TextBlock x:Uid="Vault_Failed" Text="Failed" />
+                                    <TextBlock x:Name="FilterStatusFailedLabel" x:Uid="Vault_Failed" Text="Failed" />
                                 </StackPanel>
                             </Button>
                         </StackPanel>
@@ -346,11 +359,12 @@
                                     <Button Style="{StaticResource GhostButtonStyle}"
                                             Padding="8,4" MinHeight="28"
                                             Tag="{x:Bind Name}"
-                                            Click="OnFilterTagClick">
+                                            Click="OnFilterTagClick"
+                                            AutomationProperties.LabeledBy="{Binding ElementName=KnowledgeVaultPageLabel}">
                                         <StackPanel Orientation="Horizontal" Spacing="4">
                                             <Ellipse Width="8" Height="8"
                                                      Fill="{ThemeResource TextTertiaryBrush}" />
-                                            <TextBlock Text="{x:Bind Name}" Style="{StaticResource CaptionStyle}" />
+                                            <TextBlock x:Name="KnowledgeVaultPageLabel" Text="{x:Bind Name}" Style="{StaticResource CaptionStyle}" />
                                             <TextBlock Text="{x:Bind DocumentCountFormatted}"
                                                        Style="{StaticResource CaptionStyle}" />
                                         </StackPanel>
@@ -382,9 +396,10 @@
 
                         <!-- Date After filter -->
                         <StackPanel Grid.Column="1" Spacing="4">
-                            <TextBlock x:Uid="Vault_ImportedAfter" Text="IMPORTED AFTER"
+                            <TextBlock x:Name="ImportedAfterCaption" x:Uid="Vault_ImportedAfter" Text="IMPORTED AFTER"
                                        Style="{StaticResource OverlineStyle}" />
                             <CalendarDatePicker x:Name="DateAfterPicker"
+                                                AutomationProperties.LabeledBy="{x:Bind ImportedAfterCaption}"
                                                 x:Uid="Vault_StartDatePh" PlaceholderText="Start date"
                                                 MinWidth="140"
                                                 DateChanged="OnDateAfterChanged" />
@@ -392,9 +407,10 @@
 
                         <!-- Date Before filter -->
                         <StackPanel Grid.Column="2" Spacing="4">
-                            <TextBlock x:Uid="Vault_ImportedBefore" Text="IMPORTED BEFORE"
+                            <TextBlock x:Name="ImportedBeforeCaption" x:Uid="Vault_ImportedBefore" Text="IMPORTED BEFORE"
                                        Style="{StaticResource OverlineStyle}" />
                             <CalendarDatePicker x:Name="DateBeforePicker"
+                                                AutomationProperties.LabeledBy="{x:Bind ImportedBeforeCaption}"
                                                 x:Uid="Vault_EndDatePh" PlaceholderText="End date"
                                                 MinWidth="140"
                                                 DateChanged="OnDateBeforeChanged" />
@@ -482,18 +498,20 @@
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
                         <Button Style="{StaticResource SecondaryButtonStyle}" Padding="12,6"
-                                Command="{x:Bind ViewModel.BulkReindexCommand}">
+                                Command="{x:Bind ViewModel.BulkReindexCommand}"
+                                AutomationProperties.LabeledBy="{x:Bind ReIndexLabel}">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE72C;" FontSize="14" />
-                                <TextBlock x:Uid="Vault_ReIndex" Text="Re-index" />
+                                <TextBlock x:Name="ReIndexLabel" x:Uid="Vault_ReIndex" Text="Re-index" />
                             </StackPanel>
                         </Button>
                         <Button Style="{StaticResource GhostButtonStyle}" Padding="12,6"
                                 Command="{x:Bind ViewModel.BulkDeleteCommand}"
-                                Foreground="{ThemeResource ErrorBrush}">
+                                Foreground="{ThemeResource ErrorBrush}"
+                                AutomationProperties.LabeledBy="{x:Bind DeleteLabel}">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="{ThemeResource ErrorBrush}" />
-                                <TextBlock x:Uid="Vault_Delete" Text="Delete" Foreground="{ThemeResource ErrorBrush}" />
+                                <TextBlock x:Name="DeleteLabel" x:Uid="Vault_Delete" Text="Delete" Foreground="{ThemeResource ErrorBrush}" />
                             </StackPanel>
                         </Button>
                     </StackPanel>
@@ -894,10 +912,11 @@
 
                             <Button Style="{StaticResource AccentButtonStyle}"
                                     Click="OnImportFilesClick"
-                                    HorizontalAlignment="Center">
+                                    HorizontalAlignment="Center"
+                                    AutomationProperties.LabeledBy="{x:Bind ImportYourFirstFilesLabel}">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE8E5;" FontSize="14" />
-                                    <TextBlock x:Uid="Vault_ImportYourFirstFiles" Text="Import Your First Files" />
+                                    <TextBlock x:Name="ImportYourFirstFilesLabel" x:Uid="Vault_ImportYourFirstFiles" Text="Import Your First Files" />
                                 </StackPanel>
                             </Button>
                         </StackPanel>

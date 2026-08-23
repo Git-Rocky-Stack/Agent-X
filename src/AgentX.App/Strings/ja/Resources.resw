@@ -2005,4 +2005,32 @@
   <data name="Plugin_BulkUninstall.Content" xml:space="preserve"><value>アンインストール</value></data>
   <data name="Plugin_SelectPluginBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>プラグインを選択</value></data>
   <data name="Sync_ReloadHistoryLabel.Text" xml:space="preserve"><value>再読み込み</value></data>
+  <data name="Chat_ResearchModeToggle.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>リサーチモード</value></data>
+  <data name="Vault_DismissDuplicateWarning.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>重複の警告を閉じる</value></data>
+  <data name="Notification_Dismiss.ToolTipService.ToolTip" xml:space="preserve"><value>閉じる</value></data>
+  <data name="Notification_Dismiss.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>閉じる</value></data>
+  <data name="Chat_MergeToMainTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>メインにマージ</value></data>
+  <data name="Chat_DeleteBranchTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>ブランチを削除</value></data>
+  <data name="Chat_EditMessageTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>メッセージを編集</value></data>
+  <data name="Chat_CopyUserMsgTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>クリップボードにコピー</value></data>
+  <data name="Chat_BranchFromHereTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>ここから分岐</value></data>
+  <data name="Chat_DeleteUserMsgTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>メッセージを削除</value></data>
+  <data name="Chat_GoodResponseTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>良い応答</value></data>
+  <data name="Chat_PoorResponseTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>悪い応答</value></data>
+  <data name="Chat_CopyAiMsgTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>クリップボードにコピー</value></data>
+  <data name="Chat_RegenerateTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>応答を再生成</value></data>
+  <data name="Chat_DeleteAiMsgTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>メッセージを削除</value></data>
+  <data name="Chat_VoiceInputTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>音声入力 — クリックで録音</value></data>
+  <data name="Chat_StopRecordingTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>録音を停止して文字起こし</value></data>
+  <data name="Chat_InspectAssembledTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>最新のチャット コンテキストを確認</value></data>
+  <data name="Graph_ZoomOutTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>縮小</value></data>
+  <data name="Graph_ZoomInTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>拡大</value></data>
+  <data name="Graph_ResetZoomTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>ズームをリセット</value></data>
+  <data name="Graph_ClearClusterHighlightTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>クラスターの強調表示を解除</value></data>
+  <data name="Graph_CloseDetailsPanelTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>詳細パネルを閉じる</value></data>
+  <data name="Plugin_Install.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>&amp;#12501;&amp;#12449;&amp;#12452;&amp;#12523;&amp;#12363;&amp;#12425;&amp;#12503;&amp;#12521;&amp;#12464;&amp;#12452;&amp;#12531;&amp;#12434;&amp;#12452;&amp;#12531;&amp;#12473;&amp;#12488;&amp;#12540;&amp;#12523;</value></data>
+  <data name="Plugin_Refresh.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>&amp;#12503;&amp;#12521;&amp;#12464;&amp;#12452;&amp;#12531;&amp;#12434;&amp;#26356;&amp;#26032;</value></data>
+  <data name="Plugin_Uninstall.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>&amp;#12371;&amp;#12398;&amp;#12503;&amp;#12521;&amp;#12464;&amp;#12452;&amp;#12531;&amp;#12434;&amp;#12450;&amp;#12531;&amp;#12452;&amp;#12531;&amp;#12473;&amp;#12488;&amp;#12540;&amp;#12523;</value></data>
+  <data name="Sync_RefreshStatusBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>同期ステータスを更新</value></data>
+  <data name="Workspace_RefreshProfilesTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>プロファイルを更新</value></data>
 </root>

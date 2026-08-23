@@ -1,0 +1,5 @@
+{
+  "Chat_ResearchModeToggle": {"attrs": ["auto"], "en": "Research mode", "de": "Recherchemodus", "es": "Modo investigación", "fr": "Mode recherche", "ja": "リサーチモード", "zh-CN": "研究模式"},
+  "Vault_DismissDuplicateWarning": {"attrs": ["auto"], "en": "Dismiss duplicate warning", "de": "Duplikatwarnung schließen", "es": "Descartar aviso de duplicados", "fr": "Ignorer l'avertissement de doublon", "ja": "重複の警告を閉じる", "zh-CN": "关闭重复项警告"},
+  "Notification_Dismiss": {"attrs": ["tip"], "en": "Dismiss", "de": "Schließen", "es": "Descartar", "fr": "Ignorer", "ja": "閉じる", "zh-CN": "关闭"}
+}

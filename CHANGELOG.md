@@ -52,7 +52,7 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 A full-codebase audit for stubs, placeholder data, and unwired modules. Several features were
 fully implemented and tested in their view models but had no way to reach them from the running
 app: the control existed but invoked nothing, or no control existed at all. These are now wired,
-and two structural tests keep the whole class of defect from returning.
+and four structural tests keep the whole class of defect from returning.
 
 - **The chat model picker did nothing.** The header ComboBox listed available models but never
   reported the selection back, so choosing a model silently kept the previous one. Selecting a
@@ -100,9 +100,21 @@ and two structural tests keep the whole class of defect from returning.
   `Task.Result` inside the answer pipeline, risking a UI-thread deadlock. It is now awaited.
 - The Database Encryption section of Settings used WinUI's default typography instead of the
   Command Console type styles used by every other section on the page.
-- The five dashboard quick-action tiles and the sync history buttons exposed **no accessible
-  name**, so a screen reader announced them as unlabelled buttons. They now reference their own
-  localized labels.
+- **Every visible interactive control now has an accessible name.** 68 controls across 13 files
+  exposed none, so a screen reader announced them as unlabelled buttons with nothing to tell
+  them apart. WinUI only derives a name from string `Content`, and these hold an icon plus a
+  label, or an icon alone.
+  - 57 icon-plus-label controls now point at the label they already render
+    (`AutomationProperties.LabeledBy`), and 4 date pickers point at their own captions. This
+    reuses the existing localized text, so no string was duplicated into resources.
+  - 24 icon-only controls take their name from the tooltip they already carry, mirrored into
+    `AutomationProperties.Name` across all six locales. UIA exposes a tooltip as help text
+    rather than as the name, so the tooltip alone never reached a screen reader as an identity.
+  - 3 controls with neither a label nor a tooltip received newly translated names, one of which
+    (the notification dismiss button) also had a hardcoded English tooltip.
+  - A UI Automation sweep of all 29 pages reports 296 named controls and **0 unnamed controls
+    that are visible**; the 7 that remain unnamed sit in collapsed panels that were never
+    realized during the sweep, and all of them satisfy the static guard below.
 
 ### Removed - Dead code
 
@@ -124,6 +136,12 @@ and two structural tests keep the whole class of defect from returning.
 - `NoUndefinedXamlResourceKeysTests` fails when XAML references a `StaticResource` or
   `ThemeResource` key nothing defines. These resolve at page realization, so a bad key builds
   clean and throws the first time a user opens the page.
+- `InteractiveControlsHaveAccessibleNamesTests` fails when a control has no name for assistive
+  technology. Explicitly disabled controls are exempt, since they are never focusable.
+
+Two reusable scripts came out of this: `scripts/name-unlabelled-controls.py` (points controls
+at their own visible label) and `scripts/mirror-tooltips-to-automation-names.py` (copies an
+existing translated tooltip into the automation name).
 
 ### Changed - Command Console redesign (2026-07-05)
 

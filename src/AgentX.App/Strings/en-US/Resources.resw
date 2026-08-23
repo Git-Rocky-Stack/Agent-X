@@ -2117,4 +2117,32 @@
   <data name="Plugin_BulkUninstall.Content" xml:space="preserve"><value>Uninstall</value></data>
   <data name="Plugin_SelectPluginBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Select plugin</value></data>
   <data name="Sync_ReloadHistoryLabel.Text" xml:space="preserve"><value>Reload</value></data>
+  <data name="Chat_ResearchModeToggle.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Research mode</value></data>
+  <data name="Vault_DismissDuplicateWarning.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Dismiss duplicate warning</value></data>
+  <data name="Notification_Dismiss.ToolTipService.ToolTip" xml:space="preserve"><value>Dismiss</value></data>
+  <data name="Notification_Dismiss.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Dismiss</value></data>
+  <data name="Chat_MergeToMainTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Merge to main</value></data>
+  <data name="Chat_DeleteBranchTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Delete branch</value></data>
+  <data name="Chat_EditMessageTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Edit message</value></data>
+  <data name="Chat_CopyUserMsgTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Copy to clipboard</value></data>
+  <data name="Chat_BranchFromHereTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Branch from here</value></data>
+  <data name="Chat_DeleteUserMsgTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Delete message</value></data>
+  <data name="Chat_GoodResponseTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Good response</value></data>
+  <data name="Chat_PoorResponseTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Poor response</value></data>
+  <data name="Chat_CopyAiMsgTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Copy to clipboard</value></data>
+  <data name="Chat_RegenerateTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Regenerate response</value></data>
+  <data name="Chat_DeleteAiMsgTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Delete message</value></data>
+  <data name="Chat_VoiceInputTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Voice input — click to record</value></data>
+  <data name="Chat_StopRecordingTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Stop recording and transcribe</value></data>
+  <data name="Chat_InspectAssembledTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Inspect the latest assembled chat context</value></data>
+  <data name="Graph_ZoomOutTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Zoom Out</value></data>
+  <data name="Graph_ZoomInTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Zoom In</value></data>
+  <data name="Graph_ResetZoomTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Reset Zoom</value></data>
+  <data name="Graph_ClearClusterHighlightTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Clear cluster highlight</value></data>
+  <data name="Graph_CloseDetailsPanelTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Close details panel</value></data>
+  <data name="Plugin_Install.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Install plugin from file</value></data>
+  <data name="Plugin_Refresh.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Refresh plugins</value></data>
+  <data name="Plugin_Uninstall.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Uninstall this plugin</value></data>
+  <data name="Sync_RefreshStatusBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Refresh sync status</value></data>
+  <data name="Workspace_RefreshProfilesTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Refresh profiles</value></data>
 </root>

@@ -39,11 +39,12 @@
                     HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Stretch"
                     Padding="0"
-                    Margin="0,0,0,8">
+                    Margin="0,0,0,8"
+                    AutomationProperties.LabeledBy="{Binding ElementName=OperationsConversationPreviewTemplateLabel}">
                 <Border Style="{StaticResource CardStyle}"
                         Padding="12,10">
                     <StackPanel Spacing="6">
-                        <TextBlock Text="{Binding Title}"
+                        <TextBlock x:Name="OperationsConversationPreviewTemplateLabel" Text="{Binding Title}"
                                    Style="{StaticResource BodyStyle}"
                                    FontWeight="SemiBold"
                                    TextWrapping="WrapWholeWords" />
@@ -69,11 +70,12 @@
                     HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Stretch"
                     Padding="0"
-                    Margin="0,0,0,8">
+                    Margin="0,0,0,8"
+                    AutomationProperties.LabeledBy="{Binding ElementName=OperationsInboxPreviewTemplateLabel}">
                 <Border Style="{StaticResource CardStyle}"
                         Padding="12,10">
                     <StackPanel Spacing="4">
-                        <TextBlock Text="{Binding Title}"
+                        <TextBlock x:Name="OperationsInboxPreviewTemplateLabel" Text="{Binding Title}"
                                    Style="{StaticResource BodyStyle}"
                                    FontWeight="SemiBold"
                                    TextWrapping="WrapWholeWords" />
@@ -107,9 +109,10 @@
                             Style="{StaticResource GhostButtonStyle}"
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Stretch"
-                            Padding="0">
+                            Padding="0"
+                            AutomationProperties.LabeledBy="{Binding ElementName=OperationsImportedDocumentPreviewTemplateLabel}">
                         <StackPanel Spacing="6">
-                            <TextBlock Text="{Binding Title}"
+                            <TextBlock x:Name="OperationsImportedDocumentPreviewTemplateLabel" Text="{Binding Title}"
                                        Style="{StaticResource BodyStyle}"
                                        FontWeight="SemiBold"
                                        TextWrapping="WrapWholeWords" />
@@ -152,11 +155,12 @@
                     HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Stretch"
                     Padding="0"
-                    Margin="0,0,0,8">
+                    Margin="0,0,0,8"
+                    AutomationProperties.LabeledBy="{Binding ElementName=OperationsSyncPreviewTemplateLabel}">
                 <Border Style="{StaticResource CardStyle}"
                         Padding="12,10">
                     <StackPanel Spacing="4">
-                        <TextBlock Text="{Binding Title}"
+                        <TextBlock x:Name="OperationsSyncPreviewTemplateLabel" Text="{Binding Title}"
                                    Style="{StaticResource BodyStyle}"
                                    FontWeight="SemiBold"
                                    TextWrapping="WrapWholeWords" />
@@ -182,11 +186,12 @@
                     HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Stretch"
                     Padding="0"
-                    Margin="0,0,0,8">
+                    Margin="0,0,0,8"
+                    AutomationProperties.LabeledBy="{Binding ElementName=OperationsWorkflowPreviewTemplateLabel}">
                 <Border Style="{StaticResource CardStyle}"
                         Padding="12,10">
                     <StackPanel Spacing="6">
-                        <TextBlock Text="{Binding Title}"
+                        <TextBlock x:Name="OperationsWorkflowPreviewTemplateLabel" Text="{Binding Title}"
                                    Style="{StaticResource BodyStyle}"
                                    FontWeight="SemiBold"
                                    TextWrapping="WrapWholeWords" />
@@ -248,7 +253,8 @@
                     Style="{StaticResource GhostButtonStyle}"
                     HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Stretch"
-                    Padding="0">
+                    Padding="0"
+                    AutomationProperties.LabeledBy="{Binding ElementName=OperationsHeaderStatusTileTemplateLabel}">
                 <Border Style="{StaticResource CardStyle}">
                     <Grid RowSpacing="10">
                         <Grid.RowDefinitions>
@@ -258,7 +264,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <TextBlock Text="{Binding Title}"
+                        <TextBlock x:Name="OperationsHeaderStatusTileTemplateLabel" Text="{Binding Title}"
                                    Style="{StaticResource OverlineStyle}" />
                         <TextBlock Grid.Row="1"
                                    Text="{Binding Headline}"

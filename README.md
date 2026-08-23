@@ -6,7 +6,7 @@
 [![Platform](https://img.shields.io/badge/Windows-10%2019041%2B%20(x64)-0078d4)](docs/README.md)
 [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)](https://dotnet.microsoft.com/)
 [![UI](https://img.shields.io/badge/WinUI-3-blue)](https://learn.microsoft.com/windows/apps/winui/)
-[![Tests](https://img.shields.io/badge/tests-2%2C809-brightgreen)](docs/CI.md)
+[![Tests](https://img.shields.io/badge/tests-2%2C810-brightgreen)](docs/CI.md)
 
 > **Latest release:** [v2.1.1](https://github.com/Git-Rocky-Stack/Agent-X/releases/latest) (installers below) · **Current source:** [v2.1.2](CHANGELOG.md) — "Bedrock" security & supply-chain hardening; the signed v2.1.2 installer republish is pending code-signing certificate issuance.
 > **License:** MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Rocky Elsalaymeh.
@@ -60,9 +60,9 @@ Requirements: Windows 10 build 19041+ or Windows 11, x64. No account, no subscri
 
 **Platform**
 - Six UI languages (en-US, de, es, fr, ja, zh-CN) — every page, dialog, and the user guide fully localized; CI enforces key parity across all locales
-- Command Console design system ([`DESIGN.md`](DESIGN.md)): a hardware-instrument UI with live status lamps and phosphor readouts, in dark (Night Shift), light (Day Shift), and high-contrast themes; WCAG-minded WinUI 3 design
+- Command Console design system ([`DESIGN.md`](DESIGN.md)): a hardware-instrument UI with live status lamps and phosphor readouts, in dark (Night Shift), light (Day Shift), and high-contrast themes; every visible interactive control carries an accessible name, verified by UI Automation across all 29 pages
 - Android mobile companion (.NET MAUI) and a browser extension for capture on the go
-- 29 navigation destinations, ~88 services, 2,809 unit tests, in-app onboarding and user guide
+- 29 navigation destinations, ~88 services, 2,810 unit tests, in-app onboarding and user guide
 
 ## Documentation
 
@@ -103,7 +103,7 @@ dotnet build -c Release -p:Platform=x64
 # Run the desktop app
 dotnet run --project src/AgentX.App -c Release -p:Platform=x64
 
-# Run the test suite (2,809 tests) and the coverage gate
+# Run the test suite (2,810 tests) and the coverage gate
 dotnet test tests/AgentX.Tests/AgentX.Tests.csproj -c Release -p:Platform=x64
 pwsh scripts/check-coverage.ps1 -ReportOnly
 ```
@@ -128,6 +128,7 @@ and a misspelled resource key builds clean and throws when the page is first ope
 - `NoUnwiredInteractiveControlsTests` — every interactive control invokes something
 - `NoUnreachableViewModelCommandsTests` — every command is reachable from a view or code path
 - `NoUndefinedXamlResourceKeysTests` — every resource key referenced in XAML is defined
+- `InteractiveControlsHaveAccessibleNamesTests` — every control has a name for assistive technology
 
 ## License
 

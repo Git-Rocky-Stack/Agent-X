@@ -633,11 +633,12 @@
                                             HorizontalContentAlignment="Left"
                                             Command="{x:Bind ViewModel.SelectSystemPromptCommand}"
                                             Padding="8,6,8,6"
-                                            MinHeight="32">
+                                            MinHeight="32"
+                                            AutomationProperties.LabeledBy="{x:Bind NoSystemPromptLabel}">
                                         <StackPanel Orientation="Horizontal" Spacing="8">
                                             <FontIcon Glyph="&#xE711;" FontSize="12"
                                                       Foreground="{ThemeResource TextTertiaryBrush}" />
-                                            <TextBlock x:Uid="Chat_NoSystemPrompt" Text="No system prompt"
+                                            <TextBlock x:Name="NoSystemPromptLabel" x:Uid="Chat_NoSystemPrompt" Text="No system prompt"
                                                        Style="{StaticResource BodySmallStyle}" />
                                         </StackPanel>
                                     </Button>
@@ -1535,6 +1536,8 @@
                                       MinHeight="44"
                                       MinWidth="44"
                                       IsChecked="{x:Bind ViewModel.IsResearchMode, Mode=TwoWay}"
+                                      x:Uid="Chat_ResearchModeToggle"
+                                      AutomationProperties.Name="Research mode"
                                       ToolTipService.ToolTip="{x:Bind ViewModel.ResearchModeTooltip, Mode=OneWay}">
                             <FontIcon Glyph="&#xE774;" FontSize="16"
                                       Foreground="{ThemeResource TextSecondaryBrush}" />
