@@ -349,4 +349,61 @@ public sealed class SyncSettingsViewModelTests
         viewModel.SyncHistory.Should().OnlyContain(item => !item.IsFocused);
         viewModel.StatusMessage.Should().Be("Resolved the focused sync history entry by running a fresh sync pass.");
     }
+
+    // ── Auto-sync toggle ─────────────────────────────────────────────────────
+    // The Auto-Sync switch bound straight to the flag, so turning it off left the
+    // background loop running: the control reported a state it did not enforce.
+
+    [Fact]
+    public async Task TurningTheAutoSyncToggleOff_StopsTheBackgroundLoop()
+    {
+        var viewModel = CreateConfiguredViewModel();
+        viewModel.AutoSyncEnabled = true;
+
+        viewModel.AutoSyncEnabled = false;
+        await viewModel.StopAutoSyncCommand.ExecuteAsync(null);
+
+        _syncService.Verify(service => service.StopAutoSyncAsync(), Times.AtLeastOnce);
+        viewModel.AutoSyncEnabled.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task LoadingSavedConfiguration_DoesNotToggleTheBackgroundLoop()
+    {
+        _syncService.Setup(service => service.GetConfigurationAsync())
+            .ReturnsAsync(new SyncConfiguration
+            {
+                SyncFolderPath = @"C:\Sync",
+                EncryptionKey = "secret",
+                AutoSyncEnabled = true,
+                SyncIntervalMinutes = 15,
+            });
+
+        var viewModel = new SyncSettingsViewModel(
+            _syncService.Object,
+            _collectionService.Object,
+            _operationsDrillInService.Object);
+
+        await viewModel.InitializeAsync();
+
+        viewModel.AutoSyncEnabled.Should().BeTrue();
+        _syncService.Verify(service => service.StopAutoSyncAsync(), Times.Never);
+    }
+
+    private SyncSettingsViewModel CreateConfiguredViewModel()
+    {
+        _syncService.Setup(service => service.GetConfigurationAsync())
+            .ReturnsAsync(new SyncConfiguration
+            {
+                SyncFolderPath = @"C:\Sync",
+                EncryptionKey = "secret",
+                AutoSyncEnabled = false,
+                SyncIntervalMinutes = 15,
+            });
+
+        return new SyncSettingsViewModel(
+            _syncService.Object,
+            _collectionService.Object,
+            _operationsDrillInService.Object);
+    }
 }

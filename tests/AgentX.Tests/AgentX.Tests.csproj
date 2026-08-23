@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0-windows10.0.22621.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
@@ -75,6 +75,7 @@
     <!-- AnalyticsViewModel is pure orchestration/state logic over core services; link it for persistent intelligence UI tests. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\AnalyticsViewModel.cs" Link="ViewModels\AnalyticsViewModel.cs" />
     <!-- DashboardViewModel is pure orchestration/state logic; link it for dashboard cohesion tests. -->
+    <Compile Include="..\..\src\AgentX.App\ViewModels\NavigateHandler.cs" Link="ViewModels\NavigateHandler.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\DashboardViewModel.cs" Link="ViewModels\DashboardViewModel.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\OperationsViewModel.cs" Link="ViewModels\OperationsViewModel.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\QuickActionsViewModel.cs" Link="ViewModels\QuickActionsViewModel.cs" />
@@ -87,6 +88,9 @@
     <!-- SearchViewModel is pure search orchestration/state logic. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\SearchViewModel.cs" Link="ViewModels\SearchViewModel.cs" />
     <!-- PluginManagerViewModel is pure plugin-orchestration logic with no WinUI dependencies. -->
+    <Compile Include="..\..\src\AgentX.App\ViewModels\PastSelfViewModel.cs" Link="ViewModels\PastSelfViewModel.cs" />
+    <Compile Include="..\..\src\AgentX.App\ViewModels\AskFilesViewModel.cs" Link="ViewModels\AskFilesViewModel.cs" />
+    <Compile Include="..\..\src\AgentX.App\ViewModels\CollectionManagerViewModel.cs" Link="ViewModels\CollectionManagerViewModel.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\PluginManagerViewModel.cs" Link="ViewModels\PluginManagerViewModel.cs" />
     <!-- WorkspaceProfileViewModel is pure workspace-profile orchestration/state logic. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\WorkspaceProfileViewModel.cs" Link="ViewModels\WorkspaceProfileViewModel.cs" />

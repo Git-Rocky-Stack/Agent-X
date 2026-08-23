@@ -524,9 +524,10 @@
                 <StackPanel Spacing="12">
                     <TextBlock x:Uid="Encryption_SectionHeader"
                                Text="Database Encryption"
-                               Style="{StaticResource SubtitleTextBlockStyle}" />
+                               Style="{StaticResource HeadingSmallStyle}" />
                     <TextBlock x:Uid="Encryption_Description"
                                Text="Encrypt your knowledge vault with AES-256 (SQLCipher). The key is managed automatically and tied to your Windows account."
+                               Style="{StaticResource BodySecondaryStyle}"
                                TextWrapping="Wrap" />
                     <ToggleSwitch x:Name="EncryptionToggle"
                                   x:Uid="Settings_Encrypted" OnContent="Encrypted"

@@ -113,7 +113,8 @@
                     <TextBox Grid.Column="1"
                              x:Uid="Dash_SearchBox" PlaceholderText="Search your knowledge vault...  (Ctrl+K)"
                              Style="{StaticResource SearchInputStyle}"
-                             Text="{x:Bind ViewModel.QuickSearchQuery, Mode=TwoWay}"
+                             Text="{x:Bind ViewModel.QuickSearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             KeyDown="OnQuickSearchKeyDown"
                              BorderThickness="0"
                              Background="Transparent" />
 
@@ -911,12 +912,27 @@
                                                            Text="{x:Bind Topic}"
                                                            Style="{StaticResource BodyStrongStyle}" />
 
-                                                <TextBlock Grid.Column="1"
-                                                           Style="{StaticResource CaptionStyle}"
-                                                           Foreground="{ThemeResource WarningBrush}">
-                                                    <Run x:Uid="Dash_MagnitudeRun" Text="Magnitude: " />
-                                                    <Run Text="{x:Bind ConflictMagnitude, Mode=OneWay, Converter={StaticResource DoubleToStringConverter}}" />
-                                                </TextBlock>
+                                                <StackPanel Grid.Column="1"
+                                                            Orientation="Horizontal"
+                                                            Spacing="8"
+                                                            VerticalAlignment="Center">
+                                                    <TextBlock Style="{StaticResource CaptionStyle}"
+                                                               VerticalAlignment="Center"
+                                                               Foreground="{ThemeResource WarningBrush}">
+                                                        <Run x:Uid="Dash_MagnitudeRun" Text="Magnitude: " />
+                                                        <Run Text="{x:Bind ConflictMagnitude, Mode=OneWay, Converter={StaticResource DoubleToStringConverter}}" />
+                                                    </TextBlock>
+
+                                                    <Button Content="&#xE711;"
+                                                            Command="{Binding ViewModel.AcknowledgeConflictCommand, ElementName=DashboardRoot}"
+                                                            CommandParameter="{Binding}"
+                                                            FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                                            FontSize="12"
+                                                            Style="{StaticResource GhostButtonStyle}"
+                                                            Padding="6" MinWidth="0" MinHeight="0"
+                                                            x:Uid="Dash_AcknowledgeConflictTip" ToolTipService.ToolTip="Acknowledge conflict"
+                                                            AutomationProperties.Name="Acknowledge conflict" />
+                                                </StackPanel>
                                             </Grid>
 
                                             <TextBlock Grid.Row="1"
@@ -1071,6 +1087,7 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
                     <!-- New Chat -->
@@ -1078,12 +1095,13 @@
                             Style="{StaticResource SecondaryButtonStyle}"
                             HorizontalAlignment="Stretch"
                             Padding="16,14"
-                            Command="{x:Bind ViewModel.NavigateToChatCommand}">
+                            Command="{x:Bind ViewModel.NavigateToChatCommand}"
+                            AutomationProperties.LabeledBy="{x:Bind NewChatTileLabel}">
                         <StackPanel Orientation="Horizontal" Spacing="10"
                                     HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE8BD;" FontSize="16"
                                       Foreground="{ThemeResource TextAccentBrush}" />
-                            <TextBlock x:Uid="Dash_NewChatLabel" Text="New Chat"
+                            <TextBlock x:Name="NewChatTileLabel" x:Uid="Dash_NewChatLabel" Text="New Chat"
                                        Style="{StaticResource BodyStyle}"
                                        FontWeight="SemiBold"
                                        VerticalAlignment="Center" />
@@ -1095,12 +1113,13 @@
                             Style="{StaticResource SecondaryButtonStyle}"
                             HorizontalAlignment="Stretch"
                             Padding="16,14"
-                            Command="{x:Bind ViewModel.NavigateToVaultCommand}">
+                            Command="{x:Bind ViewModel.NavigateToVaultCommand}"
+                            AutomationProperties.LabeledBy="{x:Bind ImportFilesTileLabel}">
                         <StackPanel Orientation="Horizontal" Spacing="10"
                                     HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE8B5;" FontSize="16"
                                       Foreground="{ThemeResource InfoBrush}" />
-                            <TextBlock x:Uid="Dash_ImportFilesLabel" Text="Import Files"
+                            <TextBlock x:Name="ImportFilesTileLabel" x:Uid="Dash_ImportFilesLabel" Text="Import Files"
                                        Style="{StaticResource BodyStyle}"
                                        FontWeight="SemiBold"
                                        VerticalAlignment="Center" />
@@ -1112,12 +1131,13 @@
                             Style="{StaticResource SecondaryButtonStyle}"
                             HorizontalAlignment="Stretch"
                             Padding="16,14"
-                            Command="{x:Bind ViewModel.NavigateToSearchCommand}">
+                            Command="{x:Bind ViewModel.NavigateToSearchCommand}"
+                            AutomationProperties.LabeledBy="{x:Bind SearchTileLabel}">
                         <StackPanel Orientation="Horizontal" Spacing="10"
                                     HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE721;" FontSize="16"
                                       Foreground="{ThemeResource SuccessBrush}" />
-                            <TextBlock x:Uid="Dash_SearchLabel" Text="Search"
+                            <TextBlock x:Name="SearchTileLabel" x:Uid="Dash_SearchLabel" Text="Search"
                                        Style="{StaticResource BodyStyle}"
                                        FontWeight="SemiBold"
                                        VerticalAlignment="Center" />
@@ -1129,12 +1149,31 @@
                             Style="{StaticResource SecondaryButtonStyle}"
                             HorizontalAlignment="Stretch"
                             Padding="16,14"
-                            Command="{x:Bind ViewModel.NavigateToAskFilesCommand}">
+                            Command="{x:Bind ViewModel.NavigateToAskFilesCommand}"
+                            AutomationProperties.LabeledBy="{x:Bind AskFilesTileLabel}">
                         <StackPanel Orientation="Horizontal" Spacing="10"
                                     HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE9D9;" FontSize="16"
                                       Foreground="{ThemeResource WarningBrush}" />
-                            <TextBlock x:Uid="Dash_AskFilesLabel" Text="Ask Files"
+                            <TextBlock x:Name="AskFilesTileLabel" x:Uid="Dash_AskFilesLabel" Text="Ask Files"
+                                       Style="{StaticResource BodyStyle}"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Quick Actions -->
+                    <Button Grid.Column="4"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            HorizontalAlignment="Stretch"
+                            Padding="16,14"
+                            Command="{x:Bind ViewModel.NavigateToQuickActionsCommand}"
+                            AutomationProperties.LabeledBy="{x:Bind QuickActionsTileLabel}">
+                        <StackPanel Orientation="Horizontal" Spacing="10"
+                                    HorizontalAlignment="Center">
+                            <FontIcon Glyph="&#xE945;" FontSize="16"
+                                      Foreground="{ThemeResource TextAccentBrush}" />
+                            <TextBlock x:Name="QuickActionsTileLabel" x:Uid="Dash_QuickActionsLabel" Text="Quick Actions"
                                        Style="{StaticResource BodyStyle}"
                                        FontWeight="SemiBold"
                                        VerticalAlignment="Center" />

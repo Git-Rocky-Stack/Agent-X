@@ -86,9 +86,23 @@
                     <!-- Document Count -->
                     <StackPanel Grid.Column="3" Spacing="4">
                         <TextBlock x:Uid="Backup_Documents2" Text="Documents" Style="{StaticResource CaptionStyle}" />
-                        <TextBlock Style="{StaticResource HeadingSmallStyle}" FontWeight="Bold">
-                            <Run Text="{x:Bind ViewModel.EstimatedDocCount, Mode=OneWay}" />
-                        </TextBlock>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Style="{StaticResource HeadingSmallStyle}" FontWeight="Bold">
+                                <Run Text="{x:Bind ViewModel.EstimatedDocCount, Mode=OneWay}" />
+                            </TextBlock>
+
+                            <!-- The estimate is taken once on load and goes stale as
+                                 documents are added, so it needs a way to be refreshed. -->
+                            <Button Content="&#xE72C;"
+                                    Command="{x:Bind ViewModel.EstimateBackupSizeCommand}"
+                                    FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                    FontSize="12"
+                                    Style="{StaticResource GhostButtonStyle}"
+                                    Padding="6" MinWidth="0" MinHeight="0"
+                                    VerticalAlignment="Center"
+                                    x:Uid="Backup_RecalculateTip" ToolTipService.ToolTip="Recalculate estimate"
+                                    AutomationProperties.Name="Recalculate estimate" />
+                        </StackPanel>
                     </StackPanel>
                 </Grid>
             </controls:Faceplate>
@@ -287,6 +301,8 @@
                                                     x:Uid="Backup_RestoreThisBackupTip" ToolTipService.ToolTip="Restore this backup"
                                                     AutomationProperties.Name="Restore this backup"
                                                     Style="{StaticResource GhostButtonStyle}"
+                                                    Tag="{x:Bind FilePath}"
+                                                    Click="OnRestoreFromHistoryClick"
                                                     Padding="8" MinWidth="0" MinHeight="0" />
                                             <Button Content="&#xE74D;"
                                                     FontFamily="{ThemeResource SymbolThemeFontFamily}"

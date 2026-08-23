@@ -981,7 +981,7 @@ public sealed class WorkflowBuilderViewModelTests : IDisposable
             _modelManager.Object,
             _documentService.Object)
         {
-            NavigateRequested = page => navigatedPage = page
+            NavigateRequested = (page, _) => navigatedPage = page
         };
 
         viewModel.OpenKnowledgeVaultCommand.Execute(null);

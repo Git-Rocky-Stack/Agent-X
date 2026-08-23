@@ -365,7 +365,7 @@ public sealed class DashboardViewModelTests
     {
         var viewModel = CreateViewModel();
         var navigations = new List<string>();
-        viewModel.NavigateRequested = page => navigations.Add(page);
+        viewModel.NavigateRequested = (page, _) => navigations.Add(page);
 
         viewModel.OpenRecommendedActionCommand.Execute(new DashboardRecommendedActionItem
         {
@@ -382,7 +382,7 @@ public sealed class DashboardViewModelTests
     {
         var viewModel = CreateViewModel();
         var navigations = new List<string>();
-        viewModel.NavigateRequested = page => navigations.Add(page);
+        viewModel.NavigateRequested = (page, _) => navigations.Add(page);
 
         viewModel.OpenRecommendedActionCommand.Execute(new DashboardRecommendedActionItem
         {
@@ -406,7 +406,7 @@ public sealed class DashboardViewModelTests
     {
         var viewModel = CreateViewModel();
         var navigations = new List<string>();
-        viewModel.NavigateRequested = page => navigations.Add(page);
+        viewModel.NavigateRequested = (page, _) => navigations.Add(page);
 
         viewModel.NavigateToAnalyticsCommand.Execute(null);
         viewModel.NavigateToOperationsCommand.Execute(null);
@@ -416,6 +416,56 @@ public sealed class DashboardViewModelTests
         viewModel.NavigateToPluginManagerCommand.Execute(null);
 
         navigations.Should().Equal("Analytics", "Operations", "Inbox", "SyncSettings", "Workflows", "PluginManager");
+    }
+
+    // ── Indexing status ──────────────────────────────────────────────────────
+    // When the indexing query fails the dashboard used to report 100% indexed and
+    // "Idle" — a green light for a state it had not observed.
+
+    [Fact]
+    public async Task InitializeAsync_WhenTheIndexingQueryFails_ReportsUnknownRatherThanAllIndexed()
+    {
+        _indexingService.Setup(service => service.GetQueueLengthAsync())
+            .ThrowsAsync(new InvalidOperationException("index unavailable"));
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.IndexingStatus.Should().Be("Status unavailable");
+        viewModel.IndexedPercent.Should().Be(0);
+    }
+
+    // ── Quick search ─────────────────────────────────────────────────────────
+    // The dashboard search box navigated to Search but dropped what the user typed,
+    // landing them on an empty search page. The query has to travel with the route.
+
+    [Fact]
+    public void QuickSearchCommand_CarriesTheTypedQueryToTheSearchPage()
+    {
+        var viewModel = CreateViewModel();
+        var navigations = new List<(string Page, object? Parameter)>();
+        viewModel.NavigateRequested = (page, parameter) => navigations.Add((page, parameter));
+        viewModel.QuickSearchQuery = "quarterly revenue";
+
+        viewModel.QuickSearchCommand.Execute(null);
+
+        navigations.Should().ContainSingle();
+        navigations[0].Page.Should().Be("Search");
+        navigations[0].Parameter.Should().Be("quarterly revenue");
+    }
+
+    [Fact]
+    public void QuickSearchCommand_WithABlankQuery_DoesNotNavigate()
+    {
+        var viewModel = CreateViewModel();
+        var navigations = new List<(string Page, object? Parameter)>();
+        viewModel.NavigateRequested = (page, parameter) => navigations.Add((page, parameter));
+        viewModel.QuickSearchQuery = "   ";
+
+        viewModel.QuickSearchCommand.Execute(null);
+
+        navigations.Should().BeEmpty();
     }
 
     [Fact]

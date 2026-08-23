@@ -47,6 +47,84 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
+### Fixed - Code-quality audit: unreachable features and inert controls (2026-08-23)
+
+A full-codebase audit for stubs, placeholder data, and unwired modules. Several features were
+fully implemented and tested in their view models but had no way to reach them from the running
+app: the control existed but invoked nothing, or no control existed at all. These are now wired,
+and two structural tests keep the whole class of defect from returning.
+
+- **The chat model picker did nothing.** The header ComboBox listed available models but never
+  reported the selection back, so choosing a model silently kept the previous one. Selecting a
+  model now activates and persists it.
+- **Smart Inbox triage was inert.** Accept, Defer, and Reject rendered with tooltips and
+  accessible names but had no handler, so the queue could not be worked. The status filters had
+  the same problem. All four are now wired.
+- **Annotations could not be edited or deleted.** The delete button invoked nothing and the whole
+  edit flow (`EditAnnotation` / `SaveAnnotation` / `CancelEdit`) had no control anywhere in the
+  page. Added an edit panel and wired delete and the color filters.
+- **Workflow steps could not be reordered or removed.** Move Up, Move Down, and Remove Step were
+  all inert.
+- **Backup history could not be restored from a row.** The per-backup restore button had no
+  handler; it now runs through the same confirmation gate as the page-level restore.
+- **Collections could not be renamed.** `RenameCollection` looked the collection up, logged
+  "rename requested", and returned without calling the service. It now persists the new name.
+- **Bulk operations had no UI.** Multi-select, Select All, and bulk delete for collections, and
+  bulk enable / disable / uninstall for plugins, were implemented and tested but unreachable.
+  Both pages gain a multi-select mode with per-row checkboxes and a bulk action bar.
+- **Jump-To discarded what you picked.** Selecting a specific document or conversation opened the
+  generic Knowledge Vault or Chat page instead of that item. Navigation now carries a payload, and
+  the target pages honour it.
+- **Dashboard search discarded the query.** Typing in the dashboard search box and submitting
+  landed on an empty Search page. The box now submits on Enter and carries the query through.
+- **The Auto-Sync toggle did not stop the sync loop.** Switching it off changed a flag while the
+  background loop kept running, so the control reported a state it did not enforce.
+- **Belief conflicts could not be acknowledged.** The dashboard surfaced conflicts with no way to
+  dismiss them, so an acknowledged conflict reappeared on every launch.
+- Conversation export gained the routes its view model already implemented: **Copy as Markdown**
+  in the export dialog and **Export all conversations** from the chat sidebar. Collections gained
+  a per-collection export.
+- Backup size estimate can be recalculated, and sync history can be reloaded, without leaving the page.
+
+### Fixed - Honest status reporting
+
+- The dashboard reported **100% indexed / "Idle"** when the indexing query threw, presenting a
+  healthy reading for a state it never observed. It now reports "Status unavailable".
+- The Past Self voice profile showed a **15-word average sentence length and a "Balanced" style
+  with zero samples captured** — invented statistics indistinguishable from real measurements. An
+  empty profile now says so.
+
+### Fixed - Correctness and accessibility
+
+- Citation file-path lookup in Ask Your Files blocked on an async call with `Task.Wait()` /
+  `Task.Result` inside the answer pipeline, risking a UI-thread deadlock. It is now awaited.
+- The Database Encryption section of Settings used WinUI's default typography instead of the
+  Command Console type styles used by every other section on the page.
+- The five dashboard quick-action tiles and the sync history buttons exposed **no accessible
+  name**, so a screen reader announced them as unlabelled buttons. They now reference their own
+  localized labels.
+
+### Removed - Dead code
+
+- `WorkspaceService` (821 lines): a complete parallel multi-workspace subsystem with its own
+  JSON metadata store and per-workspace database, never registered, never referenced, and never
+  tested. It duplicated no live behaviour — the shipped feature is `WorkspaceProfileService`.
+- Six unreachable duplicate commands whose behaviour is already provided by a working path:
+  chat regenerate and research-mode toggles, two chat export commands superseded by the export
+  dialog, a workflow export command that discarded its own result, and a sync folder picker whose
+  event nothing subscribed to.
+
+### Added - Structural guard tests
+
+- `NoUnwiredInteractiveControlsTests` fails when a button, menu item, or similar control ships
+  with no Click handler, Command binding, or flyout. WinUI silently absorbs presses on such a
+  control, so nothing else catches it.
+- `NoUnreachableViewModelCommandsTests` fails when a `[RelayCommand]` cannot be invoked from any
+  view or code path — implemented, covered by tests, and still unreachable for the user.
+- `NoUndefinedXamlResourceKeysTests` fails when XAML references a `StaticResource` or
+  `ThemeResource` key nothing defines. These resolve at page realization, so a bad key builds
+  clean and throws the first time a user opens the page.
+
 ### Changed - Command Console redesign (2026-07-05)
 
 The entire UI adopts the **Command Console design system** from the Strategia family, defined in [`DESIGN.md`](DESIGN.md) (the new source of truth for all visual work):

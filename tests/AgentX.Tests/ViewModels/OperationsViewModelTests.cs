@@ -561,7 +561,7 @@ public sealed class OperationsViewModelTests
     {
         var viewModel = CreateViewModel();
         var navigations = new List<string>();
-        viewModel.NavigateRequested = page => navigations.Add(page);
+        viewModel.NavigateRequested = (page, _) => navigations.Add(page);
 
         viewModel.NavigateToDashboardCommand.Execute(null);
         viewModel.NavigateToAnalyticsCommand.Execute(null);
@@ -579,7 +579,7 @@ public sealed class OperationsViewModelTests
     {
         var viewModel = CreateViewModel();
         var navigations = new List<string>();
-        viewModel.NavigateRequested = page => navigations.Add(page);
+        viewModel.NavigateRequested = (page, _) => navigations.Add(page);
 
         viewModel.OpenOverviewStatusTileCommand.Execute(new OperationsOverviewStatusTile(
             "Connectors",
@@ -596,7 +596,7 @@ public sealed class OperationsViewModelTests
     {
         var viewModel = CreateViewModel();
         var navigations = new List<string>();
-        viewModel.NavigateRequested = page => navigations.Add(page);
+        viewModel.NavigateRequested = (page, _) => navigations.Add(page);
 
         viewModel.OpenInboxPreviewCommand.Execute(new OperationsInboxPreview
         {
@@ -1110,7 +1110,7 @@ public sealed class OperationsViewModelTests
 
         var viewModel = CreateViewModel();
         var navigations = new List<string>();
-        viewModel.NavigateRequested = page => navigations.Add(page);
+        viewModel.NavigateRequested = (page, _) => navigations.Add(page);
 
         await viewModel.LoadAsync();
 

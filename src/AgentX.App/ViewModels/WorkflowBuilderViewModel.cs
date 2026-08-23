@@ -104,7 +104,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
 
     // ── Models ───────────────────────────────────────────────
     public ObservableCollection<AiModel> AvailableModels { get; } = new();
-    public Action<string>? NavigateRequested { get; set; }
+    public NavigateHandler? NavigateRequested { get; set; }
 
     // ── Category Options ─────────────────────────────────────
     public List<string> Categories { get; } = new() { "Custom", "Research", "Writing", "Analysis", "Productivity" };
@@ -780,16 +780,6 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     {
         _runCts?.Cancel();
         await (_workflowEngine?.CancelExecutionAsync() ?? Task.CompletedTask);
-    }
-
-    [RelayCommand]
-    private async Task ExportWorkflowAsync(long workflowId)
-    {
-        var json = await GetWorkflowExportJsonAsync(workflowId);
-        if (!string.IsNullOrWhiteSpace(json))
-        {
-            StatusMessage = "Workflow JSON ready to copy";
-        }
     }
 
     [RelayCommand]

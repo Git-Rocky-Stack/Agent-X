@@ -4,6 +4,7 @@ using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Navigation;
 using Serilog;
 using Windows.System;
 using Windows.UI;
@@ -43,6 +44,16 @@ public sealed partial class SearchPage : Page
     // LIFECYCLE
     // =================================================================
 
+    /// <summary>
+    /// Runs the query handed over by whatever navigated here (the dashboard search box,
+    /// the command palette) instead of opening on an empty search page.
+    /// </summary>
+    protected override void OnNavigatedTo(NavigationEventArgs e)
+    {
+        base.OnNavigatedTo(e);
+        _ = ViewModel.ApplyNavigationParameterAsync(e.Parameter);
+    }
+
     private async void OnPageLoaded(object sender, RoutedEventArgs e)
     {
         Log.Debug("SearchPage loaded");
@@ -63,11 +74,11 @@ public sealed partial class SearchPage : Page
         SearchInputBox.Focus(FocusState.Programmatic);
     }
 
-    private void NavigateToPage(string pageTag)
+    private void NavigateToPage(string pageTag, object? parameter = null)
     {
         if (App.MainWindow is MainWindow mainWindow)
         {
-            mainWindow.NavigateToPage(pageTag);
+            mainWindow.NavigateToPage(pageTag, parameter);
         }
     }
 

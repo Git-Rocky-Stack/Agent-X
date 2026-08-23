@@ -15,11 +15,11 @@ public sealed partial class OperationsPage : Page
         Loaded += async (_, _) => await ViewModel.LoadAsync();
     }
 
-    private void NavigateToPage(string pageTag)
+    private void NavigateToPage(string pageTag, object? parameter = null)
     {
         if (App.MainWindow is MainWindow mainWindow)
         {
-            mainWindow.NavigateToPage(pageTag);
+            mainWindow.NavigateToPage(pageTag, parameter);
         }
     }
 }

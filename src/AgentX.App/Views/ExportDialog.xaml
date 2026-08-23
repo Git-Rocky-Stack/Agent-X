@@ -35,6 +35,14 @@
                       x:Uid="ExportDlg_IncludeBranches" Header="Include branches"
                       IsOn="True" />
 
+        <!-- Copying as Markdown skips the file picker entirely, so it belongs beside
+             the format options rather than behind the Export button. -->
+        <Button x:Name="CopyAsMarkdownButton"
+                x:Uid="ExportDlg_CopyAsMarkdown" Content="Copy as Markdown"
+                Click="OnCopyAsMarkdownClick"
+                HorizontalAlignment="Stretch"
+                Style="{StaticResource SecondaryButtonStyle}" />
+
         <InfoBar x:Name="StatusInfoBar"
                  IsClosable="True"
                  IsOpen="False" />

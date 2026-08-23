@@ -6,7 +6,7 @@
 [![Platform](https://img.shields.io/badge/Windows-10%2019041%2B%20(x64)-0078d4)](docs/README.md)
 [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)](https://dotnet.microsoft.com/)
 [![UI](https://img.shields.io/badge/WinUI-3-blue)](https://learn.microsoft.com/windows/apps/winui/)
-[![Tests](https://img.shields.io/badge/tests-2%2C775-brightgreen)](docs/CI.md)
+[![Tests](https://img.shields.io/badge/tests-2%2C809-brightgreen)](docs/CI.md)
 
 > **Latest release:** [v2.1.1](https://github.com/Git-Rocky-Stack/Agent-X/releases/latest) (installers below) · **Current source:** [v2.1.2](CHANGELOG.md) — "Bedrock" security & supply-chain hardening; the signed v2.1.2 installer republish is pending code-signing certificate issuance.
 > **License:** MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Rocky Elsalaymeh.
@@ -26,7 +26,7 @@ Requirements: Windows 10 build 19041+ or Windows 11, x64. No account, no subscri
 
 **Knowledge Vault & ingestion**
 - Import PDFs, Word documents, Markdown, text, code files, and web pages — single files, URLs, or entire folders
-- Automatic chunking, embedding, auto-tagging, and duplicate detection on import; collections, annotations, and full document management
+- Automatic chunking, embedding, auto-tagging, and duplicate detection on import; collections (rename, export, multi-select bulk delete), editable annotations, and full document management
 - **Smart Inbox** triage queue: captures from the browser extension, mobile companion, and plugins arrive with AI-drafted previews (suggested summary, collection, tags) for one-click accept / defer / reject
 - Audio transcription turns recordings into searchable documents
 
@@ -37,7 +37,7 @@ Requirements: Windows 10 build 19041+ or Windows 11, x64. No account, no subscri
 - Knowledge Graph visualization of entities and relationships across the vault
 
 **AI chat & models**
-- Streaming Markdown chat with conversation branching, pinning, folders, and full-text history search
+- Streaming Markdown chat with conversation branching, pinning, folders, and full-text history search; export a conversation to any of 8 formats, copy it as Markdown, or export your whole history in one pass
 - **Built-in local model** (Llama 3.2 3B, GGUF via LLamaSharp with optional GPU offload) — works fully offline, out of the box
 - Ollama for any local model; opt-in cloud providers: OpenAI (GPT-4o, GPT-4o-mini, o1, o3) and Anthropic (Claude Sonnet 4, Opus, Haiku)
 - Model Manager for download/removal and per-task model selection; Hardware Advisor recommends models and GPU offload settings for your machine
@@ -49,8 +49,8 @@ Requirements: Windows 10 build 19041+ or Windows 11, x64. No account, no subscri
 
 **Automation & power use**
 - **Workflows**: on-demand multi-step AI pipelines built from five step types (AI Prompt, Document Lookup, Text Transform, Conditional Branch, Output Format) in a visual builder, with full run history
-- Quick Actions, a command palette, remappable keyboard-first navigation, and a Quick Chat window
-- Plugin system (sandboxed, manifest-validated) and an authenticated local REST API
+- Quick Actions, a command palette, Jump-To that opens the exact document or conversation you pick, remappable keyboard-first navigation, and a Quick Chat window
+- Plugin system (sandboxed, manifest-validated) with multi-select bulk enable / disable / uninstall, and an authenticated local REST API
 
 **Data safety & sync**
 - SQLCipher AES-256 encryption at rest; EF Core migrations; DPAPI-protected secrets
@@ -62,7 +62,7 @@ Requirements: Windows 10 build 19041+ or Windows 11, x64. No account, no subscri
 - Six UI languages (en-US, de, es, fr, ja, zh-CN) — every page, dialog, and the user guide fully localized; CI enforces key parity across all locales
 - Command Console design system ([`DESIGN.md`](DESIGN.md)): a hardware-instrument UI with live status lamps and phosphor readouts, in dark (Night Shift), light (Day Shift), and high-contrast themes; WCAG-minded WinUI 3 design
 - Android mobile companion (.NET MAUI) and a browser extension for capture on the go
-- 29 navigation destinations, ~88 services, 2,775 unit tests, in-app onboarding and user guide
+- 29 navigation destinations, ~88 services, 2,809 unit tests, in-app onboarding and user guide
 
 ## Documentation
 
@@ -103,7 +103,7 @@ dotnet build -c Release -p:Platform=x64
 # Run the desktop app
 dotnet run --project src/AgentX.App -c Release -p:Platform=x64
 
-# Run the test suite (2,775 tests) and the coverage gate
+# Run the test suite (2,809 tests) and the coverage gate
 dotnet test tests/AgentX.Tests/AgentX.Tests.csproj -c Release -p:Platform=x64
 pwsh scripts/check-coverage.ps1 -ReportOnly
 ```
@@ -119,6 +119,15 @@ Issues and pull requests are welcome. Before submitting a PR:
 3. `pwsh scripts/check-coverage.ps1` — coverage floors are a ratchet: they only go up
 4. `dotnet format AgentX.sln` — CI verifies formatting
 5. String changes must keep all six locales in key parity (CI's LocaleAudit enforces this)
+
+UI changes additionally have to clear three structural tests in `tests/AgentX.Tests/CodeQuality/`.
+They exist because WinUI fails silently in ways the compiler cannot see: a button with no handler
+absorbs the press, a `[RelayCommand]` nothing binds is dead weight that still reports as covered,
+and a misspelled resource key builds clean and throws when the page is first opened.
+
+- `NoUnwiredInteractiveControlsTests` — every interactive control invokes something
+- `NoUnreachableViewModelCommandsTests` — every command is reachable from a view or code path
+- `NoUndefinedXamlResourceKeysTests` — every resource key referenced in XAML is defined
 
 ## License
 

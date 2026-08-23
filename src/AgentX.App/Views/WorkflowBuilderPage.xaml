@@ -303,6 +303,8 @@
                                                                 Orientation="Horizontal"
                                                                 Spacing="4">
                                                         <Button Content="&#xE70E;"
+                                                                Command="{Binding ViewModel.MoveStepUpCommand, ElementName=WorkflowPage}"
+                                                                CommandParameter="{x:Bind}"
                                                                 FontFamily="{ThemeResource SymbolThemeFontFamily}"
                                                                 FontSize="12"
                                                                 Padding="6"
@@ -310,6 +312,8 @@
                                                                 x:Uid="WfBuilder_MoveUpTip" ToolTipService.ToolTip="Move Up"
                                                                 Style="{StaticResource GhostButtonStyle}" />
                                                         <Button Content="&#xE70D;"
+                                                                Command="{Binding ViewModel.MoveStepDownCommand, ElementName=WorkflowPage}"
+                                                                CommandParameter="{x:Bind}"
                                                                 FontFamily="{ThemeResource SymbolThemeFontFamily}"
                                                                 FontSize="12"
                                                                 Padding="6"
@@ -317,6 +321,8 @@
                                                                 x:Uid="WfBuilder_MoveDownTip" ToolTipService.ToolTip="Move Down"
                                                                 Style="{StaticResource GhostButtonStyle}" />
                                                         <Button Content="&#xE74D;"
+                                                                Command="{Binding ViewModel.RemoveStepCommand, ElementName=WorkflowPage}"
+                                                                CommandParameter="{x:Bind}"
                                                                 FontFamily="{ThemeResource SymbolThemeFontFamily}"
                                                                 FontSize="12"
                                                                 Padding="6"

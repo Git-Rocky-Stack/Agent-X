@@ -5,6 +5,7 @@
     xmlns:vm="using:AgentX.App.ViewModels"
     xmlns:views="using:AgentX.App.Views"
     xmlns:converters="using:AgentX.App.Converters"
+    x:Name="AnnotationsRoot"
     Background="Transparent"
     NavigationCacheMode="Enabled">
 
@@ -88,6 +89,8 @@
                         <ItemsRepeater.ItemTemplate>
                             <DataTemplate x:DataType="x:String">
                                 <Button Content="{x:Bind}"
+                                        Command="{Binding ViewModel.FilterByColorCommand, ElementName=AnnotationsRoot}"
+                                        CommandParameter="{Binding}"
                                         HorizontalAlignment="Stretch"
                                         HorizontalContentAlignment="Left"
                                         Style="{StaticResource GhostButtonStyle}"
@@ -197,16 +200,30 @@
                                                        VerticalAlignment="Center"
                                                        TextTrimming="CharacterEllipsis" />
 
-                                            <!-- Delete Button -->
-                                            <Button Grid.Column="2"
-                                                    Content="&#xE74D;"
-                                                    FontFamily="{ThemeResource SymbolThemeFontFamily}"
-                                                    FontSize="12"
-                                                    Foreground="{ThemeResource ErrorBrush}"
-                                                    Style="{StaticResource GhostButtonStyle}"
-                                                    Padding="6" MinWidth="0" MinHeight="0"
-                                                    x:Uid="Annot_DeleteAnnotationTip" ToolTipService.ToolTip="Delete annotation"
-                                                    AutomationProperties.Name="Delete annotation" />
+                                            <!-- Edit / Delete Buttons -->
+                                            <StackPanel Grid.Column="2"
+                                                        Orientation="Horizontal"
+                                                        Spacing="4">
+                                                <Button Content="&#xE70F;"
+                                                        Command="{Binding ViewModel.EditAnnotationCommand, ElementName=AnnotationsRoot}"
+                                                        CommandParameter="{x:Bind}"
+                                                        FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                                        FontSize="12"
+                                                        Style="{StaticResource GhostButtonStyle}"
+                                                        Padding="6" MinWidth="0" MinHeight="0"
+                                                        x:Uid="Annot_EditAnnotationTip" ToolTipService.ToolTip="Edit annotation"
+                                                        AutomationProperties.Name="Edit annotation" />
+                                                <Button Content="&#xE74D;"
+                                                        Command="{Binding ViewModel.DeleteAnnotationCommand, ElementName=AnnotationsRoot}"
+                                                        CommandParameter="{x:Bind Id}"
+                                                        FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                                        FontSize="12"
+                                                        Foreground="{ThemeResource ErrorBrush}"
+                                                        Style="{StaticResource GhostButtonStyle}"
+                                                        Padding="6" MinWidth="0" MinHeight="0"
+                                                        x:Uid="Annot_DeleteAnnotationTip" ToolTipService.ToolTip="Delete annotation"
+                                                        AutomationProperties.Name="Delete annotation" />
+                                            </StackPanel>
                                         </Grid>
 
                                         <!-- Highlighted Text -->
@@ -259,6 +276,62 @@
                                Margin="0,8,0,0" />
                 </Grid>
             </ScrollViewer>
+        </Grid>
+
+        <!-- ══════════════════════════════════════════════════════════
+             EDIT ANNOTATION PANEL
+             Shown while an annotation is being edited. Spans both columns
+             so it reads as a modal layer over the list beneath it.
+             ══════════════════════════════════════════════════════════ -->
+        <Grid Grid.Column="0" Grid.ColumnSpan="2"
+              Background="{ThemeResource OverlayBrush}"
+              Visibility="{x:Bind ViewModel.IsEditing, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+            <Border Background="{ThemeResource CardGradientBrush}"
+                    BorderBrush="{ThemeResource BorderSubtleBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{StaticResource RadiusMD}"
+                    Padding="24"
+                    MinWidth="420"
+                    MaxWidth="560"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                <StackPanel Spacing="16">
+                    <TextBlock x:Uid="Annot_EditTitle" Text="Edit Annotation"
+                               Style="{StaticResource HeadingSmallStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
+
+                    <StackPanel Spacing="6">
+                        <TextBlock x:Uid="Annot_EditNoteLabel" Text="Note"
+                                   Style="{StaticResource LabelStyle}" />
+                        <TextBox Text="{x:Bind ViewModel.EditNoteText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 x:Uid="Annot_EditNotePh" PlaceholderText="Add a note to this highlight..."
+                                 Style="{StaticResource InputTextBoxStyle}"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 Height="120" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock x:Uid="Annot_EditColorLabel" Text="Color"
+                                   Style="{StaticResource LabelStyle}" />
+                        <ComboBox ItemsSource="{x:Bind ViewModel.EditColorOptions}"
+                                  SelectedItem="{x:Bind ViewModel.EditColor, Mode=TwoWay}"
+                                  x:Uid="Annot_EditColorBox"
+                                  HorizontalAlignment="Stretch" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8"
+                                HorizontalAlignment="Right">
+                        <Button x:Uid="Annot_EditCancel" Content="Cancel"
+                                Command="{x:Bind ViewModel.CancelEditCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}" />
+                        <Button x:Uid="Annot_EditSave" Content="Save"
+                                Command="{x:Bind ViewModel.SaveAnnotationCommand}"
+                                Style="{StaticResource AccentButtonStyle}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
         </Grid>
     </Grid>
 </Page>

@@ -39,6 +39,11 @@ public sealed partial class ChatPage : Page
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
+
+        // Honour the item the caller picked (Jump-To, command palette) rather than
+        // dropping it and opening this page on whatever was last active.
+        _ = ViewModel.ApplyNavigationParameterAsync(e.Parameter);
+
         _shortcutScope = _shortcutRegistry.RegisterShortcuts(
             new AgentX.Core.Services.Shortcuts.ShortcutDescriptor(
                 "chat.new",
@@ -480,6 +485,28 @@ public sealed partial class ChatPage : Page
     /// Replaces the previous MenuFlyout approach with a full-featured
     /// dialog that supports all 8 export formats and 3 built-in templates.
     /// </summary>
+    /// <summary>
+    /// Exports every listed conversation in one pass. The export dialog is scoped to the
+    /// open thread, so a whole-history export had no route before this.
+    /// </summary>
+    private async void OnExportAllConversationsClick(object sender, RoutedEventArgs e)
+    {
+        var conversationIds = ViewModel.Conversations.Select(conversation => conversation.Id).ToList();
+        if (conversationIds.Count == 0)
+        {
+            return;
+        }
+
+        var exportViewModel = App.GetService<ExportViewModel>();
+        await exportViewModel.ExportConversationsCommand.ExecuteAsync(
+            new ExportBatchRequest(conversationIds, Title: "All Conversations"));
+
+        Log.Information(
+            "Batch export of {Count} conversations finished: {Status}",
+            conversationIds.Count,
+            exportViewModel.StatusMessage);
+    }
+
     private async void ExportButton_Click(object sender, RoutedEventArgs e)
     {
         if (ViewModel.ActiveConversationId is null) return;
@@ -492,6 +519,18 @@ public sealed partial class ChatPage : Page
         dialog.XamlRoot = this.XamlRoot;
 
         await dialog.ShowAsync();
+    }
+
+    /// <summary>
+    /// Applies the model chosen in the header picker. The ComboBox only reported its
+    /// selection to itself before this, so switching models silently did nothing.
+    /// </summary>
+    private void OnModelSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems.FirstOrDefault() is AgentX.Core.AI.Models.AiModel model)
+        {
+            ViewModel.SelectModelCommand.Execute(model.Id);
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════

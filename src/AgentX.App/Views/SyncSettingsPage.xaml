@@ -616,18 +616,34 @@
                         </Border>
                     </StackPanel>
 
-                    <Button Grid.Column="1"
-                            Style="{StaticResource GhostButtonStyle}"
-                            Command="{x:Bind ViewModel.ClearSyncHistoryCommand}"
-                            Visibility="{x:Bind ViewModel.HasSyncHistory, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE74D;" FontSize="12"
-                                      Foreground="{ThemeResource TextTertiaryBrush}" />
-                            <TextBlock x:Uid="Sync_ClearHistoryLabel" Text="Clear History"
-                                       FontSize="12"
-                                       Foreground="{ThemeResource TextSecondaryBrush}" />
-                        </StackPanel>
-                    </Button>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                        <!-- History is loaded once on entry; a sync that runs while the
+                             page is open leaves the list behind until it is reloaded. -->
+                        <Button Style="{StaticResource GhostButtonStyle}"
+                                Command="{x:Bind ViewModel.LoadHistoryCommand}"
+                                AutomationProperties.LabeledBy="{x:Bind ReloadHistoryLabel}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE72C;" FontSize="12"
+                                          Foreground="{ThemeResource TextTertiaryBrush}" />
+                                <TextBlock x:Name="ReloadHistoryLabel" x:Uid="Sync_ReloadHistoryLabel" Text="Reload"
+                                           FontSize="12"
+                                           Foreground="{ThemeResource TextSecondaryBrush}" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button Style="{StaticResource GhostButtonStyle}"
+                                Command="{x:Bind ViewModel.ClearSyncHistoryCommand}"
+                                AutomationProperties.LabeledBy="{x:Bind ClearHistoryLabel}"
+                                Visibility="{x:Bind ViewModel.HasSyncHistory, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE74D;" FontSize="12"
+                                          Foreground="{ThemeResource TextTertiaryBrush}" />
+                                <TextBlock x:Name="ClearHistoryLabel" x:Uid="Sync_ClearHistoryLabel" Text="Clear History"
+                                           FontSize="12"
+                                           Foreground="{ThemeResource TextSecondaryBrush}" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
                 </Grid>
 
                 <Border Background="{ThemeResource AccentSubtleBrush}"

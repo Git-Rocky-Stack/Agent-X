@@ -73,6 +73,36 @@ public sealed partial class BackupRestorePage : Page
     }
 
     /// <summary>
+    /// Restores directly from a row in the backup history. Restore overwrites the whole
+    /// knowledge base and cannot be undone, so this takes the same confirmation gate as
+    /// the page-level restore rather than acting on a single click.
+    /// </summary>
+    private async void OnRestoreFromHistoryClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { Tag: string filePath } || string.IsNullOrWhiteSpace(filePath))
+        {
+            return;
+        }
+
+        var dialog = new ContentDialog
+        {
+            Title = "Restore from Backup?",
+            Content = "Restoring will overwrite your current knowledge base — " +
+                      "documents, conversations, and workflows will be replaced with the " +
+                      "backup's contents. This cannot be undone. Continue?",
+            PrimaryButtonText = "Restore",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = this.XamlRoot
+        };
+
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        {
+            await ViewModel.RestoreFromHistoryCommand.ExecuteAsync(filePath);
+        }
+    }
+
+    /// <summary>
     /// Confirms before permanently deleting a stored backup, then gates the
     /// existing delete command on the dialog's primary result.
     /// </summary>

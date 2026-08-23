@@ -50,6 +50,52 @@ public sealed partial class CollectionManagerPage : Page
         }
     }
 
+    /// <summary>
+    /// Confirms before bulk-deleting collections. Deleting several at once is not
+    /// reversible, so it takes the same gate as any other destructive action.
+    /// </summary>
+    private async void OnBulkDeleteCollectionsClick(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.SelectedCount == 0)
+        {
+            return;
+        }
+
+        var dialog = new ContentDialog
+        {
+            Title = "Delete Collections?",
+            Content = $"This permanently deletes {ViewModel.SelectedCount} collection(s). " +
+                      "Documents inside them are kept in your Knowledge Vault. This cannot be undone.",
+            PrimaryButtonText = "Delete",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = this.XamlRoot
+        };
+
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        {
+            await ViewModel.BulkDeleteCollectionsCommand.ExecuteAsync(null);
+        }
+    }
+
+    /// <summary>
+    /// Exports every document in a collection through the shared export pipeline.
+    /// </summary>
+    private async void OnExportCollectionClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { Tag: long collectionId } || collectionId <= 0)
+        {
+            return;
+        }
+
+        var exportViewModel = App.GetService<ExportViewModel>();
+        await exportViewModel.ExportCollectionCommand.ExecuteAsync(
+            new ExportCollectionRequest(collectionId));
+
+        Log.Information("Collection {CollectionId} export finished: {Status}",
+            collectionId, exportViewModel.StatusMessage);
+    }
+
     // ═══════════════════════════════════════════════════════════════
     // DOCUMENT MANAGEMENT HANDLERS
     // ═══════════════════════════════════════════════════════════════

@@ -23,7 +23,13 @@ public interface IAppNavigationService
     /// Navigates to a page by its tag name, updating both the content frame and
     /// the NavigationView selection indicator.
     /// </summary>
-    void NavigateToPage(string pageKey);
+    /// <param name="pageKey">The destination page's key in the page map.</param>
+    /// <param name="parameter">
+    /// Optional payload handed to the destination page's <c>OnNavigatedTo</c>. This is how
+    /// a caller says "open Search for this query" or "open the vault at this document"
+    /// rather than only naming the page and losing what the user picked.
+    /// </param>
+    void NavigateToPage(string pageKey, object? parameter = null);
 
     /// <summary>
     /// Ensures the NavigationView pane is visible and open.

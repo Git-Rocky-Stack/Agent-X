@@ -34,11 +34,11 @@ public sealed partial class WorkflowBuilderPage : Page
         await ViewModel.InitializeAsync();
     }
 
-    private void NavigateToPage(string pageTag)
+    private void NavigateToPage(string pageTag, object? parameter = null)
     {
         if (App.MainWindow is MainWindow mainWindow)
         {
-            mainWindow.NavigateToPage(pageTag);
+            mainWindow.NavigateToPage(pageTag, parameter);
         }
     }
 

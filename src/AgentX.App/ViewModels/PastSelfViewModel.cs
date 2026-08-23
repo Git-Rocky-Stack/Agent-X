@@ -338,11 +338,14 @@ public partial class PastSelfViewModel : ObservableObject
             }
             else
             {
+                // No samples captured yet. Report the absence rather than plausible-looking
+                // numbers: a 15-word average and a "Balanced" style read as measurements of
+                // the user's writing when nothing has actually been measured.
                 VoiceProfile = new VoiceProfileDisplay
                 {
                     SampleCount = 0,
-                    AvgSentenceLength = 15,
-                    FormalityScore = 0.5,
+                    AvgSentenceLength = 0,
+                    FormalityScore = 0,
                     FirstSampleAt = DateTime.MinValue,
                     LastSampleAt = DateTime.MinValue
                 };
@@ -392,12 +395,19 @@ public class VoiceProfileDisplay
     public DateTime FirstSampleAt { get; set; }
     public DateTime LastSampleAt { get; set; }
 
-    public string FormalityLabel => FormalityScore switch
-    {
-        < 0.3 => "Casual",
-        < 0.6 => "Balanced",
-        _ => "Formal"
-    };
+    /// <summary>
+    /// Describes the measured writing style, or says so plainly when nothing has been
+    /// measured. Without the sample-count guard a profile with no data reports "Casual",
+    /// which is indistinguishable from a real reading.
+    /// </summary>
+    public string FormalityLabel => SampleCount == 0
+        ? "Not enough data"
+        : FormalityScore switch
+        {
+            < 0.3 => "Casual",
+            < 0.6 => "Balanced",
+            _ => "Formal"
+        };
 
     public string StyleDescription => SampleCount < 10
         ? "Still learning your voice..."

@@ -2,6 +2,7 @@ using AgentX.App.Services;
 using AgentX.App.ViewModels;
 using AgentX.Core.Documents;
 using AgentX.Core.Search;
+using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Collections;
 using FluentAssertions;
 using Moq;
@@ -37,7 +38,7 @@ public sealed class SearchViewModelTests
             _workflowLaunchService.Object)
         {
             QueryText = "market outlook",
-            NavigateRequested = page => navigatedPage = page
+            NavigateRequested = (page, _) => navigatedPage = page
         };
 
         viewModel.LaunchResultIntoWorkflowCommand.Execute(new SearchResultItem
@@ -59,4 +60,48 @@ public sealed class SearchViewModelTests
         stagedRequest.RecommendedWorkflowName.Should().Be("Research Brief");
         navigatedPage.Should().Be("Workflows");
     }
+
+    // ── Navigation payload ───────────────────────────────────────────────────
+    // Search is reachable from the dashboard search box and the command palette, both of
+    // which know what the user typed. Arriving without that query means an empty page.
+
+    [Fact]
+    public async Task ApplyNavigationParameterAsync_WithAQuery_SeedsAndRunsTheSearch()
+    {
+        _hybridSearch
+            .Setup(service => service.SearchAsync(It.IsAny<SearchQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<SearchResult>());
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.ApplyNavigationParameterAsync("quarterly revenue");
+
+        viewModel.QueryText.Should().Be("quarterly revenue");
+        _hybridSearch.Verify(
+            service => service.SearchAsync(It.IsAny<SearchQuery>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task ApplyNavigationParameterAsync_WithNoPayload_LeavesTheQueryUntouched()
+    {
+        var viewModel = CreateViewModel();
+        viewModel.QueryText = "existing";
+
+        await viewModel.ApplyNavigationParameterAsync(null);
+
+        viewModel.QueryText.Should().Be("existing");
+        _hybridSearch.Verify(
+            service => service.SearchAsync(It.IsAny<SearchQuery>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    private SearchViewModel CreateViewModel() =>
+        new(
+            _searchService.Object,
+            _hybridSearch.Object,
+            _documentService.Object,
+            _collectionService.Object,
+            _logger.Object,
+            _workflowLaunchService.Object);
 }

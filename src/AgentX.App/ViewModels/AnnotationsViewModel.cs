@@ -20,6 +20,14 @@ public partial class AnnotationsViewModel : ObservableObject
     [ObservableProperty] private string _selectedColorFilter = "All";
     public List<string> ColorOptions { get; } = new() { "All", "yellow", "green", "blue", "red", "purple" };
 
+    /// <summary>
+    /// Colors an annotation can actually be. This is <see cref="ColorOptions"/> without
+    /// the "All" filter sentinel, which is a query term rather than a color and must
+    /// never be offered when editing.
+    /// </summary>
+    public IReadOnlyList<string> EditColorOptions { get; } =
+        new[] { "yellow", "green", "blue", "red", "purple" };
+
     // ── Annotation List ──────────────────────────────────────
     public ObservableCollection<AnnotationDisplayItem> Annotations { get; } = new();
     [ObservableProperty] private AnnotationDisplayItem? _selectedAnnotation;

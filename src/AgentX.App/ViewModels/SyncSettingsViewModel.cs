@@ -20,8 +20,8 @@ namespace AgentX.App.ViewModels;
 // and sync scope. Drives a manual "Sync Now" flow that calls ExportChangesAsync
 // then watches for imports via StartAutoSyncAsync. Exposes discrete Start and
 // Stop commands for the background auto-sync loop. Loads paginated sync history
-// via LoadHistoryAsync. Raises FolderPickerRequested so the View can present a
-// native folder picker without any UI coupling in this ViewModel.
+// via LoadHistoryAsync. The View owns the native folder picker and writes the
+// chosen path straight into SyncFolderPath.
 //
 // Constructor accepts ISyncService via DI. All long-running paths are guarded
 // by IsLoading / IsSyncing flags and surfaced through the SetError / SetStatus
@@ -198,15 +198,6 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ── Folder Picker Event ───────────────────────────────────────────────────
-
-    /// <summary>
-    /// Raised by BrowseFolderAsync. The View subscribes, shows a native
-    /// StorageFolder picker, and returns the selected path (or null when cancelled).
-    /// Mirrors the FilePickerRequested pattern used in PluginManagerViewModel.
-    /// </summary>
-    public event Func<Task<string?>>? FolderPickerRequested;
-
     // ── Constructor ───────────────────────────────────────────────────────────
 
     public SyncSettingsViewModel(
@@ -268,7 +259,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
             {
                 SyncFolderPath = config.SyncFolderPath ?? string.Empty;
                 EncryptionKey = config.EncryptionKey ?? string.Empty;
-                AutoSyncEnabled = config.AutoSyncEnabled;
+                SetAutoSyncEnabledSilently(config.AutoSyncEnabled);
                 SyncIntervalMinutes = config.SyncIntervalMinutes.ToString();
                 SyncScope = config.SyncScope == AgentX.Core.Services.Sync.Models.SyncScope.SelectedCollections
                     ? "SelectedCollections"
@@ -552,6 +543,51 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>
+    /// Set while the view model itself writes <see cref="AutoSyncEnabled"/> — loading a
+    /// saved configuration, or the start/stop commands recording their own outcome — so
+    /// those writes are not mistaken for the user flipping the switch.
+    /// </summary>
+    private bool _applyingAutoSyncState;
+
+    /// <summary>
+    /// Starts or stops the background loop when the user moves the Auto-Sync switch.
+    /// The switch binds this property two-way; without this it changed a flag and left
+    /// the loop running, so the control reported a state it did not enforce.
+    /// </summary>
+    partial void OnAutoSyncEnabledChanged(bool value)
+    {
+        if (_applyingAutoSyncState)
+        {
+            return;
+        }
+
+        if (value)
+        {
+            StartAutoSyncCommand.Execute(null);
+        }
+        else
+        {
+            StopAutoSyncCommand.Execute(null);
+        }
+    }
+
+    /// <summary>
+    /// Writes <see cref="AutoSyncEnabled"/> without re-entering the toggle handler.
+    /// </summary>
+    private void SetAutoSyncEnabledSilently(bool value)
+    {
+        _applyingAutoSyncState = true;
+        try
+        {
+            AutoSyncEnabled = value;
+        }
+        finally
+        {
+            _applyingAutoSyncState = false;
+        }
+    }
+
     // =========================================================================
     // COMMAND: StartAutoSyncAsync
     // Starts the background polling loop. Guards against double-starts by
@@ -574,7 +610,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         try
         {
             await StartAutoSyncLoopAsync();
-            AutoSyncEnabled = true;
+            SetAutoSyncEnabledSilently(true);
             SetStatus("Auto-sync started.");
             Log.Information("Auto-sync loop started");
         }
@@ -600,7 +636,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         try
         {
             await StopAutoSyncLoopAsync();
-            AutoSyncEnabled = false;
+            SetAutoSyncEnabledSilently(false);
             SetStatus("Auto-sync stopped.");
             Log.Information("Auto-sync loop stopped");
         }
@@ -644,40 +680,6 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         }
 
         OnPropertyChanged(nameof(HasSyncHistory));
-    }
-
-    // =========================================================================
-    // COMMAND: BrowseFolderAsync
-    // Raises FolderPickerRequested so the View can show a StorageFolder picker
-    // and return the chosen path. Writes the result into SyncFolderPath.
-    // =========================================================================
-
-    [RelayCommand]
-    private async Task BrowseFolderAsync()
-    {
-        Log.Debug("Folder picker requested");
-
-        try
-        {
-            var selectedPath = FolderPickerRequested is not null
-                ? await FolderPickerRequested.Invoke()
-                : null;
-
-            if (!string.IsNullOrWhiteSpace(selectedPath))
-            {
-                SyncFolderPath = selectedPath;
-                Log.Debug("Sync folder selected: {Path}", selectedPath);
-            }
-            else
-            {
-                Log.Debug("Folder picker dismissed — no path selected");
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error handling folder picker result");
-            SetError($"Could not apply the selected folder: {ex.Message}");
-        }
     }
 
     // =========================================================================

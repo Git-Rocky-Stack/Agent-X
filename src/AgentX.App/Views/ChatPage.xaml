@@ -486,14 +486,33 @@
                     Padding="16,10,16,10"
                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="0,1,0,0">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                    <FontIcon Glyph="&#xE8BD;" FontSize="11"
-                              Foreground="{ThemeResource TextTertiaryBrush}" />
-                    <TextBlock Style="{StaticResource CaptionStyle}">
-                        <Run Text="{x:Bind ViewModel.Conversations.Count, Mode=OneWay}" />
-                        <Run x:Uid="Chat_ConversationsCountRun" Text="conversations" />
-                    </TextBlock>
-                </StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <FontIcon Glyph="&#xE8BD;" FontSize="11"
+                                  Foreground="{ThemeResource TextTertiaryBrush}" />
+                        <TextBlock Style="{StaticResource CaptionStyle}">
+                            <Run Text="{x:Bind ViewModel.Conversations.Count, Mode=OneWay}" />
+                            <Run x:Uid="Chat_ConversationsCountRun" Text="conversations" />
+                        </TextBlock>
+                    </StackPanel>
+
+                    <!-- Exports every listed conversation in one pass; the per-conversation
+                         export dialog only ever covers the open thread. -->
+                    <Button Grid.Column="1"
+                            Style="{StaticResource GhostButtonStyle}"
+                            Padding="6" MinWidth="0" MinHeight="0"
+                            Click="OnExportAllConversationsClick"
+                            x:Uid="Chat_ExportAllTip" ToolTipService.ToolTip="Export all conversations"
+                            AutomationProperties.Name="Export all conversations">
+                        <FontIcon Glyph="&#xEDE1;" FontSize="11"
+                                  Foreground="{ThemeResource TextTertiaryBrush}" />
+                    </Button>
+                </Grid>
             </Border>
         </Grid>
 
@@ -547,6 +566,8 @@
                     <ComboBox Grid.Column="1"
                               x:Name="ModelSelector"
                               ItemsSource="{x:Bind ViewModel.AvailableModels, Mode=OneWay}"
+                              SelectedItem="{x:Bind ViewModel.SelectedModel, Mode=TwoWay}"
+                              SelectionChanged="OnModelSelectionChanged"
                               DisplayMemberPath="Name"
                               x:Uid="Chat_SelectModelBox" PlaceholderText="Select model..."
                               MinWidth="180"

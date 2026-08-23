@@ -62,7 +62,7 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _hasDuplicateResults;
     [ObservableProperty] private bool _hasSuggestionResults;
     public bool HasRecommendedActions => RecommendedActions.Count > 0;
-    public Action<string>? NavigateRequested { get; set; }
+    public NavigateHandler? NavigateRequested { get; set; }
 
     public QuickActionsViewModel(
         ISummaryService summaryService,

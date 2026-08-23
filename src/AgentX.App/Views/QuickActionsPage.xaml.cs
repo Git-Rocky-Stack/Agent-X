@@ -142,11 +142,11 @@ public sealed partial class QuickActionsPage : Page
         }
     }
 
-    private void NavigateToPage(string pageTag)
+    private void NavigateToPage(string pageTag, object? parameter = null)
     {
         if (App.MainWindow is MainWindow mainWindow)
         {
-            mainWindow.NavigateToPage(pageTag);
+            mainWindow.NavigateToPage(pageTag, parameter);
         }
     }
 }

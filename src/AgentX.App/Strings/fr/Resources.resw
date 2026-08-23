@@ -1965,4 +1965,44 @@
   <data name="HwAdvisor_PageTitle.Text" xml:space="preserve"><value>CONSEILLER MATÉRIEL</value></data>
   <data name="Vault_PageTitle.Text" xml:space="preserve"><value>COFFRE-FORT DE CONNAISSANCES</value></data>
   <data name="WfBuilder_PageTitle.Text" xml:space="preserve"><value>WORKFLOWS DE PROMPTS</value></data>
+  <data name="Annot_EditAnnotationTip.ToolTipService.ToolTip" xml:space="preserve"><value>Modifier l'annotation</value></data>
+  <data name="Annot_EditAnnotationTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Modifier l'annotation</value></data>
+  <data name="Annot_EditTitle.Text" xml:space="preserve"><value>Modifier l'annotation</value></data>
+  <data name="Annot_EditNoteLabel.Text" xml:space="preserve"><value>Note</value></data>
+  <data name="Annot_EditNotePh.PlaceholderText" xml:space="preserve"><value>Ajouter une note à ce surlignage...</value></data>
+  <data name="Annot_EditColorLabel.Text" xml:space="preserve"><value>Couleur</value></data>
+  <data name="Annot_EditColorBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Couleur de l'annotation</value></data>
+  <data name="Annot_EditCancel.Content" xml:space="preserve"><value>Annuler</value></data>
+  <data name="Annot_EditSave.Content" xml:space="preserve"><value>Enregistrer</value></data>
+  <data name="Backup_RecalculateTip.ToolTipService.ToolTip" xml:space="preserve"><value>Recalculer l'estimation</value></data>
+  <data name="Backup_RecalculateTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Recalculer l'estimation</value></data>
+  <data name="Chat_ExportAllTip.ToolTipService.ToolTip" xml:space="preserve"><value>Exporter toutes les conversations</value></data>
+  <data name="Chat_ExportAllTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Exporter toutes les conversations</value></data>
+  <data name="CollMgr_MultiSelectTip.ToolTipService.ToolTip" xml:space="preserve"><value>Sélectionner plusieurs collections</value></data>
+  <data name="CollMgr_MultiSelectTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Sélectionner plusieurs collections</value></data>
+  <data name="CollMgr_SelectedRun.Text" xml:space="preserve"><value>sélectionnée(s)</value></data>
+  <data name="CollMgr_SelectAll.Content" xml:space="preserve"><value>Tout sélectionner</value></data>
+  <data name="CollMgr_BulkDelete.Content" xml:space="preserve"><value>Supprimer la sélection</value></data>
+  <data name="CollMgr_SelectCollectionBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Sélectionner la collection</value></data>
+  <data name="CollMgr_RenameCollectionTip.ToolTipService.ToolTip" xml:space="preserve"><value>Renommer la collection</value></data>
+  <data name="CollMgr_RenameCollectionTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Renommer la collection</value></data>
+  <data name="CollMgr_ExportCollectionTip.ToolTipService.ToolTip" xml:space="preserve"><value>Exporter la collection</value></data>
+  <data name="CollMgr_ExportCollectionTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Exporter la collection</value></data>
+  <data name="CollMgr_RenameTitle.Text" xml:space="preserve"><value>Renommer la collection</value></data>
+  <data name="CollMgr_RenamePh.PlaceholderText" xml:space="preserve"><value>Nom de la collection</value></data>
+  <data name="CollMgr_RenameCancel.Content" xml:space="preserve"><value>Annuler</value></data>
+  <data name="CollMgr_RenameSave.Content" xml:space="preserve"><value>Renommer</value></data>
+  <data name="Dash_AcknowledgeConflictTip.ToolTipService.ToolTip" xml:space="preserve"><value>Accuser réception du conflit</value></data>
+  <data name="Dash_AcknowledgeConflictTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Accuser réception du conflit</value></data>
+  <data name="Dash_QuickActionsLabel.Text" xml:space="preserve"><value>Actions rapides</value></data>
+  <data name="ExportDlg_CopyAsMarkdown.Content" xml:space="preserve"><value>Copier au format Markdown</value></data>
+  <data name="Plugin_MultiSelectTip.ToolTipService.ToolTip" xml:space="preserve"><value>Sélectionner plusieurs plugins</value></data>
+  <data name="Plugin_MultiSelectTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Sélectionner plusieurs plugins</value></data>
+  <data name="Plugin_SelectedRun.Text" xml:space="preserve"><value>sélectionné(s)</value></data>
+  <data name="Plugin_SelectAll.Content" xml:space="preserve"><value>Tout sélectionner</value></data>
+  <data name="Plugin_BulkEnable.Content" xml:space="preserve"><value>Activer</value></data>
+  <data name="Plugin_BulkDisable.Content" xml:space="preserve"><value>Désactiver</value></data>
+  <data name="Plugin_BulkUninstall.Content" xml:space="preserve"><value>Désinstaller</value></data>
+  <data name="Plugin_SelectPluginBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Sélectionner le plugin</value></data>
+  <data name="Sync_ReloadHistoryLabel.Text" xml:space="preserve"><value>Recharger</value></data>
 </root>

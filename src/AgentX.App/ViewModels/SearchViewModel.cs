@@ -64,7 +64,7 @@ public partial class SearchViewModel : ObservableObject
     // ── Internal history storage ─────────────────────────────────
     private readonly List<SearchHistoryItem> _historyStore = new();
     private long _historyIdCounter;
-    public Action<string>? NavigateRequested { get; set; }
+    public NavigateHandler? NavigateRequested { get; set; }
 
     /// <summary>True when the current search mode is Semantic.</summary>
     public bool IsSemanticMode => SearchMode == SearchMode.Semantic;
@@ -156,6 +156,22 @@ public partial class SearchViewModel : ObservableObject
     // =================================================================
     // COMMANDS
     // =================================================================
+
+    /// <summary>
+    /// Applies a query handed over by whatever navigated here (the dashboard search box,
+    /// the command palette) and runs it, so the user lands on results rather than an
+    /// empty search page.
+    /// </summary>
+    public async Task ApplyNavigationParameterAsync(object? parameter)
+    {
+        if (parameter is not string query || string.IsNullOrWhiteSpace(query))
+        {
+            return;
+        }
+
+        QueryText = query;
+        await SearchAsync();
+    }
 
     /// <summary>
     /// Performs search using the current QueryText and SearchMode,

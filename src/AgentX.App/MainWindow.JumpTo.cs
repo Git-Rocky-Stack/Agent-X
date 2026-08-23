@@ -44,7 +44,9 @@ public sealed partial class MainWindow
                     JumpToItemKind.Document,
                     _ =>
                     {
-                        _navigationService.NavigateToPage("KnowledgeVault");
+                        // Carry the document the user actually picked; navigating to the
+                        // vault without it drops them on an unfiltered list.
+                        _navigationService.NavigateToPage("KnowledgeVault", document.Id);
                         return Task.CompletedTask;
                     }));
             }
@@ -66,7 +68,9 @@ public sealed partial class MainWindow
                     JumpToItemKind.Conversation,
                     _ =>
                     {
-                        _navigationService.NavigateToPage("Chat");
+                        // Carry the conversation the user picked so Chat opens that thread
+                        // instead of whatever happened to be active.
+                        _navigationService.NavigateToPage("Chat", conversation.Id);
                         return Task.CompletedTask;
                     }));
             }

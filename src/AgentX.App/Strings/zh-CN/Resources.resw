@@ -1965,4 +1965,44 @@
   <data name="HwAdvisor_PageTitle.Text" xml:space="preserve"><value>硬件顾问</value></data>
   <data name="Vault_PageTitle.Text" xml:space="preserve"><value>Knowledge Vault</value></data>
   <data name="WfBuilder_PageTitle.Text" xml:space="preserve"><value>提示词工作流</value></data>
+  <data name="Annot_EditAnnotationTip.ToolTipService.ToolTip" xml:space="preserve"><value>编辑注释</value></data>
+  <data name="Annot_EditAnnotationTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>编辑注释</value></data>
+  <data name="Annot_EditTitle.Text" xml:space="preserve"><value>编辑注释</value></data>
+  <data name="Annot_EditNoteLabel.Text" xml:space="preserve"><value>备注</value></data>
+  <data name="Annot_EditNotePh.PlaceholderText" xml:space="preserve"><value>为此高亮添加备注...</value></data>
+  <data name="Annot_EditColorLabel.Text" xml:space="preserve"><value>颜色</value></data>
+  <data name="Annot_EditColorBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>注释颜色</value></data>
+  <data name="Annot_EditCancel.Content" xml:space="preserve"><value>取消</value></data>
+  <data name="Annot_EditSave.Content" xml:space="preserve"><value>保存</value></data>
+  <data name="Backup_RecalculateTip.ToolTipService.ToolTip" xml:space="preserve"><value>重新计算估算</value></data>
+  <data name="Backup_RecalculateTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>重新计算估算</value></data>
+  <data name="Chat_ExportAllTip.ToolTipService.ToolTip" xml:space="preserve"><value>导出所有对话</value></data>
+  <data name="Chat_ExportAllTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>导出所有对话</value></data>
+  <data name="CollMgr_MultiSelectTip.ToolTipService.ToolTip" xml:space="preserve"><value>选择多个合集</value></data>
+  <data name="CollMgr_MultiSelectTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>选择多个合集</value></data>
+  <data name="CollMgr_SelectedRun.Text" xml:space="preserve"><value>项已选择</value></data>
+  <data name="CollMgr_SelectAll.Content" xml:space="preserve"><value>全选</value></data>
+  <data name="CollMgr_BulkDelete.Content" xml:space="preserve"><value>删除所选</value></data>
+  <data name="CollMgr_SelectCollectionBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>选择合集</value></data>
+  <data name="CollMgr_RenameCollectionTip.ToolTipService.ToolTip" xml:space="preserve"><value>重命名合集</value></data>
+  <data name="CollMgr_RenameCollectionTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>重命名合集</value></data>
+  <data name="CollMgr_ExportCollectionTip.ToolTipService.ToolTip" xml:space="preserve"><value>导出合集</value></data>
+  <data name="CollMgr_ExportCollectionTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>导出合集</value></data>
+  <data name="CollMgr_RenameTitle.Text" xml:space="preserve"><value>重命名合集</value></data>
+  <data name="CollMgr_RenamePh.PlaceholderText" xml:space="preserve"><value>合集名称</value></data>
+  <data name="CollMgr_RenameCancel.Content" xml:space="preserve"><value>取消</value></data>
+  <data name="CollMgr_RenameSave.Content" xml:space="preserve"><value>重命名</value></data>
+  <data name="Dash_AcknowledgeConflictTip.ToolTipService.ToolTip" xml:space="preserve"><value>确认冲突</value></data>
+  <data name="Dash_AcknowledgeConflictTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>确认冲突</value></data>
+  <data name="Dash_QuickActionsLabel.Text" xml:space="preserve"><value>快捷操作</value></data>
+  <data name="ExportDlg_CopyAsMarkdown.Content" xml:space="preserve"><value>复制为 Markdown</value></data>
+  <data name="Plugin_MultiSelectTip.ToolTipService.ToolTip" xml:space="preserve"><value>选择多个插件</value></data>
+  <data name="Plugin_MultiSelectTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>选择多个插件</value></data>
+  <data name="Plugin_SelectedRun.Text" xml:space="preserve"><value>项已选择</value></data>
+  <data name="Plugin_SelectAll.Content" xml:space="preserve"><value>全选</value></data>
+  <data name="Plugin_BulkEnable.Content" xml:space="preserve"><value>启用</value></data>
+  <data name="Plugin_BulkDisable.Content" xml:space="preserve"><value>禁用</value></data>
+  <data name="Plugin_BulkUninstall.Content" xml:space="preserve"><value>卸载</value></data>
+  <data name="Plugin_SelectPluginBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>选择插件</value></data>
+  <data name="Sync_ReloadHistoryLabel.Text" xml:space="preserve"><value>重新加载</value></data>
 </root>

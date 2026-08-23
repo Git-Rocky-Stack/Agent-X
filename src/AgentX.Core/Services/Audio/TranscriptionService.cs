@@ -6,17 +6,17 @@ using Whisper.net;
 namespace AgentX.Core.Services.Audio;
 
 /// <summary>
-/// Local Whisper-based transcription service.
+/// Local Whisper-based transcription service, backed by Whisper.net.
 /// <para>
 /// Model files are stored as GGML binaries under %LOCALAPPDATA%/AgentX/Models/Whisper/.
-/// The full transcription pipeline is structured and ready for Whisper.net integration —
-/// see the marked region inside <see cref="RunWhisperAsync"/> for where the library calls slot in.
+/// <see cref="DownloadModelAsync"/> fetches a model on demand; <see cref="TranscribeFileAsync"/>
+/// loads it through <c>WhisperFactory</c> and runs the audio through the processor.
 /// </para>
 /// <para>
-/// Until the Whisper.net NuGet package is installed, calling <see cref="TranscribeFileAsync"/>
-/// will throw <see cref="NotSupportedException"/> at the transcription boundary with a clear
-/// message directing the integrator to the correct package. All validation, progress reporting,
-/// error handling, and pipeline scaffolding is fully operational regardless.
+/// <see cref="TranscribeFileAsync"/> throws <see cref="NotSupportedException"/> only for an
+/// audio container this service does not accept (see <c>AudioFormats</c>), and
+/// <see cref="InvalidOperationException"/> when the requested model is missing or its file
+/// cannot be loaded.
 /// </para>
 /// </summary>
 public sealed class TranscriptionService : ITranscriptionService

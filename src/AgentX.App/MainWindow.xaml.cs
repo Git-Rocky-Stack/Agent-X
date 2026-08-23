@@ -98,7 +98,7 @@ public sealed partial class MainWindow : Window
         ConfigureShortcuts();
 
         // Wire up command palette callbacks
-        CommandPalette.NavigateToPageRequested = _navigationService.NavigateToPage;
+        CommandPalette.NavigateToPageRequested = pageKey => _navigationService.NavigateToPage(pageKey);
         CommandPalette.ExecuteActionRequested = _navigationService.ExecuteAction;
 
         // Attach keyboard handler
@@ -262,5 +262,6 @@ public sealed partial class MainWindow : Window
     /// Public navigation entry point used by pages (e.g., DashboardPage) that
     /// need to navigate to other pages. Delegates to the navigation service.
     /// </summary>
-    internal void NavigateToPage(string pageTag) => _navigationService.NavigateToPage(pageTag);
+    internal void NavigateToPage(string pageTag, object? parameter = null) =>
+        _navigationService.NavigateToPage(pageTag, parameter);
 }

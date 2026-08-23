@@ -215,6 +215,64 @@ public sealed class PluginManagerViewModelTests
         viewModel.Plugins.Should().OnlyContain(plugin => !plugin.IsFocused && plugin.IsEnabled);
     }
 
+    // ── Selection state ──────────────────────────────────────────────────────
+    // The bulk commands tracked selection in an id list only, which no per-row control
+    // can bind to. The flag has to live on the item for a checkbox to reflect it.
+
+    [Fact]
+    public async Task TogglePluginSelectionCommand_MarksTheItemSelected()
+    {
+        SetupTwoPlugins();
+        var viewModel = CreateViewModel();
+        await viewModel.InitializeAsync();
+
+        viewModel.TogglePluginSelectionCommand.Execute(11L);
+
+        viewModel.Plugins.Single(plugin => plugin.Id == 11).IsSelected.Should().BeTrue();
+        viewModel.Plugins.Single(plugin => plugin.Id == 12).IsSelected.Should().BeFalse();
+
+        viewModel.TogglePluginSelectionCommand.Execute(11L);
+
+        viewModel.Plugins.Single(plugin => plugin.Id == 11).IsSelected.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SelectAllPluginsCommand_MarksEveryItemSelected()
+    {
+        SetupTwoPlugins();
+        var viewModel = CreateViewModel();
+        await viewModel.InitializeAsync();
+
+        viewModel.SelectAllPluginsCommand.Execute(null);
+
+        viewModel.Plugins.Should().OnlyContain(plugin => plugin.IsSelected);
+        viewModel.SelectedCount.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task ToggleMultiSelectCommand_WhenSwitchedOff_ClearsEveryItemSelection()
+    {
+        SetupTwoPlugins();
+        var viewModel = CreateViewModel();
+        await viewModel.InitializeAsync();
+        viewModel.ToggleMultiSelectCommand.Execute(null);
+        viewModel.SelectAllPluginsCommand.Execute(null);
+
+        viewModel.ToggleMultiSelectCommand.Execute(null);
+
+        viewModel.IsMultiSelectMode.Should().BeFalse();
+        viewModel.Plugins.Should().OnlyContain(plugin => !plugin.IsSelected);
+        viewModel.SelectedCount.Should().Be(0);
+    }
+
+    private void SetupTwoPlugins() =>
+        _pluginService.Setup(service => service.GetInstalledPluginsAsync())
+            .ReturnsAsync(
+            [
+                CreatePlugin(11, "Calendar Connector", enabled: true),
+                CreatePlugin(12, "Email Connector", enabled: true),
+            ]);
+
     private PluginManagerViewModel CreateViewModel() =>
         new(_pluginService.Object, _operationsDrillInService.Object);
 

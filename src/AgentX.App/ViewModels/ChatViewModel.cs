@@ -73,9 +73,6 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         ? "Research Mode ON — answers include web sources"
         : "Research Mode OFF — local vault only";
 
-    [RelayCommand]
-    private void ToggleResearchMode() => IsResearchMode = !IsResearchMode;
-
     // ── Orchestration Mode ───────────────────────────────────────
     [ObservableProperty] private ChatOrchestrationMode _orchestrationMode = ChatOrchestrationMode.Standard;
 
@@ -151,6 +148,13 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     public ObservableCollection<ChatMessageItem> Messages { get; } = new();
     public ObservableCollection<ConversationListItem> Conversations { get; } = new();
     public ObservableCollection<AiModel> AvailableModels { get; } = new();
+
+    /// <summary>
+    /// The model picked in the chat header. Two-way bound to the header ComboBox;
+    /// setting it activates that model (see <see cref="OnSelectedModelChanged"/>).
+    /// </summary>
+    [ObservableProperty] private AiModel? _selectedModel;
+
     public ObservableCollection<SystemPromptItem> SystemPrompts { get; } = new();
     public ObservableCollection<string> SuggestedQuestions { get; } = new();
     public ObservableCollection<string> FolderNames { get; } = new();
@@ -853,18 +857,40 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     // COMMANDS — Model & Prompt Selection
     // ═══════════════════════════════════════════════════════════════
 
+    /// <summary>
+    /// Opens the conversation handed over by whatever navigated here (Jump-To, the
+    /// command palette). Without this the chosen conversation is discarded at the page
+    /// boundary and Chat opens on whatever thread happened to be active.
+    /// </summary>
+    public async Task ApplyNavigationParameterAsync(object? parameter)
+    {
+        if (parameter is not long conversationId || conversationId <= 0)
+        {
+            return;
+        }
+
+        await SelectConversationAsync(conversationId);
+    }
+
     [RelayCommand]
-    private void SelectModel(string modelId)
+    private async Task SelectModelAsync(string modelId)
     {
         var model = AvailableModels.FirstOrDefault(m => m.Id == modelId);
-        if (model is not null)
+        if (model is null)
         {
-            ActiveModelName = model.Name;
-            _ = Task.Run(async () =>
-            {
-                try { await _aiService.SetActiveModelAsync(modelId); }
-                catch (Exception ex) { Log.Warning(ex, "Failed to persist active model selection"); }
-            });
+            Log.Debug("Ignoring selection of unknown model {ModelId}", modelId);
+            return;
+        }
+
+        ActiveModelName = model.Name;
+
+        try
+        {
+            await _aiService.SetActiveModelAsync(modelId);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to persist active model selection");
         }
     }
 
@@ -1000,22 +1026,6 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         Messages.Remove(message);
         OnPropertyChanged(nameof(HasNoMessages));
         await SendMessageAsync();
-    }
-
-    [RelayCommand]
-    private async Task RegenerateAsync()
-    {
-        if (Messages.Count < 2) return;
-        var lastMessage = Messages.LastOrDefault();
-        if (lastMessage is { IsAssistant: true }) Messages.Remove(lastMessage);
-        var lastUserMessage = Messages.LastOrDefault(m => m.IsUser);
-        if (lastUserMessage is not null)
-        {
-            UserInput = lastUserMessage.Content;
-            Messages.Remove(lastUserMessage);
-            OnPropertyChanged(nameof(HasNoMessages));
-            await SendMessageAsync();
-        }
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -1241,40 +1251,6 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private void ExportConversationToClipboard()
-    {
-        if (Messages.Count == 0) return;
-        try
-        {
-            var markdown = BuildConversationMarkdown();
-            var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
-            dataPackage.SetText(markdown);
-            Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
-        }
-        catch (Exception ex) { Log.Error(ex, "Failed to export conversation to clipboard"); }
-    }
-
-    [RelayCommand]
-    private async Task ExportConversationToFileAsync()
-    {
-        if (Messages.Count == 0) return;
-        try
-        {
-            var markdown = BuildConversationMarkdown();
-            var picker = new Windows.Storage.Pickers.FileSavePicker();
-            picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
-            picker.FileTypeChoices.Add("Markdown", new List<string> { ".md" });
-            picker.FileTypeChoices.Add("Text", new List<string> { ".txt" });
-            picker.SuggestedFileName = SanitizeFileName(ActiveConversationTitle);
-            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
-            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-            var file = await picker.PickSaveFileAsync();
-            if (file != null) await Windows.Storage.FileIO.WriteTextAsync(file, markdown);
-        }
-        catch (Exception ex) { Log.Error(ex, "Failed to export conversation to file"); }
-    }
-
-    [RelayCommand]
     private async Task RefreshConnectionAsync()
     {
         ConnectionStatus = "Checking...";
@@ -1356,33 +1332,6 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     {
         message.InlineContextStoryText = string.Empty;
         message.InlineContextStorySourceChips = Array.Empty<string>();
-    }
-
-    private string BuildConversationMarkdown()
-    {
-        var sb = new StringBuilder();
-        sb.AppendLine($"# {ActiveConversationTitle}");
-        sb.AppendLine($"*Exported from Agent-X on {DateTime.Now:MMMM d, yyyy 'at' h:mm tt}*");
-        sb.AppendLine();
-        if (!string.IsNullOrEmpty(ActiveSystemPromptName))
-            sb.AppendLine($"**System Prompt:** {ActiveSystemPromptName}");
-        sb.AppendLine("---");
-        foreach (var msg in Messages)
-        {
-            var roleLabel = msg.Role switch { "user" => "**You**", "assistant" => "**Agent-X**", _ => $"**{msg.Role}**" };
-            sb.AppendLine($"### {roleLabel}\n*{msg.FormattedTime}*\n\n{msg.Content}\n");
-            if (msg.IsAssistant && msg.TokenCount > 0)
-                sb.AppendLine($"_{msg.FormattedTokens} | {msg.FormattedTokenSpeed}_\n");
-            sb.AppendLine("---");
-        }
-        return sb.ToString();
-    }
-
-    private static string SanitizeFileName(string name)
-    {
-        var invalid = Path.GetInvalidFileNameChars();
-        var sanitized = new string(name.Where(c => !invalid.Contains(c)).ToArray());
-        return string.IsNullOrWhiteSpace(sanitized) ? "conversation" : sanitized;
     }
 
     private static string BuildRelativeTimeLabel(DateTime timestamp)

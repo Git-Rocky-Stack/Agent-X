@@ -107,7 +107,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         || SortBy != "date"
         || !string.IsNullOrEmpty(SearchQuery);
     public bool HasSelectedDocument => SelectedDocument is not null;
-    public Action<string>? NavigateRequested { get; set; }
+    public NavigateHandler? NavigateRequested { get; set; }
 
     public KnowledgeVaultViewModel(
         IDocumentService documentService,
@@ -1138,16 +1138,47 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
             return;
         }
 
+        await FocusDocumentAsync(request.DocumentId, request.SourceLabel);
+    }
+
+    /// <summary>
+    /// Opens the vault on a specific document handed over by another surface (Jump-To,
+    /// the command palette, an Operations drill-in). Widens active filters when they
+    /// would hide the document, floats it to the top of the list, and selects it.
+    /// </summary>
+    public async Task ApplyNavigationParameterAsync(object? parameter)
+    {
+        if (parameter is not long documentId || documentId <= 0)
+        {
+            return;
+        }
+
+        await FocusDocumentAsync(documentId, sourceLabel: null);
+    }
+
+    /// <summary>
+    /// Brings <paramref name="documentId"/> into view and selects it. Shared by every
+    /// caller that navigates here with a specific document in mind.
+    /// </summary>
+    private async Task FocusDocumentAsync(long documentId, string? sourceLabel)
+    {
         ClearFocusedDocumentLanding();
 
-        var target = Documents.FirstOrDefault(document => document.Id == request.DocumentId);
+        // The payload can arrive before the page's first load completes, so make sure
+        // there is something to search before concluding the document is missing.
+        if (Documents.Count == 0)
+        {
+            await LoadDocumentsAsync();
+        }
+
+        var target = Documents.FirstOrDefault(document => document.Id == documentId);
         if (target is null && HasActiveFilters)
         {
             var widenedFilters = ResetFiltersForOperationsDocumentRequest();
             if (widenedFilters)
             {
                 await LoadDocumentsAsync();
-                target = Documents.FirstOrDefault(document => document.Id == request.DocumentId);
+                target = Documents.FirstOrDefault(document => document.Id == documentId);
                 if (target is not null)
                 {
                     FocusedDocumentVisibilityHint = "Filters were widened to show the requested document.";
@@ -1157,10 +1188,14 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
 
         if (target is null)
         {
+            Log.Debug("Requested document {DocumentId} is not present in the vault", documentId);
             return;
         }
 
-        target.FocusedSourceLabel = request.SourceLabel;
+        if (sourceLabel is not null)
+        {
+            target.FocusedSourceLabel = sourceLabel;
+        }
 
         if (Documents.Remove(target))
         {

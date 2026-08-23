@@ -35,6 +35,11 @@ public sealed partial class KnowledgeVaultPage : Page
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
+
+        // Honour the item the caller picked (Jump-To, command palette) rather than
+        // dropping it and opening this page on whatever was last active.
+        _ = ViewModel.ApplyNavigationParameterAsync(e.Parameter);
+
         _shortcutScope = _shortcutRegistry.RegisterShortcuts(
             new AgentX.Core.Services.Shortcuts.ShortcutDescriptor(
                 "vault.refresh",
@@ -52,11 +57,11 @@ public sealed partial class KnowledgeVaultPage : Page
         _shortcutScope = null;
     }
 
-    private void NavigateToPage(string pageTag)
+    private void NavigateToPage(string pageTag, object? parameter = null)
     {
         if (App.MainWindow is MainWindow mainWindow)
         {
-            mainWindow.NavigateToPage(pageTag);
+            mainWindow.NavigateToPage(pageTag, parameter);
         }
     }
 

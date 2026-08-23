@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:AgentX.App.ViewModels"
     xmlns:converters="using:AgentX.App.Converters"
+    x:Name="CollectionsRoot"
     Background="Transparent"
     NavigationCacheMode="Enabled">
 
@@ -94,14 +95,23 @@
                         </Border>
                     </StackPanel>
 
-                    <Button Grid.Column="1"
-                            Style="{StaticResource IconButtonStyle}"
-                            Command="{x:Bind ViewModel.RefreshCommand}"
-                            x:Uid="CollMgr_RefreshCollectionsTip" ToolTipService.ToolTip="Refresh collections"
-                            AutomationProperties.Name="Refresh collections">
-                        <FontIcon Glyph="&#xE72C;" FontSize="14"
-                                  Foreground="{ThemeResource TextSecondaryBrush}" />
-                    </Button>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                        <Button Style="{StaticResource IconButtonStyle}"
+                                Command="{x:Bind ViewModel.ToggleMultiSelectCommand}"
+                                x:Uid="CollMgr_MultiSelectTip" ToolTipService.ToolTip="Select multiple collections"
+                                AutomationProperties.Name="Select multiple collections">
+                            <FontIcon Glyph="&#xE762;" FontSize="14"
+                                      Foreground="{ThemeResource TextSecondaryBrush}" />
+                        </Button>
+
+                        <Button Style="{StaticResource IconButtonStyle}"
+                                Command="{x:Bind ViewModel.RefreshCommand}"
+                                x:Uid="CollMgr_RefreshCollectionsTip" ToolTipService.ToolTip="Refresh collections"
+                                AutomationProperties.Name="Refresh collections">
+                            <FontIcon Glyph="&#xE72C;" FontSize="14"
+                                      Foreground="{ThemeResource TextSecondaryBrush}" />
+                        </Button>
+                    </StackPanel>
                 </Grid>
             </Border>
 
@@ -126,6 +136,43 @@
                         </StackPanel>
                     </Button>
                 </StackPanel>
+            </Border>
+
+            <!-- Bulk action bar: only present while multi-select is active, so the
+                 default list stays uncluttered. -->
+            <Border Grid.Row="1"
+                    VerticalAlignment="Bottom"
+                    Padding="16,10,16,10"
+                    Background="{ThemeResource AccentSubtleBrush}"
+                    BorderBrush="{ThemeResource AccentPrimaryBrush}"
+                    BorderThickness="0,1,0,1"
+                    Visibility="{x:Bind ViewModel.IsMultiSelectMode, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Style="{StaticResource CaptionStyle}"
+                               VerticalAlignment="Center">
+                        <Run Text="{x:Bind ViewModel.SelectedCount, Mode=OneWay}" />
+                        <Run x:Uid="CollMgr_SelectedRun" Text="selected" />
+                    </TextBlock>
+
+                    <Button Grid.Column="1"
+                            x:Uid="CollMgr_SelectAll" Content="Select All"
+                            Command="{x:Bind ViewModel.SelectAllCollectionsCommand}"
+                            Style="{StaticResource GhostButtonStyle}"
+                            FontSize="12" />
+
+                    <Button Grid.Column="2"
+                            x:Uid="CollMgr_BulkDelete" Content="Delete Selected"
+                            Click="OnBulkDeleteCollectionsClick"
+                            Style="{StaticResource GhostButtonStyle}"
+                            Foreground="{ThemeResource ErrorBrush}"
+                            FontSize="12" />
+                </Grid>
             </Border>
 
             <!-- Loading indicator -->
@@ -169,20 +216,36 @@
                                 <Grid ColumnSpacing="10">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
 
+                                    <!-- Multi-select checkbox -->
+                                    <CheckBox Grid.Column="0"
+                                              IsChecked="{x:Bind IsSelected, Mode=OneWay}"
+                                              Command="{Binding ViewModel.ToggleCollectionSelectionCommand, ElementName=CollectionsRoot}"
+                                              CommandParameter="{x:Bind Id}"
+                                              MinWidth="0"
+                                              Margin="0"
+                                              VerticalAlignment="Center"
+                                              x:Uid="CollMgr_SelectCollectionBox"
+                                              AutomationProperties.Name="Select collection"
+                                              Visibility="{Binding ViewModel.IsMultiSelectMode, ElementName=CollectionsRoot, Converter={StaticResource BoolToVis}}" />
+
                                     <!-- Folder icon -->
-                                    <FontIcon Glyph="{x:Bind IconGlyph, TargetNullValue='&#xF168;'}"
+                                    <FontIcon Grid.Column="1"
+                                              Glyph="{x:Bind IconGlyph, TargetNullValue='&#xF168;'}"
                                               FontSize="16"
                                               Foreground="{ThemeResource TextAccentBrush}"
                                               VerticalAlignment="Center" />
 
                                     <!-- Name -->
-                                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                        <TextBlock Text="{x:Bind Name}"
+                                    <StackPanel Grid.Column="2" Spacing="2" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind Name, Mode=OneWay}"
                                                    Style="{StaticResource BodyStyle}"
                                                    FontWeight="SemiBold"
                                                    MaxLines="1"
@@ -195,7 +258,7 @@
                                     </StackPanel>
 
                                     <!-- Document count badge -->
-                                    <Border Grid.Column="2"
+                                    <Border Grid.Column="3"
                                             Style="{StaticResource BadgeDefaultStyle}"
                                             Padding="6,2,6,2"
                                             VerticalAlignment="Center">
@@ -206,8 +269,36 @@
                                         </TextBlock>
                                     </Border>
 
+                                    <!-- Rename button -->
+                                    <Button Grid.Column="4"
+                                            Style="{StaticResource GhostButtonStyle}"
+                                            Padding="4" MinHeight="28" MinWidth="28"
+                                            Width="28" Height="28"
+                                            Command="{Binding ViewModel.BeginRenameCollectionCommand, ElementName=CollectionsRoot}"
+                                            CommandParameter="{x:Bind}"
+                                            x:Uid="CollMgr_RenameCollectionTip" ToolTipService.ToolTip="Rename collection"
+                                            AutomationProperties.Name="Rename collection"
+                                            Opacity="0.5">
+                                        <FontIcon Glyph="&#xE70F;" FontSize="11"
+                                                  Foreground="{ThemeResource TextSecondaryBrush}" />
+                                    </Button>
+
+                                    <!-- Export button -->
+                                    <Button Grid.Column="5"
+                                            Style="{StaticResource GhostButtonStyle}"
+                                            Padding="4" MinHeight="28" MinWidth="28"
+                                            Width="28" Height="28"
+                                            Tag="{x:Bind Id}"
+                                            Click="OnExportCollectionClick"
+                                            x:Uid="CollMgr_ExportCollectionTip" ToolTipService.ToolTip="Export collection"
+                                            AutomationProperties.Name="Export collection"
+                                            Opacity="0.5">
+                                        <FontIcon Glyph="&#xEDE1;" FontSize="11"
+                                                  Foreground="{ThemeResource TextSecondaryBrush}" />
+                                    </Button>
+
                                     <!-- Delete button -->
-                                    <Button Grid.Column="3"
+                                    <Button Grid.Column="6"
                                             Style="{StaticResource GhostButtonStyle}"
                                             Padding="4" MinHeight="28" MinWidth="28"
                                             Width="28" Height="28"
@@ -553,6 +644,45 @@
                     </StackPanel>
                 </Grid>
             </ScrollViewer>
+        </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             RENAME COLLECTION PANEL
+             Spans both panels so it reads as a modal layer over the page.
+             ═══════════════════════════════════════════════════════════ -->
+        <Grid Grid.Column="0" Grid.ColumnSpan="2"
+              Background="{ThemeResource OverlayBrush}"
+              Visibility="{x:Bind ViewModel.IsRenaming, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+            <Border Background="{ThemeResource CardGradientBrush}"
+                    BorderBrush="{ThemeResource BorderSubtleBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{StaticResource RadiusMD}"
+                    Padding="24"
+                    MinWidth="380"
+                    MaxWidth="480"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                <StackPanel Spacing="16">
+                    <TextBlock x:Uid="CollMgr_RenameTitle" Text="Rename Collection"
+                               Style="{StaticResource HeadingSmallStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
+
+                    <TextBox Text="{x:Bind ViewModel.RenameName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             x:Uid="CollMgr_RenamePh" PlaceholderText="Collection name"
+                             Style="{StaticResource InputTextBoxStyle}" />
+
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8"
+                                HorizontalAlignment="Right">
+                        <Button x:Uid="CollMgr_RenameCancel" Content="Cancel"
+                                Command="{x:Bind ViewModel.CancelRenameCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}" />
+                        <Button x:Uid="CollMgr_RenameSave" Content="Rename"
+                                Command="{x:Bind ViewModel.RenameCollectionCommand}"
+                                Style="{StaticResource AccentButtonStyle}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
         </Grid>
     </Grid>
 </Page>

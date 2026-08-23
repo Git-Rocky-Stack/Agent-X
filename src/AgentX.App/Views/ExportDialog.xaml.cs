@@ -50,6 +50,22 @@ public sealed partial class ExportDialog : ContentDialog
         Title = $"Export: {title}";
     }
 
+    /// <summary>
+    /// Copies the conversation to the clipboard as Markdown. This is the only export
+    /// route that produces no file, so it runs from its own button rather than through
+    /// the format-and-save flow.
+    /// </summary>
+    private async void OnCopyAsMarkdownClick(object sender, RoutedEventArgs e)
+    {
+        await _viewModel.CopyConversationAsMarkdownCommand.ExecuteAsync(_conversationId);
+
+        StatusInfoBar.Message = _viewModel.StatusMessage;
+        StatusInfoBar.Severity = _viewModel.StatusMessage.StartsWith("Copy failed", StringComparison.Ordinal)
+            ? InfoBarSeverity.Error
+            : InfoBarSeverity.Success;
+        StatusInfoBar.IsOpen = true;
+    }
+
     private async void OnPrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
     {
         var deferral = args.GetDeferral();

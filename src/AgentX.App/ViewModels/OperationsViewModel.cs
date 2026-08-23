@@ -46,7 +46,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private IReadOnlyList<OperationsConnectorPreview> _connectorPreviews = Array.Empty<OperationsConnectorPreview>();
     public bool HasRecommendedActions => RecommendedActions.Count > 0;
 
-    public Action<string>? NavigateRequested { get; set; }
+    public NavigateHandler? NavigateRequested { get; set; }
 
     public OperationsViewModel(
         IOperationsActionService operationsActionService,

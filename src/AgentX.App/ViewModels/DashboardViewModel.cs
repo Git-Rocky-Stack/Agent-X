@@ -119,7 +119,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     [ObservableProperty] private ObservableCollection<DashboardPrivacyDisclosureItem> _privacyDisclosures = new();
 
     // ── Navigation ────────────────────────────────────────────
-    public Action<string>? NavigateRequested { get; set; }
+    public NavigateHandler? NavigateRequested { get; set; }
 
     public DashboardViewModel(
         IAiService aiService,
@@ -438,10 +438,13 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex)
         {
+            // Report that the state is unknown rather than claiming everything is indexed.
+            // Showing "Idle" at 100% here is a green light for a state we never observed,
+            // and it hides a genuinely stalled or failing index behind a healthy reading.
             Log.Warning(ex, "Failed to load indexing status for dashboard");
             PendingIndexCount = 0;
-            IndexedPercent = 100;
-            IndexingStatus = "Idle";
+            IndexedPercent = 0;
+            IndexingStatus = "Status unavailable";
         }
     }
 
@@ -830,13 +833,21 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         NavigateRequested?.Invoke(action.Route);
     }
 
+    /// <summary>
+    /// Hands the dashboard search box's query to the Search page. The query travels as the
+    /// navigation payload so the user lands on results rather than an empty search box.
+    /// </summary>
     [RelayCommand]
-    private Task QuickSearchAsync()
+    private void QuickSearch()
     {
-        if (string.IsNullOrWhiteSpace(QuickSearchQuery)) return Task.CompletedTask;
-        Log.Debug("Quick search: {Query}", QuickSearchQuery);
-        NavigateRequested?.Invoke("Search");
-        return Task.CompletedTask;
+        var query = QuickSearchQuery?.Trim();
+        if (string.IsNullOrEmpty(query))
+        {
+            return;
+        }
+
+        Log.Debug("Quick search: {Query}", query);
+        NavigateRequested?.Invoke("Search", query);
     }
 
     private static string FormatCompactNumber(int value) => FormatCompactNumber((long)value);

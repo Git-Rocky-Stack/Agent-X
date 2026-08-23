@@ -155,7 +155,9 @@ public partial class AskFilesViewModel : ObservableObject
                     Number = citation.Number,
                     DocumentId = citation.DocumentId,
                     FileName = citation.FileName,
-                    FilePath = citation.FilePath.Length > 0 ? citation.FilePath : GetFilePathForDocument(citation.DocumentId),
+                    FilePath = citation.FilePath.Length > 0
+                        ? citation.FilePath
+                        : await GetFilePathForDocumentAsync(citation.DocumentId),
                     PageNumber = citation.PageNumber,
                     Excerpt = TruncateExcerpt(citation.Excerpt, 200),
                     RelevancePercent = (int)Math.Round(citation.RelevanceScore * 100)
@@ -327,16 +329,24 @@ public partial class AskFilesViewModel : ObservableObject
         }
     }
 
-    private string GetFilePathForDocument(long documentId)
+    /// <summary>
+    /// Resolves a citation's file path when the answer did not carry one.
+    /// <para>
+    /// This runs inside the answer pipeline on the UI thread. Blocking on the lookup
+    /// (Task.Wait / Task.Result) risks deadlocking against the UI SynchronizationContext,
+    /// so the call stays awaited.
+    /// </para>
+    /// </summary>
+    private async Task<string> GetFilePathForDocumentAsync(long documentId)
     {
         try
         {
-            var task = _documentService.GetDocumentAsync(documentId);
-            task.Wait();
-            return task.Result?.FilePath ?? string.Empty;
+            var document = await _documentService.GetDocumentAsync(documentId).ConfigureAwait(true);
+            return document?.FilePath ?? string.Empty;
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.Debug(ex, "Could not resolve a file path for document {DocumentId}", documentId);
             return string.Empty;
         }
     }

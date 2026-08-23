@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:AgentX.App.ViewModels"
     xmlns:converters="using:AgentX.App.Converters"
+    x:Name="InboxRoot"
     Background="Transparent"
     NavigationCacheMode="Enabled">
 
@@ -89,6 +90,8 @@
                         <ItemsRepeater.ItemTemplate>
                             <DataTemplate x:DataType="x:String">
                                 <Button Content="{x:Bind}"
+                                        Command="{Binding ViewModel.FilterByStatusCommand, ElementName=InboxRoot}"
+                                        CommandParameter="{Binding}"
                                         HorizontalAlignment="Stretch"
                                         HorizontalContentAlignment="Left"
                                         Style="{StaticResource GhostButtonStyle}"
@@ -267,6 +270,8 @@
                                             <!-- Action Buttons -->
                                             <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
                                                 <Button Content="&#xE73E;"
+                                                        Command="{Binding ViewModel.AcceptItemCommand, ElementName=InboxRoot}"
+                                                        CommandParameter="{x:Bind Id}"
                                                         FontFamily="{ThemeResource SymbolThemeFontFamily}"
                                                         FontSize="14"
                                                         Foreground="{ThemeResource SuccessBrush}"
@@ -275,6 +280,8 @@
                                                         Style="{StaticResource GhostButtonStyle}"
                                                         Padding="8" MinWidth="0" MinHeight="0" />
                                                 <Button Content="&#xE768;"
+                                                        Command="{Binding ViewModel.DeferItemCommand, ElementName=InboxRoot}"
+                                                        CommandParameter="{x:Bind Id}"
                                                         FontFamily="{ThemeResource SymbolThemeFontFamily}"
                                                         FontSize="14"
                                                         x:Uid="Inbox_DeferBtn" ToolTipService.ToolTip="Defer"
@@ -282,6 +289,8 @@
                                                         Style="{StaticResource GhostButtonStyle}"
                                                         Padding="8" MinWidth="0" MinHeight="0" />
                                                 <Button Content="&#xE711;"
+                                                        Command="{Binding ViewModel.RejectItemCommand, ElementName=InboxRoot}"
+                                                        CommandParameter="{x:Bind Id}"
                                                         FontFamily="{ThemeResource SymbolThemeFontFamily}"
                                                         FontSize="14"
                                                         Foreground="{ThemeResource ErrorBrush}"

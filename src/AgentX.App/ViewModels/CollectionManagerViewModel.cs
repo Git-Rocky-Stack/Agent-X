@@ -37,6 +37,11 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _newCollectionDescription = string.Empty;
 
     // ── Multi-Select State ───────────────────────────────────
+    // ── Rename Editor ────────────────────────────────────────────
+    [ObservableProperty] private bool _isRenaming;
+    [ObservableProperty] private CollectionDisplayItem? _renameTarget;
+    [ObservableProperty] private string _renameName = string.Empty;
+
     [ObservableProperty] private bool _isMultiSelectMode;
     [ObservableProperty] private int _selectedCount;
 
@@ -209,18 +214,66 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>
+    /// Opens the rename editor on a collection, seeded with its current name.
+    /// </summary>
     [RelayCommand]
-    private async Task RenameCollectionAsync(long id)
+    private void BeginRenameCollection(CollectionDisplayItem? item)
     {
-        Log.Debug("Rename collection requested: {CollectionId}", id);
-
-        var item = FindCollectionById(id);
-        if (item is not null)
+        if (item is null)
         {
-            Log.Information("Collection rename requested for: {Name}", item.Name);
+            return;
         }
 
-        await Task.CompletedTask;
+        RenameTarget = item;
+        RenameName = item.Name;
+        IsRenaming = true;
+    }
+
+    /// <summary>
+    /// Commits the rename to the database and reflects it in the list.
+    /// </summary>
+    [RelayCommand]
+    private async Task RenameCollectionAsync()
+    {
+        var target = RenameTarget;
+        var newName = RenameName?.Trim();
+
+        if (target is null || string.IsNullOrEmpty(newName))
+        {
+            return;
+        }
+
+        ClearError();
+
+        try
+        {
+            await _collectionService.UpdateCollectionAsync(target.Id, newName, target.Description);
+            target.Name = newName;
+            Log.Information("Renamed collection {CollectionId} to {Name}", target.Id, newName);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to rename collection {CollectionId}", target.Id);
+            SetError($"Failed to rename collection: {ex.Message}");
+            return;
+        }
+        finally
+        {
+            IsRenaming = false;
+            RenameTarget = null;
+        }
+    }
+
+    /// <summary>
+    /// Closes the rename editor without writing anything.
+    /// </summary>
+    [RelayCommand]
+    private void CancelRename()
+    {
+        IsRenaming = false;
+        RenameTarget = null;
+        RenameName = string.Empty;
     }
 
     [RelayCommand]
@@ -363,6 +416,7 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         if (!IsMultiSelectMode)
         {
             SelectedCollectionIds.Clear();
+            SetSelectionFlags(Collections, isSelected: false);
             SelectedCount = 0;
         }
         Log.Debug("Collection multi-select mode toggled: {IsActive}", IsMultiSelectMode);
@@ -380,6 +434,12 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         else
             SelectedCollectionIds.Add(collectionId);
 
+        var item = FindCollectionById(collectionId);
+        if (item is not null)
+        {
+            item.IsSelected = SelectedCollectionIds.Contains(collectionId);
+        }
+
         SelectedCount = SelectedCollectionIds.Count;
     }
 
@@ -391,8 +451,26 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
     {
         SelectedCollectionIds.Clear();
         AddAllCollectionIds(Collections);
+        SetSelectionFlags(Collections, isSelected: true);
         SelectedCount = SelectedCollectionIds.Count;
         Log.Debug("Selected all {Count} collections", SelectedCount);
+    }
+
+    /// <summary>
+    /// Applies a selection flag across the whole collection tree so every row's checkbox
+    /// matches the view model's selection.
+    /// </summary>
+    private static void SetSelectionFlags(
+        ObservableCollection<CollectionDisplayItem> items, bool isSelected)
+    {
+        foreach (var item in items)
+        {
+            item.IsSelected = isSelected;
+            if (item.Children.Count > 0)
+            {
+                SetSelectionFlags(item.Children, isSelected);
+            }
+        }
     }
 
     /// <summary>
@@ -446,6 +524,7 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         finally
         {
             SelectedCollectionIds.Clear();
+            SetSelectionFlags(Collections, isSelected: false);
             SelectedCount = 0;
             IsMultiSelectMode = false;
             IsLoading = false;
@@ -603,6 +682,7 @@ public class CollectionDisplayItem : ObservableObject
     private string? _description;
     private int _documentCount;
     private bool _isExpanded;
+    private bool _isSelected;
 
     public long Id { get; set; }
 
@@ -635,6 +715,17 @@ public class CollectionDisplayItem : ObservableObject
     {
         get => _isExpanded;
         set => SetProperty(ref _isExpanded, value);
+    }
+
+    /// <summary>
+    /// Whether this collection is ticked in multi-select mode. Lives on the item so the
+    /// row's checkbox has something to bind to; the view model's id list alone cannot
+    /// drive a per-row control.
+    /// </summary>
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set => SetProperty(ref _isSelected, value);
     }
 
     public ObservableCollection<CollectionDisplayItem> Children { get; set; } = new();

@@ -3,6 +3,7 @@ using AgentX.App.ViewModels;
 using AgentX.App.ViewModels.Coordinators;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Context;
+using AgentX.Core.AI.Models;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Services.TemporalIdentity;
@@ -696,6 +697,74 @@ public sealed class ChatViewModelTests
         viewModel.ShowConversationSummaryRefreshAction.Should().BeTrue();
         viewModel.ConversationSummaryRefreshActionText.Should().Be("Retry Summary");
         viewModel.ContextSummaryPreview.Should().Be("Focused on startup retries and backoff behavior.");
+    }
+
+    // ── Model selection ──────────────────────────────────────────────────────
+    // The chat header's model picker is the only way to switch models mid-session.
+    // It bound ItemsSource but never surfaced the selection, so choosing a model was
+    // silently discarded; these cover the selection path end to end.
+
+    [Fact]
+    public async Task SelectModelCommand_ActivatesAndPersistsTheChosenModel()
+    {
+        var viewModel = CreateViewModel();
+        viewModel.AvailableModels.Add(new AiModel { Id = "llama-3.2-3b", Name = "Llama 3.2 3B" });
+
+        await viewModel.SelectModelCommand.ExecuteAsync("llama-3.2-3b");
+
+        viewModel.ActiveModelName.Should().Be("Llama 3.2 3B");
+        _aiService.Verify(
+            service => service.SetActiveModelAsync("llama-3.2-3b", It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task SelectModelCommand_WithUnknownModelId_LeavesTheActiveModelUnchanged()
+    {
+        var viewModel = CreateViewModel();
+
+        await viewModel.SelectModelCommand.ExecuteAsync("not-installed");
+
+        viewModel.ActiveModelName.Should().Be("No model selected");
+        _aiService.Verify(
+            service => service.SetActiveModelAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    // ── Navigation payload ───────────────────────────────────────────────────
+    // Jump-To lists individual conversations. Selecting one used to open Chat on whatever
+    // thread happened to be active, so the chosen conversation never opened.
+
+    [Fact]
+    public async Task ApplyNavigationParameterAsync_WithAConversationId_OpensThatConversation()
+    {
+        _conversationCoordinator
+            .Setup(service => service.LoadMessagesAsync(42))
+            .ReturnsAsync(Array.Empty<MessageSummary>());
+
+        var viewModel = CreateViewModel();
+        viewModel.Conversations.Add(new ConversationListItem
+        {
+            Id = 42,
+            Title = "Startup Investigation",
+            UpdatedAt = DateTime.UtcNow
+        });
+
+        await viewModel.ApplyNavigationParameterAsync(42L);
+
+        viewModel.ActiveConversationId.Should().Be(42);
+    }
+
+    [Fact]
+    public async Task ApplyNavigationParameterAsync_WithNoPayload_DoesNotChangeTheActiveConversation()
+    {
+        var viewModel = CreateViewModel();
+
+        await viewModel.ApplyNavigationParameterAsync(null);
+
+        viewModel.ActiveConversationId.Should().BeNull();
+        _conversationCoordinator.Verify(
+            service => service.LoadMessagesAsync(It.IsAny<long>()), Times.Never);
     }
 
     private ChatViewModel CreateViewModel() =>

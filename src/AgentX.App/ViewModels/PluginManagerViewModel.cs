@@ -254,6 +254,7 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
         if (!IsMultiSelectMode)
         {
             SelectedPluginIds.Clear();
+            SetSelectionFlags(isSelected: false);
             SelectedCount = 0;
         }
         Log.Debug("Multi-select mode toggled: {IsActive}", IsMultiSelectMode);
@@ -271,6 +272,12 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
         else
             SelectedPluginIds.Add(pluginId);
 
+        var plugin = Plugins.FirstOrDefault(item => item.Id == pluginId);
+        if (plugin is not null)
+        {
+            plugin.IsSelected = SelectedPluginIds.Contains(pluginId);
+        }
+
         SelectedCount = SelectedPluginIds.Count;
     }
 
@@ -284,8 +291,21 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
         foreach (var plugin in Plugins)
             SelectedPluginIds.Add(plugin.Id);
 
+        SetSelectionFlags(isSelected: true);
         SelectedCount = SelectedPluginIds.Count;
         Log.Debug("Selected all {Count} plugins", SelectedCount);
+    }
+
+    /// <summary>
+    /// Applies a selection flag to every listed plugin so each row's checkbox matches the
+    /// view model's selection.
+    /// </summary>
+    private void SetSelectionFlags(bool isSelected)
+    {
+        foreach (var plugin in Plugins)
+        {
+            plugin.IsSelected = isSelected;
+        }
     }
 
     /// <summary>
@@ -335,6 +355,7 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
         finally
         {
             SelectedPluginIds.Clear();
+            SetSelectionFlags(isSelected: false);
             SelectedCount = 0;
             IsLoading = false;
         }
@@ -375,6 +396,7 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
         finally
         {
             SelectedPluginIds.Clear();
+            SetSelectionFlags(isSelected: false);
             SelectedCount = 0;
             IsLoading = false;
         }
@@ -416,6 +438,7 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
         finally
         {
             SelectedPluginIds.Clear();
+            SetSelectionFlags(isSelected: false);
             SelectedCount = 0;
             IsMultiSelectMode = false;
             IsLoading = false;
@@ -578,6 +601,13 @@ public partial class PluginDisplayItem : ObservableObject
     [ObservableProperty] private string? _settingsJson;
     [ObservableProperty] private string? _readmeContent;
     [ObservableProperty] private bool _isFocused;
+
+    /// <summary>
+    /// Whether this plugin is ticked in multi-select mode. Lives on the item so the row's
+    /// checkbox has something to bind to; the view model's id list alone cannot drive a
+    /// per-row control.
+    /// </summary>
+    [ObservableProperty] private bool _isSelected;
 
     /// <summary>
     /// Returns a Segoe Fluent Icons glyph string based on the plugin type.

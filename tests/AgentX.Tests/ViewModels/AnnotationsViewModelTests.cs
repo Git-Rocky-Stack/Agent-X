@@ -55,4 +55,52 @@ public sealed class AnnotationsViewModelTests
 
         vm.StatusMessage.Should().Be("Export cancelled");
     }
+
+    // ── Editing ──────────────────────────────────────────────────────────────
+    // The edit flow existed in the view model with no control anywhere in the page.
+    // The colour picker for editing must not offer the "All" filter sentinel as a colour.
+
+    [Fact]
+    public void EditColorOptions_OfferRealColoursOnly()
+    {
+        var vm = new AnnotationsViewModel(Mock.Of<IAnnotationService>());
+
+        vm.EditColorOptions.Should().Equal("yellow", "green", "blue", "red", "purple");
+        vm.EditColorOptions.Should().NotContain("All");
+    }
+
+    [Fact]
+    public void EditAnnotationCommand_LoadsTheAnnotationIntoTheEditor()
+    {
+        var vm = new AnnotationsViewModel(Mock.Of<IAnnotationService>());
+        var item = new AnnotationDisplayItem
+        {
+            Id = 7,
+            NoteText = "Check this against Q3",
+            Color = "blue",
+        };
+
+        vm.EditAnnotationCommand.Execute(item);
+
+        vm.IsEditing.Should().BeTrue();
+        vm.SelectedAnnotation.Should().BeSameAs(item);
+        vm.EditNoteText.Should().Be("Check this against Q3");
+        vm.EditColor.Should().Be("blue");
+    }
+
+    [Fact]
+    public void CancelEditCommand_ClosesTheEditorWithoutSaving()
+    {
+        var annotations = new Mock<IAnnotationService>();
+        var vm = new AnnotationsViewModel(annotations.Object);
+        vm.EditAnnotationCommand.Execute(new AnnotationDisplayItem { Id = 7, NoteText = "note", Color = "red" });
+
+        vm.CancelEditCommand.Execute(null);
+
+        vm.IsEditing.Should().BeFalse();
+        annotations.Verify(
+            service => service.UpdateAnnotationAsync(
+                It.IsAny<long>(), It.IsAny<string?>(), It.IsAny<string?>()),
+            Times.Never);
+    }
 }

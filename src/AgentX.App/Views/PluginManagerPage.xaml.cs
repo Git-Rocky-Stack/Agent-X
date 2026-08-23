@@ -110,6 +110,34 @@ public sealed partial class PluginManagerPage : Page
     /// panel to reflect the newly selected plugin, or shows the empty
     /// state when nothing is selected.
     /// </summary>
+    /// <summary>
+    /// Confirms before uninstalling plugins in bulk. Uninstall removes files from disk and
+    /// cannot be undone, so it takes a gate rather than firing on a single click.
+    /// </summary>
+    private async void OnBulkUninstallPluginsClick(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.SelectedCount == 0)
+        {
+            return;
+        }
+
+        var dialog = new ContentDialog
+        {
+            Title = "Uninstall Plugins?",
+            Content = $"This permanently removes {ViewModel.SelectedCount} plugin(s) from disk. " +
+                      "This cannot be undone.",
+            PrimaryButtonText = "Uninstall",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = this.XamlRoot
+        };
+
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        {
+            await ViewModel.BulkUninstallCommand.ExecuteAsync(null);
+        }
+    }
+
     private void OnPluginSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (PluginListView.SelectedItem is PluginDisplayItem plugin)

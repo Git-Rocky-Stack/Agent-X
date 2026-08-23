@@ -5,6 +5,7 @@
     xmlns:vm="using:AgentX.App.ViewModels"
     xmlns:converters="using:AgentX.App.Converters"
     xmlns:controls="using:AgentX.App.Controls"
+    x:Name="PluginsRoot"
     Background="Transparent"
     NavigationCacheMode="Enabled">
 
@@ -86,6 +87,7 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
                     <!-- Title + plugin count badge -->
@@ -110,8 +112,18 @@
                                   Foreground="{ThemeResource TextAccentBrush}" />
                     </Button>
 
-                    <!-- Refresh button -->
+                    <!-- Multi-select button -->
                     <Button Grid.Column="2"
+                            Style="{StaticResource IconButtonStyle}"
+                            Command="{x:Bind ViewModel.ToggleMultiSelectCommand}"
+                            x:Uid="Plugin_MultiSelectTip" ToolTipService.ToolTip="Select multiple plugins"
+                            AutomationProperties.Name="Select multiple plugins">
+                        <FontIcon Glyph="&#xE762;" FontSize="14"
+                                  Foreground="{ThemeResource TextSecondaryBrush}" />
+                    </Button>
+
+                    <!-- Refresh button -->
+                    <Button Grid.Column="3"
                             x:Uid="Plugin_Refresh"
                             Style="{StaticResource IconButtonStyle}"
                             Command="{x:Bind ViewModel.RefreshPluginsCommand}">
@@ -140,6 +152,45 @@
                                VerticalAlignment="Center"
                                MaxLines="2"
                                TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+            </Border>
+
+            <!-- Bulk action bar: only present while multi-select is active. -->
+            <Border Grid.Row="1"
+                    VerticalAlignment="Bottom"
+                    Padding="12,8,12,8"
+                    Background="{ThemeResource AccentSubtleBrush}"
+                    BorderBrush="{ThemeResource AccentPrimaryBrush}"
+                    BorderThickness="0,1,0,1"
+                    Visibility="{x:Bind ViewModel.IsMultiSelectMode, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <StackPanel Spacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Style="{StaticResource CaptionStyle}"
+                                   VerticalAlignment="Center">
+                            <Run Text="{x:Bind ViewModel.SelectedCount, Mode=OneWay}" />
+                            <Run x:Uid="Plugin_SelectedRun" Text="selected" />
+                        </TextBlock>
+                        <Button x:Uid="Plugin_SelectAll" Content="Select All"
+                                Command="{x:Bind ViewModel.SelectAllPluginsCommand}"
+                                Style="{StaticResource GhostButtonStyle}"
+                                FontSize="12" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button x:Uid="Plugin_BulkEnable" Content="Enable"
+                                Command="{x:Bind ViewModel.BulkEnableCommand}"
+                                Style="{StaticResource GhostButtonStyle}"
+                                FontSize="12" />
+                        <Button x:Uid="Plugin_BulkDisable" Content="Disable"
+                                Command="{x:Bind ViewModel.BulkDisableCommand}"
+                                Style="{StaticResource GhostButtonStyle}"
+                                FontSize="12" />
+                        <Button x:Uid="Plugin_BulkUninstall" Content="Uninstall"
+                                Click="OnBulkUninstallPluginsClick"
+                                Style="{StaticResource GhostButtonStyle}"
+                                Foreground="{ThemeResource ErrorBrush}"
+                                FontSize="12" />
+                    </StackPanel>
                 </StackPanel>
             </Border>
 
@@ -185,12 +236,26 @@
                             <Grid ColumnSpacing="10">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
+                                <!-- Multi-select checkbox -->
+                                <CheckBox Grid.Column="0"
+                                          IsChecked="{x:Bind IsSelected, Mode=OneWay}"
+                                          Command="{Binding ViewModel.TogglePluginSelectionCommand, ElementName=PluginsRoot}"
+                                          CommandParameter="{x:Bind Id}"
+                                          MinWidth="0"
+                                          Margin="0"
+                                          VerticalAlignment="Center"
+                                          x:Uid="Plugin_SelectPluginBox"
+                                          AutomationProperties.Name="Select plugin"
+                                          Visibility="{Binding ViewModel.IsMultiSelectMode, ElementName=PluginsRoot, Converter={StaticResource BoolToVis}}" />
+
                                 <!-- Plugin type icon in accent container -->
-                                <Border Background="{ThemeResource AccentSubtleBrush}"
+                                <Border Grid.Column="1"
+                                        Background="{ThemeResource AccentSubtleBrush}"
                                         CornerRadius="{StaticResource RadiusMD}"
                                         Width="36" Height="36"
                                         VerticalAlignment="Center">
@@ -202,7 +267,7 @@
                                 </Border>
 
                                 <!-- Name + Author + Version stacked -->
-                                <StackPanel Grid.Column="1" Spacing="2"
+                                <StackPanel Grid.Column="2" Spacing="2"
                                             VerticalAlignment="Center">
                                     <TextBlock Text="{x:Bind Name, Mode=OneWay}"
                                                Style="{StaticResource BodyStyle}"
@@ -231,7 +296,7 @@
                                 </StackPanel>
 
                                 <!-- Status dot: green = active, grey = disabled -->
-                                <Grid Grid.Column="2" VerticalAlignment="Center">
+                                <Grid Grid.Column="3" VerticalAlignment="Center">
                                     <Ellipse Width="8" Height="8"
                                              Fill="{ThemeResource SuccessBrush}"
                                              Visibility="{x:Bind IsEnabled, Mode=OneWay, Converter={StaticResource BoolToVis}}" />

@@ -135,7 +135,7 @@ public sealed class QuickActionsViewModelTests
     {
         var viewModel = CreateViewModel();
         var navigations = new List<string>();
-        viewModel.NavigateRequested = page => navigations.Add(page);
+        viewModel.NavigateRequested = (page, _) => navigations.Add(page);
 
         await viewModel.InitializeAsync();
 
@@ -177,7 +177,7 @@ public sealed class QuickActionsViewModelTests
 
         var viewModel = CreateViewModel();
         var navigations = new List<string>();
-        viewModel.NavigateRequested = page => navigations.Add(page);
+        viewModel.NavigateRequested = (page, _) => navigations.Add(page);
 
         await viewModel.InitializeAsync();
 
@@ -196,7 +196,7 @@ public sealed class QuickActionsViewModelTests
     {
         var viewModel = CreateViewModel();
         var navigations = new List<string>();
-        viewModel.NavigateRequested = page => navigations.Add(page);
+        viewModel.NavigateRequested = (page, _) => navigations.Add(page);
 
         await viewModel.InitializeAsync();
         viewModel.SelectedDocument = viewModel.AvailableDocuments.Single(item => item.Id == 102);

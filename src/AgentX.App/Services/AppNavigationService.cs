@@ -59,7 +59,7 @@ public sealed class AppNavigationService : IAppNavigationService
     }
 
     /// <inheritdoc />
-    public void NavigateToPage(string pageKey)
+    public void NavigateToPage(string pageKey, object? parameter = null)
     {
         ArgumentNullException.ThrowIfNull(pageKey);
 
@@ -71,7 +71,7 @@ public sealed class AppNavigationService : IAppNavigationService
 
         if (_pageMap.TryGetValue(pageKey, out var pageType))
         {
-            _contentFrame.Navigate(pageType);
+            _contentFrame.Navigate(pageType, parameter);
 
             // Sync the NavigationView selection to reflect the new page
             if (_navItemMap.TryGetValue(pageKey, out var navItem))
