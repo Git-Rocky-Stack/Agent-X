@@ -193,18 +193,17 @@ AgentX.App/
   Converters/              # IValueConverter implementations
     BoolToOpacityConverter.cs
     BoolToVisibilityConverter.cs
-    BytesToStringConverter.cs
     CountToVisibilityConverter.cs
+    DoubleToStringConverter.cs
     InverseBoolConverter.cs
+    InverseVisibilityConverter.cs
     NullToVisibilityConverter.cs
     PercentToWidthConverter.cs
     StatusToColorConverter.cs
+    StringEmptyToVisibilityConverter.cs
     StringToVisibilityConverter.cs
     TimeAgoConverter.cs
-    TokensToStringConverter.cs
-    ZeroToVisibleConverter.cs
   Helpers/
-    DispatcherQueueExtensions.cs    # TryEnqueue helper for cross-thread UI updates
     MarkdownParser.cs               # Lightweight markdown-to-segment parser
   Services/
     ShortcutCatalog.cs              # Global shortcut descriptors seeded into IShortcutRegistry
@@ -1188,7 +1187,7 @@ entity.HasOne(e => e.TargetCollection)
 1. Checks `__EFMigrationsHistory` for applied migrations via `GetAppliedMigrationsAsync()`.
 2. **Baseline adoption:** if the table is missing (pre-B9 install that used `EnsureCreatedAsync`), writes the `InitialBaseline` row without re-applying schema. This preserves existing user data on upgrade.
 3. Compares applied vs. `DbContext.Database.GetPendingMigrations()`; if pending migrations exist, applies them in order via `MigrateAsync()`.
-4. Returns a `MigrationResult` reporting applied migration IDs. If EF Core throws `PendingModelChangesWarning` or the runner detects an inconsistent state, `PendingMigrationsException` is raised and startup halts with a log entry.
+4. Returns a `MigrationResult` reporting applied migration IDs. The runner does not wrap EF Core failures: if `MigrateAsync()` throws, the exception propagates to `InitializeCoreServicesAsync` and startup fails there.
 
 **Adding a new migration.** Restore the pinned EF tool first (`dotnet tool restore`), then:
 

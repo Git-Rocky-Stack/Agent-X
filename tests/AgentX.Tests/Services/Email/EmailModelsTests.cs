@@ -71,22 +71,6 @@ public sealed class EmailModelsTests
         contact.IsMe.Should().BeFalse();
     }
 
-    // ── EmailCategory ────────────────────────────────────────────────────────
-
-    [Fact]
-    public void EmailCategory_HasExpectedValues()
-    {
-        Enum.GetValues<EmailCategory>().Should().HaveCount(8);
-        EmailCategory.Other.Should().Be(EmailCategory.Other);
-        EmailCategory.ActionRequired.Should().Be(EmailCategory.ActionRequired);
-        EmailCategory.Newsletter.Should().Be(EmailCategory.Newsletter);
-        EmailCategory.Notification.Should().Be(EmailCategory.Notification);
-        EmailCategory.Meeting.Should().Be(EmailCategory.Meeting);
-        EmailCategory.Financial.Should().Be(EmailCategory.Financial);
-        EmailCategory.Social.Should().Be(EmailCategory.Social);
-        EmailCategory.Promotion.Should().Be(EmailCategory.Promotion);
-    }
-
     // ── EmailFolderInfo ──────────────────────────────────────────────────────
 
     [Fact]

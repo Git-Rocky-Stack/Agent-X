@@ -12,8 +12,10 @@ public interface IDatabaseKeyService
 
     /// <summary>
     /// Re-derives the key from an existing passphrase without creating a new one.
-    /// The returned key should be probed against the encrypted DB; if the probe fails
-    /// the caller should throw InvalidDatabaseKeyException and prompt the user again.
+    /// The returned key is not validated here: the caller probes it against the
+    /// encrypted database and re-prompts on failure. App.xaml.cs does this in
+    /// UnlockWithPassphraseLoopAsync, where TryProbeKeyAsync treats SQLite
+    /// ErrorCode 26 ("file is not a database") as a wrong passphrase and loops.
     /// </summary>
     Task<DatabaseKeyMaterial> UnlockWithPassphraseAsync(string passphrase);
 

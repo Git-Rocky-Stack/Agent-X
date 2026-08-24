@@ -447,16 +447,16 @@ A custom control that renders AI-generated Markdown responses in the chat interf
 |---|---|---|---|
 | `BoolToOpacityConverter` | `bool` | `double` (0.0 or 1.0) | Fade disabled controls |
 | `BoolToVisibilityConverter` | `bool` | `Visibility` | Show/hide elements |
-| `BytesToStringConverter` | `long` | `string` ("1.4 MB") | File size display |
 | `CountToVisibilityConverter` | `int` | `Visibility` | Hide empty list messages |
+| `DoubleToStringConverter` | `double` | `string` | Numeric values in data templates |
 | `InverseBoolConverter` | `bool` | `bool` | Inverse binding |
+| `InverseVisibilityConverter` | `Visibility` | `Visibility` | Visible becomes Collapsed |
 | `NullToVisibilityConverter` | `object?` | `Visibility` | Null checks |
 | `PercentToWidthConverter` | `double` | `double` | Progress bar widths |
 | `StatusToColorConverter` | `string` | `Brush` | Document status color coding |
+| `StringEmptyToVisibilityConverter` | `string?` | `Visibility` | Collapse on empty or null |
 | `StringToVisibilityConverter` | `string?` | `Visibility` | Hide empty text fields |
 | `TimeAgoConverter` | `DateTime` | `string` ("3 hours ago") | Relative timestamps |
-| `TokensToStringConverter` | `int` | `string` | Token count display |
-| `ZeroToVisibleConverter` | `int` | `Visibility` | Show empty state |
 
 ### 5.6 XAML Resource Dictionaries and Theming
 

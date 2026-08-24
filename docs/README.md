@@ -6,16 +6,16 @@ Agent-X is a native Windows desktop application that transforms your personal do
 
 **What makes Agent-X different:**
 
-- **Bundled Local Model**: Ships with Llama 3.2 3B — fully functional offline AI out of the box (~2 GB included in installer)
+- **Built-In Local Model**: Llama 3.2 3B runs fully offline. The default SLIM installer downloads it (~1.9 GB) on first run; the OFFLINE installer bundles it for air-gapped machines
 - **Enterprise-Grade RAG**: 6-stage retrieval pipeline with multi-query expansion, HyDE embeddings, LLM reranking, and citation chaining
 - **Production Data Layer**: SQLCipher AES-256-CBC encryption, EF Core migrations, 37-table relational schema, HNSW ANN vector index
-- **Comprehensive Feature Set**: 29 navigation pages, 85+ services, 2,773 unit tests, workflow automation, analytics dashboard, REST API
+- **Comprehensive Feature Set**: 29 navigation pages, 85+ services, 2,835 unit tests, workflow automation, analytics dashboard, REST API
 - **GPU-Accelerated**: CUDA 12 support with automatic VRAM-based layer offloading for 2-50x inference speedup
 
 Built on .NET 8.0 and WinUI 3 (Windows App SDK 1.6), Agent-X delivers an enterprise-grade document intelligence pipeline — chunking, embedding, vector search, retrieval-augmented generation, knowledge graph visualization, and AI memory — as a self-contained, privacy-first Windows application.
 
 > **Version:** 2.1.2 ("Bedrock" security & supply-chain hardening — the full Codex audit and the 2026-06-19 QA audit, AX-QA-001…016, are closed; see [CHANGELOG](../CHANGELOG.md))
-> **Build:** 2,773 unit tests | 85+ services | 29 navigation pages | 37 database tables | 6 supported locales
+> **Build:** 2,835 unit tests | 85+ services | 29 navigation pages | 37 database tables | 6 supported locales
 > **Publisher:** Rocky Elsalaymeh / Strategia-X
 > **Platform:** Windows 10 19041+ (x64)
 > **License:** MIT — see [LICENSE](../LICENSE)
@@ -63,7 +63,7 @@ The current release is **v2.1.2** — a security & supply-chain hardening patch 
 | **Advanced RAG** | Multi-query retrieval, HyDE embeddings, LLM reranking, parent document expansion, contextual compression |
 | **Enterprise Features** | REST API, Analytics Dashboard, Collaborative Sync, Calendar/Email Connectors |
 | **UX Polish** | Per-message actions, inline editing, code syntax highlighting (18 languages), notification system |
-| **Developer Quality** | 2,773 unit tests, validation layer, typed exceptions, structured logging, feature flags |
+| **Developer Quality** | 2,835 unit tests, validation layer, typed exceptions, structured logging, feature flags |
 
 ---
 
@@ -206,7 +206,7 @@ Suggested screenshots to capture before release:
 - ✓ Fully functional local AI (Llama 3.2 3B) — no internet required
 - ✓ GPU acceleration auto-detection (CUDA 12 for NVIDIA GPUs)
 - ✓ Complete document intelligence pipeline (indexing, search, RAG)
-- ✓ 2,773 unit tests across 29 navigation pages
+- ✓ 2,835 unit tests across 29 navigation pages
 - ✓ Database encryption ready (SQLCipher AES-256-CBC)
 
 ### Uninstall

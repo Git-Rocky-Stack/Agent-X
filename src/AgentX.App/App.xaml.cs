@@ -474,6 +474,11 @@ public partial class App : Application
         services.AddSingleton<IDocumentProcessor, MarkdownProcessor>();
         services.AddSingleton<IDocumentProcessor, CodeFileProcessor>();
         services.AddSingleton<IDocumentProcessor, ImageProcessor>();
+        // AudioProcessor depends on ITranscriptionService (line 665) and WebProcessor on
+        // IWebScraperService (line 621); both resolve lazily, so registration order here
+        // does not matter.
+        services.AddSingleton<IDocumentProcessor, AudioProcessor>();
+        services.AddSingleton<IDocumentProcessor, WebProcessor>();
 
         // ── Document Services ────────────────────────────────────
         services.AddSingleton<IDocumentService, DocumentService>();

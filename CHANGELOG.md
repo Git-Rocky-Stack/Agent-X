@@ -112,9 +112,35 @@ and four structural tests keep the whole class of defect from returning.
     rather than as the name, so the tooltip alone never reached a screen reader as an identity.
   - 3 controls with neither a label nor a tooltip received newly translated names, one of which
     (the notification dismiss button) also had a hardcoded English tooltip.
-  - A UI Automation sweep of all 29 pages reports 296 named controls and **0 unnamed controls
-    that are visible**; the 7 that remain unnamed sit in collapsed panels that were never
-    realized during the sweep, and all of them satisfy the static guard below.
+  - A UI Automation sweep of all 29 pages reports 296 named controls, and 7 that the sweep
+    still found unnamed. See the follow-up entry below: those 7 were on screen, not collapsed,
+    and the guard was passing them.
+
+- **The accessible-name guard was passing controls that have no name.** A control carrying an
+  `x:Uid` was treated as named on the strength of the uid alone, without checking that the
+  resource file defines a name under it. Twenty-one buttons whose uid holds only a
+  `.ToolTipService.ToolTip` entry were skipped on that basis: UIA exposes a tooltip as help
+  text and never as the name, so a screen reader reached them with nothing to announce. The
+  guard also scanned only the four button types, so `RadioButton`, `CheckBox`, and
+  `ToggleSwitch` were never examined at all.
+  - A UI Automation sweep found 12 of these live and on screen, none of them collapsed: the
+    Search and Advanced buttons on Semantic Search, New / Prompt / Folder on AI Chat, Select in
+    the Knowledge Vault, Refresh on the Knowledge Graph, and all five Quick Actions tabs.
+  - 27 icon-plus-label controls now point at the label they already render, and the document
+    row checkboxes on Compare Documents and in the Knowledge Vault point at the file name they
+    select, so the announced name is the document rather than a bare "check box".
+  - Three toggle switches announced their state instead of their purpose, because a
+    `ToggleSwitch` with no header falls back to its on/off caption: Settings' encryption switch
+    announced "Not encrypted" and collaborative sync announced "Off". They now point at the
+    section heading beside them. The plugin detail switch, which has no heading, received a
+    translated name in all six locales.
+  - The guard now resolves every `x:Uid` against `Resources.resw` and requires a name-bearing
+    entry, covers the eight interactive control types, and names the reason for each offender.
+    `scripts/name-unlabelled-controls.py` carries the same rule, so the paved road no longer
+    reproduces the gap; it also seeds its uniqueness check from names already in the file,
+    which previously let a second run mint a duplicate `x:Name`.
+  - Verified by re-running the UI Automation sweep against the built app: 0 unnamed controls
+    across all 29 pages.
 
 ### Removed - Dead code
 
@@ -125,6 +151,77 @@ and four structural tests keep the whole class of defect from returning.
   chat regenerate and research-mode toggles, two chat export commands superseded by the export
   dialog, a workflow export command that discarded its own result, and a sync folder picker whose
   event nothing subscribed to.
+
+### Fixed - Two document formats were implemented but never registered (2026-08-23)
+
+A second audit pass, driven by a whole-repository wiring sweep, found the same defect class in
+the composition root rather than in XAML. `DocumentService` resolves processors only as
+`IEnumerable<IDocumentProcessor>` (`src/AgentX.Core/Documents/DocumentService.cs:32`) and
+selects one by extension (`:761`); there is no reflection-based discovery. A processor is
+therefore absent from the product unless `App.xaml.cs` registers it, no matter how complete
+or well-tested it is.
+
+- **Audio files could not be imported.** `AudioProcessor` (.mp3, .wav, .m4a, .flac, .ogg,
+  .webm) was fully implemented against `ITranscriptionService` and never registered, so audio
+  import fell through to "unsupported format" while the README advertised the capability. Now
+  registered at `src/AgentX.App/App.xaml.cs:480`.
+- **URL shortcut files could not be imported.** `WebProcessor` (.url, .webloc) had the same
+  problem. Now registered at `src/AgentX.App/App.xaml.cs:481`.
+
+### Added - Tests for the two newly-reachable processors
+
+- `WebProcessorTests` (24 tests) and `AudioProcessorTests` (22 tests) cover the code that
+  registration just made reachable: .url INI parsing, .webloc plist parsing, malformed and
+  empty inputs, URL validation, scraper failure and fault paths, transcript assembly, speaker
+  diarization counting, and each degraded transcription arm (Whisper runtime missing, model not
+  downloaded, cancellation, unexpected fault). Only the network and transcription boundaries are
+  mocked; both suites run against real files on disk. Each was break-checked by inverting
+  conditions in the processor and confirming the tests fail.
+
+### Added - Guard test for collection-resolved services
+
+- `EveryCollectionServiceIsRegisteredTests` fails when a concrete `IDocumentProcessor` or
+  `IExportFormatter` in `AgentX.Core` has no registration line in `App.xaml.cs`. These
+  interfaces are resolved only as `IEnumerable<T>`, so a missing registration is invisible to
+  every other signal a developer reads: it compiles, it unit-tests, and it reports as covered.
+  The guard also asserts its own scan is non-empty, so it cannot silently pass forever.
+
+### Removed - Dead code, second pass (2026-08-23)
+
+Nineteen files with zero inbound references anywhere in the repository. Each was verified
+unreferenced before removal, and the full suite plus a clean `dotnet build -p:Platform=x64`
+confirmed nothing depended on them.
+
+- **Five unused value converters**: `BytesToStringConverter`, `CitationSourceColorConverter`,
+  `PercentToHeightConverter`, `TokensToStringConverter`, `ZeroToVisibleConverter`. Three of
+  them were documented in `docs/ARCHITECTURE.md` as if in use; that table now lists the twelve
+  converters actually referenced from XAML.
+- **`MarkdownExport`** and its test: superseded by the registered `MarkdownFormatter`. Its
+  siblings `HtmlExport` / `JsonExport` / `PdfExport` stay, each wrapped by a registered
+  formatter.
+- **Six unused exception types**: `EntityNotFoundException`, `ExportException`,
+  `PluginException`, `SyncException` (with `SyncErrorType`), `InvalidDatabaseKeyException`,
+  and `PendingMigrationsException`. None was ever thrown. The passphrase-retry behaviour that
+  `InvalidDatabaseKeyException` described is implemented without it, as a bool return in
+  `App.xaml.cs` `TryProbeKeyAsync`; the interface comment that told callers to throw it now
+  describes what the code actually does.
+- **Four unused DTOs**: `MessageDto`, `DashboardRecentDocumentDto`,
+  `DashboardRecentConversationDto`, `FileTypeBreakdownDto`.
+- **`FeedSubscriptionEntity`**: an entity with no `DbSet` on `AgentXDbContext`.
+- **`EmailCategory`**: an enum for AI email triage that nothing assigned or read. The
+  `SourceCategory` string on `EmailTriageProcessor` is an unrelated provenance tag.
+- **`CollectionPickerItem`** and **`DispatcherQueueExtensions`**: neither had a call site.
+
+### Fixed - Documentation claims that no longer matched the code (2026-08-23)
+
+- `docs/README.md` said the installer ships the Llama 3.2 3B weights. The default SLIM profile
+  downloads them on first run (`installer/AgentX-Setup.iss:8,129`); only the OFFLINE profile
+  bundles them. Both paths are now described.
+- `docs/README.md` reported a stale unit-test count.
+- `docs/DEVELOPER-GUIDE.md` claimed the migration runner raises `PendingMigrationsException`
+  and halts startup. It never did: `MigrationRunner.cs:298` calls `MigrateAsync()` and lets EF
+  Core exceptions propagate.
+- Removed the `EmailCategory` reference section from `docs/API-REFERENCE.md`.
 
 ### Added - Structural guard tests
 

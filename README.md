@@ -62,7 +62,7 @@ Requirements: Windows 10 build 19041+ or Windows 11, x64. No account, no subscri
 - Six UI languages (en-US, de, es, fr, ja, zh-CN) — every page, dialog, and the user guide fully localized; CI enforces key parity across all locales
 - Command Console design system ([`DESIGN.md`](DESIGN.md)): a hardware-instrument UI with live status lamps and phosphor readouts, in dark (Night Shift), light (Day Shift), and high-contrast themes; every visible interactive control carries an accessible name, verified by UI Automation across all 29 pages
 - Android mobile companion (.NET MAUI) and a browser extension for capture on the go
-- 29 navigation destinations, ~88 services, 2,810 unit tests, in-app onboarding and user guide
+- 29 navigation destinations, ~88 services, 2,835 unit tests, in-app onboarding and user guide
 
 ## Documentation
 
@@ -103,7 +103,7 @@ dotnet build -c Release -p:Platform=x64
 # Run the desktop app
 dotnet run --project src/AgentX.App -c Release -p:Platform=x64
 
-# Run the test suite (2,810 tests) and the coverage gate
+# Run the test suite (2,835 tests) and the coverage gate
 dotnet test tests/AgentX.Tests/AgentX.Tests.csproj -c Release -p:Platform=x64
 pwsh scripts/check-coverage.ps1 -ReportOnly
 ```

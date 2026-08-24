@@ -3822,27 +3822,6 @@ Unified email message DTO returned by all email providers. Provider-specific JSO
 | `UnreadCount` | `int` | `0` | Number of unread messages. |
 | `SourceProvider` | `string` | `""` | Provider identifier: `"google"` or `"microsoft"`. |
 
-#### EmailCategory
-
-```csharp
-namespace AgentX.Core.Services.Plugins.Email.Models;
-
-public enum EmailCategory
-```
-
-AI-assigned categories for email triage.
-
-| Value | Name | Description |
-|-------|------|-------------|
-| `0` | `Other` | Uncategorized email. |
-| `1` | `ActionRequired` | Email requiring a response or action. |
-| `2` | `Newsletter` | Subscription/newsletter content. |
-| `3` | `Notification` | System or service notification. |
-| `4` | `Meeting` | Calendar invite or meeting-related. |
-| `5` | `Financial` | Financial transaction or statement. |
-| `6` | `Social` | Social media or personal message. |
-| `7` | `Promotion` | Promotional/marketing content. |
-
 #### EmailSyncSettings
 
 | Property | Type | Default | Description |
