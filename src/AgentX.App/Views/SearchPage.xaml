@@ -133,10 +133,11 @@
                                 MinHeight="52"
                                 Command="{x:Bind ViewModel.SearchCommand}"
                                 IsEnabled="{x:Bind ViewModel.IsSearching, Mode=OneWay, Converter={StaticResource InverseBool}}"
-                                x:Uid="Search_SearchBtn" ToolTipService.ToolTip="Search (Enter)">
+                                x:Uid="Search_SearchBtn" ToolTipService.ToolTip="Search (Enter)"
+                                AutomationProperties.LabeledBy="{x:Bind SearchLabel}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE721;" FontSize="14" />
-                                <TextBlock x:Uid="Search_SearchLabel" Text="Search" FontWeight="SemiBold" />
+                                <TextBlock x:Name="SearchLabel" x:Uid="Search_SearchLabel" Text="Search" FontWeight="SemiBold" />
                             </StackPanel>
                         </Button>
 
@@ -228,11 +229,12 @@
                                 Padding="10,6,10,6" MinHeight="32"
                                 VerticalAlignment="Bottom"
                                 Command="{x:Bind ViewModel.ToggleAdvancedFiltersCommand}"
-                                x:Uid="Search_AdvancedBtn" ToolTipService.ToolTip="Toggle advanced search filters">
+                                x:Uid="Search_AdvancedBtn" ToolTipService.ToolTip="Toggle advanced search filters"
+                                AutomationProperties.LabeledBy="{x:Bind AdvancedLabel}">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE71C;" FontSize="12"
                                           Foreground="{ThemeResource TextSecondaryBrush}" />
-                                <TextBlock x:Uid="Search_AdvancedLabel" Text="Advanced"
+                                <TextBlock x:Name="AdvancedLabel" x:Uid="Search_AdvancedLabel" Text="Advanced"
                                            Style="{StaticResource CaptionStyle}"
                                            Foreground="{ThemeResource TextSecondaryBrush}" />
                             </StackPanel>
@@ -381,11 +383,12 @@
                                 Padding="10,6,10,6" MinHeight="32"
                                 VerticalAlignment="Bottom"
                                 Command="{x:Bind ViewModel.ClearAdvancedFiltersCommand}"
-                                x:Uid="Search_ResetBtn" ToolTipService.ToolTip="Reset all advanced filters">
+                                x:Uid="Search_ResetBtn" ToolTipService.ToolTip="Reset all advanced filters"
+                                AutomationProperties.LabeledBy="{x:Bind ResetLabel}">
                             <StackPanel Orientation="Horizontal" Spacing="4">
                                 <FontIcon Glyph="&#xE894;" FontSize="12"
                                           Foreground="{ThemeResource TextSecondaryBrush}" />
-                                <TextBlock x:Uid="Search_ResetLabel" Text="Reset"
+                                <TextBlock x:Name="ResetLabel" x:Uid="Search_ResetLabel" Text="Reset"
                                            Style="{StaticResource CaptionStyle}"
                                            Foreground="{ThemeResource TextSecondaryBrush}" />
                             </StackPanel>
@@ -463,11 +466,12 @@
                             Command="{x:Bind ViewModel.SaveCurrentFilterCommand}"
                             Visibility="{x:Bind ViewModel.HasResults, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                             x:Uid="Search_SaveFilterBtn" ToolTipService.ToolTip="Save current search as a filter"
-                            Margin="0,0,8,0">
+                            Margin="0,0,8,0"
+                            AutomationProperties.LabeledBy="{x:Bind SaveLabel}">
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <FontIcon Glyph="&#xE728;" FontSize="11"
                                       Foreground="{ThemeResource TextAccentBrush}" />
-                            <TextBlock x:Uid="Search_SaveLabel" Text="Save"
+                            <TextBlock x:Name="SaveLabel" x:Uid="Search_SaveLabel" Text="Save"
                                        Style="{StaticResource CaptionStyle}"
                                        Foreground="{ThemeResource TextAccentBrush}" />
                         </StackPanel>
@@ -734,11 +738,12 @@
                                                     Padding="10,6,10,6" MinHeight="32"
                                                     Tag="{x:Bind DocumentId}"
                                                     Click="OnOpenDocumentClick"
-                                                    x:Uid="Search_OpenBtn" ToolTipService.ToolTip="Open in Explorer">
+                                                    x:Uid="Search_OpenBtn" ToolTipService.ToolTip="Open in Explorer"
+                                                    AutomationProperties.LabeledBy="{Binding ElementName=OpenLabel}">
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <FontIcon Glyph="&#xE8DA;" FontSize="12"
                                                               Foreground="{ThemeResource TextSecondaryBrush}" />
-                                                    <TextBlock x:Uid="Search_OpenLabel" Text="Open"
+                                                    <TextBlock x:Name="OpenLabel" x:Uid="Search_OpenLabel" Text="Open"
                                                                Style="{StaticResource CaptionStyle}"
                                                                Foreground="{ThemeResource TextSecondaryBrush}" />
                                                 </StackPanel>
@@ -748,11 +753,12 @@
                                                     Padding="10,6,10,6" MinHeight="32"
                                                     Tag="{x:Bind}"
                                                     Click="OnLaunchResultInWorkflowClick"
-                                                    x:Uid="Search_WorkflowBtn" ToolTipService.ToolTip="Use this result in a workflow">
+                                                    x:Uid="Search_WorkflowBtn" ToolTipService.ToolTip="Use this result in a workflow"
+                                                    AutomationProperties.LabeledBy="{Binding ElementName=WorkflowLabel}">
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <FontIcon Glyph="&#xE945;" FontSize="12"
                                                               Foreground="{ThemeResource AccentPrimaryBrush}" />
-                                                    <TextBlock x:Uid="Search_WorkflowLabel" Text="Workflow"
+                                                    <TextBlock x:Name="WorkflowLabel" x:Uid="Search_WorkflowLabel" Text="Workflow"
                                                                Style="{StaticResource CaptionStyle}"
                                                                Foreground="{ThemeResource AccentPrimaryBrush}" />
                                                 </StackPanel>
@@ -805,8 +811,9 @@
                             Style="{StaticResource GhostButtonStyle}"
                             Padding="8,4,8,4" MinHeight="28"
                             Command="{x:Bind ViewModel.ClearHistoryCommand}"
-                            x:Uid="Search_ClearHistoryBtn" ToolTipService.ToolTip="Clear search history">
-                        <TextBlock x:Uid="Search_ClearHistoryLabel" Text="Clear"
+                            x:Uid="Search_ClearHistoryBtn" ToolTipService.ToolTip="Clear search history"
+                            AutomationProperties.LabeledBy="{x:Bind ClearLabel}">
+                        <TextBlock x:Name="ClearLabel" x:Uid="Search_ClearHistoryLabel" Text="Clear"
                                    Style="{StaticResource CaptionStyle}"
                                    Foreground="{ThemeResource TextAccentBrush}" />
                     </Button>

@@ -522,7 +522,8 @@
                  ════════════════════════════════════════════════════════ -->
             <controls:Faceplate Grid.Row="9" Kicker="MOD - CRYPT - 09">
                 <StackPanel Spacing="12">
-                    <TextBlock x:Uid="Encryption_SectionHeader"
+                    <TextBlock x:Name="EncryptionSectionHeader"
+                               x:Uid="Encryption_SectionHeader"
                                Text="Database Encryption"
                                Style="{StaticResource HeadingSmallStyle}" />
                     <TextBlock x:Uid="Encryption_Description"
@@ -533,7 +534,8 @@
                                   x:Uid="Settings_Encrypted" OnContent="Encrypted"
                                   OffContent="Not encrypted"
                                   IsOn="{x:Bind ViewModel.EncryptionEnabled, Mode=TwoWay}"
-                                  Toggled="EncryptionToggle_Toggled" />
+                                  Toggled="EncryptionToggle_Toggled"
+                                  AutomationProperties.LabeledBy="{x:Bind EncryptionSectionHeader}" />
                     <TextBlock Text="{x:Bind ViewModel.EncryptionStatus, Mode=OneWay}"
                                TextWrapping="Wrap" />
                 </StackPanel>

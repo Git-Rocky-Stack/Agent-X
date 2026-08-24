@@ -2033,4 +2033,5 @@
   <data name="Plugin_Uninstall.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>&amp;#12371;&amp;#12398;&amp;#12503;&amp;#12521;&amp;#12464;&amp;#12452;&amp;#12531;&amp;#12434;&amp;#12450;&amp;#12531;&amp;#12452;&amp;#12531;&amp;#12473;&amp;#12488;&amp;#12540;&amp;#12523;</value></data>
   <data name="Sync_RefreshStatusBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>同期ステータスを更新</value></data>
   <data name="Workspace_RefreshProfilesTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>プロファイルを更新</value></data>
+  <data name="Plugin_Active.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>プラグインを有効化</value></data>
 </root>

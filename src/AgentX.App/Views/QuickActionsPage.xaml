@@ -170,11 +170,12 @@
                                      GroupName="QuickActionTabs"
                                      IsChecked="True"
                                      Checked="Tab_Summarize_Checked"
-                                     Style="{StaticResource TabRadioButtonStyle}">
+                                     Style="{StaticResource TabRadioButtonStyle}"
+                                     AutomationProperties.LabeledBy="{x:Bind TabSummarizeLabel}">
                             <StackPanel Orientation="Horizontal" Spacing="8"
                                         HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE8C8;" FontSize="14" />
-                                <TextBlock x:Uid="QuickAct_Summarize" Text="Summarize" FontSize="13" FontWeight="SemiBold" />
+                                <TextBlock x:Name="TabSummarizeLabel" x:Uid="QuickAct_Summarize" Text="Summarize" FontSize="13" FontWeight="SemiBold" />
                             </StackPanel>
                         </RadioButton>
 
@@ -182,11 +183,12 @@
                                      Grid.Column="1"
                                      GroupName="QuickActionTabs"
                                      Checked="Tab_KeyPoints_Checked"
-                                     Style="{StaticResource TabRadioButtonStyle}">
+                                     Style="{StaticResource TabRadioButtonStyle}"
+                                     AutomationProperties.LabeledBy="{x:Bind TabKeyPointsLabel}">
                             <StackPanel Orientation="Horizontal" Spacing="8"
                                         HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE8FD;" FontSize="14" />
-                                <TextBlock x:Uid="QuickAct_KeyPoints" Text="Key Points" FontSize="13" FontWeight="SemiBold" />
+                                <TextBlock x:Name="TabKeyPointsLabel" x:Uid="QuickAct_KeyPoints" Text="Key Points" FontSize="13" FontWeight="SemiBold" />
                             </StackPanel>
                         </RadioButton>
 
@@ -194,11 +196,12 @@
                                      Grid.Column="2"
                                      GroupName="QuickActionTabs"
                                      Checked="Tab_Translate_Checked"
-                                     Style="{StaticResource TabRadioButtonStyle}">
+                                     Style="{StaticResource TabRadioButtonStyle}"
+                                     AutomationProperties.LabeledBy="{x:Bind TabTranslateLabel}">
                             <StackPanel Orientation="Horizontal" Spacing="8"
                                         HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE8C1;" FontSize="14" />
-                                <TextBlock x:Uid="QuickAct_Translate" Text="Translate" FontSize="13" FontWeight="SemiBold" />
+                                <TextBlock x:Name="TabTranslateLabel" x:Uid="QuickAct_Translate" Text="Translate" FontSize="13" FontWeight="SemiBold" />
                             </StackPanel>
                         </RadioButton>
 
@@ -206,11 +209,12 @@
                                      Grid.Column="3"
                                      GroupName="QuickActionTabs"
                                      Checked="Tab_Duplicates_Checked"
-                                     Style="{StaticResource TabRadioButtonStyle}">
+                                     Style="{StaticResource TabRadioButtonStyle}"
+                                     AutomationProperties.LabeledBy="{x:Bind TabDuplicatesLabel}">
                             <StackPanel Orientation="Horizontal" Spacing="8"
                                         HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE8C6;" FontSize="14" />
-                                <TextBlock x:Uid="QuickAct_Duplicates" Text="Duplicates" FontSize="13" FontWeight="SemiBold" />
+                                <TextBlock x:Name="TabDuplicatesLabel" x:Uid="QuickAct_Duplicates" Text="Duplicates" FontSize="13" FontWeight="SemiBold" />
                             </StackPanel>
                         </RadioButton>
 
@@ -218,11 +222,12 @@
                                      Grid.Column="4"
                                      GroupName="QuickActionTabs"
                                      Checked="Tab_Organize_Checked"
-                                     Style="{StaticResource TabRadioButtonStyle}">
+                                     Style="{StaticResource TabRadioButtonStyle}"
+                                     AutomationProperties.LabeledBy="{x:Bind TabOrganizeLabel}">
                             <StackPanel Orientation="Horizontal" Spacing="8"
                                         HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE8B7;" FontSize="14" />
-                                <TextBlock x:Uid="QuickAct_Organize" Text="Organize" FontSize="13" FontWeight="SemiBold" />
+                                <TextBlock x:Name="TabOrganizeLabel" x:Uid="QuickAct_Organize" Text="Organize" FontSize="13" FontWeight="SemiBold" />
                             </StackPanel>
                         </RadioButton>
                     </Grid>

@@ -2033,4 +2033,5 @@
   <data name="Plugin_Uninstall.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>&amp;#21368;&amp;#36733;&amp;#27492;&amp;#25554;&amp;#20214;</value></data>
   <data name="Sync_RefreshStatusBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>刷新同步状态</value></data>
   <data name="Workspace_RefreshProfilesTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>刷新配置文件</value></data>
+  <data name="Plugin_Active.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>启用插件</value></data>
 </root>

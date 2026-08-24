@@ -531,7 +531,7 @@
                                     </Grid.ColumnDefinitions>
 
                                     <StackPanel Spacing="4" VerticalAlignment="Center">
-                                        <TextBlock x:Uid="Workspace_DefaultProfile" Text="Default Profile"
+                                        <TextBlock x:Name="DefaultProfileLabel" x:Uid="Workspace_DefaultProfile" Text="Default Profile"
                                                    Style="{StaticResource BodyStyle}"
                                                    FontWeight="SemiBold" />
                                         <TextBlock x:Uid="Workspace_ThisProfileWillBe" Text="This profile will be loaded automatically when the app starts."
@@ -542,7 +542,8 @@
                                                   IsOn="{x:Bind ViewModel.EditIsDefault, Mode=TwoWay}"
                                                   OnContent=""
                                                   OffContent=""
-                                                  VerticalAlignment="Center" />
+                                                  VerticalAlignment="Center"
+                                                  AutomationProperties.LabeledBy="{x:Bind DefaultProfileLabel}" />
                                 </Grid>
                             </Border>
                         </StackPanel>

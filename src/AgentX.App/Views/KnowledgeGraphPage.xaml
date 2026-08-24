@@ -151,10 +151,11 @@
                                 Padding="12,8,12,8"
                                 MinHeight="36"
                                 Command="{x:Bind ViewModel.RefreshGraphCommand}"
-                                x:Uid="Graph_RebuildTheKnowledgeGraphTip" ToolTipService.ToolTip="Rebuild the knowledge graph">
+                                x:Uid="Graph_RebuildTheKnowledgeGraphTip" ToolTipService.ToolTip="Rebuild the knowledge graph"
+                                AutomationProperties.LabeledBy="{x:Bind RefreshLabel}">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE72C;" FontSize="14" />
-                                <TextBlock x:Uid="Graph_Refresh" Text="Refresh" FontWeight="SemiBold" FontSize="12" />
+                                <TextBlock x:Name="RefreshLabel" x:Uid="Graph_Refresh" Text="Refresh" FontWeight="SemiBold" FontSize="12" />
                             </StackPanel>
                         </Button>
                     </StackPanel>

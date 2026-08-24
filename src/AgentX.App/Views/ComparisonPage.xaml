@@ -100,9 +100,10 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <CheckBox Grid.Column="0"
-                                          IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
+                                          IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                                          AutomationProperties.LabeledBy="{Binding ElementName=CompareFileNameLabel}" />
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
-                                    <TextBlock Text="{x:Bind FileName}"
+                                    <TextBlock x:Name="CompareFileNameLabel" Text="{x:Bind FileName}"
                                                Style="{StaticResource BodyStyle}"
                                                TextTrimming="CharacterEllipsis" />
                                     <TextBlock Text="{x:Bind FileType}"

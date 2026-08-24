@@ -334,7 +334,7 @@
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Spacing="4">
-                            <TextBlock x:Uid="Sync_AutoSyncTitle" Text="Auto-Sync"
+                            <TextBlock x:Name="AutoSyncTitleLabel" x:Uid="Sync_AutoSyncTitle" Text="Auto-Sync"
                                        Style="{StaticResource HeadingSmallStyle}" />
                             <TextBlock x:Uid="Sync_AutoSyncSubtitle" Text="Automatically synchronize changes at a regular interval."
                                        Style="{StaticResource BodySecondaryStyle}" />
@@ -343,6 +343,7 @@
                         <ToggleSwitch Grid.Column="1"
                                       IsOn="{x:Bind ViewModel.AutoSyncEnabled, Mode=TwoWay}"
                                       VerticalAlignment="Center"
+                                      AutomationProperties.LabeledBy="{x:Bind AutoSyncTitleLabel}"
                                       x:Uid="Sync_AutoToggle" OnContent="On" OffContent="Off" />
                     </Grid>
 
@@ -403,9 +404,10 @@
                                         </ItemsRepeater.Layout>
                                         <ItemsRepeater.ItemTemplate>
                                             <DataTemplate x:DataType="vm:SyncCollectionSelectionItem">
-                                                <CheckBox IsChecked="{x:Bind IsSelected, Mode=TwoWay}">
+                                                <CheckBox IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                                                          AutomationProperties.LabeledBy="{Binding ElementName=CollectionNameLabel}">
                                                     <StackPanel Spacing="2">
-                                                        <TextBlock Text="{x:Bind Name, Mode=OneWay}"
+                                                        <TextBlock x:Name="CollectionNameLabel" Text="{x:Bind Name, Mode=OneWay}"
                                                                    Style="{StaticResource BodyStyle}" />
                                                         <TextBlock Text="{x:Bind DetailLabel, Mode=OneWay}"
                                                                    Style="{StaticResource CaptionStyle}" />

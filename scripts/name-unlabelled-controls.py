@@ -18,8 +18,15 @@ x:Bind is wrong inside a DataTemplate here: the name would be resolved against t
 template's x:DataType first. This adds no translation debt, because the referenced TextBlock
 is already localized and the announced name follows the UI language automatically.
 
+An x:Uid is not by itself a name. It names the control only when the resource file supplies a
+name-bearing entry under it (AutomationProperties.Name, Content, Text, Header). A uid whose
+only entry is `.ToolTipService.ToolTip` gives UIA help text, which is never announced as the
+name, and a ToggleSwitch's `.OnContent` / `.OffContent` give the state rather than the
+identity. Skipping every uid-carrying control is what left twenty-one buttons unnamed.
+
 Controls with no TextBlock at all (pure icon buttons) are reported rather than touched, since
-they need a real localized name instead of a reference.
+they need a real localized name instead of a reference. So are controls whose label is a
+sibling rather than a child: the reference is right, but only a human can say which sibling.
 
 Usage:
     python scripts/name-unlabelled-controls.py [--dry-run]
@@ -34,7 +41,36 @@ ROOT = Path(__file__).resolve().parents[1]
 APP = ROOT / "src" / "AgentX.App"
 NL = chr(10)
 
-CONTROLS = r"(Button|HyperlinkButton|AppBarButton|ToggleButton)"
+CONTROLS = (r"(Button|HyperlinkButton|AppBarButton|ToggleButton|AppBarToggleButton"
+            r"|RadioButton|CheckBox|ToggleSwitch)")
+
+# Resource suffixes that set a name. A tooltip is help text and the on/off captions are
+# state, so neither appears here.
+NAME_SUFFIXES = (
+    ".[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name",
+    ".AutomationProperties.Name",
+    ".Content",
+    ".Text",
+    ".Header",
+)
+
+
+def resource_keys():
+    """Every key defined in the default-language resource file."""
+    import xml.etree.ElementTree as ET
+    path = APP / "Strings" / "en-US" / "Resources.resw"
+    return {d.get("name") for d in ET.parse(path).getroot().findall("data") if d.get("name")}
+
+
+KEYS = resource_keys()
+
+
+def uid_supplies_name(attrs):
+    """True when the control's x:Uid resolves to a resource that sets its name."""
+    uid = re.search(r'x:Uid="([^"]+)"', attrs)
+    if not uid:
+        return False
+    return any(uid.group(1) + suffix in KEYS for suffix in NAME_SUFFIXES)
 
 
 def element_end(src, start, tag):
@@ -113,13 +149,19 @@ def attribute_indent(src, tag_start):
         # A continuation attribute line is "Name=" or "Namespace.Name=" and nothing else.
         if re.match(r'^\s*[\w:]+(\.[\w:]+)*\s*=', next_line):
             return " " * (len(next_line) - len(next_line.lstrip()))
-    # Single-line element: indent one level past the tag itself.
-    return " " * (tag_start - line_start + 4)
+    # Single-line element: line up under its first attribute, the way the file's
+    # multi-line elements already do, rather than at an arbitrary fixed step.
+    tag = re.match(r"<[\w:.]+\s", src[tag_start:])
+    width = len(tag.group(0)) if tag else 4
+    return " " * (tag_start - line_start + width)
 
 
 def process(path, used_names, dry_run):
     src = io.open(path, encoding="utf-8").read()
     original = src
+    # x:Name must be unique within its namescope, and a previous run's names are already in
+    # the file, so seed the dedupe set from the source rather than only from this run.
+    used_names.update(re.findall(r'x:Name="([^"]+)"', src))
     templates = template_spans(src)
     skipped = []
     named = 0
@@ -129,7 +171,7 @@ def process(path, used_names, dry_run):
         attrs = m.group(2) or ""
         if "AutomationProperties.Name" in attrs or "AutomationProperties.LabeledBy" in attrs:
             continue
-        if re.search(r'\bContent\s*=\s*"', attrs) or "x:Uid" in attrs:
+        if re.search(r'\b(Content|Header)\s*=\s*"', attrs) or uid_supplies_name(attrs):
             continue
 
         tag = m.group(1)
