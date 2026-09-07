@@ -718,8 +718,11 @@
     <CornerRadius x:Key="RadiusXS">2</CornerRadius>
     <CornerRadius x:Key="RadiusSM">4</CornerRadius>
     <CornerRadius x:Key="RadiusMD">8</CornerRadius>
-    <CornerRadius x:Key="RadiusLG">12</CornerRadius>
-    <CornerRadius x:Key="RadiusXL">16</CornerRadius>
+    <!-- Retired to ROverlay per DESIGN.md: 12 and 16 are not machined stops.
+         Keys are preserved so the remaining consumers re-cut through the token
+         layer, exactly as the cardinal-to-armed ramp did for color. -->
+    <CornerRadius x:Key="RadiusLG">8</CornerRadius>
+    <CornerRadius x:Key="RadiusXL">8</CornerRadius>
     <CornerRadius x:Key="RadiusRound">4</CornerRadius>
     <CornerRadius x:Key="RadiusFull">9999</CornerRadius>
 

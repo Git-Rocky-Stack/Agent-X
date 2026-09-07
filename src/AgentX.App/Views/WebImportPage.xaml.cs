@@ -1,3 +1,4 @@
+using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -33,10 +34,10 @@ public sealed partial class WebImportPage : Page
     /// <summary>
     /// Returns green or red brush based on success state.
     /// </summary>
-    public static SolidColorBrush SuccessBrush(bool success) =>
+    public static Brush? SuccessBrush(bool success) =>
         success
-            ? (SolidColorBrush)Application.Current.Resources["SuccessBrush"]
-            : (SolidColorBrush)Application.Current.Resources["ErrorBrush"];
+            ? ThemeResources.Brush("SuccessBrush")
+            : ThemeResources.Brush("ErrorBrush");
 
     /// <summary>
     /// Helper for DataTemplate visibility binding.

@@ -256,7 +256,7 @@ public sealed partial class MarkdownMessageControl : UserControl
             Text = segment.Content,
             FontSize = 16,
             FontWeight = FontWeights.Bold,
-            Foreground = (Brush)Application.Current.Resources["TextPrimaryBrush"],
+            Foreground = ThemeResources.Brush("TextPrimaryBrush"),
             TextWrapping = TextWrapping.Wrap,
             Margin = new Thickness(0, 8, 0, 4)
         };
@@ -279,7 +279,7 @@ public sealed partial class MarkdownMessageControl : UserControl
         panel.Children.Add(new TextBlock
         {
             Text = "\u2022",
-            Foreground = (Brush)Application.Current.Resources["TextAccentBrush"],
+            Foreground = ThemeResources.Brush("TextAccentBrush"),
             FontSize = 14,
             VerticalAlignment = VerticalAlignment.Top,
             Margin = new Thickness(0, 1, 0, 0)
@@ -315,7 +315,7 @@ public sealed partial class MarkdownMessageControl : UserControl
         {
             TextWrapping = TextWrapping.Wrap,
             IsTextSelectionEnabled = true,
-            Foreground = (Brush)Application.Current.Resources["TextPrimaryBrush"],
+            Foreground = ThemeResources.Brush("TextPrimaryBrush"),
             FontSize = 14,
             LineHeight = 22
         };

@@ -1,3 +1,4 @@
+using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
 using AgentX.Core.Services.Intelligence.Models;
 using Microsoft.UI;
@@ -233,7 +234,7 @@ public sealed partial class KnowledgeGraphPage : Page
         }
 
         // ── Draw nodes ───────────────────────────────────────────────
-        var textBrush = (SolidColorBrush)Application.Current.Resources["TextSecondaryBrush"];
+        var textBrush = ThemeResources.Brush("TextSecondaryBrush");
 
         foreach (var node in visibleNodes)
         {

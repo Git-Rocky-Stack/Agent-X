@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AgentX.App.Helpers;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -290,7 +291,7 @@ public sealed partial class CommandPalette : UserControl
                 FontFamily = (FontFamily)Application.Current.Resources["FontPrimary"],
                 FontSize = 11,
                 FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-                Foreground = (SolidColorBrush)Application.Current.Resources["TextTertiaryBrush"],
+                Foreground = ThemeResources.Brush("TextTertiaryBrush"),
                 Padding = new Thickness(8, 10, 8, 4),
                 CharacterSpacing = 80,
             };
@@ -322,7 +323,7 @@ public sealed partial class CommandPalette : UserControl
         {
             Glyph = "\uE773",
             FontSize = 28,
-            Foreground = (SolidColorBrush)Application.Current.Resources["TextTertiaryBrush"],
+            Foreground = ThemeResources.Brush("TextTertiaryBrush"),
         });
 
         emptyPanel.Children.Add(new TextBlock
@@ -330,7 +331,7 @@ public sealed partial class CommandPalette : UserControl
             Text = "No matching commands",
             FontFamily = (FontFamily)Application.Current.Resources["FontPrimary"],
             FontSize = 14,
-            Foreground = (SolidColorBrush)Application.Current.Resources["TextTertiaryBrush"],
+            Foreground = ThemeResources.Brush("TextTertiaryBrush"),
             HorizontalAlignment = HorizontalAlignment.Center,
         });
 
@@ -345,7 +346,7 @@ public sealed partial class CommandPalette : UserControl
             CornerRadius = new CornerRadius(8),
             Padding = new Thickness(12, 10, 12, 10),
             Margin = new Thickness(0, 1, 0, 1),
-            Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0)),
+            Background = UnlitBrush(),
             Tag = index,
         };
 
@@ -366,7 +367,7 @@ public sealed partial class CommandPalette : UserControl
         {
             Width = 3,
             CornerRadius = new CornerRadius(2),
-            Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0, 196, 30, 58)),
+            Background = UnlitBrush(),
             Margin = new Thickness(0, 2, 0, 2),
             VerticalAlignment = VerticalAlignment.Stretch,
             Tag = "AccentBar",
@@ -379,7 +380,7 @@ public sealed partial class CommandPalette : UserControl
         {
             Glyph = item.IconGlyph,
             FontSize = 16,
-            Foreground = (SolidColorBrush)Application.Current.Resources["TextSecondaryBrush"],
+            Foreground = ThemeResources.Brush("TextSecondaryBrush"),
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
         };
@@ -400,7 +401,7 @@ public sealed partial class CommandPalette : UserControl
             FontFamily = (FontFamily)Application.Current.Resources["FontPrimary"],
             FontSize = 14,
             FontWeight = Microsoft.UI.Text.FontWeights.Normal,
-            Foreground = (SolidColorBrush)Application.Current.Resources["TextPrimaryBrush"],
+            Foreground = ThemeResources.Brush("TextPrimaryBrush"),
             TextTrimming = TextTrimming.CharacterEllipsis,
         });
 
@@ -409,7 +410,7 @@ public sealed partial class CommandPalette : UserControl
             Text = item.Description,
             FontFamily = (FontFamily)Application.Current.Resources["FontPrimary"],
             FontSize = 12,
-            Foreground = (SolidColorBrush)Application.Current.Resources["TextTertiaryBrush"],
+            Foreground = ThemeResources.Brush("TextTertiaryBrush"),
             TextTrimming = TextTrimming.CharacterEllipsis,
         });
 
@@ -419,9 +420,13 @@ public sealed partial class CommandPalette : UserControl
         // Keyboard shortcut hint
         if (!string.IsNullOrEmpty(item.ShortcutHint))
         {
+            // Key chords are wells, not content cards: void-black in both
+            // shifts, matching the sibling chord hints in CommandPalette.xaml.
             var shortcutBorder = new Border
             {
-                Background = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 26, 26, 26)),
+                Background = ThemeResources.Brush("VoidBrush"),
+                BorderBrush = ThemeResources.Brush("HairlineBrush"),
+                BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(4),
                 Padding = new Thickness(8, 4, 8, 4),
                 VerticalAlignment = VerticalAlignment.Center,
@@ -431,9 +436,10 @@ public sealed partial class CommandPalette : UserControl
             shortcutBorder.Child = new TextBlock
             {
                 Text = item.ShortcutHint,
-                FontFamily = (FontFamily)Application.Current.Resources["FontMono"],
-                FontSize = 11,
-                Foreground = (SolidColorBrush)Application.Current.Resources["TextTertiaryBrush"],
+                FontFamily = (FontFamily)Application.Current.Resources["FontTelemetry"],
+                FontSize = 10,
+                Foreground = ThemeResources.Brush("WellTextBrush"),
+                Opacity = 0.5,
             };
 
             Grid.SetColumn(shortcutBorder, 3);
@@ -465,6 +471,14 @@ public sealed partial class CommandPalette : UserControl
         return border;
     }
 
+    /// <summary>
+    /// A fully transparent fill for unlit surfaces (unselected rows, the dark
+    /// accent bar). Transparent rather than null so the row still hit-tests for
+    /// the pointer handlers.
+    /// </summary>
+    private static SolidColorBrush UnlitBrush() =>
+        new(Microsoft.UI.Colors.Transparent);
+
     private void UpdateSelectionVisuals()
     {
         for (int i = 0; i < _renderedItemBorders.Count; i++)
@@ -472,10 +486,12 @@ public sealed partial class CommandPalette : UserControl
             var border = _renderedItemBorders[i];
             bool isSelected = (i == _selectedIndex);
 
-            // Update row background
+            // Update row background. The selected row rides the shift-following
+            // selection surface; an unselected row stays transparent but must
+            // remain hit-testable for the pointer handlers.
             border.Background = isSelected
-                ? new SolidColorBrush(Windows.UI.Color.FromArgb(255, 26, 26, 26))
-                : new SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0));
+                ? ThemeResources.Brush("CardHoverBrush")
+                : UnlitBrush();
 
             // Update accent bar visibility
             if (border.Child is Grid grid)
@@ -485,8 +501,8 @@ public sealed partial class CommandPalette : UserControl
                     if (child is Border accentBar && accentBar.Tag is string tagStr && tagStr == "AccentBar")
                     {
                         accentBar.Background = isSelected
-                            ? (SolidColorBrush)Application.Current.Resources["AccentPrimaryBrush"]
-                            : new SolidColorBrush(Windows.UI.Color.FromArgb(0, 196, 30, 58));
+                            ? ThemeResources.Brush("AccentPrimaryBrush")
+                            : UnlitBrush();
                         break;
                     }
                 }

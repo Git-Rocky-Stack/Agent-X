@@ -1,4 +1,4 @@
-using AgentX.App.Helpers;
+﻿using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
 using AgentX.Core.Services.Shortcuts;
 using Microsoft.UI.Xaml;
@@ -173,8 +173,11 @@ public sealed partial class KnowledgeVaultPage : Page
         // Reset visual feedback
         if (sender is Border border)
         {
-            border.Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CardBrush"];
-            border.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["BorderMediumBrush"];
+            // Clear the local values so DropZoneStyle's {ThemeResource} setters
+            // take over again. Re-resolving the brushes here would snapshot the
+            // application theme, which does not follow the window root's shift.
+            border.ClearValue(Microsoft.UI.Xaml.Controls.Border.BackgroundProperty);
+            border.ClearValue(Microsoft.UI.Xaml.Controls.Border.BorderBrushProperty);
         }
     }
 
@@ -183,8 +186,11 @@ public sealed partial class KnowledgeVaultPage : Page
         // Reset visual feedback
         if (sender is Border border)
         {
-            border.Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CardBrush"];
-            border.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["BorderMediumBrush"];
+            // Clear the local values so DropZoneStyle's {ThemeResource} setters
+            // take over again. Re-resolving the brushes here would snapshot the
+            // application theme, which does not follow the window root's shift.
+            border.ClearValue(Microsoft.UI.Xaml.Controls.Border.BackgroundProperty);
+            border.ClearValue(Microsoft.UI.Xaml.Controls.Border.BorderBrushProperty);
         }
 
         try

@@ -728,8 +728,8 @@
                          Prominent uninstall action with warning messaging
                          ======================================================= -->
                     <Border Grid.Row="6"
-                            Background="#0DEF4444"
-                            BorderBrush="{ThemeResource ErrorSubtleBrush}"
+                            Background="{ThemeResource ErrorSubtleBrush}"
+                            BorderBrush="{ThemeResource ErrorBrush}"
                             BorderThickness="1"
                             CornerRadius="{StaticResource ROverlay}"
                             Padding="20">

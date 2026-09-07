@@ -557,7 +557,7 @@
                         Visibility="{x:Bind ViewModel.ShowNoResults, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                     <StackPanel Spacing="16" HorizontalAlignment="Center">
 
-                        <Border Background="#1AEF4444"
+                        <Border Background="{ThemeResource ErrorSubtleBrush}"
                                 CornerRadius="{StaticResource RadiusFull}"
                                 Width="64" Height="64"
                                 HorizontalAlignment="Center">

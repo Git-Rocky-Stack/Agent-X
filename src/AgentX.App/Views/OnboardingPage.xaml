@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="AgentX.App.Views.OnboardingPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -482,7 +482,7 @@
                                                    Foreground="{ThemeResource TextTertiaryBrush}" />
                                     </StackPanel>
                                     <Border Grid.Column="2"
-                                            CornerRadius="12"
+                                            CornerRadius="{StaticResource RControl}"
                                             Padding="12,6"
                                             Background="{ThemeResource SuccessSubtleBrush}"
                                             Visibility="{x:Bind ViewModel.IsLocalModelAvailable, Mode=OneWay, Converter={StaticResource BoolToVis}}">

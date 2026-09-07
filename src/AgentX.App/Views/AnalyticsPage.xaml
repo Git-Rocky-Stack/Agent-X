@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="AgentX.App.Views.AnalyticsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -1157,13 +1157,13 @@
                                                                 <Border Width="7"
                                                                         Height="48"
                                                                         Background="{ThemeResource AccentSubtleBrush}"
-                                                                        CornerRadius="3"
+                                                                        CornerRadius="{StaticResource RCard}"
                                                                         VerticalAlignment="Bottom"
                                                                         ToolTipService.ToolTip="{x:Bind Tooltip}">
                                                                     <Grid VerticalAlignment="Stretch">
                                                                         <Border Height="{x:Bind BarHeight}"
                                                                                 Background="{ThemeResource TextAccentBrush}"
-                                                                                CornerRadius="3"
+                                                                                CornerRadius="{StaticResource RCard}"
                                                                                 VerticalAlignment="Bottom" />
                                                                     </Grid>
                                                                 </Border>

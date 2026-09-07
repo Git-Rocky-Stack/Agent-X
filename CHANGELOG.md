@@ -47,6 +47,57 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
+### Fixed - Code-behind brushes ignored the shift, breaking Day Shift and HighContrast (2026-09-06)
+
+`ThemeService` applies a shift by setting `RequestedTheme` on the window root
+(`src/AgentX.App/Services/ThemeService.cs:71`), but an
+`Application.Current.Resources["Key"]` lookup resolves ThemeDictionaries against the
+application's own theme, which the root never updates. Every brush pulled that way in
+code-behind was frozen at its Night Ops value. `DESIGN.md` had already recorded this exact
+trap once, in the 2026-07-05 decision that made `StatusToColorConverter` shift-aware; these
+were the second and third occurrences.
+
+The keys involved are each defined three times in `src/AgentX.App/Styles/Colors.xaml`, once
+per ThemeDictionary (`Default` at :52, `Light` at :236, `HighContrast` at :422), which is
+what made the lookups wrong. Two lookups in the same sweep were correct and were left alone:
+`RedGlow10` (`Colors.xaml:639`) and `Red500` (`:628`) are declared once, outside the
+ThemeDictionaries block, so they carry no per-shift value.
+
+- Eighteen lookups across five files now resolve against the root's `ActualTheme` through
+  `src/AgentX.App/Helpers/ThemeResources.cs`, which also treats system high contrast as its
+  own dictionary so the hardware skin cannot leak into a theme `DESIGN.md:253` calls
+  untouchable.
+- The Ctrl+K command palette was the visible casualty: it built its rows in code
+  (`src/AgentX.App/Controls/CommandPalette.xaml.cs:404`), so on Day Shift every command
+  rendered Night-white on a silver faceplate. Its hardcoded `#1A1A1A` selected-row and
+  shortcut-chip fills are replaced by `CardHoverBrush` (follows the shift) and `VoidBrush`
+  (dark in both shifts, per the displays-stay-dark rule), matching the sibling chord hints
+  already in `CommandPalette.xaml:117`. The chip also moved from Iosevka to Departure Mono,
+  which `DESIGN.md:93` assigns to kbd hints.
+- `KnowledgeVaultPage` reset its drop zone by re-resolving brushes; it now clears the local
+  values (`src/AgentX.App/Views/KnowledgeVaultPage.xaml.cs:179`) so `DropZoneStyle`'s
+  `{ThemeResource}` setters resume and keep updating on a live shift change.
+- `tests/AgentX.Tests/CodeQuality/ThemeVaryingBrushesAreResolvedPerRootTests.cs` guards the
+  class. It reads the theme-varying key set out of `Colors.xaml` rather than hardcoding it,
+  so it tracks the design system instead of a snapshot of it.
+
+### Fixed - Off-palette hues and off-canon radii that survived the Tier 3 sweep (2026-09-06)
+
+- Tailwind red `#EF4444` was still filling two surfaces, the plugin danger zone
+  (`src/AgentX.App/Views/PluginManagerPage.xaml:731`) and the search no-results badge
+  (`src/AgentX.App/Views/SearchPage.xaml:560`). Both now use `ErrorSubtleBrush`, which is
+  the `LedNoGo` family and is defined in all three themes.
+- The Smart Inbox web-clip badge put white text on `InfoBrush`
+  (`src/AgentX.App/Views/InboxPage.xaml:257`), about 1.6:1 in Night Ops. It now renders the
+  LED tone on a subtle tint, the same recipe as the chat badges at `ChatPage.xaml:824`.
+- `RadiusLG` and `RadiusXL` still resolved to 12 and 16, which are not machined stops.
+  `DESIGN.md:189` retires both to `ROverlay`; they are now 8
+  (`src/AgentX.App/Styles/Colors.xaml:724`). Keys are preserved so consumers re-cut through
+  the token layer, the same mechanism the cardinal-to-armed color migration used.
+- Stray literal radii re-cut to tokens: two Analytics trend bars to `RCard`
+  (`src/AgentX.App/Views/AnalyticsPage.xaml:1160`) and an Onboarding status badge to
+  `RControl` (`src/AgentX.App/Views/OnboardingPage.xaml:485`).
+
 ### Fixed - Email triage category was deleted instead of wired (2026-08-24)
 
 `EmailCategory` was an eight-member enum that nothing assigned and nothing read, so the
