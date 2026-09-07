@@ -381,7 +381,9 @@ and four structural tests keep the whole class of defect from returning.
   "rename requested", and returned without calling the service. It now persists the new name.
 - **Bulk operations had no UI.** Multi-select, Select All, and bulk delete for collections, and
   bulk enable / disable / uninstall for plugins, were implemented and tested but unreachable.
-  Both pages gain a multi-select mode with per-row checkboxes and a bulk action bar.
+  Both pages gain a multi-select mode with per-row checkboxes and a bulk action bar
+  (`src/AgentX.App/Views/CollectionManagerPage.xaml:150`,
+  `src/AgentX.App/Views/PluginManagerPage.xaml:165`).
 - **Jump-To discarded what you picked.** Selecting a specific document or conversation opened the
   generic Knowledge Vault or Chat page instead of that item. Navigation now carries a payload, and
   the target pages honour it.
@@ -658,7 +660,7 @@ Pre-release shipping the data-layer slice of the v2.1 Bedrock hardening stream. 
 
 - **B9 EF Core migration runner** — `IMigrationRunner` + `MigrationRunner` with pending-migration API, `MigrationResult`, `PendingMigrationsException`, `AgentXDbContextFactory` for design-time tooling, `InitialBaseline` migration capturing current schema, and baseline-adoption for pre-migration installs
 - **C13 SQLCipher at-rest encryption** — `SQLitePCLRaw.bundle_e_sqlcipher` provider, `IDatabaseKeyService` with DPAPI-wrap and UserPassphrase (PBKDF2-HMAC-SHA256, 600k iterations) modes, `IEncryptedConnectionFactory` applying `PRAGMA key` on every `SqliteConnection`, `IDatabaseEncryptionMigrator` using `sqlcipher_export` for atomic plaintext→encrypted conversion with rollback
-- **C13 Settings UI** for database encryption enable flow (tier-aware: Ultimate passphrase dialog, others transparent enable)
+- **C13 Settings UI** for the database encryption enable flow (`src/AgentX.App/Views/SettingsPage.xaml:525`). *Corrected 2026-09-06: this line originally read "tier-aware: Ultimate passphrase dialog, others transparent enable". There is no product-tier concept in this codebase — `grep -rn "Ultimate" src/` returns nothing, and there is no license or tier service. The real choice is a `KeyStorageMode` on the key service, `DpapiWrapped` or `UserPassphrase` (`src/AgentX.Core/Services/Security/DatabaseKeyService.cs:36`), which is a storage mode, not a paid tier.*
 - **C13 Startup unlock flow** using `IEncryptionStateFile` marker to break the unlock ↔ migration chicken-and-egg
 - **`InvalidDatabaseKeyException`** with SQLite ErrorCode-26 / "file is not a database" detection for wrong-passphrase recovery loops
 - **Out-of-DB key storage** at `%LocalAppData%\AgentX\encryption.info.json` — separates encryption state from the encrypted vault so startup unlock has no DB dependency (C13 hotfix, merged 2026-04-17)
