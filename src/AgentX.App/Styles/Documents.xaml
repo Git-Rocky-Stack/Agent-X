@@ -152,8 +152,8 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="DocumentGridItemStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource CardGradientBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource ControlCapBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource ControlCapBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
         <Setter Property="Padding" Value="20" />
@@ -234,8 +234,8 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="DocumentSimpleCardStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource CardGradientSubtleBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource ControlCapBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource ControlCapBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
         <Setter Property="Padding" Value="16" />

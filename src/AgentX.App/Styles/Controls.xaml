@@ -109,8 +109,8 @@
 
     <!-- Standard Card — Used for most content containers -->
     <Style x:Key="CardStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource CardGradientBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource ControlCapBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource ControlCapBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
         <Setter Property="Padding" Value="{StaticResource PaddingCard}" />
@@ -118,8 +118,8 @@
 
     <!-- Elevated Card — Prominent elements, modals -->
     <Style x:Key="CardElevatedStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource CardGradientVerticalBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource BorderMediumBrush}" />
+        <Setter Property="Background" Value="{ThemeResource ControlCapBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource ControlCapBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
         <Setter Property="Padding" Value="{StaticResource PaddingCard}" />
@@ -136,8 +136,8 @@
 
     <!-- Interactive Card — Clickable items (list items, file cards) -->
     <Style x:Key="CardInteractiveStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource CardGradientSubtleBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
+        <Setter Property="Background" Value="{ThemeResource ControlCapBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource ControlCapBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
         <Setter Property="Padding" Value="16" />

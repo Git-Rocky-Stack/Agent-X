@@ -47,6 +47,44 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
+### Changed - Hex socket cap bolts read as machined stainless (2026-09-06)
+
+Rocky's note: the bolts lay flat and the dark colour washed out. They did. The Night
+cap ramp ran `#3A3A3A` to `#0E0E0E` (`src/AgentX.App/Styles/Hardware.xaml:102`), which
+is three greys with no specular anywhere, so a bolt was a slightly-lighter disc on a
+dark plate rather than a turned piece of metal sitting proud of it.
+
+What a socket cap screw actually shows, and what the bolts now render:
+
+- A specular hotspot where the light hits, falling through a steel body to a shaded
+  lower-right. Five stops instead of three, lit from the upper left.
+- A machined rim. The turned edge catches light on the lit side and drops into shadow
+  on the other, and this single ring is what separates the cap from the faceplate
+  (`Styles/Hardware.xaml:112`, new `BoltRimBrush`).
+- A recess with real depth. The Allen socket was a flat fill; it is now a gradient with
+  the near wall in shadow and the far wall picking up bounce, plus a chamfer highlight
+  on the lower lip only.
+- A softer countersink: the halo was a hard black disc and is now a ring that fades out.
+- The socket grew from 41% to 54% of head diameter so the six flats read at 20px. At the
+  old size the hexagon resolved to a dot on the dark shift.
+
+Day Shift gets the same construction against silver. HighContrast is untouched and stays
+flat and system-bound, per `DESIGN.md:253`; the two new keys are declared there as
+`SystemColor*` solids so the theme never sees a gradient.
+
+### Changed - Cards now use the Layer 3 raised-control recipe (2026-09-06)
+
+`DESIGN.md:69` specifies raised controls as a vertical gradient with a top highlight, and
+`DESIGN.md:265` bans flat elevation outright. The recipe existed, fully built for all
+three themes as `ControlCapBrush`, and had no consumers at all; cards meanwhile drew on
+`CardGradientBrush`, which Colors.xaml itself labels a flat solid. This is the same
+unwired-not-missing pattern as `DropZoneActiveStyle`.
+
+`CardStyle`, `CardElevatedStyle`, `CardInteractiveStyle`, `DocumentGridItemStyle` and
+`DocumentSimpleCardStyle` now draw on the cap recipe
+(`src/AgentX.App/Styles/Controls.xaml:112`). That is 59 `CardStyle` call sites alone.
+Verified on the Operations page in both shifts.
+
 ### Fixed - Two radius tiers had collapsed into one (2026-09-06)
 
 DESIGN.md cuts four machined stops: plates 2, caps 4, overlays 8, circles 9999
