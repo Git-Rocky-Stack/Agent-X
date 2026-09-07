@@ -6,16 +6,16 @@ Agent-X is a native Windows desktop application that transforms your personal do
 
 **What makes Agent-X different:**
 
-- **Built-In Local Model**: Llama 3.2 3B runs fully offline. The default SLIM installer downloads it (~1.9 GB) on first run; the OFFLINE installer bundles it for air-gapped machines
+- **Built-In Local Model**: Llama 3.2 3B runs fully offline. The default SLIM installer downloads it (~1.9 GB) on first run; the OFFLINE installer bundles it for air-gapped machines (`installer/AgentX-Setup.iss:8`, `src/AgentX.Core/AI/BuiltInModelBootstrap.cs`)
 - **Enterprise-Grade RAG**: 6-stage retrieval pipeline with multi-query expansion, HyDE embeddings, LLM reranking, and citation chaining
 - **Production Data Layer**: SQLCipher AES-256-CBC encryption, EF Core migrations, 37-table relational schema, HNSW ANN vector index
-- **Comprehensive Feature Set**: 29 navigation pages, 85+ services, 2,835 unit tests, workflow automation, analytics dashboard, REST API
-- **GPU-Accelerated**: CUDA 12 support with automatic VRAM-based layer offloading for 2-50x inference speedup
+- **Comprehensive Feature Set**: 29 navigation pages (`src/AgentX.App/MainWindow.xaml`), 85+ services (`src/AgentX.Core/Services/`), 3,006 unit tests (`tests/AgentX.Tests/`), workflow automation, analytics dashboard, REST API (`src/AgentX.Core/Services/Api/ApiHostService.cs`)
+- **GPU-Accelerated**: CUDA 12 support with automatic VRAM-based layer offloading: 0 / 16 / 28 / 33 layers chosen from detected NVIDIA VRAM (`src/AgentX.Core/AI/Models/AiModel.cs:119`)
 
 Built on .NET 8.0 and WinUI 3 (Windows App SDK 1.6), Agent-X delivers an enterprise-grade document intelligence pipeline — chunking, embedding, vector search, retrieval-augmented generation, knowledge graph visualization, and AI memory — as a self-contained, privacy-first Windows application.
 
 > **Version:** 2.1.2 ("Bedrock" security & supply-chain hardening — the full Codex audit and the 2026-06-19 QA audit, AX-QA-001…016, are closed; see [CHANGELOG](../CHANGELOG.md))
-> **Build:** 2,835 unit tests | 85+ services | 29 navigation pages | 37 database tables | 6 supported locales
+> **Build:** 3,006 unit tests | 85+ services | 29 navigation pages | 37 database tables | 6 supported locales
 > **Publisher:** Rocky Elsalaymeh / Strategia-X
 > **Platform:** Windows 10 19041+ (x64)
 > **License:** MIT — see [LICENSE](../LICENSE)
@@ -58,24 +58,24 @@ The current release is **v2.1.2** — a security & supply-chain hardening patch 
 
 | Category | New Since v1.0 |
 |---|---|
-| **Local AI** | Bundled Llama 3.2 3B model — fully offline AI out of the box |
+| **Local AI** | Built-in Llama 3.2 3B model, offline AI once the model is on the machine (bundled by the OFFLINE installer, downloaded on first run by SLIM) |
 | **GPU Acceleration** | CUDA 12 support with automatic VRAM-based layer offloading |
 | **Advanced RAG** | Multi-query retrieval, HyDE embeddings, LLM reranking, parent document expansion, contextual compression |
 | **Enterprise Features** | REST API, Analytics Dashboard, Collaborative Sync, Calendar/Email Connectors |
 | **UX Polish** | Per-message actions, inline editing, code syntax highlighting (18 languages), notification system |
-| **Developer Quality** | 2,835 unit tests, validation layer, typed exceptions, structured logging, feature flags |
+| **Developer Quality** | 3,006 unit tests, validation layer, typed exceptions, structured logging, feature flags |
 
 ---
 
 ## Feature Overview
 
-Agent-X now spans a broader product surface than a simple feature checklist. The tables below highlight representative capabilities across core productivity, intelligence, and advanced local-first workflows. Every capability is free and unconditionally available to every user. All features run offline first; cloud AI providers (OpenAI, Anthropic) are optional and user-configured.
+The tables below list representative capabilities across core productivity, intelligence, and advanced local-first workflows. Every capability is free and unconditionally available to every user. All features run offline first; cloud AI providers (OpenAI, Anthropic) are optional and user-configured.
 
 ### Core Productivity
 
 | Feature | Description |
 |---|---|
-| **Built-in Local LLM** | Llama 3.2 3B Instruct bundled in the installer (~2 GB) — fully functional offline AI out of the box |
+| **Built-in Local LLM** | Llama 3.2 3B Instruct (~1.9 GB), offline AI with no cloud account; bundled by the OFFLINE installer, fetched on first run by the default SLIM installer (`src/AgentX.Core/AI/BuiltInModelBootstrap.cs`) |
 | Conversation Export | Copy any conversation to clipboard or save as a Markdown file with a single action |
 | Conversation Search | Filter the conversation sidebar by title or content in real time |
 | Document Preview Panel | 360 px right-side panel inside Knowledge Vault renders file metadata, content preview, tags, and collection membership without leaving the page |
@@ -96,7 +96,7 @@ Agent-X now spans a broader product surface than a simple feature checklist. The
 
 | Feature | Description |
 |---|---|
-| **GPU Acceleration** | CUDA 12 support with automatic VRAM detection and layer offloading (2-8+ GB tiers) for 2-50x inference speedup |
+| **GPU Acceleration** | CUDA 12 support with automatic VRAM detection (`src/AgentX.Core/AI/HardwareDetector.cs:91`); the offload tier is picked from detected NVIDIA VRAM: under 2 GB CPU-only, 2-4 GB 16 layers, 4-6 GB 28 layers, 6 GB and above all 33 layers (`src/AgentX.Core/AI/Models/AiModel.cs:119`). Throughput on your hardware is not benchmarked here |
 | **Advanced RAG Pipeline** | Multi-query retrieval, HyDE embeddings, LLM-based reranking, parent document expansion, and contextual compression for superior citation quality |
 | Knowledge Graph Visualization | Interactive force-directed graph (spring-electric algorithm, 100 iterations) renders documents, collections, and tags as typed nodes with weighted edges showing shared membership; rendered on a WinUI 3 Canvas |
 | Multi-Provider LLM Support | Unified AI service abstraction over Bundled Local, Ollama (local), OpenAI (GPT-4o and family), and Anthropic (Claude family) with per-provider cost tracking |
@@ -195,18 +195,20 @@ Suggested screenshots to capture before release:
 
 ### Installer (Recommended)
 
-1. Download `AgentX-Setup-2.1.2-x64.exe` (SLIM) — or `AgentX-Setup-2.1.2-x64-offline.exe` (OFFLINE, model bundled) — from the releases page or the `installer-output/` directory.
+1. Download an installer. The published release is **v2.1.1**; this source tree is version 2.1.2 and has no release build yet, so the file names below are the 2.1.1 ones. Build locally into `installer-output/` with `scripts/build-installers.ps1` if you need 2.1.2.
+   - **SLIM**: `AgentX-Setup-2.1.1-x64.exe` (228 MiB), attached to the [v2.1.1 release](https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.1.1). This is the default profile (`installer/AgentX-Setup.iss:8`).
+   - **OFFLINE**: `AgentX-Setup-2.1.1-x64-offline.exe` (2.07 GiB), hosted at `downloads.strategia-x.com` and linked from the release notes. It exceeds GitHub's per-asset limit, so it is not attached to the release (`installer/AgentX-Setup.iss:14`).
 2. Run the installer. It does not require administrator privileges by default (installs to `%LocalAppData%\Programs\Agent-X` unless elevated).
 3. The installer automatically creates the application data directories at `%LocalAppData%\AgentX\`.
-4. **The bundled Llama 3.2 3B model (~2 GB) is installed automatically**, giving you fully functional offline AI out of the box — zero additional downloads required.
+4. The Llama 3.2 3B model (~1.9 GB) is bundled only in the OFFLINE profile. With the default SLIM installer the app downloads it on first run, from Onboarding Step 3 (`src/AgentX.Core/AI/BuiltInModelBootstrap.cs`, surfaced by `src/AgentX.App/ViewModels/OnboardingViewModel.cs`).
 5. Launch Agent-X from the Start Menu or desktop shortcut.
-6. On first launch, the onboarding wizard runs and guides you through built-in model verification, optional Ollama connection, GPU detection, and cloud provider configuration.
+6. On first launch, the onboarding wizard runs and guides you through built-in model verification, optional Ollama connection, GPU detection, and cloud provider configuration (`src/AgentX.App/Views/OnboardingPage.xaml`, `src/AgentX.App/ViewModels/OnboardingViewModel.cs`).
 
 **What you get immediately after installation:**
 - ✓ Fully functional local AI (Llama 3.2 3B) — no internet required
 - ✓ GPU acceleration auto-detection (CUDA 12 for NVIDIA GPUs)
 - ✓ Complete document intelligence pipeline (indexing, search, RAG)
-- ✓ 2,835 unit tests across 29 navigation pages
+- ✓ 3,006 unit tests across 29 navigation pages
 - ✓ Database encryption ready (SQLCipher AES-256-CBC)
 
 ### Uninstall
@@ -271,7 +273,7 @@ The installer output is written to `installer-output/AgentX-Setup-1.0.0-x64.exe`
 
 ### Platform Targets
 
-The project supports three runtime identifiers. Only win-x64 is currently packaged by the installer.
+The project declares three runtime identifiers, `win-x86;win-x64;win-arm64` (`src/AgentX.App/AgentX.App.csproj:9`). Only win-x64 is packaged by the installer.
 
 | Runtime ID | Architecture |
 |---|---|
@@ -625,7 +627,7 @@ The Command Palette (`Ctrl+K` or `Ctrl+Shift+P`) provides keyboard-first access 
 
 ## Pricing
 
-Agent-X is **100% free and open-source**. There are no paid tiers, no subscriptions, no activation, no document limits, and no feature gates of any kind. Every capability — including unlimited documents, the full intelligence stack, plugins, integrations, and encryption — is unconditionally available to every user, forever, at no cost.
+Agent-X is **free and open-source** under the MIT License (`LICENSE`). There are no paid tiers, no subscriptions, no activation, no document limits, and no feature gates of any kind. Every capability is unconditionally available to every user, forever, at no cost: unlimited documents, the full intelligence stack, plugins, integrations, and encryption.
 
 ---
 
@@ -748,4 +750,4 @@ Copyright (c) 2026 Rocky Elsalaymeh.
 
 Agent-X is released under the **MIT License** — see [LICENSE](../LICENSE) at the repository root. You may use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the software, subject to inclusion of the copyright and permission notice.
 
-Agent-X is 100% free and open-source. Every capability is unconditionally available to every user — there are no paid tiers, no activation, no quotas, and no feature gates of any kind. Use it for anything, forever, at no cost.
+Agent-X is free and open-source under the MIT License (`LICENSE`). Every capability is unconditionally available to every user: no paid tiers, no activation, no quotas, and no feature gates of any kind.

@@ -482,8 +482,8 @@
 
 **Solutions:**
 
-1. **Enable GPU acceleration**
-   - Offloads to GPU instead of CPU
+1. **Offload layers to an NVIDIA GPU**
+   - Set `LocalGpuLayers` in `%LocalAppData%\AgentX\settings.json` (Agent-X closed); there is no Settings toggle
    - Frees CPU for UI responsiveness
 
 2. **Use smaller model**

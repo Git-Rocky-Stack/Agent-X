@@ -92,7 +92,8 @@ public sealed partial class KnowledgeVaultPage : Page
             picker.FileTypeFilter.Add(".html");
             picker.FileTypeFilter.Add(".htm");
             picker.FileTypeFilter.Add(".xml");
-            picker.FileTypeFilter.Add(".rtf");
+            // No .rtf: nothing in Documents/Processors reads RTF, so offering it here only
+            // lets the user pick a file the import then rejects.
             picker.FileTypeFilter.Add(".py");
             picker.FileTypeFilter.Add(".cs");
             picker.FileTypeFilter.Add(".js");

@@ -101,7 +101,7 @@ public sealed class EmailIntegrationTests : IDisposable
             AddedAt = addedAt ?? DateTime.UtcNow,
             ProcessedAt = processedAt ?? DateTime.UtcNow,
             SourcePluginId = "com.agentx.email",
-            SourceCategory = "email_message",
+            SourceCategory = nameof(EmailCategory.ActionRequired),
             ExternalId = $"google:INBOX:msg-{id}",
         };
     }
@@ -160,9 +160,11 @@ public sealed class EmailIntegrationTests : IDisposable
         result.ItemsFailed.Should().Be(0);
         result.IsSuccess.Should().BeTrue();
 
+        // Both fixtures carry "Please review the sprint deliverables before EOD",
+        // so the triage category the sync service forwards is ActionRequired.
         _inboxService.Verify(i => i.TriageExternalAsync(
             It.IsAny<string>(), "EmailMessage", "email-connector",
-            It.IsAny<string?>(), "com.agentx.email", "email_message",
+            It.IsAny<string?>(), "com.agentx.email", nameof(EmailCategory.ActionRequired),
             It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()),
             Times.Exactly(2));
     }
@@ -327,7 +329,7 @@ public sealed class EmailIntegrationTests : IDisposable
 
         externalId.Should().Be("google:INBOX:abc123");
         sourcePluginId.Should().Be("com.agentx.email");
-        sourceCategory.Should().Be("email_message");
+        sourceCategory.Should().Be(nameof(EmailCategory.ActionRequired));
         sourceType.Should().Be("email-connector");
         fileType.Should().Be("EmailMessage");
     }

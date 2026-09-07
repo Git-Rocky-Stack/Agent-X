@@ -358,32 +358,17 @@ While Agent-X works fully offline with the bundled model, you can add cloud prov
 └─────────────────────────────────────────────┘
 ```
 
-### Enable GPU Acceleration (Optional)
+### GPU Offloading (Optional)
 
-If you have an NVIDIA GPU:
+If you have an NVIDIA GPU, Agent-X can run part of the model in VRAM instead of on the
+CPU. The onboarding wizard reports what it detected and how many of the 33 layers would
+fit (`src/AgentX.App/Views/OnboardingPage.xaml:521`).
 
-1. Navigate to **[⚙️ Settings] → AI Runtime**
-2. Enable **GPU Acceleration**
-3. Select your VRAM tier (2 GB to 8+ GB)
-
-```
-┌─────────────────────────────────────────────┐
-│  ⚡ GPU Acceleration Settings                │
-│                                             │
-│  CUDA Support                               │
-│  ├─ Status: ✓ Detected (CUDA 12.6)         │
-│  ├─ GPU: NVIDIA GeForce RTX 4090           │
-│  └─ VRAM: 24 GB                            │
-│                                             │
-│  Layer Offloading                           │
-│  ├─ ☐ 2 GB tier (minimal offloading)       │
-│  ├─ ☐ 4 GB tier                            │
-│  ├─ ☑ 8 GB tier (recommended)              │
-│  └─ ☐ Max tier (aggressive offloading)     │
-│                                             │
-│  Expected Speedup: 20-30x                  │
-└─────────────────────────────────────────────┘
-```
+There is no GPU control in Settings. The value the app actually uses is `LocalGpuLayers`
+in `%LocalAppData%\AgentX\settings.json`, which defaults to 0 - CPU only
+(`src/AgentX.Core/Services/Settings/AppSettings.cs:21`). To change it, close Agent-X,
+edit that file, and reopen. The layer counts that fit each VRAM tier are listed under
+"What is GPU acceleration?" in the [FAQ](../faq.md).
 
 ### Read Full Documentation
 

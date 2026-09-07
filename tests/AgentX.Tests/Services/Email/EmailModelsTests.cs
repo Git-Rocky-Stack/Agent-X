@@ -163,7 +163,7 @@ public sealed class EmailTriageProcessorTests
              externalId, contentPreview, contentText) = _processor.ConvertToInboxParameters(msg);
 
         sourcePluginId.Should().Be("com.agentx.email");
-        sourceCategory.Should().Be("email_message");
+        sourceCategory.Should().Be(nameof(EmailCategory.Other));
         sourceType.Should().Be("email-connector");
         fileType.Should().Be("EmailMessage");
     }

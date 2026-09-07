@@ -47,6 +47,151 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
+### Fixed - Email triage category was deleted instead of wired (2026-08-24)
+
+`EmailCategory` was an eight-member enum that nothing assigned and nothing read, so the
+2026-08-23 dead-code pass removed it. That read the symptom, not the defect: the field it was
+meant to fill already existed, was already persisted, and was already on screen. Every email the
+connector imported was filed under the constant `"email_message"`, so the Smart Inbox source
+column said "Email Message" for all of them and told the reader nothing.
+
+- `EmailTriageProcessor.Classify` assigns a category from the subject, body and sender
+  (`src/AgentX.Core/Services/Plugins/Email/EmailTriageProcessor.cs:58`). The rules are ordered and
+  the first match wins; urgency is checked first, because a message asking the reader to act is
+  what triage exists to surface, and the sender-based rules are checked last, because an
+  unattended address says the least about what a message is for. Keyword matching is word-bounded,
+  so "Salesforce" is not a sale and "idealized" is not a deal.
+- The selected member's name is written to `InboxItemEntity.SourceCategory`
+  (`EmailTriageProcessor.cs:42` to `EmailSyncService.cs:110` to `InboxService.cs:679`), which is
+  exactly what that column's own documentation already described
+  (`src/AgentX.Core/Data/Entities/InboxItemEntity.cs:96`, whose example value is
+  `"ActionRequired"`).
+- The Operations page renders it with no change: `BuildInboxSourceLabel` already title-cased the
+  stored value (`src/AgentX.App/Services/OperationsOverviewService.cs:588`), so an item now reads
+  "Action Required" or "Newsletter" instead of "Email Message".
+- Covered by `tests/AgentX.Tests/Services/Email/EmailCategoryClassificationTests.cs`: one test per
+  category, three precedence tests, two word-boundary tests, and a reflection test that drives the
+  real Operations label helper.
+
+### Added - The sweep's dismissal record now reaches a checkout (2026-08-24)
+
+`.claude/verify-ignore` holds the reason each verification-sweep finding was dismissed, and
+`.gitignore` excluded the entire `.claude/` directory, so none of it was ever committed. A fresh
+clone saw the full finding list with no way to tell a settled finding from a new one.
+
+- `.gitignore` now ignores `.claude/*` with an explicit exception for `verify-ignore`, and the
+  file is committed with a header stating the policy.
+- `tests/AgentX.Tests/CodeQuality/VerifySweepSuppressionsTests.cs` enforces it: the file is
+  tracked by git, every entry states a reason, every entry still points at a path that exists, and
+  every entry filed under "XAML-only references" is proven to appear in real markup. That last
+  check turns the largest block of dismissals from a claim into a receipt.
+- `.github/workflows/build-test.yml` now triggers on changes to the record.
+
+### Fixed - Two detectors in the shared verification tooling misfired (2026-08-24)
+
+Both live in the shared hook library `verify-lib.mjs` and are covered by its regression suite
+(`run-tests.mjs`, 72 checks).
+
+- **Gate 4 only ever saw three file names.** `isDocFile()` selected by basename prefix, README /
+  CHANGELOG / RELEASE, so every other markdown file was outside the doc-claim check entirely:
+  `ARCHITECTURE.md`, `USER-GUIDE.md`, `API-REFERENCE.md`, the whole `docs/` tree. Those are exactly
+  the pages a false claim survives in, because they are long and nobody re-reads them. Markdown is
+  now selected by extension, with the name prefixes kept so a `RELEASE-NOTES.txt` keeps its
+  coverage. Running the sweep with the fix in place immediately surfaced the documentation defects
+  fixed below.
+- **`WaitForExit(` was read as a disabled test.** The forced-green marker list matched `xit(` as a
+  raw substring, so any test calling `Process.WaitForExit(` or `Environment.Exit(` was reported as
+  fake. `xit` and `xdescribe` are now matched as whole identifiers.
+
+### Fixed - Documentation claims that contradicted the code (2026-08-24)
+
+Found by the Gate 4 fix above. Each was checked against the running code or the live release
+before being rewritten.
+
+- **"2-50x inference speedup"** appeared twice in `docs/README.md` (lines 13 and 99) and had never
+  been benchmarked. Replaced with the offload tiers the code actually applies
+  (`src/AgentX.Core/AI/Models/AiModel.cs:119`) and an explicit statement that throughput is not
+  measured here. The same removal covers the invented per-tier speedup table in
+  `docs/user-guide/faq.md` and the "Expected Speedup: 20-30x" line in the quick-start guide.
+- **A GPU settings panel that does not exist.** `docs/user-guide/getting-started/quick-start.md`
+  drew an ASCII mock of "Settings, AI Runtime, GPU Acceleration" with VRAM-tier checkboxes, and
+  the FAQ and troubleshooting guides told users to enable it there. There is no AI Runtime section
+  and no GPU control anywhere in `src/AgentX.App/Views/SettingsPage.xaml`; the value the app reads
+  is `LocalGpuLayers`, which defaults to 0 (`src/AgentX.Core/Services/Settings/AppSettings.cs:21`)
+  and is consumed only at `src/AgentX.Core/AI/AiService.cs:80`. All three pages now describe the
+  settings-file path that actually works.
+- **"Ships with the model bundled in the installer."** Corrected at `docs/README.md:61`, `:78` and
+  `:203`, and in `docs/user-guide/faq.md`. That is true only of the OFFLINE profile; the default
+  SLIM profile downloads the weights on first run (`installer/AgentX-Setup.iss:8`). Line 9 of the
+  same file had already been corrected in the previous pass, so the file contradicted itself.
+- **Installer profiles on the current release, verified.** The published release is v2.1.1. Its
+  only GitHub asset is `AgentX-Setup-2.1.1-x64.exe` at 238,817,423 bytes (SLIM); the OFFLINE build
+  is live at `downloads.strategia-x.com` at 2,225,422,354 bytes and is linked from the release
+  notes. `docs/README.md:198` had told users to download 2.1.2 files from the releases page, where
+  no 2.1.2 release exists.
+- **"One-time purchase, perpetual use"** in the FAQ comparison table contradicted the same file's
+  own "100% free and open-source, nothing to buy" answer four lines later.
+- Stale unit-test counts (2,835) updated to the measured 2,996 in `README.md` and `docs/README.md`.
+
+### Fixed - The import picker offered two formats nothing could read (2026-08-24)
+
+The Knowledge Vault picker advertised `.rtf` and `.htm`. Neither was claimed by any
+`IDocumentProcessor`, so selecting one of those files failed as "unsupported format" after
+the user had already chosen it. This is the mirror image of the unregistered-processor
+defect: there a capability existed with no route to it, here a route existed with no
+capability behind it.
+
+- `.htm` was an omission and is now handled. It is the same format as `.html`, which
+  `CodeFileProcessor` already read, so it was added to the canonical
+  `SupportedFileTypes.Code` set (`src/AgentX.Core/Documents/Models/ProcessedDocument.cs`)
+  and to the language map (`src/AgentX.Core/Documents/Processors/CodeFileProcessor.cs:46`).
+- `.rtf` was a promise with nothing behind it. No processor reads RTF, so the picker no
+  longer offers it (`src/AgentX.App/Views/KnowledgeVaultPage.xaml.cs`).
+- `tests/AgentX.Tests/CodeQuality/ImportPickerOffersOnlyProcessableTypesTests.cs` compares
+  the picker's filter list against every extension the processors declare, and fails on any
+  entry with nothing behind it.
+
+### Fixed - Documentation claims anchored or corrected, second pass (2026-08-24)
+
+Running the repaired Gate 4 over the files this change touched surfaced more claims that no
+code supported.
+
+- **The supported-formats table in `docs/user-guide/faq.md` was wrong in both directions.** It
+  advertised RTF, which nothing reads; it presented legacy `.doc` as equal to `.docx`, when
+  `DocxProcessor.cs:15` states the binary format is not natively supported; and it omitted
+  images, audio and web bookmarks, which are supported. The table now lists each format
+  against the processor that claims it.
+- **"Multi-GPU support is planned for a future release"** was roadmap written in the present
+  tense. There is no multi-GPU path in the code; the answer now says so and points at
+  `src/AgentX.Core/AI/AiService.cs:80`.
+- The licensing statement appeared three times in `docs/README.md` and twice in the FAQ, once
+  still repeating the corrected bundled-model claim. All five now point at `LICENSE`.
+- Countable claims in `docs/README.md:12` (navigation pages, services, tests, REST API) each
+  carry the file that proves them; the unit-test count is the measured 3,006.
+- Anchors added for the onboarding wizard, the three runtime identifiers
+  (`src/AgentX.App/AgentX.App.csproj:9`), the CUDA 12 runtime
+  (`LLamaSharp.Backend.Cuda12`), organisation methods, and the AI providers.
+
+### Added - Coverage for the ingest path, and a ratcheted floor (2026-08-24)
+
+The branch floor had been left at 51 while the measured value drifted toward it. A gate with a
+fraction of a point of headroom fails on the next unrelated commit, and a gate that fails for no
+reason is one people start overriding. Three uncovered classes were closed instead.
+
+- `ChunkingService` (218 lines, 0%), the recursive paragraph/sentence/word splitter behind every
+  embedded chunk. `tests/AgentX.Tests/Documents/ChunkingServiceTests.cs`.
+- `AdaptiveChunkingService` (115 lines, 0%), the classifier that silently overrides the caller's
+  chunk size for code and tables.
+  `tests/AgentX.Tests/Documents/AdaptiveChunkingServiceTests.cs`.
+- `DocumentDisplayDto` (26 lines, 109 branches, 0%), the file-type icon switch behind every
+  document list. `tests/AgentX.Tests/DTOs/DocumentDisplayDtoTests.cs`.
+- Global coverage moved 64.17 to 65.42 line and 53.31 to 56.29 branch; the floors in
+  `scripts/check-coverage.ps1` were ratcheted 62 to 65 and 51 to 55, leaving the branch gate about
+  1.3pt of headroom rather than a fraction of a point. The `AgentX.Core.Services.Backup` floor is
+  unchanged at 75/65: it measured 79.21 this round, the top of its known band, and its residual is
+  the deliberately uncovered restore-swap body.
+
+
 ### Fixed - Code-quality audit: unreachable features and inert controls (2026-08-23)
 
 A full-codebase audit for stubs, placeholder data, and unwired modules. Several features were

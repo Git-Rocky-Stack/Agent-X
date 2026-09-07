@@ -47,7 +47,7 @@ public static class SupportedFileTypes
     public static readonly HashSet<string> Code = new(StringComparer.OrdinalIgnoreCase)
     {
         ".cs", ".js", ".ts", ".py", ".java", ".cpp", ".c", ".h", ".go", ".rs",
-        ".swift", ".kt", ".rb", ".php", ".html", ".css", ".scss", ".sql", ".sh",
+        ".swift", ".kt", ".rb", ".php", ".html", ".htm", ".css", ".scss", ".sql", ".sh",
         ".yaml", ".yml", ".toml", ".ini", ".cfg", ".xaml"
     };
 

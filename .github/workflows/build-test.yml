@@ -19,6 +19,7 @@ on:
       - 'global.json'
       - 'coverlet.runsettings'
       - 'scripts/check-coverage.ps1'
+      - '.claude/verify-ignore'
       - '.github/workflows/build-test.yml'
   pull_request:
     paths:
@@ -28,6 +29,7 @@ on:
       - 'global.json'
       - 'coverlet.runsettings'
       - 'scripts/check-coverage.ps1'
+      - '.claude/verify-ignore'
       - '.github/workflows/build-test.yml'
 
 jobs:

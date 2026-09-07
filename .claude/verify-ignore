@@ -1,0 +1,94 @@
+# Disposition record for the repository verification sweep.
+#
+# Every line below is a sweep finding that was examined and dismissed, with the reason
+# it is not a defect. This file is committed on purpose (see .gitignore): a dismissal
+# that lives only on the machine that made it is not a record, and without it a fresh
+# checkout cannot tell a settled finding from a new one.
+#
+# Rules for adding a line:
+#   1. Prove reachability first. A dismissal is a claim, and the claim goes in a comment.
+#   2. Scope per FILE, never per directory. Converters/ and Controls/ still contain real
+#      orphans, so a blanket directory ignore would mask them.
+#   3. File it under a "# --- Heading ---" group, or give it its own comment.
+#
+# tests/AgentX.Tests/CodeQuality/VerifySweepSuppressionsTests.cs enforces all of that:
+# the file is committed, every entry states a reason, every entry still points at
+# something that exists, and every entry in the XAML-only group is proven to appear in
+# markup. A dismissal that stops being true fails the build.
+#
+# As of 2026-08-24 the sweep reports 34 orphan findings; all 34 are listed here.
+
+# --- Reflection / platform entry points (never referenced by name) ---
+# EF Core discovers Migration subclasses via Database.MigrateAsync()
+#   (src/AgentX.Core/Data/MigrationRunner/MigrationRunner.cs:298).
+src/AgentX.Core/Data/Migrations/
+# IDesignTimeDbContextFactory<T>, instantiated by `dotnet ef` tooling.
+src/AgentX.Core/Data/AgentXDbContextFactory.cs
+# Android [Application] class, instantiated by the Android runtime.
+src/AgentX.Mobile/Platforms/Android/MainApplication.cs
+# Standalone sample plugin: own .csproj + manifest.json, not in the solution.
+# Loaded at runtime via PluginService.cs:349 LoadFromAssemblyPath / :364 Activator.
+plugins/sample-plugin/
+
+# --- XAML-only references (sweep does not index .xaml; verify-lib.mjs:25-28) ---
+src/AgentX.App/Controls/Faceplate.cs
+src/AgentX.App/Controls/MarkdownMessageControl.xaml.cs
+src/AgentX.App/Controls/NotificationOverlay.xaml.cs
+src/AgentX.App/Controls/SegmentMeter.xaml.cs
+src/AgentX.App/Selectors/UserGuideSectionSelector.cs
+src/AgentX.App/Converters/BoolToOpacityConverter.cs
+src/AgentX.App/Converters/BoolToVisibilityConverter.cs
+src/AgentX.App/Converters/CountToVisibilityConverter.cs
+src/AgentX.App/Converters/DoubleToStringConverter.cs
+src/AgentX.App/Converters/InverseBoolConverter.cs
+src/AgentX.App/Converters/InverseVisibilityConverter.cs
+src/AgentX.App/Converters/NullToVisibilityConverter.cs
+src/AgentX.App/Converters/PercentToWidthConverter.cs
+src/AgentX.App/Converters/StatusToColorConverter.cs
+src/AgentX.App/Converters/StringEmptyToVisibilityConverter.cs
+src/AgentX.App/Converters/StringToVisibilityConverter.cs
+src/AgentX.App/Converters/TimeAgoConverter.cs
+
+# --- C# constructs the sweep's symbol extractor cannot resolve ---
+# Delegate type; consumed as a property type by 6 ViewModels
+# (DashboardViewModel.cs:122, SearchViewModel.cs:67, QuickActionsViewModel.cs:65,
+#  KnowledgeVaultViewModel.cs:110, OperationsViewModel.cs:49, WorkflowBuilderViewModel.cs:107).
+src/AgentX.App/ViewModels/NavigateHandler.cs
+# Extension class: called by method name, not class name: RegisterShortcuts() at
+# ChatPage.xaml.cs:47, KnowledgeVaultPage.xaml.cs:43, SettingsPage.xaml.cs:34.
+src/AgentX.App/Helpers/ShortcutRegistrationExtensions.cs
+
+# --- Gate 4 heuristic noise: prose docs with no code claims ---
+# Video production instructions ("Captions: Include for accessibility") and template
+# authoring guidance ("Include sample content in templates"). The heuristic matches on
+# words like "Include"/"features"/"provide"; neither file asserts anything about shipped
+# code. README.md, docs/README.md, and CHANGELOG.md are deliberately NOT ignored, because those
+# are the surfaces where a false feature claim does real damage, so the reminder should
+# keep firing there and be re-checked by hand each sweep.
+docs/user-guide/video-scripts/README.md
+docs/user-guide/templates/README.md
+
+# --- Dated records: describe a moment, not the current build ---
+# Release notes, audit reports and handoffs are frozen accounts of what was true on
+# their date. Re-anchoring them against today's code would falsify the record, and
+# "correcting" a shipped release note is how a changelog stops being evidence. What
+# each one claimed is verified once, at the time, by the CHANGELOG entry it belongs to.
+AGENTX_AUDIT_FINDINGS.md
+docs/COMPREHENSIVE-QA-AUDIT-2026-06-19.md
+docs/HANDOFF-2026-05-31.md
+docs/HANDOFF-2026-06-01.md
+docs/HANDOFF-2026-06-02.md
+docs/v1.3.0-RELEASE-NOTES.md
+docs/v1.4.0-RELEASE-NOTES.md
+docs/v1.5.0-RELEASE-NOTES.md
+docs/v2.1.0-preview.1-RELEASE-NOTES.md
+docs/v2.1.0-RELEASE-NOTES.md
+
+# --- Third-party text this repo does not author ---
+# Upstream licence for the Iosevka typeface. Editing it would be a licence violation.
+src/AgentX.App/Assets/Fonts/LICENSE-Iosevka.md
+
+# --- Manual QA scripts: instructions to a human, not claims about code ---
+# Steps a tester performs ("Enable the watcher, drop a file in"). The heuristic reads
+# the imperative as a capability claim; the checklist asserts nothing about what ships.
+docs/a2-smoke-test-checklist.md

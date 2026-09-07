@@ -44,6 +44,7 @@ public class CodeFileProcessor : IDocumentProcessor
         [".rb"] = "Ruby",
         [".php"] = "PHP",
         [".html"] = "HTML",
+        [".htm"] = "HTML",
         [".css"] = "CSS",
         [".scss"] = "SCSS",
         [".sql"] = "SQL",

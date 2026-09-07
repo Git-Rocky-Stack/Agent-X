@@ -29,31 +29,46 @@ Agent-X is a local-first AI-powered document intelligence application for Window
 | Feature | Agent-X | Other AI Tools |
 |---------|---------|----------------|
 | **Data Privacy** | 100% local — your data never leaves your machine | Cloud-based with data sent to external servers |
-| **Offline Capability** | Fully functional offline with bundled model | Requires internet connection |
-| **No Subscription** | One-time purchase, perpetual use | Monthly/annual subscription required |
+| **Offline Capability** | Fully functional offline once the local model is on the machine | Requires internet connection |
+| **No Subscription** | Free and MIT-licensed; nothing to buy or activate | Monthly/annual subscription required |
 | **Open Models** | Uses open-source Llama models | Often uses proprietary closed models |
 | **RAG Pipeline** | Enterprise-grade 6-stage retrieval | Basic or no retrieval |
 | **Database Encryption** | AES-256-CBC at-rest encryption | Varies, often unencrypted |
 
 ### Is Agent-X free?
 
-Yes — completely. Agent-X is 100% free and open-source software, released under the MIT License. Every capability is unconditionally available to every user: unlimited documents, advanced RAG, GPU acceleration, multi-provider AI, the REST API, the full intelligence stack, plugins, integrations, and encryption. There are no paid tiers, no subscriptions, no activation, no quotas, and no feature gates of any kind.
+Yes, completely. Agent-X is free and open-source software under the MIT License (`LICENSE`). Every capability is unconditionally available to every user: unlimited documents, advanced RAG, GPU acceleration, multi-provider AI, the REST API, the full intelligence stack, plugins, integrations, and encryption. There are no paid tiers, no subscriptions, no activation, no quotas, and no feature gates of any kind.
 
 ### What file formats does Agent-X support?
 
-Agent-X supports the following formats:
+Each format is claimed by a processor in `src/AgentX.Core/Documents/Processors/`:
 
-| Category | Formats |
-|----------|---------|
-| **Documents** | PDF (.pdf), Word (.docx, .doc), RTF (.rtf) |
-| **Text** | Plain text (.txt), Markdown (.md) |
-| **Code** | All programming languages (.cs, .py, .js, .ts, .go, .rs, etc.) |
-| **Data** | JSON (.json), XML (.xml), CSV (.csv) |
-| **Web** | HTML (.html, .htm) |
+| Category | Formats | Processor |
+|----------|---------|-----------|
+| **Documents** | `.pdf` | `PdfProcessor.cs` |
+| **Word** | `.docx` | `DocxProcessor.cs` |
+| **Text** | `.txt`, `.csv`, `.log`, `.xml`, `.json`, `.ini`, `.cfg`, `.toml`, `.yaml`, `.yml` | `TextProcessor.cs` |
+| **Markdown** | `.md`, `.markdown`, `.mdx` | `MarkdownProcessor.cs` |
+| **Code** | `.cs`, `.js`, `.ts`, `.py`, `.java`, `.cpp`, `.c`, `.h`, `.go`, `.rs`, `.swift`, `.kt`, `.rb`, `.php`, `.html`, `.htm`, `.css`, `.scss`, `.sql`, `.sh`, `.xaml` | `CodeFileProcessor.cs` |
+| **Images** | `.png`, `.jpg`, `.jpeg`, `.bmp`, `.tiff` | `ImageProcessor.cs` |
+| **Audio** | `.mp3`, `.wav`, `.flac`, `.ogg`, `.m4a`, `.webm` | `AudioProcessor.cs` |
+| **Web bookmarks** | `.url`, `.webloc` | `WebProcessor.cs` |
+
+Two caveats the file picker used to hide:
+
+- **`.doc` (legacy binary Word) is not read.** The extension is declared for convenience but
+  the OpenXml reader cannot open it (`src/AgentX.Core/Documents/Processors/DocxProcessor.cs:15`).
+  Save as `.docx` first.
+- **`.rtf` is not supported.** It used to appear in the import picker with no processor behind
+  it, so selecting an RTF file failed after you had already chosen it. The picker no longer
+  offers it.
 
 ### Does Agent-X work offline?
 
-Yes! Agent-X ships with Llama 3.2 3B bundled in the installer (~2 GB). You get fully functional offline AI out of the box — no internet connection required after installation.
+Yes, once the local model is on the machine. How it gets there depends on which installer you ran:
+
+- **SLIM** (the default, and the one attached to the GitHub release): the installer is ~228 MiB and Agent-X downloads Llama 3.2 3B (~1.9 GB) on first run, from Onboarding Step 3. That first download needs an internet connection; nothing after it does.
+- **OFFLINE** (hosted at `downloads.strategia-x.com`, linked from the release notes): the model is already inside the installer, so the machine never needs a connection.
 
 ---
 
@@ -71,7 +86,7 @@ Yes! Agent-X ships with Llama 3.2 3B bundled in the installer (~2 GB). You get f
 
 ### How do I install Agent-X?
 
-1. Download `AgentX-Setup-2.1.2-x64.exe` (or the `-offline` build to bundle the model)
+1. Download an installer. The published release is v2.1.1: `AgentX-Setup-2.1.1-x64.exe` (SLIM, attached to the release) or `AgentX-Setup-2.1.1-x64-offline.exe` (OFFLINE, linked from the release notes)
 2. Run the installer (no admin privileges required)
 3. Launch from Start Menu or desktop shortcut
 4. Create a passphrase on first launch
@@ -122,7 +137,7 @@ Yes. Use **[Select Folder]** during import to recursively import all supported f
 
 ### How do I organize my documents?
 
-Agent-X provides several organization methods:
+Agent-X provides several organization methods, each backed by a table in `src/AgentX.Core/Data/Entities/`:
 
 | Method | Description |
 |--------|-------------|
@@ -172,19 +187,21 @@ Workflows automate repetitive tasks:
 
 | Provider | Models | Type |
 |----------|--------|------|
-| **Bundled** | Llama 3.2 3B Instruct | Local (ships with app) |
+| **Built-in** | Llama 3.2 3B Instruct | Local (bundled by the OFFLINE installer, downloaded on first run by SLIM) |
 | **Ollama** | Llama 3.x, Phi 4, Mistral, etc. | Local (user-managed) |
 | **OpenAI** | GPT-4o, GPT-4o-mini, etc. | Cloud (API key) |
 | **Anthropic** | Claude 3.5 Sonnet, Haiku, etc. | Cloud (API key) |
 
 ### What is the bundled model?
 
-Agent-X ships with **Llama 3.2 3B Instruct**, a compact but capable language model:
+Agent-X uses **Llama 3.2 3B Instruct**, a compact but capable language model:
 
-- **Size**: ~2 GB
-- **Performance**: ~3 tokens/sec (CPU), ~15-25 tokens/sec (GPU)
+- **Size**: ~1.9 GB
+- **How you get it**: bundled in the OFFLINE installer; downloaded on first run with the default SLIM installer
 - **Capability**: Chat, summarization, question-answering
-- **License**: Apache 2.0 (open source)
+- **License**: Llama 3.2 Community License
+
+Throughput depends on your CPU, GPU, and VRAM, and is not benchmarked here. The onboarding wizard reports the acceleration Agent-X detected on your machine (`src/AgentX.App/Views/OnboardingPage.xaml:521`).
 
 ### How do I add more models?
 
@@ -201,30 +218,40 @@ Agent-X ships with **Llama 3.2 3B Instruct**, a compact but capable language mod
 
 ### Can I use my own models?
 
-Yes. Agent-X supports any model exposed via:
+Yes. Agent-X reaches models through the providers in `src/AgentX.Core/AI/Providers/`:
 - Ollama (run `ollama run <model-name>`)
 - OpenAI-compatible endpoints
 - Custom providers (via plugin system)
 
 ### How do I switch between models?
 
-1. Go to **Settings → AI Runtime**
+1. Go to **Settings → AI Providers** (`src/AgentX.App/Views/SettingsPage.xaml`)
 2. Select your preferred provider from the dropdown
 3. Choose a specific model from that provider
 4. Your selection persists across sessions
 
 ### What is GPU acceleration?
 
-GPU acceleration moves AI computation from CPU to GPU:
+GPU acceleration moves part of the model onto an NVIDIA GPU, so those layers run in
+VRAM instead of on the CPU. Agent-X detects the GPU and computes how many of the 33
+layers would fit (`src/AgentX.Core/AI/Models/AiModel.cs:119`):
 
-| Hardware | Speedup | Notes |
-|----------|---------|-------|
-| **CPU only** | 1x (baseline) | Works everywhere |
-| **NVIDIA 4 GB VRAM** | 2-5x | Entry-level gaming GPU |
-| **NVIDIA 8 GB VRAM** | 5-15x | Mid-range GPU (recommended) |
-| **NVIDIA 16+ GB VRAM** | 15-30x | High-end GPU (RTX 4090, etc.) |
+| Detected VRAM | Layers offloaded |
+|---|---|
+| Under 2 GB, or no NVIDIA GPU | 0 (CPU only) |
+| 2-4 GB | 16 |
+| 4-6 GB | 28 |
+| 6 GB and above | 33 (all) |
 
-Enable in **Settings → AI Runtime → GPU Acceleration**.
+**There is no GPU toggle in Settings today.** The onboarding wizard shows the detected
+GPU and the recommended layer count, but nothing writes that recommendation back
+(`src/AgentX.App/ViewModels/OnboardingViewModel.cs:333`). The value actually used is
+`LocalGpuLayers` in `%LocalAppData%\AgentX\settings.json`, which defaults to 0
+(`src/AgentX.Core/Services/Settings/AppSettings.cs:21`) and is read at
+`src/AgentX.Core/AI/AiService.cs:80`. Editing that file while Agent-X is closed is the
+only way to change it.
+
+No throughput multiplier is published for these tiers, because none has been measured.
 
 ---
 
@@ -301,7 +328,7 @@ Click the citation to open the document at the relevant location.
 
 ### Can Agent-X use multiple GPUs?
 
-Not currently. Agent-X uses a single GPU for inference. Multi-GPU support is planned for a future release.
+No. Agent-X passes a single layer count to one device (`src/AgentX.Core/AI/AiService.cs:80`); there is no multi-GPU path in the code.
 
 ### How much disk space do I need?
 
@@ -381,7 +408,7 @@ Yes, but consider:
 
 ### How is Agent-X licensed?
 
-Agent-X is free and open-source software released under the **MIT License**. Every feature — bundled model, semantic search, GPU acceleration, advanced RAG, Knowledge Graph, multi-provider AI, REST API, sync, and analytics — is unconditionally available to every user. There is nothing to buy, activate, or upgrade.
+Agent-X is free and open-source software released under the **MIT License** (`LICENSE`). Every feature is unconditionally available to every user: the built-in model, semantic search, GPU offloading, advanced RAG, Knowledge Graph, multi-provider AI, the REST API, sync, and analytics. There is nothing to buy, activate, or upgrade.
 
 ### Is there anything I need to pay for?
 
@@ -415,17 +442,17 @@ Yes. The MIT License lets you use, copy, modify, merge, publish, distribute, sub
 
 **Solutions:**
 
-1. **Enable GPU acceleration** (if you have a compatible GPU)
-   - Go to **Settings → AI Runtime**
-   - Enable **GPU Acceleration**
+1. **Offload layers to an NVIDIA GPU** (if you have one)
+   - Set `LocalGpuLayers` in `%LocalAppData%\AgentX\settings.json` while Agent-X is closed
+   - See "What is GPU acceleration?" above for the layer counts and why there is no toggle
 
 2. **Switch to a smaller model**
-   - Use Llama 3.2 3B (bundled) instead of larger models
+   - Use Llama 3.2 3B (the built-in model) instead of larger models
    - Smaller models are faster
 
 3. **Reduce context window**
    - Smaller context = faster processing
-   - Settings → AI Runtime → Context Window
+   - Settings → Inference → Context Window (`src/AgentX.App/Views/SettingsPage.xaml:391`)
 
 ### Search returns no results
 
@@ -458,11 +485,11 @@ Yes. The MIT License lets you use, copy, modify, merge, publish, distribute, sub
 **Check:**
 
 1. **CUDA installed?**
-   - Agent-X includes CUDA 12 runtime
+   - Agent-X ships the CUDA 12 runtime (`LLamaSharp.Backend.Cuda12` in `src/AgentX.Core/AgentX.Core.csproj`)
    - May need NVIDIA GPU driver update
 
 2. **VRAM insufficient?**
-   - Try a lower tier (2 GB instead of 8 GB)
+   - Lower `LocalGpuLayers` in `settings.json`; a count the card cannot hold falls back to CPU
    - Close other GPU-intensive applications
 
 3. **Incompatible GPU?**

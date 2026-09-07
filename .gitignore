@@ -84,7 +84,11 @@ node_modules/
 browser-extension/dist/
 
 ## Claude / Loki development tooling
-.claude/
+## verify-ignore is the exception: it is the disposition record for the repository
+## verification sweep, and a dismissal that never reaches a checkout is not a record.
+## The directory (not the bare name) is ignored so the negation below can apply.
+.claude/*
+!.claude/verify-ignore
 .loki/
 
 ## gstack QA tooling (run artifacts: reports, screenshots, evidence, coverage)

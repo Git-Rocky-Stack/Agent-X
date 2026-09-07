@@ -45,7 +45,30 @@ $ErrorActionPreference = 'Stop'
 # ─────────────────────────────────────────────────────────────────────────────
 # Floors are set just below the measured baseline (shown in comments) so the gate locks in current
 # coverage with a small headroom for CI variance, and every critical floor sits at or above the
-# global minimum as AX-QA-009 requires. On 2026-07-03 the campaign's three tracked next-gaps were
+# global minimum as AX-QA-009 requires.
+#
+# 2026-08-24: three uncovered classes in the ingest path were closed, and the floors were
+# ratcheted to lock the gain. The round was prompted by the branch floor having been left at 51
+# while the measured value drifted: a gate with a fraction of a point of headroom fails on the
+# next unrelated commit, and a gate that fails for no reason is one people start overriding.
+#   ChunkingService (218 lines, 0%), the recursive paragraph -> sentence -> word splitter that
+#     produces every chunk the RAG pipeline embeds. Covered end to end with real text: the three
+#     splitter tiers, character-offset tracking, whole-segment overlap carry-forward, form-feed
+#     page splitting with global index/offset accounting, the ITokenCounter seam (a mock returning
+#     character count, so word-count fallback cannot pass for it), and the adaptive override
+#     (honoured for Code/Table, ignored for Prose/List/Mixed, swallowed when the analyzer throws).
+#   AdaptiveChunkingService (115 lines, 0%), the content classifier that decides when to override
+#     the caller. Extension hints, body classification for all five ContentTypes, the 20-line
+#     sampling window, the line-length adjustments, and the min/max clamps.
+#   DocumentDisplayDto (26 lines, 109 branches, 0%), the file-type icon switch behind every
+#     document list. Twenty-five extensions plus casing and fallback.
+# None is a trust boundary, so none becomes a critical namespace. Combined they moved the GLOBAL
+# floor LINE 62 -> 65 (measured 65.42) and BRANCH 51 -> 55 (measured 56.29; the branch floor keeps
+# a deliberate ~1.3pt of headroom, which is the run-to-run async-branch variance band this file has
+# repeatedly observed; 56 would leave 0.29pt and put the gate straight back where it started).
+# Backup measured 79.21 / 70.00 this round, the top of its known 75.9-79.2 band, so its floor is
+# unchanged at 75/65; see the note on its residual below. Earlier, on 2026-07-03 the campaign's
+# three tracked next-gaps were
 # closed in one round. KeywordSearchService (previously 0%) — the FTS5 (porter unicode61) BM25
 # keyword-search pipeline (virtual-table init/rebuild, per-document chunk indexing + delta re-index,
 # MATCH sanitisation, file-type/collection/date filters, excerpt building) — was lifted to 89.87 line /
@@ -166,7 +189,7 @@ $ErrorActionPreference = 'Stop'
 # (global line -> 44); 2026-06-24 PluginService/WorkflowEngine (global line 41 -> 42); 2026-06-21
 # ApiHostService. Critical-namespace baselines (Security/Privacy/MigrationRunner) are from 2026-06-20.
 $Policy = [ordered]@{
-    Global = @{ Line = 62.0; Branch = 51.0 }          # measured 62.58 / 52.43 (2026-07-03, KeywordSearch/TemporalIdentity/LocalLlm)
+    Global = @{ Line = 65.0; Branch = 55.0 }          # measured 65.42 / 56.29 (2026-08-24, Chunking/AdaptiveChunking/DocumentDisplayDto)
     CriticalNamespaces = [ordered]@{
         # Security-critical: DB key material, DPAPI secret encryption, encryption-state migration,
         # security status. A regression here is a trust/compliance regression. Its branch floor (62)
