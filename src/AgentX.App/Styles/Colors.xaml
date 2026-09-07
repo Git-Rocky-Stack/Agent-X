@@ -717,10 +717,15 @@
     <CornerRadius x:Key="RadiusNone">0</CornerRadius>
     <CornerRadius x:Key="RadiusXS">2</CornerRadius>
     <CornerRadius x:Key="RadiusSM">4</CornerRadius>
-    <CornerRadius x:Key="RadiusMD">8</CornerRadius>
-    <!-- Retired to ROverlay per DESIGN.md: 12 and 16 are not machined stops.
-         Keys are preserved so the remaining consumers re-cut through the token
-         layer, exactly as the cardinal-to-armed ramp did for color. -->
+    <!-- RadiusMD was 8, which is the overlay stop. Every one of its consumers is a
+         content surface: 111 Borders across the views, and not one dialog or flyout
+         (overlays reference ROverlay directly). Holding cards at the overlay radius
+         collapsed two tiers of the machined hierarchy into one, which is the uniform
+         radius DESIGN.md calls an anti-slop failure. Re-pointed to the cap stop so
+         all of them re-cut through the token layer at once. -->
+    <CornerRadius x:Key="RadiusMD">4</CornerRadius>
+    <!-- Retired per DESIGN.md: 12 and 16 are not machined stops. Both are now
+         unreferenced; the keys stay so any straggler resolves to a real stop. -->
     <CornerRadius x:Key="RadiusLG">8</CornerRadius>
     <CornerRadius x:Key="RadiusXL">8</CornerRadius>
     <CornerRadius x:Key="RadiusRound">4</CornerRadius>

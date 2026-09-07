@@ -33,7 +33,7 @@
         <Grid x:Name="LampContent" VerticalAlignment="Center">
             <Border x:Name="Tint"
                     Margin="-6,-4"
-                    CornerRadius="3"
+                    CornerRadius="{StaticResource RControl}"
                     Opacity="0"
                     IsHitTestVisible="False" />
             <Grid x:Name="GlowHost" IsHitTestVisible="False" />

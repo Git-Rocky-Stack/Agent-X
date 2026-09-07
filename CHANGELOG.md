@@ -47,6 +47,37 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
+### Fixed - Two radius tiers had collapsed into one (2026-09-06)
+
+DESIGN.md cuts four machined stops: plates 2, caps 4, overlays 8, circles 9999
+(`DESIGN.md:183`). The rule underneath them is "NEVER uniform radius across surface
+types", so the failure mode is not an exotic value, it is tiers quietly merging. Both
+had happened.
+
+- `RadiusMD` resolved to 8, the overlay stop, and 111 content Borders across the views
+  referenced it. Cards and dialogs were being cut identically. Checked before moving it:
+  no dialog or flyout uses `RadiusMD` at all, since overlays reference `ROverlay`
+  directly, so the alias was purely a content-surface token. Re-pointed to the cap stop
+  (`src/AgentX.App/Styles/Colors.xaml:726`), which re-cuts all 111 through the token
+  layer at once.
+- Twenty-three style definitions across `Controls.xaml`, `Documents.xaml` and `Chat.xaml`
+  set an overlay-tier radius on Layer 3 raised controls: cards, ghost buttons, list
+  items, badges, inline bars, the drop zone, the file-type icon container. All re-cut to
+  `RControl`. `PremiumToolTipStyle` deliberately kept `ROverlay`, because a tooltip is a
+  flyout.
+- `RadiusLG` and `RadiusXL` now have zero consumers, completing the retirement
+  `DESIGN.md:189` called for. The keys remain so any straggler still lands on a real stop.
+- The lamp tint bled at a hardcoded 3 while the cap it tints sits at 4
+  (`src/AgentX.App/Controls/LampTile.xaml:36`).
+
+`tests/AgentX.Tests/CodeQuality/MachinedRadiusStopsTests.cs` guards both halves: every
+radius token resolves to a stop, and no view hardcodes one off the scale. `Colors.xaml`,
+`Hardware.xaml` and `Generic.xaml` are exempt, since those hold the token definitions and
+the hardware recipes DESIGN.md specifies literally.
+
+Verified against the running app in both shifts: composition unchanged, faceplates still
+at the plate stop, cards visibly tighter.
+
 ### Fixed - The app was shipping four palettes (2026-09-06)
 
 A hue audit of every color literal in `AgentX.App` found three foreign palettes living

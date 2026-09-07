@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="AgentX.App.Views.ChatPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -793,7 +793,7 @@
                     Background="{ThemeResource CardElevatedBrush}"
                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="1"
-                    CornerRadius="{StaticResource RadiusLG}"
+                    CornerRadius="{StaticResource RControl}"
                     Visibility="{x:Bind ViewModel.HasConversationIntelligenceStrip, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                 <Grid ColumnSpacing="12">
                     <Grid.ColumnDefinitions>
@@ -1209,7 +1209,7 @@
                             Background="{ThemeResource CardElevatedBrush}"
                             BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1"
-                            CornerRadius="{StaticResource RadiusLG}"
+                            CornerRadius="{StaticResource RControl}"
                             Padding="16">
                         <StackPanel Spacing="14">
                             <StackPanel Spacing="4">
