@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using AgentX.App.Services;
 using AgentX.Core.Documents;
@@ -772,17 +772,6 @@ public partial class SearchResultItem : ObservableObject
         _ => "\uE7C3"
     };
 
-    /// <summary>
-    /// Returns a hex color string based on relevance tier:
-    /// High (>=80): green, Medium (>=60): yellow, Low (>=40): orange, Poor: red.
-    /// </summary>
-    public string ScoreColor => RelevancePercent switch
-    {
-        >= 80 => "#4CAF50",
-        >= 60 => "#FFC107",
-        >= 40 => "#FF9800",
-        _ => "#F44336"
-    };
 }
 
 // =============================================================================

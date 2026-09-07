@@ -1,4 +1,4 @@
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
@@ -953,7 +953,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="#FF22C55E" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource SuccessBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_TemporalIdentity_Tracking1" />
                     </Grid>
@@ -964,7 +964,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="#FF22C55E" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource SuccessBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_TemporalIdentity_Tracking2" />
                     </Grid>
@@ -975,7 +975,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="#FF22C55E" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource SuccessBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_TemporalIdentity_Tracking3" />
                     </Grid>
@@ -986,7 +986,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="#FF22C55E" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource SuccessBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_TemporalIdentity_Tracking4" />
                     </Grid>
@@ -1379,7 +1379,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="#FF22C55E" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource SuccessBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_InsightHarvesting_Automatic1" />
                     </Grid>
@@ -1390,7 +1390,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="#FF22C55E" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource SuccessBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_InsightHarvesting_Automatic2" />
                     </Grid>
@@ -1401,7 +1401,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                  Foreground="#FF22C55E" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                  Foreground="{ThemeResource SuccessBrush}" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_InsightHarvesting_Automatic3" />
                     </Grid>

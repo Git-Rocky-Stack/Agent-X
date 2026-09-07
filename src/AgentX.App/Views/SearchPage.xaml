@@ -557,13 +557,16 @@
                         Visibility="{x:Bind ViewModel.ShowNoResults, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                     <StackPanel Spacing="16" HorizontalAlignment="Center">
 
-                        <Border Background="{ThemeResource ErrorSubtleBrush}"
+                        <!-- Informational, not a fault: NO-GO is reserved for terminal
+                             failures (DESIGN.md LED semantics). A search that matched
+                             nothing is a SCOPE state, so it wears the LedScope tone. -->
+                        <Border Background="{ThemeResource InfoSubtleBrush}"
                                 CornerRadius="{StaticResource RadiusFull}"
                                 Width="64" Height="64"
                                 HorizontalAlignment="Center">
-                            <FontIcon Glyph="&#xE783;"
+                            <FontIcon Glyph="&#xE721;"
                                       FontSize="28"
-                                      Foreground="{ThemeResource ErrorBrush}"
+                                      Foreground="{ThemeResource InfoBrush}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                         </Border>

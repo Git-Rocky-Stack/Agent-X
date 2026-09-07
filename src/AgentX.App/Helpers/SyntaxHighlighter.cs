@@ -14,18 +14,29 @@ namespace AgentX.App.Helpers;
 /// </summary>
 public static class SyntaxHighlighter
 {
-    // ── Token colors (One Dark Pro inspired, tuned for Agent-X dark theme) ──
+    // ── Token colors (Command Console palette, DESIGN.md) ────────────────────
+    //
+    // Was One Dark Pro, which put a #C678DD purple on every keyword and a
+    // #61AFEF blue on every call. DESIGN.md bans purple outright and admits no
+    // blue, so the stream read as a foreign theme pasted into the well. These
+    // are documented tokens only.
+    //
+    // Armed red is deliberately absent: red is the LIVE signal in this product,
+    // and spending it on the word "if" would dilute the one hue that means the
+    // machine is working. Structure is carried by the silver ramp, literal
+    // categories by the LED hues. Every value clears 4.5:1 on the void-black
+    // well, including comments, which One Dark left at roughly 2.6:1.
 
-    private static readonly Color KeywordColor = Color.FromArgb(255, 198, 120, 221);    // purple
-    private static readonly Color TypeColor = Color.FromArgb(255, 229, 192, 123);        // gold
-    private static readonly Color StringColor = Color.FromArgb(255, 152, 195, 121);      // green
-    private static readonly Color CommentColor = Color.FromArgb(255, 92, 99, 112);       // grey
-    private static readonly Color NumberColor = Color.FromArgb(255, 209, 154, 102);      // orange
-    private static readonly Color FunctionColor = Color.FromArgb(255, 97, 175, 239);     // blue
-    private static readonly Color OperatorColor = Color.FromArgb(255, 86, 182, 194);     // cyan
-    private static readonly Color DefaultColor = Color.FromArgb(230, 220, 220, 230);     // light grey
-    private static readonly Color TagColor = Color.FromArgb(255, 224, 108, 117);         // red (HTML tags)
-    private static readonly Color AttrColor = Color.FromArgb(255, 209, 154, 102);        // orange (attributes)
+    private static readonly Color KeywordColor = Color.FromArgb(255, 0x58, 0xC4, 0xBC);   // LedScope
+    private static readonly Color TypeColor = Color.FromArgb(255, 0xFF, 0xB0, 0x00);      // LedHold
+    private static readonly Color StringColor = Color.FromArgb(255, 0x41, 0xE2, 0x5E);    // LedGo
+    private static readonly Color CommentColor = Color.FromArgb(255, 0x88, 0x88, 0x88);   // SilverMute
+    private static readonly Color NumberColor = Color.FromArgb(255, 0xFF, 0xB0, 0x00);    // LedHold
+    private static readonly Color FunctionColor = Color.FromArgb(255, 0xF5, 0xF5, 0xF5);  // Platinum
+    private static readonly Color OperatorColor = Color.FromArgb(255, 0xB3, 0xB3, 0xB3);  // Silver
+    private static readonly Color DefaultColor = Color.FromArgb(255, 0xD1, 0xD1, 0xD1);   // SilverBright
+    private static readonly Color TagColor = Color.FromArgb(255, 0x58, 0xC4, 0xBC);       // LedScope
+    private static readonly Color AttrColor = Color.FromArgb(255, 0xFF, 0xB0, 0x00);      // LedHold
 
     // ── Language definitions ──
 

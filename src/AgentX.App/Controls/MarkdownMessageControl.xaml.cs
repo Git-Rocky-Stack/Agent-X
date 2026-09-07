@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using AgentX.App.Helpers;
 using Microsoft.UI;
 using Microsoft.UI.Text;
@@ -100,7 +100,7 @@ public sealed partial class MarkdownMessageControl : UserControl
         // ── Header: language label + copy button ──────────────────
         var headerBorder = new Border
         {
-            Background = new SolidColorBrush(Color.FromArgb(255, 13, 13, 13)),
+            Background = ThemeResources.Brush("WellBrush"),
             CornerRadius = new CornerRadius(2, 2, 0, 0),
             Padding = new Thickness(12, 6, 8, 6)
         };
@@ -115,7 +115,7 @@ public sealed partial class MarkdownMessageControl : UserControl
             Text = (segment.Language ?? "code").ToUpperInvariant(),
             FontFamily = (FontFamily)Application.Current.Resources["FontTelemetry"],
             FontSize = 10,
-            Foreground = new SolidColorBrush(Color.FromArgb(180, 255, 255, 255)),
+            Foreground = ThemeResources.Brush("WellTextSecondaryBrush"),
             VerticalAlignment = VerticalAlignment.Center,
             CharacterSpacing = 40,
             FontWeight = FontWeights.SemiBold
@@ -133,13 +133,13 @@ public sealed partial class MarkdownMessageControl : UserControl
         {
             Glyph = "\uE8C8",
             FontSize = 12,
-            Foreground = new SolidColorBrush(Color.FromArgb(180, 255, 255, 255))
+            Foreground = ThemeResources.Brush("WellTextSecondaryBrush")
         });
         copyButtonContent.Children.Add(new TextBlock
         {
             Text = "Copy",
             FontSize = 11,
-            Foreground = new SolidColorBrush(Color.FromArgb(180, 255, 255, 255))
+            Foreground = ThemeResources.Brush("WellTextSecondaryBrush")
         });
 
         var copyButton = new Button
@@ -188,7 +188,7 @@ public sealed partial class MarkdownMessageControl : UserControl
         // ── Code content area (with syntax highlighting) ──────────
         var codeBorder = new Border
         {
-            Background = new SolidColorBrush(Color.FromArgb(255, 8, 8, 8)),
+            Background = ThemeResources.Brush("VoidBrush"),
             CornerRadius = new CornerRadius(0, 0, 2, 2),
             Padding = new Thickness(16, 12, 16, 12)
         };
@@ -229,7 +229,7 @@ public sealed partial class MarkdownMessageControl : UserControl
                 Text = segment.Content,
                 FontFamily = (FontFamily)Application.Current.Resources["FontMono"],
                 FontSize = 13,
-                Foreground = new SolidColorBrush(Color.FromArgb(230, 220, 220, 230)),
+                Foreground = ThemeResources.Brush("WellTextBrush"),
                 TextWrapping = TextWrapping.NoWrap,
                 IsTextSelectionEnabled = true,
                 LineHeight = 20
@@ -355,7 +355,7 @@ public sealed partial class MarkdownMessageControl : UserControl
                 {
                     Text = match.Groups[4].Value,
                     FontFamily = (FontFamily)Application.Current.Resources["FontMono"],
-                    Foreground = new SolidColorBrush(Color.FromArgb(255, 229, 134, 132))
+                    Foreground = ThemeResources.Brush("TextAccentBrush")
                 };
                 textBlock.Inlines.Add(codeRun);
             }

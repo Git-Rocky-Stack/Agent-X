@@ -158,13 +158,12 @@ public sealed partial class KnowledgeVaultPage : Page
         e.DragUIOverride.IsCaptionVisible = true;
         e.DragUIOverride.IsGlyphVisible = true;
 
-        // Visual feedback: apply active drop zone style
+        // Visual feedback: apply the active drop zone style. This style already
+        // existed and described exactly this state; the hand-rolled brushes that
+        // used to live here were an unwired duplicate of it.
         if (sender is Border border)
         {
-            border.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                (Windows.UI.Color)Application.Current.Resources["RedGlow10"]);
-            border.BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                (Windows.UI.Color)Application.Current.Resources["Red500"]);
+            border.Style = (Style)Application.Current.Resources["DropZoneActiveStyle"];
         }
     }
 
@@ -173,11 +172,7 @@ public sealed partial class KnowledgeVaultPage : Page
         // Reset visual feedback
         if (sender is Border border)
         {
-            // Clear the local values so DropZoneStyle's {ThemeResource} setters
-            // take over again. Re-resolving the brushes here would snapshot the
-            // application theme, which does not follow the window root's shift.
-            border.ClearValue(Microsoft.UI.Xaml.Controls.Border.BackgroundProperty);
-            border.ClearValue(Microsoft.UI.Xaml.Controls.Border.BorderBrushProperty);
+            border.Style = (Style)Application.Current.Resources["DropZoneStyle"];
         }
     }
 
@@ -186,11 +181,7 @@ public sealed partial class KnowledgeVaultPage : Page
         // Reset visual feedback
         if (sender is Border border)
         {
-            // Clear the local values so DropZoneStyle's {ThemeResource} setters
-            // take over again. Re-resolving the brushes here would snapshot the
-            // application theme, which does not follow the window root's shift.
-            border.ClearValue(Microsoft.UI.Xaml.Controls.Border.BackgroundProperty);
-            border.ClearValue(Microsoft.UI.Xaml.Controls.Border.BorderBrushProperty);
+            border.Style = (Style)Application.Current.Resources["DropZoneStyle"];
         }
 
         try

@@ -297,12 +297,14 @@ public sealed partial class SearchPage : Page
     /// </summary>
     public static Color GetScoreColorValue(int relevancePercent)
     {
+        // Segment-meter cascade in LED hues (DESIGN.md): go, then hold, then the
+        // hot zone. Was the stock Material palette, which is off-system.
         return relevancePercent switch
         {
-            >= 80 => ColorHelper.FromArgb(255, 76, 175, 80),   // #4CAF50 Green
-            >= 60 => ColorHelper.FromArgb(255, 255, 193, 7),   // #FFC107 Yellow
-            >= 40 => ColorHelper.FromArgb(255, 255, 152, 0),   // #FF9800 Orange
-            _ => ColorHelper.FromArgb(255, 244, 67, 54)        // #F44336 Red
+            >= 80 => ColorHelper.FromArgb(255, 0x41, 0xE2, 0x5E),  // LedGo
+            >= 60 => ColorHelper.FromArgb(255, 0xFF, 0xB0, 0x00),  // LedHold
+            >= 40 => ColorHelper.FromArgb(255, 0xC8, 0x45, 0x3E),  // LedNoGo
+            _ => ColorHelper.FromArgb(255, 0x94, 0x1B, 0x1F)       // Red600, deepest tier
         };
     }
 

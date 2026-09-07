@@ -10,19 +10,10 @@
     ╚══════════════════════════════════════════════════════════════════╝
     -->
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         DOCUMENT CARD STYLE
-         Interactive card for document grid items with file type icon,
-         info area, tags, and action buttons.
-         ═══════════════════════════════════════════════════════════════ -->
-
-    <Style x:Key="DocumentCardStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource CardGradientSubtleBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusLG}" />
-        <Setter Property="Padding" Value="20" />
-    </Style>
+    <!-- DocumentCardStyle was removed during the 2026-09-06 parity sweep. It had
+         no consumer anywhere in the app, in markup or code, and the document grid
+         it was written for uses DocumentGridItemStyle. Checked for a waiting
+         consumer before removing: there is none. -->
 
     <!-- ═══════════════════════════════════════════════════════════════
          DROP ZONE STYLE

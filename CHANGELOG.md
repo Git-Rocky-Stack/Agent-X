@@ -47,6 +47,51 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
+### Fixed - The app was shipping four palettes (2026-09-06)
+
+A hue audit of every color literal in `AgentX.App` found three foreign palettes living
+alongside the Command Console one. None of them were in the token file, which is why the
+Tier 3 sweep missed them: they arrived one literal at a time in code-behind and view models,
+where each looked local and reasonable.
+
+- **One Dark Pro**, in the code-block highlighter. Its keyword color was `#C678DD`, a purple
+  that `DESIGN.md:263` bans by name, and its call color was a `#61AFEF` blue the system does
+  not admit at all. Retuned to documented tokens
+  (`src/AgentX.App/Helpers/SyntaxHighlighter.cs:30`). Armed red is deliberately absent from
+  the new mapping: red is this product's LIVE signal, and spending it on the word `if` would
+  dilute the one hue that means the machine is working. Comments moved from `#5C6370` to
+  `SilverMute`, which raises them from roughly 2.6:1 to about 5.3:1 on the void well.
+- **Material**, in the search relevance meter. `#4CAF50` / `#FFC107` / `#FF9800` / `#F44336`
+  became the LED segment cascade (`src/AgentX.App/Views/SearchPage.xaml.cs:304`). A second
+  copy of the same ramp lived on `SearchViewModel.ScoreColor` with no consumer anywhere; the
+  live path is the code-behind one bound at `SearchPage.xaml:673`, so the duplicate was
+  removed rather than recolored.
+- **Tailwind**, as `#22C55E` on eighteen check glyphs across the user guide, now
+  `SuccessBrush` (`Styles/UserGuideSections.Features.xaml`, `.Research.xaml`, `.Advanced.xaml`).
+
+`tests/AgentX.Tests/CodeQuality/NoBannedPaletteHuesTests.cs` guards the rule by hue rather
+than by a list of known-bad hex values, because the next violation will be a hex nobody has
+written down yet. Annotation ink is exempt with a stated reason: those five color names are a
+persisted contract (`src/AgentX.Core/Data/Entities/AnnotationEntity.cs:47`), so a highlight
+the operator saved as "purple" has to render purple. That is user content, not chassis.
+
+### Fixed - Remaining hardcoded surfaces, one unwired style, one dead style (2026-09-06)
+
+- `MarkdownMessageControl` hardcoded all seven of its surfaces and text colors, including an
+  off-palette `#E58684` for inline code. They now resolve through the well family, which is
+  identical in both shifts and system-bound in HighContrast; the code stream sits on `Void`,
+  which `DESIGN.md:114` names for exactly that
+  (`src/AgentX.App/Controls/MarkdownMessageControl.xaml.cs:191`).
+- `DropZoneActiveStyle` was never dead, it was unwired. The drag-over handler carried the
+  comment "apply active drop zone style" and then hand-rolled the brushes instead
+  (`src/AgentX.App/Views/KnowledgeVaultPage.xaml.cs:166`). Checked for a waiting consumer
+  before touching it, which is what turned up the mismatch.
+- `DocumentCardStyle` had no consumer in markup or code and its grid uses
+  `DocumentGridItemStyle`; removed after the same check.
+- The search no-results state wore NO-GO, which `DESIGN.md` reserves for terminal faults. A
+  query that matched nothing is informational, so it now wears LedScope
+  (`src/AgentX.App/Views/SearchPage.xaml:563`).
+
 ### Fixed - Code-behind brushes ignored the shift, breaking Day Shift and HighContrast (2026-09-06)
 
 `ThemeService` applies a shift by setting `RequestedTheme` on the window root
