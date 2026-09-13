@@ -16,7 +16,7 @@
 # something that exists, and every entry in the XAML-only group is proven to appear in
 # markup. A dismissal that stops being true fails the build.
 #
-# As of 2026-08-24 the sweep reports 34 orphan findings; all 34 are listed here.
+# As of 2026-09-12 the sweep reports 39 orphan findings; all 39 are listed here.
 
 # --- Reflection / platform entry points (never referenced by name) ---
 # EF Core discovers Migration subclasses via Database.MigrateAsync()
@@ -85,6 +85,26 @@ docs/v1.4.0-RELEASE-NOTES.md
 docs/v1.5.0-RELEASE-NOTES.md
 docs/v2.1.0-preview.1-RELEASE-NOTES.md
 docs/v2.1.0-RELEASE-NOTES.md
+
+# --- Browser extension: webpack entry points and what they import ---
+# The extension is a shipping deliverable, not dead code: it clips into the app's local
+# API host on port 9846 (src/AgentX.App/Services/ApiHostLifecycleService.cs:14), it is
+# built into browser-extension/dist/, and it ships per docs/v1.4.0-RELEASE-NOTES.md.
+#
+# Nothing in TypeScript imports the three entry modules, because nothing is supposed to:
+# webpack names them as entries (browser-extension/webpack.config.js:6-8) and the MV3
+# manifest loads the bundles (manifest.json background.service_worker -> background.js,
+# content_scripts.js -> content.js, action.default_popup -> popup.html -> popup.js).
+# The sweep indexes source-to-source references, so it sees neither mechanism, and once
+# the entries read as orphans everything they import inherits it.
+browser-extension/src/background/background.ts
+browser-extension/src/content/content.ts
+browser-extension/src/popup/popup.ts
+# Imported by content.ts:8 (extractFullPage / extractSelection / extractReaderMode) and
+# background.ts:9 (ExtractedPage). Orphaned only because its importers are entry points.
+browser-extension/src/content/extractors.ts
+# Imported by background.ts:8 and instantiated at background.ts:11 (new AgentXApi()).
+browser-extension/src/api/agentx-api.ts
 
 # --- Third-party text this repo does not author ---
 # Upstream licence for the Iosevka typeface. Editing it would be a licence violation.
