@@ -44,6 +44,16 @@
   <data name="Cheatsheet_Dialog.Title" xml:space="preserve"><value>Keyboard Shortcuts</value></data>
 
   <!-- Command Palette -->
+  <data name="Palette_SearchInput.PlaceholderText" xml:space="preserve"><value>Type a page or action...</value></data>
+  <data name="Palette_NavigateHint.Text" xml:space="preserve"><value>Navigate</value></data>
+  <data name="Palette_OpenHint.Text" xml:space="preserve"><value>Open</value></data>
+  <data name="Palette_CloseHint.Text" xml:space="preserve"><value>Close</value></data>
+  <data name="Palette_Actions" xml:space="preserve"><value>ACTIONS</value></data>
+  <data name="Palette_OnThisPage" xml:space="preserve"><value>ON THIS PAGE</value></data>
+  <data name="Palette_NewConversation" xml:space="preserve"><value>New Conversation</value></data>
+  <data name="Palette_ImportFiles" xml:space="preserve"><value>Import Files</value></data>
+  <data name="Palette_ToggleTheme" xml:space="preserve"><value>Toggle Theme</value></data>
+  <data name="Palette_NoMatches" xml:space="preserve"><value>No matching commands</value></data>
 
   <!-- Plugin Manager -->
   <data name="Plugin_Manager.Text" xml:space="preserve"><value>Plugins</value></data>
@@ -292,12 +302,12 @@
 
   <!-- UserGuide: Command Palette (Row 16) -->
   <data name="UserGuide_CommandPalette_Title.Text" xml:space="preserve"><value>Command Palette</value></data>
-  <data name="UserGuide_CommandPalette_Description.Text" xml:space="preserve"><value>The Command Palette is the central nervous system for keyboard-driven navigation. Inspired by VS Code, Sublime, and Spotlight, it gives you fuzzy-matched, instant access to every page, every saved conversation, every Quick Action, every Workflow, every Collection, every settings panel, and every plugin command — through a single search box. Most experienced Agent-X users open the palette as their primary navigation surface and rarely touch the sidebar.</value></data>
+  <data name="UserGuide_CommandPalette_Description.Text" xml:space="preserve"><value>The Command Palette is the keyboard route to every page in Agent-X, plus a few actions and the shortcuts that belong to the page you are on. Press Ctrl+K, type a few letters, press Enter.</value></data>
   <data name="UserGuide_CommandPalette_HowToUse_Title.Text" xml:space="preserve"><value>How to Use</value></data>
   <data name="UserGuide_CommandPalette_Step1.Text" xml:space="preserve"><value>Press Ctrl+K (or Ctrl+Shift+P) from anywhere in the app to summon the palette overlay. The palette appears centered over the current page and captures input immediately.</value></data>
-  <data name="UserGuide_CommandPalette_Step2.Text" xml:space="preserve"><value>Type to fuzzy-match — characters need not be contiguous, so "kbv" finds "Knowledge Vault" and "newchat" finds "New Conversation." Results group by category (Pages, Actions, Conversations, Documents, Workflows, Plugins) and rank by recency and frequency.</value></data>
-  <data name="UserGuide_CommandPalette_Step3.Text" xml:space="preserve"><value>Use ↑/↓ to move through results, Enter to execute, Tab to peek into a result without leaving the palette, and Esc to dismiss. Prefix queries with ":" for actions ("`:export this conversation`"), "&gt;" for jump-to-document, or "?" to surface help articles directly from this user guide.</value></data>
-  <data name="UserGuide_CommandPalette_Coverage.Text" xml:space="preserve"><value>The palette indexes every navigable surface (Dashboard, Chat, Knowledge Vault, Search, Collections, Quick Actions, Workflows, Workspace Profiles, Annotations, Inbox, Operations, Analytics, Knowledge Graph, Plugins, Calendar, Email, Backup &amp; Restore, Settings, Model Manager, Hardware Advisor, this User Guide), every saved conversation by title, every recently opened document, and every plugin-contributed command. New surfaces register themselves automatically — no manual config needed.</value></data>
+  <data name="UserGuide_CommandPalette_Step2.Text" xml:space="preserve"><value>Type to fuzzy-match. The letters you type must appear in a command's name in that order but need not be adjacent, so "knv" finds Knowledge Vault and "tgt" finds Toggle Theme. Results keep the navigation rail's groups (Intelligence, Knowledge, Triage, System, Support), followed by Actions and, when the current page registers shortcuts, On This Page.</value></data>
+  <data name="UserGuide_CommandPalette_Step3.Text" xml:space="preserve"><value>Use Up and Down (or Tab and Shift+Tab) to move through results, Enter to run the selected command, and Esc or a click outside the palette to dismiss it.</value></data>
+  <data name="UserGuide_CommandPalette_Coverage.Text" xml:space="preserve"><value>The palette lists every page on the navigation rail under the same names, icons and group placards, with the key chord beside any page that has one. It adds three actions (New Conversation, Import Files, Toggle Theme) and the shortcuts registered by the page you are on. A page added to the rail appears in the palette automatically. Documents and conversations are opened through Jump To (Ctrl+P), not the palette.</value></data>
 
   <!-- UserGuide: Supported File Formats (Row 17) -->
   <data name="UserGuide_FileFormats_Title.Text" xml:space="preserve"><value>Supported File Formats</value></data>

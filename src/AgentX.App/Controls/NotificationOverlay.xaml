@@ -20,12 +20,12 @@
                         BorderBrush="{ThemeResource HairlineBrush}"
                         BorderThickness="1"
                         CornerRadius="{StaticResource RControl}"
-                        Padding="14,10,14,10"
+                        Padding="12,8,12,8"
                         MinWidth="300"
                         MaxWidth="420"
                         Opacity="{x:Bind Opacity, Mode=OneWay}"
                         HorizontalAlignment="Right">
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
@@ -36,7 +36,7 @@
                         <Ellipse Width="8" Height="8"
                                  Fill="{x:Bind SeverityBrush}"
                                  VerticalAlignment="Top"
-                                 Margin="0,6,0,0" />
+                                 Margin="0,4,0,0" />
 
                         <!-- Text content -->
                         <StackPanel Grid.Column="1" Spacing="2">

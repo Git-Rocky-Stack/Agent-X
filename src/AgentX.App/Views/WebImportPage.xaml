@@ -55,7 +55,7 @@
                              Style="{StaticResource InputTextBoxStyle}" />
 
                     <!-- Collection Selector -->
-                    <StackPanel Spacing="6">
+                    <StackPanel Spacing="4">
                         <TextBlock x:Uid="WebImport_AddToCollectionOptional" Text="Add to Collection (optional)" Style="{StaticResource LabelStyle}" />
                         <ComboBox ItemsSource="{x:Bind ViewModel.Collections}"
                                   SelectedItem="{x:Bind ViewModel.SelectedCollection, Mode=TwoWay}"
@@ -148,7 +148,7 @@
 
                     <!-- Content Preview -->
                     <Border Background="{ThemeResource CardBrush}"
-                            CornerRadius="{StaticResource RadiusSM}"
+                            CornerRadius="{StaticResource RControl}"
                             Padding="16"
                             BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1">
@@ -172,18 +172,18 @@
                         <TextBlock x:Uid="WebImport_ImportResults" Text="Import Results"
                                    Style="{StaticResource HeadingSmallStyle}" />
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
-                            <Border CornerRadius="{StaticResource RadiusSM}"
+                            <Border CornerRadius="{StaticResource RControl}"
                                     Background="{ThemeResource AccentSubtleBrush}"
-                                    Padding="10,4">
+                                    Padding="8,4">
                                 <TextBlock Foreground="{ThemeResource SuccessBrush}"
                                            Style="{StaticResource CaptionStyle}">
                                     <Run Text="{x:Bind ViewModel.SuccessCount, Mode=OneWay}" />
                                     <Run x:Uid="WebImport_Imported" Text="imported" />
                                 </TextBlock>
                             </Border>
-                            <Border CornerRadius="{StaticResource RadiusSM}"
+                            <Border CornerRadius="{StaticResource RControl}"
                                     Background="{ThemeResource AccentSubtleBrush}"
-                                    Padding="10,4"
+                                    Padding="8,4"
                                     Visibility="{x:Bind views:WebImportPage.IntToVisibility(ViewModel.FailCount)}">
                                 <TextBlock Foreground="{ThemeResource ErrorBrush}"
                                            Style="{StaticResource CaptionStyle}">
@@ -196,11 +196,11 @@
 
                     <ItemsRepeater ItemsSource="{x:Bind ViewModel.ImportResults}">
                         <ItemsRepeater.Layout>
-                            <StackLayout Spacing="6" />
+                            <StackLayout Spacing="4" />
                         </ItemsRepeater.Layout>
                         <ItemsRepeater.ItemTemplate>
                             <DataTemplate x:DataType="vm:WebImportResultItem">
-                                <Grid ColumnSpacing="12" Padding="8,6">
+                                <Grid ColumnSpacing="12" Padding="8,4">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />

@@ -298,7 +298,7 @@
                                     Background="{ThemeResource CardBrush}"
                                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                                     BorderThickness="1"
-                                    CornerRadius="{StaticResource RadiusMD}"
+                                    CornerRadius="{StaticResource RControl}"
                                     Padding="16,12,16,12">
                                 <StackPanel Spacing="4">
                                     <TextBlock x:Uid="Ana_TotalRunsOverline" Text="TOTAL RUNS" Style="{StaticResource OverlineStyle}" />
@@ -313,7 +313,7 @@
                                     Background="{ThemeResource CardBrush}"
                                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                                     BorderThickness="1"
-                                    CornerRadius="{StaticResource RadiusMD}"
+                                    CornerRadius="{StaticResource RControl}"
                                     Padding="16,12,16,12">
                                 <StackPanel Spacing="4">
                                     <TextBlock x:Uid="Ana_SuccessRateOverline" Text="SUCCESS RATE" Style="{StaticResource OverlineStyle}" />
@@ -328,7 +328,7 @@
                                     Background="{ThemeResource CardBrush}"
                                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                                     BorderThickness="1"
-                                    CornerRadius="{StaticResource RadiusMD}"
+                                    CornerRadius="{StaticResource RControl}"
                                     Padding="16,12,16,12">
                                 <StackPanel Spacing="4">
                                     <TextBlock x:Uid="Ana_AvgRunDurOverline" Text="AVG RUN DURATION" Style="{StaticResource OverlineStyle}" />
@@ -343,7 +343,7 @@
                                     Background="{ThemeResource AccentSubtleBrush}"
                                     BorderBrush="{ThemeResource BorderAccentGradientBrush}"
                                     BorderThickness="1"
-                                    CornerRadius="{StaticResource RadiusMD}"
+                                    CornerRadius="{StaticResource RControl}"
                                     Padding="16,12,16,12">
                                 <StackPanel Spacing="4">
                                     <TextBlock x:Uid="Ana_ActiveWfOverline" Text="ACTIVE WORKFLOWS (30D)" Style="{StaticResource OverlineStyle}" />
@@ -358,7 +358,7 @@
 
                         <Border Style="{StaticResource SeparatorStyle}" />
 
-                        <StackPanel Spacing="10">
+                        <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <Ellipse Width="8" Height="8" Fill="{ThemeResource ChartSeriesBrush}" VerticalAlignment="Center" />
                                 <TextBlock x:Uid="Ana_WfTrendLabel" Text="30-Day Workflow Run Trend" Style="{StaticResource LabelStyle}" />
@@ -423,9 +423,9 @@
                                             <Border Background="{ThemeResource CardBrush}"
                                                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                                                     BorderThickness="1"
-                                                    CornerRadius="{StaticResource RadiusMD}"
+                                                    CornerRadius="{StaticResource RControl}"
                                                     Padding="16">
-                                                <StackPanel Spacing="10">
+                                                <StackPanel Spacing="8">
                                                     <Grid ColumnSpacing="12">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*" />
@@ -482,9 +482,9 @@
                                             <Border Background="{ThemeResource CardBrush}"
                                                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                                                     BorderThickness="1"
-                                                    CornerRadius="{StaticResource RadiusMD}"
+                                                    CornerRadius="{StaticResource RControl}"
                                                     Padding="16">
-                                                <StackPanel Spacing="10">
+                                                <StackPanel Spacing="8">
                                                     <Grid ColumnSpacing="12">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*" />
@@ -552,7 +552,7 @@
                                 Background="{ThemeResource CardBrush}"
                                 BorderBrush="{ThemeResource BorderSubtleBrush}"
                                 BorderThickness="1"
-                                CornerRadius="{StaticResource RadiusMD}"
+                                CornerRadius="{StaticResource RControl}"
                                 Padding="16,12,16,12">
                             <StackPanel Spacing="4">
                                 <TextBlock x:Uid="Ana_SummarizedOverline" Text="SUMMARIZED CONVERSATIONS" Style="{StaticResource OverlineStyle}" />
@@ -567,7 +567,7 @@
                                 Background="{ThemeResource CardBrush}"
                                 BorderBrush="{ThemeResource BorderSubtleBrush}"
                                 BorderThickness="1"
-                                CornerRadius="{StaticResource RadiusMD}"
+                                CornerRadius="{StaticResource RControl}"
                                 Padding="16,12,16,12">
                             <StackPanel Spacing="4">
                                 <TextBlock x:Uid="Ana_SnapshotsOverline" Text="CURRENT SNAPSHOTS" Style="{StaticResource OverlineStyle}" />
@@ -582,7 +582,7 @@
                                 Background="{ThemeResource CardBrush}"
                                 BorderBrush="{ThemeResource BorderSubtleBrush}"
                                 BorderThickness="1"
-                                CornerRadius="{StaticResource RadiusMD}"
+                                CornerRadius="{StaticResource RControl}"
                                 Padding="16,12,16,12">
                             <StackPanel Spacing="4">
                                 <TextBlock x:Uid="Ana_StaleOverline" Text="STALE SUMMARIES" Style="{StaticResource OverlineStyle}" />
@@ -597,7 +597,7 @@
                                 Background="{ThemeResource AccentSubtleBrush}"
                                 BorderBrush="{ThemeResource BorderAccentGradientBrush}"
                                 BorderThickness="1"
-                                CornerRadius="{StaticResource RadiusMD}"
+                                CornerRadius="{StaticResource RControl}"
                                 Padding="16,12,16,12">
                             <StackPanel Spacing="4">
                                 <TextBlock x:Uid="Ana_PendingRefreshOverline" Text="PENDING REFRESHES" Style="{StaticResource OverlineStyle}" />
@@ -615,8 +615,8 @@
                     <Border Background="{ThemeResource AccentSubtleBrush}"
                             BorderBrush="{ThemeResource AccentPrimaryBrush}"
                             BorderThickness="1"
-                            CornerRadius="{StaticResource RadiusMD}"
-                            Padding="16,14"
+                            CornerRadius="{StaticResource RControl}"
+                            Padding="16,12"
                             Visibility="{x:Bind ViewModel.HasFocusedConversationLanding, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <Grid ColumnSpacing="16">
                             <Grid.ColumnDefinitions>
@@ -624,7 +624,7 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Spacing="6">
+                            <StackPanel Spacing="4">
                                 <TextBlock x:Uid="Ana_FocusedConvTitle" Text="Focused Conversation Summary"
                                            Style="{StaticResource BodyStyle}"
                                            FontWeight="SemiBold"
@@ -653,8 +653,8 @@
                     <Border Background="{ThemeResource CardBrush}"
                             BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1"
-                            CornerRadius="{StaticResource RadiusMD}"
-                            Padding="14,12"
+                            CornerRadius="{StaticResource RControl}"
+                            Padding="12,12"
                             Visibility="{x:Bind ViewModel.HasConversationIntelligenceStatusMessage, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <TextBlock Text="{x:Bind ViewModel.ConversationIntelligenceStatusMessage, Mode=OneWay}"
                                    Style="{StaticResource BodySecondaryStyle}"
@@ -675,9 +675,9 @@
                                 <Border Background="{ThemeResource CardBrush}"
                                         BorderBrush="{ThemeResource BorderSubtleBrush}"
                                         BorderThickness="1"
-                                        CornerRadius="{StaticResource RadiusMD}"
+                                        CornerRadius="{StaticResource RControl}"
                                         Padding="16">
-                                    <StackPanel Spacing="10">
+                                    <StackPanel Spacing="8">
                                         <Grid ColumnSpacing="12">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
@@ -749,7 +749,7 @@
                                     Background="{ThemeResource CardBrush}"
                                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                                     BorderThickness="1"
-                                    CornerRadius="{StaticResource RadiusMD}"
+                                    CornerRadius="{StaticResource RControl}"
                                     Padding="16,12,16,12">
                                 <StackPanel Spacing="4">
                                     <TextBlock x:Uid="Ana_EmbeddedOverline" Text="EMBEDDED MESSAGES" Style="{StaticResource OverlineStyle}" />
@@ -764,7 +764,7 @@
                                     Background="{ThemeResource CardBrush}"
                                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                                     BorderThickness="1"
-                                    CornerRadius="{StaticResource RadiusMD}"
+                                    CornerRadius="{StaticResource RControl}"
                                     Padding="16,12,16,12">
                                 <StackPanel Spacing="4">
                                     <TextBlock x:Uid="Ana_PendingEmbOverline" Text="PENDING EMBEDDINGS" Style="{StaticResource OverlineStyle}" />
@@ -779,7 +779,7 @@
                                     Background="{ThemeResource AccentSubtleBrush}"
                                     BorderBrush="{ThemeResource BorderAccentGradientBrush}"
                                     BorderThickness="1"
-                                    CornerRadius="{StaticResource RadiusMD}"
+                                    CornerRadius="{StaticResource RControl}"
                                     Padding="16,12,16,12">
                                 <StackPanel Spacing="4">
                                     <TextBlock x:Uid="Ana_RecallReadyOverline" Text="RECALL-READY CONVERSATIONS" Style="{StaticResource OverlineStyle}" />
@@ -826,9 +826,9 @@
                                     <Border Background="{ThemeResource CardBrush}"
                                             BorderBrush="{ThemeResource BorderSubtleBrush}"
                                             BorderThickness="1"
-                                            CornerRadius="{StaticResource RadiusMD}"
+                                            CornerRadius="{StaticResource RControl}"
                                             Padding="16">
-                                        <StackPanel Spacing="10">
+                                        <StackPanel Spacing="8">
                                             <Border Style="{StaticResource BadgeAccentStyle}"
                                                     HorizontalAlignment="Left"
                                                     Visibility="{Binding HasSourceLabel, Converter={StaticResource BoolToVis}}">
@@ -892,7 +892,7 @@
                                         Background="{ThemeResource CardBrush}"
                                         BorderBrush="{ThemeResource BorderSubtleBrush}"
                                         BorderThickness="1"
-                                        CornerRadius="{StaticResource RadiusMD}"
+                                        CornerRadius="{StaticResource RControl}"
                                         Padding="16,12,16,12">
                                     <StackPanel Spacing="4">
                                         <TextBlock x:Uid="Ana_ActiveClustersOverline" Text="ACTIVE THEME CLUSTERS" Style="{StaticResource OverlineStyle}" />
@@ -907,7 +907,7 @@
                                         Background="{ThemeResource CardBrush}"
                                         BorderBrush="{ThemeResource BorderSubtleBrush}"
                                         BorderThickness="1"
-                                        CornerRadius="{StaticResource RadiusMD}"
+                                        CornerRadius="{StaticResource RControl}"
                                         Padding="16,12,16,12">
                                     <StackPanel Spacing="4">
                                         <TextBlock x:Uid="Ana_ClusteredConvOverline" Text="CLUSTERED CONVERSATIONS" Style="{StaticResource OverlineStyle}" />
@@ -922,7 +922,7 @@
                                         Background="{ThemeResource CardBrush}"
                                         BorderBrush="{ThemeResource BorderSubtleBrush}"
                                         BorderThickness="1"
-                                        CornerRadius="{StaticResource RadiusMD}"
+                                        CornerRadius="{StaticResource RControl}"
                                         Padding="16,12,16,12">
                                     <StackPanel Spacing="4">
                                         <TextBlock x:Uid="Ana_NewThemesOverline" Text="NEW THEMES (7D)" Style="{StaticResource OverlineStyle}" />
@@ -937,7 +937,7 @@
                                         Background="{ThemeResource AccentSubtleBrush}"
                                         BorderBrush="{ThemeResource BorderAccentGradientBrush}"
                                         BorderThickness="1"
-                                        CornerRadius="{StaticResource RadiusMD}"
+                                        CornerRadius="{StaticResource RControl}"
                                         Padding="16,12,16,12">
                                     <StackPanel Spacing="4">
                                         <TextBlock x:Uid="Ana_LastMaterializedOverline" Text="LAST MATERIALIZED" Style="{StaticResource OverlineStyle}" />
@@ -964,9 +964,9 @@
                                         <Border Background="{ThemeResource CardBrush}"
                                                 BorderBrush="{ThemeResource BorderSubtleBrush}"
                                                 BorderThickness="1"
-                                                CornerRadius="{StaticResource RadiusMD}"
+                                                CornerRadius="{StaticResource RControl}"
                                                 Padding="16">
-                                            <StackPanel Spacing="10">
+                                            <StackPanel Spacing="8">
                                                 <Grid ColumnSpacing="12">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*" />
@@ -1033,7 +1033,7 @@
                                             Background="{ThemeResource CardBrush}"
                                             BorderBrush="{ThemeResource BorderSubtleBrush}"
                                             BorderThickness="1"
-                                            CornerRadius="{StaticResource RadiusMD}"
+                                            CornerRadius="{StaticResource RControl}"
                                             Padding="16,12,16,12">
                                         <StackPanel Spacing="4">
                                             <TextBlock x:Uid="Ana_TrendingOverline" Text="TRENDING THEMES" Style="{StaticResource OverlineStyle}" />
@@ -1048,7 +1048,7 @@
                                             Background="{ThemeResource CardBrush}"
                                             BorderBrush="{ThemeResource BorderSubtleBrush}"
                                             BorderThickness="1"
-                                            CornerRadius="{StaticResource RadiusMD}"
+                                            CornerRadius="{StaticResource RControl}"
                                             Padding="16,12,16,12">
                                         <StackPanel Spacing="4">
                                             <TextBlock x:Uid="Ana_NewEntriesOverline" Text="NEW THEME ENTRIES (7D)" Style="{StaticResource OverlineStyle}" />
@@ -1063,7 +1063,7 @@
                                             Background="{ThemeResource CardBrush}"
                                             BorderBrush="{ThemeResource BorderSubtleBrush}"
                                             BorderThickness="1"
-                                            CornerRadius="{StaticResource RadiusMD}"
+                                            CornerRadius="{StaticResource RControl}"
                                             Padding="16,12,16,12">
                                         <StackPanel Spacing="4">
                                             <TextBlock x:Uid="Ana_MostActiveOverline" Text="MOST ACTIVE THEME" Style="{StaticResource OverlineStyle}" />
@@ -1080,7 +1080,7 @@
                                             Background="{ThemeResource AccentSubtleBrush}"
                                             BorderBrush="{ThemeResource BorderAccentGradientBrush}"
                                             BorderThickness="1"
-                                            CornerRadius="{StaticResource RadiusMD}"
+                                            CornerRadius="{StaticResource RControl}"
                                             Padding="16,12,16,12">
                                         <StackPanel Spacing="4">
                                             <TextBlock x:Uid="Ana_LastTrendOverline" Text="LAST TREND REFRESH" Style="{StaticResource OverlineStyle}" />
@@ -1107,7 +1107,7 @@
                                             <Border Background="{ThemeResource CardBrush}"
                                                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                                                     BorderThickness="1"
-                                                    CornerRadius="{StaticResource RadiusMD}"
+                                                    CornerRadius="{StaticResource RControl}"
                                                     Padding="16">
                                                 <StackPanel Spacing="12">
                                                     <Grid ColumnSpacing="12">
@@ -1200,7 +1200,7 @@
                     </StackPanel>
 
                     <!-- === Conversations === -->
-                    <StackPanel Spacing="10">
+                    <StackPanel Spacing="8">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Ellipse Width="8" Height="8" Fill="#AA2024" VerticalAlignment="Center" />
                             <TextBlock x:Uid="Ana_ConvSeriesLabel" Text="Conversations" Style="{StaticResource LabelStyle}" />
@@ -1238,7 +1238,7 @@
                     <Border Style="{StaticResource SeparatorStyle}" />
 
                     <!-- === Documents === -->
-                    <StackPanel Spacing="10">
+                    <StackPanel Spacing="8">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Ellipse Width="8" Height="8" Fill="#58C4BC" VerticalAlignment="Center" />
                             <TextBlock x:Uid="Ana_DocsSeriesLabel" Text="Documents Imported" Style="{StaticResource LabelStyle}" />
@@ -1276,7 +1276,7 @@
                     <Border Style="{StaticResource SeparatorStyle}" />
 
                     <!-- === Searches === -->
-                    <StackPanel Spacing="10">
+                    <StackPanel Spacing="8">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Ellipse Width="8" Height="8" Fill="#41E25E" VerticalAlignment="Center" />
                             <TextBlock x:Uid="Ana_SearchSeriesLabel" Text="Searches" Style="{StaticResource LabelStyle}" />
@@ -1519,7 +1519,7 @@
                                 Background="{ThemeResource CardBrush}"
                                 BorderBrush="{ThemeResource BorderSubtleBrush}"
                                 BorderThickness="1"
-                                CornerRadius="{StaticResource RadiusMD}"
+                                CornerRadius="{StaticResource RControl}"
                                 Padding="16,12,16,12">
                             <StackPanel Spacing="4">
                                 <TextBlock x:Uid="Ana_AvgOverline" Text="AVERAGE" Style="{StaticResource OverlineStyle}" />
@@ -1534,7 +1534,7 @@
                                 Background="{ThemeResource CardBrush}"
                                 BorderBrush="{ThemeResource BorderSubtleBrush}"
                                 BorderThickness="1"
-                                CornerRadius="{StaticResource RadiusMD}"
+                                CornerRadius="{StaticResource RControl}"
                                 Padding="16,12,16,12">
                             <StackPanel Spacing="4">
                                 <TextBlock x:Uid="Ana_MedianOverline" Text="MEDIAN (P50)" Style="{StaticResource OverlineStyle}" />
@@ -1549,7 +1549,7 @@
                                 Background="{ThemeResource CardBrush}"
                                 BorderBrush="{ThemeResource BorderSubtleBrush}"
                                 BorderThickness="1"
-                                CornerRadius="{StaticResource RadiusMD}"
+                                CornerRadius="{StaticResource RControl}"
                                 Padding="16,12,16,12">
                             <StackPanel Spacing="4">
                                 <TextBlock x:Uid="Ana_P95Overline" Text="P95" Style="{StaticResource OverlineStyle}" />
@@ -1564,7 +1564,7 @@
                                 Background="{ThemeResource AccentSubtleBrush}"
                                 BorderBrush="{ThemeResource BorderAccentGradientBrush}"
                                 BorderThickness="1"
-                                CornerRadius="{StaticResource RadiusMD}"
+                                CornerRadius="{StaticResource RControl}"
                                 Padding="16,12,16,12">
                             <StackPanel Spacing="4">
                                 <TextBlock x:Uid="Ana_ThroughputOverline" Text="THROUGHPUT" Style="{StaticResource OverlineStyle}" />
@@ -1580,10 +1580,10 @@
                                 Background="{ThemeResource CardBrush}"
                                 BorderBrush="{ThemeResource BorderSubtleBrush}"
                                 BorderThickness="1"
-                                CornerRadius="{StaticResource RadiusMD}"
+                                CornerRadius="{StaticResource RControl}"
                                 Padding="16,12,16,12">
                             <StackPanel Spacing="4">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
                                     <FontIcon Glyph="&#xE72A;" FontSize="11"
                                               Foreground="{ThemeResource SuccessBrush}" />
                                     <TextBlock x:Uid="Ana_FastestOverline" Text="FASTEST" Style="{StaticResource OverlineStyle}" />
@@ -1600,10 +1600,10 @@
                                 Background="{ThemeResource CardBrush}"
                                 BorderBrush="{ThemeResource BorderSubtleBrush}"
                                 BorderThickness="1"
-                                CornerRadius="{StaticResource RadiusMD}"
+                                CornerRadius="{StaticResource RControl}"
                                 Padding="16,12,16,12">
                             <StackPanel Spacing="4">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
                                     <FontIcon Glyph="&#xE72B;" FontSize="11"
                                               Foreground="{ThemeResource WarningBrush}" />
                                     <TextBlock x:Uid="Ana_SlowestOverline" Text="SLOWEST" Style="{StaticResource OverlineStyle}" />
@@ -1620,7 +1620,7 @@
                                 Background="{ThemeResource CardBrush}"
                                 BorderBrush="{ThemeResource BorderSubtleBrush}"
                                 BorderThickness="1"
-                                CornerRadius="{StaticResource RadiusMD}"
+                                CornerRadius="{StaticResource RControl}"
                                 Padding="16,12,16,12">
                             <StackPanel Spacing="4">
                                 <TextBlock x:Uid="Ana_TotalInfOverline" Text="TOTAL INFERENCE TIME" Style="{StaticResource OverlineStyle}" />

@@ -21,6 +21,9 @@
 
         <!-- ═══════════════════════════════════════════════════════
              FLOATING COMMAND PALETTE CARD
+             An overlay faceplate (ROverlay) with the search input as a
+             recessed well. Rows are built in code-behind from the pages
+             the navigation rail registers, so the two can never drift.
              ═══════════════════════════════════════════════════════ -->
         <Border x:Name="PaletteCard"
                 Width="480"
@@ -38,9 +41,6 @@
                 <TranslateTransform x:Name="PaletteTranslate" Y="-12" />
             </Border.RenderTransform>
 
-            <!-- Removed: 5-stop red→transparent decorative top bar. The
-                 palette card now reads on its own borders + elevation; no
-                 painted accent line at the top. -->
             <Grid>
                 <StackPanel>
 
@@ -54,6 +54,7 @@
                         </Grid.ColumnDefinitions>
 
                         <TextBox x:Name="SearchInput"
+                                 x:Uid="Palette_SearchInput"
                                  PlaceholderText="Type a command or search..."
                                  Height="48"
                                  FontFamily="{StaticResource FontPrimary}"
@@ -62,19 +63,20 @@
                                  Background="{ThemeResource WellBrush}"
                                  BorderThickness="1"
                                  BorderBrush="{ThemeResource HairlineBrush}"
-                                 CornerRadius="{StaticResource RadiusXS}"
+                                 CornerRadius="{StaticResource RCard}"
                                  Padding="16,12,16,12"
                                  PlaceholderForeground="{ThemeResource InputPlaceholderBrush}"
                                  SelectionHighlightColor="{ThemeResource AccentPrimaryBrush}"
                                  TextChanged="SearchInput_TextChanged"
                                  KeyDown="SearchInput_KeyDown" />
 
+                        <!-- Key chords are wells: void-black in both shifts -->
                         <Border Grid.Column="1"
                                 Background="{ThemeResource VoidBrush}"
                                 BorderBrush="{ThemeResource HairlineBrush}"
                                 BorderThickness="1"
-                                CornerRadius="{StaticResource RadiusXS}"
-                                Padding="8,6"
+                                CornerRadius="{StaticResource RCard}"
+                                Padding="8,4"
                                 VerticalAlignment="Center"
                                 Margin="8,0,0,0">
                             <TextBlock Text="ESC"
@@ -104,66 +106,69 @@
                     </ScrollViewer>
 
                     <!-- ═══════════════════════════════════════
-                         FOOTER HINTS
+                         FOOTER HINTS (brushed stripe)
                          ═══════════════════════════════════════ -->
                     <Border Background="{ThemeResource StripeBrush}"
                             CornerRadius="0,0,8,8"
-                            Padding="16,10">
+                            Padding="16,8">
                         <StackPanel Orientation="Horizontal"
                                     HorizontalAlignment="Center"
                                     Spacing="20">
 
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <Border Background="{ThemeResource VoidBrush}"
                                         BorderBrush="{ThemeResource HairlineBrush}"
                                         BorderThickness="1"
-                                        CornerRadius="{StaticResource RadiusXS}"
-                                        Padding="6,3">
+                                        CornerRadius="{StaticResource RCard}"
+                                        Padding="4,2">
                                     <TextBlock Text="&#x2191;&#x2193;"
                                                FontFamily="{StaticResource FontTelemetry}"
                                                FontSize="10"
                                                Foreground="{ThemeResource WellTextBrush}"
                                                Opacity="0.5" />
                                 </Border>
-                                <TextBlock Text="Navigate"
+                                <TextBlock x:Uid="Palette_NavigateHint"
+                                           Text="Navigate"
                                            FontFamily="{StaticResource FontPrimary}"
                                            FontSize="11"
                                            Foreground="{ThemeResource TextTertiaryBrush}"
                                            VerticalAlignment="Center" />
                             </StackPanel>
 
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <Border Background="{ThemeResource VoidBrush}"
                                         BorderBrush="{ThemeResource HairlineBrush}"
                                         BorderThickness="1"
-                                        CornerRadius="{StaticResource RadiusXS}"
-                                        Padding="6,3">
+                                        CornerRadius="{StaticResource RCard}"
+                                        Padding="4,2">
                                     <TextBlock Text="&#x21B5;"
                                                FontFamily="{StaticResource FontTelemetry}"
                                                FontSize="10"
                                                Foreground="{ThemeResource WellTextBrush}"
                                                Opacity="0.5" />
                                 </Border>
-                                <TextBlock Text="Open"
+                                <TextBlock x:Uid="Palette_OpenHint"
+                                           Text="Open"
                                            FontFamily="{StaticResource FontPrimary}"
                                            FontSize="11"
                                            Foreground="{ThemeResource TextTertiaryBrush}"
                                            VerticalAlignment="Center" />
                             </StackPanel>
 
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <Border Background="{ThemeResource VoidBrush}"
                                         BorderBrush="{ThemeResource HairlineBrush}"
                                         BorderThickness="1"
-                                        CornerRadius="{StaticResource RadiusXS}"
-                                        Padding="6,3">
+                                        CornerRadius="{StaticResource RCard}"
+                                        Padding="4,2">
                                     <TextBlock Text="Esc"
                                                FontFamily="{StaticResource FontTelemetry}"
                                                FontSize="10"
                                                Foreground="{ThemeResource WellTextBrush}"
                                                Opacity="0.5" />
                                 </Border>
-                                <TextBlock Text="Close"
+                                <TextBlock x:Uid="Palette_CloseHint"
+                                           Text="Close"
                                            FontFamily="{StaticResource FontPrimary}"
                                            FontSize="11"
                                            Foreground="{ThemeResource TextTertiaryBrush}"

@@ -243,12 +243,12 @@
   <data name="UserGuide_KeyboardShortcuts_Action6.Text" xml:space="preserve"><value>Settings</value></data>
   <data name="UserGuide_KeyboardShortcuts_Action7.Text" xml:space="preserve"><value>Close Command Palette</value></data>
   <data name="UserGuide_CommandPalette_Title.Text" xml:space="preserve"><value>コマンド パレット</value></data>
-  <data name="UserGuide_CommandPalette_Description.Text" xml:space="preserve"><value>The Command Palette is the fastest way to navigate Agent-X. Inspired by VS Code and Spotlight, it provides instant access to every page and action through a single search interface.</value></data>
+  <data name="UserGuide_CommandPalette_Description.Text" xml:space="preserve"><value>コマンドパレットは、Agent-X のすべてのページに加え、いくつかの操作と現在開いているページに属するショートカットへキーボードから到達する手段です。Ctrl+K を押し、数文字入力して Enter を押します。</value></data>
   <data name="UserGuide_CommandPalette_HowToUse_Title.Text" xml:space="preserve"><value>使い方</value></data>
   <data name="UserGuide_CommandPalette_Step1.Text" xml:space="preserve"><value>Press Ctrl+K from anywhere in the app to open the Command Palette overlay.</value></data>
-  <data name="UserGuide_CommandPalette_Step2.Text" xml:space="preserve"><value>Start typing to filter available pages and actions. Results update instantly as you type.</value></data>
-  <data name="UserGuide_CommandPalette_Step3.Text" xml:space="preserve"><value>Use the arrow keys to navigate through results, then press Enter to go to the selected page. Press Escape to close the palette without navigating.</value></data>
-  <data name="UserGuide_CommandPalette_Coverage.Text" xml:space="preserve"><value>The Command Palette searches across all pages including Dashboard, Chat, Knowledge Vault, Search, Collections, Quick Actions, Model Manager, Hardware Advisor, Settings, and this User Guide.</value></data>
+  <data name="UserGuide_CommandPalette_Step2.Text" xml:space="preserve"><value>入力するとあいまい一致で絞り込まれます。入力した文字はコマンド名にその順序で含まれていれば、連続していなくても一致します。たとえば "knv" で Knowledge Vault、"テマ" で テーマを切り替え が見つかります。結果はナビゲーションレールと同じグループ（インテリジェンス、ナレッジ、仕分け、システム、サポート）に分かれ、その後に アクション、そして現在のページがショートカットを登録している場合は このページ が続きます。</value></data>
+  <data name="UserGuide_CommandPalette_Step3.Text" xml:space="preserve"><value>上下キー（または Tab と Shift+Tab）で結果を移動し、Enter で選択したコマンドを実行、Esc またはパレットの外をクリックすると閉じます。</value></data>
+  <data name="UserGuide_CommandPalette_Coverage.Text" xml:space="preserve"><value>パレットには、ナビゲーションレールのすべてのページが同じ名前、アイコン、グループ表示で並び、ショートカットを持つページにはそのキーが横に表示されます。さらに 3 つの操作（新しい会話、ファイルをインポート、テーマを切り替え）と、現在開いているページが登録したショートカットが加わります。レールに追加したページは自動的にパレットにも表示されます。ドキュメントと会話は、パレットではなく ジャンプ（Ctrl+P）から開きます。</value></data>
   <data name="UserGuide_FileFormats_Title.Text" xml:space="preserve"><value>対応ファイル形式</value></data>
   <data name="UserGuide_FileFormats_Description.Text" xml:space="preserve"><value>Agent-X can ingest a wide variety of file formats into the Knowledge Vault. Each format has a specialized parser that extracts text content optimally.</value></data>
   <data name="UserGuide_FileFormats_Table_Format.Text" xml:space="preserve"><value>形式</value></data>
@@ -2034,4 +2034,16 @@
   <data name="Sync_RefreshStatusBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>同期ステータスを更新</value></data>
   <data name="Workspace_RefreshProfilesTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>プロファイルを更新</value></data>
   <data name="Plugin_Active.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>プラグインを有効化</value></data>
+
+  <!-- Guide accuracy pass 2026-07: Comparison / Smart Inbox / Analytics / Operations / Collaborative Sync sections -->
+  <data name="Palette_SearchInput.PlaceholderText" xml:space="preserve"><value>ページまたは操作を入力...</value></data>
+  <data name="Palette_NavigateHint.Text" xml:space="preserve"><value>移動</value></data>
+  <data name="Palette_OpenHint.Text" xml:space="preserve"><value>開く</value></data>
+  <data name="Palette_CloseHint.Text" xml:space="preserve"><value>閉じる</value></data>
+  <data name="Palette_Actions" xml:space="preserve"><value>アクション</value></data>
+  <data name="Palette_OnThisPage" xml:space="preserve"><value>このページ</value></data>
+  <data name="Palette_NewConversation" xml:space="preserve"><value>新しい会話</value></data>
+  <data name="Palette_ImportFiles" xml:space="preserve"><value>ファイルをインポート</value></data>
+  <data name="Palette_ToggleTheme" xml:space="preserve"><value>テーマを切り替え</value></data>
+  <data name="Palette_NoMatches" xml:space="preserve"><value>一致するコマンドはありません</value></data>
 </root>

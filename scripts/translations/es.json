@@ -1607,5 +1607,19 @@
   "Terms_Email.Text": "Correo",
   "Terms_Company.Text": "Empresa",
   "Terms_AgentXByStrategia.Text": "Agent-X de Strategia-X",
-  "Terms_TheseTermsOfService.Text": "Estos Términos del servicio se actualizaron por última vez el 26 de febrero de 2026."
+  "Terms_TheseTermsOfService.Text": "Estos Términos del servicio se actualizaron por última vez el 26 de febrero de 2026.",
+  "UserGuide_CommandPalette_Description.Text": "La paleta de comandos es la ruta de teclado a todas las páginas de Agent-X, además de algunas acciones y los atajos que pertenecen a la página en la que estás. Pulsa Ctrl+K, escribe unas letras y pulsa Intro.",
+  "UserGuide_CommandPalette_Step2.Text": "Escribe para buscar de forma difusa. Las letras que escribes deben aparecer en el nombre del comando en ese orden, pero no tienen que ser contiguas: \"bcon\" encuentra Bóveda de Conocimiento y \"ctm\" encuentra Cambiar tema. Los resultados conservan los grupos de la barra de navegación (Inteligencia, Conocimiento, Clasificación, Sistema, Soporte), seguidos de Acciones y, cuando la página actual registra atajos, En esta página.",
+  "UserGuide_CommandPalette_Step3.Text": "Usa las flechas arriba y abajo (o Tab y Mayús+Tab) para recorrer los resultados, Intro para ejecutar el comando seleccionado y Esc o un clic fuera de la paleta para cerrarla.",
+  "UserGuide_CommandPalette_Coverage.Text": "La paleta muestra todas las páginas de la barra de navegación con los mismos nombres, iconos y rótulos de grupo, y el atajo de teclado junto a cada página que lo tenga. Añade tres acciones (Nueva conversación, Importar archivos, Cambiar tema) y los atajos registrados por la página en la que estás. Una página añadida a la barra aparece en la paleta automáticamente. Los documentos y las conversaciones se abren desde Ir a (Ctrl+P), no desde la paleta.",
+  "Palette_SearchInput.PlaceholderText": "Escribe una página o acción...",
+  "Palette_NavigateHint.Text": "Navegar",
+  "Palette_OpenHint.Text": "Abrir",
+  "Palette_CloseHint.Text": "Cerrar",
+  "Palette_Actions": "ACCIONES",
+  "Palette_OnThisPage": "EN ESTA PÁGINA",
+  "Palette_NewConversation": "Nueva conversación",
+  "Palette_ImportFiles": "Importar archivos",
+  "Palette_ToggleTheme": "Cambiar tema",
+  "Palette_NoMatches": "No hay comandos coincidentes"
 }

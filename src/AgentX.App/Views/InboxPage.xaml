@@ -67,9 +67,9 @@
                                Style="{StaticResource HeadingSmallStyle}"
                                FontWeight="Bold" />
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <Border CornerRadius="{StaticResource RadiusRound}"
+                        <Border CornerRadius="{StaticResource RControl}"
                                 Background="{ThemeResource AccentSubtleBrush}"
-                                Padding="10,2">
+                                Padding="8,2">
                             <TextBlock Foreground="{ThemeResource AccentPrimaryBrush}"
                                        Style="{StaticResource CaptionStyle}" FontWeight="SemiBold">
                                 <Run Text="{x:Bind ViewModel.PendingCount, Mode=OneWay}" />
@@ -102,7 +102,7 @@
                 </StackPanel>
 
                 <!-- Collection Target -->
-                <StackPanel Spacing="6">
+                <StackPanel Spacing="4">
                     <TextBlock x:Uid="Inbox_TargetCollectionOverline" Text="TARGET COLLECTION"
                                Style="{StaticResource OverlineStyle}" />
                     <ComboBox ItemsSource="{x:Bind ViewModel.Collections}"
@@ -138,7 +138,7 @@
              ══════════════════════════════════════════════════════════ -->
         <Grid Grid.Column="1">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <Grid Padding="{StaticResource PaddingPage}" RowSpacing="16" MaxWidth="900">
+                <Grid Padding="{StaticResource PaddingPage}" RowSpacing="16" MaxWidth="900" HorizontalAlignment="Center">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -159,15 +159,15 @@
                             Background="{ThemeResource AccentSubtleBrush}"
                             BorderBrush="{ThemeResource AccentPrimaryBrush}"
                             BorderThickness="1"
-                            CornerRadius="{StaticResource RadiusMD}"
-                            Padding="16,14">
+                            CornerRadius="{StaticResource RControl}"
+                            Padding="16,12">
                         <Grid ColumnSpacing="16">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Spacing="6">
+                            <StackPanel Spacing="4">
                                 <TextBlock x:Uid="Inbox_FocusedTitle" Text="Focused Inbox Item"
                                            Style="{StaticResource BodyStyle}"
                                            FontWeight="SemiBold"
@@ -197,15 +197,15 @@
                         <ItemsRepeater.ItemTemplate>
                             <DataTemplate x:DataType="vm:InboxDisplayItem">
                                 <Border Background="{ThemeResource CardGradientBrush}"
-                                        CornerRadius="{StaticResource RadiusMD}"
+                                        CornerRadius="{StaticResource RControl}"
                                         BorderBrush="{ThemeResource BorderSubtleBrush}"
                                         BorderThickness="1"
                                         Padding="20">
                                     <StackPanel Spacing="12">
                                         <Border Visibility="{x:Bind IsFocused, Converter={StaticResource BoolToVis}}"
-                                                CornerRadius="{StaticResource RadiusSM}"
+                                                CornerRadius="{StaticResource RControl}"
                                                 Background="{ThemeResource AccentSubtleBrush}"
-                                                Padding="10,4"
+                                                Padding="8,4"
                                                 HorizontalAlignment="Left">
                                             <TextBlock x:Uid="Inbox_OpenedFromOpsBadge" Text="Opened from Operations"
                                                        Style="{StaticResource CaptionStyle}"
@@ -224,7 +224,7 @@
                                             <!-- File Icon -->
                                             <Border Grid.Column="0"
                                                     Width="40" Height="40"
-                                                    CornerRadius="{StaticResource RadiusMD}"
+                                                    CornerRadius="{StaticResource RControl}"
                                                     Background="{ThemeResource AccentSubtleBrush}">
                                                 <FontIcon Glyph="&#xE7C3;"
                                                           FontSize="18"
@@ -249,7 +249,7 @@
                                                     <Border Visibility="{x:Bind IsBrowserClip, Converter={StaticResource BoolToVis}}"
                                                             CornerRadius="4"
                                                             Background="{ThemeResource InfoSubtleBrush}"
-                                                            Padding="6,2"
+                                                            Padding="4,2"
                                                             VerticalAlignment="Center">
                                                         <StackPanel Orientation="Horizontal" Spacing="4">
                                                             <FontIcon Glyph="&#xE774;"
@@ -304,7 +304,7 @@
                                         <!-- AI Preview -->
                                         <Border Visibility="{x:Bind HasPreview, Converter={StaticResource BoolToVis}}"
                                                 Background="{ThemeResource CardBrush}"
-                                                CornerRadius="{StaticResource RadiusSM}"
+                                                CornerRadius="{StaticResource RControl}"
                                                 Padding="12,8"
                                                 BorderBrush="{ThemeResource BorderSubtleBrush}"
                                                 BorderThickness="1">
@@ -320,7 +320,7 @@
                                         </Border>
 
                                         <!-- Suggested Tags -->
-                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
                                             <TextBlock x:Uid="Inbox_SuggestedLabel" Text="Suggested:"
                                                        Style="{StaticResource CaptionStyle}"
                                                        VerticalAlignment="Center" />

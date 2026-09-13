@@ -32,6 +32,8 @@ plugins/sample-plugin/
 
 # --- XAML-only references (sweep does not index .xaml; verify-lib.mjs:25-28) ---
 src/AgentX.App/Controls/Faceplate.cs
+# x:Bind function on the content-column grids of ModelManagerPage / DigestPage / KnowledgeVaultPage.
+src/AgentX.App/Helpers/ContentColumn.cs
 src/AgentX.App/Controls/MarkdownMessageControl.xaml.cs
 src/AgentX.App/Controls/NotificationOverlay.xaml.cs
 src/AgentX.App/Controls/SegmentMeter.xaml.cs

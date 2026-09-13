@@ -389,7 +389,7 @@
                     <!-- Input Section -->
                     <StackPanel Spacing="12">
                         <!-- Context -->
-                        <StackPanel Spacing="6">
+                        <StackPanel Spacing="4">
                             <TextBlock x:Uid="PastSelf_Context" Text="Context"
                                        Style="{StaticResource LabelStyle}"/>
                             <TextBox x:Name="DraftContextBox"
@@ -402,7 +402,7 @@
                         </StackPanel>
 
                         <!-- Goal -->
-                        <StackPanel Spacing="6">
+                        <StackPanel Spacing="4">
                             <TextBlock x:Uid="PastSelf_Goal" Text="Goal"
                                        Style="{StaticResource LabelStyle}"/>
                             <TextBox x:Name="DraftGoalBox"

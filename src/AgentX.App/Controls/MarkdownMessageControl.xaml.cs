@@ -102,7 +102,7 @@ public sealed partial class MarkdownMessageControl : UserControl
         {
             Background = ThemeResources.Brush("WellBrush"),
             CornerRadius = new CornerRadius(2, 2, 0, 0),
-            Padding = new Thickness(12, 6, 8, 6)
+            Padding = new Thickness(12, 4, 8, 4)
         };
 
         var headerGrid = new Grid();
@@ -223,16 +223,15 @@ public sealed partial class MarkdownMessageControl : UserControl
         }
         else
         {
-            // Fallback: plain monospace TextBlock (no highlighting)
+            // Fallback: plain stream text (no highlighting). StreamStyle is the
+            // Typography.xaml recipe for token streams and code inside wells:
+            // Iosevka Term 13 on WellTextBrush. Only wrapping differs here.
             var codeText = new TextBlock
             {
                 Text = segment.Content,
-                FontFamily = (FontFamily)Application.Current.Resources["FontMono"],
-                FontSize = 13,
-                Foreground = ThemeResources.Brush("WellTextBrush"),
+                Style = (Style)Application.Current.Resources["StreamStyle"],
                 TextWrapping = TextWrapping.NoWrap,
                 IsTextSelectionEnabled = true,
-                LineHeight = 20
             };
             codeScroll.Content = codeText;
         }

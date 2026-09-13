@@ -1607,5 +1607,19 @@
   "Terms_Email.Text": "邮箱",
   "Terms_Company.Text": "公司",
   "Terms_AgentXByStrategia.Text": "Agent-X(由 Strategia-X 出品)",
-  "Terms_TheseTermsOfService.Text": "本服务条款最后更新于 2026 年 2 月 26 日。"
+  "Terms_TheseTermsOfService.Text": "本服务条款最后更新于 2026 年 2 月 26 日。",
+  "UserGuide_CommandPalette_Description.Text": "命令面板是通过键盘到达 Agent-X 每个页面的途径，还包含少量操作以及当前页面注册的快捷键。按 Ctrl+K，输入几个字母，然后按 Enter。",
+  "UserGuide_CommandPalette_Step2.Text": "输入即可模糊匹配。输入的字母只需按顺序出现在命令名称中，不必相邻：例如 \"knv\" 可找到 Knowledge Vault，\"切主\" 可找到 切换主题。结果保持导航栏的分组（智能、知识、分拣、系统、支持），之后是 操作，若当前页面注册了快捷键，还会显示 当前页面。",
+  "UserGuide_CommandPalette_Step3.Text": "使用上下方向键（或 Tab 和 Shift+Tab）在结果间移动，按 Enter 运行所选命令，按 Esc 或点击面板外部即可关闭。",
+  "UserGuide_CommandPalette_Coverage.Text": "面板列出导航栏上的每个页面，名称、图标和分组标牌完全一致，有快捷键的页面会在旁边显示按键组合。此外还有三个操作（新建对话、导入文件、切换主题），以及当前页面注册的快捷键。新加入导航栏的页面会自动出现在面板中。文档和对话通过 跳转（Ctrl+P）打开，而不是通过面板。",
+  "Palette_SearchInput.PlaceholderText": "输入页面或操作...",
+  "Palette_NavigateHint.Text": "导航",
+  "Palette_OpenHint.Text": "打开",
+  "Palette_CloseHint.Text": "关闭",
+  "Palette_Actions": "操作",
+  "Palette_OnThisPage": "当前页面",
+  "Palette_NewConversation": "新建对话",
+  "Palette_ImportFiles": "导入文件",
+  "Palette_ToggleTheme": "切换主题",
+  "Palette_NoMatches": "没有匹配的命令"
 }

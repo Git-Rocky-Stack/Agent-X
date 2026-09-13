@@ -26,11 +26,8 @@
              ═══════════════════════════════════════════════════════════ -->
 
         <DataTemplate x:Key="ConversationItemTemplate" x:DataType="vm:ConversationListItem">
-            <Border Background="Transparent"
-                    CornerRadius="{StaticResource RadiusMD}"
-                    Padding="12,10,12,10"
-                    Margin="0,1,0,1">
-                <Grid ColumnSpacing="10">
+            <Border Style="{StaticResource ConversationItemStyle}">
+                <Grid ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
@@ -38,7 +35,7 @@
 
                     <StackPanel Spacing="4" VerticalAlignment="Center">
                         <!-- Title row with optional pin icon -->
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
                             <FontIcon Glyph="&#xE840;"
                                       FontSize="10"
                                       Foreground="{ThemeResource TextAccentBrush}"
@@ -74,7 +71,7 @@
                                    Style="{StaticResource CaptionStyle}"
                                    HorizontalAlignment="Right" />
                         <Border Style="{StaticResource BadgeDefaultStyle}"
-                                Padding="6,2,6,2"
+                                Padding="4,2,4,2"
                                 HorizontalAlignment="Right">
                             <TextBlock Style="{StaticResource CaptionStyle}"
                                        Foreground="{ThemeResource TextTertiaryBrush}"
@@ -150,7 +147,7 @@
                         MinHeight="0"
                         HorizontalAlignment="Stretch"
                         HorizontalContentAlignment="Stretch"
-                        Margin="8,6,24,0"
+                        Margin="8,4,24,0"
                         Click="OnInspectInlineContextClick"
                         Tag="{x:Bind}"
                         x:Uid="Chat_InspectContextTip" ToolTipService.ToolTip="Inspect the full context used for this response"
@@ -159,9 +156,9 @@
                     <Border Background="{ThemeResource AccentSubtleBrush}"
                             BorderBrush="{ThemeResource BorderSubtleBrush}"
                             BorderThickness="1"
-                            CornerRadius="{StaticResource RadiusMD}"
-                            Padding="10,8,10,8">
-                        <StackPanel Spacing="6">
+                            CornerRadius="{StaticResource RControl}"
+                            Padding="8,8,8,8">
+                        <StackPanel Spacing="4">
                             <TextBlock x:Name="ContextUsedLabel" x:Uid="Chat_ContextUsedLabel" Text="Context Used"
                                        Style="{StaticResource CaptionStyle}"
                                        Foreground="{ThemeResource TextAccentBrush}" />
@@ -172,7 +169,7 @@
                                            ItemTemplate="{StaticResource InlineContextStoryChipTemplate}"
                                            Visibility="{x:Bind HasInlineContextStorySourceChips, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                                 <ItemsRepeater.Layout>
-                                    <StackLayout Orientation="Horizontal" Spacing="6" />
+                                    <StackLayout Orientation="Horizontal" Spacing="4" />
                                 </ItemsRepeater.Layout>
                             </ItemsRepeater>
                         </StackPanel>
@@ -207,7 +204,7 @@
 
         <DataTemplate x:Key="SystemPromptItemTemplate" x:DataType="vm:SystemPromptItem">
             <Border Style="{StaticResource PromptPickerItemStyle}">
-                <Grid ColumnSpacing="10">
+                <Grid ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -249,7 +246,7 @@
             <Border Background="{ThemeResource CardBrush}"
                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="1"
-                    CornerRadius="{StaticResource RadiusRound}"
+                    CornerRadius="{StaticResource RControl}"
                     Padding="8,4,8,4">
                 <TextBlock Text="{x:Bind Label}"
                            Style="{StaticResource CaptionStyle}"
@@ -261,8 +258,8 @@
             <Border Background="{ThemeResource CardBrush}"
                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="1"
-                    CornerRadius="{StaticResource RadiusRound}"
-                    Padding="7,3,7,3">
+                    CornerRadius="{StaticResource RControl}"
+                    Padding="8,3,8,3">
                 <TextBlock Text="{x:Bind}"
                            Style="{StaticResource CaptionStyle}"
                            Foreground="{ThemeResource TextSecondaryBrush}"
@@ -360,12 +357,12 @@
 
                     <Button Grid.Column="1"
                             Style="{StaticResource AccentButtonStyle}"
-                            Padding="10,6,10,6"
+                            Padding="8,4,8,4"
                             MinHeight="32"
                             Command="{x:Bind ViewModel.NewConversationCommand}"
                             x:Uid="Chat_NewConversationTip" ToolTipService.ToolTip="New conversation"
                             AutomationProperties.LabeledBy="{x:Bind NewLabel}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
                             <FontIcon Glyph="&#xE710;" FontSize="12" />
                             <TextBlock x:Name="NewLabel" x:Uid="Chat_NewLabel" Text="New" FontSize="12" FontWeight="SemiBold" />
                         </StackPanel>
@@ -386,23 +383,23 @@
                 <ScrollViewer HorizontalScrollBarVisibility="Auto"
                               VerticalScrollBarVisibility="Disabled"
                               HorizontalScrollMode="Enabled">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
                         <Button x:Uid="Chat_AllFilterBtn" Content="All"
                                 Style="{StaticResource GhostButtonStyle}"
-                                Padding="10,4,10,4"
+                                Padding="8,4,8,4"
                                 MinHeight="28"
                                 FontSize="12"
                                 Click="OnFolderFilterClick"
                                 Tag="" />
                         <ItemsRepeater ItemsSource="{x:Bind ViewModel.FolderNames, Mode=OneWay}">
                             <ItemsRepeater.Layout>
-                                <StackLayout Orientation="Horizontal" Spacing="6" />
+                                <StackLayout Orientation="Horizontal" Spacing="4" />
                             </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="x:String">
                                     <Button Content="{x:Bind}"
                                             Style="{StaticResource GhostButtonStyle}"
-                                            Padding="10,4,10,4"
+                                            Padding="8,4,8,4"
                                             MinHeight="28"
                                             FontSize="12"
                                             Click="OnFolderFilterClick"
@@ -485,7 +482,7 @@
 
             <!-- Sidebar Footer -->
             <Border Grid.Row="5"
-                    Padding="16,10,16,10"
+                    Padding="16,8,16,8"
                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="0,1,0,0">
                 <Grid>
@@ -494,7 +491,7 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                         <FontIcon Glyph="&#xE8BD;" FontSize="11"
                                   Foreground="{ThemeResource TextTertiaryBrush}" />
                         <TextBlock Style="{StaticResource CaptionStyle}">
@@ -507,7 +504,7 @@
                          export dialog only ever covers the open thread. -->
                     <Button Grid.Column="1"
                             Style="{StaticResource GhostButtonStyle}"
-                            Padding="6" MinWidth="0" MinHeight="0"
+                            Padding="4" MinWidth="0" MinHeight="0"
                             Click="OnExportAllConversationsClick"
                             x:Uid="Chat_ExportAllTip" ToolTipService.ToolTip="Export all conversations"
                             AutomationProperties.Name="Export all conversations">
@@ -589,7 +586,7 @@
                     <!-- Connection status -->
                     <StackPanel Grid.Column="3"
                                 Orientation="Horizontal"
-                                Spacing="6"
+                                Spacing="4"
                                 VerticalAlignment="Center"
                                 Margin="0,0,12,0">
                         <Ellipse Width="8" Height="8"
@@ -603,13 +600,13 @@
                     <!-- System prompt button -->
                     <Button Grid.Column="4"
                             Style="{StaticResource GhostButtonStyle}"
-                            Padding="8,6,8,6"
+                            Padding="8,4,8,4"
                             MinHeight="32"
                             VerticalAlignment="Center"
                             Margin="0,0,4,0"
                             x:Uid="Chat_SystemPromptTip" ToolTipService.ToolTip="System prompt"
                             AutomationProperties.LabeledBy="{x:Bind SystemPromptLabel}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
                             <FontIcon Glyph="&#xE771;" FontSize="14"
                                       Foreground="{ThemeResource TextSecondaryBrush}" />
                             <TextBlock x:Name="SystemPromptLabel"
@@ -635,7 +632,7 @@
                                             HorizontalAlignment="Stretch"
                                             HorizontalContentAlignment="Left"
                                             Command="{x:Bind ViewModel.SelectSystemPromptCommand}"
-                                            Padding="8,6,8,6"
+                                            Padding="8,4,8,4"
                                             MinHeight="32"
                                             AutomationProperties.LabeledBy="{x:Bind NoSystemPromptLabel}">
                                         <StackPanel Orientation="Horizontal" Spacing="8">
@@ -671,13 +668,13 @@
                     <!-- Folder assignment button -->
                     <Button Grid.Column="5"
                             Style="{StaticResource GhostButtonStyle}"
-                            Padding="8,6,8,6"
+                            Padding="8,4,8,4"
                             MinHeight="32"
                             VerticalAlignment="Center"
                             Margin="0,0,4,0"
                             x:Uid="Chat_AssignFolderTip" ToolTipService.ToolTip="Assign folder"
                             AutomationProperties.LabeledBy="{x:Bind FolderLabel}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
                             <FontIcon Glyph="&#xE8B7;" FontSize="14"
                                       Foreground="{ThemeResource TextSecondaryBrush}" />
                             <TextBlock x:Name="FolderLabel"
@@ -740,7 +737,7 @@
                             Background="{ThemeResource VoidBrush}"
                             BorderBrush="{ThemeResource HairlineBrush}"
                             BorderThickness="1"
-                            CornerRadius="{StaticResource RadiusXS}"
+                            CornerRadius="{StaticResource RCard}"
                             Padding="8,3,8,3"
                             VerticalAlignment="Center"
                             Margin="0,0,4,0"
@@ -789,7 +786,7 @@
 
             <Border Grid.Row="1"
                     Margin="24,12,24,0"
-                    Padding="12,10,12,10"
+                    Padding="12,8,12,8"
                     Background="{ThemeResource CardElevatedBrush}"
                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="1"
@@ -813,8 +810,8 @@
                         <Border Background="{ThemeResource InputBackgroundBrush}"
                                 BorderBrush="{ThemeResource WarningBrush}"
                                 BorderThickness="1"
-                                CornerRadius="{StaticResource RadiusRound}"
-                                Padding="10,4,10,4"
+                                CornerRadius="{StaticResource RControl}"
+                                Padding="8,4,8,4"
                                 Visibility="{x:Bind ViewModel.ConversationIntelligenceIsStale, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                             <TextBlock Text="{x:Bind ViewModel.ConversationIntelligenceBadgeText, Mode=OneWay}"
                                        Style="{StaticResource BadgeStyle}"
@@ -853,23 +850,23 @@
                                        ItemTemplate="{StaticResource ContextStoryChipTemplate}"
                                        Visibility="{x:Bind ViewModel.HasConversationIntelligenceStorySourceChips, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                             <ItemsRepeater.Layout>
-                                <StackLayout Orientation="Horizontal" Spacing="6" />
+                                <StackLayout Orientation="Horizontal" Spacing="4" />
                             </ItemsRepeater.Layout>
                         </ItemsRepeater>
                     </StackPanel>
 
                     <StackPanel Grid.Column="2"
                                 Orientation="Horizontal"
-                                Spacing="6">
+                                Spacing="4">
                         <Button Style="{StaticResource GhostButtonStyle}"
                                 Command="{x:Bind ViewModel.RefreshConversationSummaryCommand}"
                                 IsEnabled="{x:Bind ViewModel.CanRefreshConversationSummary, Mode=OneWay}"
                                 Visibility="{x:Bind ViewModel.ShowConversationSummaryRefreshAction, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
-                                Padding="10,6,10,6"
+                                Padding="8,4,8,4"
                                 MinHeight="32"
                                 x:Uid="Chat_RefreshSummaryTip" ToolTipService.ToolTip="Refresh the durable summary for this conversation"
                                 AutomationProperties.LabeledBy="{x:Bind SummaryRefreshLabel}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <FontIcon Glyph="&#xE72C;" FontSize="12"
                                           Foreground="{ThemeResource TextSecondaryBrush}" />
                                 <TextBlock x:Name="SummaryRefreshLabel" Text="{x:Bind ViewModel.ConversationSummaryRefreshActionText, Mode=OneWay}"
@@ -880,11 +877,11 @@
 
                         <Button Style="{StaticResource GhostButtonStyle}"
                                 Command="{x:Bind ViewModel.ToggleContextInspectorCommand}"
-                                Padding="10,6,10,6"
+                                Padding="8,4,8,4"
                                 MinHeight="32"
                                 x:Uid="Chat_OpenInspectorTip" ToolTipService.ToolTip="Open the full context inspector"
                                 AutomationProperties.LabeledBy="{x:Bind InspectContextLabel}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <FontIcon Glyph="&#xE8F1;" FontSize="12"
                                           Foreground="{ThemeResource TextSecondaryBrush}" />
                                 <TextBlock x:Name="InspectContextLabel" x:Uid="Chat_InspectContextLabel" Text="Inspect Context"
@@ -909,7 +906,7 @@
 
                         <!-- Icon -->
                         <Border Background="{ThemeResource AccentSubtleBrush}"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Width="72" Height="72"
                                 HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE8BD;"
@@ -1006,17 +1003,17 @@
                                                          MaxHeight="200"
                                                          MinHeight="44" />
                                                 <StackPanel Orientation="Horizontal"
-                                                            Spacing="6"
+                                                            Spacing="4"
                                                             HorizontalAlignment="Right">
                                                     <Button Style="{StaticResource GhostButtonStyle}"
                                                             x:Uid="Chat_CancelEditBtn" Content="Cancel"
-                                                            Padding="10,4,10,4"
+                                                            Padding="8,4,8,4"
                                                             MinHeight="28"
                                                             Click="OnCancelEditClick"
                                                             Tag="{x:Bind}" />
                                                     <Button Style="{StaticResource AccentButtonStyle}"
                                                             x:Uid="Chat_SaveResendBtn" Content="Save &amp; Resend"
-                                                            Padding="10,4,10,4"
+                                                            Padding="8,4,8,4"
                                                             MinHeight="28"
                                                             Click="OnSaveEditClick"
                                                             Tag="{x:Bind}" />
@@ -1033,7 +1030,7 @@
                                             <TextBlock Text="{x:Bind FormattedTime}"
                                                        Style="{StaticResource ChatTimestampStyle}"
                                                        VerticalAlignment="Center"
-                                                       Margin="0,0,6,0" />
+                                                       Margin="0,0,4,0" />
 
                                             <!-- Branch indicator badge (visible when message has branches) -->
                                             <Border
@@ -1123,7 +1120,7 @@
 
                                             <!-- Left: timestamps and meta -->
                                             <StackPanel Orientation="Horizontal"
-                                                        Spacing="10">
+                                                        Spacing="8">
                                                 <TextBlock Text="{x:Bind FormattedTime}"
                                                            Style="{StaticResource ChatTimestampStyle}" />
                                                 <TextBlock Text="{x:Bind FormattedTokens}"
@@ -1211,7 +1208,7 @@
                             BorderThickness="1"
                             CornerRadius="{StaticResource RControl}"
                             Padding="16">
-                        <StackPanel Spacing="14">
+                        <StackPanel Spacing="12">
                             <StackPanel Spacing="4">
                                 <TextBlock x:Uid="Chat_ContextInspectionTitle" Text="Context Inspection"
                                            Style="{StaticResource BodyStyle}"
@@ -1223,7 +1220,7 @@
                             <Border Background="{ThemeResource CardBrush}"
                                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                                     BorderThickness="1"
-                                    CornerRadius="{StaticResource RadiusMD}"
+                                    CornerRadius="{StaticResource RControl}"
                                     Padding="12"
                                     Visibility="{x:Bind ViewModel.HasContextStory, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                                 <StackPanel Spacing="8">
@@ -1237,7 +1234,7 @@
                                                    ItemTemplate="{StaticResource ContextStoryChipTemplate}"
                                                    Visibility="{x:Bind ViewModel.HasContextStorySourceChips, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                                         <ItemsRepeater.Layout>
-                                            <StackLayout Orientation="Horizontal" Spacing="6" />
+                                            <StackLayout Orientation="Horizontal" Spacing="4" />
                                         </ItemsRepeater.Layout>
                                     </ItemsRepeater>
                                 </StackPanel>
@@ -1254,9 +1251,9 @@
                                         Background="{ThemeResource CardBrush}"
                                         BorderBrush="{ThemeResource BorderSubtleBrush}"
                                         BorderThickness="1"
-                                        CornerRadius="{StaticResource RadiusMD}"
+                                        CornerRadius="{StaticResource RControl}"
                                         Padding="12">
-                                    <StackPanel Spacing="6">
+                                    <StackPanel Spacing="4">
                                         <TextBlock x:Uid="Chat_AssemblyOverviewTitle" Text="Assembly Overview"
                                                    Style="{StaticResource CaptionStyle}"
                                                    Foreground="{ThemeResource TextAccentBrush}" />
@@ -1286,9 +1283,9 @@
                                         Background="{ThemeResource CardBrush}"
                                         BorderBrush="{ThemeResource BorderSubtleBrush}"
                                         BorderThickness="1"
-                                        CornerRadius="{StaticResource RadiusMD}"
+                                        CornerRadius="{StaticResource RControl}"
                                         Padding="12">
-                                    <StackPanel Spacing="6">
+                                    <StackPanel Spacing="4">
                                         <Grid ColumnSpacing="8">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
@@ -1357,9 +1354,9 @@
                                         Background="{ThemeResource CardBrush}"
                                         BorderBrush="{ThemeResource BorderSubtleBrush}"
                                         BorderThickness="1"
-                                        CornerRadius="{StaticResource RadiusMD}"
+                                        CornerRadius="{StaticResource RControl}"
                                         Padding="12">
-                                    <StackPanel Spacing="6">
+                                    <StackPanel Spacing="4">
                                         <TextBlock x:Uid="Chat_DurableRecallTitle" Text="Durable Recall"
                                                    Style="{StaticResource CaptionStyle}"
                                                    Foreground="{ThemeResource TextAccentBrush}" />
@@ -1376,8 +1373,8 @@
                                                     <Border Background="{ThemeResource AccentSubtleBrush}"
                                                             BorderBrush="{ThemeResource BorderSubtleBrush}"
                                                             BorderThickness="1"
-                                                            CornerRadius="{StaticResource RadiusMD}"
-                                                            Padding="10">
+                                                            CornerRadius="{StaticResource RControl}"
+                                                            Padding="8">
                                                         <StackPanel Spacing="4">
                                                             <TextBlock Text="{x:Bind ConversationLabel}"
                                                                        Style="{StaticResource CaptionStyle}"
@@ -1403,9 +1400,9 @@
                             <Border Background="{ThemeResource CardBrush}"
                                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                                     BorderThickness="1"
-                                    CornerRadius="{StaticResource RadiusMD}"
+                                    CornerRadius="{StaticResource RControl}"
                                     Padding="12">
-                                <StackPanel Spacing="6">
+                                <StackPanel Spacing="4">
                                     <TextBlock x:Uid="Chat_WhyThisContextTitle" Text="Why This Context"
                                                Style="{StaticResource CaptionStyle}"
                                                Foreground="{ThemeResource TextAccentBrush}" />
@@ -1436,7 +1433,7 @@
                             <DataTemplate x:DataType="x:String">
                                 <Button Style="{StaticResource GhostButtonStyle}"
                                         Content="{x:Bind}"
-                                        Padding="12,6"
+                                        Padding="12,4"
                                         MinHeight="28"
                                         MaxWidth="300"
                                         Click="OnSuggestedQuestionClick"
@@ -1455,7 +1452,7 @@
                             Margin="0,0,0,8">
                         <Border Style="{StaticResource BadgeAccentStyle}"
                                 HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <FontIcon Glyph="&#xE771;" FontSize="10"
                                           Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock Style="{StaticResource CaptionStyle}"
@@ -1495,7 +1492,7 @@
 
                             <!-- Idle: Microphone button (click to start recording, right-click to pick file) -->
                             <Button Style="{StaticResource IconButtonStyle}"
-                                    Padding="12,10,12,10"
+                                    Padding="12,8,12,8"
                                     MinHeight="44"
                                     MinWidth="44"
                                     Command="{x:Bind ViewModel.ToggleVoiceRecordingCommand}"
@@ -1508,14 +1505,14 @@
 
                             <!-- Recording: Stop button with red indicator -->
                             <Button Style="{StaticResource SecondaryButtonStyle}"
-                                    Padding="12,10,12,10"
+                                    Padding="12,8,12,8"
                                     MinHeight="44"
                                     MinWidth="44"
                                     BorderBrush="{ThemeResource ErrorBrush}"
                                     Command="{x:Bind ViewModel.ToggleVoiceRecordingCommand}"
                                     Visibility="{x:Bind ViewModel.IsRecording, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
                                     x:Uid="Chat_StopRecordingTip" ToolTipService.ToolTip="Stop recording and transcribe">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
                                     <Ellipse Width="8" Height="8"
                                              Fill="{ThemeResource ErrorBrush}" />
                                     <FontIcon Glyph="&#xE72A;" FontSize="14"
@@ -1525,7 +1522,7 @@
 
                             <!-- Processing: Transcribing spinner -->
                             <Button Style="{StaticResource IconButtonStyle}"
-                                    Padding="12,10,12,10"
+                                    Padding="12,8,12,8"
                                     MinHeight="44"
                                     MinWidth="44"
                                     IsEnabled="False"
@@ -1539,7 +1536,7 @@
                         <ToggleButton Grid.Column="2"
                                       x:Name="ResearchModeToggle"
                                       Style="{StaticResource GhostToggleButtonStyle}"
-                                      Padding="10,10,10,10"
+                                      Padding="8,8,8,8"
                                       MinHeight="44"
                                       MinWidth="44"
                                       IsChecked="{x:Bind ViewModel.IsResearchMode, Mode=TwoWay}"
@@ -1552,7 +1549,7 @@
 
                         <ToggleButton Grid.Column="3"
                                       Style="{StaticResource GhostToggleButtonStyle}"
-                                      Padding="10,10,10,10"
+                                      Padding="8,8,8,8"
                                       MinHeight="44"
                                       MinWidth="44"
                                       IsChecked="{x:Bind ViewModel.IsContextInspectorOpen, Mode=TwoWay}"
@@ -1569,21 +1566,21 @@
                                   ToolTipService.ToolTip="{x:Bind ViewModel.OrchestrationModeTooltip, Mode=OneWay}"
                                   VerticalAlignment="Bottom">
                             <ComboBoxItem>
-                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
                                     <FontIcon Glyph="&#xE77B;" FontSize="12"
                                               Foreground="{ThemeResource TextSecondaryBrush}" />
                                     <TextBlock x:Uid="Chat_ModeSolo" Text="Solo" Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
                             </ComboBoxItem>
                             <ComboBoxItem>
-                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
                                     <FontIcon Glyph="&#xE8FD;" FontSize="12"
                                               Foreground="{ThemeResource TextSecondaryBrush}" />
                                     <TextBlock x:Uid="Chat_ModeMulti" Text="Multi" Style="{StaticResource CaptionStyle}" />
                                 </StackPanel>
                             </ComboBoxItem>
                             <ComboBoxItem>
-                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
                                     <FontIcon Glyph="&#xE8F2;" FontSize="12"
                                               Foreground="{ThemeResource TextSecondaryBrush}" />
                                     <TextBlock x:Uid="Chat_ModeDebate" Text="Debate" Style="{StaticResource CaptionStyle}" />
@@ -1599,7 +1596,7 @@
 
                             <!-- Send button (visible when NOT generating) -->
                             <Button Style="{StaticResource AccentButtonStyle}"
-                                    Padding="12,10,12,10"
+                                    Padding="12,8,12,8"
                                     MinHeight="44"
                                     MinWidth="44"
                                     Command="{x:Bind ViewModel.SendMessageCommand}"
@@ -1611,7 +1608,7 @@
 
                             <!-- Stop button (visible when generating) -->
                             <Button Style="{StaticResource SecondaryButtonStyle}"
-                                    Padding="12,10,12,10"
+                                    Padding="12,8,12,8"
                                     MinHeight="44"
                                     MinWidth="44"
                                     BorderBrush="{ThemeResource ErrorBrush}"

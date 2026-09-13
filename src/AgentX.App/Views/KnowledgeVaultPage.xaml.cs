@@ -1,4 +1,5 @@
-﻿using AgentX.App.Helpers;
+using AgentX.App.Helpers;
+using AgentX.App.Services;
 using AgentX.App.ViewModels;
 using AgentX.Core.Services.Shortcuts;
 using Microsoft.UI.Xaml;
@@ -39,6 +40,13 @@ public sealed partial class KnowledgeVaultPage : Page
         // Honour the item the caller picked (Jump-To, command palette) rather than
         // dropping it and opening this page on whatever was last active.
         _ = ViewModel.ApplyNavigationParameterAsync(e.Parameter);
+
+        // The palette's "Import Files" lands here with this intent. The picker needs
+        // the window handle, which is why the intent is honoured in code-behind.
+        if (e.Parameter is string intent && intent == NavigationIntents.ImportFiles)
+        {
+            OnImportFilesClick(this, new RoutedEventArgs());
+        }
 
         _shortcutScope = _shortcutRegistry.RegisterShortcuts(
             new AgentX.Core.Services.Shortcuts.ShortcutDescriptor(

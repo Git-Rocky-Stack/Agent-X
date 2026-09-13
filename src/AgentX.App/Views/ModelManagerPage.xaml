@@ -2,6 +2,7 @@
     x:Class="AgentX.App.Views.ModelManagerPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:helpers="using:AgentX.App.Helpers"
     xmlns:controls="using:AgentX.App.Controls"
     xmlns:vm="using:AgentX.App.ViewModels"
     xmlns:converters="using:AgentX.App.Converters"
@@ -15,11 +16,14 @@
         <converters:InverseBoolConverter x:Key="InverseBool" />
     </Page.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto"
+    <ScrollViewer x:Name="PageScroller"
+                  VerticalScrollBarVisibility="Auto"
                   HorizontalScrollBarVisibility="Disabled"
                   Padding="0">
 
-        <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="1200">
+        <!-- Content column: fills up to the cap and centers (see Helpers/ContentColumn.cs) -->
+        <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="1200" HorizontalAlignment="Center"
+              MinWidth="{x:Bind helpers:ContentColumn.Fill(PageScroller.ViewportWidth, 1200), Mode=OneWay}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -61,9 +65,9 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Spacing="14">
+                    <StackPanel Spacing="12">
                         <!-- Status indicator row -->
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
                             <Ellipse Width="10" Height="10"
                                      Fill="{x:Bind ConnectionBrush(ViewModel.IsConnected), Mode=OneWay}" />
                             <TextBlock Text="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay}"
@@ -75,7 +79,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <!-- Model count badge -->
                             <Border Style="{StaticResource BadgeDefaultStyle}">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
                                     <FontIcon Glyph="&#xE964;" FontSize="12"
                                               Foreground="{ThemeResource TextAccentBrush}" />
                                     <TextBlock Style="{StaticResource BadgeStyle}">
@@ -87,7 +91,7 @@
 
                             <!-- Total size badge -->
                             <Border Style="{StaticResource BadgeDefaultStyle}">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
                                     <FontIcon Glyph="&#xEDA2;" FontSize="12"
                                               Foreground="{ThemeResource InfoBrush}" />
                                     <TextBlock Text="{x:Bind ViewModel.TotalModelSize, Mode=OneWay}"
@@ -118,7 +122,7 @@
                 <StackPanel Spacing="20">
                     <!-- Section heading -->
                     <StackPanel Spacing="4">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE896;" FontSize="18"
                                       Foreground="{ThemeResource TextAccentBrush}" />
                             <TextBlock x:Uid="ModelMgr_PullNewModel" Text="Pull New Model"
@@ -161,7 +165,7 @@
                     </Grid>
 
                     <!-- Download progress -->
-                    <StackPanel Spacing="10"
+                    <StackPanel Spacing="8"
                                 Visibility="{x:Bind ViewModel.IsDownloading, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <ProgressBar Value="{x:Bind ViewModel.DownloadProgress, Mode=OneWay}"
                                      Maximum="100"
@@ -180,66 +184,66 @@
                                Visibility="{x:Bind ViewModel.IsDownloading, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
 
                     <!-- Common model suggestions -->
-                    <StackPanel Spacing="10">
+                    <StackPanel Spacing="8">
                         <TextBlock x:Uid="ModelMgr_PopularModels" Text="Popular models:"
                                    Style="{StaticResource LabelStyle}" />
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Button Style="{StaticResource GhostButtonStyle}"
-                                    Padding="12,6,12,6" MinHeight="32"
+                                    Padding="12,4,12,4" MinHeight="32"
                                     Command="{x:Bind ViewModel.SetModelSuggestionCommand}"
                                     CommandParameter="llama3.2"
                                     AutomationProperties.LabeledBy="{x:Bind LlamaLabel}">
-                                <Border Style="{StaticResource BadgeAccentStyle}" Padding="10,4">
+                                <Border Style="{StaticResource BadgeAccentStyle}" Padding="8,4">
                                     <TextBlock x:Name="LlamaLabel" Text="llama3.2" Style="{StaticResource MonoSmallStyle}"
                                                Foreground="{ThemeResource TextAccentBrush}" />
                                 </Border>
                             </Button>
                             <Button Style="{StaticResource GhostButtonStyle}"
-                                    Padding="12,6,12,6" MinHeight="32"
+                                    Padding="12,4,12,4" MinHeight="32"
                                     Command="{x:Bind ViewModel.SetModelSuggestionCommand}"
                                     CommandParameter="mistral"
                                     AutomationProperties.LabeledBy="{x:Bind MistralLabel}">
-                                <Border Style="{StaticResource BadgeAccentStyle}" Padding="10,4">
+                                <Border Style="{StaticResource BadgeAccentStyle}" Padding="8,4">
                                     <TextBlock x:Name="MistralLabel" Text="mistral" Style="{StaticResource MonoSmallStyle}"
                                                Foreground="{ThemeResource TextAccentBrush}" />
                                 </Border>
                             </Button>
                             <Button Style="{StaticResource GhostButtonStyle}"
-                                    Padding="12,6,12,6" MinHeight="32"
+                                    Padding="12,4,12,4" MinHeight="32"
                                     Command="{x:Bind ViewModel.SetModelSuggestionCommand}"
                                     CommandParameter="phi3"
                                     AutomationProperties.LabeledBy="{x:Bind PhiLabel}">
-                                <Border Style="{StaticResource BadgeAccentStyle}" Padding="10,4">
+                                <Border Style="{StaticResource BadgeAccentStyle}" Padding="8,4">
                                     <TextBlock x:Name="PhiLabel" Text="phi3" Style="{StaticResource MonoSmallStyle}"
                                                Foreground="{ThemeResource TextAccentBrush}" />
                                 </Border>
                             </Button>
                             <Button Style="{StaticResource GhostButtonStyle}"
-                                    Padding="12,6,12,6" MinHeight="32"
+                                    Padding="12,4,12,4" MinHeight="32"
                                     Command="{x:Bind ViewModel.SetModelSuggestionCommand}"
                                     CommandParameter="qwen2.5"
                                     AutomationProperties.LabeledBy="{x:Bind QwenLabel}">
-                                <Border Style="{StaticResource BadgeAccentStyle}" Padding="10,4">
+                                <Border Style="{StaticResource BadgeAccentStyle}" Padding="8,4">
                                     <TextBlock x:Name="QwenLabel" Text="qwen2.5" Style="{StaticResource MonoSmallStyle}"
                                                Foreground="{ThemeResource TextAccentBrush}" />
                                 </Border>
                             </Button>
                             <Button Style="{StaticResource GhostButtonStyle}"
-                                    Padding="12,6,12,6" MinHeight="32"
+                                    Padding="12,4,12,4" MinHeight="32"
                                     Command="{x:Bind ViewModel.SetModelSuggestionCommand}"
                                     CommandParameter="gemma2"
                                     AutomationProperties.LabeledBy="{x:Bind GemmaLabel}">
-                                <Border Style="{StaticResource BadgeAccentStyle}" Padding="10,4">
+                                <Border Style="{StaticResource BadgeAccentStyle}" Padding="8,4">
                                     <TextBlock x:Name="GemmaLabel" Text="gemma2" Style="{StaticResource MonoSmallStyle}"
                                                Foreground="{ThemeResource TextAccentBrush}" />
                                 </Border>
                             </Button>
                             <Button Style="{StaticResource GhostButtonStyle}"
-                                    Padding="12,6,12,6" MinHeight="32"
+                                    Padding="12,4,12,4" MinHeight="32"
                                     Command="{x:Bind ViewModel.SetModelSuggestionCommand}"
                                     CommandParameter="deepseek-r1"
                                     AutomationProperties.LabeledBy="{x:Bind DeepseekRLabel}">
-                                <Border Style="{StaticResource BadgeAccentStyle}" Padding="10,4">
+                                <Border Style="{StaticResource BadgeAccentStyle}" Padding="8,4">
                                     <TextBlock x:Name="DeepseekRLabel" Text="deepseek-r1" Style="{StaticResource MonoSmallStyle}"
                                                Foreground="{ThemeResource TextAccentBrush}" />
                                 </Border>
@@ -257,7 +261,7 @@
                     Background="{ThemeResource ErrorSubtleBrush}"
                     BorderBrush="{ThemeResource ErrorBrush}"
                     BorderThickness="1"
-                    CornerRadius="{StaticResource RadiusMD}"
+                    CornerRadius="{StaticResource RControl}"
                     Padding="16,12">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <FontIcon Glyph="&#xE7BA;" FontSize="16"
@@ -331,8 +335,8 @@
                                                    Style="{StaticResource HeadingSmallStyle}" />
                                         <!-- Active badge -->
                                         <Border Background="{ThemeResource SuccessSubtleBrush}"
-                                                CornerRadius="{StaticResource RadiusRound}"
-                                                Padding="10,3,10,3"
+                                                CornerRadius="{StaticResource RControl}"
+                                                Padding="8,3,8,3"
                                                 Visibility="{x:Bind IsActive, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                                             <TextBlock x:Uid="ModelMgr_Active" Text="ACTIVE"
                                                        FontSize="10" FontWeight="Bold"
@@ -427,13 +431,13 @@
                                     <!-- Row 2: Digest + Modified date -->
                                     <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
                                                 Orientation="Horizontal" Spacing="16">
-                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
                                             <TextBlock x:Uid="ModelMgr_Digest" Text="Digest:"
                                                        Style="{StaticResource CaptionStyle}" />
                                             <TextBlock Text="{x:Bind DigestShort, Mode=OneWay}"
                                                        Style="{StaticResource MonoSmallStyle}" />
                                         </StackPanel>
-                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
                                             <FontIcon Glyph="&#xE787;" FontSize="10"
                                                       Foreground="{ThemeResource TextTertiaryBrush}" />
                                             <TextBlock Text="{x:Bind ModifiedAtFormatted, Mode=OneWay}"

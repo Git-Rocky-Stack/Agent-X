@@ -7,14 +7,18 @@
             Four-layer raised-hardware depth system, in XAML
     ====================================================================
 
-    Source of truth: DESIGN.md. These are the Command Console material
-    recipes translated from the family's CSS to WinUI:
+    Source of truth: DESIGN.md. This file holds the material brushes for
+    the Command Console recipes, per shift, plus the primitives that are
+    still expressed as styles. Where a recipe became a templated control,
+    the control consumes these brushes directly:
 
       Layer 0  Chassis    - flat page canvas (Colors.xaml)
-      Layer 1  Faceplate  - FaceplateStyle + StripeStyle + HexBoltStyle
+      Layer 1  Faceplate  - Controls/Faceplate (template in
+                            Themes/Generic.xaml: plate, stripe, bevel,
+                            four hex socket bolts)
       Layer 2  Well       - WellStyle (ALWAYS dark, Night and Day)
-      Layer 3  Control    - ControlCapStyle, cap button styles,
-                            LampTileStyle
+      Layer 3  Control    - ControlCapStyle (cards are BasedOn it), the
+                            machined cap button styles, Controls/LampTile
 
     Rules:
       - Every surface declares its layer; never mix raised and recessed
@@ -44,7 +48,6 @@
             </LinearGradientBrush>
             <SolidColorBrush x:Key="FaceplateBorderBrush" Color="#0FFFFFFF" />
             <SolidColorBrush x:Key="FaceplateHighlightBrush" Color="#1AFFFFFF" />
-            <SolidColorBrush x:Key="FaceplateShadeBrush" Color="#B3000000" />
 
             <LinearGradientBrush x:Key="ControlCapBrush" StartPoint="0,0" EndPoint="0,1">
                 <GradientStop Color="#FF1F1F1F" Offset="0" />
@@ -60,13 +63,11 @@
                 <GradientStop Color="#FF181818" Offset="1" />
             </LinearGradientBrush>
             <SolidColorBrush x:Key="StripeRuleBrush" Color="#CC000000" />
-            <SolidColorBrush x:Key="StripeHighlightBrush" Color="#1AFFFFFF" />
 
             <LinearGradientBrush x:Key="WellGradientBrush" StartPoint="0,0" EndPoint="0,1">
                 <GradientStop Color="#FF080808" Offset="0" />
                 <GradientStop Color="#FF0A0A0A" Offset="1" />
             </LinearGradientBrush>
-            <SolidColorBrush x:Key="WellShadeBrush" Color="#CC000000" />
 
             <LinearGradientBrush x:Key="LampCapBrush" StartPoint="0,0" EndPoint="0,1">
                 <GradientStop Color="#FF141414" Offset="0" />
@@ -77,11 +78,6 @@
                 <GradientStop Color="#FFC8333A" Offset="0" />
                 <GradientStop Color="#FFAA2024" Offset="0.55" />
                 <GradientStop Color="#FF7F171A" Offset="1" />
-            </LinearGradientBrush>
-            <LinearGradientBrush x:Key="ArmedCapPressedBrush" StartPoint="0,0" EndPoint="0,1">
-                <GradientStop Color="#FF941B1F" Offset="0" />
-                <GradientStop Color="#FF7F171A" Offset="0.55" />
-                <GradientStop Color="#FF5E1114" Offset="1" />
             </LinearGradientBrush>
             <SolidColorBrush x:Key="ArmedCapBorderBrush" Color="#FF7F171A" />
             <SolidColorBrush x:Key="ArmedCapTextBrush" Color="#FFF5F5F5" />
@@ -150,7 +146,6 @@
             </LinearGradientBrush>
             <SolidColorBrush x:Key="FaceplateBorderBrush" Color="#1F000000" />
             <SolidColorBrush x:Key="FaceplateHighlightBrush" Color="#EBFFFFFF" />
-            <SolidColorBrush x:Key="FaceplateShadeBrush" Color="#29000000" />
 
             <LinearGradientBrush x:Key="ControlCapBrush" StartPoint="0,0" EndPoint="0,1">
                 <GradientStop Color="#FFF7F7F5" Offset="0" />
@@ -166,13 +161,11 @@
                 <GradientStop Color="#FFD5D5D1" Offset="1" />
             </LinearGradientBrush>
             <SolidColorBrush x:Key="StripeRuleBrush" Color="#33000000" />
-            <SolidColorBrush x:Key="StripeHighlightBrush" Color="#EBFFFFFF" />
 
             <LinearGradientBrush x:Key="WellGradientBrush" StartPoint="0,0" EndPoint="0,1">
                 <GradientStop Color="#FF080808" Offset="0" />
                 <GradientStop Color="#FF0A0A0A" Offset="1" />
             </LinearGradientBrush>
-            <SolidColorBrush x:Key="WellShadeBrush" Color="#CC000000" />
 
             <LinearGradientBrush x:Key="LampCapBrush" StartPoint="0,0" EndPoint="0,1">
                 <GradientStop Color="#FF141414" Offset="0" />
@@ -183,11 +176,6 @@
                 <GradientStop Color="#FFC8333A" Offset="0" />
                 <GradientStop Color="#FFAA2024" Offset="0.55" />
                 <GradientStop Color="#FF7F171A" Offset="1" />
-            </LinearGradientBrush>
-            <LinearGradientBrush x:Key="ArmedCapPressedBrush" StartPoint="0,0" EndPoint="0,1">
-                <GradientStop Color="#FF941B1F" Offset="0" />
-                <GradientStop Color="#FF7F171A" Offset="0.55" />
-                <GradientStop Color="#FF5E1114" Offset="1" />
             </LinearGradientBrush>
             <SolidColorBrush x:Key="ArmedCapBorderBrush" Color="#FF7F171A" />
             <SolidColorBrush x:Key="ArmedCapTextBrush" Color="#FFF5F5F5" />
@@ -239,7 +227,6 @@
             <SolidColorBrush x:Key="FaceplateBrush" Color="{ThemeResource SystemColorWindowColor}" />
             <SolidColorBrush x:Key="FaceplateBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
             <SolidColorBrush x:Key="FaceplateHighlightBrush" Color="{ThemeResource SystemColorWindowColor}" />
-            <SolidColorBrush x:Key="FaceplateShadeBrush" Color="{ThemeResource SystemColorWindowColor}" />
 
             <SolidColorBrush x:Key="ControlCapBrush" Color="{ThemeResource SystemColorButtonFaceColor}" />
             <SolidColorBrush x:Key="ControlCapBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
@@ -247,15 +234,12 @@
 
             <SolidColorBrush x:Key="StripeBrush" Color="{ThemeResource SystemColorWindowColor}" />
             <SolidColorBrush x:Key="StripeRuleBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
-            <SolidColorBrush x:Key="StripeHighlightBrush" Color="{ThemeResource SystemColorWindowColor}" />
 
             <SolidColorBrush x:Key="WellGradientBrush" Color="{ThemeResource SystemColorWindowColor}" />
-            <SolidColorBrush x:Key="WellShadeBrush" Color="{ThemeResource SystemColorWindowColor}" />
 
             <SolidColorBrush x:Key="LampCapBrush" Color="{ThemeResource SystemColorWindowColor}" />
 
             <SolidColorBrush x:Key="ArmedCapBrush" Color="{ThemeResource SystemColorHighlightColor}" />
-            <SolidColorBrush x:Key="ArmedCapPressedBrush" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="ArmedCapBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
             <SolidColorBrush x:Key="ArmedCapTextBrush" Color="{ThemeResource SystemColorHighlightTextColor}" />
 
@@ -273,51 +257,12 @@
 
     </ResourceDictionary.ThemeDictionaries>
 
-    <!-- Ambient faceplate depth: set Shadow="{StaticResource FaceplateShadow}"
-         and Translation="0,0,24" on a faceplate Border (raised plates float
-         24 units above the chassis; wells never carry a shadow). -->
-    <ThemeShadow x:Key="FaceplateShadow" />
-
     <!-- ===============================================================
          LAYER 1 - FACEPLATE
-         Usage: <Border Style="{StaticResource FaceplateStyle}"> with a
-         StripeStyle header inside and HexBoltStyle ContentControls in
-         the corners (inset 10px). Ambient drop shadow is applied by
-         the ShadowHelper during the screen sweep (Composition API).
+         Lives in Controls/Faceplate (Themes/Generic.xaml). The plate,
+         stripe header, bevel and corner bolts are one templated control
+         consuming the Faceplate*/Stripe*/Bolt* brushes above.
          =============================================================== -->
-
-    <Style x:Key="FaceplateStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource FaceplateBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource FaceplateBorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RCard}" />
-    </Style>
-
-    <!-- 1px machined bevel strips: place as first/last children inside
-         a faceplate (horizontal alignment stretch, height 1) -->
-    <Style x:Key="FaceplateHighlightStripStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource FaceplateHighlightBrush}" />
-        <Setter Property="Height" Value="1" />
-        <Setter Property="VerticalAlignment" Value="Top" />
-        <Setter Property="IsHitTestVisible" Value="False" />
-    </Style>
-
-    <Style x:Key="FaceplateShadeStripStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource FaceplateShadeBrush}" />
-        <Setter Property="Height" Value="1" />
-        <Setter Property="VerticalAlignment" Value="Bottom" />
-        <Setter Property="IsHitTestVisible" Value="False" />
-    </Style>
-
-    <!-- Brushed stripe header: 36px, side padding clears corner bolts.
-         Content: Departure Mono kicker (TelemetryStyle) + optional lamp. -->
-    <Style x:Key="StripeStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource StripeBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource StripeRuleBrush}" />
-        <Setter Property="BorderThickness" Value="0,0,0,1" />
-        <Setter Property="Height" Value="36" />
-        <Setter Property="Padding" Value="44,0" />
-    </Style>
 
     <!-- ===============================================================
          LAYER 2 - RECESSED WELL (always dark, Night and Day)
@@ -332,14 +277,6 @@
         <Setter Property="CornerRadius" Value="{StaticResource RCard}" />
     </Style>
 
-    <!-- Inner top shade: first child of a well, reads as carved depth -->
-    <Style x:Key="WellShadeStripStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource WellShadeBrush}" />
-        <Setter Property="Height" Value="2" />
-        <Setter Property="VerticalAlignment" Value="Top" />
-        <Setter Property="IsHitTestVisible" Value="False" />
-    </Style>
-
     <!-- ===============================================================
          LAYER 3 - RAISED CONTROLS
          =============================================================== -->
@@ -349,24 +286,6 @@
         <Setter Property="BorderBrush" Value="{ThemeResource ControlCapBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
-    </Style>
-
-    <!-- Lamp tile: dark cap in both shifts; content is a stencil word
-         (BadgeStyle/PlacardStyle) with a Led*TextBrush foreground.
-         Blink (1Hz, warnings only, until acknowledged) and the strike
-         ignition are applied by the LampHelper during the sweep. -->
-    <Style x:Key="LampTileStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource LampCapBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource HairlineBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
-        <Setter Property="Height" Value="26" />
-        <Setter Property="Padding" Value="10,0" />
-    </Style>
-
-    <Style x:Key="LampTileSmallStyle" TargetType="Border" BasedOn="{StaticResource LampTileStyle}">
-        <Setter Property="Height" Value="19" />
-        <Setter Property="Padding" Value="8,0" />
     </Style>
 
     <!-- LED dot: pair with a Led*LampBrush fill -->
@@ -422,6 +341,12 @@
                                 <Border x:Name="Sheen" Background="#FFFFFFFF" Opacity="0"
                                         IsHitTestVisible="False"
                                         CornerRadius="{TemplateBinding CornerRadius}" />
+                                <!-- press shade: the cap sinks 1px and darkens; on the
+                                     armed cap this is the ArmedDeep pressed state
+                                     DESIGN.md specifies, and it works on every fill -->
+                                <Border x:Name="PressShade" Background="#FF000000" Opacity="0"
+                                        IsHitTestVisible="False"
+                                        CornerRadius="{TemplateBinding CornerRadius}" />
                                 <ContentPresenter x:Name="ContentPresenter"
                                                   Content="{TemplateBinding Content}"
                                                   ContentTemplate="{TemplateBinding ContentTemplate}"
@@ -438,6 +363,9 @@
                                         <DoubleAnimation Storyboard.TargetName="Sheen"
                                                          Storyboard.TargetProperty="Opacity"
                                                          To="0" Duration="0:0:0.08" />
+                                        <DoubleAnimation Storyboard.TargetName="PressShade"
+                                                         Storyboard.TargetProperty="Opacity"
+                                                         To="0" Duration="0:0:0.08" />
                                         <DoubleAnimation Storyboard.TargetName="CapTravel"
                                                          Storyboard.TargetProperty="Y"
                                                          To="0" Duration="0:0:0.08" />
@@ -448,6 +376,9 @@
                                         <DoubleAnimation Storyboard.TargetName="Sheen"
                                                          Storyboard.TargetProperty="Opacity"
                                                          To="0.05" Duration="0:0:0.08" />
+                                        <DoubleAnimation Storyboard.TargetName="PressShade"
+                                                         Storyboard.TargetProperty="Opacity"
+                                                         To="0" Duration="0:0:0.08" />
                                     </Storyboard>
                                 </VisualState>
                                 <VisualState x:Name="Pressed">
@@ -455,6 +386,9 @@
                                         <DoubleAnimation Storyboard.TargetName="Sheen"
                                                          Storyboard.TargetProperty="Opacity"
                                                          To="0" Duration="0:0:0.08" />
+                                        <DoubleAnimation Storyboard.TargetName="PressShade"
+                                                         Storyboard.TargetProperty="Opacity"
+                                                         To="0.14" Duration="0:0:0.08" />
                                         <DoubleAnimation Storyboard.TargetName="CapTravel"
                                                          Storyboard.TargetProperty="Y"
                                                          To="1" Duration="0:0:0.08" />
@@ -488,40 +422,6 @@
         <Setter Property="Background" Value="{ThemeResource ChromeCapBrush}" />
         <Setter Property="Foreground" Value="{ThemeResource ChromeCapTextBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource ChromeCapBorderBrush}" />
-    </Style>
-
-    <!-- ===============================================================
-         HEX SOCKET CAP BOLT - 20px, 4 per faceplate, inset 10px from
-         corners. Decorative metalwork: disappears in HighContrast and
-         is marked Raw for accessibility (never announced).
-         Usage: <ContentControl Style="{StaticResource HexBoltStyle}" />
-         =============================================================== -->
-
-    <Style x:Key="HexBoltStyle" TargetType="ContentControl">
-        <Setter Property="Width" Value="20" />
-        <Setter Property="Height" Value="20" />
-        <Setter Property="IsTabStop" Value="False" />
-        <Setter Property="IsHitTestVisible" Value="False" />
-        <Setter Property="AutomationProperties.AccessibilityView" Value="Raw" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ContentControl">
-                    <Grid Width="20" Height="20">
-                        <!-- countersunk halo -->
-                        <Ellipse Width="20" Height="20" Fill="{ThemeResource BoltHaloBrush}" />
-                        <!-- machined cap -->
-                        <Ellipse Width="16" Height="16" Fill="{ThemeResource BoltOuterBrush}" />
-                        <!-- machined edge -->
-                        <Ellipse Width="16" Height="16" Stroke="{ThemeResource BoltRimBrush}" StrokeThickness="1" />
-                        <!-- Allen socket -->
-                        <Path Fill="{ThemeResource BoltSocketBrush}"
-                              Stroke="{ThemeResource BoltSocketRimBrush}"
-                              StrokeThickness="0.75"
-                              Data="M 10,5.1 L 14.3,7.5 L 14.3,12.5 L 10,14.9 L 5.7,12.5 L 5.7,7.5 Z" />
-                    </Grid>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
     </Style>
 
 </ResourceDictionary>

@@ -150,7 +150,7 @@ public sealed class BranchCompareWindow : Window
             var metaBorder = new Border
             {
                 Background = new SolidColorBrush(Color.FromArgb(30, 255, 255, 255)),
-                CornerRadius = new CornerRadius(6),
+                CornerRadius = new CornerRadius(4),
                 Padding = new Thickness(12),
                 Margin = new Thickness(0, 0, 0, 4)
             };
@@ -201,7 +201,7 @@ public sealed class BranchCompareWindow : Window
             {
                 Background = new SolidColorBrush(Color.FromArgb(20, 255, 255, 255)),
                 CornerRadius = new CornerRadius(4),
-                Padding = new Thickness(10),
+                Padding = new Thickness(8),
                 BorderBrush = new SolidColorBrush(Color.FromArgb(40, 255, 255, 255)),
                 BorderThickness = new Thickness(1)
             };

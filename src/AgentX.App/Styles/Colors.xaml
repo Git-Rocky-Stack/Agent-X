@@ -54,12 +54,9 @@
             <!-- Window & Page Backgrounds (chassis) -->
             <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#FF000000" />
             <SolidColorBrush x:Key="PageBackgroundBrush" Color="#FF050505" />
-            <SolidColorBrush x:Key="BackgroundSecondaryBrush" Color="#FF0D0D0D" />
 
             <!-- Ambient surface brushes (legacy "Gradient" keys are solids) -->
-            <SolidColorBrush x:Key="WindowGradientBrush" Color="#FF000000" />
             <SolidColorBrush x:Key="SidebarGradientBrush" Color="#FF0D0D0D" />
-            <SolidColorBrush x:Key="HeaderGradientBrush" Color="#FF050505" />
 
             <!-- Card Surface Brushes (carbon panel bases; faceplate
                  gradients live in Hardware.xaml for swept screens) -->
@@ -76,16 +73,12 @@
 
             <!-- Accent Card (featured / highlighted elements) -->
             <SolidColorBrush x:Key="AccentCardGradientBrush" Color="#FF141414" />
-            <SolidColorBrush x:Key="AccentGlowGradientBrush" Color="#26AA2024" />
 
             <!-- Border Brushes (hairline discipline: 8% / 16% / 24%) -->
             <SolidColorBrush x:Key="BorderSubtleBrush" Color="#14FFFFFF" />
             <SolidColorBrush x:Key="BorderMediumBrush" Color="#29FFFFFF" />
-            <SolidColorBrush x:Key="BorderStrongBrush" Color="#3DFFFFFF" />
-            <SolidColorBrush x:Key="BorderFocusBrush" Color="#FFAA2024" />
 
             <!-- Legacy Border "Gradient" keys -->
-            <SolidColorBrush x:Key="BorderGradientBrush" Color="#14FFFFFF" />
             <SolidColorBrush x:Key="BorderAccentGradientBrush" Color="#FFAA2024" />
 
             <!-- Text Brushes (silver ramp - engraved enamel) -->
@@ -93,23 +86,18 @@
             <SolidColorBrush x:Key="TextSecondaryBrush" Color="#FFB3B3B3" />
             <SolidColorBrush x:Key="TextTertiaryBrush" Color="#FF888888" />
             <SolidColorBrush x:Key="TextDisabledBrush" Color="#FF5A5A5A" />
-            <SolidColorBrush x:Key="TextInverseBrush" Color="#FF000000" />
             <SolidColorBrush x:Key="TextAccentBrush" Color="#FFE0252B" />
             <SolidColorBrush x:Key="TextLinkBrush" Color="#FFF08A8E" />
-            <SolidColorBrush x:Key="TextEmphasisBrush" Color="#FFD1D1D1" />
 
             <!-- Accent Brushes (ARMED RED - steady means LIVE) -->
             <SolidColorBrush x:Key="AccentPrimaryBrush" Color="#FFAA2024" />
             <SolidColorBrush x:Key="AccentHoverBrush" Color="#FFC8333A" />
-            <SolidColorBrush x:Key="AccentPressedBrush" Color="#FF7F171A" />
             <SolidColorBrush x:Key="AccentSubtleBrush" Color="#1FAA2024" />
             <SolidColorBrush x:Key="AccentGlowBrush" Color="#38E0252B" />
             <SolidColorBrush x:Key="AccentLitBrush" Color="#FFE0252B" />
-            <SolidColorBrush x:Key="AccentDeepBrush" Color="#FF7F171A" />
 
             <!-- Legacy Accent "Gradient" keys -->
             <SolidColorBrush x:Key="AccentGradientBrush" Color="#FFAA2024" />
-            <SolidColorBrush x:Key="AccentGradientHoverBrush" Color="#FFC8333A" />
 
             <!-- Status Brushes (LED semantics - see the dual-form rule.
                  ErrorBrush is the steady NO-GO terminal-fault tone; the
@@ -118,7 +106,6 @@
             <SolidColorBrush x:Key="WarningBrush" Color="#FFFFB000" />
             <SolidColorBrush x:Key="ErrorBrush" Color="#FFC8453E" />
             <SolidColorBrush x:Key="InfoBrush" Color="#FF58C4BC" />
-            <SolidColorBrush x:Key="OnlineBrush" Color="#FF41E25E" />
             <SolidColorBrush x:Key="OfflineBrush" Color="#FF5A5A5A" />
             <SolidColorBrush x:Key="SuccessSubtleBrush" Color="#2641E25E" />
             <SolidColorBrush x:Key="WarningSubtleBrush" Color="#26FFB000" />
@@ -158,12 +145,10 @@
             <SolidColorBrush x:Key="GraphTagBrush" Color="#FFB3B3B3" />
             <SolidColorBrush x:Key="GraphTagSubtleBrush" Color="#26B3B3B3" />
             <SolidColorBrush x:Key="ChartSeriesBrush" Color="#FFAA2024" />
-            <SolidColorBrush x:Key="ChartSeriesSubtleBrush" Color="#26AA2024" />
 
             <!-- Input Field Brushes (console plate forms: recessed wells) -->
             <SolidColorBrush x:Key="InputBackgroundBrush" Color="#FF0A0A0A" />
             <SolidColorBrush x:Key="InputBorderBrush" Color="#14FFFFFF" />
-            <SolidColorBrush x:Key="InputFocusBorderBrush" Color="#FFAA2024" />
             <SolidColorBrush x:Key="InputPlaceholderBrush" Color="#FF5A5A5A" />
 
             <!-- Fluent lightweight overrides: keep TextBox/PasswordBox/
@@ -217,13 +202,9 @@
             <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPointerOver" Color="#FFFFFFFF" />
 
             <!-- Scrollbar Brushes -->
-            <SolidColorBrush x:Key="ScrollbarTrackBrush" Color="Transparent" />
-            <SolidColorBrush x:Key="ScrollbarThumbBrush" Color="#1AFFFFFF" />
-            <SolidColorBrush x:Key="ScrollbarThumbHoverBrush" Color="#33FFFFFF" />
 
             <!-- Shadow / Overlay -->
             <SolidColorBrush x:Key="OverlayBrush" Color="#CC000000" />
-            <SolidColorBrush x:Key="OverlayLightBrush" Color="#80000000" />
 
         </ResourceDictionary>
 
@@ -238,12 +219,9 @@
             <!-- Window & Page Backgrounds (chassis behind the plates) -->
             <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#FFC4C4BF" />
             <SolidColorBrush x:Key="PageBackgroundBrush" Color="#FFCBCBC6" />
-            <SolidColorBrush x:Key="BackgroundSecondaryBrush" Color="#FFC0C0BB" />
 
             <!-- Ambient surface brushes -->
-            <SolidColorBrush x:Key="WindowGradientBrush" Color="#FFC4C4BF" />
             <SolidColorBrush x:Key="SidebarGradientBrush" Color="#FFC0C0BB" />
-            <SolidColorBrush x:Key="HeaderGradientBrush" Color="#FFCBCBC6" />
 
             <!-- Card Surface Brushes (silver plates ascend brighter) -->
             <SolidColorBrush x:Key="CardBrush" Color="#FFEAEAE7" />
@@ -259,16 +237,12 @@
 
             <!-- Accent Card -->
             <SolidColorBrush x:Key="AccentCardGradientBrush" Color="#FFEAEAE7" />
-            <SolidColorBrush x:Key="AccentGlowGradientBrush" Color="#1FAA2024" />
 
             <!-- Border Brushes (low-opacity black on silver) -->
             <SolidColorBrush x:Key="BorderSubtleBrush" Color="#1F000000" />
             <SolidColorBrush x:Key="BorderMediumBrush" Color="#2E000000" />
-            <SolidColorBrush x:Key="BorderStrongBrush" Color="#42000000" />
-            <SolidColorBrush x:Key="BorderFocusBrush" Color="#FFAA2024" />
 
             <!-- Legacy Border "Gradient" keys -->
-            <SolidColorBrush x:Key="BorderGradientBrush" Color="#1F000000" />
             <SolidColorBrush x:Key="BorderAccentGradientBrush" Color="#FFAA2024" />
 
             <!-- Text Brushes (day silver ramp - dark enamel on silver) -->
@@ -276,23 +250,18 @@
             <SolidColorBrush x:Key="TextSecondaryBrush" Color="#FF44443F" />
             <SolidColorBrush x:Key="TextTertiaryBrush" Color="#FF62625E" />
             <SolidColorBrush x:Key="TextDisabledBrush" Color="#FF96968F" />
-            <SolidColorBrush x:Key="TextInverseBrush" Color="#FFF5F5F5" />
             <SolidColorBrush x:Key="TextAccentBrush" Color="#FF941B1F" />
             <SolidColorBrush x:Key="TextLinkBrush" Color="#FF7F171A" />
-            <SolidColorBrush x:Key="TextEmphasisBrush" Color="#FF2E2E2C" />
 
             <!-- Accent Brushes (armed red; hover darkens on silver) -->
             <SolidColorBrush x:Key="AccentPrimaryBrush" Color="#FFAA2024" />
             <SolidColorBrush x:Key="AccentHoverBrush" Color="#FF941B1F" />
-            <SolidColorBrush x:Key="AccentPressedBrush" Color="#FF7F171A" />
             <SolidColorBrush x:Key="AccentSubtleBrush" Color="#1FAA2024" />
             <SolidColorBrush x:Key="AccentGlowBrush" Color="#26AA2024" />
             <SolidColorBrush x:Key="AccentLitBrush" Color="#FFC8333A" />
-            <SolidColorBrush x:Key="AccentDeepBrush" Color="#FF7F171A" />
 
             <!-- Legacy Accent "Gradient" keys -->
             <SolidColorBrush x:Key="AccentGradientBrush" Color="#FFAA2024" />
-            <SolidColorBrush x:Key="AccentGradientHoverBrush" Color="#FF941B1F" />
 
             <!-- Status Brushes (LED TEXT tones darkened for silver
                  surfaces; lamps and dots keep night values below) -->
@@ -300,7 +269,6 @@
             <SolidColorBrush x:Key="WarningBrush" Color="#FF996300" />
             <SolidColorBrush x:Key="ErrorBrush" Color="#FFC81E13" />
             <SolidColorBrush x:Key="InfoBrush" Color="#FF256F69" />
-            <SolidColorBrush x:Key="OnlineBrush" Color="#FF177A3D" />
             <SolidColorBrush x:Key="OfflineBrush" Color="#FF96968F" />
             <SolidColorBrush x:Key="SuccessSubtleBrush" Color="#2641E25E" />
             <SolidColorBrush x:Key="WarningSubtleBrush" Color="#26FFB000" />
@@ -339,7 +307,6 @@
             <SolidColorBrush x:Key="GraphTagBrush" Color="#FF44443F" />
             <SolidColorBrush x:Key="GraphTagSubtleBrush" Color="#1A44443F" />
             <SolidColorBrush x:Key="ChartSeriesBrush" Color="#FFAA2024" />
-            <SolidColorBrush x:Key="ChartSeriesSubtleBrush" Color="#1FAA2024" />
 
             <!-- Input Field Brushes (Tier 2 sweep: inputs are recessed
                  dark wells with light text in Day Shift too - the
@@ -347,7 +314,6 @@
                  studio hardware) -->
             <SolidColorBrush x:Key="InputBackgroundBrush" Color="#FF0A0A0A" />
             <SolidColorBrush x:Key="InputBorderBrush" Color="#66000000" />
-            <SolidColorBrush x:Key="InputFocusBorderBrush" Color="#FFAA2024" />
             <SolidColorBrush x:Key="InputPlaceholderBrush" Color="#FF5A5A5A" />
 
             <!-- Fluent lightweight overrides: same dark-well discipline
@@ -400,13 +366,9 @@
             <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPointerOver" Color="#FFFFFFFF" />
 
             <!-- Scrollbar Brushes -->
-            <SolidColorBrush x:Key="ScrollbarTrackBrush" Color="Transparent" />
-            <SolidColorBrush x:Key="ScrollbarThumbBrush" Color="#2E000000" />
-            <SolidColorBrush x:Key="ScrollbarThumbHoverBrush" Color="#42000000" />
 
             <!-- Shadow / Overlay -->
             <SolidColorBrush x:Key="OverlayBrush" Color="#80000000" />
-            <SolidColorBrush x:Key="OverlayLightBrush" Color="#40000000" />
 
         </ResourceDictionary>
 
@@ -424,12 +386,9 @@
             <!-- Window & Page Backgrounds -->
             <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
             <SolidColorBrush x:Key="PageBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
-            <SolidColorBrush x:Key="BackgroundSecondaryBrush" Color="{ThemeResource SystemColorWindowColor}" />
 
             <!-- Ambient surface brushes -->
-            <SolidColorBrush x:Key="WindowGradientBrush" Color="{ThemeResource SystemColorWindowColor}" />
             <SolidColorBrush x:Key="SidebarGradientBrush" Color="{ThemeResource SystemColorWindowColor}" />
-            <SolidColorBrush x:Key="HeaderGradientBrush" Color="{ThemeResource SystemColorWindowColor}" />
 
             <!-- Card Surface Brushes (HC has no elevation system - flat window color) -->
             <SolidColorBrush x:Key="CardBrush" Color="{ThemeResource SystemColorWindowColor}" />
@@ -445,16 +404,12 @@
 
             <!-- Accent Card -->
             <SolidColorBrush x:Key="AccentCardGradientBrush" Color="{ThemeResource SystemColorWindowColor}" />
-            <SolidColorBrush x:Key="AccentGlowGradientBrush" Color="{ThemeResource SystemColorHighlightColor}" />
 
             <!-- Border Brushes (HC requires full-opacity, no transparency) -->
             <SolidColorBrush x:Key="BorderSubtleBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
             <SolidColorBrush x:Key="BorderMediumBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
-            <SolidColorBrush x:Key="BorderStrongBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
-            <SolidColorBrush x:Key="BorderFocusBrush" Color="{ThemeResource SystemColorHighlightColor}" />
 
             <!-- Legacy Border "Gradient" keys -->
-            <SolidColorBrush x:Key="BorderGradientBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
             <SolidColorBrush x:Key="BorderAccentGradientBrush" Color="{ThemeResource SystemColorHighlightColor}" />
 
             <!-- Text Brushes -->
@@ -462,30 +417,24 @@
             <SolidColorBrush x:Key="TextSecondaryBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
             <SolidColorBrush x:Key="TextTertiaryBrush" Color="{ThemeResource SystemColorGrayTextColor}" />
             <SolidColorBrush x:Key="TextDisabledBrush" Color="{ThemeResource SystemColorGrayTextColor}" />
-            <SolidColorBrush x:Key="TextInverseBrush" Color="{ThemeResource SystemColorHighlightTextColor}" />
             <SolidColorBrush x:Key="TextAccentBrush" Color="{ThemeResource SystemColorHotlightColor}" />
             <SolidColorBrush x:Key="TextLinkBrush" Color="{ThemeResource SystemColorHotlightColor}" />
-            <SolidColorBrush x:Key="TextEmphasisBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
 
             <!-- Accent Brushes (system highlight - what the OS calls "accent") -->
             <SolidColorBrush x:Key="AccentPrimaryBrush" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="AccentHoverBrush" Color="{ThemeResource SystemColorHighlightColor}" />
-            <SolidColorBrush x:Key="AccentPressedBrush" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="AccentSubtleBrush" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="AccentGlowBrush" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="AccentLitBrush" Color="{ThemeResource SystemColorHighlightColor}" />
-            <SolidColorBrush x:Key="AccentDeepBrush" Color="{ThemeResource SystemColorHighlightColor}" />
 
             <!-- Legacy Accent "Gradient" keys -->
             <SolidColorBrush x:Key="AccentGradientBrush" Color="{ThemeResource SystemColorHighlightColor}" />
-            <SolidColorBrush x:Key="AccentGradientHoverBrush" Color="{ThemeResource SystemColorHighlightColor}" />
 
             <!-- Status Brushes (system colors - HC does not distinguish status hues) -->
             <SolidColorBrush x:Key="SuccessBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
             <SolidColorBrush x:Key="WarningBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
             <SolidColorBrush x:Key="ErrorBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
             <SolidColorBrush x:Key="InfoBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
-            <SolidColorBrush x:Key="OnlineBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
             <SolidColorBrush x:Key="OfflineBrush" Color="{ThemeResource SystemColorGrayTextColor}" />
             <SolidColorBrush x:Key="SuccessSubtleBrush" Color="{ThemeResource SystemColorWindowColor}" />
             <SolidColorBrush x:Key="WarningSubtleBrush" Color="{ThemeResource SystemColorWindowColor}" />
@@ -525,22 +474,16 @@
             <SolidColorBrush x:Key="GraphTagBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
             <SolidColorBrush x:Key="GraphTagSubtleBrush" Color="{ThemeResource SystemColorWindowColor}" />
             <SolidColorBrush x:Key="ChartSeriesBrush" Color="{ThemeResource SystemColorHighlightColor}" />
-            <SolidColorBrush x:Key="ChartSeriesSubtleBrush" Color="{ThemeResource SystemColorWindowColor}" />
 
             <!-- Input Field Brushes -->
             <SolidColorBrush x:Key="InputBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
             <SolidColorBrush x:Key="InputBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
-            <SolidColorBrush x:Key="InputFocusBorderBrush" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="InputPlaceholderBrush" Color="{ThemeResource SystemColorGrayTextColor}" />
 
             <!-- Scrollbar Brushes -->
-            <SolidColorBrush x:Key="ScrollbarTrackBrush" Color="{ThemeResource SystemColorWindowColor}" />
-            <SolidColorBrush x:Key="ScrollbarThumbBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
-            <SolidColorBrush x:Key="ScrollbarThumbHoverBrush" Color="{ThemeResource SystemColorHighlightColor}" />
 
             <!-- Shadow / Overlay -->
             <SolidColorBrush x:Key="OverlayBrush" Color="{ThemeResource SystemColorWindowColor}" />
-            <SolidColorBrush x:Key="OverlayLightBrush" Color="{ThemeResource SystemColorWindowColor}" />
 
         </ResourceDictionary>
 
@@ -563,34 +506,7 @@
     <Color x:Key="Carbon750">#FF1A1A1A</Color>
     <Color x:Key="Carbon700">#FF262626</Color>
 
-    <!-- Background Scale (legacy keys, re-pointed to carbon) -->
     <Color x:Key="Black">#FF000000</Color>
-    <Color x:Key="BackgroundPrimary">#FF050505</Color>
-    <Color x:Key="BackgroundSecondary">#FF0D0D0D</Color>
-    <Color x:Key="BackgroundTertiary">#FF101010</Color>
-
-    <!-- Surface Scale (card elevations) -->
-    <Color x:Key="Surface0">#FF101010</Color>
-    <Color x:Key="Surface1">#FF141414</Color>
-    <Color x:Key="Surface2">#FF1A1A1A</Color>
-    <Color x:Key="Surface3">#FF1F1F1F</Color>
-    <Color x:Key="Surface4">#FF242424</Color>
-    <Color x:Key="SurfaceHover">#FF2A2A2A</Color>
-    <Color x:Key="SurfacePressed">#FF303030</Color>
-
-    <!-- Border Scale -->
-    <Color x:Key="BorderSubtle">#14FFFFFF</Color>
-    <Color x:Key="BorderMedium">#29FFFFFF</Color>
-    <Color x:Key="BorderStrong">#3DFFFFFF</Color>
-    <Color x:Key="BorderFocus">#FFAA2024</Color>
-
-    <!-- Charcoal Scale -->
-    <Color x:Key="Charcoal900">#FF1A1A1A</Color>
-    <Color x:Key="Charcoal800">#FF222222</Color>
-    <Color x:Key="Charcoal700">#FF2E2E2E</Color>
-    <Color x:Key="Charcoal600">#FF3A3A3A</Color>
-    <Color x:Key="Charcoal500">#FF484848</Color>
-    <Color x:Key="Charcoal400">#FF5C5C5C</Color>
 
     <!-- Silver / Grey Scale (text ramp pigments) -->
     <Color x:Key="Silver700">#FF6B6B6B</Color>
@@ -599,45 +515,11 @@
     <Color x:Key="Silver400">#FFB3B3B3</Color>
     <Color x:Key="Silver300">#FFD1D1D1</Color>
 
-    <!-- Light Grey Scale (Day Shift silver pigments) -->
-    <Color x:Key="LightGrey200">#FFD5D5D1</Color>
-    <Color x:Key="LightGrey100">#FFE0E0DC</Color>
-    <Color x:Key="LightGrey50">#FFEAEAE7</Color>
-
-    <!-- White Scale -->
-    <Color x:Key="White95">#F2FFFFFF</Color>
-    <Color x:Key="White90">#E6FFFFFF</Color>
-    <Color x:Key="White80">#CCFFFFFF</Color>
-    <Color x:Key="White70">#B3FFFFFF</Color>
-    <Color x:Key="White60">#99FFFFFF</Color>
-    <Color x:Key="White50">#80FFFFFF</Color>
-    <Color x:Key="White40">#66FFFFFF</Color>
-    <Color x:Key="White30">#4DFFFFFF</Color>
-    <Color x:Key="White20">#33FFFFFF</Color>
-    <Color x:Key="White10">#1AFFFFFF</Color>
-    <Color x:Key="White05">#0DFFFFFF</Color>
-    <Color x:Key="PureWhite">#FFFFFFFF</Color>
-
     <!-- Red / Accent Scale (ARMED RED ramp - keys preserved, values
          rebuilt around Strategia #AA2024 per DESIGN.md D1) -->
-    <Color x:Key="Red950">#FF2C0709</Color>
-    <Color x:Key="Red900">#FF430C0E</Color>
-    <Color x:Key="Red800">#FF5E1114</Color>
-    <Color x:Key="Red700">#FF7F171A</Color>
-    <Color x:Key="Red600">#FF941B1F</Color>
-    <Color x:Key="Red500">#FFAA2024</Color>
-    <Color x:Key="Red400">#FFC8333A</Color>
-    <Color x:Key="Red300">#FFE0252B</Color>
-    <Color x:Key="Red200">#FFF08A8E</Color>
-    <Color x:Key="Red100">#FFF7BDBF</Color>
-    <Color x:Key="Red50">#FFFBE7E8</Color>
 
     <!-- Red Opacity Variants (armed glow family) -->
-    <Color x:Key="RedGlow30">#4DAA2024</Color>
     <Color x:Key="RedGlow20">#33AA2024</Color>
-    <Color x:Key="RedGlow15">#26AA2024</Color>
-    <Color x:Key="RedGlow10">#1AAA2024</Color>
-    <Color x:Key="RedGlow05">#0DAA2024</Color>
 
     <!-- Armed accents (machined-cap gradient stops) -->
     <Color x:Key="Armed">#FFAA2024</Color>
@@ -653,38 +535,16 @@
     <Color x:Key="LedScope">#FF58C4BC</Color>
     <Color x:Key="ChromeAccent">#FFE6E6E6</Color>
 
-    <!-- Status Colors (legacy keys, re-pointed to LED semantics) -->
+    <!-- Legacy status colour: the one key still consumed; the rest of the
+         Status* ramp retired 2026-09 with zero consumers. -->
     <Color x:Key="StatusSuccess">#FF41E25E</Color>
-    <Color x:Key="StatusWarning">#FFFFB000</Color>
-    <Color x:Key="StatusError">#FFC8453E</Color>
-    <Color x:Key="StatusInfo">#FF58C4BC</Color>
-    <Color x:Key="StatusOnline">#FF41E25E</Color>
-    <Color x:Key="StatusOffline">#FF5A5A5A</Color>
-    <Color x:Key="StatusSuccessSubtle">#2641E25E</Color>
-    <Color x:Key="StatusWarningSubtle">#26FFB000</Color>
-    <Color x:Key="StatusErrorSubtle">#26C8453E</Color>
-    <Color x:Key="StatusInfoSubtle">#2658C4BC</Color>
-
-    <!-- Data-Visualization Colors (on-palette; keys preserved) -->
-    <Color x:Key="GraphTagColor">#FFB3B3B3</Color>
-    <Color x:Key="GraphTagSubtle">#26B3B3B3</Color>
-    <Color x:Key="ChartSeriesColor">#FFAA2024</Color>
-    <Color x:Key="ChartSeriesSubtle">#26AA2024</Color>
-
-    <!-- ===============================================================
-         ELEVATION SHADOW DEFINITIONS (theme-invariant geometry)
-         =============================================================== -->
-
-    <x:String x:Key="ShadowSmall">0 1 3 0</x:String>
-    <x:String x:Key="ShadowMedium">0 4 12 0</x:String>
-    <x:String x:Key="ShadowLarge">0 8 24 0</x:String>
-    <x:String x:Key="ShadowXLarge">0 16 48 0</x:String>
 
     <!-- ===============================================================
          SPACING & SIZING TOKENS (theme-invariant)
-         Console scale (Sp1-Sp7) is canonical for swept screens; the
-         legacy Spacing* tokens remain valid on unswept screens and
-         retire during the sweep. Both are base-4 compatible.
+         Console scale (Sp1-Sp7) per DESIGN.md. The legacy Spacing*
+         tokens retired 2026-09 (zero consumers). Views carry literal
+         values on the base-4 grid; the grid is guarded by
+         SpacingIsOnTheFourPixelGridTests.
          =============================================================== -->
 
     <x:Double x:Key="Sp1">4</x:Double>
@@ -695,51 +555,16 @@
     <x:Double x:Key="Sp6">52</x:Double>
     <x:Double x:Key="Sp7">84</x:Double>
 
-    <x:Double x:Key="SpacingXXS">2</x:Double>
-    <x:Double x:Key="SpacingXS">4</x:Double>
-    <x:Double x:Key="SpacingSM">8</x:Double>
-    <x:Double x:Key="SpacingMD">12</x:Double>
-    <x:Double x:Key="SpacingLG">16</x:Double>
-    <x:Double x:Key="SpacingXL">24</x:Double>
-    <x:Double x:Key="SpacingXXL">32</x:Double>
-    <x:Double x:Key="Spacing3XL">48</x:Double>
-    <x:Double x:Key="Spacing4XL">64</x:Double>
-
     <!-- Machined radii (DESIGN.md): plates 2, caps 4, overlays 8,
-         true circles only for RadiusFull. NEVER uniform radius across
-         surface types. Legacy RadiusLG/XL retire to ROverlay during
-         the sweep. -->
+         true circles only for RPill. NEVER uniform radius across
+         surface types. The legacy Radius* keys retired 2026-09: every
+         consumer was re-pointed at the stop it already resolved to
+         (XS to RCard, SM/MD/Round to RControl, Full to RPill). -->
     <CornerRadius x:Key="RCard">2</CornerRadius>
     <CornerRadius x:Key="RControl">4</CornerRadius>
     <CornerRadius x:Key="ROverlay">8</CornerRadius>
     <CornerRadius x:Key="RPill">9999</CornerRadius>
 
-    <CornerRadius x:Key="RadiusNone">0</CornerRadius>
-    <CornerRadius x:Key="RadiusXS">2</CornerRadius>
-    <CornerRadius x:Key="RadiusSM">4</CornerRadius>
-    <!-- RadiusMD was 8, which is the overlay stop. Every one of its consumers is a
-         content surface: 111 Borders across the views, and not one dialog or flyout
-         (overlays reference ROverlay directly). Holding cards at the overlay radius
-         collapsed two tiers of the machined hierarchy into one, which is the uniform
-         radius DESIGN.md calls an anti-slop failure. Re-pointed to the cap stop so
-         all of them re-cut through the token layer at once. -->
-    <CornerRadius x:Key="RadiusMD">4</CornerRadius>
-    <!-- Retired per DESIGN.md: 12 and 16 are not machined stops. Both are now
-         unreferenced; the keys stay so any straggler resolves to a real stop. -->
-    <CornerRadius x:Key="RadiusLG">8</CornerRadius>
-    <CornerRadius x:Key="RadiusXL">8</CornerRadius>
-    <CornerRadius x:Key="RadiusRound">4</CornerRadius>
-    <CornerRadius x:Key="RadiusFull">9999</CornerRadius>
-
-    <Thickness x:Key="BorderThin">1</Thickness>
-    <Thickness x:Key="BorderMediumThickness">1.5</Thickness>
-    <Thickness x:Key="BorderThick">2</Thickness>
-
-    <Thickness x:Key="PaddingSM">8</Thickness>
-    <Thickness x:Key="PaddingMD">12</Thickness>
-    <Thickness x:Key="PaddingLG">16</Thickness>
-    <Thickness x:Key="PaddingXL">24</Thickness>
-    <Thickness x:Key="PaddingXXL">32</Thickness>
     <Thickness x:Key="PaddingCard">20</Thickness>
     <Thickness x:Key="PaddingPage">32,24,32,24</Thickness>
 

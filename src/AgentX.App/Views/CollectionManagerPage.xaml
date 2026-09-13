@@ -83,12 +83,12 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Orientation="Horizontal" Spacing="10"
+                    <StackPanel Orientation="Horizontal" Spacing="8"
                                 VerticalAlignment="Center">
                         <TextBlock x:Uid="CollMgr_Collections" Text="Collections"
                                    Style="{StaticResource HeadingSmallStyle}" />
                         <Border Style="{StaticResource BadgeDefaultStyle}"
-                                Padding="6,2,6,2">
+                                Padding="4,2,4,2">
                             <TextBlock Style="{StaticResource BadgeStyle}">
                                 <Run Text="{x:Bind ViewModel.TotalCollections, Mode=OneWay}" />
                             </TextBlock>
@@ -131,7 +131,7 @@
                             HorizontalAlignment="Stretch"
                             Command="{x:Bind ViewModel.CreateCollectionCommand}"
                             AutomationProperties.LabeledBy="{x:Bind CreateCollectionLabel}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
                             <FontIcon Glyph="&#xE710;" FontSize="12" />
                             <TextBlock x:Name="CreateCollectionLabel" x:Uid="CollMgr_CreateCollection" Text="Create Collection" FontSize="12" FontWeight="SemiBold" />
                         </StackPanel>
@@ -143,7 +143,7 @@
                  default list stays uncluttered. -->
             <Border Grid.Row="1"
                     VerticalAlignment="Bottom"
-                    Padding="16,10,16,10"
+                    Padding="16,8,16,8"
                     Background="{ThemeResource AccentSubtleBrush}"
                     BorderBrush="{ThemeResource AccentPrimaryBrush}"
                     BorderThickness="0,1,0,1"
@@ -214,7 +214,7 @@
                             <Border Style="{StaticResource CollectionTreeItemStyle}"
                                     PointerPressed="OnCollectionItemClick"
                                     Tag="{x:Bind}">
-                                <Grid ColumnSpacing="10">
+                                <Grid ColumnSpacing="8">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="Auto" />
@@ -261,7 +261,7 @@
                                     <!-- Document count badge -->
                                     <Border Grid.Column="3"
                                             Style="{StaticResource BadgeDefaultStyle}"
-                                            Padding="6,2,6,2"
+                                            Padding="4,2,4,2"
                                             VerticalAlignment="Center">
                                         <TextBlock Style="{StaticResource CaptionStyle}"
                                                    Foreground="{ThemeResource TextTertiaryBrush}"
@@ -325,7 +325,7 @@
                                         <Border Style="{StaticResource CollectionTreeItemStyle}"
                                                 PointerPressed="OnCollectionItemClick"
                                                 Tag="{x:Bind}">
-                                            <Grid ColumnSpacing="10">
+                                            <Grid ColumnSpacing="8">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="Auto" />
                                                     <ColumnDefinition Width="*" />
@@ -351,7 +351,7 @@
                                                 <!-- Document count -->
                                                 <Border Grid.Column="2"
                                                         Style="{StaticResource BadgeDefaultStyle}"
-                                                        Padding="6,2,6,2"
+                                                        Padding="4,2,4,2"
                                                         VerticalAlignment="Center">
                                                     <TextBlock Style="{StaticResource CaptionStyle}"
                                                                Foreground="{ThemeResource TextTertiaryBrush}"
@@ -385,10 +385,10 @@
 
             <!-- Sidebar footer -->
             <Border Grid.Row="3"
-                    Padding="16,10,16,10"
+                    Padding="16,8,16,8"
                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="0,1,0,0">
-                <StackPanel Orientation="Horizontal" Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="4">
                     <FontIcon Glyph="&#xF168;" FontSize="11"
                               Foreground="{ThemeResource TextTertiaryBrush}" />
                     <TextBlock Style="{StaticResource CaptionStyle}">
@@ -410,7 +410,7 @@
                 <StackPanel Spacing="20" HorizontalAlignment="Center">
                     <!-- Icon -->
                     <Border Background="{ThemeResource AccentSubtleBrush}"
-                            CornerRadius="{StaticResource RadiusFull}"
+                            CornerRadius="{StaticResource RPill}"
                             Width="72" Height="72"
                             HorizontalAlignment="Center">
                         <FontIcon Glyph="&#xF168;"
@@ -437,7 +437,7 @@
             <ScrollViewer Visibility="{x:Bind ViewModel.SelectedCollection, Mode=OneWay, Converter={StaticResource NullToVis}}"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled">
-                <Grid Padding="32,24,32,24" RowSpacing="24" MaxWidth="1000">
+                <Grid Padding="32,24,32,24" RowSpacing="24" MaxWidth="1000" HorizontalAlignment="Center">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -484,7 +484,7 @@
                     <!-- Row 1: Stats badges -->
                     <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="12">
                         <Border Style="{StaticResource BadgeDefaultStyle}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <FontIcon Glyph="&#xE8F1;" FontSize="11"
                                           Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock Style="{StaticResource BadgeStyle}">
@@ -495,7 +495,7 @@
                         </Border>
 
                         <Border Style="{StaticResource BadgeDefaultStyle}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <FontIcon Glyph="&#xE787;" FontSize="11"
                                           Foreground="{ThemeResource TextTertiaryBrush}" />
                                 <TextBlock Text="{x:Bind ViewModel.SelectedCollection.CreatedAtFormatted, Mode=OneWay}"
@@ -504,7 +504,7 @@
                         </Border>
 
                         <Border Style="{StaticResource BadgeDefaultStyle}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <FontIcon Glyph="&#xE72C;" FontSize="11"
                                           Foreground="{ThemeResource TextTertiaryBrush}" />
                                 <TextBlock Style="{StaticResource BadgeStyle}">
@@ -523,7 +523,7 @@
                             Background="{ThemeResource ErrorSubtleBrush}"
                             BorderBrush="{ThemeResource ErrorBrush}"
                             BorderThickness="1"
-                            CornerRadius="{StaticResource RadiusMD}"
+                            CornerRadius="{StaticResource RControl}"
                             Padding="16,12">
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <FontIcon Glyph="&#xE7BA;" FontSize="16"
@@ -611,7 +611,7 @@
                                             <!-- Remove button -->
                                             <Button Grid.Column="3"
                                                     Style="{StaticResource GhostButtonStyle}"
-                                                    Padding="6" MinHeight="32" MinWidth="32"
+                                                    Padding="4" MinHeight="32" MinWidth="32"
                                                     Tag="{x:Bind Id}"
                                                     Click="OnRemoveDocumentFromCollectionClick"
                                                     x:Uid="CollMgr_RemoveFromCollectionTip" ToolTipService.ToolTip="Remove from collection"
@@ -658,7 +658,7 @@
             <Border Background="{ThemeResource CardGradientBrush}"
                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="1"
-                    CornerRadius="{StaticResource RadiusMD}"
+                    CornerRadius="{StaticResource RControl}"
                     Padding="24"
                     MinWidth="380"
                     MaxWidth="480"

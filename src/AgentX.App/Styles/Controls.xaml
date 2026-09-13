@@ -22,10 +22,6 @@
          TRANSITION DURATIONS
          ═══════════════════════════════════════════════════════════════ -->
 
-    <Duration x:Key="TransitionFast">0:0:0.15</Duration>
-    <Duration x:Key="TransitionNormal">0:0:0.25</Duration>
-    <Duration x:Key="TransitionSlow">0:0:0.4</Duration>
-
     <!-- ═══════════════════════════════════════════════════════════════
          PRIMARY ACCENT BUTTON - the ARMED machined cap (DESIGN.md).
          Consequential commands only. Rebased onto the Hardware.xaml cap
@@ -93,9 +89,9 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{ThemeResource TextSecondaryBrush}" />
         <Setter Property="BorderThickness" Value="0" />
-        <!-- W=H=36, so RadiusFull keeps this a perfect circle (the only
+        <!-- W=H=36, so RPill keeps this a perfect circle (the only
              permitted "round" shape — pills are forbidden). -->
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusFull}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RPill}" />
         <Setter Property="Padding" Value="8" />
         <Setter Property="Width" Value="36" />
         <Setter Property="Height" Value="36" />
@@ -104,24 +100,18 @@
     </Style>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         CARD STYLES (Gradient elevation system)
+         CARD STYLES - Layer 3 raised controls. Each card is BasedOn
+         Hardware.xaml's ControlCapStyle so the cap recipe lives in one
+         place; a card only states what differs (padding, height).
          ═══════════════════════════════════════════════════════════════ -->
 
     <!-- Standard Card — Used for most content containers -->
-    <Style x:Key="CardStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource ControlCapBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource ControlCapBorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
+    <Style x:Key="CardStyle" TargetType="Border" BasedOn="{StaticResource ControlCapStyle}">
         <Setter Property="Padding" Value="{StaticResource PaddingCard}" />
     </Style>
 
     <!-- Elevated Card — Prominent elements, modals -->
-    <Style x:Key="CardElevatedStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource ControlCapBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource ControlCapBorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
+    <Style x:Key="CardElevatedStyle" TargetType="Border" BasedOn="{StaticResource ControlCapStyle}">
         <Setter Property="Padding" Value="{StaticResource PaddingCard}" />
     </Style>
 
@@ -135,11 +125,7 @@
     </Style>
 
     <!-- Interactive Card — Clickable items (list items, file cards) -->
-    <Style x:Key="CardInteractiveStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource ControlCapBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource ControlCapBorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
+    <Style x:Key="CardInteractiveStyle" TargetType="Border" BasedOn="{StaticResource ControlCapStyle}">
         <Setter Property="Padding" Value="16" />
     </Style>
 
@@ -170,7 +156,7 @@
         <Setter Property="Foreground" Value="{ThemeResource WellTextBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource InputBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusXS}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RCard}" />
         <Setter Property="Padding" Value="14,10,14,10" />
         <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
         <Setter Property="FontSize" Value="14" />
@@ -181,7 +167,7 @@
 
     <!-- Chat Input - the primary stream well: larger, multi-line -->
     <Style x:Key="ChatInputStyle" TargetType="TextBox" BasedOn="{StaticResource InputTextBoxStyle}">
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusXS}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RCard}" />
         <Setter Property="Padding" Value="18,14,18,14" />
         <Setter Property="FontSize" Value="15" />
         <Setter Property="MinHeight" Value="52" />
@@ -192,7 +178,7 @@
 
     <!-- Search Input -->
     <Style x:Key="SearchInputStyle" TargetType="TextBox" BasedOn="{StaticResource InputTextBoxStyle}">
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusXS}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RCard}" />
         <Setter Property="Padding" Value="18,10,18,10" />
     </Style>
 
@@ -204,7 +190,7 @@
         <Setter Property="Background" Value="{ThemeResource CardElevatedBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
         <Setter Property="Padding" Value="10,4,10,4" />
     </Style>
 
@@ -212,7 +198,7 @@
         <Setter Property="Background" Value="{ThemeResource AccentSubtleBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource RedGlow20}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
         <Setter Property="Padding" Value="10,4,10,4" />
     </Style>
 
@@ -220,7 +206,7 @@
         <Setter Property="Background" Value="{ThemeResource SuccessSubtleBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource SuccessBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
         <Setter Property="Padding" Value="10,4,10,4" />
     </Style>
 
@@ -228,7 +214,7 @@
         <Setter Property="Background" Value="{ThemeResource WarningSubtleBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource WarningBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
         <Setter Property="Padding" Value="10,4,10,4" />
     </Style>
 
@@ -242,22 +228,6 @@
     <Style x:Key="InlineErrorBarStyle" TargetType="Border">
         <Setter Property="Background" Value="{ThemeResource ErrorSubtleBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource ErrorBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
-        <Setter Property="Padding" Value="{StaticResource PaddingCard}" />
-    </Style>
-
-    <Style x:Key="InlineSuccessBarStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource SuccessSubtleBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource SuccessBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
-        <Setter Property="Padding" Value="{StaticResource PaddingCard}" />
-    </Style>
-
-    <Style x:Key="InlineInfoBarStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource InfoSubtleBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource InfoBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
         <Setter Property="Padding" Value="{StaticResource PaddingCard}" />
@@ -281,7 +251,7 @@
     <Style x:Key="AccentProgressBarStyle" TargetType="ProgressBar">
         <Setter Property="Foreground" Value="{ThemeResource AccentPrimaryBrush}" />
         <Setter Property="Background" Value="{ThemeResource CardPressedBrush}" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
         <Setter Property="MinHeight" Value="4" />
         <Setter Property="MaxHeight" Value="4" />
     </Style>
@@ -374,15 +344,5 @@
     <!-- ═══════════════════════════════════════════════════════════════
          TOOLTIP
          ═══════════════════════════════════════════════════════════════ -->
-
-    <Style x:Key="PremiumToolTipStyle" TargetType="ToolTip">
-        <Setter Property="Background" Value="{ThemeResource CardHighBrush}" />
-        <Setter Property="Foreground" Value="{ThemeResource TextPrimaryBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource BorderMediumBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusMD}" />
-        <Setter Property="Padding" Value="12,8,12,8" />
-        <Setter Property="FontSize" Value="12" />
-    </Style>
 
 </ResourceDictionary>

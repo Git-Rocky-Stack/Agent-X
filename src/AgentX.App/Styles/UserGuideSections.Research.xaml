@@ -39,14 +39,14 @@
                 <TextBlock x:Uid="UserGuide_WebSearch_HowItWorks_Title"
                            Style="{StaticResource HeadingSmallStyle}" />
 
-                <StackPanel Spacing="10">
+                <StackPanel Spacing="8">
                     <Grid ColumnSpacing="12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="1"
@@ -64,7 +64,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="2"
@@ -82,7 +82,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="3"
@@ -101,8 +101,8 @@
                 <TextBlock x:Uid="UserGuide_WebSearch_Modes_Title"
                            Style="{StaticResource HeadingSmallStyle}" />
 
-                <StackPanel Spacing="10">
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                <StackPanel Spacing="8">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -119,7 +119,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -136,7 +136,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -161,7 +161,7 @@
                            Style="{StaticResource HeadingSmallStyle}" />
 
                 <StackPanel Spacing="8">
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -172,7 +172,7 @@
                                    x:Uid="UserGuide_WebSearch_Tip1" />
                     </Grid>
 
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -216,14 +216,14 @@
                 <TextBlock x:Uid="UserGuide_WebImport_Methods_Title"
                            Style="{StaticResource HeadingSmallStyle}" />
 
-                <StackPanel Spacing="10">
+                <StackPanel Spacing="8">
                     <Grid ColumnSpacing="12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="1"
@@ -241,7 +241,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="2"
@@ -259,7 +259,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="3"
@@ -282,7 +282,7 @@
                            x:Uid="UserGuide_WebImport_Extraction_Description" />
 
                 <StackPanel Spacing="8">
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -293,7 +293,7 @@
                                    x:Uid="UserGuide_WebImport_Extraction1" />
                     </Grid>
 
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -304,7 +304,7 @@
                                    x:Uid="UserGuide_WebImport_Extraction2" />
                     </Grid>
 
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -366,8 +366,8 @@
                 <TextBlock x:Uid="UserGuide_Citations_Types_Title"
                            Style="{StaticResource HeadingSmallStyle}" />
 
-                <StackPanel Spacing="10">
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                <StackPanel Spacing="8">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -384,7 +384,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -401,7 +401,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -426,7 +426,7 @@
                            Style="{StaticResource HeadingSmallStyle}" />
 
                 <StackPanel Spacing="8">
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -437,7 +437,7 @@
                                    x:Uid="UserGuide_Citations_Using1" />
                     </Grid>
 
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -448,7 +448,7 @@
                                    x:Uid="UserGuide_Citations_Using2" />
                     </Grid>
 
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -492,14 +492,14 @@
                 <TextBlock x:Uid="UserGuide_BrowserExtension_Installation_Title"
                            Style="{StaticResource HeadingSmallStyle}" />
 
-                <StackPanel Spacing="10">
+                <StackPanel Spacing="8">
                     <Grid ColumnSpacing="12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="1"
@@ -517,7 +517,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="2"
@@ -535,7 +535,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="3"
@@ -555,7 +555,7 @@
                            Style="{StaticResource HeadingSmallStyle}" />
 
                 <StackPanel Spacing="8">
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -566,7 +566,7 @@
                                    x:Uid="UserGuide_BrowserExtension_Feature1" />
                     </Grid>
 
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -577,7 +577,7 @@
                                    x:Uid="UserGuide_BrowserExtension_Feature2" />
                     </Grid>
 
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -588,7 +588,7 @@
                                    x:Uid="UserGuide_BrowserExtension_Feature3" />
                     </Grid>
 
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -641,14 +641,14 @@
                 <TextBlock x:Uid="UserGuide_MobileCompanion_Pairing_Title"
                            Style="{StaticResource HeadingSmallStyle}" />
 
-                <StackPanel Spacing="10">
+                <StackPanel Spacing="8">
                     <Grid ColumnSpacing="12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="1"
@@ -666,7 +666,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="2"
@@ -684,7 +684,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="3"
@@ -703,8 +703,8 @@
                 <TextBlock x:Uid="UserGuide_MobileCompanion_Features_Title"
                            Style="{StaticResource HeadingSmallStyle}" />
 
-                <StackPanel Spacing="10">
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                <StackPanel Spacing="8">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -721,7 +721,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -738,7 +738,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -755,7 +755,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />

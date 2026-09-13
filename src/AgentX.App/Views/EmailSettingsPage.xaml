@@ -140,7 +140,7 @@
                                   IsOn="{x:Bind ViewModel.EnableEmailSync, Mode=TwoWay}"
                                   OffContent="Off" OnContent="On"/>
 
-                    <StackPanel Spacing="6">
+                    <StackPanel Spacing="4">
                         <TextBlock x:Uid="EmailSet_SyncIntervalMinutes" Text="Sync interval (minutes)"
                                    Style="{StaticResource LabelStyle}"/>
                         <ComboBox ItemsSource="{x:Bind ViewModel.SyncIntervalOptions, Mode=OneWay}"
@@ -148,7 +148,7 @@
                                   MinWidth="200"/>
                     </StackPanel>
 
-                    <StackPanel Spacing="6">
+                    <StackPanel Spacing="4">
                         <TextBlock x:Uid="EmailSet_MaxMessagesPerSync" Text="Max messages per sync"
                                    Style="{StaticResource LabelStyle}"/>
                         <NumberBox Value="{x:Bind ViewModel.MaxMessagesPerSync, Mode=TwoWay}"
@@ -157,7 +157,7 @@
                                    MinWidth="200"/>
                     </StackPanel>
 
-                    <StackPanel Spacing="6">
+                    <StackPanel Spacing="4">
                         <TextBlock x:Uid="EmailSet_SyncDaysBack" Text="Sync days back"
                                    Style="{StaticResource LabelStyle}"/>
                         <NumberBox Value="{x:Bind ViewModel.SyncDaysBack, Mode=TwoWay}"

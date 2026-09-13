@@ -39,12 +39,30 @@ public sealed class NoBannedPaletteHuesTests
     /// persisted contract (<c>AnnotationEntity.Color</c>, defaulted in the migration
     /// baseline), so an annotation the user saved as "purple" has to render purple.
     /// DESIGN.md governs the instrument palette, which is a different thing from a
-    /// highlighter the operator chose.
+    /// highlighter the operator chose. The exemption covers the one file that holds
+    /// the ink table and nothing else; <see cref="TheInkFile_HoldsOnlyTheSixPersistedInks"/>
+    /// keeps it that narrow. (It used to exempt the whole AnnotationsPage code-behind,
+    /// which would have let any chassis colour added there go unguarded.)
     /// </summary>
     private static readonly HashSet<string> ContentColorFiles = new(StringComparer.OrdinalIgnoreCase)
     {
-        "AnnotationsPage.xaml.cs",
+        "AnnotationInk.cs",
     };
+
+    [Fact]
+    public void TheInkFile_HoldsOnlyTheSixPersistedInks()
+    {
+        var sourceRoot = ResolveSourceRoot();
+        var inkFile = Path.Combine(sourceRoot, "AgentX.App", "Helpers", "AnnotationInk.cs");
+        File.Exists(inkFile).Should().BeTrue("the exempt ink file must exist at the path the exemption names");
+
+        var literals = ColorLiterals(inkFile).ToList();
+
+        literals.Should().HaveCount(6,
+            "five persisted inks plus the grey fallback are the whole contract; any other " +
+            "colour literal in the exempt file is chassis colour hiding from the guard. Found:\n  " +
+            string.Join("\n  ", literals.Select(l => $"line {l.LineNumber}: {l.Literal}")));
+    }
 
     private static readonly Regex HexColor = new(
         @"#(?<value>[0-9A-Fa-f]{8}|[0-9A-Fa-f]{6})\b",

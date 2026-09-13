@@ -18,7 +18,7 @@
                   HorizontalScrollBarVisibility="Disabled"
                   Padding="0">
 
-        <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="1200">
+        <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="1200" HorizontalAlignment="Center">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -147,7 +147,7 @@
                         <!-- Tier Badge -->
                         <Border Style="{StaticResource BadgeAccentStyle}"
                                 HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <FontIcon Glyph="&#xE735;" FontSize="10"
                                           Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock Text="{x:Bind ViewModel.GpuTier, Mode=OneWay}"
@@ -209,7 +209,7 @@
                         <!-- Architecture Badge -->
                         <Border Style="{StaticResource BadgeDefaultStyle}"
                                 HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <FontIcon Glyph="&#xE7F4;" FontSize="10"
                                           Foreground="{ThemeResource InfoBrush}" />
                                 <TextBlock Text="{x:Bind ViewModel.CpuArchitecture, Mode=OneWay}"
@@ -264,13 +264,13 @@
 
                         <!-- NPU Badge -->
                         <Border HorizontalAlignment="Left"
-                                CornerRadius="{StaticResource RadiusRound}"
-                                Padding="10,4,10,4">
+                                CornerRadius="{StaticResource RControl}"
+                                Padding="8,4,8,4">
                             <Border.Background>
                                 <SolidColorBrush Color="{StaticResource StatusSuccess}"
                                                  Opacity="0.1" />
                             </Border.Background>
-                            <StackPanel Orientation="Horizontal" Spacing="6"
+                            <StackPanel Orientation="Horizontal" Spacing="4"
                                         Visibility="{x:Bind ViewModel.HasNpu, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                                 <FontIcon Glyph="&#xE73E;" FontSize="10"
                                           Foreground="{ThemeResource SuccessBrush}" />
@@ -302,8 +302,8 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Spacing="14">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                    <StackPanel Spacing="12">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE945;" FontSize="20"
                                       Foreground="{ThemeResource TextAccentBrush}" />
                             <TextBlock x:Uid="HwAdvisor_RecommendedConfiguration" Text="Recommended Configuration"
@@ -349,7 +349,7 @@
                     Background="{ThemeResource ErrorSubtleBrush}"
                     BorderBrush="{ThemeResource ErrorBrush}"
                     BorderThickness="1"
-                    CornerRadius="{StaticResource RadiusMD}"
+                    CornerRadius="{StaticResource RControl}"
                     Padding="16,12">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <FontIcon Glyph="&#xE7BA;" FontSize="16"
@@ -379,7 +379,7 @@
                 <!-- ========== Chat Models Section ========== -->
                 <StackPanel Spacing="12"
                             Visibility="{x:Bind HasItems(ViewModel.ChatModels.Count), Mode=OneWay}">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE8BD;" FontSize="16"
                                   Foreground="{ThemeResource TextAccentBrush}" />
                         <TextBlock x:Uid="HwAdvisor_ChatModels" Text="Chat Models"
@@ -449,9 +449,9 @@
                                             <Border Grid.Column="1"
                                                     Visibility="{x:Bind IsInstalled, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                                     Background="{ThemeResource SuccessSubtleBrush}"
-                                                    CornerRadius="{StaticResource RadiusRound}"
-                                                    Padding="12,6,12,6">
-                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    CornerRadius="{StaticResource RControl}"
+                                                    Padding="12,4,12,4">
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <FontIcon Glyph="&#xE73E;" FontSize="12"
                                                               Foreground="{ThemeResource SuccessBrush}" />
                                                     <TextBlock x:Uid="HwAdvisor_Installed" Text="Installed"
@@ -467,7 +467,7 @@
                                                     Tag="{x:Bind Name, Mode=OneWay}"
                                                     Click="OnInstallModelClick"
                                                     AutomationProperties.LabeledBy="{Binding ElementName=InstallLabel3}">
-                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <FontIcon Glyph="&#xE896;" FontSize="12" />
                                                     <TextBlock x:Name="InstallLabel3" x:Uid="HwAdvisor_Install" Text="Install" FontSize="12" />
                                                 </StackPanel>
@@ -483,7 +483,7 @@
                 <!-- ========== Code Models Section ========== -->
                 <StackPanel Spacing="12"
                             Visibility="{x:Bind HasItems(ViewModel.CodeModels.Count), Mode=OneWay}">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE943;" FontSize="16"
                                   Foreground="{ThemeResource InfoBrush}" />
                         <TextBlock x:Uid="HwAdvisor_CodeModels" Text="Code Models"
@@ -518,8 +518,8 @@
 
                                             <Border Grid.Column="1"
                                                     Background="{ThemeResource InfoSubtleBrush}"
-                                                    CornerRadius="{StaticResource RadiusRound}"
-                                                    Padding="10,4,10,4">
+                                                    CornerRadius="{StaticResource RControl}"
+                                                    Padding="8,4,8,4">
                                                 <TextBlock x:Uid="HwAdvisor_Code" Text="Code"
                                                            Style="{StaticResource BadgeStyle}"
                                                            Foreground="{ThemeResource InfoBrush}" />
@@ -551,9 +551,9 @@
                                             <Border Grid.Column="1"
                                                     Visibility="{x:Bind IsInstalled, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                                     Background="{ThemeResource SuccessSubtleBrush}"
-                                                    CornerRadius="{StaticResource RadiusRound}"
-                                                    Padding="12,6,12,6">
-                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    CornerRadius="{StaticResource RControl}"
+                                                    Padding="12,4,12,4">
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <FontIcon Glyph="&#xE73E;" FontSize="12"
                                                               Foreground="{ThemeResource SuccessBrush}" />
                                                     <TextBlock x:Uid="HwAdvisor_Installed2" Text="Installed"
@@ -569,7 +569,7 @@
                                                     Tag="{x:Bind Name, Mode=OneWay}"
                                                     Click="OnInstallModelClick"
                                                     AutomationProperties.LabeledBy="{Binding ElementName=InstallLabel2}">
-                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <FontIcon Glyph="&#xE896;" FontSize="12" />
                                                     <TextBlock x:Name="InstallLabel2" x:Uid="HwAdvisor_Install2" Text="Install" FontSize="12" />
                                                 </StackPanel>
@@ -585,7 +585,7 @@
                 <!-- ========== Embedding Models Section ========== -->
                 <StackPanel Spacing="12"
                             Visibility="{x:Bind HasItems(ViewModel.EmbeddingModels.Count), Mode=OneWay}">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xF168;" FontSize="16"
                                   Foreground="{ThemeResource SuccessBrush}" />
                         <TextBlock x:Uid="HwAdvisor_EmbeddingModels" Text="Embedding Models"
@@ -620,8 +620,8 @@
 
                                             <Border Grid.Column="1"
                                                     Background="{ThemeResource SuccessSubtleBrush}"
-                                                    CornerRadius="{StaticResource RadiusRound}"
-                                                    Padding="10,4,10,4">
+                                                    CornerRadius="{StaticResource RControl}"
+                                                    Padding="8,4,8,4">
                                                 <TextBlock x:Uid="HwAdvisor_Embedding" Text="Embedding"
                                                            Style="{StaticResource BadgeStyle}"
                                                            Foreground="{ThemeResource SuccessBrush}" />
@@ -653,9 +653,9 @@
                                             <Border Grid.Column="1"
                                                     Visibility="{x:Bind IsInstalled, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                                     Background="{ThemeResource SuccessSubtleBrush}"
-                                                    CornerRadius="{StaticResource RadiusRound}"
-                                                    Padding="12,6,12,6">
-                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    CornerRadius="{StaticResource RControl}"
+                                                    Padding="12,4,12,4">
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <FontIcon Glyph="&#xE73E;" FontSize="12"
                                                               Foreground="{ThemeResource SuccessBrush}" />
                                                     <TextBlock x:Uid="HwAdvisor_Installed3" Text="Installed"
@@ -671,7 +671,7 @@
                                                     Tag="{x:Bind Name, Mode=OneWay}"
                                                     Click="OnInstallModelClick"
                                                     AutomationProperties.LabeledBy="{Binding ElementName=InstallLabel}">
-                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <FontIcon Glyph="&#xE896;" FontSize="12" />
                                                     <TextBlock x:Name="InstallLabel" x:Uid="HwAdvisor_Install3" Text="Install" FontSize="12" />
                                                 </StackPanel>
@@ -690,7 +690,7 @@
                  ======================================================= -->
             <Border Grid.Row="6"
                     Style="{StaticResource CardInsetStyle}"
-                    Padding="20,14"
+                    Padding="20,12"
                     Visibility="{x:Bind ViewModel.IsDetecting, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <FontIcon Glyph="&#xE72E;" FontSize="14"

@@ -38,7 +38,7 @@
                            Style="{StaticResource HeadingSmallStyle}" />
 
                 <StackPanel Spacing="8">
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -48,7 +48,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Annotations_Create1" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -58,7 +58,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Annotations_Create2" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -76,7 +76,7 @@
                            Style="{StaticResource HeadingSmallStyle}" />
 
                 <StackPanel Spacing="8">
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -86,7 +86,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Annotations_Surface1" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -96,7 +96,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Annotations_Surface2" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -106,7 +106,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Annotations_Surface3" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -148,14 +148,14 @@
                 <TextBlock x:Uid="UserGuide_AudioTranscription_HowItWorks_Title"
                            Style="{StaticResource HeadingSmallStyle}" />
 
-                <StackPanel Spacing="10">
+                <StackPanel Spacing="8">
                     <Grid ColumnSpacing="12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="1" FontSize="13" FontWeight="Bold"
@@ -171,7 +171,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="2" FontSize="13" FontWeight="Bold"
@@ -187,7 +187,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="3" FontSize="13" FontWeight="Bold"
@@ -205,7 +205,7 @@
                            Style="{StaticResource HeadingSmallStyle}" />
 
                 <StackPanel Spacing="8">
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -215,7 +215,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_AudioTranscription_UseCase1" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -225,7 +225,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_AudioTranscription_UseCase2" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -238,7 +238,7 @@
                 </StackPanel>
 
                 <Border Style="{StaticResource CardInsetStyle}">
-                    <StackPanel Spacing="6">
+                    <StackPanel Spacing="4">
                         <TextBlock x:Uid="UserGuide_AudioTranscription_Note_Label"
                                    Style="{StaticResource AccentBodyStyle}" />
                         <TextBlock x:Uid="UserGuide_AudioTranscription_Note"
@@ -277,7 +277,7 @@
                            Style="{StaticResource HeadingSmallStyle}" />
 
                 <StackPanel Spacing="8">
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -287,7 +287,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_WorkspaceProfiles_Create1" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -297,7 +297,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_WorkspaceProfiles_Create2" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -315,7 +315,7 @@
                            Style="{StaticResource HeadingSmallStyle}" />
 
                 <StackPanel Spacing="8">
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -325,7 +325,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_WorkspaceProfiles_UseCase1" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -335,7 +335,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_WorkspaceProfiles_UseCase2" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -378,7 +378,7 @@
                            Style="{StaticResource HeadingSmallStyle}" />
 
                 <StackPanel Spacing="8">
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -388,7 +388,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Plugins_Manager1" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -398,7 +398,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Plugins_Manager2" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -416,7 +416,7 @@
                            Style="{StaticResource HeadingSmallStyle}" />
 
                 <StackPanel Spacing="8">
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -426,7 +426,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Plugins_Capability1" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -436,7 +436,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Plugins_Capability2" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -446,7 +446,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Plugins_Capability3" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -489,7 +489,7 @@
                            Style="{StaticResource HeadingSmallStyle}" />
 
                 <StackPanel Spacing="8">
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -499,7 +499,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Integrations_Calendar1" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -509,7 +509,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Integrations_Calendar2" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -527,7 +527,7 @@
                            Style="{StaticResource HeadingSmallStyle}" />
 
                 <StackPanel Spacing="8">
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -537,7 +537,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Integrations_Email1" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -547,7 +547,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_Integrations_Email2" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -590,7 +590,7 @@
                            Style="{StaticResource HeadingSmallStyle}" />
 
                 <StackPanel Spacing="8">
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -600,7 +600,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_BackupRestore_Backup1" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -610,7 +610,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_BackupRestore_Backup2" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -628,7 +628,7 @@
                            Style="{StaticResource HeadingSmallStyle}" />
 
                 <StackPanel Spacing="8">
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -638,7 +638,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_BackupRestore_Restore1" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -648,7 +648,7 @@
                         <TextBlock Grid.Column="1" Style="{StaticResource BodyStyle}"
                                    x:Uid="UserGuide_BackupRestore_Restore2" />
                     </Grid>
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>

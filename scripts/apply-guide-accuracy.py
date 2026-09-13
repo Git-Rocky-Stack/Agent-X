@@ -17,7 +17,12 @@ Also prunes the removed keys from the legacy per-locale translation JSONs
 cannot resurrect them, and appends the new keys there to keep those files a
 complete translation record.
 
-Run from anywhere:  python scripts/apply-guide-accuracy.py
+Run from anywhere:  python scripts/apply-guide-accuracy.py [changeset.json]
+
+The optional argument points at any changeset with the same shape
+(removePrefixes / update / add, per-locale values); the 2026-07 guide
+changeset stays the default. A changeset may carry "_blockComment", the
+XML comment written above its appended keys.
 """
 
 from pathlib import Path
@@ -28,7 +33,9 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 STRINGS_DIR = ROOT / "src" / "AgentX.App" / "Strings"
 TRANSLATIONS_DIR = ROOT / "scripts" / "translations"
-CHANGESET = TRANSLATIONS_DIR / "guide-accuracy-2026-07.json"
+DEFAULT_CHANGESET = TRANSLATIONS_DIR / "guide-accuracy-2026-07.json"
+DEFAULT_BLOCK_COMMENT = ("Guide accuracy pass 2026-07: Comparison / Smart Inbox / "
+                         "Analytics / Operations / Collaborative Sync sections")
 
 LOCALES = ["en-US", "de", "es", "fr", "ja", "zh-CN"]
 LEGACY_JSON_LOCALES = ["de", "es", "fr", "ja", "zh-CN"]
@@ -76,8 +83,8 @@ def apply_locale(locale: str, changeset: dict) -> tuple[int, int, int]:
             f'  <data name="{key}" xml:space="preserve"><value>{xml_escape(values[locale])}</value></data>')
     added = len(add_lines)
     if added:
-        block = ("\n  <!-- Guide accuracy pass 2026-07: Comparison / Smart Inbox / "
-                 "Analytics / Operations / Collaborative Sync sections -->\n"
+        comment = changeset.get("_blockComment", DEFAULT_BLOCK_COMMENT)
+        block = ("\n  <!-- " + comment + " -->\n"
                  + "\n".join(add_lines) + "\n")
         if "</root>" not in text:
             raise RuntimeError(f"No </root> in {resw}")
@@ -108,7 +115,9 @@ def prune_and_extend_legacy_json(locale: str, changeset: dict) -> tuple[int, int
 
 
 def main() -> int:
-    changeset = json.loads(CHANGESET.read_text(encoding="utf-8"))
+    changeset_path = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_CHANGESET
+    changeset = json.loads(changeset_path.read_text(encoding="utf-8"))
+    print(f"Changeset: {changeset_path}")
 
     print("Applying guide-accuracy changeset to resw files:")
     counts = {}

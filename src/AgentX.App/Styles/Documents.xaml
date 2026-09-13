@@ -18,7 +18,7 @@
     <!-- ═══════════════════════════════════════════════════════════════
          DROP ZONE STYLE
          Dashed-border area for drag-and-drop file import.
-         Uses Surface0 background with subtle dashed border.
+         Card surface with a subtle dashed border.
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="DropZoneStyle" TargetType="Border">
@@ -42,47 +42,13 @@
     </Style>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         INDEXING STATUS BADGES
-         Colored badges per indexing status (completed, processing,
-         pending, failed). Each has a tinted background + text color.
-         ═══════════════════════════════════════════════════════════════ -->
-
-    <!-- Completed: green -->
-    <Style x:Key="StatusBadgeCompletedStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource SuccessSubtleBrush}" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
-        <Setter Property="Padding" Value="8,3,8,3" />
-    </Style>
-
-    <!-- Processing: amber/warning -->
-    <Style x:Key="StatusBadgeProcessingStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource WarningSubtleBrush}" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
-        <Setter Property="Padding" Value="8,3,8,3" />
-    </Style>
-
-    <!-- Pending: blue/info -->
-    <Style x:Key="StatusBadgePendingStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource InfoSubtleBrush}" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
-        <Setter Property="Padding" Value="8,3,8,3" />
-    </Style>
-
-    <!-- Failed: red/error -->
-    <Style x:Key="StatusBadgeFailedStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource ErrorSubtleBrush}" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
-        <Setter Property="Padding" Value="8,3,8,3" />
-    </Style>
-
-    <!-- ═══════════════════════════════════════════════════════════════
          FILE TYPE BADGE
          Small type indicator badge showing the file extension.
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="FileTypeBadgeStyle" TargetType="Border">
         <Setter Property="Background" Value="{ThemeResource AccentSubtleBrush}" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusSM}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
         <Setter Property="Padding" Value="8,3,8,3" />
     </Style>
 
@@ -95,18 +61,8 @@
         <Setter Property="Background" Value="{ThemeResource CardElevatedBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
         <Setter Property="Padding" Value="8,2,8,2" />
-    </Style>
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         DOCUMENT STAT STYLE
-         Small caption with icon for stats like pages, words, chunks.
-         ═══════════════════════════════════════════════════════════════ -->
-
-    <Style x:Key="DocumentStatStyle" TargetType="StackPanel">
-        <Setter Property="Orientation" Value="Horizontal" />
-        <Setter Property="Spacing" Value="4" />
     </Style>
 
     <!-- ═══════════════════════════════════════════════════════════════
@@ -134,28 +90,11 @@
     </Style>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         COLLECTION TREE ITEM SELECTED STATE
-         ═══════════════════════════════════════════════════════════════ -->
-
-    <Style x:Key="CollectionTreeItemSelectedStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource AccentSubtleBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource AccentGlowBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
-        <Setter Property="Padding" Value="12,10,12,10" />
-        <Setter Property="Margin" Value="0,1,0,1" />
-    </Style>
-
-    <!-- ═══════════════════════════════════════════════════════════════
          DOCUMENT GRID ITEM STYLE
          For ItemsRepeater items in the document grid.
          ═══════════════════════════════════════════════════════════════ -->
 
-    <Style x:Key="DocumentGridItemStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource ControlCapBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource ControlCapBorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
+    <Style x:Key="DocumentGridItemStyle" TargetType="Border" BasedOn="{StaticResource ControlCapStyle}">
         <Setter Property="Padding" Value="20" />
         <Setter Property="MinHeight" Value="200" />
     </Style>
@@ -170,7 +109,7 @@
         <Setter Property="Foreground" Value="{ThemeResource TextSecondaryBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
         <Setter Property="Padding" Value="14,6,14,6" />
         <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
         <Setter Property="FontSize" Value="12" />
@@ -183,7 +122,7 @@
         <Setter Property="Foreground" Value="{ThemeResource TextAccentBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource AccentGlowBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
         <Setter Property="Padding" Value="14,6,14,6" />
         <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
         <Setter Property="FontSize" Value="12" />
@@ -221,23 +160,12 @@
          Left and right panel styles for Collection Manager.
          ═══════════════════════════════════════════════════════════════ -->
 
-    <Style x:Key="CollectionSidebarStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource CardGradientSubtleBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
-        <Setter Property="BorderThickness" Value="0,0,1,0" />
-        <Setter Property="Padding" Value="0" />
-    </Style>
-
     <!-- ═══════════════════════════════════════════════════════════════
          DOCUMENT SIMPLE CARD (for collection view)
          Simpler version of document card for collection detail.
          ═══════════════════════════════════════════════════════════════ -->
 
-    <Style x:Key="DocumentSimpleCardStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource ControlCapBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource ControlCapBorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
+    <Style x:Key="DocumentSimpleCardStyle" TargetType="Border" BasedOn="{StaticResource ControlCapStyle}">
         <Setter Property="Padding" Value="16" />
     </Style>
 

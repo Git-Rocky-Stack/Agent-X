@@ -1607,5 +1607,19 @@
   "Terms_Email.Text": "E-mail",
   "Terms_Company.Text": "Société",
   "Terms_AgentXByStrategia.Text": "Agent-X par Strategia-X",
-  "Terms_TheseTermsOfService.Text": "Ces Conditions d'utilisation ont été mises à jour pour la dernière fois le 26 février 2026."
+  "Terms_TheseTermsOfService.Text": "Ces Conditions d'utilisation ont été mises à jour pour la dernière fois le 26 février 2026.",
+  "UserGuide_CommandPalette_Description.Text": "La palette de commandes est le chemin clavier vers chaque page d'Agent-X, ainsi que vers quelques actions et les raccourcis propres à la page ouverte. Appuyez sur Ctrl+K, tapez quelques lettres, puis sur Entrée.",
+  "UserGuide_CommandPalette_Step2.Text": "Tapez pour une recherche approximative. Les lettres saisies doivent apparaître dans le nom de la commande dans cet ordre, sans être forcément contiguës : \"cfc\" trouve Coffre-fort de Connaissances et \"cht\" trouve Changer de thème. Les résultats conservent les groupes de la barre de navigation (Intelligence, Connaissances, Tri, Système, Assistance), suivis d'Actions et, lorsque la page ouverte enregistre des raccourcis, de Sur cette page.",
+  "UserGuide_CommandPalette_Step3.Text": "Utilisez les flèches haut et bas (ou Tab et Maj+Tab) pour parcourir les résultats, Entrée pour exécuter la commande sélectionnée, et Échap ou un clic en dehors de la palette pour la fermer.",
+  "UserGuide_CommandPalette_Coverage.Text": "La palette répertorie chaque page de la barre de navigation sous les mêmes noms, icônes et plaques de groupe, avec le raccourci clavier à côté de chaque page qui en possède un. Elle ajoute trois actions (Nouvelle conversation, Importer des fichiers, Changer de thème) et les raccourcis enregistrés par la page ouverte. Une page ajoutée à la barre apparaît automatiquement dans la palette. Les documents et les conversations s'ouvrent via Aller à (Ctrl+P), pas via la palette.",
+  "Palette_SearchInput.PlaceholderText": "Saisissez une page ou une action...",
+  "Palette_NavigateHint.Text": "Naviguer",
+  "Palette_OpenHint.Text": "Ouvrir",
+  "Palette_CloseHint.Text": "Fermer",
+  "Palette_Actions": "ACTIONS",
+  "Palette_OnThisPage": "SUR CETTE PAGE",
+  "Palette_NewConversation": "Nouvelle conversation",
+  "Palette_ImportFiles": "Importer des fichiers",
+  "Palette_ToggleTheme": "Changer de thème",
+  "Palette_NoMatches": "Aucune commande correspondante"
 }

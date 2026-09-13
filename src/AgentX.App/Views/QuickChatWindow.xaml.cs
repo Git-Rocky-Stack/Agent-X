@@ -72,7 +72,7 @@ public sealed class QuickChatWindow : Window
         {
             Orientation = Orientation.Horizontal,
             Spacing = 10,
-            Padding = new Thickness(16, 14, 16, 10)
+            Padding = new Thickness(16, 12, 16, 8)
         };
 
         var titleBlock = new TextBlock
@@ -158,7 +158,7 @@ public sealed class QuickChatWindow : Window
         _clearButton = new Button
         {
             Content = "Clear",
-            Padding = new Thickness(16, 6, 16, 6),
+            Padding = new Thickness(16, 4, 16, 4),
             FontSize = 13
         };
         _clearButton.Click += ClearButton_Click;
@@ -166,7 +166,7 @@ public sealed class QuickChatWindow : Window
         _askButton = new Button
         {
             Content = "Ask",
-            Padding = new Thickness(24, 6, 24, 6),
+            Padding = new Thickness(24, 4, 24, 4),
             FontSize = 13
         };
         _askButton.Click += AskButton_Click;

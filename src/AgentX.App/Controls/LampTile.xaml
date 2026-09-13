@@ -29,7 +29,7 @@
             BorderThickness="1"
             CornerRadius="{StaticResource RControl}"
             Height="26"
-            Padding="10,0">
+            Padding="8,0">
         <Grid x:Name="LampContent" VerticalAlignment="Center">
             <Border x:Name="Tint"
                     Margin="-6,-4"

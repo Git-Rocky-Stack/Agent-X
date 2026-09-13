@@ -31,7 +31,7 @@
                   HorizontalScrollBarVisibility="Disabled"
                   Padding="0">
 
-        <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="900">
+        <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="900" HorizontalAlignment="Center">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />  <!-- Row 0: Header -->
                 <RowDefinition Height="Auto" />  <!-- Row 1: Error bar -->
@@ -112,7 +112,7 @@
                     Background="{ThemeResource ErrorSubtleBrush}"
                     BorderBrush="{ThemeResource ErrorBrush}"
                     BorderThickness="1"
-                    CornerRadius="{StaticResource RadiusMD}"
+                    CornerRadius="{StaticResource RControl}"
                     Padding="16,12">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <FontIcon Glyph="&#xE7BA;" FontSize="16"
@@ -138,7 +138,7 @@
                     Background="{ThemeResource SuccessSubtleBrush}"
                     BorderBrush="{ThemeResource SuccessBrush}"
                     BorderThickness="1"
-                    CornerRadius="{StaticResource RadiusMD}"
+                    CornerRadius="{StaticResource RControl}"
                     Padding="16,12">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <FontIcon Glyph="&#xE73E;" FontSize="16"
@@ -164,7 +164,7 @@
                     Background="{ThemeResource InfoSubtleBrush}"
                     BorderBrush="{ThemeResource InfoBrush}"
                     BorderThickness="1"
-                    CornerRadius="{StaticResource RadiusMD}"
+                    CornerRadius="{StaticResource RControl}"
                     Padding="16,12">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <ProgressRing IsActive="{x:Bind ViewModel.IsSyncing, Mode=OneWay}"
@@ -257,7 +257,7 @@
 
                     <!-- Section heading with icon -->
                     <StackPanel Spacing="4">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE713;" FontSize="18"
                                       Foreground="{ThemeResource TextAccentBrush}" />
                             <TextBlock x:Uid="Sync_ConfigTitle" Text="Configuration"
@@ -271,7 +271,7 @@
                     <Border Style="{StaticResource SeparatorStyle}" />
 
                     <!-- Sync Folder Path -->
-                    <StackPanel Spacing="6">
+                    <StackPanel Spacing="4">
                         <TextBlock x:Uid="Sync_FolderLabel" Text="Sync Folder"
                                    Style="{StaticResource LabelStyle}" />
                         <Grid ColumnSpacing="12">
@@ -302,7 +302,7 @@
                     </StackPanel>
 
                     <!-- Encryption Key -->
-                    <StackPanel Spacing="6">
+                    <StackPanel Spacing="4">
                         <TextBlock x:Uid="Sync_KeyLabel" Text="Encryption Key"
                                    Style="{StaticResource LabelStyle}" />
                         <PasswordBox x:Name="EncryptionKeyBox"
@@ -311,11 +311,11 @@
                                      PasswordRevealMode="Peek"
                                      BorderBrush="{ThemeResource BorderSubtleBrush}"
                                      BorderThickness="1"
-                                     CornerRadius="{StaticResource RadiusMD}"
-                                     Padding="14,10,14,10"
+                                     CornerRadius="{StaticResource RControl}"
+                                     Padding="12,8,12,8"
                                      MinHeight="40"
                                      IsEnabled="{x:Bind ViewModel.IsSyncing, Mode=OneWay, Converter={StaticResource InverseBool}}" />
-                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2,0,0">
+                        <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,2,0,0">
                             <FontIcon Glyph="&#xE72E;" FontSize="10"
                                       Foreground="{ThemeResource TextTertiaryBrush}"
                                       VerticalAlignment="Center" />
@@ -348,7 +348,7 @@
                     </Grid>
 
                     <!-- Sync Interval (visible when auto-sync is on) -->
-                    <StackPanel Spacing="6"
+                    <StackPanel Spacing="4"
                                 Visibility="{x:Bind ViewModel.AutoSyncEnabled, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <TextBlock x:Uid="Sync_IntervalLabel" Text="Sync Interval"
                                    Style="{StaticResource LabelStyle}" />
@@ -361,7 +361,7 @@
                     <Border Style="{StaticResource SeparatorStyle}" />
 
                     <!-- Sync Scope Selector -->
-                    <StackPanel Spacing="6">
+                    <StackPanel Spacing="4">
                         <TextBlock x:Uid="Sync_ScopeLabel" Text="Sync Scope"
                                    Style="{StaticResource LabelStyle}" />
                         <ComboBox ItemsSource="{x:Bind ViewModel.SyncScopeOptions, Mode=OneWay}"
@@ -374,7 +374,7 @@
                                    Margin="0,2,0,0" />
                     </StackPanel>
 
-                    <StackPanel Spacing="10"
+                    <StackPanel Spacing="8"
                                 Visibility="{x:Bind ViewModel.ShowSelectedCollectionsPicker, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <StackPanel Spacing="4">
                             <TextBlock x:Uid="Sync_CollectionsLabel" Text="Collections to Sync"
@@ -383,8 +383,8 @@
                                        Style="{StaticResource CaptionStyle}" />
                         </StackPanel>
 
-                        <Border Style="{StaticResource CardInsetStyle}" Padding="14">
-                            <Grid RowSpacing="10">
+                        <Border Style="{StaticResource CardInsetStyle}" Padding="12">
+                            <Grid RowSpacing="8">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
@@ -486,7 +486,7 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE895;" FontSize="18"
                                       Foreground="{ThemeResource TextAccentBrush}" />
                             <TextBlock x:Uid="Sync_StatusTitle" Text="Sync Status"
@@ -513,7 +513,7 @@
 
                         <!-- Last Synced -->
                         <Border Grid.Column="0" Style="{StaticResource CardInsetStyle}">
-                            <StackPanel Spacing="6">
+                            <StackPanel Spacing="4">
                                 <TextBlock x:Uid="Sync_LastSyncedOverline" Text="LAST SYNCED"
                                            Style="{StaticResource OverlineStyle}" />
                                 <TextBlock Text="{x:Bind ViewModel.LastSyncAt, Mode=OneWay}"
@@ -523,10 +523,10 @@
 
                         <!-- Pending Changes -->
                         <Border Grid.Column="1" Style="{StaticResource CardInsetStyle}">
-                            <StackPanel Spacing="6">
+                            <StackPanel Spacing="4">
                                 <TextBlock x:Uid="Sync_PendingOverline" Text="PENDING CHANGES"
                                            Style="{StaticResource OverlineStyle}" />
-                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
                                     <TextBlock Text="{x:Bind ViewModel.PendingChanges, Mode=OneWay}"
                                                Style="{StaticResource HeadingSmallStyle}" />
                                     <TextBlock x:Uid="Sync_ItemsLabel" Text="items"
@@ -539,7 +539,7 @@
 
                         <!-- Last Duration -->
                         <Border Grid.Column="2" Style="{StaticResource CardInsetStyle}">
-                            <StackPanel Spacing="6">
+                            <StackPanel Spacing="4">
                                 <TextBlock x:Uid="Sync_DurationOverline" Text="DURATION"
                                            Style="{StaticResource OverlineStyle}" />
                                 <TextBlock Text="{x:Bind ViewModel.LastSyncDuration, Mode=OneWay}"
@@ -549,7 +549,7 @@
 
                         <!-- Current Sync State -->
                         <Border Grid.Column="3" Style="{StaticResource CardInsetStyle}">
-                            <StackPanel Spacing="6">
+                            <StackPanel Spacing="4">
                                 <TextBlock x:Uid="Sync_StateOverline" Text="STATE"
                                            Style="{StaticResource OverlineStyle}" />
                                 <StackPanel Orientation="Horizontal" Spacing="8">
@@ -564,7 +564,7 @@
                     </Grid>
 
                     <!-- Syncing indicator row -->
-                    <StackPanel Orientation="Horizontal" Spacing="10"
+                    <StackPanel Orientation="Horizontal" Spacing="8"
                                 Visibility="{x:Bind ViewModel.IsSyncing, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <ProgressRing IsActive="{x:Bind ViewModel.IsSyncing, Mode=OneWay}"
                                       Width="20" Height="20"
@@ -579,7 +579,7 @@
                     <Border Style="{StaticResource BadgeDefaultStyle}"
                             HorizontalAlignment="Left"
                             Visibility="{x:Bind ViewModel.AutoSyncEnabled, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
                             <FontIcon Glyph="&#xE787;" FontSize="10"
                                       Foreground="{ThemeResource TextAccentBrush}" />
                             <TextBlock Style="{StaticResource BadgeStyle}"
@@ -627,7 +627,7 @@
                         <Button Style="{StaticResource GhostButtonStyle}"
                                 Command="{x:Bind ViewModel.LoadHistoryCommand}"
                                 AutomationProperties.LabeledBy="{x:Bind ReloadHistoryLabel}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <FontIcon Glyph="&#xE72C;" FontSize="12"
                                           Foreground="{ThemeResource TextTertiaryBrush}" />
                                 <TextBlock x:Name="ReloadHistoryLabel" x:Uid="Sync_ReloadHistoryLabel" Text="Reload"
@@ -640,7 +640,7 @@
                                 Command="{x:Bind ViewModel.ClearSyncHistoryCommand}"
                                 AutomationProperties.LabeledBy="{x:Bind ClearHistoryLabel}"
                                 Visibility="{x:Bind ViewModel.HasSyncHistory, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <FontIcon Glyph="&#xE74D;" FontSize="12"
                                           Foreground="{ThemeResource TextTertiaryBrush}" />
                                 <TextBlock x:Name="ClearHistoryLabel" x:Uid="Sync_ClearHistoryLabel" Text="Clear History"
@@ -654,8 +654,8 @@
                 <Border Background="{ThemeResource AccentSubtleBrush}"
                         BorderBrush="{ThemeResource AccentPrimaryBrush}"
                         BorderThickness="1"
-                        CornerRadius="{StaticResource RadiusMD}"
-                        Padding="16,14"
+                        CornerRadius="{StaticResource RControl}"
+                        Padding="16,12"
                         Visibility="{x:Bind ViewModel.HasFocusedSyncLanding, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                     <Grid ColumnSpacing="16">
                         <Grid.ColumnDefinitions>
@@ -663,7 +663,7 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Spacing="6">
+                        <StackPanel Spacing="4">
                             <TextBlock x:Uid="Sync_FocusedTitle" Text="Focused Sync History Entry"
                                        Style="{StaticResource BodyStyle}"
                                        FontWeight="SemiBold"
@@ -722,7 +722,7 @@
                                     <Border Grid.Row="0" Grid.Column="0"
                                             Grid.RowSpan="2"
                                             Width="36" Height="36"
-                                            CornerRadius="{StaticResource RadiusFull}"
+                                            CornerRadius="{StaticResource RPill}"
                                             VerticalAlignment="Top"
                                             Margin="0,2,0,0">
                                         <Border.Background>
@@ -741,10 +741,10 @@
 
                                     <!-- Row 0, Col 1: Direction badge + status text -->
                                     <StackPanel Grid.Row="0" Grid.Column="1"
-                                                Orientation="Horizontal" Spacing="10">
+                                                Orientation="Horizontal" Spacing="8">
                                         <!-- Direction badge with glyph -->
                                         <Border Style="{StaticResource BadgeDefaultStyle}">
-                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <FontIcon Glyph="{x:Bind DirectionIcon, Mode=OneWay}"
                                                           FontSize="10"
                                                           Foreground="{ThemeResource TextAccentBrush}" />

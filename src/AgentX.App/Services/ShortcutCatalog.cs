@@ -1,12 +1,18 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AgentX.Core.Services.Shortcuts;
 
 namespace AgentX.App.Services;
 
+/// <param name="NavigateAsync">
+/// Navigates to a page tag with an optional navigation parameter (an entity id or one
+/// of <see cref="NavigationIntents"/>).
+/// </param>
 public sealed record ShortcutCatalogActions(
-    Func<string, CancellationToken, Task> NavigateAsync,
+    Func<string, object?, CancellationToken, Task> NavigateAsync,
     Func<CancellationToken, Task> ShowCommandPaletteAsync,
     Func<CancellationToken, Task> ShowJumpToAsync,
     Func<CancellationToken, Task> ShowCheatsheetAsync);
@@ -18,6 +24,37 @@ public sealed class ShortcutCatalog
 {
     private readonly IShortcutRegistry _registry;
     private bool _seeded;
+
+    /// <summary>
+    /// The registry id whose primary chord is the canonical keyboard route to a page.
+    /// Surfaces that print a hint next to a page name (the command palette) read the
+    /// chord from the registry through this map, so a remapped or removed shortcut
+    /// can never leave a stale hint behind.
+    /// </summary>
+    private static readonly IReadOnlyDictionary<string, string> PageShortcutIds =
+        new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["Dashboard"] = "nav.dashboard",
+            ["Chat"] = "nav.page2",
+            ["AskFiles"] = "nav.page3",
+            ["Search"] = "nav.search",
+            ["KnowledgeVault"] = "nav.vault",
+            ["Collections"] = "nav.page6",
+            ["Workflows"] = "nav.workflows",
+            ["ModelManager"] = "nav.page8",
+            ["Settings"] = "nav.settings",
+            ["Analytics"] = "nav.analytics",
+            ["Operations"] = "nav.operations",
+            ["WebImport"] = "nav.webimport",
+            ["KnowledgeGraph"] = "nav.graph",
+        };
+
+    /// <summary>Same idea as <see cref="PageShortcutIds"/>, for palette actions.</summary>
+    private static readonly IReadOnlyDictionary<string, string> ActionShortcutIds =
+        new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["NewConversation"] = "nav.chat",
+        };
 
     public ShortcutCatalog(IShortcutRegistry registry)
     {
@@ -34,7 +71,9 @@ public sealed class ShortcutCatalog
         Global("cmd.palette", "Command Palette", KeyModifiers.Ctrl, VirtualKeyCode.K, actions.ShowCommandPaletteAsync, "Navigation");
         Global("cmd.palette.alt", "Command Palette", KeyModifiers.Ctrl | KeyModifiers.Shift, VirtualKeyCode.P, actions.ShowCommandPaletteAsync, "Navigation");
 
-        Global("nav.chat", "New Conversation", KeyModifiers.Ctrl, VirtualKeyCode.N, Navigate(actions, "Chat"), "Navigation");
+        // Labelled "New Conversation", so it starts one rather than landing on whatever
+        // thread was last open.
+        Global("nav.chat", "New Conversation", KeyModifiers.Ctrl, VirtualKeyCode.N, Navigate(actions, "Chat", NavigationIntents.NewConversation), "Navigation");
         Global("nav.vault", "Knowledge Vault", KeyModifiers.Ctrl, VirtualKeyCode.I, Navigate(actions, "KnowledgeVault"), "Navigation");
         Global("nav.search", "Semantic Search", KeyModifiers.Ctrl, VirtualKeyCode.F, Navigate(actions, "Search"), "Navigation");
         Global("nav.search.alt", "Semantic Search", KeyModifiers.Ctrl | KeyModifiers.Shift, VirtualKeyCode.F, Navigate(actions, "Search"), "Navigation");
@@ -77,8 +116,23 @@ public sealed class ShortcutCatalog
         Global("help.jump", "Jump To", KeyModifiers.Ctrl, VirtualKeyCode.P, actions.ShowJumpToAsync, "Help");
     }
 
-    private static Func<CancellationToken, Task> Navigate(ShortcutCatalogActions actions, string pageTag)
-        => ct => actions.NavigateAsync(pageTag, ct);
+    /// <summary>
+    /// Display chord for the canonical shortcut that opens <paramref name="pageTag"/>,
+    /// or null when the page has none. Read from the live registry, never from a literal.
+    /// </summary>
+    public string? PageChordDisplay(string pageTag) =>
+        PageShortcutIds.TryGetValue(pageTag, out var id) ? ChordDisplay(id) : null;
+
+    /// <summary>Display chord for a palette action id, or null when it has none.</summary>
+    public string? ActionChordDisplay(string actionId) =>
+        ActionShortcutIds.TryGetValue(actionId, out var id) ? ChordDisplay(id) : null;
+
+    private string? ChordDisplay(string shortcutId) =>
+        _registry.All().FirstOrDefault(d => d.Id == shortcutId)?.PrimaryKey.Display;
+
+    private static Func<CancellationToken, Task> Navigate(
+        ShortcutCatalogActions actions, string pageTag, object? parameter = null)
+        => ct => actions.NavigateAsync(pageTag, parameter, ct);
 
     private void Global(
         string id,

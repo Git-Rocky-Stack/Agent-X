@@ -1,0 +1,121 @@
+{
+  "_comment": "2026-09 command palette parity pass. Adds the palette's own strings (search placeholder, footer hints, group placards, three actions, empty state) in all six locales, and rewrites the four user-guide claims about the palette that the code did not support: there was no prefix syntax (':', '>', '?'), no Tab-to-peek, no recency ranking, no conversations/documents/workflows/plugins in the palette, and the fuzzy example 'kbv' cannot match 'Knowledge Vault' (no b). Applied by scripts/apply-guide-accuracy.py <this file>.",
+  "_blockComment": "Command palette parity pass 2026-09: palette strings",
+  "removePrefixes": [],
+  "update": {
+    "UserGuide_CommandPalette_Description.Text": {
+      "en-US": "The Command Palette is the keyboard route to every page in Agent-X, plus a few actions and the shortcuts that belong to the page you are on. Press Ctrl+K, type a few letters, press Enter.",
+      "de": "Die Befehlspalette ist der Tastaturweg zu jeder Seite in Agent-X, ergänzt um einige Aktionen und die Tastenkürzel der gerade geöffneten Seite. Drücken Sie Strg+K, tippen Sie ein paar Buchstaben und bestätigen Sie mit der Eingabetaste.",
+      "es": "La paleta de comandos es la ruta de teclado a todas las páginas de Agent-X, además de algunas acciones y los atajos que pertenecen a la página en la que estás. Pulsa Ctrl+K, escribe unas letras y pulsa Intro.",
+      "fr": "La palette de commandes est le chemin clavier vers chaque page d'Agent-X, ainsi que vers quelques actions et les raccourcis propres à la page ouverte. Appuyez sur Ctrl+K, tapez quelques lettres, puis sur Entrée.",
+      "ja": "コマンドパレットは、Agent-X のすべてのページに加え、いくつかの操作と現在開いているページに属するショートカットへキーボードから到達する手段です。Ctrl+K を押し、数文字入力して Enter を押します。",
+      "zh-CN": "命令面板是通过键盘到达 Agent-X 每个页面的途径，还包含少量操作以及当前页面注册的快捷键。按 Ctrl+K，输入几个字母，然后按 Enter。"
+    },
+    "UserGuide_CommandPalette_Step2.Text": {
+      "en-US": "Type to fuzzy-match. The letters you type must appear in a command's name in that order but need not be adjacent, so \"knv\" finds Knowledge Vault and \"tgt\" finds Toggle Theme. Results keep the navigation rail's groups (Intelligence, Knowledge, Triage, System, Support), followed by Actions and, when the current page registers shortcuts, On This Page.",
+      "de": "Tippen Sie für eine unscharfe Suche. Die eingegebenen Buchstaben müssen in dieser Reihenfolge im Befehlsnamen vorkommen, aber nicht direkt hintereinander: \"wst\" findet Wissens-Tresor und \"dw\" findet Design wechseln. Die Ergebnisse behalten die Gruppen der Navigationsleiste (Intelligenz, Wissen, Triage, System, Support), gefolgt von Aktionen und, wenn die aktuelle Seite Tastenkürzel registriert, Auf dieser Seite.",
+      "es": "Escribe para buscar de forma difusa. Las letras que escribes deben aparecer en el nombre del comando en ese orden, pero no tienen que ser contiguas: \"bcon\" encuentra Bóveda de Conocimiento y \"ctm\" encuentra Cambiar tema. Los resultados conservan los grupos de la barra de navegación (Inteligencia, Conocimiento, Clasificación, Sistema, Soporte), seguidos de Acciones y, cuando la página actual registra atajos, En esta página.",
+      "fr": "Tapez pour une recherche approximative. Les lettres saisies doivent apparaître dans le nom de la commande dans cet ordre, sans être forcément contiguës : \"cfc\" trouve Coffre-fort de Connaissances et \"cht\" trouve Changer de thème. Les résultats conservent les groupes de la barre de navigation (Intelligence, Connaissances, Tri, Système, Assistance), suivis d'Actions et, lorsque la page ouverte enregistre des raccourcis, de Sur cette page.",
+      "ja": "入力するとあいまい一致で絞り込まれます。入力した文字はコマンド名にその順序で含まれていれば、連続していなくても一致します。たとえば \"knv\" で Knowledge Vault、\"テマ\" で テーマを切り替え が見つかります。結果はナビゲーションレールと同じグループ（インテリジェンス、ナレッジ、仕分け、システム、サポート）に分かれ、その後に アクション、そして現在のページがショートカットを登録している場合は このページ が続きます。",
+      "zh-CN": "输入即可模糊匹配。输入的字母只需按顺序出现在命令名称中，不必相邻：例如 \"knv\" 可找到 Knowledge Vault，\"切主\" 可找到 切换主题。结果保持导航栏的分组（智能、知识、分拣、系统、支持），之后是 操作，若当前页面注册了快捷键，还会显示 当前页面。"
+    },
+    "UserGuide_CommandPalette_Step3.Text": {
+      "en-US": "Use Up and Down (or Tab and Shift+Tab) to move through results, Enter to run the selected command, and Esc or a click outside the palette to dismiss it.",
+      "de": "Mit den Pfeiltasten nach oben und unten (oder Tab und Umschalt+Tab) bewegen Sie sich durch die Ergebnisse, mit der Eingabetaste führen Sie den ausgewählten Befehl aus, und mit Esc oder einem Klick außerhalb der Palette schließen Sie sie.",
+      "es": "Usa las flechas arriba y abajo (o Tab y Mayús+Tab) para recorrer los resultados, Intro para ejecutar el comando seleccionado y Esc o un clic fuera de la paleta para cerrarla.",
+      "fr": "Utilisez les flèches haut et bas (ou Tab et Maj+Tab) pour parcourir les résultats, Entrée pour exécuter la commande sélectionnée, et Échap ou un clic en dehors de la palette pour la fermer.",
+      "ja": "上下キー（または Tab と Shift+Tab）で結果を移動し、Enter で選択したコマンドを実行、Esc またはパレットの外をクリックすると閉じます。",
+      "zh-CN": "使用上下方向键（或 Tab 和 Shift+Tab）在结果间移动，按 Enter 运行所选命令，按 Esc 或点击面板外部即可关闭。"
+    },
+    "UserGuide_CommandPalette_Coverage.Text": {
+      "en-US": "The palette lists every page on the navigation rail under the same names, icons and group placards, with the key chord beside any page that has one. It adds three actions (New Conversation, Import Files, Toggle Theme) and the shortcuts registered by the page you are on. A page added to the rail appears in the palette automatically. Documents and conversations are opened through Jump To (Ctrl+P), not the palette.",
+      "de": "Die Palette führt jede Seite der Navigationsleiste unter denselben Namen, Symbolen und Gruppenschildern auf, mit dem Tastenkürzel neben jeder Seite, die eines hat. Hinzu kommen drei Aktionen (Neue Unterhaltung, Dateien importieren, Design wechseln) sowie die Tastenkürzel der gerade geöffneten Seite. Eine neu zur Leiste hinzugefügte Seite erscheint automatisch in der Palette. Dokumente und Unterhaltungen öffnen Sie über Springen zu (Strg+P), nicht über die Palette.",
+      "es": "La paleta muestra todas las páginas de la barra de navegación con los mismos nombres, iconos y rótulos de grupo, y el atajo de teclado junto a cada página que lo tenga. Añade tres acciones (Nueva conversación, Importar archivos, Cambiar tema) y los atajos registrados por la página en la que estás. Una página añadida a la barra aparece en la paleta automáticamente. Los documentos y las conversaciones se abren desde Ir a (Ctrl+P), no desde la paleta.",
+      "fr": "La palette répertorie chaque page de la barre de navigation sous les mêmes noms, icônes et plaques de groupe, avec le raccourci clavier à côté de chaque page qui en possède un. Elle ajoute trois actions (Nouvelle conversation, Importer des fichiers, Changer de thème) et les raccourcis enregistrés par la page ouverte. Une page ajoutée à la barre apparaît automatiquement dans la palette. Les documents et les conversations s'ouvrent via Aller à (Ctrl+P), pas via la palette.",
+      "ja": "パレットには、ナビゲーションレールのすべてのページが同じ名前、アイコン、グループ表示で並び、ショートカットを持つページにはそのキーが横に表示されます。さらに 3 つの操作（新しい会話、ファイルをインポート、テーマを切り替え）と、現在開いているページが登録したショートカットが加わります。レールに追加したページは自動的にパレットにも表示されます。ドキュメントと会話は、パレットではなく ジャンプ（Ctrl+P）から開きます。",
+      "zh-CN": "面板列出导航栏上的每个页面，名称、图标和分组标牌完全一致，有快捷键的页面会在旁边显示按键组合。此外还有三个操作（新建对话、导入文件、切换主题），以及当前页面注册的快捷键。新加入导航栏的页面会自动出现在面板中。文档和对话通过 跳转（Ctrl+P）打开，而不是通过面板。"
+    }
+  },
+  "add": {
+    "Palette_SearchInput.PlaceholderText": {
+      "en-US": "Type a page or action...",
+      "de": "Seite oder Aktion eingeben...",
+      "es": "Escribe una página o acción...",
+      "fr": "Saisissez une page ou une action...",
+      "ja": "ページまたは操作を入力...",
+      "zh-CN": "输入页面或操作..."
+    },
+    "Palette_NavigateHint.Text": {
+      "en-US": "Navigate",
+      "de": "Navigieren",
+      "es": "Navegar",
+      "fr": "Naviguer",
+      "ja": "移動",
+      "zh-CN": "导航"
+    },
+    "Palette_OpenHint.Text": {
+      "en-US": "Open",
+      "de": "Öffnen",
+      "es": "Abrir",
+      "fr": "Ouvrir",
+      "ja": "開く",
+      "zh-CN": "打开"
+    },
+    "Palette_CloseHint.Text": {
+      "en-US": "Close",
+      "de": "Schließen",
+      "es": "Cerrar",
+      "fr": "Fermer",
+      "ja": "閉じる",
+      "zh-CN": "关闭"
+    },
+    "Palette_Actions": {
+      "en-US": "ACTIONS",
+      "de": "AKTIONEN",
+      "es": "ACCIONES",
+      "fr": "ACTIONS",
+      "ja": "アクション",
+      "zh-CN": "操作"
+    },
+    "Palette_OnThisPage": {
+      "en-US": "ON THIS PAGE",
+      "de": "AUF DIESER SEITE",
+      "es": "EN ESTA PÁGINA",
+      "fr": "SUR CETTE PAGE",
+      "ja": "このページ",
+      "zh-CN": "当前页面"
+    },
+    "Palette_NewConversation": {
+      "en-US": "New Conversation",
+      "de": "Neue Unterhaltung",
+      "es": "Nueva conversación",
+      "fr": "Nouvelle conversation",
+      "ja": "新しい会話",
+      "zh-CN": "新建对话"
+    },
+    "Palette_ImportFiles": {
+      "en-US": "Import Files",
+      "de": "Dateien importieren",
+      "es": "Importar archivos",
+      "fr": "Importer des fichiers",
+      "ja": "ファイルをインポート",
+      "zh-CN": "导入文件"
+    },
+    "Palette_ToggleTheme": {
+      "en-US": "Toggle Theme",
+      "de": "Design wechseln",
+      "es": "Cambiar tema",
+      "fr": "Changer de thème",
+      "ja": "テーマを切り替え",
+      "zh-CN": "切换主题"
+    },
+    "Palette_NoMatches": {
+      "en-US": "No matching commands",
+      "de": "Keine passenden Befehle",
+      "es": "No hay comandos coincidentes",
+      "fr": "Aucune commande correspondante",
+      "ja": "一致するコマンドはありません",
+      "zh-CN": "没有匹配的命令"
+    }
+  }
+}

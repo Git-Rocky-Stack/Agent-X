@@ -68,7 +68,7 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Spacing="12">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
                             <Ellipse Width="10" Height="10"
                                      Fill="{ThemeResource OfflineBrush}" />
                             <TextBlock Text="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay}"
@@ -97,7 +97,7 @@
                  ROW 2: QUICK SEARCH BAR
                  ========================================================== -->
             <!-- Quick search: a recessed dark well carved into the chassis -->
-            <Border Grid.Row="2" Style="{StaticResource WellStyle}" Padding="16,6">
+            <Border Grid.Row="2" Style="{StaticResource WellStyle}" Padding="16,4">
                 <Grid ColumnSpacing="12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -122,7 +122,7 @@
                             Background="{ThemeResource VoidBrush}"
                             BorderBrush="{ThemeResource HairlineBrush}"
                             BorderThickness="1"
-                            CornerRadius="{StaticResource RadiusXS}"
+                            CornerRadius="{StaticResource RCard}"
                             Padding="8,2"
                             VerticalAlignment="Center">
                         <TextBlock Text="Ctrl+K"
@@ -290,7 +290,7 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
-                            <StackPanel Spacing="10">
+                            <StackPanel Spacing="8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE9D2;" FontSize="14"
                                               Foreground="{ThemeResource TextAccentBrush}" />
@@ -326,7 +326,7 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
-                            <StackPanel Spacing="10">
+                            <StackPanel Spacing="8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE895;" FontSize="14"
                                               Foreground="{ThemeResource InfoBrush}" />
@@ -362,7 +362,7 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
-                            <StackPanel Spacing="10">
+                            <StackPanel Spacing="8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE943;" FontSize="14"
                                               Foreground="{ThemeResource SuccessBrush}" />
@@ -398,7 +398,7 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
-                            <StackPanel Spacing="10">
+                            <StackPanel Spacing="8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE8B7;" FontSize="14"
                                               Foreground="{ThemeResource WarningBrush}" />
@@ -434,7 +434,7 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
-                            <StackPanel Spacing="10">
+                            <StackPanel Spacing="8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE8C7;" FontSize="14"
                                               Foreground="{ThemeResource SuccessBrush}" />
@@ -494,7 +494,7 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Orientation="Horizontal" Spacing="10">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8F1;" FontSize="16"
                                           Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock x:Uid="Dash_RecentDocsTitle" Text="Recent Documents"
@@ -534,9 +534,7 @@
                             </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="vm:DashboardRecentDocumentItem">
-                                    <Border Background="Transparent"
-                                            CornerRadius="{StaticResource RadiusMD}"
-                                            Padding="12,10">
+                                    <Border Style="{StaticResource ConversationItemStyle}">
                                         <Grid ColumnSpacing="12">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto" />
@@ -546,7 +544,7 @@
 
                                             <!-- File type icon -->
                                             <Border Width="32" Height="32"
-                                                    CornerRadius="{StaticResource RadiusMD}"
+                                                    CornerRadius="{StaticResource RControl}"
                                                     Background="{ThemeResource AccentSubtleBrush}">
                                                 <FontIcon Glyph="{x:Bind FileTypeIcon}"
                                                           FontSize="14"
@@ -590,7 +588,7 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Orientation="Horizontal" Spacing="10">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8BD;" FontSize="16"
                                           Foreground="{ThemeResource WarningBrush}" />
                                 <TextBlock x:Uid="Dash_RecentConvTitle" Text="Recent Conversations"
@@ -631,8 +629,8 @@
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="vm:DashboardRecentConversationItem">
                                     <Border Background="Transparent"
-                                            CornerRadius="{StaticResource RadiusMD}"
-                                            Padding="12,10">
+                                            CornerRadius="{StaticResource RControl}"
+                                            Padding="12,8">
                                         <Grid ColumnSpacing="12">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto" />
@@ -642,7 +640,7 @@
 
                                             <!-- Chat icon -->
                                             <Border Width="32" Height="32"
-                                                    CornerRadius="{StaticResource RadiusMD}"
+                                                    CornerRadius="{StaticResource RControl}"
                                                     Background="{ThemeResource AccentSubtleBrush}">
                                                 <FontIcon Glyph="&#xE8BD;"
                                                           FontSize="14"
@@ -670,7 +668,7 @@
                                                            Style="{StaticResource CaptionStyle}"
                                                            HorizontalAlignment="Right" />
                                                 <Border Style="{StaticResource BadgeDefaultStyle}"
-                                                        Padding="6,2"
+                                                        Padding="4,2"
                                                         HorizontalAlignment="Right">
                                                     <TextBlock Style="{StaticResource CaptionStyle}" FontSize="10">
                                                         <Run Text="{x:Bind MessageCount}" />
@@ -699,7 +697,7 @@
                 <!-- File Type Distribution -->
                 <controls:Faceplate Grid.Column="0" Kicker="MOD - TYPE - 13">
                     <StackPanel Spacing="16">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE9D9;" FontSize="16"
                                       Foreground="{ThemeResource InfoBrush}" />
                             <TextBlock x:Uid="Dash_FileTypesTitle" Text="File Type Distribution"
@@ -724,7 +722,7 @@
                         <ItemsRepeater Visibility="{x:Bind ViewModel.HasFileTypeData, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                        ItemsSource="{x:Bind ViewModel.FileTypeBreakdown, Mode=OneWay}">
                             <ItemsRepeater.Layout>
-                                <StackLayout Spacing="10" />
+                                <StackLayout Spacing="8" />
                             </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="vm:DashboardFileTypeBreakdownItem">
@@ -747,7 +745,7 @@
                                                      Maximum="100"
                                                      MinHeight="18"
                                                      MaxHeight="18"
-                                                     CornerRadius="{StaticResource RadiusSM}"
+                                                     CornerRadius="{StaticResource RControl}"
                                                      Background="{ThemeResource CardPressedBrush}"
                                                      Foreground="{ThemeResource AccentPrimaryBrush}" />
 
@@ -772,7 +770,7 @@
                 <!-- Top Collections -->
                 <controls:Faceplate Grid.Column="1" Kicker="MOD - COLL - 14">
                     <StackPanel Spacing="16">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xF168;" FontSize="16"
                                       Foreground="{ThemeResource SuccessBrush}" />
                             <TextBlock x:Uid="Dash_TopCollectionsTitle" Text="Top Collections"
@@ -797,7 +795,7 @@
                         <ItemsRepeater Visibility="{x:Bind ViewModel.HasCollectionData, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                        ItemsSource="{x:Bind ViewModel.TopCollections, Mode=OneWay}">
                             <ItemsRepeater.Layout>
-                                <StackLayout Spacing="10" />
+                                <StackLayout Spacing="8" />
                             </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="vm:DashboardTopCollectionItem">
@@ -825,7 +823,7 @@
                                                      Maximum="100"
                                                      MinHeight="8"
                                                      MaxHeight="8"
-                                                     CornerRadius="{StaticResource RadiusSM}"
+                                                     CornerRadius="{StaticResource RControl}"
                                                      Background="{ThemeResource CardPressedBrush}"
                                                      Foreground="{ThemeResource SuccessBrush}" />
                                     </StackPanel>
@@ -848,7 +846,7 @@
 
                     <!-- Icon with subtle glow -->
                     <Grid Width="48" Height="48" VerticalAlignment="Top">
-                        <Border CornerRadius="{StaticResource RadiusMD}"
+                        <Border CornerRadius="{StaticResource RControl}"
                                 Background="{ThemeResource WarningSubtleBrush}"
                                 Width="48" Height="48">
                             <FontIcon Glyph="&#xE946;"
@@ -893,7 +891,7 @@
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="vm:BeliefConflictDisplayItem">
                                     <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
-                                            CornerRadius="{StaticResource RadiusSM}"
+                                            CornerRadius="{StaticResource RControl}"
                                             Padding="16">
                                         <Grid RowSpacing="8">
                                             <Grid.RowDefinitions>
@@ -929,7 +927,7 @@
                                                             FontFamily="{ThemeResource SymbolThemeFontFamily}"
                                                             FontSize="12"
                                                             Style="{StaticResource GhostButtonStyle}"
-                                                            Padding="6" MinWidth="0" MinHeight="0"
+                                                            Padding="4" MinWidth="0" MinHeight="0"
                                                             x:Uid="Dash_AcknowledgeConflictTip" ToolTipService.ToolTip="Acknowledge conflict"
                                                             AutomationProperties.Name="Acknowledge conflict" />
                                                 </StackPanel>
@@ -1018,8 +1016,8 @@
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="vm:DashboardRecommendedActionItem">
                                     <Border Style="{StaticResource CardInsetStyle}"
-                                            Padding="16,14">
-                                        <Grid RowSpacing="14">
+                                            Padding="16,12">
+                                        <Grid RowSpacing="12">
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto" />
                                                 <RowDefinition Height="*" />
@@ -1035,7 +1033,7 @@
 
                                                 <Border Width="36"
                                                         Height="36"
-                                                        CornerRadius="{StaticResource RadiusMD}"
+                                                        CornerRadius="{StaticResource RControl}"
                                                         Background="{ThemeResource AccentSubtleBrush}">
                                                     <FontIcon Glyph="{x:Bind IconGlyph}"
                                                               FontSize="15"
@@ -1094,10 +1092,10 @@
                     <Button Grid.Column="0"
                             Style="{StaticResource SecondaryButtonStyle}"
                             HorizontalAlignment="Stretch"
-                            Padding="16,14"
+                            Padding="16,12"
                             Command="{x:Bind ViewModel.NavigateToChatCommand}"
                             AutomationProperties.LabeledBy="{x:Bind NewChatTileLabel}">
-                        <StackPanel Orientation="Horizontal" Spacing="10"
+                        <StackPanel Orientation="Horizontal" Spacing="8"
                                     HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE8BD;" FontSize="16"
                                       Foreground="{ThemeResource TextAccentBrush}" />
@@ -1112,10 +1110,10 @@
                     <Button Grid.Column="1"
                             Style="{StaticResource SecondaryButtonStyle}"
                             HorizontalAlignment="Stretch"
-                            Padding="16,14"
+                            Padding="16,12"
                             Command="{x:Bind ViewModel.NavigateToVaultCommand}"
                             AutomationProperties.LabeledBy="{x:Bind ImportFilesTileLabel}">
-                        <StackPanel Orientation="Horizontal" Spacing="10"
+                        <StackPanel Orientation="Horizontal" Spacing="8"
                                     HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE8B5;" FontSize="16"
                                       Foreground="{ThemeResource InfoBrush}" />
@@ -1130,10 +1128,10 @@
                     <Button Grid.Column="2"
                             Style="{StaticResource SecondaryButtonStyle}"
                             HorizontalAlignment="Stretch"
-                            Padding="16,14"
+                            Padding="16,12"
                             Command="{x:Bind ViewModel.NavigateToSearchCommand}"
                             AutomationProperties.LabeledBy="{x:Bind SearchTileLabel}">
-                        <StackPanel Orientation="Horizontal" Spacing="10"
+                        <StackPanel Orientation="Horizontal" Spacing="8"
                                     HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE721;" FontSize="16"
                                       Foreground="{ThemeResource SuccessBrush}" />
@@ -1148,10 +1146,10 @@
                     <Button Grid.Column="3"
                             Style="{StaticResource SecondaryButtonStyle}"
                             HorizontalAlignment="Stretch"
-                            Padding="16,14"
+                            Padding="16,12"
                             Command="{x:Bind ViewModel.NavigateToAskFilesCommand}"
                             AutomationProperties.LabeledBy="{x:Bind AskFilesTileLabel}">
-                        <StackPanel Orientation="Horizontal" Spacing="10"
+                        <StackPanel Orientation="Horizontal" Spacing="8"
                                     HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE9D9;" FontSize="16"
                                       Foreground="{ThemeResource WarningBrush}" />
@@ -1166,10 +1164,10 @@
                     <Button Grid.Column="4"
                             Style="{StaticResource SecondaryButtonStyle}"
                             HorizontalAlignment="Stretch"
-                            Padding="16,14"
+                            Padding="16,12"
                             Command="{x:Bind ViewModel.NavigateToQuickActionsCommand}"
                             AutomationProperties.LabeledBy="{x:Bind QuickActionsTileLabel}">
-                        <StackPanel Orientation="Horizontal" Spacing="10"
+                        <StackPanel Orientation="Horizontal" Spacing="8"
                                     HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE945;" FontSize="16"
                                       Foreground="{ThemeResource TextAccentBrush}" />
@@ -1261,7 +1259,7 @@
                  the posture - green LOCAL, amber when cloud is opted in. -->
             <Border Grid.Row="10"
                     Style="{StaticResource WellStyle}"
-                    Padding="20,14">
+                    Padding="20,12">
                 <Grid>
                     <!-- Fully local: the strong privacy assurance is accurate. -->
                     <StackPanel Orientation="Horizontal" Spacing="12"
@@ -1280,7 +1278,7 @@
                     </StackPanel>
 
                     <!-- Cloud services active: accurate, itemized disclosure of what leaves the machine. -->
-                    <StackPanel Spacing="10"
+                    <StackPanel Spacing="8"
                                 Visibility="{x:Bind ViewModel.IsFullyPrivate, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <Ellipse Style="{StaticResource LedDotStyle}"
@@ -1296,9 +1294,9 @@
                             </TextBlock>
                         </StackPanel>
                         <ItemsRepeater ItemsSource="{x:Bind ViewModel.PrivacyDisclosures, Mode=OneWay}"
-                                       Margin="26,0,0,0">
+                                       Margin="24,0,0,0">
                             <ItemsRepeater.Layout>
-                                <StackLayout Spacing="6" />
+                                <StackLayout Spacing="4" />
                             </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="vm:DashboardPrivacyDisclosureItem">

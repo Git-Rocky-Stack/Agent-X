@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0-windows10.0.22621.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
@@ -76,6 +76,7 @@
     <Compile Include="..\..\src\AgentX.App\ViewModels\AnalyticsViewModel.cs" Link="ViewModels\AnalyticsViewModel.cs" />
     <!-- DashboardViewModel is pure orchestration/state logic; link it for dashboard cohesion tests. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\NavigateHandler.cs" Link="ViewModels\NavigateHandler.cs" />
+    <Compile Include="..\..\src\AgentX.App\Services\NavigationIntents.cs" Link="Services\NavigationIntents.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\DashboardViewModel.cs" Link="ViewModels\DashboardViewModel.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\OperationsViewModel.cs" Link="ViewModels\OperationsViewModel.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\QuickActionsViewModel.cs" Link="ViewModels\QuickActionsViewModel.cs" />

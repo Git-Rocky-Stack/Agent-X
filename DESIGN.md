@@ -62,13 +62,13 @@ Inherited structurally from the family. **Depth comes from layered gradients, 1p
 
 ### XAML recipes (canonical, Night Ops values)
 
-CSS box-shadow stacks do not exist in XAML. The equivalent construction, codified as reusable styles in `Styles/Hardware.xaml`:
+CSS box-shadow stacks do not exist in XAML. The equivalent construction: the per-shift material brushes live in `Styles/Hardware.xaml`; the faceplate is the `Faceplate` templated control (`Controls/Faceplate.cs`, template in `Themes/Generic.xaml`), lamp tiles are the `LampTile` control, wells are `WellStyle`, and raised controls are `ControlCapStyle` (every card style is BasedOn it) plus the machined cap button styles. The retired Tier 1 Border styles (FaceplateStyle, StripeStyle, HexBoltStyle, LampTileStyle) were duplicates of the templated controls with no consumer and were removed 2026-09-06.
 
-- **Faceplate (Layer 1):** a `Grid`/`Border` styled with a vertical `LinearGradientBrush` (`#1C1C1C` at 0, `#151515` at 0.35, `#101010` at 0.7, `#0C0C0C` at 1), `BorderBrush` white at 6% opacity, `CornerRadius` 2. Bevel: an inner 1px top highlight `Border` (white 10%) and 1px bottom shade (black 70%). Ambient depth: a Composition `DropShadow` (via `AttachedShadow`/`ThemeShadow`-equivalent helper) with large soft radius, black at 55%.
+- **Faceplate (Layer 1):** the `Faceplate` control's plate `Border`, a vertical `LinearGradientBrush` (`#1C1C1C` at 0, `#151515` at 0.35, `#101010` at 0.7, `#0C0C0C` at 1), `BorderBrush` white at 6% opacity, `CornerRadius` 2. Bevel: an inner 1px top highlight `Border` (white 10%) and 1px bottom shade (black 70%). Ambient depth: a Composition `DropShadow` (via `AttachedShadow`/`ThemeShadow`-equivalent helper) with large soft radius, black at 55%.
 - **Recessed well (Layer 2):** `Border` with near-void vertical gradient (`#080808` to `#0A0A0A`), `BorderBrush` black 70%, `CornerRadius` 2, and an inner top shade strip (black 80%) to read as carved. No outer shadow ever.
 - **Raised control (Layer 3):** `Border`/`Button` chrome with vertical gradient `#1F1F1F` to `#121212`, top highlight 1px white 10%, `CornerRadius` 4, small tight drop shadow.
 - **Brushed stripe header (36px, top of every faceplate):** horizontal repeating grain is DIRECTIONAL machine brushing - implemented as a thin horizontal `LinearGradientBrush` tile or a pre-rendered 3px grain asset stretched horizontally, over a `#2A2A2A` to `#181818` vertical base; 1px black bottom rule; 44px side padding to clear corner bolts. Carries a Departure Mono kicker `MOD - NAME - NN` and optional lamp.
-- **Hex socket cap bolts:** 20px reusable `HexBolt` control (concentric: radial-gradient outer cap, hexagon `Polygon` socket, countersunk halo ring), 4 per faceplate, inset 10px from corners.
+- **Hex socket cap bolts:** 20px bolts drawn inline in the `Faceplate` template (concentric: radial-gradient stainless cap, machined rim, Allen-socket `Path` with a lit chamfer, countersunk halo ring), 4 per faceplate, inset 8px from corners.
 
 ### Day Shift recipes (silver anodized)
 
@@ -175,7 +175,7 @@ Sp5: 32   (panel)      Sp6: 52   (section)
 Sp7: 84   (canvas)
 ```
 
-**Density: professional compact.** Density is respect for the operator. Legacy `Spacing*` tokens (2-64) remain valid on unswept screens and retire during the sweep.
+**Density: professional compact.** Density is respect for the operator. The grid rule, as guarded by `SpacingIsOnTheFourPixelGridTests`: a Margin, Padding or Spacing component of 5 or more sits on a multiple of 4; components 0 to 4 are optical fine adjustments (hairline offsets, 1px bevels, 2px label-to-value stacks) and negatives are overlaps, both left to the designer. The legacy `Spacing*` tokens retired 2026-09-06 with no consumers; views carry literal stops.
 
 ## Border Radius - machined
 
@@ -186,7 +186,7 @@ ROverlay: 8     (dialogs/flyouts - the only soft surface)
 RPill:    9999  (LED dots, avatars - true circles only)
 ```
 
-NEVER uniform radius across surface types - the varied hierarchy is itself anti-slop signal. Legacy `RadiusLG`/`RadiusXL` (12/16) retire to `ROverlay` during the sweep.
+NEVER uniform radius across surface types - the varied hierarchy is itself anti-slop signal. The legacy `Radius*` keys retired 2026-09-06: every consumer was re-pointed at the stop it already resolved to (XS to `RCard`, SM/MD/Round to `RControl`, Full to `RPill`), so the four stops above are the only radius tokens.
 
 ---
 
@@ -198,7 +198,7 @@ The first viewport is a poster, and the poster is your archive operating. No wel
 - **Left nav rail:** the existing `NavigationView` pane restyled: group headers (`INTELLIGENCE` `KNOWLEDGE` `TRIAGE` `SYSTEM`) become Archivo stencil placards; active item = armed-red bordered tile; icons survive here (navigation only).
 - **Center stage:** the selected page. Dashboard is the poster view: vault, index, model, and activity as faceplates with live wells.
 - **Instrument Strip (bottom status bar):** recessed LCD wells - `MDL`, `TOK/S`, `VRAM`, `VAULT`, `IDX` - plus the `LOCAL`/`NET` privacy lamp. Fed by `StatusBarService` and `IPrivacyStatusService`.
-- **Command palette (Ctrl+K):** an overlay faceplate (`ROverlay`), search input as a recessed well.
+- **Command palette (Ctrl+K):** an overlay faceplate (`ROverlay`), search input as a recessed well. Its pages are registered from the nav rail at startup (same tags, localized labels, glyphs and group placards, in rail order), followed by three actions and the shortcuts scoped to the current page; a page on the rail is in the palette.
 
 **Faceplate composition (every major section):** raised faceplate, 4 corner hex bolts, brushed stripe header with Departure Mono kicker `MOD - NAME - NN` and optional lamp, body, recessed wells for data, raised controls on wells.
 
@@ -216,9 +216,9 @@ The first viewport is a poster, and the poster is your archive operating. No wel
 | **Annunciator cluster** | Lamp strip in the title bar; strike ignition; 1Hz blink until click-to-ack; lit lamps teleport to source page. | parts of `NotificationOverlay` |
 | **Segment meter** | Segment cascade (green to amber to red zones), horizontal or vertical, **data-bound only** (TOK/S, VRAM, IDX queue), flickering tip on the boundary segment, IEC-style ballistics. Unlit segments stay dark in both shifts. | `AccentProgressBarStyle` (where the value is live) |
 | **LCD well** | Recessed void-black window + Departure Mono phosphor text with glow. Green default; amber/red variants for caution/hot values. | metric readouts in status bar and dashboards |
-| **Machined caps (buttons)** | Raised control + specular top highlight. Armed-red cap = consequential commands only (Generate, Import, Delete-with-consequence). Chrome cap = the single polished CTA per view at most. Press: 1px cap travel, 80ms. | `AccentButtonStyle`, `SecondaryButtonStyle`, `GhostButtonStyle`, `IconButtonStyle` |
+| **Machined caps (buttons)** | Raised control + specular top highlight. Armed-red cap = consequential commands only (Generate, Import, Delete-with-consequence). Chrome cap = the single polished CTA per view at most (shipped on the onboarding Launch button). Press: 1px cap travel plus a 14% shade over the cap fill, 80ms; on the armed cap the shade is the `ArmedDeep` pressed state. | `AccentButtonStyle`, `SecondaryButtonStyle`, `GhostButtonStyle`, `IconButtonStyle` |
 | **Console plate forms** | Labels in Departure Mono UC; inputs/selects as recessed dark wells (light text, both shifts); error = `LedWarn` border + NO-GO hint text. | `InputTextBoxStyle`, `ChatInputStyle`, `SearchInputStyle` |
-| **Annunciator alerts** | Dark module rows (both shifts) with LED dot + Archivo title + Public Sans body; GO/HOLD/WARN(blink)/SCOPE variants. | `InlineErrorBarStyle`, `InlineSuccessBarStyle`, `InlineInfoBarStyle` |
+| **Annunciator alerts** | Dark module rows (both shifts) with LED dot + Archivo title + Public Sans body; GO/HOLD/WARN(blink)/SCOPE variants. | `InlineErrorBarStyle` (the success and info variants retired 2026-09-06 with no consumers) |
 | **Document card** | Raised control: Archivo title + lamp + type/tags + Departure Mono metadata (size, date, chunk count). | `CardStyle`, `CardElevatedStyle`, `CardInteractiveStyle` |
 | **Stream viewport** | Recessed well + Iosevka Term token stream + phosphor cursor; TOK readout in the well's corner. | chat message area, code blocks |
 | **Faceplate** | Layer 1 recipe + stripe + bolts. | `CardAccentStyle`, settings section containers |
@@ -302,6 +302,12 @@ Checkpoint after each tier: x64 build green, UIA AutomationId smoke pass, screen
 | 2026-07-05 | Inset content cards are shift-following surfaces, not wells (`CardInsetStyle` and inline equivalents ride `CardBrush`, never `InputBackgroundBrush`) | The displays-stay-dark rule covers LCD wells, lamp caps, and instrument readouts - not generic content cards. Tier 2's flip of `InputBackgroundBrush` to well-dark in both shifts silently dragged ~100 inset-card usages across 24 files dark, pairing Day-dark text with dark grounds. Day QA in the Tier 3 checkpoint caught it; content surfaces re-pointed to `CardBrush`, bar/progress tracks to `CardPressedBrush`, while true data readouts (plugin install path and settings JSON, user-guide terminal commands, cheatsheet key chords) were promoted to proper wells with `WellText*` foregrounds. |
 | 2026-07-05 | Status tones are shift-aware (`StatusToColorConverter` resolves Night vs Day LED text ramps via the root's ActualTheme) | LED text tones are tuned for dark grounds; on Day Shift silver they fail contrast (e.g. LedGo `#41E25E` at ~1.9:1). The converter now returns the darkened `Led*Text` Day ramp (`#177A3D` `#996300` `#C81E13` `#256F69`) when the root element renders Light. Read from the root's ActualTheme because ThemeService applies themes per root element, which app-level resource lookups do not follow. |
 | 2026-07-05 | Static status dots eliminated (Model Manager connection dot, Sync Settings STATE dot) | Both dots were one-shot brushes initialized to green and never updated - an instrument that lies. Model Manager now binds GO/HOLD to `ViewModel.IsConnected`; Sync Settings binds a typed `CurrentSyncState` enum (never the display string) through an LED-tone mapper mirroring the SYNC strip lamp semantics. |
+| 2026-09-06 | Orphan primitives retired; the templated controls are the recipes | An audit of every keyed resource in `Styles/*.xaml` found 34 styles and roughly 200 tokens with no consumer: Tier 1 Border primitives duplicating the `Faceplate` and `LampTile` templates, status badges superseded by lamp tiles, legacy colour ramps whose brushes carried literal hex, an unconsumed `Spacing*` scale. Wired where a hand-rolled twin was waiting (`ControlCapStyle` under five card styles, `ConversationItemStyle`, `StreamStyle`, the chrome cap), deleted the rest. `NoOrphanKeyedResourcesTests` holds the line; DESIGN.md vocabulary tokens with no consumer yet are allowlisted there by name. |
+| 2026-09-06 | Annotation ink is user content, exempt from the chassis hue rule | The five annotation colour names are a persisted contract (`AnnotationEntity.Color`), so "purple" must render purple. The inks live in `Helpers/AnnotationInk.cs`, the one file `NoBannedPaletteHuesTests` exempts, and the guard checks that file holds only the six ink literals. Everything else on the Annotations page is chassis and is guarded. |
+| 2026-09-06 | Spacing normalized to the base-4 grid | 767 XAML attributes and 15 code-behind literals carried a component between stops (6, 10, 14). Snapped to the nearest multiple of 4 with ties rounding toward compact (`scripts/normalize-spacing.py`), guarded by `SpacingIsOnTheFourPixelGridTests`. Sub-5 components stay the designer's optical call. |
+| 2026-09-06 | The Ctrl+K palette derives its pages from the nav rail | The palette carried a hardcoded English list of nine pages while the rail had twenty-nine, so most pages could not be reached by keyboard search and the rail and palette had drifted. The shell now registers every rail item with the palette (same label, glyph, placard, rail order) and `NavRailParityTests` fails on any literal page list, duplicate rail glyph, headerless rail group, or rail item missing from the page maps. |
+| 2026-09-06 | Width-capped content columns declare their alignment | Weekly Digest and Model Manager rendered up to 540px right of center: their 1200px MaxWidth grids had no HorizontalAlignment while Dashboard's declared Center. Sixteen such columns across twelve pages now declare Center, guarded by `WidthCappedColumnsDeclareAlignmentTests`. Center sizes a column to its content, so the three widest pages (Weekly Digest, Knowledge Vault, Model Manager) additionally bind MinWidth to `ContentColumn.Fill(viewport, cap)` (`Helpers/ContentColumn.cs`), which keeps the full column width while staying centered. A page-level content column is centered in the content frame; master-detail panes keep their own alignment. |
+| 2026-09-06 | Plugin status is a lamp | The Plugin Manager's ACTIVE/DISABLED pill was hand-rolled with Tailwind green and red in code-behind and hardcoded English. It is now a `LampTile`: GO while enabled, STBY unlit while parked. |
 
 ---
 

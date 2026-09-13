@@ -91,12 +91,12 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Title + plugin count badge -->
-                    <StackPanel Orientation="Horizontal" Spacing="10"
+                    <StackPanel Orientation="Horizontal" Spacing="8"
                                 VerticalAlignment="Center">
                         <TextBlock x:Uid="Plugin_Manager"
                                    Style="{StaticResource HeadingSmallStyle}" />
                         <Border Style="{StaticResource BadgeDefaultStyle}"
-                                Padding="6,2,6,2">
+                                Padding="4,2,4,2">
                             <TextBlock Style="{StaticResource BadgeStyle}">
                                 <Run Text="{x:Bind ViewModel.PluginCount, Mode=OneWay}" />
                             </TextBlock>
@@ -141,7 +141,7 @@
                     Background="{ThemeResource ErrorSubtleBrush}"
                     BorderBrush="{ThemeResource ErrorBrush}"
                     BorderThickness="0,0,0,1"
-                    Padding="16,10">
+                    Padding="16,8">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <FontIcon Glyph="&#xE7BA;" FontSize="12"
                               Foreground="{ThemeResource ErrorBrush}"
@@ -233,7 +233,7 @@
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="vm:PluginDisplayItem">
                         <Border Style="{StaticResource CollectionTreeItemStyle}">
-                            <Grid ColumnSpacing="10">
+                            <Grid ColumnSpacing="8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
@@ -256,7 +256,7 @@
                                 <!-- Plugin type icon in accent container -->
                                 <Border Grid.Column="1"
                                         Background="{ThemeResource AccentSubtleBrush}"
-                                        CornerRadius="{StaticResource RadiusMD}"
+                                        CornerRadius="{StaticResource RControl}"
                                         Width="36" Height="36"
                                         VerticalAlignment="Center">
                                     <FontIcon Glyph="{x:Bind TypeGlyph}"
@@ -337,7 +337,7 @@
                             MinHeight="34"
                             Command="{x:Bind ViewModel.InstallPluginCommand}"
                             AutomationProperties.LabeledBy="{x:Bind InstallButtonLabel}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
                             <FontIcon Glyph="&#xE710;" FontSize="12" />
                             <TextBlock x:Name="InstallButtonLabel" x:Uid="Plugin_InstallButton" FontSize="12" FontWeight="SemiBold" />
                         </StackPanel>
@@ -349,7 +349,7 @@
                  SIDEBAR ROW 3: Footer with status message
                  ═══════════════════════════════════════════════════════ -->
             <Border Grid.Row="3"
-                    Padding="16,10,16,10"
+                    Padding="16,8,16,8"
                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="0,1,0,0">
                 <Grid ColumnSpacing="8">
@@ -366,7 +366,7 @@
                                   Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
 
                     <!-- Status text (fallback icon when not loading) -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
                         <FontIcon Glyph="&#xE74C;" FontSize="11"
                                   Foreground="{ThemeResource TextTertiaryBrush}"
                                   Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
@@ -395,7 +395,7 @@
                 <StackPanel Spacing="20" HorizontalAlignment="Center">
                     <!-- Accent circle with puzzle icon -->
                     <Border Background="{ThemeResource AccentSubtleBrush}"
-                            CornerRadius="{StaticResource RadiusFull}"
+                            CornerRadius="{StaticResource RPill}"
                             Width="72" Height="72"
                             HorizontalAlignment="Center">
                         <FontIcon Glyph="&#xE74C;"
@@ -425,7 +425,7 @@
                           Visibility="Collapsed"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled">
-                <Grid Padding="32,24,32,24" RowSpacing="24" MaxWidth="900">
+                <Grid Padding="32,24,32,24" RowSpacing="24" MaxWidth="900" HorizontalAlignment="Center">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -465,7 +465,7 @@
                         <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
                             <TextBlock x:Name="DetailName"
                                        Style="{StaticResource HeadingLargeStyle}" />
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <TextBlock x:Uid="Plugin_ByAuthor"
                                            Style="{StaticResource BodySecondaryStyle}" />
                                 <TextBlock x:Name="DetailAuthor"
@@ -476,8 +476,8 @@
                                     Background="{ThemeResource AccentSubtleBrush}"
                                     BorderBrush="{ThemeResource AccentPrimaryBrush}"
                                     BorderThickness="1"
-                                    CornerRadius="{StaticResource RadiusMD}"
-                                    Padding="12,10"
+                                    CornerRadius="{StaticResource RControl}"
+                                    Padding="12,8"
                                     MaxWidth="520"
                                     Visibility="Collapsed">
                                 <Grid ColumnSpacing="12">
@@ -486,7 +486,7 @@
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
 
-                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
                                         <FontIcon Glyph="&#xE8A5;"
                                                   FontSize="14"
                                                   Foreground="{ThemeResource AccentPrimaryBrush}"
@@ -534,7 +534,7 @@
                          DETAIL ROW 1: METADATA BADGES
                          Version, Type, Status, Plugin ID
                          ======================================================= -->
-                    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10">
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
                         <!-- Version badge -->
                         <Border Style="{StaticResource BadgeDefaultStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="4">
@@ -547,7 +547,7 @@
 
                         <!-- Type badge (accent-tinted) -->
                         <Border Style="{StaticResource BadgeAccentStyle}">
-                            <StackPanel Orientation="Horizontal" Spacing="5">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <FontIcon x:Name="DetailTypeBadgeIcon"
                                           FontSize="10"
                                           Foreground="{ThemeResource TextAccentBrush}" />
@@ -557,14 +557,16 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Status badge: ACTIVE (green) or DISABLED (red/grey) -->
-                        <Border x:Name="DetailStatusBadge"
-                                CornerRadius="{StaticResource RadiusRound}"
-                                Padding="10,3,10,3">
-                            <TextBlock x:Name="DetailStatusText"
-                                       FontSize="10" FontWeight="Bold"
-                                       CharacterSpacing="60" />
-                        </Border>
+                        <!-- Status lamp: GO (steady green) while the plugin is
+                             enabled, STBY (unlit) while disabled. Stencil word
+                             in a lamp tile per DESIGN.md; the code is equipment
+                             vocabulary and is not localized. -->
+                        <controls:LampTile x:Name="DetailStatusLamp"
+                                           Code="STBY"
+                                           State="Off"
+                                           IsCompact="True"
+                                           IsTabStop="False"
+                                           VerticalAlignment="Center" />
 
                         <!-- Plugin ID badge (monospace) -->
                         <Border Style="{StaticResource BadgeDefaultStyle}">
@@ -580,7 +582,7 @@
                          ======================================================= -->
                     <controls:Faceplate Grid.Row="2" Kicker="MOD - PLUG - 01">
                         <StackPanel Spacing="12">
-                            <StackPanel Orientation="Horizontal" Spacing="10">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE946;" FontSize="16"
                                           Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock x:Uid="Plugin_Description"
@@ -602,7 +604,7 @@
                     <controls:Faceplate Grid.Row="3" Kicker="MOD - PLUG - 02">
                         <StackPanel Spacing="16">
                             <!-- Section header -->
-                            <StackPanel Orientation="Horizontal" Spacing="10">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE946;" FontSize="16"
                                           Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock x:Uid="Plugin_Details"
@@ -623,8 +625,8 @@
                                         Background="{ThemeResource WellBrush}"
                                         BorderBrush="{ThemeResource WellBorderBrush}"
                                         BorderThickness="1"
-                                        CornerRadius="{StaticResource RadiusSM}"
-                                        Padding="10,6,10,6">
+                                        CornerRadius="{StaticResource RControl}"
+                                        Padding="8,4,8,4">
                                     <TextBlock x:Name="DetailInstallPath"
                                                Style="{StaticResource MonoSmallStyle}"
                                                Foreground="{ThemeResource WellTextSecondaryBrush}"
@@ -684,7 +686,7 @@
                          ======================================================= -->
                     <controls:Faceplate Grid.Row="4" x:Name="DetailSettingsCard" Visibility="Collapsed" Kicker="MOD - PLUG - 03">
                         <StackPanel Spacing="12">
-                            <StackPanel Orientation="Horizontal" Spacing="10">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE713;" FontSize="16"
                                           Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock x:Uid="Plugin_Configuration"
@@ -692,7 +694,7 @@
                             </StackPanel>
 
                             <Border Background="{ThemeResource WellBrush}"
-                                    CornerRadius="{StaticResource RadiusMD}"
+                                    CornerRadius="{StaticResource RControl}"
                                     Padding="16,12"
                                     BorderBrush="{ThemeResource WellBorderBrush}"
                                     BorderThickness="1">

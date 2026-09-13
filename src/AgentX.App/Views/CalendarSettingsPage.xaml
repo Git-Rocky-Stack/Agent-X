@@ -140,7 +140,7 @@
                                   IsOn="{x:Bind ViewModel.EnableCalendarSync, Mode=TwoWay}"
                                   OffContent="Off" OnContent="On"/>
 
-                    <StackPanel Spacing="6">
+                    <StackPanel Spacing="4">
                         <TextBlock x:Uid="CalSet_SyncIntervalMinutes" Text="Sync interval (minutes)"
                                    Style="{StaticResource LabelStyle}"/>
                         <ComboBox ItemsSource="{x:Bind ViewModel.SyncIntervalOptions, Mode=OneWay}"
@@ -148,7 +148,7 @@
                                   MinWidth="200"/>
                     </StackPanel>
 
-                    <StackPanel Spacing="6">
+                    <StackPanel Spacing="4">
                         <TextBlock x:Uid="CalSet_SyncRangePastDays" Text="Sync range: past days"
                                    Style="{StaticResource LabelStyle}"/>
                         <NumberBox Value="{x:Bind ViewModel.DaysPastToSync, Mode=TwoWay}"
@@ -157,7 +157,7 @@
                                    MinWidth="200"/>
                     </StackPanel>
 
-                    <StackPanel Spacing="6">
+                    <StackPanel Spacing="4">
                         <TextBlock x:Uid="CalSet_SyncRangeFutureDays" Text="Sync range: future days"
                                    Style="{StaticResource LabelStyle}"/>
                         <NumberBox Value="{x:Bind ViewModel.DaysFutureToSync, Mode=TwoWay}"
@@ -166,7 +166,7 @@
                                    MinWidth="200"/>
                     </StackPanel>
 
-                    <StackPanel Spacing="6">
+                    <StackPanel Spacing="4">
                         <TextBlock x:Uid="CalSet_ConflictResolution" Text="Conflict resolution"
                                    Style="{StaticResource LabelStyle}"/>
                         <ComboBox ItemsSource="{x:Bind ViewModel.ConflictResolutionOptions, Mode=OneWay}"

@@ -105,7 +105,7 @@
                           Padding="8,0">
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="vm:WorkflowListItem">
-                            <Grid Padding="12,10" ColumnSpacing="12">
+                            <Grid Padding="12,8" ColumnSpacing="12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
@@ -115,7 +115,7 @@
                                 <!-- Icon -->
                                 <Border Grid.Column="0"
                                         Width="36" Height="36"
-                                        CornerRadius="{StaticResource RadiusMD}"
+                                        CornerRadius="{StaticResource RControl}"
                                         Background="{ThemeResource AccentSubtleBrush}">
                                     <FontIcon Glyph="{x:Bind Icon}"
                                               FontSize="16"
@@ -142,7 +142,7 @@
                                             <Run Text="{x:Bind StepCount}" />
                                             <Run x:Uid="WfBuilder_Steps" Text=" steps" />
                                         </TextBlock>
-                                        <Border CornerRadius="{StaticResource RadiusSM}"
+                                        <Border CornerRadius="{StaticResource RControl}"
                                                 Background="{ThemeResource AccentSubtleBrush}"
                                                 Padding="8,2"
                                                 Visibility="{x:Bind IsBuiltIn, Mode=OneWay, Converter={StaticResource BoolToVis}}">
@@ -161,14 +161,14 @@
                                 <!-- Actions -->
                                 <StackPanel Grid.Column="2"
                                             VerticalAlignment="Center"
-                                            Spacing="6">
+                                            Spacing="4">
                                     <Button x:Uid="WfBuilder_UseTemplate" Content="Use Template"
                                             Command="{Binding ViewModel.UseTemplateCommand, ElementName=WorkflowPage}"
                                             CommandParameter="{Binding Id}"
                                             Style="{StaticResource SecondaryButtonStyle}"
                                             Visibility="{x:Bind IsBuiltIn, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
                                     <StackPanel Orientation="Horizontal"
-                                                Spacing="6"
+                                                Spacing="4"
                                                 Visibility="{x:Bind IsBuiltIn, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
                                         <Button x:Uid="WfBuilder_Edit" Content="Edit"
                                                 Command="{Binding ViewModel.EditWorkflowCommand, ElementName=WorkflowPage}"
@@ -194,7 +194,7 @@
         <Grid Grid.Column="1">
             <ScrollViewer VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled">
-                <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="900">
+                <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="900" HorizontalAlignment="Center">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -220,7 +220,7 @@
                                        Style="{StaticResource HeadingSmallStyle}" />
 
                             <!-- Name -->
-                            <StackPanel Spacing="6">
+                            <StackPanel Spacing="4">
                                 <TextBlock x:Uid="WfBuilder_Name" Text="Name" Style="{StaticResource LabelStyle}" />
                                 <TextBox Text="{x:Bind ViewModel.EditName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          x:Uid="WfBuilder_MyWorkflowPh" PlaceholderText="My Workflow"
@@ -228,7 +228,7 @@
                             </StackPanel>
 
                             <!-- Description -->
-                            <StackPanel Spacing="6">
+                            <StackPanel Spacing="4">
                                 <TextBlock x:Uid="WfBuilder_Description" Text="Description" Style="{StaticResource LabelStyle}" />
                                 <TextBox Text="{x:Bind ViewModel.EditDescription, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          x:Uid="WfBuilder_WhatDoesThisWorkflowPh" PlaceholderText="What does this workflow do?"
@@ -236,7 +236,7 @@
                             </StackPanel>
 
                             <!-- Category -->
-                            <StackPanel Spacing="6">
+                            <StackPanel Spacing="4">
                                 <TextBlock x:Uid="WfBuilder_Category" Text="Category" Style="{StaticResource LabelStyle}" />
                                 <ComboBox ItemsSource="{x:Bind ViewModel.Categories}"
                                           SelectedItem="{x:Bind ViewModel.EditCategory, Mode=TwoWay}"
@@ -266,7 +266,7 @@
                                 <ItemsRepeater.ItemTemplate>
                                     <DataTemplate x:DataType="vm:WorkflowStepItem">
                                         <Border Background="{ThemeResource CardGradientBrush}"
-                                                CornerRadius="{StaticResource RadiusMD}"
+                                                CornerRadius="{StaticResource RControl}"
                                                 BorderBrush="{ThemeResource BorderSubtleBrush}"
                                                 BorderThickness="1"
                                                 Padding="16">
@@ -281,7 +281,7 @@
 
                                                     <!-- Step Number Badge -->
                                                     <Border Width="28" Height="28"
-                                                            CornerRadius="{StaticResource RadiusFull}"
+                                                            CornerRadius="{StaticResource RPill}"
                                                             Background="{ThemeResource AccentGradientBrush}">
                                                         <TextBlock Text="{x:Bind StepOrder, Mode=OneWay}"
                                                                    FontSize="12"
@@ -307,7 +307,7 @@
                                                                 CommandParameter="{x:Bind}"
                                                                 FontFamily="{ThemeResource SymbolThemeFontFamily}"
                                                                 FontSize="12"
-                                                                Padding="6"
+                                                                Padding="4"
                                                                 MinWidth="0" MinHeight="0"
                                                                 x:Uid="WfBuilder_MoveUpTip" ToolTipService.ToolTip="Move Up"
                                                                 Style="{StaticResource GhostButtonStyle}" />
@@ -316,7 +316,7 @@
                                                                 CommandParameter="{x:Bind}"
                                                                 FontFamily="{ThemeResource SymbolThemeFontFamily}"
                                                                 FontSize="12"
-                                                                Padding="6"
+                                                                Padding="4"
                                                                 MinWidth="0" MinHeight="0"
                                                                 x:Uid="WfBuilder_MoveDownTip" ToolTipService.ToolTip="Move Down"
                                                                 Style="{StaticResource GhostButtonStyle}" />
@@ -325,7 +325,7 @@
                                                                 CommandParameter="{x:Bind}"
                                                                 FontFamily="{ThemeResource SymbolThemeFontFamily}"
                                                                 FontSize="12"
-                                                                Padding="6"
+                                                                Padding="4"
                                                                 MinWidth="0" MinHeight="0"
                                                                 Foreground="{ThemeResource ErrorBrush}"
                                                                 x:Uid="WfBuilder_RemoveStepTip" ToolTipService.ToolTip="Remove Step"
@@ -372,8 +372,8 @@
                             <Border Background="{ThemeResource AccentSubtleBrush}"
                                     BorderBrush="{ThemeResource AccentPrimaryBrush}"
                                     BorderThickness="1"
-                                    CornerRadius="{StaticResource RadiusMD}"
-                                    Padding="16,14"
+                                    CornerRadius="{StaticResource RControl}"
+                                    Padding="16,12"
                                     Visibility="{x:Bind ViewModel.HasFocusedWorkflowRunLanding, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                                 <Grid ColumnSpacing="16">
                                     <Grid.ColumnDefinitions>
@@ -381,7 +381,7 @@
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
 
-                                    <StackPanel Spacing="6">
+                                    <StackPanel Spacing="4">
                                         <TextBlock x:Uid="WfBuilder_FocusedWorkflowRun" Text="Focused Workflow Run"
                                                    Style="{StaticResource BodyStyle}"
                                                    FontWeight="SemiBold"
@@ -425,12 +425,12 @@
 
                             <!-- Template Guide -->
                             <Border Background="{ThemeResource CardGradientSubtleBrush}"
-                                    CornerRadius="{StaticResource RadiusMD}"
+                                    CornerRadius="{StaticResource RControl}"
                                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                                     BorderThickness="1"
-                                    Padding="18"
+                                    Padding="16"
                                     Visibility="{x:Bind ViewModel.HasSelectedTemplateGuide, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                                <StackPanel Spacing="14">
+                                <StackPanel Spacing="12">
                                     <StackPanel Spacing="4">
                                         <TextBlock x:Uid="WfBuilder_TemplateGuide" Text="Template Guide"
                                                    Style="{StaticResource HeadingSmallStyle}" />
@@ -445,7 +445,7 @@
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
 
-                                        <StackPanel Spacing="6">
+                                        <StackPanel Spacing="4">
                                             <TextBlock x:Uid="WfBuilder_BestFor" Text="Best For"
                                                        Style="{StaticResource LabelStyle}" />
                                             <TextBlock Text="{x:Bind ViewModel.SelectedTemplateGuideBestFor, Mode=OneWay}"
@@ -453,7 +453,7 @@
                                                        TextWrapping="Wrap" />
                                         </StackPanel>
 
-                                        <StackPanel Grid.Column="1" Spacing="6">
+                                        <StackPanel Grid.Column="1" Spacing="4">
                                             <TextBlock x:Uid="WfBuilder_YouLlGet" Text="You'll Get"
                                                        Style="{StaticResource LabelStyle}" />
                                             <TextBlock Text="{x:Bind ViewModel.SelectedTemplateGuideOutcome, Mode=OneWay}"
@@ -472,7 +472,7 @@
                                             </ItemsRepeater.Layout>
                                             <ItemsRepeater.ItemTemplate>
                                                 <DataTemplate x:DataType="vm:WorkflowTemplateGuideExampleItem">
-                                                    <Grid ColumnSpacing="10">
+                                                    <Grid ColumnSpacing="8">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="Auto" />
                                                             <ColumnDefinition Width="*" />
@@ -499,7 +499,7 @@
                             </Border>
 
                             <!-- Input -->
-                            <StackPanel Spacing="6">
+                            <StackPanel Spacing="4">
                                 <TextBlock x:Uid="WfBuilder_Input" Text="Input" Style="{StaticResource LabelStyle}" />
                                 <TextBox Text="{x:Bind ViewModel.RunInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          x:Uid="WfBuilder_PasteOrTypeThePh" PlaceholderText="Paste or type the content you want to process..."
@@ -561,19 +561,19 @@
                             <ItemsRepeater ItemsSource="{x:Bind ViewModel.RecentRuns, Mode=OneWay}"
                                            Visibility="{x:Bind ViewModel.HasRecentRuns, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                                 <ItemsRepeater.Layout>
-                                    <StackLayout Spacing="10" />
+                                    <StackLayout Spacing="8" />
                                 </ItemsRepeater.Layout>
                                 <ItemsRepeater.ItemTemplate>
                                     <DataTemplate x:DataType="vm:WorkflowRunHistoryDisplayItem">
                                         <Border Background="{ThemeResource CardGradientSubtleBrush}"
-                                                CornerRadius="{StaticResource RadiusSM}"
+                                                CornerRadius="{StaticResource RControl}"
                                                 Padding="16"
                                                 BorderBrush="{ThemeResource BorderSubtleBrush}"
                                                 BorderThickness="1">
-                                            <StackPanel Spacing="10">
+                                            <StackPanel Spacing="8">
                                                 <Border Background="{ThemeResource AccentSubtleBrush}"
-                                                        CornerRadius="{StaticResource RadiusSM}"
-                                                        Padding="10,4"
+                                                        CornerRadius="{StaticResource RControl}"
+                                                        Padding="8,4"
                                                         HorizontalAlignment="Left"
                                                         Visibility="{x:Bind IsFocused, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                                                     <TextBlock x:Uid="WfBuilder_OpenedFromOperations" Text="Opened from Operations"
@@ -677,7 +677,7 @@
                                 <ItemsRepeater.ItemTemplate>
                                     <DataTemplate x:DataType="vm:StepOutputItem">
                                         <Border Background="{ThemeResource CardGradientSubtleBrush}"
-                                                CornerRadius="{StaticResource RadiusSM}"
+                                                CornerRadius="{StaticResource RControl}"
                                                 Padding="16">
                                             <StackPanel Spacing="8">
                                                 <Grid>
@@ -687,7 +687,7 @@
                                                         <ColumnDefinition Width="Auto" />
                                                     </Grid.ColumnDefinitions>
                                                     <Border Width="24" Height="24"
-                                                            CornerRadius="{StaticResource RadiusFull}"
+                                                            CornerRadius="{StaticResource RPill}"
                                                             Background="{ThemeResource AccentSubtleBrush}">
                                                         <TextBlock Text="{x:Bind StepOrder}"
                                                                    FontSize="11" FontWeight="Bold"
@@ -699,7 +699,7 @@
                                                                Text="{x:Bind StepName}"
                                                                Style="{StaticResource BodyStyle}"
                                                                FontWeight="SemiBold"
-                                                               Margin="10,0,0,0"
+                                                               Margin="8,0,0,0"
                                                                VerticalAlignment="Center" />
                                                     <TextBlock Grid.Column="2"
                                                                Style="{StaticResource CaptionStyle}"
@@ -786,21 +786,21 @@
                                         <Border Background="{ThemeResource CardGradientSubtleBrush}"
                                                 BorderBrush="{ThemeResource BorderSubtleBrush}"
                                                 BorderThickness="1"
-                                                CornerRadius="{StaticResource RadiusMD}"
-                                                Padding="18">
-                                            <StackPanel Spacing="10">
+                                                CornerRadius="{StaticResource RControl}"
+                                                Padding="16">
+                                            <StackPanel Spacing="8">
                                                 <Grid ColumnSpacing="12">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*" />
                                                         <ColumnDefinition Width="Auto" />
                                                     </Grid.ColumnDefinitions>
 
-                                                    <StackPanel Spacing="6">
+                                                    <StackPanel Spacing="4">
                                                         <StackPanel Orientation="Horizontal" Spacing="8">
                                                             <TextBlock Text="{x:Bind Name}"
                                                                        Style="{StaticResource HeadingSmallStyle}" />
                                                             <Border Background="{ThemeResource AccentSubtleBrush}"
-                                                                    CornerRadius="{StaticResource RadiusSM}"
+                                                                    CornerRadius="{StaticResource RControl}"
                                                                     Padding="8,2">
                                                                 <TextBlock Text="{x:Bind Category}"
                                                                            Style="{StaticResource CaptionStyle}"

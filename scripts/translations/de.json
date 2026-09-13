@@ -1607,5 +1607,19 @@
   "Terms_Email.Text": "E-Mail",
   "Terms_Company.Text": "Unternehmen",
   "Terms_AgentXByStrategia.Text": "Agent-X von Strategia-X",
-  "Terms_TheseTermsOfService.Text": "Diese Nutzungsbedingungen wurden zuletzt am 26. Februar 2026 aktualisiert."
+  "Terms_TheseTermsOfService.Text": "Diese Nutzungsbedingungen wurden zuletzt am 26. Februar 2026 aktualisiert.",
+  "UserGuide_CommandPalette_Description.Text": "Die Befehlspalette ist der Tastaturweg zu jeder Seite in Agent-X, ergänzt um einige Aktionen und die Tastenkürzel der gerade geöffneten Seite. Drücken Sie Strg+K, tippen Sie ein paar Buchstaben und bestätigen Sie mit der Eingabetaste.",
+  "UserGuide_CommandPalette_Step2.Text": "Tippen Sie für eine unscharfe Suche. Die eingegebenen Buchstaben müssen in dieser Reihenfolge im Befehlsnamen vorkommen, aber nicht direkt hintereinander: \"wst\" findet Wissens-Tresor und \"dw\" findet Design wechseln. Die Ergebnisse behalten die Gruppen der Navigationsleiste (Intelligenz, Wissen, Triage, System, Support), gefolgt von Aktionen und, wenn die aktuelle Seite Tastenkürzel registriert, Auf dieser Seite.",
+  "UserGuide_CommandPalette_Step3.Text": "Mit den Pfeiltasten nach oben und unten (oder Tab und Umschalt+Tab) bewegen Sie sich durch die Ergebnisse, mit der Eingabetaste führen Sie den ausgewählten Befehl aus, und mit Esc oder einem Klick außerhalb der Palette schließen Sie sie.",
+  "UserGuide_CommandPalette_Coverage.Text": "Die Palette führt jede Seite der Navigationsleiste unter denselben Namen, Symbolen und Gruppenschildern auf, mit dem Tastenkürzel neben jeder Seite, die eines hat. Hinzu kommen drei Aktionen (Neue Unterhaltung, Dateien importieren, Design wechseln) sowie die Tastenkürzel der gerade geöffneten Seite. Eine neu zur Leiste hinzugefügte Seite erscheint automatisch in der Palette. Dokumente und Unterhaltungen öffnen Sie über Springen zu (Strg+P), nicht über die Palette.",
+  "Palette_SearchInput.PlaceholderText": "Seite oder Aktion eingeben...",
+  "Palette_NavigateHint.Text": "Navigieren",
+  "Palette_OpenHint.Text": "Öffnen",
+  "Palette_CloseHint.Text": "Schließen",
+  "Palette_Actions": "AKTIONEN",
+  "Palette_OnThisPage": "AUF DIESER SEITE",
+  "Palette_NewConversation": "Neue Unterhaltung",
+  "Palette_ImportFiles": "Dateien importieren",
+  "Palette_ToggleTheme": "Design wechseln",
+  "Palette_NoMatches": "Keine passenden Befehle"
 }

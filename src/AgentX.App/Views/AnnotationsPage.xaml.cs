@@ -1,3 +1,4 @@
+using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -29,17 +30,10 @@ public sealed partial class AnnotationsPage : Page
     }
 
     /// <summary>
-    /// Maps annotation color names to WinUI brushes for the color dots.
+    /// x:Bind entry point for the colour dots. The inks themselves live in
+    /// <see cref="AnnotationInk"/>, the one file the palette hue guard exempts.
     /// </summary>
-    public static SolidColorBrush ColorToBrush(string color) => color.ToLowerInvariant() switch
-    {
-        "yellow" => new SolidColorBrush(Windows.UI.Color.FromArgb(255, 250, 204, 21)),
-        "green" => new SolidColorBrush(Windows.UI.Color.FromArgb(255, 74, 222, 128)),
-        "blue" => new SolidColorBrush(Windows.UI.Color.FromArgb(255, 96, 165, 250)),
-        "red" => new SolidColorBrush(Windows.UI.Color.FromArgb(255, 248, 113, 113)),
-        "purple" => new SolidColorBrush(Windows.UI.Color.FromArgb(255, 192, 132, 252)),
-        _ => new SolidColorBrush(Windows.UI.Color.FromArgb(255, 200, 200, 200))
-    };
+    public static SolidColorBrush ColorToBrush(string color) => AnnotationInk.BrushFor(color);
 
     private static async Task<AnnotationMarkdownExportResult> SaveMarkdownExportAsync(
         AnnotationMarkdownExportRequest request)

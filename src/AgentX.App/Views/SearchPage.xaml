@@ -87,7 +87,7 @@
 
             <Border Grid.Row="0"
                     Padding="32,24,32,16">
-                <StackPanel Spacing="20" MaxWidth="900">
+                <StackPanel Spacing="20" MaxWidth="900" HorizontalAlignment="Center">
 
                     <!-- Page title row -->
                     <StackPanel Spacing="4">
@@ -114,7 +114,7 @@
                                      KeyDown="SearchInputBox_KeyDown"
                                      AcceptsReturn="False"
                                      MaxHeight="52"
-                                     Padding="48,14,18,14" />
+                                     Padding="48,12,16,12" />
 
                             <!-- Search icon overlay -->
                             <FontIcon Glyph="&#xE721;"
@@ -162,14 +162,14 @@
 
             <Border Grid.Row="1"
                     Padding="32,0,32,12">
-                <StackPanel Spacing="12" MaxWidth="900">
+                <StackPanel Spacing="12" MaxWidth="900" HorizontalAlignment="Center">
 
                     <!-- Search Mode Toggle -->
                     <StackPanel Spacing="4">
                         <TextBlock x:Uid="Search_SearchModeOverline" Text="SEARCH MODE"
                                    Style="{StaticResource OverlineStyle}" />
                         <Border Background="{ThemeResource CardBrush}"
-                                CornerRadius="{StaticResource RadiusMD}"
+                                CornerRadius="{StaticResource RControl}"
                                 Padding="3"
                                 HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal" Spacing="2">
@@ -181,7 +181,7 @@
                                              Style="{StaticResource TabRadioButtonStyle}"
                                              Checked="OnSearchModeChanged"
                                              MinHeight="32"
-                                             Padding="14,6,14,6"
+                                             Padding="12,4,12,4"
                                              ToolTipService.ToolTip="Vector similarity search using AI embeddings" />
                                 <RadioButton x:Name="ModeKeywordBtn"
                                              x:Uid="Search_ModeKeyword" Content="Keyword"
@@ -190,7 +190,7 @@
                                              Style="{StaticResource TabRadioButtonStyle}"
                                              Checked="OnSearchModeChanged"
                                              MinHeight="32"
-                                             Padding="14,6,14,6"
+                                             Padding="12,4,12,4"
                                              ToolTipService.ToolTip="Full-text keyword search with BM25 ranking" />
                                 <RadioButton x:Name="ModeHybridBtn"
                                              x:Uid="Search_ModeHybrid" Content="Hybrid"
@@ -199,7 +199,7 @@
                                              Style="{StaticResource TabRadioButtonStyle}"
                                              Checked="OnSearchModeChanged"
                                              MinHeight="32"
-                                             Padding="14,6,14,6"
+                                             Padding="12,4,12,4"
                                              ToolTipService.ToolTip="Combined semantic + keyword search for best results" />
                             </StackPanel>
                         </Border>
@@ -226,12 +226,12 @@
 
                         <Button Grid.Column="2"
                                 Style="{StaticResource GhostButtonStyle}"
-                                Padding="10,6,10,6" MinHeight="32"
+                                Padding="8,4,8,4" MinHeight="32"
                                 VerticalAlignment="Bottom"
                                 Command="{x:Bind ViewModel.ToggleAdvancedFiltersCommand}"
                                 x:Uid="Search_AdvancedBtn" ToolTipService.ToolTip="Toggle advanced search filters"
                                 AutomationProperties.LabeledBy="{x:Bind AdvancedLabel}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <FontIcon Glyph="&#xE71C;" FontSize="12"
                                           Foreground="{ThemeResource TextSecondaryBrush}" />
                                 <TextBlock x:Name="AdvancedLabel" x:Uid="Search_AdvancedLabel" Text="Advanced"
@@ -244,7 +244,7 @@
                     <!-- File Type Filters -->
                     <TextBlock x:Uid="Search_FileTypeOverline" Text="FILE TYPE"
                                Style="{StaticResource OverlineStyle}" />
-                    <StackPanel Orientation="Horizontal" Spacing="6">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
 
                         <!-- All Types filter -->
                         <Button x:Uid="Search_FilterAllTypes" Content="All Types"
@@ -340,9 +340,9 @@
             <Border Grid.Row="2" Padding="32,0,32,12"
                     Visibility="{x:Bind ViewModel.IsAdvancedFiltersOpen, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                 <Border Background="{ThemeResource CardBrush}"
-                        CornerRadius="{StaticResource RadiusMD}"
+                        CornerRadius="{StaticResource RControl}"
                         Padding="20,16,20,16"
-                        MaxWidth="900">
+                        MaxWidth="900" HorizontalAlignment="Center">
                     <Grid ColumnSpacing="24" RowSpacing="12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -355,7 +355,7 @@
                         </Grid.RowDefinitions>
 
                         <!-- Min Score Slider -->
-                        <StackPanel Spacing="6">
+                        <StackPanel Spacing="4">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <TextBlock x:Uid="Search_MinRelevanceOverline" Text="MIN RELEVANCE"
                                            Style="{StaticResource OverlineStyle}" />
@@ -368,7 +368,7 @@
                         </StackPanel>
 
                         <!-- Max Results -->
-                        <StackPanel Grid.Column="1" Spacing="6">
+                        <StackPanel Grid.Column="1" Spacing="4">
                             <TextBlock x:Uid="Search_MaxResultsOverline" Text="MAX RESULTS"
                                        Style="{StaticResource OverlineStyle}" />
                             <NumberBox Minimum="1" Maximum="100"
@@ -380,7 +380,7 @@
                         <!-- Reset button -->
                         <Button Grid.Column="2"
                                 Style="{StaticResource GhostButtonStyle}"
-                                Padding="10,6,10,6" MinHeight="32"
+                                Padding="8,4,8,4" MinHeight="32"
                                 VerticalAlignment="Bottom"
                                 Command="{x:Bind ViewModel.ClearAdvancedFiltersCommand}"
                                 x:Uid="Search_ResetBtn" ToolTipService.ToolTip="Reset all advanced filters"
@@ -395,7 +395,7 @@
                         </Button>
 
                         <!-- Date After -->
-                        <StackPanel Grid.Row="1" Spacing="6">
+                        <StackPanel Grid.Row="1" Spacing="4">
                             <TextBlock x:Name="CreatedAfterCaption" x:Uid="Search_CreatedAfterOverline" Text="CREATED AFTER"
                                        Style="{StaticResource OverlineStyle}" />
                             <CalendarDatePicker Date="{x:Bind ViewModel.CreatedAfterDate, Mode=TwoWay}"
@@ -405,7 +405,7 @@
                         </StackPanel>
 
                         <!-- Date Before -->
-                        <StackPanel Grid.Row="1" Grid.Column="1" Spacing="6">
+                        <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
                             <TextBlock x:Name="CreatedBeforeCaption" x:Uid="Search_CreatedBeforeOverline" Text="CREATED BEFORE"
                                        Style="{StaticResource OverlineStyle}" />
                             <CalendarDatePicker Date="{x:Bind ViewModel.CreatedBeforeDate, Mode=TwoWay}"
@@ -423,7 +423,7 @@
 
             <Border Grid.Row="3"
                     Padding="32,0,32,12">
-                <Grid MaxWidth="900">
+                <Grid MaxWidth="900" HorizontalAlignment="Center">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -506,7 +506,7 @@
 
                         <!-- Icon -->
                         <Border Background="{ThemeResource AccentSubtleBrush}"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Width="72" Height="72"
                                 HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE721;"
@@ -561,7 +561,7 @@
                              failures (DESIGN.md LED semantics). A search that matched
                              nothing is a SCOPE state, so it wears the LedScope tone. -->
                         <Border Background="{ThemeResource InfoSubtleBrush}"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Width="64" Height="64"
                                 HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE721;"
@@ -661,11 +661,11 @@
                                                 <!-- Score track background -->
                                                 <Border Grid.Column="1"
                                                         Background="{ThemeResource CardPressedBrush}"
-                                                        CornerRadius="{StaticResource RadiusRound}"
+                                                        CornerRadius="{StaticResource RControl}"
                                                         Height="6"
                                                         VerticalAlignment="Center">
                                                     <!-- Score fill bar (width set in code-behind via converter) -->
-                                                    <Border CornerRadius="{StaticResource RadiusRound}"
+                                                    <Border CornerRadius="{StaticResource RControl}"
                                                             Height="6"
                                                             HorizontalAlignment="Left"
                                                             Width="{x:Bind local:SearchPage.GetScoreWidth(RelevancePercent)}">
@@ -738,7 +738,7 @@
 
                                             <!-- Open button -->
                                             <Button Style="{StaticResource GhostButtonStyle}"
-                                                    Padding="10,6,10,6" MinHeight="32"
+                                                    Padding="8,4,8,4" MinHeight="32"
                                                     Tag="{x:Bind DocumentId}"
                                                     Click="OnOpenDocumentClick"
                                                     x:Uid="Search_OpenBtn" ToolTipService.ToolTip="Open in Explorer"
@@ -753,7 +753,7 @@
                                             </Button>
 
                                             <Button Style="{StaticResource GhostButtonStyle}"
-                                                    Padding="10,6,10,6" MinHeight="32"
+                                                    Padding="8,4,8,4" MinHeight="32"
                                                     Tag="{x:Bind}"
                                                     Click="OnLaunchResultInWorkflowClick"
                                                     x:Uid="Search_WorkflowBtn" ToolTipService.ToolTip="Use this result in a workflow"
@@ -844,8 +844,8 @@
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="vm:SearchHistoryItem">
                         <Border Background="Transparent"
-                                CornerRadius="{StaticResource RadiusMD}"
-                                Padding="12,10,12,10"
+                                CornerRadius="{StaticResource RControl}"
+                                Padding="12,8,12,8"
                                 Margin="0,1,0,1">
                             <Grid ColumnSpacing="8">
                                 <Grid.ColumnDefinitions>
@@ -897,7 +897,7 @@
                 </Grid.RowDefinitions>
 
                 <!-- Saved Filters Header -->
-                <Border Grid.Row="0" Padding="16,10,16,6"
+                <Border Grid.Row="0" Padding="16,8,16,4"
                         BorderBrush="{ThemeResource BorderSubtleBrush}"
                         BorderThickness="0,1,0,0">
                     <StackPanel Orientation="Horizontal" Spacing="8">
@@ -920,9 +920,9 @@
                     <ItemsRepeater.ItemTemplate>
                         <DataTemplate x:DataType="vm:SavedFilterItem">
                             <Border Background="Transparent"
-                                    CornerRadius="{StaticResource RadiusMD}"
-                                    Padding="10,8,10,8">
-                                <Grid ColumnSpacing="6">
+                                    CornerRadius="{StaticResource RControl}"
+                                    Padding="8,8,8,8">
+                                <Grid ColumnSpacing="4">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
@@ -938,7 +938,7 @@
                                                    Foreground="{ThemeResource TextPrimaryBrush}" />
                                         <StackPanel Orientation="Horizontal" Spacing="4">
                                             <Border Background="{ThemeResource AccentSubtleBrush}"
-                                                    CornerRadius="{StaticResource RadiusSM}"
+                                                    CornerRadius="{StaticResource RControl}"
                                                     Padding="4,1,4,1">
                                                 <TextBlock Text="{x:Bind SearchType}"
                                                            FontSize="9" FontWeight="Bold"
@@ -953,7 +953,7 @@
                                     <!-- Apply button -->
                                     <Button Grid.Column="1"
                                             Style="{StaticResource GhostButtonStyle}"
-                                            Padding="6,4,6,4" MinHeight="24"
+                                            Padding="4,4,4,4" MinHeight="24"
                                             Tag="{x:Bind}"
                                             Click="OnApplySavedFilterClick"
                                             x:Uid="Search_ApplyFilterBtn" ToolTipService.ToolTip="Apply this filter"
@@ -965,7 +965,7 @@
                                     <!-- Remove button -->
                                     <Button Grid.Column="2"
                                             Style="{StaticResource GhostButtonStyle}"
-                                            Padding="6,4,6,4" MinHeight="24"
+                                            Padding="4,4,4,4" MinHeight="24"
                                             Tag="{x:Bind Id}"
                                             Click="OnRemoveSavedFilterClick"
                                             x:Uid="Search_RemoveFilterBtn" ToolTipService.ToolTip="Remove saved filter"
@@ -982,10 +982,10 @@
 
             <!-- Sidebar Footer -->
             <Border Grid.Row="3"
-                    Padding="16,10,16,10"
+                    Padding="16,8,16,8"
                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="0,1,0,0">
-                <StackPanel Orientation="Horizontal" Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="4">
                     <FontIcon Glyph="&#xE81C;" FontSize="11"
                               Foreground="{ThemeResource TextTertiaryBrush}" />
                     <TextBlock Style="{StaticResource CaptionStyle}">

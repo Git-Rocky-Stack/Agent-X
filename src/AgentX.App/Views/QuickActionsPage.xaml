@@ -81,7 +81,7 @@
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="vm:QuickActionRecommendedItem">
                                     <Border Style="{StaticResource CardInsetStyle}"
-                                            Padding="16,14">
+                                            Padding="16,12">
                                         <Grid RowSpacing="12">
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto" />
@@ -99,7 +99,7 @@
 
                                                 <Border Width="36"
                                                         Height="36"
-                                                        CornerRadius="{StaticResource RadiusMD}"
+                                                        CornerRadius="{StaticResource RControl}"
                                                         Background="{ThemeResource AccentSubtleBrush}">
                                                     <FontIcon Glyph="{x:Bind IconGlyph}"
                                                               FontSize="15"
@@ -258,7 +258,7 @@
                                           DisplayMemberPath="DisplayLabel"
                                           HorizontalAlignment="Stretch"
                                           x:Uid="QuickAct_ChooseADocumentPh" PlaceholderText="Choose a document..."
-                                          CornerRadius="{StaticResource RadiusMD}" />
+                                          CornerRadius="{StaticResource RControl}" />
 
                                 <Button x:Uid="QuickAct_GenerateLayeredSummary" Content="Generate Layered Summary"
                                         Style="{StaticResource AccentButtonStyle}"
@@ -284,7 +284,7 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
                                         <FontIcon Glyph="&#xE8C8;" FontSize="16"
                                                   Foreground="{ThemeResource TextAccentBrush}" />
                                         <TextBlock x:Uid="QuickAct_Summary" Text="Summary"
@@ -323,7 +323,7 @@
                                           DisplayMemberPath="DisplayLabel"
                                           HorizontalAlignment="Stretch"
                                           x:Uid="QuickAct_ChooseADocumentPh2" PlaceholderText="Choose a document..."
-                                          CornerRadius="{StaticResource RadiusMD}" />
+                                          CornerRadius="{StaticResource RControl}" />
 
                                 <Button x:Uid="QuickAct_ExtractKeyPoints" Content="Extract Key Points"
                                         Style="{StaticResource AccentButtonStyle}"
@@ -344,7 +344,7 @@
                         <!-- Key Points Result -->
                         <controls:Faceplate Visibility="{x:Bind ViewModel.HasKeyPoints, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - QACT - 06">
                             <StackPanel Spacing="12">
-                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE8FD;" FontSize="16"
                                               Foreground="{ThemeResource TextAccentBrush}" />
                                     <TextBlock x:Uid="QuickAct_KeyPoints2" Text="Key Points"
@@ -359,7 +359,7 @@
                                     <ItemsRepeater.ItemTemplate>
                                         <DataTemplate x:DataType="x:String">
                                             <Border Style="{StaticResource CardInteractiveStyle}"
-                                                    Padding="14,10">
+                                                    Padding="12,8">
                                                 <Grid ColumnSpacing="12">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="Auto" />
@@ -413,7 +413,7 @@
                                     <ComboBox ItemsSource="{x:Bind ViewModel.AvailableLanguages, Mode=OneWay}"
                                               SelectedItem="{x:Bind ViewModel.SelectedLanguage, Mode=TwoWay}"
                                               HorizontalAlignment="Stretch"
-                                              CornerRadius="{StaticResource RadiusMD}" />
+                                              CornerRadius="{StaticResource RControl}" />
                                 </StackPanel>
 
                                 <Button x:Uid="QuickAct_Translate2" Content="Translate"
@@ -435,7 +435,7 @@
                         <!-- Translation Output -->
                         <controls:Faceplate Visibility="{x:Bind ViewModel.HasTranslationOutput, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - QACT - 08">
                             <StackPanel Spacing="12">
-                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE8C1;" FontSize="16"
                                               Foreground="{ThemeResource TextAccentBrush}" />
                                     <TextBlock x:Uid="QuickAct_Translation" Text="Translation"
@@ -497,7 +497,7 @@
                             <!-- Status message when no duplicates -->
                             <Border Style="{StaticResource CardInsetStyle}"
                                     Padding="16,12">
-                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE946;" FontSize="16"
                                               Foreground="{ThemeResource InfoBrush}" />
                                     <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
@@ -552,7 +552,7 @@
                                                 <!-- Document list in group -->
                                                 <ItemsRepeater ItemsSource="{x:Bind Documents}">
                                                     <ItemsRepeater.Layout>
-                                                        <StackLayout Spacing="6" />
+                                                        <StackLayout Spacing="4" />
                                                     </ItemsRepeater.Layout>
                                                     <ItemsRepeater.ItemTemplate>
                                                         <DataTemplate x:DataType="vm:QuickActionDuplicateDocItem">
@@ -632,7 +632,7 @@
                                     Spacing="12">
 
                             <Border Style="{StaticResource CardInsetStyle}" Padding="16,12">
-                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE946;" FontSize="16"
                                               Foreground="{ThemeResource InfoBrush}" />
                                     <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
@@ -655,7 +655,7 @@
                                                         <ColumnDefinition Width="Auto" />
                                                     </Grid.ColumnDefinitions>
 
-                                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
                                                         <FontIcon Glyph="&#xE7C3;" FontSize="16"
                                                                   Foreground="{ThemeResource TextAccentBrush}" />
                                                         <TextBlock Text="{x:Bind FileName}"
@@ -746,7 +746,7 @@
                 Background="{ThemeResource CardBrush}"
                 BorderBrush="{ThemeResource BorderSubtleBrush}"
                 BorderThickness="0,1,0,0"
-                Padding="24,10">
+                Padding="24,8">
             <Grid ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />

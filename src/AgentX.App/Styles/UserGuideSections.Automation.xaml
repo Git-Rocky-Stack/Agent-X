@@ -40,14 +40,14 @@
                 <TextBlock x:Uid="UserGuide_Workflows_Creating_Title"
                            Style="{StaticResource HeadingSmallStyle}" />
 
-                <StackPanel Spacing="10">
+                <StackPanel Spacing="8">
                     <Grid ColumnSpacing="12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="1"
@@ -65,7 +65,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="2"
@@ -83,7 +83,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="3"
@@ -101,7 +101,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Width="28" Height="28"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Background="{ThemeResource AccentSubtleBrush}"
                                 HorizontalAlignment="Center" VerticalAlignment="Top">
                             <TextBlock Text="4"
@@ -120,8 +120,8 @@
                 <TextBlock x:Uid="UserGuide_Workflows_Triggers_Title"
                            Style="{StaticResource HeadingSmallStyle}" />
 
-                <StackPanel Spacing="10">
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                <StackPanel Spacing="8">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -138,7 +138,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -155,7 +155,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -180,7 +180,7 @@
                            Style="{StaticResource HeadingSmallStyle}" />
 
                 <StackPanel Spacing="8">
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -191,7 +191,7 @@
                                    x:Uid="UserGuide_Workflows_Example1" />
                     </Grid>
 
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -202,7 +202,7 @@
                                    x:Uid="UserGuide_Workflows_Example2" />
                     </Grid>
 
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>

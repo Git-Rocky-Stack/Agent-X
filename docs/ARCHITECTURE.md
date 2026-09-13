@@ -433,7 +433,7 @@ public Action<string>? NavigateToPageRequested { get; set; }
 public Action<string>? ExecuteActionRequested { get; set; }
 ```
 
-Actions include: `NewConversation`, `ImportFiles`, `RefreshDashboard`, `ToggleTheme`. Pressing Escape while the palette is open closes it. Focus management respects the WinUI 3 `FocusManager` to avoid double-processing Escape events when the search box has focus.
+Actions are: `NewConversation`, `ImportFiles`, `ToggleTheme`. Pressing Escape while the palette is open closes it. Focus management respects the WinUI 3 `FocusManager` to avoid double-processing Escape events when the search box has focus.
 
 **`MarkdownMessageControl`** (`Controls/MarkdownMessageControl.xaml.cs`)
 

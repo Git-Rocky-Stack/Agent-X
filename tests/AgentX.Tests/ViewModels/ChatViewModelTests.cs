@@ -767,6 +767,190 @@ public sealed class ChatViewModelTests
             service => service.LoadMessagesAsync(It.IsAny<long>()), Times.Never);
     }
 
+    [Fact]
+    public async Task NewConversationAsync_MidGeneration_CancelsTheStreamItLeavesBehind()
+    {
+        // Ctrl+N and the palette's "New Conversation" now reach this from any page, so a
+        // generation started in the previous thread can still be running when the blank one
+        // opens. Left running, it finishes into OnStreamingCompleted's adopt branch, which
+        // sees a null ActiveConversationId, takes the finished stream's id back, and files a
+        // second sidebar row: the new conversation silently becomes the one just left.
+        var inFlight = new TaskCompletionSource<SendMessageResult>();
+        _messagingCoordinator
+            .Setup(coordinator => coordinator.SendMessageAsync(
+                It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<string?>(),
+                It.IsAny<string?>(), It.IsAny<bool>()))
+            .Returns(inFlight.Task);
+
+        var viewModel = CreateViewModel();
+        viewModel.ActiveConversationId = 42;
+        viewModel.UserInput = "explain the retry backoff";
+
+        var sending = viewModel.SendMessageCommand.ExecuteAsync(null);
+        viewModel.IsGenerating.Should().BeTrue(
+            "the send has to still be in flight for the rest of this test to mean anything");
+
+        await viewModel.NewConversationCommand.ExecuteAsync(null);
+
+        _messagingCoordinator.Verify(coordinator => coordinator.StopGenerationAsync(), Times.Once);
+        viewModel.IsGenerating.Should().BeFalse(
+            "the view model must not keep claiming it generates for a thread it has left");
+
+        inFlight.SetResult(new SendMessageResult { ConversationId = 42, WasCancelled = true });
+        await sending;
+
+        viewModel.ActiveConversationId.Should().BeNull(
+            "the blank conversation must not turn back into the thread the operator left");
+    }
+
+    [Fact]
+    public async Task NewConversationAsync_MidGeneration_DiscardsAStreamThatCompletesDespiteTheCancel()
+    {
+        // Cancellation is cooperative. A stream that has already left the token loop and
+        // reached MessagingCoordinator.cs:198 raises StreamingCompleted even though the cancel
+        // has landed, so cancelling alone cannot close the adopt hole: the handler still sees a
+        // null ActiveConversationId, takes the finished stream's id back and files a sidebar
+        // row for it. The blank conversation must survive that arrival.
+        var inFlight = new TaskCompletionSource<SendMessageResult>();
+        _messagingCoordinator
+            .Setup(coordinator => coordinator.SendMessageAsync(
+                It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<string?>(),
+                It.IsAny<string?>(), It.IsAny<bool>()))
+            .Returns(inFlight.Task);
+
+        var viewModel = CreateViewModel();
+        viewModel.ActiveConversationId = 42;
+        viewModel.UserInput = "explain the retry backoff";
+
+        var sending = viewModel.SendMessageCommand.ExecuteAsync(null);
+        viewModel.IsGenerating.Should().BeTrue(
+            "the send has to still be in flight for the rest of this test to mean anything");
+
+        await viewModel.NewConversationCommand.ExecuteAsync(null);
+
+        // The cancel lost the race: the coordinator raises completion anyway.
+        _messagingCoordinator.Raise(
+            coordinator => coordinator.StreamingCompleted += null,
+            new StreamingCompletedEventArgs
+            {
+                ConversationId = 42,
+                ConversationTitle = "Startup Investigation",
+                ResponseContent = "Answer the operator walked away from",
+                TokenCount = 12,
+                GenerationTimeMs = 48,
+                ContextInspection = CreateInspectionSnapshot(42)
+            });
+
+        viewModel.ActiveConversationId.Should().BeNull(
+            "the blank conversation must not turn back into the thread the operator left");
+        viewModel.ActiveConversationTitle.Should().Be("New Conversation");
+        viewModel.Conversations.Should().BeEmpty(
+            "a stream the operator walked away from must not file a sidebar row");
+        viewModel.TokenCount.Should().Be(0,
+            "the abandoned stream's tokens belong to the old thread, not the blank one");
+        viewModel.HasContextInspection.Should().BeFalse(
+            "the blank conversation has assembled no context of its own yet");
+
+        inFlight.SetResult(new SendMessageResult { ConversationId = 42 });
+        await sending;
+
+        viewModel.ActiveConversationId.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task NewConversationAsync_MidGeneration_DiscardsTheCancelledStreamsContextInspection()
+    {
+        // The cancel arm at MessagingCoordinator.cs:217 back-fills ContextInspection from the
+        // conversation it was generating for, and the send continuation applies it with no
+        // check on which thread is now on screen. That needs no lost race at all: a clean
+        // cancel re-stamps the old thread's context story onto the blank conversation.
+        var inFlight = new TaskCompletionSource<SendMessageResult>();
+        _messagingCoordinator
+            .Setup(coordinator => coordinator.SendMessageAsync(
+                It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<string?>(),
+                It.IsAny<string?>(), It.IsAny<bool>()))
+            .Returns(inFlight.Task);
+
+        var viewModel = CreateViewModel();
+        viewModel.ActiveConversationId = 42;
+        viewModel.UserInput = "explain the retry backoff";
+
+        var sending = viewModel.SendMessageCommand.ExecuteAsync(null);
+        await viewModel.NewConversationCommand.ExecuteAsync(null);
+
+        inFlight.SetResult(new SendMessageResult
+        {
+            ConversationId = 42,
+            WasCancelled = true,
+            ContextInspection = CreateInspectionSnapshot(42)
+        });
+        await sending;
+
+        viewModel.HasContextInspection.Should().BeFalse(
+            "the blank conversation must not inherit the abandoned thread's context story");
+        viewModel.ContextInspectionStatus.Should().Be("No generation context captured yet.");
+        viewModel.ActiveConversationId.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task SelectConversationAsync_MidGeneration_DiscardsTheStreamItLeavesBehind()
+    {
+        // Ctrl+N is not the only way to move the screen off a running generation: picking
+        // another thread in the sidebar does it too, and that path never cancelled anything.
+        // The adopt branch then drags the screen back to the generating thread and files a
+        // duplicate row for a conversation the sidebar already lists.
+        _conversationCoordinator
+            .Setup(service => service.LoadMessagesAsync(42))
+            .ReturnsAsync(Array.Empty<MessageSummary>());
+
+        var inFlight = new TaskCompletionSource<SendMessageResult>();
+        _messagingCoordinator
+            .Setup(coordinator => coordinator.SendMessageAsync(
+                It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<string?>(),
+                It.IsAny<string?>(), It.IsAny<bool>()))
+            .Returns(inFlight.Task);
+
+        var viewModel = CreateViewModel();
+        viewModel.Conversations.Add(new ConversationListItem
+        {
+            Id = 42,
+            Title = "Startup Investigation",
+            UpdatedAt = DateTime.UtcNow
+        });
+        viewModel.Conversations.Add(new ConversationListItem
+        {
+            Id = 84,
+            Title = "Recovered Thread",
+            UpdatedAt = DateTime.UtcNow
+        });
+        viewModel.ActiveConversationId = 84;
+        viewModel.UserInput = "explain the retry backoff";
+
+        var sending = viewModel.SendMessageCommand.ExecuteAsync(null);
+        await viewModel.SelectConversationCommand.ExecuteAsync(42L);
+
+        _messagingCoordinator.Raise(
+            coordinator => coordinator.StreamingCompleted += null,
+            new StreamingCompletedEventArgs
+            {
+                ConversationId = 84,
+                ConversationTitle = "Recovered Thread",
+                ResponseContent = "Answer for the thread the operator left",
+                TokenCount = 12,
+                GenerationTimeMs = 48
+            });
+
+        viewModel.ActiveConversationId.Should().Be(42,
+            "the thread the operator picked must stay on screen");
+        viewModel.Conversations.Where(item => item.Id == 84).Should().HaveCount(1,
+            "the adopt branch must not file a second row for a conversation already listed");
+
+        inFlight.SetResult(new SendMessageResult { ConversationId = 84 });
+        await sending;
+
+        viewModel.ActiveConversationId.Should().Be(42);
+    }
+
     private ChatViewModel CreateViewModel() =>
         new(
             _conversationCoordinator.Object,

@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AgentX.App.Helpers;
+using AgentX.App.ViewModels;
+using AgentX.Core.Services.Localization;
+using AgentX.Core.Services.Shortcuts;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -12,31 +15,62 @@ using Serilog;
 namespace AgentX.App.Controls;
 
 /// <summary>
-/// A VS Code-style command palette overlay that provides quick access to pages and actions.
-/// Activated via Ctrl+K, supports fuzzy filtering, keyboard navigation, and animated transitions.
+/// One page as the navigation rail registered it: the same tag, localized label,
+/// group placard and icon glyph the rail shows, plus the display chord of its
+/// keyboard shortcut when it has one.
+/// </summary>
+public sealed record CommandPalettePage(
+    string Tag,
+    string Label,
+    string Group,
+    int GroupOrder,
+    string Glyph,
+    string? ShortcutHint);
+
+/// <summary>
+/// The Ctrl+K command palette overlay.
+/// <para>
+/// Pages are not listed here. The shell registers them from the navigation rail
+/// through <see cref="Configure"/>, so the palette shows exactly the rail's pages,
+/// under the rail's localized names, icons and group placards, and a page added to
+/// the rail appears here without anyone remembering to add it. Three actions and the
+/// shortcuts scoped to the current page (via <see cref="CommandPaletteViewModel"/>)
+/// follow the pages.
+/// </para>
 /// </summary>
 public sealed partial class CommandPalette : UserControl
 {
     // ── Constants ─────────────────────────────────────────────────────
     private const double AnimationDurationMs = 200;
 
+    /// <summary>Rail groups sort by their rail order; these two follow them.</summary>
+    private const int ActionsGroupOrder = 900;
+    private const int OnThisPageGroupOrder = 950;
+
+    private const string KeyboardGlyph = "";
+
     // ── State ─────────────────────────────────────────────────────────
     private bool _isOpen;
     private int _selectedIndex = -1;
+    private IReadOnlyList<CommandPalettePage> _pages = Array.Empty<CommandPalettePage>();
+    private Func<string, string?> _actionShortcutHint = _ => null;
+    private Func<string?> _activeScopeName = () => null;
+    private ILocalizationService? _localization;
+    private CommandPaletteViewModel? _scopedShortcuts;
     private List<CommandItem> _allItems = new();
     private List<CommandItem> _filteredItems = new();
     private readonly List<Border> _renderedItemBorders = new();
 
     // ── Callbacks ─────────────────────────────────────────────────────
     /// <summary>
-    /// Delegate invoked when the user selects a page navigation command.
-    /// The string parameter is the page tag (e.g., "Dashboard", "Chat").
+    /// Delegate invoked when the user selects a page. The string parameter is the
+    /// page tag (e.g., "Dashboard", "Chat").
     /// </summary>
     public Action<string>? NavigateToPageRequested { get; set; }
 
     /// <summary>
-    /// Delegate invoked when the user selects a general action command.
-    /// The string parameter is the action identifier (e.g., "NewConversation").
+    /// Delegate invoked when the user selects an action. The string parameter is the
+    /// action identifier (e.g., "NewConversation").
     /// </summary>
     public Action<string>? ExecuteActionRequested { get; set; }
 
@@ -48,37 +82,87 @@ public sealed partial class CommandPalette : UserControl
     public CommandPalette()
     {
         InitializeComponent();
-        BuildCommandItems();
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    //  COMMAND ITEM REGISTRY
+    //  REGISTRATION
     // ═══════════════════════════════════════════════════════════════════
 
-    private void BuildCommandItems()
+    /// <summary>
+    /// Hands the palette the rail's pages and the two lookups it cannot own itself.
+    /// </summary>
+    /// <param name="pages">The navigation rail's pages, in rail order.</param>
+    /// <param name="actionShortcutHint">
+    /// Display chord for an action id, or null. Read from the shortcut registry so a
+    /// remapped chord never leaves a stale hint behind.
+    /// </param>
+    /// <param name="activeScopeName">
+    /// The page currently in the content frame, for the "On This Page" group.
+    /// </param>
+    public void Configure(
+        IReadOnlyList<CommandPalettePage> pages,
+        Func<string, string?> actionShortcutHint,
+        Func<string?> activeScopeName)
     {
-        _allItems = new List<CommandItem>
-        {
-            // ── Pages ─────────────────────────────────────────────
-            new("Dashboard", "View system overview and analytics", "Pages", "\uE80F", "Dashboard", CommandItemKind.Page, ""),
-            new("AI Chat", "Start a conversation with the AI assistant", "Pages", "\uE8BD", "Chat", CommandItemKind.Page, "Ctrl+N"),
-            new("Knowledge Vault", "Browse and manage your documents", "Pages", "\uE8F1", "KnowledgeVault", CommandItemKind.Page, "Ctrl+I"),
-            new("Collections", "Organize documents into collections", "Pages", "\uF168", "Collections", CommandItemKind.Page, ""),
-            new("Semantic Search", "Search across all your knowledge", "Pages", "\uE773", "Search", CommandItemKind.Page, "Ctrl+F"),
-            new("Ask Your Files", "Query your documents with AI", "Pages", "\uE721", "AskFiles", CommandItemKind.Page, ""),
-            new("Model Manager", "Download and configure AI models", "Pages", "\uE964", "ModelManager", CommandItemKind.Page, ""),
-            new("Hardware Advisor", "Check hardware compatibility", "Pages", "\uE950", "HardwareAdvisor", CommandItemKind.Page, ""),
-            new("Settings", "Configure application preferences", "Pages", "\uE713", "Settings", CommandItemKind.Page, "Ctrl+,"),
-
-            // ── Actions ───────────────────────────────────────────
-            new("New Conversation", "Start a fresh AI chat session", "Actions", "\uE8E5", "NewConversation", CommandItemKind.Action, "Ctrl+N"),
-            new("Import Files", "Add documents to the Knowledge Vault", "Actions", "\uE8B5", "ImportFiles", CommandItemKind.Action, "Ctrl+I"),
-            new("Refresh Dashboard", "Reload dashboard statistics", "Actions", "\uE72C", "RefreshDashboard", CommandItemKind.Action, ""),
-            new("Toggle Theme", "Switch between dark and light modes", "Actions", "\uE793", "ToggleTheme", CommandItemKind.Action, ""),
-        };
-
-        _filteredItems = new List<CommandItem>(_allItems);
+        _pages = pages ?? throw new ArgumentNullException(nameof(pages));
+        _actionShortcutHint = actionShortcutHint ?? throw new ArgumentNullException(nameof(actionShortcutHint));
+        _activeScopeName = activeScopeName ?? throw new ArgumentNullException(nameof(activeScopeName));
     }
+
+    /// <summary>
+    /// Localization is resolved lazily: the palette is built with the window, before
+    /// the app's localization service has initialized, and every string it renders in
+    /// code is fetched at open time.
+    /// </summary>
+    private ILocalizationService Localization =>
+        _localization ??= App.GetService<ILocalizationService>();
+
+    private CommandPaletteViewModel ScopedShortcuts =>
+        _scopedShortcuts ??= App.GetService<CommandPaletteViewModel>();
+
+    /// <summary>
+    /// Builds the item list for this opening: rail pages, then actions, then the
+    /// shortcuts the current page registered.
+    /// </summary>
+    private void BuildItems()
+    {
+        var items = new List<CommandItem>(_pages.Count + 8);
+
+        foreach (var page in _pages)
+        {
+            items.Add(new CommandItem(
+                page.Label, page.Group, page.GroupOrder, page.Glyph, page.Tag,
+                CommandItemKind.Page, page.ShortcutHint, null));
+        }
+
+        // Keys are literal at the call site so the LocaleAudit extractor sees them.
+        var actions = Localization.GetString("Palette_Actions");
+        items.Add(Action(actions, "NewConversation", Localization.GetString("Palette_NewConversation"), ""));
+        items.Add(Action(actions, "ImportFiles", Localization.GetString("Palette_ImportFiles"), ""));
+        items.Add(Action(actions, "ToggleTheme", Localization.GetString("Palette_ToggleTheme"), ""));
+
+        var scope = _activeScopeName();
+        if (!string.IsNullOrEmpty(scope))
+        {
+            var scoped = ScopedShortcuts;
+            scoped.Query = string.Empty;
+            scoped.ActiveScopeName = scope;
+
+            var header = Localization.GetString("Palette_OnThisPage");
+            foreach (var descriptor in scoped.Results.Where(d => !d.Scope.IsGlobal))
+            {
+                items.Add(new CommandItem(
+                    descriptor.Label, header, OnThisPageGroupOrder, KeyboardGlyph, descriptor.Id,
+                    CommandItemKind.ScopedShortcut, descriptor.DisplayChord, descriptor));
+            }
+        }
+
+        _allItems = items;
+    }
+
+    private CommandItem Action(string group, string id, string label, string glyph) =>
+        new(label, group, ActionsGroupOrder, glyph, id,
+            CommandItemKind.Action, _actionShortcutHint(id), null);
 
     // ═══════════════════════════════════════════════════════════════════
     //  SHOW / HIDE WITH ANIMATION
@@ -86,23 +170,22 @@ public sealed partial class CommandPalette : UserControl
 
     /// <summary>
     /// Opens the command palette with a fade-in and slide-down animation.
-    /// Resets the search text and selection state.
+    /// Rebuilds the items and resets the search text and selection state.
     /// </summary>
     public void Show()
     {
         if (_isOpen) return;
         _isOpen = true;
 
-        // Reset state
+        BuildItems();
         SearchInput.Text = string.Empty;
-        _filteredItems = new List<CommandItem>(_allItems);
-        _selectedIndex = 0;
+        FilterItems(string.Empty);
+        _selectedIndex = _filteredItems.Count > 0 ? 0 : -1;
         RenderResults();
 
         // Make visible before animating
         Visibility = Visibility.Visible;
 
-        // Animate backdrop fade in
         var backdropFade = new DoubleAnimation
         {
             From = 0,
@@ -113,7 +196,6 @@ public sealed partial class CommandPalette : UserControl
         Storyboard.SetTarget(backdropFade, BackdropLayer);
         Storyboard.SetTargetProperty(backdropFade, "Opacity");
 
-        // Animate card fade in
         var cardFade = new DoubleAnimation
         {
             From = 0,
@@ -124,7 +206,6 @@ public sealed partial class CommandPalette : UserControl
         Storyboard.SetTarget(cardFade, PaletteCard);
         Storyboard.SetTargetProperty(cardFade, "Opacity");
 
-        // Animate card slide down
         var cardSlide = new DoubleAnimation
         {
             From = -12,
@@ -147,7 +228,7 @@ public sealed partial class CommandPalette : UserControl
             SearchInput.Focus(FocusState.Programmatic);
         });
 
-        Log.Debug("Command palette opened");
+        Log.Debug("Command palette opened with {Count} items", _allItems.Count);
     }
 
     /// <summary>
@@ -158,7 +239,6 @@ public sealed partial class CommandPalette : UserControl
         if (!_isOpen) return;
         _isOpen = false;
 
-        // Animate backdrop fade out
         var backdropFade = new DoubleAnimation
         {
             From = 1,
@@ -169,7 +249,6 @@ public sealed partial class CommandPalette : UserControl
         Storyboard.SetTarget(backdropFade, BackdropLayer);
         Storyboard.SetTargetProperty(backdropFade, "Opacity");
 
-        // Animate card fade out
         var cardFade = new DoubleAnimation
         {
             From = 1,
@@ -180,7 +259,6 @@ public sealed partial class CommandPalette : UserControl
         Storyboard.SetTarget(cardFade, PaletteCard);
         Storyboard.SetTargetProperty(cardFade, "Opacity");
 
-        // Animate card slide up
         var cardSlide = new DoubleAnimation
         {
             From = 0,
@@ -223,41 +301,25 @@ public sealed partial class CommandPalette : UserControl
 
     private void SearchInput_TextChanged(object sender, TextChangedEventArgs e)
     {
-        var query = SearchInput.Text.Trim();
-        FilterItems(query);
+        FilterItems(SearchInput.Text.Trim());
         _selectedIndex = _filteredItems.Count > 0 ? 0 : -1;
         RenderResults();
     }
 
     /// <summary>
-    /// Performs fuzzy matching: splits the query into words and checks whether
-    /// all words appear (case-insensitive) in the item's Name or Description.
+    /// Ranks items with the same subsequence matcher the shortcut registry uses, then
+    /// orders by group so the rendered rows and the selection index always agree.
+    /// (The previous implementation ranked one way and rendered another, so Enter could
+    /// run a different row than the highlighted one.)
     /// </summary>
     private void FilterItems(string query)
     {
-        if (string.IsNullOrWhiteSpace(query))
-        {
-            _filteredItems = new List<CommandItem>(_allItems);
-            return;
-        }
+        IEnumerable<CommandItem> matches = string.IsNullOrWhiteSpace(query)
+            ? _allItems
+            : FuzzyMatcher.Rank(_allItems, item => item.Name, query).Select(s => s.Item);
 
-        var words = query.ToLowerInvariant().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-        _filteredItems = _allItems.Where(item =>
-        {
-            var searchable = $"{item.Name} {item.Description} {item.Category}".ToLowerInvariant();
-            return words.All(word => searchable.Contains(word));
-        })
-        .OrderBy(item =>
-        {
-            // Prioritize items where the name starts with the query
-            var nameLower = item.Name.ToLowerInvariant();
-            var queryLower = query.ToLowerInvariant();
-            if (nameLower.StartsWith(queryLower)) return 0;
-            if (nameLower.Contains(queryLower)) return 1;
-            return 2;
-        })
-        .ToList();
+        // OrderBy is stable: rank order survives inside each group.
+        _filteredItems = matches.OrderBy(item => item.GroupOrder).ToList();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -275,39 +337,38 @@ public sealed partial class CommandPalette : UserControl
             return;
         }
 
-        // Group items by category
-        var groups = _filteredItems
-            .GroupBy(i => i.Category)
-            .OrderBy(g => GetCategorySortOrder(g.Key));
-
-        int globalIndex = 0;
-
-        foreach (var group in groups)
+        string? currentGroup = null;
+        for (var index = 0; index < _filteredItems.Count; index++)
         {
-            // Category header
-            var header = new TextBlock
+            var item = _filteredItems[index];
+            if (!string.Equals(item.Category, currentGroup, StringComparison.Ordinal))
             {
-                Text = group.Key.ToUpperInvariant(),
-                FontFamily = (FontFamily)Application.Current.Resources["FontPrimary"],
-                FontSize = 11,
-                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-                Foreground = ThemeResources.Brush("TextTertiaryBrush"),
-                Padding = new Thickness(8, 10, 8, 4),
-                CharacterSpacing = 80,
-            };
-            ResultsPanel.Children.Add(header);
-
-            foreach (var item in group)
-            {
-                var itemBorder = CreateItemElement(item, globalIndex);
-                ResultsPanel.Children.Add(itemBorder);
-                _renderedItemBorders.Add(itemBorder);
-                globalIndex++;
+                currentGroup = item.Category;
+                ResultsPanel.Children.Add(CreateGroupPlacard(item.Category));
             }
+
+            var row = CreateItemElement(item, index);
+            ResultsPanel.Children.Add(row);
+            _renderedItemBorders.Add(row);
         }
 
         UpdateSelectionVisuals();
     }
+
+    /// <summary>
+    /// Group placard: the same Archivo stencil the rail's group headers wear
+    /// (Navigation.xaml NavHeaderStyle), so the two surfaces read as one instrument.
+    /// </summary>
+    private static TextBlock CreateGroupPlacard(string text) => new()
+    {
+        Text = text,
+        FontFamily = (FontFamily)Application.Current.Resources["FontDisplayBold"],
+        FontSize = 10,
+        FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+        CharacterSpacing = 100,
+        Foreground = ThemeResources.Brush("TextTertiaryBrush"),
+        Padding = new Thickness(8, 8, 8, 4),
+    };
 
     private void RenderEmptyState()
     {
@@ -321,14 +382,14 @@ public sealed partial class CommandPalette : UserControl
 
         emptyPanel.Children.Add(new FontIcon
         {
-            Glyph = "\uE773",
+            Glyph = "",
             FontSize = 28,
             Foreground = ThemeResources.Brush("TextTertiaryBrush"),
         });
 
         emptyPanel.Children.Add(new TextBlock
         {
-            Text = "No matching commands",
+            Text = Localization.GetString("Palette_NoMatches"),
             FontFamily = (FontFamily)Application.Current.Resources["FontPrimary"],
             FontSize = 14,
             Foreground = ThemeResources.Brush("TextTertiaryBrush"),
@@ -338,19 +399,31 @@ public sealed partial class CommandPalette : UserControl
         ResultsPanel.Children.Add(emptyPanel);
     }
 
+    /// <summary>
+    /// Radius tokens from the machined scale, never literals. A miss throws instead of
+    /// falling back, because 0 is itself a radius on that scale: a silent fallback renders
+    /// the wrong shape where neither the compiler nor MachinedRadiusStopsTests can see it.
+    /// A missing StaticResource fails the same way in XAML.
+    /// </summary>
+    private static CornerRadius Radius(string token) =>
+        ThemeResources.Get(token) is CornerRadius radius
+            ? radius
+            : throw new KeyNotFoundException(
+                $"Radius token '{token}' is not defined in the style dictionaries.");
+
     private Border CreateItemElement(CommandItem item, int index)
     {
-        // Outer border (the selectable row)
+        // Outer border (the selectable row): a raised control, so RControl
         var border = new Border
         {
-            CornerRadius = new CornerRadius(8),
-            Padding = new Thickness(12, 10, 12, 10),
+            CornerRadius = Radius("RControl"),
+            Padding = new Thickness(12, 8, 12, 8),
             Margin = new Thickness(0, 1, 0, 1),
             Background = UnlitBrush(),
             Tag = index,
         };
 
-        // Content grid: [AccentBar] [Icon] [Text] [Shortcut]
+        // Content grid: [AccentBar] [Icon] [Name] [Shortcut]
         var grid = new Grid
         {
             ColumnDefinitions =
@@ -366,7 +439,7 @@ public sealed partial class CommandPalette : UserControl
         var accentBar = new Border
         {
             Width = 3,
-            CornerRadius = new CornerRadius(2),
+            CornerRadius = Radius("RCard"),
             Background = UnlitBrush(),
             Margin = new Thickness(0, 2, 0, 2),
             VerticalAlignment = VerticalAlignment.Stretch,
@@ -375,7 +448,7 @@ public sealed partial class CommandPalette : UserControl
         Grid.SetColumn(accentBar, 0);
         grid.Children.Add(accentBar);
 
-        // Icon
+        // Icon: the same glyph the rail shows for the page
         var icon = new FontIcon
         {
             Glyph = item.IconGlyph,
@@ -387,15 +460,7 @@ public sealed partial class CommandPalette : UserControl
         Grid.SetColumn(icon, 1);
         grid.Children.Add(icon);
 
-        // Text column
-        var textStack = new StackPanel
-        {
-            Spacing = 2,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(8, 0, 0, 0),
-        };
-
-        textStack.Children.Add(new TextBlock
+        var name = new TextBlock
         {
             Text = item.Name,
             FontFamily = (FontFamily)Application.Current.Resources["FontPrimary"],
@@ -403,31 +468,22 @@ public sealed partial class CommandPalette : UserControl
             FontWeight = Microsoft.UI.Text.FontWeights.Normal,
             Foreground = ThemeResources.Brush("TextPrimaryBrush"),
             TextTrimming = TextTrimming.CharacterEllipsis,
-        });
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(8, 0, 0, 0),
+        };
+        Grid.SetColumn(name, 2);
+        grid.Children.Add(name);
 
-        textStack.Children.Add(new TextBlock
-        {
-            Text = item.Description,
-            FontFamily = (FontFamily)Application.Current.Resources["FontPrimary"],
-            FontSize = 12,
-            Foreground = ThemeResources.Brush("TextTertiaryBrush"),
-            TextTrimming = TextTrimming.CharacterEllipsis,
-        });
-
-        Grid.SetColumn(textStack, 2);
-        grid.Children.Add(textStack);
-
-        // Keyboard shortcut hint
+        // Keyboard chord hint: a well, void-black in both shifts, like the sibling
+        // chord hints in CommandPalette.xaml.
         if (!string.IsNullOrEmpty(item.ShortcutHint))
         {
-            // Key chords are wells, not content cards: void-black in both
-            // shifts, matching the sibling chord hints in CommandPalette.xaml.
             var shortcutBorder = new Border
             {
                 Background = ThemeResources.Brush("VoidBrush"),
                 BorderBrush = ThemeResources.Brush("HairlineBrush"),
                 BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(4),
+                CornerRadius = Radius("RCard"),
                 Padding = new Thickness(8, 4, 8, 4),
                 VerticalAlignment = VerticalAlignment.Center,
                 Margin = new Thickness(8, 0, 0, 0),
@@ -448,8 +504,7 @@ public sealed partial class CommandPalette : UserControl
 
         border.Child = grid;
 
-        // Pointer events for hover/click
-        border.PointerEntered += (s, e) =>
+        border.PointerEntered += (s, _) =>
         {
             if (s is Border b && b.Tag is int idx)
             {
@@ -458,15 +513,7 @@ public sealed partial class CommandPalette : UserControl
             }
         };
 
-        border.PointerExited += (s, e) =>
-        {
-            // Keep the selection visual on pointer exit (keyboard can still move it)
-        };
-
-        border.Tapped += (s, e) =>
-        {
-            ExecuteSelected();
-        };
+        border.Tapped += (_, _) => ExecuteSelected();
 
         return border;
     }
@@ -486,14 +533,12 @@ public sealed partial class CommandPalette : UserControl
             var border = _renderedItemBorders[i];
             bool isSelected = (i == _selectedIndex);
 
-            // Update row background. The selected row rides the shift-following
-            // selection surface; an unselected row stays transparent but must
-            // remain hit-testable for the pointer handlers.
+            // The selected row rides the shift-following selection surface; an
+            // unselected row stays transparent but must remain hit-testable.
             border.Background = isSelected
                 ? ThemeResources.Brush("CardHoverBrush")
                 : UnlitBrush();
 
-            // Update accent bar visibility
             if (border.Child is Grid grid)
             {
                 foreach (var child in grid.Children)
@@ -509,7 +554,6 @@ public sealed partial class CommandPalette : UserControl
             }
         }
 
-        // Scroll selected item into view
         ScrollSelectedIntoView();
     }
 
@@ -521,27 +565,16 @@ public sealed partial class CommandPalette : UserControl
             var transform = selectedBorder.TransformToVisual(ResultsScroller);
             var position = transform.TransformPoint(new Windows.Foundation.Point(0, 0));
 
-            // If the item is below the visible area, scroll down
             if (position.Y + selectedBorder.ActualHeight > ResultsScroller.ActualHeight)
             {
                 ResultsScroller.ChangeView(null, ResultsScroller.VerticalOffset + position.Y + selectedBorder.ActualHeight - ResultsScroller.ActualHeight + 8, null);
             }
-            // If the item is above the visible area, scroll up
             else if (position.Y < 0)
             {
                 ResultsScroller.ChangeView(null, ResultsScroller.VerticalOffset + position.Y - 8, null);
             }
         }
     }
-
-    private static int GetCategorySortOrder(string category) => category switch
-    {
-        "Pages" => 0,
-        "Actions" => 1,
-        "Documents" => 2,
-        "Conversations" => 3,
-        _ => 99,
-    };
 
     // ═══════════════════════════════════════════════════════════════════
     //  KEYBOARD HANDLING
@@ -591,7 +624,6 @@ public sealed partial class CommandPalette : UserControl
 
         _selectedIndex += delta;
 
-        // Wrap around
         if (_selectedIndex < 0)
             _selectedIndex = _filteredItems.Count - 1;
         else if (_selectedIndex >= _filteredItems.Count)
@@ -623,6 +655,11 @@ public sealed partial class CommandPalette : UserControl
                 Log.Information("Command palette executing action: {Action}", item.Target);
                 ExecuteActionRequested?.Invoke(item.Target);
                 break;
+
+            case CommandItemKind.ScopedShortcut when item.Descriptor is not null:
+                Log.Information("Command palette running page shortcut: {Shortcut}", item.Target);
+                _ = ScopedShortcuts.ExecuteAsync(item.Descriptor);
+                break;
         }
     }
 
@@ -641,38 +678,30 @@ public sealed partial class CommandPalette : UserControl
 // ═══════════════════════════════════════════════════════════════════════
 
 /// <summary>
-/// Represents a single command item in the command palette.
+/// One row in the palette. <see cref="Category"/> is the group placard text and
+/// <see cref="GroupOrder"/> its position; both come from the rail for pages.
 /// </summary>
-public sealed class CommandItem
-{
-    public string Name { get; }
-    public string Description { get; }
-    public string Category { get; }
-    public string IconGlyph { get; }
-    public string Target { get; }
-    public CommandItemKind Kind { get; }
-    public string ShortcutHint { get; }
-
-    public CommandItem(string name, string description, string category, string iconGlyph, string target, CommandItemKind kind, string shortcutHint)
-    {
-        Name = name;
-        Description = description;
-        Category = category;
-        IconGlyph = iconGlyph;
-        Target = target;
-        Kind = kind;
-        ShortcutHint = shortcutHint;
-    }
-}
+public sealed record CommandItem(
+    string Name,
+    string Category,
+    int GroupOrder,
+    string IconGlyph,
+    string Target,
+    CommandItemKind Kind,
+    string? ShortcutHint,
+    ShortcutDescriptor? Descriptor);
 
 /// <summary>
-/// Defines the type of command: either a page navigation or a general action.
+/// Defines what selecting a row does.
 /// </summary>
 public enum CommandItemKind
 {
-    /// <summary>Navigate to a specific page in the app.</summary>
+    /// <summary>Navigate to a page the rail registered.</summary>
     Page,
 
-    /// <summary>Execute a non-navigation action (e.g., import files, toggle theme).</summary>
+    /// <summary>Execute a palette action (new conversation, import files, toggle theme).</summary>
     Action,
+
+    /// <summary>Run a shortcut the current page registered with the shortcut registry.</summary>
+    ScopedShortcut,
 }

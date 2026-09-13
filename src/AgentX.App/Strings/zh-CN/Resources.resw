@@ -243,12 +243,12 @@
   <data name="UserGuide_KeyboardShortcuts_Action6.Text" xml:space="preserve"><value>Settings</value></data>
   <data name="UserGuide_KeyboardShortcuts_Action7.Text" xml:space="preserve"><value>Close Command Palette</value></data>
   <data name="UserGuide_CommandPalette_Title.Text" xml:space="preserve"><value>命令面板</value></data>
-  <data name="UserGuide_CommandPalette_Description.Text" xml:space="preserve"><value>The Command Palette is the fastest way to navigate Agent-X. Inspired by VS Code and Spotlight, it provides instant access to every page and action through a single search interface.</value></data>
+  <data name="UserGuide_CommandPalette_Description.Text" xml:space="preserve"><value>命令面板是通过键盘到达 Agent-X 每个页面的途径，还包含少量操作以及当前页面注册的快捷键。按 Ctrl+K，输入几个字母，然后按 Enter。</value></data>
   <data name="UserGuide_CommandPalette_HowToUse_Title.Text" xml:space="preserve"><value>使用方法</value></data>
   <data name="UserGuide_CommandPalette_Step1.Text" xml:space="preserve"><value>Press Ctrl+K from anywhere in the app to open the Command Palette overlay.</value></data>
-  <data name="UserGuide_CommandPalette_Step2.Text" xml:space="preserve"><value>Start typing to filter available pages and actions. Results update instantly as you type.</value></data>
-  <data name="UserGuide_CommandPalette_Step3.Text" xml:space="preserve"><value>Use the arrow keys to navigate through results, then press Enter to go to the selected page. Press Escape to close the palette without navigating.</value></data>
-  <data name="UserGuide_CommandPalette_Coverage.Text" xml:space="preserve"><value>The Command Palette searches across all pages including Dashboard, Chat, Knowledge Vault, Search, Collections, Quick Actions, Model Manager, Hardware Advisor, Settings, and this User Guide.</value></data>
+  <data name="UserGuide_CommandPalette_Step2.Text" xml:space="preserve"><value>输入即可模糊匹配。输入的字母只需按顺序出现在命令名称中，不必相邻：例如 "knv" 可找到 Knowledge Vault，"切主" 可找到 切换主题。结果保持导航栏的分组（智能、知识、分拣、系统、支持），之后是 操作，若当前页面注册了快捷键，还会显示 当前页面。</value></data>
+  <data name="UserGuide_CommandPalette_Step3.Text" xml:space="preserve"><value>使用上下方向键（或 Tab 和 Shift+Tab）在结果间移动，按 Enter 运行所选命令，按 Esc 或点击面板外部即可关闭。</value></data>
+  <data name="UserGuide_CommandPalette_Coverage.Text" xml:space="preserve"><value>面板列出导航栏上的每个页面，名称、图标和分组标牌完全一致，有快捷键的页面会在旁边显示按键组合。此外还有三个操作（新建对话、导入文件、切换主题），以及当前页面注册的快捷键。新加入导航栏的页面会自动出现在面板中。文档和对话通过 跳转（Ctrl+P）打开，而不是通过面板。</value></data>
   <data name="UserGuide_FileFormats_Title.Text" xml:space="preserve"><value>支持的文件格式</value></data>
   <data name="UserGuide_FileFormats_Description.Text" xml:space="preserve"><value>Agent-X can ingest a wide variety of file formats into the Knowledge Vault. Each format has a specialized parser that extracts text content optimally.</value></data>
   <data name="UserGuide_FileFormats_Table_Format.Text" xml:space="preserve"><value>格式</value></data>
@@ -2034,4 +2034,16 @@
   <data name="Sync_RefreshStatusBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>刷新同步状态</value></data>
   <data name="Workspace_RefreshProfilesTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>刷新配置文件</value></data>
   <data name="Plugin_Active.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>启用插件</value></data>
+
+  <!-- Guide accuracy pass 2026-07: Comparison / Smart Inbox / Analytics / Operations / Collaborative Sync sections -->
+  <data name="Palette_SearchInput.PlaceholderText" xml:space="preserve"><value>输入页面或操作...</value></data>
+  <data name="Palette_NavigateHint.Text" xml:space="preserve"><value>导航</value></data>
+  <data name="Palette_OpenHint.Text" xml:space="preserve"><value>打开</value></data>
+  <data name="Palette_CloseHint.Text" xml:space="preserve"><value>关闭</value></data>
+  <data name="Palette_Actions" xml:space="preserve"><value>操作</value></data>
+  <data name="Palette_OnThisPage" xml:space="preserve"><value>当前页面</value></data>
+  <data name="Palette_NewConversation" xml:space="preserve"><value>新建对话</value></data>
+  <data name="Palette_ImportFiles" xml:space="preserve"><value>导入文件</value></data>
+  <data name="Palette_ToggleTheme" xml:space="preserve"><value>切换主题</value></data>
+  <data name="Palette_NoMatches" xml:space="preserve"><value>没有匹配的命令</value></data>
 </root>

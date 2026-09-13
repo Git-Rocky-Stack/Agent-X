@@ -28,7 +28,7 @@
 
     <!-- ═══════════════════════════════════════════════════════════════
          ASSISTANT MESSAGE BUBBLE
-         Left-aligned, Surface1 background, red accent left border
+         Left-aligned, card surface, red accent left border
          ═══════════════════════════════════════════════════════════════ -->
 
     <Style x:Key="AssistantMessageStyle" TargetType="Border">
@@ -45,15 +45,6 @@
          SYSTEM MESSAGE
          Centered, muted appearance, italic
          ═══════════════════════════════════════════════════════════════ -->
-
-    <Style x:Key="SystemMessageStyle" TargetType="Border">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
-        <Setter Property="BorderThickness" Value="0,1,0,1" />
-        <Setter Property="Padding" Value="24,8,24,8" />
-        <Setter Property="HorizontalAlignment" Value="Center" />
-        <Setter Property="MaxWidth" Value="560" />
-    </Style>
 
     <!-- ═══════════════════════════════════════════════════════════════
          ASSISTANT MESSAGE ACCENT BORDER (red left line)
@@ -113,14 +104,6 @@
          Recessed area with mono font, scrollable
          ═══════════════════════════════════════════════════════════════ -->
 
-    <Style x:Key="CodeBlockStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource WellBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource HairlineBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusXS}" />
-        <Setter Property="Padding" Value="14,10,14,10" />
-    </Style>
-
     <!-- ═══════════════════════════════════════════════════════════════
          MESSAGE ACTION BUTTONS (copy, regenerate, etc.)
          Small ghost-style buttons that appear on hover
@@ -130,7 +113,7 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{ThemeResource TextTertiaryBrush}" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusSM}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
         <Setter Property="Padding" Value="6,4,6,4" />
         <Setter Property="MinWidth" Value="28" />
         <Setter Property="MinHeight" Value="28" />
@@ -206,15 +189,6 @@
          CONVERSATION ITEM SELECTED STATE
          ═══════════════════════════════════════════════════════════════ -->
 
-    <Style x:Key="ConversationItemSelectedStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource AccentSubtleBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource AccentGlowBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RControl}" />
-        <Setter Property="Padding" Value="12,10,12,10" />
-        <Setter Property="Margin" Value="0,1,0,1" />
-    </Style>
-
     <!-- ═══════════════════════════════════════════════════════════════
          CHAT TOP BAR STYLE
          ═══════════════════════════════════════════════════════════════ -->
@@ -252,12 +226,6 @@
          PINNED INDICATOR BADGE
          ═══════════════════════════════════════════════════════════════ -->
 
-    <Style x:Key="PinnedBadgeStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource AccentSubtleBrush}" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusRound}" />
-        <Setter Property="Padding" Value="6,2,6,2" />
-    </Style>
-
     <!-- ═══════════════════════════════════════════════════════════════
          WELCOME CARD (empty state)
          ═══════════════════════════════════════════════════════════════ -->
@@ -276,18 +244,6 @@
     <!-- ═══════════════════════════════════════════════════════════════
          CONNECTION STATUS DOT
          ═══════════════════════════════════════════════════════════════ -->
-
-    <Style x:Key="StatusDotConnectedStyle" TargetType="Ellipse">
-        <Setter Property="Width" Value="8" />
-        <Setter Property="Height" Value="8" />
-        <Setter Property="Fill" Value="{ThemeResource OnlineBrush}" />
-    </Style>
-
-    <Style x:Key="StatusDotDisconnectedStyle" TargetType="Ellipse">
-        <Setter Property="Width" Value="8" />
-        <Setter Property="Height" Value="8" />
-        <Setter Property="Fill" Value="{ThemeResource OfflineBrush}" />
-    </Style>
 
     <!-- ═══════════════════════════════════════════════════════════════
          SYSTEM PROMPT PICKER ITEM

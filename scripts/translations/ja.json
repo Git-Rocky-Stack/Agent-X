@@ -1607,5 +1607,19 @@
   "Terms_Email.Text": "メール",
   "Terms_Company.Text": "会社",
   "Terms_AgentXByStrategia.Text": "Agent-X (Strategia-X 提供)",
-  "Terms_TheseTermsOfService.Text": "本利用規約の最終更新日は 2026 年 2 月 26 日です。"
+  "Terms_TheseTermsOfService.Text": "本利用規約の最終更新日は 2026 年 2 月 26 日です。",
+  "UserGuide_CommandPalette_Description.Text": "コマンドパレットは、Agent-X のすべてのページに加え、いくつかの操作と現在開いているページに属するショートカットへキーボードから到達する手段です。Ctrl+K を押し、数文字入力して Enter を押します。",
+  "UserGuide_CommandPalette_Step2.Text": "入力するとあいまい一致で絞り込まれます。入力した文字はコマンド名にその順序で含まれていれば、連続していなくても一致します。たとえば \"knv\" で Knowledge Vault、\"テマ\" で テーマを切り替え が見つかります。結果はナビゲーションレールと同じグループ（インテリジェンス、ナレッジ、仕分け、システム、サポート）に分かれ、その後に アクション、そして現在のページがショートカットを登録している場合は このページ が続きます。",
+  "UserGuide_CommandPalette_Step3.Text": "上下キー（または Tab と Shift+Tab）で結果を移動し、Enter で選択したコマンドを実行、Esc またはパレットの外をクリックすると閉じます。",
+  "UserGuide_CommandPalette_Coverage.Text": "パレットには、ナビゲーションレールのすべてのページが同じ名前、アイコン、グループ表示で並び、ショートカットを持つページにはそのキーが横に表示されます。さらに 3 つの操作（新しい会話、ファイルをインポート、テーマを切り替え）と、現在開いているページが登録したショートカットが加わります。レールに追加したページは自動的にパレットにも表示されます。ドキュメントと会話は、パレットではなく ジャンプ（Ctrl+P）から開きます。",
+  "Palette_SearchInput.PlaceholderText": "ページまたは操作を入力...",
+  "Palette_NavigateHint.Text": "移動",
+  "Palette_OpenHint.Text": "開く",
+  "Palette_CloseHint.Text": "閉じる",
+  "Palette_Actions": "アクション",
+  "Palette_OnThisPage": "このページ",
+  "Palette_NewConversation": "新しい会話",
+  "Palette_ImportFiles": "ファイルをインポート",
+  "Palette_ToggleTheme": "テーマを切り替え",
+  "Palette_NoMatches": "一致するコマンドはありません"
 }

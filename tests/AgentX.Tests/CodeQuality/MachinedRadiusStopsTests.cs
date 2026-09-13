@@ -114,6 +114,59 @@ public sealed class MachinedRadiusStopsTests
             "RPill. Offenders:\n  " + string.Join("\n  ", offenders));
     }
 
+    private static readonly Regex CodeCornerRadius = new(
+        @"new CornerRadius\((?<args>[^)]*)\)",
+        RegexOptions.Compiled);
+
+    /// <summary>
+    /// Code-behind builds elements too, and a literal there bypasses the token layer
+    /// exactly as a XAML literal does. The first sweep only read XAML, and a 6 lived on
+    /// in BranchCompareWindow for that reason.
+    /// </summary>
+    [Fact]
+    public void NoCodeBehind_ConstructsARadiusOffTheMachinedScale()
+    {
+        var sourceRoot = ResolveSourceRoot();
+        var appRoot = Path.Combine(sourceRoot, "AgentX.App");
+        var offenders = new List<string>();
+        var scanned = 0;
+
+        foreach (var path in Directory.EnumerateFiles(appRoot, "*.cs", SearchOption.AllDirectories))
+        {
+            if (path.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}") ||
+                path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}"))
+            {
+                continue;
+            }
+
+            scanned++;
+            var lines = File.ReadAllLines(path);
+            for (var i = 0; i < lines.Length; i++)
+            {
+                foreach (Match match in CodeCornerRadius.Matches(lines[i]))
+                {
+                    var parts = match.Groups["args"].Value
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+                    foreach (var part in parts)
+                    {
+                        if (double.TryParse(part, NumberStyles.Float, CultureInfo.InvariantCulture, out var value) &&
+                            !MachinedStops.Contains(value))
+                        {
+                            offenders.Add($"{Path.GetRelativePath(sourceRoot, path)}:{i + 1} -> {match.Value}");
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        scanned.Should().BeGreaterThan(50, "the scan must reach the app sources");
+        offenders.Should().BeEmpty(
+            "a code-behind radius off the machined scale is the same defect as a XAML one. " +
+            "Offenders:\n  " + string.Join("\n  ", offenders));
+    }
+
     private static string ResolveSourceRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

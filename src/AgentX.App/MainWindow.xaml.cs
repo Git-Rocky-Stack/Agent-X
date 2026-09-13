@@ -1,3 +1,4 @@
+using AgentX.App.Controls;
 using AgentX.App.Helpers;
 using AgentX.App.Services;
 using AgentX.App.ViewModels;
@@ -97,9 +98,8 @@ public sealed partial class MainWindow : Window
         // Configure keyboard shortcuts
         ConfigureShortcuts();
 
-        // Wire up command palette callbacks
-        CommandPalette.NavigateToPageRequested = pageKey => _navigationService.NavigateToPage(pageKey);
-        CommandPalette.ExecuteActionRequested = _navigationService.ExecuteAction;
+        // The palette lists what the rail lists: register its pages from the rail.
+        ConfigureCommandPalette();
 
         // Attach keyboard handler
         RootGrid.PreviewKeyDown += RootGrid_PreviewKeyDown;
@@ -157,7 +157,7 @@ public sealed partial class MainWindow : Window
     private void ConfigureShortcuts()
     {
         App.GetService<ShortcutCatalog>().SeedDefaults(new ShortcutCatalogActions(
-            (pageTag, _) => { _navigationService.NavigateToPage(pageTag); return Task.CompletedTask; },
+            (pageTag, parameter, _) => { _navigationService.NavigateToPage(pageTag, parameter); return Task.CompletedTask; },
             _ => ShowCommandPaletteAsync(),
             _ => ShowJumpToDialogAsync(),
             _ => ShowCheatsheetDialogAsync()));
@@ -172,6 +172,71 @@ public sealed partial class MainWindow : Window
     }
 
     private Task ShowCommandPaletteAsync() { CommandPalette.Show(); return Task.CompletedTask; }
+
+    /// <summary>
+    /// Registers the palette's pages from the navigation rail itself: the same tags,
+    /// localized labels, icon glyphs and group placards, in rail order. The palette
+    /// used to carry its own hardcoded English list of nine pages; the rail has
+    /// twenty-nine. Deriving one from the other is what keeps them in parity.
+    /// </summary>
+    private void ConfigureCommandPalette()
+    {
+        var catalog = App.GetService<ShortcutCatalog>();
+        var pages = new List<CommandPalettePage>();
+        var group = string.Empty;
+        var groupOrder = 0;
+        var systemGroup = string.Empty;
+        var systemGroupOrder = 0;
+
+        void Register(NavigationViewItem item, string groupLabel, int order)
+        {
+            if (item.Tag is not string tag || string.IsNullOrEmpty(tag)) return;
+            pages.Add(new CommandPalettePage(
+                tag,
+                item.Content?.ToString() ?? tag,
+                groupLabel,
+                order,
+                (item.Icon as FontIcon)?.Glyph ?? string.Empty,
+                catalog.PageChordDisplay(tag)));
+        }
+
+        foreach (var entry in NavView.MenuItems)
+        {
+            switch (entry)
+            {
+                case NavigationViewItemHeader header:
+                    group = header.Content?.ToString() ?? string.Empty;
+                    groupOrder++;
+                    if (ReferenceEquals(header, NavSystemHeader))
+                    {
+                        systemGroup = group;
+                        systemGroupOrder = groupOrder;
+                    }
+                    break;
+
+                case NavigationViewItem item:
+                    Register(item, group, groupOrder);
+                    break;
+            }
+        }
+
+        // Footer items (Settings) sit at the bottom of the rail for reach, not because
+        // they form a group of their own: in the palette they belong to SYSTEM.
+        foreach (var entry in NavView.FooterMenuItems)
+        {
+            if (entry is NavigationViewItem item)
+            {
+                Register(item, systemGroup, systemGroupOrder);
+            }
+        }
+
+        CommandPalette.Configure(
+            pages,
+            catalog.ActionChordDisplay,
+            () => ContentFrame.CurrentSourcePageType?.Name);
+        CommandPalette.NavigateToPageRequested = pageKey => _navigationService.NavigateToPage(pageKey);
+        CommandPalette.ExecuteActionRequested = _navigationService.ExecuteAction;
+    }
 
     private void QueueInitialNavigation()
     {
@@ -232,6 +297,7 @@ public sealed partial class MainWindow : Window
         ["Operations"] = NavOperations,
         ["Digest"] = NavDigest,
         ["Analytics"] = NavAnalytics,
+        ["PastSelf"] = NavPastSelf,
         ["Chat"] = NavChat,
         ["AskFiles"] = NavAskFiles,
         ["QuickActions"] = NavQuickActions,

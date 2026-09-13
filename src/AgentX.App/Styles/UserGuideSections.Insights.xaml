@@ -36,8 +36,8 @@
                 <TextBlock Style="{StaticResource BodyStyle}"
                            x:Uid="UserGuide_Comparison_Description" />
 
-                <StackPanel Spacing="10">
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                <StackPanel Spacing="8">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -54,7 +54,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -71,7 +71,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -116,8 +116,8 @@
                 <TextBlock Style="{StaticResource BodyStyle}"
                            x:Uid="UserGuide_Inbox_Description" />
 
-                <StackPanel Spacing="10">
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                <StackPanel Spacing="8">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -134,7 +134,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -151,7 +151,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -196,8 +196,8 @@
                 <TextBlock Style="{StaticResource BodyStyle}"
                            x:Uid="UserGuide_Analytics_Description" />
 
-                <StackPanel Spacing="10">
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                <StackPanel Spacing="8">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -214,7 +214,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -231,7 +231,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -276,8 +276,8 @@
                 <TextBlock Style="{StaticResource BodyStyle}"
                            x:Uid="UserGuide_Operations_Description" />
 
-                <StackPanel Spacing="10">
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                <StackPanel Spacing="8">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -294,7 +294,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -311,7 +311,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -356,8 +356,8 @@
                 <TextBlock Style="{StaticResource BodyStyle}"
                            x:Uid="UserGuide_Sync_Description" />
 
-                <StackPanel Spacing="10">
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                <StackPanel Spacing="8">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -374,7 +374,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -391,7 +391,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />

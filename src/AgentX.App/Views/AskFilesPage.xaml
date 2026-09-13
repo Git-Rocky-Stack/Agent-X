@@ -112,10 +112,10 @@
                     <!-- Indexed chunk count badge -->
                     <Border Grid.Column="2"
                             Style="{StaticResource BadgeDefaultStyle}"
-                            Padding="10,4,10,4"
+                            Padding="8,4,8,4"
                             VerticalAlignment="Center"
                             Margin="8,0,0,0">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
                             <FontIcon Glyph="&#xE943;" FontSize="10"
                                       Foreground="{ThemeResource TextTertiaryBrush}" />
                             <TextBlock Text="{x:Bind ViewModel.IndexStatusMessage, Mode=OneWay}"
@@ -158,7 +158,7 @@
 
                         <!-- Brain / Document icon -->
                         <Border Background="{ThemeResource AccentSubtleBrush}"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Width="80" Height="80"
                                 HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE8D4;"
@@ -197,7 +197,7 @@
                                        HorizontalAlignment="Center" />
 
                             <Border Style="{StaticResource CardInsetStyle}"
-                                    Padding="14,10"
+                                    Padding="12,8"
                                     PointerPressed="OnExampleQuestionClick"
                                     Tag="What are the key findings in my research?">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
@@ -211,7 +211,7 @@
                             </Border>
 
                             <Border Style="{StaticResource CardInsetStyle}"
-                                    Padding="14,10"
+                                    Padding="12,8"
                                     PointerPressed="OnExampleQuestionClick"
                                     Tag="Summarize the main points from my meeting notes">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
@@ -225,7 +225,7 @@
                             </Border>
 
                             <Border Style="{StaticResource CardInsetStyle}"
-                                    Padding="14,10"
+                                    Padding="12,8"
                                     PointerPressed="OnExampleQuestionClick"
                                     Tag="Compare the approaches discussed in my papers">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
@@ -331,7 +331,7 @@
                                                         <ItemsRepeater.ItemTemplate>
                                                             <DataTemplate x:DataType="vm:CitationItem">
                                                                 <Border Style="{StaticResource BadgeAccentStyle}"
-                                                                        Padding="6,2,6,2">
+                                                                        Padding="4,2,4,2">
                                                                     <TextBlock Text="{x:Bind Label}"
                                                                                FontSize="10"
                                                                                Foreground="{ThemeResource TextAccentBrush}"
@@ -387,7 +387,7 @@
 
                         <!-- Send button (visible when NOT generating) -->
                         <Button Style="{StaticResource AccentButtonStyle}"
-                                Padding="12,10,12,10"
+                                Padding="12,8,12,8"
                                 MinHeight="44"
                                 MinWidth="44"
                                 Command="{x:Bind ViewModel.AskCommand}"
@@ -399,7 +399,7 @@
 
                         <!-- Generating indicator (visible during generation) -->
                         <Border Visibility="{x:Bind ViewModel.IsGenerating, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                                Padding="10">
+                                Padding="8">
                             <ProgressRing IsActive="True" Width="24" Height="24"
                                           Foreground="{ThemeResource AccentPrimaryBrush}" />
                         </Border>
@@ -435,7 +435,7 @@
 
                     <!-- Citation count badge -->
                     <Border Style="{StaticResource BadgeAccentStyle}"
-                            Padding="6,2,6,2"
+                            Padding="4,2,4,2"
                             Visibility="{x:Bind ViewModel.HasCitations, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <TextBlock Style="{StaticResource CaptionStyle}"
                                    Foreground="{ThemeResource TextAccentBrush}"
@@ -486,7 +486,7 @@
                         <ItemsRepeater.ItemTemplate>
                             <DataTemplate x:DataType="vm:CitationItem">
                                 <Border Style="{StaticResource CardInteractiveStyle}"
-                                        Padding="14,12">
+                                        Padding="12,12">
                                     <Grid RowSpacing="8">
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto" />
@@ -505,7 +505,7 @@
 
                                             <!-- Citation number badge -->
                                             <Border Style="{StaticResource BadgeAccentStyle}"
-                                                    Padding="6,2,6,2"
+                                                    Padding="4,2,4,2"
                                                     VerticalAlignment="Center">
                                                 <TextBlock FontSize="10"
                                                            FontWeight="Bold"
@@ -527,7 +527,7 @@
                                             <!-- Open button -->
                                             <Button Grid.Column="2"
                                                     Style="{StaticResource GhostButtonStyle}"
-                                                    Padding="6,4,6,4" MinHeight="24"
+                                                    Padding="4,4,4,4" MinHeight="24"
                                                     Tag="{x:Bind FilePath}"
                                                     Click="OnOpenCitationClick"
                                                     x:Uid="AskFiles_OpenSourceBtn" ToolTipService.ToolTip="Open source document"
@@ -578,10 +578,10 @@
 
             <!-- Sidebar Footer -->
             <Border Grid.Row="2"
-                    Padding="16,10,16,10"
+                    Padding="16,8,16,8"
                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="0,1,0,0">
-                <StackPanel Orientation="Horizontal" Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="4">
                     <FontIcon Glyph="&#xE946;" FontSize="11"
                               Foreground="{ThemeResource TextTertiaryBrush}" />
                     <TextBlock x:Uid="AskFiles_GroundedNote" Text="All answers are grounded in your documents."

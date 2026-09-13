@@ -39,8 +39,8 @@
                 <TextBlock x:Uid="UserGuide_AdvancedQueries_Techniques_Title"
                            Style="{StaticResource HeadingSmallStyle}" />
 
-                <StackPanel Spacing="10">
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                <StackPanel Spacing="8">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -57,7 +57,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -74,7 +74,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -91,7 +91,7 @@
                         </Grid>
                     </Border>
 
-                    <Border Style="{StaticResource CardInsetStyle}" Padding="14,12">
+                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,12">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />

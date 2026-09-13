@@ -9,40 +9,49 @@ using CommunityToolkit.Mvvm.Input;
 namespace AgentX.App.ViewModels;
 
 /// <summary>
-/// ViewModel for the Command Palette surface. Sources its items from
+/// Registry-backed half of the Command Palette. Sources its items from
 /// <see cref="IShortcutRegistry"/> filtered to Global + the active page scope,
-/// and applies <see cref="FuzzyMatcher"/> ranking when <see cref="Query"/> is set.
-/// Refreshes automatically when the registry fires <c>Changed</c>.
-///
-/// The XAML integration (binding the existing Controls/CommandPalette.xaml ListView
-/// to <c>Results</c> and routing Enter through <c>ExecuteAsync</c>) lands in Task 10
-/// (ShortcutCatalog seed) where the registry is populated with the descriptors the
-/// palette currently hard-codes as callback action-IDs.
+/// applies <see cref="FuzzyMatcher"/> ranking when <see cref="Query"/> is set, and
+/// refreshes automatically when the registry fires <c>Changed</c>.
+/// <para>
+/// <c>Controls/CommandPalette</c> owns one instance for its lifetime, points
+/// <see cref="ActiveScopeName"/> at the page currently in the content frame each time
+/// it opens, and renders the non-global descriptors as the "On This Page" group.
+/// Executing one of those rows routes through <see cref="ExecuteAsync"/>.
+/// </para>
 /// </summary>
 public partial class CommandPaletteViewModel : ObservableObject
 {
     private readonly IShortcutRegistry _registry;
-    private readonly string? _activeScopeName;
 
     public CommandPaletteViewModel(IShortcutRegistry registry, string? activeScopeName)
     {
         _registry = registry;
-        _activeScopeName = activeScopeName;
+        this.activeScopeName = activeScopeName;
         RefreshResults();
         _registry.Changed += (_, _) => RefreshResults();
     }
 
     [ObservableProperty] private string query = string.Empty;
 
+    /// <summary>
+    /// The page whose scoped shortcuts join the global ones, or null for global only.
+    /// Settable because the palette outlives any one page: it is re-pointed at the
+    /// current page each time it opens.
+    /// </summary>
+    [ObservableProperty] private string? activeScopeName;
+
     public ObservableCollection<ShortcutDescriptor> Results { get; } = new();
 
     partial void OnQueryChanged(string value) => RefreshResults();
 
+    partial void OnActiveScopeNameChanged(string? value) => RefreshResults();
+
     private void RefreshResults()
     {
-        var available = _activeScopeName is null
+        var available = ActiveScopeName is null
             ? _registry.All().Where(d => d.Scope.IsGlobal)
-            : _registry.ForScope(_activeScopeName);
+            : _registry.ForScope(ActiveScopeName);
 
         var ordered = string.IsNullOrWhiteSpace(Query)
             ? available.OrderBy(d => d.Label).ToList()

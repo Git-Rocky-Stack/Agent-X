@@ -60,7 +60,7 @@
                            Style="{StaticResource HeadingSmallStyle}" />
 
                 <StackPanel Spacing="8">
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -71,7 +71,7 @@
                                    x:Uid="UserGuide_FirstChat_Tip1" />
                     </Grid>
 
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -82,7 +82,7 @@
                                    x:Uid="UserGuide_FirstChat_Tip2" />
                     </Grid>
 
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>

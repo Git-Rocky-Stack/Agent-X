@@ -16,19 +16,6 @@ namespace AgentX.App.Views;
 /// </summary>
 public sealed partial class PluginManagerPage : Page
 {
-    // ═══════════════════════════════════════════════════════════════
-    // BRUSHES — cached for status badge rendering
-    // ═══════════════════════════════════════════════════════════════
-
-    private static readonly SolidColorBrush ActiveBadgeBackground =
-        new(Windows.UI.Color.FromArgb(0x1A, 0x22, 0xC5, 0x5E));
-    private static readonly SolidColorBrush DisabledBadgeBackground =
-        new(Windows.UI.Color.FromArgb(0x1A, 0xEF, 0x44, 0x44));
-    private static readonly SolidColorBrush ActiveBadgeForeground =
-        new(Windows.UI.Color.FromArgb(0xFF, 0x22, 0xC5, 0x5E));
-    private static readonly SolidColorBrush DisabledBadgeForeground =
-        new(Windows.UI.Color.FromArgb(0xFF, 0xEF, 0x44, 0x44));
-
     /// <summary>
     /// The currently selected plugin displayed in the detail panel.
     /// Tracked here because the ViewModel does not own selection state.
@@ -240,18 +227,9 @@ public sealed partial class PluginManagerPage : Page
     /// </summary>
     private void UpdateStatusBadge(bool isEnabled)
     {
-        if (isEnabled)
-        {
-            DetailStatusBadge.Background = ActiveBadgeBackground;
-            DetailStatusText.Text = "ACTIVE";
-            DetailStatusText.Foreground = ActiveBadgeForeground;
-        }
-        else
-        {
-            DetailStatusBadge.Background = DisabledBadgeBackground;
-            DetailStatusText.Text = "DISABLED";
-            DetailStatusText.Foreground = DisabledBadgeForeground;
-        }
+        // Enabled plugins run: GO. Disabled plugins are parked, not faulted: STBY, unlit.
+        DetailStatusLamp.Code = isEnabled ? "GO" : "STBY";
+        DetailStatusLamp.State = isEnabled ? Controls.LampState.Go : Controls.LampState.Off;
     }
 
     private void UpdateOperationsBadge(PluginDisplayItem plugin)

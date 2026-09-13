@@ -74,7 +74,7 @@ public class CommandPaletteViewModelTests
         var registry = new ShortcutRegistry();
         var catalog = new ShortcutCatalog(registry);
         catalog.SeedDefaults(new ShortcutCatalogActions(
-            (_, _) => Task.CompletedTask,
+            (_, _, _) => Task.CompletedTask,
             _ => Task.CompletedTask,
             _ => Task.CompletedTask,
             _ => Task.CompletedTask));
@@ -85,6 +85,24 @@ public class CommandPaletteViewModelTests
         sut.Results.Should().Contain(result => result.Id == "nav.operations" && result.Label == "Operations");
         sut.Results.Should().Contain(result => result.Id == "nav.dashboard");
         sut.Results.Should().Contain(result => result.Id == "nav.workflows");
+    }
+
+    [Fact]
+    public void Changing_the_active_scope_refreshes_results_to_that_page()
+    {
+        var registry = new ShortcutRegistry();
+        registry.Register(Desc("g.one", "Global one", ShortcutScope.Global));
+        registry.Register(Desc("d.one", "Docs one", new ShortcutScope("DocumentsPage")));
+        registry.Register(Desc("c.one", "Chat one", new ShortcutScope("ChatPage")));
+
+        var sut = new CommandPaletteViewModel(registry, activeScopeName: "DocumentsPage");
+        sut.Results.Select(r => r.Id).Should().BeEquivalentTo("g.one", "d.one");
+
+        sut.ActiveScopeName = "ChatPage";
+        sut.Results.Select(r => r.Id).Should().BeEquivalentTo("g.one", "c.one");
+
+        sut.ActiveScopeName = null;
+        sut.Results.Select(r => r.Id).Should().BeEquivalentTo("g.one");
     }
 
     private static ShortcutDescriptor Desc(string id, string label, ShortcutScope scope)

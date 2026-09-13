@@ -48,7 +48,7 @@
                 <Grid Margin="12,16,12,8" Height="56">
                     <StackPanel Orientation="Horizontal"
                                 VerticalAlignment="Center"
-                                Spacing="14">
+                                Spacing="12">
                         <!-- Agent-X Logo Mark: armed machined cap -->
                         <Grid Width="36" Height="36">
                             <Border CornerRadius="{StaticResource RControl}"
@@ -113,7 +113,7 @@
                                     Tag="Digest"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE9D2;" FontSize="16" />
+                        <FontIcon Glyph="&#xE8C0;" FontSize="16" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
@@ -171,7 +171,7 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
-                <NavigationViewItemSeparator Margin="12,6" />
+                <NavigationViewItemSeparator Margin="12,4" />
 
                 <!-- KNOWLEDGE SECTION -->
                 <NavigationViewItemHeader x:Uid="Main_Knowledge" Content="KNOWLEDGE"
@@ -231,7 +231,19 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
-                <NavigationViewItemSeparator Margin="12,6" />
+                <!-- Annotations are highlights on vault documents: knowledge, not a
+                     group of their own. A headerless item between two separators
+                     was the one entry the stencil placards did not account for. -->
+                <NavigationViewItem x:Name="NavAnnotations"
+                                    x:Uid="Main_Annotations" Content="Annotations"
+                                    Tag="Annotations"
+                                    Style="{StaticResource AgentXNavItemStyle}">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE7BC;" FontSize="16" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItemSeparator Margin="12,4" />
 
                 <!-- TRIAGE SECTION -->
                 <NavigationViewItemHeader x:Uid="Main_Triage" Content="TRIAGE"
@@ -246,10 +258,11 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
-                <NavigationViewItemSeparator Margin="12,6" />
+                <NavigationViewItemSeparator Margin="12,4" />
 
                 <!-- SYSTEM SECTION -->
-                <NavigationViewItemHeader x:Uid="Main_System" Content="SYSTEM"
+                <NavigationViewItemHeader x:Name="NavSystemHeader"
+                                          x:Uid="Main_System" Content="SYSTEM"
                                           Style="{StaticResource NavHeaderStyle}" />
 
                 <NavigationViewItem x:Name="NavModels"
@@ -275,7 +288,7 @@
                                     Tag="BackupRestore"
                                     Style="{StaticResource AgentXNavItemStyle}">
                     <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE8F1;" FontSize="16" />
+                        <FontIcon Glyph="&#xE78C;" FontSize="16" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
@@ -324,19 +337,7 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
-                <NavigationViewItemSeparator Margin="12,6" />
-
-                <!-- ANNOTATIONS SECTION -->
-                <NavigationViewItem x:Name="NavAnnotations"
-                                    x:Uid="Main_Annotations" Content="Annotations"
-                                    Tag="Annotations"
-                                    Style="{StaticResource AgentXNavItemStyle}">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE7BC;" FontSize="16" />
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-
-                <NavigationViewItemSeparator Margin="12,6" />
+                <NavigationViewItemSeparator Margin="12,4" />
 
                 <!-- SUPPORT SECTION -->
                 <NavigationViewItemHeader x:Uid="Main_Support" Content="SUPPORT"
@@ -453,7 +454,7 @@
                     <Border Background="{ThemeResource VoidBrush}"
                             BorderBrush="{ThemeResource HairlineBrush}"
                             BorderThickness="1"
-                            CornerRadius="{StaticResource RadiusXS}"
+                            CornerRadius="{StaticResource RCard}"
                             Height="20"
                             Padding="8,0"
                             VerticalAlignment="Center">
@@ -469,8 +470,8 @@
 
                     <!-- Ctrl+K shortcut hint (kbd well) -->
                     <Border Background="{ThemeResource VoidBrush}"
-                            CornerRadius="{StaticResource RadiusXS}"
-                            Padding="6,1"
+                            CornerRadius="{StaticResource RCard}"
+                            Padding="4,1"
                             Margin="8,0,0,0"
                             Height="20"
                             VerticalAlignment="Center"
@@ -488,7 +489,7 @@
                 <StackPanel Grid.Column="1"
                             Orientation="Horizontal"
                             VerticalAlignment="Center"
-                            Spacing="6"
+                            Spacing="4"
                             Margin="0,0,24,0">
                     <TextBlock Text="IDX"
                                Style="{StaticResource PlacardStyle}"
@@ -498,7 +499,7 @@
                     <Border Background="{ThemeResource VoidBrush}"
                             BorderBrush="{ThemeResource HairlineBrush}"
                             BorderThickness="1"
-                            CornerRadius="{StaticResource RadiusXS}"
+                            CornerRadius="{StaticResource RCard}"
                             Height="20"
                             MinWidth="42"
                             Padding="8,0"
@@ -528,7 +529,7 @@
                     <Border Background="{ThemeResource VoidBrush}"
                             BorderBrush="{ThemeResource HairlineBrush}"
                             BorderThickness="1"
-                            CornerRadius="{StaticResource RadiusXS}"
+                            CornerRadius="{StaticResource RCard}"
                             Height="20"
                             MinWidth="42"
                             Padding="8,0"

@@ -112,16 +112,14 @@ public sealed class AppNavigationService : IAppNavigationService
     {
         switch (actionId)
         {
+            // The intents make the labels true: ChatViewModel starts a fresh thread,
+            // KnowledgeVaultPage raises the import picker on arrival.
             case "NewConversation":
-                NavigateToPage("Chat");
+                NavigateToPage("Chat", NavigationIntents.NewConversation);
                 break;
 
             case "ImportFiles":
-                NavigateToPage("KnowledgeVault");
-                break;
-
-            case "RefreshDashboard":
-                NavigateToPage("Dashboard");
+                NavigateToPage("KnowledgeVault", NavigationIntents.ImportFiles);
                 break;
 
             case "ToggleTheme":

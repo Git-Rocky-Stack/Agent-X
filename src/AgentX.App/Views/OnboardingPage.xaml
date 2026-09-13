@@ -162,7 +162,7 @@
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
                                     <Border Width="44" Height="44"
-                                            CornerRadius="{StaticResource RadiusMD}"
+                                            CornerRadius="{StaticResource RControl}"
                                             Background="{ThemeResource AccentSubtleBrush}">
                                         <FontIcon Glyph="&#xE72E;"
                                                   FontSize="20"
@@ -187,7 +187,7 @@
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
                                     <Border Width="44" Height="44"
-                                            CornerRadius="{StaticResource RadiusMD}"
+                                            CornerRadius="{StaticResource RControl}"
                                             Background="{ThemeResource AccentSubtleBrush}">
                                         <FontIcon Glyph="&#xE734;"
                                                   FontSize="20"
@@ -212,7 +212,7 @@
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
                                     <Border Width="44" Height="44"
-                                            CornerRadius="{StaticResource RadiusMD}"
+                                            CornerRadius="{StaticResource RControl}"
                                             Background="{ThemeResource AccentSubtleBrush}">
                                         <FontIcon Glyph="&#xE8F1;"
                                                   FontSize="20"
@@ -281,11 +281,11 @@
 
                                 <!-- Connection Status Result -->
                                 <Border Visibility="{x:Bind ViewModel.ShowConnectionStatus, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                                        CornerRadius="{StaticResource RadiusMD}"
+                                        CornerRadius="{StaticResource RControl}"
                                         Padding="16,12"
                                         Background="{ThemeResource CardBrush}"
                                         Margin="0,4,0,0">
-                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
                                         <!-- Dot color reflects the actual connection-test
                                              result (connected/failed/untested) rather than a
                                              constant green default. -->
@@ -380,7 +380,7 @@
                                               SelectedValuePath="ModelId"
                                               DisplayMemberPath="DisplayName"
                                               HorizontalAlignment="Stretch"
-                                              CornerRadius="{StaticResource RadiusMD}" />
+                                              CornerRadius="{StaticResource RControl}" />
                                 </StackPanel>
                             </controls:Faceplate>
 
@@ -400,7 +400,7 @@
                                               SelectedValuePath="ModelId"
                                               DisplayMemberPath="DisplayName"
                                               HorizontalAlignment="Stretch"
-                                              CornerRadius="{StaticResource RadiusMD}" />
+                                              CornerRadius="{StaticResource RControl}" />
                                 </StackPanel>
                             </controls:Faceplate>
                         </StackPanel>
@@ -465,7 +465,7 @@
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
                                     <Border Width="40" Height="40"
-                                            CornerRadius="{StaticResource RadiusFull}"
+                                            CornerRadius="{StaticResource RPill}"
                                             Background="{ThemeResource AccentSubtleBrush}">
                                         <FontIcon Glyph="&#xE99A;"
                                                   FontSize="18"
@@ -483,7 +483,7 @@
                                     </StackPanel>
                                     <Border Grid.Column="2"
                                             CornerRadius="{StaticResource RControl}"
-                                            Padding="12,6"
+                                            Padding="12,4"
                                             Background="{ThemeResource SuccessSubtleBrush}"
                                             Visibility="{x:Bind ViewModel.IsLocalModelAvailable, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                                         <TextBlock Text="{x:Bind ViewModel.LocalModelStatusText, Mode=OneWay}"
@@ -506,7 +506,7 @@
                                             Command="{x:Bind ViewModel.DownloadLocalModelCommand}"
                                             Visibility="{x:Bind ViewModel.CanDownloadLocalModel, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
 
-                                    <StackPanel Spacing="6"
+                                    <StackPanel Spacing="4"
                                                 Visibility="{x:Bind ViewModel.IsDownloadingLocalModel, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                                         <ProgressBar Minimum="0" Maximum="100"
                                                      Value="{x:Bind ViewModel.LocalModelDownloadProgress, Mode=OneWay}" />
@@ -548,7 +548,7 @@
                                 </StackPanel>
 
                                 <!-- OpenAI API Key -->
-                                <StackPanel Spacing="6">
+                                <StackPanel Spacing="4">
                                     <Grid ColumnSpacing="8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto" />
@@ -573,7 +573,7 @@
                                 <Border Style="{StaticResource SeparatorStyle}" />
 
                                 <!-- Anthropic API Key -->
-                                <StackPanel Spacing="6">
+                                <StackPanel Spacing="4">
                                     <Grid ColumnSpacing="8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto" />
@@ -616,7 +616,7 @@
                         <Grid Width="80" Height="80"
                               HorizontalAlignment="Center"
                               Margin="0,16,0,0">
-                            <Border CornerRadius="{StaticResource RadiusRound}"
+                            <Border CornerRadius="{StaticResource RControl}"
                                     Background="{ThemeResource AccentSubtleBrush}">
                                 <FontIcon Glyph="&#xE73E;"
                                           FontSize="36"
@@ -791,9 +791,12 @@
                                 Visibility="{x:Bind ViewModel.ShowNextButton, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                 Padding="32,12,32,12" />
 
-                        <!-- "Launch Agent-X" — Only on Step 4 -->
+                        <!-- "Launch Agent-X" — Only on Step 4. The one polished
+                             chrome cap on the bench: DESIGN.md allows at most one
+                             chrome CTA per view, and powering the instrument on
+                             is that moment. -->
                         <Button x:Uid="Onb_LaunchBtn" Content="Launch Agent-X"
-                                Style="{StaticResource AccentButtonStyle}"
+                                Style="{StaticResource ChromeCapButtonStyle}"
                                 Command="{x:Bind ViewModel.CompleteOnboardingCommand}"
                                 Visibility="{x:Bind ViewModel.IsStep4Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                 Padding="32,12,32,12" />

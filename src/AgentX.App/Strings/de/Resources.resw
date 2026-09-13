@@ -243,12 +243,12 @@
   <data name="UserGuide_KeyboardShortcuts_Action6.Text" xml:space="preserve"><value>Settings</value></data>
   <data name="UserGuide_KeyboardShortcuts_Action7.Text" xml:space="preserve"><value>Close Command Palette</value></data>
   <data name="UserGuide_CommandPalette_Title.Text" xml:space="preserve"><value>Befehlspalette</value></data>
-  <data name="UserGuide_CommandPalette_Description.Text" xml:space="preserve"><value>The Command Palette is the fastest way to navigate Agent-X. Inspired by VS Code and Spotlight, it provides instant access to every page and action through a single search interface.</value></data>
+  <data name="UserGuide_CommandPalette_Description.Text" xml:space="preserve"><value>Die Befehlspalette ist der Tastaturweg zu jeder Seite in Agent-X, ergänzt um einige Aktionen und die Tastenkürzel der gerade geöffneten Seite. Drücken Sie Strg+K, tippen Sie ein paar Buchstaben und bestätigen Sie mit der Eingabetaste.</value></data>
   <data name="UserGuide_CommandPalette_HowToUse_Title.Text" xml:space="preserve"><value>Verwendung</value></data>
   <data name="UserGuide_CommandPalette_Step1.Text" xml:space="preserve"><value>Press Ctrl+K from anywhere in the app to open the Command Palette overlay.</value></data>
-  <data name="UserGuide_CommandPalette_Step2.Text" xml:space="preserve"><value>Start typing to filter available pages and actions. Results update instantly as you type.</value></data>
-  <data name="UserGuide_CommandPalette_Step3.Text" xml:space="preserve"><value>Use the arrow keys to navigate through results, then press Enter to go to the selected page. Press Escape to close the palette without navigating.</value></data>
-  <data name="UserGuide_CommandPalette_Coverage.Text" xml:space="preserve"><value>The Command Palette searches across all pages including Dashboard, Chat, Knowledge Vault, Search, Collections, Quick Actions, Model Manager, Hardware Advisor, Settings, and this User Guide.</value></data>
+  <data name="UserGuide_CommandPalette_Step2.Text" xml:space="preserve"><value>Tippen Sie für eine unscharfe Suche. Die eingegebenen Buchstaben müssen in dieser Reihenfolge im Befehlsnamen vorkommen, aber nicht direkt hintereinander: "wst" findet Wissens-Tresor und "dw" findet Design wechseln. Die Ergebnisse behalten die Gruppen der Navigationsleiste (Intelligenz, Wissen, Triage, System, Support), gefolgt von Aktionen und, wenn die aktuelle Seite Tastenkürzel registriert, Auf dieser Seite.</value></data>
+  <data name="UserGuide_CommandPalette_Step3.Text" xml:space="preserve"><value>Mit den Pfeiltasten nach oben und unten (oder Tab und Umschalt+Tab) bewegen Sie sich durch die Ergebnisse, mit der Eingabetaste führen Sie den ausgewählten Befehl aus, und mit Esc oder einem Klick außerhalb der Palette schließen Sie sie.</value></data>
+  <data name="UserGuide_CommandPalette_Coverage.Text" xml:space="preserve"><value>Die Palette führt jede Seite der Navigationsleiste unter denselben Namen, Symbolen und Gruppenschildern auf, mit dem Tastenkürzel neben jeder Seite, die eines hat. Hinzu kommen drei Aktionen (Neue Unterhaltung, Dateien importieren, Design wechseln) sowie die Tastenkürzel der gerade geöffneten Seite. Eine neu zur Leiste hinzugefügte Seite erscheint automatisch in der Palette. Dokumente und Unterhaltungen öffnen Sie über Springen zu (Strg+P), nicht über die Palette.</value></data>
   <data name="UserGuide_FileFormats_Title.Text" xml:space="preserve"><value>Unterstützte Dateiformate</value></data>
   <data name="UserGuide_FileFormats_Description.Text" xml:space="preserve"><value>Agent-X can ingest a wide variety of file formats into the Knowledge Vault. Each format has a specialized parser that extracts text content optimally.</value></data>
   <data name="UserGuide_FileFormats_Table_Format.Text" xml:space="preserve"><value>FORMAT</value></data>
@@ -2034,4 +2034,16 @@
   <data name="Sync_RefreshStatusBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Sync-Status aktualisieren</value></data>
   <data name="Workspace_RefreshProfilesTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Profile aktualisieren</value></data>
   <data name="Plugin_Active.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Plugin aktiviert</value></data>
+
+  <!-- Guide accuracy pass 2026-07: Comparison / Smart Inbox / Analytics / Operations / Collaborative Sync sections -->
+  <data name="Palette_SearchInput.PlaceholderText" xml:space="preserve"><value>Seite oder Aktion eingeben...</value></data>
+  <data name="Palette_NavigateHint.Text" xml:space="preserve"><value>Navigieren</value></data>
+  <data name="Palette_OpenHint.Text" xml:space="preserve"><value>Öffnen</value></data>
+  <data name="Palette_CloseHint.Text" xml:space="preserve"><value>Schließen</value></data>
+  <data name="Palette_Actions" xml:space="preserve"><value>AKTIONEN</value></data>
+  <data name="Palette_OnThisPage" xml:space="preserve"><value>AUF DIESER SEITE</value></data>
+  <data name="Palette_NewConversation" xml:space="preserve"><value>Neue Unterhaltung</value></data>
+  <data name="Palette_ImportFiles" xml:space="preserve"><value>Dateien importieren</value></data>
+  <data name="Palette_ToggleTheme" xml:space="preserve"><value>Design wechseln</value></data>
+  <data name="Palette_NoMatches" xml:space="preserve"><value>Keine passenden Befehle</value></data>
 </root>

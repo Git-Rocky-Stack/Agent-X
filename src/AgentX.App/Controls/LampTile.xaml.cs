@@ -118,7 +118,6 @@ public sealed partial class LampTile : UserControl
     private void OnCompactChanged()
     {
         Cap.Height = IsCompact ? 19 : 26;
-        Cap.Padding = IsCompact ? new Thickness(8, 0, 8, 0) : new Thickness(10, 0, 10, 0);
         CodeText.FontSize = IsCompact ? 9 : 10;
     }
 

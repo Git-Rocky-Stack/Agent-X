@@ -850,13 +850,18 @@ Add an entry to `_navItemMap` so the selection indicator syncs correctly:
 ["MyNewPage"] = NavMyNewPage,
 ```
 
-**Step 7: Add to the Command Palette (optional)**
+**Step 7: The Command Palette picks the page up by itself**
 
-In `CommandPalette.xaml.cs`, add an entry to `_allItems` in `BuildCommandItems()`:
+Nothing to add. `MainWindow.ConfigureCommandPalette()` walks `NavView.MenuItems`
+and `FooterMenuItems` and registers every `NavigationViewItem` with the palette
+under the same localized label, icon glyph and group placard the rail shows
+(`src/AgentX.App/MainWindow.xaml.cs`). A page that is on the rail is in the
+palette; `NavRailParityTests` fails the build if the palette ever grows a literal
+page list again.
 
-```csharp
-new("My New Page", "Description of the page", "Pages", "\uE8BD", "MyNewPage", CommandItemKind.Page, ""),
-```
+If the page should have a keyboard chord, register it in `ShortcutCatalog` and add
+the page tag to `PageShortcutIds` there; the palette prints the chord from the live
+registry.
 
 ### 5.2 Adding a New Service
 

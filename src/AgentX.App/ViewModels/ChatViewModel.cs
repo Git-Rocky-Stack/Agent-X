@@ -326,6 +326,15 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     // ── Streaming assistant message (for token-by-token updates) ──
     private ChatMessageItem? _streamingAssistantMessage;
     private ChatContextInspectionSnapshot? _latestContextInspection;
+
+    // ── Which conversation the screen is on, as a generation sees it ──
+    // Cancellation is cooperative, so a stream told to stop can still have passed the token
+    // loop and reached the StreamingCompleted raise at MessagingCoordinator.cs:198. Cancelling
+    // therefore cannot decide whether a completion belongs on screen. This counter can: every
+    // move off a thread advances it, and a generation carries the value it started under, so a
+    // completion that arrives under a newer value is known to belong to a thread already left.
+    private int _conversationEpoch;
+    private int? _inFlightGenerationEpoch;
     private readonly Dictionary<long, ChatContextInspectionSnapshot> _assistantMessageContextSnapshots = new();
 
     public ChatViewModel(
@@ -392,6 +401,16 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
     private void OnStreamingCompleted(object? sender, StreamingCompletedEventArgs e)
     {
+        if (!GenerationStillOwnsScreen(_inFlightGenerationEpoch))
+        {
+            // The operator left this thread while it was generating. Adopting the id below
+            // would drag the screen back onto it and file a sidebar row for it. Everything the
+            // stream produced was already persisted by the coordinator, so there is nothing to
+            // salvage here: the thread shows it when it is next opened.
+            Log.Debug("Discarding completion for a conversation the operator has left");
+            return;
+        }
+
         if (_streamingAssistantMessage is not null)
         {
             _streamingAssistantMessage.IsStreaming = false;
@@ -469,6 +488,15 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         // Load follow-ups and update memory (non-blocking)
         _ = InitializePostSendAsync();
     }
+
+    /// <summary>
+    /// Whether a generation that began under <paramref name="startedEpoch"/> still owns the
+    /// conversation on screen. A null epoch means no generation of this view model's is in
+    /// flight, which is the case for a completion raised by another surface sharing the
+    /// coordinator: those are still adopted, because there is no screen state to protect.
+    /// </summary>
+    private bool GenerationStillOwnsScreen(int? startedEpoch)
+        => startedEpoch is null || startedEpoch.Value == _conversationEpoch;
 
     private void OnGenerationError(object? sender, string errorMsg)
     {
@@ -728,14 +756,36 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
         IsGenerating = true;
 
-        // Delegate to messaging coordinator
-        var result = OrchestrationMode == ChatOrchestrationMode.Standard
-            ? await _messagingCoordinator.SendMessageAsync(
-                userContent, ActiveConversationId, ActiveSystemPrompt,
-                _aiService.ActiveModelId, IsResearchMode)
-            : await _messagingCoordinator.SendMessageAsync(
-                userContent, ActiveConversationId, ActiveSystemPrompt,
-                _aiService.ActiveModelId, IsResearchMode, OrchestrationMode);
+        // Stamp the generation with the conversation it belongs to, so both the completion
+        // handler and the continuation below can tell their own results from those of a thread
+        // the operator has since left.
+        var startedEpoch = _conversationEpoch;
+        _inFlightGenerationEpoch = startedEpoch;
+
+        SendMessageResult result;
+        try
+        {
+            // Delegate to messaging coordinator
+            result = OrchestrationMode == ChatOrchestrationMode.Standard
+                ? await _messagingCoordinator.SendMessageAsync(
+                    userContent, ActiveConversationId, ActiveSystemPrompt,
+                    _aiService.ActiveModelId, IsResearchMode)
+                : await _messagingCoordinator.SendMessageAsync(
+                    userContent, ActiveConversationId, ActiveSystemPrompt,
+                    _aiService.ActiveModelId, IsResearchMode, OrchestrationMode);
+        }
+        finally
+        {
+            _inFlightGenerationEpoch = null;
+        }
+
+        if (!GenerationStillOwnsScreen(startedEpoch))
+        {
+            // The cancel arm back-fills ContextInspection from the conversation it was
+            // generating for (MessagingCoordinator.cs:217). Applying it here would re-stamp the
+            // thread the operator left over the one now on screen, with no lost race needed.
+            return;
+        }
 
         if (result.ContextInspection is not null)
         {
@@ -761,6 +811,22 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task NewConversationAsync()
     {
+        // A generation belonging to the thread being left must not follow the operator into
+        // the blank one. Left running, it finishes into OnStreamingCompleted, whose adopt
+        // branch sees the null id below, takes the finished stream's conversation id back and
+        // files a second sidebar row for it: the new conversation silently becomes the old
+        // one. The coordinator's cancel path returns without raising StreamingCompleted
+        // (MessagingCoordinator.cs OperationCanceledException arm), so stopping here ends it.
+        if (IsGenerating)
+        {
+            await _messagingCoordinator.StopGenerationAsync();
+        }
+
+        _streamingAssistantMessage = null;
+        IsGenerating = false;
+        CurrentStreamingResponse = string.Empty;
+        _conversationEpoch++;
+
         ActiveConversationId = null;
         ActiveConversationTitle = "New Conversation";
         ActiveSystemPrompt = null;
@@ -772,7 +838,6 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         ConversationSummaryRefreshError = string.Empty;
         ResetContextInspection();
         OnPropertyChanged(nameof(HasNoMessages));
-        await Task.CompletedTask;
     }
 
     [RelayCommand]
@@ -794,6 +859,11 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     {
         var item = Conversations.FirstOrDefault(c => c.Id == conversationId);
         if (item is null) return;
+
+        // Picking another thread moves the screen off any running generation just as Ctrl+N
+        // does, and this path never cancelled anything, so the epoch is the only thing
+        // stopping that generation from dragging the screen back when it finishes.
+        _conversationEpoch++;
 
         ActiveConversationId = conversationId;
         ActiveConversationTitle = item.Title;
@@ -864,6 +934,14 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     /// </summary>
     public async Task ApplyNavigationParameterAsync(object? parameter)
     {
+        // The palette's "New Conversation" and the global Ctrl+N arrive with this
+        // intent; without it they would open whatever thread was last active.
+        if (parameter is string intent && intent == NavigationIntents.NewConversation)
+        {
+            await NewConversationAsync();
+            return;
+        }
+
         if (parameter is not long conversationId || conversationId <= 0)
         {
             return;

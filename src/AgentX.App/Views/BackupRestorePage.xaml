@@ -18,7 +18,7 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto"
                   HorizontalScrollBarVisibility="Disabled">
 
-        <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="900">
+        <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="900" HorizontalAlignment="Center">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -98,7 +98,7 @@
                                     FontFamily="{ThemeResource SymbolThemeFontFamily}"
                                     FontSize="12"
                                     Style="{StaticResource GhostButtonStyle}"
-                                    Padding="6" MinWidth="0" MinHeight="0"
+                                    Padding="4" MinWidth="0" MinHeight="0"
                                     VerticalAlignment="Center"
                                     x:Uid="Backup_RecalculateTip" ToolTipService.ToolTip="Recalculate estimate"
                                     AutomationProperties.Name="Recalculate estimate" />
@@ -114,7 +114,7 @@
                                Style="{StaticResource HeadingSmallStyle}" />
 
                     <!-- Destination -->
-                    <StackPanel Spacing="6">
+                    <StackPanel Spacing="4">
                         <TextBlock x:Uid="Backup_DestinationFolder" Text="Destination Folder" Style="{StaticResource LabelStyle}" />
                         <Grid ColumnSpacing="8">
                             <Grid.ColumnDefinitions>
@@ -154,7 +154,7 @@
                     </Grid>
 
                     <!-- Notes -->
-                    <StackPanel Spacing="6">
+                    <StackPanel Spacing="4">
                         <TextBlock x:Uid="Backup_NotesOptional" Text="Notes (optional)" Style="{StaticResource LabelStyle}" />
                         <TextBox Text="{x:Bind ViewModel.BackupNotes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  x:Uid="Backup_AddANoteAboutPh" PlaceholderText="Add a note about this backup..."
@@ -162,7 +162,7 @@
                     </StackPanel>
 
                     <!-- Progress -->
-                    <StackPanel Spacing="6"
+                    <StackPanel Spacing="4"
                                 Visibility="{x:Bind ViewModel.IsBackingUp, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <ProgressBar Value="{x:Bind ViewModel.ProgressPercent, Mode=OneWay}"
                                      Maximum="100" />
@@ -187,7 +187,7 @@
                     <TextBlock x:Uid="Backup_RestoreFromBackup" Text="Restore from Backup"
                                Style="{StaticResource HeadingSmallStyle}" />
 
-                    <StackPanel Spacing="6">
+                    <StackPanel Spacing="4">
                         <TextBlock x:Uid="Backup_BackupFile" Text="Backup File" Style="{StaticResource LabelStyle}" />
                         <Grid ColumnSpacing="8">
                             <Grid.ColumnDefinitions>
@@ -204,7 +204,7 @@
                     </StackPanel>
 
                     <!-- Restore Progress -->
-                    <StackPanel Spacing="6"
+                    <StackPanel Spacing="4"
                                 Visibility="{x:Bind ViewModel.IsRestoring, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <ProgressBar Value="{x:Bind ViewModel.ProgressPercent, Mode=OneWay}"
                                      Maximum="100" />
@@ -216,7 +216,7 @@
                     <!-- Restore Result -->
                     <Border Visibility="{x:Bind ViewModel.RestoreCompleted, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                             Background="{ThemeResource AccentSubtleBrush}"
-                            CornerRadius="{StaticResource RadiusSM}"
+                            CornerRadius="{StaticResource RControl}"
                             Padding="16">
                         <StackPanel Spacing="4">
                             <TextBlock x:Uid="Backup_RestoreComplete" Text="Restore Complete"
@@ -249,7 +249,7 @@
                         <ItemsRepeater.ItemTemplate>
                             <DataTemplate x:DataType="vm:BackupHistoryItem">
                                 <Border Background="{ThemeResource CardGradientSubtleBrush}"
-                                        CornerRadius="{StaticResource RadiusSM}"
+                                        CornerRadius="{StaticResource RControl}"
                                         Padding="16">
                                     <Grid ColumnSpacing="16">
                                         <Grid.ColumnDefinitions>
@@ -284,7 +284,7 @@
                                         <!-- Integrity Badge — label + color bound to real IsValid
                                              state instead of a constant green "Valid". -->
                                         <Border Grid.Column="2"
-                                                CornerRadius="{StaticResource RadiusSM}"
+                                                CornerRadius="{StaticResource RControl}"
                                                 Background="{ThemeResource AccentSubtleBrush}"
                                                 Padding="8,2"
                                                 VerticalAlignment="Center">

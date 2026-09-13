@@ -2,6 +2,7 @@
     x:Class="AgentX.App.Views.KnowledgeVaultPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:helpers="using:AgentX.App.Helpers"
     xmlns:vm="using:AgentX.App.ViewModels"
     xmlns:converters="using:AgentX.App.Converters"
     Background="Transparent"
@@ -32,12 +33,15 @@
         <!-- ═══════════════════════════════════════════════════════════
              COLUMN 0: MAIN CONTENT (existing ScrollViewer)
              ═══════════════════════════════════════════════════════════ -->
-        <ScrollViewer Grid.Column="0"
+        <ScrollViewer x:Name="PageScroller"
+                      Grid.Column="0"
                       VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled"
                       Padding="0">
 
-        <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="1200">
+        <!-- Content column: fills up to the cap and centers (see Helpers/ContentColumn.cs) -->
+        <Grid Padding="{StaticResource PaddingPage}" RowSpacing="24" MaxWidth="1200" HorizontalAlignment="Center"
+              MinWidth="{x:Bind helpers:ContentColumn.Fill(PageScroller.ViewportWidth, 1200), Mode=OneWay}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" /> <!-- Row 0: Header -->
                 <RowDefinition Height="Auto" /> <!-- Row 1: Duplicate warning banner (Feature 14) -->
@@ -97,9 +101,9 @@
                     <Button Style="{StaticResource SecondaryButtonStyle}"
                             Command="{x:Bind ViewModel.ToggleMultiSelectCommand}"
                             x:Uid="Vault_ToggleMultiSelectModeTip" ToolTipService.ToolTip="Toggle multi-select mode"
-                            Padding="12,6" MinHeight="32"
+                            Padding="12,4" MinHeight="32"
                             AutomationProperties.LabeledBy="{x:Bind SelectLabel}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
                             <FontIcon Glyph="&#xE762;" FontSize="14" />
                             <TextBlock x:Name="SelectLabel" x:Uid="Vault_Select" Text="Select" />
                         </StackPanel>
@@ -139,9 +143,9 @@
                     </StackPanel>
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                         <Button x:Uid="Vault_SkipDuplicates" Content="Skip Duplicates" Style="{StaticResource SecondaryButtonStyle}"
-                                Command="{x:Bind ViewModel.SkipDuplicatesCommand}" Padding="12,6" />
+                                Command="{x:Bind ViewModel.SkipDuplicatesCommand}" Padding="12,4" />
                         <Button x:Uid="Vault_ImportAll" Content="Import All" Style="{StaticResource GhostButtonStyle}"
-                                Command="{x:Bind ViewModel.ImportAllAnywayCommand}" Padding="12,6" />
+                                Command="{x:Bind ViewModel.ImportAllAnywayCommand}" Padding="12,4" />
                         <Button Style="{StaticResource IconButtonStyle}"
                                 x:Uid="Vault_DismissDuplicateWarning"
                                 AutomationProperties.Name="Dismiss duplicate warning"
@@ -163,7 +167,7 @@
                     <Border Style="{StaticResource StatBadgeStyle}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <Border Background="{ThemeResource AccentSubtleBrush}"
-                                    CornerRadius="{StaticResource RadiusMD}"
+                                    CornerRadius="{StaticResource RControl}"
                                     Width="40" Height="40">
                                 <FontIcon Glyph="&#xE8F1;" FontSize="18"
                                           Foreground="{ThemeResource TextAccentBrush}"
@@ -184,7 +188,7 @@
                     <Border Style="{StaticResource StatBadgeStyle}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <Border Background="{ThemeResource InfoSubtleBrush}"
-                                    CornerRadius="{StaticResource RadiusMD}"
+                                    CornerRadius="{StaticResource RControl}"
                                     Width="40" Height="40">
                                 <FontIcon Glyph="&#xEDA2;" FontSize="18"
                                           Foreground="{ThemeResource InfoBrush}"
@@ -204,7 +208,7 @@
                     <Border Style="{StaticResource StatBadgeStyle}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <Border Background="{ThemeResource WarningSubtleBrush}"
-                                    CornerRadius="{StaticResource RadiusMD}"
+                                    CornerRadius="{StaticResource RControl}"
                                     Width="40" Height="40">
                                 <FontIcon Glyph="&#xE915;" FontSize="18"
                                           Foreground="{ThemeResource WarningBrush}"
@@ -227,10 +231,10 @@
                         Background="{ThemeResource CardGradientBrush}"
                         BorderBrush="{ThemeResource BorderSubtleBrush}"
                         BorderThickness="1"
-                        CornerRadius="{StaticResource RadiusMD}"
-                        Padding="20,14">
-                    <StackPanel Spacing="10">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        CornerRadius="{StaticResource RControl}"
+                        Padding="20,12">
+                    <StackPanel Spacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
                             <ProgressRing IsActive="True" Width="18" Height="18"
                                           Foreground="{ThemeResource AccentPrimaryBrush}" />
                             <TextBlock Text="{x:Bind ViewModel.ImportStatus, Mode=OneWay}"
@@ -254,10 +258,10 @@
                 <StackPanel Spacing="12">
 
                     <!-- File type filter chips -->
-                    <StackPanel Spacing="6">
+                    <StackPanel Spacing="4">
                         <TextBlock x:Uid="Vault_FileType" Text="FILE TYPE"
                                    Style="{StaticResource OverlineStyle}" />
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
                             <Button x:Uid="Vault_All" Content="All"
                                     Click="OnFilterTypeClick" Tag=""
                                     Style="{StaticResource FilterChipActiveStyle}" x:Name="FilterTypeAll" />
@@ -305,10 +309,10 @@
                     </StackPanel>
 
                     <!-- Status filter chips -->
-                    <StackPanel Spacing="6">
+                    <StackPanel Spacing="4">
                         <TextBlock x:Uid="Vault_Status" Text="STATUS"
                                    Style="{StaticResource OverlineStyle}" />
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
                             <Button x:Uid="Vault_All2" Content="All"
                                     Click="OnFilterStatusClick" Tag=""
                                     Style="{StaticResource FilterChipActiveStyle}" x:Name="FilterStatusAll" />
@@ -348,7 +352,7 @@
                     </StackPanel>
 
                     <!-- Tag filter chips (Feature 7) -->
-                    <StackPanel Spacing="6">
+                    <StackPanel Spacing="4">
                         <TextBlock x:Uid="Vault_Tags" Text="TAGS"
                                    Style="{StaticResource OverlineStyle}" />
                         <ItemsRepeater ItemsSource="{x:Bind ViewModel.AllTags, Mode=OneWay}">
@@ -460,7 +464,7 @@
                                 Visibility="{x:Bind ViewModel.HasActiveFilters, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                 x:Uid="Vault_ClearAllFiltersTip" ToolTipService.ToolTip="Clear all filters"
                                 AutomationProperties.Name="Clear all filters">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <FontIcon Glyph="&#xE711;" FontSize="12"
                                           Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock x:Uid="Vault_ClearAll" Text="Clear All"
@@ -481,8 +485,8 @@
                     Background="{ThemeResource ErrorSubtleBrush}"
                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="1"
-                    CornerRadius="{StaticResource RadiusMD}"
-                    Padding="16,10">
+                    CornerRadius="{StaticResource RControl}"
+                    Padding="16,8">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -498,19 +502,19 @@
                                 Padding="8,4" MinHeight="28" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                        <Button Style="{StaticResource SecondaryButtonStyle}" Padding="12,6"
+                        <Button Style="{StaticResource SecondaryButtonStyle}" Padding="12,4"
                                 Command="{x:Bind ViewModel.BulkReindexCommand}"
                                 AutomationProperties.LabeledBy="{x:Bind ReIndexLabel}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <FontIcon Glyph="&#xE72C;" FontSize="14" />
                                 <TextBlock x:Name="ReIndexLabel" x:Uid="Vault_ReIndex" Text="Re-index" />
                             </StackPanel>
                         </Button>
-                        <Button Style="{StaticResource GhostButtonStyle}" Padding="12,6"
+                        <Button Style="{StaticResource GhostButtonStyle}" Padding="12,4"
                                 Command="{x:Bind ViewModel.BulkDeleteCommand}"
                                 Foreground="{ThemeResource ErrorBrush}"
                                 AutomationProperties.LabeledBy="{x:Bind DeleteLabel}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="{ThemeResource ErrorBrush}" />
                                 <TextBlock x:Name="DeleteLabel" x:Uid="Vault_Delete" Text="Delete" Foreground="{ThemeResource ErrorBrush}" />
                             </StackPanel>
@@ -527,7 +531,7 @@
                     Background="{ThemeResource ErrorSubtleBrush}"
                     BorderBrush="{ThemeResource ErrorBrush}"
                     BorderThickness="1"
-                    CornerRadius="{StaticResource RadiusMD}"
+                    CornerRadius="{StaticResource RControl}"
                     Padding="16,12">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <FontIcon Glyph="&#xE7BA;" FontSize="16"
@@ -556,7 +560,7 @@
                 <StackPanel Spacing="16" HorizontalAlignment="Center">
                     <!-- Upload icon -->
                     <Border Background="{ThemeResource AccentSubtleBrush}"
-                            CornerRadius="{StaticResource RadiusFull}"
+                            CornerRadius="{StaticResource RPill}"
                             Width="72" Height="72"
                             HorizontalAlignment="Center">
                         <FontIcon Glyph="&#xE898;"
@@ -577,7 +581,7 @@
 
                     <!-- Supported formats -->
                     <StackPanel Orientation="Horizontal"
-                                Spacing="6"
+                                Spacing="4"
                                 HorizontalAlignment="Center">
                         <Border Style="{StaticResource BadgeDefaultStyle}">
                             <TextBlock Text="PDF" Style="{StaticResource BadgeStyle}" />
@@ -681,7 +685,7 @@
                                                        TextTrimming="CharacterEllipsis" />
 
                                             <!-- Type + Status badges -->
-                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <!-- File type badge -->
                                                 <Border Style="{StaticResource FileTypeBadgeStyle}">
                                                     <TextBlock Text="{x:Bind FileTypeLabel}"
@@ -695,10 +699,10 @@
                                                      (completed/processing/pending/failed) via the shared
                                                      status->color converter instead of hardcoded green. -->
                                                 <Grid>
-                                                    <Border CornerRadius="{StaticResource RadiusRound}"
+                                                    <Border CornerRadius="{StaticResource RControl}"
                                                             Opacity="0.1"
                                                             Background="{x:Bind IndexingStatus, Mode=OneWay, Converter={StaticResource StatusToColor}}" />
-                                                    <Border CornerRadius="{StaticResource RadiusRound}"
+                                                    <Border CornerRadius="{StaticResource RControl}"
                                                             Padding="8,3,8,3">
                                                         <TextBlock Text="{x:Bind IndexingStatusLabel, Mode=OneWay}"
                                                                    FontSize="10"
@@ -796,7 +800,7 @@
                                                 HorizontalAlignment="Right">
                                         <!-- Generate Title -->
                                         <Button Style="{StaticResource GhostButtonStyle}"
-                                                Padding="8,6,8,6" MinHeight="32"
+                                                Padding="8,4,8,4" MinHeight="32"
                                                 Tag="{x:Bind Id}"
                                                 Click="OnGenerateTitleClick"
                                                 x:Uid="Vault_GenerateAiTitleTip" ToolTipService.ToolTip="Generate AI title"
@@ -812,7 +816,7 @@
 
                                         <!-- View Detail -->
                                         <Button Style="{StaticResource GhostButtonStyle}"
-                                                Padding="8,6,8,6" MinHeight="32"
+                                                Padding="8,4,8,4" MinHeight="32"
                                                 Tag="{x:Bind Id}"
                                                 Click="OnViewDetailClick"
                                                 x:Uid="Vault_ViewDetailsTip" ToolTipService.ToolTip="View details"
@@ -828,7 +832,7 @@
 
                                         <!-- Use in Workflow -->
                                         <Button Style="{StaticResource GhostButtonStyle}"
-                                                Padding="8,6,8,6" MinHeight="32"
+                                                Padding="8,4,8,4" MinHeight="32"
                                                 Tag="{x:Bind Id}"
                                                 Click="OnLaunchDocumentInWorkflowClick"
                                                 x:Uid="Vault_UseThisDocumentInTip" ToolTipService.ToolTip="Use this document in a workflow"
@@ -844,7 +848,7 @@
 
                                         <!-- Re-index -->
                                         <Button Style="{StaticResource GhostButtonStyle}"
-                                                Padding="8,6,8,6" MinHeight="32"
+                                                Padding="8,4,8,4" MinHeight="32"
                                                 Tag="{x:Bind Id}"
                                                 Click="OnReindexClick"
                                                 x:Uid="Vault_ReIndexDocumentTip" ToolTipService.ToolTip="Re-index document"
@@ -855,7 +859,7 @@
 
                                         <!-- Open in Explorer -->
                                         <Button Style="{StaticResource GhostButtonStyle}"
-                                                Padding="8,6,8,6" MinHeight="32"
+                                                Padding="8,4,8,4" MinHeight="32"
                                                 Tag="{x:Bind FilePath}"
                                                 Click="OnOpenInExplorerClick"
                                                 x:Uid="Vault_OpenFileLocationTip" ToolTipService.ToolTip="Open file location"
@@ -866,7 +870,7 @@
 
                                         <!-- Delete -->
                                         <Button Style="{StaticResource GhostButtonStyle}"
-                                                Padding="8,6,8,6" MinHeight="32"
+                                                Padding="8,4,8,4" MinHeight="32"
                                                 Tag="{x:Bind Id}"
                                                 Click="OnDeleteDocumentClick"
                                                 x:Uid="Vault_DeleteDocumentTip" ToolTipService.ToolTip="Delete document"
@@ -892,7 +896,7 @@
                         <StackPanel Spacing="20" HorizontalAlignment="Center">
                             <!-- Icon -->
                             <Border Background="{ThemeResource AccentSubtleBrush}"
-                                    CornerRadius="{StaticResource RadiusFull}"
+                                    CornerRadius="{StaticResource RPill}"
                                     Width="80" Height="80"
                                     HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE8F1;"
@@ -942,7 +946,7 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Orientation="Horizontal" Spacing="10">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
                         <ProgressRing IsActive="True" Width="16" Height="16"
                                       Foreground="{ThemeResource AccentPrimaryBrush}" />
                         <TextBlock x:Uid="Vault_IndexingInProgress" Text="Indexing in progress..."
@@ -1014,8 +1018,8 @@
                     <Border Background="{ThemeResource AccentSubtleBrush}"
                             BorderBrush="{ThemeResource AccentPrimaryBrush}"
                             BorderThickness="1"
-                            CornerRadius="{StaticResource RadiusMD}"
-                            Padding="16,14"
+                            CornerRadius="{StaticResource RControl}"
+                            Padding="16,12"
                             Margin="0,0,0,20"
                             Visibility="{x:Bind ViewModel.SelectedDocument.HasFocusedSourceLabel, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                         <Grid ColumnSpacing="16">
@@ -1024,7 +1028,7 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Spacing="6">
+                            <StackPanel Spacing="4">
                                 <TextBlock x:Uid="Vault_FocusedDocument" Text="Focused Document"
                                            Style="{StaticResource BodyStyle}"
                                            FontWeight="SemiBold"
@@ -1074,7 +1078,7 @@
                                                Style="{StaticResource CaptionStyle}"
                                                Foreground="{ThemeResource TextAccentBrush}" />
                                 </Border>
-                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
                                     <Border Style="{StaticResource FileTypeBadgeStyle}">
                                         <TextBlock Text="{x:Bind ViewModel.SelectedDocument.FileTypeLabel, Mode=OneWay}"
                                                FontSize="10"
@@ -1082,7 +1086,7 @@
                                                Foreground="{ThemeResource TextAccentBrush}"
                                                CharacterSpacing="40" />
                                 </Border>
-                                <Border CornerRadius="{StaticResource RadiusRound}"
+                                <Border CornerRadius="{StaticResource RControl}"
                                         Padding="8,3,8,3">
                                     <Border.Background>
                                         <SolidColorBrush Color="{StaticResource StatusSuccess}" Opacity="0.1" />
@@ -1143,7 +1147,7 @@
 
                             <!-- Pages -->
                             <Border Grid.Row="0" Grid.Column="0"
-                                    Style="{StaticResource CardInsetStyle}" Padding="12,10">
+                                    Style="{StaticResource CardInsetStyle}" Padding="12,8">
                                 <StackPanel Spacing="2">
                                     <TextBlock Style="{StaticResource CaptionStyle}"
                                                Foreground="{ThemeResource TextTertiaryBrush}">
@@ -1157,7 +1161,7 @@
 
                             <!-- Words -->
                             <Border Grid.Row="0" Grid.Column="1"
-                                    Style="{StaticResource CardInsetStyle}" Padding="12,10">
+                                    Style="{StaticResource CardInsetStyle}" Padding="12,8">
                                 <StackPanel Spacing="2">
                                     <TextBlock Style="{StaticResource CaptionStyle}"
                                                Foreground="{ThemeResource TextTertiaryBrush}">
@@ -1171,7 +1175,7 @@
 
                             <!-- Chunks -->
                             <Border Grid.Row="1" Grid.Column="0"
-                                    Style="{StaticResource CardInsetStyle}" Padding="12,10">
+                                    Style="{StaticResource CardInsetStyle}" Padding="12,8">
                                 <StackPanel Spacing="2">
                                     <TextBlock Style="{StaticResource CaptionStyle}"
                                                Foreground="{ThemeResource TextTertiaryBrush}">
@@ -1185,7 +1189,7 @@
 
                             <!-- File Size -->
                             <Border Grid.Row="1" Grid.Column="1"
-                                    Style="{StaticResource CardInsetStyle}" Padding="12,10">
+                                    Style="{StaticResource CardInsetStyle}" Padding="12,8">
                                 <StackPanel Spacing="2">
                                     <TextBlock Style="{StaticResource CaptionStyle}"
                                                Foreground="{ThemeResource TextTertiaryBrush}">
@@ -1199,7 +1203,7 @@
 
                             <!-- Date Imported (full width) -->
                             <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
-                                    Style="{StaticResource CardInsetStyle}" Padding="12,10">
+                                    Style="{StaticResource CardInsetStyle}" Padding="12,8">
                                 <StackPanel Spacing="2">
                                     <TextBlock Style="{StaticResource CaptionStyle}"
                                                Foreground="{ThemeResource TextTertiaryBrush}">

@@ -77,15 +77,15 @@
                                  x:Uid="Graph_SearchNodesPh" PlaceholderText="Search nodes..."
                                  Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  Padding="36,8,12,8"
-                                 CornerRadius="{StaticResource RadiusMD}" />
+                                 CornerRadius="{StaticResource RControl}" />
                         <FontIcon Glyph="&#xE721;" FontSize="14"
                                   Foreground="{ThemeResource TextTertiaryBrush}"
                                   HorizontalAlignment="Left" VerticalAlignment="Center"
                                   Margin="12,0,0,0" IsHitTestVisible="False" />
                         <!-- Search match count badge -->
                         <Border Background="{ThemeResource AccentSubtleBrush}"
-                                CornerRadius="{StaticResource RadiusSM}"
-                                Padding="6,2,6,2"
+                                CornerRadius="{StaticResource RControl}"
+                                Padding="4,2,4,2"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
                                 Margin="0,0,8,0"
                                 Visibility="{x:Bind ViewModel.HasSearchResults, Mode=OneWay, Converter={StaticResource BoolToVis}}">
@@ -103,7 +103,7 @@
 
                         <!-- Document count badge -->
                         <Border Style="{StaticResource StatBadgeStyle}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <Ellipse Width="8" Height="8" Fill="{ThemeResource InfoBrush}" VerticalAlignment="Center" />
                                 <TextBlock Style="{StaticResource CaptionStyle}"
                                            Foreground="{ThemeResource TextSecondaryBrush}">
@@ -115,7 +115,7 @@
 
                         <!-- Collection count badge -->
                         <Border Style="{StaticResource StatBadgeStyle}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <Ellipse Width="8" Height="8" Fill="{ThemeResource GraphTagBrush}" VerticalAlignment="Center" />
                                 <TextBlock Style="{StaticResource CaptionStyle}"
                                            Foreground="{ThemeResource TextSecondaryBrush}">
@@ -127,7 +127,7 @@
 
                         <!-- Tag count badge -->
                         <Border Style="{StaticResource StatBadgeStyle}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <Ellipse Width="8" Height="8" Fill="{ThemeResource WarningBrush}" VerticalAlignment="Center" />
                                 <TextBlock Style="{StaticResource CaptionStyle}"
                                            Foreground="{ThemeResource TextSecondaryBrush}">
@@ -153,7 +153,7 @@
                                 Command="{x:Bind ViewModel.RefreshGraphCommand}"
                                 x:Uid="Graph_RebuildTheKnowledgeGraphTip" ToolTipService.ToolTip="Rebuild the knowledge graph"
                                 AutomationProperties.LabeledBy="{x:Bind RefreshLabel}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <FontIcon Glyph="&#xE72C;" FontSize="14" />
                                 <TextBlock x:Name="RefreshLabel" x:Uid="Graph_Refresh" Text="Refresh" FontWeight="SemiBold" FontSize="12" />
                             </StackPanel>
@@ -203,13 +203,13 @@
                         VerticalAlignment="Bottom"
                         Margin="0,0,16,16"
                         Background="{ThemeResource CardBrush}"
-                        CornerRadius="{StaticResource RadiusMD}"
+                        CornerRadius="{StaticResource RControl}"
                         BorderBrush="{ThemeResource BorderSubtleBrush}"
                         BorderThickness="1"
                         Padding="4">
                     <StackPanel Orientation="Horizontal" Spacing="2">
                         <Button Style="{StaticResource GhostButtonStyle}"
-                                Padding="8,6,8,6" MinHeight="32" MinWidth="32"
+                                Padding="8,4,8,4" MinHeight="32" MinWidth="32"
                                 Command="{x:Bind ViewModel.ZoomOutCommand}"
                                 x:Uid="Graph_ZoomOutTip" ToolTipService.ToolTip="Zoom Out">
                             <FontIcon Glyph="&#xE738;" FontSize="14" />
@@ -222,7 +222,7 @@
                                    Text="{x:Bind local:KnowledgeGraphPage.FormatZoom(ViewModel.ZoomLevel), Mode=OneWay}" />
 
                         <Button Style="{StaticResource GhostButtonStyle}"
-                                Padding="8,6,8,6" MinHeight="32" MinWidth="32"
+                                Padding="8,4,8,4" MinHeight="32" MinWidth="32"
                                 Command="{x:Bind ViewModel.ZoomInCommand}"
                                 x:Uid="Graph_ZoomInTip" ToolTipService.ToolTip="Zoom In">
                             <FontIcon Glyph="&#xE710;" FontSize="14" />
@@ -231,7 +231,7 @@
                         <Border Width="1" Background="{ThemeResource BorderSubtleBrush}" Margin="2,4,2,4" />
 
                         <Button Style="{StaticResource GhostButtonStyle}"
-                                Padding="8,6,8,6" MinHeight="32" MinWidth="32"
+                                Padding="8,4,8,4" MinHeight="32" MinWidth="32"
                                 Command="{x:Bind ViewModel.ResetZoomCommand}"
                                 x:Uid="Graph_ResetZoomTip" ToolTipService.ToolTip="Reset Zoom">
                             <FontIcon Glyph="&#xE9A6;" FontSize="14" />
@@ -243,7 +243,7 @@
                 <Border x:Name="NodeTooltip"
                         Visibility="Collapsed"
                         Background="{ThemeResource CardBrush}"
-                        CornerRadius="{StaticResource RadiusMD}"
+                        CornerRadius="{StaticResource RControl}"
                         BorderBrush="{ThemeResource BorderSubtleBrush}"
                         BorderThickness="1"
                         Padding="12,8,12,8"
@@ -255,7 +255,7 @@
                                    Style="{StaticResource BodySmallStyle}"
                                    FontWeight="SemiBold"
                                    Foreground="{ThemeResource TextPrimaryBrush}" />
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
                             <Ellipse x:Name="TooltipTypeIndicator" Width="8" Height="8" VerticalAlignment="Center" />
                             <TextBlock x:Name="TooltipType"
                                        Style="{StaticResource CaptionStyle}"
@@ -273,7 +273,7 @@
                         VerticalAlignment="Center">
                     <StackPanel Spacing="16" HorizontalAlignment="Center">
                         <Border Background="{ThemeResource AccentSubtleBrush}"
-                                CornerRadius="{StaticResource RadiusFull}"
+                                CornerRadius="{StaticResource RPill}"
                                 Width="72" Height="72"
                                 HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xE9D9;"
@@ -318,7 +318,7 @@
                                    VerticalAlignment="Center" />
 
                         <!-- Document legend item -->
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
                             <Ellipse Width="10" Height="10" Fill="{ThemeResource InfoBrush}" VerticalAlignment="Center" />
                             <TextBlock x:Uid="Graph_Document" Text="Document"
                                        Style="{StaticResource CaptionStyle}"
@@ -327,7 +327,7 @@
                         </StackPanel>
 
                         <!-- Collection legend item -->
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
                             <Ellipse Width="10" Height="10" Fill="{ThemeResource GraphTagBrush}" VerticalAlignment="Center" />
                             <TextBlock x:Uid="Graph_Collection" Text="Collection"
                                        Style="{StaticResource CaptionStyle}"
@@ -336,7 +336,7 @@
                         </StackPanel>
 
                         <!-- Tag legend item -->
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
                             <Ellipse Width="10" Height="10" Fill="{ThemeResource WarningBrush}" VerticalAlignment="Center" />
                             <TextBlock x:Uid="Graph_Tag" Text="Tag"
                                        Style="{StaticResource CaptionStyle}"
@@ -355,10 +355,10 @@
 
                         <!-- Cluster highlight indicator -->
                         <Border Background="{ThemeResource AccentSubtleBrush}"
-                                CornerRadius="{StaticResource RadiusRound}"
-                                Padding="10,4,6,4"
+                                CornerRadius="{StaticResource RControl}"
+                                Padding="8,4,4,4"
                                 Visibility="{x:Bind ViewModel.IsClusterHighlighted, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <TextBlock x:Uid="Graph_ClusterActive" Text="Cluster Active"
                                            Style="{StaticResource CaptionStyle}"
                                            Foreground="{ThemeResource TextAccentBrush}"
@@ -471,8 +471,8 @@
 
                     <!-- Node Type Badge -->
                     <Border x:Name="NodeTypeBadge"
-                            CornerRadius="{StaticResource RadiusRound}"
-                            Padding="12,5,12,5"
+                            CornerRadius="{StaticResource RControl}"
+                            Padding="12,4,12,4"
                             HorizontalAlignment="Left">
                         <TextBlock x:Name="NodeTypeText"
                                    FontSize="11"

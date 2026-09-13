@@ -47,6 +47,244 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
+### Fixed - The adopt hole behind Ctrl+N, closed at its cause (2026-09-12)
+
+The entry below stopped the generation Ctrl+N left behind and claimed the abandoned thread
+therefore "cannot arrive late". **That claim was false**, and two more holes sat beside it.
+Cancelling is not a guarantee, because the code being cancelled decides when to look:
+
+- **A cancelled stream can still complete, and still be adopted.** Cancellation is
+  cooperative. A stream that has already left the token loop and reached the raise at
+  `MessagingCoordinator.cs:198` fires `StreamingCompleted` whether or not the cancel has
+  landed; only the `OperationCanceledException` arm at `:212` returns silently. So the adopt
+  branch still saw a null `ActiveConversationId`, took the finished stream's id back, and filed
+  a sidebar row for it. Proven by
+  `NewConversationAsync_MidGeneration_DiscardsAStreamThatCompletesDespiteTheCancel`
+  (`tests/AgentX.Tests/ViewModels/ChatViewModelTests.cs:807`), which failed with `found 42L`
+  before the fix.
+- **A cleanly cancelled stream re-stamped its context story on the blank conversation, with no
+  race at all.** The cancel arm back-fills `ContextInspection` from the conversation it was
+  generating for (`MessagingCoordinator.cs:219`), and the send continuation applied it with no
+  check on which thread was now on screen, just after `NewConversationAsync` had cleared it.
+  Deterministic, not a race. Proven by
+  `NewConversationAsync_MidGeneration_DiscardsTheCancelledStreamsContextInspection`
+  (`ChatViewModelTests.cs:861`).
+- **Ctrl+N was not the only way in.** Picking another thread in the sidebar moves the screen
+  off a running generation too, and `SelectConversationAsync` cancelled nothing, so the adopt
+  branch dragged the screen back to the generating thread and filed a duplicate row for a
+  conversation the sidebar already listed. Proven by
+  `SelectConversationAsync_MidGeneration_DiscardsTheStreamItLeavesBehind`
+  (`ChatViewModelTests.cs:896`), which failed with `found 84L`.
+
+All three are one defect: `OnStreamingCompleted` adopted a conversation id without asking
+whether that conversation was still on screen. A conversation epoch answers it
+(`src/AgentX.App/ViewModels/ChatViewModel.cs:336`). Leaving a thread advances the epoch
+(`ChatViewModel.cs:828` for Ctrl+N, `:866` for picking another thread); a generation carries
+the epoch it started under (`:762`); and `GenerationStillOwnsScreen` (`:498`) gates both the
+completion handler (`:404`) and the send continuation (`:782`). None of it depends on
+cancellation timing, so the window is closed rather than narrowed.
+
+`StreamingCompletedEvent_AppliesContextInspectionSnapshot` (`ChatViewModelTests.cs:136`) was
+not weakened to make room. It raises completion with no generation of the view model's own in
+flight; the epoch is null there, and adoption still happens by design, which is what a
+completion from another surface sharing the coordinator needs. Each of the three parts of the
+fix was removed in turn and the suite re-run: the handler gate alone accounts for two
+failures, the continuation gate and the sidebar epoch for one each.
+
+### Fixed - Four guards that could not fail, or could not see (2026-09-12)
+
+- `NavRailParityTests.EveryRailItem_SitsUnderAGroupPlacard` and
+  `NoRailGroup_IsHeaderless_BetweenSeparators` walked the rail's direct children and asserted
+  only that the offender list was empty. Pointed at an empty element, both reported no
+  offenders and passed: verified by stubbing `MenuItemsElement()` to return an empty rail,
+  against which all five rail guards passed. They now assert that the walk reached the rail and
+  that its direct children account for every `NavigationViewItem` under `MenuItems`
+  (`tests/AgentX.Tests/CodeQuality/NavRailParityTests.cs:184`), so nesting an item one level
+  down fails loudly instead of quietly going unchecked. Verified both ways: with an item
+  nested, the pre-fix guards passed 5/5 and the fixed ones report `saw 28 of the 29 rail
+  items`.
+- `WidthCappedColumnsDeclareAlignmentTests` read `Views` at the top level only, leaving
+  `Views/Dialogs`, `Controls` and `MainWindow.xaml` unguarded. It now reads every XAML file
+  under `AgentX.App` (`WidthCappedColumnsDeclareAlignmentTests.cs:80`). Verified by planting a
+  `<Grid MaxWidth="900">` with no alignment in `Views/Dialogs/JumpToDialog.xaml`: the old guard
+  passed, the widened one names the file and line. `Styles` and `Themes` hold no `MaxWidth` at
+  all, so widening cost nothing.
+- `SpacingIsOnTheFourPixelGridTests` split thickness components on commas only, so
+  `Margin="4 6 4 6"` parsed as a single unreadable component and was skipped. XAML accepts both
+  forms. It now splits on whitespace too (`SpacingIsOnTheFourPixelGridTests.cs:83`). Verified by
+  planting that exact margin: the old guard passed, the fixed one catches it. No
+  space-separated spacing exists in the app today, so nothing needed snapping.
+
+### Added - Runtime centering and Ctrl+N checks in the nav smoke (2026-09-12)
+
+`scripts/uia-nav-smoke.ps1` proved per-page navigation and the palette, but never measured the
+centering it was written alongside, and never pressed Ctrl+N.
+
+- **Content centering** (`scripts/uia-nav-smoke.ps1:393`): every page whose named,
+  not-Collapsed `ScrollViewer` wraps a column capped at 600 or more is visited, and the union
+  of that scroller's onscreen descendants is measured against it. Weekly Digest, Model Manager
+  and Knowledge Vault all measure `gutters 122/122` or `262/262`, `skew 0`, and `width 1136` of
+  a 1200 cap, in both shifts. 1136 is the cap less `PaddingPage`'s 64
+  (`src/AgentX.App/Styles/Colors.xaml:569`).
+
+  Both failure modes are asserted, because each hides the other. Removing
+  `HorizontalAlignment="Center"` from Weekly Digest's column changed nothing measurable: the
+  `ContentColumn.Fill` MinWidth binding already pins the column to the cap, and a cap-width
+  column centers correctly either way. Removing the binding reproduced the original report
+  exactly, at `gutters 373/41, skew 332` with width down to 1095. So the check asserts gutter
+  symmetry *and* that the column still fills the cap.
+
+  The page set is read from the XAML's structure rather than from the `ContentColumn.Fill`
+  binding under test: an earlier draft keyed off the binding, and removing the fix then dropped
+  Weekly Digest from the scan instead of failing it.
+- **Ctrl+N** (`:451`): from a page that is not Chat, the accelerator must select Chat on the
+  rail and leave a blank conversation on screen. Verified by deleting the registration at
+  `src/AgentX.App/Services/ShortcutCatalog.cs:76`, against which the check reports
+  `Chat selected False -> False`.
+
+70 checks across both shifts, 0 failed.
+
+### Fixed - Review round on the parity sweep (2026-09-12)
+
+Cloud review of the sweep, findings verified against the code before acting on them.
+
+- **Ctrl+N mid-generation took the operator back to the thread they had just left**
+  (`src/AgentX.App/ViewModels/ChatViewModel.cs:762`). The sweep widened "New Conversation"
+  to a global chord and a palette action, so a generation started in the previous thread can
+  still be running when the blank one opens. `NewConversationAsync` cleared the view state
+  but left that stream running; when it finished, `OnStreamingCompleted`'s adopt branch saw
+  the null id, took the finished stream's conversation id back and filed a second sidebar row
+  for it, so the new conversation silently became the old one. It now stops the generation and
+  clears the streaming state first. Covered by
+  `NewConversationAsync_MidGeneration_CancelsTheStreamItLeavesBehind`. Reachable before the
+  sweep from the Chat page's own button and Ctrl+Shift+N; the sweep widened who could hit it.
+  Stopping the generation was necessary but not sufficient; the entry above corrects the
+  claim this one originally made about it.
+- `case "RefreshDashboard"` in `AppNavigationService.ExecuteAction` lost its only producer when
+  the palette row was dropped (`ExecuteAction` is reached only from
+  `CommandPalette.xaml.cs:656`). Removed, and `docs/ARCHITECTURE.md` no longer lists it as a
+  palette action.
+- `LampTile.OnCompactChanged` assigned `Cap.Padding` from a ternary whose two branches became
+  identical when the non-compact side moved from 10 to 8. Removed: `LampTile.xaml:32` already
+  sets `Padding="8,0"`, and IsCompact really only changes Height and FontSize.
+- The palette's `Radius(token)` helper (`src/AgentX.App/Controls/CommandPalette.xaml.cs:408`)
+  fell back to `CornerRadius(0)` when a token did not resolve. Zero is itself a stop on the
+  machined scale, so a renamed or mistyped key rendered the wrong shape with nothing to catch
+  it. It throws now, the way a missing StaticResource does in XAML.
+- `scripts/apply-guide-accuracy.py` documented a `_blockComment` changeset key and defined
+  `DEFAULT_BLOCK_COMMENT`, but the append path still wrote the hardcoded 2026-07 comment, so
+  any future changeset would have stamped the wrong provenance above its keys in all six
+  locales. The key is read now.
+
+### Changed - Design parity sweep: rail, palette, orphan primitives, spacing grid (2026-09-06)
+
+The 2026-09-06 parity sweep left a NOT DONE list. This closes it, and closes what the
+audit behind it found once it was widened from "styles Hardware.xaml declares" to "every
+keyed resource in the style dictionaries".
+
+**Navigation rail** (`src/AgentX.App/MainWindow.xaml`)
+- Weekly Digest and Analytics shared the area-chart glyph; Backup and Restore wore the
+  Knowledge Vault's library. Digest now wears CalendarWeek (E8C0), Backup wears
+  SaveLocal (E78C). Both verified present in Segoe Fluent Icons.
+- Annotations sat between two separators with no group placard. It is a highlight on a
+  vault document, so it now lives under KNOWLEDGE after Compare Documents.
+- Past Self was on the rail but missing from the shell's nav-item map
+  (`MainWindow.xaml.cs` BuildNavItemMap), so arriving there from the palette or Jump To
+  never highlighted the rail item. Found by the new guard, fixed.
+
+**Ctrl+K palette** (`src/AgentX.App/Controls/CommandPalette.xaml.cs`,
+`MainWindow.xaml.cs` ConfigureCommandPalette)
+- The palette carried a hardcoded English list of nine pages; the rail has twenty-nine.
+  The shell now registers every rail item with the palette at startup: same tag,
+  localized label, glyph and group placard, in rail order, with Settings under SYSTEM.
+  A page added to the rail is in the palette.
+- Shortcut hints come from the live registry (`ShortcutCatalog.PageChordDisplay`), not
+  literals.
+- `CommandPaletteViewModel` was registered in DI and unit-tested but never used by the
+  control (its own comment deferred the integration to a task that never ran). It now
+  supplies and executes the "On This Page" group: the shortcuts the current page
+  registered. Its Core `FuzzyMatcher` is the palette's ranking engine, so the guide's
+  fuzzy-match claim is true.
+- Ranking and rendering used different orders, so Enter could run a row other than the
+  highlighted one. Rows are now rendered in the order they are ranked, grouped stably.
+- "New Conversation" and "Import Files" were plain navigations wearing action names.
+  They now carry a navigation intent (`Services/NavigationIntents.cs`): Chat starts a
+  fresh thread (`ChatViewModel.ApplyNavigationParameterAsync`), the vault raises the
+  import picker (`KnowledgeVaultPage.OnNavigatedTo`). Global Ctrl+N carries the same
+  intent. "Refresh Dashboard" was dropped: the dashboard re-initializes on every arrival,
+  so it duplicated the Dashboard row under a different name.
+- Every palette string is localized in all six locales (10 new keys,
+  `scripts/translations/palette-l10n-2026-09.json`), and the four user-guide claims about
+  the palette that the code did not support (prefix syntax, Tab-to-peek, recency ranking,
+  documents and plugins in the palette, a fuzzy example that could not match) are rewritten
+  in all six locales. `scripts/apply-guide-accuracy.py` now takes a changeset path.
+
+**Orphan primitives and legacy tokens** (`src/AgentX.App/Styles/*.xaml`)
+- Audit: 34 styles and roughly 200 tokens with no consumer anywhere in the app. Wired
+  where a hand-rolled twin was waiting: `ControlCapStyle` under the five card styles that
+  restated it (`Controls.xaml`, `Documents.xaml`); `ConversationItemStyle` on the chat
+  list and dashboard recents; `StreamStyle` on the code-block fallback text
+  (`MarkdownMessageControl.xaml.cs`); `ChromeCapButtonStyle` on the onboarding Launch
+  button, the one polished CTA DESIGN.md allows per view.
+- Deleted the rest: the Tier 1 Border primitives that duplicated the `Faceplate` and
+  `LampTile` templates (`Hardware.xaml`), status badges, dead chat and document styles,
+  five typography styles, the legacy `Spacing*`, `Radius*`, `Padding*`, `Border*`,
+  `Shadow*`, `Transition*` tokens and the unreferenced colour ramps in `Colors.xaml`.
+  Every `Radius*` consumer was re-pointed at the stop it already resolved to.
+- `ArmedCapPressedBrush` had no consumer because the cap template never swapped fills on
+  press. The machined cap template now darkens the cap 14% on press alongside the 1px
+  travel, which is the `ArmedDeep` pressed state on the armed cap and works on every fill.
+- DESIGN.md's recipe section pointed at the deleted styles and at a `HexBolt` control
+  that never existed (the bolts are inline in the Faceplate template, inset 8px, not 10).
+  Corrected, with the decisions logged.
+
+**Plugin Manager** (`src/AgentX.App/Views/PluginManagerPage.xaml`)
+- The ACTIVE/DISABLED pill was hand-rolled in code-behind with Tailwind green and red and
+  hardcoded English. It is a `LampTile` now: GO while enabled, STBY unlit while parked.
+
+**Annotation ink** (`src/AgentX.App/Helpers/AnnotationInk.cs`)
+- The five persisted inks moved out of the Annotations page into their own file, which is
+  now the only file the palette hue guard exempts. The guard also checks that file holds
+  exactly the six ink literals, so chassis colour cannot hide behind the exemption.
+
+**Spacing grid** (`scripts/normalize-spacing.py`)
+- 884 spacing components across 46 files sat between DESIGN.md's base-4 stops (6, 10, 14
+  and a few others). Snapped to the nearest multiple of 4, ties toward compact; components
+  0 to 4 and negatives are left as optical adjustments. The rule is written into DESIGN.md.
+- One code-behind radius of 6 (`BranchCompareWindow.xaml.cs`) moved to the cap stop.
+
+**Page centering** (`src/AgentX.App/Views/*.xaml`)
+- Rocky's report during review: Weekly Digest and Model Manager rendered too far to the
+  right. Both wrap content in a 1200px MaxWidth grid inside a ScrollViewer, as Dashboard
+  does, but Dashboard's grid declares `HorizontalAlignment="Center"` and theirs did not.
+  Sixteen width-capped columns across twelve pages had no alignment; UI Automation captures
+  measured six of them 230 to 540px right of center (Backup and Restore, Weekly Digest,
+  Knowledge Vault, Model Manager, Semantic Search, Collaborative Sync), Model Manager running
+  off the window. All sixteen now declare Center. Pre-existing: the same six pages measure
+  the same skew on the pre-sweep build. `WidthCappedColumnsDeclareAlignmentTests` guards it.
+- Center places a column correctly but sizes it to its content, which left the three
+  widest pages narrower than Dashboard. Weekly Digest, Knowledge Vault and Model Manager
+  also bind the column's MinWidth to `ContentColumn.Fill(PageScroller.ViewportWidth, 1200)`
+  (`src/AgentX.App/Helpers/ContentColumn.cs:20`), the viewport capped at the column's
+  MaxWidth: as wide as the cap allows, never wider than the viewport, and centered.
+
+**Guards** (`tests/AgentX.Tests/CodeQuality/`)
+- `NavRailParityTests`: no shared rail glyphs, no headerless group, every item localized
+  and in both page maps, and the palette holds no literal page list.
+- `NoOrphanKeyedResourcesTests`: every keyed resource in the style dictionaries has a
+  consumer or a named DESIGN.md reason (comment-stripped, chain-aware; Fluent lightweight
+  styling keys allowed by prefix).
+- `SpacingIsOnTheFourPixelGridTests`: XAML spacing attributes and code-behind Thickness.
+- `MachinedRadiusStopsTests` now also scans code-behind `new CornerRadius(...)`.
+- `NoBannedPaletteHuesTests` exempts only `AnnotationInk.cs` and checks its contents.
+- `ShortcutCatalogTests` and `CommandPaletteViewModelTests` cover the intent on Ctrl+N,
+  the registry-read chord hints, and scope switching.
+
+**Tooling**
+- `scripts/uia-nav-smoke.ps1`: per-page UI Automation navigation smoke in one or both
+  shifts, anchored on each page's own XAML names and text, with a palette check and
+  foreground-asserted captures.
+
 ### Changed - Hex socket cap bolts read as machined stainless (2026-09-06)
 
 Rocky's note: the bolts lay flat and the dark colour washed out. They did. The Night

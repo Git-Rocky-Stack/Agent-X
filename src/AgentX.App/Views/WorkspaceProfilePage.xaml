@@ -82,12 +82,12 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Orientation="Horizontal" Spacing="10"
+                    <StackPanel Orientation="Horizontal" Spacing="8"
                                 VerticalAlignment="Center">
                         <TextBlock x:Uid="Workspace_Profiles" Text="Profiles"
                                    Style="{StaticResource HeadingSmallStyle}" />
                         <Border Style="{StaticResource BadgeDefaultStyle}"
-                                Padding="6,2,6,2">
+                                Padding="4,2,4,2">
                             <TextBlock Style="{StaticResource BadgeStyle}">
                                 <Run Text="{x:Bind ViewModel.Profiles.Count, Mode=OneWay}" />
                             </TextBlock>
@@ -120,7 +120,7 @@
                             HorizontalAlignment="Stretch"
                             Command="{x:Bind ViewModel.CreateProfileCommand}"
                             AutomationProperties.LabeledBy="{x:Bind CreateProfileLabel}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
                             <FontIcon Glyph="&#xE710;" FontSize="12" />
                             <TextBlock x:Name="CreateProfileLabel" x:Uid="Workspace_CreateProfile" Text="Create Profile" FontSize="12" FontWeight="SemiBold" />
                         </StackPanel>
@@ -164,7 +164,7 @@
                         <Border Style="{StaticResource CollectionTreeItemStyle}"
                                 PointerPressed="OnProfileItemClick"
                                 Tag="{x:Bind}">
-                            <Grid ColumnSpacing="10">
+                            <Grid ColumnSpacing="8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
@@ -173,7 +173,7 @@
 
                                 <!-- Profile icon -->
                                 <Border Background="{ThemeResource AccentSubtleBrush}"
-                                        CornerRadius="{StaticResource RadiusSM}"
+                                        CornerRadius="{StaticResource RControl}"
                                         Width="32" Height="32"
                                         VerticalAlignment="Center">
                                     <FontIcon Glyph="&#xE77B;"
@@ -194,8 +194,8 @@
 
                                         <!-- Default badge -->
                                         <Border Background="{ThemeResource SuccessSubtleBrush}"
-                                                CornerRadius="{StaticResource RadiusRound}"
-                                                Padding="6,2,6,2"
+                                                CornerRadius="{StaticResource RControl}"
+                                                Padding="4,2,4,2"
                                                 Visibility="{x:Bind IsDefault, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                                             <TextBlock x:Uid="Workspace_Default" Text="DEFAULT"
                                                        FontSize="9" FontWeight="Bold"
@@ -243,10 +243,10 @@
 
             <!-- Row 3: Sidebar Footer -->
             <Border Grid.Row="3"
-                    Padding="16,10,16,10"
+                    Padding="16,8,16,8"
                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="0,1,0,0">
-                <StackPanel Orientation="Horizontal" Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="4">
                     <FontIcon Glyph="&#xE77B;" FontSize="11"
                               Foreground="{ThemeResource TextTertiaryBrush}" />
                     <TextBlock Style="{StaticResource CaptionStyle}">
@@ -268,7 +268,7 @@
                 <StackPanel Spacing="20" HorizontalAlignment="Center">
                     <!-- Icon -->
                     <Border Background="{ThemeResource AccentSubtleBrush}"
-                            CornerRadius="{StaticResource RadiusFull}"
+                            CornerRadius="{StaticResource RPill}"
                             Width="72" Height="72"
                             HorizontalAlignment="Center">
                         <FontIcon Glyph="&#xE77B;"
@@ -295,7 +295,7 @@
             <ScrollViewer Visibility="{x:Bind ViewModel.SelectedProfile, Mode=OneWay, Converter={StaticResource NullToVis}}"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled">
-                <Grid Padding="32,24,32,24" RowSpacing="24" MaxWidth="800">
+                <Grid Padding="32,24,32,24" RowSpacing="24" MaxWidth="800" HorizontalAlignment="Center">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />   <!-- Header -->
                         <RowDefinition Height="Auto" />   <!-- Status / Error -->
@@ -325,8 +325,8 @@
 
                                 <!-- Default badge in header -->
                                 <Border Background="{ThemeResource SuccessSubtleBrush}"
-                                        CornerRadius="{StaticResource RadiusRound}"
-                                        Padding="10,3,10,3"
+                                        CornerRadius="{StaticResource RControl}"
+                                        Padding="8,3,8,3"
                                         Visibility="{x:Bind ViewModel.SelectedProfile.IsDefault, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                         VerticalAlignment="Center">
                                     <TextBlock x:Uid="Workspace_Default2" Text="DEFAULT"
@@ -363,7 +363,7 @@
                                 Background="{ThemeResource SuccessSubtleBrush}"
                                 BorderBrush="{ThemeResource SuccessBrush}"
                                 BorderThickness="1"
-                                CornerRadius="{StaticResource RadiusMD}"
+                                CornerRadius="{StaticResource RControl}"
                                 Padding="16,12">
                             <StackPanel Orientation="Horizontal" Spacing="12">
                                 <FontIcon Glyph="&#xE73E;" FontSize="16"
@@ -381,7 +381,7 @@
                                 Background="{ThemeResource ErrorSubtleBrush}"
                                 BorderBrush="{ThemeResource ErrorBrush}"
                                 BorderThickness="1"
-                                CornerRadius="{StaticResource RadiusMD}"
+                                CornerRadius="{StaticResource RControl}"
                                 Padding="16,12">
                             <StackPanel Orientation="Horizontal" Spacing="12">
                                 <FontIcon Glyph="&#xE7BA;" FontSize="16"
@@ -401,7 +401,7 @@
                     <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="12">
                         <!-- Created date badge -->
                         <Border Style="{StaticResource BadgeDefaultStyle}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <FontIcon Glyph="&#xE787;" FontSize="11"
                                           Foreground="{ThemeResource TextTertiaryBrush}" />
                                 <TextBlock Style="{StaticResource BadgeStyle}">
@@ -413,7 +413,7 @@
 
                         <!-- Updated date badge -->
                         <Border Style="{StaticResource BadgeDefaultStyle}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <FontIcon Glyph="&#xE72C;" FontSize="11"
                                           Foreground="{ThemeResource TextTertiaryBrush}" />
                                 <TextBlock Style="{StaticResource BadgeStyle}">
@@ -426,7 +426,7 @@
                         <!-- Model badge (if configured) -->
                         <Border Style="{StaticResource BadgeAccentStyle}"
                                 Visibility="{x:Bind ViewModel.SelectedProfile.ActiveModelId, Mode=OneWay, Converter={StaticResource NullToVis}}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
                                 <FontIcon Glyph="&#xE964;" FontSize="11"
                                           Foreground="{ThemeResource TextAccentBrush}" />
                                 <TextBlock Text="{x:Bind ViewModel.SelectedProfile.ActiveModelId, Mode=OneWay}"
@@ -448,7 +448,7 @@
                         <StackPanel Spacing="24">
                             <!-- Section heading -->
                             <StackPanel Spacing="4">
-                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE70F;" FontSize="18"
                                               Foreground="{ThemeResource TextAccentBrush}" />
                                     <TextBlock x:Uid="Workspace_ProfileConfiguration" Text="Profile Configuration"
@@ -460,7 +460,7 @@
                             </StackPanel>
 
                             <!-- Name field -->
-                            <StackPanel Spacing="6">
+                            <StackPanel Spacing="4">
                                 <TextBlock x:Uid="Workspace_ProfileName" Text="PROFILE NAME"
                                            Style="{StaticResource OverlineStyle}" />
                                 <TextBox Style="{StaticResource InputTextBoxStyle}"
@@ -469,7 +469,7 @@
                             </StackPanel>
 
                             <!-- Description field -->
-                            <StackPanel Spacing="6">
+                            <StackPanel Spacing="4">
                                 <TextBlock x:Uid="Workspace_Description" Text="DESCRIPTION"
                                            Style="{StaticResource OverlineStyle}" />
                                 <TextBox Style="{StaticResource InputTextBoxStyle}"
@@ -481,7 +481,7 @@
                             </StackPanel>
 
                             <!-- Active Model ID field -->
-                            <StackPanel Spacing="6">
+                            <StackPanel Spacing="4">
                                 <TextBlock x:Uid="Workspace_ActiveModelId" Text="ACTIVE MODEL ID"
                                            Style="{StaticResource OverlineStyle}" />
                                 <TextBox Style="{StaticResource InputTextBoxStyle}"
@@ -492,7 +492,7 @@
                             </StackPanel>
 
                             <!-- Active Collection IDs field -->
-                            <StackPanel Spacing="6">
+                            <StackPanel Spacing="4">
                                 <TextBlock x:Uid="Workspace_ActiveCollectionIds" Text="ACTIVE COLLECTION IDS"
                                            Style="{StaticResource OverlineStyle}" />
                                 <TextBox Style="{StaticResource InputTextBoxStyle}"
@@ -503,7 +503,7 @@
                             </StackPanel>
 
                             <!-- Custom Settings field -->
-                            <StackPanel Spacing="6">
+                            <StackPanel Spacing="4">
                                 <TextBlock x:Uid="Workspace_CustomSettings" Text="CUSTOM SETTINGS"
                                            Style="{StaticResource OverlineStyle}" />
                                 <TextBox Style="{StaticResource InputTextBoxStyle}"
@@ -520,7 +520,7 @@
 
                             <!-- Default toggle -->
                             <Border Background="{ThemeResource CardBrush}"
-                                    CornerRadius="{StaticResource RadiusMD}"
+                                    CornerRadius="{StaticResource RControl}"
                                     Padding="16,12"
                                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                                     BorderThickness="1">

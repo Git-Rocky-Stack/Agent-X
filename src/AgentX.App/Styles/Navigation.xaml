@@ -142,14 +142,4 @@
         </Setter>
     </Style>
 
-    <!-- Legacy: section header TextBlock style (pre-sweep consumers) -->
-    <Style x:Key="NavSectionHeaderStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource FontDisplayBold}" />
-        <Setter Property="FontSize" Value="11" />
-        <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="CharacterSpacing" Value="100" />
-        <Setter Property="Foreground" Value="{ThemeResource TextTertiaryBrush}" />
-        <Setter Property="Margin" Value="16,16,0,6" />
-    </Style>
-
 </ResourceDictionary>

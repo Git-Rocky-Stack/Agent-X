@@ -14,7 +14,7 @@
         <converters:StatusToColorConverter x:Key="StatusToColor" />
         <DataTemplate x:Key="OperationsPreviewTemplate">
             <Border Style="{StaticResource CardStyle}"
-                    Padding="12,10"
+                    Padding="12,8"
                     Margin="0,0,0,8">
                 <StackPanel Spacing="4">
                     <TextBlock Text="{Binding Title}"
@@ -42,8 +42,8 @@
                     Margin="0,0,0,8"
                     AutomationProperties.LabeledBy="{Binding ElementName=OperationsConversationPreviewTemplateLabel}">
                 <Border Style="{StaticResource CardStyle}"
-                        Padding="12,10">
-                    <StackPanel Spacing="6">
+                        Padding="12,8">
+                    <StackPanel Spacing="4">
                         <TextBlock x:Name="OperationsConversationPreviewTemplateLabel" Text="{Binding Title}"
                                    Style="{StaticResource BodyStyle}"
                                    FontWeight="SemiBold"
@@ -73,7 +73,7 @@
                     Margin="0,0,0,8"
                     AutomationProperties.LabeledBy="{Binding ElementName=OperationsInboxPreviewTemplateLabel}">
                 <Border Style="{StaticResource CardStyle}"
-                        Padding="12,10">
+                        Padding="12,8">
                     <StackPanel Spacing="4">
                         <TextBlock x:Name="OperationsInboxPreviewTemplateLabel" Text="{Binding Title}"
                                    Style="{StaticResource BodyStyle}"
@@ -96,9 +96,9 @@
         </DataTemplate>
         <DataTemplate x:Key="OperationsImportedDocumentPreviewTemplate">
             <Border Style="{StaticResource CardStyle}"
-                    Padding="12,10"
+                    Padding="12,8"
                     Margin="0,0,0,8">
-                <Grid ColumnSpacing="10">
+                <Grid ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
@@ -111,7 +111,7 @@
                             HorizontalContentAlignment="Stretch"
                             Padding="0"
                             AutomationProperties.LabeledBy="{Binding ElementName=OperationsImportedDocumentPreviewTemplateLabel}">
-                        <StackPanel Spacing="6">
+                        <StackPanel Spacing="4">
                             <TextBlock x:Name="OperationsImportedDocumentPreviewTemplateLabel" Text="{Binding Title}"
                                        Style="{StaticResource BodyStyle}"
                                        FontWeight="SemiBold"
@@ -158,7 +158,7 @@
                     Margin="0,0,0,8"
                     AutomationProperties.LabeledBy="{Binding ElementName=OperationsSyncPreviewTemplateLabel}">
                 <Border Style="{StaticResource CardStyle}"
-                        Padding="12,10">
+                        Padding="12,8">
                     <StackPanel Spacing="4">
                         <TextBlock x:Name="OperationsSyncPreviewTemplateLabel" Text="{Binding Title}"
                                    Style="{StaticResource BodyStyle}"
@@ -189,8 +189,8 @@
                     Margin="0,0,0,8"
                     AutomationProperties.LabeledBy="{Binding ElementName=OperationsWorkflowPreviewTemplateLabel}">
                 <Border Style="{StaticResource CardStyle}"
-                        Padding="12,10">
-                    <StackPanel Spacing="6">
+                        Padding="12,8">
+                    <StackPanel Spacing="4">
                         <TextBlock x:Name="OperationsWorkflowPreviewTemplateLabel" Text="{Binding Title}"
                                    Style="{StaticResource BodyStyle}"
                                    FontWeight="SemiBold"
@@ -212,9 +212,9 @@
         </DataTemplate>
         <DataTemplate x:Key="OperationsConnectorPreviewTemplate">
             <Border Style="{StaticResource CardStyle}"
-                    Padding="12,10"
+                    Padding="12,8"
                     Margin="0,0,0,8">
-                <StackPanel Spacing="10">
+                <StackPanel Spacing="8">
                     <StackPanel Spacing="4">
                         <TextBlock Text="{Binding Title}"
                                    Style="{StaticResource BodyStyle}"
@@ -256,7 +256,7 @@
                     Padding="0"
                     AutomationProperties.LabeledBy="{Binding ElementName=OperationsHeaderStatusTileTemplateLabel}">
                 <Border Style="{StaticResource CardStyle}">
-                    <Grid RowSpacing="10">
+                    <Grid RowSpacing="8">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -290,7 +290,7 @@
         </DataTemplate>
         <DataTemplate x:Key="OperationsRecommendedActionTemplate">
             <Border Style="{StaticResource CardInsetStyle}"
-                    Padding="16,14">
+                    Padding="16,12">
                 <Grid RowSpacing="12">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -308,7 +308,7 @@
 
                         <Border Width="36"
                                 Height="36"
-                                CornerRadius="{StaticResource RadiusMD}"
+                                CornerRadius="{StaticResource RControl}"
                                 Background="{ThemeResource AccentSubtleBrush}">
                             <FontIcon Glyph="{Binding IconGlyph}"
                                       FontSize="15"
@@ -423,7 +423,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <StackPanel Spacing="10">
+                    <StackPanel Spacing="8">
                         <TextBlock x:Uid="Ops_CurrentStatusOverline" Text="CURRENT OPERATIONS STATUS"
                                    Style="{StaticResource OverlineStyle}" />
                         <TextBlock Text="{x:Bind ViewModel.SummaryHeadline, Mode=OneWay}"
@@ -532,7 +532,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <StackPanel Spacing="10">
+                        <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE9D2;" FontSize="14"
                                           Foreground="{ThemeResource TextAccentBrush}" />
@@ -550,7 +550,7 @@
                                        TextWrapping="Wrap" />
                             <TextBlock x:Uid="Ops_RecentSummariesLabel" Text="Recent summaries"
                                        Style="{StaticResource CaptionStyle}"
-                                       Margin="0,6,0,0" />
+                                       Margin="0,4,0,0" />
                             <ItemsControl ItemsSource="{x:Bind ViewModel.RecentConversationSummaries, Mode=OneWay}"
                                           ItemTemplate="{StaticResource OperationsConversationPreviewTemplate}" />
                         </StackPanel>
@@ -576,7 +576,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <StackPanel Spacing="10">
+                        <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE895;" FontSize="14"
                                           Foreground="{ThemeResource InfoBrush}" />
@@ -594,7 +594,7 @@
                                        TextWrapping="Wrap" />
                             <TextBlock x:Uid="Ops_RecentSyncPassesLabel" Text="Recent sync passes"
                                        Style="{StaticResource CaptionStyle}"
-                                       Margin="0,6,0,0" />
+                                       Margin="0,4,0,0" />
                             <ItemsControl ItemsSource="{x:Bind ViewModel.RecentSyncPasses, Mode=OneWay}"
                                           ItemTemplate="{StaticResource OperationsSyncPreviewTemplate}" />
                         </StackPanel>
@@ -620,7 +620,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <StackPanel Spacing="10">
+                        <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8B7;" FontSize="14"
                                           Foreground="{ThemeResource WarningBrush}" />
@@ -638,12 +638,12 @@
                                        TextWrapping="Wrap" />
                             <TextBlock x:Uid="Ops_PendingItemsLabel" Text="Pending items"
                                        Style="{StaticResource CaptionStyle}"
-                                       Margin="0,6,0,0" />
+                                       Margin="0,4,0,0" />
                             <ItemsControl ItemsSource="{x:Bind ViewModel.PendingInboxItems, Mode=OneWay}"
                                           ItemTemplate="{StaticResource OperationsInboxPreviewTemplate}" />
                             <TextBlock x:Uid="Ops_RecentImportedLabel" Text="Recent imported documents"
                                        Style="{StaticResource CaptionStyle}"
-                                       Margin="0,6,0,0" />
+                                       Margin="0,4,0,0" />
                             <ItemsControl ItemsSource="{x:Bind ViewModel.RecentImportedDocuments, Mode=OneWay}"
                                           ItemTemplate="{StaticResource OperationsImportedDocumentPreviewTemplate}" />
                         </StackPanel>
@@ -673,7 +673,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <StackPanel Spacing="10">
+                        <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8C7;" FontSize="14"
                                           Foreground="{ThemeResource SuccessBrush}" />
@@ -703,7 +703,7 @@
                                        TextWrapping="Wrap" />
                             <TextBlock x:Uid="Ops_RecentRunsLabel" Text="Recent runs"
                                        Style="{StaticResource CaptionStyle}"
-                                       Margin="0,6,0,0" />
+                                       Margin="0,4,0,0" />
                             <ItemsControl ItemsSource="{x:Bind ViewModel.RecentWorkflowRuns, Mode=OneWay}"
                                           ItemTemplate="{StaticResource OperationsWorkflowPreviewTemplate}" />
                         </StackPanel>
@@ -724,7 +724,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <StackPanel Spacing="10">
+                        <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE943;" FontSize="14"
                                           Foreground="{ThemeResource SuccessBrush}" />
@@ -742,7 +742,7 @@
                                        TextWrapping="Wrap" />
                             <TextBlock x:Uid="Ops_ConnectorPreviewLabel" Text="Connector preview"
                                        Style="{StaticResource CaptionStyle}"
-                                       Margin="0,6,0,0" />
+                                       Margin="0,4,0,0" />
                             <ItemsControl ItemsSource="{x:Bind ViewModel.ConnectorPreviews, Mode=OneWay}"
                                           ItemTemplate="{StaticResource OperationsConnectorPreviewTemplate}" />
                         </StackPanel>
