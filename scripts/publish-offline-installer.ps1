@@ -47,7 +47,7 @@
 
 [CmdletBinding()]
 param(
-    [string]$Version = "2.1.2",
+    [string]$Version = "2.2.0",
     [string]$Bucket = $(if ($env:AGENTX_R2_BUCKET) { $env:AGENTX_R2_BUCKET } else { "agentx-releases" }),
     [string]$PublicBaseUrl = $(if ($env:AGENTX_R2_PUBLIC_BASE_URL) { $env:AGENTX_R2_PUBLIC_BASE_URL } else { "https://downloads.strategia-x.com" }),
     [string]$InstallerPath,
