@@ -230,7 +230,12 @@ public sealed class VerifySweepSuppressionsTests
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null)
         {
-            if (Directory.Exists(Path.Combine(directory.FullName, ".git")) &&
+            // .git is a directory in a clone and a file holding "gitdir: ..." in a worktree.
+            // Requiring the directory made these four guards throw in every worktree, which is
+            // where a clean-tree build gets checked, so the one place they most needed to run
+            // was the one place they could not.
+            var git = Path.Combine(directory.FullName, ".git");
+            if ((Directory.Exists(git) || File.Exists(git)) &&
                 Directory.Exists(Path.Combine(directory.FullName, "src")))
             {
                 return directory.FullName;

@@ -91,7 +91,7 @@ completion from another surface sharing the coordinator needs. Each of the three
 fix was removed in turn and the suite re-run: the handler gate alone accounts for two
 failures, the continuation gate and the sidebar epoch for one each.
 
-### Fixed - Four guards that could not fail, or could not see (2026-09-12)
+### Fixed - Guards that could not fail, could not see, or could not run (2026-09-12)
 
 - `NavRailParityTests.EveryRailItem_SitsUnderAGroupPlacard` and
   `NoRailGroup_IsHeaderless_BetweenSeparators` walked the rail's direct children and asserted
@@ -114,6 +114,13 @@ failures, the continuation gate and the sidebar epoch for one each.
   forms. It now splits on whitespace too (`SpacingIsOnTheFourPixelGridTests.cs:83`). Verified by
   planting that exact margin: the old guard passed, the fixed one catches it. No
   space-separated spacing exists in the app today, so nothing needed snapping.
+- The four `VerifySweepSuppressionsTests` resolved the repo root by looking for a `.git`
+  *directory* (`tests/AgentX.Tests/CodeQuality/VerifySweepSuppressionsTests.cs:228`). In a git
+  worktree `.git` is a file holding `gitdir: ...`, so all four threw
+  `DirectoryNotFoundException` there. A worktree is exactly where a clean-tree build gets
+  checked, so the one place these guards most needed to run was the one place they could not.
+  Found by building this commit in a worktree: 4 failures there, 0 in the main clone. It now
+  accepts either shape, and the pristine worktree runs 3,029 of 3,029.
 
 ### Added - Runtime centering and Ctrl+N checks in the nav smoke (2026-09-12)
 
