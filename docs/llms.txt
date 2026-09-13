@@ -8,7 +8,7 @@
 
 **Project:** Agent-X
 **Description:** Local-First AI-Powered Document Intelligence for Windows
-**Version:** 2.1.2 ("Bedrock" security & supply-chain hardening — authenticated local API, hardened mobile transport, signing-ready release pipeline; full Codex + 2026-06-19 QA audit closed)
+**Version:** 2.2.0 ("Command Console" - the Command Console design system across all 29 views, the full UI in six languages, and a defect class closed in which finished features had no route to the user)
 **Repository:** https://github.com/strategia-x/agent-x
 **Website:** https://strategia-x.com/agent-x
 **Documentation:** docs/README.md
@@ -176,5 +176,5 @@ PDF, DOCX, DOC, TXT, MD, JSON, XML, CSV, HTML, and all code formats
 
 ## Version
 
-**Documentation Version:** 2.1.2
+**Documentation Version:** 2.2.0
 **Last Updated:** 2026-06-21

@@ -6,7 +6,7 @@
 
 ## Project Overview
 
-**Agent-X** is a native Windows desktop application (v2.1.2) built on .NET 8.0 and WinUI 3 that transforms personal document collections into queryable, AI-augmented knowledge bases. It ships with Llama 3.2 3B bundled, supports Ollama for local models, and integrates OpenAI and Anthropic for cloud AI — all with a privacy-first, local-first architecture.
+**Agent-X** is a native Windows desktop application (v2.2.0) built on .NET 8.0 and WinUI 3 that transforms personal document collections into queryable, AI-augmented knowledge bases. It ships with Llama 3.2 3B bundled, supports Ollama for local models, and integrates OpenAI and Anthropic for cloud AI — all with a privacy-first, local-first architecture.
 
 **Key Differentiators:**
 - **100% Local by Default** — Zero telemetry, no phone-home, offline-capable
@@ -35,7 +35,7 @@
 | **GPU** | CUDA 12 |
 | **Full-Text Search** | SQLite FTS5 |
 | **Logging** | Serilog |
-| **Testing** | xUnit + 2,773 unit tests |
+| **Testing** | xUnit + 3,029 unit tests |
 
 ### Component Architecture
 
@@ -367,7 +367,7 @@ Where:
 
 1. **Use dependency injection** — All services support DI
 2. **Follow MVVM pattern** — ViewModels abstract UI logic
-3. **Write unit tests** — 2,773 tests provide coverage examples
+3. **Write unit tests** — 3,029 tests provide coverage examples
 4. **Use structured logging** — Serilog with contextual information
 5. **Handle exceptions gracefully** — Typed exceptions with clear messages
 

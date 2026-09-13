@@ -4,7 +4,7 @@ Non-blocking issues and follow-ups for Agent-X. **None of these prevent the app 
 building, passing tests, installing, or running.** They are tracked here for
 transparency and future work.
 
-_Last updated: 2026-06-21._
+_Last reviewed: 2026-09-12 (v2.2.0). The single open item below still applies._
 
 ---
 

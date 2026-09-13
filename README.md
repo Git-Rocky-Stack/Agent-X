@@ -6,9 +6,9 @@
 [![Platform](https://img.shields.io/badge/Windows-10%2019041%2B%20(x64)-0078d4)](docs/README.md)
 [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)](https://dotnet.microsoft.com/)
 [![UI](https://img.shields.io/badge/WinUI-3-blue)](https://learn.microsoft.com/windows/apps/winui/)
-[![Tests](https://img.shields.io/badge/tests-2%2C810-brightgreen)](docs/CI.md)
+[![Tests](https://img.shields.io/badge/tests-3%2C029-brightgreen)](docs/CI.md)
 
-> **Latest release:** [v2.1.1](https://github.com/Git-Rocky-Stack/Agent-X/releases/latest) (installers below) · **Current source:** [v2.1.2](CHANGELOG.md) — "Bedrock" security & supply-chain hardening; the signed v2.1.2 installer republish is pending code-signing certificate issuance.
+> **Latest release:** [v2.2.0](https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.2.0) — "Command Console" (source and release notes) · **Latest signed installers:** [v2.1.1](https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.1.1). Installers for v2.1.2 and v2.2.0 are pending code-signing certificate issuance; see [`docs/RELEASE-SIGNING.md`](docs/RELEASE-SIGNING.md).
 > **License:** MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Rocky Elsalaymeh.
 
 ---
@@ -17,8 +17,8 @@
 
 | Installer | Size | Local model | Best for |
 |---|---|---|---|
-| [`AgentX-Setup-x64.exe` (SLIM)](https://github.com/Git-Rocky-Stack/Agent-X/releases/latest) | ~230 MB | Downloaded on first run | Most users |
-| `AgentX-Setup-x64-offline.exe` (OFFLINE) — linked from the [release notes](https://github.com/Git-Rocky-Stack/Agent-X/releases/latest) | ~2.1 GB | Llama 3.2 3B pre-bundled | Air-gapped / offline installs |
+| [`AgentX-Setup-x64.exe` (SLIM)](https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.1.1) | ~230 MB | Downloaded on first run | Most users |
+| `AgentX-Setup-x64-offline.exe` (OFFLINE) — linked from the [v2.1.1 release notes](https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.1.1) | ~2.1 GB | Llama 3.2 3B pre-bundled | Air-gapped / offline installs |
 
 Requirements: Windows 10 build 19041+ or Windows 11, x64. No account, no subscription, no telemetry.
 
@@ -62,7 +62,7 @@ Requirements: Windows 10 build 19041+ or Windows 11, x64. No account, no subscri
 - Six UI languages (en-US, de, es, fr, ja, zh-CN) — every page, dialog, and the user guide fully localized; CI enforces key parity across all locales
 - Command Console design system ([`DESIGN.md`](DESIGN.md)): a hardware-instrument UI with live status lamps and phosphor readouts, in dark (Night Shift), light (Day Shift), and high-contrast themes; every visible interactive control carries an accessible name, verified by UI Automation across all 29 pages
 - Android mobile companion (.NET MAUI) and a browser extension for capture on the go
-- 29 navigation destinations, ~88 services, 3,006 unit tests, in-app onboarding and user guide
+- 29 navigation destinations, ~88 services, 3,029 unit tests, in-app onboarding and user guide
 
 ## Documentation
 
@@ -88,7 +88,7 @@ Full product, architecture, and developer documentation lives under [`docs/`](do
 
 AI-crawler indexes: [`docs/llms.txt`](docs/llms.txt) · [`docs/long-llms.txt`](docs/long-llms.txt)
 
-**Release notes:** [v2.1.0 "Bedrock"](docs/v2.1.0-RELEASE-NOTES.md) · [v2.1.0-preview.1](docs/v2.1.0-preview.1-RELEASE-NOTES.md) · [v1.5.0](docs/v1.5.0-RELEASE-NOTES.md) · [v1.4.0](docs/v1.4.0-RELEASE-NOTES.md) · [v1.3.0](docs/v1.3.0-RELEASE-NOTES.md)
+**Release notes:** [v2.2.0 "Command Console"](CHANGELOG.md) · [v2.1.2](CHANGELOG.md) · [v2.1.0 "Bedrock"](docs/v2.1.0-RELEASE-NOTES.md) · [v2.1.0-preview.1](docs/v2.1.0-preview.1-RELEASE-NOTES.md) · [v1.5.0](docs/v1.5.0-RELEASE-NOTES.md) · [v1.4.0](docs/v1.4.0-RELEASE-NOTES.md) · [v1.3.0](docs/v1.3.0-RELEASE-NOTES.md)
 
 ## Build from Source
 
@@ -103,7 +103,7 @@ dotnet build -c Release -p:Platform=x64
 # Run the desktop app
 dotnet run --project src/AgentX.App -c Release -p:Platform=x64
 
-# Run the test suite (3,006 tests) and the coverage gate
+# Run the test suite (3,029 tests) and the coverage gate
 dotnet test tests/AgentX.Tests/AgentX.Tests.csproj -c Release -p:Platform=x64
 pwsh scripts/check-coverage.ps1 -ReportOnly
 ```
@@ -112,7 +112,11 @@ Full build instructions, installer packaging (SLIM / OFFLINE Inno Setup profiles
 
 ## Contributing
 
-Issues and pull requests are welcome. Before submitting a PR:
+Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full
+guide, [SECURITY.md](SECURITY.md) for reporting a vulnerability privately, and our
+[Code of Conduct](CODE_OF_CONDUCT.md).
+
+Before submitting a PR:
 
 1. `dotnet build -c Release -p:Platform=x64` — zero warnings expected
 2. `dotnet test tests/AgentX.Tests/AgentX.Tests.csproj -c Release -p:Platform=x64` — the full suite must stay green
