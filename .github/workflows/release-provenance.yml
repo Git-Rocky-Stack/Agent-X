@@ -20,6 +20,10 @@ name: Release Provenance (cosign + Rekor)
 # downloaded file's hash against the manifest.
 #
 # Prerequisite: the release must carry SHA256SUMS.txt as an asset (build-installers.ps1 writes it).
+# Source-only releases (no assets at all, e.g. a tag published before its installers are signed)
+# have nothing to sign, so the automatic path reports 'nothing to sign' and stops rather than
+# failing. A release that DOES carry artifacts but no manifest still fails hard - that is the
+# dangerous case this gate exists for - and so does an explicit workflow_dispatch request.
 # Run flow: publish a release with SHA256SUMS.txt attached -> this fires automatically. The manual
 # workflow_dispatch path re-signs an existing tag (e.g. a release created before this workflow, or
 # after attaching the manifest late).
@@ -52,10 +56,31 @@ jobs:
       REPO: ${{ github.repository }}
       GH_TOKEN: ${{ github.token }}
     steps:
+      - name: Decide whether there is anything to sign
+        id: preflight
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Explicit signing request for $TAG; the manifest is required."
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          assets=$(gh release view "$TAG" -R "$REPO" --json assets --jq '.assets | length')
+          echo "Release $TAG carries $assets asset(s)."
+          if [ "$assets" -eq 0 ]; then
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+            echo "Source-only release: no artifacts are published, so there is nothing to sign."               >> "$GITHUB_STEP_SUMMARY"
+            echo "Attach the installers and SHA256SUMS.txt, then re-run this workflow via"               "workflow_dispatch to add provenance." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Install cosign
+        if: steps.preflight.outputs.proceed == 'true'
         uses: sigstore/cosign-installer@v3
 
       - name: Download SHA256SUMS.txt from the release
+        if: steps.preflight.outputs.proceed == 'true'
         run: |
           set -euo pipefail
           echo "Fetching SHA256SUMS.txt from release $TAG ..."
@@ -67,6 +92,7 @@ jobs:
           cat SHA256SUMS.txt
 
       - name: Sign the manifest (keyless) and record it in Rekor
+        if: steps.preflight.outputs.proceed == 'true'
         run: |
           set -euo pipefail
           # cosign v2 keyless: detects the GitHub OIDC token automatically (id-token: write),
@@ -77,6 +103,7 @@ jobs:
             SHA256SUMS.txt
 
       - name: Self-verify the signature before publishing it
+        if: steps.preflight.outputs.proceed == 'true'
         run: |
           set -euo pipefail
           # Defense-in-depth: fail the run if the signature we just produced does not verify against
@@ -90,12 +117,14 @@ jobs:
             SHA256SUMS.txt
 
       - name: Upload signature + certificate to the release
+        if: steps.preflight.outputs.proceed == 'true'
         run: |
           set -euo pipefail
           gh release upload "$TAG" SHA256SUMS.txt.sig SHA256SUMS.txt.pem -R "$REPO" --clobber
           echo "Attached SHA256SUMS.txt.sig and SHA256SUMS.txt.pem to release $TAG."
 
       - name: Summarize provenance to the run summary
+        if: steps.preflight.outputs.proceed == 'true'
         # Plain-text only (no backticks / no line-continuations) so there is no shell-escaping
         # hazard in CI. The authoritative, formatted copy-paste verification command lives in
         # docs/RELEASE-SIGNING.md — single source of truth, no duplication.
