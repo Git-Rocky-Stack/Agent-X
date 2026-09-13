@@ -4,48 +4,20 @@ All notable changes to Agent-X are documented in this file.
 
 ---
 
-## Documentation Release (2026-05-03)
-
-### Added — Comprehensive User Documentation Suite (20+ files, 8,000+ lines)
-
-**Getting Started & Onboarding**
-- `docs/user-guide/getting-started/quick-start.md` — 10-minute setup walkthrough for new users
-- Covers installation, first launch, passphrase creation, document import, AI chat, and semantic search
-
-**Reference Documentation**
-- `docs/user-guide/faq.md` — 100+ frequently asked questions covering installation, features, AI, search, performance, privacy, licensing, and troubleshooting
-- `docs/user-guide/troubleshooting.md` — Solutions to common issues organized by category with advanced diagnostics section
-- `docs/user-guide/glossary.md` — 100+ term glossary with definitions covering all Agent-X terminology
-- `docs/user-guide/keyboard-shortcuts.md` — Comprehensive power user navigation guide with platform-specific notes
-
-**Templates & Scenarios**
-- `docs/user-guide/templates/README.md` — Templates overview with usage guide
-- `docs/user-guide/templates/document-templates.md` — Project Brief, Meeting Notes, Research Summary, Technical Spec, Code Review templates
-- `docs/user-guide/templates/chat-templates.md` — Summarize, Compare, Extract, Research, Technical chat templates
-- `docs/user-guide/scenarios/README.md` — Real-world scenarios: Research Paper Analysis, Meeting Intelligence, Code Review Assistant, Document Migration, Personal Knowledge Base
-
-**Video Tutorial Scripts**
-- `docs/user-guide/video-scripts/README.md` — Scripts for 5 videos: Quick Start, Advanced RAG, Knowledge Graph, Workflows, GPU Acceleration
-
-**AI Discovery & Indexing**
-- `docs/llms.txt` — AI-optimized documentation index for LLM consumption with quick links and key concepts
-- `docs/long-llms.txt` — Extended AI reference with comprehensive details on architecture, features, configuration, and best practices
-
-### Updated
-- **README.md** — Added comprehensive documentation section with links to all new user guide resources
-- Documentation organized under `docs/user-guide/` with clear categorization
-
-### Documentation Statistics
-- **Total Files Created:** 20+
-- **Total Lines:** 8,000+
-- **Categories:** 7 (Getting Started, Reference, Templates, Scenarios, Video Scripts, AI Discovery, Enhanced)
-- **Topics Covered:** 100+ glossary terms, 100+ FAQ items, 5 real-world scenarios, 10+ templates, 5 video scripts
-
----
-
 The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+Nothing yet.
+
+## [2.2.0] - 2026-09-12 - "Command Console"
+
+Feature release covering the 46 commits since [2.1.2]. The desktop app adopts the
+**Command Console** design system across all 29 views, ships **end to end in six
+languages**, and closes a defect class in which finished features had shipped with no
+route to the user. Behind the UI, an eighteen-service test campaign lifted authored
+`AgentX.Core` coverage from 40% to 62% and caught five bugs that were already in users'
+hands. No breaking changes; no database schema changes.
 
 ### Fixed - The adopt hole behind Ctrl+N, closed at its cause (2026-09-12)
 
@@ -648,7 +620,7 @@ and four structural tests keep the whole class of defect from returning.
 - The dashboard reported **100% indexed / "Idle"** when the indexing query threw, presenting a
   healthy reading for a state it never observed. It now reports "Status unavailable".
 - The Past Self voice profile showed a **15-word average sentence length and a "Balanced" style
-  with zero samples captured** — invented statistics indistinguishable from real measurements. An
+  with zero samples captured** - invented statistics indistinguishable from real measurements. An
   empty profile now says so.
 
 ### Fixed - Correctness and accessibility
@@ -703,7 +675,7 @@ and four structural tests keep the whole class of defect from returning.
 
 - `WorkspaceService` (821 lines): a complete parallel multi-workspace subsystem with its own
   JSON metadata store and per-workspace database, never registered, never referenced, and never
-  tested. It duplicated no live behaviour — the shipped feature is `WorkspaceProfileService`.
+  tested. It duplicated no live behaviour - the shipped feature is `WorkspaceProfileService`.
 - Six unreachable duplicate commands whose behaviour is already provided by a working path:
   chat regenerate and research-mode toggles, two chat export commands superseded by the export
   dialog, a workflow export command that discarded its own result, and a sync folder picker whose
@@ -786,7 +758,7 @@ confirmed nothing depended on them.
   with no Click handler, Command binding, or flyout. WinUI silently absorbs presses on such a
   control, so nothing else catches it.
 - `NoUnreachableViewModelCommandsTests` fails when a `[RelayCommand]` cannot be invoked from any
-  view or code path — implemented, covered by tests, and still unreachable for the user.
+  view or code path - implemented, covered by tests, and still unreachable for the user.
 - `NoUndefinedXamlResourceKeysTests` fails when XAML references a `StaticResource` or
   `ThemeResource` key nothing defines. These resolve at page realization, so a bad key builds
   clean and throws the first time a user opens the page.
@@ -820,9 +792,75 @@ The entire UI adopts the **Command Console design system** from the Strategia fa
 - Quick Actions page could fail to open due to a tab handler firing during XAML parse (2026-07-04).
 - Databases with a stamped baseline but missing tables now self-heal at startup instead of bricking the app (2026-07-04).
 
-## [2.1.2] — 2026-06-21 — "Bedrock" security & supply-chain hardening
+### Added - Coverage campaign across AgentX.Core, and the five shipping bugs it caught (2026-06-21 to 2026-07-03)
 
-Security and hardening release. Closes the full **Codex security audit** and the **Comprehensive QA Audit (2026-06-19)** — every finding **AX-QA-001 through AX-QA-016** — makes the release pipeline signing-ready, and brings the mobile companion to a verified build. No breaking changes; no database schema changes.
+Eighteen `AgentX.Core` services went from little or no authored coverage to end-to-end
+suites. Measured authored coverage moved from 40.06% line / 33.56% branch to 62.58% /
+52.43%, and the CI gate in [`scripts/check-coverage.ps1`](scripts/check-coverage.ps1) was
+ratcheted behind each round (global floor 38/31 to 62/51) so the gain cannot silently
+regress. Critical namespaces carry their own higher floors.
+
+Covered in this campaign: ApiHostService, WorkflowEngine, PluginService, SyncService
+(0 to 96%), OAuthService (45 to 83%), BackupService (15 to 79%), DocumentService (0 to
+91%), InboxService (0 to 98%), ConversationService (0 to 99%), SemanticMemoryService
+(0 to 98%), WorkflowService (23 to 90%), AutoTagService (0 to 86%), CollaborationService
+(0 to 84%), ConversationBranchService (0 to 98%), SemanticSearchService (0 to 97%),
+ComparisonService (5 to 100%), KeywordSearchService, TemporalIdentityService, and
+LocalLlmProvider.
+
+Writing those tests exposed five defects that were already shipping to users:
+
+- **Keyword search returned its worst matches first.** BM25 rank was normalized as
+  `1 / (1 + |rank|)`. An FTS5 rank is *more negative* for a better match, so that formula
+  inverted relevance: the strongest hits sorted last and were then truncated away by the
+  result limit, and hybrid RRF fusion inherited the inverted keyword ordering. Now
+  `|rank| / (1 + |rank|)`, which keeps the same 0-1 range and preserves BM25 order
+  ([`KeywordSearchService.cs:311`](src/AgentX.Core/Search/KeywordSearchService.cs#L311)).
+- **Every call to `GetAllMemoriesAsync` threw.** The query ordered by
+  `GetEffectiveImportance`, a temporal-decay computation EF cannot translate to SQL, so
+  the provider raised `InvalidOperationException` instead of returning memories. The
+  active set is now materialized before the in-memory sort
+  ([`SemanticMemoryService.cs:451`](src/AgentX.Core/Services/Chat/SemanticMemoryService.cs#L451)).
+- **Every call to `GetPastSelfAsync` threw.** `GetRelatedConversations` and
+  `GetRelatedDocuments` both filtered on `DateTime` subtraction, which the SQLite provider
+  cannot translate. Each now materializes its candidate rows and applies the 30-day
+  window in memory
+  ([`TemporalIdentityService.cs:539`](src/AgentX.Core/Services/TemporalIdentity/TemporalIdentityService.cs#L539)).
+- **Computed insight significance was thrown away.** `DetectInsights` calculated a marker
+  score, then `CaptureInsight` hard-coded `SignificanceScore = 0.7`, so every captured
+  insight recorded identical significance no matter the evidence. The computed score now
+  flows through an optional parameter
+  ([`TemporalIdentityService.cs:151`](src/AgentX.Core/Services/TemporalIdentity/TemporalIdentityService.cs#L151)).
+- **`ComparisonService` carried 93 lines of unreachable prompt builders.**
+  `BuildSystemPrompt`, `BuildUserPrompt`, and `AnalysisChatOptions` had no remaining
+  callers. Deleted rather than tested.
+
+### Fixed - The in-app user guide documented two features that do not exist (2026-07-03)
+
+The guide's **Scheduled Queries** and **Automation Rules** sections described a scheduler,
+a trigger system, and a rule engine. No such engine exists anywhere in the app. Both
+sections are gone, along with the 35 localized keys per locale, two templates, and the
+selector arms and view-model entries behind them. The Integrations description no longer
+claims calendar and email items are usable as triggers in Workflows, because there is no
+trigger system for them to feed.
+
+The Workflows section was rewritten to describe the engine that actually ships: five
+on-demand step types (AI Prompt, Document Lookup, Text Transform, Conditional Branch,
+Output Format) plus run history, with no cron or event triggers.
+
+Five navigation pages had shipped with no guide coverage at all and now have sections:
+Document Comparison, Smart Inbox, Analytics, Operations, and Collaborative Sync. The guide
+now carries 46 sections covering all 29 navigation destinations, translated across all six
+locales.
+
+### Changed - README rewritten for the public repository (2026-07-03)
+
+The README was rewritten for readers arriving from outside the project, and stale claims
+elsewhere in the reference docs were corrected in the same pass.
+
+## [2.1.2] - 2026-06-21 - "Bedrock" security & supply-chain hardening
+
+Security and hardening release. Closes the full **Codex security audit** and the **Comprehensive QA Audit (2026-06-19)** - every finding **AX-QA-001 through AX-QA-016** - makes the release pipeline signing-ready, and brings the mobile companion to a verified build. No breaking changes; no database schema changes.
 
 ### Security
 
@@ -837,14 +875,14 @@ Security and hardening release. Closes the full **Codex security audit** and the
 - **Fresh-install / partial-baseline self-heal (AX-QA-002, AX-QA-003).** The migration runner detects and repairs a partially-stamped baseline, and startup is now fail-closed so a half-initialised database can no longer surface a broken UI; closed a dashboard-load-vs-migration race via `IStartupGate`.
 - **Dashboard privacy claim is state-aware (AX-QA-008).** The "no cloud" assurance reflects the actual provider state through `IPrivacyStatusService` instead of being hard-coded.
 - **Knowledge-vault document-reload race eliminated (AX-QA-009)** in `KnowledgeVaultViewModel`.
-- **Mobile Android build is green (AX-QA-004).** The MAUI companion now builds clean for `net8.0-android` (Debug **and** Release, 0 warnings) and is a **blocking** CI gate. It had been compile-unverified due to a missing Android platform head (now scaffolded: manifest, `MainActivity`/`MainApplication`, icon/splash) and a wrong-API call in `MauiProgram.cs` — a non-existent parameterless `UseMaui()`, corrected to the canonical `UseMauiApp<App>()`.
+- **Mobile Android build is green (AX-QA-004).** The MAUI companion now builds clean for `net8.0-android` (Debug **and** Release, 0 warnings) and is a **blocking** CI gate. It had been compile-unverified due to a missing Android platform head (now scaffolded: manifest, `MainActivity`/`MainApplication`, icon/splash) and a wrong-API call in `MauiProgram.cs` - a non-existent parameterless `UseMaui()`, corrected to the canonical `UseMauiApp<App>()`.
 - **Single-source version display (AX-QA-014).** The dashboard footer, Settings page, and backup manifest now read one assembly-backed version (`AppVersionInfo`) instead of three drifting hard-coded strings.
 - **Browser extension (AX-QA-013, AX-QA-015).** Long recent-clip titles/URLs truncate with an ellipsis; the feedback area is an ARIA live region announced to assistive technology (escalating to `assertive` for errors).
 
-### Added / Changed — release engineering
+### Added / Changed - release engineering
 
-- **Signing-ready installer pipeline with provenance gate (AX-QA-001, AX-QA-007).** `scripts/build-installers.ps1` Authenticode-signs and RFC-3161 timestamps the app binary plus both installers, verifies the signatures, writes `SHA256SUMS.txt`, and **aborts if the published `AgentX.Core.dll` lacks the security types** — the exact regression that shipped in the public v2.1.1 asset (built from stale source). See [`docs/RELEASE-SIGNING.md`](docs/RELEASE-SIGNING.md).
-- **Keyless supply-chain provenance in CI (cosign + Rekor).** New `.github/workflows/release-provenance.yml` signs the release `SHA256SUMS.txt` with [Sigstore](https://www.sigstore.dev/) `cosign` using GitHub's ambient OIDC identity — **no secret, no long-lived key** — records it in the public **Rekor** transparency log, and attaches the signature + ephemeral certificate to the release. Signing the manifest transitively covers both the SLIM (GitHub) and OFFLINE (R2) installers. This is the second of a two-layer model (local Authenticode + CI keyless provenance); end users can verify origin with `cosign verify-blob` — see [`docs/RELEASE-SIGNING.md`](docs/RELEASE-SIGNING.md#verifying-a-download).
+- **Signing-ready installer pipeline with provenance gate (AX-QA-001, AX-QA-007).** `scripts/build-installers.ps1` Authenticode-signs and RFC-3161 timestamps the app binary plus both installers, verifies the signatures, writes `SHA256SUMS.txt`, and **aborts if the published `AgentX.Core.dll` lacks the security types** - the exact regression that shipped in the public v2.1.1 asset (built from stale source). See [`docs/RELEASE-SIGNING.md`](docs/RELEASE-SIGNING.md).
+- **Keyless supply-chain provenance in CI (cosign + Rekor).** New `.github/workflows/release-provenance.yml` signs the release `SHA256SUMS.txt` with [Sigstore](https://www.sigstore.dev/) `cosign` using GitHub's ambient OIDC identity - **no secret, no long-lived key** - records it in the public **Rekor** transparency log, and attaches the signature + ephemeral certificate to the release. Signing the manifest transitively covers both the SLIM (GitHub) and OFFLINE (R2) installers. This is the second of a two-layer model (local Authenticode + CI keyless provenance); end users can verify origin with `cosign verify-blob` - see [`docs/RELEASE-SIGNING.md`](docs/RELEASE-SIGNING.md#verifying-a-download).
 - **Free OSS code-signing path documented.** [`docs/SIGNPATH-APPLICATION.md`](docs/SIGNPATH-APPLICATION.md) is the application + canonical record for free Authenticode signing via the [SignPath Foundation](https://signpath.org/), removing the need for a paid certificate to clear the Windows SmartScreen "Unknown Publisher" warning.
 - **CI vulnerability + quality gates (AX-QA-006, AX-QA-009, AX-QA-012, AX-QA-016).** Browser-extension and NuGet vulnerability gating; `AgentX.Core` coverage floors; a repository format gate; and removal of the unused React ESLint plugins that were the sole importers of the `@babel/core` dev advisory (`npm audit --omit=dev`: 0 vulnerabilities).
 - **Android build CI (AX-QA-004).** New `.github/workflows/android-build.yml` compiles `src/AgentX.Mobile` (`net8.0-android`) on every change under it; iOS is conditioned out on Linux and deferred (needs a macOS runner).
@@ -854,15 +892,15 @@ Security and hardening release. Closes the full **Codex security audit** and the
 
 ---
 
-## [2.1.1] — 2026-05-31 — "Bedrock" fresh-install fix
+## [2.1.1] - 2026-05-31 - "Bedrock" fresh-install fix
 
 Patch release. Fixes a **critical fresh-install defect** found during full installer validation: on a brand-new machine the database came up empty (no tables) and every feature failed with `no such table: documents/memories/user_settings/...`.
 
 ### Fixed
 
-- **Fresh installs now build the full database schema.** At startup `EnsureKeyApplied()` opens the SQLite connection (to apply the SQLCipher PRAGMA) before the migration runner, which creates an empty `agentx.db` file. The runner then saw `CanConnectAsync() == true`, mistook the empty file for a pre-migration install, ran baseline adoption — which *stamps* the baseline as applied **without creating tables** — and `MigrateAsync` skipped schema creation. Baseline adoption is now gated on the database actually containing application tables, so an empty database flows through `MigrateAsync` and receives the full schema. Verified end-to-end via a clean install → launch → uninstall: all 11 migrations apply, 40 tables created, zero `no such table` errors.
+- **Fresh installs now build the full database schema.** At startup `EnsureKeyApplied()` opens the SQLite connection (to apply the SQLCipher PRAGMA) before the migration runner, which creates an empty `agentx.db` file. The runner then saw `CanConnectAsync() == true`, mistook the empty file for a pre-migration install, ran baseline adoption - which *stamps* the baseline as applied **without creating tables** - and `MigrateAsync` skipped schema creation. Baseline adoption is now gated on the database actually containing application tables, so an empty database flows through `MigrateAsync` and receives the full schema. Verified end-to-end via a clean install → launch → uninstall: all 11 migrations apply, 40 tables created, zero `no such table` errors.
 - Added a `MigrationRunner` regression test that opens the connection before running the runner, reproducing the real startup sequence (the prior fresh-DB test never did, which is why the defect slipped through).
-- Zeroed out all 13 Release build analyzer warnings at the root (nullable annotations, an unused `async`, and test-only Moq/null-handling) — the build is now warning-free.
+- Zeroed out all 13 Release build analyzer warnings at the root (nullable annotations, an unused `async`, and test-only Moq/null-handling) - the build is now warning-free.
 
 ### Changed
 
@@ -871,19 +909,19 @@ Patch release. Fixes a **critical fresh-install defect** found during full insta
 
 ---
 
-## [2.1.0] — 2026-05-30 — "Bedrock"
+## [2.1.0] - 2026-05-30 - "Bedrock"
 
 Final v2.1.0 release. Promotes the `2.1.0-preview.1` data-layer slice to a stable release and completes the v2.1 scope. Full notes: [`docs/v2.1.0-RELEASE-NOTES.md`](docs/v2.1.0-RELEASE-NOTES.md).
 
 ### Added
 
-- **A1 Multi-Language UI** — six shipping locales (de / en-US / es / fr / ja / zh-CN) with CLDR pluralization, RTL-ready `FlowDirection`, a `LocaleAudit.Tool` CI gate (≥98% coverage), and per-page snapshot tests
-- **A2 Keyboard-First Power Mode** — fuzzy Command Palette, Jump-To navigation, and a page-scoped shortcut Cheatsheet
+- **A1 Multi-Language UI** - six shipping locales (de / en-US / es / fr / ja / zh-CN) with CLDR pluralization, RTL-ready `FlowDirection`, a `LocaleAudit.Tool` CI gate (≥98% coverage), and per-page snapshot tests
+- **A2 Keyboard-First Power Mode** - fuzzy Command Palette, Jump-To navigation, and a page-scoped shortcut Cheatsheet
 - **B9 EF Core migrations** and **C13 SQLCipher at-rest encryption** promoted from preview to stable
 
 ### Changed
 
-- **In-app User Guide localization completed** — every `UserGuide_*` string is now natively translated across all five non-English locales (de / es / fr / ja / zh-CN), replacing the prior English placeholders; stale placeholder headers removed
+- **In-app User Guide localization completed** - every `UserGuide_*` string is now natively translated across all five non-English locales (de / es / fr / ja / zh-CN), replacing the prior English placeholders; stale placeholder headers removed
 - `Directory.Build.props` `<Version>` bumped `2.1.0-preview.1` → `2.1.0`
 
 ### Fixed
@@ -893,26 +931,65 @@ Final v2.1.0 release. Promotes the `2.1.0-preview.1` data-layer slice to a stabl
 
 ### Rescoped
 
-- **C14 Audit Log** remains targeted at **v2.1.5** — a Phase 2 Memory prerequisite that ships before Memory regardless of v2.1.5 timing
+- **C14 Audit Log** remains targeted at **v2.1.5** - a Phase 2 Memory prerequisite that ships before Memory regardless of v2.1.5 timing
 
 ---
 
-## [2.1.0-preview.1] — 2026-04-17 — "Bedrock" data-layer hardening
+## Documentation Release (2026-05-03)
+
+### Added - Comprehensive User Documentation Suite (20+ files, 8,000+ lines)
+
+**Getting Started & Onboarding**
+- `docs/user-guide/getting-started/quick-start.md` - 10-minute setup walkthrough for new users
+- Covers installation, first launch, passphrase creation, document import, AI chat, and semantic search
+
+**Reference Documentation**
+- `docs/user-guide/faq.md` - 100+ frequently asked questions covering installation, features, AI, search, performance, privacy, licensing, and troubleshooting
+- `docs/user-guide/troubleshooting.md` - Solutions to common issues organized by category with advanced diagnostics section
+- `docs/user-guide/glossary.md` - 100+ term glossary with definitions covering all Agent-X terminology
+- `docs/user-guide/keyboard-shortcuts.md` - Comprehensive power user navigation guide with platform-specific notes
+
+**Templates & Scenarios**
+- `docs/user-guide/templates/README.md` - Templates overview with usage guide
+- `docs/user-guide/templates/document-templates.md` - Project Brief, Meeting Notes, Research Summary, Technical Spec, Code Review templates
+- `docs/user-guide/templates/chat-templates.md` - Summarize, Compare, Extract, Research, Technical chat templates
+- `docs/user-guide/scenarios/README.md` - Real-world scenarios: Research Paper Analysis, Meeting Intelligence, Code Review Assistant, Document Migration, Personal Knowledge Base
+
+**Video Tutorial Scripts**
+- `docs/user-guide/video-scripts/README.md` - Scripts for 5 videos: Quick Start, Advanced RAG, Knowledge Graph, Workflows, GPU Acceleration
+
+**AI Discovery & Indexing**
+- `docs/llms.txt` - AI-optimized documentation index for LLM consumption with quick links and key concepts
+- `docs/long-llms.txt` - Extended AI reference with comprehensive details on architecture, features, configuration, and best practices
+
+### Updated
+- **README.md** - Added comprehensive documentation section with links to all new user guide resources
+- Documentation organized under `docs/user-guide/` with clear categorization
+
+### Documentation Statistics
+- **Total Files Created:** 20+
+- **Total Lines:** 8,000+
+- **Categories:** 7 (Getting Started, Reference, Templates, Scenarios, Video Scripts, AI Discovery, Enhanced)
+- **Topics Covered:** 100+ glossary terms, 100+ FAQ items, 5 real-world scenarios, 10+ templates, 5 video scripts
+
+---
+
+## [2.1.0-preview.1] - 2026-04-17 - "Bedrock" data-layer hardening
 
 Pre-release shipping the data-layer slice of the v2.1 Bedrock hardening stream. Ships on `phase1-bedrock` at commit `e4bb5ce`. Full release notes: [`docs/v2.1.0-preview.1-RELEASE-NOTES.md`](docs/v2.1.0-preview.1-RELEASE-NOTES.md).
 
 ### Added
 
-- **B9 EF Core migration runner** — `IMigrationRunner` + `MigrationRunner` with pending-migration API, `MigrationResult`, `PendingMigrationsException`, `AgentXDbContextFactory` for design-time tooling, `InitialBaseline` migration capturing current schema, and baseline-adoption for pre-migration installs
-- **C13 SQLCipher at-rest encryption** — `SQLitePCLRaw.bundle_e_sqlcipher` provider, `IDatabaseKeyService` with DPAPI-wrap and UserPassphrase (PBKDF2-HMAC-SHA256, 600k iterations) modes, `IEncryptedConnectionFactory` applying `PRAGMA key` on every `SqliteConnection`, `IDatabaseEncryptionMigrator` using `sqlcipher_export` for atomic plaintext→encrypted conversion with rollback
-- **C13 Settings UI** for the database encryption enable flow (`src/AgentX.App/Views/SettingsPage.xaml:525`). *Corrected 2026-09-06: this line originally read "tier-aware: Ultimate passphrase dialog, others transparent enable". There is no product-tier concept in this codebase — `grep -rn "Ultimate" src/` returns nothing, and there is no license or tier service. The real choice is a `KeyStorageMode` on the key service, `DpapiWrapped` or `UserPassphrase` (`src/AgentX.Core/Services/Security/DatabaseKeyService.cs:36`), which is a storage mode, not a paid tier.*
+- **B9 EF Core migration runner** - `IMigrationRunner` + `MigrationRunner` with pending-migration API, `MigrationResult`, `PendingMigrationsException`, `AgentXDbContextFactory` for design-time tooling, `InitialBaseline` migration capturing current schema, and baseline-adoption for pre-migration installs
+- **C13 SQLCipher at-rest encryption** - `SQLitePCLRaw.bundle_e_sqlcipher` provider, `IDatabaseKeyService` with DPAPI-wrap and UserPassphrase (PBKDF2-HMAC-SHA256, 600k iterations) modes, `IEncryptedConnectionFactory` applying `PRAGMA key` on every `SqliteConnection`, `IDatabaseEncryptionMigrator` using `sqlcipher_export` for atomic plaintext→encrypted conversion with rollback
+- **C13 Settings UI** for the database encryption enable flow (`src/AgentX.App/Views/SettingsPage.xaml:525`). *Corrected 2026-09-06: this line originally read "tier-aware: Ultimate passphrase dialog, others transparent enable". There is no product-tier concept in this codebase - `grep -rn "Ultimate" src/` returns nothing, and there is no license or tier service. The real choice is a `KeyStorageMode` on the key service, `DpapiWrapped` or `UserPassphrase` (`src/AgentX.Core/Services/Security/DatabaseKeyService.cs:36`), which is a storage mode, not a paid tier.*
 - **C13 Startup unlock flow** using `IEncryptionStateFile` marker to break the unlock ↔ migration chicken-and-egg
 - **`InvalidDatabaseKeyException`** with SQLite ErrorCode-26 / "file is not a database" detection for wrong-passphrase recovery loops
-- **Out-of-DB key storage** at `%LocalAppData%\AgentX\encryption.info.json` — separates encryption state from the encrypted vault so startup unlock has no DB dependency (C13 hotfix, merged 2026-04-17)
+- **Out-of-DB key storage** at `%LocalAppData%\AgentX\encryption.info.json` - separates encryption state from the encrypted vault so startup unlock has no DB dependency (C13 hotfix, merged 2026-04-17)
 
 ### Changed
 
-- `EnsureCreatedAsync` and the manual `ALTER TABLE inbox_items` block are **removed** from app startup and replaced by `IMigrationRunner.RunAsync()` — all schema changes now flow through EF migrations
+- `EnsureCreatedAsync` and the manual `ALTER TABLE inbox_items` block are **removed** from app startup and replaced by `IMigrationRunner.RunAsync()` - all schema changes now flow through EF migrations
 - All 5 production `SqliteConnection` creation sites route through `IEncryptedConnectionFactory` for uniform key application
 - DI registrations for `DatabaseKeyProvider`, `EncryptedConnectionFactory`, and `DatabaseKeyService` are singletons (data-plane crypto lifetime invariant)
 - `Directory.Build.props` `<Version>` bumped `2.0.0` → `2.1.0-preview.1`; added `AssemblyVersion`, `FileVersion`, and `InformationalVersion`
@@ -930,20 +1007,20 @@ Pre-release shipping the data-layer slice of the v2.1 Bedrock hardening stream. 
 
 ### Known Issues
 
-- Test-host shutdown hang (`H1`) — native library handles from SQLitePCLRaw / Whisper.Net / LLamaSharp prevent clean xUnit host exit. Tests pass in ~6s; CI uses `blame-hang-timeout=30s`.
+- Test-host shutdown hang (`H1`) - native library handles from SQLitePCLRaw / Whisper.Net / LLamaSharp prevent clean xUnit host exit. Tests pass in ~6s; CI uses `blame-hang-timeout=30s`.
 - `dotnet ef migrations add` workflow requires `-p:CopyLocalLockFileAssemblies=true` pre-build followed by `--no-build` invocation (net8.0-windows TFM runtime-pack limitation).
 
 ---
 
-## [2.0.0] — 2026-04-16 — "Enrichment" calendar/email/ide-awareness
+## [2.0.0] - 2026-04-16 - "Enrichment" calendar/email/ide-awareness
 
 Shipped to `main` via PR #1 (merge commit `99bf449`) on branch `feature/calendar-email-integration`.
 
 ### Added
 
-- **Feature 9 HNSW ANN vector scaling** — Hierarchical Navigable Small World index for the vector store, with core, factory, and test coverage
-- **Feature 10 Calendar + Email integration** — OAuth2 + PKCE + CSRF state infrastructure (`IOAuthService`), Google Calendar + Outlook Calendar providers, Gmail + Outlook Email providers, `CalendarPlugin` + `EmailPlugin` with `IPlugin` lifecycle, sync services with delta tokens, Settings UI with connect/disconnect, full search pipeline integration
-- **Feature 12 Screen-awareness with IDE detection** — `IdeWindowDetector`, `ScreenContextResult.IdeContext`, Quick Chat prompt integration
+- **Feature 9 HNSW ANN vector scaling** - Hierarchical Navigable Small World index for the vector store, with core, factory, and test coverage
+- **Feature 10 Calendar + Email integration** - OAuth2 + PKCE + CSRF state infrastructure (`IOAuthService`), Google Calendar + Outlook Calendar providers, Gmail + Outlook Email providers, `CalendarPlugin` + `EmailPlugin` with `IPlugin` lifecycle, sync services with delta tokens, Settings UI with connect/disconnect, full search pipeline integration
+- **Feature 12 Screen-awareness with IDE detection** - `IdeWindowDetector`, `ScreenContextResult.IdeContext`, Quick Chat prompt integration
 - **`PluginType.DataConnector`** and scoped `IPluginContext` for plugin OAuth access
 - OAuth settings, Calendar settings, Email settings in `AppSettings` + `OAuthProviderRegistry`
 
@@ -951,8 +1028,8 @@ Shipped to `main` via PR #1 (merge commit `99bf449`) on branch `feature/calendar
 
 - OAuth `TokenResponse` deserialization (`[JsonPropertyName]` for snake_case OAuth2 fields)
 - `OAuthService.BuildAuthorizationUrl` query string (manual URL escape via `List<KeyValuePair>` + `Uri.EscapeDataString` instead of `Dictionary.ToString()`)
-- OAuth hardening — CSRF state parameter, PKCE code challenge, 5-minute HttpListener timeout, `IDisposable` lifecycle
-- Cross-arch build — `RuntimeIdentifier` now derives from `Platform` so x86/x64/ARM64 builds work
+- OAuth hardening - CSRF state parameter, PKCE code challenge, 5-minute HttpListener timeout, `IDisposable` lifecycle
+- Cross-arch build - `RuntimeIdentifier` now derives from `Platform` so x86/x64/ARM64 builds work
 
 ### Changed
 
@@ -960,19 +1037,19 @@ Shipped to `main` via PR #1 (merge commit `99bf449`) on branch `feature/calendar
 
 ---
 
-## [1.5.0] — 2026-04-14 — "Expansion"
+## [1.5.0] - 2026-04-14 - "Expansion"
 
 See [`docs/v1.5.0-RELEASE-NOTES.md`](docs/v1.5.0-RELEASE-NOTES.md).
 
 Added: Web Content Ingestion Depth, Conversation Branching, Export Format Expansion, Deep Research Mode.
 
-## [1.4.0] — 2026-04-14 — "Foundation + First Expansion"
+## [1.4.0] - 2026-04-14 - "Foundation + First Expansion"
 
 See [`docs/v1.4.0-RELEASE-NOTES.md`](docs/v1.4.0-RELEASE-NOTES.md).
 
 Added: DPAPI API Key Encryption, System Tray + Global Hotkey, Browser Extension, Multi-Model Routing.
 
-## [1.3.0] — 2026-04-12
+## [1.3.0] - 2026-04-12
 
 See [`docs/v1.3.0-RELEASE-NOTES.md`](docs/v1.3.0-RELEASE-NOTES.md).
 
@@ -980,11 +1057,13 @@ Added: Workspace Profiles, Smart Inbox, Comparative Analysis, Voice Input, Plugi
 
 ---
 
+[Unreleased]: https://github.com/Git-Rocky-Stack/Agent-X/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.2.0
 [2.1.2]: https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.1.2
 [2.1.1]: https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.1.1
 [2.1.0]: https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.1.0
 [2.1.0-preview.1]: https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.1.0-preview.1
-[2.0.0]: https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.0.0
-[1.5.0]: https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v1.5.0
-[1.4.0]: https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v1.4.0
+[2.0.0]: https://github.com/Git-Rocky-Stack/Agent-X/commit/99bf449a8023b8988abb607cad4526c6332ff6b2
+[1.5.0]: https://github.com/Git-Rocky-Stack/Agent-X/blob/main/docs/v1.5.0-RELEASE-NOTES.md
+[1.4.0]: https://github.com/Git-Rocky-Stack/Agent-X/blob/main/docs/v1.4.0-RELEASE-NOTES.md
 [1.3.0]: https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v1.3.0
