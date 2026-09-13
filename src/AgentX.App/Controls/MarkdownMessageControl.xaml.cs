@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using AgentX.App.Helpers;
 using Microsoft.UI;
 using Microsoft.UI.Text;
