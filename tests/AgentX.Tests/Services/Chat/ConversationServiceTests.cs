@@ -753,58 +753,8 @@ public sealed class ConversationServiceTests : IDisposable
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    //  Messages: delete-last-assistant / delete / edit / truncate
+    //  Messages: delete / edit / truncate
     // ═══════════════════════════════════════════════════════════════════════════
-
-    [Fact]
-    public async Task DeleteLastAssistantMessageAsync_RemovesNewestAssistant()
-    {
-        var h = NewHarness();
-        long id = 0;
-        h.Seed(ctx =>
-        {
-            var c = NewConv(messageCount: 3, tokensUsed: 30);
-            ctx.Conversations.Add(c);
-            ctx.SaveChanges();
-            id = c.Id;
-            ctx.Messages.Add(NewMsg(id, "user", "q", sortOrder: 0, tokenCount: 10));
-            ctx.Messages.Add(NewMsg(id, "assistant", "old answer", sortOrder: 1, tokenCount: 10));
-            ctx.Messages.Add(NewMsg(id, "assistant", "new answer", sortOrder: 2, tokenCount: 10));
-        });
-
-        await h.Service.DeleteLastAssistantMessageAsync(id);
-
-        using var fresh = h.Fresh();
-        (await fresh.Messages.AnyAsync(m => m.Content == "new answer")).Should().BeFalse();
-        var conv = await fresh.Conversations.FindAsync(id);
-        conv!.MessageCount.Should().Be(2);
-        conv.TokensUsed.Should().Be(20);
-    }
-
-    [Fact]
-    public async Task DeleteLastAssistantMessageAsync_WhenTheThreadEndsOnAQuestion_KeepsTheEarlierAnswer()
-    {
-        // A stopped or failed send leaves the thread ending on a user message; the newest
-        // assistant message then answers an earlier question.
-        var h = NewHarness();
-        long id = 0;
-        h.Seed(ctx =>
-        {
-            var c = NewConv(messageCount: 3);
-            ctx.Conversations.Add(c);
-            ctx.SaveChanges();
-            id = c.Id;
-            ctx.Messages.Add(NewMsg(id, "user", "first question", sortOrder: 0));
-            ctx.Messages.Add(NewMsg(id, "assistant", "first answer", sortOrder: 1));
-            ctx.Messages.Add(NewMsg(id, "user", "unanswered question", sortOrder: 2));
-        });
-
-        await h.Service.DeleteLastAssistantMessageAsync(id);
-
-        using var fresh = h.Fresh();
-        (await fresh.Messages.AnyAsync(m => m.Content == "first answer")).Should().BeTrue();
-        (await fresh.Messages.CountAsync()).Should().Be(3);
-    }
 
     [Fact]
     public async Task DeleteMessageAndFollowingAsync_DeletesTheMessageAndEverythingAfterIt()
@@ -862,26 +812,6 @@ public sealed class ConversationServiceTests : IDisposable
         deleted.Should().Be(0);
         using var fresh = h.Fresh();
         (await fresh.Messages.CountAsync()).Should().Be(2);
-    }
-
-    [Fact]
-    public async Task DeleteLastAssistantMessageAsync_NoAssistant_NoOp()
-    {
-        var h = NewHarness();
-        long id = 0;
-        h.Seed(ctx =>
-        {
-            var c = NewConv(messageCount: 1);
-            ctx.Conversations.Add(c);
-            ctx.SaveChanges();
-            id = c.Id;
-            ctx.Messages.Add(NewMsg(id, "user", "only question", sortOrder: 0));
-        });
-
-        await h.Service.DeleteLastAssistantMessageAsync(id);
-
-        using var fresh = h.Fresh();
-        (await fresh.Messages.CountAsync()).Should().Be(1);
     }
 
     [Fact]
@@ -955,52 +885,6 @@ public sealed class ConversationServiceTests : IDisposable
     {
         var h = NewHarness();
         await h.Service.Invoking(s => s.UpdateMessageContentAsync(404, "x")).Should().NotThrowAsync();
-    }
-
-    [Fact]
-    public async Task DeleteMessagesAfterAsync_RemovesTailAndAdjustsMetadata()
-    {
-        var h = NewHarness();
-        long id = 0;
-        h.Seed(ctx =>
-        {
-            var c = NewConv(messageCount: 4, tokensUsed: 40);
-            ctx.Conversations.Add(c);
-            ctx.SaveChanges();
-            id = c.Id;
-            for (int i = 0; i < 4; i++)
-            {
-                ctx.Messages.Add(NewMsg(id, content: $"m{i}", sortOrder: i, tokenCount: 10));
-            }
-        });
-
-        await h.Service.DeleteMessagesAfterAsync(id, sortOrder: 1);
-
-        using var fresh = h.Fresh();
-        (await fresh.Messages.CountAsync()).Should().Be(2); // SortOrder 0 and 1 remain
-        var conv = await fresh.Conversations.FindAsync(id);
-        conv!.MessageCount.Should().Be(2);
-        conv.TokensUsed.Should().Be(20);
-    }
-
-    [Fact]
-    public async Task DeleteMessagesAfterAsync_NothingToDelete_NoOp()
-    {
-        var h = NewHarness();
-        long id = 0;
-        h.Seed(ctx =>
-        {
-            var c = NewConv(messageCount: 1);
-            ctx.Conversations.Add(c);
-            ctx.SaveChanges();
-            id = c.Id;
-            ctx.Messages.Add(NewMsg(id, sortOrder: 0));
-        });
-
-        await h.Service.DeleteMessagesAfterAsync(id, sortOrder: 5);
-
-        using var fresh = h.Fresh();
-        (await fresh.Messages.CountAsync()).Should().Be(1);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -1220,10 +1104,8 @@ public sealed class ConversationServiceTests : IDisposable
             () => h.Service.DeleteConversationAsync(1),
             () => h.Service.GetMessagesAsync(1),
             () => h.Service.AddMessageAsync(1, "user", "c"),
-            () => h.Service.DeleteLastAssistantMessageAsync(1),
             () => h.Service.DeleteMessageAsync(1),
             () => h.Service.UpdateMessageContentAsync(1, "c"),
-            () => h.Service.DeleteMessagesAfterAsync(1, 0),
             () => h.Service.DeleteMessageAndFollowingAsync(1, 1),
             () => h.Service.GetConversationCountAsync(),
             () => h.Service.GetTotalTokensUsedAsync(),

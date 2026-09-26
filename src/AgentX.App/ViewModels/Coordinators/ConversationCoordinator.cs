@@ -239,20 +239,6 @@ public sealed class ConversationCoordinator : IConversationCoordinator
     }
 
     /// <inheritdoc />
-    public async Task DeleteMessagesAfterAsync(long conversationId, int sortOrder)
-    {
-        try
-        {
-            await _conversationService.DeleteMessagesAfterAsync(conversationId, sortOrder);
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to delete messages after sort order {SortOrder} in conversation {ConversationId}",
-                sortOrder, conversationId);
-        }
-    }
-
-    /// <inheritdoc />
     public async Task<bool> DeleteMessageAndFollowingAsync(long conversationId, long messageId)
     {
         if (messageId <= 0)

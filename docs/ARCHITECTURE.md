@@ -596,7 +596,7 @@ The chat service group has four classes with distinct responsibilities:
 
 `StopGenerationAsync()` cancels the current stream by signalling a `CancellationTokenSource` that is linked to the generation token. A lock prevents race conditions when multiple stop/start calls occur rapidly.
 
-**`ConversationService`**: CRUD for `ConversationEntity` and `MessageEntity` records. Handles message ordering via a `SortOrder` integer, `AddMessageAsync`, `GetMessagesAsync`, `DeleteLastAssistantMessageAsync` (for regeneration support).
+**`ConversationService`**: CRUD for `ConversationEntity` and `MessageEntity` records. Handles message ordering via a `SortOrder` integer, `AddMessageAsync`, `GetMessagesAsync`, and `DeleteMessageAndFollowingAsync` (an edited prompt is resent from the point it was edited). Regeneration answers the saved prompt again in place and removes the old answer only after the new one is saved.
 
 **`SystemPromptService`**: CRUD for `SystemPromptEntity` records, organized by category.
 

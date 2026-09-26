@@ -82,13 +82,6 @@ public interface IConversationService
         double? generationTimeMs = null);
 
     /// <summary>
-    /// Removes the assistant message that closes the conversation. Does nothing when the
-    /// conversation ends on a user message, because the newest assistant message then answers
-    /// an earlier question. Used by regeneration to replace the last response.
-    /// </summary>
-    Task DeleteLastAssistantMessageAsync(long conversationId);
-
-    /// <summary>
     /// Deletes a specific message by ID and updates conversation metadata.
     /// </summary>
     Task DeleteMessageAsync(long messageId);
@@ -97,12 +90,6 @@ public interface IConversationService
     /// Updates the content of an existing message. Used for message editing.
     /// </summary>
     Task UpdateMessageContentAsync(long messageId, string newContent);
-
-    /// <summary>
-    /// Deletes all messages in a conversation after a given SortOrder.
-    /// Used to truncate the conversation when editing and re-generating.
-    /// </summary>
-    Task DeleteMessagesAfterAsync(long conversationId, int sortOrder);
 
     /// <summary>
     /// Deletes a message and every message after it in the same conversation, updating the

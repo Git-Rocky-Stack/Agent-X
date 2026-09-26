@@ -420,52 +420,6 @@ public class ConversationService : IConversationService
     }
 
     /// <inheritdoc />
-    public async Task DeleteLastAssistantMessageAsync(long conversationId)
-    {
-        try
-        {
-            // Only the message that closes the thread is replaceable. When the thread ends on a
-            // user message (a stopped or failed send), the newest assistant message answers an
-            // earlier question and must not be deleted in its place.
-            var lastAssistantMessage = await _db.Messages
-                .Where(m => m.ConversationId == conversationId)
-                .OrderByDescending(m => m.SortOrder)
-                .FirstOrDefaultAsync();
-
-            if (lastAssistantMessage is null || lastAssistantMessage.Role != "assistant")
-            {
-                _log.Warning(
-                    "No trailing assistant message to delete in conversation {ConversationId}",
-                    conversationId);
-                return;
-            }
-
-            var conversation = await _db.Conversations.FindAsync(conversationId);
-            if (conversation is not null)
-            {
-                conversation.MessageCount = Math.Max(0, conversation.MessageCount - 1);
-                conversation.TokensUsed = Math.Max(0, conversation.TokensUsed - lastAssistantMessage.TokenCount);
-                conversation.UpdatedAt = DateTime.UtcNow;
-            }
-
-            _db.Messages.Remove(lastAssistantMessage);
-            await _db.SaveChangesAsync();
-            await TryMarkSummaryStaleAsync(conversationId, forceFullRefresh: true);
-
-            _log.Information(
-                "Deleted last assistant message (Id={MessageId}) from conversation {ConversationId}",
-                lastAssistantMessage.Id, conversationId);
-        }
-        catch (Exception ex)
-        {
-            _log.Error(
-                ex, "Failed to delete last assistant message from conversation {ConversationId}",
-                conversationId);
-            throw;
-        }
-    }
-
-    /// <inheritdoc />
     public async Task DeleteMessageAsync(long messageId)
     {
         try
@@ -528,42 +482,6 @@ public class ConversationService : IConversationService
         catch (Exception ex)
         {
             _log.Error(ex, "Failed to update message {MessageId}", messageId);
-            throw;
-        }
-    }
-
-    /// <inheritdoc />
-    public async Task DeleteMessagesAfterAsync(long conversationId, int sortOrder)
-    {
-        try
-        {
-            var toDelete = await _db.Messages
-                .Where(m => m.ConversationId == conversationId && m.SortOrder > sortOrder)
-                .ToListAsync();
-
-            if (toDelete.Count == 0) return;
-
-            var conversation = await _db.Conversations.FindAsync(conversationId);
-            if (conversation is not null)
-            {
-                var tokenSum = toDelete.Sum(m => m.TokenCount);
-                conversation.MessageCount = Math.Max(0, conversation.MessageCount - toDelete.Count);
-                conversation.TokensUsed = Math.Max(0, conversation.TokensUsed - tokenSum);
-                conversation.UpdatedAt = DateTime.UtcNow;
-            }
-
-            _db.Messages.RemoveRange(toDelete);
-            await _db.SaveChangesAsync();
-            await TryMarkSummaryStaleAsync(conversationId, forceFullRefresh: true);
-
-            _log.Information(
-                "Deleted {Count} messages after SortOrder {SortOrder} in conversation {ConversationId}",
-                toDelete.Count, sortOrder, conversationId);
-        }
-        catch (Exception ex)
-        {
-            _log.Error(ex, "Failed to delete messages after SortOrder {SortOrder} in conversation {ConversationId}",
-                sortOrder, conversationId);
             throw;
         }
     }

@@ -1742,18 +1742,6 @@ Sends a user message and waits for the complete assistant response. The user mes
 
 ---
 
-##### RegenerateLastResponseAsync
-
-```csharp
-Task RegenerateLastResponseAsync(
-    long conversationId,
-    CancellationToken ct = default);
-```
-
-Deletes the last assistant message and re-sends the last user message to generate a new response.
-
----
-
 ##### StopGenerationAsync
 
 ```csharp
@@ -1916,16 +1904,6 @@ Adds a new message to a conversation and updates conversation metadata (`Message
 | `content` | `string` | -- | The message content. |
 | `tokenCount` | `int?` | `null` | Optional estimated token count for the message. |
 | `generationTimeMs` | `double?` | `null` | Optional generation time in milliseconds (for assistant messages). |
-
----
-
-##### DeleteLastAssistantMessageAsync
-
-```csharp
-Task DeleteLastAssistantMessageAsync(long conversationId);
-```
-
-Removes the most recent assistant message from a conversation. Used by the regeneration flow to replace the last response.
 
 ---
 

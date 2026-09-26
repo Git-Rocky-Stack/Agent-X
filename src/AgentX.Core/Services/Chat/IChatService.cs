@@ -62,16 +62,6 @@ public interface IChatService
         CancellationToken ct = default);
 
     /// <summary>
-    /// Deletes the last assistant message and re-sends the last user message
-    /// to generate a new response.
-    /// </summary>
-    /// <param name="conversationId">The conversation to regenerate in.</param>
-    /// <param name="ct">Cancellation token.</param>
-    Task RegenerateLastResponseAsync(
-        long conversationId,
-        CancellationToken ct = default);
-
-    /// <summary>
     /// Returns the latest in-memory context inspection snapshot captured for the
     /// specified conversation, or null when none exists.
     /// </summary>

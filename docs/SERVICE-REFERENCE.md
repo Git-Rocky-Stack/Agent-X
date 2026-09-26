@@ -630,22 +630,6 @@ Sends a user message and waits for the complete assistant response.
 var response = await chatService.SendMessageAndWaitAsync(conversationId, "Hello!");
 ```
 
-##### RegenerateLastResponseAsync
-
-```csharp
-Task RegenerateLastResponseAsync(
-    long conversationId,
-    CancellationToken ct = default)
-```
-
-Deletes the last assistant message and re-sends the last user message to generate a new response.
-
-**Parameters**:
-- `conversationId` (long): The conversation to regenerate in
-- `ct` (CancellationToken): Cancellation token (optional)
-
-**Returns**: Task
-
 ##### StopGenerationAsync
 
 ```csharp
@@ -808,19 +792,6 @@ Adds a new message to a conversation and updates conversation metadata.
 - `content` (string): The message content
 - `tokenCount` (int, optional): Estimated token count
 - `generationTimeMs` (double, optional): Generation time in milliseconds (for assistant messages)
-
-**Returns**: Task
-
-##### DeleteLastAssistantMessageAsync
-
-```csharp
-Task DeleteLastAssistantMessageAsync(long conversationId)
-```
-
-Removes the most recent assistant message from a conversation.
-
-**Parameters**:
-- `conversationId` (long): The conversation ID
 
 **Returns**: Task
 

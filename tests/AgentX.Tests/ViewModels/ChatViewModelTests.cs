@@ -1007,8 +1007,6 @@ public sealed class ChatViewModelTests
 
         _conversationCoordinator.Verify(
             coordinator => coordinator.DeleteMessageAndFollowingAsync(42, 1001), Times.Once);
-        _conversationCoordinator.Verify(
-            coordinator => coordinator.DeleteMessagesAfterAsync(It.IsAny<long>(), It.IsAny<int>()), Times.Never);
         _messagingCoordinator.Verify(
             coordinator => coordinator.SendMessageAsync("Why does startup retry?", 42, null, null, false), Times.Once);
         viewModel.Messages.Select(message => message.Content)

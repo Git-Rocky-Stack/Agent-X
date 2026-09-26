@@ -76,11 +76,6 @@ public interface IConversationCoordinator
     Task UpdateMessageContentAsync(long messageId, string newContent);
 
     /// <summary>
-    /// Deletes all messages in a conversation after the specified sort order.
-    /// </summary>
-    Task DeleteMessagesAfterAsync(long conversationId, int sortOrder);
-
-    /// <summary>
     /// Deletes a persisted message and every message after it. Used before an edited prompt
     /// is resent, since the resend persists the new text as a fresh message.
     /// </summary>
