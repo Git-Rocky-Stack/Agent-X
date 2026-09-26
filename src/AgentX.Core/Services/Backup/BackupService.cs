@@ -1,6 +1,6 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.IO.Compression;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using AgentX.Core.Constants;
@@ -8,6 +8,7 @@ using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Helpers;
 using AgentX.Core.Services.Backup.Models;
+using AgentX.Core.Services.Security;
 using AgentX.Core.Services.Settings;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -19,16 +20,25 @@ namespace AgentX.Core.Services.Backup;
 /// Full implementation of <see cref="IBackupService"/>.
 ///
 /// Backup format: a ZIP archive with the extension .agentxbak containing:
-///   database/agentx.db  — SQLite Online Backup API copy (no lock contention)
-///   manifest.json       — metadata (version, counts, timestamps, app version)
-///   documents/          — optional copy of files in the configured storage path
+///   database/agentx.db  - SQLite Online Backup API copy (no lock contention)
+///   manifest.json       - metadata (version, counts, timestamps, app version)
+///   documents/          - optional copy of the document folders inside the storage path
+///                         (<see cref="DocumentFolders"/>, the files web import writes)
 ///
-/// Encryption: when a password is supplied the raw ZIP bytes are encrypted with
-/// AES-256-GCM authenticated encryption (V2 format) using a PBKDF2-derived key
-/// (100,000 iterations, SHA-256), a random salt, and a random 96-bit nonce. The GCM
-/// authentication tag lets restore detect a wrong password or a tampered archive before
-/// it is opened. Legacy AES-256-CBC archives (V1) remain restorable for backward
-/// compatibility; see <see cref="DecryptBytes"/>.
+/// Settings, secrets, the encryption marker, logs, models, plugins, caches and derived indexes
+/// are never included: they are machine- or account-bound, can be rebuilt or downloaded again,
+/// and restoring them under running services broke the app. Documents imported from other
+/// folders are indexed where they are and are not copied.
+///
+/// The archive is streamed to disk, never buffered in memory. With a password it is encrypted
+/// on the way (see <see cref="BackupArchiveCrypto"/>: streamed AES-256-GCM, PBKDF2 iteration
+/// count recorded in the header); V1 (AES-256-CBC) and V2 (one-shot AES-256-GCM) archives remain
+/// restorable.
+///
+/// Restore stages the archive's database next to the live file, verifies it with the current
+/// database key (re-encrypting a plaintext backup when encryption is on), releases the shared
+/// connection, swaps the file in with <see cref="File.Replace(string, string, string?)"/> and keeps
+/// the replaced file until the swapped-in database passes verification.
 /// </summary>
 public sealed class BackupService : IBackupService
 {
@@ -40,24 +50,28 @@ public sealed class BackupService : IBackupService
     private const string ManifestEntryName = "manifest.json";
     private const string DocumentsEntryPrefix = "documents/";
     private const string BackupExtension = ".agentxbak";
-    private const int AesKeySize = AppConstants.AesKeySizeBits;         // bits
-    private const int AesBlockSize = AppConstants.AesBlockSizeBits;     // bits
-    private const int Pbkdf2Iterations = AppConstants.Pbkdf2Iterations;
-    private const int SaltSize = AppConstants.PbkdfSaltBytes;          // bytes
-    private const int IvSize = AppConstants.IvSizeBytes;               // bytes (legacy CBC)
-    private const int GcmNonceSize = AppConstants.GcmNonceBytes;       // bytes (96-bit)
-    private const int GcmTagSize = AppConstants.GcmTagBytes;           // bytes (128-bit)
 
-    // Restore safety limits — defense-in-depth against archive ("zip") bombs. Generous
+    /// <summary>
+    /// Folders under the storage path that hold user documents: files Agent-X wrote from imported
+    /// content and that document records point to. Everything else there is configuration,
+    /// secrets, logs, models, plugins, caches or derived indexes.
+    /// </summary>
+    private static readonly string[] DocumentFolders = { "WebImports" };
+
+    // Restore safety limits: defense-in-depth against archive ("zip") bombs. Generous
     // enough to accommodate real document libraries while blocking pathological expansion.
     private const long MaxRestoredEntryBytes = 2L * 1024 * 1024 * 1024;   // 2 GB per file
     private const long MaxRestoredTotalBytes = 50L * 1024 * 1024 * 1024;  // 50 GB total
+
+    // SQLite result code for "file is not a database": the file is encrypted with another key.
+    private const int SqliteNotADatabase = 26;
 
     // ── Fields ─────────────────────────────────────────────────────────────
 
     private readonly AgentXDbContext _db;
     private readonly ISettingsService _settingsService;
     private readonly IEncryptedConnectionFactory _connectionFactory;
+    private readonly string? _databasePathOverride;
 
     /// <summary>
     /// CancellationTokenSource used to stop the scheduled backup loop from <see cref="StopScheduledBackups"/>.
@@ -75,17 +89,28 @@ public sealed class BackupService : IBackupService
 
     /// <summary>
     /// Creates a <see cref="BackupService"/>. The <paramref name="connectionFactory"/> is a
-    /// required dependency — PRAGMA key is applied through it to the source and destination
-    /// connections of the SQLite Online Backup API.
+    /// required dependency: PRAGMA key is applied through it to the source and destination
+    /// connections of the SQLite Online Backup API and to every staged restore.
     /// </summary>
     public BackupService(
         AgentXDbContext dbContext,
         ISettingsService settingsService,
         IEncryptedConnectionFactory connectionFactory)
+        : this(dbContext, settingsService, connectionFactory, databasePath: null)
+    {
+    }
+
+    /// <summary>Test seam: pins the database file instead of reading it from the context.</summary>
+    internal BackupService(
+        AgentXDbContext dbContext,
+        ISettingsService settingsService,
+        IEncryptedConnectionFactory connectionFactory,
+        string? databasePath)
     {
         _db = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
+        _databasePathOverride = databasePath;
         Log.Information("BackupService initialized");
     }
 
@@ -100,8 +125,12 @@ public sealed class BackupService : IBackupService
         ArgumentNullException.ThrowIfNull(options);
 
         var sw = Stopwatch.StartNew();
+        var warnings = new List<string>();
         Log.Information("Starting backup. Type={BackupType} Destination={Destination}",
             options.BackupType, options.DestinationPath);
+
+        string? dbTempPath = null;
+        string? partialPath = null;
 
         try
         {
@@ -109,10 +138,13 @@ public sealed class BackupService : IBackupService
             var destinationDir = ResolveDestinationDirectory(options.DestinationPath);
             Directory.CreateDirectory(destinationDir);
 
-            // Build archive file name
+            // Build archive file name. Invariant culture: a machine-readable name must not carry a
+            // Hijri or Buddhist year under ar-SA or th-TH.
             var timestamp = DateTime.UtcNow;
-            var fileName = $"agentx-backup-{timestamp:yyyy-MM-dd-HHmmss}{BackupExtension}";
-            var archivePath = Path.Combine(destinationDir, fileName);
+            var archivePath = UniqueFilePath(Path.Combine(
+                destinationDir,
+                $"agentx-backup-{timestamp.ToString("yyyy-MM-dd-HHmmss", CultureInfo.InvariantCulture)}{BackupExtension}"));
+            var fileName = Path.GetFileName(archivePath);
 
             // ── Phase 1: gather counts for the manifest ────────────────────
             Report(progress, "Gathering statistics", 5);
@@ -126,46 +158,43 @@ public sealed class BackupService : IBackupService
             Report(progress, "Copying database", 15);
             ct.ThrowIfCancellationRequested();
 
-            var dbTempPath = await CreateSqliteBackupCopyAsync(ct).ConfigureAwait(false);
+            dbTempPath = Path.Combine(Path.GetTempPath(), $"agentx-dbcopy-{Guid.NewGuid():N}.tmp");
+            await CreateSqliteBackupCopyAsync(dbTempPath, ct).ConfigureAwait(false);
 
-            try
+            // ── Phase 3: stream the ZIP to a partial file ──────────────────
+            Report(progress, "Writing archive", 35);
+            ct.ThrowIfCancellationRequested();
+
+            var settings = await _settingsService.GetSettingsAsync().ConfigureAwait(false);
+            var storagePath = settings.StoragePath;
+
+            partialPath = archivePath + ".partial";
+            await using (var file = new FileStream(partialPath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, useAsync: true))
             {
-                // ── Phase 3: build the ZIP in-memory then write to disk ─────
-                Report(progress, "Writing archive", 35);
-                ct.ThrowIfCancellationRequested();
-
-                var settings = await _settingsService.GetSettingsAsync().ConfigureAwait(false);
-                var storagePath = settings.StoragePath;
-
-                // Write the raw ZIP to a MemoryStream first so we can optionally encrypt it.
-                using var zipBuffer = new MemoryStream();
-                await BuildZipArchiveAsync(
-                    zipBuffer, dbTempPath, storagePath, timestamp, docCount, convCount,
-                    workflowCount, options, progress, ct).ConfigureAwait(false);
-
-                // ── Phase 4: encrypt or write raw ──────────────────────────
-                Report(progress, "Finalising archive", 85);
-                ct.ThrowIfCancellationRequested();
-
-                var zipBytes = zipBuffer.ToArray();
-
-                if (!string.IsNullOrEmpty(options.EncryptionPassword))
+                // With a password the ZIP is encrypted on its way to disk, so an encrypted backup
+                // never exists as plaintext and its size is not limited by memory.
+                var target = string.IsNullOrEmpty(options.EncryptionPassword)
+                    ? file
+                    : BackupArchiveCrypto.CreateEncryptingStream(file, options.EncryptionPassword);
+                try
                 {
-                    Report(progress, "Encrypting archive", 90);
-                    var encryptedBytes = EncryptBytes(zipBytes, options.EncryptionPassword);
-                    await File.WriteAllBytesAsync(archivePath, encryptedBytes, ct).ConfigureAwait(false);
-                    Log.Debug("Backup archive encrypted ({Bytes} bytes)", encryptedBytes.Length);
+                    await BuildZipArchiveAsync(
+                        target, dbTempPath, storagePath, timestamp, docCount, convCount,
+                        workflowCount, options, warnings, progress, ct).ConfigureAwait(false);
                 }
-                else
+                finally
                 {
-                    await File.WriteAllBytesAsync(archivePath, zipBytes, ct).ConfigureAwait(false);
+                    if (!ReferenceEquals(target, file))
+                        await target.DisposeAsync().ConfigureAwait(false);
                 }
+
+                await file.FlushAsync(ct).ConfigureAwait(false);
             }
-            finally
-            {
-                // Always clean up the temp DB copy
-                DeleteFileQuietly(dbTempPath);
-            }
+
+            // ── Phase 4: publish the finished archive ──────────────────────
+            Report(progress, "Finalising archive", 90);
+            File.Move(partialPath, archivePath);
+            partialPath = null;
 
             // ── Phase 5: record in database ────────────────────────────────
             Report(progress, "Saving history record", 95);
@@ -191,8 +220,8 @@ public sealed class BackupService : IBackupService
             Report(progress, "Complete", 100);
 
             Log.Information(
-                "Backup completed in {DurationMs:F0} ms. File={FileName} Size={SizeMB:F2} MB Id={Id}",
-                sw.Elapsed.TotalMilliseconds, fileName, sizeMb, entity.Id);
+                "Backup completed in {DurationMs:F0} ms. File={FileName} Size={SizeMB:F2} MB Id={Id} Warnings={WarningCount}",
+                sw.Elapsed.TotalMilliseconds, fileName, sizeMb, entity.Id, warnings.Count);
 
             return new BackupResult
             {
@@ -201,6 +230,7 @@ public sealed class BackupService : IBackupService
                 SizeMB = sizeMb,
                 DurationMs = sw.Elapsed.TotalMilliseconds,
                 BackupId = entity.Id,
+                WarningMessages = warnings,
             };
         }
         catch (OperationCanceledException)
@@ -225,13 +255,27 @@ public sealed class BackupService : IBackupService
                 ErrorMessage = ex.Message,
             };
         }
+        finally
+        {
+            // Always clean up the temp DB copy and any unfinished archive.
+            DeleteFileQuietly(dbTempPath);
+            DeleteFileQuietly(partialPath);
+        }
     }
 
     // ── IBackupService: RestoreFromBackupAsync ─────────────────────────────
 
     /// <inheritdoc />
+    public Task<RestoreResult> RestoreFromBackupAsync(
+        string backupFilePath,
+        IProgress<BackupProgress>? progress = null,
+        CancellationToken ct = default)
+        => RestoreFromBackupAsync(backupFilePath, password: null, progress, ct);
+
+    /// <inheritdoc />
     public async Task<RestoreResult> RestoreFromBackupAsync(
         string backupFilePath,
+        string? password,
         IProgress<BackupProgress>? progress = null,
         CancellationToken ct = default)
     {
@@ -239,6 +283,8 @@ public sealed class BackupService : IBackupService
 
         var sw = Stopwatch.StartNew();
         var warnings = new List<string>();
+        RestorePaths? paths = null;
+        string? decryptedArchive = null;
 
         Log.Information("Starting restore from {BackupFilePath}", backupFilePath);
 
@@ -247,160 +293,92 @@ public sealed class BackupService : IBackupService
             if (!File.Exists(backupFilePath))
                 throw new FileNotFoundException("Backup file not found.", backupFilePath);
 
-            // ── Phase 1: validate the archive first ────────────────────────
+            // ── Phase 1: decrypt when needed, then validate the archive ─────
             Report(progress, "Validating archive", 5);
             ct.ThrowIfCancellationRequested();
 
-            var isValid = await ValidateBackupAsync(backupFilePath).ConfigureAwait(false);
-            if (!isValid)
-                throw new InvalidOperationException("The backup archive failed validation. It may be corrupt or in an unrecognised format.");
+            var encrypted = BackupArchiveCrypto.IsEncryptedFile(backupFilePath);
+            if (encrypted && string.IsNullOrEmpty(password))
+                throw new InvalidOperationException("This backup is encrypted. Enter its password to restore it.");
 
-            // ── Phase 2: read the archive bytes ────────────────────────────
-            Report(progress, "Reading archive", 15);
-            ct.ThrowIfCancellationRequested();
-
-            var archiveBytes = await File.ReadAllBytesAsync(backupFilePath, ct).ConfigureAwait(false);
-
-            // ── Phase 3: determine if the archive is encrypted ─────────────
-            // Encrypted archives begin with our magic header "AGXENC\0"
-            byte[] zipBytes;
-            if (IsEncryptedArchive(archiveBytes))
+            var zipPath = backupFilePath;
+            if (encrypted)
             {
-                // We cannot decrypt without a password here; the caller must supply it.
-                // A separate overload or UI flow handles encrypted restores. For the base
-                // interface we treat this as an error and guide the caller appropriately.
-                throw new InvalidOperationException(
-                    "The backup archive is encrypted. Use RestoreFromEncryptedBackupAsync and supply the encryption password.");
-            }
-            else
-            {
-                zipBytes = archiveBytes;
+                // Decrypted before validation: the archive structure is only visible after it.
+                Report(progress, "Decrypting archive", 10);
+                decryptedArchive = Path.Combine(Path.GetTempPath(), $"agentx-restore-{Guid.NewGuid():N}.tmp");
+                await Task.Run(() => DecryptArchiveToFile(backupFilePath, decryptedArchive, password!, ct), ct)
+                    .ConfigureAwait(false);
+                zipPath = decryptedArchive;
             }
 
-            // ── Phase 4: extract database from ZIP ─────────────────────────
-            Report(progress, "Extracting database", 35);
-            ct.ThrowIfCancellationRequested();
+            using var archive = OpenArchiveForRestore(zipPath);
 
             var settings = await _settingsService.GetSettingsAsync().ConfigureAwait(false);
-            var dbPath = GetDatabasePath();
-            var dbBackupPath = dbPath + ".restore-backup";
+            paths = new RestorePaths(ResolveLiveDatabaseFile(), settings.StoragePath);
+            paths.PrepareWorkspace();
 
-            // Keep a safety copy of the current database in case extraction fails
-            if (File.Exists(dbPath))
-                File.Copy(dbPath, dbBackupPath, overwrite: true);
+            // ── Phase 2: stage the database and verify it with the current key ──
+            Report(progress, "Extracting database", 25);
+            ct.ThrowIfCancellationRequested();
 
+            await ExtractEntryAsync(archive.GetEntry(DbEntryName)!, paths.StagedDatabase, MaxRestoredTotalBytes, ct)
+                .ConfigureAwait(false);
+
+            Report(progress, "Verifying database", 40);
+            var restoredDatabase = await Task.Run(() => PrepareStagedDatabase(paths), ct).ConfigureAwait(false);
+
+            // ── Phase 3: stage document files ─────────────────────────────
+            Report(progress, "Staging document files", 55);
+            var stagedDocuments = await StageDocumentsAsync(archive, paths, warnings, ct).ConfigureAwait(false);
+
+            // Last point where cancelling leaves nothing to undo.
+            ct.ThrowIfCancellationRequested();
+
+            // ── Phase 4: swap the database in, verify it, install documents ──
+            Report(progress, "Replacing database", 70);
+            SwapInDatabase(restoredDatabase, paths);
+
+            int restoredDocs, restoredConvs, restoredWorkflows;
+            var installed = new List<InstalledDocument>();
             try
             {
-                using var zipStream = new MemoryStream(zipBytes);
-                using var archive = new ZipArchive(zipStream, ZipArchiveMode.Read, leaveOpen: false);
+                Report(progress, "Verifying restored data", 80);
+                restoredDocs = await _db.Documents.CountAsync(CancellationToken.None).ConfigureAwait(false);
+                restoredConvs = await _db.Conversations.CountAsync(CancellationToken.None).ConfigureAwait(false);
+                restoredWorkflows = await _db.Workflows.CountAsync(CancellationToken.None).ConfigureAwait(false);
 
-                var dbEntry = archive.GetEntry(DbEntryName)
-                    ?? throw new InvalidOperationException($"Archive is missing the required entry '{DbEntryName}'.");
-
-                // Close all EF connections before replacing the file
-                await _db.Database.CloseConnectionAsync().ConfigureAwait(false);
-
-                Report(progress, "Replacing database", 55);
-                ct.ThrowIfCancellationRequested();
-
-                using (var entryStream = dbEntry.Open())
-                using (var fileStream = new FileStream(dbPath, FileMode.Create, FileAccess.Write, FileShare.None, 65536, useAsync: true))
-                {
-                    await entryStream.CopyToAsync(fileStream, ct).ConfigureAwait(false);
-                }
-
-                // ── Phase 5: optionally restore document files ─────────────
-                Report(progress, "Restoring document files", 70);
-                ct.ThrowIfCancellationRequested();
-
-                var storagePath = settings.StoragePath;
-                var docEntriesRestored = 0;
-                long totalRestoredBytes = 0;
-
-                foreach (var entry in archive.Entries)
-                {
-                    ct.ThrowIfCancellationRequested();
-
-                    if (!entry.FullName.StartsWith(DocumentsEntryPrefix, StringComparison.OrdinalIgnoreCase))
-                        continue;
-
-                    if (entry.FullName.EndsWith('/'))
-                        continue; // directory entry
-
-                    var relativePath = entry.FullName[DocumentsEntryPrefix.Length..];
-
-                    // Containment guard: never write outside the configured storage directory,
-                    // even if the archive was crafted with "../" traversal or rooted entry names.
-                    // ValidateBackupAsync rejects such archives up front; this is defense in depth
-                    // and throws (rolling back the restore) if a malicious entry slips through.
-                    var targetPath = PathHelper.ResolveContainedPath(storagePath, relativePath);
-                    var targetDir = Path.GetDirectoryName(targetPath)!;
-
-                    Directory.CreateDirectory(targetDir);
-
-                    using (var entryStream = entry.Open())
-                    using (var fileStream = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None, AppConstants.FileStreamBufferSize, useAsync: true))
-                    {
-                        // Enforce a per-file byte cap while copying so a forged entry length
-                        // cannot drive unbounded writes.
-                        var written = await CopyEntryWithLimitAsync(entryStream, fileStream, MaxRestoredEntryBytes, ct)
-                            .ConfigureAwait(false);
-
-                        totalRestoredBytes += written;
-                        if (totalRestoredBytes > MaxRestoredTotalBytes)
-                            throw new InvalidOperationException(
-                                $"Restore aborted — total expanded document size exceeded the " +
-                                $"{MaxRestoredTotalBytes / (1024L * 1024 * 1024)} GB safety limit.");
-                    }
-
-                    docEntriesRestored++;
-                }
-
-                if (docEntriesRestored == 0)
-                    warnings.Add("No document files were found in the archive. The archive may not have included documents.");
-
-                Log.Debug("Restored {Count} document files from archive", docEntriesRestored);
+                Report(progress, "Restoring document files", 90);
+                InstallDocuments(stagedDocuments, paths, installed);
             }
-            catch
+            catch (Exception ex)
             {
-                // Restore the pre-restore database copy so the application is not left in a broken state
-                if (File.Exists(dbBackupPath))
+                if (RollBackDocuments(installed))
+                    paths.DiscardDocumentRollback();
+
+                var previousKeptAt = RollBackDatabase(paths);
+                if (previousKeptAt is not null)
                 {
-                    try
-                    {
-                        File.Copy(dbBackupPath, dbPath, overwrite: true);
-                        Log.Warning("Restore failed — original database was recovered from safety copy");
-                    }
-                    catch (Exception rollbackEx)
-                    {
-                        Log.Error(rollbackEx, "Failed to roll back database to pre-restore state");
-                    }
+                    throw new InvalidOperationException(
+                        $"{ex.Message} The previous database could not be put back automatically; it is kept at {previousKeptAt}.", ex);
                 }
 
                 throw;
             }
-            finally
-            {
-                DeleteFileQuietly(dbBackupPath);
-            }
 
-            // ── Phase 6: reopen EF connection and count restored records ────
-            Report(progress, "Verifying restored data", 88);
-            ct.ThrowIfCancellationRequested();
+            // The swapped-in database passed verification: the replaced files are no longer needed.
+            paths.DiscardSafetyCopy();
+            paths.DiscardDocumentRollback();
 
-            // Force EF to reconnect to the newly swapped-in database
-            await _db.Database.OpenConnectionAsync(ct).ConfigureAwait(false);
-
-            var restoredDocs = await _db.Documents.CountAsync(ct).ConfigureAwait(false);
-            var restoredConvs = await _db.Conversations.CountAsync(ct).ConfigureAwait(false);
-            var restoredWorkflows = await _db.Workflows.CountAsync(ct).ConfigureAwait(false);
+            if (stagedDocuments.Count == 0)
+                warnings.Add("No document files were found in the archive. The archive may not have included documents.");
 
             sw.Stop();
             Report(progress, "Complete", 100);
 
             Log.Information(
-                "Restore completed in {DurationMs:F0} ms. Docs={Docs} Convs={Convs} Workflows={Workflows}",
-                sw.Elapsed.TotalMilliseconds, restoredDocs, restoredConvs, restoredWorkflows);
+                "Restore completed in {DurationMs:F0} ms. Docs={Docs} Convs={Convs} Workflows={Workflows} Files={Files}",
+                sw.Elapsed.TotalMilliseconds, restoredDocs, restoredConvs, restoredWorkflows, stagedDocuments.Count);
 
             return new RestoreResult
             {
@@ -410,6 +388,7 @@ public sealed class BackupService : IBackupService
                 RestoredWorkflowCount = restoredWorkflows,
                 DurationMs = sw.Elapsed.TotalMilliseconds,
                 WarningMessages = warnings,
+                RequiresRestart = true,
             };
         }
         catch (OperationCanceledException)
@@ -435,6 +414,11 @@ public sealed class BackupService : IBackupService
                 ErrorMessage = ex.Message,
                 WarningMessages = warnings,
             };
+        }
+        finally
+        {
+            paths?.RemoveStaging();
+            DeleteFileQuietly(decryptedArchive);
         }
     }
 
@@ -468,7 +452,7 @@ public sealed class BackupService : IBackupService
 
         if (entity is null)
         {
-            Log.Warning("Backup record {BackupId} not found — nothing to delete", backupId);
+            Log.Warning("Backup record {BackupId} not found; nothing to delete", backupId);
             return;
         }
 
@@ -482,7 +466,7 @@ public sealed class BackupService : IBackupService
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Could not delete backup archive file {FilePath} — removing history record anyway", entity.FilePath);
+                Log.Warning(ex, "Could not delete backup archive file {FilePath}; removing history record anyway", entity.FilePath);
             }
         }
 
@@ -500,27 +484,20 @@ public sealed class BackupService : IBackupService
         Log.Debug("Estimating backup size");
 
         var settings = await _settingsService.GetSettingsAsync().ConfigureAwait(false);
-        var dbPath = GetDatabasePath();
-        var storagePath = settings.StoragePath;
+        var dbPath = ResolveDatabasePathForCopy();
 
         var dbSizeBytes = File.Exists(dbPath)
             ? new FileInfo(dbPath).Length
             : 0L;
 
-        var docsFolderBytes = 0L;
-        if (Directory.Exists(storagePath))
-        {
-            docsFolderBytes = Directory
-                .EnumerateFiles(storagePath, "*", SearchOption.AllDirectories)
-                .Where(f => !f.EndsWith(".db", StringComparison.OrdinalIgnoreCase)
-                         && !f.EndsWith(".db-shm", StringComparison.OrdinalIgnoreCase)
-                         && !f.EndsWith(".db-wal", StringComparison.OrdinalIgnoreCase))
-                .Sum(f =>
-                {
-                    try { return new FileInfo(f).Length; }
-                    catch { return 0L; }
-                });
-        }
+        // Same selection the backup archives: only the document folders.
+        var docsFolderBytes = EnumerateDocumentFiles(settings.StoragePath)
+            .Sum(f =>
+            {
+                try { return new FileInfo(f.FullPath).Length; }
+                catch (IOException) { return 0L; }
+                catch (UnauthorizedAccessException) { return 0L; }
+            });
 
         var docCount = await _db.Documents.CountAsync().ConfigureAwait(false);
 
@@ -537,7 +514,7 @@ public sealed class BackupService : IBackupService
         };
 
         Log.Debug(
-            "Size estimate — DB: {DbMb:F2} MB, Docs: {DocsMb:F2} MB, Total: {TotalMb:F2} MB, Documents: {DocCount}",
+            "Size estimate: DB {DbMb:F2} MB, Docs {DocsMb:F2} MB, Total {TotalMb:F2} MB, Documents {DocCount}",
             estimate.DatabaseSizeMB, estimate.DocumentsSizeMB, estimate.TotalEstimatedMB, estimate.DocumentCount);
 
         return estimate;
@@ -546,56 +523,51 @@ public sealed class BackupService : IBackupService
     // ── IBackupService: ValidateBackupAsync ───────────────────────────────
 
     /// <inheritdoc />
-    public async Task<bool> ValidateBackupAsync(string backupFilePath)
+    public Task<bool> ValidateBackupAsync(string backupFilePath)
+        => ValidateBackupAsync(backupFilePath, password: null);
+
+    /// <inheritdoc />
+    public async Task<bool> ValidateBackupAsync(string backupFilePath, string? password)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(backupFilePath);
 
         Log.Debug("Validating backup archive {BackupFilePath}", backupFilePath);
 
+        string? decryptedPath = null;
         try
         {
             if (!File.Exists(backupFilePath))
             {
-                Log.Warning("Validation failed — file does not exist: {BackupFilePath}", backupFilePath);
+                Log.Warning("Validation failed: file does not exist: {BackupFilePath}", backupFilePath);
                 return false;
             }
 
-            var archiveBytes = await File.ReadAllBytesAsync(backupFilePath).ConfigureAwait(false);
-
-            if (archiveBytes.Length == 0)
+            if (new FileInfo(backupFilePath).Length == 0)
             {
-                Log.Warning("Validation failed — file is empty: {BackupFilePath}", backupFilePath);
+                Log.Warning("Validation failed: file is empty: {BackupFilePath}", backupFilePath);
                 return false;
             }
 
-            // Encrypted archives cannot be validated further without a password.
-            // Report them as structurally valid (they exist and have content).
-            if (IsEncryptedArchive(archiveBytes))
+            var zipPath = backupFilePath;
+            if (BackupArchiveCrypto.IsEncryptedFile(backupFilePath))
             {
-                Log.Debug("Archive is encrypted — structural validation only (no password provided)");
-                return true;
+                // Without the password an encrypted archive can only be checked structurally.
+                if (string.IsNullOrEmpty(password))
+                {
+                    Log.Debug("Archive is encrypted: structural validation only (no password provided)");
+                    return true;
+                }
+
+                decryptedPath = Path.Combine(Path.GetTempPath(), $"agentx-validate-{Guid.NewGuid():N}.tmp");
+                await Task.Run(() => DecryptArchiveToFile(backupFilePath, decryptedPath, password, CancellationToken.None))
+                    .ConfigureAwait(false);
+                zipPath = decryptedPath;
             }
 
-            // For plain archives open the ZIP and verify the required entries are present.
-            using var zipStream = new MemoryStream(archiveBytes);
-            using var archive = new ZipArchive(zipStream, ZipArchiveMode.Read, leaveOpen: false);
-
-            var hasDb = archive.GetEntry(DbEntryName) is not null;
-            var hasManifest = archive.GetEntry(ManifestEntryName) is not null;
-
-            if (!hasDb || !hasManifest)
+            using var archive = ZipFile.OpenRead(zipPath);
+            if (!TryValidateArchive(archive, out var reason))
             {
-                Log.Warning(
-                    "Validation failed — archive missing required entries. HasDb={HasDb} HasManifest={HasManifest}",
-                    hasDb, hasManifest);
-                return false;
-            }
-
-            // Reject archives whose document entries use traversal/rooted paths or exceed
-            // the restore size limits — before any extraction touches the filesystem.
-            if (!TryValidateDocumentEntries(archive, out var entryReason))
-            {
-                Log.Warning("Validation failed — {Reason}", entryReason);
+                Log.Warning("Validation failed: {Reason}", reason);
                 return false;
             }
 
@@ -604,21 +576,32 @@ public sealed class BackupService : IBackupService
         }
         catch (InvalidDataException ex)
         {
-            Log.Warning(ex, "Validation failed — archive is not a valid ZIP: {BackupFilePath}", backupFilePath);
+            Log.Warning(ex, "Validation failed: archive is not a valid ZIP: {BackupFilePath}", backupFilePath);
             return false;
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "Validation failed unexpectedly for {BackupFilePath}", backupFilePath);
+            Log.Warning(ex, "Validation failed for {BackupFilePath}", backupFilePath);
             return false;
         }
+        finally
+        {
+            DeleteFileQuietly(decryptedPath);
+        }
+    }
+
+    /// <inheritdoc />
+    public Task<bool> IsEncryptedBackupAsync(string backupFilePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(backupFilePath);
+        return Task.FromResult(File.Exists(backupFilePath) && BackupArchiveCrypto.IsEncryptedFile(backupFilePath));
     }
 
     /// <summary>
     /// Validates that every <c>documents/</c> entry in the archive uses a safe, contained
     /// relative path (no <c>..</c> traversal, no rooted paths) and does not exceed the
     /// per-entry / total restore size limits. Pure and side-effect free so it guards both
-    /// <see cref="ValidateBackupAsync"/> and is directly unit-testable.
+    /// <see cref="ValidateBackupAsync(string)"/> and is directly unit-testable.
     /// </summary>
     /// <param name="archive">An archive opened in <see cref="ZipArchiveMode.Read"/> mode.</param>
     /// <param name="failureReason">Human-readable reason when validation fails; null on success.</param>
@@ -663,6 +646,21 @@ public sealed class BackupService : IBackupService
         return true;
     }
 
+    private static bool TryValidateArchive(ZipArchive archive, out string? failureReason)
+    {
+        var hasDb = archive.GetEntry(DbEntryName) is not null;
+        var hasManifest = archive.GetEntry(ManifestEntryName) is not null;
+        if (!hasDb || !hasManifest)
+        {
+            failureReason = $"archive missing required entries (database: {hasDb}, manifest: {hasManifest})";
+            return false;
+        }
+
+        // Reject archives whose document entries use traversal/rooted paths or exceed the
+        // restore size limits, before any extraction touches the filesystem.
+        return TryValidateDocumentEntries(archive, out failureReason);
+    }
+
     /// <summary>
     /// Copies <paramref name="source"/> to <paramref name="destination"/> while enforcing a hard
     /// byte cap, aborting with an <see cref="InvalidOperationException"/> if the cap is exceeded.
@@ -670,7 +668,7 @@ public sealed class BackupService : IBackupService
     /// </summary>
     /// <returns>The number of bytes written.</returns>
     private static async Task<long> CopyEntryWithLimitAsync(
-        Stream source, Stream destination, long perEntryLimit, CancellationToken ct)
+        Stream source, Stream destination, long perEntryLimit, string entryName, CancellationToken ct)
     {
         var buffer = new byte[AppConstants.FileStreamBufferSize];
         long written = 0;
@@ -681,7 +679,7 @@ public sealed class BackupService : IBackupService
             written += read;
             if (written > perEntryLimit)
                 throw new InvalidOperationException(
-                    $"Document entry exceeds the per-file restore limit of " +
+                    $"Archive entry '{entryName}' exceeds the restore size limit of " +
                     $"{perEntryLimit / (1024L * 1024 * 1024)} GB.");
 
             await destination.WriteAsync(buffer.AsMemory(0, read), ct).ConfigureAwait(false);
@@ -702,14 +700,14 @@ public sealed class BackupService : IBackupService
 
         if (!config.Enabled)
         {
-            Log.Information("Scheduled backups are disabled — loop not started");
+            Log.Information("Scheduled backups are disabled; loop not started");
             return;
         }
 
         _scheduledCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         var loopCt = _scheduledCts.Token;
 
-        // Fire and forget — the loop runs on the thread pool
+        // Fire and forget: the loop runs on the thread pool
         _ = Task.Run(() => RunScheduledLoopAsync(config, loopCt), loopCt);
 
         Log.Information(
@@ -762,7 +760,7 @@ public sealed class BackupService : IBackupService
                         EncryptionPassword = config.EncryptionPassword,
                         IncludeDocuments = true,
                         BackupType = "scheduled",
-                        Notes = $"Automatic scheduled backup — {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC",
+                        Notes = $"Automatic scheduled backup, {DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)} UTC",
                     };
 
                     var result = await CreateBackupAsync(options, progress: null, ct).ConfigureAwait(false);
@@ -773,7 +771,7 @@ public sealed class BackupService : IBackupService
                             "Scheduled backup succeeded: {FilePath} ({SizeMB:F2} MB)",
                             result.BackupFilePath, result.SizeMB);
 
-                        // Enforce retention limit — delete the oldest scheduled backups beyond the cap
+                        // Enforce retention limit: delete the oldest scheduled backups beyond the cap
                         await EnforceRetentionPolicyAsync(config.MaxBackupsToKeep, ct).ConfigureAwait(false);
                     }
                     else
@@ -788,7 +786,7 @@ public sealed class BackupService : IBackupService
                 catch (Exception ex)
                 {
                     // Never let a single backup failure crash the loop
-                    Log.Error(ex, "Unhandled error during scheduled backup cycle — loop continues");
+                    Log.Error(ex, "Unhandled error during scheduled backup cycle; loop continues");
                 }
             }
         }
@@ -800,7 +798,7 @@ public sealed class BackupService : IBackupService
 
     // ── Private: ZIP archive builder ───────────────────────────────────────
 
-    private async Task BuildZipArchiveAsync(
+    private static async Task BuildZipArchiveAsync(
         Stream outputStream,
         string dbTempPath,
         string storagePath,
@@ -809,6 +807,7 @@ public sealed class BackupService : IBackupService
         int convCount,
         int workflowCount,
         BackupOptions options,
+        List<string> warnings,
         IProgress<BackupProgress>? progress,
         CancellationToken ct)
     {
@@ -819,8 +818,8 @@ public sealed class BackupService : IBackupService
         ct.ThrowIfCancellationRequested();
 
         var dbEntry = archive.CreateEntry(DbEntryName, CompressionLevel.Optimal);
-        using (var entryStream = dbEntry.Open())
-        using (var dbStream = new FileStream(dbTempPath, FileMode.Open, FileAccess.Read, FileShare.Read, 65536, useAsync: true))
+        await using (var entryStream = dbEntry.Open())
+        await using (var dbStream = OpenForBackupRead(dbTempPath))
         {
             await dbStream.CopyToAsync(entryStream, ct).ConfigureAwait(false);
         }
@@ -833,71 +832,114 @@ public sealed class BackupService : IBackupService
         {
             version = 1,
             appVersion = AppVersion,
-            createdAt = timestamp.ToString("O"),
+            createdAt = timestamp.ToString("O", CultureInfo.InvariantCulture),
             backupType = options.BackupType,
             documentCount = docCount,
             conversationCount = convCount,
             workflowCount = workflowCount,
             includesDocuments = options.IncludeDocuments,
+            documentFolders = DocumentFolders,
             notes = options.Notes,
         };
 
         var manifestJson = JsonSerializer.Serialize(manifest, ManifestJsonOptions);
         var manifestEntry = archive.CreateEntry(ManifestEntryName, CompressionLevel.Fastest);
-        using (var entryStream = manifestEntry.Open())
+        await using (var entryStream = manifestEntry.Open())
         {
             var manifestBytes = Encoding.UTF8.GetBytes(manifestJson);
             await entryStream.WriteAsync(manifestBytes, ct).ConfigureAwait(false);
         }
 
         // ── 3. Document files ──────────────────────────────────────────────
-        if (options.IncludeDocuments && Directory.Exists(storagePath))
+        if (!options.IncludeDocuments)
+            return;
+
+        Report(progress, "Adding document files", 65);
+
+        var documentFiles = EnumerateDocumentFiles(storagePath).ToList();
+        var added = 0;
+        for (var i = 0; i < documentFiles.Count; i++)
         {
-            Report(progress, "Adding document files", 65);
+            ct.ThrowIfCancellationRequested();
 
-            var documentFiles = Directory
-                .EnumerateFiles(storagePath, "*", SearchOption.AllDirectories)
-                .Where(f => !f.EndsWith(".db", StringComparison.OrdinalIgnoreCase)
-                         && !f.EndsWith(".db-shm", StringComparison.OrdinalIgnoreCase)
-                         && !f.EndsWith(".db-wal", StringComparison.OrdinalIgnoreCase))
-                .ToList();
+            var (filePath, relativePath) = documentFiles[i];
 
-            for (var i = 0; i < documentFiles.Count; i++)
+            // Open first: a file that cannot be read is skipped and reported instead of failing
+            // the whole backup (or leaving an empty entry behind).
+            FileStream fileStream;
+            try
             {
-                ct.ThrowIfCancellationRequested();
-
-                var filePath = documentFiles[i];
-                var relativePath = Path.GetRelativePath(storagePath, filePath)
-                    .Replace('\\', '/');
-
-                var entryName = DocumentsEntryPrefix + relativePath;
-                var fileEntry = archive.CreateEntry(entryName, CompressionLevel.Optimal);
-
-                using var entryStream = fileEntry.Open();
-                using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 65536, useAsync: true);
-                await fileStream.CopyToAsync(entryStream, ct).ConfigureAwait(false);
-
-                // Report per-file progress within the 65–82% band
-                var pct = 65 + (int)((i + 1) / (double)documentFiles.Count * 17);
-                Report(progress, "Adding document files", pct, Path.GetFileName(filePath));
+                fileStream = OpenForBackupRead(filePath);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                warnings.Add($"Skipped '{relativePath}': {ex.Message}");
+                Log.Warning(ex, "Skipped unreadable document file {FilePath}", filePath);
+                continue;
             }
 
-            Log.Debug("Added {Count} document files to archive", documentFiles.Count);
+            await using (fileStream)
+            {
+                var fileEntry = archive.CreateEntry(DocumentsEntryPrefix + relativePath, CompressionLevel.Optimal);
+                await using var entryStream = fileEntry.Open();
+                await fileStream.CopyToAsync(entryStream, ct).ConfigureAwait(false);
+            }
+
+            added++;
+
+            // Report per-file progress within the 65-82% band
+            var pct = 65 + (int)((i + 1) / (double)documentFiles.Count * 17);
+            Report(progress, "Adding document files", pct, Path.GetFileName(filePath));
         }
+
+        Log.Debug("Added {Count} of {Total} document files to archive", added, documentFiles.Count);
+    }
+
+    /// <summary>
+    /// ReadWrite | Delete sharing: another process (or a log writer) may hold the file open for
+    /// writing; a narrower share mode made the open fail with a sharing violation on Windows.
+    /// </summary>
+    private static FileStream OpenForBackupRead(string path)
+        => new(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, 65536, useAsync: true);
+
+    /// <summary>The document files a backup includes, with archive-relative paths using '/'.</summary>
+    private static IEnumerable<(string FullPath, string RelativePath)> EnumerateDocumentFiles(string? storagePath)
+    {
+        if (string.IsNullOrWhiteSpace(storagePath) || !Directory.Exists(storagePath))
+            yield break;
+
+        foreach (var folder in DocumentFolders)
+        {
+            var root = Path.Combine(storagePath, folder);
+            if (!Directory.Exists(root))
+                continue;
+
+            foreach (var file in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories))
+                yield return (file, Path.GetRelativePath(storagePath, file).Replace('\\', '/'));
+        }
+    }
+
+    /// <summary>True when an archive-relative path lies inside one of the document folders.</summary>
+    private static bool IsDocumentPath(string relativePath)
+    {
+        var separator = relativePath.IndexOfAny(new[] { '/', '\\' });
+        if (separator <= 0 || separator == relativePath.Length - 1)
+            return false;
+
+        var firstSegment = relativePath[..separator];
+        return DocumentFolders.Any(f => string.Equals(f, firstSegment, StringComparison.OrdinalIgnoreCase));
     }
 
     // ── Private: SQLite Online Backup ──────────────────────────────────────
 
     /// <summary>
     /// Uses the SQLite Online Backup API (<c>SqliteConnection.BackupDatabase</c>) to obtain
-    /// a consistent, lock-safe snapshot of the live database. The copy is written to a
-    /// temporary file in the system temp directory and the caller is responsible for
-    /// deleting it when done.
+    /// a consistent, lock-safe snapshot of the live database into <paramref name="tempPath"/>.
+    /// The caller deletes the copy when done.
     /// </summary>
-    private async Task<string> CreateSqliteBackupCopyAsync(CancellationToken ct)
+    private async Task CreateSqliteBackupCopyAsync(string tempPath, CancellationToken ct)
     {
-        var dbPath = GetDatabasePath();
-        var tempPath = Path.Combine(Path.GetTempPath(), $"agentx-dbcopy-{Guid.NewGuid():N}.tmp");
+        var dbPath = ResolveDatabasePathForCopy();
 
         Log.Debug("Creating SQLite backup copy at {TempPath}", tempPath);
 
@@ -907,153 +949,370 @@ public sealed class BackupService : IBackupService
         {
             ct.ThrowIfCancellationRequested();
 
-            // Backups preserve the source's key — a backup of an encrypted DB stays encrypted.
+            // Backups preserve the source's key: a backup of an encrypted DB stays encrypted.
             // Users restoring on a different machine need the matching key material (passphrase
             // for UserPassphrase mode, or a matching Windows user profile for DpapiWrapped).
             using var source = _connectionFactory.OpenKeyed(dbPath);
             using var destination = _connectionFactory.OpenKeyed(tempPath);
-
-            // BackupDatabase is synchronous but very fast for local files
-            source.BackupDatabase(destination);
+            try
+            {
+                source.BackupDatabase(destination);
+            }
+            finally
+            {
+                // OpenKeyed connections are pooled. Clearing the pools makes the disposes below
+                // really close the files: a pooled handle blocked reading and deleting the copy
+                // on Windows (leaving a database copy in %TEMP%) and kept the live file open.
+                SqliteConnection.ClearPool(source);
+                SqliteConnection.ClearPool(destination);
+            }
         }, ct).ConfigureAwait(false);
 
         Log.Debug("SQLite backup copy created ({Bytes} bytes)", new FileInfo(tempPath).Length);
-        return tempPath;
+    }
+
+    // ── Private: restore steps ─────────────────────────────────────────────
+
+    private static ZipArchive OpenArchiveForRestore(string zipPath)
+    {
+        ZipArchive archive;
+        try
+        {
+            archive = ZipFile.OpenRead(zipPath);
+        }
+        catch (InvalidDataException ex)
+        {
+            throw new InvalidOperationException(
+                "The backup archive failed validation. It may be corrupt or in an unrecognised format.", ex);
+        }
+
+        if (!TryValidateArchive(archive, out var reason))
+        {
+            archive.Dispose();
+            Log.Warning("Restore validation failed: {Reason}", reason);
+            throw new InvalidOperationException(
+                "The backup archive failed validation. It may be corrupt or in an unrecognised format.");
+        }
+
+        return archive;
+    }
+
+    private static void DecryptArchiveToFile(string sourcePath, string targetPath, string password, CancellationToken ct)
+    {
+        using var input = new FileStream(sourcePath, FileMode.Open, FileAccess.Read, FileShare.Read, 81920);
+        using var output = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None, 81920);
+        BackupArchiveCrypto.DecryptToStream(input, output, password, ct);
+    }
+
+    private static async Task<long> ExtractEntryAsync(ZipArchiveEntry entry, string targetPath, long limit, CancellationToken ct)
+    {
+        await using var entryStream = entry.Open();
+        await using var fileStream = new FileStream(
+            targetPath, FileMode.Create, FileAccess.Write, FileShare.None, AppConstants.FileStreamBufferSize, useAsync: true);
+        return await CopyEntryWithLimitAsync(entryStream, fileStream, limit, entry.FullName, ct).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Makes the staged database match this installation's encryption state and verifies it.
+    /// A plaintext backup restored while encryption is on is re-encrypted with the current key,
+    /// so the restored vault stays protected. An encrypted backup can only be restored where the
+    /// same key is in use. Returns the file to swap in.
+    /// </summary>
+    private string PrepareStagedDatabase(RestorePaths paths)
+    {
+        var staged = paths.StagedDatabase;
+        var stagedPlaintext = SqliteFileInspector.HasPlaintextHeader(staged);
+        if (!stagedPlaintext && !SqliteFileInspector.LooksEncrypted(staged))
+            throw new InvalidOperationException("The backup's database is damaged: it is not a SQLite database.");
+
+        var installationEncrypted = IsInstallationEncrypted(paths.Database);
+        if (installationEncrypted && stagedPlaintext)
+        {
+            ConvertPlaintextToCurrentKey(staged, paths.ConvertedDatabase);
+            staged = paths.ConvertedDatabase;
+        }
+        else if (!installationEncrypted && !stagedPlaintext)
+        {
+            throw new InvalidOperationException(
+                "This backup's database is encrypted, but database encryption is not turned on for this installation, " +
+                "so its key is not available. Restore it with the Agent-X installation and Windows account that created it.");
+        }
+
+        VerifyDatabaseFile(staged);
+        return staged;
+    }
+
+    /// <summary>
+    /// The live database file tells whether this installation is encrypted: the connection
+    /// factory applies the key that opens it. An empty or missing file follows the factory.
+    /// </summary>
+    private static bool IsInstallationEncrypted(string liveDatabase)
+    {
+        var info = new FileInfo(liveDatabase);
+        if (info.Exists && info.Length > 0)
+            return !SqliteFileInspector.HasPlaintextHeader(liveDatabase);
+
+        return false;
+    }
+
+    private void ConvertPlaintextToCurrentKey(string plaintextPath, string targetPath)
+    {
+        DeleteSidecarsAndFile(targetPath);
+
+        // OpenKeyed applies the current key to the new, empty file; sqlcipher_export then copies
+        // schema and data from the attached plaintext copy (KEY '' attaches it unencrypted).
+        using var connection = _connectionFactory.OpenKeyed(targetPath);
+        try
+        {
+            using var command = connection.CreateCommand();
+            command.CommandText =
+                $"ATTACH DATABASE '{plaintextPath.Replace("'", "''")}' AS backup KEY ''; " +
+                "SELECT sqlcipher_export('main', 'backup'); " +
+                "DETACH DATABASE backup;";
+            command.ExecuteNonQuery();
+        }
+        finally
+        {
+            SqliteConnection.ClearPool(connection);
+        }
+    }
+
+    private void VerifyDatabaseFile(string path)
+    {
+        using var connection = _connectionFactory.OpenKeyed(path);
+        try
+        {
+            using var command = connection.CreateCommand();
+            command.CommandText = "PRAGMA quick_check;";
+            var check = Convert.ToString(command.ExecuteScalar(), CultureInfo.InvariantCulture);
+            if (!string.Equals(check, "ok", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException($"The backup's database is damaged (integrity check: {check}).");
+
+            command.CommandText =
+                "SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name IN ('documents', 'conversations', 'workflows');";
+            if (Convert.ToInt64(command.ExecuteScalar(), CultureInfo.InvariantCulture) < 3)
+                throw new InvalidOperationException("The backup does not contain an Agent-X database.");
+        }
+        catch (SqliteException ex) when (ex.SqliteErrorCode == SqliteNotADatabase)
+        {
+            throw new InvalidOperationException(
+                "The backup's database cannot be opened with this installation's database key. " +
+                "It was made on another installation or Windows account.", ex);
+        }
+        finally
+        {
+            SqliteConnection.ClearPool(connection);
+        }
+    }
+
+    private async Task<List<StagedDocument>> StageDocumentsAsync(
+        ZipArchive archive, RestorePaths paths, List<string> warnings, CancellationToken ct)
+    {
+        var staged = new List<StagedDocument>();
+        long totalBytes = 0;
+        var skipped = 0;
+
+        foreach (var entry in archive.Entries)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            if (!entry.FullName.StartsWith(DocumentsEntryPrefix, StringComparison.OrdinalIgnoreCase) ||
+                entry.FullName.EndsWith('/'))
+                continue;
+
+            var relativePath = entry.FullName[DocumentsEntryPrefix.Length..];
+
+            // Older backups copied the whole storage folder, including settings.json and the
+            // encryption marker. Restoring those under running services broke the app, so only
+            // document folders come back.
+            if (!IsDocumentPath(relativePath) || paths.StoragePath is null)
+            {
+                skipped++;
+                continue;
+            }
+
+            // Containment guard: never write outside the configured storage directory, even if
+            // the archive was crafted with "../" traversal or rooted entry names. Validation
+            // rejects such archives up front; this is defense in depth.
+            var targetPath = PathHelper.ResolveContainedPath(paths.StoragePath, relativePath);
+            var stagedPath = PathHelper.ResolveContainedPath(paths.DocumentStaging!, relativePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(stagedPath)!);
+
+            totalBytes += await ExtractEntryAsync(entry, stagedPath, MaxRestoredEntryBytes, ct).ConfigureAwait(false);
+            if (totalBytes > MaxRestoredTotalBytes)
+                throw new InvalidOperationException(
+                    $"Restore aborted: total expanded document size exceeded the " +
+                    $"{MaxRestoredTotalBytes / (1024L * 1024 * 1024)} GB safety limit.");
+
+            staged.Add(new StagedDocument(stagedPath, targetPath, relativePath));
+        }
+
+        if (skipped > 0)
+        {
+            warnings.Add(
+                $"{skipped} file(s) in the archive were not restored because they are not documents " +
+                "(settings, keys, logs, models or caches saved by an older version).");
+        }
+
+        Log.Debug("Staged {Count} document files; skipped {Skipped}", staged.Count, skipped);
+        return staged;
+    }
+
+    /// <summary>
+    /// Replaces the live database with the verified staged file. The shared connection is
+    /// released first (SQLite opens files without FILE_SHARE_DELETE, so any open handle makes
+    /// the replace fail on Windows) and reopened with the current key afterwards. The replaced
+    /// file is kept as the safety copy.
+    /// </summary>
+    private void SwapInDatabase(string restoredDatabase, RestorePaths paths)
+    {
+        var live = paths.Database;
+
+        SharedDatabaseConnection.Release(_db);
+        _db.ChangeTracker.Clear();
+
+        try
+        {
+            // The sidecars belong to the database being replaced; replaying them against the
+            // restored file would corrupt it. After a clean close they only remain when another
+            // connection still holds the file, and then the swap cannot succeed on Windows.
+            DeleteIfExists(live + "-wal");
+            DeleteIfExists(live + "-shm");
+            DeleteIfExists(live + "-journal");
+
+            if (File.Exists(live))
+                File.Replace(restoredDatabase, live, paths.SafetyCopy, ignoreMetadataErrors: true);
+            else
+                File.Move(restoredDatabase, live);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // A replace that stopped halfway can leave the current database only at the backup name.
+            if (!File.Exists(live) && File.Exists(paths.SafetyCopy))
+                File.Move(paths.SafetyCopy, live);
+
+            SharedDatabaseConnection.Reacquire(_db);
+            throw new InvalidOperationException(
+                "The current database could not be replaced because it is in use. Close other Agent-X windows " +
+                "and wait for background work to finish, or restart Agent-X, then restore again. Nothing was changed.", ex);
+        }
+
+        SharedDatabaseConnection.Reacquire(_db);
+        Log.Information("Restored database swapped in; previous database kept at {SafetyCopy} until verified", paths.SafetyCopy);
+    }
+
+    /// <summary>
+    /// Puts the pre-restore database back. Returns null on success, or the path where the
+    /// previous database is kept when it could not be moved back.
+    /// </summary>
+    private string? RollBackDatabase(RestorePaths paths)
+    {
+        try
+        {
+            SharedDatabaseConnection.Release(_db);
+            _db.ChangeTracker.Clear();
+
+            if (File.Exists(paths.SafetyCopy))
+            {
+                DeleteIfExists(paths.Database + "-wal");
+                DeleteIfExists(paths.Database + "-shm");
+                DeleteIfExists(paths.Database + "-journal");
+                File.Move(paths.SafetyCopy, paths.Database, overwrite: true);
+            }
+
+            Log.Warning("Restore failed after the database was replaced; the previous database was put back");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            paths.KeepSafetyCopy = true;
+            Log.Fatal(ex, "Could not put the previous database back; it is kept at {SafetyCopy}", paths.SafetyCopy);
+            return paths.SafetyCopy;
+        }
+        finally
+        {
+            try
+            {
+                SharedDatabaseConnection.Reacquire(_db);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Could not reopen the database after rolling back a restore");
+            }
+        }
+    }
+
+    private static void InstallDocuments(
+        IReadOnlyList<StagedDocument> staged, RestorePaths paths, List<InstalledDocument> installed)
+    {
+        foreach (var document in staged)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(document.TargetPath)!);
+
+            // An existing file is moved aside first so a failure later can put it back.
+            string? displaced = null;
+            if (File.Exists(document.TargetPath))
+            {
+                displaced = PathHelper.ResolveContainedPath(paths.DocumentRollback!, document.RelativePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(displaced)!);
+                File.Move(document.TargetPath, displaced, overwrite: true);
+            }
+
+            installed.Add(new InstalledDocument(document.TargetPath, displaced));
+            File.Move(document.StagedPath, document.TargetPath);
+        }
+    }
+
+    /// <summary>
+    /// Undoes <see cref="InstallDocuments"/> in reverse order. Returns false when a displaced
+    /// original could not be moved back; it then stays in the rollback folder.
+    /// </summary>
+    private static bool RollBackDocuments(List<InstalledDocument> installed)
+    {
+        var allRestored = true;
+        for (var i = installed.Count - 1; i >= 0; i--)
+        {
+            var document = installed[i];
+            try
+            {
+                if (document.DisplacedPath is not null)
+                {
+                    if (File.Exists(document.DisplacedPath))
+                        File.Move(document.DisplacedPath, document.TargetPath, overwrite: true);
+                }
+                else if (File.Exists(document.TargetPath))
+                {
+                    File.Delete(document.TargetPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                allRestored = false;
+                Log.Error(ex, "Could not roll back restored document {TargetPath}", document.TargetPath);
+            }
+        }
+
+        return allRestored;
     }
 
     // ── Private: AES-256 encryption/decryption ─────────────────────────────
 
-    // Encrypted archive byte layouts:
-    //   V2 (current, authenticated): magic "AGXENC2\0" (8) + salt(16) + nonce(12) + tag(16) + AES-256-GCM ciphertext
-    //   V1 (legacy, restore-only):   magic "AGXENC\0\0" (8) + salt(16) + iv(16)    + AES-256-CBC ciphertext
-
-    private static readonly byte[] EncryptionMagic = Encoding.ASCII.GetBytes("AGXENC\0\0");   // V1 legacy CBC
-    private static readonly byte[] EncryptionMagicV2 = Encoding.ASCII.GetBytes("AGXENC2\0");  // V2 authenticated GCM
-
     /// <summary>
-    /// Encrypts backup bytes using AES-256-GCM authenticated encryption (V2 format). The GCM
-    /// tag binds the ciphertext so a wrong password or a tampered archive is detected on restore
-    /// (see <see cref="DecryptBytes"/>) rather than yielding corrupt plaintext. Public to mirror
-    /// <see cref="DecryptBytes"/> and to support round-trip testing.
+    /// Encrypts backup bytes in the current archive format (V3, see
+    /// <see cref="BackupArchiveCrypto"/>). Public to mirror <see cref="DecryptBytes"/> and to
+    /// support round-trip testing; backups themselves are encrypted while they stream to disk.
     /// </summary>
     public static byte[] EncryptBytes(byte[] plaintext, string password)
-    {
-        ArgumentNullException.ThrowIfNull(plaintext);
-        ArgumentException.ThrowIfNullOrWhiteSpace(password);
-
-        var salt = RandomNumberGenerator.GetBytes(SaltSize);
-        var nonce = RandomNumberGenerator.GetBytes(GcmNonceSize);
-        var key = DeriveKey(password, salt);
-
-        var ciphertext = new byte[plaintext.Length];
-        var tag = new byte[GcmTagSize];
-
-        using (var gcm = new AesGcm(key, GcmTagSize))
-        {
-            gcm.Encrypt(nonce, plaintext, ciphertext, tag);
-        }
-
-        // Layout: magic(8) + salt(16) + nonce(12) + tag(16) + ciphertext
-        var result = new byte[EncryptionMagicV2.Length + SaltSize + GcmNonceSize + GcmTagSize + ciphertext.Length];
-        var span = result.AsSpan();
-        var offset = 0;
-        EncryptionMagicV2.CopyTo(span[offset..]); offset += EncryptionMagicV2.Length;
-        salt.CopyTo(span[offset..]); offset += SaltSize;
-        nonce.CopyTo(span[offset..]); offset += GcmNonceSize;
-        tag.CopyTo(span[offset..]); offset += GcmTagSize;
-        ciphertext.CopyTo(span[offset..]);
-
-        return result;
-    }
+        => BackupArchiveCrypto.Encrypt(plaintext, password);
 
     /// <summary>
-    /// Decrypts a backup archive produced by <see cref="EncryptBytes"/> (AES-256-GCM, V2) or a
-    /// legacy AES-256-CBC archive (V1). The format is selected by the archive's magic header so
-    /// existing backups remain restorable. Throws <see cref="InvalidOperationException"/> when the
-    /// password is wrong or — for V2 — the archive fails authentication (tamper detected).
+    /// Decrypts a backup archive in any supported format: V3 (streamed AES-256-GCM), V2
+    /// (one-shot AES-256-GCM) or legacy V1 (AES-256-CBC). The format is selected by the magic
+    /// header so existing backups remain restorable. Throws <see cref="InvalidOperationException"/>
+    /// when the password is wrong or the archive fails authentication (tamper detected).
     /// </summary>
     public static byte[] DecryptBytes(byte[] cipherData, string password)
-    {
-        ArgumentNullException.ThrowIfNull(cipherData);
-        ArgumentException.ThrowIfNullOrWhiteSpace(password);
-
-        if (StartsWith(cipherData, EncryptionMagicV2))
-            return DecryptGcm(cipherData, password);
-
-        if (StartsWith(cipherData, EncryptionMagic))
-            return DecryptLegacyCbc(cipherData, password);
-
-        throw new InvalidOperationException("Data is not a recognised encrypted Agent-X backup archive.");
-    }
-
-    private static byte[] DecryptGcm(byte[] cipherData, string password)
-    {
-        var headerLen = EncryptionMagicV2.Length + SaltSize + GcmNonceSize + GcmTagSize;
-        if (cipherData.Length < headerLen)
-            throw new InvalidOperationException("Data is too short to be a valid encrypted archive.");
-
-        var offset = EncryptionMagicV2.Length;
-        var salt = cipherData[offset..(offset + SaltSize)]; offset += SaltSize;
-        var nonce = cipherData[offset..(offset + GcmNonceSize)]; offset += GcmNonceSize;
-        var tag = cipherData[offset..(offset + GcmTagSize)]; offset += GcmTagSize;
-        var ciphertext = cipherData[offset..];
-
-        var key = DeriveKey(password, salt);
-        var plaintext = new byte[ciphertext.Length];
-
-        try
-        {
-            using var gcm = new AesGcm(key, GcmTagSize);
-            gcm.Decrypt(nonce, ciphertext, tag, plaintext);
-        }
-        catch (CryptographicException ex)
-        {
-            throw new InvalidOperationException(
-                "Backup decryption failed — the password is incorrect or the archive has been tampered with.", ex);
-        }
-
-        return plaintext;
-    }
-
-    private static byte[] DecryptLegacyCbc(byte[] cipherData, string password)
-    {
-        var headerLen = EncryptionMagic.Length + SaltSize + IvSize; // 40 bytes
-        if (cipherData.Length < headerLen)
-            throw new InvalidOperationException("Data is too short to be a valid encrypted archive.");
-
-        var salt = cipherData[EncryptionMagic.Length..(EncryptionMagic.Length + SaltSize)];
-        var iv = cipherData[(EncryptionMagic.Length + SaltSize)..headerLen];
-        var ciphertext = cipherData[headerLen..];
-        var key = DeriveKey(password, salt);
-
-        using var aes = Aes.Create();
-        aes.KeySize = AesKeySize;
-        aes.BlockSize = AesBlockSize;
-        aes.Mode = CipherMode.CBC;
-        aes.Padding = PaddingMode.PKCS7;
-        aes.Key = key;
-        aes.IV = iv;
-
-        using var decryptor = aes.CreateDecryptor();
-        return decryptor.TransformFinalBlock(ciphertext, 0, ciphertext.Length);
-    }
-
-    private static byte[] DeriveKey(string password, byte[] salt)
-    {
-        using var kdf = new Rfc2898DeriveBytes(
-            password,
-            salt,
-            Pbkdf2Iterations,
-            HashAlgorithmName.SHA256);
-
-        return kdf.GetBytes(AesKeySize / 8); // 32 bytes for AES-256
-    }
-
-    private static bool IsEncryptedArchive(byte[] data)
-        => StartsWith(data, EncryptionMagicV2) || StartsWith(data, EncryptionMagic);
-
-    private static bool StartsWith(byte[] data, byte[] prefix)
-        => data.Length >= prefix.Length && data.AsSpan(0, prefix.Length).SequenceEqual(prefix);
+        => BackupArchiveCrypto.Decrypt(cipherData, password);
 
     // ── Private: scheduled backup retention ───────────────────────────────
 
@@ -1101,7 +1360,7 @@ public sealed class BackupService : IBackupService
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "Failed to load backup schedule config — using defaults");
+            Log.Warning(ex, "Failed to load backup schedule config; using defaults");
         }
 
         return new BackupScheduleConfig
@@ -1118,8 +1377,23 @@ public sealed class BackupService : IBackupService
     private static string GetDefaultStoragePath() =>
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AgentX");
 
-    private static string GetDatabasePath() =>
-        Path.Combine(GetDefaultStoragePath(), "agentx.db");
+    /// <summary>
+    /// The database to copy. The shared context's own file when it is file-backed; the default
+    /// app database otherwise (the connection factory decides what is opened).
+    /// </summary>
+    private string ResolveDatabasePathForCopy()
+        => _databasePathOverride
+           ?? SharedDatabaseConnection.TryGetDatabasePath(_db)
+           ?? PathHelper.GetDatabasePath();
+
+    /// <summary>
+    /// The live database file a restore replaces. Never falls back to a default path: replacing
+    /// a file the context does not use would swap the wrong database.
+    /// </summary>
+    private string ResolveLiveDatabaseFile()
+        => _databasePathOverride
+           ?? SharedDatabaseConnection.TryGetDatabasePath(_db)
+           ?? throw new InvalidOperationException("Restore needs the file-backed application database.");
 
     private string ResolveDestinationDirectory(string? requestedPath)
     {
@@ -1127,6 +1401,23 @@ public sealed class BackupService : IBackupService
             return requestedPath;
 
         return GetDefaultStoragePath();
+    }
+
+    /// <summary>Two backups in the same second must not overwrite each other.</summary>
+    private static string UniqueFilePath(string path)
+    {
+        if (!File.Exists(path))
+            return path;
+
+        var directory = Path.GetDirectoryName(path)!;
+        var name = Path.GetFileNameWithoutExtension(path);
+        var extension = Path.GetExtension(path);
+        for (var i = 2; ; i++)
+        {
+            var candidate = Path.Combine(directory, $"{name}-{i}{extension}");
+            if (!File.Exists(candidate))
+                return candidate;
+        }
     }
 
     // ── Private: utility helpers ───────────────────────────────────────────
@@ -1145,6 +1436,20 @@ public sealed class BackupService : IBackupService
         });
     }
 
+    private static void DeleteIfExists(string path)
+    {
+        if (File.Exists(path))
+            File.Delete(path);
+    }
+
+    private static void DeleteSidecarsAndFile(string path)
+    {
+        DeleteFileQuietly(path + "-wal");
+        DeleteFileQuietly(path + "-shm");
+        DeleteFileQuietly(path + "-journal");
+        DeleteFileQuietly(path);
+    }
+
     private static void DeleteFileQuietly(string? path)
     {
         if (string.IsNullOrEmpty(path) || !File.Exists(path))
@@ -1157,6 +1462,99 @@ public sealed class BackupService : IBackupService
         catch (Exception ex)
         {
             Log.Warning(ex, "Could not delete temporary file {Path}", path);
+        }
+    }
+
+    private static void DeleteDirectoryQuietly(string? path)
+    {
+        if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
+            return;
+
+        try
+        {
+            Directory.Delete(path, recursive: true);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Could not delete temporary folder {Path}", path);
+        }
+    }
+
+    // ── Private: restore bookkeeping ───────────────────────────────────────
+
+    private sealed record StagedDocument(string StagedPath, string TargetPath, string RelativePath);
+
+    private sealed record InstalledDocument(string TargetPath, string? DisplacedPath);
+
+    /// <summary>
+    /// Every file a restore creates. The staged database and the decrypted archive sit next to
+    /// the live database (same volume, so the swap is a rename); document staging sits inside
+    /// the storage folder for the same reason.
+    /// </summary>
+    private sealed class RestorePaths
+    {
+        public RestorePaths(string database, string? storagePath)
+        {
+            Database = database;
+            StagedDatabase = database + ".restore.tmp";
+            ConvertedDatabase = database + ".restore-keyed.tmp";
+            SafetyCopy = database + ".pre-restore";
+
+            if (!string.IsNullOrWhiteSpace(storagePath))
+            {
+                StoragePath = Path.GetFullPath(storagePath);
+                DocumentStaging = Path.Combine(StoragePath, ".restore-staging");
+                DocumentRollback = Path.Combine(StoragePath, ".restore-rollback");
+            }
+        }
+
+        public string Database { get; }
+        public string StagedDatabase { get; }
+        public string ConvertedDatabase { get; }
+        public string SafetyCopy { get; }
+        public string? StoragePath { get; }
+        public string? DocumentStaging { get; }
+        public string? DocumentRollback { get; }
+
+        /// <summary>Set when the previous database could not be put back; it must then survive.</summary>
+        public bool KeepSafetyCopy { get; set; }
+
+        public void PrepareWorkspace()
+        {
+            RemoveStaging();
+
+            // Leftovers of an interrupted restore may hold someone's only copy of their previous
+            // database or documents: keep them under a unique name rather than overwriting them.
+            var stamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
+            if (File.Exists(SafetyCopy))
+            {
+                var kept = $"{SafetyCopy}-{stamp}";
+                File.Move(SafetyCopy, kept);
+                Log.Warning("Kept an earlier pre-restore database at {Path}", kept);
+            }
+
+            if (DocumentRollback is not null && Directory.Exists(DocumentRollback))
+            {
+                var kept = $"{DocumentRollback}-{stamp}";
+                Directory.Move(DocumentRollback, kept);
+                Log.Warning("Kept documents displaced by an earlier restore at {Path}", kept);
+            }
+        }
+
+        public void DiscardSafetyCopy()
+        {
+            if (!KeepSafetyCopy)
+                DeleteFileQuietly(SafetyCopy);
+        }
+
+        /// <summary>Removes the originals displaced by restored documents once they are not needed.</summary>
+        public void DiscardDocumentRollback() => DeleteDirectoryQuietly(DocumentRollback);
+
+        public void RemoveStaging()
+        {
+            DeleteSidecarsAndFile(StagedDatabase);
+            DeleteSidecarsAndFile(ConvertedDatabase);
+            DeleteDirectoryQuietly(DocumentStaging);
         }
     }
 }

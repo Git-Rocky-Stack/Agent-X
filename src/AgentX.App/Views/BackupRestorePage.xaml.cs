@@ -17,12 +17,41 @@ public sealed partial class BackupRestorePage : Page
         InitializeComponent();
 
         Loaded += OnPageLoaded;
+        Unloaded += (_, _) => ViewModel.BackupPasswordRequested -= PromptForBackupPasswordAsync;
     }
 
     private async void OnPageLoaded(object sender, RoutedEventArgs e)
     {
         Log.Debug("BackupRestorePage loaded");
+        // The page is cached across navigations, so subscribe on every load (idempotently).
+        ViewModel.BackupPasswordRequested -= PromptForBackupPasswordAsync;
+        ViewModel.BackupPasswordRequested += PromptForBackupPasswordAsync;
         await ViewModel.InitializeAsync();
+    }
+
+    /// <summary>
+    /// Asks for the password of an encrypted backup before it is restored. Returns null when
+    /// the user cancels. Same ContentDialog + PasswordBox pattern as the database unlock prompt.
+    /// </summary>
+    private async Task<string?> PromptForBackupPasswordAsync()
+    {
+        var box = new PasswordBox
+        {
+            Header = "Backup password",
+            PlaceholderText = "Password used when the backup was created"
+        };
+
+        var dialog = new ContentDialog
+        {
+            Title = "Encrypted Backup",
+            Content = box,
+            PrimaryButtonText = "Restore",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = this.XamlRoot
+        };
+
+        return await dialog.ShowAsync() == ContentDialogResult.Primary ? box.Password : null;
     }
 
     private async void BrowseBackupDestination(object sender, RoutedEventArgs e)
@@ -59,7 +88,8 @@ public sealed partial class BackupRestorePage : Page
             Title = "Restore from Backup?",
             Content = "Restoring will overwrite your current knowledge base — " +
                       "documents, conversations, and workflows will be replaced with the " +
-                      "backup's contents. This cannot be undone. Continue?",
+                      "backup's contents. This cannot be undone, and Agent-X must be restarted " +
+                      "afterwards. Continue?",
             PrimaryButtonText = "Restore",
             CloseButtonText = "Cancel",
             DefaultButton = ContentDialogButton.Close,
@@ -89,7 +119,8 @@ public sealed partial class BackupRestorePage : Page
             Title = "Restore from Backup?",
             Content = "Restoring will overwrite your current knowledge base — " +
                       "documents, conversations, and workflows will be replaced with the " +
-                      "backup's contents. This cannot be undone. Continue?",
+                      "backup's contents. This cannot be undone, and Agent-X must be restarted " +
+                      "afterwards. Continue?",
             PrimaryButtonText = "Restore",
             CloseButtonText = "Cancel",
             DefaultButton = ContentDialogButton.Close,

@@ -1,7 +1,6 @@
 using System.Data;
 using System.Data.Common;
 using AgentX.Core.Data;
-using AgentX.Core.Helpers;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -24,11 +23,25 @@ namespace AgentX.Core.Services.Security;
 /// </summary>
 internal static class SharedDatabaseConnection
 {
-    /// <summary>The database file the shared context is configured for.</summary>
+    /// <summary>
+    /// The database file the shared context is configured for. Throws for a context that is not
+    /// file-backed (for example in-memory), so file operations can never be aimed at a different
+    /// database than the one the context uses.
+    /// </summary>
     public static string GetDatabasePath(AgentXDbContext db)
     {
+        var dataSource = TryGetDatabasePath(db);
+        return dataSource ?? throw new InvalidOperationException("The application database is not file-backed.");
+    }
+
+    /// <summary>The database file the shared context is configured for, or null when it is not file-backed.</summary>
+    public static string? TryGetDatabasePath(AgentXDbContext db)
+    {
         var dataSource = db.Database.GetDbConnection().DataSource;
-        return string.IsNullOrWhiteSpace(dataSource) ? PathHelper.GetDatabasePath() : dataSource;
+        if (string.IsNullOrWhiteSpace(dataSource) || dataSource.Contains(":memory:", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        return Path.GetFullPath(dataSource);
     }
 
     /// <summary>

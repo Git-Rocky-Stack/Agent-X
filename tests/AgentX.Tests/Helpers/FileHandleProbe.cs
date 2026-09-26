@@ -18,11 +18,16 @@ internal static class FileHandleProbe
 
         if (OperatingSystem.IsLinux())
         {
+            // A handle on a file that was deleted while open shows as "<path> (deleted)". Linux
+            // lets the delete succeed, but Windows would have refused it, so it still counts.
+            var deletedTarget = fullPath + " (deleted)";
             foreach (var fd in Directory.EnumerateFiles("/proc/self/fd"))
             {
                 try
                 {
-                    if (string.Equals(new FileInfo(fd).LinkTarget, fullPath, StringComparison.Ordinal))
+                    var target = new FileInfo(fd).LinkTarget;
+                    if (string.Equals(target, fullPath, StringComparison.Ordinal) ||
+                        string.Equals(target, deletedTarget, StringComparison.Ordinal))
                         return true;
                 }
                 catch (IOException)

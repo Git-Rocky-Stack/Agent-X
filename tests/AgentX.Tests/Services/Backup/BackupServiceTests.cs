@@ -22,8 +22,8 @@ namespace AgentX.Tests.Services.Backup;
 /// <see cref="BackupServiceSecurityTests"/> (which exercises the pure static crypto + path-guard
 /// helpers) by driving the real service end-to-end.
 ///
-/// <para><b>Harness design.</b> The service has no path-injection seam: its source database path is
-/// the hardcoded <c>%LocalAppData%\AgentX\agentx.db</c>. The SQLite Online Backup API copy is taken
+/// <para><b>Harness design.</b> The service copies the file the context uses; this harness's context is
+/// in-memory, so the copy source falls back to <c>%LocalAppData%\AgentX\agentx.db</c>. The SQLite Online Backup API copy is taken
 /// through the injectable <see cref="IEncryptedConnectionFactory"/>, so the harness mocks the factory
 /// to (a) redirect the <i>source</i> open to a seeded throwaway temp database — never the real user
 /// DB — and (b) honour the generated <i>destination</i> temp path. Every write target
@@ -31,12 +31,10 @@ namespace AgentX.Tests.Services.Backup;
 /// directory. A full <see cref="BackupService.CreateBackupAsync"/> therefore round-trips safely,
 /// producing a real <c>.agentxbak</c> archive on disk.</para>
 ///
-/// <para><b>Restore.</b> <see cref="BackupService.RestoreFromBackupAsync"/>'s success path writes the
-/// extracted database to that same hardcoded real user-profile path and swaps the live EF
-/// connection — with no seam to redirect it, exercising it would clobber the developer's real
-/// Agent-X database. These tests therefore cover only restore's guard, validation, encrypted, and
-/// error branches (all of which return <i>before</i> any database write); the file-swap body is a
-/// deliberate, safety-bounded residual.</para>
+/// <para><b>Restore.</b> This harness uses an in-memory context, so these tests cover only
+/// restore's guard, validation, encrypted, and error branches (all of which return <i>before</i>
+/// any database write). The swap itself runs against the file the live context uses, and is
+/// covered end to end with a file-backed context in <see cref="BackupRestoreRoundTripTests"/>.</para>
 /// </summary>
 public sealed class BackupServiceTests : IDisposable
 {
@@ -231,12 +229,19 @@ public sealed class BackupServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task CreateBackupAsync_WithDocuments_IncludesFilesAndExcludesDatabaseSidecars()
+    public async Task CreateBackupAsync_WithDocuments_IncludesOnlyDocumentFolders()
     {
         var h = NewHarness();
-        h.AddStorageFile("notes/a.txt", Encoding.UTF8.GetBytes("alpha"));
-        h.AddStorageFile("b.bin", new byte[] { 1, 2, 3, 4 });
-        // Sidecar database files must be excluded by the backup builder.
+        h.AddStorageFile("WebImports/article.md", Encoding.UTF8.GetBytes("alpha"));
+        h.AddStorageFile("WebImports/nested/b.md", new byte[] { 1, 2, 3, 4 });
+        // The rest of the storage folder is configuration, secrets, logs, models and caches: it
+        // must never be archived (the old builder zipped all of it, including multi-GB models,
+        // the live log and the DPAPI-protected settings and encryption marker).
+        h.AddStorageFile("settings.json", Encoding.UTF8.GetBytes("{}"));
+        h.AddStorageFile("encryption.info.json", Encoding.UTF8.GetBytes("{}"));
+        h.AddStorageFile("Logs/agentx-20260101.log", Encoding.UTF8.GetBytes("log"));
+        h.AddStorageFile("Models/llama.gguf", new byte[] { 7 });
+        h.AddStorageFile("notes/a.txt", Encoding.UTF8.GetBytes("not a document folder"));
         h.AddStorageFile("agentx.db", new byte[] { 9 });
         h.AddStorageFile("agentx.db-wal", new byte[] { 9 });
 
@@ -254,9 +259,7 @@ public sealed class BackupServiceTests : IDisposable
             .Select(e => e.FullName)
             .ToList();
 
-        docEntries.Should().Contain("documents/notes/a.txt");
-        docEntries.Should().Contain("documents/b.bin");
-        docEntries.Should().NotContain(e => e.EndsWith(".db") || e.EndsWith(".db-wal"));
+        docEntries.Should().BeEquivalentTo("documents/WebImports/article.md", "documents/WebImports/nested/b.md");
     }
 
     [Fact]
@@ -275,7 +278,7 @@ public sealed class BackupServiceTests : IDisposable
         result.Success.Should().BeTrue(result.ErrorMessage);
 
         var bytes = await File.ReadAllBytesAsync(result.BackupFilePath!);
-        bytes.Take(8).Should().Equal(Encoding.ASCII.GetBytes("AGXENC2\0"));
+        bytes.Take(8).Should().Equal(Encoding.ASCII.GetBytes("AGXENC3\0"));
 
         // Decrypting with the password yields the inner ZIP with the expected entries.
         var zipBytes = BackupService.DecryptBytes(bytes, password);
@@ -421,17 +424,32 @@ public sealed class BackupServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task RestoreFromBackupAsync_EncryptedArchive_ReturnsGuidanceError()
+    public async Task RestoreFromBackupAsync_EncryptedArchiveWithoutPassword_AsksForThePassword()
     {
         var h = NewHarness();
         var path = Path.Combine(h.DestDir, "enc.agentxbak");
         var blob = BackupService.EncryptBytes(BuildPlainArchiveBytes(), "pw");
         await File.WriteAllBytesAsync(path, blob);
 
+        // BK2: restoring encrypted archives is supported through the password overload (see
+        // BackupRestoreRoundTripTests); without a password the error says what is needed.
         var result = await h.Service.RestoreFromBackupAsync(path);
 
         result.Success.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("encrypted");
+        result.ErrorMessage.Should().Contain("encrypted").And.Contain("password");
+    }
+
+    [Fact]
+    public async Task RestoreFromBackupAsync_EncryptedArchiveWithWrongPassword_ReportsThePassword()
+    {
+        var h = NewHarness();
+        var path = Path.Combine(h.DestDir, "enc.agentxbak");
+        await File.WriteAllBytesAsync(path, BackupService.EncryptBytes(BuildPlainArchiveBytes(), "right"));
+
+        var result = await h.Service.RestoreFromBackupAsync(path, "wrong");
+
+        result.Success.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("password is incorrect");
     }
 
     [Fact]
@@ -562,13 +580,15 @@ public sealed class BackupServiceTests : IDisposable
     // ── EstimateBackupSizeAsync ──────────────────────────────────────────────
 
     [Fact]
-    public async Task EstimateBackupSizeAsync_SumsDocumentFilesExcludingDatabaseSidecars()
+    public async Task EstimateBackupSizeAsync_CountsOnlyTheDocumentFoldersABackupIncludes()
     {
         var h = NewHarness();
-        h.AddStorageFile("a.txt", new byte[1024]);
-        h.AddStorageFile("nested/b.bin", new byte[2048]);
-        h.AddStorageFile("agentx.db", new byte[4096]);      // excluded
-        h.AddStorageFile("agentx.db-shm", new byte[4096]);  // excluded
+        h.AddStorageFile("WebImports/a.md", new byte[1024]);
+        h.AddStorageFile("WebImports/nested/b.md", new byte[2048]);
+        h.AddStorageFile("agentx.db", new byte[4096]);        // excluded
+        h.AddStorageFile("agentx.db-shm", new byte[4096]);    // excluded
+        h.AddStorageFile("Models/big.gguf", new byte[8192]);  // excluded
+        h.AddStorageFile("Logs/agentx.log", new byte[512]);   // excluded
         h.Seed(ctx =>
         {
             ctx.Conversations.Add(new ConversationEntity { Title = "c", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow });
@@ -576,7 +596,7 @@ public sealed class BackupServiceTests : IDisposable
 
         var estimate = await h.Service.EstimateBackupSizeAsync();
 
-        // 3072 bytes of real documents; the 8 KB of sidecars must not be counted.
+        // 3072 bytes of web-imported documents; nothing else in the storage folder is archived.
         estimate.DocumentsSizeMB.Should().BeApproximately(3072 / (1024.0 * 1024.0), 0.0001);
         estimate.TotalEstimatedMB.Should().BeApproximately(estimate.DatabaseSizeMB + estimate.DocumentsSizeMB, 0.0001);
     }

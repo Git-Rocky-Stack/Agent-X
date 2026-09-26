@@ -21,7 +21,13 @@ public static class AppConstants
     public const int MaxAutoTagContentChars = 2000;
 
     // ── Security ────────────────────────────────────────────────────
+    // Legacy PBKDF2 count: V1/V2 backup archives and sync packages do not record it in their
+    // format, so it can never change for them.
     public const int Pbkdf2Iterations = 100_000;
+
+    // PBKDF2-HMAC-SHA256 count for new (V3) backup archives, which store it in their header.
+    // Matches the database passphrase key (OWASP 2023 guidance).
+    public const int BackupPbkdf2Iterations = 600_000;
 
     // ── Search ──────────────────────────────────────────────────────
     // P2-1: DefaultSearchTopK / DefaultSearchMinScore removed — superseded by

@@ -17,7 +17,11 @@ public class BackupOptions
     /// </summary>
     public string? EncryptionPassword { get; init; }
 
-    /// <summary>Whether to include document files stored on disk in addition to the database.</summary>
+    /// <summary>
+    /// Whether to include the document files Agent-X keeps inside its storage folder (the
+    /// WebImports folder written by web import) in addition to the database. Documents imported
+    /// from other folders are indexed where they are and are not copied into the backup.
+    /// </summary>
     public bool IncludeDocuments { get; init; } = true;
 
     /// <summary>Optional notes stored in the backup history record.</summary>
@@ -49,6 +53,9 @@ public class BackupResult
 
     /// <summary>The database ID of the <see cref="AgentX.Core.Data.Entities.BackupEntity"/> row. Zero on failure.</summary>
     public long BackupId { get; init; }
+
+    /// <summary>Non-fatal problems, for example a document file that could not be read and was skipped.</summary>
+    public List<string> WarningMessages { get; init; } = new();
 }
 
 /// <summary>
@@ -76,6 +83,13 @@ public class RestoreResult
 
     /// <summary>Non-fatal warnings generated during the restore (e.g. missing optional files).</summary>
     public List<string> WarningMessages { get; init; } = new();
+
+    /// <summary>
+    /// True after a successful restore: services that cached data from the replaced database
+    /// (search caches, vector indexes, open pages) only see the restored data after Agent-X
+    /// restarts, and the restored database's schema is upgraded at startup.
+    /// </summary>
+    public bool RequiresRestart { get; init; }
 }
 
 /// <summary>
@@ -102,7 +116,7 @@ public class BackupSizeEstimate
     /// <summary>Current size of the SQLite database file in megabytes.</summary>
     public double DatabaseSizeMB { get; init; }
 
-    /// <summary>Combined size of all files under the documents storage folder in megabytes.</summary>
+    /// <summary>Combined size of the document files a backup includes (the WebImports folder) in megabytes.</summary>
     public double DocumentsSizeMB { get; init; }
 
     /// <summary>Sum of <see cref="DatabaseSizeMB"/> and <see cref="DocumentsSizeMB"/>.</summary>

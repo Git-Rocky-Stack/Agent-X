@@ -51,6 +51,12 @@ public partial class BackupRestoreViewModel : ObservableObject
     [ObservableProperty] private int _scheduledIntervalHours = 168;
     [ObservableProperty] private int _maxBackupsToKeep = 5;
 
+    /// <summary>
+    /// Raised when the backup being restored is encrypted. The view asks for the password and
+    /// returns it, or null when the user cancels.
+    /// </summary>
+    public event Func<Task<string?>>? BackupPasswordRequested;
+
     public BackupRestoreViewModel(IBackupService backupService)
     {
         _backupService = backupService;
@@ -139,6 +145,13 @@ public partial class BackupRestoreViewModel : ObservableObject
             return;
         }
 
+        // An empty password used to produce an unencrypted backup although encryption was checked.
+        if (UseEncryption && string.IsNullOrWhiteSpace(EncryptionPassword))
+        {
+            StatusMessage = "Enter a password to encrypt the backup, or turn encryption off.";
+            return;
+        }
+
         IsBackingUp = true;
         ProgressPercent = 0;
         ProgressPhase = "Preparing...";
@@ -169,6 +182,12 @@ public partial class BackupRestoreViewModel : ObservableObject
             if (result.Success)
             {
                 StatusMessage = $"Backup created successfully ({result.SizeMB:F1} MB, {result.DurationMs:F0}ms)";
+                if (result.WarningMessages.Count > 0)
+                {
+                    StatusMessage += $" with {result.WarningMessages.Count} warning(s): " +
+                                     string.Join(" ", result.WarningMessages);
+                }
+
                 await LoadBackupHistoryAsync();
             }
             else
@@ -210,6 +229,22 @@ public partial class BackupRestoreViewModel : ObservableObject
                 return;
             }
 
+            // Encrypted archives are decrypted with the user's password before they are validated
+            // and restored.
+            string? password = null;
+            if (await _backupService.IsEncryptedBackupAsync(RestoreFilePath))
+            {
+                password = BackupPasswordRequested is { } requestPassword
+                    ? await requestPassword()
+                    : null;
+
+                if (string.IsNullOrEmpty(password))
+                {
+                    StatusMessage = "Restore cancelled: this backup is encrypted and needs its password.";
+                    return;
+                }
+            }
+
             var progress = new Progress<BackupProgress>(p =>
             {
                 ProgressPercent = p.PercentComplete;
@@ -217,7 +252,7 @@ public partial class BackupRestoreViewModel : ObservableObject
                 ProgressItem = p.CurrentItem ?? string.Empty;
             });
 
-            var result = await _backupService.RestoreFromBackupAsync(RestoreFilePath, progress);
+            var result = await _backupService.RestoreFromBackupAsync(RestoreFilePath, password, progress);
 
             if (result.Success)
             {
@@ -226,7 +261,11 @@ public partial class BackupRestoreViewModel : ObservableObject
                                  $"{result.RestoredDocumentCount} documents, " +
                                  $"{result.RestoredWorkflowCount} workflows " +
                                  $"in {result.DurationMs:F0}ms";
-                StatusMessage = "Restore completed successfully — restart recommended";
+                // Search caches, vector indexes and open pages still hold the replaced data, and
+                // the restored database's schema is upgraded at startup.
+                StatusMessage = result.RequiresRestart
+                    ? "Restore completed. Restart Agent-X now to load the restored data."
+                    : "Restore completed successfully.";
 
                 if (result.WarningMessages.Count > 0)
                 {
