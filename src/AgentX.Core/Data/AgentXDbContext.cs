@@ -3,6 +3,7 @@ using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.TemporalIdentity.Models;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace AgentX.Core.Data;
 
@@ -86,21 +87,104 @@ public class AgentXDbContext : DbContext
         {
             optionsBuilder.UseSqlite($"Data Source={_dbPath}");
         }
+
+        // One context instance is shared by the UI and by background work (App.xaml.cs), so
+        // overlapping operations must wait for each other instead of throwing. See
+        // SerializingConcurrencyDetector and SerializingQueryCompiler.
+        SerializingQueryCompiler.Register(optionsBuilder);
+    }
+
+    /// <summary>
+    /// Enters the gate that serializes every operation on this context. Raw ADO.NET work on
+    /// <c>Database.GetDbConnection()</c> is invisible to EF, so it must hold this gate for its
+    /// whole duration (including any transaction it opens) to avoid running interleaved with
+    /// EF queries and saves issued from other threads. Dispose the result to leave. Re-entrant
+    /// within one async flow; tasks started from inside the region inherit its ownership, so do
+    /// not fan out parallel database work while holding it.
+    /// </summary>
+    public ConcurrencyDetectorCriticalSectionDisposer EnterDatabaseGate()
+        => this.GetService<IConcurrencyDetector>().EnterCriticalSection();
+
+    /// <summary>
+    /// Saves under the database gate. If the save fails, the pending changes it tried to write
+    /// are discarded: with one long-lived context, leaving a rejected insert or delete tracked
+    /// would make every later, unrelated SaveChanges replay it and fail the same way.
+    /// </summary>
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        using (EnterDatabaseGate())
+        {
+            try
+            {
+                return base.SaveChanges(acceptAllChangesOnSuccess);
+            }
+            catch
+            {
+                DiscardPendingChanges();
+                throw;
+            }
+        }
+    }
+
+    /// <inheritdoc cref="SaveChanges(bool)"/>
+    public override async Task<int> SaveChangesAsync(
+        bool acceptAllChangesOnSuccess,
+        CancellationToken cancellationToken = default)
+    {
+        var section = EnterDatabaseGate();
+        try
+        {
+            return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            DiscardPendingChanges();
+            throw;
+        }
+        finally
+        {
+            section.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Returns every pending change to its last saved state: added entities are detached, and
+    /// modified or deleted entities are reverted to their original values and marked unchanged.
+    /// </summary>
+    private void DiscardPendingChanges()
+    {
+        foreach (var entry in ChangeTracker.Entries().ToList())
+        {
+            switch (entry.State)
+            {
+                case EntityState.Added:
+                    entry.State = EntityState.Detached;
+                    break;
+                case EntityState.Modified:
+                case EntityState.Deleted:
+                    entry.CurrentValues.SetValues(entry.OriginalValues);
+                    entry.State = EntityState.Unchanged;
+                    break;
+            }
+        }
     }
 
     /// <summary>
     /// Opens the underlying connection (if closed) and applies the current database key
     /// via PRAGMA key. Called from startup once after the unlock flow and before any
-    /// migrations or queries run. Idempotent — safe to call multiple times.
+    /// migrations or queries run. Idempotent, safe to call multiple times.
     /// No-op when no factory was injected (EF tooling path) or when no key is loaded.
     /// </summary>
     public void EnsureKeyApplied()
     {
         if (_connectionFactory is null) return;
-        var conn = Database.GetDbConnection();
-        if (conn.State == ConnectionState.Closed)
-            conn.Open();
-        _connectionFactory.ApplyKey((SqliteConnection)conn);
+        using (EnterDatabaseGate())
+        {
+            var conn = Database.GetDbConnection();
+            if (conn.State == ConnectionState.Closed)
+                conn.Open();
+            _connectionFactory.ApplyKey((SqliteConnection)conn);
+        }
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
