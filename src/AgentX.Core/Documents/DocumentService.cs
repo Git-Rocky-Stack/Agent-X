@@ -5,6 +5,7 @@ using AgentX.Core.Data.VectorDb;
 using AgentX.Core.Documents.Models;
 using AgentX.Core.Helpers;
 using AgentX.Core.Search;
+using AgentX.Core.Services.Plugins;
 using AgentX.Core.Services.Search;
 using AgentX.Core.Services.Settings;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,7 @@ public sealed class DocumentService : IDocumentService
 {
     private readonly AgentXDbContext _db;
     private readonly IReadOnlyList<IDocumentProcessor> _processors;
+    private readonly IPluginDocumentProcessorSource? _pluginProcessors;
     private readonly ISettingsService _settingsService;
     private readonly IVectorStore? _vectorStore;
     private readonly IKeywordSearchService? _keywordSearchService;
@@ -42,7 +44,8 @@ public sealed class DocumentService : IDocumentService
         ILogger logger,
         IVectorStore? vectorStore = null,
         IKeywordSearchService? keywordSearchService = null,
-        ISearchCacheService? searchCacheService = null)
+        ISearchCacheService? searchCacheService = null,
+        IPluginDocumentProcessorSource? pluginProcessors = null)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
         _processors = (processors ?? throw new ArgumentNullException(nameof(processors))).ToList().AsReadOnly();
@@ -51,6 +54,7 @@ public sealed class DocumentService : IDocumentService
         _vectorStore = vectorStore;
         _keywordSearchService = keywordSearchService;
         _searchCacheService = searchCacheService;
+        _pluginProcessors = pluginProcessors;
 
         _allSupportedExtensions = new Lazy<IReadOnlySet<string>>(() =>
         {
@@ -804,7 +808,21 @@ public sealed class DocumentService : IDocumentService
     /// <inheritdoc />
     public IReadOnlySet<string> GetSupportedExtensions()
     {
-        return _allSupportedExtensions.Value;
+        // Plugins activate and deactivate at run time, so their formats are added per call
+        // instead of being cached with the built-in ones.
+        var pluginProcessors = _pluginProcessors?.GetDocumentProcessors();
+        if (pluginProcessors is null || pluginProcessors.Count == 0)
+        {
+            return _allSupportedExtensions.Value;
+        }
+
+        var extensions = new HashSet<string>(_allSupportedExtensions.Value, StringComparer.OrdinalIgnoreCase);
+        foreach (var processor in pluginProcessors)
+        {
+            extensions.UnionWith(processor.SupportedExtensions);
+        }
+
+        return extensions;
     }
 
     // ─── Duplicate Detection ────────────────────────────────────────────
@@ -951,7 +969,9 @@ public sealed class DocumentService : IDocumentService
     // ─── Private Helpers ─────────────────────────────────────────────
 
     /// <summary>
-    /// Finds the first registered processor that can handle the given file path.
+    /// Finds the first registered processor that can handle the given file path. Built-in
+    /// processors win; a processor contributed by an active plugin handles only formats that
+    /// no built-in processor accepts.
     /// </summary>
     private IDocumentProcessor? FindProcessorFor(string filePath)
     {
@@ -963,7 +983,7 @@ public sealed class DocumentService : IDocumentService
             }
         }
 
-        return null;
+        return _pluginProcessors?.GetDocumentProcessors().FirstOrDefault(p => p.CanProcess(filePath));
     }
 
     /// <summary>

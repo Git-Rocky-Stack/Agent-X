@@ -6,6 +6,7 @@ using AgentX.Core.Documents;
 using AgentX.Core.Documents.Models;
 using AgentX.Core.Helpers;
 using AgentX.Core.Search;
+using AgentX.Core.Services.Plugins;
 using AgentX.Core.Services.Search;
 using AgentX.Core.Services.Settings;
 using AgentX.Tests.Helpers;
@@ -280,6 +281,36 @@ public sealed class DocumentServiceTests : IDisposable
         var act = () => h.Service.ImportFileAsync(path);
 
         await act.Should().ThrowAsync<NotSupportedException>();
+    }
+
+    [Fact]
+    public async Task ImportFileAsync_FormatOnlyAnActivePluginHandles_UsesThePluginProcessor()
+    {
+        // Plugins that implement IDocumentProcessorPlugin contribute processors through
+        // IPluginDocumentProcessorSource; they cover formats no built-in processor accepts.
+        var h = NewHarness(new StubProcessor(new[] { ".txt" }));
+        var pluginProcessor = new StubProcessor(new[] { ".zzz", ".txt" });
+        var plugins = new Mock<IPluginDocumentProcessorSource>();
+        plugins.Setup(p => p.GetDocumentProcessors()).Returns(new IDocumentProcessor[] { pluginProcessor });
+        var service = new DocumentService(
+            h.Db,
+            new IDocumentProcessor[] { h.Processor },
+            h.Settings.Object,
+            h.Logger.Object,
+            vectorStore: null,
+            h.KeywordSearch.Object,
+            h.SearchCache.Object,
+            plugins.Object);
+
+        service.CanProcess("report.zzz").Should().BeTrue();
+        service.GetSupportedExtensions().Should().Contain(new[] { ".txt", ".zzz" });
+
+        await service.ImportFileAsync(h.WriteFile("data.zzz", "plugin format"));
+        await service.ImportFileAsync(h.WriteFile("notes.txt", "built-in format"));
+
+        pluginProcessor.ProcessedPaths.Should().ContainSingle().Which.Should().EndWith("data.zzz");
+        h.Processor.ProcessedPaths.Should().ContainSingle().Which.Should().EndWith("notes.txt",
+            "a built-in processor keeps the formats it handles");
     }
 
     [Fact]
