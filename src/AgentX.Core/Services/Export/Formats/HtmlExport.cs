@@ -3,6 +3,9 @@ using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
 using AgentX.Core.Services.Export.Models;
 using Markdig;
+using Markdig.Renderers;
+using Markdig.Syntax;
+using Markdig.Syntax.Inlines;
 
 namespace AgentX.Core.Services.Export.Formats;
 
@@ -12,9 +15,35 @@ namespace AgentX.Core.Services.Export.Formats;
 /// </summary>
 public sealed class HtmlExport : IExportFormat
 {
+    /// <summary>
+    /// Markdown pipeline for model output and search excerpts, both of which are untrusted
+    /// text. Raw HTML is disabled (it renders as escaped text) and the generic-attributes
+    /// extension is deliberately absent, so neither an embedded <c>&lt;img onerror&gt;</c>
+    /// nor a <c>{onclick=...}</c> attribute block reaches the document. Link and image
+    /// targets are filtered separately in <see cref="RenderUntrustedMarkdown"/>.
+    /// </summary>
     private static readonly MarkdownPipeline MarkdownPipeline = new MarkdownPipelineBuilder()
-        .UseAdvancedExtensions()
+        .DisableHtml()
+        .UsePipeTables()
+        .UseGridTables()
+        .UseEmphasisExtras()
+        .UseListExtras()
+        .UseTaskLists()
+        .UseAutoLinks()
+        .UseFootnotes()
+        .UseDefinitionLists()
+        .UseAbbreviations()
         .Build();
+
+    /// <summary>
+    /// Content-Security-Policy for every exported page: no scripts, frames, forms, or
+    /// plugins; only the inline stylesheet and web images may load. A second line of defense
+    /// behind the sanitizing renderer.
+    /// </summary>
+    internal const string ContentSecurityPolicy =
+        "default-src 'none'; style-src 'unsafe-inline'; img-src https: http:; base-uri 'none'; form-action 'none'";
+
+    private static readonly string[] AllowedUrlSchemes = ["http", "https", "mailto"];
 
     public ExportFormat Format => ExportFormat.Html;
 
@@ -91,7 +120,7 @@ public sealed class HtmlExport : IExportFormat
                 sb.AppendLine($"    <div class=\"relevance\">Relevance: {result.RelevanceScore:P1}</div>");
             }
 
-            var contentHtml = Markdown.ToHtml(result.Content, MarkdownPipeline);
+            var contentHtml = RenderUntrustedMarkdown(result.Content);
             sb.AppendLine($"    <div class=\"content\">{contentHtml}</div>");
 
             if (options.IncludeCitations && result.Citations.Count > 0)
@@ -165,7 +194,7 @@ public sealed class HtmlExport : IExportFormat
             }
 
             var htmlContent = message.Role == "assistant"
-                ? Markdown.ToHtml(message.Content, MarkdownPipeline)
+                ? RenderUntrustedMarkdown(message.Content)
                 : $"<p>{HtmlEncode(message.Content)}</p>";
 
             sb.AppendLine($"      <div class=\"content\">{htmlContent}</div>");
@@ -223,6 +252,7 @@ public sealed class HtmlExport : IExportFormat
 <head>
   <meta charset=""UTF-8"" />
   <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"" />
+  <meta http-equiv=""Content-Security-Policy"" content=""{ContentSecurityPolicy}"" />
   <meta name=""generator"" content=""Agent-X Export"" />
   <title>{HtmlEncode(title)}</title>
   <style>
@@ -328,6 +358,72 @@ public sealed class HtmlExport : IExportFormat
 </body>
 </html>
 ";
+    }
+
+    /// <summary>
+    /// Renders Markdown that came from a model or a document as HTML that cannot run script:
+    /// raw HTML is escaped by the pipeline, and every link, image, and autolink whose target
+    /// is not http, https, mailto, or relative is neutralized before rendering.
+    /// </summary>
+    internal static string RenderUntrustedMarkdown(string? markdown)
+    {
+        var document = Markdown.Parse(markdown ?? string.Empty, MarkdownPipeline);
+
+        foreach (var link in document.Descendants<LinkInline>())
+        {
+            if (!IsSafeUrl(link.Url))
+            {
+                link.Url = "#";
+            }
+        }
+
+        // Autolinks (<scheme:target>) render their target as the visible text, so an unsafe
+        // one is replaced by plain text rather than re-pointed.
+        foreach (var autolink in document.Descendants<AutolinkInline>().ToList())
+        {
+            var target = autolink.IsEmail ? "mailto:" + autolink.Url : autolink.Url;
+            if (!IsSafeUrl(target))
+            {
+                autolink.ReplaceBy(new LiteralInline(autolink.Url));
+            }
+        }
+
+        using var writer = new StringWriter();
+        var renderer = new HtmlRenderer(writer);
+        MarkdownPipeline.Setup(renderer);
+        renderer.Render(document);
+        writer.Flush();
+        return writer.ToString();
+    }
+
+    /// <summary>
+    /// True for relative references and for http, https, and mailto URLs. Whitespace and
+    /// control characters are removed before the scheme is read, because browsers ignore
+    /// them there ("java&#9;script:" still runs).
+    /// </summary>
+    internal static bool IsSafeUrl(string? url)
+    {
+        if (string.IsNullOrEmpty(url))
+        {
+            return true;
+        }
+
+        var compact = new string(url.Where(c => c > ' ' && c != '\u007f').ToArray());
+        var colon = compact.IndexOf(':');
+        if (colon < 0)
+        {
+            return true;
+        }
+
+        // A colon after the first '/', '?' or '#' belongs to a relative path, not a scheme.
+        var delimiter = compact.IndexOfAny(['/', '?', '#']);
+        if (delimiter >= 0 && delimiter < colon)
+        {
+            return true;
+        }
+
+        var scheme = compact[..colon];
+        return AllowedUrlSchemes.Contains(scheme, StringComparer.OrdinalIgnoreCase);
     }
 
     private static string HtmlEncode(string text)

@@ -100,6 +100,7 @@ internal static class ExportContentBuilder
         sb.AppendLine("<html lang=\"en\">");
         sb.AppendLine("<head>");
         sb.AppendLine("  <meta charset=\"utf-8\" />");
+        sb.AppendLine($"  <meta http-equiv=\"Content-Security-Policy\" content=\"{Formats.HtmlExport.ContentSecurityPolicy}\" />");
         sb.AppendLine($"  <title>{WebUtility.HtmlEncode(artifact.Title)}</title>");
         sb.AppendLine("  <style>");
         sb.AppendLine("    body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; margin: 40px; color: #1d1d1f; }");
