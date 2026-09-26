@@ -112,10 +112,37 @@ public class EncryptedConnectionFactoryTests
         act.Should().Throw<InvalidOperationException>();
     }
 
+    [Fact]
+    public void OpenKeyed_when_applying_the_key_fails_releases_the_database_file()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"agentx-encfactory-{Guid.NewGuid():N}.db");
+        try
+        {
+            var sut = new EncryptedConnectionFactory(new ThrowingKeyProvider());
+
+            var act = () => sut.OpenKeyed(path);
+
+            act.Should().Throw<InvalidOperationException>().WithMessage("key unavailable");
+            // The half-opened connection must be disposed rather than left open or parked in the
+            // pool, where it would block moving or replacing the file on Windows.
+            AgentX.Tests.Helpers.FileHandleProbe.IsOpenByThisProcess(path).Should().BeFalse();
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
+
     private sealed class FakeKeyProvider : IDatabaseKeyProvider
     {
         private readonly DatabaseKeyMaterial? _key;
         public FakeKeyProvider(DatabaseKeyMaterial? key) => _key = key;
         public DatabaseKeyMaterial? Current => _key;
+    }
+
+    private sealed class ThrowingKeyProvider : IDatabaseKeyProvider
+    {
+        public DatabaseKeyMaterial? Current => throw new InvalidOperationException("key unavailable");
     }
 }
