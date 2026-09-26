@@ -28,7 +28,7 @@ public sealed class PdfProcessorTests : IDisposable
         try { Directory.Delete(_tempDirectory, recursive: true); } catch (IOException) { }
     }
 
-    // ── Page markers ─────────────────────────────────────────────────────────
+    // Page markers
 
     [Fact]
     public async Task ProcessAsync_MultiPagePdf_SeparatesPagesWithFormFeeds()
@@ -54,7 +54,7 @@ public sealed class PdfProcessorTests : IDisposable
         chunks.Select(c => c.PageNumber).Should().Equal(1, 3);
     }
 
-    // ── Failures are reported, not imported as empty documents ───────────────
+    // Failures are reported, not imported as empty documents
 
     [Fact]
     public async Task ProcessAsync_CorruptFile_ThrowsAnExtractionFailure()
@@ -94,13 +94,13 @@ public sealed class PdfProcessorTests : IDisposable
     [InlineData("Plain readable sentence, with punctuation!", false)]
     [InlineData("\u0000\u0001\u0000\u0002\u0000\u0003\u0000\u0004", true)]
     [InlineData("Mostly fine text\u0001", false)]
-    [InlineData(" ab", true)]
+    [InlineData("\uE000\uE001\uE002 ab", true)]
     public void LooksUndecodable_FlagsControlAndPrivateUseHeavyText(string text, bool expected)
     {
         PdfProcessor.LooksUndecodable(text).Should().Be(expected);
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // Helpers
 
     private static string ShowText(string text) => $"BT /F1 12 Tf 72 720 Td ({text}) Tj ET";
 

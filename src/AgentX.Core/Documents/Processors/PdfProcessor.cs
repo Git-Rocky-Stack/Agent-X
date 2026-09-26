@@ -128,7 +128,7 @@ public class PdfProcessor : IDocumentProcessor
 
             considered++;
             if (char.IsControl(c)
-                || c == '�'
+                || c == '\uFFFD'
                 || CharUnicodeInfo.GetUnicodeCategory(c) is UnicodeCategory.PrivateUse or UnicodeCategory.OtherNotAssigned)
             {
                 suspicious++;

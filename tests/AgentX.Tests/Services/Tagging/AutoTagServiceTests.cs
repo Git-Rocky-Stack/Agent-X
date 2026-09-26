@@ -327,8 +327,8 @@ public sealed class AutoTagServiceTests : IDisposable
     }
 
     [Theory]
-    [InlineData("Café", "café")]
-    [InlineData("Café", "café")]            // decomposed accent composes to the same tag
+    [InlineData("Caf\u00E9", "caf\u00E9")]
+    [InlineData("Cafe\u0301", "caf\u00E9")]      // decomposed accent composes to the same tag
     [InlineData("機械学習", "機械学習")]
     [InlineData("Straße Ölpreis", "straße-ölpreis")]
     [InlineData("Machine_Learning  AI", "machine-learning-ai")]

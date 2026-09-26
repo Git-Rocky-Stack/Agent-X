@@ -87,7 +87,7 @@ public sealed class IndexingServiceTests : IDisposable
         try { Directory.Delete(_tempDir, recursive: true); } catch { /* best effort */ }
     }
 
-    // ── Work reaching the queue ──────────────────────────────────────────────
+    // Work reaching the queue
 
     [Fact]
     public async Task ImportedDocument_IsIndexedDuringTheSession()
@@ -202,7 +202,7 @@ public sealed class IndexingServiceTests : IDisposable
         await StopAsync(service);
     }
 
-    // ── Recovery and queue state ─────────────────────────────────────────────
+    // Recovery and queue state
 
     [Fact]
     public async Task InitializeAsync_RecoversADocumentInterruptedMidPipeline()
@@ -283,7 +283,7 @@ public sealed class IndexingServiceTests : IDisposable
         (await service.GetQueueLengthAsync()).Should().Be(3);
     }
 
-    // ── What an indexed document looks like ──────────────────────────────────
+    // What an indexed document looks like
 
     [Fact]
     public async Task IndexedChunks_AreStampedWithTheEmbeddingModelVersionAndDimensions()
@@ -320,7 +320,7 @@ public sealed class IndexingServiceTests : IDisposable
         _searchCache.Verify(c => c.InvalidateAll(), Times.AtLeastOnce);
     }
 
-    // ── Failures ─────────────────────────────────────────────────────────────
+    // Failures
 
     [Fact]
     public async Task VectorStoreThatCannotInitialize_FailsDocumentsWithTheReason()
@@ -342,7 +342,7 @@ public sealed class IndexingServiceTests : IDisposable
         document.IndexingError.Should().Contain("vector store").And.Contain("disk full");
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // Helpers
 
     private AgentXDbContext NewContext()
     {

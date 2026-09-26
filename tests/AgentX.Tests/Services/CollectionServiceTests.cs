@@ -544,9 +544,9 @@ public sealed class CollectionServiceTests : IDisposable
         count.Should().Be(3);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Document counts
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task GetAllCollectionsAsync_CorrectsADocumentCountThatDrifted()
