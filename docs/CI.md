@@ -9,8 +9,8 @@ This document tracks Agent-X's CI gates and their status against audit finding *
 |---|---|---|
 | Build & Test | `.github/workflows/build-test.yml` | Restores, builds `AgentX.Core` + `AgentX.Tests` (Release, x64), installs Playwright Chromium, runs the full unit-test suite, **collects code coverage and enforces the coverage gate** (AX-QA-009). |
 | LocaleAudit | `.github/workflows/locale-audit.yml` | Localization coverage ≥ 98% per locale + locale snapshot tests. |
-| Extension CI | `.github/workflows/extension-ci.yml` | Browser-extension lint, typecheck, production build, and production-dependency `npm audit`. |
-| Dependency Audit | `.github/workflows/dependency-audit.yml` | NuGet vulnerable-package scan across the solution; fails on any High/Critical advisory not on the accepted list. Runs on dependency changes and weekly. |
+| Extension CI | `.github/workflows/extension-ci.yml` | Browser-extension lint, typecheck, production build, and a full-tree `npm audit --audit-level=high` (every extension package is a devDependency, so `--omit=dev` audited nothing). |
+| Dependency Audit | `.github/workflows/dependency-audit.yml` | NuGet vulnerable-package scan across the solution and the standalone sample plugin (Windows job) and `AgentX.Mobile` (Linux job with the `maui-android` workload, since the mobile project is not in the solution); fails on any High/Critical advisory not on the accepted list, or if a scan cannot run. Runs on dependency changes and weekly. |
 | Format | `.github/workflows/format.yml` | `dotnet format --verify-no-changes` across the solution: whitespace, LF line endings, and using-directive ordering. Fails if the code is not formatted. Runs on `.cs`/`.csproj`/`.editorconfig`/`.gitattributes`/build-config changes. |
 | Release Provenance | `.github/workflows/release-provenance.yml` | **Release-triggered** (not a PR gate). On a published release (or manual `workflow_dispatch`), keyless-signs the release `SHA256SUMS.txt` with `cosign` via GitHub OIDC (no secret), logs it to the public Rekor transparency log, and attaches the signature + certificate to the release. See [`RELEASE-SIGNING.md`](RELEASE-SIGNING.md#layer-2--ci-keyless-provenance-cosign--rekor). |
 
@@ -19,7 +19,7 @@ This document tracks Agent-X's CI gates and their status against audit finding *
 | Audit-listed gap | Status | Where / why |
 |---|---|---|
 | Lint/typecheck/build the browser extension | ✅ Added | `extension-ci.yml` |
-| `npm audit` (extension) | ✅ Added | `extension-ci.yml` — `npm audit --omit=dev` (production deps; dev-only advisory is AX-QA-016) |
+| `npm audit` (extension) | ✅ Added | `extension-ci.yml` - `npm audit --audit-level=high` over the full tree. The earlier `--omit=dev` form audited an empty set, because every extension package is a devDependency, and could never fail. |
 | NuGet vulnerability checks | ✅ Added | `dependency-audit.yml` — allowlist gate (see below) |
 | Build Android | ✅ Green (blocking) | `android-build.yml` — installs the `maui-android` workload and builds `src/AgentX.Mobile` (`net8.0-android`) on every change under it, as a **hard gate** (no `continue-on-error`). Verified green on the hosted Linux runner (and locally in Debug + Release, 0 warnings), so the mobile code — including the AX-QA-005 transport hardening — can no longer drift compile-unverified (AX-QA-004). The project stays out of `AgentX.sln` so the Windows desktop build is unaffected; transport decision in [`MOBILE-TRANSPORT.md`](MOBILE-TRANSPORT.md). |
 | Build iOS | ⏸ Deferred → **AX-QA-004** | Requires a macOS runner toolchain. Enable when a macOS runner is available. |

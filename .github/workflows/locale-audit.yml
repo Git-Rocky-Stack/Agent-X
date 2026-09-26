@@ -20,6 +20,8 @@ jobs:
     # without this elevation the post-coverage comment step fails with
     # 403 "Resource not accessible by integration" even when the actual
     # `dotnet run … --fail-below 98` step succeeds.
+    # A pull request from a fork always gets a read-only token whatever this
+    # block says, so the comment step is skipped for forks (see its `if:`).
     permissions:
       contents: read
       pull-requests: write
@@ -55,8 +57,12 @@ jobs:
           name: locale-audit-report
           path: locale-audit-report.json
 
+      # Fork PRs get a read-only GITHUB_TOKEN, so creating the comment fails with 403 and used to
+      # fail the whole gate even when coverage passed. Skip it for forks (the report is still
+      # uploaded as an artifact), and never let the comment decide the gate's result.
       - name: Comment coverage on PR
-        if: github.event_name == 'pull_request' && always()
+        if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true
         uses: actions/github-script@v9
         with:
           script: |
