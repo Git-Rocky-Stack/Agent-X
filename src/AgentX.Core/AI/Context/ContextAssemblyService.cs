@@ -46,11 +46,7 @@ public sealed class ContextAssemblyService : IContextAssemblyService
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             _logger.Warning(ex, "Context assembly failed. Falling back to legacy context fitting.");
-            return await BuildLegacyFallbackAsync(
-                request,
-                ComposeSystemPrompt(request.SystemPrompt, request.MemoryContext, null, null),
-                "assembly_error",
-                ct).ConfigureAwait(false);
+            return await BuildLegacyFallbackAsync(request, "assembly_error", ct).ConfigureAwait(false);
         }
     }
 
@@ -78,7 +74,7 @@ public sealed class ContextAssemblyService : IContextAssemblyService
         var availableMessageBudget = effectiveContextWindow - request.ReserveForResponse - systemPromptTokens;
         if (availableMessageBudget <= 0)
         {
-            return await BuildLegacyFallbackAsync(request, baseSystemPrompt, "no_message_budget", ct).ConfigureAwait(false);
+            return await BuildLegacyFallbackAsync(request, "no_message_budget", ct).ConfigureAwait(false);
         }
 
         var originalMessageTokens = _contextWindowManager.EstimateTokenCount(request.ConversationMessages);
@@ -110,7 +106,7 @@ public sealed class ContextAssemblyService : IContextAssemblyService
         var anchorTokens = _contextWindowManager.EstimateTokenCount(anchors.Select(x => x.Message));
         if (anchorTokens >= availableMessageBudget)
         {
-            return await BuildLegacyFallbackAsync(request, baseSystemPrompt, "anchor_budget_exceeded", ct).ConfigureAwait(false);
+            return await BuildLegacyFallbackAsync(request, "anchor_budget_exceeded", ct).ConfigureAwait(false);
         }
 
         var olderCandidates = indexedMessages
@@ -295,20 +291,49 @@ public sealed class ContextAssemblyService : IContextAssemblyService
         };
     }
 
+    /// <summary>
+    /// Fits the history into the window with the plain FIFO trimmer. The system prompt is sent
+    /// next to the messages and shares the window with them, so its tokens come out of the
+    /// message budget. When the prompt with memory context leaves no room for the latest message,
+    /// the (optional) memory context is dropped; when not even the base prompt leaves room, only
+    /// the latest message is sent.
+    /// </summary>
     private async Task<ContextAssemblyResult> BuildLegacyFallbackAsync(
         ContextAssemblyRequest request,
-        string? systemPrompt,
         string reason,
         CancellationToken ct)
     {
         var effectiveContextWindow = _contextWindowManager.GetEffectiveContextWindow(request.ContextWindow);
-        var fittedMessages = await _contextWindowManager
-            .FitToContextWindowAsync(
-                request.ConversationMessages.ToList(),
-                effectiveContextWindow,
-                request.ReserveForResponse,
-                ct)
-            .ConfigureAwait(false);
+        var promptBudget = effectiveContextWindow - Math.Max(0, request.ReserveForResponse);
+        var messages = request.ConversationMessages.ToList();
+        var latestMessageTokens = _contextWindowManager.EstimateTokenCount(messages.TakeLast(1));
+
+        var systemPrompt = ComposeSystemPrompt(request.SystemPrompt, request.MemoryContext, null, null);
+        var systemTokens = _contextWindowManager.EstimateTokenCount(systemPrompt ?? string.Empty);
+        if (systemTokens + latestMessageTokens > promptBudget && !string.IsNullOrWhiteSpace(request.MemoryContext))
+        {
+            _logger.Warning(
+                "System prompt with memory context (~{SystemTokens} tokens) leaves no room in a {Window}-token window; dropping the memory context",
+                systemTokens, effectiveContextWindow);
+            systemPrompt = ComposeSystemPrompt(request.SystemPrompt, null, null, null);
+            systemTokens = _contextWindowManager.EstimateTokenCount(systemPrompt ?? string.Empty);
+        }
+
+        var messageBudget = promptBudget - systemTokens;
+        List<ChatMessage> fittedMessages;
+        if (messageBudget <= 0)
+        {
+            _logger.Warning(
+                "System prompt (~{SystemTokens} tokens) fills the {Window}-token window; sending only the latest message",
+                systemTokens, effectiveContextWindow);
+            fittedMessages = messages.TakeLast(1).ToList();
+        }
+        else
+        {
+            fittedMessages = await _contextWindowManager
+                .FitToContextWindowAsync(messages, messageBudget, reserveForResponse: 0, ct)
+                .ConfigureAwait(false);
+        }
 
         return new ContextAssemblyResult
         {
