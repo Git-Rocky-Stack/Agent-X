@@ -8,15 +8,26 @@
       1. The project's models/ directory (for bundling in the installer)
       2. %LOCALAPPDATA%\AgentX\Models\ (for local development/testing)
 
+    The file name and URL are read from the app's own constants
+    (DefaultModelFileName / DefaultDownloadUrl in src/AgentX.Core/AI/BuiltInModelBootstrap.cs),
+    so the OFFLINE installer bundles the same build the app downloads on first run. The script
+    used to fetch a different (bartowski) quantization under the same file name.
+
+    Known gap: neither this script nor the app pins the download to a repository revision or
+    verifies a SHA-256 (the URL follows the mutable "main" branch). The hash of the downloaded
+    file is printed so a release can record it.
+
 .EXAMPLE
     .\download-model.ps1
     .\download-model.ps1 -SkipLocal
 #>
 
 param(
-    [string]$ModelFileName = "llama-3.2-3b-instruct-q4_k_m.gguf",
+    # Empty = use BuiltInModelBootstrap.DefaultModelFileName. Override only for testing.
+    [string]$ModelFileName,
 
-    [string]$ModelUrl = "https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf",
+    # Empty = use BuiltInModelBootstrap.DefaultDownloadUrl. Override only for testing.
+    [string]$ModelUrl,
 
     [switch]$SkipLocal
 )
@@ -24,6 +35,17 @@ param(
 $ErrorActionPreference = "Stop"
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectRoot = Split-Path -Parent $scriptDir
+
+# Single source of truth: the constants the app itself downloads with.
+$bootstrapSource = Join-Path $projectRoot "src\AgentX.Core\AI\BuiltInModelBootstrap.cs"
+function Get-BootstrapConstant([string]$Name) {
+    $text = [IO.File]::ReadAllText($bootstrapSource)
+    $match = [regex]::Match($text, "const\s+string\s+$Name\s*=\s*""([^""]+)""")
+    if (-not $match.Success) { throw "Could not read $Name from $bootstrapSource." }
+    return $match.Groups[1].Value
+}
+if ([string]::IsNullOrWhiteSpace($ModelFileName)) { $ModelFileName = Get-BootstrapConstant 'DefaultModelFileName' }
+if ([string]::IsNullOrWhiteSpace($ModelUrl)) { $ModelUrl = Get-BootstrapConstant 'DefaultDownloadUrl' }
 
 # Primary destination: project models/ directory (for installer bundling)
 $buildModelsDir = Join-Path $projectRoot "models"
@@ -90,10 +112,13 @@ $fileSize = (Get-Item $buildDestPath).Length
 $fileSizeMB = [math]::Round($fileSize / 1MB, 1)
 $elapsed = $stopwatch.Elapsed.ToString("mm\:ss")
 
+$sha256 = (Get-FileHash $buildDestPath -Algorithm SHA256).Hash.ToLower()
+
 Write-Host ""
 Write-Host "Download complete!"
 Write-Host "  File:     $buildDestPath"
 Write-Host "  Size:     $fileSizeMB MB"
+Write-Host "  SHA-256:  $sha256"
 Write-Host "  Time:     $elapsed"
 
 # Copy to local app data for development

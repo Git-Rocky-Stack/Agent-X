@@ -4,10 +4,10 @@ name: Release Provenance (cosign + Rekor)
 #
 # This is the CI half of Agent-X's dual-layer signing model (see docs/RELEASE-SIGNING.md):
 #
-#   Layer 1 — Authenticode (LOCAL). scripts/build-installers.ps1 signs AgentX.exe and the
+#   Layer 1 - Authenticode (LOCAL). scripts/build-installers.ps1 signs AgentX.App.exe and the
 #             installers with the maintainer's certificate. The cert never enters CI, so this
 #             stays a manual release step.
-#   Layer 2 — Keyless provenance (HERE, in CI). cosign signs the release's SHA256SUMS.txt using
+#   Layer 2 - Keyless provenance (HERE, in CI). cosign signs the release's SHA256SUMS.txt using
 #             GitHub's ambient OIDC identity — NO secret, NO long-lived key. Fulcio issues an
 #             ephemeral certificate bound to this workflow's identity, and the signature is
 #             recorded in the public Rekor transparency log. Anyone can later prove the artifact

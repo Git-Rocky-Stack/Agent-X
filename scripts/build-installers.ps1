@@ -128,7 +128,11 @@ $headCommit = (& git -C $projectRoot rev-parse HEAD 2>$null)
 Write-Host "Provenance OK: security types present in published Core DLL (commit $headCommit)."
 
 # 1c. Sign the application binaries before packaging (AX-QA-007).
-$appExe = Join-Path $publishDir "AgentX.exe"
+# The executable takes the project's assembly name (AgentX.App.csproj sets no AssemblyName), and
+# installer\AgentX-Setup.iss ships it as MyAppExeName; "AgentX.exe" never existed, so signing
+# failed on a missing file. Fail early with a clear message if the publish layout changes again.
+$appExe = Join-Path $publishDir "AgentX.App.exe"
+if (-not (Test-Path $appExe)) { throw "Application executable not found: $appExe. Check the publish output." }
 if ($signingConfigured) {
     Write-Host "`nSigning application binaries..."
     Invoke-Sign -Files @($appExe)
