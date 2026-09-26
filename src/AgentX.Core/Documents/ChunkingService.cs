@@ -434,8 +434,11 @@ public sealed class ChunkingService : IChunkingService
                 var chunk = BuildChunk(currentSegments, chunks.Count, sectionTitle, pageNumber);
                 chunks.Add(chunk);
 
-                // Apply overlap: carry over the tail tokens from the current chunk.
-                currentSegments = GetOverlapSegments(currentSegments, chunkOverlap);
+                // Apply overlap: carry over the tail tokens from the current chunk, limited
+                // to chunkOverlap and to the room the incoming segment leaves, so the overlap
+                // can never push the next chunk past chunkSize.
+                var overlapBudget = Math.Min(chunkOverlap, chunkSize - segmentTokens);
+                currentSegments = GetOverlapSegments(currentSegments, overlapBudget);
                 currentTokenCount = currentSegments.Sum(s => CountTokens(s.Text));
             }
 
@@ -482,29 +485,82 @@ public sealed class ChunkingService : IChunkingService
     }
 
     /// <summary>
-    /// Extracts the trailing segments from the current chunk that together comprise
-    /// approximately chunkOverlap tokens, for use as the overlap prefix of the next chunk.
+    /// Extracts the tail of the finished chunk, at most <paramref name="maxTokens"/> tokens,
+    /// for use as the overlap prefix of the next chunk. Whole trailing segments are taken
+    /// while they fit; the segment that does not fit contributes only its trailing words.
+    /// (Carrying whole segments meant a 300-token paragraph was repeated in full for a
+    /// 50-token overlap, doubling the embedded text and overflowing the chunk size.)
     /// </summary>
-    private List<TextSegment> GetOverlapSegments(List<TextSegment> segments, int chunkOverlap)
+    private List<TextSegment> GetOverlapSegments(List<TextSegment> segments, int maxTokens)
     {
-        if (chunkOverlap <= 0 || segments.Count == 0)
-            return new List<TextSegment>();
-
         var overlapSegments = new List<TextSegment>();
-        var overlapTokens = 0;
+        if (maxTokens <= 0 || segments.Count == 0)
+            return overlapSegments;
 
-        // Walk backward through segments to collect up to chunkOverlap tokens.
-        for (var i = segments.Count - 1; i >= 0; i--)
+        var remaining = maxTokens;
+
+        // Walk backward through segments to collect up to maxTokens tokens.
+        for (var i = segments.Count - 1; i >= 0 && remaining > 0; i--)
         {
-            var segmentTokens = CountTokens(segments[i].Text);
-            overlapTokens += segmentTokens;
-            overlapSegments.Insert(0, segments[i]);
+            var segment = segments[i];
+            var segmentTokens = CountTokens(segment.Text);
 
-            if (overlapTokens >= chunkOverlap)
-                break;
+            if (segmentTokens <= remaining)
+            {
+                overlapSegments.Insert(0, segment);
+                remaining -= segmentTokens;
+                continue;
+            }
+
+            var tail = TakeTrailingWords(segment, remaining);
+            if (tail is not null)
+            {
+                overlapSegments.Insert(0, tail.Value);
+            }
+
+            break;
         }
 
         return overlapSegments;
+    }
+
+    /// <summary>
+    /// Returns the longest run of whole trailing words of <paramref name="segment"/> that fits
+    /// in <paramref name="maxTokens"/>, with its offset in the source text, or null when not
+    /// even the last word fits.
+    /// </summary>
+    private TextSegment? TakeTrailingWords(TextSegment segment, int maxTokens)
+    {
+        var text = segment.Text;
+        var end = text.Length;
+        while (end > 0 && char.IsWhiteSpace(text[end - 1]))
+            end--;
+
+        var start = -1;
+        var position = end;
+        while (position > 0)
+        {
+            var wordEnd = position;
+            while (wordEnd > 0 && char.IsWhiteSpace(text[wordEnd - 1]))
+                wordEnd--;
+
+            if (wordEnd == 0)
+                break;
+
+            var wordStart = wordEnd;
+            while (wordStart > 0 && !char.IsWhiteSpace(text[wordStart - 1]))
+                wordStart--;
+
+            if (CountTokens(text[wordStart..end]) > maxTokens)
+                break;
+
+            start = wordStart;
+            position = wordStart;
+        }
+
+        return start < 0
+            ? null
+            : new TextSegment(text[start..end], segment.CharOffset + start);
     }
 
     // ── Private: Token counting ─────────────────────────────────────────

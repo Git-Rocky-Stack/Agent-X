@@ -204,11 +204,49 @@ public sealed class ChunkingServiceTests
         overlapped.Count.Should().BeGreaterThan(plain.Count,
             "carrying tokens forward means fewer new tokens fit per chunk");
 
-        // Overlap carries whole trailing segments, not a token slice: the walk back stops
-        // as soon as it has collected chunkOverlap tokens, so chunk 1 opens with the last
-        // segment of chunk 0 verbatim.
+        // The overlap is the last chunkOverlap tokens of chunk 0; here that is exactly its
+        // last two-word segment, so chunk 1 opens with it.
         overlapped[0].Content.Should().EndWith("charlie delta.");
         overlapped[1].Content.Should().StartWith("charlie delta.");
+    }
+
+    [Fact]
+    public void ChunkText_Overlap_IsATokenSliceNotWholeParagraphs()
+    {
+        // Three 300-token paragraphs, size 512, overlap 50: whole-paragraph overlap produced
+        // chunks of 300, 600 and 600 tokens, embedding every paragraph twice.
+        var text = string.Join("\n\n", Enumerable.Range(0, 3).Select(p => Words(300, prefix: $"p{p}w")));
+
+        var chunks = Service().ChunkText(text, chunkSize: 512, chunkOverlap: 50);
+
+        chunks.Should().OnlyContain(c => c.TokenCount <= 512);
+        chunks.Select(c => c.TokenCount).Should().Equal(300, 350, 350);
+        chunks[1].Content.Should().StartWith("p0w250 ").And.Contain("p1w0");
+        chunks[1].Content.Should().NotContain("p0w249 ");
+    }
+
+    [Fact]
+    public void ChunkText_Overlap_NeverPushesAChunkPastTheSizeLimit()
+    {
+        // Size 10, overlap 5, eight-word segments: the next segment leaves room for only two
+        // overlap words, so only two are carried.
+        var text = Words(8, prefix: "a") + ".\n\n" + Words(8, prefix: "b") + ".";
+
+        var chunks = Service().ChunkText(text, chunkSize: 10, chunkOverlap: 5);
+
+        chunks.Should().OnlyContain(c => c.TokenCount <= 10);
+        chunks[1].Content.Should().StartWith("a6 a7.");
+    }
+
+    [Fact]
+    public void ChunkText_PartialOverlap_KeepsSourceOffsets()
+    {
+        var source = "one two three four five six seven eight.\n\nnine ten eleven twelve thirteen fourteen fifteen sixteen.";
+
+        var chunks = Service().ChunkText(source, chunkSize: 10, chunkOverlap: 2);
+
+        chunks[1].Content.Should().StartWith("seven eight.");
+        chunks[1].StartCharOffset.Should().Be(source.IndexOf("seven", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -403,6 +441,6 @@ public sealed class ChunkingServiceTests
     };
 
     /// <summary>A single sentence of <paramref name="count"/> distinct words, no punctuation.</summary>
-    private static string Words(int count) =>
-        string.Join(' ', Enumerable.Range(0, count).Select(i => $"w{i}"));
+    private static string Words(int count, string prefix = "w") =>
+        string.Join(' ', Enumerable.Range(0, count).Select(i => $"{prefix}{i}"));
 }
