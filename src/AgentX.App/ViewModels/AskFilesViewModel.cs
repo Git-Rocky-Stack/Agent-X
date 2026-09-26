@@ -125,6 +125,11 @@ public partial class AskFilesViewModel : ObservableObject
         _generationCts?.Cancel();
         _generationCts = new CancellationTokenSource();
 
+        // The pipeline streams tokens from a thread-pool thread (its loop awaits with
+        // ConfigureAwait(false)), but Content is bound to the view and must only change on
+        // the UI thread. Tokens are marshalled back to the context the question was asked on.
+        var uiContext = SynchronizationContext.Current;
+
         try
         {
             // Clear previous citations
@@ -136,10 +141,7 @@ public partial class AskFilesViewModel : ObservableObject
             var ragResponse = await _ragPipeline.AskAsync(
                 questionCopy,
                 collectionId: SelectedCollectionId,
-                onToken: token =>
-                {
-                    assistantMessage.Content += token;
-                },
+                onToken: token => AppendToken(assistantMessage, token, uiContext),
                 ct: _generationCts.Token);
 
             // Streaming complete
@@ -266,6 +268,22 @@ public partial class AskFilesViewModel : ObservableObject
     // PRIVATE HELPERS
     // =================================================================
 
+    /// <summary>
+    /// Appends a streamed token on the UI thread. Posts to <paramref name="uiContext"/> when
+    /// called from another thread; posts run in order, and before the continuation that
+    /// replaces the content with the final answer, which is posted after the last token.
+    /// </summary>
+    private static void AppendToken(AskFilesMessage message, string token, SynchronizationContext? uiContext)
+    {
+        if (uiContext is null || ReferenceEquals(SynchronizationContext.Current, uiContext))
+        {
+            message.Content += token;
+            return;
+        }
+
+        uiContext.Post(_ => message.Content += token, null);
+    }
+
     private async Task LoadCollectionsAsync()
     {
         try
@@ -386,7 +404,11 @@ public partial class AskFilesMessage : ObservableObject
 
     [ObservableProperty] private bool _isStreaming;
 
-    public List<CitationItem> Citations { get; set; } = new();
+    /// <summary>
+    /// Sources of the answer. Assigned when the answer completes, after the message is
+    /// already on screen, so it notifies the inline citation badges bound to it.
+    /// </summary>
+    [ObservableProperty] private List<CitationItem> _citations = new();
 
     /// <summary>
     /// Returns true if this is an AI response (not a user question).

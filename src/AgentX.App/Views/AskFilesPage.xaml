@@ -322,9 +322,10 @@
                                                             Visibility="{x:Bind IsStreaming, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                                             HorizontalAlignment="Left" />
 
-                                                    <!-- Inline citation badges (visible after generation) -->
-                                                    <ItemsRepeater ItemsSource="{x:Bind Citations}"
-                                                                   Visibility="{x:Bind local:AskFilesPage.HasCitationsVisibility(Citations)}">
+                                                    <!-- Inline citation badges (visible after generation).
+                                                         OneWay: citations arrive after the message is shown. -->
+                                                    <ItemsRepeater ItemsSource="{x:Bind Citations, Mode=OneWay}"
+                                                                   Visibility="{x:Bind local:AskFilesPage.HasCitationsVisibility(Citations), Mode=OneWay}">
                                                         <ItemsRepeater.Layout>
                                                             <StackLayout Orientation="Horizontal" Spacing="4" />
                                                         </ItemsRepeater.Layout>

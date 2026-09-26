@@ -35,16 +35,20 @@ public sealed partial class AskFilesPage : Page
     {
         Log.Debug("AskFilesPage loaded");
 
-        await ViewModel.InitializeAsync();
-
-        // Start cursor blink timer for streaming effect
+        // Start the timer and subscribe before awaiting: if the page unloads while the view
+        // model initializes, Unloaded has already run, and anything started after the await
+        // would never be stopped. Both steps are idempotent for a repeated Loaded.
         StartCursorBlinkTimer();
-
-        // Subscribe to messages for auto-scroll
+        ViewModel.Messages.CollectionChanged -= OnMessagesCollectionChanged;
         ViewModel.Messages.CollectionChanged += OnMessagesCollectionChanged;
 
-        // Focus the input box for immediate typing
-        QuestionInputBox.Focus(FocusState.Programmatic);
+        await ViewModel.InitializeAsync();
+
+        // Focus the input box for immediate typing, unless the page has gone meanwhile
+        if (IsLoaded)
+        {
+            QuestionInputBox.Focus(FocusState.Programmatic);
+        }
     }
 
     private void OnPageUnloaded(object sender, RoutedEventArgs e)
@@ -116,6 +120,9 @@ public sealed partial class AskFilesPage : Page
 
     private void StartCursorBlinkTimer()
     {
+        // Never leave a previous timer running and unreachable
+        StopCursorBlinkTimer();
+
         _cursorBlinkTimer = new DispatcherTimer
         {
             Interval = TimeSpan.FromMilliseconds(530)
