@@ -312,7 +312,7 @@ public sealed class SemanticSearchService : ISemanticSearchService
             return (new List<SearchResult>(), vectorResults.Count);
         }
 
-        // ── Step 4: Build search results with excerpts ──────────────────
+        // Step 4: Build search results with excerpts
         var queryWords = ExtractQueryWords(query.QueryText);
 
         var results = new List<SearchResult>(compatibleChunks.Count);
@@ -362,7 +362,7 @@ public sealed class SemanticSearchService : ISemanticSearchService
     public async Task SaveSearchHistoryAsync(string queryText, int resultCount,
         double? minScore = null, int? maxResults = null,
         DateTime? dateAfter = null, DateTime? dateBefore = null,
-        string? sortOrder = null)
+        string? sortOrder = null, string? searchType = null)
     {
         if (string.IsNullOrWhiteSpace(queryText))
         {
@@ -374,7 +374,9 @@ public sealed class SemanticSearchService : ISemanticSearchService
             var entity = new SearchHistoryEntity
             {
                 Query = queryText.Trim(),
-                SearchType = "semantic",
+                SearchType = string.IsNullOrWhiteSpace(searchType)
+                    ? "semantic"
+                    : searchType.Trim().ToLowerInvariant(),
                 ResultCount = resultCount,
                 SearchedAt = DateTime.UtcNow,
                 IsSaved = false,

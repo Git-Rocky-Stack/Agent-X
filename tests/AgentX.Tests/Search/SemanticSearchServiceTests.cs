@@ -844,6 +844,22 @@ public sealed class SemanticSearchServiceTests : IDisposable
         entry.SortOrder.Should().Be("relevance");
     }
 
+    [Theory]
+    [InlineData("keyword", "keyword")]
+    [InlineData("Hybrid", "hybrid")]
+    [InlineData(null, "semantic")]
+    public async Task SaveSearchHistory_StoresTheSearchModeItRanIn(string? searchType, string expected)
+    {
+        // Every entry was stored as "semantic", so a saved keyword or hybrid filter came
+        // back in semantic mode.
+        var h = NewHarness();
+
+        await h.Service.SaveSearchHistoryAsync("invoice 2231", 2, searchType: searchType);
+
+        await using var read = h.Fresh();
+        (await read.SearchHistory.SingleAsync()).SearchType.Should().Be(expected);
+    }
+
     [Fact]
     public async Task SaveSearchHistory_OnFailure_SwallowsAndDoesNotThrow()
     {

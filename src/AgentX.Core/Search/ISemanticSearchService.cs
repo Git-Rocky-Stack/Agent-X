@@ -23,10 +23,14 @@ public interface ISemanticSearchService
     /// Saves a search query to the search history for later re-use.
     /// Accepts optional advanced filter settings for full filter persistence.
     /// </summary>
+    /// <param name="searchType">
+    /// The search mode the query ran in ("semantic", "keyword" or "hybrid"), so a saved
+    /// filter restores the same mode. Defaults to "semantic" when not given.
+    /// </param>
     Task SaveSearchHistoryAsync(string queryText, int resultCount,
         double? minScore = null, int? maxResults = null,
         DateTime? dateAfter = null, DateTime? dateBefore = null,
-        string? sortOrder = null);
+        string? sortOrder = null, string? searchType = null);
 
     /// <summary>
     /// Retrieves recent search history entries.

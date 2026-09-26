@@ -96,6 +96,144 @@ public sealed class SearchViewModelTests
             Times.Never);
     }
 
+    // Sorting
+
+    [Fact]
+    public async Task SearchAsync_NewResultsFollowTheSelectedSortOrder()
+    {
+        // Only a change of the sort box re-sorted; a new search always showed relevance order.
+        _hybridSearch
+            .Setup(service => service.SearchAsync(It.IsAny<SearchQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[] { Result(1, "zeta.md", 0.9f), Result(2, "alpha.md", 0.5f), Result(3, "mid.md", 0.7f) });
+        var viewModel = CreateViewModel();
+        viewModel.SelectedSortIndex = 3; // name
+        viewModel.QueryText = "plan";
+
+        await viewModel.SearchCommand.ExecuteAsync(null);
+
+        viewModel.Results.Select(r => r.FileName).Should().Equal("alpha.md", "mid.md", "zeta.md");
+    }
+
+    // Saved filters
+
+    [Fact]
+    public async Task SaveCurrentFilterAsync_RemembersTheSearchMode()
+    {
+        // Every saved filter was stored as "semantic", so keyword and hybrid filters came
+        // back in the wrong mode.
+        _searchService.Setup(service => service.GetSearchHistoryAsync(It.IsAny<int>()))
+            .ReturnsAsync(Array.Empty<SearchHistoryEntry>());
+        var viewModel = CreateViewModel();
+        viewModel.QueryText = "invoice 2231";
+        viewModel.SearchMode = SearchMode.Keyword;
+
+        await viewModel.SaveCurrentFilterCommand.ExecuteAsync(null);
+
+        _searchService.Verify(service => service.SaveSearchHistoryAsync(
+            "invoice 2231", It.IsAny<int>(), It.IsAny<double?>(), It.IsAny<int?>(),
+            It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string?>(), "keyword"), Times.Once);
+    }
+
+    // Overlapping searches
+
+    [Fact]
+    public async Task SearchAsync_ASlowerEarlierSearchCannotOverwriteANewerOne()
+    {
+        // A history click or filter change while a search was running started a second
+        // search; whichever finished last won, so stale results could replace newer ones.
+        var slow = new TaskCompletionSource<IReadOnlyList<SearchResult>>(TaskCreationOptions.RunContinuationsAsynchronously);
+        CancellationToken slowToken = default;
+        _hybridSearch
+            .Setup(service => service.SearchAsync(It.Is<SearchQuery>(q => q.QueryText == "old"), It.IsAny<CancellationToken>()))
+            .Returns((SearchQuery _, CancellationToken token) =>
+            {
+                slowToken = token;
+                return slow.Task;
+            });
+        _hybridSearch
+            .Setup(service => service.SearchAsync(It.Is<SearchQuery>(q => q.QueryText == "new"), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[] { Result(2, "new.md", 0.8f) });
+        var viewModel = CreateViewModel();
+
+        viewModel.QueryText = "old";
+        var first = viewModel.SearchCommand.ExecuteAsync(null);
+        await viewModel.SelectHistoryItemCommand.ExecuteAsync("new");
+
+        slowToken.IsCancellationRequested.Should().BeTrue();
+        slow.SetResult(new[] { Result(1, "old.md", 0.9f) });
+        await first;
+
+        viewModel.Results.Select(r => r.FileName).Should().Equal("new.md");
+        viewModel.IsSearching.Should().BeFalse();
+    }
+
+    // Filters
+
+    [Fact]
+    public async Task SearchAsync_DateFiltersCoverTheWholeChosenDaysAsUtcBounds()
+    {
+        SearchQuery? sent = null;
+        _hybridSearch
+            .Setup(service => service.SearchAsync(It.IsAny<SearchQuery>(), It.IsAny<CancellationToken>()))
+            .Callback((SearchQuery query, CancellationToken _) => sent = query)
+            .ReturnsAsync(Array.Empty<SearchResult>());
+        var viewModel = CreateViewModel();
+        viewModel.QueryText = "report";
+        viewModel.CreatedAfterDate = new DateTimeOffset(new DateTime(2026, 3, 2));
+        viewModel.CreatedBeforeDate = new DateTimeOffset(new DateTime(2026, 3, 5));
+
+        await viewModel.SearchCommand.ExecuteAsync(null);
+
+        sent!.CreatedAfter.Should().Be(LocalDayRange.StartUtc(new DateTime(2026, 3, 2)));
+        sent.CreatedBefore.Should().Be(LocalDayRange.EndUtc(new DateTime(2026, 3, 5)));
+    }
+
+    [Fact]
+    public async Task SearchAsync_CategoryChipIsAppliedToResultsInsteadOfSentAsAFileType()
+    {
+        // "code" is not a stored file type, so sending it to the services matched nothing.
+        SearchQuery? sent = null;
+        _hybridSearch
+            .Setup(service => service.SearchAsync(It.IsAny<SearchQuery>(), It.IsAny<CancellationToken>()))
+            .Callback((SearchQuery query, CancellationToken _) => sent = query)
+            .ReturnsAsync(new[] { Result(1, "Program.cs", 0.9f, "cs"), Result(2, "notes.md", 0.8f, "md") });
+        var viewModel = CreateViewModel();
+        viewModel.QueryText = "retry loop";
+
+        await viewModel.FilterByFileTypeCommand.ExecuteAsync("code");
+
+        sent!.FileTypeFilter.Should().BeNull();
+        viewModel.Results.Select(r => r.FileName).Should().Equal("Program.cs");
+    }
+
+    [Fact]
+    public async Task SearchAsync_ConnectorItemsMatchTheirChipByStoredType()
+    {
+        // Calendar and email items carry a display name, not a file name with an extension,
+        // so matching the chip against the extension dropped every one of them.
+        _hybridSearch
+            .Setup(service => service.SearchAsync(It.IsAny<SearchQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[] { Result(1, "Quarterly planning sync", 0.9f, "CalendarEvent") });
+        var viewModel = CreateViewModel();
+        viewModel.QueryText = "planning";
+
+        await viewModel.FilterByFileTypeCommand.ExecuteAsync("CalendarEvent");
+
+        viewModel.Results.Should().ContainSingle().Which.FileType.Should().Be("calendarevent");
+    }
+
+    private static SearchResult Result(long documentId, string fileName, float score, string fileType = "md") =>
+        new()
+        {
+            DocumentId = documentId,
+            ChunkId = documentId * 10,
+            FileName = fileName,
+            FilePath = Path.Combine(Path.GetTempPath(), fileName),
+            FileType = fileType,
+            MatchedText = "matched text",
+            Score = score
+        };
+
     private SearchViewModel CreateViewModel() =>
         new(
             _searchService.Object,

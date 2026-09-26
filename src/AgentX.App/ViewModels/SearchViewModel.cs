@@ -64,6 +64,11 @@ public partial class SearchViewModel : ObservableObject
     // ── Internal history storage ─────────────────────────────────
     private readonly List<SearchHistoryItem> _historyStore = new();
     private long _historyIdCounter;
+
+    // Concurrent searches
+    // Each search claims the next generation; only the newest may update the results.
+    private int _searchGeneration;
+    private CancellationTokenSource? _searchCts;
     public NavigateHandler? NavigateRequested { get; set; }
 
     /// <summary>True when the current search mode is Semantic.</summary>
@@ -185,6 +190,14 @@ public partial class SearchViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(query))
             return;
 
+        // A newer search supersedes one still running (a history click or a filter change
+        // while results load). The older one is cancelled, and the generation check keeps
+        // it from writing its results over the newer ones if it finishes anyway.
+        var generation = Interlocked.Increment(ref _searchGeneration);
+        var cts = new CancellationTokenSource();
+        var previous = Interlocked.Exchange(ref _searchCts, cts);
+        CancelQuietly(previous);
+
         IsSearching = true;
         ShowNoResults = false;
         HasResults = false;
@@ -199,27 +212,32 @@ public partial class SearchViewModel : ObservableObject
                 ? SelectedCollectionFilterId
                 : SelectedCollectionId;
 
+            // The date pickers yield local calendar days while ImportedAt is stored in UTC;
+            // the "before" day is inclusive, so its bound is the end of that day.
             var searchQuery = new SearchQuery
             {
                 QueryText = query,
                 TopK = TopKFilter,
                 MinScore = (float)(MinScoreFilter / 100.0),
                 CollectionId = effectiveCollectionId,
-                FileTypeFilter = SelectedFileTypeFilter,
-                CreatedAfter = CreatedAfterDate?.DateTime,
-                CreatedBefore = CreatedBeforeDate?.DateTime,
+                FileTypeFilter = ToServiceFileTypeFilter(SelectedFileTypeFilter),
+                CreatedAfter = CreatedAfterDate.HasValue ? LocalDayRange.StartUtc(CreatedAfterDate.Value.DateTime) : null,
+                CreatedBefore = CreatedBeforeDate.HasValue ? LocalDayRange.EndUtc(CreatedBeforeDate.Value.DateTime) : null,
                 Mode = SearchMode
             };
-            var rawResults = await _hybridSearchOrchestrator.SearchAsync(searchQuery);
+            var rawResults = await _hybridSearchOrchestrator.SearchAsync(searchQuery, cts.Token);
 
             stopwatch.Stop();
-            SearchLatencyMs = stopwatch.Elapsed.TotalMilliseconds;
 
             // Map raw results to display items, applying file type filter
             var displayResults = new List<SearchResultItem>();
             foreach (var r in rawResults)
             {
-                var fileType = ExtractFileType(r.FileName);
+                // Prefer the stored type: connector items (calendar events, email) carry a
+                // display name rather than a file name with an extension.
+                var fileType = !string.IsNullOrWhiteSpace(r.FileType)
+                    ? r.FileType.Trim().ToLowerInvariant()
+                    : ExtractFileType(r.FileName);
 
                 // Apply file type filter if active
                 if (!string.IsNullOrEmpty(SelectedFileTypeFilter) &&
@@ -261,9 +279,16 @@ public partial class SearchViewModel : ObservableObject
                 });
             }
 
-            // Update observable collection
+            if (generation != Volatile.Read(ref _searchGeneration))
+            {
+                return; // superseded while the results were being prepared
+            }
+
+            SearchLatencyMs = stopwatch.Elapsed.TotalMilliseconds;
+
+            // Update observable collection, in the sort order the user picked
             Results.Clear();
-            foreach (var item in displayResults)
+            foreach (var item in ApplySort(displayResults))
                 Results.Add(item);
 
             TotalResults = Results.Count;
@@ -277,15 +302,40 @@ public partial class SearchViewModel : ObservableObject
             // Save to history
             AddToHistory(query, Results.Count);
         }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+        {
+            // Superseded by a newer search, which owns the page state now.
+        }
         catch (Exception ex)
         {
-            _logger.Error(ex, "{SearchMode} search failed for query: {Query}", SearchMode, query);
-            StatusMessage = "Search failed. Please try again.";
-            ShowNoResults = true;
+            if (generation == Volatile.Read(ref _searchGeneration))
+            {
+                _logger.Error(ex, "{SearchMode} search failed for query: {Query}", SearchMode, query);
+                StatusMessage = "Search failed. Please try again.";
+                ShowNoResults = true;
+            }
         }
         finally
         {
-            IsSearching = false;
+            if (generation == Volatile.Read(ref _searchGeneration))
+            {
+                IsSearching = false;
+            }
+
+            Interlocked.CompareExchange(ref _searchCts, null, cts);
+            cts.Dispose();
+        }
+    }
+
+    private static void CancelQuietly(CancellationTokenSource? cts)
+    {
+        try
+        {
+            cts?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+            // That search already finished and released its token source.
         }
     }
 
@@ -384,7 +434,8 @@ public partial class SearchViewModel : ObservableObject
                 maxResults: TopKFilter,
                 dateAfter: CreatedAfterDate?.DateTime,
                 dateBefore: CreatedBeforeDate?.DateTime,
-                sortOrder: sortOrder);
+                sortOrder: sortOrder,
+                searchType: SearchTypeName(SearchMode));
 
             var history = await _searchService.GetSearchHistoryAsync(50);
             var entry = history.FirstOrDefault(h =>
@@ -504,18 +555,24 @@ public partial class SearchViewModel : ObservableObject
     {
         if (Results.Count == 0) return;
 
-        var sorted = SelectedSortIndex switch
-        {
-            1 => Results.OrderByDescending(r => r.DocumentId).ToList(),
-            2 => Results.OrderBy(r => r.DocumentId).ToList(),
-            3 => Results.OrderBy(r => r.FileName).ToList(),
-            _ => Results.OrderByDescending(r => r.RelevancePercent).ToList(),
-        };
+        var sorted = ApplySort(Results);
 
         Results.Clear();
         foreach (var item in sorted)
             Results.Add(item);
     }
+
+    /// <summary>
+    /// Orders results by the selected sort option. Used both when new results arrive and
+    /// when the user changes the sort, so a fresh search honors the current choice.
+    /// </summary>
+    private List<SearchResultItem> ApplySort(IEnumerable<SearchResultItem> items) => SelectedSortIndex switch
+    {
+        1 => items.OrderByDescending(r => r.DocumentId).ToList(),
+        2 => items.OrderBy(r => r.DocumentId).ToList(),
+        3 => items.OrderBy(r => r.FileName).ToList(),
+        _ => items.OrderByDescending(r => r.RelevancePercent).ToList(),
+    };
 
     // =================================================================
     // DOCUMENT ACTIONS
@@ -603,6 +660,33 @@ public partial class SearchViewModel : ObservableObject
     // PRIVATE HELPERS
     // =================================================================
 
+    /// <summary>
+    /// The name stored with history entries and saved filters, which
+    /// <see cref="ApplySavedFilterAsync"/> maps back to a <see cref="SearchMode"/>.
+    /// </summary>
+    private static string SearchTypeName(SearchMode mode) => mode switch
+    {
+        SearchMode.Keyword => "keyword",
+        SearchMode.Hybrid => "hybrid",
+        _ => "semantic"
+    };
+
+    /// <summary>
+    /// The file type the search services filter on before the top-K cut. A chip that stands
+    /// for one stored file type is passed through; a category chip such as "code" spans
+    /// several stored types, so it is not sent (an exact match on "code" finds nothing) and
+    /// <see cref="MatchesFileTypeFilter"/> applies it to the results instead.
+    /// </summary>
+    internal static string? ToServiceFileTypeFilter(string? chip)
+    {
+        if (string.IsNullOrWhiteSpace(chip))
+        {
+            return null;
+        }
+
+        return chip.Equals("code", StringComparison.OrdinalIgnoreCase) ? null : chip;
+    }
+
     private static string ExtractFileType(string fileName)
     {
         var ext = Path.GetExtension(fileName);
@@ -650,6 +734,8 @@ public partial class SearchViewModel : ObservableObject
 
     private void AddToHistory(string query, int resultCount)
     {
+        var searchType = SearchTypeName(SearchMode);
+
         // Remove duplicate if exists
         _historyStore.RemoveAll(h =>
             h.QueryText.Equals(query, StringComparison.OrdinalIgnoreCase));
@@ -674,7 +760,7 @@ public partial class SearchViewModel : ObservableObject
         {
             try
             {
-                await _searchService.SaveSearchHistoryAsync(query, resultCount);
+                await _searchService.SaveSearchHistoryAsync(query, resultCount, searchType: searchType);
             }
             catch (Exception ex)
             {
