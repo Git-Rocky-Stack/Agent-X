@@ -227,7 +227,36 @@ public sealed class ScreenCaptureService : IScreenCaptureService
             return CreateEmptyResult();
         }
 
-        var activeTitle = GetActiveWindowTitle();
+        return await CaptureWindowCoreAsync(hwnd, ct);
+    }
+
+    /// <inheritdoc />
+    public async Task<ScreenContextResult> CaptureWindowAndOcrAsync(IntPtr windowHandle, CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+
+        if (windowHandle == IntPtr.Zero)
+        {
+            _log.Debug("No target window to capture");
+            return CreateEmptyResult();
+        }
+
+        if (!await IsScreenAwarenessEnabledAsync())
+        {
+            _log.Debug("Screen awareness is disabled; skipping window capture");
+            return CreateEmptyResult();
+        }
+
+        _log.Debug("Starting capture and OCR of window {Hwnd}", windowHandle);
+        return await CaptureWindowCoreAsync(windowHandle, ct);
+    }
+
+    /// <summary>
+    /// Captures <paramref name="hwnd"/> with PrintWindow and runs OCR on the image.
+    /// </summary>
+    private async Task<ScreenContextResult> CaptureWindowCoreAsync(IntPtr hwnd, CancellationToken ct)
+    {
+        var activeTitle = GetWindowTitle(hwnd);
         var ideContext = IdeWindowDetector.Detect(activeTitle);
 
         if (!GetWindowRect(hwnd, out var rect))
@@ -335,9 +364,13 @@ public sealed class ScreenCaptureService : IScreenCaptureService
     /// <summary>
     /// Gets the title of the currently active (foreground) window.
     /// </summary>
-    private static string GetActiveWindowTitle()
+    private static string GetActiveWindowTitle() => GetWindowTitle(GetForegroundWindow());
+
+    /// <summary>
+    /// Gets the title of <paramref name="hwnd"/>, or an empty string when it has none.
+    /// </summary>
+    private static string GetWindowTitle(IntPtr hwnd)
     {
-        var hwnd = GetForegroundWindow();
         if (hwnd == IntPtr.Zero)
             return string.Empty;
 

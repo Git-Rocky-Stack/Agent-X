@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using AgentX.App.ViewModels;
 using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
@@ -290,6 +291,28 @@ public sealed class QuickChatWindow : Window
         {
             DispatcherQueue.TryEnqueue(UpdateAskButtonState);
         };
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  TARGET WINDOW
+    // ═══════════════════════════════════════════════════════════════════
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
+
+    /// <summary>
+    /// Records the window in front as the one screen context is read from. Call it before
+    /// <see cref="Window.Activate"/> whenever Quick Chat is summoned: once this window takes
+    /// focus, the foreground window is Quick Chat itself. Summoning it while it is already
+    /// in front keeps the window recorded last.
+    /// </summary>
+    public void RememberTargetWindow()
+    {
+        var foreground = GetForegroundWindow();
+        if (foreground != IntPtr.Zero && foreground != WindowNative.GetWindowHandle(this))
+        {
+            ViewModel.TargetWindowHandle = foreground;
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════

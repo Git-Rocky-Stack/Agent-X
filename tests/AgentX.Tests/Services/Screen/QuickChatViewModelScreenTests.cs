@@ -75,6 +75,35 @@ public sealed class QuickChatViewModelScreenTests
     }
 
     [Fact]
+    public async Task SubmitQueryAsync_WithARecordedTargetWindow_ReadsThatWindowNotTheForegroundOne()
+    {
+        // When a query runs, the foreground window is Quick Chat itself; the window to read
+        // is the one recorded when Quick Chat was summoned.
+        SetupStreamingResponse("AI response");
+        var target = new IntPtr(0x4242);
+        _mockScreenCapture
+            .Setup(s => s.CaptureWindowAndOcrAsync(target, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ScreenContextResult
+            {
+                OcrText = "Text in the editor",
+                ActiveWindowTitle = "Editor",
+                CapturedAtUtc = DateTime.UtcNow,
+            });
+
+        var vm = CreateViewModel();
+        vm.TargetWindowHandle = target;
+        vm.QueryText = "What is on my screen?";
+
+        await vm.SubmitQueryCommand.ExecuteAsync(null);
+
+        vm.ScreenContextCaptured.Should().BeTrue();
+        _mockScreenCapture.Verify(
+            s => s.CaptureWindowAndOcrAsync(target, It.IsAny<CancellationToken>()), Times.Once);
+        _mockScreenCapture.Verify(
+            s => s.CaptureActiveWindowAndOcrAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task SubmitQueryAsync_WithEmptyScreenContext_SetsScreenContextCapturedFalse()
     {
         // Arrange

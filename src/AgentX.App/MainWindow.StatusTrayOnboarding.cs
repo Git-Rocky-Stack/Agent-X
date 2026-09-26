@@ -184,10 +184,13 @@ public sealed partial class MainWindow
 
     private void OpenQuickChat()
     {
+        // Screen awareness reads the window the operator was looking at, so it is recorded
+        // before Quick Chat is activated and becomes the foreground window itself.
         if (_quickChatWindow != null)
         {
             try
             {
+                _quickChatWindow.RememberTargetWindow();
                 _quickChatWindow.Activate();
                 return;
             }
@@ -203,6 +206,7 @@ public sealed partial class MainWindow
             var vm = App.GetService<QuickChatViewModel>();
             _quickChatWindow = new QuickChatWindow(vm);
             _quickChatWindow.Closed += (_, _) => _quickChatWindow = null;
+            _quickChatWindow.RememberTargetWindow();
             _quickChatWindow.Activate();
         }
         catch (Exception ex)

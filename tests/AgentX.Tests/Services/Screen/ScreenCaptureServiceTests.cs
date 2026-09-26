@@ -97,6 +97,44 @@ public sealed class ScreenCaptureServiceTests
         result.OcrText.Should().BeEmpty();
     }
 
+    // ── CaptureWindowAndOcrAsync ───────────────────────────────────────────────
+
+    [Fact]
+    public async Task CaptureWindowAndOcrAsync_WithNoWindow_ReturnsEmptyWithoutReadingSettings()
+    {
+        var sut = new ScreenCaptureService(_mockSettings.Object, _logger);
+
+        var result = await sut.CaptureWindowAndOcrAsync(IntPtr.Zero);
+
+        result.IsEmpty.Should().BeTrue();
+        _mockSettings.Verify(s => s.GetSettingsAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task CaptureWindowAndOcrAsync_WhenScreenAwarenessDisabled_ReturnsEmptyResult()
+    {
+        _mockSettings
+            .Setup(s => s.GetSettingsAsync())
+            .ReturnsAsync(new AppSettings { EnableScreenAwareness = false });
+        var sut = new ScreenCaptureService(_mockSettings.Object, _logger);
+
+        var result = await sut.CaptureWindowAndOcrAsync(new IntPtr(0x1234));
+
+        result.IsEmpty.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task CaptureWindowAndOcrAsync_WhenPreCancelled_ThrowsOperationCanceledException()
+    {
+        var sut = new ScreenCaptureService(_mockSettings.Object, _logger);
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        var act = async () => await sut.CaptureWindowAndOcrAsync(new IntPtr(0x1234), cts.Token);
+
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
     // ── Cancellation ────────────────────────────────────────────────────────────
 
     [Fact]

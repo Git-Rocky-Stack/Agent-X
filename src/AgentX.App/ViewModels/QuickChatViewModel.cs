@@ -37,6 +37,13 @@ public partial class QuickChatViewModel : ObservableObject
     [ObservableProperty]
     private bool _screenContextCaptured;
 
+    /// <summary>
+    /// The window that was in front when Quick Chat was summoned; screen context is read from
+    /// it. It has to be recorded then: by the time a query runs, the foreground window is
+    /// Quick Chat itself. Zero when none was recorded.
+    /// </summary>
+    public IntPtr TargetWindowHandle { get; set; }
+
     public QuickChatViewModel(IAiService aiService)
     {
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
@@ -78,7 +85,9 @@ public partial class QuickChatViewModel : ObservableObject
             {
                 try
                 {
-                    screenContext = await _screenCaptureService.CaptureActiveWindowAndOcrAsync(ct).ConfigureAwait(false);
+                    screenContext = TargetWindowHandle != IntPtr.Zero
+                        ? await _screenCaptureService.CaptureWindowAndOcrAsync(TargetWindowHandle, ct).ConfigureAwait(false)
+                        : await _screenCaptureService.CaptureActiveWindowAndOcrAsync(ct).ConfigureAwait(false);
                     ScreenContextCaptured = !screenContext.IsEmpty;
                 }
                 catch (Exception ex)
