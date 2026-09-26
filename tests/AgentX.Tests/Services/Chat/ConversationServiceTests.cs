@@ -467,6 +467,159 @@ public sealed class ConversationServiceTests : IDisposable
         (await fresh.Messages.CountAsync()).Should().Be(0); // cascade
     }
 
+    // Branches reference their parent through a Restrict foreign key. Deleting a conversation
+    // whose branches the context had not loaded (the sidebar path after a restart) failed in
+    // the database, and the failed DELETE stayed queued in the shared tracker, so every later
+    // save anywhere in the app replayed it.
+
+    [Fact]
+    public async Task DeleteConversationAsync_WithBranches_PromotesThemAndDeletesOnlyTheConversation()
+    {
+        var h = NewHarness();
+        long parentId = 0, branchId = 0, branchPointId = 0;
+        h.Seed(ctx =>
+        {
+            var parent = NewConv("Parent");
+            ctx.Conversations.Add(parent);
+            ctx.SaveChanges();
+            parentId = parent.Id;
+            var point = NewMsg(parentId, "user", "shared question", sortOrder: 0);
+            ctx.Messages.Add(point);
+            ctx.SaveChanges();
+            branchPointId = point.Id;
+
+            var branch = NewConv("Branch");
+            branch.ParentConversationId = parentId;
+            branch.BranchPointMessageId = branchPointId;
+            ctx.Conversations.Add(branch);
+            ctx.SaveChanges();
+            branchId = branch.Id;
+            ctx.Messages.Add(NewMsg(branchId, "user", "shared question", sortOrder: 0));
+        });
+
+        await h.Service.DeleteConversationAsync(parentId);
+
+        using var fresh = h.Fresh();
+        (await fresh.Conversations.AnyAsync(c => c.Id == parentId)).Should().BeFalse();
+        var promoted = await fresh.Conversations.SingleAsync(c => c.Id == branchId);
+        promoted.ParentConversationId.Should().BeNull();
+        promoted.BranchPointMessageId.Should().BeNull("its branch point was a message of the deleted conversation");
+        (await fresh.Messages.CountAsync(m => m.ConversationId == branchId)).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task DeleteConversationAsync_OfABranchWithSubBranches_ReattachesThemToItsParent()
+    {
+        var h = NewHarness();
+        long rootId = 0, middleId = 0, leafId = 0;
+        h.Seed(ctx =>
+        {
+            var root = NewConv("Root");
+            ctx.Conversations.Add(root);
+            ctx.SaveChanges();
+            rootId = root.Id;
+
+            var middle = NewConv("Middle");
+            middle.ParentConversationId = rootId;
+            middle.BranchPointMessageId = 7;
+            ctx.Conversations.Add(middle);
+            ctx.SaveChanges();
+            middleId = middle.Id;
+
+            var leaf = NewConv("Leaf");
+            leaf.ParentConversationId = middleId;
+            leaf.BranchPointMessageId = 9;
+            ctx.Conversations.Add(leaf);
+            ctx.SaveChanges();
+            leafId = leaf.Id;
+        });
+
+        await h.Service.DeleteConversationAsync(middleId);
+
+        using var fresh = h.Fresh();
+        var leaf = await fresh.Conversations.SingleAsync(c => c.Id == leafId);
+        leaf.ParentConversationId.Should().Be(rootId);
+        leaf.BranchPointMessageId.Should().Be(7, "it now diverges from the root where the deleted branch did");
+    }
+
+    [Fact]
+    public async Task DeleteConversationAsync_WithADurableSummary_DeletesItWithTheConversation()
+    {
+        var h = NewHarness();
+        long id = 0;
+        h.Seed(ctx =>
+        {
+            var c = NewConv();
+            ctx.Conversations.Add(c);
+            ctx.SaveChanges();
+            id = c.Id;
+            var snapshot = new ConversationSummarySnapshotEntity
+            {
+                ConversationId = id,
+                SnapshotVersion = 1,
+                SummaryText = "summary",
+                PreviewText = "preview",
+                GeneratedAt = DateTime.UtcNow,
+                SourceConversationUpdatedAt = DateTime.UtcNow
+            };
+            ctx.ConversationSummarySnapshots.Add(snapshot);
+            ctx.SaveChanges();
+            ctx.ConversationSummaryStates.Add(new ConversationSummaryStateEntity
+            {
+                ConversationId = id,
+                LatestSnapshotId = snapshot.Id,
+                LatestSnapshotVersion = 1
+            });
+        });
+
+        await h.Service.DeleteConversationAsync(id);
+
+        using var fresh = h.Fresh();
+        (await fresh.Conversations.CountAsync()).Should().Be(0);
+        (await fresh.ConversationSummarySnapshots.CountAsync()).Should().Be(0);
+        (await fresh.ConversationSummaryStates.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task DeleteConversationAsync_WhenTheSaveFails_ThrowsAndLeavesNothingQueuedForLaterSaves()
+    {
+        var h = NewHarness();
+        long doomedId = 0, otherId = 0;
+        h.Seed(ctx =>
+        {
+            var doomed = NewConv("Doomed");
+            var other = NewConv("Other");
+            ctx.Conversations.AddRange(doomed, other);
+            ctx.SaveChanges();
+            doomedId = doomed.Id;
+            otherId = other.Id;
+            ctx.Messages.Add(NewMsg(doomedId, sortOrder: 0));
+        });
+        await h.Db.Messages.Where(m => m.ConversationId == doomedId).LoadAsync();
+
+        using (var ddl = h.Fresh())
+        {
+            await ddl.Database.ExecuteSqlRawAsync(
+                "CREATE TRIGGER block_delete BEFORE DELETE ON conversations BEGIN SELECT RAISE(ABORT, 'blocked'); END;");
+        }
+
+        await h.Service.Invoking(s => s.DeleteConversationAsync(doomedId)).Should().ThrowAsync<Exception>();
+
+        using (var ddl = h.Fresh())
+        {
+            await ddl.Database.ExecuteSqlRawAsync("DROP TRIGGER block_delete;");
+        }
+
+        // An unrelated save on the same shared context must not replay the failed delete.
+        await h.Service.TogglePinAsync(otherId);
+
+        using var fresh = h.Fresh();
+        (await fresh.Conversations.AnyAsync(c => c.Id == doomedId)).Should().BeTrue();
+        (await fresh.Messages.CountAsync(m => m.ConversationId == doomedId)).Should().Be(1);
+        (await fresh.Conversations.SingleAsync(c => c.Id == otherId)).IsPinned.Should().BeTrue();
+        h.Db.ChangeTracker.HasChanges().Should().BeFalse();
+    }
+
     [Fact]
     public async Task DeleteConversationAsync_Missing_NoThrow()
     {
@@ -626,6 +779,89 @@ public sealed class ConversationServiceTests : IDisposable
         var conv = await fresh.Conversations.FindAsync(id);
         conv!.MessageCount.Should().Be(2);
         conv.TokensUsed.Should().Be(20);
+    }
+
+    [Fact]
+    public async Task DeleteLastAssistantMessageAsync_WhenTheThreadEndsOnAQuestion_KeepsTheEarlierAnswer()
+    {
+        // A stopped or failed send leaves the thread ending on a user message; the newest
+        // assistant message then answers an earlier question.
+        var h = NewHarness();
+        long id = 0;
+        h.Seed(ctx =>
+        {
+            var c = NewConv(messageCount: 3);
+            ctx.Conversations.Add(c);
+            ctx.SaveChanges();
+            id = c.Id;
+            ctx.Messages.Add(NewMsg(id, "user", "first question", sortOrder: 0));
+            ctx.Messages.Add(NewMsg(id, "assistant", "first answer", sortOrder: 1));
+            ctx.Messages.Add(NewMsg(id, "user", "unanswered question", sortOrder: 2));
+        });
+
+        await h.Service.DeleteLastAssistantMessageAsync(id);
+
+        using var fresh = h.Fresh();
+        (await fresh.Messages.AnyAsync(m => m.Content == "first answer")).Should().BeTrue();
+        (await fresh.Messages.CountAsync()).Should().Be(3);
+    }
+
+    [Fact]
+    public async Task DeleteMessageAndFollowingAsync_DeletesTheMessageAndEverythingAfterIt()
+    {
+        var h = NewHarness();
+        long id = 0;
+        var ids = new List<long>();
+        h.Seed(ctx =>
+        {
+            var c = NewConv(messageCount: 4, tokensUsed: 40);
+            ctx.Conversations.Add(c);
+            ctx.SaveChanges();
+            id = c.Id;
+            for (var i = 0; i < 4; i++)
+            {
+                var m = NewMsg(id, i % 2 == 0 ? "user" : "assistant", $"m{i}", sortOrder: i, tokenCount: 10);
+                ctx.Messages.Add(m);
+                ctx.SaveChanges();
+                ids.Add(m.Id);
+            }
+        });
+
+        var deleted = await h.Service.DeleteMessageAndFollowingAsync(id, ids[2]);
+
+        deleted.Should().Be(2);
+        using var fresh = h.Fresh();
+        (await fresh.Messages.Select(m => m.Content).ToListAsync()).Should().BeEquivalentTo("m0", "m1");
+        var conv = await fresh.Conversations.FindAsync(id);
+        conv!.MessageCount.Should().Be(2);
+        conv.TokensUsed.Should().Be(20);
+    }
+
+    [Fact]
+    public async Task DeleteMessageAndFollowingAsync_ForAMessageOfAnotherConversation_DeletesNothing()
+    {
+        var h = NewHarness();
+        long firstId = 0, secondId = 0, foreignMessageId = 0;
+        h.Seed(ctx =>
+        {
+            var first = NewConv("First");
+            var second = NewConv("Second");
+            ctx.Conversations.AddRange(first, second);
+            ctx.SaveChanges();
+            firstId = first.Id;
+            secondId = second.Id;
+            ctx.Messages.Add(NewMsg(firstId, sortOrder: 0));
+            var foreign = NewMsg(secondId, sortOrder: 0);
+            ctx.Messages.Add(foreign);
+            ctx.SaveChanges();
+            foreignMessageId = foreign.Id;
+        });
+
+        var deleted = await h.Service.DeleteMessageAndFollowingAsync(firstId, foreignMessageId);
+
+        deleted.Should().Be(0);
+        using var fresh = h.Fresh();
+        (await fresh.Messages.CountAsync()).Should().Be(2);
     }
 
     [Fact]
@@ -988,6 +1224,7 @@ public sealed class ConversationServiceTests : IDisposable
             () => h.Service.DeleteMessageAsync(1),
             () => h.Service.UpdateMessageContentAsync(1, "c"),
             () => h.Service.DeleteMessagesAfterAsync(1, 0),
+            () => h.Service.DeleteMessageAndFollowingAsync(1, 1),
             () => h.Service.GetConversationCountAsync(),
             () => h.Service.GetTotalTokensUsedAsync(),
             () => h.Service.SetConversationFolderAsync(1, "f"),

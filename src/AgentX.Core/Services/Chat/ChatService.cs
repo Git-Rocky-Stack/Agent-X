@@ -168,10 +168,18 @@ public class ChatService : IChatService
     }
 
     /// <inheritdoc />
+    public IAsyncEnumerable<string> SendMessageAsync(
+        long conversationId,
+        string userMessage,
+        CancellationToken ct = default) =>
+        SendMessageAsync(conversationId, userMessage, supplementalContext: null, ct);
+
+    /// <inheritdoc />
     public async IAsyncEnumerable<string> SendMessageAsync(
         long conversationId,
         string userMessage,
-        [EnumeratorCancellation] CancellationToken ct = default)
+        string? supplementalContext,
+        [EnumeratorCancellation] CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(userMessage))
         {
@@ -180,21 +188,7 @@ public class ChatService : IChatService
         }
 
         // Create a linked cancellation token so StopGenerationAsync can cancel mid-stream
-        CancellationTokenSource linkedCts;
-        await _generationLock.WaitAsync(ct).ConfigureAwait(false);
-        try
-        {
-            if (_generationCts is not null)
-                await _generationCts.CancelAsync().ConfigureAwait(false);
-            _generationCts?.Dispose();
-            _generationCts = new CancellationTokenSource();
-            linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, _generationCts.Token);
-        }
-        finally
-        {
-            _generationLock.Release();
-        }
-
+        var linkedCts = await BeginGenerationAsync(ct).ConfigureAwait(false);
         var stopwatch = Stopwatch.StartNew();
 
         try
@@ -214,125 +208,18 @@ public class ChatService : IChatService
                     $"Conversation {conversationId} not found.");
             }
 
-            // 3. Build the ChatMessage list from conversation history
-            var chatMessages = BuildChatMessages(conversation.Messages);
-
-            // 4. Get system prompt from conversation entity
-            var systemPrompt = conversation.SystemPrompt;
-
-            // 5. Build chat options from settings
-            var options = await BuildChatOptionsAsync();
-
-            // 5b. Apply model routing if enabled and available
-            if (_modelRouterService is not null)
-            {
-                try
-                {
-                    var routingSettings = await _settingsService.GetSettingsAsync();
-                    if (routingSettings.EnableModelRouting)
-                    {
-                        var routingDecision = await _modelRouterService.RouteAsync(userMessage, linkedCts.Token);
-
-                        _log.Information(
-                            "Auto-routing applied: Provider={ProviderId}, Model={ModelId}, Task={TaskType}, Reason={Reason}",
-                            routingDecision.ProviderId, routingDecision.ModelId,
-                            routingDecision.TaskType.Name, routingDecision.Reason);
-
-                        // Switch to the routed provider if different from current
-                        var switched = await _aiService.SwitchProviderAsync(routingDecision.ProviderId, linkedCts.Token);
-                        if (switched)
-                        {
-                            await _aiService.SetActiveModelAsync(routingDecision.ModelId, linkedCts.Token);
-                        }
-
-                        // Notify listeners (UI indicators, telemetry, etc.)
-                        RoutingDecisionMade?.Invoke(this, routingDecision);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _log.Warning(ex, "Model routing failed, proceeding with current provider");
-                }
-            }
-
-            // 6. Assemble context with semantic selection and graceful fallback
-            var memoryContext = await LoadMemoryContextAsync(conversationId, userMessage, linkedCts.Token);
-            var assembledContext = await _contextAssemblyService.AssembleAsync(
-                new ContextAssemblyRequest
-                {
-                    ConversationId = conversationId,
-                    CurrentQuery = userMessage,
-                    SystemPrompt = systemPrompt,
-                    MemoryContext = memoryContext,
-                    ConversationMessages = chatMessages.ToList(),
-                    ContextWindow = options?.ContextWindow ?? 0,
-                    ReserveForResponse = AppConstants.ContextWindowTokenReserve
-                },
-                linkedCts.Token);
-            chatMessages = assembledContext.Messages;
-            systemPrompt = assembledContext.SystemPrompt;
-
-            await CaptureLatestContextInspectionAsync(
+            // 3-7. Assemble the context from the full history, stream the reply, persist it
+            await foreach (var token in StreamReplyAsync(
                 conversationId,
+                conversation.SystemPrompt,
+                BuildChatMessages(conversation.Messages),
                 userMessage,
-                assembledContext,
-                linkedCts.Token).ConfigureAwait(false);
-
-            // 7. Stream the AI response
-            _log.Debug(
-                "Starting streaming response for conversation {ConversationId} ({MessageCount} messages in context)",
-                conversationId, chatMessages.Count);
-
-            var responseBuilder = new StringBuilder();
-            var tokenCount = 0;
-
-            await foreach (var token in _aiService.StreamChatAsync(
-                chatMessages, systemPrompt, options, linkedCts.Token))
+                supplementalContext,
+                replacedMessageId: null,
+                stopwatch,
+                linkedCts.Token))
             {
-                responseBuilder.Append(token);
-                tokenCount++;
                 yield return token;
-            }
-
-            stopwatch.Stop();
-            var fullResponse = responseBuilder.ToString();
-
-            // 7. Persist the complete assistant response
-            if (!string.IsNullOrEmpty(fullResponse))
-            {
-                await _conversationService.AddMessageAsync(
-                    conversationId,
-                    "assistant",
-                    fullResponse,
-                    tokenCount: tokenCount,
-                    generationTimeMs: stopwatch.Elapsed.TotalMilliseconds);
-
-                _log.Information(
-                    "Completed streaming response for conversation {ConversationId}: {TokenCount} tokens in {ElapsedMs:F0}ms",
-                    conversationId, tokenCount, stopwatch.Elapsed.TotalMilliseconds);
-
-                // Extract memories from this conversation (non-blocking, prefer semantic service)
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        if (_semanticMemoryService is not null)
-                        {
-                            await _semanticMemoryService.ExtractMemoriesAsync(conversationId);
-                        }
-                        else
-                        {
-                            await _memoryService.ExtractMemoriesAsync(conversationId);
-                        }
-                    }
-                    catch (Exception ex) { _log.Warning(ex, "Background memory extraction failed for conversation {ConversationId}", conversationId); }
-                });
-            }
-            else
-            {
-                _log.Warning(
-                    "AI returned empty response for conversation {ConversationId}",
-                    conversationId);
             }
         }
         finally
@@ -340,6 +227,245 @@ public class ChatService : IChatService
             stopwatch.Stop();
             IsGenerating = false;
             linkedCts.Dispose();
+        }
+    }
+
+    /// <inheritdoc />
+    public async IAsyncEnumerable<string> RegenerateResponseAsync(
+        long conversationId,
+        long userMessageId,
+        [EnumeratorCancellation] CancellationToken ct = default)
+    {
+        var linkedCts = await BeginGenerationAsync(ct).ConfigureAwait(false);
+        var stopwatch = Stopwatch.StartNew();
+
+        try
+        {
+            IsGenerating = true;
+
+            var conversation = await _conversationService.GetConversationAsync(conversationId)
+                ?? throw new InvalidOperationException($"Conversation {conversationId} not found.");
+
+            var messages = conversation.Messages.OrderBy(m => m.SortOrder).ToList();
+            var promptIndex = messages.FindIndex(m => m.Id == userMessageId);
+            if (promptIndex < 0 || messages[promptIndex].Role != "user")
+            {
+                throw new InvalidOperationException(
+                    $"Message {userMessageId} is not a user message in conversation {conversationId}.");
+            }
+
+            // Only the exchange that closes the thread can be regenerated. Anything after the
+            // prompt other than its own answer would be left answering a different history.
+            var following = messages.Skip(promptIndex + 1).ToList();
+            if (following.Count > 1 || following.Any(m => m.Role != "assistant"))
+            {
+                throw new InvalidOperationException(
+                    $"Only the latest response in conversation {conversationId} can be regenerated.");
+            }
+
+            // The prompt row is reused rather than re-sent, so regenerating never duplicates it,
+            // and the old answer stays in place until the new one has been saved.
+            await foreach (var token in StreamReplyAsync(
+                conversationId,
+                conversation.SystemPrompt,
+                BuildChatMessages(messages.Take(promptIndex + 1)),
+                messages[promptIndex].Content,
+                supplementalContext: null,
+                replacedMessageId: following.FirstOrDefault()?.Id,
+                stopwatch,
+                linkedCts.Token))
+            {
+                yield return token;
+            }
+        }
+        finally
+        {
+            stopwatch.Stop();
+            IsGenerating = false;
+            linkedCts.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Assembles the context for <paramref name="currentQuery"/>, streams the reply, and persists
+    /// it once it is complete. When <paramref name="replacedMessageId"/> is set, that answer is
+    /// removed only after the new one has been saved, so a stop or a failure keeps it.
+    /// </summary>
+    private async IAsyncEnumerable<string> StreamReplyAsync(
+        long conversationId,
+        string? systemPrompt,
+        IReadOnlyList<ChatMessage> chatMessages,
+        string currentQuery,
+        string? supplementalContext,
+        long? replacedMessageId,
+        Stopwatch stopwatch,
+        [EnumeratorCancellation] CancellationToken ct)
+    {
+        // 5. Build chat options from settings
+        var options = await BuildChatOptionsAsync();
+
+        // 5b. Apply model routing if enabled and available
+        if (_modelRouterService is not null)
+        {
+            try
+            {
+                var routingSettings = await _settingsService.GetSettingsAsync();
+                if (routingSettings.EnableModelRouting)
+                {
+                    var routingDecision = await _modelRouterService.RouteAsync(currentQuery, ct);
+
+                    _log.Information(
+                        "Auto-routing applied: Provider={ProviderId}, Model={ModelId}, Task={TaskType}, Reason={Reason}",
+                        routingDecision.ProviderId, routingDecision.ModelId,
+                        routingDecision.TaskType.Name, routingDecision.Reason);
+
+                    // Switch to the routed provider if different from current
+                    var switched = await _aiService.SwitchProviderAsync(routingDecision.ProviderId, ct);
+                    if (switched)
+                    {
+                        await _aiService.SetActiveModelAsync(routingDecision.ModelId, ct);
+                    }
+
+                    // Notify listeners (UI indicators, telemetry, etc.)
+                    RoutingDecisionMade?.Invoke(this, routingDecision);
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.Warning(ex, "Model routing failed, proceeding with current provider");
+            }
+        }
+
+        // 6. Assemble context with semantic selection and graceful fallback
+        var memoryContext = await LoadMemoryContextAsync(conversationId, currentQuery, ct);
+        if (!string.IsNullOrWhiteSpace(supplementalContext))
+        {
+            memoryContext = string.IsNullOrWhiteSpace(memoryContext)
+                ? supplementalContext
+                : memoryContext + Environment.NewLine + Environment.NewLine + supplementalContext;
+        }
+
+        var assembledContext = await _contextAssemblyService.AssembleAsync(
+            new ContextAssemblyRequest
+            {
+                ConversationId = conversationId,
+                CurrentQuery = currentQuery,
+                SystemPrompt = systemPrompt,
+                MemoryContext = memoryContext,
+                ConversationMessages = chatMessages.ToList(),
+                ContextWindow = options?.ContextWindow ?? 0,
+                ReserveForResponse = AppConstants.ContextWindowTokenReserve
+            },
+            ct);
+        chatMessages = assembledContext.Messages;
+        systemPrompt = assembledContext.SystemPrompt;
+
+        await CaptureLatestContextInspectionAsync(
+            conversationId,
+            currentQuery,
+            assembledContext,
+            ct).ConfigureAwait(false);
+
+        // 7. Stream the AI response
+        _log.Debug(
+            "Starting streaming response for conversation {ConversationId} ({MessageCount} messages in context)",
+            conversationId, chatMessages.Count);
+
+        var responseBuilder = new StringBuilder();
+        var tokenCount = 0;
+
+        await foreach (var token in _aiService.StreamChatAsync(
+            chatMessages, systemPrompt, options, ct))
+        {
+            responseBuilder.Append(token);
+            tokenCount++;
+            yield return token;
+        }
+
+        stopwatch.Stop();
+        var fullResponse = responseBuilder.ToString();
+
+        // 8. Persist the complete assistant response
+        if (!string.IsNullOrEmpty(fullResponse))
+        {
+            await _conversationService.AddMessageAsync(
+                conversationId,
+                "assistant",
+                fullResponse,
+                tokenCount: tokenCount,
+                generationTimeMs: stopwatch.Elapsed.TotalMilliseconds);
+
+            if (replacedMessageId is long replaced)
+            {
+                await RemoveReplacedResponseAsync(conversationId, replaced);
+            }
+
+            _log.Information(
+                "Completed streaming response for conversation {ConversationId}: {TokenCount} tokens in {ElapsedMs:F0}ms",
+                conversationId, tokenCount, stopwatch.Elapsed.TotalMilliseconds);
+
+            // Extract memories from this conversation (non-blocking, prefer semantic service)
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    if (_semanticMemoryService is not null)
+                    {
+                        await _semanticMemoryService.ExtractMemoriesAsync(conversationId);
+                    }
+                    else
+                    {
+                        await _memoryService.ExtractMemoriesAsync(conversationId);
+                    }
+                }
+                catch (Exception ex) { _log.Warning(ex, "Background memory extraction failed for conversation {ConversationId}", conversationId); }
+            });
+        }
+        else
+        {
+            _log.Warning(
+                "AI returned empty response for conversation {ConversationId}",
+                conversationId);
+        }
+    }
+
+    /// <summary>
+    /// Removes the answer a regeneration replaced. The new answer is already saved, so a
+    /// failure here leaves both in the thread rather than losing either; it is logged, not thrown.
+    /// </summary>
+    private async Task RemoveReplacedResponseAsync(long conversationId, long replacedMessageId)
+    {
+        try
+        {
+            await _conversationService.DeleteMessageAsync(replacedMessageId);
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(
+                ex,
+                "Regenerated response saved, but replaced response {MessageId} in conversation {ConversationId} could not be removed",
+                replacedMessageId, conversationId);
+        }
+    }
+
+    /// <summary>
+    /// Cancels any generation still running and returns a token source linked to both the
+    /// caller's token and <see cref="StopGenerationAsync"/>.
+    /// </summary>
+    private async Task<CancellationTokenSource> BeginGenerationAsync(CancellationToken ct)
+    {
+        await _generationLock.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            if (_generationCts is not null)
+                await _generationCts.CancelAsync().ConfigureAwait(false);
+            _generationCts?.Dispose();
+            _generationCts = new CancellationTokenSource();
+            return CancellationTokenSource.CreateLinkedTokenSource(ct, _generationCts.Token);
+        }
+        finally
+        {
+            _generationLock.Release();
         }
     }
 

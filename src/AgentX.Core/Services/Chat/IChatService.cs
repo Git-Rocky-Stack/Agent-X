@@ -22,6 +22,33 @@ public interface IChatService
         CancellationToken ct = default);
 
     /// <summary>
+    /// Sends a user message like <see cref="SendMessageAsync(long, string, CancellationToken)"/>,
+    /// adding <paramref name="supplementalContext"/> (for example cited web search results) to the
+    /// context assembled for this reply only. The supplemental context is not persisted.
+    /// </summary>
+    IAsyncEnumerable<string> SendMessageAsync(
+        long conversationId,
+        string userMessage,
+        string? supplementalContext,
+        CancellationToken ct);
+
+    /// <summary>
+    /// Streams a new answer to an existing user message without persisting that message again.
+    /// The message must close the conversation, optionally followed by its current answer; that
+    /// answer is replaced only once the new one has been saved, so stopping or failing keeps it.
+    /// </summary>
+    /// <param name="conversationId">The conversation to regenerate in.</param>
+    /// <param name="userMessageId">The persisted user message to answer again.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <exception cref="InvalidOperationException">
+    /// The message is not a user message of the conversation, or later messages follow its answer.
+    /// </exception>
+    IAsyncEnumerable<string> RegenerateResponseAsync(
+        long conversationId,
+        long userMessageId,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Sends a user message and waits for the complete assistant response.
     /// The user message and assistant response are persisted automatically.
     /// </summary>
