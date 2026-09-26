@@ -157,7 +157,7 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
 
             StatusMessage = $"Uninstalling {pluginName}...";
 
-            await _pluginService.UninstallPluginAsync(id);
+            var result = await _pluginService.UninstallPluginAsync(id);
 
             // Remove from local collection
             if (target is not null)
@@ -166,7 +166,19 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
             }
 
             PluginCount = Plugins.Count;
-            StatusMessage = $"Successfully uninstalled {pluginName}";
+            if (result.LeftoverDirectory is not null)
+            {
+                // The plugin is gone but Windows still held some of its files; say so rather
+                // than report a clean uninstall.
+                SetError($"{pluginName} was uninstalled, but some files could not be deleted. " +
+                         $"Delete {result.LeftoverDirectory} after restarting Agent-X.");
+                StatusMessage = $"Uninstalled {pluginName}; leftover files remain";
+            }
+            else
+            {
+                StatusMessage = $"Successfully uninstalled {pluginName}";
+            }
+
             Log.Information("Plugin uninstalled: {PluginName} (ID: {PluginId})", pluginName, id);
         }
         catch (Exception ex)
@@ -420,14 +432,24 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
 
         try
         {
+            var leftovers = new List<string>();
             foreach (var id in SelectedPluginIds.ToList())
             {
-                await _pluginService.UninstallPluginAsync(id);
+                var result = await _pluginService.UninstallPluginAsync(id);
+                if (result.LeftoverDirectory is not null)
+                {
+                    leftovers.Add(result.LeftoverDirectory);
+                }
             }
 
             await LoadPluginsAsync();
             Log.Information("Bulk uninstalled {Count} plugins", count);
             StatusMessage = $"Successfully uninstalled {count} plugin{(count == 1 ? "" : "s")}";
+            if (leftovers.Count > 0)
+            {
+                SetError($"Some plugin files could not be deleted. After restarting Agent-X, delete: {string.Join("; ", leftovers)}");
+                StatusMessage = $"Uninstalled {count} plugin{(count == 1 ? "" : "s")}; leftover files remain";
+            }
         }
         catch (Exception ex)
         {

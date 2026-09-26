@@ -1,12 +1,14 @@
 # Agent-X Plugin Development Guide
 
-Version 1.0 | Last Updated: April 2026
+Version 1.1 | Last Updated: September 2026
 
 ---
 
 ## Overview
 
-Agent-X supports third-party plugins via the `.agentx-plugin` package format. Plugins extend Agent-X with new document processors, AI providers, quick actions, workflow steps, themes, and custom functionality.
+Agent-X supports third-party plugins via the `.agentx-plugin` package format. Today the host integrates two kinds of plugin: document processors (new file formats for the Knowledge Vault) and data connectors (items pushed into the Smart Inbox). The other plugin types are accepted and listed in the Plugin Manager, but the host does not call them yet; see [Extension Points](#extension-points).
+
+Plugins run in-process with the user's rights. The host isolates their assemblies but does not sandbox file-system or network access, and manifest permissions are informational. Install only plugins you trust.
 
 This guide covers everything you need to create, build, package, and distribute Agent-X plugins.
 
@@ -23,15 +25,29 @@ dotnet new classlib -n MyPlugin -f net8.0-windows10.0.22621.0
 
 ### 2. Add a Reference to AgentX.Core
 
-```bash
-dotnet add reference ../../src/AgentX.Core/AgentX.Core.csproj
-```
-
-Or, when distributing as a NuGet package:
+AgentX.Core (and Serilog) are provided by the host at run time. Reference them for compilation only, so your build output never carries its own copy; a second `AgentX.Core.dll` would give your plugin a different `IPlugin` type than the host's and the plugin would fail to load. Set `EnableDynamicLoading` so the build writes the `deps.json` the host uses to resolve your private dependencies:
 
 ```xml
-<PackageReference Include="AgentX.Core" Version="1.3.0" />
+<PropertyGroup>
+  <EnableDynamicLoading>true</EnableDynamicLoading>
+</PropertyGroup>
+
+<ItemGroup>
+  <ProjectReference Include="../../src/AgentX.Core/AgentX.Core.csproj">
+    <Private>false</Private>
+    <ExcludeAssets>runtime;native;contentfiles;build;buildtransitive</ExcludeAssets>
+  </ProjectReference>
+  <PackageReference Include="Serilog" Version="4.0.2">
+    <ExcludeAssets>runtime</ExcludeAssets>
+  </PackageReference>
+</ItemGroup>
+
+<ItemGroup>
+  <None Update="manifest.json" CopyToOutputDirectory="PreserveNewest" />
+</ItemGroup>
 ```
+
+`plugins/sample-plugin/SamplePlugin.csproj` is a working example.
 
 ### 3. Implement IPlugin
 
@@ -108,22 +124,22 @@ public sealed class MyPlugin : IPlugin
 ### 5. Build and Package
 
 ```bash
-dotnet build -c Release
+dotnet build -c Release -p:Platform=x64
 ```
 
-Create a `.agentx-plugin` ZIP file containing:
+Create a `.agentx-plugin` ZIP file containing, at its root:
 - `manifest.json`
-- `MyPlugin.dll`
-- Any dependency DLLs
+- `MyPlugin.dll` and `MyPlugin.deps.json`
+- Any private dependency DLLs (never AgentX.Core.dll or Serilog.dll)
 
 ```bash
-cd bin/Release/net8.0-windows10.0.22621.0
-zip MyPlugin.agentx-plugin manifest.json MyPlugin.dll
+cd bin/x64/Release/net8.0-windows10.0.22621.0
+zip MyPlugin.agentx-plugin manifest.json MyPlugin.dll MyPlugin.deps.json
 ```
 
 ### 6. Install
 
-In Agent-X, go to **Plugin Manager > Install Plugin** and select the `.agentx-plugin` file.
+In Agent-X, go to **Plugin Manager > Install Plugin** and select the `.agentx-plugin` file. Installing only extracts the package and records the plugin as disabled; enable it to load and activate it.
 
 ---
 
@@ -131,11 +147,13 @@ In Agent-X, go to **Plugin Manager > Install Plugin** and select the `.agentx-pl
 
 Every plugin follows this lifecycle:
 
-1. **Install** — Package extracted to `%LocalAppData%\AgentX\Plugins\{id}\`
-2. **Initialize** — `IPlugin.InitializeAsync(context)` called once after assembly load
-3. **Activate** — `IPlugin.ActivateAsync()` called when user enables the plugin
-4. **Deactivate** — `IPlugin.DeactivateAsync()` called before disable/uninstall
-5. **Dispose** — `IDisposable.Dispose()` called after deactivation
+1. **Install** - Package validated (manifest, `minAppVersion`, `dependencies`) and extracted to `%LocalAppData%\AgentX\Plugins\{id}\`; the plugin is recorded as disabled and nothing is loaded
+2. **Initialize** - `IPlugin.InitializeAsync(context)` called once after assembly load, when the plugin is enabled (or at application start for a plugin that was left enabled)
+3. **Activate** - `IPlugin.ActivateAsync()` called right after initialization
+4. **Deactivate** - `IPlugin.DeactivateAsync()` called before disable or uninstall, and at application shutdown
+5. **Dispose** - `IDisposable.Dispose()` called after deactivation
+
+Initialization and activation must each finish within 30 seconds or the enable fails. Deactivation gets 10 seconds; after that the host disposes and unloads the plugin anyway. A plugin that fails to activate at application start is marked disabled, so the Plugin Manager never shows a plugin as running when it is not.
 
 ---
 
@@ -145,11 +163,11 @@ Every plugin follows this lifecycle:
 
 | Member | Type | Description |
 |--------|------|-------------|
-| `Services` | `IServiceProvider` | Scoped service provider with approved services |
-| `PluginDataPath` | `string` | Per-plugin data directory (created by host) |
+| `Services` | `IServiceProvider` | Scoped service provider with approved services (currently `IInboxService` only) |
+| `PluginDataPath` | `string` | Per-plugin data directory (created by host); a convention, not a sandbox |
 | `Logger` | `Serilog.ILogger` | Pre-enriched logger with plugin ID and version |
 
-**Important:** Plugins must NOT receive the root `IServiceProvider`. The scoped provider exposes only services approved for plugin consumption.
+**Important:** Plugins never receive the root `IServiceProvider`. The scoped provider exposes only services approved for plugin consumption. The host's OAuth service is deliberately not offered, because it can return the user's stored Google and Microsoft refresh tokens.
 
 ---
 
@@ -157,13 +175,37 @@ Every plugin follows this lifecycle:
 
 ### Document Processor
 
-Handle custom file formats for import into the Knowledge Vault.
+Handle custom file formats for import into the Knowledge Vault. Implement `IDocumentProcessorPlugin` (an `IPlugin` that is also an `AgentX.Core.Documents.IDocumentProcessor`):
 
 ```csharp
-public PluginType Type => PluginType.DocumentProcessor;
+public sealed class MyPlugin : IDocumentProcessorPlugin
+{
+    public PluginType Type => PluginType.DocumentProcessor;
+    public IReadOnlySet<string> SupportedExtensions { get; } =
+        new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".dwg" };
+    public bool CanProcess(string filePath) =>
+        SupportedExtensions.Contains(Path.GetExtension(filePath));
+    public Task<ProcessedDocument> ProcessAsync(string filePath, CancellationToken ct = default)
+    {
+        // Return the extracted text in ProcessedDocument.ExtractedText.
+    }
+    // ... IPlugin members ...
+}
 ```
 
-Implement a document processor class that reads files and returns structured text content.
+While the plugin is active the host offers it every file that no built-in processor claims. Built-in processors take precedence, so a plugin can add formats but cannot replace how PDF, DOCX, text, Markdown, code, image, audio, or web files are read. `plugins/sample-plugin` is a working example.
+
+### Data Connector
+
+Push external items (calendar events, messages, feeds) into the Smart Inbox through the `IInboxService` in `IPluginContext.Services`. `UpsertExternalAsync` creates or refreshes an item keyed by your plugin ID and the provider's external ID, and imports it into the Knowledge Vault.
+
+```csharp
+public PluginType Type => PluginType.DataConnector;
+```
+
+### Not Yet Integrated
+
+The following types are accepted and shown in the Plugin Manager, but the host does not call such plugins yet. They are reserved for future extension points.
 
 ### AI Provider
 
@@ -201,7 +243,7 @@ public PluginType Type => PluginType.Theme;
 
 ## Permissions
 
-Declare required permissions in your manifest:
+You can list the permissions your plugin needs in the manifest. They are **informational only**: the host records nothing, asks for no consent, and enforces nothing, because plugins run in-process with the user's rights. Use them to tell users what your plugin does.
 
 | Permission | Description |
 |------------|-------------|
@@ -211,7 +253,7 @@ Declare required permissions in your manifest:
 | `Documents` | Read access to the user's document library |
 | `Clipboard` | Access to the system clipboard |
 
-Unknown permission strings are silently ignored for forward compatibility.
+Unknown permission strings are ignored.
 
 ---
 
@@ -224,24 +266,26 @@ Unknown permission strings are silently ignored for forward compatibility.
 | `version` | Yes | string | Semantic version (e.g., `1.2.0`) |
 | `author` | Yes | string | Author or organization name |
 | `description` | Yes | string | Short description for the Plugin Manager UI |
-| `pluginType` | Yes | string | One of: `DocumentProcessor`, `AiProvider`, `QuickAction`, `WorkflowStep`, `Theme`, `Custom` |
-| `minAppVersion` | No | string | Minimum AgentX version required (defaults to `1.0.0`) |
+| `pluginType` | Yes | string | One of: `DocumentProcessor`, `DataConnector`, `AiProvider`, `QuickAction`, `WorkflowStep`, `Theme`, `Custom` |
+| `minAppVersion` | No | string | Minimum AgentX version required (defaults to `1.0.0`); install and enable are refused on an older host |
 | `entryAssembly` | Yes | string | DLL filename containing the `IPlugin` implementation |
-| `dependencies` | No | string[] | Plugin IDs that must be installed first |
-| `permissions` | No | string[] | Required permission tokens |
+| `dependencies` | No | string[] | Plugin IDs that must be installed before install, and enabled before activation (activated first at application start) |
+| `permissions` | No | string[] | Permission tokens; informational only |
 | `readme` | No | string | Inline README content (overridden by `README.md` file in archive) |
 
 ---
 
 ## Best Practices
 
-1. **Defensive state management** — Always check `_isDisposed` and `_context is null` before operations
-2. **Thread safety** — Use locks or `ConcurrentDictionary` for shared state
-3. **ConfigureAwait(false)** — Use on all `await` calls in library code
-4. **Structured logging** — Use the provided `ILogger` (pre-enriched with plugin metadata)
-5. **Minimal permissions** — Only request permissions your plugin actually needs
-6. **Graceful degradation** — Handle missing services or unavailable features without crashing
-7. **Small package size** — Keep your plugin lean; avoid bundling large dependencies
+1. **Defensive state management** - Always check `_isDisposed` and `_context is null` before operations
+2. **Thread safety** - Use locks or `ConcurrentDictionary` for shared state
+3. **ConfigureAwait(false)** - Use on all `await` calls in library code
+4. **Structured logging** - Use the provided `ILogger` (pre-enriched with plugin metadata)
+5. **Honest permissions** - List what your plugin actually does; users rely on it because nothing is enforced
+6. **Graceful degradation** - Handle missing services or unavailable features without crashing
+7. **Small package size** - Keep your plugin lean; never bundle AgentX.Core or Serilog, which the host provides
+8. **Prompt deactivation** - Finish `DeactivateAsync` well within 10 seconds, and release host event subscriptions so the plugin can unload
+
 
 ---
 

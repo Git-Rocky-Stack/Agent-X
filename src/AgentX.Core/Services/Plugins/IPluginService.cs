@@ -29,6 +29,8 @@ public interface IPluginService
     ///   <item>Validate that <paramref name="packagePath"/> exists and is a readable file.</item>
     ///   <item>Extract and deserialize <c>manifest.json</c> from the archive root.</item>
     ///   <item>Validate mandatory manifest fields (Id, Name, Version, EntryAssembly).</item>
+    ///   <item>Refuse a package whose <see cref="PluginManifest.MinAppVersion"/> is newer than the
+    ///   running Agent-X, or whose <see cref="PluginManifest.Dependencies"/> are not installed.</item>
     ///   <item>Check that no plugin with the same <see cref="PluginEntity.PluginId"/> is already installed.</item>
     ///   <item>Extract all archive entries to <c>%LocalAppData%\AgentX\Plugins\{manifest.Id}\</c>.</item>
     ///   <item>Create a <see cref="PluginEntity"/> row in the database with <see cref="PluginEntity.IsEnabled"/> = <see langword="false"/>.</item>
@@ -41,8 +43,8 @@ public interface IPluginService
     /// <exception cref="ArgumentException">Thrown when <paramref name="packagePath"/> is null or whitespace.</exception>
     /// <exception cref="FileNotFoundException">Thrown when the package file does not exist.</exception>
     /// <exception cref="InvalidOperationException">
-    /// Thrown when the manifest is invalid, required fields are missing, or a plugin with the
-    /// same ID is already installed.
+    /// Thrown when the manifest is invalid, required fields are missing, the plugin needs a newer
+    /// Agent-X or a dependency that is not installed, or a plugin with the same ID is already installed.
     /// </exception>
     Task<PluginEntity> InstallPluginAsync(string packagePath);
 
@@ -53,14 +55,20 @@ public interface IPluginService
     /// Uninstallation steps:
     /// <list type="number">
     ///   <item>If the plugin is currently active, call <see cref="IPlugin.DeactivateAsync"/> then <see cref="IPlugin.Dispose"/>.</item>
-    ///   <item>Unload the plugin's <see cref="System.Runtime.Loader.AssemblyLoadContext"/>.</item>
-    ///   <item>Delete all files under the plugin's <see cref="PluginEntity.InstallPath"/> directory.</item>
+    ///   <item>Unload the plugin's <see cref="System.Runtime.Loader.AssemblyLoadContext"/> and wait (bounded)
+    ///   for it to be collected, so the assembly files are released.</item>
+    ///   <item>Delete all files under the plugin's <see cref="PluginEntity.InstallPath"/> directory, retrying
+    ///   a bounded number of times while the files are still locked.</item>
     ///   <item>Remove the <see cref="PluginEntity"/> row from the database.</item>
     /// </list>
-    /// If the plugin is not found, the method returns silently without throwing.
+    /// If the plugin is not found, the method returns a result with <c>Found = false</c>.
     /// </remarks>
     /// <param name="id">The surrogate primary key of the <see cref="PluginEntity"/> to remove.</param>
-    Task UninstallPluginAsync(long id);
+    /// <returns>
+    /// Whether the plugin was found, and the install directory when files could not be deleted
+    /// (so the caller can tell the user instead of reporting a clean uninstall).
+    /// </returns>
+    Task<PluginUninstallResult> UninstallPluginAsync(long id);
 
     /// <summary>
     /// Enables the plugin with the given database key, loads its assembly into a dedicated
@@ -70,12 +78,14 @@ public interface IPluginService
     /// <remarks>
     /// If the plugin is already enabled and loaded, this method is a no-op.
     /// <see cref="PluginEntity.IsEnabled"/> and <see cref="PluginEntity.LastActivatedAt"/> are
-    /// persisted to the database on success.
+    /// persisted to the database on success. Initialization and activation are each given a
+    /// bounded time.
     /// </remarks>
     /// <param name="id">The surrogate primary key of the <see cref="PluginEntity"/> to enable.</param>
     /// <exception cref="InvalidOperationException">
-    /// Thrown when the plugin entity is not found, the entry assembly cannot be loaded,
-    /// or no type implementing <see cref="IPlugin"/> is discovered in the assembly.
+    /// Thrown when the plugin entity is not found, the plugin needs a newer Agent-X, a declared
+    /// dependency is not enabled, the entry assembly cannot be loaded, or no type implementing
+    /// <see cref="IPlugin"/> is discovered in the assembly.
     /// </exception>
     Task EnablePluginAsync(long id);
 
@@ -92,6 +102,24 @@ public interface IPluginService
     Task DisablePluginAsync(long id);
 
     /// <summary>
+    /// Loads and activates every plugin whose <see cref="PluginEntity.IsEnabled"/> flag is set,
+    /// dependencies first. Call once at application start, after the database is ready.
+    /// </summary>
+    /// <remarks>
+    /// A plugin that fails to activate is logged, marked disabled (so the Plugin Manager never
+    /// shows a plugin as running when it is not), and reported in the result; the others still
+    /// start.
+    /// </remarks>
+    Task<PluginActivationSummary> ActivateEnabledPluginsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deactivates, disposes, and unloads every active plugin, dependents first, without
+    /// changing <see cref="PluginEntity.IsEnabled"/>, so they are activated again on the next
+    /// start. Call at application shutdown. Each plugin's DeactivateAsync is bounded in time.
+    /// </summary>
+    Task DeactivateAllPluginsAsync();
+
+    /// <summary>
     /// Returns all plugin instances that are currently loaded and active in memory.
     /// Plugins that are installed but disabled are not included.
     /// </summary>
@@ -102,8 +130,7 @@ public interface IPluginService
     /// Retrieves the active, loaded instance of a specific plugin cast to <typeparamref name="T"/>.
     /// </summary>
     /// <typeparam name="T">
-    /// A type that extends <see cref="IPlugin"/> (e.g. a plugin-type-specific interface such
-    /// as <c>IDocumentProcessorPlugin</c> or <c>IQuickActionPlugin</c>).
+    /// A type that extends <see cref="IPlugin"/>, such as <see cref="IDocumentProcessorPlugin"/>.
     /// </typeparam>
     /// <param name="pluginId">
     /// The stable reverse-DNS plugin identifier (e.g. <c>com.vendor.myplugin</c>),

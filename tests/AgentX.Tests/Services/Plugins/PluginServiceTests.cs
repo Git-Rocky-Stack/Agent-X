@@ -1,6 +1,8 @@
 using System.IO.Compression;
+using System.Runtime.Loader;
 using System.Text;
 using System.Text.Json;
+using System.Xml.Linq;
 using AgentX.Core.Constants;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
@@ -61,7 +63,7 @@ public sealed class PluginServiceTests
         private readonly List<string> _cleanupDirs = new();
         private readonly List<string> _cleanupFiles = new();
 
-        public PluginHarness(bool registerInbox = false)
+        public PluginHarness(bool registerInbox = false, string? hostVersion = null)
         {
             Db = DbFactory.CreateContext();
 
@@ -71,9 +73,40 @@ public sealed class PluginServiceTests
                 services.AddSingleton(Inbox.Object);
             RootProvider = services.BuildServiceProvider();
 
-            // Silent Serilog logger — no sinks configured, so log calls are no-ops.
+            // Silent Serilog logger: no sinks configured, so log calls are no-ops.
             ILogger logger = new LoggerConfiguration().CreateLogger();
-            Service = new PluginService(Db, RootProvider, Validator, logger);
+            Service = hostVersion is null
+                ? new PluginService(Db, RootProvider, Validator, logger)
+                : new PluginService(Db, RootProvider, Validator, logger, hostVersion);
+        }
+
+        /// <summary>Seeds an installed, enabled or disabled plugin whose folder holds a real, loadable DLL.</summary>
+        public long SeedLoadable(
+            string pluginId,
+            byte[] dll,
+            bool isEnabled,
+            string name = "Seeded",
+            IReadOnlyList<string>? dependencies = null,
+            string? minAppVersion = null,
+            string entryAssembly = "plugin.dll",
+            IReadOnlyList<(string name, byte[] bytes)>? extraFiles = null)
+        {
+            var manifest = ValidManifest(pluginId, entryAssembly);
+            manifest.Dependencies = dependencies?.ToList() ?? new List<string>();
+            if (minAppVersion is not null)
+                manifest.MinAppVersion = minAppVersion;
+
+            var files = new List<(string name, byte[] bytes)> { (entryAssembly, dll) };
+            if (extraFiles is not null)
+                files.AddRange(extraFiles);
+
+            var installDir = InstallDirFor(pluginId);
+            var entityId = SeedInstalled(pluginId, installDir, isEnabled, JsonSerializer.Serialize(manifest), files);
+
+            using var ctx = DbFactory.CreateContext();
+            ctx.Plugins.Single(p => p.Id == entityId).Name = name;
+            ctx.SaveChanges();
+            return entityId;
         }
 
         /// <summary>A unique, reverse-DNS-valid (so the manifest validator accepts it) plugin id.</summary>
@@ -876,11 +909,459 @@ public sealed class PluginServiceTests
         using var verify = h.Fresh();
         verify.Plugins.Single(p => p.Id == installed.Id).IsEnabled.Should().BeFalse();
     }
+
+    // ---------------------------------------------------------------------
+    // Private dependencies and host type identity (PL5)
+    // ---------------------------------------------------------------------
+
+    [Fact]
+    public async Task EnablePluginAsync_PluginWithPrivateDependency_LoadsTheDependencyFromItsFolder()
+    {
+        using var h = new PluginHarness();
+        var id = PluginHarness.NewPluginId();
+        h.InstallDirFor(id);
+        var pkg = h.CreatePackage(ValidManifest(id), files: new[]
+        {
+            ("plugin.dll", TestPluginAssemblies.UsesPrivateDependency),
+            ("AxTestDep_Private.dll", TestPluginAssemblies.PrivateDependency),
+        });
+
+        var installed = await h.Service.InstallPluginAsync(pkg);
+
+        // ActivateAsync calls into the private dependency; without folder resolution it throws
+        // FileNotFoundException and the enable fails.
+        var act = () => h.Service.EnablePluginAsync(installed.Id);
+
+        await act.Should().NotThrowAsync();
+        (await h.Service.GetActivePluginsAsync()).Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task EnablePluginAsync_PluginFolderCarryingItsOwnAgentXCore_StillSharesTheHostContract()
+    {
+        using var h = new PluginHarness();
+        var id = PluginHarness.NewPluginId();
+        h.InstallDirFor(id);
+        var hostCore = File.ReadAllBytes(typeof(IPlugin).Assembly.Location);
+        var pkg = h.CreatePackage(ValidManifest(id), files: new[]
+        {
+            ("plugin.dll", TestPluginAssemblies.Good),
+            ("AgentX.Core.dll", hostCore), // what a plugin built without Private=false ships
+        });
+
+        var installed = await h.Service.InstallPluginAsync(pkg);
+        await h.Service.EnablePluginAsync(installed.Id);
+
+        var instance = await h.Service.GetPluginInstanceAsync<IPlugin>(id);
+        instance.Should().NotBeNull("the plugin's IPlugin must be the host's IPlugin, not a second copy");
+    }
+
+    // ---------------------------------------------------------------------
+    // Manifest contract: minAppVersion and dependencies (CE15)
+    // ---------------------------------------------------------------------
+
+    [Theory]
+    [InlineData("2.2.0", true, "2.2.0")]
+    [InlineData("2.1.9-beta.1+build", true, "2.1.9")]
+    [InlineData("3", true, "3.0.0")]
+    [InlineData("2.2", true, "2.2.0")]
+    [InlineData("not-a-version", false, "0.0.0")]
+    [InlineData("", false, "0.0.0")]
+    public void TryParseVersionCore_ReadsTheNumericCore(string value, bool ok, string expected)
+    {
+        PluginService.TryParseVersionCore(value, out var version).Should().Be(ok);
+        version.Should().Be(Version.Parse(expected));
+    }
+
+    [Fact]
+    public async Task InstallPluginAsync_PluginNeedsNewerAgentX_IsRefusedBeforeExtraction()
+    {
+        using var h = new PluginHarness(hostVersion: "2.2.0");
+        var id = PluginHarness.NewPluginId();
+        var installDir = h.InstallDirFor(id);
+        var manifest = ValidManifest(id);
+        manifest.MinAppVersion = "3.0.0";
+        var pkg = h.CreatePackage(manifest, files: new[] { ("plugin.dll", TestPluginAssemblies.Good) });
+
+        var act = () => h.Service.InstallPluginAsync(pkg);
+
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*requires Agent-X 3.0.0*");
+        Directory.Exists(installDir).Should().BeFalse();
+        using var verify = h.Fresh();
+        verify.Plugins.Any(p => p.PluginId == id).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task InstallPluginAsync_MalformedMinAppVersion_IsRefused()
+    {
+        using var h = new PluginHarness(hostVersion: "2.2.0");
+        var id = PluginHarness.NewPluginId();
+        h.InstallDirFor(id);
+        var manifest = ValidManifest(id);
+        manifest.MinAppVersion = "latest";
+        var pkg = h.CreatePackage(manifest, files: new[] { ("plugin.dll", TestPluginAssemblies.Good) });
+
+        var act = () => h.Service.InstallPluginAsync(pkg);
+
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*invalid minAppVersion 'latest'*");
+    }
+
+    [Fact]
+    public async Task InstallPluginAsync_SatisfiedMinAppVersion_Installs()
+    {
+        using var h = new PluginHarness(hostVersion: "2.2.0");
+        var id = PluginHarness.NewPluginId();
+        h.InstallDirFor(id);
+        var manifest = ValidManifest(id);
+        manifest.MinAppVersion = "2.2.0";
+        var pkg = h.CreatePackage(manifest, files: new[] { ("plugin.dll", TestPluginAssemblies.Good) });
+
+        var installed = await h.Service.InstallPluginAsync(pkg);
+
+        installed.PluginId.Should().Be(id);
+    }
+
+    [Fact]
+    public async Task EnablePluginAsync_InstalledManifestNeedsNewerAgentX_IsRefused()
+    {
+        using var h = new PluginHarness(hostVersion: "2.2.0");
+        var id = PluginHarness.NewPluginId();
+        var entityId = h.SeedLoadable(id, TestPluginAssemblies.Good, isEnabled: false, minAppVersion: "9.1.0");
+
+        var act = () => h.Service.EnablePluginAsync(entityId);
+
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*requires Agent-X 9.1.0*");
+        (await h.Service.GetActivePluginsAsync()).Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task InstallPluginAsync_DependencyNotInstalled_IsRefused()
+    {
+        using var h = new PluginHarness();
+        var id = PluginHarness.NewPluginId();
+        h.InstallDirFor(id);
+        var manifest = ValidManifest(id);
+        manifest.Dependencies = new List<string> { "com.vendor.missing-base" };
+        var pkg = h.CreatePackage(manifest, files: new[] { ("plugin.dll", TestPluginAssemblies.Good) });
+
+        var act = () => h.Service.InstallPluginAsync(pkg);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*not installed: com.vendor.missing-base*");
+    }
+
+    [Fact]
+    public async Task EnablePluginAsync_DependencyInstalledButNotEnabled_IsRefused()
+    {
+        using var h = new PluginHarness();
+        var baseId = PluginHarness.NewPluginId();
+        h.SeedLoadable(baseId, TestPluginAssemblies.Good, isEnabled: false);
+        var dependentId = PluginHarness.NewPluginId();
+        var dependentEntity = h.SeedLoadable(dependentId, TestPluginAssemblies.Good, isEnabled: false, dependencies: new[] { baseId });
+
+        var act = () => h.Service.EnablePluginAsync(dependentEntity);
+
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage($"*not installed and enabled: {baseId}*");
+    }
+
+    [Fact]
+    public async Task EnablePluginAsync_DependencyActive_Succeeds()
+    {
+        using var h = new PluginHarness();
+        var baseId = PluginHarness.NewPluginId();
+        var baseEntity = h.SeedLoadable(baseId, TestPluginAssemblies.Good, isEnabled: false);
+        var dependentId = PluginHarness.NewPluginId();
+        var dependentEntity = h.SeedLoadable(dependentId, TestPluginAssemblies.Good, isEnabled: false, dependencies: new[] { baseId });
+
+        await h.Service.EnablePluginAsync(baseEntity);
+        await h.Service.EnablePluginAsync(dependentEntity);
+
+        (await h.Service.GetActivePluginsAsync()).Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task EnablePluginAsync_PluginContext_DoesNotOfferTheOAuthService()
+    {
+        using var h = new PluginHarness(registerInbox: true);
+        var id = PluginHarness.NewPluginId();
+        var entityId = h.SeedLoadable(id, TestPluginAssemblies.RejectsOAuthInContext, isEnabled: false);
+
+        // The fixture throws from InitializeAsync if IOAuthService (and with it the user's
+        // refresh tokens) is resolvable from its context.
+        var act = () => h.Service.EnablePluginAsync(entityId);
+
+        await act.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task DisablePluginAsync_DeactivateNeverCompletes_IsAbandonedAfterTheTimeout()
+    {
+        using var h = new PluginHarness();
+        h.Service.DeactivationTimeout = TimeSpan.FromMilliseconds(200);
+        var id = PluginHarness.NewPluginId();
+        var entityId = h.SeedLoadable(id, TestPluginAssemblies.DeactivateHangs, isEnabled: false);
+        await h.Service.EnablePluginAsync(entityId);
+
+        var disable = h.Service.DisablePluginAsync(entityId);
+        var finished = await Task.WhenAny(disable, Task.Delay(TimeSpan.FromSeconds(10)));
+
+        finished.Should().BeSameAs(disable, "the host must not wait indefinitely for DeactivateAsync");
+        await disable;
+        (await h.Service.GetActivePluginsAsync()).Should().BeEmpty();
+        using var verify = h.Fresh();
+        verify.Plugins.Single(p => p.Id == entityId).IsEnabled.Should().BeFalse();
+    }
+
+    // ---------------------------------------------------------------------
+    // Unload and uninstall (CE16)
+    // ---------------------------------------------------------------------
+
+    [Fact]
+    public async Task EnablePluginAsync_TypeDiscoveryFails_UnloadsTheLoadContext()
+    {
+        using var h = new PluginHarness();
+        var id = PluginHarness.NewPluginId();
+        var entry = "nop" + Guid.NewGuid().ToString("N") + ".dll";
+        var entityId = h.SeedLoadable(id, TestPluginAssemblies.NoPlugin, isEnabled: false, entryAssembly: entry);
+
+        var act = () => h.Service.EnablePluginAsync(entityId);
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*No public*IPlugin*");
+
+        LoadContextIsCollected("PluginContext-" + Path.GetFileNameWithoutExtension(entry))
+            .Should().BeTrue("a failed discovery must unload the plugin's context instead of pinning it until restart");
+    }
+
+    [Fact]
+    public async Task UninstallPluginAsync_ActivePlugin_UnloadsItsContextAndRemovesTheFiles()
+    {
+        using var h = new PluginHarness();
+        var id = PluginHarness.NewPluginId();
+        var entry = "good" + Guid.NewGuid().ToString("N") + ".dll";
+        var installDir = h.InstallDirFor(id);
+        var pkg = h.CreatePackage(ValidManifest(id, entry), files: new[] { (entry, TestPluginAssemblies.Good) });
+        var installed = await h.Service.InstallPluginAsync(pkg);
+        await h.Service.EnablePluginAsync(installed.Id);
+
+        var result = await h.Service.UninstallPluginAsync(installed.Id);
+
+        result.Found.Should().BeTrue();
+        result.FilesRemoved.Should().BeTrue();
+        result.LeftoverDirectory.Should().BeNull();
+        Directory.Exists(installDir).Should().BeFalse();
+        LoadContextIsCollected("PluginContext-" + Path.GetFileNameWithoutExtension(entry)).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task UninstallPluginAsync_UnknownId_ReportsNotFound()
+    {
+        using var h = new PluginHarness();
+
+        var result = await h.Service.UninstallPluginAsync(123456789);
+
+        result.Found.Should().BeFalse();
+        result.FilesRemoved.Should().BeFalse();
+    }
+
+    private static bool LoadContextIsCollected(string contextName)
+    {
+        for (var pass = 0; pass < 10; pass++)
+        {
+            if (!AssemblyLoadContext.All.Any(c => c.Name == contextName))
+                return true;
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
+
+        return !AssemblyLoadContext.All.Any(c => c.Name == contextName);
+    }
+
+    // ---------------------------------------------------------------------
+    // Startup activation, shutdown, and the document-processor seam (PL6)
+    // ---------------------------------------------------------------------
+
+    [Fact]
+    public async Task ActivateEnabledPluginsAsync_ActivatesEnabledPlugins_AndLeavesDisabledOnesAlone()
+    {
+        using var h = new PluginHarness();
+        var a = PluginHarness.NewPluginId();
+        var b = PluginHarness.NewPluginId();
+        var off = PluginHarness.NewPluginId();
+        h.SeedLoadable(a, TestPluginAssemblies.Good, isEnabled: true, name: "A");
+        h.SeedLoadable(b, TestPluginAssemblies.Good, isEnabled: true, name: "B");
+        h.SeedLoadable(off, TestPluginAssemblies.Good, isEnabled: false, name: "Off");
+
+        var summary = await h.Service.ActivateEnabledPluginsAsync();
+
+        summary.Activated.Should().BeEquivalentTo(new[] { a, b });
+        summary.Failed.Should().BeEmpty();
+        (await h.Service.GetActivePluginsAsync()).Should().HaveCount(2);
+        using var verify = h.Fresh();
+        verify.Plugins.Where(p => p.IsEnabled).All(p => p.LastActivatedAt != null).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ActivateEnabledPluginsAsync_FailingPlugin_IsReportedAndMarkedDisabled()
+    {
+        using var h = new PluginHarness();
+        var broken = PluginHarness.NewPluginId();
+        var fine = PluginHarness.NewPluginId();
+        var brokenEntity = h.SeedLoadable(broken, TestPluginAssemblies.InitThrows, isEnabled: true, name: "Broken");
+        h.SeedLoadable(fine, TestPluginAssemblies.Good, isEnabled: true, name: "Fine");
+
+        var summary = await h.Service.ActivateEnabledPluginsAsync();
+
+        summary.Activated.Should().Equal(fine);
+        summary.Failed.Should().ContainSingle(f => f.PluginId == broken && f.Reason.Contains("InitializeAsync"));
+        using var verify = h.Fresh();
+        verify.Plugins.Single(p => p.Id == brokenEntity).IsEnabled.Should().BeFalse(
+            "the Plugin Manager must not show a plugin as enabled when it is not running");
+    }
+
+    [Fact]
+    public async Task ActivateEnabledPluginsAsync_StartsDependenciesBeforeTheirDependents()
+    {
+        using var h = new PluginHarness();
+        var baseId = PluginHarness.NewPluginId();
+        var dependentId = PluginHarness.NewPluginId();
+        // Alphabetically the dependent comes first; the dependency order must win.
+        h.SeedLoadable(dependentId, TestPluginAssemblies.Good, isEnabled: true, name: "Alpha dependent", dependencies: new[] { baseId });
+        h.SeedLoadable(baseId, TestPluginAssemblies.Good, isEnabled: true, name: "Zeta base");
+
+        var summary = await h.Service.ActivateEnabledPluginsAsync();
+
+        summary.Failed.Should().BeEmpty();
+        summary.Activated.Should().Equal(baseId, dependentId);
+    }
+
+    [Fact]
+    public async Task DeactivateAllPluginsAsync_UnloadsEverything_ButKeepsThemEnabledForTheNextStart()
+    {
+        using var h = new PluginHarness();
+        var a = PluginHarness.NewPluginId();
+        var aEntity = h.SeedLoadable(a, TestPluginAssemblies.Good, isEnabled: true);
+        await h.Service.ActivateEnabledPluginsAsync();
+
+        await h.Service.DeactivateAllPluginsAsync();
+
+        (await h.Service.GetActivePluginsAsync()).Should().BeEmpty();
+        using var verify = h.Fresh();
+        verify.Plugins.Single(p => p.Id == aEntity).IsEnabled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetDocumentProcessors_OffersActiveProcessorPlugins_AndNothingElse()
+    {
+        using var h = new PluginHarness();
+        var processorId = PluginHarness.NewPluginId();
+        var plainId = PluginHarness.NewPluginId();
+        var processorEntity = h.SeedLoadable(processorId, TestPluginAssemblies.DocumentProcessor, isEnabled: false);
+        var plainEntity = h.SeedLoadable(plainId, TestPluginAssemblies.Good, isEnabled: false);
+
+        h.Service.GetDocumentProcessors().Should().BeEmpty("nothing is active yet");
+
+        await h.Service.EnablePluginAsync(processorEntity);
+        await h.Service.EnablePluginAsync(plainEntity);
+
+        var processor = h.Service.GetDocumentProcessors().Should().ContainSingle().Subject;
+        processor.SupportedExtensions.Should().Contain(".axdoc");
+        processor.CanProcess("notes.axdoc").Should().BeTrue();
+        processor.CanProcess("notes.pdf").Should().BeFalse();
+
+        var file = Path.Combine(h.NewExternalDir(), "notes.axdoc");
+        await File.WriteAllTextAsync(file, "hello vault");
+        var processed = await processor.ProcessAsync(file);
+        processed.ExtractedText.Should().Be("from plugin: hello vault");
+
+        await h.Service.DisablePluginAsync(processorEntity);
+        h.Service.GetDocumentProcessors().Should().BeEmpty("a disabled plugin must not be offered");
+    }
+
+    [Fact]
+    public async Task GetDocumentProcessors_ProcessorThatThrowsFromSelection_CannotBreakProcessorChoice()
+    {
+        using var h = new PluginHarness();
+        var id = PluginHarness.NewPluginId();
+        var entityId = h.SeedLoadable(id, TestPluginAssemblies.ThrowingDocumentProcessor, isEnabled: false);
+        await h.Service.EnablePluginAsync(entityId);
+
+        var processor = h.Service.GetDocumentProcessors().Should().ContainSingle().Subject;
+
+        processor.CanProcess("any.file").Should().BeFalse();
+        processor.SupportedExtensions.Should().BeEmpty();
+    }
+
+    // ---------------------------------------------------------------------
+    // The shipped sample plugin (PL20)
+    // ---------------------------------------------------------------------
+
+    [Fact]
+    public async Task SamplePlugin_BuildsAgainstTheHost_AndServesTextFilesAsADocumentProcessor()
+    {
+        using var h = new PluginHarness();
+        var sampleDir = Path.Combine(ResolveRepositoryRoot(), "plugins", "sample-plugin");
+        var dll = TestPluginAssemblies.CompileSamplePlugin(sampleDir);
+
+        // The shipped manifest, with a unique ID so parallel runs never share an install folder.
+        var manifest = JsonSerializer.Deserialize<PluginManifest>(
+            await File.ReadAllTextAsync(Path.Combine(sampleDir, "manifest.json")))!;
+        var id = PluginHarness.NewPluginId();
+        manifest.Id = id;
+        h.InstallDirFor(id);
+        var pkg = h.CreatePackage(manifest, files: new[] { (manifest.EntryAssembly, dll) });
+
+        var installed = await h.Service.InstallPluginAsync(pkg);
+        installed.IsEnabled.Should().BeFalse("installing records the plugin as disabled; enabling loads it");
+        await h.Service.EnablePluginAsync(installed.Id);
+
+        var processor = h.Service.GetDocumentProcessors().Should().ContainSingle().Subject;
+        processor.CanProcess("meeting-notes.text").Should().BeTrue();
+
+        var file = Path.Combine(h.NewExternalDir(), "meeting-notes.text");
+        await File.WriteAllTextAsync(file, "one two three\nfour");
+        var processed = await processor.ProcessAsync(file);
+        processed.ExtractedText.Should().Be("one two three\nfour");
+        processed.WordCount.Should().Be(4);
+    }
+
+    [Fact]
+    public void SamplePluginProject_ShipsItsManifest_AndNoHostAssemblies()
+    {
+        var project = XDocument.Load(Path.Combine(ResolveRepositoryRoot(), "plugins", "sample-plugin", "SamplePlugin.csproj"));
+
+        var core = project.Descendants("ProjectReference")
+            .Single(r => ((string?)r.Attribute("Include"))!.EndsWith("AgentX.Core.csproj", StringComparison.Ordinal));
+        ((string?)core.Element("Private")).Should().Be("false");
+        ((string?)core.Element("ExcludeAssets")).Should().Contain("runtime");
+
+        var serilog = project.Descendants("PackageReference").Single(r => (string?)r.Attribute("Include") == "Serilog");
+        ((string?)serilog.Element("ExcludeAssets")).Should().Contain("runtime");
+
+        project.Descendants("None")
+            .Should().Contain(n => (string?)n.Attribute("Update") == "manifest.json"
+                                   && (string?)n.Attribute("CopyToOutputDirectory") == "PreserveNewest");
+    }
+
+    private static string ResolveRepositoryRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null)
+        {
+            if (Directory.Exists(Path.Combine(directory.FullName, "plugins", "sample-plugin")) &&
+                Directory.Exists(Path.Combine(directory.FullName, "src", "AgentX.Core")))
+            {
+                return directory.FullName;
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new DirectoryNotFoundException("Could not locate the repository root from the test output directory.");
+    }
 }
 
-// ─────────────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
 // Roslyn-compiled plugin fixtures
-// ─────────────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
 
 /// <summary>
 /// Compiles minimal plugin assemblies in-process and caches the emitted bytes per variant, so the
@@ -927,6 +1408,95 @@ internal static class TestPluginAssemblies
         deactivate: "return Task.CompletedTask;",
         dispose: "",
         ctor: "public P() { throw new InvalidOperationException(\"ctor boom\"); }"));
+
+    /// <summary>A library the plugin below uses privately; it is shipped next to the plugin DLL.</summary>
+    public static byte[] PrivateDependency => Get("AxTestDep_Private", @"
+namespace AxTestDeps
+{
+    public static class Greeter
+    {
+        public static string Hello() => ""hello from a private dependency"";
+    }
+}");
+
+    /// <summary>Calls into <see cref="PrivateDependency"/> from ActivateAsync, forcing it to load.</summary>
+    public static byte[] UsesPrivateDependency => Get("AxTestPlugin_UsesDep", PluginSource(
+        "P",
+        init: "return Task.CompletedTask;",
+        activate: "if (AxTestDeps.Greeter.Hello().Length == 0) throw new InvalidOperationException(); return Task.CompletedTask;",
+        deactivate: "return Task.CompletedTask;",
+        dispose: ""), PrivateDependency);
+
+    public static byte[] DeactivateHangs => Get("AxTestPlugin_DeactivateHangs", PluginSource(
+        "P",
+        init: "return Task.CompletedTask;",
+        activate: "return Task.CompletedTask;",
+        deactivate: "return new TaskCompletionSource().Task;",
+        dispose: ""));
+
+    public static byte[] RejectsOAuthInContext => Get("AxTestPlugin_RejectsOAuth", PluginSource(
+        "P",
+        init: "if (context.Services.GetService(typeof(AgentX.Core.Services.OAuth.IOAuthService)) != null) throw new InvalidOperationException(\"OAuth service leaked to a plugin\"); return Task.CompletedTask;",
+        activate: "return Task.CompletedTask;",
+        deactivate: "return Task.CompletedTask;",
+        dispose: ""));
+
+    public static byte[] DocumentProcessor => Get("AxTestPlugin_DocProcessor", DocumentProcessorSource(
+        canProcess: "filePath.EndsWith(\".axdoc\", StringComparison.OrdinalIgnoreCase)",
+        extensions: "new HashSet<string>(StringComparer.OrdinalIgnoreCase) { \".axdoc\" }"));
+
+    public static byte[] ThrowingDocumentProcessor => Get("AxTestPlugin_ThrowingProcessor", DocumentProcessorSource(
+        canProcess: "throw new InvalidOperationException(\"can-process boom\")",
+        extensions: "throw new InvalidOperationException(\"extensions boom\")"));
+
+    /// <summary>Compiles the shipped sample plugin's sources exactly as its project would.</summary>
+    public static byte[] CompileSamplePlugin(string sampleDirectory)
+    {
+        // The repository's Directory.Build.props turns on implicit usings for the sample project.
+        const string implicitUsings = @"
+global using System;
+global using System.Collections.Generic;
+global using System.IO;
+global using System.Linq;
+global using System.Net.Http;
+global using System.Threading;
+global using System.Threading.Tasks;";
+
+        var sources = Directory.GetFiles(sampleDirectory, "*.cs")
+            .Select(File.ReadAllText)
+            .Append(implicitUsings)
+            .ToArray();
+        return Compile("SamplePlugin", sources, Array.Empty<byte[]>());
+    }
+
+    private static string DocumentProcessorSource(string canProcess, string extensions) => $@"
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using AgentX.Core.Documents.Models;
+using AgentX.Core.Services.Plugins;
+namespace AxTestPlugins
+{{
+    public sealed class Proc : IDocumentProcessorPlugin
+    {{
+        public string Id => ""test.processor"";
+        public string Name => ""Processor"";
+        public string Version => ""1.0.0"";
+        public string Author => ""Tester"";
+        public string Description => ""desc"";
+        public PluginType Type => PluginType.DocumentProcessor;
+        public Task InitializeAsync(IPluginContext context) => Task.CompletedTask;
+        public Task ActivateAsync() => Task.CompletedTask;
+        public Task DeactivateAsync() => Task.CompletedTask;
+        public void Dispose() {{ }}
+        public IReadOnlySet<string> SupportedExtensions => {extensions};
+        public bool CanProcess(string filePath) => {canProcess};
+        public Task<ProcessedDocument> ProcessAsync(string filePath, CancellationToken ct = default) =>
+            Task.FromResult(new ProcessedDocument {{ FilePath = filePath, ExtractedText = ""from plugin: "" + File.ReadAllText(filePath) }});
+    }}
+}}";
 
     public static byte[] NoPlugin => Get("AxTestPlugin_NoPlugin", @"
 namespace AxTestPlugins
@@ -992,14 +1562,25 @@ namespace AxTestPlugins
     }}
 }}";
 
-    private static byte[] Get(string assemblyName, string source)
+    private static byte[] Get(string assemblyName, string source, params byte[][] extraReferences)
     {
         lock (Gate)
         {
             if (Cache.TryGetValue(assemblyName, out var cached))
                 return cached;
 
-            var tree = CSharpSyntaxTree.ParseText(source);
+            var bytes = Compile(assemblyName, new[] { source }, extraReferences);
+            Cache[assemblyName] = bytes;
+            return bytes;
+        }
+    }
+
+    private static byte[] Compile(string assemblyName, IReadOnlyList<string> sources, IReadOnlyList<byte[]> extraReferences)
+    {
+        {
+            var trees = sources
+                .Select(source => CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.Latest)))
+                .ToList();
 
             // Reference the full set of platform assemblies plus the host's AgentX.Core so the
             // emitted plugin binds IPlugin to the SAME type the running host uses.
@@ -1012,15 +1593,17 @@ namespace AxTestPlugins
             var references = refPaths
                 .Where(p => !string.IsNullOrEmpty(p) && File.Exists(p))
                 .Select(p => (MetadataReference)MetadataReference.CreateFromFile(p))
+                .Concat(extraReferences.Select(image => (MetadataReference)MetadataReference.CreateFromImage(image)))
                 .ToList();
 
             var compilation = CSharpCompilation.Create(
                 assemblyName,
-                new[] { tree },
+                trees,
                 references,
                 new CSharpCompilationOptions(
                     OutputKind.DynamicallyLinkedLibrary,
-                    optimizationLevel: OptimizationLevel.Release));
+                    optimizationLevel: OptimizationLevel.Release,
+                    nullableContextOptions: NullableContextOptions.Enable));
 
             using var ms = new MemoryStream();
             var emit = compilation.Emit(ms);
@@ -1033,9 +1616,8 @@ namespace AxTestPlugins
                     $"Test plugin '{assemblyName}' failed to compile:{Environment.NewLine}{errors}");
             }
 
-            var bytes = ms.ToArray();
-            Cache[assemblyName] = bytes;
-            return bytes;
+            return ms.ToArray();
         }
     }
 }
+

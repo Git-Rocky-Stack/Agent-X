@@ -6,13 +6,17 @@ namespace AgentX.Core.Services.Plugins;
 /// instances and managed by <see cref="IPluginService"/>.
 /// </summary>
 /// <remarks>
-/// Lifecycle order on install/activation:
+/// Installing a plugin only extracts it and records it as disabled; nothing is loaded.
+/// Lifecycle order once the plugin is enabled (by the user, or at application start for a
+/// plugin that was left enabled):
 /// <list type="number">
-///   <item><see cref="InitializeAsync"/> — called once after the assembly is loaded, before any UI is shown.</item>
-///   <item><see cref="ActivateAsync"/> — called when the user enables the plugin.</item>
-///   <item><see cref="DeactivateAsync"/> — called before the plugin is disabled or uninstalled.</item>
-///   <item><see cref="IDisposable.Dispose"/> — called after deactivation to free unmanaged resources.</item>
+///   <item><see cref="InitializeAsync"/> - called once after the assembly is loaded.</item>
+///   <item><see cref="ActivateAsync"/> - called right after initialization.</item>
+///   <item><see cref="DeactivateAsync"/> - called before the plugin is disabled or uninstalled, and at application shutdown.</item>
+///   <item><see cref="IDisposable.Dispose"/> - called after deactivation to free unmanaged resources.</item>
 /// </list>
+/// Plugins run in-process with the user's rights. The host isolates their assemblies (a
+/// collectible load context) but does not sandbox file-system or network access.
 /// </remarks>
 public interface IPlugin : IDisposable
 {
@@ -50,15 +54,16 @@ public interface IPlugin : IDisposable
     Task InitializeAsync(IPluginContext context);
 
     /// <summary>
-    /// Called when the user enables the plugin (or on application start if the plugin
-    /// was previously enabled). Start background services and register extension points here.
+    /// Called when the user enables the plugin, and on application start when the plugin
+    /// was left enabled. Start background services and register extension points here.
+    /// The host waits a bounded time (30 seconds) and treats a slower activation as a failure.
     /// </summary>
     Task ActivateAsync();
 
     /// <summary>
-    /// Called before the plugin is disabled or uninstalled. Stop background services,
-    /// flush pending data, and release hold on shared resources. This method must
-    /// complete within a reasonable timeout; the host will not wait indefinitely.
+    /// Called before the plugin is disabled or uninstalled, and at application shutdown.
+    /// Stop background services, flush pending data, and release hold on shared resources.
+    /// The host waits at most 10 seconds; after that it disposes and unloads the plugin anyway.
     /// </summary>
     Task DeactivateAsync();
 }
@@ -68,11 +73,19 @@ public interface IPlugin : IDisposable
 /// A plugin may implement multiple roles, but should declare its dominant type here
 /// so the Plugin Manager can group and filter plugins correctly.
 /// </summary>
+/// <remarks>
+/// Only two roles have a host integration today: <see cref="DocumentProcessor"/> (through
+/// <see cref="IPluginDocumentProcessorSource"/>) and <see cref="DataConnector"/> (through
+/// the Smart Inbox service offered in <see cref="IPluginContext.Services"/>). The other
+/// values are labels for the Plugin Manager; the host does not yet call such plugins.
+/// </remarks>
 public enum PluginType
 {
     /// <summary>
     /// Handles parsing and text extraction for one or more document formats
-    /// (e.g. a plugin that adds support for AutoCAD DWG files).
+    /// (e.g. a plugin that adds support for AutoCAD DWG files). The entry type implements
+    /// <see cref="IDocumentProcessorPlugin"/> and is offered to the document pipeline through
+    /// <see cref="IPluginDocumentProcessorSource"/> for formats no built-in processor handles.
     /// </summary>
     DocumentProcessor,
 
