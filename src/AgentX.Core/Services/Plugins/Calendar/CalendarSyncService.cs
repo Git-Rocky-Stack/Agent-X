@@ -8,7 +8,8 @@ namespace AgentX.Core.Services.Plugins.Calendar;
 /// <summary>
 /// Orchestrates calendar sync cycles: fetches events from all registered providers,
 /// converts them into inbox items via <see cref="CalendarEventProcessor"/>,
-/// and pushes them into the Smart Inbox via <see cref="IInboxService.TriageExternalAsync"/>.
+/// and pushes them into the Smart Inbox via <see cref="IInboxService.UpsertExternalAsync"/>,
+/// which updates the existing item when an event was rescheduled, edited, or cancelled.
 /// </summary>
 /// <remarks>
 /// This service is used by <see cref="CalendarPlugin.ExecuteSyncCycleAsync"/> to
@@ -69,7 +70,7 @@ public sealed class CalendarSyncService
         var totalSkipped = 0;
         var totalFailed = 0;
         var deltaTokens = await LoadDeltaTokensAsync().ConfigureAwait(false);
-        var updatedDeltaTokens = new Dictionary<string, string>();
+        var deltaTokensChanged = false;
 
         _log.Information(
             "Starting calendar sync across {ProviderCount} provider(s) with {EnabledCalendarCount} enabled calendar(s)",
@@ -105,54 +106,92 @@ public sealed class CalendarSyncService
                     var deltaKey = $"{provider.ProviderId}:{calendar.Id}";
                     var existingDeltaToken = deltaTokens.GetValueOrDefault(deltaKey);
 
-                    var start = DateTime.UtcNow.AddDays(-settings.DaysPastToSync);
-                    var end = DateTime.UtcNow.AddDays(settings.DaysFutureToSync);
-
-                    var (events, newDeltaToken) = await provider.GetEventsAsync(
-                        calendar.Id, start, end,
-                        deltaToken: existingDeltaToken,
-                        cancellationToken: cancellationToken)
-                        .ConfigureAwait(false);
-
-                    if (newDeltaToken is not null)
-                        updatedDeltaTokens[deltaKey] = newDeltaToken;
-
-                    // Process each event through the CalendarEventProcessor → InboxService pipeline.
-                    foreach (var calEvent in events)
+                    // One calendar failing (a share that was revoked, a transient server error)
+                    // must not stop the remaining calendars from syncing.
+                    try
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
+                        var start = DateTime.UtcNow.AddDays(-settings.DaysPastToSync);
+                        var end = DateTime.UtcNow.AddDays(settings.DaysFutureToSync);
 
-                        try
+                        var (events, newDeltaToken) = await provider.GetEventsAsync(
+                            calendar.Id, start, end,
+                            deltaToken: existingDeltaToken,
+                            cancellationToken: cancellationToken)
+                            .ConfigureAwait(false);
+
+                        var calendarFailures = 0;
+
+                        // Process each event through the CalendarEventProcessor -> InboxService pipeline.
+                        foreach (var calEvent in events)
                         {
-                            var (fileName, fileType, sourceType, sourceUrl,
-                                 sourcePluginId, sourceCategory, externalId,
-                                 contentPreview, contentText) = _processor.ConvertToInboxParameters(calEvent);
+                            cancellationToken.ThrowIfCancellationRequested();
 
-                            var triage = await _inboxService.UpsertExternalAsync(
-                                fileName, fileType, sourceType, sourceUrl,
-                                sourcePluginId, sourceCategory, externalId,
-                                contentPreview, contentText).ConfigureAwait(false);
-
-                            // The inbox reports what it did, so counts never depend on timestamps.
-                            switch (triage.Outcome)
+                            try
                             {
-                                case ExternalTriageOutcome.Created: totalAdded++; break;
-                                case ExternalTriageOutcome.Updated: totalUpdated++; break;
-                                default: totalSkipped++; break;
+                                var (fileName, fileType, sourceType, sourceUrl,
+                                     sourcePluginId, sourceCategory, externalId,
+                                     contentPreview, contentText) = _processor.ConvertToInboxParameters(calEvent, settings);
+
+                                var triage = await _inboxService.UpsertExternalAsync(
+                                    fileName, fileType, sourceType, sourceUrl,
+                                    sourcePluginId, sourceCategory, externalId,
+                                    contentPreview, contentText).ConfigureAwait(false);
+
+                                // The inbox reports what it did, so counts never depend on timestamps.
+                                switch (triage.Outcome)
+                                {
+                                    case ExternalTriageOutcome.Created: totalAdded++; break;
+                                    case ExternalTriageOutcome.Updated: totalUpdated++; break;
+                                    default: totalSkipped++; break;
+                                }
+                            }
+                            catch (Exception ex) when (ex is not OperationCanceledException)
+                            {
+                                totalFailed++;
+                                calendarFailures++;
+                                _log.Error(ex,
+                                    "Failed to process calendar event {EventId} from {ProviderId}/{CalendarId}",
+                                    calEvent.Id, provider.ProviderId, calendar.Id);
                             }
                         }
-                        catch (Exception ex) when (ex is not OperationCanceledException)
-                        {
-                            totalFailed++;
-                            _log.Error(ex,
-                                "Failed to process calendar event {EventId} from {ProviderId}/{CalendarId}",
-                                calEvent.Id, provider.ProviderId, calendar.Id);
-                        }
-                    }
 
-                    _log.Debug(
-                        "Processed {EventCount} events from {ProviderId}/{CalendarId}",
-                        events.Count, provider.ProviderId, calendar.Id);
+                        if (calendarFailures > 0)
+                        {
+                            // Advancing the token would skip the failed events for good: an
+                            // incremental read only reports changes made after the token.
+                            // Keeping it re-reads them next cycle (unchanged ones are no-ops).
+                            _log.Warning(
+                                "{FailureCount} event(s) from {ProviderId}/{CalendarId} failed; keeping the previous sync position so they are retried",
+                                calendarFailures, provider.ProviderId, calendar.Id);
+                        }
+                        else if (newDeltaToken is not null)
+                        {
+                            if (!string.Equals(newDeltaToken, existingDeltaToken, StringComparison.Ordinal))
+                            {
+                                deltaTokens[deltaKey] = newDeltaToken;
+                                deltaTokensChanged = true;
+                            }
+                        }
+                        else if (existingDeltaToken is not null)
+                        {
+                            // The provider returned no token after being given one: it rejected
+                            // the stored token and read the calendar in full. Resending the
+                            // rejected token every cycle would repeat that, so it is dropped.
+                            deltaTokens.Remove(deltaKey);
+                            deltaTokensChanged = true;
+                        }
+
+                        _log.Debug(
+                            "Processed {EventCount} events from {ProviderId}/{CalendarId}",
+                            events.Count, provider.ProviderId, calendar.Id);
+                    }
+                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    {
+                        totalFailed++;
+                        _log.Error(ex,
+                            "Failed to sync calendar {CalendarId} from {ProviderId}",
+                            calendar.Id, provider.ProviderId);
+                    }
                 }
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
@@ -164,15 +203,10 @@ public sealed class CalendarSyncService
             }
         }
 
-        // Persist updated delta tokens.
-        if (updatedDeltaTokens.Count > 0)
-        {
-            // Merge with existing tokens.
-            foreach (var kv in updatedDeltaTokens)
-                deltaTokens[kv.Key] = kv.Value;
-
+        // Persist the sync positions that moved (or were dropped) this cycle.
+        if (deltaTokensChanged)
             await SaveDeltaTokensAsync(deltaTokens).ConfigureAwait(false);
-        }
+
 
         var completedAt = DateTime.UtcNow;
 

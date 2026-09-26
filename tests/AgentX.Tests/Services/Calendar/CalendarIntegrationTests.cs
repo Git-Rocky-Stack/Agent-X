@@ -514,4 +514,157 @@ public sealed class CalendarIntegrationTests : IDisposable
             It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()),
             Times.Never);
     }
+
+    // -- Per-calendar isolation, sync positions, connector settings ----------------
+
+    private string DeltaTokenPath => Path.Combine(_tempDir, "calendar-delta-tokens.json");
+
+    private Task WriteStoredTokenAsync(string key, string token) =>
+        File.WriteAllTextAsync(DeltaTokenPath, $"{{ \"{key}\": \"{token}\" }}");
+
+    private async Task<Dictionary<string, string>> ReadStoredTokensAsync()
+    {
+        if (!File.Exists(DeltaTokenPath))
+            return new Dictionary<string, string>();
+
+        var json = await File.ReadAllTextAsync(DeltaTokenPath);
+        return System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(json)
+            ?? new Dictionary<string, string>();
+    }
+
+    private void SetupUpsertSucceeds() =>
+        _inboxService
+            .Setup(i => i.UpsertExternalAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
+                It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
+            .ReturnsAsync(Created(CreateInboxItem()));
+
+    private void SetupGoogleEvents(string calendarId, string? expectedToken, string? returnedToken, params CalEvent[] events) =>
+        _googleProvider
+            .Setup(p => p.GetEventsAsync(calendarId, It.IsAny<DateTime>(), It.IsAny<DateTime>(),
+                expectedToken, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((events.ToList() as IReadOnlyList<CalEvent>, returnedToken));
+
+    [Fact]
+    public async Task SyncAsync_OneCalendarFails_TheOtherCalendarsStillSync()
+    {
+        _googleProvider.SetupGet(p => p.ProviderId).Returns("google");
+        _googleProvider
+            .Setup(p => p.ListCalendarsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<CalendarInfo>
+            {
+                new() { Id = "cal-shared", Name = "Revoked share" },
+                new() { Id = "cal-primary", Name = "Primary" },
+            });
+        _googleProvider
+            .Setup(p => p.GetEventsAsync("cal-shared", It.IsAny<DateTime>(), It.IsAny<DateTime>(),
+                It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException("403 Forbidden"));
+        SetupGoogleEvents("cal-primary", null, "tok-primary", CreateEvent());
+        SetupUpsertSucceeds();
+
+        var result = await _syncService.SyncAsync([_googleProvider.Object], DefaultSettings("cal-shared", "cal-primary"));
+
+        result.ItemsFailed.Should().Be(1);
+        result.ItemsAdded.Should().Be(1, "the calendar after the failing one is still synced");
+        (await ReadStoredTokensAsync()).Should().ContainKey("google:cal-primary");
+    }
+
+    [Fact]
+    public async Task SyncAsync_ProviderRejectedTheStoredToken_TheTokenIsDropped()
+    {
+        // The provider was handed the stored token, fell back to a full read and returned no
+        // token; resending the rejected one every cycle would repeat the fallback forever.
+        await WriteStoredTokenAsync("google:cal-primary", "stale-token");
+        _googleProvider.SetupGet(p => p.ProviderId).Returns("google");
+        _googleProvider
+            .Setup(p => p.ListCalendarsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<CalendarInfo> { new() { Id = "cal-primary", Name = "Primary" } });
+        SetupGoogleEvents("cal-primary", "stale-token", null, CreateEvent());
+        SetupUpsertSucceeds();
+
+        var result = await _syncService.SyncAsync([_googleProvider.Object], DefaultSettings("cal-primary"));
+
+        result.ItemsAdded.Should().Be(1);
+        (await ReadStoredTokensAsync()).Should().NotContainKey("google:cal-primary");
+    }
+
+    [Fact]
+    public async Task SyncAsync_NewToken_ReplacesTheStoredToken()
+    {
+        await WriteStoredTokenAsync("google:cal-primary", "tok-1");
+        _googleProvider.SetupGet(p => p.ProviderId).Returns("google");
+        _googleProvider
+            .Setup(p => p.ListCalendarsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<CalendarInfo> { new() { Id = "cal-primary", Name = "Primary" } });
+        SetupGoogleEvents("cal-primary", "tok-1", "tok-2", CreateEvent());
+        SetupUpsertSucceeds();
+
+        await _syncService.SyncAsync([_googleProvider.Object], DefaultSettings("cal-primary"));
+
+        (await ReadStoredTokensAsync()).Should().Contain("google:cal-primary", "tok-2");
+    }
+
+    [Fact]
+    public async Task SyncAsync_EventsFailed_KeepsThePreviousTokenSoTheyAreRetried()
+    {
+        await WriteStoredTokenAsync("google:cal-primary", "tok-1");
+        _googleProvider.SetupGet(p => p.ProviderId).Returns("google");
+        _googleProvider
+            .Setup(p => p.ListCalendarsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<CalendarInfo> { new() { Id = "cal-primary", Name = "Primary" } });
+        SetupGoogleEvents("cal-primary", "tok-1", "tok-2", CreateEvent());
+        _inboxService
+            .Setup(i => i.UpsertExternalAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
+                It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
+            .ThrowsAsync(new IOException("disk full"));
+
+        var result = await _syncService.SyncAsync([_googleProvider.Object], DefaultSettings("cal-primary"));
+
+        result.ItemsFailed.Should().Be(1);
+        (await ReadStoredTokensAsync()).Should().Contain("google:cal-primary", "tok-1");
+    }
+
+    [Fact]
+    public async Task SyncAsync_ChangedEvent_IsCountedAsUpdated()
+    {
+        SetupGoogleProvider(CreateEvent());
+        _inboxService
+            .Setup(i => i.UpsertExternalAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
+                It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
+            .ReturnsAsync(new ExternalTriageResult(CreateInboxItem(), ExternalTriageOutcome.Updated));
+
+        var result = await _syncService.SyncAsync([_googleProvider.Object], DefaultSettings("cal-primary"));
+
+        result.ItemsUpdated.Should().Be(1);
+        result.ItemsAdded.Should().Be(0);
+        result.ItemsSkipped.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task SyncAsync_AppliesTheConnectorSettingsToTheIndexedText()
+    {
+        SetupGoogleProvider(CreateEvent());
+        SetupUpsertSucceeds();
+        var settings = DefaultSettings("cal-primary");
+        settings.IncludeDescriptions = false;
+        settings.IncludeAttendeeDetails = false;
+
+        await _syncService.SyncAsync([_googleProvider.Object], settings);
+
+        _inboxService.Verify(i => i.UpsertExternalAsync(
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+            It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
+            It.IsAny<string>(), It.IsAny<string?>(),
+            It.Is<string>(text => text.Contains("Sprint Planning")
+                && !text.Contains("Weekly sprint planning meeting")
+                && !text.Contains("alice@example.com"))),
+            Times.Once);
+    }
 }
+

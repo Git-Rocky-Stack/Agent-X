@@ -1,3 +1,4 @@
+using System.Globalization;
 using AgentX.Core.Services.Plugins.Calendar;
 using AgentX.Core.Services.Plugins.Calendar.Models;
 using FluentAssertions;
@@ -280,11 +281,101 @@ public sealed class CalendarEventProcessorTests : IDisposable
         content.Should().Contain("[?] Dave");
     }
 
+    // -- Connector settings, culture, cancellation --------------------------
+
+    [Fact]
+    public void ExtractSearchableContent_IncludeDescriptionsOff_LeavesTheDescriptionOut()
+    {
+        var settings = new CalendarSyncSettings { IncludeDescriptions = false };
+
+        var content = _processor.ExtractSearchableContent(CreateSampleEvent(), settings);
+
+        content.Should().NotContain("Weekly sprint planning meeting");
+        content.Should().NotContain("Description:");
+        content.Should().Contain("jane@example.com", "only the description setting was turned off");
+    }
+
+    [Fact]
+    public void ExtractSearchableContent_IncludeAttendeeDetailsOff_LeavesTheAttendeesOut()
+    {
+        var settings = new CalendarSyncSettings { IncludeAttendeeDetails = false };
+
+        var content = _processor.ExtractSearchableContent(CreateSampleEvent(), settings);
+
+        content.Should().NotContain("jane@example.com");
+        content.Should().NotContain("Attendees:");
+        content.Should().Contain("Weekly sprint planning meeting", "only the attendee setting was turned off");
+    }
+
+    [Fact]
+    public void ConvertToInboxParameters_AppliesTheSettingsToTheIndexedText()
+    {
+        var settings = new CalendarSyncSettings { IncludeDescriptions = false, IncludeAttendeeDetails = false };
+
+        var result = _processor.ConvertToInboxParameters(CreateSampleEvent(), settings);
+
+        result.ContentText.Should().NotContain("Weekly sprint planning meeting");
+        result.ContentText.Should().NotContain("jane@example.com");
+        result.ContentText.Should().Contain("Sprint Planning");
+    }
+
+    [Theory]
+    [InlineData("th-TH")]
+    [InlineData("ar-SA")]
+    [InlineData("fa-IR")]
+    public void ConvertToInboxParameters_WritesGregorianIsoDates_WhateverTheUserCulture(string cultureName)
+    {
+        // These cultures default to non-Gregorian calendars (2569, 1447, 1405 for 2026).
+        var previous = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo(cultureName);
+
+            var timed = _processor.ConvertToInboxParameters(CreateSampleEvent());
+            var allDay = _processor.ConvertToInboxParameters(new CalEvent
+            {
+                Id = "evt-holiday",
+                Title = "Holiday",
+                Start = new DateTime(2026, 4, 15, 0, 0, 0, DateTimeKind.Utc),
+                End = new DateTime(2026, 4, 16, 0, 0, 0, DateTimeKind.Utc),
+                IsAllDay = true,
+                SourceProvider = "google",
+            });
+
+            timed.FileName.Should().Be("Calendar: Sprint Planning (2026-04-15 10:00)");
+            timed.ContentPreview.Should().StartWith("2026-04-15 10:00 - 11:00");
+            timed.ContentText.Should().Contain("Start: 2026-04-15 10:00 UTC");
+            timed.ContentText.Should().Contain("End: 2026-04-15 11:00 UTC");
+            allDay.FileName.Should().Be("Calendar: Holiday (2026-04-15)");
+            allDay.ContentPreview.Should().StartWith("2026-04-15");
+            allDay.ContentText.Should().Contain("Date: 2026-04-15 (all day)");
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = previous;
+        }
+    }
+
+    [Fact]
+    public void ConvertToInboxParameters_CancelledEvent_SaysSo_AndKeepsTheSameExternalId()
+    {
+        var active = _processor.ConvertToInboxParameters(CreateSampleEvent());
+        var cancelled = _processor.ConvertToInboxParameters(CreateSampleEvent(isCancelled: true));
+
+        cancelled.FileName.Should().Be("Calendar: Sprint Planning (2026-04-15 10:00, cancelled)");
+        cancelled.ContentPreview.Should().StartWith("Cancelled, ");
+        cancelled.ContentText.Should().Contain("Status: Cancelled");
+        active.ContentText.Should().NotContain("Cancelled");
+
+        // The same id lets the inbox update the item it already holds for the meeting.
+        cancelled.ExternalId.Should().Be(active.ExternalId);
+    }
+
     // ══════════════════════════════════════════════════════════════════════
     //  Helper
     // ══════════════════════════════════════════════════════════════════════
 
-    private static CalEvent CreateSampleEvent() => new()
+    private static CalEvent CreateSampleEvent(bool isCancelled = false) => new()
     {
         Id = "evt-123",
         Title = "Sprint Planning",
@@ -294,6 +385,8 @@ public sealed class CalendarEventProcessorTests : IDisposable
         Location = "Conference Room B",
         IsAllDay = false,
         IsRecurring = true,
+        IsCancelled = isCancelled,
+
         Attendees =
         [
             new CalAttendee

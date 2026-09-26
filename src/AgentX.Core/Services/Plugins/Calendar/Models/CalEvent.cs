@@ -50,6 +50,12 @@ public sealed class CalEvent
     public bool IsRecurring { get; init; }
 
     /// <summary>
+    /// Whether the organizer cancelled this event (or this occurrence of a series). Cancelled
+    /// events are still synced so the vault copy says so instead of keeping a stale meeting.
+    /// </summary>
+    public bool IsCancelled { get; init; }
+
+    /// <summary>
     /// List of attendees (including the organizer, who is also listed separately).
     /// </summary>
     public IReadOnlyList<CalAttendee> Attendees { get; init; } = [];

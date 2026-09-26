@@ -17,7 +17,8 @@ namespace AgentX.Core.Services.Plugins.Calendar;
 ///   <item><see cref="InitializeAsync"/> — resolves <see cref="IOAuthService"/> from the
 ///     plugin context, loads persisted sync settings, and registers provider implementations.</item>
 ///   <item><see cref="ActivateAsync"/> — starts the periodic sync timer.</item>
-///   <item><see cref="DeactivateAsync"/> — stops the sync timer and flushes pending operations.</item>
+///   <item><see cref="DeactivateAsync"/>: stops the sync timer and cancels an in-flight sync,
+///     waiting a bounded time for it to stop.</item>
 /// </list>
 /// </remarks>
 public sealed class CalendarPlugin : IPlugin
@@ -54,8 +55,17 @@ public sealed class CalendarPlugin : IPlugin
     private Timer? _syncTimer;
     private readonly List<ICalendarProvider> _providers = [];
     private readonly SemaphoreSlim _syncLock = new(1, 1);
+
+    // Cancelled by DeactivateAsync and Dispose so a running sync stops at its next request
+    // or item instead of holding deactivation (a settings save, app shutdown) until it ends.
+    private CancellationTokenSource _lifetimeCts = new();
     private bool _isActivated;
     private bool _isDisposed;
+
+    /// <summary>
+    /// How long <see cref="DeactivateAsync"/> waits for a cancelled sync to stop.
+    /// </summary>
+    internal TimeSpan DeactivationWaitTimeout { get; set; } = TimeSpan.FromSeconds(10);
 
     /// <summary>
     /// Event fired after each sync cycle completes. Subscribers (e.g. settings UI)
@@ -156,8 +166,8 @@ public sealed class CalendarPlugin : IPlugin
 
     /// <inheritdoc />
     /// <remarks>
-    /// Stops the sync timer and waits for any in-progress sync to complete
-    /// before returning. Persists the current sync settings.
+    /// Stops the sync timer, cancels any in-progress sync and waits (at most
+    /// <see cref="DeactivationWaitTimeout"/>) for it to stop. Persists the current sync settings.
     /// </remarks>
     public async Task DeactivateAsync()
     {
@@ -172,21 +182,29 @@ public sealed class CalendarPlugin : IPlugin
         _log?.Information("Deactivating CalendarPlugin — stopping sync timer");
 
         StopSyncTimer();
+        _isActivated = false;
 
-        // Wait for any in-progress sync to complete (with a 30-second timeout).
-        if (!await _syncLock.WaitAsync(TimeSpan.FromSeconds(30)).ConfigureAwait(false))
+        // A full sync of several calendars can take minutes; cancel it rather than wait it out.
+        var lifetime = _lifetimeCts;
+        await lifetime.CancelAsync().ConfigureAwait(false);
+
+        if (!await _syncLock.WaitAsync(DeactivationWaitTimeout).ConfigureAwait(false))
         {
-            _log?.Warning("Timed out waiting for in-progress sync to complete during deactivation");
+            // The old source is left undisposed: the sync still running may hold a link to it.
+            _log?.Warning("Timed out waiting for the cancelled sync to stop during deactivation");
+            _lifetimeCts = new CancellationTokenSource();
         }
         else
         {
+            // A fresh source for the next activation or manual sync.
+            _lifetimeCts = new CancellationTokenSource();
             _syncLock.Release();
+            lifetime.Dispose();
         }
 
         // Persist current settings.
         await SaveSyncSettingsAsync().ConfigureAwait(false);
 
-        _isActivated = false;
         _log?.Information("CalendarPlugin deactivated");
     }
 
@@ -199,6 +217,8 @@ public sealed class CalendarPlugin : IPlugin
 
         _syncTimer?.Dispose();
         _syncTimer = null;
+        _lifetimeCts.Cancel();
+        _lifetimeCts.Dispose();
         _syncLock.Dispose();
 
         _providers.Clear();
@@ -287,7 +307,9 @@ public sealed class CalendarPlugin : IPlugin
 
         try
         {
-            var result = await ExecuteSyncCycleAsync(cancellationToken).ConfigureAwait(false);
+            // Deactivation cancels a manual sync too.
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _lifetimeCts.Token);
+            var result = await ExecuteSyncCycleAsync(linked.Token).ConfigureAwait(false);
             LastSyncResult = result;
             SyncCompleted?.Invoke(this, result);
             return result;
@@ -341,10 +363,7 @@ public sealed class CalendarPlugin : IPlugin
 
     private async Task OnSyncTimerTickAsync()
     {
-        // Timer callbacks have no CancellationToken — use a default 5-minute timeout.
-        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
-
-        if (!await _syncLock.WaitAsync(0, cts.Token).ConfigureAwait(false))
+        if (!await _syncLock.WaitAsync(0).ConfigureAwait(false))
         {
             _log?.Debug("Sync timer tick skipped — sync already in progress");
             return;
@@ -352,13 +371,22 @@ public sealed class CalendarPlugin : IPlugin
 
         try
         {
+            // A tick that fired while the plugin was being deactivated has nothing to do.
+            if (!_isActivated)
+                return;
+
+            // Timer callbacks have no CancellationToken: bound the cycle at 5 minutes, and let
+            // deactivation cancel it sooner.
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(_lifetimeCts.Token);
+            cts.CancelAfter(TimeSpan.FromMinutes(5));
+
             var result = await ExecuteSyncCycleAsync(cts.Token).ConfigureAwait(false);
             LastSyncResult = result;
             SyncCompleted?.Invoke(this, result);
         }
         catch (OperationCanceledException)
         {
-            _log?.Warning("Sync cycle cancelled by timeout");
+            _log?.Warning("Sync cycle cancelled (timeout or deactivation)");
         }
         catch (Exception ex)
         {

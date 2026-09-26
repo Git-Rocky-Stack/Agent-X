@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using AgentX.Core.Services.OAuth;
 using AgentX.Core.Services.Plugins;
 using AgentX.Core.Services.Plugins.Calendar;
@@ -458,12 +459,12 @@ public sealed class CalendarPluginTests : IDisposable
 
         var mockProvider = new Mock<ICalendarProvider>();
         mockProvider.Setup(p => p.ProviderId).Returns("google");
-        mockProvider.Setup(p => p.ListCalendarsAsync(default))
+        mockProvider.Setup(p => p.ListCalendarsAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<CalendarInfo>
             {
                 new() { Id = "cal-1", Name = "Work", SourceProvider = "google" },
             });
-        mockProvider.Setup(p => p.GetEventsAsync("cal-1", It.IsAny<DateTime>(), It.IsAny<DateTime>(), null, default))
+        mockProvider.Setup(p => p.GetEventsAsync("cal-1", It.IsAny<DateTime>(), It.IsAny<DateTime>(), null, It.IsAny<CancellationToken>()))
             .ReturnsAsync((new List<CalEvent>
             {
                 new() { Id = "evt-1", Title = "Test Event", SourceProvider = "google", CalendarId = "cal-1" },
@@ -486,9 +487,59 @@ public sealed class CalendarPluginTests : IDisposable
         result.ItemsAdded.Should().Be(0);
     }
 
+    [Fact]
+    public async Task DeactivateAsync_CancelsAnInFlightSync_InsteadOfWaitingItOut()
+    {
+        // Arrange: a sync that would never finish on its own.
+        await _plugin.InitializeAsync(_mockContext.Object);
+
+        var fetchStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var mockProvider = new Mock<ICalendarProvider>();
+        mockProvider.Setup(p => p.ProviderId).Returns("google");
+        mockProvider.Setup(p => p.ListCalendarsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<CalendarInfo>
+            {
+                new() { Id = "cal-1", Name = "Work", SourceProvider = "google" },
+            });
+        mockProvider.Setup(p => p.GetEventsAsync("cal-1", It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .Returns(async (string _, DateTime _, DateTime _, string? _, CancellationToken ct) =>
+            {
+                fetchStarted.TrySetResult();
+                await Task.Delay(Timeout.Infinite, ct);
+                return ((IReadOnlyList<CalEvent>)[], (string?)null);
+            });
+
+        _plugin.AddProvider(mockProvider.Object);
+        var settings = _plugin.GetSettings();
+        settings.EnabledCalendars["cal-1"] = true;
+        await _plugin.UpdateSettingsAsync(settings);
+        _plugin.DeactivationWaitTimeout = TimeSpan.FromSeconds(30);
+        await _plugin.ActivateAsync();
+
+        var sync = _plugin.TriggerSyncAsync();
+        await fetchStarted.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+        // Act
+        var stopwatch = Stopwatch.StartNew();
+        await _plugin.DeactivateAsync().WaitAsync(TimeSpan.FromSeconds(20));
+        stopwatch.Stop();
+
+        // Assert: deactivation stopped the sync instead of waiting out its timeout.
+        stopwatch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(10));
+        await FluentActions.Awaiting(() => sync).Should().ThrowAsync<OperationCanceledException>();
+
+        // A later manual sync starts with a live token, not the cancelled one.
+        mockProvider.Setup(p => p.GetEventsAsync("cal-1", It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(((IReadOnlyList<CalEvent>)[], (string?)null));
+        var again = await _plugin.TriggerSyncAsync();
+        again.Should().NotBeNull();
+        again!.ItemsFailed.Should().Be(0);
+    }
+
     // ══════════════════════════════════════════════════════════════════════
     //  CalendarService (ICalendarService implementation)
     // ══════════════════════════════════════════════════════════════════════
+
 
     [Fact]
     public async Task CalendarService_IsConnectedAsync_WithNoCredentials_ReturnsFalse()

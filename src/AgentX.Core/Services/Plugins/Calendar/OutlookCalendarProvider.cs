@@ -18,11 +18,12 @@ namespace AgentX.Core.Services.Plugins.Calendar;
 /// Microsoft Graph API reference:
 /// <list type="bullet">
 ///   <item>Calendars list: <c>GET https://graph.microsoft.com/v1.0/me/calendars</c></item>
-///   <item>Events list: <c>GET https://graph.microsoft.com/v1.0/me/calendars/{id}/events</c></item>
-///   <item>Delta query: <c>GET https://graph.microsoft.com/v1.0/me/calendars/{id}/events/delta</c></item>
+///   <item>Events in a window: <c>GET https://graph.microsoft.com/v1.0/me/calendars/{id}/calendarView?startDateTime=...&amp;endDateTime=...</c>.
+///   Unlike <c>/events</c>, the calendar view expands recurring series into their occurrences.</item>
 /// </list>
-/// All requests require <c>Authorization: Bearer {accessToken}</c> header.
-/// Delta queries return <c>@odata.deltaLink</c> for incremental sync.
+/// All requests require <c>Authorization: Bearer {accessToken}</c> header, and ask Graph for
+/// UTC times with <c>Prefer: outlook.timezone="UTC"</c>. A delta link stored by an earlier sync
+/// is still honored; one Graph no longer accepts is discarded in favor of a full read.
 /// </remarks>
 public sealed class OutlookCalendarProvider : ICalendarProvider
 {
@@ -48,14 +49,23 @@ public sealed class OutlookCalendarProvider : ICalendarProvider
     /// <param name="oauthService">OAuth service for obtaining access tokens.</param>
     /// <param name="logger">Serilog logger pre-enriched with calendar context.</param>
     public OutlookCalendarProvider(IOAuthService oauthService, ILogger logger)
+        : this(oauthService, logger, new HttpClient())
+    {
+    }
+
+    /// <summary>Test seam: routes every request through <paramref name="handler"/>.</summary>
+    internal OutlookCalendarProvider(IOAuthService oauthService, ILogger logger, HttpMessageHandler handler)
+        : this(oauthService, logger, new HttpClient(handler ?? throw new ArgumentNullException(nameof(handler))))
+    {
+    }
+
+    private OutlookCalendarProvider(IOAuthService oauthService, ILogger logger, HttpClient httpClient)
     {
         _oauthService = oauthService ?? throw new ArgumentNullException(nameof(oauthService));
         _log = (logger ?? throw new ArgumentNullException(nameof(logger))).ForContext<OutlookCalendarProvider>();
 
-        _httpClient = new HttpClient
-        {
-            Timeout = TimeSpan.FromSeconds(30),
-        };
+        _httpClient = httpClient;
+        _httpClient.Timeout = TimeSpan.FromSeconds(30);
     }
 
     /// <inheritdoc />
@@ -70,7 +80,8 @@ public sealed class OutlookCalendarProvider : ICalendarProvider
 
         while (nextPageUrl is not null)
         {
-            var response = await SendAuthenticatedRequestAsync(nextPageUrl, accessToken, cancellationToken).ConfigureAwait(false);
+            using var response = await SendAuthenticatedRequestAsync(nextPageUrl, accessToken, cancellationToken).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
 
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
             var result = await JsonSerializer.DeserializeAsync<GraphCalendarListResponse>(stream, JsonOptions, cancellationToken).ConfigureAwait(false);
@@ -115,56 +126,54 @@ public sealed class OutlookCalendarProvider : ICalendarProvider
 
         string requestUrl;
 
-        if (deltaToken is not null)
+        var incremental = deltaToken is not null;
+        if (incremental)
         {
             // Delta query: use the provided delta link for incremental sync.
-            requestUrl = deltaToken;
+            requestUrl = deltaToken!;
             _log.Debug("Using delta token for incremental sync on CalendarId={CalendarId}", calendarId);
         }
         else
         {
-            // Full sync: list events with time range filter.
-            var encodedCalendarId = Uri.EscapeDataString(calendarId);
-            var startStr = start.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture);
-            var endStr = end.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture);
-
-            requestUrl = $"{GraphBaseUrl}/me/calendars/{encodedCalendarId}/events"
-                + $"?$filter=start/dateTime ge '{startStr}' and end/dateTime le '{endStr}'"
-                + "&$select=id,iCalUId,subject,body,start,end,location,attendees,organizer,isAllDay,recurrence,webLink"
-                + "&$top=100";
+            // Full sync: the calendar view of the window. Unlike /events filtered on start
+            // time, which returns only series masters, it expands every recurring meeting into
+            // its occurrences. Window bounds carry 'Z', so Graph reads them as UTC.
+            requestUrl = BuildCalendarViewUrl(calendarId, start, end);
         }
 
         string? nextPageUrl = requestUrl;
 
         while (nextPageUrl is not null)
         {
-            var response = await SendAuthenticatedRequestAsync(nextPageUrl, accessToken, cancellationToken).ConfigureAwait(false);
+            using var response = await SendAuthenticatedRequestAsync(nextPageUrl, accessToken, cancellationToken).ConfigureAwait(false);
 
-            // Handle 410 Gone for stale delta tokens.
-            if (response.StatusCode == HttpStatusCode.Gone)
+            // A delta link Graph no longer accepts (410 Gone when it expired, 400 when it is
+            // malformed or from another query) is discarded for a full read. The status is
+            // checked before EnsureSuccessStatusCode, which would otherwise throw first.
+            if (incremental && response.StatusCode is HttpStatusCode.Gone or HttpStatusCode.BadRequest)
             {
-                _log.Warning("Microsoft Graph delta token expired for CalendarId={CalendarId} — full sync required", calendarId);
-                return ([], null);
+                _log.Warning(
+                    "Microsoft Graph rejected the delta link for CalendarId={CalendarId} ({Status}) - discarding it and running a full sync",
+                    calendarId, (int)response.StatusCode);
+                return await GetEventsAsync(calendarId, start, end, deltaToken: null, cancellationToken).ConfigureAwait(false);
             }
+
+            response.EnsureSuccessStatusCode();
 
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
             var result = await JsonSerializer.DeserializeAsync<GraphEventsListResponse>(stream, JsonOptions, cancellationToken).ConfigureAwait(false);
 
-            if (result?.Value is null || result.Value.Count == 0)
-                break;
-
-            foreach (var item in result.Value)
+            foreach (var item in result?.Value ?? [])
             {
-                if (item.IsCancelled ?? false)
-                    continue; // Skip cancelled events from delta queries
-
-                var calEvent = MapToCalEvent(item, calendarId);
-                events.Add(calEvent);
+                // Cancelled meetings are passed on (marked) so the vault copy says so.
+                events.Add(MapToCalEvent(item, calendarId));
             }
 
-            // Check for delta link (returned on the last page of delta queries).
-            deltaLink = result.ODataDeltaLink;
-            nextPageUrl = result.ODataNextLink;
+            // The delta link arrives on the last page, which may be empty, so it is read
+            // before any loop exit.
+            if (result?.ODataDeltaLink is not null)
+                deltaLink = result.ODataDeltaLink;
+            nextPageUrl = result?.ODataNextLink;
         }
 
         _log.Information(
@@ -174,8 +183,28 @@ public sealed class OutlookCalendarProvider : ICalendarProvider
         return (events, deltaLink);
     }
 
-    // ── Private: HTTP request helper ────────────────────────────────────────────
+    // -- Private: HTTP request helper -----------------------------------------------
 
+    /// <summary>
+    /// The calendar view of one calendar between <paramref name="start"/> and
+    /// <paramref name="end"/> (both UTC).
+    /// </summary>
+    internal static string BuildCalendarViewUrl(string calendarId, DateTime start, DateTime end)
+    {
+        var encodedCalendarId = Uri.EscapeDataString(calendarId);
+        var startStr = Uri.EscapeDataString(start.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture));
+        var endStr = Uri.EscapeDataString(end.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture));
+
+        return $"{GraphBaseUrl}/me/calendars/{encodedCalendarId}/calendarView"
+            + $"?startDateTime={startStr}&endDateTime={endStr}"
+            + "&$select=id,iCalUId,subject,body,start,end,location,attendees,organizer,isAllDay,isCancelled,recurrence,seriesMasterId,type,webLink"
+            + "&$top=100";
+    }
+
+    /// <summary>
+    /// Sends a GET with the bearer token. The caller inspects the status: an incremental
+    /// request needs to see 400 and 410 before treating the response as a failure.
+    /// </summary>
     private async Task<HttpResponseMessage> SendAuthenticatedRequestAsync(
         string url,
         string accessToken,
@@ -183,14 +212,13 @@ public sealed class OutlookCalendarProvider : ICalendarProvider
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-        // Request full JSON without minimal metadata.
+        // Page size, and every start/end in UTC: Graph otherwise answers in the mailbox's
+        // own time zone without an offset.
         request.Headers.Add("Prefer", "odata.maxpagesize=100");
+        request.Headers.Add("Prefer", "outlook.timezone=\"UTC\"");
 
-        var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+        return await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
             .ConfigureAwait(false);
-
-        response.EnsureSuccessStatusCode();
-        return response;
     }
 
     // ── Private: response mapping ───────────────────────────────────────────────
@@ -198,9 +226,9 @@ public sealed class OutlookCalendarProvider : ICalendarProvider
     private static CalEvent MapToCalEvent(GraphCalendarEvent item, string calendarId)
     {
         // Parse start/end times from Graph's dateTimeTimeZone format.
-        var start = ParseGraphDateTime(item.Start);
-        var end = ParseGraphDateTime(item.End);
         var isAllDay = item.IsAllDay ?? false;
+        var start = ParseGraphDateTime(item.Start?.DateTimeStr, item.Start?.TimeZone, isAllDay);
+        var end = ParseGraphDateTime(item.End?.DateTimeStr, item.End?.TimeZone, isAllDay);
 
         // Map attendees.
         var attendees = item.Attendees?
@@ -238,7 +266,8 @@ public sealed class OutlookCalendarProvider : ICalendarProvider
             End = end,
             Location = item.Location?.DisplayName,
             IsAllDay = isAllDay,
-            IsRecurring = item.Recurrence is not null,
+            IsRecurring = item.Recurrence is not null || item.SeriesMasterId is not null,
+            IsCancelled = item.IsCancelled ?? false,
             Attendees = attendees,
             Organizer = organizer,
             CalendarName = null, // Filled later by sync service
@@ -249,21 +278,51 @@ public sealed class OutlookCalendarProvider : ICalendarProvider
     }
 
     /// <summary>
-    /// Parses a Microsoft Graph dateTimeTimeZone object.
-    /// The Graph API returns <c>{"dateTime": "2026-04-15T09:00:00", "timeZone": "UTC"}</c>.
+    /// Parses a Microsoft Graph dateTimeTimeZone value, e.g.
+    /// <c>{"dateTime": "2026-04-15T09:00:00.0000000", "timeZone": "UTC"}</c>. The dateTime has
+    /// no offset; it is a wall-clock time in <paramref name="timeZone"/>, which the
+    /// <c>Prefer: outlook.timezone="UTC"</c> header makes UTC. Never read as machine-local time.
     /// </summary>
-    private static DateTime ParseGraphDateTime(GraphDateTimeTimeZone? dt)
+    /// <remarks>
+    /// An all-day event is a date, not an instant: its midnight is kept as that date at 00:00
+    /// UTC whatever zone it was reported in.
+    /// </remarks>
+    internal static DateTime ParseGraphDateTime(string? dateTime, string? timeZone, bool isAllDay = false)
     {
-        if (dt?.DateTimeStr is null)
-            return DateTime.MinValue;
-
-        if (DateTime.TryParse(dt.DateTimeStr, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var result))
+        if (string.IsNullOrWhiteSpace(dateTime)
+            || !DateTime.TryParse(
+                dateTime,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal,
+                out var utcWallClock))
         {
-            return result.Kind == DateTimeKind.Utc ? result : result.ToUniversalTime();
+            return DateTime.MinValue;
         }
 
-        return DateTime.MinValue;
+        // utcWallClock holds the digits Graph sent, labelled UTC. That is right for UTC and for
+        // all-day dates; any other zone is converted from its wall clock.
+        if (isAllDay || IsUtcZone(timeZone))
+            return utcWallClock;
+
+        try
+        {
+            var zone = TimeZoneInfo.FindSystemTimeZoneById(timeZone!);
+            var wallClock = DateTime.SpecifyKind(utcWallClock, DateTimeKind.Unspecified);
+            return TimeZoneInfo.ConvertTimeToUtc(wallClock, zone);
+        }
+        catch (Exception ex) when (ex is TimeZoneNotFoundException or InvalidTimeZoneException or ArgumentException)
+        {
+            // An unknown zone name is rarer than a UTC answer; keep the digits as UTC.
+            return utcWallClock;
+        }
     }
+
+    private static bool IsUtcZone(string? timeZone) =>
+        string.IsNullOrWhiteSpace(timeZone)
+        || timeZone.Equals("UTC", StringComparison.OrdinalIgnoreCase)
+        || timeZone.Equals("Etc/UTC", StringComparison.OrdinalIgnoreCase)
+        || timeZone.Equals("Coordinated Universal Time", StringComparison.OrdinalIgnoreCase)
+        || timeZone.Equals("tzone://Microsoft/Utc", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Maps Microsoft Graph response status values to the standardized
@@ -370,6 +429,8 @@ public sealed class OutlookCalendarProvider : ICalendarProvider
         public bool? IsAllDay { get; set; }
         public bool? IsCancelled { get; set; }
         public GraphRecurrence? Recurrence { get; set; }
+        public string? SeriesMasterId { get; set; }
+
         public List<GraphEventAttendee>? Attendees { get; set; }
         public GraphEventOrganizer? Organizer { get; set; }
         public string? WebLink { get; set; }

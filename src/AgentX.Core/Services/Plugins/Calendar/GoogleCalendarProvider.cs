@@ -45,14 +45,23 @@ public sealed class GoogleCalendarProvider : ICalendarProvider
     /// <param name="oauthService">OAuth service for obtaining access tokens.</param>
     /// <param name="logger">Serilog logger pre-enriched with calendar context.</param>
     public GoogleCalendarProvider(IOAuthService oauthService, ILogger logger)
+        : this(oauthService, logger, new HttpClient())
+    {
+    }
+
+    /// <summary>Test seam: routes every request through <paramref name="handler"/>.</summary>
+    internal GoogleCalendarProvider(IOAuthService oauthService, ILogger logger, HttpMessageHandler handler)
+        : this(oauthService, logger, new HttpClient(handler ?? throw new ArgumentNullException(nameof(handler))))
+    {
+    }
+
+    private GoogleCalendarProvider(IOAuthService oauthService, ILogger logger, HttpClient httpClient)
     {
         _oauthService = oauthService ?? throw new ArgumentNullException(nameof(oauthService));
         _log = (logger ?? throw new ArgumentNullException(nameof(logger))).ForContext<GoogleCalendarProvider>();
 
-        _httpClient = new HttpClient
-        {
-            Timeout = TimeSpan.FromSeconds(30),
-        };
+        _httpClient = httpClient;
+        _httpClient.Timeout = TimeSpan.FromSeconds(30);
     }
 
     /// <inheritdoc />
@@ -71,7 +80,8 @@ public sealed class GoogleCalendarProvider : ICalendarProvider
             if (pageToken is not null)
                 url += $"?pageToken={Uri.EscapeDataString(pageToken)}";
 
-            var response = await SendAuthenticatedRequestAsync(url, accessToken, cancellationToken).ConfigureAwait(false);
+            using var response = await SendAuthenticatedRequestAsync(url, accessToken, cancellationToken).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
 
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
             var result = await JsonSerializer.DeserializeAsync<GoogleCalendarListResponse>(stream, JsonOptions, cancellationToken).ConfigureAwait(false);
@@ -115,19 +125,26 @@ public sealed class GoogleCalendarProvider : ICalendarProvider
 
         var encodedCalendarId = Uri.EscapeDataString(calendarId);
         var baseUrl = $"{EventsBaseEndpoint}/{encodedCalendarId}/events";
+        var incremental = deltaToken is not null;
 
-        // Build query parameters.
+        // Build query parameters. An incremental request carries the sync token and must
+        // not repeat timeMin, timeMax, or orderBy: Google rejects that combination with 400.
         var queryParams = new List<string>
         {
-            $"timeMin={Uri.EscapeDataString(start.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture))}",
-            $"timeMax={Uri.EscapeDataString(end.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture))}",
             "singleEvents=true", // Expand recurring events into individual instances
-            "orderBy=startTime",
             "maxResults=250",
         };
 
-        if (deltaToken is not null)
-            queryParams.Add($"syncToken={Uri.EscapeDataString(deltaToken)}");
+        if (incremental)
+        {
+            queryParams.Add($"syncToken={Uri.EscapeDataString(deltaToken!)}");
+        }
+        else
+        {
+            queryParams.Add($"timeMin={Uri.EscapeDataString(start.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture))}");
+            queryParams.Add($"timeMax={Uri.EscapeDataString(end.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture))}");
+            queryParams.Add("orderBy=startTime");
+        }
 
         string? pageToken = null;
         string? nextSyncToken = null;
@@ -138,35 +155,44 @@ public sealed class GoogleCalendarProvider : ICalendarProvider
             if (pageToken is not null)
                 url += $"&pageToken={Uri.EscapeDataString(pageToken)}";
 
-            var response = await SendAuthenticatedRequestAsync(url, accessToken, cancellationToken).ConfigureAwait(false);
+            using var response = await SendAuthenticatedRequestAsync(url, accessToken, cancellationToken).ConfigureAwait(false);
 
-            // Handle 410 Gone for stale sync tokens — caller should retry without deltaToken.
-            if (response.StatusCode == HttpStatusCode.Gone)
+            // A stored sync token Google no longer accepts (410 Gone when it expired, 400 when
+            // it is invalid) means the calendar has to be read in full again. The status is
+            // checked before EnsureSuccessStatusCode, which would otherwise throw first.
+            if (incremental && response.StatusCode is HttpStatusCode.Gone or HttpStatusCode.BadRequest)
             {
-                _log.Warning("Google Calendar sync token expired for CalendarId={CalendarId} — full sync required", calendarId);
-                return ([], null);
+                _log.Warning(
+                    "Google Calendar rejected the sync token for CalendarId={CalendarId} ({Status}) - discarding it and running a full sync",
+                    calendarId, (int)response.StatusCode);
+                return await GetEventsAsync(calendarId, start, end, deltaToken: null, cancellationToken).ConfigureAwait(false);
             }
+
+            response.EnsureSuccessStatusCode();
 
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
             var result = await JsonSerializer.DeserializeAsync<GoogleEventsListResponse>(stream, JsonOptions, cancellationToken).ConfigureAwait(false);
 
-            if (result?.Items is null || result.Items.Count == 0)
-                break;
-
-            foreach (var item in result.Items)
+            foreach (var item in result?.Items ?? [])
             {
                 if (item.Status == "cancelled")
-                    continue; // Skip deleted events
+                {
+                    // An incremental sync reports a deleted single event as a bare stub (id and
+                    // status only); there is nothing to show, so the vault keeps the last copy.
+                    // A cancelled occurrence of a series still carries its details and is
+                    // passed on so the vault shows the cancellation.
+                    if (item.Start is null)
+                        continue;
+                }
 
-                var calEvent = MapToCalEvent(item, calendarId);
-                events.Add(calEvent);
+                events.Add(MapToCalEvent(item, calendarId));
             }
 
-            pageToken = result.NextPageToken;
+            pageToken = result?.NextPageToken;
 
-            // Capture sync token from each page — the last page's value is the
-            // definitive one returned by the API after all results are enumerated.
-            if (result.NextSyncToken is not null)
+            // The sync token arrives on the last page, which may carry no items at all (an
+            // incremental sync with no changes), so it is read before any loop exit.
+            if (result?.NextSyncToken is not null)
                 nextSyncToken = result.NextSyncToken;
         } while (pageToken is not null);
 
@@ -179,6 +205,10 @@ public sealed class GoogleCalendarProvider : ICalendarProvider
 
     // ── Private: HTTP request helper ────────────────────────────────────────────
 
+    /// <summary>
+    /// Sends a GET with the bearer token. The caller inspects the status: an incremental
+    /// request needs to see 400 and 410 before treating the response as a failure.
+    /// </summary>
     private async Task<HttpResponseMessage> SendAuthenticatedRequestAsync(
         string url,
         string accessToken,
@@ -187,11 +217,8 @@ public sealed class GoogleCalendarProvider : ICalendarProvider
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
-        var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+        return await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
             .ConfigureAwait(false);
-
-        response.EnsureSuccessStatusCode();
-        return response;
     }
 
     // ── Private: response mapping ───────────────────────────────────────────────
@@ -199,8 +226,8 @@ public sealed class GoogleCalendarProvider : ICalendarProvider
     private static CalEvent MapToCalEvent(GoogleCalendarEvent item, string calendarId)
     {
         // Parse start/end times from Google's dateTime or date fields.
-        var (start, isAllDay) = ParseGoogleDateTime(item.Start);
-        var (end, _) = ParseGoogleDateTime(item.End);
+        var (start, isAllDay) = ParseGoogleDateTime(item.Start?.Date, item.Start?.DateTime);
+        var (end, _) = ParseGoogleDateTime(item.End?.Date, item.End?.DateTime);
 
         // Map attendees.
         var attendees = item.Attendees?
@@ -226,6 +253,7 @@ public sealed class GoogleCalendarProvider : ICalendarProvider
             Location = item.Location,
             IsAllDay = isAllDay,
             IsRecurring = item.RecurringEventId is not null,
+            IsCancelled = item.Status == "cancelled",
             Attendees = attendees,
             Organizer = organizer,
             CalendarName = null, // Filled later by sync service
@@ -236,25 +264,33 @@ public sealed class GoogleCalendarProvider : ICalendarProvider
     }
 
     /// <summary>
-    /// Parses a Google Calendar datetime object which has either a "dateTime" field
-    /// (for timed events) or a "date" field (for all-day events).
+    /// Parses a Google Calendar start or end, which has either a "dateTime" (a timed event,
+    /// RFC 3339 with an offset) or a "date" (an all-day event, YYYY-MM-DD). Neither path
+    /// depends on the machine's time zone.
     /// </summary>
-    private static (DateTime UtcDateTime, bool IsAllDay) ParseGoogleDateTime(GoogleDateTime? googleDt)
+    /// <remarks>
+    /// An all-day date is a calendar date, not an instant, so it is returned as that date at
+    /// 00:00 UTC. Parsing it as an instant and converting through local time (the old
+    /// behavior) moved every all-day event to the previous day west of UTC.
+    /// </remarks>
+    internal static (DateTime UtcDateTime, bool IsAllDay) ParseGoogleDateTime(string? date, string? dateTime)
     {
-        if (googleDt is null)
-            return (DateTime.MinValue, false);
-
         // All-day events have a "date" field (YYYY-MM-DD), not a "dateTime".
-        if (googleDt.Date is not null)
+        if (!string.IsNullOrWhiteSpace(date)
+            && DateTime.TryParseExact(
+                date,
+                "yyyy-MM-dd",
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                out var day))
         {
-            var date = DateTime.Parse(googleDt.Date, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
-            return (DateTime.SpecifyKind(date, DateTimeKind.Utc), true);
+            return (day, true);
         }
 
-        if (googleDt.DateTime is not null)
+        if (!string.IsNullOrWhiteSpace(dateTime)
+            && DateTimeOffset.TryParse(dateTime, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var instant))
         {
-            var dt = DateTime.Parse(googleDt.DateTime, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
-            return (dt.Kind == DateTimeKind.Utc ? dt : dt.ToUniversalTime(), false);
+            return (instant.UtcDateTime, false);
         }
 
         return (DateTime.MinValue, false);
