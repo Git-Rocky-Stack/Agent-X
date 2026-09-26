@@ -164,7 +164,18 @@ public partial class App : Application
         // 0. Unlock encrypted database (if encryption has been enabled)
         // We check an out-of-DB marker file FIRST — reading UserSettings requires an unlocked
         // DB, which we cannot do until the key is applied. The marker tells us which path to
-        // take without any DB access.
+        // take without any DB access. Before that, finish or undo an encryption change that a
+        // crash interrupted, so the marker and the database file agree when the marker is read.
+        try
+        {
+            GetService<IDatabaseEncryptionMigrator>().RecoverIfNeeded(
+                AgentX.Core.Helpers.PathHelper.GetDatabasePath());
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Encryption crash recovery failed");
+        }
+
         try
         {
             var stateFile = GetService<AgentX.Core.Services.Security.IEncryptionStateFile>();
@@ -251,6 +262,28 @@ public partial class App : Application
             Log.Warning(ex, "FTS5 initialization failed — keyword search unavailable");
         }
 
+        // 1c. Resume auto-sync when it was on (the first cycle runs about a minute later; the loop
+        //     lives for the whole session, so it gets no short-lived token), and mark workflow
+        //     runs that a previous session left running as interrupted, so Operations does not
+        //     show them as running forever.
+        try
+        {
+            await GetService<ISyncService>().ResumeAutoSyncAsync(CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Could not resume auto-sync at startup");
+        }
+
+        try
+        {
+            await GetService<IWorkflowService>().ReconcileInterruptedRunsAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Could not reconcile interrupted workflow runs at startup");
+        }
+
         // 2. Initialize the AI service (creates provider, tests connection)
         try
         {
@@ -307,6 +340,17 @@ public partial class App : Application
         catch (Exception ex)
         {
             Log.Warning(ex, "Plugin activation failed; enabled plugins stay inactive this session");
+        }
+
+        // 4c. Scheduled backups: runs only when a backup schedule is enabled in settings.json; an
+        //     overdue backup starts a few minutes after launch.
+        try
+        {
+            await GetService<IBackupService>().StartScheduledBackupsAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Scheduled backups could not be started");
         }
 
         // 5. Start the indexing pipeline: initialize the vector store, re-queue documents left
@@ -370,6 +414,8 @@ public partial class App : Application
         services.AddSingleton<AgentX.Core.Services.Security.IDatabaseKeyService,
                              AgentX.Core.Services.Security.DatabaseKeyService>();
         services.AddSingleton<IDatabaseEncryptionMigrator, DatabaseEncryptionMigrator>();
+        // Turns database encryption on from Settings (without it the toggle is refused).
+        services.AddSingleton<IDatabaseEncryptionManager, DatabaseEncryptionManager>();
         services.AddSingleton<AgentX.Core.Services.Security.IEncryptionStateFile,
                              AgentX.Core.Services.Security.EncryptionStateFile>();
         services.AddSingleton<ISecurityStatusService, SecurityStatusService>();
@@ -617,18 +663,13 @@ public partial class App : Application
         services.AddSingleton<IRagPipeline, RagPipeline>();
 
         // ── Deep Research (Web Search) ────────────────────────────
+        // Reads the provider, key or SearXNG URL, and cache duration from settings on every
+        // search, so a changed key applies without a restart.
         services.AddSingleton<WebSearchCache>();
-        services.AddSingleton<WebSearchServiceFactory>(sp =>
-        {
-            var settings = sp.GetRequiredService<ISettingsService>().GetSettingsAsync().GetAwaiter().GetResult();
-            return new WebSearchServiceFactory(settings.WebSearchApiKey, settings.WebSearchApiKey, null);
-        });
-        services.AddSingleton<IWebSearchService>(sp =>
-        {
-            var factory = sp.GetRequiredService<WebSearchServiceFactory>();
-            var settings = sp.GetRequiredService<ISettingsService>().GetSettingsAsync().GetAwaiter().GetResult();
-            return factory.GetConfiguredService(settings);
-        });
+        services.AddSingleton<IWebSearchService>(sp => new SettingsAwareWebSearchService(
+            sp.GetRequiredService<ISettingsService>(),
+            sp.GetRequiredService<WebSearchCache>(),
+            sp.GetRequiredService<Serilog.ILogger>()));
 
         // ── Validation ──────────────────────────────────────────
         services.AddSingleton<IValidator<AppSettings>, AppSettingsValidator>();
@@ -925,7 +966,7 @@ public partial class App : Application
         var dialog = new Microsoft.UI.Xaml.Controls.ContentDialog
         {
             Title = "Incorrect passphrase",
-            Content = "That passphrase did not unlock the database. Please try again, or exit to restore from a backup.",
+            Content = "That passphrase did not unlock the database. Please try again. Agent-X cannot open this database, or restore a backup of it, without the correct passphrase.",
             CloseButtonText = "OK",
             XamlRoot = MainWindow.Content.XamlRoot,
         };
@@ -970,9 +1011,14 @@ public partial class App : Application
                     Title = "Agent-X could not start",
                     Content =
                         details
-                        + "\n\nTo protect your data, Agent-X has stopped before loading any features. "
-                        + "Please restore your database from a recent backup, then reopen Agent-X. "
-                        + "Your log files contain the full technical details.",
+                        + "\n\nTo protect your data, Agent-X stopped before loading any features. "
+                        + "Backups can only be restored from inside Agent-X, so a backup cannot be restored from here. "
+                        + "First copy the folder %LocalAppData%\\AgentX somewhere safe, and include the log files from "
+                        + "%LocalAppData%\\AgentX\\Logs when you report this problem."
+                        + "\n\nTo go back to a backup by hand: with Agent-X closed, delete agentx.db-wal and agentx.db-shm "
+                        + "from %LocalAppData%\\AgentX if they exist, then replace agentx.db with the database\\agentx.db file "
+                        + "from a .agentxbak backup made without a password (the file is a ZIP archive). "
+                        + "Backups made with a password can only be opened by Agent-X.",
                     CloseButtonText = "Exit",
                     XamlRoot = window.Content.XamlRoot,
                 };
@@ -1085,6 +1131,15 @@ public partial class App : Application
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to stop REST API during shutdown");
+        }
+
+        try
+        {
+            _host?.Services.GetRequiredService<IBackupService>().StopScheduledBackups();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to stop scheduled backups during shutdown");
         }
 
         try
