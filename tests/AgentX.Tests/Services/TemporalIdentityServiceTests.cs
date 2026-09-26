@@ -743,6 +743,154 @@ public sealed class TemporalIdentityServiceTests : IDisposable
         (await new TemporalIdentityService(db).GetVoiceProfileAsync()).Should().BeNull();
     }
 
+    // TI16 regressions
+
+    private const string PositiveMicroservices =
+        "I believe that microservices rock. Great stuff happens with them for sure.";
+
+    // Same topic; the first sentence mentioning it becomes the new stance. Sentiment: believe
+    // +0.2, wrong -0.2, bad -0.2, problem(s) -0.2 = -0.4, a shift of 0.8 from the first message.
+    private const string NegativeMicroservices =
+        "Microservices rock was a wrong and bad slogan full of problems. I believe that microservices rock.";
+
+    [Fact]
+    public async Task DetectInsights_called_after_every_turn_captures_each_message_once()
+    {
+        using var db = _dbFactory.CreateContext();
+        var svc = new TemporalIdentityService(db);
+        var conv = new ConversationEntity { Title = "session", CreatedAt = DateTime.UtcNow };
+        db.Conversations.Add(conv);
+        await db.SaveChangesAsync();
+
+        db.Messages.Add(new MessageEntity
+        {
+            ConversationId = conv.Id, Role = "assistant", Timestamp = DateTime.UtcNow.AddMinutes(-2),
+            Content = "That is the key insight here!",
+        });
+        await db.SaveChangesAsync();
+        await svc.DetectInsightsAsync(conv.Id); // turn 1
+
+        db.Messages.Add(new MessageEntity
+        {
+            ConversationId = conv.Id, Role = "assistant", Timestamp = DateTime.UtcNow.AddMinutes(-1),
+            Content = "Fascinating, that works!",
+        });
+        await db.SaveChangesAsync();
+        await svc.DetectInsightsAsync(conv.Id); // turn 2
+        await svc.DetectInsightsAsync(conv.Id); // turn 3, no new assistant message
+
+        // Previously every call captured every qualifying message again: 1 + 2 + 2 = 5 rows.
+        var insights = await db.Set<InsightMomentEntity>().ToListAsync();
+        insights.Should().HaveCount(2);
+        insights.Select(i => i.SourceId).Should().OnlyHaveUniqueItems();
+    }
+
+    [Fact]
+    public async Task ProcessMessage_new_belief_is_immediately_an_active_topic()
+    {
+        using var db = _dbFactory.CreateContext();
+        var svc = new TemporalIdentityService(db);
+        var msg = await SeedMessageAsync(db, "user", PositiveMicroservices);
+
+        await svc.ProcessMessageAsync(msg.Id);
+
+        // LastObservedAt was left at DateTime.MinValue, so a belief seen once was filtered out.
+        (await svc.GetActiveTopicsAsync(days: 30)).Should().Equal("Microservices rock");
+    }
+
+    [Fact]
+    public async Task RecordEngagement_first_engagement_counts_as_recent()
+    {
+        using var db = _dbFactory.CreateContext();
+        var svc = new TemporalIdentityService(db);
+
+        await svc.RecordEngagementAsync(EngagementTargetType.Document, 42, 30);
+
+        var recent = await svc.GetMostEngagedContentAsync(DateTime.UtcNow.AddDays(-1), DateTime.UtcNow.AddMinutes(1));
+        recent.Select(e => e.TargetId).Should().Equal(42);
+    }
+
+    [Fact]
+    public async Task ProcessMessage_stance_change_records_a_conflict_with_both_stances()
+    {
+        using var db = _dbFactory.CreateContext();
+        var svc = new TemporalIdentityService(db);
+        await svc.ProcessMessageAsync((await SeedMessageAsync(db, "user", PositiveMicroservices)).Id);
+        var firstDetectedAt = (await db.Set<TemporalBeliefEntity>().SingleAsync()).FirstDetectedAt;
+
+        await svc.ProcessMessageAsync((await SeedMessageAsync(db, "user", NegativeMicroservices)).Id);
+
+        // A fresh context, like the dashboard after a restart: the topic must come from the
+        // database (Include), not from an entity that happens to be tracked.
+        using var fresh = _dbFactory.CreateContext();
+        var conflict = (await new TemporalIdentityService(fresh).GetBeliefConflictsAsync()).Should().ContainSingle().Subject;
+        conflict.Belief!.Topic.Should().Be("Microservices rock");
+        conflict.PreviousStance.Should().Be("I believe that microservices rock");
+        conflict.CurrentStance.Should().Be("Microservices rock was a wrong and bad slogan full of problems");
+        conflict.ConflictMagnitude.Should().BeApproximately(0.8, 0.001);
+        conflict.PreviousStancePeriod.Should().Be(firstDetectedAt);
+        conflict.StanceChangedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
+        conflict.DetectedAt.Should().Be(conflict.StanceChangedAt);
+    }
+
+    [Fact]
+    public async Task ProcessMessage_without_a_stance_change_records_no_conflict()
+    {
+        using var db = _dbFactory.CreateContext();
+        var svc = new TemporalIdentityService(db);
+
+        await svc.ProcessMessageAsync((await SeedMessageAsync(db, "user", PositiveMicroservices)).Id);
+        await svc.ProcessMessageAsync((await SeedMessageAsync(db, "user", PositiveMicroservices)).Id);
+
+        (await svc.GetBeliefConflictsAsync()).Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetPastSelf_returns_the_stance_held_before_a_change_and_today_after_it()
+    {
+        using var db = _dbFactory.CreateContext();
+        var svc = new TemporalIdentityService(db);
+        await svc.ProcessMessageAsync((await SeedMessageAsync(db, "user", PositiveMicroservices)).Id);
+        var belief = await db.Set<TemporalBeliefEntity>().SingleAsync();
+        belief.FirstDetectedAt = DateTime.UtcNow.AddDays(-30);
+        await db.SaveChangesAsync();
+        await svc.ProcessMessageAsync((await SeedMessageAsync(db, "user", NegativeMicroservices)).Id);
+
+        var earliest = await svc.GetPastSelfAsync("Microservices rock");
+        var lastWeek = await svc.GetPastSelfAsync("Microservices rock", DateTime.UtcNow.AddDays(-7));
+        var afterChange = await svc.GetPastSelfAsync("Microservices rock", DateTime.UtcNow.AddMinutes(1));
+
+        // Previously Stance was always the current stance.
+        earliest!.Stance.Should().Be("I believe that microservices rock");
+        earliest.HasEvolved.Should().BeTrue();
+        earliest.CurrentStance.Should().Be("Microservices rock was a wrong and bad slogan full of problems");
+        lastWeek!.Stance.Should().Be("I believe that microservices rock");
+        afterChange!.Stance.Should().Be("Microservices rock was a wrong and bad slogan full of problems");
+    }
+
+    [Fact]
+    public async Task GetPastSelf_for_a_belief_that_changed_before_conflicts_were_recorded_uses_its_previous_stance()
+    {
+        using var db = _dbFactory.CreateContext();
+        db.Set<TemporalBeliefEntity>().Add(new TemporalBeliefEntity
+        {
+            Topic = "monoliths",
+            FirstDetectedAt = DateTime.UtcNow.AddDays(-60),
+            LastObservedAt = DateTime.UtcNow.AddDays(-10),
+            CurrentStance = "monoliths are fine at small scale",
+            HasEvolved = true,
+            PreviousStance = "-0,40: monoliths never scale", // written under a comma-decimal culture
+            StanceChangedAt = DateTime.UtcNow.AddDays(-10),
+        });
+        await db.SaveChangesAsync();
+        var svc = new TemporalIdentityService(db);
+
+        (await svc.GetPastSelfAsync("monoliths", DateTime.UtcNow.AddDays(-20)))!.Stance
+            .Should().Be("monoliths never scale");
+        (await svc.GetPastSelfAsync("monoliths", DateTime.UtcNow.AddDays(-5)))!.Stance
+            .Should().Be("monoliths are fine at small scale");
+    }
+
     public void Dispose()
     {
         _dbFactory.Dispose();

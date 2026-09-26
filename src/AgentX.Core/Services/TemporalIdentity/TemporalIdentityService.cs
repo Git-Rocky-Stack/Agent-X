@@ -1,5 +1,7 @@
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.TemporalIdentity.Models;
@@ -37,6 +39,7 @@ public class TemporalIdentityService : ITemporalIdentityService
 
         foreach (var topic in topicAnalysis.Topics)
         {
+            var now = DateTime.UtcNow;
             var existing = await _db.Set<TemporalBeliefEntity>()
                 .FirstOrDefaultAsync(b => b.Topic == topic, ct);
 
@@ -45,7 +48,10 @@ public class TemporalIdentityService : ITemporalIdentityService
                 existing = new TemporalBeliefEntity
                 {
                     Topic = topic,
-                    FirstDetectedAt = DateTime.UtcNow,
+                    FirstDetectedAt = now,
+                    // Left at DateTime.MinValue before, so GetActiveTopicsAsync (which filters on
+                    // LastObservedAt) never listed a belief seen only once.
+                    LastObservedAt = now,
                     SentimentScore = topicAnalysis.Sentiment,
                     ConfidenceLevel = topicAnalysis.Confidence,
                     CurrentStance = SummarizeStance(message.Content, topic),
@@ -58,22 +64,39 @@ public class TemporalIdentityService : ITemporalIdentityService
             }
             else
             {
+                var newStance = SummarizeStance(message.Content, topic);
+
                 // Check for belief evolution
                 var sentimentDelta = Math.Abs(existing.SentimentScore - topicAnalysis.Sentiment);
                 if (sentimentDelta > 0.5) // Significant shift
                 {
+                    // Record the change so the dashboard can show "you believed X, now Y" and
+                    // GetPastSelfAsync can answer with the stance held before it. Nothing
+                    // created conflict rows before, so both always came back empty.
+                    _db.Set<BeliefConflictEntity>().Add(new BeliefConflictEntity
+                    {
+                        Belief = existing,
+                        DetectedAt = now,
+                        PreviousStance = existing.CurrentStance,
+                        CurrentStance = newStance,
+                        PreviousStancePeriod = existing.StanceChangedAt ?? existing.FirstDetectedAt,
+                        StanceChangedAt = now,
+                        ConflictMagnitude = sentimentDelta,
+                    });
+
                     existing.HasEvolved = true;
-                    existing.PreviousStance = $"{existing.SentimentScore:F2}: {existing.CurrentStance}";
-                    existing.StanceChangedAt = DateTime.UtcNow;
+                    existing.PreviousStance = string.Create(
+                        CultureInfo.InvariantCulture, $"{existing.SentimentScore:F2}: {existing.CurrentStance}");
+                    existing.StanceChangedAt = now;
                 }
 
-                existing.LastObservedAt = DateTime.UtcNow;
+                existing.LastObservedAt = now;
                 existing.SentimentScore = (existing.SentimentScore * 0.7) + (topicAnalysis.Sentiment * 0.3); // EMA
                 existing.ConfidenceLevel = Math.Min(1.0, existing.ConfidenceLevel + 0.05);
-                existing.CurrentStance = SummarizeStance(message.Content, topic);
+                existing.CurrentStance = newStance;
             }
 
-            existing.UpdatedAt = DateTime.UtcNow;
+            existing.UpdatedAt = now;
         }
 
         await _db.SaveChangesAsync(ct);
@@ -96,7 +119,8 @@ public class TemporalIdentityService : ITemporalIdentityService
         {
             Topic = belief.Topic,
             TimePeriod = targetTime,
-            Stance = belief.CurrentStance,
+            // Was always the current stance, so "Past Self" repeated today's view.
+            Stance = await GetStanceAtAsync(belief, targetTime, ct),
             Confidence = belief.ConfidenceLevel,
             EvidenceExcerpts = GetEvidenceExcerpts(belief.EvidenceJson),
             RelatedConversations = await GetRelatedConversationsAsync(topic, targetTime, ct),
@@ -108,7 +132,9 @@ public class TemporalIdentityService : ITemporalIdentityService
 
     public async Task<List<BeliefConflictEntity>> GetBeliefConflictsAsync(CancellationToken ct = default)
     {
+        // Include the belief: the dashboard shows Belief.Topic and fell back to "Unknown Topic".
         return await _db.Set<BeliefConflictEntity>()
+            .Include(c => c.Belief)
             .Where(c => !c.HasBeenAcknowledged)
             .OrderByDescending(c => c.ConflictMagnitude)
             .ToListAsync(ct);
@@ -183,7 +209,8 @@ public class TemporalIdentityService : ITemporalIdentityService
                     OriginalDate = insight.CapturedAt,
                     RelevanceReason = $"Related to {string.Join(", ", insightTopics.Take(2))}",
                     Significance = insight.SignificanceScore,
-                    Context = $"From {insight.SourceType} on {insight.CapturedAt:yyyy-MM-dd}",
+                    Context = string.Create(
+                        CultureInfo.InvariantCulture, $"From {insight.SourceType} on {insight.CapturedAt:yyyy-MM-dd}"),
                 });
             }
         }
@@ -204,9 +231,13 @@ public class TemporalIdentityService : ITemporalIdentityService
 
         if (existing == null)
         {
+            var now = DateTime.UtcNow;
             existing = new EngagementMetricsEntity
             {
-                FirstEngagedAt = DateTime.UtcNow,
+                FirstEngagedAt = now,
+                // Left at DateTime.MinValue before, so GetMostEngagedContentAsync (which filters
+                // on LastEngagedAt) skipped content engaged with only once.
+                LastEngagedAt = now,
                 TargetType = targetType,
                 TargetId = targetId,
                 TotalSecondsSpent = secondsSpent,
@@ -274,6 +305,7 @@ public class TemporalIdentityService : ITemporalIdentityService
         // Update with exponential moving average
         profile.SampleCount++;
         profile.LastSampleAt = DateTime.UtcNow;
+        profile.UpdatedAt = profile.LastSampleAt;
         profile.AvgSentenceLength = (profile.AvgSentenceLength * 0.9) + (analysis.AvgSentenceLength * 0.1);
         profile.FormalityScore = (profile.FormalityScore * 0.95) + (analysis.Formality * 0.05);
 
@@ -534,6 +566,40 @@ public class TemporalIdentityService : ITemporalIdentityService
         return evidence?.Select(e => e.excerpt).ToArray() ?? [];
     }
 
+    /// <summary>
+    /// The stance the user held at <paramref name="targetTime"/>: the stance recorded just before
+    /// the first change after that time, or the current stance when nothing changed since.
+    /// </summary>
+    private async Task<string> GetStanceAtAsync(TemporalBeliefEntity belief, DateTime targetTime, CancellationToken ct)
+    {
+        if (!belief.HasEvolved)
+            return belief.CurrentStance;
+
+        var stanceBeforeNextChange = await _db.Set<BeliefConflictEntity>()
+            .AsNoTracking()
+            .Where(c => c.BeliefId == belief.Id && c.StanceChangedAt > targetTime)
+            .OrderBy(c => c.StanceChangedAt)
+            .Select(c => c.PreviousStance)
+            .FirstOrDefaultAsync(ct);
+
+        if (stanceBeforeNextChange is not null)
+            return stanceBeforeNextChange;
+
+        // Beliefs that changed before conflict rows were recorded only keep the latest previous
+        // stance, stored as "<sentiment>: <stance>".
+        if (belief.PreviousStance is not null &&
+            belief.StanceChangedAt is { } changedAt &&
+            targetTime < changedAt)
+        {
+            return SentimentPrefix.Replace(belief.PreviousStance, string.Empty, 1);
+        }
+
+        return belief.CurrentStance;
+    }
+
+    /// <summary>Matches the "0.40: " sentiment prefix of <see cref="TemporalBeliefEntity.PreviousStance"/>.</summary>
+    private static readonly Regex SentimentPrefix = new(@"^-?\d+[.,]\d+: ", RegexOptions.CultureInvariant);
+
     private async Task<string[]> GetRelatedConversationsAsync(string topic, DateTime around, CancellationToken ct)
     {
         // DateTime subtraction is not translatable by the SQLite provider; materialise the
@@ -648,12 +714,29 @@ public class TemporalIdentityService : ITemporalIdentityService
     {
         // Auto-detect insight moments from conversation spikes
         var messages = await _db.Messages
+            .AsNoTracking()
             .Where(m => m.ConversationId == conversationId && m.Role == "assistant")
             .OrderBy(m => m.Timestamp)
             .ToListAsync(ct);
 
+        if (messages.Count == 0) return;
+
+        // The chat flow calls this after every turn for the whole conversation. Skip messages
+        // already captured: previously each call captured every qualifying message again, so the
+        // insight table grew quadratically with the length of a conversation.
+        var messageIds = messages.Select(m => m.Id).ToList();
+        var alreadyCaptured = (await _db.Set<InsightMomentEntity>()
+            .Where(i => i.SourceType == InsightSource.ConversationMessage
+                        && i.SourceId != null
+                        && messageIds.Contains(i.SourceId.Value))
+            .Select(i => i.SourceId!.Value)
+            .ToListAsync(ct))
+            .ToHashSet();
+
         foreach (var message in messages)
         {
+            if (alreadyCaptured.Contains(message.Id)) continue;
+
             // Look for breakthrough language patterns
             var content = message.Content.ToLowerInvariant();
             var breakthroughMarkers = new[] { "breakthrough", "key insight", "important", "realize", "discover", "aha", "eureka" };

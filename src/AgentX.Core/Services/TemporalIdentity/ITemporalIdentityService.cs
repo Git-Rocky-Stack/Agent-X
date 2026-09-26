@@ -18,7 +18,10 @@ public interface ITemporalIdentityService
 
     /// <summary>
     /// Analyze a new message for beliefs and update temporal tracking.
-    /// Should be called after each user message in conversations.
+    /// Should be called after each user message in conversations. A significant sentiment
+    /// shift on a known topic marks the belief as evolved and records a
+    /// <see cref="BeliefConflictEntity"/> (previous and new stance), which feeds
+    /// <see cref="GetBeliefConflictsAsync"/> and <see cref="GetPastSelfAsync"/>.
     /// </summary>
     Task ProcessMessageAsync(long messageId, CancellationToken ct = default);
 
@@ -30,7 +33,9 @@ public interface ITemporalIdentityService
 
     /// <summary>
     /// Get what the user believed about a topic at a specific point in time.
-    /// Core of "Past Self" mode.
+    /// Core of "Past Self" mode. <see cref="PastSelfResponse.Stance"/> is the stance held at
+    /// <paramref name="at"/> (the earliest recorded stance when <paramref name="at"/> is null);
+    /// <see cref="PastSelfResponse.CurrentStance"/> is today's stance when the belief has evolved.
     /// </summary>
     Task<PastSelfResponse?> GetPastSelfAsync(
         string topic,
@@ -80,7 +85,8 @@ public interface ITemporalIdentityService
 
     /// <summary>
     /// Auto-detect insight moments from message spikes.
-    /// Looks for breakthrough language, excitement markers, etc.
+    /// Looks for breakthrough language, excitement markers, etc. Messages already captured
+    /// are skipped, so this can be called after every turn of a conversation.
     /// </summary>
     Task DetectInsightsAsync(long conversationId, CancellationToken ct = default);
 
