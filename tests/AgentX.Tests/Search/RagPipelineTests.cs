@@ -6,6 +6,7 @@ using AgentX.Core.Data;
 using AgentX.Core.Observability;
 using AgentX.Core.Search;
 using AgentX.Core.Search.Models;
+using AgentX.Core.Services.Settings;
 using FluentAssertions;
 using Moq;
 using Serilog;
@@ -64,7 +65,8 @@ public sealed class RagPipelineTests
         IParentDocumentRetriever? parentRetriever = null,
         IContextualCompressor? compressor = null,
         IRagEvaluator? evaluator = null,
-        IPiiDetector? piiDetector = null)
+        IPiiDetector? piiDetector = null,
+        ISettingsService? settingsService = null)
     {
         return new RagPipeline(
             _searchOrchestrator.Object,
@@ -80,7 +82,8 @@ public sealed class RagPipelineTests
             parentRetriever: parentRetriever,
             compressor: compressor,
             evaluator: evaluator,
-            piiDetector: piiDetector);
+            piiDetector: piiDetector,
+            settingsService: settingsService);
     }
 
     private void SetupSearchReturns(params SearchResult[] results)
@@ -250,6 +253,133 @@ public sealed class RagPipelineTests
 
         pii.Verify(p => p.ContainsPii(It.IsAny<string>()), Times.AtLeastOnce);
         pii.Verify(p => p.RedactPii(It.IsAny<string>(), "###"), Times.AtLeastOnce);
+    }
+
+    [Fact]
+    public async Task AskAsync_PiiEnabled_RedactsChunkTextBeforeTheLlmRerankerAndCompressorSeeIt()
+    {
+        // The LLM reranker and the compressor both send chunk text to the model. Redaction
+        // used to run only before the final prompt, after both had already sent it.
+        _config.Setup(c => c.EnablePiiRedaction).Returns(true);
+        _config.Setup(c => c.EnableLlmReranking).Returns(true);
+
+        List<RagContextChunk>? rerankerInput = null;
+        var reranker = new Mock<ILlmReranker>();
+        reranker
+            .Setup(r => r.RerankAsync(It.IsAny<List<RagContextChunk>>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .Callback<List<RagContextChunk>, string, int, CancellationToken>((chunks, _, _, _) => rerankerInput = chunks.ToList())
+            .ReturnsAsync((List<RagContextChunk> chunks, string _, int _, CancellationToken _) => chunks);
+
+        List<RagContextChunk>? compressorInput = null;
+        var compressor = new Mock<IContextualCompressor>();
+        compressor
+            .Setup(c => c.CompressAsync(It.IsAny<List<RagContextChunk>>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Callback<List<RagContextChunk>, string, CancellationToken>((chunks, _, _) => compressorInput = chunks.ToList())
+            .ReturnsAsync((List<RagContextChunk> chunks, string _, CancellationToken _) => chunks);
+
+        SetupSearchReturns(
+            MakeResult(1, text: "Contact jane.doe@example.com about the renewal."),
+            MakeResult(2, text: "Her phone is 555-123-4567."),
+            MakeResult(3, text: "Nothing sensitive here."));
+        SetupAiStreamReturns("answer");
+
+        var pipeline = BuildPipeline(llmReranker: reranker.Object, compressor: compressor.Object,
+            piiDetector: new PiiDetector(_logger));
+
+        await pipeline.AskAsync("question");
+
+        rerankerInput.Should().NotBeNull();
+        rerankerInput!.Select(c => c.ChunkText).Should().NotContain(t => t.Contains("jane.doe@example.com") || t.Contains("555-123-4567"));
+        compressorInput!.Select(c => c.ChunkText).Should().NotContain(t => t.Contains("jane.doe@example.com") || t.Contains("555-123-4567"));
+    }
+
+    [Fact]
+    public async Task AskAsync_PiiEnabled_RedactsTextThatParentRetrievalAdds()
+    {
+        _config.Setup(c => c.EnablePiiRedaction).Returns(true);
+
+        var parent = new Mock<IParentDocumentRetriever>();
+        parent
+            .Setup(p => p.RetrieveParentChunksAsync(It.IsAny<List<RagContextChunk>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((List<RagContextChunk> chunks, CancellationToken _) => chunks
+                .Select(c => new RagContextChunk
+                {
+                    ChunkId = c.ChunkId,
+                    DocumentId = c.DocumentId,
+                    FileName = c.FileName,
+                    ChunkText = c.ChunkText + " Neighbouring chunk: card 4111111111111111."
+                })
+                .ToList());
+
+        List<RagContextChunk>? compressorInput = null;
+        var compressor = new Mock<IContextualCompressor>();
+        compressor
+            .Setup(c => c.CompressAsync(It.IsAny<List<RagContextChunk>>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Callback<List<RagContextChunk>, string, CancellationToken>((chunks, _, _) => compressorInput = chunks.ToList())
+            .ReturnsAsync((List<RagContextChunk> chunks, string _, CancellationToken _) => chunks);
+
+        SetupSearchReturns(MakeResult(1, text: "Plain context."));
+        SetupAiStreamReturns("answer");
+
+        var pipeline = BuildPipeline(parentRetriever: parent.Object, compressor: compressor.Object,
+            piiDetector: new PiiDetector(_logger));
+
+        await pipeline.AskAsync("question");
+
+        compressorInput!.Single().ChunkText.Should().NotContain("4111111111111111");
+    }
+
+    [Fact]
+    public async Task AskAsync_LlmRerankingDisabledInConfiguration_DoesNotCallTheReranker()
+    {
+        // Rag:EnableLlmReranking was validated but never read, so the reranker always ran.
+        _config.Setup(c => c.EnableLlmReranking).Returns(false);
+        var reranker = new Mock<ILlmReranker>();
+        SetupSearchReturns(MakeResult(1), MakeResult(2), MakeResult(3));
+        SetupAiStreamReturns("answer");
+
+        await BuildPipeline(llmReranker: reranker.Object).AskAsync("question");
+
+        reranker.Verify(r => r.RerankAsync(
+            It.IsAny<List<RagContextChunk>>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData(3, 3)]
+    [InlineData(80, 50)] // capped at MaxTopK
+    public async Task AskAsync_UsesTheTopKFromSettings(int settingsTopK, int expected)
+    {
+        // Settings > Top-K Results was validated and saved but never used by search or RAG.
+        _config.Setup(c => c.MaxTopK).Returns(50);
+        var settings = new Mock<ISettingsService>();
+        settings.Setup(s => s.GetSettingsAsync()).ReturnsAsync(new AppSettings { TopKResults = settingsTopK });
+
+        SearchQuery? captured = null;
+        _searchOrchestrator
+            .Setup(s => s.SearchAsync(It.IsAny<SearchQuery>(), It.IsAny<CancellationToken>()))
+            .Callback<SearchQuery, CancellationToken>((q, _) => captured = q)
+            .ReturnsAsync(new List<SearchResult> { MakeResult(1) });
+        SetupAiStreamReturns("answer");
+
+        await BuildPipeline(settingsService: settings.Object).AskAsync("question");
+
+        captured!.TopK.Should().Be(expected);
+        _reranker.Verify(r => r.Rerank(It.IsAny<List<RagContextChunk>>(), It.IsAny<string>(), expected), Times.Once);
+    }
+
+    [Fact]
+    public async Task AskAsync_WithoutSettings_UsesTheConfiguredDefaultTopK()
+    {
+        SearchQuery? captured = null;
+        _searchOrchestrator
+            .Setup(s => s.SearchAsync(It.IsAny<SearchQuery>(), It.IsAny<CancellationToken>()))
+            .Callback<SearchQuery, CancellationToken>((q, _) => captured = q)
+            .ReturnsAsync(new List<SearchResult> { MakeResult(1) });
+        SetupAiStreamReturns("answer");
+
+        await BuildPipeline().AskAsync("question");
+
+        captured!.TopK.Should().Be(8);
     }
 
     [Fact]

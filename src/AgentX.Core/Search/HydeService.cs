@@ -17,6 +17,7 @@ public sealed class HydeService : IHydeService
     private readonly IAiService _aiService;
     private readonly IEmbeddingService _embeddingService;
     private readonly IRagPromptCatalog? _promptCatalog;
+    private readonly IRagConfiguration? _ragConfiguration;
     private readonly ILogger _logger;
 
     /// <summary>
@@ -36,10 +37,21 @@ public sealed class HydeService : IHydeService
         IEmbeddingService embeddingService,
         IRagPromptCatalog? promptCatalog,
         ILogger logger)
+        : this(aiService, embeddingService, promptCatalog, null, logger)
+    {
+    }
+
+    public HydeService(
+        IAiService aiService,
+        IEmbeddingService embeddingService,
+        IRagPromptCatalog? promptCatalog,
+        IRagConfiguration? ragConfiguration,
+        ILogger logger)
     {
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
         _embeddingService = embeddingService ?? throw new ArgumentNullException(nameof(embeddingService));
         _promptCatalog = promptCatalog;
+        _ragConfiguration = ragConfiguration;
         _logger = logger?.ForContext<HydeService>() ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -62,7 +74,11 @@ public sealed class HydeService : IHydeService
         var options = new ChatOptions
         {
             Temperature = 0.3, // Low temperature for factual content
-            MaxTokens = AppConstants.HydeMaxTokens,
+            // Rag:HydeMaxTokens when configured; the constant is only the fallback for hosts
+            // without IRagConfiguration.
+            MaxTokens = _ragConfiguration is { HydeMaxTokens: > 0 } config
+                ? config.HydeMaxTokens
+                : AppConstants.HydeMaxTokens,
             // P1-1: the HyDE system prompt is identical across every call; cache it
             // when the provider supports prompt caching (Anthropic).
             CacheSystemPrompt = true

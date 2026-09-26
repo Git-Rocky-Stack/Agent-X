@@ -17,6 +17,7 @@ public sealed class LlmReranker : ILlmReranker
 {
     private readonly IAiService _aiService;
     private readonly IRagPromptCatalog? _promptCatalog;
+    private readonly IRagConfiguration? _ragConfiguration;
     private readonly ILogger _logger;
 
     /// <summary>
@@ -57,9 +58,19 @@ public sealed class LlmReranker : ILlmReranker
     }
 
     public LlmReranker(IAiService aiService, IRagPromptCatalog? promptCatalog, ILogger logger)
+        : this(aiService, promptCatalog, null, logger)
+    {
+    }
+
+    public LlmReranker(
+        IAiService aiService,
+        IRagPromptCatalog? promptCatalog,
+        IRagConfiguration? ragConfiguration,
+        ILogger logger)
     {
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
         _promptCatalog = promptCatalog;
+        _ragConfiguration = ragConfiguration;
         _logger = logger?.ForContext<LlmReranker>() ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -96,7 +107,11 @@ public sealed class LlmReranker : ILlmReranker
             var options = new ChatOptions
             {
                 Temperature = 0.0,
-                MaxTokens = AppConstants.RerankerMaxTokens,
+                // Rag:RerankerMaxTokens when configured; the constant is only the fallback for
+                // hosts without IRagConfiguration.
+                MaxTokens = _ragConfiguration is { RerankerMaxTokens: > 0 } config
+                    ? config.RerankerMaxTokens
+                    : AppConstants.RerankerMaxTokens,
                 ResponseFormat = ResponseFormat.JsonObject,
                 // FU-5: provider-side schema enforcement on OpenAI. Other providers
                 // honor the broader ResponseFormat.JsonObject and rely on the
@@ -159,28 +174,33 @@ public sealed class LlmReranker : ILlmReranker
             // FU-5: response shape is now {"scores":[{"id":N,"score":N}, ...]}.
             // We tolerate both the new wrapped form AND the legacy bare-array form
             // for backwards compat with callers that may not have updated their
-            // schema yet — the Json reader handles either via root-element check.
-            var start = response.IndexOf('{');
-            var end = response.LastIndexOf('}');
+            // schema yet. Which form it is depends on which bracket opens the JSON: a bare
+            // array also contains '{' (inside each entry), so looking for '{' first sliced
+            // "{...},{...}" out of the array, failed to parse, and the array form was never
+            // reached.
+            var objectStart = response.IndexOf('{');
+            var arrayStart = response.IndexOf('[');
+            var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             List<ScoreEntry>? parsed = null;
 
-            if (start >= 0 && end > start)
-            {
-                var json = response[start..(end + 1)];
-                var wrapper = JsonSerializer.Deserialize<ScoresWrapper>(json,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                parsed = wrapper?.Scores;
-            }
-            else
+            if (arrayStart >= 0 && (objectStart < 0 || arrayStart < objectStart))
             {
                 // Legacy fallback: bare JSON array
-                var arrStart = response.IndexOf('[');
                 var arrEnd = response.LastIndexOf(']');
-                if (arrStart >= 0 && arrEnd > arrStart)
+                if (arrEnd > arrayStart)
                 {
-                    var json = response[arrStart..(arrEnd + 1)];
-                    parsed = JsonSerializer.Deserialize<List<ScoreEntry>>(json,
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var json = response[arrayStart..(arrEnd + 1)];
+                    parsed = JsonSerializer.Deserialize<List<ScoreEntry>>(json, jsonOptions);
+                }
+            }
+            else if (objectStart >= 0)
+            {
+                var end = response.LastIndexOf('}');
+                if (end > objectStart)
+                {
+                    var json = response[objectStart..(end + 1)];
+                    var wrapper = JsonSerializer.Deserialize<ScoresWrapper>(json, jsonOptions);
+                    parsed = wrapper?.Scores;
                 }
             }
 

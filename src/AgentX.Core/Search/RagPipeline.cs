@@ -7,6 +7,7 @@ using AgentX.Core.Data;
 using AgentX.Core.Observability;
 using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Search;
+using AgentX.Core.Services.Settings;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -62,6 +63,7 @@ public sealed class RagPipeline : IRagPipeline
     private readonly IRagMetrics? _metrics;
     private readonly IPiiDetector? _piiDetector;
     private readonly IRagPromptCatalog? _promptCatalog;
+    private readonly ISettingsService? _settingsService;
 
     public RagPipeline(
         IHybridSearchOrchestrator searchOrchestrator,
@@ -80,7 +82,8 @@ public sealed class RagPipeline : IRagPipeline
         IWebSearchService? webSearchService = null,
         IRagMetrics? metrics = null,
         IPiiDetector? piiDetector = null,
-        IRagPromptCatalog? promptCatalog = null)
+        IRagPromptCatalog? promptCatalog = null,
+        ISettingsService? settingsService = null)
     {
         _searchOrchestrator = searchOrchestrator ?? throw new ArgumentNullException(nameof(searchOrchestrator));
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
@@ -100,16 +103,45 @@ public sealed class RagPipeline : IRagPipeline
         _metrics = metrics;
         _piiDetector = piiDetector;
         _promptCatalog = promptCatalog;
+        _settingsService = settingsService;
 
         var hydeActive = _hydeService is not null && _ragConfiguration.EnableHyde;
+        var llmRerankActive = _llmReranker is not null && _ragConfiguration.EnableLlmReranking;
         var piiActive = _piiDetector is not null && _ragConfiguration.EnablePiiRedaction;
 
         _logger.Information(
             "RagPipeline initialized — enhancements: MultiQuery={MQ}, HyDE={HyDE}, LlmRerank={LR}, " +
             "ParentDoc={PD}, Compression={C}, Eval={E}, WebSearch={WS}, Metrics={M}, PiiRedaction={PII}",
-            _multiQueryGenerator is not null, hydeActive, _llmReranker is not null,
+            _multiQueryGenerator is not null, hydeActive, llmRerankActive,
             _parentRetriever is not null, _compressor is not null, _evaluator is not null,
             _webSearchService is not null, _metrics is not null, piiActive);
+    }
+
+    /// <summary>
+    /// Number of context chunks to retrieve and keep: the Top-K the user set in Settings,
+    /// capped at <see cref="IRagConfiguration.MaxTopK"/>, or the configured default when
+    /// settings are unavailable or hold no usable value.
+    /// </summary>
+    private async Task<int> ResolveTopKAsync()
+    {
+        if (_settingsService is not null)
+        {
+            try
+            {
+                var settings = await _settingsService.GetSettingsAsync().ConfigureAwait(false);
+                if (settings.TopKResults > 0)
+                {
+                    var max = _ragConfiguration.MaxTopK;
+                    return max > 0 ? Math.Min(settings.TopKResults, max) : settings.TopKResults;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Warning(ex, "Could not read Top-K from settings; using the configured default");
+            }
+        }
+
+        return _ragConfiguration.DefaultTopK;
     }
 
     /// <inheritdoc />
@@ -127,6 +159,8 @@ public sealed class RagPipeline : IRagPipeline
 
         _logger.Information("RAG pipeline started for question (length={Length}, collection={CollectionId})",
             question.Length, collectionId?.ToString() ?? "all");
+
+        var topK = await ResolveTopKAsync().ConfigureAwait(false);
 
         // ── Step 1: Multi-Query Expansion ─────────────────────────────────
         var queries = new List<string> { question };
@@ -188,7 +222,7 @@ public sealed class RagPipeline : IRagPipeline
                 var searchQuery = new SearchQuery
                 {
                     QueryText = q,
-                    TopK = _ragConfiguration.DefaultTopK,
+                    TopK = topK,
                     MinScore = _ragConfiguration.DefaultMinScore,
                     CollectionId = collectionId,
                     Mode = searchMode
@@ -256,16 +290,21 @@ public sealed class RagPipeline : IRagPipeline
         // ── Step 4: Build Context Chunks ─────────────────────────────────
         var rawContextChunks = BuildContextChunks(relevantResults);
 
+        // PII redaction happens before ANY stage that sends chunk text to a model: the LLM
+        // reranker and the contextual compressor both do, and with a cloud provider that
+        // text leaves the machine. Redacting only before the final prompt was too late.
+        rawContextChunks = RedactPii(rawContextChunks, "retrieval");
+
         // ── Step 5: Heuristic Reranking (dedup, diversity, query-term boost) ──
-        var contextChunks = _reranker.Rerank(rawContextChunks, question, _ragConfiguration.DefaultTopK);
+        var contextChunks = _reranker.Rerank(rawContextChunks, question, topK);
 
         // ── Step 6: LLM-based Reranking ──────────────────────────────────
-        if (_llmReranker is not null && contextChunks.Count > 2)
+        if (_llmReranker is not null && _ragConfiguration.EnableLlmReranking && contextChunks.Count > 2)
         {
             try
             {
                 contextChunks = await _llmReranker
-                    .RerankAsync(contextChunks, question, _ragConfiguration.DefaultTopK, ct)
+                    .RerankAsync(contextChunks, question, topK, ct)
                     .ConfigureAwait(false);
 
                 _logger.Debug("LLM reranking applied, {Count} chunks retained", contextChunks.Count);
@@ -291,6 +330,10 @@ public sealed class RagPipeline : IRagPipeline
             {
                 _logger.Warning(ex, "Parent document retrieval failed; using original chunks");
             }
+
+            // Parent retrieval replaces chunk text with neighbouring chunks read straight from
+            // the database, so the expanded text is redacted before compression sees it.
+            contextChunks = RedactPii(contextChunks, "parent retrieval");
         }
 
         // ── Step 8: Contextual Compression ───────────────────────────────
@@ -347,43 +390,9 @@ public sealed class RagPipeline : IRagPipeline
             }
         }
 
-        // ── Step 8c: PII Redaction ──────────────────────────────────────
-        // Redact emails / phone numbers / SSNs / credit cards / API keys / IPs from
-        // context chunks BEFORE they enter the system prompt sent to the LLM provider.
-        if (_piiDetector is not null && _ragConfiguration.EnablePiiRedaction)
-        {
-            int redactedCount = 0;
-            for (int i = 0; i < contextChunks.Count; i++)
-            {
-                var chunk = contextChunks[i];
-                if (string.IsNullOrEmpty(chunk.ChunkText))
-                    continue;
-
-                if (_piiDetector.ContainsPii(chunk.ChunkText))
-                {
-                    contextChunks[i] = new RagContextChunk
-                    {
-                        ChunkId = chunk.ChunkId,
-                        DocumentId = chunk.DocumentId,
-                        FileName = chunk.FileName,
-                        FilePath = chunk.FilePath,
-                        PageNumber = chunk.PageNumber,
-                        ChunkIndex = chunk.ChunkIndex,
-                        ChunkText = _piiDetector.RedactPii(chunk.ChunkText, _ragConfiguration.PiiRedactionMask),
-                        RelevanceScore = chunk.RelevanceScore
-                    };
-                    redactedCount++;
-                }
-            }
-
-            if (redactedCount > 0)
-            {
-                _logger.Information("PII redacted in {Count} of {Total} context chunks before LLM call",
-                    redactedCount, contextChunks.Count);
-            }
-        }
-
         // ── Step 9: Build RAG Prompt ─────────────────────────────────────
+        // Context text was redacted (when enabled) as soon as it was retrieved, and again
+        // after parent retrieval; compression only removes text, so nothing new appears here.
         // FU-1: build BOTH the legacy single-string system prompt (for providers
         // that don't support multi-block) AND the split blocks (cacheable static
         // prefix + non-cached context, for Anthropic prompt caching).
@@ -577,6 +586,49 @@ public sealed class RagPipeline : IRagPipeline
     }
 
     // ── Private Helpers ─────────────────────────────────────────────────
+
+    /// <summary>
+    /// Redacts emails, phone numbers, SSNs, card numbers, API keys and IP addresses from the
+    /// chunk text when redaction is enabled. Returns the same list when nothing changed.
+    /// </summary>
+    private List<RagContextChunk> RedactPii(List<RagContextChunk> chunks, string stage)
+    {
+        if (_piiDetector is null || !_ragConfiguration.EnablePiiRedaction)
+        {
+            return chunks;
+        }
+
+        var redactedCount = 0;
+        for (var i = 0; i < chunks.Count; i++)
+        {
+            var chunk = chunks[i];
+            if (string.IsNullOrEmpty(chunk.ChunkText) || !_piiDetector.ContainsPii(chunk.ChunkText))
+            {
+                continue;
+            }
+
+            chunks[i] = new RagContextChunk
+            {
+                ChunkId = chunk.ChunkId,
+                DocumentId = chunk.DocumentId,
+                FileName = chunk.FileName,
+                FilePath = chunk.FilePath,
+                PageNumber = chunk.PageNumber,
+                ChunkIndex = chunk.ChunkIndex,
+                ChunkText = _piiDetector.RedactPii(chunk.ChunkText, _ragConfiguration.PiiRedactionMask),
+                RelevanceScore = chunk.RelevanceScore
+            };
+            redactedCount++;
+        }
+
+        if (redactedCount > 0)
+        {
+            _logger.Information("PII redacted in {Count} of {Total} context chunks after {Stage}",
+                redactedCount, chunks.Count, stage);
+        }
+
+        return chunks;
+    }
 
     private static List<RagContextChunk> BuildContextChunks(IReadOnlyList<SearchResult> searchResults)
     {

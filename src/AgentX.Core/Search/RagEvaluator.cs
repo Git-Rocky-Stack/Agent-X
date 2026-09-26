@@ -168,12 +168,21 @@ public sealed class RagEvaluator : IRagEvaluator
 
                 if (parsed is not null)
                 {
+                    // A missing key is not a zero score. Recording it as one fed 0/0/0 into
+                    // the quality averages as if it were a real judgement, so an incomplete
+                    // response keeps the scores it did give (neutral 0.5 for the rest) and
+                    // is marked as default so aggregators skip it.
+                    var complete = parsed.ContextRelevance.HasValue
+                        && parsed.Faithfulness.HasValue
+                        && parsed.AnswerRelevance.HasValue;
+
                     return new RagEvalMetrics
                     {
-                        ContextRelevance = Math.Clamp(parsed.ContextRelevance / 10.0, 0, 1),
-                        Faithfulness = Math.Clamp(parsed.Faithfulness / 10.0, 0, 1),
-                        AnswerRelevance = Math.Clamp(parsed.AnswerRelevance / 10.0, 0, 1),
-                        IsDefault = false
+                        ContextRelevance = ToUnitScore(parsed.ContextRelevance),
+                        Faithfulness = ToUnitScore(parsed.Faithfulness),
+                        AnswerRelevance = ToUnitScore(parsed.AnswerRelevance),
+                        IsDefault = !complete,
+                        DefaultReason = complete ? string.Empty : "MissingKeys"
                     };
                 }
             }
@@ -207,15 +216,19 @@ public sealed class RagEvaluator : IRagEvaluator
     private static string Truncate(string text, int max)
         => text.Length <= max ? text : text[..max] + "...";
 
+    /// <summary>Maps a 0-10 judge score to 0-1; a missing score is the neutral 0.5.</summary>
+    private static double ToUnitScore(double? score)
+        => score.HasValue ? Math.Clamp(score.Value / 10.0, 0, 1) : 0.5;
+
     private sealed class EvalScores
     {
         [JsonPropertyName("context_relevance")]
-        public double ContextRelevance { get; set; }
+        public double? ContextRelevance { get; set; }
 
         [JsonPropertyName("faithfulness")]
-        public double Faithfulness { get; set; }
+        public double? Faithfulness { get; set; }
 
         [JsonPropertyName("answer_relevance")]
-        public double AnswerRelevance { get; set; }
+        public double? AnswerRelevance { get; set; }
     }
 }
