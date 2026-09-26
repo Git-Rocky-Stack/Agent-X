@@ -29,7 +29,7 @@ public sealed partial class MainWindow
         WireTeleport(LocalLamp, "Settings");
         WireTeleport(InboxLamp, "Inbox");
         WireTeleport(SyncLamp, "SyncSettings");
-        WireTeleport(JobsLamp, "Workflows");
+        WireTeleport(JobsLamp, "Operations");
         WireTeleport(BakLamp, "BackupRestore");
 
         _statusBarService.StateChanged += OnStatusBarStateChanged;
