@@ -1683,9 +1683,12 @@
   <data name="Settings_EnableLocalApi.OnContent" xml:space="preserve"><value>Aktiviert (authentifiziert)</value></data>
   <data name="Settings_ApiToken.Text" xml:space="preserve"><value>API-Token</value></data>
   <data name="Settings_NoTokenYetClickPh.PlaceholderText" xml:space="preserve"><value>Noch kein Token — klicken Sie auf „Neu generieren“</value></data>
+  <data name="Settings_RevealApiToken.Content" xml:space="preserve"><value>Anzeigen</value></data>
+  <data name="Settings_RevealApiToken.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>API-Token anzeigen</value></data>
   <data name="Settings_Copy.Content" xml:space="preserve"><value>Kopieren</value></data>
+  <data name="Settings_Copy.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>API-Token kopieren</value></data>
   <data name="Settings_Regenerate.Content" xml:space="preserve"><value>Neu generieren</value></data>
-  <data name="Settings_KeepThisTokenSecret.Text" xml:space="preserve"><value>Halten Sie dieses Token geheim. Beim Neugenerieren werden bestehende Clients getrennt, bis Sie das neue Token einfügen. Änderungen am Schalter gelten ab dem nächsten Start.</value></data>
+  <data name="Settings_KeepThisTokenSecret.Text" xml:space="preserve"><value>Halten Sie dieses Token geheim. Beim Neugenerieren wird das alte Token sofort widerrufen, gekoppelte Clients funktionieren erst wieder, wenn Sie das neue Token einfügen. Das Ein- oder Ausschalten der API wird beim Speichern der Einstellungen wirksam.</value></data>
   <data name="Settings_SaveSettings.Content" xml:space="preserve"><value>Einstellungen speichern</value></data>
   <data name="Settings_ResetToDefaults.Content" xml:space="preserve"><value>Auf Standard zurücksetzen</value></data>
   <data name="Backup_BackupRestore.Text" xml:space="preserve"><value>BACKUP &amp; WIEDERHERSTELLUNG</value></data>

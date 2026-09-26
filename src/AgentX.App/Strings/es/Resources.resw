@@ -1683,9 +1683,12 @@
   <data name="Settings_EnableLocalApi.OnContent" xml:space="preserve"><value>Activado (autenticado)</value></data>
   <data name="Settings_ApiToken.Text" xml:space="preserve"><value>Token de API</value></data>
   <data name="Settings_NoTokenYetClickPh.PlaceholderText" xml:space="preserve"><value>Aún no hay token — haga clic en Regenerar</value></data>
+  <data name="Settings_RevealApiToken.Content" xml:space="preserve"><value>Mostrar</value></data>
+  <data name="Settings_RevealApiToken.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Mostrar token de API</value></data>
   <data name="Settings_Copy.Content" xml:space="preserve"><value>Copiar</value></data>
+  <data name="Settings_Copy.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Copiar token de API</value></data>
   <data name="Settings_Regenerate.Content" xml:space="preserve"><value>Regenerar</value></data>
-  <data name="Settings_KeepThisTokenSecret.Text" xml:space="preserve"><value>Mantenga este token en secreto. Al regenerarlo, los clientes existentes se desvinculan hasta que pegue el nuevo token. Los cambios del interruptor se aplican en el próximo inicio.</value></data>
+  <data name="Settings_KeepThisTokenSecret.Text" xml:space="preserve"><value>Mantenga este token en secreto. Al regenerarlo, el token anterior se revoca de inmediato y los clientes vinculados dejan de funcionar hasta que pegue el nuevo. Activar o desactivar la API surte efecto al guardar la configuración.</value></data>
   <data name="Settings_SaveSettings.Content" xml:space="preserve"><value>Guardar configuración</value></data>
   <data name="Settings_ResetToDefaults.Content" xml:space="preserve"><value>Restablecer valores predeterminados</value></data>
   <data name="Backup_BackupRestore.Text" xml:space="preserve"><value>Copia de seguridad y restauración</value></data>

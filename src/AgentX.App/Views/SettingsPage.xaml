@@ -560,32 +560,44 @@
 
                     <StackPanel Spacing="4"
                                 Visibility="{x:Bind ViewModel.LocalApiEnabled, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                        <TextBlock x:Uid="Settings_ApiToken" Text="API Token"
+                        <TextBlock x:Name="ApiTokenLabel"
+                                   x:Uid="Settings_ApiToken" Text="API Token"
                                    Style="{StaticResource LabelStyle}" />
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
+                            <!-- Masked until revealed (LocalApiTokenDisplay); Copy always copies the real token. -->
                             <TextBox Style="{StaticResource InputTextBoxStyle}"
-                                     Text="{x:Bind ViewModel.LocalApiToken, Mode=OneWay}"
+                                     Text="{x:Bind ViewModel.LocalApiTokenDisplay, Mode=OneWay}"
                                      IsReadOnly="True"
                                      FontFamily="{StaticResource FontMono}"
+                                     AutomationProperties.LabeledBy="{x:Bind ApiTokenLabel}"
                                      x:Uid="Settings_NoTokenYetClickPh" PlaceholderText="No token yet — click Regenerate" />
 
-                            <Button Grid.Column="1"
+                            <ToggleButton Grid.Column="1"
+                                          x:Uid="Settings_RevealApiToken" Content="Show"
+                                          AutomationProperties.Name="Show API token"
+                                          Style="{StaticResource GhostToggleButtonStyle}"
+                                          MinHeight="40"
+                                          IsChecked="{x:Bind ViewModel.IsApiTokenRevealed, Mode=TwoWay}" />
+
+                            <Button Grid.Column="2"
                                     x:Uid="Settings_Copy" Content="Copy"
+                                    AutomationProperties.Name="Copy API token"
                                     Style="{StaticResource SecondaryButtonStyle}"
                                     Command="{x:Bind ViewModel.CopyApiTokenCommand}" />
 
-                            <Button Grid.Column="2"
+                            <Button Grid.Column="3"
                                     x:Uid="Settings_Regenerate" Content="Regenerate"
                                     Style="{StaticResource SecondaryButtonStyle}"
                                     Command="{x:Bind ViewModel.RegenerateApiTokenCommand}" />
                         </Grid>
-                        <TextBlock x:Uid="Settings_KeepThisTokenSecret" Text="Keep this token secret. Regenerating it unpairs existing clients until you paste the new token. Toggle changes apply on next launch."
+                        <TextBlock x:Uid="Settings_KeepThisTokenSecret" Text="Keep this token secret. Regenerating it revokes the old token at once, so paired clients stop working until you paste the new one. Turning the API on or off takes effect when you save settings."
                                    Style="{StaticResource CaptionStyle}"
                                    TextWrapping="Wrap" />
                     </StackPanel>

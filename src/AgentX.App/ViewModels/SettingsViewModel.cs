@@ -24,6 +24,7 @@ public partial class SettingsViewModel : ObservableObject
     private readonly IDatabaseEncryptionMigrator _databaseEncryptionMigrator;
     private readonly IDatabaseKeyProvider _databaseKeyProvider;
     private readonly IEncryptionStateFile _encryptionStateFile;
+    private readonly IApiHostLifecycleService _apiHostLifecycle;
 
     // ── Active Provider ──────────────────────────────────────
     [ObservableProperty] private int _activeProviderIndex;
@@ -93,7 +94,25 @@ public partial class SettingsViewModel : ObservableObject
 
     // ── Local REST API (browser extension) ───────────────
     [ObservableProperty] private bool _localApiEnabled = true;
-    [ObservableProperty] private string _localApiToken = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(LocalApiTokenDisplay))]
+    private string _localApiToken = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(LocalApiTokenDisplay))]
+    private bool _isApiTokenRevealed;
+
+    /// <summary>
+    /// The token as the Settings page shows it: a fixed-length mask unless the user reveals it, so
+    /// the secret is not on screen (or in a screenshot) by default. The mask length does not
+    /// follow the token length. Copy always copies the real token.
+    /// </summary>
+    public string LocalApiTokenDisplay =>
+        IsApiTokenRevealed || string.IsNullOrEmpty(LocalApiToken) ? LocalApiToken : ApiTokenMask;
+
+    /// <summary>Mask glyph matches the PasswordBox default (U+25CF BLACK CIRCLE).</summary>
+    private static readonly string ApiTokenMask = new((char)0x25CF, 24);
 
     // ── App Info ────────────────────────────────────────────
     // Single source (assembly version) instead of a hardcoded string (AX-QA-014).
@@ -122,6 +141,7 @@ public partial class SettingsViewModel : ObservableObject
         IDatabaseEncryptionMigrator databaseEncryptionMigrator,
         IDatabaseKeyProvider databaseKeyProvider,
         IEncryptionStateFile encryptionStateFile,
+        IApiHostLifecycleService apiHostLifecycle,
         IModelRouterService? modelRouterService = null)
     {
         _settingsService = settingsService;
@@ -133,6 +153,7 @@ public partial class SettingsViewModel : ObservableObject
         _databaseEncryptionMigrator = databaseEncryptionMigrator;
         _databaseKeyProvider = databaseKeyProvider;
         _encryptionStateFile = encryptionStateFile;
+        _apiHostLifecycle = apiHostLifecycle;
         _modelRouterService = modelRouterService;
 
         StoragePath = Path.Combine(
@@ -263,11 +284,17 @@ public partial class SettingsViewModel : ObservableObject
         settings.MaxSearchResults = MaxSearchResults;
         settings.SearchCacheTtlMinutes = SearchCacheTtlMinutes;
 
-        // Local REST API (browser extension)
+        // Local REST API (browser extension). The token is only ever created by the host or by
+        // Regenerate, so never clear a stored token just because this page loaded before the
+        // host provisioned it.
         settings.LocalApiEnabled = LocalApiEnabled;
-        settings.LocalApiToken = string.IsNullOrWhiteSpace(LocalApiToken) ? null : LocalApiToken;
+        if (!string.IsNullOrWhiteSpace(LocalApiToken))
+            settings.LocalApiToken = LocalApiToken;
 
         await _settingsService.SaveSettingsAsync(settings);
+
+        // Turning the Local API on or off takes effect now, not on the next launch.
+        await ApplyLocalApiSettingsAsync();
 
         // Re-initialize AI service so provider changes take effect
         try
@@ -409,8 +436,9 @@ public partial class SettingsViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Generates a fresh per-install local API token and persists it immediately. Existing paired
-    /// clients must be re-paired with the new token; the running listener adopts it on next launch.
+    /// Generates a fresh per-install local API token, persists it, and hands it to the running
+    /// listener at once: the previous token stops working immediately, so existing paired clients
+    /// must be re-paired with the new token.
     /// </summary>
     [RelayCommand]
     private async Task RegenerateApiTokenAsync()
@@ -422,7 +450,30 @@ public partial class SettingsViewModel : ObservableObject
         settings.LocalApiEnabled = LocalApiEnabled;
         await _settingsService.SaveSettingsAsync(settings);
 
+        await ApplyLocalApiSettingsAsync();
+
         Log.Information("Local API token regenerated");
+    }
+
+    /// <summary>
+    /// Pushes the saved Local API settings to the live listener (start, stop, or token swap), then
+    /// shows the token actually in force, which the host provisions if none was stored yet.
+    /// </summary>
+    private async Task ApplyLocalApiSettingsAsync()
+    {
+        try
+        {
+            await _apiHostLifecycle.ApplySettingsAsync();
+        }
+        catch (Exception ex)
+        {
+            // Settings are saved either way; a start failure (for example the port is taken) is
+            // logged here the same way the startup path logs it.
+            Log.Warning(ex, "Applying the Local API settings to the running listener failed");
+        }
+
+        var settings = await _settingsService.GetSettingsAsync();
+        LocalApiToken = settings.LocalApiToken ?? string.Empty;
     }
 
     /// <summary>

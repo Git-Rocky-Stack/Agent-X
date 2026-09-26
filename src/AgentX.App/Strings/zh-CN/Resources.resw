@@ -1683,9 +1683,12 @@
   <data name="Settings_EnableLocalApi.OnContent" xml:space="preserve"><value>已启用(需身份验证)</value></data>
   <data name="Settings_ApiToken.Text" xml:space="preserve"><value>API 令牌</value></data>
   <data name="Settings_NoTokenYetClickPh.PlaceholderText" xml:space="preserve"><value>尚无令牌 — 请点击“重新生成”</value></data>
+  <data name="Settings_RevealApiToken.Content" xml:space="preserve"><value>显示</value></data>
+  <data name="Settings_RevealApiToken.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>显示 API 令牌</value></data>
   <data name="Settings_Copy.Content" xml:space="preserve"><value>复制</value></data>
+  <data name="Settings_Copy.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>复制 API 令牌</value></data>
   <data name="Settings_Regenerate.Content" xml:space="preserve"><value>重新生成</value></data>
-  <data name="Settings_KeepThisTokenSecret.Text" xml:space="preserve"><value>请妥善保管此令牌。重新生成后,现有客户端将解除配对,直到粘贴新令牌。开关更改将在下次启动时生效。</value></data>
+  <data name="Settings_KeepThisTokenSecret.Text" xml:space="preserve"><value>请妥善保管此令牌。重新生成后,旧令牌会立即失效,已配对的客户端在粘贴新令牌之前将无法使用。开启或关闭 API 会在保存设置后生效。</value></data>
   <data name="Settings_SaveSettings.Content" xml:space="preserve"><value>保存设置</value></data>
   <data name="Settings_ResetToDefaults.Content" xml:space="preserve"><value>恢复默认值</value></data>
   <data name="Backup_BackupRestore.Text" xml:space="preserve"><value>备份与还原</value></data>

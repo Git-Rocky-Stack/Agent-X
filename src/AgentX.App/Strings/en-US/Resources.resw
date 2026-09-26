@@ -1805,9 +1805,12 @@
   <data name="Settings_EnableLocalApi.OnContent" xml:space="preserve"><value>Enabled (authenticated)</value></data>
   <data name="Settings_ApiToken.Text" xml:space="preserve"><value>API Token</value></data>
   <data name="Settings_NoTokenYetClickPh.PlaceholderText" xml:space="preserve"><value>No token yet — click Regenerate</value></data>
+  <data name="Settings_RevealApiToken.Content" xml:space="preserve"><value>Show</value></data>
+  <data name="Settings_RevealApiToken.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Show API token</value></data>
   <data name="Settings_Copy.Content" xml:space="preserve"><value>Copy</value></data>
+  <data name="Settings_Copy.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Copy API token</value></data>
   <data name="Settings_Regenerate.Content" xml:space="preserve"><value>Regenerate</value></data>
-  <data name="Settings_KeepThisTokenSecret.Text" xml:space="preserve"><value>Keep this token secret. Regenerating it unpairs existing clients until you paste the new token. Toggle changes apply on next launch.</value></data>
+  <data name="Settings_KeepThisTokenSecret.Text" xml:space="preserve"><value>Keep this token secret. Regenerating it revokes the old token at once, so paired clients stop working until you paste the new one. Turning the API on or off takes effect when you save settings.</value></data>
   <data name="Settings_SaveSettings.Content" xml:space="preserve"><value>Save Settings</value></data>
   <data name="Settings_ResetToDefaults.Content" xml:space="preserve"><value>Reset to Defaults</value></data>
   <data name="Backup_BackupRestore.Text" xml:space="preserve"><value>BACKUP &amp; RESTORE</value></data>

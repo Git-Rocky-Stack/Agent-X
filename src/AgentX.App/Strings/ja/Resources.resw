@@ -1683,9 +1683,12 @@
   <data name="Settings_EnableLocalApi.OnContent" xml:space="preserve"><value>有効 (認証あり)</value></data>
   <data name="Settings_ApiToken.Text" xml:space="preserve"><value>API トークン</value></data>
   <data name="Settings_NoTokenYetClickPh.PlaceholderText" xml:space="preserve"><value>トークンがありません — [再生成] をクリック</value></data>
+  <data name="Settings_RevealApiToken.Content" xml:space="preserve"><value>表示</value></data>
+  <data name="Settings_RevealApiToken.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>API トークンを表示</value></data>
   <data name="Settings_Copy.Content" xml:space="preserve"><value>コピー</value></data>
+  <data name="Settings_Copy.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>API トークンをコピー</value></data>
   <data name="Settings_Regenerate.Content" xml:space="preserve"><value>再生成</value></data>
-  <data name="Settings_KeepThisTokenSecret.Text" xml:space="preserve"><value>このトークンは秘密にしてください。再生成すると、新しいトークンを貼り付けるまで既存のクライアントとのペアリングが解除されます。トグルの変更は次回起動時に適用されます。</value></data>
+  <data name="Settings_KeepThisTokenSecret.Text" xml:space="preserve"><value>このトークンは秘密にしてください。再生成すると古いトークンは直ちに無効になり、新しいトークンを貼り付けるまでペアリング済みのクライアントは動作しません。API のオン/オフは設定を保存したときに反映されます。</value></data>
   <data name="Settings_SaveSettings.Content" xml:space="preserve"><value>設定を保存</value></data>
   <data name="Settings_ResetToDefaults.Content" xml:space="preserve"><value>既定値にリセット</value></data>
   <data name="Backup_BackupRestore.Text" xml:space="preserve"><value>バックアップと復元</value></data>

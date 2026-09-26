@@ -1683,9 +1683,12 @@
   <data name="Settings_EnableLocalApi.OnContent" xml:space="preserve"><value>Activé (authentifié)</value></data>
   <data name="Settings_ApiToken.Text" xml:space="preserve"><value>Jeton d'API</value></data>
   <data name="Settings_NoTokenYetClickPh.PlaceholderText" xml:space="preserve"><value>Pas encore de jeton — cliquez sur Régénérer</value></data>
+  <data name="Settings_RevealApiToken.Content" xml:space="preserve"><value>Afficher</value></data>
+  <data name="Settings_RevealApiToken.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Afficher le jeton d'API</value></data>
   <data name="Settings_Copy.Content" xml:space="preserve"><value>Copier</value></data>
+  <data name="Settings_Copy.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Copier le jeton d'API</value></data>
   <data name="Settings_Regenerate.Content" xml:space="preserve"><value>Régénérer</value></data>
-  <data name="Settings_KeepThisTokenSecret.Text" xml:space="preserve"><value>Gardez ce jeton secret. Le régénérer dissocie les clients existants jusqu'à ce que vous colliez le nouveau jeton. Les changements du commutateur s'appliquent au prochain démarrage.</value></data>
+  <data name="Settings_KeepThisTokenSecret.Text" xml:space="preserve"><value>Gardez ce jeton secret. Le régénérer révoque immédiatement l'ancien jeton, et les clients associés cessent de fonctionner jusqu'à ce que vous colliez le nouveau. L'activation ou la désactivation de l'API prend effet lorsque vous enregistrez les paramètres.</value></data>
   <data name="Settings_SaveSettings.Content" xml:space="preserve"><value>Enregistrer les paramètres</value></data>
   <data name="Settings_ResetToDefaults.Content" xml:space="preserve"><value>Rétablir les valeurs par défaut</value></data>
   <data name="Backup_BackupRestore.Text" xml:space="preserve"><value>SAUVEGARDE ET RESTAURATION</value></data>
