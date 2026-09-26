@@ -80,7 +80,7 @@ public partial class App : Application
     public static IHost Host => _host ?? throw new InvalidOperationException("Host not initialized.");
     public static T GetService<T>() where T : class => Host.Services.GetRequiredService<T>();
 
-    protected override void OnLaunched(LaunchActivatedEventArgs args)
+    protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
         _host = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
             .ConfigureAppConfiguration((ctx, config) =>
@@ -98,6 +98,12 @@ public partial class App : Application
             .UseSerilog()
             .ConfigureServices(ConfigureServices)
             .Build();
+
+        // Apply the persisted UI language before the shell is built: a language override only
+        // reaches resources loaded after it is set, so the shell's x:Uid strings would otherwise
+        // stay in the default language for the whole session. Localization reads settings.json
+        // only (no database access), so it does not have to wait for unlock and migration.
+        await InitializeLocalizationAsync();
 
         // Create and show the window shell FIRST. The critical async init below opens UI surfaces
         // before any data work — the passphrase-unlock prompt and the migration-recovery dialog both
@@ -122,15 +128,34 @@ public partial class App : Application
     }
 
     /// <summary>
+    /// Loads the persisted language override and builds the resource loader. Runs before the
+    /// main window exists; a failure leaves the default language and never blocks startup.
+    /// </summary>
+    private static async Task InitializeLocalizationAsync()
+    {
+        try
+        {
+            var localization = GetService<ILocalizationService>();
+            await localization.InitializeAsync();
+            Log.Information("Localization initialized: {Language}", localization.CurrentLanguage);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Localization initialization failed; UI will use resource keys as fallback");
+        }
+    }
+
+    /// <summary>
     /// Initializes core services on startup in a single defined order. The CRITICAL path —
     /// database unlock, key apply, and the migration → API → connectors sequence — is AWAITED and
     /// fails closed: if migration throws, the app enters a recovery state and starts NO data-backed
     /// feature (AX-QA-003). Only after the migration gate succeeds do the best-effort inits (FTS,
-    /// AI/Ollama, feature flags, localization, theme) run, in order. Invoked after the window shell
-    /// exists so its UI prompts (passphrase, recovery dialog) have a XamlRoot. This is an
-    /// <c>async void</c> event-style entry point (WinUI's OnLaunched cannot be async), but it no
-    /// longer races the rest of startup for the critical path — that path is internally awaited and
-    /// gated end to end.
+    /// AI/Ollama, feature flags, theme) run, in order; localization already ran in OnLaunched,
+    /// before the shell was built. Invoked after the window shell exists so its UI prompts
+    /// (passphrase, recovery dialog) have a XamlRoot. This is an <c>async void</c> event-style
+    /// entry point (OnLaunched returns void, so nothing awaits it), but it no longer races the
+    /// rest of startup for the critical path — that path is internally awaited and gated end to
+    /// end.
     /// </summary>
     private static async void InitializeCoreServicesAsync()
     {
@@ -246,21 +271,6 @@ public partial class App : Application
         catch (Exception ex)
         {
             Log.Warning(ex, "Feature flag initialization failed — using defaults");
-        }
-
-        // 3b. Initialize localization (reads persisted language override and
-        //     constructs the ResourceLoader). Must be awaited BEFORE any UI
-        //     renders — otherwise GetString/FormatPlural can race against a
-        //     null loader and return fallback keys instead of localized text.
-        try
-        {
-            var localization = GetService<ILocalizationService>();
-            await localization.InitializeAsync();
-            Log.Information("Localization initialized: {Language}", localization.CurrentLanguage);
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Localization initialization failed — UI will use resource keys as fallback");
         }
 
         // 4. Initialize theme from user preferences
