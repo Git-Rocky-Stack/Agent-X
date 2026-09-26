@@ -38,7 +38,7 @@ public sealed partial class ChatPage : Page
 
     public ChatPage()
     {
-        ViewModel = App.GetService<ChatViewModel>();
+        ViewModel = PageViewModelFactory.Create<ChatViewModel>();
         Interlocked.Exchange(ref s_liveViewModel, ViewModel)?.Dispose();
         _shortcutRegistry = App.GetService<IShortcutRegistry>();
         InitializeComponent();

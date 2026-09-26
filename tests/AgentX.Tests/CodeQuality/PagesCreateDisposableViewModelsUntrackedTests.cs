@@ -21,8 +21,6 @@ public sealed class PagesCreateDisposableViewModelsUntrackedTests
     /// </summary>
     private static readonly HashSet<string> PendingPages = new(StringComparer.Ordinal)
     {
-        "AnalyticsPage.xaml.cs",
-        "ChatPage.xaml.cs",
         "KnowledgeVaultPage.xaml.cs",
         "PluginManagerPage.xaml.cs",
         "SyncSettingsPage.xaml.cs",
