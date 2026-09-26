@@ -95,4 +95,33 @@ public sealed class HierarchicalSummaryServiceTests
             It.IsAny<ChatOptions?>(),
             It.IsAny<CancellationToken>()), Times.Exactly(8));
     }
+
+    [Fact]
+    public async Task BuildSummaryAsync_keeps_numbers_that_start_a_key_point()
+    {
+        var responses = new Queue<string>(
+        [
+            "Only section summary",
+            "1. 2024 revenue grew 15%\n2) 3.5% inflation hit margins\n- 10 stores opened\n* Costs fell\n42 is the answer"
+        ]);
+
+        _aiService
+            .Setup(service => service.ChatAsync(
+                It.IsAny<IReadOnlyList<ChatMessage>>(),
+                It.IsAny<string?>(),
+                It.IsAny<ChatOptions?>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => responses.Dequeue());
+
+        var sut = new HierarchicalSummaryService(_aiService.Object, _logger);
+
+        var result = await sut.BuildSummaryAsync("Annual Report", ["The only section"]);
+
+        result.KeyPoints.Should().Equal(
+            "2024 revenue grew 15%",
+            "3.5% inflation hit margins",
+            "10 stores opened",
+            "Costs fell",
+            "42 is the answer");
+    }
 }

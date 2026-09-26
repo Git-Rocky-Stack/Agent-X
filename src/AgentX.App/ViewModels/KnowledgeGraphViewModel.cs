@@ -83,18 +83,27 @@ public partial class KnowledgeGraphViewModel : ObservableObject
         _graphService = graphService ?? throw new ArgumentNullException(nameof(graphService));
     }
 
+    /// <summary>The build in progress, if any; a new build or leaving the page cancels it.</summary>
+    private CancellationTokenSource? _buildCts;
+
     /// <summary>
     /// Loads the knowledge graph data from the service and updates all
-    /// summary statistics. Called by the page on Loaded.
+    /// summary statistics. Called by the page on Loaded. The awaits stay on the UI
+    /// context because every property set afterwards is bound.
     /// </summary>
     public async Task InitializeAsync()
     {
+        // A refresh supersedes a build that is still laying out the previous graph
+        _buildCts?.Cancel();
+        var cts = new CancellationTokenSource();
+        _buildCts = cts;
+
         IsLoading = true;
         StatusMessage = "Building knowledge graph...";
 
         try
         {
-            GraphData = await _graphService.BuildGraphAsync().ConfigureAwait(false);
+            GraphData = await _graphService.BuildGraphAsync(cts.Token);
 
             DocumentCount = GraphData.DocumentCount;
             CollectionCount = GraphData.CollectionCount;
@@ -106,6 +115,10 @@ public partial class KnowledgeGraphViewModel : ObservableObject
                 "Knowledge graph loaded: {Nodes} nodes, {Edges} edges",
                 GraphData.Nodes.Count, GraphData.Edges.Count);
         }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+        {
+            Log.Debug("Knowledge graph build cancelled");
+        }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to build knowledge graph");
@@ -113,8 +126,24 @@ public partial class KnowledgeGraphViewModel : ObservableObject
         }
         finally
         {
-            IsLoading = false;
+            // A newer build owns the loading state once it has started
+            if (ReferenceEquals(_buildCts, cts))
+            {
+                _buildCts = null;
+                IsLoading = false;
+            }
+
+            cts.Dispose();
         }
+    }
+
+    /// <summary>
+    /// Stops a graph build in progress, for example when the page is closed, so the layout
+    /// does not keep a CPU core busy for a graph nobody will see.
+    /// </summary>
+    public void CancelBuild()
+    {
+        _buildCts?.Cancel();
     }
 
     /// <summary>
@@ -123,7 +152,7 @@ public partial class KnowledgeGraphViewModel : ObservableObject
     [RelayCommand]
     private async Task RefreshGraphAsync()
     {
-        await InitializeAsync().ConfigureAwait(false);
+        await InitializeAsync();
     }
 
     /// <summary>

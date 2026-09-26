@@ -44,6 +44,7 @@ public sealed partial class KnowledgeGraphPage : Page
         InitializeComponent();
 
         Loaded += OnPageLoaded;
+        Unloaded += OnPageUnloaded;
     }
 
     // =================================================================
@@ -61,6 +62,13 @@ public sealed partial class KnowledgeGraphPage : Page
 
         // Initial render (DispatcherQueue ensures canvas has measured)
         DispatcherQueue.TryEnqueue(RenderGraph);
+    }
+
+    private void OnPageUnloaded(object sender, RoutedEventArgs e)
+    {
+        // Pairs the subscription made on Loaded, and stops a layout still running for this page
+        ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
+        ViewModel.CancelBuild();
     }
 
     private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -128,10 +136,9 @@ public sealed partial class KnowledgeGraphPage : Page
 
         // Node type badge
         NodeTypeText.Text = node.NodeType.ToString().ToUpperInvariant();
-        var badgeColor = ParseColor(node.ColorHex);
-        NodeTypeBadge.Background = new SolidColorBrush(
-            Color.FromArgb(40, badgeColor.R, badgeColor.G, badgeColor.B));
-        NodeTypeText.Foreground = new SolidColorBrush(badgeColor);
+        var nodeBrush = NodeBrush(node.NodeType);
+        NodeTypeBadge.Background = TintOf(nodeBrush, 40);
+        NodeTypeText.Foreground = nodeBrush;
 
         // Labels
         NodeLabelText.Text = node.Label;
@@ -170,10 +177,13 @@ public sealed partial class KnowledgeGraphPage : Page
 
         // ── Filter nodes by toggle state ─────────────────────────────
         var visibleNodes = graphData.Nodes.Where(IsNodeVisible).ToList();
-        var visibleNodeIds = new HashSet<string>(visibleNodes.Select(n => n.Id));
+        var visibleNodesById = visibleNodes.ToDictionary(n => n.Id);
 
         if (visibleNodes.Count == 0)
             return;
+
+        // HighContrast stays flat and system-colored: no glow tints
+        var highContrast = IsHighContrast();
 
         // ── Calculate bounding box and normalization ─────────────────
         var (offsetX, offsetY, scale) = CalculateTransform(visibleNodes, canvasWidth, canvasHeight);
@@ -191,13 +201,8 @@ public sealed partial class KnowledgeGraphPage : Page
         foreach (var edge in graphData.Edges)
         {
             // Only draw edges where both endpoints are visible
-            if (!visibleNodeIds.Contains(edge.SourceId) || !visibleNodeIds.Contains(edge.TargetId))
-                continue;
-
-            var sourceNode = visibleNodes.FirstOrDefault(n => n.Id == edge.SourceId);
-            var targetNode = visibleNodes.FirstOrDefault(n => n.Id == edge.TargetId);
-
-            if (sourceNode == null || targetNode == null)
+            if (!visibleNodesById.TryGetValue(edge.SourceId, out var sourceNode)
+                || !visibleNodesById.TryGetValue(edge.TargetId, out var targetNode))
                 continue;
 
             // Apply zoom transform (scale from canvas center)
@@ -205,8 +210,6 @@ public sealed partial class KnowledgeGraphPage : Page
             var sy = (sourceNode.Y * scale + offsetY - centerY) * zoomScale + centerY;
             var tx = (targetNode.X * scale + offsetX - centerX) * zoomScale + centerX;
             var ty = (targetNode.Y * scale + offsetY - centerY) * zoomScale + centerY;
-
-            var edgeColor = ParseColor(edge.ColorHex);
 
             // Determine edge highlighting
             var bothHighlighted = isHighlighting &&
@@ -225,7 +228,7 @@ public sealed partial class KnowledgeGraphPage : Page
                 Y1 = sy,
                 X2 = tx,
                 Y2 = ty,
-                Stroke = new SolidColorBrush(edgeColor),
+                Stroke = EdgeBrush(targetNode),
                 StrokeThickness = edgeThickness,
                 Opacity = edgeOpacity,
             };
@@ -243,22 +246,21 @@ public sealed partial class KnowledgeGraphPage : Page
             var rawY = node.Y * scale + offsetY;
             var nx = (rawX - centerX) * zoomScale + centerX;
             var ny = (rawY - centerY) * zoomScale + centerY;
-            var nodeColor = ParseColor(node.ColorHex);
+            var nodeBrush = NodeBrush(node.NodeType);
             var nodeSize = node.Size * zoomScale;
 
             var isNodeHighlighted = !isHighlighting || highlightedIds.Contains(node.Id);
             var nodeOpacity = isNodeHighlighted ? 0.9 : 0.12;
 
             // Draw glow ring for highlighted nodes when highlighting is active
-            if (isHighlighting && highlightedIds.Contains(node.Id))
+            if (isHighlighting && highlightedIds.Contains(node.Id) && !highContrast)
             {
                 var glowSize = nodeSize + 8;
                 var glow = new Ellipse
                 {
                     Width = glowSize,
                     Height = glowSize,
-                    Fill = new SolidColorBrush(
-                        Color.FromArgb(50, nodeColor.R, nodeColor.G, nodeColor.B)),
+                    Fill = TintOf(nodeBrush, 50),
                     IsHitTestVisible = false,
                 };
                 Canvas.SetLeft(glow, nx - glowSize / 2);
@@ -271,16 +273,17 @@ public sealed partial class KnowledgeGraphPage : Page
             {
                 Width = nodeSize,
                 Height = nodeSize,
-                Fill = new SolidColorBrush(nodeColor),
+                Fill = nodeBrush,
                 Opacity = nodeOpacity,
             };
 
-            // Highlight the selected node
+            // Highlight the selected node with the primary text tone, which contrasts with the
+            // canvas in every shift and is the system text color in HighContrast
             if (ViewModel.SelectedNode != null && ViewModel.SelectedNode.Id == node.Id)
             {
                 ellipse.Opacity = 1.0;
                 ellipse.StrokeThickness = 2;
-                ellipse.Stroke = new SolidColorBrush(Colors.White);
+                ellipse.Stroke = ThemeResources.Brush("TextPrimaryBrush") ?? FallbackBrush();
             }
 
             Canvas.SetLeft(ellipse, nx - nodeSize / 2);
@@ -428,7 +431,7 @@ public sealed partial class KnowledgeGraphPage : Page
     {
         TooltipLabel.Text = node.Label;
         TooltipType.Text = node.NodeType.ToString();
-        TooltipTypeIndicator.Fill = new SolidColorBrush(ParseColor(node.ColorHex));
+        TooltipTypeIndicator.Fill = NodeBrush(node.NodeType);
         TooltipConnections.Text = $"{node.ConnectionCount} connection{(node.ConnectionCount != 1 ? "s" : "")}";
 
         var point = e.GetCurrentPoint(GraphCanvas).Position;
@@ -522,41 +525,58 @@ public sealed partial class KnowledgeGraphPage : Page
     }
 
     /// <summary>
-    /// Parses a hex color string (e.g., "#3B82F6") into a <see cref="Color"/>.
-    /// Falls back to gray if parsing fails.
+    /// Theme brush for a node type, matching the page legend: documents InfoBrush (LedScope),
+    /// collections GraphTagBrush (silver), tags WarningBrush (LedHold). Resolved for the current
+    /// shift, so Day Shift gets its darker tones and HighContrast its SystemColor tokens.
     /// </summary>
-    private static Color ParseColor(string hex)
+    private static Brush NodeBrush(GraphNodeType type) =>
+        ThemeResources.Brush(type switch
+        {
+            GraphNodeType.Document => "InfoBrush",
+            GraphNodeType.Collection => "GraphTagBrush",
+            _ => "WarningBrush",
+        }) ?? FallbackBrush();
+
+    /// <summary>
+    /// Theme brush for an edge: links to a collection or tag take that node's tone, links
+    /// between documents the tertiary text tone.
+    /// </summary>
+    private static Brush EdgeBrush(GraphNode target) => target.NodeType switch
+    {
+        GraphNodeType.Collection or GraphNodeType.Tag => NodeBrush(target.NodeType),
+        _ => ThemeResources.Brush("TextTertiaryBrush") ?? FallbackBrush(),
+    };
+
+    /// <summary>Used only if a theme key is missing; still theme-resolved where possible.</summary>
+    private static Brush FallbackBrush() =>
+        ThemeResources.Brush("TextSecondaryBrush") ?? new SolidColorBrush(Colors.Gray);
+
+    /// <summary>
+    /// A translucent tint of a brush for glows and badges. HighContrast gets a transparent
+    /// brush instead: its surfaces stay flat and system-colored.
+    /// </summary>
+    private static Brush TintOf(Brush brush, byte alpha)
+    {
+        if (IsHighContrast() || brush is not SolidColorBrush solid)
+        {
+            return new SolidColorBrush(Colors.Transparent);
+        }
+
+        var color = solid.Color;
+        return new SolidColorBrush(Color.FromArgb(alpha, color.R, color.G, color.B));
+    }
+
+    private static bool IsHighContrast()
     {
         try
         {
-            if (string.IsNullOrEmpty(hex))
-                return Color.FromArgb(255, 107, 114, 128); // Gray fallback
-
-            hex = hex.TrimStart('#');
-
-            if (hex.Length == 6)
-            {
-                var r = Convert.ToByte(hex[..2], 16);
-                var g = Convert.ToByte(hex[2..4], 16);
-                var b = Convert.ToByte(hex[4..6], 16);
-                return Color.FromArgb(255, r, g, b);
-            }
-
-            if (hex.Length == 8)
-            {
-                var a = Convert.ToByte(hex[..2], 16);
-                var r = Convert.ToByte(hex[2..4], 16);
-                var g = Convert.ToByte(hex[4..6], 16);
-                var b = Convert.ToByte(hex[6..8], 16);
-                return Color.FromArgb(a, r, g, b);
-            }
+            return new Windows.UI.ViewManagement.AccessibilitySettings().HighContrast;
         }
         catch
         {
-            // Silently fall back to gray on any parse error
+            // Unavailable outside a view context; treat as normal contrast.
+            return false;
         }
-
-        return Color.FromArgb(255, 107, 114, 128);
     }
 
     /// <summary>

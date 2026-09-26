@@ -39,7 +39,9 @@ public class GraphNode
     public GraphNodeType NodeType { get; set; }
 
     /// <summary>
-    /// Hex color code for rendering this node (e.g., "#3B82F6" for blue).
+    /// Reference color (hex, Night Ops palette) for this node's type. The app paints nodes
+    /// with the theme brush for their <see cref="NodeType"/>, so Day Shift and HighContrast
+    /// render correctly; this value is for consumers without a theme.
     /// </summary>
     public string ColorHex { get; set; } = "#6B7280";
 
@@ -110,7 +112,7 @@ public class GraphEdge
     public double Weight { get; set; } = 1.0;
 
     /// <summary>
-    /// Hex color code for rendering this edge line.
+    /// Reference color (hex, Night Ops palette) for this edge; the app paints theme brushes.
     /// </summary>
     public string ColorHex { get; set; } = "#374151";
 }
