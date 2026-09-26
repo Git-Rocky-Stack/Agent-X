@@ -352,6 +352,37 @@ public class WebScraperServiceIntegrationTests
         _sut.IsYouTubeUrl(url!).Should().Be(expected);
     }
 
+    [Theory]
+    [InlineData("https://notyoutube.com/watch?v=dQw4w9WgXcQ", false)]
+    [InlineData("https://youtube.com.example.net/watch?v=dQw4w9WgXcQ", false)]
+    [InlineData("https://example.com/share?u=https://www.youtube.com/watch?v=dQw4w9WgXcQ", false)]
+    [InlineData("https://example.com/youtu.be/dQw4w9WgXcQ", false)]
+    [InlineData("https://www.youtube.com/watch?feature=share&v=dQw4w9WgXcQ", true)]
+    [InlineData("https://m.youtube.com/watch?v=dQw4w9WgXcQ", true)]
+    [InlineData("youtu.be/dQw4w9WgXcQ", true)]
+    [InlineData("https://www.youtube.com/watch?v=tooShort", false)]
+    public void IsYouTubeUrl_matches_the_parsed_host_not_a_substring(string url, bool expected)
+    {
+        _sut.IsYouTubeUrl(url).Should().Be(expected);
+    }
+
+    [Fact]
+    public async Task ExtractContentAsync_does_not_append_tables_from_the_raw_page()
+    {
+        const string html = "<html><body><table><tr><td>Home</td><td>About</td></tr></table><article><p>Text</p></article></body></html>";
+        _fetcherMock.Setup(f => f.FetchAsync("https://example.com/page", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new FetchResult(html, "https://example.com/page", TimeSpan.Zero, false));
+        _parserMock.Setup(p => p.Parse(html, "https://example.com/page"))
+            .Returns(new ParsedContent("Page", "Article text only", null, null, null, null));
+        _parserMock.Setup(p => p.ExtractMetadata(html, "https://example.com/page"))
+            .Returns(new Metadata("Page", null, null, null, null, null));
+
+        var result = await _sut.ExtractContentAsync("https://example.com/page");
+
+        result.Success.Should().BeTrue();
+        result.Content.Should().Be("Article text only");
+    }
+
     // ─── IsValidUrl Tests ────────────────────────────────────────────────────
 
     [Theory]

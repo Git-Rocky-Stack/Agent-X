@@ -45,13 +45,26 @@ public class HtmlParser : IHtmlParser
     /// <summary>
     /// HTML element names that are removed during content extraction because they
     /// contain non-article content (navigation, scripts, ads, etc.).
+    /// <c>form</c> is deliberately absent: ASP.NET WebForms and SharePoint pages wrap the whole
+    /// body in one form, so only the form controls themselves are removed.
     /// </summary>
     private static readonly HashSet<string> ElementsToRemove = new(StringComparer.OrdinalIgnoreCase)
     {
         "script", "style", "noscript", "iframe", "nav", "header", "footer",
-        "aside", "form", "button", "select", "textarea", "input",
+        "aside", "button", "select", "textarea", "input",
         "svg", "canvas", "video", "audio", "figure", "figcaption",
         "menu", "menuitem", "dialog"
+    };
+
+    /// <summary>
+    /// Elements whose presence inside a table marks it as a layout table (page structure built
+    /// from tables) rather than a data table, so it is extracted block by block instead of being
+    /// flattened into a Markdown table.
+    /// </summary>
+    private static readonly HashSet<string> LayoutTableMarkers = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "table", "p", "div", "section", "article", "ul", "ol", "blockquote", "pre",
+        "h1", "h2", "h3", "h4", "h5", "h6"
     };
 
     /// <summary>
@@ -357,13 +370,13 @@ public class HtmlParser : IHtmlParser
                 {
                     foreach (var item in root.EnumerateArray())
                     {
-                        var author = ExtractAuthorFromJsonElement(item);
+                        var author = JsonLdReader.FindAuthor(item);
                         if (author != null) return author;
                     }
                 }
                 else
                 {
-                    var author = ExtractAuthorFromJsonElement(root);
+                    var author = JsonLdReader.FindAuthor(root);
                     if (author != null) return author;
                 }
             }
@@ -372,62 +385,6 @@ public class HtmlParser : IHtmlParser
                 // Skip malformed JSON-LD blocks
             }
         }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Extracts the author name from a single JSON-LD element, handling both
-    /// string-form authors and object-form authors with a "name" property.
-    /// Also checks nested <c>@graph</c> structures common in schema.org markup.
-    /// </summary>
-    private static string? ExtractAuthorFromJsonElement(JsonElement element)
-    {
-        // Check for @graph arrays (schema.org commonly uses this pattern)
-        if (element.TryGetProperty("@graph", out var graph) && graph.ValueKind == JsonValueKind.Array)
-        {
-            foreach (var graphItem in graph.EnumerateArray())
-            {
-                if (graphItem.TryGetProperty("author", out var graphAuthor))
-                {
-                    var name = ResolveAuthorName(graphAuthor);
-                    if (name != null) return name;
-                }
-            }
-        }
-
-        if (element.TryGetProperty("author", out var author))
-        {
-            return ResolveAuthorName(author);
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Resolves an author value from JSON-LD, which may be a plain string,
-    /// a single object with a "name" property, or an array of authors.
-    /// Returns the first author name found.
-    /// </summary>
-    private static string? ResolveAuthorName(JsonElement author)
-    {
-        if (author.ValueKind == JsonValueKind.String)
-            return author.GetString();
-
-        if (author.ValueKind == JsonValueKind.Array)
-        {
-            foreach (var item in author.EnumerateArray())
-            {
-                if (item.ValueKind == JsonValueKind.String)
-                    return item.GetString();
-
-                if (item.TryGetProperty("name", out var name))
-                    return name.GetString();
-            }
-        }
-
-        if (author.TryGetProperty("name", out var objectName))
-            return objectName.GetString();
 
         return null;
     }
@@ -741,6 +698,11 @@ public class HtmlParser : IHtmlParser
                 {
                     sb.Append(text);
                 }
+                else if (text.Length > 0 && sb.Length > 0 && !char.IsWhiteSpace(sb[sb.Length - 1]))
+                {
+                    // Whitespace between inline elements separates words: "<b>big</b> <i>world</i>"
+                    sb.Append(' ');
+                }
                 break;
 
             case HtmlNodeType.Element:
@@ -749,6 +711,12 @@ public class HtmlParser : IHtmlParser
                 if (style.Contains("display:none", StringComparison.OrdinalIgnoreCase)
                     || style.Contains("display: none", StringComparison.OrdinalIgnoreCase)
                     || style.Contains("visibility:hidden", StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
+                // Data tables are rendered once, in place, as Markdown tables
+                if (node.Name is "table" && TryAppendDataTable(node, sb))
                 {
                     return;
                 }
@@ -786,15 +754,38 @@ public class HtmlParser : IHtmlParser
                     sb.Append('\n');
                 }
 
-                // Add space after inline elements that typically need word separation
-                if (node.Name is "a" or "span" or "em" or "strong" or "b" or "i" or "code"
-                    && sb.Length > 0 && sb[sb.Length - 1] != ' ' && sb[sb.Length - 1] != '\n')
-                {
-                    sb.Append(' ');
-                }
-
+                // Inline elements add no space of their own: "<b>W</b>ord" is one word, and real
+                // separating whitespace arrives as its own text node (handled above).
                 break;
         }
+    }
+
+    /// <summary>
+    /// Appends a data table as a Markdown table set off by blank lines and returns true. Returns
+    /// false for layout tables (tables that contain other tables or paragraph-level blocks, or
+    /// are marked role="presentation"), which the caller extracts block by block instead.
+    /// </summary>
+    private static bool TryAppendDataTable(HtmlNode table, StringBuilder sb)
+    {
+        if (table.GetAttributeValue("role", "").Equals("presentation", StringComparison.OrdinalIgnoreCase)
+            || table.Descendants().Any(d => d.NodeType == HtmlNodeType.Element && LayoutTableMarkers.Contains(d.Name)))
+        {
+            return false;
+        }
+
+        var markdown = HtmlSupplementaryHelper.TableToMarkdown(table).TrimEnd();
+        if (markdown.Length == 0)
+        {
+            return true; // An empty data table contributes nothing
+        }
+
+        if (sb.Length > 0 && sb[sb.Length - 1] != '\n')
+        {
+            sb.Append('\n');
+        }
+
+        sb.Append('\n').Append(markdown).Append("\n\n");
+        return true;
     }
 
     /// <summary>

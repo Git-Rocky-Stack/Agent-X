@@ -560,4 +560,103 @@ public class HtmlParserTests
 
         result.Title.Should().Be("Trimmed Title");
     }
+
+    // ---- Forms, inline whitespace and tables ----
+
+    [Fact]
+    public void ExtractReadabilityText_keeps_content_of_a_form_that_wraps_the_whole_page()
+    {
+        // ASP.NET WebForms and SharePoint wrap the entire body in a single form element.
+        var html = """
+                   <html><body>
+                   <form id="aspnetForm" method="post">
+                   <input type="hidden" name="__VIEWSTATE" value="dDwtMTA4MTc2" />
+                   <div id="content"><p>Quarterly results for the team show steady growth across every region, with the new product line leading adoption and support tickets falling for the third quarter in a row.</p></div>
+                   <button type="submit">Search</button>
+                   </form>
+                   </body></html>
+                   """;
+
+        var text = _parser.ExtractReadabilityText(html);
+
+        text.Should().Contain("Quarterly results for the team show steady growth");
+        text.Should().NotContain("dDwtMTA4MTc2");
+        text.Should().NotContain("Search", "form controls are still removed");
+    }
+
+    [Fact]
+    public void ExtractReadabilityText_keeps_the_space_between_inline_elements()
+    {
+        var text = _parser.ExtractReadabilityText("<html><body><p><u>big</u> <mark>world</mark></p></body></html>");
+
+        text.Should().Be("big world");
+    }
+
+    [Fact]
+    public void ExtractReadabilityText_does_not_split_a_word_after_an_inline_element()
+    {
+        var text = _parser.ExtractReadabilityText("<html><body><p><b>W</b>ord and <a href=\"/x\">link</a>s</p></body></html>");
+
+        text.Should().Be("Word and links");
+    }
+
+    [Fact]
+    public void Parse_renders_an_article_table_once_as_markdown_and_ignores_tables_outside_the_article()
+    {
+        var html = """
+                   <html><body>
+                   <table class="site-links"><tr><td><a href="/">Home</a></td><td><a href="/about">About us</a></td></tr></table>
+                   <article>
+                   <h1>Annual report</h1>
+                   <p>The company grew in every market this year, and the table below lists revenue growth by year for the last two reporting periods in detail.</p>
+                   <table>
+                   <tr><th>Year</th><th>Revenue growth</th></tr>
+                   <tr><td>2023</td><td>9%</td></tr>
+                   <tr><td>2024</td><td>15%</td></tr>
+                   </table>
+                   </article>
+                   </body></html>
+                   """;
+
+        var text = _parser.Parse(html, "https://example.com/report").Text;
+
+        text.Should().Contain("| Year | Revenue growth |\n| --- | --- |\n| 2023 | 9% |\n| 2024 | 15% |");
+        System.Text.RegularExpressions.Regex.Matches(text, "Revenue growth").Count.Should().Be(1,
+            "the table must appear once, not as cell lines plus an appended copy");
+        text.Should().NotContain("About us", "navigation tables outside the article are not content");
+    }
+
+    [Fact]
+    public void Parse_extracts_a_layout_table_block_by_block_instead_of_flattening_it()
+    {
+        var html = """
+                   <html><body><article>
+                   <table><tr><td>
+                   <p>First paragraph of an old table-based layout page that still carries plenty of words for extraction to accept it.</p>
+                   <p>Second paragraph that must stay a separate paragraph.</p>
+                   </td></tr></table>
+                   </article></body></html>
+                   """;
+
+        var text = _parser.Parse(html, "https://example.com/old").Text;
+
+        text.Should().NotContain("|");
+        text.Should().Contain("First paragraph of an old table-based layout page");
+        text.Should().Contain("\n\nSecond paragraph that must stay a separate paragraph.");
+    }
+
+    [Fact]
+    public void ExtractMetadata_skips_a_null_entry_in_a_json_ld_author_array()
+    {
+        var html = """
+                   <html><head>
+                   <meta name="author" content="Meta Author" />
+                   <script type="application/ld+json">{ "@type": "Article", "author": [null, { "name": "Array Author" }] }</script>
+                   </head><body><p>Body</p></body></html>
+                   """;
+
+        var result = _parser.ExtractMetadata(html, "https://example.com/a");
+
+        result.Author.Should().Be("Array Author");
+    }
 }

@@ -69,9 +69,9 @@ public class StructuredDataExtractor : IStructuredDataExtractor
                             return data;
                     }
                 }
-                catch (JsonException)
+                catch (Exception ex) when (ex is JsonException or InvalidOperationException)
                 {
-                    // Skip malformed JSON-LD blocks silently; they are common in the wild
+                    // Skip a malformed block and keep reading the next one; both are common in the wild
                     _log.Debug("Skipping malformed JSON-LD block during extraction");
                 }
             }
@@ -213,6 +213,10 @@ public class StructuredDataExtractor : IStructuredDataExtractor
     /// </summary>
     private static JsonLdData? BuildJsonLdData(JsonElement element)
     {
+        // Array entries can be anything; only objects describe schema.org items
+        if (element.ValueKind != JsonValueKind.Object)
+            return null;
+
         // Check for @graph arrays (schema.org commonly uses this pattern)
         if (element.TryGetProperty("@graph", out var graph) && graph.ValueKind == JsonValueKind.Array)
         {
@@ -228,32 +232,23 @@ public class StructuredDataExtractor : IStructuredDataExtractor
         if (!element.TryGetProperty("@type", out _))
             return null;
 
-        var type = element.TryGetProperty("@type", out var typeEl) ? typeEl.GetString() : null;
-
-        string? name = null;
-        if (element.TryGetProperty("name", out var nameEl))
-            name = nameEl.ValueKind == JsonValueKind.String ? nameEl.GetString() : null;
+        // "@type" may be a string or an array such as ["Article", "NewsArticle"]
+        var type = JsonLdReader.GetSchemaType(element);
 
         // Try "headline" as fallback for name (common in Article schema)
-        name ??= element.TryGetProperty("headline", out var headlineEl)
-            ? headlineEl.ValueKind == JsonValueKind.String ? headlineEl.GetString() : null
-            : null;
+        var name = JsonLdReader.GetString(element, "name")
+                   ?? JsonLdReader.GetString(element, "headline");
 
         var author = element.TryGetProperty("author", out var authorEl)
-            ? ResolveAuthorName(authorEl)
+            ? JsonLdReader.ResolveAuthorName(authorEl)
             : null;
 
-        string? description = null;
-        if (element.TryGetProperty("description", out var descEl))
-            description = descEl.ValueKind == JsonValueKind.String ? descEl.GetString() : null;
+        var description = JsonLdReader.GetString(element, "description");
 
         DateTime? datePublished = null;
-        if (element.TryGetProperty("datePublished", out var dateEl) && dateEl.ValueKind == JsonValueKind.String)
-        {
-            var dateString = dateEl.GetString();
-            if (!string.IsNullOrEmpty(dateString) && DateTime.TryParse(dateString, out var parsed))
-                datePublished = parsed.ToUniversalTime();
-        }
+        var dateString = JsonLdReader.GetString(element, "datePublished");
+        if (!string.IsNullOrEmpty(dateString) && DateTime.TryParse(dateString, out var parsed))
+            datePublished = parsed.ToUniversalTime();
 
         return new JsonLdData(
             Type: type,
@@ -261,34 +256,6 @@ public class StructuredDataExtractor : IStructuredDataExtractor
             Author: author,
             Description: description,
             DatePublished: datePublished);
-    }
-
-    /// <summary>
-    /// Resolves an author value from JSON-LD, which may be a plain string,
-    /// a single object with a "name" property, or an array of authors.
-    /// Returns the first author name found.
-    /// </summary>
-    private static string? ResolveAuthorName(JsonElement author)
-    {
-        if (author.ValueKind == JsonValueKind.String)
-            return author.GetString();
-
-        if (author.ValueKind == JsonValueKind.Array)
-        {
-            foreach (var item in author.EnumerateArray())
-            {
-                if (item.ValueKind == JsonValueKind.String)
-                    return item.GetString();
-
-                if (item.TryGetProperty("name", out var name))
-                    return name.GetString();
-            }
-        }
-
-        if (author.TryGetProperty("name", out var objectName))
-            return objectName.GetString();
-
-        return null;
     }
 
     /// <summary>
@@ -313,51 +280,24 @@ public class StructuredDataExtractor : IStructuredDataExtractor
                 {
                     foreach (var item in root.EnumerateArray())
                     {
-                        var author = ExtractAuthorFromJsonElement(item);
+                        var author = JsonLdReader.FindAuthor(item);
                         if (author is not null)
                             return author;
                     }
                 }
                 else
                 {
-                    var author = ExtractAuthorFromJsonElement(root);
+                    var author = JsonLdReader.FindAuthor(root);
                     if (author is not null)
                         return author;
                 }
             }
-            catch (JsonException)
+            catch (Exception ex) when (ex is JsonException or InvalidOperationException)
             {
-                // Skip malformed JSON-LD blocks
+                // Skip a malformed block; the remaining blocks and the meta fallbacks still apply
                 _log.Debug("Skipping malformed JSON-LD block during author extraction");
             }
         }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Extracts the author name from a single JSON-LD element, handling both
-    /// string-form authors and object-form authors with a "name" property.
-    /// Also checks nested <c>@graph</c> structures common in schema.org markup.
-    /// </summary>
-    private static string? ExtractAuthorFromJsonElement(JsonElement element)
-    {
-        // Check for @graph arrays (schema.org commonly uses this pattern)
-        if (element.TryGetProperty("@graph", out var graph) && graph.ValueKind == JsonValueKind.Array)
-        {
-            foreach (var graphItem in graph.EnumerateArray())
-            {
-                if (graphItem.TryGetProperty("author", out var graphAuthor))
-                {
-                    var name = ResolveAuthorName(graphAuthor);
-                    if (name is not null)
-                        return name;
-                }
-            }
-        }
-
-        if (element.TryGetProperty("author", out var author))
-            return ResolveAuthorName(author);
 
         return null;
     }

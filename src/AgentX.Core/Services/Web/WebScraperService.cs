@@ -261,7 +261,7 @@ public class WebScraperService : IWebScraperService
 
     /// <summary>
     /// Composes the full pipeline result by delegating to the three extracted services
-    /// and enriching with supplementary data (canonical URL, language, tables).
+    /// and enriching with supplementary data (canonical URL, language).
     /// </summary>
     private WebContent BuildWebContent(string html, string url)
     {
@@ -278,14 +278,10 @@ public class WebScraperService : IWebScraperService
         var author = _extractor.ExtractAuthor(html);
         var canonicalUrl = HtmlSupplementaryHelper.ExtractCanonicalUrl(html);
         var language = HtmlSupplementaryHelper.ExtractLanguage(html);
-        var tableMarkdown = HtmlSupplementaryHelper.ExtractTablesAsMarkdown(html);
 
-        // Step 3: Build final content with table markdown appended
+        // Step 3: The parser already renders data tables inside the article as Markdown, in
+        // place; tables elsewhere on the page (navigation, layout) are deliberately left out.
         var content = parsed.Text;
-        if (!string.IsNullOrWhiteSpace(tableMarkdown))
-        {
-            content = content + "\n\n" + tableMarkdown.TrimEnd();
-        }
 
         var metadata = _parser.ExtractMetadata(html, url);
         var wordCount = CountWords(content);
