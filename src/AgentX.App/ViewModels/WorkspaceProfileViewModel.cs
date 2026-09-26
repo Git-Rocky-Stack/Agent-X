@@ -11,8 +11,10 @@ namespace AgentX.App.ViewModels;
 // =====================================================================
 // WORKSPACE PROFILE VIEW MODEL
 //
-// Manages workspace profiles that let users save and restore complete
-// workspace configurations (active model, collections, custom settings).
+// Manages workspace profiles: saved presets recording a model identifier,
+// collection IDs and custom settings. Profiles are not applied to the
+// running app (selecting one or marking it as the default changes nothing
+// else), so the page must not claim otherwise.
 // Two-panel master/detail layout: profile list on the left, editor on
 // the right.
 //
@@ -238,7 +240,8 @@ public partial class WorkspaceProfileViewModel : ObservableObject, IDisposable
             SelectedProfile.UpdatedAt = entity.UpdatedAt;
             SelectedProfile.UpdatedAtFormatted = FormatHelper.TimeAgoWithMonths(entity.UpdatedAt);
 
-            // Handle default status change
+            // Handle default status change in both directions: turning the Default Profile
+            // switch off and saving used to be ignored.
             if (EditIsDefault && !SelectedProfile.IsDefault)
             {
                 await _profileService.SetDefaultProfileAsync(SelectedProfile.Id);
@@ -248,6 +251,11 @@ public partial class WorkspaceProfileViewModel : ObservableObject, IDisposable
                 {
                     profile.IsDefault = profile.Id == SelectedProfile.Id;
                 }
+            }
+            else if (!EditIsDefault && SelectedProfile.IsDefault)
+            {
+                await _profileService.ClearDefaultProfileAsync(SelectedProfile.Id);
+                SelectedProfile.IsDefault = false;
             }
 
             // Force the list to re-render the updated item

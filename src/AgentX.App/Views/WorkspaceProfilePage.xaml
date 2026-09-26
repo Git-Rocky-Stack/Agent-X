@@ -487,7 +487,7 @@
                                 <TextBox Style="{StaticResource InputTextBoxStyle}"
                                          x:Uid="Workspace_EGLlama32Ph" PlaceholderText="e.g., llama3.2, mistral, phi3"
                                          Text="{x:Bind ViewModel.EditActiveModelId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                <TextBlock x:Uid="Workspace_TheOllamaModelIdentifier" Text="The Ollama model identifier to activate when this profile is loaded."
+                                <TextBlock x:Uid="Workspace_TheOllamaModelIdentifier" Text="The Ollama model identifier saved with this profile. Selecting the profile does not switch models."
                                            Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
 
@@ -498,7 +498,7 @@
                                 <TextBox Style="{StaticResource InputTextBoxStyle}"
                                          x:Uid="Workspace_EG13Ph" PlaceholderText="e.g., 1,3,7 (comma-separated)"
                                          Text="{x:Bind ViewModel.EditActiveCollectionIds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                <TextBlock x:Uid="Workspace_CommaSeparatedListOf" Text="Comma-separated list of collection IDs to enable when this profile is loaded."
+                                <TextBlock x:Uid="Workspace_CommaSeparatedListOf" Text="Comma-separated list of collection IDs saved with this profile. Selecting the profile does not change collections."
                                            Style="{StaticResource CaptionStyle}" />
                             </StackPanel>
 
@@ -534,7 +534,7 @@
                                         <TextBlock x:Name="DefaultProfileLabel" x:Uid="Workspace_DefaultProfile" Text="Default Profile"
                                                    Style="{StaticResource BodyStyle}"
                                                    FontWeight="SemiBold" />
-                                        <TextBlock x:Uid="Workspace_ThisProfileWillBe" Text="This profile will be loaded automatically when the app starts."
+                                        <TextBlock x:Uid="Workspace_ThisProfileWillBe" Text="Marks this profile as your default. Profiles are saved presets; Agent-X does not apply them automatically."
                                                    Style="{StaticResource CaptionStyle}" />
                                     </StackPanel>
 

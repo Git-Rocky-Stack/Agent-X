@@ -522,15 +522,15 @@
   <data name="UserGuide_AudioTranscription_Note_Label.Text" xml:space="preserve"><value>注意</value></data>
   <data name="UserGuide_AudioTranscription_Note.Text" xml:space="preserve"><value>Audio Transcription は experimental.audio_transcription フィーチャー フラグで制御され、追加のモデル ダウンロードが必要な場合があります。設定 &gt; Feature Flags で有効化してください。小さいモデルは 4 コア CPU でリアルタイム動作し、大きいモデルは GPU の恩恵を受けます。</value></data>
   <data name="UserGuide_WorkspaceProfiles_Title.Text" xml:space="preserve"><value>ワークスペース プロファイル</value></data>
-  <data name="UserGuide_WorkspaceProfiles_Description.Text" xml:space="preserve"><value>ワークスペース プロファイルは、作業のしかたを記録する名前付きのプリセットです。名前、説明、モデル識別子、コレクション ID の一覧、自由形式のカスタム設定を保存します。プロファイルは作成、編集、複製、削除ができ、1 つを既定としてマークできます。このリリースではプロファイルは保存された記録にすぎず、Agent-X のどこからも読み込まれません。そのため、既定にしたり編集したりしても、アクティブなモデルの切り替え、ボールトの絞り込み、会話の分離は行われません。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_Description.Text" xml:space="preserve"><value>ワークスペース プロファイルは保存されたプリセットです。各プロファイルには、名前、説明、Ollama モデルの識別子、カンマ区切りのコレクション ID のリスト、自由形式のカスタム設定が保存されます。プロファイルは記録にすぎません。プロファイルを選択したり既定に設定したりしても、モデル、使用するコレクション、設定は変わりません。すべてのプロファイルは同じドキュメント、会話、設定を共有します。</value></data>
   <data name="UserGuide_WorkspaceProfiles_Creating_Title.Text" xml:space="preserve"><value>プロファイルの作成</value></data>
-  <data name="UserGuide_WorkspaceProfiles_Create1.Text" xml:space="preserve"><value>ナビゲーション レールから [ワークスペース プロファイル] を開き (または Ctrl+K で検索し)、名前と任意の説明を入力して [プロファイルを作成] をクリックします。</value></data>
-  <data name="UserGuide_WorkspaceProfiles_Create2.Text" xml:space="preserve"><value>プロファイルを選択して詳細を入力します。Ollama のモデル識別子 (例: llama3.2)、カンマ区切りのコレクション ID の一覧、JSON または key=value 形式のカスタム設定です。[プロファイルを保存] をクリックして保存します。</value></data>
-  <data name="UserGuide_WorkspaceProfiles_Create3.Text" xml:space="preserve"><value>[複製] で既存のプロファイルを基に新しいプロファイルを作成し、[既定に設定] で最もよく使うプロファイルをマークします。プロファイルの切り替え機能や Ctrl+Shift+S ショートカットはありません。作業に使うモデルやコレクションを変えるには、設定、チャット、検索で直接変更してください。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_Create1.Text" xml:space="preserve"><value>サイドバーから「ワークスペース プロファイル」を開き、左側のパネルに名前と説明 (省略可) を入力して「プロファイルを作成」をクリックします。新しいプロファイルがエディターに表示されます。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_Create2.Text" xml:space="preserve"><value>プロファイルに保存したい内容を入力します。Ollama モデルの識別子 (例: llama3.2)、カンマ区切りのコレクション ID、任意のカスタム設定テキストです。「プロファイルを保存」をクリックすると保存されます。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_Create3.Text" xml:space="preserve"><value>「既定に設定」は 1 つのプロファイルを既定としてマークし、他のプロファイルからマークを外します。「既定のプロファイル」スイッチをオフにして保存すると、マークが外れます。「複製」はプロファイルをコピーし、「プロファイルを削除」はプロファイルのみを削除します。Agent-X は起動時にプロファイルを読み込みません。</value></data>
   <data name="UserGuide_WorkspaceProfiles_UseCases_Title.Text" xml:space="preserve"><value>ユース ケース</value></data>
-  <data name="UserGuide_WorkspaceProfiles_UseCase1.Text" xml:space="preserve"><value>セットアップを記録：ある作業で使うモデルとコレクションを書き留めておけば、手動での切り替えを素早く一貫して行えます。</value></data>
-  <data name="UserGuide_WorkspaceProfiles_UseCase2.Text" xml:space="preserve"><value>コピーから始める：プロファイルを複製して、同じコレクションに別のモデルを使うなどのバリエーションを、元のプロファイルを失わずに試せます。</value></data>
-  <data name="UserGuide_WorkspaceProfiles_UseCase3.Text" xml:space="preserve"><value>構成と一緒にメモを残す：説明とカスタム設定の欄には、プロジェクトで使うシステム プロンプトなど、セットアップと一緒に残しておきたい情報を何でも保存できます。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_UseCase1.Text" xml:space="preserve"><value>モデルのメモ: プロジェクトごとに適した Ollama モデルを記録しておき、プロジェクトを切り替えるときに「設定」でそのモデルを自分で選択します。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_UseCase2.Text" xml:space="preserve"><value>プロジェクトの参照情報: クライアントやプロジェクトに属するコレクション ID やメモを 1 か所にまとめ、その作業を再開するときにすぐ参照できるようにします。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_UseCase3.Text" xml:space="preserve"><value>バリエーション: プロファイルを複製して、元のプロファイルを変更せずにバリエーションを記録します。</value></data>
   <data name="UserGuide_Plugins_Title.Text" xml:space="preserve"><value>プラグインと拡張性</value></data>
   <data name="UserGuide_Plugins_Description.Text" xml:space="preserve"><value>プラグインは Agent-X を新しいプロバイダー、パーサー、Quick Actions、ワークフロー ノード、サイドバー サーフェス、統合で拡張します。.agentx-plugin ファイル(または .zip)としてパッケージ化され、Plugin Manager(設定 &gt; Plugins)から配布され、デスクトップ アプリ内でサンドボックス実行されます。組み込みプラグインには Calendar(Outlook/Google)と Email が含まれます。開発者 SDK で独自のプラグインを構築できます — カスタム RAG パイプラインから「Notion へ送信」アクションまで。</value></data>
   <data name="UserGuide_Plugins_Manager_Title.Text" xml:space="preserve"><value>プラグイン マネージャー</value></data>
@@ -1606,15 +1606,15 @@
   <data name="Workspace_OptionalDescriptionOfThisPh.PlaceholderText" xml:space="preserve"><value>このプロファイルの目的の説明 (省略可)</value></data>
   <data name="Workspace_ActiveModelId.Text" xml:space="preserve"><value>アクティブなモデル ID</value></data>
   <data name="Workspace_EGLlama32Ph.PlaceholderText" xml:space="preserve"><value>例: llama3.2、mistral、phi3</value></data>
-  <data name="Workspace_TheOllamaModelIdentifier.Text" xml:space="preserve"><value>このプロファイルの読み込み時にアクティブ化する Ollama モデルの識別子。</value></data>
+  <data name="Workspace_TheOllamaModelIdentifier.Text" xml:space="preserve"><value>このプロファイルに保存される Ollama モデルの識別子。プロファイルを選択してもモデルは切り替わりません。</value></data>
   <data name="Workspace_ActiveCollectionIds.Text" xml:space="preserve"><value>アクティブなコレクション ID</value></data>
   <data name="Workspace_EG13Ph.PlaceholderText" xml:space="preserve"><value>例: 1,3,7 (カンマ区切り)</value></data>
-  <data name="Workspace_CommaSeparatedListOf.Text" xml:space="preserve"><value>このプロファイルの読み込み時に有効化するコレクション ID のカンマ区切りリスト。</value></data>
+  <data name="Workspace_CommaSeparatedListOf.Text" xml:space="preserve"><value>このプロファイルに保存されるコレクション ID のカンマ区切りリスト。プロファイルを選択してもコレクションは変わりません。</value></data>
   <data name="Workspace_CustomSettings.Text" xml:space="preserve"><value>カスタム設定</value></data>
   <data name="Workspace_JsonOrKeyValuePh.PlaceholderText" xml:space="preserve"><value>追加構成用の JSON または key=value ペア</value></data>
   <data name="Workspace_FreeFormSettingsStored.Text" xml:space="preserve"><value>このプロファイルと一緒に保存される自由形式の設定です。JSON などの構造化形式を使用してください。</value></data>
   <data name="Workspace_DefaultProfile.Text" xml:space="preserve"><value>既定のプロファイル</value></data>
-  <data name="Workspace_ThisProfileWillBe.Text" xml:space="preserve"><value>アプリの起動時に、このプロファイルが自動的に読み込まれます。</value></data>
+  <data name="Workspace_ThisProfileWillBe.Text" xml:space="preserve"><value>このプロファイルを既定として設定します。プロファイルは保存されたプリセットで、Agent-X が自動的に適用することはありません。</value></data>
   <data name="Workspace_SaveProfile.Text" xml:space="preserve"><value>プロファイルを保存</value></data>
   <data name="Workspace_SetAsDefault.Text" xml:space="preserve"><value>既定に設定</value></data>
   <data name="Workspace_DeleteProfile.Text" xml:space="preserve"><value>プロファイルを削除</value></data>

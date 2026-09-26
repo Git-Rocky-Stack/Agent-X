@@ -1,7 +1,9 @@
 using AgentX.App.ViewModels;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Workspace;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using Xunit;
 
@@ -120,6 +122,64 @@ public sealed class WorkspaceProfileViewModelTests
         viewModel.Profiles.Single(profile => profile.Id == 1).IsDefault.Should().BeFalse();
         viewModel.StatusMessage.Should().Be("Profile \"Writing Focus\" saved successfully.");
         viewModel.HasError.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SaveProfileAsync_with_the_default_switch_turned_off_clears_the_default()
+    {
+        var existing = CreateProfile(1, "Research", isDefault: true);
+        _profileService.Setup(service => service.GetAllProfilesAsync())
+            .ReturnsAsync([existing]);
+        _profileService.Setup(service => service.GetProfileAsync(1))
+            .ReturnsAsync(existing);
+        _profileService.Setup(service => service.UpdateProfileAsync(It.IsAny<WorkspaceProfileEntity>()))
+            .Returns(Task.CompletedTask);
+        _profileService.Setup(service => service.ClearDefaultProfileAsync(1))
+            .Returns(Task.CompletedTask);
+
+        var viewModel = new WorkspaceProfileViewModel(_profileService.Object);
+        await viewModel.InitializeAsync();
+        viewModel.SelectedProfile = viewModel.Profiles.Single();
+        viewModel.EditIsDefault = false;
+
+        await viewModel.SaveProfileCommand.ExecuteAsync(null);
+
+        // Previously only turning the switch on was handled and this save kept the default.
+        _profileService.Verify(service => service.ClearDefaultProfileAsync(1), Times.Once);
+        _profileService.Verify(service => service.SetDefaultProfileAsync(It.IsAny<long>()), Times.Never);
+        viewModel.SelectedProfile!.IsDefault.Should().BeFalse();
+        viewModel.HasError.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SaveProfileAsync_saves_the_same_profile_repeatedly_with_the_real_service()
+    {
+        using var factory = new TestDbContextFactory();
+        using var db = factory.CreateContext();
+        var service = new WorkspaceProfileService(db);
+        await service.CreateProfileAsync("Research");
+        await service.CreateProfileAsync("Writing");
+
+        var viewModel = new WorkspaceProfileViewModel(service);
+        await viewModel.InitializeAsync();
+        viewModel.SelectedProfile = viewModel.Profiles.Single(profile => profile.Name == "Research");
+
+        viewModel.EditActiveModelId = "llama3.2";
+        viewModel.EditIsDefault = true;
+        await viewModel.SaveProfileCommand.ExecuteAsync(null);
+        viewModel.HasError.Should().BeFalse(viewModel.ErrorMessage);
+
+        // The second save of the same profile failed with an EF tracking error before.
+        viewModel.EditActiveModelId = "mistral:latest";
+        viewModel.EditIsDefault = false;
+        await viewModel.SaveProfileCommand.ExecuteAsync(null);
+        viewModel.HasError.Should().BeFalse(viewModel.ErrorMessage);
+
+        using var verify = factory.CreateContext();
+        var stored = await verify.WorkspaceProfiles.AsNoTracking().SingleAsync(profile => profile.Name == "Research");
+        stored.ActiveModelId.Should().Be("mistral:latest");
+        stored.IsDefault.Should().BeFalse();
+        (await verify.WorkspaceProfiles.AsNoTracking().CountAsync(profile => profile.IsDefault)).Should().Be(0);
     }
 
     [Fact]

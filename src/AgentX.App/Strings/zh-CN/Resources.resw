@@ -522,15 +522,15 @@
   <data name="UserGuide_AudioTranscription_Note_Label.Text" xml:space="preserve"><value>提示</value></data>
   <data name="UserGuide_AudioTranscription_Note.Text" xml:space="preserve"><value>Audio Transcription 由实验功能开关 experimental.audio_transcription 控制,可能需要额外下载模型。请在“设置 &gt; Feature Flags”中启用。小模型可在 4 核 CPU 上实时运行;大模型受益于 GPU。</value></data>
   <data name="UserGuide_WorkspaceProfiles_Title.Text" xml:space="preserve"><value>工作区配置文件</value></data>
-  <data name="UserGuide_WorkspaceProfiles_Description.Text" xml:space="preserve"><value>工作区配置文件是具名的预设，用于记录您的工作方式：名称、描述、模型标识符、集合 ID 列表以及自由格式的自定义设置。您可以创建、编辑、复制和删除配置文件，并将其中一个标记为默认。在此版本中，配置文件只是保存的记录：Agent-X 中没有任何地方会加载它，因此将配置文件设为默认或编辑它，并不会切换当前模型、筛选知识库或分隔对话。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_Description.Text" xml:space="preserve"><value>工作区配置文件是已保存的预设。每个配置文件保存名称、描述、Ollama 模型标识符、以逗号分隔的合集 ID 列表以及自由格式的自定义设置。配置文件只是记录：选择配置文件或将其设为默认不会切换模型、不会更改所用的合集，也不会更改任何设置。所有配置文件共享相同的文档、对话和设置。</value></data>
   <data name="UserGuide_WorkspaceProfiles_Creating_Title.Text" xml:space="preserve"><value>创建配置文件</value></data>
-  <data name="UserGuide_WorkspaceProfiles_Create1.Text" xml:space="preserve"><value>从导航栏打开“工作区配置文件”（或按 Ctrl+K 查找），输入名称和可选的描述，然后点击“创建配置文件”。</value></data>
-  <data name="UserGuide_WorkspaceProfiles_Create2.Text" xml:space="preserve"><value>选择配置文件以填写其详细信息：Ollama 模型标识符（例如 llama3.2）、以逗号分隔的集合 ID 列表，以及任意 JSON 或 key=value 格式的自定义设置。点击“保存配置文件”进行存储。</value></data>
-  <data name="UserGuide_WorkspaceProfiles_Create3.Text" xml:space="preserve"><value>使用“复制”可基于现有配置文件新建配置文件，使用“设为默认”可标记最常用的配置文件。没有配置文件切换器，也没有 Ctrl+Shift+S 快捷键：要更换所用的模型或集合，请直接在设置、聊天或搜索中更改。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_Create1.Text" xml:space="preserve"><value>从侧边栏打开“工作区配置文件”，在左侧面板中输入名称和可选的描述，然后单击“创建配置文件”。新配置文件会在编辑器中打开。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_Create2.Text" xml:space="preserve"><value>输入要随配置文件保存的内容：Ollama 模型标识符（例如 llama3.2）、以逗号分隔的合集 ID，以及任意自定义设置文本。单击“保存配置文件”进行保存。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_Create3.Text" xml:space="preserve"><value>“设为默认”会将一个配置文件标记为默认，并移除其他配置文件的标记。关闭“默认配置文件”开关并保存即可移除标记。“复制”会复制配置文件，“删除配置文件”只删除该配置文件。Agent-X 启动时不会加载任何配置文件。</value></data>
   <data name="UserGuide_WorkspaceProfiles_UseCases_Title.Text" xml:space="preserve"><value>使用场景</value></data>
-  <data name="UserGuide_WorkspaceProfiles_UseCase1.Text" xml:space="preserve"><value>记录一套配置：写下某项工作使用的模型和集合，以便手动切换时快速且一致。</value></data>
-  <data name="UserGuide_WorkspaceProfiles_UseCase2.Text" xml:space="preserve"><value>从副本开始：复制配置文件来尝试变体，例如为同一组集合换用另一个模型，而不会丢失原配置。</value></data>
-  <data name="UserGuide_WorkspaceProfiles_UseCase3.Text" xml:space="preserve"><value>为配置保留备注：描述和自定义设置字段可以保存您想与某套配置放在一起的任何上下文，例如您在某个项目中使用的系统提示。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_UseCase1.Text" xml:space="preserve"><value>模型备注：记录每个项目适用的 Ollama 模型，切换项目时在“设置”中自行选择该模型。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_UseCase2.Text" xml:space="preserve"><value>项目参考：将某个客户或项目的合集 ID 和备注集中保存，以便重新开展该工作时随时查阅。</value></data>
+  <data name="UserGuide_WorkspaceProfiles_UseCase3.Text" xml:space="preserve"><value>变体：复制配置文件以记录一个变体，而不修改原始配置文件。</value></data>
   <data name="UserGuide_Plugins_Title.Text" xml:space="preserve"><value>插件与可扩展性</value></data>
   <data name="UserGuide_Plugins_Description.Text" xml:space="preserve"><value>插件以新的提供方、解析器、Quick Actions、工作流节点、侧边栏页面与集成扩展 Agent-X。它们打包为 .agentx-plugin 文件(或 .zip),通过 Plugin Manager(设置 &gt; Plugins)发布,在桌面应用内沙箱运行。内置插件包括 Calendar(Outlook/Google)与 Email;开发者 SDK 让您构建自己的插件——从自定义 RAG 管道到“发送到 Notion”动作。</value></data>
   <data name="UserGuide_Plugins_Manager_Title.Text" xml:space="preserve"><value>插件管理</value></data>
@@ -1606,15 +1606,15 @@
   <data name="Workspace_OptionalDescriptionOfThisPh.PlaceholderText" xml:space="preserve"><value>此配置文件用途的说明(可选)</value></data>
   <data name="Workspace_ActiveModelId.Text" xml:space="preserve"><value>当前模型 ID</value></data>
   <data name="Workspace_EGLlama32Ph.PlaceholderText" xml:space="preserve"><value>例如 llama3.2、mistral、phi3</value></data>
-  <data name="Workspace_TheOllamaModelIdentifier.Text" xml:space="preserve"><value>加载此配置文件时要激活的 Ollama 模型标识符。</value></data>
+  <data name="Workspace_TheOllamaModelIdentifier.Text" xml:space="preserve"><value>随此配置文件保存的 Ollama 模型标识符。选择此配置文件不会切换模型。</value></data>
   <data name="Workspace_ActiveCollectionIds.Text" xml:space="preserve"><value>启用的合集 ID</value></data>
   <data name="Workspace_EG13Ph.PlaceholderText" xml:space="preserve"><value>例如 1,3,7(逗号分隔)</value></data>
-  <data name="Workspace_CommaSeparatedListOf.Text" xml:space="preserve"><value>加载此配置文件时要启用的合集 ID 列表(逗号分隔)。</value></data>
+  <data name="Workspace_CommaSeparatedListOf.Text" xml:space="preserve"><value>随此配置文件保存的合集 ID 列表(逗号分隔)。选择此配置文件不会更改合集。</value></data>
   <data name="Workspace_CustomSettings.Text" xml:space="preserve"><value>自定义设置</value></data>
   <data name="Workspace_JsonOrKeyValuePh.PlaceholderText" xml:space="preserve"><value>用于附加配置的 JSON 或 key=value 键值对</value></data>
   <data name="Workspace_FreeFormSettingsStored.Text" xml:space="preserve"><value>与此配置文件一起保存的自由格式设置。可使用 JSON 或任意结构化格式。</value></data>
   <data name="Workspace_DefaultProfile.Text" xml:space="preserve"><value>默认配置文件</value></data>
-  <data name="Workspace_ThisProfileWillBe.Text" xml:space="preserve"><value>应用启动时将自动加载此配置文件。</value></data>
+  <data name="Workspace_ThisProfileWillBe.Text" xml:space="preserve"><value>将此配置文件设为默认。配置文件是已保存的预设，Agent-X 不会自动应用它们。</value></data>
   <data name="Workspace_SaveProfile.Text" xml:space="preserve"><value>保存配置文件</value></data>
   <data name="Workspace_SetAsDefault.Text" xml:space="preserve"><value>设为默认</value></data>
   <data name="Workspace_DeleteProfile.Text" xml:space="preserve"><value>删除配置文件</value></data>

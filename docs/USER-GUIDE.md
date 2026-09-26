@@ -544,7 +544,7 @@ Web Import also accepts several URLs at once (one per line), an RSS/Atom feed UR
 
 ## 12. Collections and Workspace Profiles
 
-Collections organize documents inside the vault. Workspace Profiles save named setup presets.
+Collections organize documents inside your vault. Workspace Profiles are saved presets you can keep for reference.
 
 ### Collections
 
@@ -562,9 +562,23 @@ Collections improve RAG scope, search filtering, sync scope, and dashboard insig
 
 ### Workspace Profiles
 
-A Workspace Profile is a named record of a setup: a description, an Ollama model identifier, a comma-separated list of collection IDs, and free-form custom settings (JSON or key=value text). You can create, edit, duplicate, and delete profiles, and mark one as the default. No profile is created for you, and any profile can be deleted.
+A workspace profile is a named preset that stores a description, an Ollama model identifier, a comma-separated list of collection IDs, and free-form custom settings. Profiles are records only:
 
-In this release a profile is a record only. Nothing in Agent-X loads a profile, so marking one default or editing it does not switch the active model, filter the vault, or keep conversations apart, and there is no profile switcher or profile shortcut. Use profiles to write down a setup you then apply by hand in Settings, Chat, or Search.
+- Selecting, saving, or marking a profile as the default does not switch the active model, change the collections in scope, or change any setting.
+- Agent-X does not load a profile at startup, including the default profile.
+- All profiles share the same vault, conversations, and settings. A profile is not a separate environment.
+
+No profile exists until you create one, and any profile can be deleted.
+
+| Action | Result |
+| --- | --- |
+| Create Profile | Adds a profile with a name and an optional description |
+| Save Profile | Stores the edited fields and the Default Profile switch |
+| Set as Default | Marks the profile as the default and removes the mark from every other profile |
+| Duplicate | Copies the profile as "Name (Copy)", without the default mark |
+| Delete Profile | Removes the profile only; documents, collections, and conversations are not affected |
+
+At most one profile carries the default mark. Turning the Default Profile switch off and saving leaves no default profile.
 
 ---
 
