@@ -3,10 +3,12 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using AgentX.Core.AI;
+using AgentX.Core.Data;
 using AgentX.Core.Documents;
 using AgentX.Core.Search;
 using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Intelligence.Models;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 namespace AgentX.Core.Services.Intelligence;
@@ -15,11 +17,14 @@ namespace AgentX.Core.Services.Intelligence;
 /// Production implementation of <see cref="IComparisonService"/>.
 ///
 /// Pipeline for each call to <see cref="CompareDocumentsAsync"/>:
-///   1. Validate inputs and resolve document metadata via <see cref="IDocumentService"/>.
-///   2. For every document, retrieve its most relevant chunks via
-///      <see cref="ISemanticSearchService"/> (semantic search keyed on the
-///      optional <see cref="ComparisonOptions.FocusQuery"/>, falling back to a
-///      broad content-overview query when none is supplied).
+///   1. Validate inputs (duplicate ids removed) and resolve document metadata via
+///      <see cref="IDocumentService"/>; give each document a label that is unique
+///      within the comparison.
+///   2. Run one vault-wide semantic search (keyed on the optional
+///      <see cref="ComparisonOptions.FocusQuery"/>, or a broad content-overview query)
+///      and take each document's best hits. The search cannot be scoped to a single
+///      document, so a document it does not surface is filled from its own stored
+///      chunks, spread across the document, instead of being compared as empty.
 ///   3. Assemble a structured prompt that embeds each document's chunks and
 ///      instructs the AI to output a specific JSON schema.
 ///   4. Stream the AI response via <see cref="IAiService"/> and parse the JSON
@@ -35,6 +40,7 @@ public sealed class ComparisonService : IComparisonService
     private readonly IDocumentService _documentService;
     private readonly ISemanticSearchService _searchService;
     private readonly IDocumentSynthesisService _documentSynthesisService;
+    private readonly AgentXDbContext? _db;
     private readonly ILogger _log;
 
     // ── Constants ────────────────────────────────────────────────────────────
@@ -59,6 +65,16 @@ public sealed class ComparisonService : IComparisonService
     private const string FallbackQuery = "main topics key findings conclusions summary";
 
     /// <summary>
+    /// Search results requested per wanted chunk and document. The vault-wide search is
+    /// ranked across every document, so it asks for many candidates to give each compared
+    /// document a fair chance of appearing before its top hits are taken.
+    /// </summary>
+    private const int SemanticCandidatesPerChunk = 10;
+
+    /// <summary>Upper bound on the candidates requested from the vault-wide search.</summary>
+    private const int MaxSemanticCandidates = 500;
+
+    /// <summary>
     /// JSON deserialization options: case-insensitive property names so the AI's
     /// casing variations (camelCase vs PascalCase) are tolerated.
     /// </summary>
@@ -71,17 +87,28 @@ public sealed class ComparisonService : IComparisonService
 
     // ── Constructor ──────────────────────────────────────────────────────────
 
+    /// <param name="aiService">AI service used by the default synthesis service.</param>
+    /// <param name="documentService">Resolves document metadata.</param>
+    /// <param name="searchService">Vault-wide semantic search for relevant chunks.</param>
+    /// <param name="logger">Logger.</param>
+    /// <param name="documentSynthesisService">Optional synthesis seam; a default is built otherwise.</param>
+    /// <param name="db">
+    /// Database used to read a document's own chunks when the vault-wide search does not
+    /// surface enough of them. Without it such a document is compared with a placeholder body.
+    /// </param>
     public ComparisonService(
         IAiService aiService,
         IDocumentService documentService,
         ISemanticSearchService searchService,
         ILogger logger,
-        IDocumentSynthesisService? documentSynthesisService = null)
+        IDocumentSynthesisService? documentSynthesisService = null,
+        AgentXDbContext? db = null)
     {
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
         _documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
         _searchService = searchService ?? throw new ArgumentNullException(nameof(searchService));
         _documentSynthesisService = documentSynthesisService ?? new DocumentSynthesisService(aiService, logger);
+        _db = db;
         _log = logger?.ForContext<ComparisonService>()
                ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -104,6 +131,15 @@ public sealed class ComparisonService : IComparisonService
                 nameof(documentIds));
         }
 
+        // A repeated id would compare a document with itself and collapse its report entries
+        var distinctIds = documentIds.Distinct().ToList();
+        if (distinctIds.Count < 2)
+        {
+            throw new ArgumentException(
+                "At least two different documents are required for a comparison.",
+                nameof(documentIds));
+        }
+
         options ??= new ComparisonOptions();
 
         var sw = Stopwatch.StartNew();
@@ -118,14 +154,14 @@ public sealed class ComparisonService : IComparisonService
 
         Report(progress, "Loading document metadata…");
 
-        var resolvedDocs = await ResolveDocumentsAsync(documentIds, ct).ConfigureAwait(false);
+        var resolvedDocs = await ResolveDocumentsAsync(distinctIds, ct).ConfigureAwait(false);
 
         if (resolvedDocs.Count < 2)
         {
             _log.Error(
                 "Comparison aborted: only {Count} of {Requested} document(s) could be resolved " +
                 "to indexed documents. At least 2 are required.",
-                resolvedDocs.Count, documentIds.Count);
+                resolvedDocs.Count, distinctIds.Count);
 
             throw new InvalidOperationException(
                 $"At least two resolvable, indexed documents are required for a comparison, " +
@@ -133,9 +169,12 @@ public sealed class ComparisonService : IComparisonService
                 "Ensure the selected documents are fully indexed before comparing.");
         }
 
+        // Labels key the prompt sections and the report, so they must never collide
+        var labels = BuildDocumentLabels(resolvedDocs);
+
         _log.Information(
             "Resolved {Count} document(s): {Names}",
-            resolvedDocs.Count, string.Join(", ", resolvedDocs.Select(d => d.FileName)));
+            resolvedDocs.Count, string.Join(", ", resolvedDocs.Select(d => labels[d.Id])));
 
         // ── Step 2: Retrieve chunks for each document ────────────────────────
 
@@ -145,51 +184,68 @@ public sealed class ComparisonService : IComparisonService
             ? FallbackQuery
             : options.FocusQuery;
 
-        // doc name → concatenated chunk text
+        var chunksPerDoc = Math.Max(1, options.MaxChunksPerDoc);
+
+        ct.ThrowIfCancellationRequested();
+
+        // One vault-wide search; its hits are then split per document. Asking for many
+        // candidates keeps a document from being crowded out by the rest of the vault.
+        var hits = await _searchService.SearchAsync(
+            new SearchQuery
+            {
+                QueryText = searchQuery,
+                TopK = Math.Min(MaxSemanticCandidates, chunksPerDoc * resolvedDocs.Count * SemanticCandidatesPerChunk),
+                MinScore = MinChunkSimilarity,
+                Mode = SearchMode.Semantic,
+            },
+            ct).ConfigureAwait(false);
+
+        var hitsByDoc = hits
+            .GroupBy(h => h.DocumentId)
+            .ToDictionary(g => g.Key, g => g.OrderByDescending(h => h.Score).ToList());
+
+        // document label -> concatenated chunk text
         var contentByDoc = new Dictionary<string, string>(resolvedDocs.Count);
 
         foreach (var doc in resolvedDocs)
         {
             ct.ThrowIfCancellationRequested();
 
-            Report(progress, $"Reading chunks for '{doc.FileName}'…");
+            var label = labels[doc.Id];
+            Report(progress, $"Reading chunks for '{label}'\u2026");
 
-            var chunks = await _searchService.SearchAsync(
-                new SearchQuery
-                {
-                    QueryText = searchQuery,
-                    TopK = options.MaxChunksPerDoc,
-                    MinScore = MinChunkSimilarity,
-                    Mode = SearchMode.Semantic,
-                },
-                ct).ConfigureAwait(false);
-
-            // Filter to chunks that belong to this specific document only.
-            // The semantic search may return chunks from other documents in the
-            // vault; we deliberately scope here so each section of the prompt
-            // contains only content from the target document.
-            var docChunks = chunks
-                .Where(c => c.DocumentId == doc.Id)
-                .OrderBy(c => c.ChunkIndex)
+            // Only this document's own chunks go into its section of the prompt
+            var picked = (hitsByDoc.TryGetValue(doc.Id, out var docHits) ? docHits : [])
+                .Take(chunksPerDoc)
+                .Select(h => (h.ChunkIndex, Text: h.MatchedText))
                 .ToList();
+
+            if (picked.Count < chunksPerDoc && _db is not null)
+            {
+                var chosen = picked.Select(p => p.ChunkIndex).ToHashSet();
+                picked.AddRange(await LoadSpreadChunksAsync(doc.Id, chunksPerDoc - picked.Count, chosen, ct)
+                    .ConfigureAwait(false));
+            }
+
+            var docChunks = picked.OrderBy(p => p.ChunkIndex).ToList();
 
             if (docChunks.Count == 0)
             {
                 _log.Warning(
-                    "No chunks returned for document {DocumentId} '{FileName}' with query '{Query}'. " +
+                    "No chunks found for document {DocumentId} '{FileName}' with query '{Query}'. " +
                     "Document may not have been indexed yet.",
                     doc.Id, doc.FileName, searchQuery);
 
                 // Still include the doc in the prompt with an empty body so the AI
                 // can acknowledge it and the document name appears in the report.
-                contentByDoc[doc.FileName] = "(No indexed content available for this document.)";
+                contentByDoc[label] = "(No indexed content available for this document.)";
             }
             else
             {
-                contentByDoc[doc.FileName] = ConcatenateChunks(docChunks.Select(c => c.MatchedText));
+                contentByDoc[label] = ConcatenateChunks(docChunks.Select(c => c.Text));
                 _log.Debug(
-                    "Document '{FileName}': retrieved {Count} chunk(s), {Chars} chars of content",
-                    doc.FileName, docChunks.Count, contentByDoc[doc.FileName].Length);
+                    "Document '{Label}': using {Count} chunk(s), {Chars} chars of content",
+                    label, docChunks.Count, contentByDoc[label].Length);
             }
         }
 
@@ -243,7 +299,7 @@ public sealed class ComparisonService : IComparisonService
 
         Report(progress, "Parsing analysis results…");
 
-        var docNames = resolvedDocs.Select(d => d.FileName).ToList();
+        var docNames = resolvedDocs.Select(d => labels[d.Id]).ToList();
 
         ComparisonReport report;
 
@@ -434,6 +490,78 @@ public sealed class ComparisonService : IComparisonService
         }
 
         return resolved;
+    }
+
+    /// <summary>
+    /// Gives each document a label that is unique within the comparison (ignoring case): its
+    /// file name, or "name (#id)" when another compared document has the same name. Labels key
+    /// the prompt sections and the report, so two documents never collapse into one.
+    /// </summary>
+    private static Dictionary<long, string> BuildDocumentLabels(IReadOnlyList<Data.Entities.DocumentEntity> docs)
+    {
+        var sharedNames = docs
+            .GroupBy(d => d.FileName, StringComparer.OrdinalIgnoreCase)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var labels = new Dictionary<long, string>(docs.Count);
+
+        foreach (var doc in docs)
+        {
+            var label = sharedNames.Contains(doc.FileName) ? $"{doc.FileName} (#{doc.Id})" : doc.FileName;
+            while (!used.Add(label))
+            {
+                label = $"{label} (#{doc.Id})";
+            }
+
+            labels[doc.Id] = label;
+        }
+
+        return labels;
+    }
+
+    /// <summary>
+    /// Reads up to <paramref name="count"/> of a document's own stored chunks, spread evenly
+    /// from its first to its last chunk and skipping chunks already chosen, so a document the
+    /// vault-wide search did not surface is still compared by its actual content.
+    /// </summary>
+    private async Task<List<(int ChunkIndex, string Text)>> LoadSpreadChunksAsync(
+        long documentId,
+        int count,
+        IReadOnlySet<int> alreadyChosen,
+        CancellationToken ct)
+    {
+        var indexes = await _db!.DocumentChunks
+            .AsNoTracking()
+            .Where(c => c.DocumentId == documentId)
+            .OrderBy(c => c.ChunkIndex)
+            .Select(c => c.ChunkIndex)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+
+        var available = indexes.Where(i => !alreadyChosen.Contains(i)).ToList();
+        if (available.Count == 0 || count <= 0)
+        {
+            return [];
+        }
+
+        var wanted = available.Count <= count
+            ? available
+            : Enumerable.Range(0, count)
+                .Select(i => available[count == 1 ? 0 : (int)Math.Round(i * (available.Count - 1) / (double)(count - 1))])
+                .Distinct()
+                .ToList();
+
+        var chunks = await _db.DocumentChunks
+            .AsNoTracking()
+            .Where(c => c.DocumentId == documentId && wanted.Contains(c.ChunkIndex))
+            .Select(c => new { c.ChunkIndex, c.Content })
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+
+        return chunks.Select(c => (c.ChunkIndex, c.Content)).ToList();
     }
 
     // ── Private helpers — response parsing ───────────────────────────────────

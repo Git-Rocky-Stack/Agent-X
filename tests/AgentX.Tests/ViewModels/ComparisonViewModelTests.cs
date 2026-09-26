@@ -112,6 +112,72 @@ public sealed class ComparisonViewModelTests
         viewModel.StatusMessage.Should().Contain("Comparison complete");
     }
 
+    // ---- Export Report ----
+
+    private async Task<ComparisonViewModel> CreateViewModelWithReportAsync()
+    {
+        _documentService
+            .Setup(service => service.GetAllDocumentsAsync(
+                It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<long?>(),
+                It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([CreateDocument(1, "a.md"), CreateDocument(2, "b.md")]);
+        _comparisonService
+            .Setup(service => service.CompareDocumentsAsync(
+                It.IsAny<IReadOnlyList<long>>(), It.IsAny<ComparisonOptions?>(),
+                It.IsAny<IProgress<string>?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ComparisonReport { Summary = "Summary" });
+        _comparisonService
+            .Setup(service => service.ExportComparisonAsMarkdownAsync(It.IsAny<ComparisonReport>()))
+            .ReturnsAsync("# Comparative Analysis Report");
+
+        var viewModel = new ComparisonViewModel(_comparisonService.Object, _documentService.Object);
+        await viewModel.InitializeAsync();
+        viewModel.AvailableDocuments[0].IsSelected = true;
+        viewModel.AvailableDocuments[1].IsSelected = true;
+        await viewModel.CompareDocumentsCommand.ExecuteAsync(null);
+        return viewModel;
+    }
+
+    [Fact]
+    public async Task ExportReportAsync_hands_the_markdown_to_the_save_handler_and_names_the_file()
+    {
+        var viewModel = await CreateViewModelWithReportAsync();
+        ComparisonReportExportRequest? saved = null;
+        viewModel.SaveReportExportAsync = request =>
+        {
+            saved = request;
+            return Task.FromResult(ComparisonReportExportResult.Saved("/home/me/report.md"));
+        };
+
+        await viewModel.ExportReportCommand.ExecuteAsync(null);
+
+        saved.Should().NotBeNull();
+        saved!.Markdown.Should().Be("# Comparative Analysis Report");
+        saved.SuggestedFileName.Should().EndWith(".md");
+        viewModel.StatusMessage.Should().Be("Comparison report saved to report.md");
+    }
+
+    [Fact]
+    public async Task ExportReportAsync_reports_a_cancelled_save_as_cancelled()
+    {
+        var viewModel = await CreateViewModelWithReportAsync();
+        viewModel.SaveReportExportAsync = _ => Task.FromResult(ComparisonReportExportResult.Cancelled());
+
+        await viewModel.ExportReportCommand.ExecuteAsync(null);
+
+        viewModel.StatusMessage.Should().Be("Export cancelled");
+    }
+
+    [Fact]
+    public async Task ExportReportAsync_does_not_claim_an_export_without_a_save_handler()
+    {
+        var viewModel = await CreateViewModelWithReportAsync();
+
+        await viewModel.ExportReportCommand.ExecuteAsync(null);
+
+        viewModel.StatusMessage.Should().Be("Export unavailable");
+    }
+
     private static DocumentEntity CreateDocument(long id, string fileName)
     {
         return new DocumentEntity

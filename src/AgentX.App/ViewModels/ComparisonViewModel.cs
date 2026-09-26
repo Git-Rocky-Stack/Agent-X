@@ -42,6 +42,12 @@ public partial class ComparisonViewModel : ObservableObject
     private ComparisonReport? _currentReport;
     private CancellationTokenSource? _compareCts;
 
+    /// <summary>
+    /// Saves an exported report (the page shows a file save picker) and returns where it was
+    /// saved. Without it, Export Report says saving is unavailable rather than claiming success.
+    /// </summary>
+    public Func<ComparisonReportExportRequest, Task<ComparisonReportExportResult>>? SaveReportExportAsync { get; set; }
+
     public ComparisonViewModel(
         IComparisonService comparisonService,
         IDocumentService documentService)
@@ -83,17 +89,6 @@ public partial class ComparisonViewModel : ObservableObject
         finally
         {
             IsLoading = false;
-        }
-    }
-
-    [RelayCommand]
-    private void ToggleDocumentSelection(DocumentSelectItem doc)
-    {
-        doc.IsSelected = !doc.IsSelected;
-        SelectedDocuments.Clear();
-        foreach (var d in AvailableDocuments.Where(d => d.IsSelected))
-        {
-            SelectedDocuments.Add(d);
         }
     }
 
@@ -182,8 +177,27 @@ public partial class ComparisonViewModel : ObservableObject
 
         try
         {
+            if (SaveReportExportAsync is null)
+            {
+                StatusMessage = "Export unavailable";
+                return;
+            }
+
             var markdown = await _comparisonService.ExportComparisonAsMarkdownAsync(_currentReport);
-            StatusMessage = "Comparison report exported as Markdown";
+            var result = await SaveReportExportAsync(new ComparisonReportExportRequest(
+                $"agent-x-comparison-{DateTime.Now:yyyyMMdd-HHmmss}.md",
+                markdown));
+
+            if (!result.IsSaved)
+            {
+                StatusMessage = "Export cancelled";
+                return;
+            }
+
+            var fileName = string.IsNullOrWhiteSpace(result.FilePath)
+                ? "Markdown file"
+                : Path.GetFileName(result.FilePath);
+            StatusMessage = $"Comparison report saved to {fileName}";
         }
         catch (Exception ex)
         {
@@ -222,6 +236,16 @@ public partial class ComparisonViewModel : ObservableObject
             item.PropertyChanged -= OnDocumentSelectionChanged;
         }
     }
+}
+
+/// <summary>A comparison report to save: the suggested file name and the Markdown text.</summary>
+public sealed record ComparisonReportExportRequest(string SuggestedFileName, string Markdown);
+
+/// <summary>Where an exported comparison report was saved, or that the save was cancelled.</summary>
+public sealed record ComparisonReportExportResult(bool IsSaved, string? FilePath)
+{
+    public static ComparisonReportExportResult Saved(string filePath) => new(true, filePath);
+    public static ComparisonReportExportResult Cancelled() => new(false, null);
 }
 
 public partial class DocumentSelectItem : ObservableObject

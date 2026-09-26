@@ -77,6 +77,10 @@ public sealed class ComparisonServiceTests : IDisposable
         public ComparisonService Build() =>
             new(Ai.Object, Docs.Object, Search.Object, Logger, Synth.Object);
 
+        /// <summary>Builds the SUT with a database, so documents the search misses are read from their chunks.</summary>
+        public ComparisonService BuildWithDb(AgentX.Core.Data.AgentXDbContext db) =>
+            new(Ai.Object, Docs.Object, Search.Object, Logger, Synth.Object, db);
+
         /// <summary>
         /// Builds the SUT WITHOUT the synthesis seam, so the ctor constructs a real
         /// <see cref="DocumentSynthesisService"/> from <see cref="IAiService"/>.
@@ -320,7 +324,7 @@ public sealed class ComparisonServiceTests : IDisposable
 
         h.LastQuery.Should().NotBeNull();
         h.LastQuery!.QueryText.Should().Be("main topics key findings conclusions summary");
-        h.LastQuery.TopK.Should().Be(7);
+        h.LastQuery.TopK.Should().Be(140); // one vault-wide search: 7 chunks x 2 documents x 10 candidates each
         h.LastQuery.MinScore.Should().BeApproximately(0.15f, 0.0001f);
         h.LastQuery.Mode.Should().Be(SearchMode.Semantic);
     }
@@ -371,8 +375,109 @@ public sealed class ComparisonServiceTests : IDisposable
 
         await sut.CompareDocumentsAsync(new long[] { 1, 2 }); // options == null → defaults
 
-        h.LastQuery!.TopK.Should().Be(5);            // ComparisonOptions.MaxChunksPerDoc default
+        h.LastQuery!.TopK.Should().Be(100);          // MaxChunksPerDoc default 5 x 2 documents x 10 candidates
         h.LastQuery.QueryText.Should().Be("main topics key findings conclusions summary");
+    }
+
+    // ---- Coverage of every document and unique document keys ----
+
+    [Fact]
+    public async Task CompareDocumentsAsync_runs_one_search_for_all_documents()
+    {
+        var h = NewHarness()
+            .WithDocument(1, "a.txt")
+            .WithDocument(2, "b.txt")
+            .WithDocument(3, "c.txt")
+            .WithChunks(Chunk(1, 0, "a"), Chunk(2, 0, "b"), Chunk(3, 0, "c"));
+
+        await h.Build().CompareDocumentsAsync(new long[] { 1, 2, 3 });
+
+        h.Search.Verify(s => s.SearchAsync(It.IsAny<SearchQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CompareDocumentsAsync_reads_the_own_chunks_of_a_document_the_vault_search_missed()
+    {
+        using var factory = new AgentX.Tests.Helpers.TestDbContextFactory();
+        using var db = factory.CreateContext();
+        db.Documents.Add(new DocumentEntity
+        {
+            Id = 2, FileName = "b.txt", FilePath = "/docs/b.txt", FileType = "txt", ContentHash = "hash-b",
+            ImportedAt = DateTime.UtcNow, FileModifiedAt = DateTime.UtcNow, IndexingStatus = "completed",
+        });
+        for (var i = 0; i < 10; i++)
+        {
+            db.DocumentChunks.Add(new DocumentChunkEntity { DocumentId = 2, ChunkIndex = i, Content = $"b-{i}" });
+        }
+
+        await db.SaveChangesAsync();
+
+        // The vault-wide top hits all belong to document 1, as happens in a large vault.
+        var h = NewHarness()
+            .WithDocument(1, "a.txt")
+            .WithDocument(2, "b.txt")
+            .WithChunks(Chunk(1, 0, "a-zero"), Chunk(1, 1, "a-one"));
+
+        await h.BuildWithDb(db).CompareDocumentsAsync(new long[] { 1, 2 }, new ComparisonOptions { MaxChunksPerDoc = 3 });
+
+        var content = h.LastSynthesisRequest!.ContentByDocument;
+        content["b.txt"].Should().Be("b-0\n\nb-4\n\nb-9", "chunks are spread from the start to the end of the document");
+        content["a.txt"].Should().StartWith("a-zero\n\na-one");
+    }
+
+    [Fact]
+    public async Task CompareDocumentsAsync_keeps_documents_with_the_same_file_name_apart()
+    {
+        var h = NewHarness()
+            .WithDocument(1, "report.pdf")
+            .WithDocument(2, "Report.pdf")
+            .WithChunks(Chunk(1, 0, "first"), Chunk(2, 0, "second"));
+
+        var report = await h.Build().CompareDocumentsAsync(new long[] { 1, 2 });
+
+        report.DocumentNames.Should().Equal("report.pdf (#1)", "Report.pdf (#2)");
+        var content = h.LastSynthesisRequest!.ContentByDocument;
+        content.Should().HaveCount(2);
+        content["report.pdf (#1)"].Should().Be("first");
+        content["Report.pdf (#2)"].Should().Be("second");
+    }
+
+    [Fact]
+    public async Task CompareDocumentsAsync_plain_text_fallback_survives_documents_with_the_same_name()
+    {
+        var h = NewHarness()
+            .WithDocument(1, "notes.md")
+            .WithDocument(2, "notes.md")
+            .WithChunks(Chunk(1, 0, "x"), Chunk(2, 0, "y"))
+            .SetSynthesisResponse("not json at all");
+
+        var report = await h.Build().CompareDocumentsAsync(new long[] { 1, 2 });
+
+        report.UniquePoints.Keys.Should().BeEquivalentTo("notes.md (#1)", "notes.md (#2)");
+    }
+
+    [Fact]
+    public async Task CompareDocumentsAsync_ignores_a_repeated_document_id()
+    {
+        var h = NewHarness()
+            .WithDocument(1, "a.txt")
+            .WithDocument(2, "b.txt")
+            .WithChunks(Chunk(1, 0, "a"), Chunk(2, 0, "b"));
+
+        var report = await h.Build().CompareDocumentsAsync(new long[] { 1, 1, 2 });
+
+        report.DocumentNames.Should().Equal("a.txt", "b.txt");
+        h.Docs.Verify(d => d.GetDocumentAsync(1L), Times.Once);
+    }
+
+    [Fact]
+    public async Task CompareDocumentsAsync_rejects_the_same_document_twice()
+    {
+        var sut = NewHarness().WithDocument(1, "a.txt").Build();
+
+        var act = () => sut.CompareDocumentsAsync(new long[] { 1, 1 });
+
+        await act.Should().ThrowAsync<ArgumentException>().WithMessage("*two different documents*");
     }
 
     // ══════════════════════════════════════════════════════════════════════════
