@@ -236,11 +236,13 @@ public sealed class OllamaProvider : IAiProvider
             // (max tokens), "load", "unload". Anything other than "stop" indicates a
             // degraded response.
             string? doneReason = null;
+            var completed = false;
 
             await foreach (var chunk in responseStream.WithCancellation(ct).ConfigureAwait(false))
             {
                 if (chunk is ChatDoneResponseStream done)
                 {
+                    completed = true;
                     doneReason = done.DoneReason;
                     RecordUsage(chatRequest.Model, done);
                 }
@@ -251,6 +253,8 @@ public sealed class OllamaProvider : IAiProvider
                     yield return token;
                 }
             }
+
+            ThrowIfIncomplete(completed, chatRequest.Model);
 
             if (!string.IsNullOrEmpty(doneReason)
                 && !string.Equals(doneReason, "stop", StringComparison.OrdinalIgnoreCase))
@@ -286,11 +290,13 @@ public sealed class OllamaProvider : IAiProvider
 
             var sb = new StringBuilder();
             string? doneReason = null;
+            var completed = false;
 
             await foreach (var chunk in _client.ChatAsync(chatRequest, ct).ConfigureAwait(false))
             {
                 if (chunk is ChatDoneResponseStream done)
                 {
+                    completed = true;
                     doneReason = done.DoneReason;
                     RecordUsage(chatRequest.Model, done);
                 }
@@ -301,6 +307,8 @@ public sealed class OllamaProvider : IAiProvider
                     sb.Append(token);
                 }
             }
+
+            ThrowIfIncomplete(completed, chatRequest.Model);
 
             var result = sb.ToString();
 
@@ -442,6 +450,22 @@ public sealed class OllamaProvider : IAiProvider
     }
 
     // ── Private Helpers ─────────────────────────────────────────────
+
+    /// <summary>
+    /// A finished Ollama response always ends with a "done" chunk. When the server reports an
+    /// error after the stream started ({"error": ...}, for example when the model runner
+    /// crashes) OllamaSharp skips that line, so the stream simply ends early; without this check
+    /// the partial text would be returned as a complete answer.
+    /// </summary>
+    private static void ThrowIfIncomplete(bool completed, string? model)
+    {
+        if (!completed)
+        {
+            throw new HttpRequestException(
+                $"Ollama stopped the response for model '{model}' before it finished. " +
+                "The model may have failed while generating; check the Ollama log.");
+        }
+    }
 
     private void RecordUsage(string model, ChatDoneResponseStream done)
     {

@@ -47,6 +47,58 @@ public sealed class OllamaProviderTests
         client.SelectedModel.Should().Be("llama3.2", "an embedding call must not switch the chat model");
     }
 
+    private static OllamaProvider StreamingProvider(params string[] ndjsonLines)
+    {
+        var handler = new StubHttpHandler((_, _) => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(string.Join("\n", ndjsonLines) + "\n", System.Text.Encoding.UTF8, "application/x-ndjson")
+        });
+        var client = new OllamaApiClient(new HttpClient(handler) { BaseAddress = new Uri("http://localhost:11434") }, "llama3.2");
+        return new OllamaProvider(client, Log.Logger, costTracker: null);
+    }
+
+    [Fact]
+    public async Task Mid_stream_error_fails_the_response_instead_of_returning_a_partial_answer()
+    {
+        using var provider = StreamingProvider(
+            "{\"model\":\"llama3.2\",\"created_at\":\"2026-09-26T00:00:00Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Partial\"},\"done\":false}",
+            "{\"error\":\"model runner has unexpectedly stopped\"}");
+
+        var received = new List<string>();
+        var act = async () =>
+        {
+            await foreach (var token in provider.StreamChatAsync(new List<AgentX.Core.AI.Models.ChatMessage> { AgentX.Core.AI.Models.ChatMessage.User("hi") }))
+                received.Add(token);
+        };
+
+        await act.Should().ThrowAsync<HttpRequestException>().WithMessage("*before it finished*");
+        received.Should().Equal("Partial");
+        await FluentActions.Awaiting(() => provider.ChatAsync(new List<AgentX.Core.AI.Models.ChatMessage> { AgentX.Core.AI.Models.ChatMessage.User("hi") }))
+            .Should().ThrowAsync<HttpRequestException>();
+    }
+
+    [Fact]
+    public async Task Completed_stream_returns_the_answer_and_records_usage()
+    {
+        var tracker = new Moq.Mock<AgentX.Core.AI.Models.ICostTracker>();
+        var handler = new StubHttpHandler((_, _) => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(
+                "{\"model\":\"llama3.2\",\"created_at\":\"2026-09-26T00:00:00Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Hello\"},\"done\":false}\n" +
+                "{\"model\":\"llama3.2\",\"created_at\":\"2026-09-26T00:00:01Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\"},\"done\":true,\"done_reason\":\"stop\",\"prompt_eval_count\":12,\"eval_count\":3}\n",
+                System.Text.Encoding.UTF8, "application/x-ndjson")
+        });
+        var client = new OllamaApiClient(new HttpClient(handler) { BaseAddress = new Uri("http://localhost:11434") }, "llama3.2");
+        using var provider = new OllamaProvider(client, Log.Logger, tracker.Object);
+
+        var answer = await provider.ChatAsync(
+            new List<AgentX.Core.AI.Models.ChatMessage> { AgentX.Core.AI.Models.ChatMessage.User("hi") },
+            new AgentX.Core.AI.Models.ChatOptions { ModelId = "llama3.2" });
+
+        answer.Should().Be("Hello");
+        tracker.Verify(t => t.RecordUsage("llama3.2", "ollama", 12, 3), Moq.Times.Once);
+    }
+
     [Fact]
     public async Task Disposed_provider_rejects_new_calls()
     {
