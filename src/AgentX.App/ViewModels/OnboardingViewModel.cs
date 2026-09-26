@@ -183,12 +183,18 @@ public partial class OnboardingViewModel : ObservableObject
 
         try
         {
-            // Update the settings with the user's chosen endpoint before testing
-            var settings = await _settingsService.GetSettingsAsync();
-            settings.OllamaEndpoint = OllamaEndpoint;
-            await _settingsService.SaveSettingsAsync(settings);
+            if (!AiService.TryParseHttpEndpoint(OllamaEndpoint, out var endpoint))
+            {
+                IsOllamaConnected = false;
+                ConnectionStatusText = "Enter the Ollama address as a URL, for example http://localhost:11434.";
+                return;
+            }
 
-            var connected = await _aiService.ActiveProvider.CheckConnectionAsync();
+            // Test the typed endpoint with a temporary Ollama provider. The active provider is
+            // usually the built-in model, so testing it said nothing about Ollama, and nothing
+            // is saved until the wizard completes.
+            using var ollama = new AgentX.Core.AI.Providers.OllamaProvider(endpoint, Log.Logger);
+            var connected = await ollama.CheckConnectionAsync();
             IsOllamaConnected = connected;
             ConnectionStatusText = connected
                 ? "Connected to Ollama successfully!"
@@ -229,12 +235,14 @@ public partial class OnboardingViewModel : ObservableObject
             HardwareInfo = "Hardware detection unavailable";
         }
 
-        // Only load models if Ollama is connected
-        if (IsOllamaConnected == true)
+        // Only load models if Ollama is connected. They are listed from the tested Ollama
+        // endpoint, not from the active provider (usually the built-in model).
+        if (IsOllamaConnected == true && AiService.TryParseHttpEndpoint(OllamaEndpoint, out var ollamaEndpoint))
         {
             try
             {
-                var models = await _aiService.ActiveProvider.ListModelsAsync();
+                using var ollama = new AgentX.Core.AI.Providers.OllamaProvider(ollamaEndpoint, Log.Logger);
+                var models = await ollama.ListModelsAsync();
                 foreach (var model in models)
                 {
                     var isEmbedding = model.Name.Contains("minilm", StringComparison.OrdinalIgnoreCase)
