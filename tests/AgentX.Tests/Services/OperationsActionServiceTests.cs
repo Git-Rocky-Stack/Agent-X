@@ -153,11 +153,11 @@ public sealed class OperationsActionServiceTests
 
         result.IsSuccess.Should().BeFalse();
         result.Message.Should().Contain("Save a sync configuration");
-        _syncService.Verify(service => service.ExportChangesAsync(It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()), Times.Never);
+        _syncService.Verify(service => service.SyncNowAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task RunManualSyncAsync_exports_changes_and_starts_auto_sync()
+    public async Task RunManualSyncAsync_runs_a_real_export_and_import_pass()
     {
         _syncService
             .Setup(service => service.GetConfigurationAsync())
@@ -167,33 +167,51 @@ public sealed class OperationsActionServiceTests
                 EncryptionKey = "secret"
             });
         _syncService
-            .Setup(service => service.ExportChangesAsync(It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new SyncChangeSet
+            .Setup(service => service.SyncNowAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SyncRunResult
             {
-                Changes =
-                [
-                    new SyncChange
-                    {
-                        EntityType = "ConversationEntity",
-                        EntityId = 42,
-                        ChangeType = SyncChangeType.Updated,
-                        Timestamp = DateTime.UtcNow,
-                        SerializedData = "{}"
-                    }
-                ]
+                ExportedChanges = 1,
+                PeerFilesFound = 2,
+                PeerFilesImported = 2,
+                ChangesApplied = 5,
             });
-        _syncService
-            .Setup(service => service.StartAutoSyncAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
 
         var sut = CreateService();
 
         var result = await sut.RunManualSyncAsync();
 
         result.IsSuccess.Should().BeTrue();
-        result.Message.Should().Contain("1 change(s) exported");
-        _syncService.Verify(service => service.ExportChangesAsync(It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()), Times.Once);
-        _syncService.Verify(service => service.StartAutoSyncAsync(It.IsAny<CancellationToken>()), Times.Once);
+        result.Message.Should().Be("Sync complete. Exported 1 change(s); imported 2 of 2 peer file(s), 5 change(s) applied.");
+        _syncService.Verify(service => service.SyncNowAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _syncService.Verify(service => service.StartAutoSyncAsync(It.IsAny<CancellationToken>()), Times.Never,
+            "starting the loop is not an import: its first tick is a whole interval away");
+    }
+
+    [Fact]
+    public async Task RunManualSyncAsync_reports_files_left_for_retry_as_a_problem()
+    {
+        _syncService
+            .Setup(service => service.GetConfigurationAsync())
+            .ReturnsAsync(new SyncConfiguration
+            {
+                SyncFolderPath = @"C:\Sync",
+                EncryptionKey = "secret"
+            });
+        _syncService
+            .Setup(service => service.SyncNowAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SyncRunResult
+            {
+                PeerFilesFound = 1,
+                PeerFilesPendingRetry = 1,
+                ChangesFailed = 2,
+            });
+
+        var sut = CreateService();
+
+        var result = await sut.RunManualSyncAsync();
+
+        result.IsSuccess.Should().BeFalse();
+        result.Message.Should().StartWith("Sync finished with problems: 1 file(s) will be retried.");
     }
 
     private OperationsActionService CreateService() =>

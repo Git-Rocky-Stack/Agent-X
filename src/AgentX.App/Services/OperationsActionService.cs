@@ -3,6 +3,7 @@ using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Inbox;
 using AgentX.Core.Services.Plugins;
 using AgentX.Core.Services.Sync;
+using AgentX.Core.Services.Sync.Models;
 using Serilog;
 
 namespace AgentX.App.Services;
@@ -173,12 +174,10 @@ public sealed class OperationsActionService : IOperationsActionService
             using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             timeoutCts.CancelAfter(TimeSpan.FromMinutes(10));
 
-            var changeSet = await _syncService.ExportChangesAsync(ct: timeoutCts.Token).ConfigureAwait(false);
-            await _syncService.StartAutoSyncAsync(timeoutCts.Token).ConfigureAwait(false);
+            // One real pass: export local changes, then import every peer file.
+            var result = await _syncService.SyncNowAsync(timeoutCts.Token).ConfigureAwait(false);
 
-            return new OperationsActionResult(
-                true,
-                $"Sync complete — {changeSet.Changes.Count} change(s) exported.");
+            return new OperationsActionResult(!result.HasProblems, DescribeSyncPass(result));
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
@@ -190,5 +189,25 @@ public sealed class OperationsActionService : IOperationsActionService
             _log.Warning(ex, "Operations: manual sync failed");
             return new OperationsActionResult(false, $"Sync failed: {ex.Message}");
         }
+    }
+
+    private static string DescribeSyncPass(SyncRunResult result)
+    {
+        var summary =
+            $"Exported {result.ExportedChanges} change(s); imported {result.PeerFilesImported} of " +
+            $"{result.PeerFilesFound} peer file(s), {result.ChangesApplied} change(s) applied.";
+
+        if (!result.HasProblems)
+            return "Sync complete. " + summary;
+
+        var problems = new List<string>();
+        if (result.PeerFilesPendingRetry > 0)
+            problems.Add($"{result.PeerFilesPendingRetry} file(s) will be retried");
+        if (result.PeerFilesUnreadable > 0)
+            problems.Add($"{result.PeerFilesUnreadable} file(s) could not be read");
+        if (result.ChangesRejected > 0)
+            problems.Add($"{result.ChangesRejected} change(s) were skipped");
+
+        return $"Sync finished with problems: {string.Join(", ", problems)}. {summary}";
     }
 }

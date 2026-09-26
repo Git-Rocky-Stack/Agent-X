@@ -315,23 +315,8 @@ public sealed class SyncSettingsViewModelTests
                     DurationMs = 2400
                 }
             ]);
-        _syncService.Setup(service => service.ExportChangesAsync(It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new SyncChangeSet
-            {
-                Changes =
-                [
-                    new SyncChange
-                    {
-                        EntityType = "ConversationEntity",
-                        EntityId = 42,
-                        ChangeType = SyncChangeType.Updated,
-                        Timestamp = DateTime.UtcNow,
-                        SerializedData = "{}"
-                    }
-                ]
-            });
-        _syncService.Setup(service => service.StartAutoSyncAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        _syncService.Setup(service => service.SyncNowAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SyncRunResult { ExportedChanges = 1 });
         _operationsDrillInService.SetupSequence(service => service.ConsumePendingSyncRequest())
             .Returns(new OperationsSyncDrillInRequest(9, "Opened sync history entry \"Import sync\" from Operations"))
             .Returns((OperationsSyncDrillInRequest?)null);
@@ -341,8 +326,8 @@ public sealed class SyncSettingsViewModelTests
         await viewModel.InitializeAsync();
         await viewModel.SyncNowCommand.ExecuteAsync(null);
 
-        _syncService.Verify(service => service.ExportChangesAsync(It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()), Times.Once);
-        _syncService.Verify(service => service.StartAutoSyncAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _syncService.Verify(service => service.SyncNowAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _syncService.Verify(service => service.StartAutoSyncAsync(It.IsAny<CancellationToken>()), Times.Never);
         viewModel.FocusedSyncLogId.Should().Be(0);
         viewModel.FocusedSyncSourceLabel.Should().BeEmpty();
         viewModel.HasFocusedSyncLanding.Should().BeFalse();
@@ -388,6 +373,107 @@ public sealed class SyncSettingsViewModelTests
 
         viewModel.AutoSyncEnabled.Should().BeTrue();
         _syncService.Verify(service => service.StopAutoSyncAsync(), Times.Never);
+    }
+
+    // ---- Sync Now reports what really happened ----
+
+    [Fact]
+    public async Task SyncNowAsync_ReportsTheImportOutcome_NotJustTheExport()
+    {
+        var viewModel = CreateConfiguredViewModel();
+        await viewModel.InitializeAsync();
+        _syncService.Setup(service => service.SyncNowAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SyncRunResult
+            {
+                ExportedChanges = 2,
+                PeerFilesFound = 1,
+                PeerFilesImported = 1,
+                ChangesApplied = 4,
+                ConflictsResolved = 1,
+            });
+
+        await viewModel.SyncNowCommand.ExecuteAsync(null);
+
+        viewModel.StatusMessage.Should().Be(
+            "Sync complete. Exported 2 changes; imported 1 peer file (4 change(s) applied, 1 older than the local copy and skipped).");
+        viewModel.HasError.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SyncNowAsync_SurfacesFilesLeftForRetry_InsteadOfClaimingSuccess()
+    {
+        var viewModel = CreateConfiguredViewModel();
+        await viewModel.InitializeAsync();
+        var result = new SyncRunResult { PeerFilesFound = 1, PeerFilesPendingRetry = 1, ChangesFailed = 1 };
+        result.Errors.Add("agentx-sync-peer: Conversation (remote id 9) could not be saved: constraint failed");
+        _syncService.Setup(service => service.SyncNowAsync(It.IsAny<CancellationToken>())).ReturnsAsync(result);
+
+        await viewModel.SyncNowCommand.ExecuteAsync(null);
+
+        viewModel.HasError.Should().BeTrue();
+        viewModel.ErrorMessage.Should().Contain("will be retried on the next sync");
+        viewModel.ErrorMessage.Should().Contain("constraint failed");
+        viewModel.StatusMessage.Should().StartWith("Sync finished with problems.");
+    }
+
+    // ---- Auto-sync toggle persistence ----
+
+    [Fact]
+    public async Task StartAutoSync_PersistsTheToggleBeforeStartingTheLoop()
+    {
+        var viewModel = CreateConfiguredViewModel();
+        await viewModel.InitializeAsync();
+
+        var calls = new List<string>();
+        _syncService.Setup(service => service.ConfigureAsync(It.IsAny<SyncConfiguration>()))
+            .Callback((SyncConfiguration config) => calls.Add($"configure:{config.AutoSyncEnabled}"))
+            .Returns(Task.CompletedTask);
+        _syncService.Setup(service => service.StartAutoSyncAsync(It.IsAny<CancellationToken>()))
+            .Callback(() => calls.Add("start"))
+            .Returns(Task.CompletedTask);
+        _syncService.SetupGet(service => service.IsAutoSyncRunning).Returns(true);
+
+        await viewModel.StartAutoSyncCommand.ExecuteAsync(null);
+
+        calls.Should().Equal("configure:True", "start");
+        viewModel.AutoSyncEnabled.Should().BeTrue();
+        viewModel.StatusMessage.Should().Contain("Auto-sync is on").And.Contain("15 minutes");
+    }
+
+    [Fact]
+    public async Task StartAutoSync_WhenTheLoopDidNotStart_SaysSoAndTurnsTheToggleBackOff()
+    {
+        var viewModel = CreateConfiguredViewModel();
+        await viewModel.InitializeAsync();
+        _syncService.SetupGet(service => service.IsAutoSyncRunning).Returns(false);
+
+        await viewModel.StartAutoSyncCommand.ExecuteAsync(null);
+
+        viewModel.AutoSyncEnabled.Should().BeFalse();
+        viewModel.HasError.Should().BeTrue();
+        viewModel.ErrorMessage.Should().Contain("could not be started");
+        viewModel.StatusMessage.Should().NotContain("started");
+    }
+
+    [Fact]
+    public async Task StopAutoSync_PersistsTheDisabledToggle_SoItStaysOffAfterARestart()
+    {
+        _syncService.Setup(service => service.GetConfigurationAsync())
+            .ReturnsAsync(new SyncConfiguration
+            {
+                SyncFolderPath = @"C:\Sync",
+                EncryptionKey = "secret",
+                AutoSyncEnabled = true,
+                SyncIntervalMinutes = 15,
+            });
+        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, _operationsDrillInService.Object);
+        await viewModel.InitializeAsync();
+
+        await viewModel.StopAutoSyncCommand.ExecuteAsync(null);
+
+        _syncService.Verify(service => service.ConfigureAsync(It.Is<SyncConfiguration>(c => !c.AutoSyncEnabled)), Times.Once);
+        _syncService.Verify(service => service.StopAutoSyncAsync(), Times.AtLeastOnce);
+        viewModel.StatusMessage.Should().Be("Auto-sync stopped.");
     }
 
     private SyncSettingsViewModel CreateConfiguredViewModel()

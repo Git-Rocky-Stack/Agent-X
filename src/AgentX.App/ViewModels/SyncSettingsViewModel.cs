@@ -17,11 +17,13 @@ namespace AgentX.App.ViewModels;
 //
 // Manages the Collaborative Sync settings page. Allows the user to configure
 // an encrypted sync folder, an encryption passphrase, auto-sync scheduling,
-// and sync scope. Drives a manual "Sync Now" flow that calls ExportChangesAsync
-// then watches for imports via StartAutoSyncAsync. Exposes discrete Start and
-// Stop commands for the background auto-sync loop. Loads paginated sync history
-// via LoadHistoryAsync. The View owns the native folder picker and writes the
-// chosen path straight into SyncFolderPath.
+// and sync scope. Drives a manual "Sync Now" pass (ISyncService.SyncNowAsync:
+// export, then import every peer file) and reports what really happened.
+// Exposes discrete Start and Stop commands for the background auto-sync loop;
+// both persist the toggle before acting on the loop, and the loop belongs to the
+// service (it keeps running after the page is closed). Loads paginated sync
+// history via LoadHistoryAsync. The View owns the native folder picker and writes
+// the chosen path straight into SyncFolderPath.
 //
 // Constructor accepts ISyncService via DI. All long-running paths are guarded
 // by IsLoading / IsSyncing flags and surfaced through the SetError / SetStatus
@@ -36,13 +38,6 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
     private readonly ISyncService _syncService;
     private readonly ICollectionService _collectionService;
     private readonly IOperationsDrillInService? _operationsDrillInService;
-
-    /// <summary>
-    /// CancellationTokenSource for the running auto-sync loop.
-    /// Cancelled and replaced whenever StartAutoSyncLoopAsync is called,
-    /// and cancelled on Dispose.
-    /// </summary>
-    private CancellationTokenSource? _autoSyncCts;
 
     // ── Page State ────────────────────────────────────────────────────────────
 
@@ -468,10 +463,10 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
 
     // =========================================================================
     // COMMAND: SyncNowAsync
-    // Performs a one-shot manual sync: first calls ExportChangesAsync to package
-    // local changes and write the encrypted .axs file to the sync folder, then
-    // calls StartAutoSyncAsync (with a short-lived CTS) so the service reads and
-    // imports any .axs files written by peer installations.
+    // Runs one complete pass through ISyncService.SyncNowAsync: exports local
+    // changes since the persisted watermark, then imports every peer file in the
+    // sync folder. The status line reports the real outcome (exported, applied,
+    // retried, unreadable) instead of assuming success.
     // =========================================================================
 
     [RelayCommand(CanExecute = nameof(CanSync))]
@@ -497,30 +492,32 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
 
         try
         {
-            // Step 1 — export: collect local changes and write to the sync folder
-            SetStatus("Exporting local changes to sync folder...");
-            var changeSet = await _syncService.ExportChangesAsync(ct: cts.Token);
+            SetStatus("Exporting local changes and importing peer changes...");
+            var result = await _syncService.SyncNowAsync(cts.Token);
 
-            Log.Debug("Export produced {Count} change(s)", changeSet.Changes.Count);
-
-            // Step 2 — import: run a single auto-sync pass so the service reads
-            // and applies any .axs files placed by peer installations
-            SetStatus($"Exported {changeSet.Changes.Count} change(s). Importing remote changes...");
-            await _syncService.StartAutoSyncAsync(cts.Token);
-
-            // Step 3 — refresh: update the status display and history list
+            // Refresh the status display and history list from what the pass recorded.
             RefreshStatusFromService();
             await LoadHistoryAsync();
 
-            if (resolvedFocusedSyncMessage is not null && TryResolveFocusedSyncAction(resolvedFocusedSyncMessage))
+            if (result.HasProblems)
+            {
+                SetError(BuildSyncProblemMessage(result));
+                SetStatus(BuildSyncOutcomeMessage(result));
+            }
+            else if (resolvedFocusedSyncMessage is not null && TryResolveFocusedSyncAction(resolvedFocusedSyncMessage))
             {
                 Log.Information("Manual sync completed and resolved focused sync history entry");
             }
             else
             {
-                SetStatus($"Sync complete — {changeSet.Changes.Count} change(s) exported.");
+                SetStatus(BuildSyncOutcomeMessage(result));
             }
-            Log.Information("Manual sync completed: {Count} change(s) exported", changeSet.Changes.Count);
+
+            Log.Information(
+                "Manual sync completed: exported {Exported}, imported {Imported} of {Found} peer file(s), " +
+                "{Applied} applied, {Failed} failed, {Rejected} rejected",
+                result.ExportedChanges, result.PeerFilesImported, result.PeerFilesFound,
+                result.ChangesApplied, result.ChangesFailed, result.ChangesRejected);
         }
         catch (OperationCanceledException)
         {
@@ -590,8 +587,9 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
 
     // =========================================================================
     // COMMAND: StartAutoSyncAsync
-    // Starts the background polling loop. Guards against double-starts by
-    // cancelling any existing loop first via StartAutoSyncLoopAsync.
+    // Persists AutoSyncEnabled=true on the SAVED configuration first (the
+    // service only runs the loop when the stored flag is on), then starts the
+    // loop and reports whether it is actually running.
     // =========================================================================
 
     [RelayCommand]
@@ -603,27 +601,53 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
 
         if (!HasConfiguration)
         {
+            SetAutoSyncEnabledSilently(false);
             SetError("Please save a sync configuration before enabling auto-sync.");
             return;
         }
 
         try
         {
+            var stored = await _syncService.GetConfigurationAsync();
+            if (stored is null)
+            {
+                SetAutoSyncEnabledSilently(false);
+                SetError("Save the sync configuration before enabling auto-sync.");
+                return;
+            }
+
+            if (!stored.AutoSyncEnabled)
+            {
+                stored.AutoSyncEnabled = true;
+                await _syncService.ConfigureAsync(stored);
+            }
+
             await StartAutoSyncLoopAsync();
+
+            if (!_syncService.IsAutoSyncRunning)
+            {
+                SetAutoSyncEnabledSilently(false);
+                SetError("Auto-sync could not be started. Check the saved sync configuration and try again.");
+                Log.Warning("Auto-sync start requested but the loop is not running");
+                return;
+            }
+
             SetAutoSyncEnabledSilently(true);
-            SetStatus("Auto-sync started.");
+            SetStatus(BuildAutoSyncStartedMessage(stored.SyncIntervalMinutes));
             Log.Information("Auto-sync loop started");
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to start auto-sync");
+            SetAutoSyncEnabledSilently(_syncService.IsAutoSyncRunning);
             SetError($"Failed to start auto-sync: {ex.Message}");
         }
     }
 
     // =========================================================================
     // COMMAND: StopAutoSyncAsync
-    // Cancels the running loop CTS and calls ISyncService.StopAutoSyncAsync.
+    // Persists AutoSyncEnabled=false (so the loop does not come back after a
+    // restart), then stops the loop.
     // =========================================================================
 
     [RelayCommand]
@@ -633,11 +657,36 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         ClearError();
         ClearStatus();
 
+        string? persistError = null;
+        try
+        {
+            var stored = await _syncService.GetConfigurationAsync();
+            if (stored is { AutoSyncEnabled: true })
+            {
+                stored.AutoSyncEnabled = false;
+                await _syncService.ConfigureAsync(stored);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to persist the disabled auto-sync setting");
+            persistError = ex.Message;
+        }
+
         try
         {
             await StopAutoSyncLoopAsync();
             SetAutoSyncEnabledSilently(false);
-            SetStatus("Auto-sync stopped.");
+
+            if (persistError is null)
+            {
+                SetStatus("Auto-sync stopped.");
+            }
+            else
+            {
+                SetError($"Auto-sync stopped, but the setting could not be saved and may turn back on after a restart: {persistError}");
+            }
+
             Log.Information("Auto-sync loop stopped");
         }
         catch (Exception ex)
@@ -805,42 +854,71 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
     // =========================================================================
 
     /// <summary>
-    /// Cancels any existing auto-sync CTS, allocates a fresh one, and calls
-    /// ISyncService.StartAutoSyncAsync. Shared by SaveConfigurationAsync and
-    /// StartAutoSyncAsync to guarantee identical loop lifecycle behaviour.
+    /// Asks the service to (re)start its background loop from the stored configuration.
+    /// The loop is owned by the service, not by this page: it keeps running after the
+    /// page is closed. Shared by SaveConfigurationAsync and StartAutoSyncAsync.
     /// </summary>
     private async Task StartAutoSyncLoopAsync()
     {
-        // Tear down any loop already running before launching a new one
-        await StopAutoSyncLoopAsync();
-
-        _autoSyncCts = new CancellationTokenSource();
-        await _syncService.StartAutoSyncAsync(_autoSyncCts.Token);
-
-        Log.Debug("Auto-sync loop CTS created and loop started");
+        await _syncService.StartAutoSyncAsync();
+        Log.Debug("Auto-sync loop start requested from the settings page");
     }
 
     /// <summary>
-    /// Cancels the current CTS and calls ISyncService.StopAutoSyncAsync.
-    /// Safe to call when no loop is active.
+    /// Calls ISyncService.StopAutoSyncAsync. Safe to call when no loop is active.
     /// </summary>
     private async Task StopAutoSyncLoopAsync()
     {
         try
         {
-            if (_autoSyncCts is not null)
-            {
-                _autoSyncCts.Cancel();
-                _autoSyncCts.Dispose();
-                _autoSyncCts = null;
-            }
-
             await _syncService.StopAutoSyncAsync();
         }
         catch (Exception ex)
         {
             Log.Warning(ex, "Exception while stopping auto-sync loop");
         }
+    }
+
+    private static string BuildAutoSyncStartedMessage(int intervalMinutes)
+    {
+        var minutes = Math.Max(1, intervalMinutes);
+        return minutes == 1
+            ? "Auto-sync is on. The first automatic sync runs in about 1 minute; use Sync Now to sync immediately."
+            : $"Auto-sync is on. The first automatic sync runs in about {minutes} minutes; use Sync Now to sync immediately.";
+    }
+
+    /// <summary>Plain-language summary of a completed sync pass.</summary>
+    internal static string BuildSyncOutcomeMessage(SyncRunResult result)
+    {
+        var exported = result.ExportedChanges == 1 ? "1 change" : $"{result.ExportedChanges} changes";
+        if (result.PeerFilesFound == 0)
+            return $"Sync complete. Exported {exported}; no peer changes were waiting in the sync folder.";
+
+        var files = result.PeerFilesImported == 1 ? "1 peer file" : $"{result.PeerFilesImported} peer files";
+        var message = $"Sync complete. Exported {exported}; imported {files} ({result.ChangesApplied} change(s) applied";
+        if (result.ConflictsResolved > 0)
+            message += $", {result.ConflictsResolved} older than the local copy and skipped";
+        message += ").";
+
+        if (result.HasProblems)
+            message = message.Replace("Sync complete.", "Sync finished with problems.", StringComparison.Ordinal);
+
+        return message;
+    }
+
+    /// <summary>Describes what went wrong in a pass, for the error banner.</summary>
+    internal static string BuildSyncProblemMessage(SyncRunResult result)
+    {
+        var parts = new List<string>();
+        if (result.PeerFilesPendingRetry > 0)
+            parts.Add($"{result.PeerFilesPendingRetry} peer file(s) had changes that could not be saved and will be retried on the next sync");
+        if (result.PeerFilesUnreadable > 0)
+            parts.Add($"{result.PeerFilesUnreadable} peer file(s) could not be read (check that both devices use the same encryption key)");
+        if (result.ChangesRejected > 0)
+            parts.Add($"{result.ChangesRejected} change(s) could not be applied and were skipped");
+
+        var detail = result.Errors.Count > 0 ? $" First problem: {result.Errors[0]}" : string.Empty;
+        return string.Join("; ", parts) + "." + detail;
     }
 
     /// <summary>
@@ -1010,9 +1088,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
 
     public void Dispose()
     {
-        _autoSyncCts?.Cancel();
-        _autoSyncCts?.Dispose();
-        _autoSyncCts = null;
+        // The auto-sync loop belongs to the service and deliberately outlives this page.
         Log.Debug("SyncSettingsViewModel disposed");
     }
 }
