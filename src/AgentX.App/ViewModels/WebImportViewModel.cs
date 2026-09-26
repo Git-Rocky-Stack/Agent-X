@@ -157,29 +157,10 @@ public partial class WebImportViewModel : ObservableObject
 
             long? collectionId = SelectedCollection?.Id;
 
-            var documents = await _webImportService.ImportFromUrlsAsync(
+            var results = await _webImportService.ImportFromUrlsAsync(
                 urls, collectionId, progress, _importCts.Token);
 
-            // Build results
-            for (int i = 0; i < urls.Count; i++)
-            {
-                var doc = i < documents.Count ? documents[i] : null;
-                var success = doc is not null;
-
-                ImportResults.Add(new WebImportResultItem
-                {
-                    Url = urls[i],
-                    DocumentName = doc?.FileName ?? "Failed",
-                    Success = success,
-                    WordCount = doc?.WordCount ?? 0,
-                    ErrorMessage = success ? null : "Failed to import"
-                });
-
-                if (success) SuccessCount++;
-                else FailCount++;
-            }
-
-            HasResults = true;
+            ShowImportResults(results);
             StatusMessage = $"Imported {SuccessCount} of {urls.Count} URLs";
         }
         catch (OperationCanceledException)
@@ -223,13 +204,16 @@ public partial class WebImportViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(FeedUrl)) return;
 
         IsSubscribingFeed = true;
-        FeedStatusMessage = "Subscribing...";
+        FeedStatusMessage = "Reading feed...";
 
         try
         {
             var feedService = App.GetService<IFeedService>();
             var feed = await feedService.ParseFeedAsync(FeedUrl);
-            FeedStatusMessage = $"Subscribed: {feed.Title} ({feed.Items.Count} items)";
+
+            // No subscription is stored: this imports the items the feed lists right now, once.
+            FeedStatusMessage = $"Read feed \"{feed.Title}\" ({feed.Items.Count} items). " +
+                "This is a one-time import; new items are not fetched automatically.";
 
             var urls = feed.Items
                 .Select(i => i.Url)
@@ -255,28 +239,10 @@ public partial class WebImportViewModel : ObservableObject
                     });
 
                     long? collectionId = SelectedCollection?.Id;
-                    var documents = await _webImportService.ImportFromUrlsAsync(
+                    var results = await _webImportService.ImportFromUrlsAsync(
                         urls, collectionId, progress, _importCts.Token);
 
-                    for (int i = 0; i < urls.Count; i++)
-                    {
-                        var doc = i < documents.Count ? documents[i] : null;
-                        var success = doc is not null;
-
-                        ImportResults.Add(new WebImportResultItem
-                        {
-                            Url = urls[i],
-                            DocumentName = doc?.FileName ?? "Failed",
-                            Success = success,
-                            WordCount = doc?.WordCount ?? 0,
-                            ErrorMessage = success ? null : "Failed to import"
-                        });
-
-                        if (success) SuccessCount++;
-                        else FailCount++;
-                    }
-
-                    HasResults = true;
+                    ShowImportResults(results);
                     StatusMessage = $"Imported {SuccessCount} of {urls.Count} feed items";
                 }
                 catch (OperationCanceledException)
@@ -341,28 +307,10 @@ public partial class WebImportViewModel : ObservableObject
                 });
 
                 long? collectionId = SelectedCollection?.Id;
-                var documents = await _webImportService.ImportFromUrlsAsync(
+                var results = await _webImportService.ImportFromUrlsAsync(
                     urlsToImport, collectionId, progress, _importCts.Token);
 
-                for (int i = 0; i < urlsToImport.Count; i++)
-                {
-                    var doc = i < documents.Count ? documents[i] : null;
-                    var success = doc is not null;
-
-                    ImportResults.Add(new WebImportResultItem
-                    {
-                        Url = urlsToImport[i],
-                        DocumentName = doc?.FileName ?? "Failed",
-                        Success = success,
-                        WordCount = doc?.WordCount ?? 0,
-                        ErrorMessage = success ? null : "Failed to import"
-                    });
-
-                    if (success) SuccessCount++;
-                    else FailCount++;
-                }
-
-                HasResults = true;
+                ShowImportResults(results);
                 StatusMessage = $"Imported {SuccessCount} of {urlsToImport.Count} sitemap URLs";
             }
             catch (OperationCanceledException)
@@ -384,6 +332,30 @@ public partial class WebImportViewModel : ObservableObject
         {
             IsImporting = false;
         }
+    }
+
+    /// <summary>
+    /// Lists one row per imported URL. Each result carries its own URL, so a failure never
+    /// shifts a document onto the wrong URL; a failed row shows why it failed.
+    /// </summary>
+    private void ShowImportResults(IReadOnlyList<WebImportResult> results)
+    {
+        foreach (var result in results)
+        {
+            ImportResults.Add(new WebImportResultItem
+            {
+                Url = result.Url,
+                DocumentName = result.Document?.FileName ?? $"Failed: {result.ErrorMessage}",
+                Success = result.Success,
+                WordCount = result.Document?.WordCount ?? 0,
+                ErrorMessage = result.ErrorMessage
+            });
+
+            if (result.Success) SuccessCount++;
+            else FailCount++;
+        }
+
+        HasResults = true;
     }
 }
 

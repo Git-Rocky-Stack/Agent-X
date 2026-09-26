@@ -19,24 +19,29 @@ public interface IWebImportService
     /// <summary>
     /// Imports a single URL: scrapes the web page, saves the extracted content to a
     /// temporary Markdown file, and creates a <see cref="DocumentEntity"/> with status "pending".
+    /// When a collection is given, the document and its collection link are saved together,
+    /// so the call either imports the page into that collection or imports nothing.
     /// </summary>
     /// <param name="url">The absolute HTTP or HTTPS URL to import.</param>
     /// <param name="collectionId">Optional collection to associate the imported document with.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>The created <see cref="DocumentEntity"/>.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when the URL is invalid or content extraction fails.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the URL is invalid, content extraction fails, the content is a duplicate,
+    /// or the requested collection does not exist.
+    /// </exception>
     Task<DocumentEntity> ImportFromUrlAsync(string url, long? collectionId = null, CancellationToken ct = default);
 
     /// <summary>
     /// Imports multiple URLs sequentially, reporting progress after each URL.
-    /// Individual failures are logged but do not abort the batch.
+    /// Individual failures do not abort the batch; each is reported in its own result.
     /// </summary>
     /// <param name="urls">The list of URLs to import.</param>
     /// <param name="collectionId">Optional collection to associate all imported documents with.</param>
     /// <param name="progress">Optional progress reporter (number of URLs completed).</param>
     /// <param name="ct">Cancellation token.</param>
-    /// <returns>The list of successfully created <see cref="DocumentEntity"/> records.</returns>
-    Task<IReadOnlyList<DocumentEntity>> ImportFromUrlsAsync(
+    /// <returns>One <see cref="WebImportResult"/> per requested URL, in request order.</returns>
+    Task<IReadOnlyList<WebImportResult>> ImportFromUrlsAsync(
         IReadOnlyList<string> urls,
         long? collectionId = null,
         IProgress<int>? progress = null,
@@ -52,7 +57,7 @@ public interface IWebImportService
 ///   <item>Extract content from the URL using <see cref="IWebScraperService"/>.</item>
 ///   <item>Save the extracted text to a Markdown (.md) file in the application storage path.</item>
 ///   <item>Create a <see cref="DocumentEntity"/> with the file path, content hash, and metadata.</item>
-///   <item>Associate the document with a collection if specified.</item>
+///   <item>Link the document to the requested collection in the same save; a missing collection fails the import.</item>
 ///   <item>The document is left in "pending" status for the indexing pipeline.</item>
 /// </list>
 /// </para>
@@ -115,6 +120,16 @@ public class WebImportService : IWebImportService
         {
             throw new InvalidOperationException(
                 $"Invalid URL: '{url}'. Only HTTP and HTTPS URLs are supported.");
+        }
+
+        // Resolve the target collection before fetching anything: a missing collection fails
+        // the import up front instead of leaving an imported document outside it.
+        CollectionEntity? collection = null;
+        if (collectionId.HasValue)
+        {
+            collection = await _db.Collections.FirstOrDefaultAsync(c => c.Id == collectionId.Value, ct)
+                ?? throw new InvalidOperationException(
+                    $"Collection {collectionId.Value} was not found, so '{url}' was not imported.");
         }
 
         _log.Information("Importing web content from: {Url}", url);
@@ -193,23 +208,45 @@ public class WebImportService : IWebImportService
         };
 
         _db.Documents.Add(entity);
-        await _db.SaveChangesAsync(ct);
+
+        // Step 6: Link to the collection in the same save, so the document is never imported
+        // without the collection membership the caller asked for.
+        DocumentCollectionEntity? link = null;
+        if (collection is not null)
+        {
+            link = new DocumentCollectionEntity
+            {
+                Document = entity,
+                CollectionId = collection.Id,
+                AddedAt = DateTime.UtcNow,
+            };
+            _db.DocumentCollections.Add(link);
+
+            // Keep the denormalized document count in step with the new membership
+            collection.DocumentCount += 1;
+            collection.UpdatedAt = DateTime.UtcNow;
+        }
+
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+        }
+        catch
+        {
+            UndoUnsavedImport(entity, link, collection);
+            TryDeleteImportFile(filePath);
+            throw;
+        }
 
         _log.Information(
-            "Imported web document: {FileName} (ID {DocumentId}, {WordCount} words) from {Url}",
-            entity.FileName, entity.Id, entity.WordCount, url);
-
-        // Step 6: Associate with collection if specified
-        if (collectionId.HasValue)
-        {
-            await AssociateWithCollectionAsync(entity.Id, collectionId.Value, ct);
-        }
+            "Imported web document: {FileName} (ID {DocumentId}, {WordCount} words) from {Url}, collection {CollectionId}",
+            entity.FileName, entity.Id, entity.WordCount, url, collection?.Id);
 
         return entity;
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<DocumentEntity>> ImportFromUrlsAsync(
+    public async Task<IReadOnlyList<WebImportResult>> ImportFromUrlsAsync(
         IReadOnlyList<string> urls,
         long? collectionId = null,
         IProgress<int>? progress = null,
@@ -217,13 +254,12 @@ public class WebImportService : IWebImportService
     {
         if (urls is null || urls.Count == 0)
         {
-            return Array.Empty<DocumentEntity>();
+            return Array.Empty<WebImportResult>();
         }
 
         _log.Information("Starting batch web import of {Count} URLs", urls.Count);
 
-        var results = new List<DocumentEntity>(urls.Count);
-        var completed = 0;
+        var results = new List<WebImportResult>(urls.Count);
 
         foreach (var url in urls)
         {
@@ -232,25 +268,25 @@ public class WebImportService : IWebImportService
             try
             {
                 var entity = await ImportFromUrlAsync(url, collectionId, ct);
-                results.Add(entity);
+                results.Add(new WebImportResult { Url = url, Document = entity });
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
                 throw;
             }
             catch (Exception ex)
             {
-                // Log and continue with remaining URLs rather than aborting the batch
+                // The failure is reported in this URL's own result; the batch continues.
                 _log.Warning(ex, "Failed to import URL: {Url}", url);
+                results.Add(new WebImportResult { Url = url, ErrorMessage = ex.Message });
             }
 
-            completed++;
-            progress?.Report(completed);
+            progress?.Report(results.Count);
         }
 
         _log.Information(
             "Batch web import completed: {Imported}/{Total} URLs imported",
-            results.Count, urls.Count);
+            results.Count(r => r.Success), urls.Count);
 
         return results.AsReadOnly();
     }
@@ -427,68 +463,46 @@ public class WebImportService : IWebImportService
     }
 
     /// <summary>
-    /// Associates a document with a collection if the collection exists.
-    /// Logs a warning if the collection is not found but does not throw.
+    /// Takes the unsaved document, its collection link and the collection count change back
+    /// off the shared context after a failed save, so a later unrelated save does not retry
+    /// (or trip over) them.
     /// </summary>
-    private async Task AssociateWithCollectionAsync(
-        long documentId,
-        long collectionId,
-        CancellationToken ct)
+    private void UndoUnsavedImport(
+        DocumentEntity document,
+        DocumentCollectionEntity? link,
+        CollectionEntity? collection)
+    {
+        if (link is not null)
+        {
+            _db.Entry(link).State = EntityState.Detached;
+        }
+
+        _db.Entry(document).State = EntityState.Detached;
+
+        if (collection is not null)
+        {
+            var entry = _db.Entry(collection);
+            if (entry.State == EntityState.Modified)
+            {
+                entry.CurrentValues.SetValues(entry.OriginalValues);
+                entry.State = EntityState.Unchanged;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Removes the Markdown file written for an import whose database save failed, so no
+    /// orphaned file is left in the web import folder.
+    /// </summary>
+    private void TryDeleteImportFile(string filePath)
     {
         try
         {
-            var collectionExists = await _db.Collections
-                .AnyAsync(c => c.Id == collectionId, ct);
-
-            if (!collectionExists)
-            {
-                _log.Warning(
-                    "Collection {CollectionId} not found; skipping collection association for document {DocumentId}",
-                    collectionId, documentId);
-                return;
-            }
-
-            // Check for duplicate association
-            var alreadyAssociated = await _db.DocumentCollections
-                .AnyAsync(dc => dc.DocumentId == documentId && dc.CollectionId == collectionId, ct);
-
-            if (alreadyAssociated)
-            {
-                _log.Debug(
-                    "Document {DocumentId} is already in collection {CollectionId}, skipping",
-                    documentId, collectionId);
-                return;
-            }
-
-            var docCollection = new DocumentCollectionEntity
-            {
-                DocumentId = documentId,
-                CollectionId = collectionId,
-                AddedAt = DateTime.UtcNow,
-            };
-
-            _db.DocumentCollections.Add(docCollection);
-
-            // Update the denormalized document count on the collection
-            var collection = await _db.Collections.FindAsync(new object[] { collectionId }, ct);
-            if (collection is not null)
-            {
-                collection.DocumentCount += 1;
-                collection.UpdatedAt = DateTime.UtcNow;
-            }
-
-            await _db.SaveChangesAsync(ct);
-
-            _log.Debug(
-                "Associated web document {DocumentId} with collection {CollectionId}",
-                documentId, collectionId);
+            File.Delete(filePath);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            _log.Warning(
-                ex,
-                "Failed to associate document {DocumentId} with collection {CollectionId}",
-                documentId, collectionId);
+            _log.Warning(ex, "Could not delete web import file {FilePath} after a failed save", filePath);
         }
     }
 }
