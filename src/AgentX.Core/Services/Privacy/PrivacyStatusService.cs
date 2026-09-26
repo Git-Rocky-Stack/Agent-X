@@ -41,6 +41,15 @@ public sealed class PrivacyStatusService : IPrivacyStatusService
                 "AI model",
                 $"Your prompts and conversation content are sent to {cloudProviderName} for processing."));
         }
+        else if (string.Equals(settings.ActiveProviderId, "ollama", StringComparison.OrdinalIgnoreCase)
+                 && OffMachineHost(settings.OllamaEndpoint) is { } ollamaHost)
+        {
+            // Ollama runs wherever its endpoint points; only a loopback endpoint keeps inference
+            // on this machine.
+            disclosures.Add(new PrivacyDisclosure(
+                "AI model",
+                $"Your prompts and conversation content are sent to the Ollama server at {ollamaHost}."));
+        }
 
         // 2) Multi-model routing can dispatch requests to a configured cloud provider. Only a concern
         //    when routing is on AND at least one cloud provider key is configured to route to.
@@ -51,16 +60,14 @@ public sealed class PrivacyStatusService : IPrivacyStatusService
                 "Smart model routing may send prompts to your configured cloud AI provider."));
         }
 
-        // 3) Deep Research web search via a hosted provider sends queries off-machine. A self-hosted
-        //    SearXNG instance stays local, so it is not disclosed.
-        var cloudSearchName = settings.EnableResearchMode
-            ? CloudSearchProviderName(settings.WebSearchProvider)
-            : null;
-        if (cloudSearchName is not null)
+        // 3) Web search. Research Mode is switched on per conversation in chat, independently of
+        //    the settings toggle, so any configured provider can receive queries. The check uses
+        //    the same configuration the search service uses. SearXNG is disclosed too: even a
+        //    local instance forwards the queries to public search engines.
+        var webSearch = WebSearchConfiguration.FromSettings(settings);
+        if (webSearch.IsConfigured)
         {
-            disclosures.Add(new PrivacyDisclosure(
-                "Web search",
-                $"Research mode sends your search queries to {cloudSearchName}."));
+            disclosures.Add(new PrivacyDisclosure("Web search", WebSearchDetail(webSearch)));
         }
 
         // 4) Calendar connector exchanges data with Google/Microsoft.
@@ -99,14 +106,36 @@ public sealed class PrivacyStatusService : IPrivacyStatusService
         !string.IsNullOrWhiteSpace(settings.OpenAiApiKey) ||
         !string.IsNullOrWhiteSpace(settings.AnthropicApiKey);
 
-    /// <summary>
-    /// Returns the display name of a hosted web-search provider, or null for the self-hosted
-    /// <see cref="WebSearchProvider.SearXng"/> option, which can run entirely on the user's network.
-    /// </summary>
-    private static string? CloudSearchProviderName(WebSearchProvider provider) => provider switch
+    /// <summary>Where research-mode queries go for a configured web search provider.</summary>
+    private static string WebSearchDetail(WebSearchConfiguration webSearch) => webSearch.Provider switch
     {
-        WebSearchProvider.Brave => "Brave Search",
-        WebSearchProvider.Serper => "Serper (Google Search)",
-        _ => null
+        WebSearchProvider.SearXng =>
+            $"When Research Mode is on in chat, your questions are sent to the SearXNG instance at {webSearch.SearXngUrl!.Host}, which forwards them to public search engines.",
+        WebSearchProvider.Serper =>
+            "When Research Mode is on in chat, your questions are sent to Serper (Google Search).",
+        _ =>
+            "When Research Mode is on in chat, your questions are sent to Brave Search.",
     };
+
+    /// <summary>
+    /// Returns the host of an endpoint that is not on this machine, or null for a loopback
+    /// endpoint (localhost, 127.0.0.0/8, ::1) or one that cannot be parsed.
+    /// </summary>
+    private static string? OffMachineHost(string? endpoint)
+    {
+        if (!Uri.TryCreate(endpoint?.Trim(), UriKind.Absolute, out var uri))
+        {
+            return null;
+        }
+
+        var host = uri.Host.Trim('[', ']').TrimEnd('.');
+        if (host.Equals("localhost", StringComparison.OrdinalIgnoreCase)
+            || host.EndsWith(".localhost", StringComparison.OrdinalIgnoreCase)
+            || (System.Net.IPAddress.TryParse(host, out var address) && System.Net.IPAddress.IsLoopback(address)))
+        {
+            return null;
+        }
+
+        return host;
+    }
 }

@@ -84,7 +84,8 @@ public class PrivacyStatusServiceTests
         var status = CreateService().Evaluate(new AppSettings
         {
             EnableResearchMode = true,
-            WebSearchProvider = provider
+            WebSearchProvider = provider,
+            WebSearchApiKey = "search-key"
         });
 
         status.IsFullyLocal.Should().BeFalse();
@@ -93,7 +94,7 @@ public class PrivacyStatusServiceTests
     }
 
     [Fact]
-    public void Self_hosted_searxng_in_research_mode_stays_local()
+    public void Searxng_without_an_instance_url_cannot_search_and_stays_local()
     {
         var status = CreateService().Evaluate(new AppSettings
         {
@@ -104,13 +105,76 @@ public class PrivacyStatusServiceTests
         status.IsFullyLocal.Should().BeTrue();
     }
 
-    [Fact]
-    public void Cloud_web_search_with_research_mode_off_stays_local()
+    [Theory]
+    [InlineData("http://localhost:8888", "localhost")]
+    [InlineData("https://searx.example.org", "searx.example.org")]
+    public void Searxng_instance_is_disclosed_because_it_forwards_queries(string instanceUrl, string expectedHost)
     {
         var status = CreateService().Evaluate(new AppSettings
         {
-            EnableResearchMode = false,
+            WebSearchProvider = WebSearchProvider.SearXng,
+            WebSearchApiKey = instanceUrl
+        });
+
+        status.IsFullyLocal.Should().BeFalse();
+        status.Disclosures.Should().ContainSingle(d => d.Surface == "Web search")
+            .Which.Detail.Should().Contain(expectedHost).And.Contain("public search engines");
+    }
+
+    [Fact]
+    public void Web_search_without_a_key_cannot_search_and_stays_local()
+    {
+        var status = CreateService().Evaluate(new AppSettings
+        {
+            EnableResearchMode = true,
             WebSearchProvider = WebSearchProvider.Brave
+        });
+
+        status.IsFullyLocal.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Configured_web_search_is_disclosed_even_with_the_settings_toggle_off()
+    {
+        // Research Mode is switched on per conversation in chat, not by this settings toggle.
+        var status = CreateService().Evaluate(new AppSettings
+        {
+            EnableResearchMode = false,
+            WebSearchProvider = WebSearchProvider.Brave,
+            WebSearchApiKey = "brave-key"
+        });
+
+        status.IsFullyLocal.Should().BeFalse();
+        status.Disclosures.Should().ContainSingle(d => d.Surface == "Web search")
+            .Which.Detail.Should().Contain("Brave");
+    }
+
+    [Theory]
+    [InlineData("http://192.168.1.40:11434", "192.168.1.40")]
+    [InlineData("https://ollama.example.net", "ollama.example.net")]
+    public void Ollama_on_another_machine_is_disclosed(string endpoint, string expectedHost)
+    {
+        var status = CreateService().Evaluate(new AppSettings
+        {
+            ActiveProviderId = "ollama",
+            OllamaEndpoint = endpoint
+        });
+
+        status.IsFullyLocal.Should().BeFalse();
+        status.Disclosures.Should().ContainSingle(d => d.Surface == "AI model")
+            .Which.Detail.Should().Contain(expectedHost);
+    }
+
+    [Theory]
+    [InlineData("http://localhost:11434")]
+    [InlineData("http://127.0.0.1:11434")]
+    [InlineData("http://[::1]:11434")]
+    public void Ollama_on_this_machine_stays_local(string endpoint)
+    {
+        var status = CreateService().Evaluate(new AppSettings
+        {
+            ActiveProviderId = "ollama",
+            OllamaEndpoint = endpoint
         });
 
         status.IsFullyLocal.Should().BeTrue();
@@ -149,7 +213,8 @@ public class PrivacyStatusServiceTests
             OpenAiApiKey = "sk-test",
             EnableModelRouting = true,
             EnableResearchMode = true,
-            WebSearchProvider = WebSearchProvider.Serper
+            WebSearchProvider = WebSearchProvider.Serper,
+            WebSearchApiKey = "serper-key"
         };
         settings.CalendarConnector.EnableCalendarSync = true;
         settings.EmailConnector.EnableEmailSync = true;
