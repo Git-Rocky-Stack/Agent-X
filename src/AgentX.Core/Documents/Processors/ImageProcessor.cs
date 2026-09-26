@@ -13,8 +13,11 @@ namespace AgentX.Core.Documents.Processors;
 /// via <see cref="OcrEngine"/>.
 /// <para>
 /// Requires the Windows 10 SDK (10.0.19041.0 or later). Uses the user's installed
-/// language recognizers to perform OCR. If no recognizer is available or OCR produces
-/// no results, the extracted text falls back to a placeholder message.
+/// language recognizers to perform OCR. An image in which OCR finds no text yields empty
+/// extracted text (the document is kept, with nothing to search); no placeholder string is
+/// produced, because a placeholder would be chunked, embedded and matched like real content.
+/// When no recognizer is installed or the image cannot be decoded, a
+/// <see cref="DocumentExtractionException"/> reports why.
 /// </para>
 /// <para>
 /// Supported formats: PNG, JPG, JPEG, BMP, TIFF. The image is loaded as a
@@ -93,11 +96,15 @@ public class ImageProcessor : IDocumentProcessor
         {
             throw;
         }
+        catch (DocumentExtractionException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to process image file: {FilePath}", filePath);
-            document.ExtractedText = "[Image - no text extracted]";
-            document.Metadata.Custom["error"] = ex.Message;
+            throw new DocumentExtractionException(
+                $"Could not read text from the image '{document.FileName}': {ex.Message}", ex);
         }
 
         return document;
@@ -115,7 +122,9 @@ public class ImageProcessor : IDocumentProcessor
         if (ocrEngine is null)
         {
             Log.Warning("No OCR engine available from user profile languages");
-            return ("[Image - no text extracted]", 0, 0);
+            throw new DocumentExtractionException(
+                $"No Windows OCR language is installed, so the text in '{Path.GetFileName(filePath)}' cannot be read. " +
+                "Install an OCR language in Windows settings, then re-index the image.");
         }
 
         // Load the image file using Windows Storage APIs and BitmapDecoder
@@ -183,11 +192,11 @@ public class ImageProcessor : IDocumentProcessor
             softwareBitmap.Dispose();
         }
 
-        // Extract text from OCR result lines
+        // Extract text from OCR result lines. No text is an empty result, never a placeholder.
         if (ocrResult.Lines.Count == 0)
         {
             Log.Debug("OCR returned no text lines for image: {FilePath}", filePath);
-            return ("[Image - no text extracted]", originalWidth, originalHeight);
+            return (string.Empty, originalWidth, originalHeight);
         }
 
         var extractedText = string.Join(
@@ -196,7 +205,7 @@ public class ImageProcessor : IDocumentProcessor
 
         if (string.IsNullOrWhiteSpace(extractedText))
         {
-            return ("[Image - no text extracted]", originalWidth, originalHeight);
+            return (string.Empty, originalWidth, originalHeight);
         }
 
         return (extractedText, originalWidth, originalHeight);
@@ -324,11 +333,10 @@ public class ImageProcessor : IDocumentProcessor
 
     /// <summary>
     /// Counts words by splitting on whitespace, filtering out empty entries.
-    /// Ignores the fallback placeholder text when counting.
     /// </summary>
     private static long CountWords(string text)
     {
-        if (string.IsNullOrWhiteSpace(text) || text == "[Image - no text extracted]")
+        if (string.IsNullOrWhiteSpace(text))
             return 0;
 
         return text.Split(

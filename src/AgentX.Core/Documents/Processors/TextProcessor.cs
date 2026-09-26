@@ -100,8 +100,8 @@ public class TextProcessor : IDocumentProcessor
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to process text file: {FilePath}", filePath);
-            document.ExtractedText = string.Empty;
-            document.Metadata.Custom["error"] = ex.Message;
+            throw new DocumentExtractionException(
+                $"Could not read the text file '{document.FileName}': {ex.Message}", ex);
         }
 
         return document;

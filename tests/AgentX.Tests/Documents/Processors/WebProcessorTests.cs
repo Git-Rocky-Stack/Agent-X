@@ -1,3 +1,5 @@
+using System.Net;
+using AgentX.Core.Documents;
 using AgentX.Core.Documents.Processors;
 using AgentX.Core.Services.Web;
 using AgentX.Core.Services.Web.Models;
@@ -26,8 +28,14 @@ public sealed class WebProcessorTests : IDisposable
     {
         _tempDirectory = Path.Combine(Path.GetTempPath(), "agentx-webprocessor-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(_tempDirectory);
-        _processor = new WebProcessor(_scraper.Object);
+        // Hermetic DNS: every host name resolves to a public address unless a test says otherwise.
+        _processor = new WebProcessor(_scraper.Object, (host, _) => Task.FromResult(ResolveHost(host)));
     }
+
+    private readonly Dictionary<string, IPAddress[]> _dns = new(StringComparer.OrdinalIgnoreCase);
+
+    private IPAddress[] ResolveHost(string host)
+        => _dns.TryGetValue(host, out var addresses) ? addresses : new[] { IPAddress.Parse("93.184.216.34") };
 
     public void Dispose()
     {
@@ -113,10 +121,9 @@ public sealed class WebProcessorTests : IDisposable
     {
         var path = WriteFile("blank.url", "[InternetShortcut]\r\nURL=   \r\n");
 
-        var document = await _processor.ProcessAsync(path);
+        var act = () => _processor.ProcessAsync(path);
 
-        document.ExtractedText.Should().BeEmpty();
-        document.Metadata.Custom["error"].Should().Be("No URL found in shortcut file.");
+        await act.Should().ThrowAsync<DocumentExtractionException>().WithMessage("No URL found in shortcut file.");
         _scraper.Verify(s => s.IsValidUrl(It.IsAny<string>()), Times.Never);
     }
 
@@ -125,9 +132,9 @@ public sealed class WebProcessorTests : IDisposable
     {
         var path = WriteFile("empty.url", "   \r\n  ");
 
-        var document = await _processor.ProcessAsync(path);
+        var act = () => _processor.ProcessAsync(path);
 
-        document.Metadata.Custom["error"].Should().Be("No URL found in shortcut file.");
+        await act.Should().ThrowAsync<DocumentExtractionException>().WithMessage("No URL found in shortcut file.");
     }
 
     // ── .webloc (macOS plist) parsing ────────────────────────────────────────
@@ -162,9 +169,9 @@ public sealed class WebProcessorTests : IDisposable
             <plist version="1.0"><array><string>nothing</string></array></plist>
             """);
 
-        var document = await _processor.ProcessAsync(path);
+        var act = () => _processor.ProcessAsync(path);
 
-        document.Metadata.Custom["error"].Should().Be("No URL found in shortcut file.");
+        await act.Should().ThrowAsync<DocumentExtractionException>().WithMessage("No URL found in shortcut file.");
     }
 
     [Fact]
@@ -172,9 +179,9 @@ public sealed class WebProcessorTests : IDisposable
     {
         var path = WriteFile("broken.webloc", "<plist><dict><key>URL</key>");
 
-        var document = await _processor.ProcessAsync(path);
+        var act = () => _processor.ProcessAsync(path);
 
-        document.Metadata.Custom["error"].Should().Be("No URL found in shortcut file.");
+        await act.Should().ThrowAsync<DocumentExtractionException>().WithMessage("No URL found in shortcut file.");
     }
 
     // ── Validation and scraper failure paths ─────────────────────────────────
@@ -185,15 +192,14 @@ public sealed class WebProcessorTests : IDisposable
         var path = WriteFile("bad.url", "[InternetShortcut]\r\nURL=notaurl\r\n");
         _scraper.Setup(s => s.IsValidUrl("notaurl")).Returns(false);
 
-        var document = await _processor.ProcessAsync(path);
+        var act = () => _processor.ProcessAsync(path);
 
-        document.ExtractedText.Should().BeEmpty();
-        document.Metadata.Custom["error"].Should().Be("Invalid URL: notaurl");
+        await act.Should().ThrowAsync<DocumentExtractionException>().WithMessage("Invalid URL: notaurl");
         _scraper.Verify(s => s.ExtractContentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task ProcessAsync_ScraperFailure_RecordsErrorAndKeepsSourceUrl()
+    public async Task ProcessAsync_ScraperFailure_ReportsTheScraperError()
     {
         var path = WriteFile("fail.url", "[InternetShortcut]\r\nURL=https://example.com/down\r\n");
         _scraper.Setup(s => s.IsValidUrl("https://example.com/down")).Returns(true);
@@ -201,11 +207,9 @@ public sealed class WebProcessorTests : IDisposable
             .Setup(s => s.ExtractContentAsync("https://example.com/down", It.IsAny<CancellationToken>()))
             .ReturnsAsync(new WebContent { Success = false, ErrorMessage = "HTTP 503" });
 
-        var document = await _processor.ProcessAsync(path);
+        var act = () => _processor.ProcessAsync(path);
 
-        document.ExtractedText.Should().BeEmpty();
-        document.Metadata.Custom["error"].Should().Be("HTTP 503");
-        document.Metadata.Custom["sourceUrl"].Should().Be("https://example.com/down");
+        await act.Should().ThrowAsync<DocumentExtractionException>().WithMessage("HTTP 503");
     }
 
     [Fact]
@@ -217,13 +221,13 @@ public sealed class WebProcessorTests : IDisposable
             .Setup(s => s.ExtractContentAsync("https://example.com/quiet", It.IsAny<CancellationToken>()))
             .ReturnsAsync(new WebContent { Success = false, ErrorMessage = null });
 
-        var document = await _processor.ProcessAsync(path);
+        var act = () => _processor.ProcessAsync(path);
 
-        document.Metadata.Custom["error"].Should().Be("Extraction failed.");
+        await act.Should().ThrowAsync<DocumentExtractionException>().WithMessage("Extraction failed.");
     }
 
     [Fact]
-    public async Task ProcessAsync_ScraperThrows_IsSwallowedIntoAnErrorDocument()
+    public async Task ProcessAsync_ScraperThrows_IsReportedAsAnExtractionFailure()
     {
         var path = WriteFile("throw.url", "[InternetShortcut]\r\nURL=https://example.com/boom\r\n");
         _scraper.Setup(s => s.IsValidUrl("https://example.com/boom")).Returns(true);
@@ -231,10 +235,10 @@ public sealed class WebProcessorTests : IDisposable
             .Setup(s => s.ExtractContentAsync("https://example.com/boom", It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("scraper exploded"));
 
-        var document = await _processor.ProcessAsync(path);
+        var act = () => _processor.ProcessAsync(path);
 
-        document.ExtractedText.Should().BeEmpty();
-        document.Metadata.Custom["error"].Should().Be("scraper exploded");
+        (await act.Should().ThrowAsync<DocumentExtractionException>().WithMessage("scraper exploded"))
+            .Which.InnerException.Should().BeOfType<InvalidOperationException>();
     }
 
     [Fact]
@@ -249,6 +253,72 @@ public sealed class WebProcessorTests : IDisposable
         var act = () => _processor.ProcessAsync(path, new CancellationToken(canceled: true));
 
         await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    // Local and private-network targets
+
+    [Theory]
+    [InlineData("http://localhost:11434/api/tags")]
+    [InlineData("http://127.0.0.1:9846/api/documents")]
+    [InlineData("http://127.1/")]
+    [InlineData("http://[::1]/")]
+    [InlineData("http://10.0.0.5/admin")]
+    [InlineData("http://172.20.1.1/")]
+    [InlineData("http://192.168.1.1/")]
+    [InlineData("http://169.254.169.254/latest/meta-data/")]
+    [InlineData("http://printer.local/status")]
+    [InlineData("http://service.internal/")]
+    public async Task ProcessAsync_LocalOrPrivateTarget_IsRefusedWithoutFetching(string url)
+    {
+        // A .url file dropped into a watched folder must not make the app fetch from this
+        // computer or the local network on the file author's behalf.
+        var path = WriteFile("local.url", $"[InternetShortcut]\r\nURL={url}\r\n");
+        _scraper.Setup(s => s.IsValidUrl(url)).Returns(true);
+
+        var act = () => _processor.ProcessAsync(path);
+
+        await act.Should().ThrowAsync<DocumentExtractionException>().WithMessage("Refused to fetch*");
+        _scraper.Verify(s => s.ExtractContentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_HostNameResolvingToAPrivateAddress_IsRefused()
+    {
+        _dns["intranet.example.com"] = new[] { IPAddress.Parse("10.1.2.3") };
+        var path = WriteFile("rebind.url", "[InternetShortcut]\r\nURL=https://intranet.example.com/wiki\r\n");
+        _scraper.Setup(s => s.IsValidUrl("https://intranet.example.com/wiki")).Returns(true);
+
+        var act = () => _processor.ProcessAsync(path);
+
+        await act.Should().ThrowAsync<DocumentExtractionException>().WithMessage("Refused to fetch*");
+        _scraper.Verify(s => s.ExtractContentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_UnresolvableHost_IsRefused()
+    {
+        _dns["nowhere.example.com"] = Array.Empty<IPAddress>();
+        var path = WriteFile("nowhere.url", "[InternetShortcut]\r\nURL=https://nowhere.example.com/\r\n");
+        _scraper.Setup(s => s.IsValidUrl("https://nowhere.example.com/")).Returns(true);
+
+        var act = () => _processor.ProcessAsync(path);
+
+        await act.Should().ThrowAsync<DocumentExtractionException>().WithMessage("Could not resolve*");
+    }
+
+    [Theory]
+    [InlineData("8.8.8.8", false)]
+    [InlineData("93.184.216.34", false)]
+    [InlineData("2606:4700::1111", false)]
+    [InlineData("100.64.0.1", true)]
+    [InlineData("0.0.0.0", true)]
+    [InlineData("224.0.0.1", true)]
+    [InlineData("fe80::1", true)]
+    [InlineData("fd00::1", true)]
+    [InlineData("::ffff:192.168.0.1", true)]
+    public void IsNonPublicAddress_ClassifiesAddresses(string address, bool expected)
+    {
+        WebProcessor.IsNonPublicAddress(IPAddress.Parse(address)).Should().Be(expected);
     }
 
     // ── Optional metadata mapping ────────────────────────────────────────────

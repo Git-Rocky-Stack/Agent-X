@@ -337,6 +337,53 @@ public sealed class DocumentServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task ImportFileAsync_ExtractionFails_RecordsAFailedDocumentWithTheReason()
+    {
+        // An encrypted or corrupt file used to import as a "successful" zero-word document.
+        // It is now kept as a failed document that says why, and is not queued for indexing.
+        var h = NewHarness();
+        h.Processor.ThrowOnProcess = new DocumentExtractionException("'locked.pdf' is password protected.");
+        var raised = 0;
+        h.Service.DocumentPendingIndexing += (_, _) => raised++;
+
+        var entity = await h.Service.ImportFileAsync(h.WriteFile("locked.pdf", "%PDF-encrypted"));
+
+        entity.IndexingStatus.Should().Be("failed");
+        entity.IndexingError.Should().Be("'locked.pdf' is password protected.");
+        entity.WordCount.Should().Be(0);
+        raised.Should().Be(0);
+
+        using var fresh = h.Fresh();
+        (await fresh.Documents.SingleAsync()).IndexingStatus.Should().Be("failed");
+    }
+
+    [Fact]
+    public async Task ImportFileAsync_UnexpectedProcessorError_IsRecordedWithAPrefix()
+    {
+        var h = NewHarness();
+        h.Processor.ThrowOnProcess = new IOException("sharing violation");
+
+        var entity = await h.Service.ImportFileAsync(h.WriteFile("busy.txt", "content"));
+
+        entity.IndexingStatus.Should().Be("failed");
+        entity.IndexingError.Should().Be("Text extraction failed: sharing violation");
+    }
+
+    [Fact]
+    public async Task ImportExternalContentAsync_ExtractionFails_RecordsAFailedDocument()
+    {
+        var h = NewHarness();
+        h.Processor.ThrowOnProcess = new DocumentExtractionException("unreadable");
+
+        var entity = await h.Service.ImportExternalContentAsync(
+            h.WriteFile("mail.txt", "body"), "EmailMessage", "Weekly update", sourceUrl: "https://mail.example.com/1");
+
+        entity.IndexingStatus.Should().Be("failed");
+        entity.IndexingError.Should().Be("unreadable");
+        entity.MetadataJson.Should().Contain("mail.example.com");
+    }
+
+    [Fact]
     public async Task ImportFileAsync_FailingIndexingSubscriber_DoesNotFailTheImport()
     {
         var h = NewHarness();

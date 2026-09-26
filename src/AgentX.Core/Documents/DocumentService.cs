@@ -107,13 +107,15 @@ public sealed class DocumentService : IDocumentService
                 $"No processor found for file type '{extension}'. Supported types: {string.Join(", ", GetSupportedExtensions())}");
         }
 
-        // 5. Extract text and metadata
+        // 5. Extract text and metadata. A file the processor cannot read (encrypted, corrupt,
+        //    no text layer) is still recorded, as a failed document carrying the reason, so
+        //    the problem is visible in the vault instead of importing as a zero-word success.
         _logger.Debug("Processing file with {Processor}: {FilePath}", processor.GetType().Name, filePath);
-        var processed = await processor.ProcessAsync(filePath, ct);
+        var (processed, extractionError) = await TryExtractAsync(processor, filePath, ct);
 
         // 6. Gather file system metadata
         var fileInfo = new FileInfo(filePath);
-        var metadataJson = SerializeMetadata(processed.Metadata);
+        var metadataJson = processed is null ? null : SerializeMetadata(processed.Metadata);
 
         // 7. Create DocumentEntity
         var entity = new DocumentEntity
@@ -126,20 +128,30 @@ public sealed class DocumentService : IDocumentService
             ContentHash = contentHash,
             ImportedAt = DateTime.UtcNow,
             FileModifiedAt = fileInfo.LastWriteTimeUtc,
-            IndexingStatus = "pending",
-            PageCount = processed.PageCount,
-            WordCount = processed.WordCount,
-            ExtractedTitle = processed.ExtractedTitle,
-            Language = processed.Language,
+            IndexingStatus = extractionError is null ? "pending" : "failed",
+            IndexingError = extractionError,
+            PageCount = processed?.PageCount ?? 0,
+            WordCount = processed?.WordCount ?? 0,
+            ExtractedTitle = processed?.ExtractedTitle,
+            Language = processed?.Language,
             MetadataJson = metadataJson
         };
 
         _db.Documents.Add(entity);
         await _db.SaveChangesAsync(ct);
 
-        _logger.Information(
-            "Imported document: {FileName} (ID {DocumentId}, {FileType}, {WordCount} words, {PageCount} pages)",
-            entity.FileName, entity.Id, entity.FileType, entity.WordCount, entity.PageCount);
+        if (extractionError is null)
+        {
+            _logger.Information(
+                "Imported document: {FileName} (ID {DocumentId}, {FileType}, {WordCount} words, {PageCount} pages)",
+                entity.FileName, entity.Id, entity.FileType, entity.WordCount, entity.PageCount);
+        }
+        else
+        {
+            _logger.Warning(
+                "Imported document {FileName} (ID {DocumentId}) as failed: {Error}",
+                entity.FileName, entity.Id, extractionError);
+        }
 
         // 8. Associate with collection if specified
         if (collectionId.HasValue)
@@ -169,7 +181,10 @@ public sealed class DocumentService : IDocumentService
             }
         }
 
-        RaisePendingIndexing(entity.Id, processed);
+        if (processed is not null)
+        {
+            RaisePendingIndexing(entity.Id, processed);
+        }
 
         return entity;
     }
@@ -200,18 +215,19 @@ public sealed class DocumentService : IDocumentService
                 $"No processor found for file '{filePath}'. Supported types: {string.Join(", ", GetSupportedExtensions())}");
         }
 
-        var processed = await processor.ProcessAsync(filePath, ct);
+        var (processed, extractionError) = await TryExtractAsync(processor, filePath, ct);
 
         var fileInfo = new FileInfo(filePath);
         var contentHash = await HashHelper.ComputeFileHashAsync(filePath, ct);
-        var metadataJson = SerializeMetadata(processed.Metadata);
 
         // Store the source URL in metadata if provided
+        var metadata = processed?.Metadata ?? new DocumentMetadata();
         if (!string.IsNullOrWhiteSpace(sourceUrl))
         {
-            processed.Metadata.Custom["sourceUrl"] = sourceUrl;
-            metadataJson = SerializeMetadata(processed.Metadata);
+            metadata.Custom["sourceUrl"] = sourceUrl;
         }
+
+        var metadataJson = SerializeMetadata(metadata);
 
         var entity = new DocumentEntity
         {
@@ -223,11 +239,12 @@ public sealed class DocumentService : IDocumentService
             ContentHash = contentHash,
             ImportedAt = DateTime.UtcNow,
             FileModifiedAt = fileInfo.LastWriteTimeUtc,
-            IndexingStatus = "pending",
-            PageCount = processed.PageCount,
-            WordCount = processed.WordCount,
+            IndexingStatus = extractionError is null ? "pending" : "failed",
+            IndexingError = extractionError,
+            PageCount = processed?.PageCount ?? 0,
+            WordCount = processed?.WordCount ?? 0,
             ExtractedTitle = displayName,
-            Language = processed.Language,
+            Language = processed?.Language,
             MetadataJson = metadataJson,
         };
 
@@ -235,8 +252,8 @@ public sealed class DocumentService : IDocumentService
         await _db.SaveChangesAsync(ct);
 
         _logger.Information(
-            "Imported external content: {DisplayName} (ID {DocumentId}, Type={FileType}, {WordCount} words)",
-            displayName, entity.Id, entity.FileType, entity.WordCount);
+            "Imported external content: {DisplayName} (ID {DocumentId}, Type={FileType}, {WordCount} words, status {Status})",
+            displayName, entity.Id, entity.FileType, entity.WordCount, entity.IndexingStatus);
 
         // Associate with collection if specified
         if (collectionId.HasValue)
@@ -258,10 +275,41 @@ public sealed class DocumentService : IDocumentService
             }
         }
 
-        RaisePendingIndexing(entity.Id, processed);
+        if (processed is not null)
+        {
+            RaisePendingIndexing(entity.Id, processed);
+        }
 
         return entity;
     }
+
+    /// <summary>
+    /// Runs the processor, turning an extraction failure into an error message instead of an
+    /// exception so the caller can record the document as failed with that reason.
+    /// Cancellation still propagates.
+    /// </summary>
+    private async Task<(ProcessedDocument? Processed, string? Error)> TryExtractAsync(
+        IDocumentProcessor processor,
+        string filePath,
+        CancellationToken ct)
+    {
+        try
+        {
+            return (await processor.ProcessAsync(filePath, ct), null);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.Warning(ex, "Text extraction failed for {FilePath}", filePath);
+            return (null, DescribeExtractionFailure(ex));
+        }
+    }
+
+    /// <summary>
+    /// User-facing reason for a failed extraction. Processor messages are already written
+    /// for the user; anything else gets a prefix that says which step failed.
+    /// </summary>
+    private static string DescribeExtractionFailure(Exception ex)
+        => ex is DocumentExtractionException ? ex.Message : $"Text extraction failed: {ex.Message}";
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<DocumentEntity>> ImportFilesAsync(
@@ -568,7 +616,7 @@ public sealed class DocumentService : IDocumentService
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             _logger.Warning(ex, "Re-index of document {DocumentId} failed during text extraction", documentId);
-            await MarkFailedAsync(document, $"Text extraction failed: {ex.Message}");
+            await MarkFailedAsync(document, DescribeExtractionFailure(ex));
             throw;
         }
 

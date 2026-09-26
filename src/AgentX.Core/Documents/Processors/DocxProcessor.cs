@@ -8,19 +8,19 @@ using Serilog;
 namespace AgentX.Core.Documents.Processors;
 
 /// <summary>
-/// Extracts text content from Word documents (.docx, .doc) using DocumentFormat.OpenXml 3.2.0.
+/// Extracts text content from Word documents (.docx) using DocumentFormat.OpenXml 3.2.0.
 /// <para>
 /// Walks all <see cref="Paragraph"/> elements in the document body, extracting InnerText.
 /// Detects heading styles (Heading1, Heading2, etc.) to identify section structure.
-/// Note: The .doc (legacy binary) format is listed for convenience but is not natively
-/// supported by the OpenXml SDK — only .docx (Open XML) files can be fully parsed.
+/// The legacy binary Word format is not claimed: the OpenXml SDK cannot read it, so
+/// offering it would only produce imports that fail after the user picked the file.
 /// </para>
 /// </summary>
 public class DocxProcessor : IDocumentProcessor
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<DocxProcessor>();
 
-    private static readonly HashSet<string> Extensions = new(StringComparer.OrdinalIgnoreCase) { ".docx", ".doc" };
+    private static readonly HashSet<string> Extensions = new(StringComparer.OrdinalIgnoreCase) { ".docx" };
 
     /// <summary>
     /// Heading style IDs recognized when walking paragraphs to detect section boundaries.
@@ -84,9 +84,10 @@ public class DocxProcessor : IDocumentProcessor
         }
         catch (Exception ex)
         {
+            // Password-protected, corrupt or mislabelled files land here.
             Log.Error(ex, "Failed to process Word document: {FilePath}", filePath);
-            document.ExtractedText = string.Empty;
-            document.Metadata.Custom["error"] = ex.Message;
+            throw new DocumentExtractionException(
+                $"Could not read the Word document '{document.FileName}': {ex.Message}", ex);
         }
 
         return document;

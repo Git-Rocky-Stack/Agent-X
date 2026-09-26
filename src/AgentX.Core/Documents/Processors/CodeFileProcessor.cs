@@ -182,8 +182,8 @@ public class CodeFileProcessor : IDocumentProcessor
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to process code file: {FilePath}", filePath);
-            document.ExtractedText = string.Empty;
-            document.Metadata.Custom["error"] = ex.Message;
+            throw new DocumentExtractionException(
+                $"Could not read the code file '{document.FileName}': {ex.Message}", ex);
         }
 
         return document;

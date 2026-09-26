@@ -113,9 +113,9 @@ public sealed partial class CollectionManagerPage : Page
             picker.ViewMode = PickerViewMode.List;
             picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
 
+            // No legacy binary Word files: the OpenXml reader behind DocxProcessor cannot open them.
             picker.FileTypeFilter.Add(".pdf");
             picker.FileTypeFilter.Add(".docx");
-            picker.FileTypeFilter.Add(".doc");
             picker.FileTypeFilter.Add(".txt");
             picker.FileTypeFilter.Add(".md");
             picker.FileTypeFilter.Add(".csv");
