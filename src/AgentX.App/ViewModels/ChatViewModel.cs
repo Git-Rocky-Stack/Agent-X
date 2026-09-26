@@ -323,13 +323,14 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private readonly INotificationService _notificationService;
     private readonly ITemporalIdentityService _temporalIdentity;
 
-    private ChatContextInspectionSnapshot? _latestContextInspection;
-
-    // ── The generation streaming into the screen (for token-by-token updates) ──
-    // Null when nothing this view model started is running on the thread on screen. Moving off
-    // a thread clears it, so tokens and completions that still arrive for the thread left
-    // behind are ignored instead of landing on the one now shown.
+    // ── Streaming assistant message (for token-by-token updates) ──
+    // The generation streaming into the screen. Null when nothing this view model started is
+    // running on the thread on screen. Moving off a thread clears it, so tokens and completions
+    // that still arrive for the thread left behind are ignored instead of landing on the one
+    // now shown.
     private ChatGeneration? _activeGeneration;
+
+    private ChatContextInspectionSnapshot? _latestContextInspection;
 
     // The coordinator call of the most recent generation. A generation abandoned by a thread
     // switch can take a moment to wind down; the next one waits for it (briefly) so its last

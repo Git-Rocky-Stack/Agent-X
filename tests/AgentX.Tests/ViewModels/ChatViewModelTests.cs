@@ -962,7 +962,7 @@ public sealed class ChatViewModelTests
         viewModel.ActiveConversationId.Should().Be(42);
     }
 
-    // ── Persisted identity of messages sent this session ──────────────────
+    // --- Persisted identity of messages sent this session ---
     // Bubbles created while chatting used to keep MessageId 0 and SortOrder 0 forever, so
     // Save & Resend truncated from SortOrder 0 (wiping all but the first message), Delete
     // skipped the database but reported success, Branch failed on "message 0", and Regenerate
@@ -1227,7 +1227,7 @@ public sealed class ChatViewModelTests
         await sending;
     }
 
-    // ── Generation state after every outcome ─────────────────────────────
+    // --- Generation state after every outcome ---
     // A stop returned without any event and a thread switch discarded the completion, and in
     // both cases IsGenerating stayed true: Send hidden, Stop pointing at nothing, Enter blocked.
 
@@ -1443,7 +1443,7 @@ public sealed class ChatViewModelTests
             service => service.LearnFromMessageAsync(1001, It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    // ── Opening conversations ─────────────────────────────────────────────
+    // --- Opening conversations ---
 
     [Fact]
     public async Task ApplyNavigationParameterAsync_OnAColdPage_OpensTheConversationBeforeTheSidebarLoads()
@@ -1486,7 +1486,7 @@ public sealed class ChatViewModelTests
             service => service.ShowInfo("Conversation not found", It.IsAny<string>(), It.IsAny<int>()), Times.Once);
     }
 
-    // ── Sidebar row actions ───────────────────────────────────────────────
+    // --- Sidebar row actions ---
 
     [Fact]
     public async Task DeleteConversationAsync_WhenTheDeleteFails_KeepsTheRowAndSaysSo()
@@ -1548,7 +1548,7 @@ public sealed class ChatViewModelTests
             service => service.ShowError("Pin not changed", It.IsAny<string>(), It.IsAny<int>()), Times.Once);
     }
 
-    // ── Lifetime ──────────────────────────────────────────────────────────
+    // --- Lifetime ---
     // The page cache evicts ChatPage; its view model stayed subscribed to the singleton
     // coordinators forever and kept reacting (duplicate toasts, duplicate learning).
 

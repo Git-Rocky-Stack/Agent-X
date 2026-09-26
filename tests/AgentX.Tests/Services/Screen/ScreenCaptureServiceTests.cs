@@ -97,7 +97,7 @@ public sealed class ScreenCaptureServiceTests
         result.OcrText.Should().BeEmpty();
     }
 
-    // ── CaptureWindowAndOcrAsync ───────────────────────────────────────────────
+    // --- CaptureWindowAndOcrAsync ---
 
     [Fact]
     public async Task CaptureWindowAndOcrAsync_WithNoWindow_ReturnsEmptyWithoutReadingSettings()

@@ -420,7 +420,7 @@ public class MessagingCoordinatorTests
         _coordinator.IsGenerating.Should().BeFalse();
     }
 
-    // ── Generation ownership ───────────────────────────────────────
+    // --- Generation ownership ---
     // The cancellation source used to be one shared field: a second send overwrote it, and the
     // first send's finally disposed and cleared it, so Stop no longer reached anything.
 
@@ -478,7 +478,7 @@ public class MessagingCoordinatorTests
         result.WasCancelled.Should().BeTrue();
     }
 
-    // ── Persisted identity ─────────────────────────────────────────
+    // --- Persisted identity ---
 
     [Fact]
     public async Task SendMessageAsync_WhenStopped_ReportsThePromptRowItSaved()
@@ -533,7 +533,7 @@ public class MessagingCoordinatorTests
         result.UserMessageId.Should().Be(10);
     }
 
-    // ── Regeneration ───────────────────────────────────────────────
+    // --- Regeneration ---
 
     [Fact]
     public async Task RegenerateResponseAsync_StreamsANewAnswerToTheSavedPromptWithoutSendingItAgain()
@@ -628,7 +628,7 @@ public class MessagingCoordinatorTests
         (await _coordinator.DeleteMessageAsync(43)).Should().BeFalse();
     }
 
-    // ── Research Mode ──────────────────────────────────────────────
+    // --- Research Mode ---
     // The toggle promised web sources while the send path ignored it entirely.
 
     [Fact]

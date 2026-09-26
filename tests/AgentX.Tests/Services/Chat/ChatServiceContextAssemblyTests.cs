@@ -604,7 +604,7 @@ public sealed class ChatServiceContextAssemblyTests
         sut.GetLatestContextInspection(42)!.Summary.Should().BeEquivalentTo(initialInspection);
     }
 
-    // ── In-place regeneration ──────────────────────────────────────────────
+    // --- In-place regeneration ---
     // Regenerate used to delete the old answer and resend the prompt: the prompt was saved a
     // second time on every regenerate, and a stop or an error lost the old answer.
 

@@ -32,7 +32,7 @@ public sealed class PastSelfViewModelTests
         viewModel.VoiceProfile.FormalityLabel.Should().Be("Not enough data");
     }
 
-    // ── Relevant insights ────────────────────────────────────────────────────
+    // --- Relevant insights ---
     // PastSelfResult raises no change notifications, and the insights were written onto the
     // result after it had been published, so the insights section never appeared.
 
@@ -81,7 +81,7 @@ public sealed class PastSelfViewModelTests
         viewModel.CurrentResult!.RelevantInsights.Should().ContainSingle();
     }
 
-    // ── Time ranges ───────────────────────────────────────────────────────────
+    // --- Time ranges ---
 
     [Theory]
     [InlineData(0.5, "today")]
