@@ -27,7 +27,7 @@ public partial class SettingsViewModel : ObservableObject
 
     // ── Active Provider ──────────────────────────────────────
     [ObservableProperty] private int _activeProviderIndex;
-    [ObservableProperty] private string _activeProviderId = "ollama";
+    [ObservableProperty] private string _activeProviderId = "local";
 
     // ── Ollama ────────────────────────────────────────────────
     [ObservableProperty] private string _ollamaEndpoint = "http://localhost:11434";
@@ -45,7 +45,7 @@ public partial class SettingsViewModel : ObservableObject
     // ── Anthropic ─────────────────────────────────────────────
     [ObservableProperty] private string _anthropicApiKey = string.Empty;
     [ObservableProperty] private string _anthropicEndpoint = "https://api.anthropic.com/v1/";
-    [ObservableProperty] private string _anthropicDefaultModel = "claude-sonnet-4-20250514";
+    [ObservableProperty] private string _anthropicDefaultModel = AgentX.Core.AI.Providers.AnthropicProvider.DefaultModelId;
     [ObservableProperty] private string _anthropicConnectionStatus = string.Empty;
 
     // ── Inference ───────────────────────────────────────────
@@ -118,10 +118,10 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private string _appVersion = AgentX.Core.AppVersionInfo.Display;
 
     /// <summary>
-    /// Provider display names for the ComboBox items.
-    /// Order must match the index mapping in ProviderIndexToId / ProviderIdToIndex.
+    /// Provider display names for the ComboBox items, in <see cref="ProviderChoices"/> order
+    /// (the built-in model first, since it is the default provider).
     /// </summary>
-    public List<string> ProviderOptions { get; } = new() { "Ollama (Local)", "OpenAI", "Anthropic Claude" };
+    public List<string> ProviderOptions { get; } = ProviderChoices.DisplayNames.ToList();
     public List<string> ThemeOptions { get; } = new() { "Dark", "Light", "System Default" };
 
     /// <summary>
@@ -163,9 +163,10 @@ public partial class SettingsViewModel : ObservableObject
         var settings = await _settingsService.GetSettingsAsync();
         if (settings != null)
         {
-            // Provider settings
-            ActiveProviderId = settings.ActiveProviderId ?? "ollama";
-            ActiveProviderIndex = ProviderIdToIndex(ActiveProviderId);
+            // Provider settings. An id that is not in the picker shows as no selection and is
+            // saved back unchanged (see ProviderChoices).
+            ActiveProviderId = string.IsNullOrWhiteSpace(settings.ActiveProviderId) ? "local" : settings.ActiveProviderId;
+            ActiveProviderIndex = ProviderChoices.IndexOf(ActiveProviderId);
 
             // Ollama
             OllamaEndpoint = settings.OllamaEndpoint;
@@ -180,7 +181,7 @@ public partial class SettingsViewModel : ObservableObject
             // Anthropic
             AnthropicApiKey = settings.AnthropicApiKey ?? string.Empty;
             AnthropicEndpoint = settings.AnthropicEndpoint;
-            AnthropicDefaultModel = settings.AnthropicDefaultModel ?? "claude-sonnet-4-20250514";
+            AnthropicDefaultModel = settings.AnthropicDefaultModel ?? AgentX.Core.AI.Providers.AnthropicProvider.DefaultModelId;
 
             // Inference
             Temperature = settings.Temperature;
@@ -235,11 +236,12 @@ public partial class SettingsViewModel : ObservableObject
         // (e.g. OnboardingCompleted, StoragePath)
         var settings = await _settingsService.GetSettingsAsync();
 
-        // Resolve provider ID from the selected ComboBox index
-        var resolvedProviderId = ProviderIndexToId(ActiveProviderIndex);
+        // Resolve provider ID from the selected ComboBox index (no selection keeps the saved id)
+        var resolvedProviderId = ProviderChoices.ResolveSelection(ActiveProviderIndex, ActiveProviderId);
 
         // Provider
         settings.ActiveProviderId = resolvedProviderId;
+        ActiveProviderId = resolvedProviderId;
 
         // Ollama
         settings.OllamaEndpoint = OllamaEndpoint;
@@ -307,13 +309,18 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private async Task TestOllamaConnectionAsync()
     {
+        if (!AiService.TryParseHttpEndpoint(OllamaEndpoint, out var endpoint))
+        {
+            OllamaConnectionStatus = "Invalid endpoint (use http://host:port)";
+            return;
+        }
+
         OllamaConnectionStatus = "Testing...";
         try
         {
             // Always create a temporary provider with the current endpoint value
             // (the user may have edited the endpoint but not saved yet)
-            using var tempProvider = new AgentX.Core.AI.Providers.OllamaProvider(
-                new Uri(OllamaEndpoint), Log.Logger);
+            using var tempProvider = new AgentX.Core.AI.Providers.OllamaProvider(endpoint, Log.Logger);
             var connected = await tempProvider.CheckConnectionAsync();
             OllamaConnectionStatus = connected ? "Connected" : "Not reachable";
         }
@@ -375,9 +382,9 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private async Task ResetToDefaultsAsync()
     {
-        // Provider defaults
-        ActiveProviderIndex = 0; // Ollama
-        ActiveProviderId = "ollama";
+        // Provider defaults (the built-in model, as for a new install)
+        ActiveProviderId = "local";
+        ActiveProviderIndex = ProviderChoices.IndexOf(ActiveProviderId);
 
         // Ollama
         OllamaEndpoint = "http://localhost:11434";
@@ -392,7 +399,7 @@ public partial class SettingsViewModel : ObservableObject
         // Anthropic — clear key, keep default endpoint/model
         AnthropicApiKey = string.Empty;
         AnthropicEndpoint = "https://api.anthropic.com/v1/";
-        AnthropicDefaultModel = "claude-sonnet-4-20250514";
+        AnthropicDefaultModel = AgentX.Core.AI.Providers.AnthropicProvider.DefaultModelId;
 
         // Inference
         Temperature = 0.7;
@@ -507,28 +514,6 @@ public partial class SettingsViewModel : ObservableObject
             Log.Warning(ex, "Failed to refresh cost display");
         }
     }
-
-    /// <summary>
-    /// Maps a provider ComboBox index to the provider ID string.
-    /// </summary>
-    private static string ProviderIndexToId(int index) => index switch
-    {
-        0 => "ollama",
-        1 => "openai",
-        2 => "anthropic",
-        _ => "ollama"
-    };
-
-    /// <summary>
-    /// Maps a provider ID string to the ComboBox index.
-    /// </summary>
-    private static int ProviderIdToIndex(string providerId) => providerId?.ToLowerInvariant() switch
-    {
-        "ollama" => 0,
-        "openai" => 1,
-        "anthropic" => 2,
-        _ => 0
-    };
 
     /// <summary>
     /// Reacts to theme ComboBox selection changes.

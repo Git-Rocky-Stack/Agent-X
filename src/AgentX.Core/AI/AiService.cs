@@ -603,8 +603,9 @@ public sealed class AiService : IAiService
     /// <summary>
     /// Parses an Ollama endpoint. Only absolute http/https URLs are accepted; values such as
     /// "localhost" or "localhost:11434" are rejected instead of throwing UriFormatException.
+    /// Public so the settings and onboarding connection tests validate the same way.
     /// </summary>
-    internal static bool TryParseHttpEndpoint(string? value, out Uri endpoint)
+    public static bool TryParseHttpEndpoint(string? value, out Uri endpoint)
     {
         endpoint = null!;
         if (string.IsNullOrWhiteSpace(value))

@@ -224,7 +224,7 @@
                                            Style="{StaticResource LabelStyle}" />
                                 <TextBox Style="{StaticResource InputTextBoxStyle}"
                                          Text="{x:Bind ViewModel.AnthropicDefaultModel, Mode=TwoWay}"
-                                         PlaceholderText="claude-sonnet-4-20250514" />
+                                         PlaceholderText="claude-sonnet-5" />
                             </StackPanel>
                         </Grid>
 
