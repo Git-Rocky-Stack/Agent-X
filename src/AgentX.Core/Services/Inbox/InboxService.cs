@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
@@ -14,17 +15,28 @@ namespace AgentX.Core.Services.Inbox;
 
 /// <summary>
 /// EF Core-backed implementation of <see cref="IInboxService"/>.
-/// Provides file triage, AI-powered 2–3 sentence previews with collection and tag
-/// suggestions, and batch accept/reject operations. Accepted items are stamped so
-/// that the downstream indexing pipeline can pick them up by status.
+/// Provides file triage, AI-powered 2-3 sentence previews with collection and tag
+/// suggestions, and batch accept/reject operations. Accepting an item copies its file
+/// into app storage and imports it into the knowledge vault through
+/// <see cref="IDocumentService.ImportFileAsync"/>.
 /// </summary>
 public sealed class InboxService : IInboxService
 {
+    /// <summary>Folder under the app data root that holds every file the inbox owns.</summary>
+    internal const string InboxStoreFolderName = "Inbox";
+
+    /// <summary>Subfolder of the inbox store for connector (calendar, email) content.</summary>
+    internal const string ExternalStoreFolderName = "External";
+
+    /// <summary>Subfolder of the inbox store for accepted watch-folder files and web clips.</summary>
+    internal const string AcceptedStoreFolderName = "Accepted";
+
     private readonly AgentXDbContext _db;
     private readonly ISummaryService _summaryService;
     private readonly ICollectionService _collectionService;
     private readonly IAiService _aiService;
     private readonly IDocumentService? _documentService;
+    private readonly IAppPathService _appPaths;
 
     /// <summary>
     /// Maximum characters read from a file for AI preview generation.
@@ -46,13 +58,15 @@ public sealed class InboxService : IInboxService
         ISummaryService summaryService,
         ICollectionService collectionService,
         IAiService aiService,
-        IDocumentService? documentService = null)
+        IDocumentService? documentService = null,
+        IAppPathService? appPaths = null)
     {
         _db = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _summaryService = summaryService ?? throw new ArgumentNullException(nameof(summaryService));
         _collectionService = collectionService ?? throw new ArgumentNullException(nameof(collectionService));
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
         _documentService = documentService;
+        _appPaths = appPaths ?? new AppPathService();
     }
 
     // ── Ingestion ────────────────────────────────────────────────────────────
@@ -193,33 +207,31 @@ public sealed class InboxService : IInboxService
     // ── Single-item triage ───────────────────────────────────────────────────
 
     /// <inheritdoc />
-    public async Task AcceptItemAsync(long itemId, long? collectionId = null)
+    public async Task<InboxAcceptResult> AcceptItemAsync(long itemId, long? collectionId = null)
     {
         try
         {
             var item = await RequireItemAsync(itemId).ConfigureAwait(false);
 
-            item.Status = "accepted";
-            item.ProcessedAt = DateTime.UtcNow;
-
             // A caller-supplied collectionId overrides the AI suggestion.
+            string? overrideName = null;
             if (collectionId.HasValue)
             {
-                item.SuggestedCollectionId = collectionId.Value;
-
                 // Refresh the denormalized name if the override differs.
                 var collection = await _collectionService
                     .GetCollectionAsync(collectionId.Value)
                     .ConfigureAwait(false);
-
-                item.SuggestedCollectionName = collection?.Name;
+                overrideName = collection?.Name;
             }
 
-            await _db.SaveChangesAsync().ConfigureAwait(false);
+            var result = await AcceptIntoVaultAsync(item, collectionId, overrideName).ConfigureAwait(false);
 
             Log.Information(
-                "InboxService: Accepted inbox item {ItemId} '{FileName}' (collection {CollectionId})",
-                item.Id, item.FileName, item.SuggestedCollectionId?.ToString() ?? "none");
+                "InboxService: Accepted inbox item {ItemId} '{FileName}' ({Outcome}, document {DocumentId}, collection {CollectionId})",
+                item.Id, item.FileName, result.Outcome, result.DocumentId?.ToString() ?? "none",
+                item.SuggestedCollectionId?.ToString() ?? "none");
+
+            return result;
         }
         catch (Exception ex)
         {
@@ -229,33 +241,29 @@ public sealed class InboxService : IInboxService
     }
 
     /// <inheritdoc />
-    public async Task AcceptAllPendingAsync()
+    public async Task<InboxBatchAcceptResult> AcceptAllPendingAsync()
     {
         try
         {
             var pending = await _db.InboxItems
                 .Where(i => i.Status == "pending")
+                .OrderBy(i => i.AddedAt)
                 .ToListAsync()
                 .ConfigureAwait(false);
 
             if (pending.Count == 0)
             {
-                Log.Debug("InboxService: AcceptAllPending — no pending items found");
-                return;
+                Log.Debug("InboxService: AcceptAllPending - no pending items found");
+                return InboxBatchAcceptResult.Empty;
             }
 
-            var now = DateTime.UtcNow;
-            foreach (var item in pending)
-            {
-                item.Status = "accepted";
-                item.ProcessedAt = now;
-            }
-
-            await _db.SaveChangesAsync().ConfigureAwait(false);
+            var result = await AcceptBatchAsync(pending, collectionId: null, overrideName: null).ConfigureAwait(false);
 
             Log.Information(
-                "InboxService: Accepted all {Count} pending inbox items",
-                pending.Count);
+                "InboxService: Accept-all finished. Imported={Imported} AlreadyInVault={Linked} Failed={Failed}",
+                result.Imported, result.AlreadyInVault, result.Failed);
+
+            return result;
         }
         catch (Exception ex)
         {
@@ -313,14 +321,14 @@ public sealed class InboxService : IInboxService
     // ── Batch triage ─────────────────────────────────────────────────────────
 
     /// <inheritdoc />
-    public async Task AcceptSelectedAsync(
+    public async Task<InboxBatchAcceptResult> AcceptSelectedAsync(
         IEnumerable<long> itemIds,
         long? collectionId = null)
     {
         ArgumentNullException.ThrowIfNull(itemIds);
 
         var idList = itemIds.Distinct().ToList();
-        if (idList.Count == 0) return;
+        if (idList.Count == 0) return InboxBatchAcceptResult.Empty;
 
         try
         {
@@ -339,28 +347,13 @@ public sealed class InboxService : IInboxService
                 .ToListAsync()
                 .ConfigureAwait(false);
 
-            var now = DateTime.UtcNow;
-            var accepted = 0;
-
-            foreach (var item in items)
-            {
-                item.Status = "accepted";
-                item.ProcessedAt = now;
-
-                if (collectionId.HasValue)
-                {
-                    item.SuggestedCollectionId = collectionId.Value;
-                    item.SuggestedCollectionName = overrideName;
-                }
-
-                accepted++;
-            }
-
-            await _db.SaveChangesAsync().ConfigureAwait(false);
+            var result = await AcceptBatchAsync(items, collectionId, overrideName).ConfigureAwait(false);
 
             Log.Information(
-                "InboxService: Batch-accepted {Accepted}/{Requested} inbox items (collection {CollectionId})",
-                accepted, idList.Count, collectionId?.ToString() ?? "per-item");
+                "InboxService: Batch-accepted {Accepted}/{Requested} inbox items (collection {CollectionId}, failed {Failed})",
+                result.Accepted, idList.Count, collectionId?.ToString() ?? "per-item", result.Failed);
+
+            return result;
         }
         catch (Exception ex)
         {
@@ -631,48 +624,81 @@ public sealed class InboxService : IInboxService
         string? contentPreview,
         string contentText)
     {
+        var result = await UpsertExternalAsync(
+            fileName, fileType, sourceType, sourceUrl, sourcePluginId,
+            sourceCategory, externalId, contentPreview, contentText).ConfigureAwait(false);
+        return result.Item;
+    }
+
+    /// <inheritdoc />
+    public async Task<ExternalTriageResult> UpsertExternalAsync(
+        string fileName,
+        string fileType,
+        string sourceType,
+        string? sourceUrl,
+        string sourcePluginId,
+        string? sourceCategory,
+        string externalId,
+        string? contentPreview,
+        string contentText)
+    {
         ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
         ArgumentException.ThrowIfNullOrWhiteSpace(sourcePluginId);
         ArgumentException.ThrowIfNullOrWhiteSpace(externalId);
+        contentText ??= string.Empty;
 
-        // Deduplicate: if an item with the same ExternalId and SourcePluginId already
-        // exists in the inbox, return it as-is.
+        // The provider item is identified by (plugin, external ID). The external ID is kept
+        // verbatim on the row for dedupe; only its hash ever reaches the file system.
+        var contentPath = BuildExternalContentPath(GetInboxStoreRoot(), sourcePluginId, externalId);
+
         var existing = await _db.InboxItems
             .FirstOrDefaultAsync(i =>
                 i.ExternalId == externalId &&
                 i.SourcePluginId == sourcePluginId)
             .ConfigureAwait(false);
 
-        if (existing is not null)
+        if (existing is null)
         {
-            Log.Debug(
-                "InboxService: External item already in inbox (ExternalId={ExternalId}, Plugin={PluginId}) — skipping duplicate",
-                externalId, sourcePluginId);
-            return existing;
+            var created = await CreateExternalItemAsync(
+                contentPath, fileName, fileType, sourceType, sourceUrl, sourcePluginId,
+                sourceCategory, externalId, contentPreview, contentText).ConfigureAwait(false);
+            return new ExternalTriageResult(created, ExternalTriageOutcome.Created);
         }
 
-        // Write content text to a temp file so the indexing pipeline can process it.
-        var tempDir = Path.Combine(
-            Path.GetTempPath(), "AgentX", "ExternalItems", sourcePluginId);
-        Directory.CreateDirectory(tempDir);
+        return await UpdateExternalItemAsync(
+            existing, contentPath, fileName, fileType, sourceType, sourceUrl,
+            sourceCategory, contentPreview, contentText).ConfigureAwait(false);
+    }
 
-        // Sanitize fileName for the filesystem.
-        var safeFileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
-        var tempFilePath = Path.Combine(tempDir, $"{externalId}_{safeFileName}.txt");
-
-        await File.WriteAllTextAsync(tempFilePath, contentText).ConfigureAwait(false);
-        var fileInfo = new FileInfo(tempFilePath);
+    /// <summary>
+    /// Writes the content file for a new external item, creates its accepted row, and
+    /// bridges it into the document library when <see cref="IDocumentService"/> is available.
+    /// </summary>
+    private async Task<InboxItemEntity> CreateExternalItemAsync(
+        string contentPath,
+        string fileName,
+        string fileType,
+        string sourceType,
+        string? sourceUrl,
+        string sourcePluginId,
+        string? sourceCategory,
+        string externalId,
+        string? contentPreview,
+        string contentText)
+    {
+        await WriteContentFileAsync(contentPath, contentText).ConfigureAwait(false);
+        var now = DateTime.UtcNow;
 
         var item = new InboxItemEntity
         {
-            FilePath = tempFilePath,
+            FilePath = contentPath,
             FileName = fileName,
             FileType = fileType,
-            FileSizeBytes = fileInfo.Length,
+            FileSizeBytes = new FileInfo(contentPath).Length,
             Status = "accepted", // Auto-accept external items
             Preview = contentPreview,
-            AddedAt = DateTime.UtcNow,
-            ProcessedAt = DateTime.UtcNow,
+            AddedAt = now,
+            ProcessedAt = now,
             SourceType = sourceType,
             SourceUrl = sourceUrl,
             SourcePluginId = sourcePluginId,
@@ -683,42 +709,409 @@ public sealed class InboxService : IInboxService
         _db.InboxItems.Add(item);
         await _db.SaveChangesAsync().ConfigureAwait(false);
 
-        // Bridge to the document library so the content is searchable.
-        // When IDocumentService is available, import the temp file with the
-        // semantic file type preserved (e.g. "CalendarEvent", "EmailMessage").
-        if (_documentService is not null)
-        {
-            try
-            {
-                var document = await _documentService.ImportExternalContentAsync(
-                    tempFilePath,
-                    fileType,
-                    displayName: fileName,
-                    sourceUrl: sourceUrl,
-                    ct: default).ConfigureAwait(false);
-
-                item.DocumentId = document.Id;
-                _db.InboxItems.Update(item);
-                await _db.SaveChangesAsync().ConfigureAwait(false);
-
-                Log.Debug(
-                    "InboxService: TriageExternal — linked inbox item {ItemId} to document {DocumentId}",
-                    item.Id, document.Id);
-            }
-            catch (Exception ex)
-            {
-                // Non-fatal: the inbox item is still valid; search indexing is best-effort.
-                Log.Warning(ex,
-                    "InboxService: TriageExternal — failed to import '{FileName}' into document library (non-fatal)",
-                    fileName);
-            }
-        }
+        await BridgeExternalItemAsync(item).ConfigureAwait(false);
 
         Log.Information(
-            "InboxService: TriageExternal — added '{FileName}' (Plugin={PluginId}, ExternalId={ExternalId})",
+            "InboxService: TriageExternal - added '{FileName}' (Plugin={PluginId}, ExternalId={ExternalId})",
             fileName, sourcePluginId, externalId);
 
         return item;
+    }
+
+    /// <summary>
+    /// Refreshes an existing external row when the provider item changed. The content file
+    /// is compared with the new text; metadata (title, preview, link, category) is compared
+    /// field by field. Nothing is written when both match.
+    /// </summary>
+    private async Task<ExternalTriageResult> UpdateExternalItemAsync(
+        InboxItemEntity existing,
+        string contentPath,
+        string fileName,
+        string fileType,
+        string sourceType,
+        string? sourceUrl,
+        string? sourceCategory,
+        string? contentPreview,
+        string contentText)
+    {
+        var contentChanged = !await ContentFileMatchesAsync(existing.FilePath, contentText).ConfigureAwait(false);
+        var nameChanged = !string.Equals(existing.FileName, fileName, StringComparison.Ordinal);
+        var metadataChanged = nameChanged
+            || !string.Equals(existing.FileType, fileType, StringComparison.Ordinal)
+            || !string.Equals(existing.SourceType, sourceType, StringComparison.Ordinal)
+            || !string.Equals(existing.SourceUrl, sourceUrl, StringComparison.Ordinal)
+            || !string.Equals(existing.SourceCategory, sourceCategory, StringComparison.Ordinal)
+            || !string.Equals(existing.Preview, contentPreview, StringComparison.Ordinal);
+
+        if (!contentChanged && !metadataChanged)
+        {
+            Log.Debug(
+                "InboxService: External item unchanged (ExternalId={ExternalId}, Plugin={PluginId})",
+                existing.ExternalId, existing.SourcePluginId);
+            return new ExternalTriageResult(existing, ExternalTriageOutcome.Unchanged);
+        }
+
+        if (contentChanged)
+        {
+            // Rewrite at the stable hashed path; a row created by an older build may still
+            // point at a temp-folder file, which is migrated here.
+            await WriteContentFileAsync(contentPath, contentText).ConfigureAwait(false);
+            existing.FilePath = contentPath;
+            existing.FileSizeBytes = new FileInfo(contentPath).Length;
+        }
+
+        existing.FileName = fileName;
+        existing.FileType = fileType;
+        existing.SourceType = sourceType;
+        existing.SourceUrl = sourceUrl;
+        existing.SourceCategory = sourceCategory;
+        existing.Preview = contentPreview;
+        existing.ProcessedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync().ConfigureAwait(false);
+
+        // Only an accepted row feeds the vault; a row the user rejected or deferred keeps its
+        // decision and is not re-imported just because the source changed.
+        if (string.Equals(existing.Status, "accepted", StringComparison.Ordinal))
+        {
+            await RefreshExternalDocumentAsync(existing, contentChanged, nameChanged).ConfigureAwait(false);
+        }
+
+        Log.Information(
+            "InboxService: TriageExternal - updated '{FileName}' (Plugin={PluginId}, ExternalId={ExternalId}, ContentChanged={ContentChanged})",
+            fileName, existing.SourcePluginId, existing.ExternalId, contentChanged);
+
+        return new ExternalTriageResult(existing, ExternalTriageOutcome.Updated);
+    }
+
+    /// <summary>
+    /// Imports an external item's content file into the document library, preserving the
+    /// semantic file type (e.g. "CalendarEvent"), and links the row to the new document.
+    /// Best effort: a failure is logged and the inbox row stays valid.
+    /// </summary>
+    private async Task BridgeExternalItemAsync(InboxItemEntity item)
+    {
+        if (_documentService is null)
+            return;
+
+        try
+        {
+            var document = await _documentService.ImportExternalContentAsync(
+                item.FilePath,
+                item.FileType,
+                displayName: item.FileName,
+                sourceUrl: item.SourceUrl,
+                ct: default).ConfigureAwait(false);
+
+            item.DocumentId = document.Id;
+            await _db.SaveChangesAsync().ConfigureAwait(false);
+
+            Log.Debug(
+                "InboxService: TriageExternal - linked inbox item {ItemId} to document {DocumentId}",
+                item.Id, document.Id);
+        }
+        catch (Exception ex)
+        {
+            // Non-fatal: the inbox item is still valid; search indexing is best-effort.
+            Log.Warning(ex,
+                "InboxService: TriageExternal - failed to import '{FileName}' into document library (non-fatal)",
+                item.FileName);
+        }
+    }
+
+    /// <summary>
+    /// Brings the vault copy of a changed external item up to date: renames and re-points the
+    /// linked document and re-indexes it when the content changed, or imports the content when
+    /// the row has no (surviving) document yet.
+    /// </summary>
+    private async Task RefreshExternalDocumentAsync(InboxItemEntity item, bool contentChanged, bool nameChanged)
+    {
+        if (_documentService is null)
+            return;
+
+        DocumentEntity? document = null;
+        if (item.DocumentId is { } documentId)
+        {
+            document = await _db.Documents.FindAsync(documentId).ConfigureAwait(false);
+        }
+
+        if (document is null)
+        {
+            // Never bridged, or the user deleted the document; import the current content.
+            await BridgeExternalItemAsync(item).ConfigureAwait(false);
+            return;
+        }
+
+        if (!contentChanged && !nameChanged)
+            return;
+
+        try
+        {
+            document.FileName = item.FileName;
+            document.FilePath = Path.GetFullPath(item.FilePath);
+            await _db.SaveChangesAsync().ConfigureAwait(false);
+
+            if (contentChanged)
+            {
+                await _documentService.ReindexDocumentAsync(document.Id).ConfigureAwait(false);
+
+                // Re-extraction derives a title from the text; keep the connector's display
+                // name, as the original import did.
+                document.ExtractedTitle = item.FileName;
+                await _db.SaveChangesAsync().ConfigureAwait(false);
+            }
+
+            Log.Debug(
+                "InboxService: TriageExternal - refreshed document {DocumentId} for inbox item {ItemId}",
+                document.Id, item.Id);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex,
+                "InboxService: TriageExternal - failed to refresh document {DocumentId} for '{FileName}' (non-fatal)",
+                document.Id, item.FileName);
+        }
+    }
+
+    /// <summary>
+    /// Builds the stable content-file path for an external item:
+    /// <c>{storeRoot}/External/{plugin}/{hash}.txt</c>. The plugin segment is reduced to
+    /// <c>[A-Za-z0-9._-]</c> and the file name is a hash of the plugin and external IDs, so
+    /// provider IDs containing ':' (an NTFS alternate-data-stream separator), '/' or other
+    /// reserved characters never reach the file system, and the same item always maps to
+    /// the same file.
+    /// </summary>
+    internal static string BuildExternalContentPath(string storeRoot, string sourcePluginId, string externalId)
+    {
+        var hashInput = Encoding.UTF8.GetBytes(sourcePluginId + "\n" + externalId);
+        var hash = Convert.ToHexString(SHA256.HashData(hashInput))[..32].ToLowerInvariant();
+        return Path.Combine(
+            storeRoot,
+            ExternalStoreFolderName,
+            ToSafePathSegment(sourcePluginId, "connector"),
+            hash + ".txt");
+    }
+
+    /// <summary>
+    /// Reduces <paramref name="value"/> to a single safe directory or file-name segment:
+    /// characters outside <c>[A-Za-z0-9._-]</c> become '_', leading and trailing dots are
+    /// trimmed, and an empty result falls back to <paramref name="fallback"/>. The rule is
+    /// the same on every OS, unlike <see cref="Path.GetInvalidFileNameChars"/>.
+    /// </summary>
+    internal static string ToSafePathSegment(string value, string fallback, int maxLength = 64)
+    {
+        var chars = value
+            .Select(c => char.IsAsciiLetterOrDigit(c) || c is '.' or '-' or '_' ? c : '_')
+            .ToArray();
+        var segment = new string(chars).Trim('.');
+        if (segment.Length > maxLength)
+            segment = segment[..maxLength].Trim('.');
+        return segment.Length == 0 ? fallback : segment;
+    }
+
+    /// <summary>The root of the inbox's own storage: <c>{AppData}/Inbox</c>.</summary>
+    private string GetInboxStoreRoot() => Path.Combine(_appPaths.GetAppDataPath(), InboxStoreFolderName);
+
+    private static async Task WriteContentFileAsync(string path, string contentText)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        await File.WriteAllTextAsync(path, contentText).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// True when the file at <paramref name="path"/> exists and holds exactly
+    /// <paramref name="contentText"/>. A missing or unreadable file counts as changed so it
+    /// is rewritten.
+    /// </summary>
+    private static async Task<bool> ContentFileMatchesAsync(string path, string contentText)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+                return false;
+
+            var current = await File.ReadAllTextAsync(path).ConfigureAwait(false);
+            return string.Equals(current, contentText, StringComparison.Ordinal);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+        {
+            return false;
+        }
+    }
+
+    // -- Accept into the vault -------------------------------------------------
+
+    /// <summary>
+    /// Accepts each item in turn. One failure does not stop the batch: the failed item keeps
+    /// its status and the reason is collected for the caller.
+    /// </summary>
+    private async Task<InboxBatchAcceptResult> AcceptBatchAsync(
+        IReadOnlyList<InboxItemEntity> items,
+        long? collectionId,
+        string? overrideName)
+    {
+        int imported = 0, linked = 0, alreadyAccepted = 0, failed = 0;
+        var errors = new List<string>();
+
+        foreach (var item in items)
+        {
+            try
+            {
+                var result = await AcceptIntoVaultAsync(item, collectionId, overrideName).ConfigureAwait(false);
+                switch (result.Outcome)
+                {
+                    case InboxAcceptOutcome.Imported: imported++; break;
+                    case InboxAcceptOutcome.AlreadyInVault: linked++; break;
+                    default: alreadyAccepted++; break;
+                }
+            }
+            catch (Exception ex) when (ex is not ObjectDisposedException)
+            {
+                failed++;
+                errors.Add($"{item.FileName}: {ex.Message}");
+                Log.Warning(ex, "InboxService: Could not accept inbox item {ItemId} '{FileName}' - left as {Status}",
+                    item.Id, item.FileName, item.Status);
+            }
+        }
+
+        return new InboxBatchAcceptResult(imported, linked, alreadyAccepted, failed, errors);
+    }
+
+    /// <summary>
+    /// Moves one inbox item into the knowledge vault and marks it accepted. The row is only
+    /// updated after the document exists, so any failure leaves the item as it was.
+    /// </summary>
+    private async Task<InboxAcceptResult> AcceptIntoVaultAsync(
+        InboxItemEntity item,
+        long? collectionId,
+        string? overrideName)
+    {
+        var effectiveCollectionId = collectionId ?? item.SuggestedCollectionId;
+
+        // Already accepted and linked (e.g. connector content, which is imported at triage).
+        if (item.DocumentId is { } linkedId && string.Equals(item.Status, "accepted", StringComparison.Ordinal))
+        {
+            if (collectionId.HasValue)
+            {
+                ApplyCollectionOverride(item, collectionId, overrideName);
+                await _db.SaveChangesAsync().ConfigureAwait(false);
+            }
+
+            return new InboxAcceptResult(item.Id, InboxAcceptOutcome.AlreadyAccepted, linkedId);
+        }
+
+        if (_documentService is null)
+        {
+            throw new InvalidOperationException(
+                $"Cannot accept '{item.FileName}': document import is not available, so the item was left {item.Status}.");
+        }
+
+        long documentId;
+        InboxAcceptOutcome outcome;
+
+        if (item.DocumentId is { } existingDocumentId)
+        {
+            // Linked earlier (connector content that was rejected or deferred): accepting
+            // again only restores the decision; the document is already in the vault.
+            documentId = existingDocumentId;
+            outcome = InboxAcceptOutcome.AlreadyInVault;
+        }
+        else
+        {
+            if (!File.Exists(item.FilePath))
+            {
+                throw new FileNotFoundException(
+                    $"The file for '{item.FileName}' no longer exists at '{item.FilePath}'. " +
+                    "It may have been moved or removed by temp-folder cleanup; reject the item or add the file again.",
+                    item.FilePath);
+            }
+
+            var duplicate = await _documentService.CheckForDuplicateAsync(item.FilePath).ConfigureAwait(false);
+            if (duplicate.IsDuplicate && duplicate.ExistingDocumentId is { } duplicateId)
+            {
+                documentId = duplicateId;
+                outcome = InboxAcceptOutcome.AlreadyInVault;
+
+                if (effectiveCollectionId.HasValue)
+                {
+                    await _documentService
+                        .BulkAssignToCollectionAsync(new[] { duplicateId }, effectiveCollectionId.Value)
+                        .ConfigureAwait(false);
+                }
+
+                Log.Information(
+                    "InboxService: '{FileName}' is already in the vault as document {DocumentId} ({ExistingName}); linking instead of importing",
+                    item.FileName, duplicateId, duplicate.ExistingFileName);
+            }
+            else
+            {
+                documentId = await ImportIntoVaultAsync(item, effectiveCollectionId).ConfigureAwait(false);
+                outcome = InboxAcceptOutcome.Imported;
+            }
+        }
+
+        item.DocumentId = documentId;
+        item.Status = "accepted";
+        item.ProcessedAt = DateTime.UtcNow;
+        ApplyCollectionOverride(item, collectionId, overrideName);
+
+        await _db.SaveChangesAsync().ConfigureAwait(false);
+
+        return new InboxAcceptResult(item.Id, outcome, documentId);
+    }
+
+    /// <summary>
+    /// Copies the item's file to <c>{AppData}/Inbox/Accepted/{itemId}/{fileName}</c> (the file
+    /// name is kept because the vault shows it) and imports the copy. The copy is removed
+    /// again if the import fails.
+    /// </summary>
+    private async Task<long> ImportIntoVaultAsync(InboxItemEntity item, long? collectionId)
+    {
+        var sourceName = Path.GetFileName(item.FilePath);
+        var fileName = PathHelper.SanitizeFileName(string.IsNullOrWhiteSpace(sourceName) ? item.FileName : sourceName);
+        var itemFolder = Path.Combine(
+            GetInboxStoreRoot(),
+            AcceptedStoreFolderName,
+            item.Id.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        var storedPath = Path.Combine(itemFolder, fileName);
+
+        Directory.CreateDirectory(itemFolder);
+        File.Copy(item.FilePath, storedPath, overwrite: true);
+
+        try
+        {
+            var document = await _documentService!
+                .ImportFileAsync(storedPath, collectionId)
+                .ConfigureAwait(false);
+            return document.Id;
+        }
+        catch
+        {
+            TryDeleteDirectory(itemFolder);
+            throw;
+        }
+    }
+
+    private static void ApplyCollectionOverride(InboxItemEntity item, long? collectionId, string? overrideName)
+    {
+        if (!collectionId.HasValue)
+            return;
+
+        item.SuggestedCollectionId = collectionId.Value;
+        item.SuggestedCollectionName = overrideName;
+    }
+
+    private static void TryDeleteDirectory(string path)
+    {
+        try
+        {
+            if (Directory.Exists(path))
+                Directory.Delete(path, recursive: true);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Log.Warning(ex, "InboxService: Could not remove '{Path}' after a failed import", path);
+        }
     }
 
     // ── Private helpers ──────────────────────────────────────────────────────

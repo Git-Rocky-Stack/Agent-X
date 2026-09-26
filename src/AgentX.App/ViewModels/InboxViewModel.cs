@@ -223,14 +223,15 @@ public partial class InboxViewModel : ObservableObject
     private async Task AcceptItemAsync(long itemId)
     {
         var target = InboxItems.FirstOrDefault(item => item.Id == itemId);
-        var resolvedFocusedItemMessage = BuildFocusedInboxResolutionMessage(
-            itemId,
-            target?.FileName,
-            "accepting it and queuing it for indexing.");
 
         try
         {
-            await _inboxService.AcceptItemAsync(itemId, SelectedCollection?.Id);
+            var result = await _inboxService.AcceptItemAsync(itemId, SelectedCollection?.Id);
+            var resolvedFocusedItemMessage = BuildFocusedInboxResolutionMessage(
+                itemId,
+                target?.FileName,
+                DescribeAcceptResolution(result.Outcome));
+
             await LoadInboxItemsAsync();
             if (resolvedFocusedItemMessage is not null)
             {
@@ -239,13 +240,13 @@ public partial class InboxViewModel : ObservableObject
             }
             else
             {
-                StatusMessage = "Item accepted and queued for indexing";
+                StatusMessage = DescribeAcceptStatus(result.Outcome);
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to accept inbox item {Id}", itemId);
-            StatusMessage = "Failed to accept item";
+            StatusMessage = $"Failed to accept item: {ex.Message}";
         }
     }
 
@@ -287,9 +288,9 @@ public partial class InboxViewModel : ObservableObject
         IsProcessing = true;
         try
         {
-            await _inboxService.AcceptAllPendingAsync();
+            var result = await _inboxService.AcceptAllPendingAsync();
             await LoadInboxItemsAsync();
-            StatusMessage = "All pending items accepted";
+            StatusMessage = DescribeBatchAccept(result);
         }
         catch (Exception ex)
         {
@@ -363,6 +364,47 @@ public partial class InboxViewModel : ObservableObject
         {
             StatusMessage = string.Empty;
         }
+    }
+
+    /// <summary>Status line for a single accept, worded after what actually happened.</summary>
+    internal static string DescribeAcceptStatus(InboxAcceptOutcome outcome) => outcome switch
+    {
+        InboxAcceptOutcome.Imported => "Item accepted and queued for indexing",
+        InboxAcceptOutcome.AlreadyInVault => "Item accepted; identical content was already in the vault, so it was linked instead of imported again",
+        _ => "Item was already accepted",
+    };
+
+    private static string DescribeAcceptResolution(InboxAcceptOutcome outcome) => outcome switch
+    {
+        InboxAcceptOutcome.Imported => "accepting it and queuing it for indexing.",
+        InboxAcceptOutcome.AlreadyInVault => "accepting it and linking it to the identical document already in the vault.",
+        _ => "confirming it was already accepted.",
+    };
+
+    /// <summary>Status line for accept-all: counts what was imported, linked, and failed.</summary>
+    internal static string DescribeBatchAccept(InboxBatchAcceptResult result)
+    {
+        if (result.Accepted == 0 && result.Failed == 0)
+        {
+            return "No pending items to accept";
+        }
+
+        var message = $"Accepted {result.Accepted} item{(result.Accepted == 1 ? "" : "s")}";
+        if (result.AlreadyInVault > 0)
+        {
+            message += $" ({result.AlreadyInVault} already in the vault)";
+        }
+
+        if (result.Failed > 0)
+        {
+            message += $"; {result.Failed} failed and stayed pending";
+            if (result.Errors.Count > 0)
+            {
+                message += $": {result.Errors[0]}";
+            }
+        }
+
+        return message;
     }
 
     private string? BuildFocusedInboxResolutionMessage(long itemId, string? fileName, string resolutionText)

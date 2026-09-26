@@ -59,23 +59,31 @@ public interface IInboxService
     // ── Single-item triage ───────────────────────────────────────────────────
 
     /// <summary>
-    /// Accepts a single pending item, setting its status to "accepted" and
-    /// <c>ProcessedAt</c> to the current UTC time. The indexing pipeline will
-    /// subsequently pick up the item based on the accepted status.
+    /// Accepts a single item into the knowledge vault. The file is copied into app storage
+    /// (so a temp-folder clip cannot vanish under the vault), imported through
+    /// <c>IDocumentService.ImportFileAsync</c> (which queues it for indexing), and the inbox
+    /// row is linked to the resulting document and marked "accepted". When identical content
+    /// is already in the vault the row is linked to that document instead of importing a
+    /// second copy.
     /// </summary>
+    /// <remarks>
+    /// Failure is never reported as success: if the file is gone, its type cannot be
+    /// processed, or document import is unavailable, the method throws and the row keeps
+    /// its previous status.
+    /// </remarks>
     /// <param name="itemId">Primary key of the inbox item to accept.</param>
     /// <param name="collectionId">
-    /// If provided, overrides the AI-suggested collection so the indexing
-    /// pipeline places the document in the correct collection.
+    /// If provided, overrides the AI-suggested collection for the imported document.
     /// </param>
-    Task AcceptItemAsync(long itemId, long? collectionId = null);
+    /// <returns>What the accept did and the linked document.</returns>
+    Task<InboxAcceptResult> AcceptItemAsync(long itemId, long? collectionId = null);
 
     /// <summary>
-    /// Accepts all items currently in "pending" status using the collection
-    /// suggested by the AI triage (if any), then stamps each with the current
-    /// UTC time as <c>ProcessedAt</c>.
+    /// Accepts every item currently in "pending" status, each exactly as
+    /// <see cref="AcceptItemAsync"/> does, using the item's own suggested collection.
+    /// Items that fail stay pending and are reported in the result.
     /// </summary>
-    Task AcceptAllPendingAsync();
+    Task<InboxBatchAcceptResult> AcceptAllPendingAsync();
 
     /// <summary>
     /// Rejects a single pending item, setting its status to "rejected" and
@@ -96,16 +104,16 @@ public interface IInboxService
     // ── Batch triage ─────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Accepts a set of items by their primary keys. Each item is stamped
-    /// "accepted" with <c>ProcessedAt = UtcNow</c>. Items not found or already
-    /// processed are silently skipped.
+    /// Accepts a set of items by their primary keys, each exactly as
+    /// <see cref="AcceptItemAsync"/> does. Unknown IDs are skipped; items that fail keep
+    /// their previous status and are reported in the result.
     /// </summary>
     /// <param name="itemIds">IDs of the items to accept.</param>
     /// <param name="collectionId">
     /// Optional collection override applied to every item in the batch.
     /// When null each item retains its own <c>SuggestedCollectionId</c>.
     /// </param>
-    Task AcceptSelectedAsync(IEnumerable<long> itemIds, long? collectionId = null);
+    Task<InboxBatchAcceptResult> AcceptSelectedAsync(IEnumerable<long> itemIds, long? collectionId = null);
 
     /// <summary>
     /// Rejects a set of items by their primary keys. Items not found or already
@@ -144,10 +152,9 @@ public interface IInboxService
     // ── External (plugin-sourced) items ────────────────────────────────────────
 
     /// <summary>
-    /// Adds an external item to the inbox from a DataConnector plugin (calendar, email, etc.).
-    /// Unlike <see cref="AddToInboxAsync"/>, this does not require a physical file on disk.
-    /// The item is auto-accepted and immediately available for indexing since external
-    /// items are already processed by the plugin before submission.
+    /// Adds or refreshes an external item from a DataConnector plugin (calendar, email, etc.)
+    /// and returns the row. Equivalent to <see cref="UpsertExternalAsync"/> without the
+    /// outcome; callers that report added / updated / skipped counts should use that method.
     /// </summary>
     /// <param name="fileName">Display name for the item (e.g. "Meeting: Sprint Planning").</param>
     /// <param name="fileType">Category label (e.g. "CalendarEvent", "EmailMessage").</param>
@@ -157,9 +164,38 @@ public interface IInboxService
     /// <param name="sourceCategory">Category within the plugin (e.g. "calendar_event", "ActionRequired").</param>
     /// <param name="externalId">Provider-specific ID for deduplication.</param>
     /// <param name="contentPreview">AI-generated or extracted content preview.</param>
-    /// <param name="contentText">Full text content for indexing (will be stored as a temp file).</param>
-    /// <returns>The created inbox item, already in "accepted" status.</returns>
+    /// <param name="contentText">Full text content for indexing (stored under the app data folder).</param>
+    /// <returns>The created or refreshed inbox item.</returns>
     Task<InboxItemEntity> TriageExternalAsync(
+        string fileName,
+        string fileType,
+        string sourceType,
+        string? sourceUrl,
+        string sourcePluginId,
+        string? sourceCategory,
+        string externalId,
+        string? contentPreview,
+        string contentText);
+
+    /// <summary>
+    /// Creates or refreshes the inbox row for an external provider item, keyed by
+    /// (<paramref name="sourcePluginId"/>, <paramref name="externalId"/>).
+    /// </summary>
+    /// <remarks>
+    /// <list type="bullet">
+    ///   <item>No row yet: the content is written under the app data folder (the file name is
+    ///   a hash of the plugin and external IDs, so provider IDs such as
+    ///   <c>google:primary:abc</c> never reach the file system), an "accepted" row is created,
+    ///   and the content is imported into the vault. Outcome <see cref="ExternalTriageOutcome.Created"/>.</item>
+    ///   <item>Row exists and the content or metadata changed (a rescheduled meeting, an
+    ///   edited description): the content file and row are rewritten and, for an accepted row,
+    ///   the linked vault document is re-indexed. Outcome <see cref="ExternalTriageOutcome.Updated"/>.</item>
+    ///   <item>Row exists and nothing changed: nothing is written. Outcome
+    ///   <see cref="ExternalTriageOutcome.Unchanged"/>.</item>
+    /// </list>
+    /// Vault import is best effort; a failure is logged and the inbox row is still returned.
+    /// </remarks>
+    Task<ExternalTriageResult> UpsertExternalAsync(
         string fileName,
         string fileType,
         string sourceType,

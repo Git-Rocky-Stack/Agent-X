@@ -14,7 +14,7 @@ namespace AgentX.Tests.Services.Calendar;
 
 /// <summary>
 /// Integration tests verifying the full Calendar sync pipeline:
-/// CalendarSyncService → CalendarEventProcessor → IInboxService.TriageExternalAsync
+/// CalendarSyncService -> CalendarEventProcessor -> IInboxService.UpsertExternalAsync
 /// and the CalendarPlugin orchestrating providers + sync together.
 /// </summary>
 public sealed class CalendarIntegrationTests : IDisposable
@@ -85,6 +85,9 @@ public sealed class CalendarIntegrationTests : IDisposable
         return settings;
     }
 
+    private static ExternalTriageResult Created(InboxItemEntity item) =>
+        new(item, ExternalTriageOutcome.Created);
+
     private InboxItemEntity CreateInboxItem(long id = 1, DateTime? addedAt = null, DateTime? processedAt = null)
     {
         return new InboxItemEntity
@@ -141,13 +144,13 @@ public sealed class CalendarIntegrationTests : IDisposable
         SetupGoogleProvider(evt1, evt2);
 
         _inboxService
-            .Setup(i => i.TriageExternalAsync(
+            .Setup(i => i.UpsertExternalAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
                 It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
             .ReturnsAsync((string fn, string ft, string st, string? su, string sp, string? sc,
                            string eid, string? cp, string ct) =>
-                CreateInboxItem(long.Parse(eid[^1].ToString()), processedAt: DateTime.UtcNow));
+                Created(CreateInboxItem(long.Parse(eid[^1].ToString()), processedAt: DateTime.UtcNow)));
 
         var settings = DefaultSettings("cal-primary");
 
@@ -160,8 +163,8 @@ public sealed class CalendarIntegrationTests : IDisposable
         result.IsSuccess.Should().BeTrue();
         result.Duration.Should().BeGreaterThan(TimeSpan.Zero);
 
-        // Verify TriageExternalAsync was called for each event
-        _inboxService.Verify(i => i.TriageExternalAsync(
+        // Verify UpsertExternalAsync was called for each event
+        _inboxService.Verify(i => i.UpsertExternalAsync(
             It.IsAny<string>(), It.IsAny<string>(), "calendar-connector",
             It.IsAny<string?>(), "com.agentx.calendar", "calendar_event",
             It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()),
@@ -178,11 +181,11 @@ public sealed class CalendarIntegrationTests : IDisposable
         SetupOutlookProvider(outlookEvent);
 
         _inboxService
-            .Setup(i => i.TriageExternalAsync(
+            .Setup(i => i.UpsertExternalAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
                 It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
-            .ReturnsAsync(CreateInboxItem());
+            .ReturnsAsync(Created(CreateInboxItem()));
 
         var settings = DefaultSettings("cal-primary", "outlook-cal-1");
 
@@ -193,7 +196,7 @@ public sealed class CalendarIntegrationTests : IDisposable
         // Assert
         result.Should().NotBeNull();
         result.ItemsFailed.Should().Be(0);
-        _inboxService.Verify(i => i.TriageExternalAsync(
+        _inboxService.Verify(i => i.UpsertExternalAsync(
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
             It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
             It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()),
@@ -215,7 +218,7 @@ public sealed class CalendarIntegrationTests : IDisposable
         result.ItemsAdded.Should().Be(0);
         result.ItemsSkipped.Should().Be(0);
         result.ItemsFailed.Should().Be(0);
-        _inboxService.Verify(i => i.TriageExternalAsync(
+        _inboxService.Verify(i => i.UpsertExternalAsync(
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
             It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
             It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()),
@@ -228,11 +231,11 @@ public sealed class CalendarIntegrationTests : IDisposable
         // Arrange
         SetupGoogleProvider(CreateEvent());
         _inboxService
-            .Setup(i => i.TriageExternalAsync(
+            .Setup(i => i.UpsertExternalAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
                 It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
-            .ReturnsAsync(CreateInboxItem());
+            .ReturnsAsync(Created(CreateInboxItem()));
 
         var settings = DefaultSettings("cal-primary");
 
@@ -261,11 +264,11 @@ public sealed class CalendarIntegrationTests : IDisposable
         SetupOutlookProvider(outlookEvent);
 
         _inboxService
-            .Setup(i => i.TriageExternalAsync(
+            .Setup(i => i.UpsertExternalAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
                 It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
-            .ReturnsAsync(CreateInboxItem());
+            .ReturnsAsync(Created(CreateInboxItem()));
 
         var settings = DefaultSettings("cal-primary", "outlook-cal-1");
 
@@ -275,7 +278,7 @@ public sealed class CalendarIntegrationTests : IDisposable
 
         // Assert - Outlook still processed despite Google failure
         result.ItemsFailed.Should().Be(1); // Google provider failure
-        _inboxService.Verify(i => i.TriageExternalAsync(
+        _inboxService.Verify(i => i.UpsertExternalAsync(
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
             It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
             It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()),
@@ -288,11 +291,11 @@ public sealed class CalendarIntegrationTests : IDisposable
         // Arrange
         SetupGoogleProvider(CreateEvent(), CreateEvent("evt-2", "Standup"));
         _inboxService
-            .Setup(i => i.TriageExternalAsync(
+            .Setup(i => i.UpsertExternalAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
                 It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
-            .ReturnsAsync(CreateInboxItem());
+            .ReturnsAsync(Created(CreateInboxItem()));
 
         var settings = DefaultSettings("cal-primary");
         using var cts = new CancellationTokenSource();
@@ -313,7 +316,7 @@ public sealed class CalendarIntegrationTests : IDisposable
 
         var callCount = 0;
         _inboxService
-            .Setup(i => i.TriageExternalAsync(
+            .Setup(i => i.UpsertExternalAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
                 It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
@@ -322,7 +325,7 @@ public sealed class CalendarIntegrationTests : IDisposable
                 callCount++;
                 if (callCount == 1)
                     throw new InvalidOperationException("DB error on first event");
-                return CreateInboxItem(2);
+                return Created(CreateInboxItem(2));
             });
 
         var settings = DefaultSettings("cal-primary");
@@ -332,7 +335,7 @@ public sealed class CalendarIntegrationTests : IDisposable
 
         // Assert - first event failed, second processed
         result.ItemsFailed.Should().Be(1);
-        _inboxService.Verify(i => i.TriageExternalAsync(
+        _inboxService.Verify(i => i.UpsertExternalAsync(
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
             It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
             It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()),
@@ -385,18 +388,18 @@ public sealed class CalendarIntegrationTests : IDisposable
 
         var mockInbox = new Mock<IInboxService>(MockBehavior.Loose);
         mockInbox
-            .Setup(i => i.TriageExternalAsync(
+            .Setup(i => i.UpsertExternalAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
                 It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
-            .ReturnsAsync(new InboxItemEntity
+            .ReturnsAsync(Created(new InboxItemEntity
             {
                 Id = 1,
                 FilePath = @"C:\Temp\test.txt",
                 Status = "accepted",
                 AddedAt = DateTime.UtcNow,
                 ProcessedAt = DateTime.UtcNow,
-            });
+            }));
 
         var services = new ServiceCollection();
         services.AddSingleton(_oauthService.Object);
@@ -505,7 +508,7 @@ public sealed class CalendarIntegrationTests : IDisposable
         // Assert - no events processed because calendar disabled
         result.ItemsAdded.Should().Be(0);
         result.ItemsSkipped.Should().Be(0);
-        _inboxService.Verify(i => i.TriageExternalAsync(
+        _inboxService.Verify(i => i.UpsertExternalAsync(
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
             It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
             It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()),

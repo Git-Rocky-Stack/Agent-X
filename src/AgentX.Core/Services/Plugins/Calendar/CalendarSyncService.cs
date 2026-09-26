@@ -128,20 +128,17 @@ public sealed class CalendarSyncService
                                  sourcePluginId, sourceCategory, externalId,
                                  contentPreview, contentText) = _processor.ConvertToInboxParameters(calEvent);
 
-                            var inboxItem = await _inboxService.TriageExternalAsync(
+                            var triage = await _inboxService.UpsertExternalAsync(
                                 fileName, fileType, sourceType, sourceUrl,
                                 sourcePluginId, sourceCategory, externalId,
                                 contentPreview, contentText).ConfigureAwait(false);
 
-                            // If the item already existed, it was a duplicate (skipped).
-                            // If it's new, it was auto-accepted.
-                            if (inboxItem.ProcessedAt == inboxItem.AddedAt || inboxItem.AddedAt < startedAt.AddSeconds(-1))
+                            // The inbox reports what it did, so counts never depend on timestamps.
+                            switch (triage.Outcome)
                             {
-                                totalSkipped++;
-                            }
-                            else
-                            {
-                                totalAdded++;
+                                case ExternalTriageOutcome.Created: totalAdded++; break;
+                                case ExternalTriageOutcome.Updated: totalUpdated++; break;
+                                default: totalSkipped++; break;
                             }
                         }
                         catch (Exception ex) when (ex is not OperationCanceledException)

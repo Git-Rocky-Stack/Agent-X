@@ -246,7 +246,7 @@ public sealed class InboxViewModelTests
                 }
             ]);
         _inboxService.Setup(service => service.AcceptItemAsync(7, null))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(new InboxAcceptResult(7, InboxAcceptOutcome.Imported, 99));
         _operationsDrillInService.Setup(service => service.ConsumePendingInboxRequest())
             .Returns(new OperationsInboxDrillInRequest(7, "Opened inbox item \"Board update.docx\" from Operations"));
 
@@ -263,5 +263,47 @@ public sealed class InboxViewModelTests
         viewModel.HasFocusedInboxLanding.Should().BeFalse();
         viewModel.InboxItems.Should().OnlyContain(item => !item.IsFocused);
         viewModel.StatusMessage.Should().Be("Resolved \"Board update.docx\" by accepting it and queuing it for indexing.");
+    }
+
+    [Fact]
+    public async Task AcceptItemCommand_when_content_is_already_in_the_vault_says_it_was_linked()
+    {
+        _inboxService.Setup(service => service.GetAllItemsAsync("pending", 0, 100))
+            .ReturnsAsync(Array.Empty<InboxItemEntity>());
+        _inboxService.Setup(service => service.AcceptItemAsync(3, null))
+            .ReturnsAsync(new InboxAcceptResult(3, InboxAcceptOutcome.AlreadyInVault, 12));
+        var viewModel = new InboxViewModel(_inboxService.Object, _collectionService.Object);
+
+        await viewModel.AcceptItemCommand.ExecuteAsync(3L);
+
+        viewModel.StatusMessage.Should().Contain("already in the vault");
+        viewModel.StatusMessage.Should().NotContain("queued for indexing");
+    }
+
+    [Fact]
+    public async Task AcceptItemCommand_when_accept_fails_reports_the_reason()
+    {
+        _inboxService.Setup(service => service.AcceptItemAsync(4, null))
+            .ThrowsAsync(new FileNotFoundException("The file for 'clip.md' no longer exists."));
+        var viewModel = new InboxViewModel(_inboxService.Object, _collectionService.Object);
+
+        await viewModel.AcceptItemCommand.ExecuteAsync(4L);
+
+        viewModel.StatusMessage.Should().Be("Failed to accept item: The file for 'clip.md' no longer exists.");
+    }
+
+    [Fact]
+    public async Task AcceptAllCommand_with_failures_does_not_claim_everything_was_accepted()
+    {
+        _inboxService.Setup(service => service.GetAllItemsAsync("pending", 0, 100))
+            .ReturnsAsync(Array.Empty<InboxItemEntity>());
+        _inboxService.Setup(service => service.AcceptAllPendingAsync())
+            .ReturnsAsync(new InboxBatchAcceptResult(2, 1, 0, 1, new[] { "gone.md: file no longer exists" }));
+        var viewModel = new InboxViewModel(_inboxService.Object, _collectionService.Object);
+
+        await viewModel.AcceptAllCommand.ExecuteAsync(null);
+
+        viewModel.StatusMessage.Should().Be(
+            "Accepted 3 items (1 already in the vault); 1 failed and stayed pending: gone.md: file no longer exists");
     }
 }

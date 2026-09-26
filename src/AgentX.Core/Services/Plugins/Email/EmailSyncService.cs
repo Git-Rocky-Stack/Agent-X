@@ -109,18 +109,17 @@ public sealed class EmailSyncService
                                  sourcePluginId, sourceCategory, externalId,
                                  contentPreview, contentText) = _processor.ConvertToInboxParameters(email);
 
-                            var inboxItem = await _inboxService.TriageExternalAsync(
+                            var triage = await _inboxService.UpsertExternalAsync(
                                 fileName, fileType, sourceType, sourceUrl,
                                 sourcePluginId, sourceCategory, externalId,
                                 contentPreview, contentText).ConfigureAwait(false);
 
-                            if (inboxItem.ProcessedAt == inboxItem.AddedAt || inboxItem.AddedAt < startedAt.AddSeconds(-1))
+                            // The inbox reports what it did, so counts never depend on timestamps.
+                            switch (triage.Outcome)
                             {
-                                totalSkipped++;
-                            }
-                            else
-                            {
-                                totalAdded++;
+                                case ExternalTriageOutcome.Created: totalAdded++; break;
+                                case ExternalTriageOutcome.Updated: totalUpdated++; break;
+                                default: totalSkipped++; break;
                             }
                         }
                         catch (Exception ex) when (ex is not OperationCanceledException)

@@ -15,7 +15,7 @@ namespace AgentX.Tests.Services.Email;
 
 /// <summary>
 /// Integration tests for the Email sync pipeline:
-/// EmailSyncService → EmailTriageProcessor → IInboxService.TriageExternalAsync
+/// EmailSyncService -> EmailTriageProcessor -> IInboxService.UpsertExternalAsync
 /// and EmailPlugin lifecycle.
 /// </summary>
 public sealed class EmailIntegrationTests : IDisposable
@@ -91,6 +91,9 @@ public sealed class EmailIntegrationTests : IDisposable
         return settings;
     }
 
+    private static ExternalTriageResult Created(InboxItemEntity item) =>
+        new(item, ExternalTriageOutcome.Created);
+
     private InboxItemEntity CreateInboxItem(long id = 1, DateTime? addedAt = null, DateTime? processedAt = null)
     {
         return new InboxItemEntity
@@ -146,11 +149,11 @@ public sealed class EmailIntegrationTests : IDisposable
         SetupGmailProvider(msg1, msg2);
 
         _inboxService
-            .Setup(i => i.TriageExternalAsync(
+            .Setup(i => i.UpsertExternalAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
                 It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
-            .ReturnsAsync(CreateInboxItem());
+            .ReturnsAsync(Created(CreateInboxItem()));
 
         var settings = DefaultSettings("INBOX");
 
@@ -162,7 +165,7 @@ public sealed class EmailIntegrationTests : IDisposable
 
         // Both fixtures carry "Please review the sprint deliverables before EOD",
         // so the triage category the sync service forwards is ActionRequired.
-        _inboxService.Verify(i => i.TriageExternalAsync(
+        _inboxService.Verify(i => i.UpsertExternalAsync(
             It.IsAny<string>(), "EmailMessage", "email-connector",
             It.IsAny<string?>(), "com.agentx.email", nameof(EmailCategory.ActionRequired),
             It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()),
@@ -178,11 +181,11 @@ public sealed class EmailIntegrationTests : IDisposable
         SetupOutlookProvider(outlookMsg);
 
         _inboxService
-            .Setup(i => i.TriageExternalAsync(
+            .Setup(i => i.UpsertExternalAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
                 It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
-            .ReturnsAsync(CreateInboxItem());
+            .ReturnsAsync(Created(CreateInboxItem()));
 
         var settings = DefaultSettings("INBOX", "AAMkAGI2AAA=");
 
@@ -190,7 +193,7 @@ public sealed class EmailIntegrationTests : IDisposable
             [_gmailProvider.Object, _outlookProvider.Object], settings);
 
         result.ItemsFailed.Should().Be(0);
-        _inboxService.Verify(i => i.TriageExternalAsync(
+        _inboxService.Verify(i => i.UpsertExternalAsync(
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
             It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
             It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()),
@@ -208,7 +211,7 @@ public sealed class EmailIntegrationTests : IDisposable
 
         result.ItemsAdded.Should().Be(0);
         result.ItemsFailed.Should().Be(0);
-        _inboxService.Verify(i => i.TriageExternalAsync(
+        _inboxService.Verify(i => i.UpsertExternalAsync(
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
             It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
             It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()),
@@ -220,11 +223,11 @@ public sealed class EmailIntegrationTests : IDisposable
     {
         SetupGmailProvider(CreateMessage());
         _inboxService
-            .Setup(i => i.TriageExternalAsync(
+            .Setup(i => i.UpsertExternalAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
                 It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
-            .ReturnsAsync(CreateInboxItem());
+            .ReturnsAsync(Created(CreateInboxItem()));
 
         var settings = DefaultSettings("INBOX");
         await _syncService.SyncAsync([_gmailProvider.Object], settings);
@@ -248,11 +251,11 @@ public sealed class EmailIntegrationTests : IDisposable
         SetupOutlookProvider(CreateMessage("o-1", "Outlook Email", "AAMkAGI2AAA=", "microsoft"));
 
         _inboxService
-            .Setup(i => i.TriageExternalAsync(
+            .Setup(i => i.UpsertExternalAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
                 It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
-            .ReturnsAsync(CreateInboxItem());
+            .ReturnsAsync(Created(CreateInboxItem()));
 
         var settings = DefaultSettings("INBOX", "AAMkAGI2AAA=");
 
@@ -260,7 +263,7 @@ public sealed class EmailIntegrationTests : IDisposable
             [_gmailProvider.Object, _outlookProvider.Object], settings);
 
         result.ItemsFailed.Should().Be(1); // Gmail provider failure
-        _inboxService.Verify(i => i.TriageExternalAsync(
+        _inboxService.Verify(i => i.UpsertExternalAsync(
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
             It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
             It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()),
@@ -272,11 +275,11 @@ public sealed class EmailIntegrationTests : IDisposable
     {
         SetupGmailProvider(CreateMessage());
         _inboxService
-            .Setup(i => i.TriageExternalAsync(
+            .Setup(i => i.UpsertExternalAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
                 It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
-            .ReturnsAsync(CreateInboxItem());
+            .ReturnsAsync(Created(CreateInboxItem()));
 
         var settings = DefaultSettings("INBOX");
         using var cts = new CancellationTokenSource();
@@ -295,7 +298,7 @@ public sealed class EmailIntegrationTests : IDisposable
 
         var callCount = 0;
         _inboxService
-            .Setup(i => i.TriageExternalAsync(
+            .Setup(i => i.UpsertExternalAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
                 It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
@@ -303,7 +306,7 @@ public sealed class EmailIntegrationTests : IDisposable
             {
                 callCount++;
                 if (callCount == 1) throw new InvalidOperationException("DB error");
-                return CreateInboxItem(2);
+                return Created(CreateInboxItem(2));
             });
 
         var settings = DefaultSettings("INBOX");
@@ -311,7 +314,7 @@ public sealed class EmailIntegrationTests : IDisposable
         var result = await _syncService.SyncAsync([_gmailProvider.Object], settings);
 
         result.ItemsFailed.Should().Be(1);
-        _inboxService.Verify(i => i.TriageExternalAsync(
+        _inboxService.Verify(i => i.UpsertExternalAsync(
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
             It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
             It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()),
