@@ -13,15 +13,35 @@ namespace AgentX.Tests.CodeQuality;
 /// signal a developer normally reads, yet it does not exist for the user.
 /// </para>
 /// <para>
-/// A command counts as reachable when either the generated <c>XxxCommand</c> property is
-/// referenced outside its declaring file (a XAML binding or a code-behind invocation) or
-/// the underlying method is called outside its declaring file (a coordinator or a
-/// code-behind handler driving it directly). Commands invoked only from inside their own
-/// view model are not reachable: that is an internal helper wearing a command attribute.
+/// A command counts as reachable when a view that hosts its view model uses it: the
+/// generated <c>XxxCommand</c> property is bound or invoked (<c>.XxxCommand</c>), or the
+/// underlying method is called (<c>.Xxx(</c>), in a file outside the view models that names
+/// the view model's type (the page, window, control or dialog holding it) or in the XAML of
+/// such a code-behind. Commands invoked only from inside their own view model are not
+/// reachable: that is an internal helper wearing a command attribute.
+/// </para>
+/// <para>
+/// A mention anywhere else does not count. The earlier rule accepted any same-named
+/// identifier in any file, so a coordinator method called <c>DeleteConversationAsync</c> and
+/// another page's <c>ClearConversationCommand</c> made chat commands that nothing invoked
+/// look reachable.
 /// </para>
 /// </summary>
 public sealed class NoUnreachableViewModelCommandsTests
 {
+    /// <summary>
+    /// Unreachable commands another workstream is fixing. Temporary: remove each entry with
+    /// its fix. Inbox refresh and comparison selection are in flight; the knowledge vault's
+    /// ImportFiles was found when this guard was tightened (the page imports through
+    /// ImportWithDedup) and is reported to its owner.
+    /// </summary>
+    private static readonly HashSet<string> KnownUnreachableCommands = new(StringComparer.Ordinal)
+    {
+        "InboxViewModel.RefreshCommand",
+        "ComparisonViewModel.ToggleDocumentSelectionCommand",
+        "KnowledgeVaultViewModel.ImportFilesCommand",
+    };
+
     /// <summary>
     /// Locates <c>[RelayCommand]</c> methods and captures the method name, tolerating
     /// interleaved attributes and any return type.
@@ -40,19 +60,26 @@ public sealed class NoUnreachableViewModelCommandsTests
 
         foreach (var (viewModelPath, viewModelText) in sources.Where(s => IsViewModel(s.Key)))
         {
+            var viewModelType = Path.GetFileNameWithoutExtension(viewModelPath);
+            var hosts = FindHosts(sources, viewModelType);
+
             foreach (Match declaration in RelayCommandDeclaration.Matches(viewModelText))
             {
                 var method = declaration.Groups["method"].Value;
                 var command = ToCommandName(method);
 
-                if (IsReferencedOutside(sources, viewModelPath, $@"\b{Regex.Escape(command)}\b") ||
-                    IsReferencedOutside(sources, viewModelPath, $@"\b{Regex.Escape(method)}\s*\(") ||
-                    IsDrivenByABoundProperty(sources, viewModelText, command))
+                if (IsUsedByAHost(hosts, $@"\.{Regex.Escape(command)}\b") ||
+                    IsUsedByAHost(hosts, $@"\.{Regex.Escape(method)}\s*\(") ||
+                    IsDrivenByABoundProperty(hosts, viewModelText, command))
                 {
                     continue;
                 }
 
-                unreachable.Add($"{Path.GetFileNameWithoutExtension(viewModelPath)}.{command}");
+                var name = $"{viewModelType}.{command}";
+                if (!KnownUnreachableCommands.Contains(name))
+                {
+                    unreachable.Add(name);
+                }
             }
         }
 
@@ -89,7 +116,7 @@ public sealed class NoUnreachableViewModelCommandsTests
     /// the binding, so it is not dead code.
     /// </summary>
     private static bool IsDrivenByABoundProperty(
-        IReadOnlyDictionary<string, string> sources,
+        IReadOnlyDictionary<string, string> hosts,
         string viewModelText,
         string command)
     {
@@ -104,7 +131,7 @@ public sealed class NoUnreachableViewModelCommandsTests
             }
 
             var property = hook.Groups["property"].Value;
-            var boundInXaml = sources
+            var boundInXaml = hosts
                 .Where(source => source.Key.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
                 .Any(source => Regex.IsMatch(source.Value, $@"ViewModel\.{Regex.Escape(property)}\b"));
 
@@ -117,26 +144,44 @@ public sealed class NoUnreachableViewModelCommandsTests
         return false;
     }
 
-    private static bool IsReferencedOutside(
+    /// <summary>
+    /// The files that can put a view model's commands in front of a user: every file outside
+    /// the view models that names the view model's type (the page, window, control or dialog
+    /// that holds it), plus the XAML of each such code-behind.
+    /// </summary>
+    private static Dictionary<string, string> FindHosts(
         IReadOnlyDictionary<string, string> sources,
-        string declaringPath,
-        string pattern)
+        string viewModelType)
     {
+        var namesType = new Regex($@"\b{Regex.Escape(viewModelType)}\b");
+        var hosts = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
         foreach (var (path, text) in sources)
         {
-            if (string.Equals(path, declaringPath, StringComparison.OrdinalIgnoreCase))
+            if (IsViewModel(path) ||
+                !path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) ||
+                !namesType.IsMatch(text))
             {
                 continue;
             }
 
-            if (Regex.IsMatch(text, pattern))
+            hosts[path] = text;
+
+            if (path.EndsWith(".xaml.cs", StringComparison.OrdinalIgnoreCase))
             {
-                return true;
+                var xamlPath = path[..^".cs".Length];
+                if (sources.TryGetValue(xamlPath, out var xaml))
+                {
+                    hosts[xamlPath] = xaml;
+                }
             }
         }
 
-        return false;
+        return hosts;
     }
+
+    private static bool IsUsedByAHost(IReadOnlyDictionary<string, string> hosts, string pattern) =>
+        hosts.Values.Any(text => Regex.IsMatch(text, pattern));
 
     private static Dictionary<string, string> LoadAppSources(string appRoot) =>
         Directory
