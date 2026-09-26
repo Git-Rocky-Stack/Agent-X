@@ -7,6 +7,11 @@ namespace AgentX.Core.Services.Search;
 /// Factory that creates and manages <see cref="IWebSearchService"/> instances for
 /// all supported <see cref="WebSearchProvider"/> values. Also resolves the best
 /// configured service based on <see cref="AppSettings"/>.
+/// <para>
+/// Its providers keep the credentials they were built with. The app should register
+/// <see cref="SettingsAwareWebSearchService"/> instead, which reads the current settings on
+/// every search and never falls back to a provider the user did not select.
+/// </para>
 /// </summary>
 public sealed class WebSearchServiceFactory
 {

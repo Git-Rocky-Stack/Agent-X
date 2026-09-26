@@ -39,7 +39,7 @@ public sealed class SearXngSearchService : IWebSearchService
         // Normalize: trim trailing slash
         _baseUrl = baseUrl?.Trim().TrimEnd('/');
         _cache = cache ?? new WebSearchCache(logger);
-        _httpClient = httpClient ?? new HttpClient();
+        _httpClient = httpClient ?? WebSearchHttp.CreateClient();
         _logger = logger?.ForContext<SearXngSearchService>() ?? Serilog.Log.Logger.ForContext<SearXngSearchService>();
     }
 
@@ -85,7 +85,11 @@ public sealed class SearXngSearchService : IWebSearchService
                 FromCache = false
             };
 
-            _cache.Set(query, WebSearchProvider.SearXng, webResponse);
+            // Only real results are cached; an empty answer is retried on the next search
+            if (results.Count > 0)
+            {
+                _cache.Set(query, WebSearchProvider.SearXng, webResponse);
+            }
 
             _logger.Information(
                 "SearXNG search completed: {ResultCount} results for '{Query}' in {ElapsedMs:F0}ms",
@@ -119,59 +123,59 @@ public sealed class SearXngSearchService : IWebSearchService
         FromCache = false
     };
 
+    /// <summary>
+    /// Parses a SearXNG JSON response. A body that is not JSON (for example an HTML page from an
+    /// instance whose JSON format is disabled) throws, so the search is reported as failed and
+    /// not cached, instead of as a search that found nothing.
+    /// </summary>
     private static List<WebSearchResult> ParseSearXngResults(string json, int maxResults)
     {
         var results = new List<WebSearchResult>();
 
-        try
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+
+        if (root.ValueKind != JsonValueKind.Object
+            || !root.TryGetProperty("results", out var resultsArray)
+            || resultsArray.ValueKind != JsonValueKind.Array)
         {
-            using var doc = JsonDocument.Parse(json);
-            var root = doc.RootElement;
-
-            if (!root.TryGetProperty("results", out var resultsArray))
-            {
-                return results;
-            }
-
-            foreach (var item in resultsArray.EnumerateArray())
-            {
-                if (results.Count >= maxResults)
-                {
-                    break;
-                }
-
-                var title = item.TryGetProperty("title", out var titleEl) ? titleEl.GetString() ?? string.Empty : string.Empty;
-                var url = item.TryGetProperty("url", out var urlEl) ? urlEl.GetString() ?? string.Empty : string.Empty;
-                var snippet = item.TryGetProperty("content", out var contentEl) ? contentEl.GetString() ?? string.Empty : string.Empty;
-
-                string? domain = null;
-                if (item.TryGetProperty("parsed_url", out var parsedUrl) &&
-                    parsedUrl.ValueKind == JsonValueKind.Object &&
-                    parsedUrl.TryGetProperty("hostname", out var hostnameEl))
-                {
-                    domain = hostnameEl.GetString();
-                }
-                else if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
-                {
-                    domain = uri.Host;
-                }
-
-                DateTime? publishedDate = null;
-                // SearXNG doesn't typically provide publication dates in the JSON API
-
-                results.Add(new WebSearchResult
-                {
-                    Title = title,
-                    Url = url,
-                    Snippet = snippet,
-                    SourceDomain = domain ?? string.Empty,
-                    PublishedDate = publishedDate
-                });
-            }
+            return results;
         }
-        catch (JsonException)
+
+        foreach (var item in resultsArray.EnumerateArray())
         {
-            // Return whatever we have; malformed JSON shouldn't crash the pipeline
+            if (results.Count >= maxResults)
+            {
+                break;
+            }
+
+            var title = item.TryGetProperty("title", out var titleEl) ? titleEl.GetString() ?? string.Empty : string.Empty;
+            var url = item.TryGetProperty("url", out var urlEl) ? urlEl.GetString() ?? string.Empty : string.Empty;
+            var snippet = item.TryGetProperty("content", out var contentEl) ? contentEl.GetString() ?? string.Empty : string.Empty;
+
+            string? domain = null;
+            if (item.TryGetProperty("parsed_url", out var parsedUrl) &&
+                parsedUrl.ValueKind == JsonValueKind.Object &&
+                parsedUrl.TryGetProperty("hostname", out var hostnameEl))
+            {
+                domain = hostnameEl.GetString();
+            }
+            else if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            {
+                domain = uri.Host;
+            }
+
+            DateTime? publishedDate = null;
+            // SearXNG doesn't typically provide publication dates in the JSON API
+
+            results.Add(new WebSearchResult
+            {
+                Title = title,
+                Url = url,
+                Snippet = snippet,
+                SourceDomain = domain ?? string.Empty,
+                PublishedDate = publishedDate
+            });
         }
 
         return results;
