@@ -19,6 +19,13 @@ public sealed class AppNavigationService : IAppNavigationService
     private NavigationView _navView = null!;
     private bool _initialized;
 
+    // True only while NavigateToPage moves the rail highlight to the page it already
+    // navigated to, so the SelectionChanged that raises is not treated as a second
+    // navigation. Deliberately separate from SuppressNavigation: that one belongs to
+    // the onboarding flow, and saving and restoring it here used to write it back to
+    // true after onboarding had been left, which left the rail dead for the session.
+    private bool _syncingSelection;
+
     /// <inheritdoc />
     public bool SuppressNavigation { get; set; }
 
@@ -76,15 +83,14 @@ public sealed class AppNavigationService : IAppNavigationService
             // Sync the NavigationView selection to reflect the new page
             if (_navItemMap.TryGetValue(pageKey, out var navItem))
             {
-                var wasSuppressingNavigation = SuppressNavigation;
-                SuppressNavigation = true;
+                _syncingSelection = true;
                 try
                 {
                     _navView.SelectedItem = navItem;
                 }
                 finally
                 {
-                    SuppressNavigation = wasSuppressingNavigation;
+                    _syncingSelection = false;
                 }
             }
 
@@ -148,8 +154,9 @@ public sealed class AppNavigationService : IAppNavigationService
 
     private void OnSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
-        // Guard: don't navigate when onboarding setup is modifying NavView state
-        if (SuppressNavigation) return;
+        // Guard: don't navigate while onboarding owns the shell, or when the change is
+        // NavigateToPage syncing the highlight after it has already navigated.
+        if (SuppressNavigation || _syncingSelection) return;
 
         if (args.SelectedItemContainer is NavigationViewItem selectedItem)
         {

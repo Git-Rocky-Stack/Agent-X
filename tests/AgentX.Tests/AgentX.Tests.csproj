@@ -153,4 +153,13 @@
     <Compile Include="..\..\src\AgentX.App\ViewModels\UserGuideViewModel.cs" Link="ViewModels\UserGuideViewModel.cs" />
     <Compile Include="..\..\src\AgentX.App\Models\UserGuideSection.cs" Link="Models\UserGuideSection.cs" />
   </ItemGroup>
+
+  <ItemGroup>
+    <!-- App shell: the WinUI-free halves of the shell services. OnboardingService's DI
+         constructor (it takes the WinUI-typed IAppNavigationService) lives in
+         OnboardingService.WinUI.cs, which is deliberately not linked. -->
+    <Compile Include="..\..\src\AgentX.App\Services\INavigationGate.cs" Link="Services\INavigationGate.cs" />
+    <Compile Include="..\..\src\AgentX.App\Services\IOnboardingService.cs" Link="Services\IOnboardingService.cs" />
+    <Compile Include="..\..\src\AgentX.App\Services\OnboardingService.cs" Link="Services\OnboardingService.cs" />
+  </ItemGroup>
 </Project>

@@ -10,21 +10,30 @@ namespace AgentX.App.Services;
 /// completed via user settings, and coordinates navigation to the onboarding wizard
 /// with nav pane suppression.
 /// </summary>
-public sealed class OnboardingService : IOnboardingService
+/// <remarks>
+/// This file holds the WinUI-free logic and is linked into AgentX.Tests. The
+/// constructor that DI uses (it takes the WinUI-typed IAppNavigationService) lives in
+/// OnboardingService.WinUI.cs.
+/// </remarks>
+public sealed partial class OnboardingService : IOnboardingService
 {
     private readonly ISettingsService _settingsService;
-    private readonly IAppNavigationService _navigationService;
+    private readonly INavigationGate _navigationGate;
+    private bool _isActive;
 
     /// <summary>
     /// Raised when onboarding completes. MainWindow subscribes to navigate to Dashboard.
     /// </summary>
     public event Action? OnboardingCompleted;
 
-    public OnboardingService(ISettingsService settingsService, IAppNavigationService navigationService)
+    internal OnboardingService(ISettingsService settingsService, INavigationGate navigationGate)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-        _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
+        _navigationGate = navigationGate ?? throw new ArgumentNullException(nameof(navigationGate));
     }
+
+    /// <inheritdoc />
+    public bool IsOnboardingActive => _isActive;
 
     /// <inheritdoc />
     public async Task<bool> ShouldShowOnboardingAsync()
@@ -50,45 +59,74 @@ public sealed class OnboardingService : IOnboardingService
     {
         try
         {
-            _navigationService.SuppressNavigation = true;
+            _navigationGate.SuppressNavigation = true;
+            _isActive = true;
             return true;
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to begin onboarding flow");
-            _navigationService.SuppressNavigation = false;
-            _navigationService.EnsureNavPaneVisible();
+            _isActive = false;
+            _navigationGate.SuppressNavigation = false;
+            _navigationGate.EnsureNavPaneVisible();
             return false;
         }
     }
 
-    /// <summary>
-    /// Called when the onboarding navigation attempt fails or is skipped.
-    /// Cleans up the suppressed navigation state and marks onboarding as complete.
-    /// </summary>
-    public async Task SkipOnboardingAsync()
+    /// <inheritdoc />
+    public async Task OnNavigatedAsync(bool destinationIsOnboarding)
     {
-        _navigationService.EnsureNavPaneVisible();
-        _navigationService.SuppressNavigation = false;
+        if (!_isActive || destinationIsOnboarding)
+        {
+            return;
+        }
 
         try
         {
-            var settings = await _settingsService.GetSettingsAsync();
-            settings.OnboardingCompleted = true;
-            await _settingsService.SaveSettingsAsync(settings);
+            Log.Information("Onboarding left before Finish; treating it as skipped");
+            await SkipOnboardingAsync();
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "Failed to mark onboarding as complete during skip");
+            // Raised from a Frame.Navigated handler: never let it escape to the dispatcher.
+            Log.Warning(ex, "Failed to end onboarding after navigating away from it");
         }
+    }
+
+    /// <summary>
+    /// Called when the onboarding navigation attempt fails, or when the wizard is left
+    /// before Finish. Cleans up the suppressed navigation state and marks onboarding as
+    /// complete so the wizard does not come back on the next launch.
+    /// </summary>
+    public async Task SkipOnboardingAsync()
+    {
+        EndSession();
+        await PersistCompletedAsync("skip");
     }
 
     /// <inheritdoc />
     public async Task CompleteOnboardingAsync()
     {
-        _navigationService.EnsureNavPaneVisible();
-        _navigationService.SuppressNavigation = false;
+        EndSession();
+        await PersistCompletedAsync("finish");
 
+        OnboardingCompleted?.Invoke();
+        Log.Information("Onboarding completed");
+    }
+
+    /// <summary>
+    /// Hands the shell back: the rail navigates again and is visible. Runs before any
+    /// await so it takes effect even if persisting the flag later fails.
+    /// </summary>
+    private void EndSession()
+    {
+        _isActive = false;
+        _navigationGate.EnsureNavPaneVisible();
+        _navigationGate.SuppressNavigation = false;
+    }
+
+    private async Task PersistCompletedAsync(string outcome)
+    {
         try
         {
             var settings = await _settingsService.GetSettingsAsync();
@@ -97,10 +135,7 @@ public sealed class OnboardingService : IOnboardingService
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "Failed to persist onboarding completion");
+            Log.Warning(ex, "Failed to persist onboarding completion after {Outcome}", outcome);
         }
-
-        OnboardingCompleted?.Invoke();
-        Log.Information("Onboarding completed");
     }
 }

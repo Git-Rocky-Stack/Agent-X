@@ -25,18 +25,34 @@ public sealed partial class MainWindow
         CompositionGlow.Attach(DocCountText, VaultGlowHost, LcdGreen, blurRadius: 8f, opacity: 0.7f);
 
         // Lit lamps teleport to their source view (DESIGN.md annunciator rule).
-        MdlLamp.Invoked += (_, _) => _navigationService.NavigateToPage("ModelManager");
-        LocalLamp.Invoked += (_, _) => _navigationService.NavigateToPage("Settings");
-        InboxLamp.Invoked += (_, _) => _navigationService.NavigateToPage("Inbox");
-        SyncLamp.Invoked += (_, _) => _navigationService.NavigateToPage("SyncSettings");
-        JobsLamp.Invoked += (_, _) => _navigationService.NavigateToPage("Workflows");
-        BakLamp.Invoked += (_, _) => _navigationService.NavigateToPage("BackupRestore");
+        WireTeleport(MdlLamp, "ModelManager");
+        WireTeleport(LocalLamp, "Settings");
+        WireTeleport(InboxLamp, "Inbox");
+        WireTeleport(SyncLamp, "SyncSettings");
+        WireTeleport(JobsLamp, "Workflows");
+        WireTeleport(BakLamp, "BackupRestore");
 
         _statusBarService.StateChanged += OnStatusBarStateChanged;
         _statusBarService.StartPolling();
 
         _annunciatorService.StateChanged += OnAnnunciatorStateChanged;
         _annunciatorService.StartPolling();
+    }
+
+    /// <summary>
+    /// Only a lit lamp is a teleport. LampTile raises Invoked in every state, and an
+    /// unlit lamp has nothing to report, so a click on one stays put instead of
+    /// navigating (and, during first run, instead of silently ending onboarding).
+    /// </summary>
+    private void WireTeleport(LampTile lamp, string pageTag)
+    {
+        lamp.Invoked += (_, _) =>
+        {
+            if (lamp.State != LampState.Off)
+            {
+                _navigationService.NavigateToPage(pageTag);
+            }
+        };
     }
 
     private void OnAnnunciatorStateChanged(object? sender, AnnunciatorState state)
@@ -225,15 +241,38 @@ public sealed partial class MainWindow
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to check onboarding status, proceeding to Dashboard");
-            _navigationService.EnsureNavPaneVisible();
+            if (_onboardingService.IsOnboardingActive)
+            {
+                // The wizard began but never took over the frame: release the rail it
+                // suppressed, exactly as the Navigate-returned-false branch above does.
+                await _onboardingService.SkipOnboardingAsync();
+            }
+            else
+            {
+                _navigationService.EnsureNavPaneVisible();
+            }
         }
     }
 
+    /// <summary>
+    /// Finish button entry point, called by OnboardingViewModel. It is async void, so
+    /// nothing may escape it: an exception here would reach the dispatcher unobserved.
+    /// </summary>
     public async void CompleteOnboarding()
     {
-        await _onboardingService.CompleteOnboardingAsync();
-        NavView.SelectedItem = NavDashboard;
-        ContentFrame.Navigate(typeof(DashboardPage));
+        try
+        {
+            await _onboardingService.CompleteOnboardingAsync();
+
+            // One navigation that also moves the rail highlight. Setting SelectedItem and
+            // then calling Frame.Navigate as well navigated to the Dashboard twice.
+            _navigationService.NavigateToPage("Dashboard");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to finish onboarding and return to the Dashboard");
+            _navigationService.EnsureNavPaneVisible();
+        }
     }
 
     private sealed class DelegateCommand : System.Windows.Input.ICommand

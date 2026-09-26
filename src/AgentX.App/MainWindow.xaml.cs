@@ -95,6 +95,11 @@ public sealed partial class MainWindow : Window
             args.Handled = true;
         };
 
+        // Every route off the onboarding wizard (shortcut, palette, Jump-To, tray, lamp)
+        // ends up here, so this is the one place that hands the shell back to the rail.
+        ContentFrame.Navigated += (_, args) =>
+            _ = _onboardingService.OnNavigatedAsync(args.Content is OnboardingPage);
+
         // Initialize navigation service with XAML control references
         _navigationService.Initialize(PageMap, _navItemMap, ContentFrame, NavView);
 
