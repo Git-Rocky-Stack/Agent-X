@@ -88,6 +88,9 @@ public sealed class LocalLlmProvider : IAiProvider
     /// <summary>The configured model file (the one used for embeddings).</summary>
     public string ModelFileName => _modelFileName;
 
+    /// <summary>True when the configured model file exists in the models directory.</summary>
+    public bool IsModelFileInstalled => File.Exists(ModelPath);
+
     public LocalLlmProvider(
         string modelsDirectory,
         string modelFileName,

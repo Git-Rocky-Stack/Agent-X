@@ -9,10 +9,10 @@ public interface IEmbeddingService
     string ModelName { get; }
 
     /// <summary>
-    /// Full version identifier for the active embedding model, e.g.
-    /// <c>"all-minilm:1.0"</c>. Used by retrieval to detect chunks
-    /// embedded with an incompatible model and exclude them from results.
-    /// Format: <c>{ModelName}:{SchemaVersion}</c>.
+    /// Identifies the embedding space of the vectors this service produces, e.g.
+    /// <c>"ollama:all-minilm:384"</c>. Used to stamp chunks and by retrieval to exclude chunks
+    /// embedded by a different provider, model or vector size.
+    /// Format: <c>{ProviderId}:{ModelName}:{Dimensions}</c>.
     /// </summary>
     string ModelVersion { get; }
 

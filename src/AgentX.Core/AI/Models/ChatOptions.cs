@@ -154,4 +154,11 @@ public class ChatOptions
     /// <see cref="JsonSchema"/> is set on OpenAI; ignored elsewhere.
     /// </summary>
     public string? JsonSchemaName { get; set; }
+
+    /// <summary>
+    /// Returns a shallow copy. Used when defaults (such as the active model) are filled in, so a
+    /// caller's options object is never modified and cannot carry a stale model id into a later
+    /// request on another provider.
+    /// </summary>
+    internal ChatOptions ShallowCopy() => (ChatOptions)MemberwiseClone();
 }

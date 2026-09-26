@@ -20,6 +20,9 @@ public sealed class OpenAiProvider : IAiProvider
     private bool _isAvailable;
     private bool _disposed;
 
+    /// <summary>Model used when neither the request nor the settings name one.</summary>
+    public const string DefaultModelId = "gpt-4o-mini";
+
     /// <inheritdoc />
     public string ProviderId => "openai";
 
@@ -175,7 +178,7 @@ public sealed class OpenAiProvider : IAiProvider
             throw new ArgumentException("Messages list cannot be null or empty.", nameof(messages));
 
         var requestMessages = BuildRequestMessages(messages);
-        var modelId = options?.ModelId ?? "gpt-4o-mini";
+        var modelId = options?.ModelId ?? DefaultModelId;
 
         var body = new Dictionary<string, object>
         {

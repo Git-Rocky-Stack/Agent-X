@@ -23,6 +23,9 @@ public sealed class AnthropicProvider : IAiProvider
 
     private const string AnthropicApiVersion = "2023-06-01";
 
+    /// <summary>Model used when neither the request nor the settings name one.</summary>
+    public const string DefaultModelId = "claude-sonnet-5";
+
     /// <inheritdoc />
     public string ProviderId => "anthropic";
 
@@ -176,7 +179,7 @@ public sealed class AnthropicProvider : IAiProvider
         if (messages is null || messages.Count == 0)
             throw new ArgumentException("Messages list cannot be null or empty.", nameof(messages));
 
-        var modelId = options?.ModelId ?? "claude-sonnet-4-20250514";
+        var modelId = options?.ModelId ?? DefaultModelId;
 
         // Anthropic requires the system prompt as a top-level field, not a message.
         // Extract any system messages from the list and combine them.
