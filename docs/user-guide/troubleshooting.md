@@ -670,16 +670,17 @@
    - Check system tray for Agent-X icon
 
 2. **Check local server**
-   - Agent-X runs HTTP server on port 9846
-   - Verify not blocked by firewall
+   - Agent-X runs its local API on http://localhost:9846 (this computer only)
+   - Make sure **Enable Local API** is on in Settings > Connections; a change to that switch applies on the next launch
 
 3. **Reinstall extension**
    - Uninstall and reinstall browser extension
    - Restart browser
 
-4. **Check API key**
-   - Extension may need API key
-   - Configure in extension settings
+4. **Check the API token**
+   - The extension pairs by token: copy the API token from Settings > Connections, paste it into the extension popup, and click **Save**
+   - The popup header shows the Agent-X version when it is connected and **Offline** when it is not
+   - Regenerating the token disconnects every client until you paste the new one
 
 ### Calendar/Email Connector Not Syncing
 

@@ -233,30 +233,29 @@
 | Shortcut | Action |
 |----------|--------|
 | `Ctrl+K` | Open command palette |
-| `Ctrl+I` | Open AI Chat |
-| `Ctrl+L` | Open Knowledge Vault |
+| `Ctrl+P` | Jump To (a page, document, or conversation) |
+| `F1` | Keyboard cheatsheet |
+| `Ctrl+N` | New conversation |
+| `Ctrl+2` | Open AI Chat |
+| `Ctrl+I` | Open Knowledge Vault |
 | `Ctrl+F` | Open Search |
 | `Ctrl+G` | Open Knowledge Graph |
-| `Ctrl+W` | Open Workflows |
-| `Ctrl+A` | Open Analytics |
-| `Ctrl+M` | Open Model Manager |
+| `Ctrl+Shift+W` | Open Workflows |
+| `Ctrl+Shift+A` | Open Analytics |
+| `Ctrl+8` | Open Model Manager |
 | `Ctrl+,` | Open Settings |
-| `Ctrl+Q` | Quick actions |
-| `F5` | Refresh current view |
-| `Ctrl+N` | New conversation |
-| `Ctrl+S` | Save current document/conversation |
+| `F5` | Refresh the document list (Knowledge Vault) |
+| `Ctrl+S` | Save settings (Settings page) |
 | `Ctrl+C` | Copy selected text |
 | `Ctrl+V` | Paste text |
 | `Ctrl+X` | Cut selected text |
 | `Ctrl+Z` | Undo |
 | `Ctrl+Y` | Redo |
-| `Ctrl+F` | Find in current view |
-| `Escape` | Close dialog or cancel operation |
-| `Delete` | Delete selected item |
-| `F2` | Rename selected item |
-| `Enter` | Open selected item |
-| `Ctrl+A` | Select all |
-| `Ctrl+Shift+A` | Clear selection |
+| `Ctrl+A` | Select all text in a text box |
+| `Escape` | Close the command palette or a dialog |
+| `Enter` | Send a chat message, run a search, or open the selected palette item |
+
+Shortcuts are fixed and cannot be remapped. See [Keyboard Shortcuts](keyboard-shortcuts.md) for the full list.
 
 ---
 

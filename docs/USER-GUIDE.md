@@ -228,12 +228,14 @@ The summary screen provides a complete readiness report:
 1. **Database Initialization**: EF Core migrations run, creating 16 tables (conversations, messages, documents, chunks, embeddings, collections, tags, memories, workflows, and more)
 2. **Vector Store Setup**: HNSW ANN index initializes for semantic search (or linear-scan fallback for small vaults)
 3. **Indexing Queue**: Background service starts for async document processing
-4. **File System Watcher**: Enables auto-import from configured watch folders
+4. **File System Watcher**: The watch-folder service is part of the indexing pipeline, but the app has no UI to add a watch folder yet (Settings only has an **Auto-index watch folders** switch), so there is nothing for it to watch. Import files from the Knowledge Vault instead.
 5. **Dashboard Loads**: Your operational command center surfaces recent activity, recommended actions, and system health
 
 ### Re-running Onboarding
 
-- **Dashboard → Setup AI**: Revisit model/provider configuration anytime
+- **Reopen the wizard**: Press `Ctrl+P` (Jump To) and choose **Onboarding**
+- **Dashboard > Setup AI**: Opens Settings to change the provider, models, and keys anytime
+- **Leaving early**: Leaving the wizard before its final **Launch Agent-X** step (with a shortcut, the command palette, Jump To, the tray menu, or a status lamp) counts as skipping it, so it does not reappear on the next launch
 - **Force Onboarding**: Delete `%LocalAppData%\AgentX\settings.json` while app is closed
 - **Skip Onboarding**: Set `"onboardingCompleted": true` in settings.json (developer workflow)
 
@@ -279,12 +281,12 @@ After onboarding, you have access to an enterprise-grade intelligence platform. 
 
 | Feature | What It Does |
 | --- | --- |
-| **Workflows** | 15+ template-driven multi-step prompt chains (action items, research briefings, critiques, repurposing) with run history and token tracking |
+| **Workflows** | Multi-step prompt chains you run on demand, starting from four built-in templates (Summarize & Act, Research Brief, Document Review, Content Repurpose), with run history and token tracking |
 | **Quick Actions** | One-click AI tasks: summarize, extract keypoints, translate, rewrite/explain, duplicate review, organization suggestions, Q&A generation |
 | **Compare Documents** | Multi-document synthesis revealing similarities, differences, contradictions, unique points, and metrics |
 | **Batch Operations** | Multi-select documents for bulk delete, re-index, collection assignment, tag operations |
 | **Web Import** | URL-to-vault ingestion with preview, collection assignment, and auto-indexing |
-| **Smart Inbox** | Triage queue for watch-folder, connector, and browser-clipped content with AI previews |
+| **Smart Inbox** | Triage queue for connector, plugin, and browser-clipped content with AI previews |
 
 ### Advanced Features
 
@@ -529,7 +531,7 @@ Web Import turns URLs into vault documents.
 
 ### Batch and discovery flows
 
-Web Import also supports source discovery paths such as feeds and sitemaps where configured. Results show success/failure counts, imported document names, word counts, and error messages for failed URLs.
+Web Import also accepts several URLs at once (one per line), an RSS/Atom feed URL (it imports the items the feed lists at that moment; feeds are not re-checked on a schedule, so import the feed again for new items), and a sitemap URL (it imports every page the sitemap lists). Results show success/failure counts, imported document names, word counts, and error messages for failed URLs.
 
 ### Best practices
 
@@ -542,7 +544,7 @@ Web Import also supports source discovery paths such as feeds and sitemaps where
 
 ## 12. Collections and Workspace Profiles
 
-Collections organize documents inside a workspace. Workspace Profiles isolate broader working contexts.
+Collections organize documents inside the vault. Workspace Profiles save named setup presets.
 
 ### Collections
 
@@ -560,13 +562,9 @@ Collections improve RAG scope, search filtering, sync scope, and dashboard insig
 
 ### Workspace Profiles
 
-Workspace Profiles are separate environments for different contexts. The default workspace is seeded automatically and cannot be removed.
+A Workspace Profile is a named record of a setup: a description, an Ollama model identifier, a comma-separated list of collection IDs, and free-form custom settings (JSON or key=value text). You can create, edit, duplicate, and delete profiles, and mark one as the default. No profile is created for you, and any profile can be deleted.
 
-Use separate workspaces when:
-
-- You need project-specific conversations and vault data.
-- You want different model/provider settings for a client or domain.
-- You need cleaner separation between personal, business, and testing data.
+In this release a profile is a record only. Nothing in Agent-X loads a profile, so marking one default or editing it does not switch the active model, filter the vault, or keep conversations apart, and there is no profile switcher or profile shortcut. Use profiles to write down a setup you then apply by hand in Settings, Chat, or Search.
 
 ---
 
@@ -679,22 +677,25 @@ Workflows are reusable multi-step prompt chains. They are useful when a task nee
 
 ### Built-in starter templates
 
-The workflow page includes guided starters for common jobs:
+The workflow page includes four built-in templates:
 
-- Action item extraction from notes or transcripts.
-- Research briefing from source material.
-- Document critique and review.
-- Content repurposing into multiple formats.
+- **Summarize & Act**: summary, key points, and action items from notes or transcripts.
+- **Research Brief**: topic analysis, key arguments, and a structured brief from source material.
+- **Document Review**: summary, strengths and weaknesses, and improvement suggestions.
+- **Content Repurpose**: the core message rewritten as a tweet thread, an email, and a blog post.
 
 Template guides explain best-fit inputs, expected outcomes, and example use cases.
+
+Workflows run only when you click Run. There are no schedules, event triggers, or notifications.
 
 ### Creating a workflow
 
 1. Create or select a workflow.
 2. Add ordered steps.
-3. Configure each step's prompt template.
-4. Optionally override model, temperature, or token limits per step.
-5. Save and run the workflow against the current input.
+3. Choose each step's type and write its prompt template.
+4. Save and run the workflow against the input you paste or type.
+
+The editor has no per-step model, temperature, or token-limit fields. Steps use the active model; some built-in template steps carry a temperature, and an exported workflow JSON file keeps any per-step overrides when you bring it back with Import Workflow.
 
 ### Run inspection
 
@@ -741,7 +742,7 @@ Each item can show:
 | Defer | Leaves it for later review |
 | Focus from Operations | Opens an item that needs action |
 
-Use Smart Inbox for watch-folder review, connector-sourced items, browser clips, and backlog grooming.
+Use Smart Inbox for browser clips, plugin and connector-sourced items, and backlog grooming.
 
 ---
 
@@ -803,7 +804,7 @@ Model Manager provides a UI for Ollama model inventory and lifecycle management.
 - List installed models with size and metadata.
 - Pull a model by name.
 - Track pull progress.
-- Delete unused models.
+- Delete unused models. Delete is one click per model, with no confirmation and no undo; pull the model again if you remove one by mistake.
 - Refresh the installed model list.
 - Set or confirm defaults through Settings when needed.
 
@@ -854,12 +855,12 @@ Backup and Restore protects local Agent-X data.
 | Include documents | Includes vault source artifacts, not just the database |
 | Encryption | Adds password protection to the backup package |
 | Notes | Adds human-readable context to the backup history |
-| Scheduled backups | Runs recurring backups at the selected interval |
-| Retention | Limits how many backups are kept |
+
+Backups run only when you click **Create Backup**. There is no scheduled backup or retention setting in the app yet, and backups raise no notifications; the `BAK` lamp on the instrument strip shows how old your latest backup is.
 
 ### Restore behavior
 
-Choose a backup package, provide the password if encrypted, and run restore. Review the restore summary afterward. Restore operations should be treated as data-changing maintenance; close other Agent-X windows or background jobs first.
+Choose a backup package, provide the password if encrypted, and run restore. A restore replaces the current database with the one in the backup and writes its documents back; there is no merge or selective (cherry-pick) restore. Agent-X keeps a safety copy of the current database while it restores and puts it back if the restore fails, but a successful restore cannot be undone, so create a fresh backup first. Review the restore summary afterward. Restore operations should be treated as data-changing maintenance; close other Agent-X windows or background jobs first.
 
 ### Backup before high-risk changes
 
@@ -905,7 +906,7 @@ The history list tracks recent sync passes and conflicts. Operations can focus a
 
 ## 25. Calendar and Email Connectors
 
-Calendar and Email pages configure external productivity connectors.
+Calendar and Email pages configure external productivity connectors. Two providers are supported, Microsoft (Outlook) and Google (Gmail and Google Calendar), both through OAuth; there is no CalDAV, IMAP, or Exchange Web Services connector. The connectors only read your account: they never send, reply, or change anything, and they do not trigger workflows.
 
 ### Calendar
 
@@ -931,7 +932,7 @@ Email sync supports:
 - Days-back sync window.
 - Last sync and next sync indicators.
 
-Connector output can feed Smart Inbox and Operations so external items are reviewed before becoming vault material.
+Each synced event or message is added to the Smart Inbox as an already-accepted item and imported into the vault as a searchable document, and Operations shows connector health.
 
 ---
 
@@ -1001,7 +1002,7 @@ Open Jump To with `Ctrl+P`. Use it for fast navigation to documents, conversatio
 
 ### Cheatsheet
 
-Open the shortcuts cheatsheet with `F1` or `Ctrl+Shift+?`.
+Open the shortcuts cheatsheet with `F1` or `Ctrl+Shift+?`. It lists the global shortcuts plus the ones the current page registers. Shortcuts are fixed in this release; they cannot be remapped.
 
 ### Shipped global shortcuts
 
@@ -1045,7 +1046,7 @@ Clicking any lit lamp jumps to its source page (for example, `INBOX` opens the S
 
 ### Notifications
 
-Agent-X uses in-app notifications for long-running and asynchronous work such as imports, indexing, sync, backup, and workflow outcomes.
+Agent-X shows in-app toast notifications from AI Chat: errors, and confirmations such as a deleted message or a new branch. Imports, indexing, sync, backups, and workflow runs do not raise notifications; follow them on the instrument strip (`IDX`, `SYNC`, `JOBS`, `BAK`), in Operations, and on each feature's own page.
 
 ### System tray
 

@@ -122,7 +122,7 @@ After unlocking, you'll see the main dashboard:
 
 ### Step 1: Navigate to Knowledge Vault
 
-Click the **[📚 Vault]** button in the left navigation, or press `Ctrl+L`.
+Click **Knowledge Vault** in the left navigation, or press `Ctrl+I`.
 
 ### Step 2: Import Documents
 
@@ -199,7 +199,7 @@ For each document, Agent-X:
 
 ### Step 1: Open AI Chat
 
-Click the **[💬 Chat]** button in the left navigation, or press `Ctrl+I`.
+Click **AI Chat** in the left navigation, or press `Ctrl+2` (`Ctrl+N` opens it on a new conversation).
 
 ### Step 2: Ask Your First Question
 
@@ -263,7 +263,7 @@ Agent-X uses **Retrieval-Augmented Generation (RAG)**:
 
 ### Step 1: Open Search
 
-Click the **[🔍 Search]** button in the left navigation, or press `Ctrl+K`.
+Click **Semantic Search** in the left navigation, or press `Ctrl+F`.
 
 ### Step 2: Run a Semantic Search
 
@@ -322,9 +322,9 @@ This means you get the best of both worlds — fuzzy conceptual matching AND pre
 | Feature | Description | Shortcut |
 |---------|-------------|-----------|
 | **Knowledge Graph** | Visualize connections between documents | `Ctrl+G` |
-| **Workflows** | Automate repetitive tasks | `Ctrl+W` |
-| **Analytics** | View usage statistics and insights | `Ctrl+A` |
-| **Model Manager** | Manage AI models and providers | `Ctrl+M` |
+| **Workflows** | Run multi-step AI text pipelines on demand | `Ctrl+Shift+W` |
+| **Analytics** | View usage statistics and insights | `Ctrl+Shift+A` |
+| **Model Manager** | Manage AI models and providers | `Ctrl+8` |
 | **Settings** | Configure application preferences | `Ctrl+,` |
 
 ### Configure Cloud AI (Optional)

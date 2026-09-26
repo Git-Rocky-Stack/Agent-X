@@ -27,7 +27,7 @@ Requirements: Windows 10 build 19041+ or Windows 11, x64. No account, no subscri
 **Knowledge Vault & ingestion**
 - Import PDFs, Word documents, Markdown, text, code files, and web pages — single files, URLs, or entire folders
 - Automatic chunking, embedding, auto-tagging, and duplicate detection on import; collections (rename, export, multi-select bulk delete), editable annotations, and full document management
-- **Smart Inbox** triage queue: captures from the browser extension, mobile companion, and plugins arrive with AI-drafted previews (suggested summary, collection, tags) for one-click accept / defer / reject
+- **Smart Inbox** triage queue: clips from the browser extension and items from plugins arrive with AI-drafted previews (suggested summary, collection, tags) for one-click accept / defer / reject
 - Audio transcription turns recordings into searchable documents
 
 **Search & retrieval (RAG)**
@@ -49,19 +49,19 @@ Requirements: Windows 10 build 19041+ or Windows 11, x64. No account, no subscri
 
 **Automation & power use**
 - **Workflows**: on-demand multi-step AI pipelines built from five step types (AI Prompt, Document Lookup, Text Transform, Conditional Branch, Output Format) in a visual builder, with full run history
-- Quick Actions, a command palette, Jump-To that opens the exact document or conversation you pick, remappable keyboard-first navigation, and a Quick Chat window
+- Quick Actions, a command palette, Jump-To that opens the exact document or conversation you pick, keyboard-first navigation with a fixed shortcut set (F1 shows the cheatsheet), and a Quick Chat window
 - Plugin system (sandboxed, manifest-validated) with multi-select bulk enable / disable / uninstall, and an authenticated local REST API
 
 **Data safety & sync**
 - SQLCipher AES-256 encryption at rest; EF Core migrations; DPAPI-protected secrets
 - **Backup & Restore** with AES-256-GCM encrypted archives
 - **Collaborative Sync** between installations through an encrypted, file-based transport (any shared folder: OneDrive, Google Drive, NAS, USB) — no server, no cloud account
-- Calendar & email connectors (Outlook, Google Workspace, CalDAV / IMAP / EWS) — read-only by default, OAuth tokens stored encrypted
+- Calendar & email connectors for Outlook and Google (Gmail, Google Calendar) - read-only, OAuth tokens stored encrypted; no CalDAV, IMAP, or EWS
 
 **Platform**
-- Six UI languages (en-US, de, es, fr, ja, zh-CN) — every page, dialog, and the user guide fully localized; CI enforces key parity across all locales
+- Six UI languages (en-US, de, es, fr, ja, zh-CN) - every page and dialog localized; about 30 percent of the in-app user guide text is still English in the five non-English locales; CI enforces key parity across all locales
 - Command Console design system ([`DESIGN.md`](DESIGN.md)): a hardware-instrument UI with live status lamps and phosphor readouts, in dark (Night Shift), light (Day Shift), and high-contrast themes; every visible interactive control carries an accessible name, verified by UI Automation across all 29 pages
-- Android mobile companion (.NET MAUI) and a browser extension for capture on the go
+- A browser extension that clips pages into the Smart Inbox, and a read-only Android companion (.NET MAUI) for browsing and searching the vault over a USB or emulator connection
 - 29 navigation destinations, ~88 services, 3,029 unit tests, in-app onboarding and user guide
 
 ## Documentation

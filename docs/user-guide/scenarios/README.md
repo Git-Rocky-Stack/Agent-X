@@ -371,9 +371,9 @@ Daily use:
 
 ```
 Browser Extension:
-- Save articles while browsing
-- Automatic import to Agent-X
-- Tags and collections auto-applied
+- Clip articles while browsing (full page, selection, or reader view)
+- Clips land in the Smart Inbox with an AI-suggested collection and tags
+- Review each clip there: accept, defer, or reject
 ```
 
 **Step 2: Ingest to Knowledge Base**

@@ -125,7 +125,7 @@ Yes. Your database and documents can be migrated:
 
 ### How do I import documents?
 
-1. Navigate to **Knowledge Vault** (`Ctrl+L`)
+1. Navigate to **Knowledge Vault** (`Ctrl+I`)
 2. Click **[+ Import Documents]**
 3. Select files or folders
 4. Choose import options (auto-title, auto-tag)
@@ -170,14 +170,16 @@ Press `Ctrl+K` to open the command palette. Type commands like:
 
 ### What are Workflows?
 
-Workflows automate repetitive tasks:
+Workflows are multi-step AI text pipelines you run on demand: each step's output feeds the next. Agent-X ships four built-in templates you can run as-is or copy with **Use Template**:
 
 | Workflow | Description |
 |----------|-------------|
-| **Batch Import** | Import and process multiple documents |
-| **Weekly Digest** | Generate summary reports |
-| **Tag Cleanup** | Merge duplicate tags |
-| **Re-index Vault** | Refresh all document embeddings |
+| **Summarize & Act** | Summarize the input, extract key points, and generate action items |
+| **Research Brief** | Analyze a topic, identify key arguments, and write a structured brief |
+| **Document Review** | Summarize a document, list strengths and weaknesses, and suggest improvements |
+| **Content Repurpose** | Rewrite content as a tweet thread, an email, and a blog post |
+
+Workflows run only when you start them: there are no schedules, event triggers, or notifications.
 
 ---
 

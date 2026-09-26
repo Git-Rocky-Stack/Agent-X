@@ -78,7 +78,7 @@ Let's start by importing some documents."
 **Visual:** Knowledge Vault, Import dialog, progress
 
 **Audio:**
-"Navigate to Knowledge Vault using the left navigation or press Ctrl+L. Click the blue '+ Import Documents' button.
+"Navigate to Knowledge Vault using the left navigation or press Ctrl+I. Click the blue '+ Import Documents' button.
 
 Select any documents — PDFs, Word files, text files, even code files. Agent-X supports 20+ formats. I'll select a few project documents and meeting notes.
 
@@ -93,7 +93,7 @@ Click Import and watch as Agent-X processes each document: extracting text, gene
 **Visual:** AI Chat interface, query and response
 
 **Audio:**
-"Now let's chat with our documents. Click AI Chat in the left navigation or press Ctrl+I.
+"Now let's chat with our documents. Click AI Chat in the left navigation or press Ctrl+2.
 
 Type a question like 'What are the key milestones from the project plan?' and press Enter.
 
@@ -240,7 +240,7 @@ Thanks for watching, and happy exploring!"
 **Learning Objectives:**
 - Understand workflow system
 - Create custom workflows
-- Schedule recurring tasks
+- Run workflows on demand
 - Monitor workflow execution
 - Troubleshoot workflows
 
@@ -252,10 +252,10 @@ Thanks for watching, and happy exploring!"
 - Workflow benefits
 
 **[1:00-3:00] Built-in Workflows**
-- Weekly digest
-- Batch reindex
-- Tag cleanup
-- Import and process
+- Summarize & Act
+- Research Brief
+- Document Review
+- Content Repurpose
 
 **[3:00-5:30] Creating Custom Workflows**
 - Workflow editor interface
@@ -263,11 +263,11 @@ Thanks for watching, and happy exploring!"
 - Variables and conditions
 - Saving and organizing
 
-**[5:30-7:00] Scheduling**
-- Recurring workflow setup
-- Triggers and conditions
+**[5:30-7:00] Running Workflows**
+- Entering input text and clicking Run (there are no schedules or triggers)
+- Conditional Branch steps
 - Error handling
-- Notifications
+- Saving a result to the Knowledge Vault
 
 **[7:00-8:30] Monitoring**
 - Execution history

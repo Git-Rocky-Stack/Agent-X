@@ -102,7 +102,7 @@ The tables below list representative capabilities across core productivity, inte
 | Multi-Provider LLM Support | Unified AI service abstraction over Bundled Local, Ollama (local), OpenAI (GPT-4o and family), and Anthropic (Claude family) with per-provider cost tracking |
 | Conversation Memory | AI extracts facts, preferences, instructions, and topics of interest from conversations; stores them as importance-weighted memory entities; injects the top memories into system prompts for personalized future interactions; generates suggested follow-up questions; and now persists durable conversation-summary snapshots for longer-lived context |
 | Semantic Deduplication | SHA-256 hash check on every import detects exact duplicates before incurring any AI cost; near-duplicate detection uses vector embedding similarity for semantic overlap identification |
-| Scheduled Digest Reports | Weekly activity summaries aggregate new document counts, conversation activity, top searches, file type distribution, storage delta, and token consumption into persisted digest reports |
+| Weekly Digest Reports | Generated on demand from the Weekly Digest page for the last seven days: new document counts, conversation activity, top searches, file type distribution, storage delta, and token consumption, persisted as digest reports (there is no schedule) |
 | Analytics & Conversation Intelligence | Analytics aggregates usage, performance, file-type, and durable conversation-intelligence metrics, including summary freshness and recent summary previews |
 | **REST API** | Embedded HTTP listener (port 9846) with endpoints for documents, conversations, collections, and search |
 | **Database Encryption** | SQLCipher AES-256-CBC at-rest encryption with automatic DPAPI-wrapped key management |
@@ -352,7 +352,7 @@ The application host project. Responsibilities:
 - **Main Window Shell:** `MainWindow.xaml.cs` manages the `NavigationView`, `Frame`, command palette overlay, keyboard shortcut dispatch, the live instrument strip (model lamp and LCD readout, indexing queue, document count, and the INBOX/SYNC/JOBS/BAK annunciator lamps plus the LOCAL/NET privacy lamp), and system backdrop (Mica Alt with Acrylic fallback).
 - **Views:** WinUI 3 pages span intelligence, knowledge, triage, system, onboarding, help, and legal surfaces, each resolved through the DI container.
 - **ViewModels:** Page-specific, dialog, and support ViewModels use `CommunityToolkit.Mvvm.ComponentModel.ObservableObject`, `[ObservableProperty]`, and `[RelayCommand]` source generation.
-- **Onboarding Flow:** First-run detection hides the navigation pane and presents a focused onboarding wizard; navigation is restored and Dashboard is loaded on completion.
+- **Onboarding Flow:** First-run detection hides the navigation pane and presents a focused onboarding wizard. Finishing it restores navigation and loads the Dashboard; leaving it by any other route (a shortcut, the command palette, Jump To, the tray menu, a status lamp) also restores navigation and counts as skipping it, so it does not reappear. `Ctrl+P` > Onboarding reopens it.
 - **Controls:** Reusable XAML controls including the Command Palette overlay.
 
 ### AgentX.Core (Business Logic and Data Layer)
@@ -362,7 +362,7 @@ The portable class library. Responsibilities:
 - **AI Subsystem** (`AI/`): Provider abstraction (`IAiProvider`), multi-provider service (`IAiService`), embedding generation (`IEmbeddingService`), context window management (`IContextWindowManager`), model enumeration (`IModelManager`), hardware detection (`IHardwareDetector`), cost tracking (`ICostTracker`), and retry policy (`IRetryPolicy`).
 - **Chat Subsystem** (`Services/Chat/`): Conversation persistence (`IConversationService`), message streaming orchestration (`IChatService`), system prompt management (`ISystemPromptService`), and AI memory extraction and injection (`IConversationMemoryService`).
 - **Document Processing** (`Documents/`): Document ingestion and metadata extraction (`IDocumentService`), pluggable processor pipeline (`IDocumentProcessor`), and text chunking with configurable size and overlap (`IChunkingService`).
-- **Indexing Pipeline** (`Services/Indexing/`): Asynchronous queue-based indexing (`IIndexingQueueService`, `IIndexingService`), file system watcher for watch folder auto-import (`IFileWatcherService`).
+- **Indexing Pipeline** (`Services/Indexing/`): Asynchronous queue-based indexing (`IIndexingQueueService`, `IIndexingService`), file system watcher for watch folder auto-import (`IFileWatcherService`; the service exists, but the app has no UI to add a watch folder yet).
 - **Search and RAG** (`Search/`): Vector cosine similarity search (`ISemanticSearchService`), SQLite FTS5 keyword search (`IKeywordSearchService`), hybrid orchestration with RRF fusion (`IHybridSearchOrchestrator`), source citation extraction (`ICitationService`), LLM-based reranking (`IRagReranker`), and the full RAG pipeline (`IRagPipeline`).
 - **Intelligence Services** (`Services/Intelligence/`): Document summarization (`ISummaryService`), duplicate detection via SHA-256 and semantic similarity (`IDuplicateDetectionService`), organization suggestions (`IOrganizationSuggestionService`), knowledge graph construction with force-directed layout (`IKnowledgeGraphService`), and digest report generation (`IDigestService`).
 - **Collections and Tagging** (`Services/Collections/`, `Services/Tagging/`): Hierarchical collection management (`ICollectionService`) and AI-powered tag generation with confidence scoring (`IAutoTagService`).
@@ -371,7 +371,7 @@ The portable class library. Responsibilities:
 
 ### Dependency Injection Pattern
 
-All services are registered as singletons at application startup in `App.xaml.cs`. ViewModels and Views are registered as transients — a new instance is created for each navigation to a page, which simplifies lifecycle management in the absence of a navigation cache. The DI container is accessed via `App.GetService<T>()` throughout the application.
+All services are registered as singletons at application startup in `App.xaml.cs`. ViewModels and Views are registered as transients. Most pages set `NavigationCacheMode="Enabled"`, so the `Frame` keeps up to ten page instances and a page is rebuilt only after it has been evicted. Pages create their ViewModel with `PageViewModelFactory.Create<T>()`, which builds it with `ActivatorUtilities` so the root container does not keep a disposable ViewModel alive after its page is gone. Services are resolved via `App.GetService<T>()` where constructor injection is not available.
 
 ```csharp
 // Example: resolving a service from outside the constructor
@@ -411,17 +411,17 @@ Navigation is managed by a `NavigationView` in `MainWindow.xaml`. The `ContentFr
 | Semantic Search | `Search` | Unified search page with mode toggle (Semantic / Keyword / Hybrid). Displays results with relevance scores, source excerpts, and citation links. Persistent search history displayed as chips. |
 | Knowledge Graph | `KnowledgeGraph` | Interactive Canvas-rendered force-directed graph. Nodes are color-coded by type (blue = document, purple = collection, amber = tag). Edges indicate collection membership, tag assignment, and shared-connection relationships. Supports pan and zoom. |
 | Compare Documents | `Comparison` | Multi-document comparison surface for shared themes, unique points, and AI-generated synthesis reports. |
-| Smart Inbox | `Inbox` | Review queue for externally sourced or watch-folder content before it enters the vault. Supports accept, reject, defer, and batch operations. |
+| Smart Inbox | `Inbox` | Review queue for externally sourced content (browser-extension clips, plugin and connector items) before it enters the vault. Supports accept, reject, defer, and batch operations. |
 | Model Manager | `ModelManager` | Lists all locally installed Ollama models. Pull new models with a download progress bar. Delete models. Set active chat and embedding models. |
 | Hardware Advisor | `HardwareAdvisor` | Reads CPU, RAM, and GPU specifications via `System.Management` and provides model size recommendations (e.g., "Your hardware supports up to 13B parameter models at 4-bit quantization"). |
 | Backup & Restore | `BackupRestore` | Creates encrypted or plaintext backup packages and restores application state for migration and recovery workflows. |
-| Workspace Profiles | `WorkspaceProfiles` | Creates isolated workspaces for different contexts with separate vault and conversation settings. |
+| Workspace Profiles | `WorkspaceProfiles` | Saves named presets (a model identifier, collection IDs, and free-form settings) that can be duplicated and marked default. A profile is a record only: the app does not load it, switch to it, or isolate any data by it. |
 | Plugin Manager | `PluginManager` | Installs, enables, disables, and removes plugin packages that extend ingestion, provider, workflow, or UI capabilities. |
 | Collaborative Sync | `SyncSettings` | Configures encrypted sync packages, auto-sync scheduling, sync history, and conflict-aware synchronization settings. |
 | Calendar | `CalendarSettings` | Configures calendar connectors and related ingestion behavior for event-driven inbox flows. |
 | Email | `EmailSettings` | Configures email connectors and related ingestion behavior for inbox-driven knowledge capture. |
 | Annotations | `Annotations` | Displays and manages user annotations attached to documents and intelligence outputs. |
-| Settings | `Settings` | Full settings editor: AI provider selection and API keys, Ollama endpoint, model selection, chunking parameters, UI theme, storage path, and watch folders. |
+| Settings | `Settings` | Full settings editor: AI provider selection and API keys, Ollama endpoint, model selection, chunking and retrieval parameters, UI theme, and an auto-index switch for watch folders (there is no UI to add a watch folder yet). |
 | Onboarding | `Onboarding` | First-run wizard shown on initial launch with navigation pane hidden. Steps through Ollama connection check, model selection, and a brief feature tour. |
 | User Guide | `UserGuide` | In-app reference documentation rendered as styled rich text. |
 | Privacy Policy | `PrivacyPolicy` | Full privacy policy text confirming the local-only data model. |
