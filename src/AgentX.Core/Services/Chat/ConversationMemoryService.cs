@@ -41,14 +41,13 @@ public sealed class ConversationMemoryService : IConversationMemoryService
 
             if (messages.Count < 2) return;
 
-            // Build a summary of recent messages for AI extraction
-            var recentContent = string.Join("\n", messages
-                .OrderBy(m => m.SortOrder)
-                .Select(m => $"{m.Role}: {m.Content}"));
-
-            // Truncate to prevent token overflow
-            if (recentContent.Length > 3000)
-                recentContent = recentContent[..3000];
+            // Build a summary of recent messages for AI extraction, truncated to prevent token
+            // overflow. The newest turns are kept: they are the ones this extraction runs for.
+            var recentContent = SemanticMemoryService.TakeNewestExcerpt(
+                string.Join("\n", messages
+                    .OrderBy(m => m.SortOrder)
+                    .Select(m => $"{m.Role}: {m.Content}")),
+                SemanticMemoryService.MaxExtractionExcerptLength);
 
             // Ask AI to extract memorable facts
             var extractionPrompt = @"Extract key facts, user preferences, and important context from this conversation that would be useful to remember for future conversations.

@@ -26,6 +26,9 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
     // Associative linking threshold (kept as constant since it's a domain-specific threshold)
     private const float AssociativeLinkThreshold = 0.85f;
 
+    // Longest transcript excerpt handed to the extraction prompt
+    internal const int MaxExtractionExcerptLength = 3000;
+
     // Valid memory categories (expanded from 4 to 20+)
     private static readonly string[] ValidCategories =
     [
@@ -127,21 +130,10 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
                 .Select(x => x.Memory)
                 .ToList();
 
-            // Step 5: Update usage stats (non-critical, don't await)
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    var memoryIds = ranked.Select(m => m.Id).ToList();
-                    var now = DateTime.UtcNow;
-                    await _db.Memories
-                        .Where(m => memoryIds.Contains(m.Id))
-                        .ExecuteUpdateAsync(setters => setters
-                            .SetProperty(m => m.UsageCount, m => m.UsageCount + 1)
-                            .SetProperty(m => m.LastUsedAt, now), CancellationToken.None);
-                }
-                catch { /* Ignore failures */ }
-            }, CancellationToken.None);
+            // Step 5: Update usage stats. One UPDATE statement, so it is awaited here: run in the
+            // background it raced the caller's next query on the shared context. A failure only
+            // costs the statistics, so it is logged rather than failing the retrieval.
+            await RecordMemoryUsageAsync(ranked, ct);
 
             stopwatch.Stop();
             _logger.Debug(
@@ -234,8 +226,10 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
     {
         try
         {
-            // Get recent messages from this conversation
+            // Get recent messages from this conversation. Read-only, so untracked: this runs in
+            // the background on the shared context while the foreground keeps chatting.
             var messages = await _db.Messages
+                .AsNoTracking()
                 .Where(m => m.ConversationId == conversationId)
                 .OrderByDescending(m => m.SortOrder)
                 .Take(10)
@@ -244,12 +238,11 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
             if (messages.Count < 2) return;
 
             // Build conversation summary for extraction
-            var recentContent = string.Join("\n", messages
-                .OrderBy(m => m.SortOrder)
-                .Select(m => $"{m.Role}: {m.Content}"));
-
-            if (recentContent.Length > 3000)
-                recentContent = recentContent[..3000];
+            var recentContent = TakeNewestExcerpt(
+                string.Join("\n", messages
+                    .OrderBy(m => m.SortOrder)
+                    .Select(m => $"{m.Role}: {m.Content}")),
+                MaxExtractionExcerptLength);
 
             // Enhanced extraction prompt with expanded categories
             var extractionPrompt = $"""
@@ -299,6 +292,14 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
             var lines = response.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             var newMemories = new List<MemoryEntity>();
 
+            // Existing memories are read untracked: the foreground may be editing the same
+            // rows through the shared context, so a duplicate is reinforced with a targeted
+            // UPDATE below instead of by mutating a tracked entity it could save or discard.
+            var existingMemories = await _db.Memories
+                .AsNoTracking()
+                .Where(m => m.IsActive)
+                .ToListAsync(ct);
+
             foreach (var line in lines)
             {
                 var parts = line.Split('|', 3);
@@ -306,19 +307,19 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
 
                 var category = NormalizeCategory(parts[0].Trim().ToLower());
                 var content = parts[1].Trim();
-                var confidence = parts.Length > 3 && double.TryParse(parts[2].Trim(), out var conf)
+                var confidence = parts.Length > 2 && double.TryParse(
+                        parts[2].Trim(),
+                        System.Globalization.NumberStyles.Float,
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        out var conf)
                     ? Math.Clamp(conf, 0.0, 1.0)
                     : 0.8;
 
                 if (string.IsNullOrWhiteSpace(content) || content.Length < 5) continue;
 
                 // Check for duplicates using semantic similarity (not just substring)
-                var existingMemories = await _db.Memories
-                    .Where(m => m.IsActive)
-                    .ToListAsync(ct);
-
                 var contentEmbedding = await _embeddingService.EmbedAsync(content, ct);
-                var isDuplicate = false;
+                MemoryEntity? duplicateOf = null;
 
                 foreach (var existing in existingMemories)
                 {
@@ -328,16 +329,18 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
                         var similarity = VectorMath.CosineSimilarity(contentEmbedding, existingEmbedding);
                         if (similarity > 0.92f) // High threshold for duplicate detection
                         {
-                            isDuplicate = true;
-                            // Boost existing memory's importance
-                            existing.Importance = Math.Min(1.0, existing.Importance + 0.1);
-                            existing.LastUsedAt = DateTime.UtcNow;
+                            duplicateOf = existing;
                             break;
                         }
                     }
                 }
 
-                if (isDuplicate) continue;
+                if (duplicateOf is not null)
+                {
+                    // Boost existing memory's importance
+                    await ReinforceMemoryAsync(duplicateOf.Id, ct);
+                    continue;
+                }
 
                 // Create new memory
                 var embeddingStr = string.Join(",", contentEmbedding.Select(f => f.ToString("F6", System.Globalization.CultureInfo.InvariantCulture)));
@@ -486,6 +489,63 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
     // ═══════════════════════════════════════════════════════════════════
     //  Private helpers
     // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Keeps the newest <paramref name="maxLength"/> characters of a transcript. Extraction runs
+    /// after every reply, so the turn that just happened must survive the cut: keeping the
+    /// oldest characters instead dropped it and re-extracted the same stale facts each time.
+    /// When the cut lands mid-turn, the clipped turn is dropped if a whole one follows it.
+    /// </summary>
+    internal static string TakeNewestExcerpt(string transcript, int maxLength)
+    {
+        if (transcript.Length <= maxLength)
+        {
+            return transcript;
+        }
+
+        var excerpt = transcript[^maxLength..];
+        var firstBreak = excerpt.IndexOf('\n');
+        return firstBreak >= 0 && firstBreak < excerpt.Length - 1
+            ? excerpt[(firstBreak + 1)..]
+            : excerpt;
+    }
+
+    private async Task ReinforceMemoryAsync(long memoryId, CancellationToken ct)
+    {
+        var now = DateTime.UtcNow;
+        await _db.Memories
+            .Where(m => m.Id == memoryId)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(m => m.Importance, m => m.Importance + 0.1 > 1.0 ? 1.0 : m.Importance + 0.1)
+                .SetProperty(m => m.LastUsedAt, now), ct);
+    }
+
+    private async Task RecordMemoryUsageAsync(IReadOnlyList<MemoryEntity> used, CancellationToken ct)
+    {
+        if (used.Count == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            var memoryIds = used.Select(m => m.Id).ToList();
+            var now = DateTime.UtcNow;
+            await _db.Memories
+                .Where(m => memoryIds.Contains(m.Id))
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(m => m.UsageCount, m => m.UsageCount + 1)
+                    .SetProperty(m => m.LastUsedAt, now), ct);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Failed to record usage for {Count} retrieved memories", used.Count);
+        }
+    }
 
     private async Task CreateAssociativeLinksAsync(List<MemoryEntity> newMemories, CancellationToken ct)
     {

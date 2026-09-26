@@ -377,6 +377,98 @@ public sealed class SemanticMemoryServiceTests : IDisposable
         (await _factory.CreateContext().Memories.CountAsync()).Should().Be(0);
     }
 
+    [Fact]
+    public async Task ExtractMemories_reads_the_confidence_field_whatever_the_ui_culture()
+    {
+        // Split('|', 3) yields three parts, so "parts.Length > 3" never held and every memory
+        // got 0.8; and under de-DE a culture-sensitive parse reads "0.4" as 4.
+        var convId = await SeedConversationWithMessagesAsync("q", "a");
+        SetupEmbedding(1, 0, 0, 0);
+        SetupChat("user_preference|prefers dark mode everywhere|0.4");
+
+        var previous = System.Globalization.CultureInfo.CurrentCulture;
+        System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("de-DE");
+        try
+        {
+            await CreateSut().ExtractMemoriesAsync(convId);
+        }
+        finally
+        {
+            System.Globalization.CultureInfo.CurrentCulture = previous;
+        }
+
+        var created = await _factory.CreateContext().Memories.SingleAsync();
+        created.Confidence.Should().Be(0.4);
+    }
+
+    [Fact]
+    public async Task ExtractMemories_hands_the_newest_turns_to_the_model()
+    {
+        // The excerpt used to keep the oldest 3000 characters, dropping the turn that had just
+        // happened and re-extracting the same stale facts after every reply.
+        var convId = await SeedConversationWithMessagesAsync(
+            new string('x', 4000), "the newest question about dark mode");
+        SetupEmbedding(1, 0, 0, 0);
+        string? prompt = null;
+        _ai
+            .Setup(a => a.ChatAsync(
+                It.IsAny<IReadOnlyList<AgentX.Core.AI.Models.ChatMessage>>(),
+                It.IsAny<string?>(),
+                It.IsAny<AgentX.Core.AI.Models.ChatOptions?>(),
+                It.IsAny<CancellationToken>()))
+            .Callback<IReadOnlyList<AgentX.Core.AI.Models.ChatMessage>, string?, AgentX.Core.AI.Models.ChatOptions?, CancellationToken>(
+                (messages, _, _, _) => prompt = messages[0].Content)
+            .ReturnsAsync("NONE");
+
+        await CreateSut().ExtractMemoriesAsync(convId);
+
+        prompt.Should().Contain("the newest question about dark mode");
+    }
+
+    [Fact]
+    public async Task ExtractMemories_reinforces_a_duplicate_in_the_database_and_leaves_the_shared_context_clean()
+    {
+        // The duplicate boost was applied to a tracked entity and only saved when some new
+        // memory was also added; otherwise it sat in the shared context for any later save.
+        _db.Memories.Add(Memory("existing fact", "1,0,0,0", importance: 0.5));
+        await _db.SaveChangesAsync();
+        var convId = await SeedConversationWithMessagesAsync("q", "a");
+        SetupEmbedding(1, 0, 0, 0);
+        SetupChat("fact|brand new content that duplicates|0.9");
+
+        await CreateSut().ExtractMemoriesAsync(convId);
+
+        var reinforced = await _factory.CreateContext().Memories.SingleAsync();
+        reinforced.Importance.Should().BeApproximately(0.6, 0.0001);
+        _db.ChangeTracker.HasChanges().Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task RetrieveRelevant_records_usage_before_returning()
+    {
+        // The usage UPDATE ran fire-and-forget on the shared context, racing the caller's next
+        // query; it is awaited now, so its effect is visible as soon as retrieval returns.
+        _db.Memories.Add(Memory("exact match", "1,0,0,0", importance: 0.9));
+        await _db.SaveChangesAsync();
+        SetupEmbedding(1, 0, 0, 0);
+
+        var result = await CreateSut().RetrieveRelevantMemoriesAsync("match", minSimilarity: 0.7f);
+
+        result.Should().ContainSingle();
+        (await _factory.CreateContext().Memories.SingleAsync()).UsageCount.Should().Be(1);
+    }
+
+    [Theory]
+    [InlineData("short transcript", 50, "short transcript")]
+    // The cut lands inside the older turn, which is dropped: the whole newest turn follows it.
+    [InlineData("user: old turn\nassistant: newest turn", 25, "assistant: newest turn")]
+    // The newest turn alone is longer than the budget: its tail is kept.
+    [InlineData("user: old\nassistant: a much longer newest turn", 13, "r newest turn")]
+    public void TakeNewestExcerpt_keeps_the_end_of_the_transcript(string transcript, int maxLength, string expected)
+    {
+        SemanticMemoryService.TakeNewestExcerpt(transcript, maxLength).Should().Be(expected);
+    }
+
     // ─────────────────────────────────────────────────────────────────────
     //  LinkMemoriesAsync
     // ─────────────────────────────────────────────────────────────────────
