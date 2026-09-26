@@ -26,8 +26,10 @@ public partial class PastSelfViewModel : ObservableObject
     [ObservableProperty]
     private PastSelfResult? _currentResult;
 
+    // 0=All, 1=PastWeek, 2=PastMonth, 3=PastYear, 4=Custom. Defaults to the past month, the
+    // choice the page's radio buttons start on; the page keeps its own state between visits.
     [ObservableProperty]
-    private int _selectedTimeRange; // 0=All, 1=PastWeek, 2=PastMonth, 3=PastYear, 4=Custom
+    private int _selectedTimeRange = 2;
 
     public PastSelfViewModel(ITemporalIdentityService temporalIdentity)
     {
@@ -63,6 +65,7 @@ public partial class PastSelfViewModel : ObservableObject
             }
             else
             {
+                var timeAgo = FormatTimeAgo(targetDate);
                 CurrentResult = new PastSelfResult
                 {
                     Topic = result.Topic,
@@ -75,7 +78,9 @@ public partial class PastSelfViewModel : ObservableObject
                     RelatedDocuments = result.RelatedDocuments,
                     HasEvolved = result.HasEvolved,
                     CurrentStance = result.CurrentStance,
-                    Message = $"Here's what you thought about {result.Topic} {FormatTimeAgo(targetDate)}."
+                    Message = string.IsNullOrEmpty(timeAgo)
+                        ? $"Here's what you thought about {result.Topic}."
+                        : $"Here's what you thought about {result.Topic} {timeAgo}."
                 };
             }
         }
@@ -106,25 +111,28 @@ public partial class PastSelfViewModel : ObservableObject
             var keywords = SearchQuery.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var insights = await _temporalIdentity.GetRelevantInsightsAsync(keywords);
 
-            if (CurrentResult == null)
-            {
-                CurrentResult = new PastSelfResult
-                {
-                    Topic = SearchQuery,
-                    Found = false,
-                    Message = insights.Any()
-                        ? $"Found {insights.Count} relevant insights from your past."
-                        : "No relevant insights found."
-                };
-            }
-
-            CurrentResult.RelevantInsights = insights.Select(i => new InsightDisplay
+            var insightItems = insights.Select(i => new InsightDisplay
             {
                 Insight = i.Insight,
                 OriginalDate = i.OriginalDate,
                 RelevanceReason = i.RelevanceReason,
                 Significance = i.Significance
             }).ToList();
+
+            // PastSelfResult does not notify, so the insights must be on the result before it
+            // is published: setting them on the published result afterwards reached no binding,
+            // and the insights section never appeared.
+            var result = CurrentResult?.WithRelevantInsights(insightItems) ?? new PastSelfResult
+            {
+                Topic = SearchQuery,
+                Found = false,
+                Message = insights.Any()
+                    ? $"Found {insights.Count} relevant insights from your past."
+                    : "No relevant insights found.",
+                RelevantInsights = insightItems
+            };
+
+            CurrentResult = result;
         }
         catch (Exception ex)
         {
@@ -202,15 +210,27 @@ public partial class PastSelfViewModel : ObservableObject
         };
     }
 
-    private string FormatTimeAgo(DateTime? date)
+    /// <summary>
+    /// Describes how long ago <paramref name="date"/> was. The past week used to read "about a
+    /// month ago" and the past year "about 1 years ago".
+    /// </summary>
+    internal static string FormatTimeAgo(DateTime? date) => FormatTimeAgo(date, DateTime.UtcNow);
+
+    internal static string FormatTimeAgo(DateTime? date, DateTime now)
     {
         if (!date.HasValue) return "";
 
-        var span = DateTime.UtcNow - date.Value;
-        if (span.TotalDays < 30) return "about a month ago";
-        if (span.TotalDays < 90) return "a few months ago";
-        if (span.TotalDays < 365) return "about " + (int)(span.TotalDays / 30) + " months ago";
-        return "about " + (int)(span.TotalDays / 365) + " years ago";
+        var days = (now - date.Value).TotalDays;
+        if (days < 0) return "";
+        if (days < 1) return "today";
+        if (days < 2) return "yesterday";
+        if (days < 7) return $"{(int)days} days ago";
+        if (days < 14) return "about a week ago";
+        if (days < 28) return $"about {(int)(days / 7)} weeks ago";
+        if (days < 60) return "about a month ago";
+        if (days < 365) return $"about {(int)(days / 30)} months ago";
+        if (days < 730) return "about a year ago";
+        return $"about {(int)(days / 365)} years ago";
     }
 
     /// <summary>
@@ -377,6 +397,17 @@ public class PastSelfResult
     public DateTime? EvolutionChanged { get; set; }
     public string? PreviousStance { get; set; }
     public List<InsightDisplay>? RelevantInsights { get; set; }
+
+    /// <summary>
+    /// A copy of this result carrying <paramref name="insights"/>. The result is published whole
+    /// because it raises no change notifications of its own.
+    /// </summary>
+    public PastSelfResult WithRelevantInsights(List<InsightDisplay> insights)
+    {
+        var copy = (PastSelfResult)MemberwiseClone();
+        copy.RelevantInsights = insights;
+        return copy;
+    }
 }
 
 public class InsightDisplay

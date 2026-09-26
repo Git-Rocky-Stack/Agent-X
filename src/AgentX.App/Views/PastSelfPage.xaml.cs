@@ -4,7 +4,6 @@ using AgentX.App.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Navigation;
 
 namespace AgentX.App.Views;
 
@@ -36,13 +35,6 @@ public sealed partial class PastSelfPage : Page, INotifyPropertyChanged
         };
     }
 
-    protected override void OnNavigatedTo(NavigationEventArgs e)
-    {
-        base.OnNavigatedTo(e);
-        // Set default time range to "Past month" (index 2)
-        ViewModel.SelectedTimeRange = 2;
-    }
-
     // ─── Search Handlers ───────────────────────────────────────────────────────
 
     private void SearchBox_KeyDown(object sender, KeyRoutedEventArgs e)
@@ -66,9 +58,10 @@ public sealed partial class PastSelfPage : Page, INotifyPropertyChanged
     private void TimeRange_Checked(object sender, RoutedEventArgs e)
     {
         // IsChecked="True" on the default RadioButton fires this handler DURING
-        // InitializeComponent(), before the constructor assigns ViewModel. The
-        // post-InitializeComponent OnNavigatedTo sets the default explicitly,
-        // so a null ViewModel here is the XAML-load pass and must be a no-op.
+        // InitializeComponent(), before the constructor assigns ViewModel. The view
+        // model starts on the same default (the past month), so a null ViewModel
+        // here is the XAML-load pass and must be a no-op. The page is cached, so the
+        // choice is not reset on later visits: the buttons keep showing what applies.
         // Without this guard, the NRE bubbles up as XamlParseException and the
         // page silently fails to realize (Frame.NavigationFailed logs it).
         if (ViewModel == null) return;
