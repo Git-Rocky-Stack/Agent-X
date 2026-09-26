@@ -6,6 +6,8 @@ using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Services.Feedback;
+using AgentX.Core.Services.Search;
+using AgentX.Core.Services.Settings;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -309,8 +311,10 @@ public class MessagingCoordinatorTests
         _chatService
             .Setup(s => s.GetLatestContextInspection(1))
             .Returns(snapshot);
+        // First read: the thread before the send. Second read: after it, with its two rows.
         _conversationService
-            .Setup(s => s.GetMessagesAsync(1))
+            .SetupSequence(s => s.GetMessagesAsync(1))
+            .ReturnsAsync(Array.Empty<MessageEntity>())
             .ReturnsAsync(
             [
                 new MessageEntity
@@ -336,6 +340,9 @@ public class MessagingCoordinatorTests
         var result = await _coordinator.SendMessageAsync("Test", 1, null, null, false);
 
         result.AssistantMessageId.Should().Be(55);
+        result.AssistantMessageSortOrder.Should().Be(1);
+        result.UserMessageId.Should().Be(10);
+        result.UserMessageSortOrder.Should().Be(0);
     }
 
     // ── NotificationRequested event ────────────────────────────────
@@ -411,6 +418,335 @@ public class MessagingCoordinatorTests
     public void IsGenerating_IsFalse_Initially()
     {
         _coordinator.IsGenerating.Should().BeFalse();
+    }
+
+    // ── Generation ownership ───────────────────────────────────────
+    // The cancellation source used to be one shared field: a second send overwrote it, and the
+    // first send's finally disposed and cleared it, so Stop no longer reached anything.
+
+    [Fact]
+    public async Task StopGenerationAsync_StillStopsTheNewestGeneration_AfterAnOlderOneHasFinished()
+    {
+        var firstGate = new TaskCompletionSource();
+        var secondGate = new TaskCompletionSource();
+        _chatService
+            .Setup(s => s.SendMessageAsync(1, "first", It.IsAny<CancellationToken>()))
+            .Returns<long, string, CancellationToken>((_, _, ct) => GatedStream(firstGate, ct));
+        _chatService
+            .Setup(s => s.SendMessageAsync(1, "second", It.IsAny<CancellationToken>()))
+            .Returns<long, string, CancellationToken>((_, _, ct) => GatedStream(secondGate, ct));
+
+        var first = _coordinator.SendMessageAsync("first", 1, null, null, false);
+        var second = _coordinator.SendMessageAsync("second", 1, null, null, false);
+
+        var firstResult = await first.WaitAsync(TimeSpan.FromSeconds(5));
+        firstResult.WasCancelled.Should().BeTrue("a newer generation supersedes the older one");
+        _coordinator.IsGenerating.Should().BeTrue("the newer generation is still running");
+
+        await _coordinator.StopGenerationAsync();
+        var secondResult = await second.WaitAsync(TimeSpan.FromSeconds(5));
+
+        secondResult.WasCancelled.Should().BeTrue();
+        _coordinator.IsGenerating.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_AfterStop_ForwardsNoFurtherTokens()
+    {
+        // Tokens can still arrive after a stop; the chat may already be showing another thread.
+        var gate = new TaskCompletionSource();
+        _chatService
+            .Setup(s => s.SendMessageAsync(1, "q", It.IsAny<CancellationToken>()))
+            .Returns<long, string, CancellationToken>((_, _, ct) => StreamIgnoringStopOnce(gate, ct));
+        var tokens = new List<string>();
+        _coordinator.TokenReceived += (_, token) =>
+        {
+            tokens.Add(token);
+            if (token == "before")
+            {
+                _ = _coordinator.StopGenerationAsync();
+                gate.TrySetResult();
+            }
+        };
+        StreamingCompletedEventArgs? completed = null;
+        _coordinator.StreamingCompleted += (_, e) => completed = e;
+
+        var result = await _coordinator.SendMessageAsync("q", 1, null, null, false).WaitAsync(TimeSpan.FromSeconds(5));
+
+        tokens.Should().Equal("before");
+        completed.Should().BeNull();
+        result.WasCancelled.Should().BeTrue();
+    }
+
+    // ── Persisted identity ─────────────────────────────────────────
+
+    [Fact]
+    public async Task SendMessageAsync_WhenStopped_ReportsThePromptRowItSaved()
+    {
+        _conversationService
+            .SetupSequence(s => s.GetMessagesAsync(1))
+            .ReturnsAsync([NewMessage(5, "user", 0), NewMessage(6, "assistant", 1)])
+            .ReturnsAsync([NewMessage(5, "user", 0), NewMessage(6, "assistant", 1), NewMessage(10, "user", 2)]);
+        _chatService
+            .Setup(s => s.SendMessageAsync(1, "q", It.IsAny<CancellationToken>()))
+            .Throws(new OperationCanceledException());
+
+        var result = await _coordinator.SendMessageAsync("q", 1, null, null, false);
+
+        result.WasCancelled.Should().BeTrue();
+        result.UserMessageId.Should().Be(10);
+        result.UserMessageSortOrder.Should().Be(2);
+        result.AssistantMessageId.Should().BeNull();
+        result.ResponseContent.Should().Be("[Generation stopped]");
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_WhenStoppedBeforeThePromptWasSaved_DoesNotReportAnEarlierPrompt()
+    {
+        // "The last user row" would be an earlier question here; acting on it deletes the wrong row.
+        _conversationService
+            .Setup(s => s.GetMessagesAsync(1))
+            .ReturnsAsync([NewMessage(5, "user", 0), NewMessage(6, "assistant", 1)]);
+        _chatService
+            .Setup(s => s.SendMessageAsync(1, "q", It.IsAny<CancellationToken>()))
+            .Throws(new OperationCanceledException());
+
+        var result = await _coordinator.SendMessageAsync("q", 1, null, null, false);
+
+        result.UserMessageId.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_WithAnEmptyReply_DoesNotReportTheEarlierAnswer()
+    {
+        _conversationService
+            .SetupSequence(s => s.GetMessagesAsync(1))
+            .ReturnsAsync([NewMessage(5, "user", 0), NewMessage(6, "assistant", 1)])
+            .ReturnsAsync([NewMessage(5, "user", 0), NewMessage(6, "assistant", 1), NewMessage(10, "user", 2)]);
+        _chatService
+            .Setup(s => s.SendMessageAsync(1, "q", It.IsAny<CancellationToken>()))
+            .Returns(CreateTokenStream());
+
+        var result = await _coordinator.SendMessageAsync("q", 1, null, null, false);
+
+        result.AssistantMessageId.Should().BeNull();
+        result.UserMessageId.Should().Be(10);
+    }
+
+    // ── Regeneration ───────────────────────────────────────────────
+
+    [Fact]
+    public async Task RegenerateResponseAsync_StreamsANewAnswerToTheSavedPromptWithoutSendingItAgain()
+    {
+        _conversationService
+            .SetupSequence(s => s.GetMessagesAsync(42))
+            .ReturnsAsync([NewMessage(10, "user", 0), NewMessage(11, "assistant", 1)])
+            .ReturnsAsync([NewMessage(10, "user", 0), NewMessage(12, "assistant", 2)]);
+        _chatService
+            .Setup(s => s.RegenerateResponseAsync(42, 10, It.IsAny<CancellationToken>()))
+            .Returns(CreateTokenStream("New", " answer"));
+        var tokens = new List<string>();
+        _coordinator.TokenReceived += (_, token) => tokens.Add(token);
+
+        var result = await _coordinator.RegenerateResponseAsync(42, 10, "Why?", null, ChatOrchestrationMode.Standard);
+
+        result.HadError.Should().BeFalse();
+        result.ResponseContent.Should().Be("New answer");
+        result.UserMessageId.Should().Be(10);
+        result.AssistantMessageId.Should().Be(12);
+        tokens.Should().Equal("New", " answer");
+        _chatService.Verify(
+            s => s.SendMessageAsync(It.IsAny<long>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task RegenerateResponseAsync_WhenTheProviderIsOffline_FailsWithoutTouchingTheThread()
+    {
+        _provider.Setup(p => p.CheckConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
+
+        var result = await _coordinator.RegenerateResponseAsync(42, 10, "Why?", null, ChatOrchestrationMode.Standard);
+
+        result.HadError.Should().BeTrue();
+        _chatService.Verify(
+            s => s.RegenerateResponseAsync(It.IsAny<long>(), It.IsAny<long>(), It.IsAny<CancellationToken>()), Times.Never);
+        _conversationService.Verify(s => s.DeleteMessageAsync(It.IsAny<long>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task RegenerateResponseAsync_InMultiAgentMode_ReplacesTheAnswerOnlyAfterSavingTheNewOne()
+    {
+        var writes = new List<string>();
+        _conversationService
+            .Setup(s => s.GetMessagesAsync(42))
+            .ReturnsAsync([NewMessage(10, "user", 0), NewMessage(11, "assistant", 1)]);
+        _conversationService
+            .Setup(s => s.AddMessageAsync(42, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<double?>()))
+            .Callback<long, string, string, int?, double?>((_, role, _, _, _) => writes.Add($"add {role}"))
+            .Returns(Task.CompletedTask);
+        _conversationService
+            .Setup(s => s.DeleteMessageAsync(11))
+            .Callback(() => writes.Add("delete 11"))
+            .Returns(Task.CompletedTask);
+        _multiAgentOrchestrator
+            .Setup(s => s.RunAsync(It.IsAny<string>(), It.IsAny<IReadOnlyList<AgentRole>>(), OrchestratorStrategy.Parallel, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OrchestrationResult { FinalAnswer = "Synthesis", IsSuccess = true });
+
+        var result = await _coordinator.RegenerateResponseAsync(42, 10, "Plan launch", null, ChatOrchestrationMode.MultiAgentParallel);
+
+        result.HadError.Should().BeFalse();
+        writes.Should().Equal("add assistant", "delete 11");
+    }
+
+    [Fact]
+    public async Task RegenerateResponseAsync_InMultiAgentMode_WhenOrchestrationFails_KeepsTheAnswer()
+    {
+        _conversationService
+            .Setup(s => s.GetMessagesAsync(42))
+            .ReturnsAsync([NewMessage(10, "user", 0), NewMessage(11, "assistant", 1)]);
+        _multiAgentOrchestrator
+            .Setup(s => s.RunAsync(It.IsAny<string>(), It.IsAny<IReadOnlyList<AgentRole>>(), It.IsAny<OrchestratorStrategy>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OrchestrationResult { IsSuccess = false });
+
+        var result = await _coordinator.RegenerateResponseAsync(42, 10, "Plan launch", null, ChatOrchestrationMode.MultiAgentDebate);
+
+        result.HadError.Should().BeTrue();
+        _conversationService.Verify(
+            s => s.AddMessageAsync(It.IsAny<long>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<double?>()),
+            Times.Never);
+        _conversationService.Verify(s => s.DeleteMessageAsync(It.IsAny<long>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task DeleteMessageAsync_ReportsWhetherTheRowIsGone()
+    {
+        (await _coordinator.DeleteMessageAsync(42)).Should().BeTrue();
+        (await _coordinator.DeleteMessageAsync(0)).Should().BeFalse();
+
+        _conversationService
+            .Setup(s => s.DeleteMessageAsync(43))
+            .ThrowsAsync(new Exception("DB error"));
+        (await _coordinator.DeleteMessageAsync(43)).Should().BeFalse();
+    }
+
+    // ── Research Mode ──────────────────────────────────────────────
+    // The toggle promised web sources while the send path ignored it entirely.
+
+    [Fact]
+    public async Task SendMessageAsync_InResearchMode_AddsCitedWebResultsToTheContext()
+    {
+        var (coordinator, webSearch, _) = CreateResearchCoordinator(researchEnabled: true, configured: true);
+        webSearch
+            .Setup(s => s.SearchAsync("What changed?", It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WebSearchResponse
+            {
+                Query = "What changed?",
+                Results =
+                [
+                    new WebSearchResult { Title = "Release notes", Url = "https://example.org/notes", Snippet = "Version 2 ships." },
+                    new WebSearchResult { Title = "Blog", Url = "https://example.org/blog", Snippet = "Why it changed." }
+                ]
+            });
+        _chatService
+            .Setup(s => s.SendMessageAsync(1, "What changed?", It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .Returns(CreateTokenStream("Answer [1]"));
+
+        var result = await coordinator.SendMessageAsync("What changed?", 1, null, null, true);
+
+        _chatService.Verify(s => s.SendMessageAsync(
+            1,
+            "What changed?",
+            It.Is<string?>(context =>
+                context!.Contains("[1] Release notes", StringComparison.Ordinal) &&
+                context.Contains("URL: https://example.org/notes", StringComparison.Ordinal) &&
+                context.Contains("[2] Blog", StringComparison.Ordinal)),
+            It.IsAny<CancellationToken>()), Times.Once);
+        result.WebCitations.Should().HaveCount(2);
+        result.WebCitations![0].Url.Should().Be("https://example.org/notes");
+    }
+
+    [Theory]
+    [InlineData(false, true, "turned off in Settings")]
+    [InlineData(true, false, "No web search provider")]
+    public async Task SendMessageAsync_InResearchMode_WhenWebSearchCannotRun_AnswersLocallyAndSaysWhy(
+        bool researchEnabled, bool configured, string reason)
+    {
+        var (coordinator, webSearch, _) = CreateResearchCoordinator(researchEnabled, configured);
+        _chatService
+            .Setup(s => s.SendMessageAsync(1, "What changed?", It.IsAny<CancellationToken>()))
+            .Returns(CreateTokenStream("Local answer"));
+        NotificationRequestEventArgs? notice = null;
+        coordinator.NotificationRequested += (_, e) => notice = e;
+
+        var result = await coordinator.SendMessageAsync("What changed?", 1, null, null, true);
+
+        result.ResponseContent.Should().Be("Local answer");
+        webSearch.Verify(s => s.SearchAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+        notice.Should().NotBeNull();
+        notice!.Title.Should().Be("No web sources");
+        notice.Message.Should().Contain(reason);
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_OutsideResearchMode_NeverSearchesTheWeb()
+    {
+        var (coordinator, webSearch, _) = CreateResearchCoordinator(researchEnabled: true, configured: true);
+        _chatService
+            .Setup(s => s.SendMessageAsync(1, "q", It.IsAny<CancellationToken>()))
+            .Returns(CreateTokenStream("a"));
+
+        await coordinator.SendMessageAsync("q", 1, null, null, false);
+
+        webSearch.Verify(s => s.SearchAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    private (MessagingCoordinator Coordinator, Mock<IWebSearchService> WebSearch, Mock<ISettingsService> Settings)
+        CreateResearchCoordinator(bool researchEnabled, bool configured)
+    {
+        var webSearch = new Mock<IWebSearchService>();
+        webSearch.SetupGet(s => s.IsConfigured).Returns(configured);
+        var settings = new Mock<ISettingsService>();
+        settings.Setup(s => s.GetSettingsAsync()).ReturnsAsync(new AppSettings { EnableResearchMode = researchEnabled });
+
+        var coordinator = new MessagingCoordinator(
+            _chatService.Object,
+            _conversationService.Object,
+            _aiService.Object,
+            _feedbackService.Object,
+            _multiAgentOrchestrator.Object,
+            webSearch.Object,
+            settings.Object);
+        return (coordinator, webSearch, settings);
+    }
+
+    private static MessageEntity NewMessage(long id, string role, int sortOrder) => new()
+    {
+        Id = id,
+        ConversationId = 1,
+        Role = role,
+        Content = role,
+        SortOrder = sortOrder,
+        Timestamp = DateTime.UtcNow
+    };
+
+    private static async IAsyncEnumerable<string> GatedStream(
+        TaskCompletionSource gate,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct = default)
+    {
+        await Task.Yield();
+        yield return "token";
+        await gate.Task.WaitAsync(ct);
+    }
+
+    /// <summary>Yields one token, then one more after the stop, then observes the stop.</summary>
+    private static async IAsyncEnumerable<string> StreamIgnoringStopOnce(
+        TaskCompletionSource gate,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct = default)
+    {
+        await Task.Yield();
+        yield return "before";
+        await gate.Task;
+        yield return "after";
+        ct.ThrowIfCancellationRequested();
     }
 
     // ── Helper: Create async token stream ──────────────────────────

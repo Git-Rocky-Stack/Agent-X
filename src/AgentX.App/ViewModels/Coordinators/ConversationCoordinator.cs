@@ -57,7 +57,7 @@ public sealed class ConversationCoordinator : IConversationCoordinator
     }
 
     /// <inheritdoc />
-    public async Task DeleteConversationAsync(long conversationId)
+    public async Task<bool> DeleteConversationAsync(long conversationId)
     {
         Log.Debug("Delete conversation requested: {ConversationId}", conversationId);
 
@@ -65,10 +65,45 @@ public sealed class ConversationCoordinator : IConversationCoordinator
         {
             await _conversationService.DeleteConversationAsync(conversationId);
             ConversationsChanged?.Invoke(this, EventArgs.Empty);
+            return true;
         }
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to delete conversation {ConversationId}", conversationId);
+            return false;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<ConversationSummary?> LoadConversationSummaryAsync(long conversationId)
+    {
+        try
+        {
+            var conv = await _conversationService.GetConversationAsync(conversationId);
+            if (conv is null)
+            {
+                return null;
+            }
+
+            var lastMsg = conv.Messages?
+                .OrderByDescending(m => m.SortOrder)
+                .FirstOrDefault();
+
+            return new ConversationSummary
+            {
+                Id = conv.Id,
+                Title = conv.Title,
+                LastMessage = lastMsg?.Content ?? string.Empty,
+                UpdatedAt = conv.UpdatedAt,
+                IsPinned = conv.IsPinned,
+                MessageCount = conv.MessageCount,
+                FolderName = conv.FolderName
+            };
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to load conversation {ConversationId}", conversationId);
+            return null;
         }
     }
 
@@ -107,7 +142,7 @@ public sealed class ConversationCoordinator : IConversationCoordinator
     }
 
     /// <inheritdoc />
-    public async Task TogglePinAsync(long conversationId)
+    public async Task<bool> TogglePinAsync(long conversationId)
     {
         Log.Debug("Toggle pin: {ConversationId}", conversationId);
 
@@ -115,10 +150,12 @@ public sealed class ConversationCoordinator : IConversationCoordinator
         {
             await _conversationService.TogglePinAsync(conversationId);
             ConversationsChanged?.Invoke(this, EventArgs.Empty);
+            return true;
         }
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to toggle pin state for conversation {ConversationId}", conversationId);
+            return false;
         }
     }
 
@@ -212,6 +249,26 @@ public sealed class ConversationCoordinator : IConversationCoordinator
         {
             Log.Warning(ex, "Failed to delete messages after sort order {SortOrder} in conversation {ConversationId}",
                 sortOrder, conversationId);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> DeleteMessageAndFollowingAsync(long conversationId, long messageId)
+    {
+        if (messageId <= 0)
+        {
+            return false;
+        }
+
+        try
+        {
+            return await _conversationService.DeleteMessageAndFollowingAsync(conversationId, messageId) > 0;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to delete message {MessageId} and the messages after it in conversation {ConversationId}",
+                messageId, conversationId);
+            return false;
         }
     }
 

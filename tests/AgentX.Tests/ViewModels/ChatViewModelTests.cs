@@ -133,10 +133,19 @@ public sealed class ChatViewModelTests
     }
 
     [Fact]
-    public void StreamingCompletedEvent_AppliesContextInspectionSnapshot()
+    public async Task StreamingCompletedEvent_ForTheFirstSendOfANewConversation_AdoptsItAndAppliesItsContext()
     {
+        // The first send of a blank chat learns its conversation id from the completion: the
+        // coordinator creates the conversation as it sends.
         var snapshot = CreateInspectionSnapshot(84);
+        var inFlight = new TaskCompletionSource<SendMessageResult>();
+        _messagingCoordinator
+            .Setup(coordinator => coordinator.SendMessageAsync("Recover it", null, null, null, false))
+            .Returns(inFlight.Task);
+
         var viewModel = CreateViewModel();
+        viewModel.UserInput = "Recover it";
+        var sending = viewModel.SendMessageCommand.ExecuteAsync(null);
 
         _messagingCoordinator.Raise(
             coordinator => coordinator.StreamingCompleted += null,
@@ -149,6 +158,8 @@ public sealed class ChatViewModelTests
                 GenerationTimeMs = 48,
                 ContextInspection = snapshot
             });
+        inFlight.SetResult(new SendMessageResult { ConversationId = 84, ResponseContent = "Answer" });
+        await sending;
 
         viewModel.ActiveConversationId.Should().Be(84);
         viewModel.ActiveConversationTitle.Should().Be("Recovered Thread");
@@ -949,6 +960,669 @@ public sealed class ChatViewModelTests
         await sending;
 
         viewModel.ActiveConversationId.Should().Be(42);
+    }
+
+    // ── Persisted identity of messages sent this session ──────────────────
+    // Bubbles created while chatting used to keep MessageId 0 and SortOrder 0 forever, so
+    // Save & Resend truncated from SortOrder 0 (wiping all but the first message), Delete
+    // skipped the database but reported success, Branch failed on "message 0", and Regenerate
+    // left the old prompt behind and saved it again.
+
+    [Fact]
+    public async Task SendMessageAsync_StampsThePersistedIdsOnBothBubbles()
+    {
+        var viewModel = await SendFirstExchangeAsync();
+
+        var prompt = viewModel.Messages[0];
+        var answer = viewModel.Messages[1];
+        prompt.MessageId.Should().Be(1001);
+        prompt.SortOrder.Should().Be(4);
+        prompt.ConversationId.Should().Be(42);
+        answer.MessageId.Should().Be(1002);
+        answer.SortOrder.Should().Be(5);
+        answer.IsStreaming.Should().BeFalse();
+        viewModel.IsGenerating.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SaveEditMessageAsync_OnAMessageSentThisSession_CutsFromItsOwnRowAndResendsOnce()
+    {
+        var viewModel = await SendFirstExchangeAsync();
+        _conversationCoordinator
+            .Setup(coordinator => coordinator.DeleteMessageAndFollowingAsync(42, 1001))
+            .ReturnsAsync(true);
+        SetupSend("Why does startup retry?", new SendMessageResult
+        {
+            ConversationId = 42,
+            ResponseContent = "Because of the backoff.",
+            UserMessageId = 1003,
+            AssistantMessageId = 1004
+        });
+
+        viewModel.UserInput = "a draft the operator is still typing";
+        var prompt = viewModel.Messages[0];
+        viewModel.StartEditMessageCommand.Execute(prompt);
+        prompt.EditContent = "Why does startup retry?";
+        await viewModel.SaveEditMessageCommand.ExecuteAsync(prompt);
+
+        _conversationCoordinator.Verify(
+            coordinator => coordinator.DeleteMessageAndFollowingAsync(42, 1001), Times.Once);
+        _conversationCoordinator.Verify(
+            coordinator => coordinator.DeleteMessagesAfterAsync(It.IsAny<long>(), It.IsAny<int>()), Times.Never);
+        _messagingCoordinator.Verify(
+            coordinator => coordinator.SendMessageAsync("Why does startup retry?", 42, null, null, false), Times.Once);
+        viewModel.Messages.Select(message => message.Content)
+            .Should().Equal("Why does startup retry?", "Because of the backoff.");
+        viewModel.Messages[0].MessageId.Should().Be(1003);
+        viewModel.UserInput.Should().Be("a draft the operator is still typing",
+            "resending an edit must not go through, or clear, the input box");
+    }
+
+    [Fact]
+    public async Task SaveEditMessageAsync_WhenTheCutFails_DoesNotResendAndSaysSo()
+    {
+        var viewModel = await SendFirstExchangeAsync();
+        _conversationCoordinator
+            .Setup(coordinator => coordinator.DeleteMessageAndFollowingAsync(42, 1001))
+            .ReturnsAsync(false);
+
+        var prompt = viewModel.Messages[0];
+        viewModel.StartEditMessageCommand.Execute(prompt);
+        prompt.EditContent = "Rewritten";
+        await viewModel.SaveEditMessageCommand.ExecuteAsync(prompt);
+
+        _messagingCoordinator.Verify(
+            coordinator => coordinator.SendMessageAsync("Rewritten", It.IsAny<long?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool>()),
+            Times.Never);
+        viewModel.Messages.Should().HaveCount(2);
+        prompt.IsEditing.Should().BeTrue("the edit stays open so it can be retried");
+        _notificationService.Verify(
+            service => service.ShowError("Edit not sent", It.IsAny<string>(), It.IsAny<int>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteMessageAsync_OnAMessageSentThisSession_DeletesItsRow()
+    {
+        var viewModel = await SendFirstExchangeAsync();
+        _messagingCoordinator.Setup(coordinator => coordinator.DeleteMessageAsync(1002)).ReturnsAsync(true);
+
+        var answer = viewModel.Messages[1];
+        await viewModel.DeleteMessageCommand.ExecuteAsync(answer);
+
+        _messagingCoordinator.Verify(coordinator => coordinator.DeleteMessageAsync(1002), Times.Once);
+        viewModel.Messages.Should().NotContain(answer);
+        _notificationService.Verify(
+            service => service.ShowInfo("Message deleted", It.IsAny<string>(), It.IsAny<int>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteMessageAsync_WhenTheDeleteFails_KeepsTheMessageAndSaysSo()
+    {
+        var viewModel = await SendFirstExchangeAsync();
+        _messagingCoordinator.Setup(coordinator => coordinator.DeleteMessageAsync(1002)).ReturnsAsync(false);
+
+        var answer = viewModel.Messages[1];
+        await viewModel.DeleteMessageCommand.ExecuteAsync(answer);
+
+        viewModel.Messages.Should().Contain(answer);
+        _notificationService.Verify(
+            service => service.ShowError("Delete failed", It.IsAny<string>(), It.IsAny<int>()), Times.Once);
+        _notificationService.Verify(
+            service => service.ShowInfo("Message deleted", It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task DeleteMessageAsync_OnAMessageThatWasNeverSaved_OnlyRemovesItFromTheScreenAndSaysSo()
+    {
+        // The offline fallback streams an answer without persisting anything.
+        SetupSend("Are you there?", new SendMessageResult { ConversationId = 42, ResponseContent = "Offline help" });
+        var viewModel = CreateViewModel();
+        viewModel.ActiveConversationId = 42;
+        viewModel.UserInput = "Are you there?";
+        await viewModel.SendMessageCommand.ExecuteAsync(null);
+
+        var answer = viewModel.Messages[1];
+        await viewModel.DeleteMessageCommand.ExecuteAsync(answer);
+
+        _messagingCoordinator.Verify(coordinator => coordinator.DeleteMessageAsync(It.IsAny<long>()), Times.Never);
+        viewModel.Messages.Should().NotContain(answer);
+        _notificationService.Verify(
+            service => service.ShowInfo("Message removed", It.IsAny<string>(), It.IsAny<int>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task BranchFromMessageAsync_OnAMessageSentThisSession_BranchesFromItsRow()
+    {
+        var viewModel = await SendFirstExchangeAsync();
+        _branchingCoordinator
+            .Setup(coordinator => coordinator.BranchFromMessageAsync(42, 1001, null))
+            .ReturnsAsync(new BranchResult { BranchConversationId = 77, Title = "Branch" });
+
+        await viewModel.BranchFromMessageCommand.ExecuteAsync(viewModel.Messages[0].MessageId);
+
+        _branchingCoordinator.Verify(coordinator => coordinator.BranchFromMessageAsync(42, 1001, null), Times.Once);
+    }
+
+    [Fact]
+    public async Task BranchFromMessageAsync_OnAMessageThatWasNeverSaved_DoesNotAskTheCoordinator()
+    {
+        var viewModel = CreateViewModel();
+        viewModel.ActiveConversationId = 42;
+
+        await viewModel.BranchFromMessageCommand.ExecuteAsync(0L);
+
+        _branchingCoordinator.Verify(
+            coordinator => coordinator.BranchFromMessageAsync(It.IsAny<long>(), It.IsAny<long>(), It.IsAny<string?>()),
+            Times.Never);
+        _notificationService.Verify(
+            service => service.ShowInfo("Cannot branch here", It.IsAny<string>(), It.IsAny<int>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task RegenerateMessageAsync_OnTheLatestResponse_AnswersTheSavedPromptAgainWithoutResendingIt()
+    {
+        var viewModel = await SendFirstExchangeAsync();
+        _messagingCoordinator
+            .Setup(coordinator => coordinator.RegenerateResponseAsync(
+                42, 1001, "How should I proceed?", null, ChatOrchestrationMode.Standard))
+            .ReturnsAsync(new SendMessageResult
+            {
+                ConversationId = 42,
+                ResponseContent = "A better answer",
+                UserMessageId = 1001,
+                AssistantMessageId = 1003,
+                AssistantMessageSortOrder = 6
+            });
+
+        var prompt = viewModel.Messages[0];
+        await viewModel.RegenerateMessageCommand.ExecuteAsync(viewModel.Messages[1]);
+
+        _messagingCoordinator.Verify(
+            coordinator => coordinator.SendMessageAsync(It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool>()),
+            Times.Once,
+            "regenerating must not send, and so persist, the prompt a second time");
+        viewModel.Messages.Should().HaveCount(2);
+        viewModel.Messages[0].Should().BeSameAs(prompt);
+        viewModel.Messages[1].Content.Should().Be("A better answer");
+        viewModel.Messages[1].MessageId.Should().Be(1003);
+        viewModel.IsGenerating.Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public async Task RegenerateMessageAsync_WhenStoppedOrFailed_KeepsThePreviousAnswer(bool wasCancelled, bool hadError)
+    {
+        var viewModel = await SendFirstExchangeAsync();
+        _messagingCoordinator
+            .Setup(coordinator => coordinator.RegenerateResponseAsync(
+                42, 1001, It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<ChatOrchestrationMode>()))
+            .ReturnsAsync(new SendMessageResult
+            {
+                ConversationId = 42,
+                ResponseContent = "partial",
+                WasCancelled = wasCancelled,
+                HadError = hadError,
+                UserMessageId = 1001
+            });
+
+        var previousAnswer = viewModel.Messages[1];
+        await viewModel.RegenerateMessageCommand.ExecuteAsync(previousAnswer);
+
+        viewModel.Messages.Should().HaveCount(2);
+        viewModel.Messages[1].Should().BeSameAs(previousAnswer);
+        previousAnswer.Content.Should().Be("Answer");
+        previousAnswer.MessageId.Should().Be(1002);
+        viewModel.IsGenerating.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task RegenerateMessageAsync_OnAnEarlierResponse_ExplainsInsteadOfRegenerating()
+    {
+        var viewModel = await SendFirstExchangeAsync();
+        viewModel.Messages.Add(new ChatMessageItem { Role = "user", IsUser = true, Content = "Follow-up", MessageId = 1005 });
+        viewModel.Messages.Add(new ChatMessageItem { Role = "assistant", IsAssistant = true, Content = "Later", MessageId = 1006 });
+
+        await viewModel.RegenerateMessageCommand.ExecuteAsync(viewModel.Messages[1]);
+
+        _messagingCoordinator.Verify(
+            coordinator => coordinator.RegenerateResponseAsync(
+                It.IsAny<long>(), It.IsAny<long>(), It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<ChatOrchestrationMode>()),
+            Times.Never);
+        viewModel.Messages.Should().HaveCount(4);
+    }
+
+    [Fact]
+    public async Task RegenerateAndEdit_WhileAResponseIsGenerating_DoNotStartASecondGeneration()
+    {
+        // Both used to call SendMessageAsync directly, bypassing the Send guard: a second
+        // generation started mid-stream and took over the coordinator's cancellation source.
+        var viewModel = await SendFirstExchangeAsync();
+        var inFlight = new TaskCompletionSource<SendMessageResult>();
+        _messagingCoordinator
+            .Setup(coordinator => coordinator.SendMessageAsync("Next question", 42, null, null, false))
+            .Returns(inFlight.Task);
+        viewModel.UserInput = "Next question";
+        var sending = viewModel.SendMessageCommand.ExecuteAsync(null);
+
+        await viewModel.RegenerateMessageCommand.ExecuteAsync(viewModel.Messages[1]);
+        var prompt = viewModel.Messages[0];
+        viewModel.StartEditMessageCommand.Execute(prompt);
+        prompt.EditContent = "Rewritten";
+        await viewModel.SaveEditMessageCommand.ExecuteAsync(prompt);
+
+        _messagingCoordinator.Verify(
+            coordinator => coordinator.RegenerateResponseAsync(
+                It.IsAny<long>(), It.IsAny<long>(), It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<ChatOrchestrationMode>()),
+            Times.Never);
+        _messagingCoordinator.Verify(
+            coordinator => coordinator.SendMessageAsync("Rewritten", It.IsAny<long?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool>()),
+            Times.Never);
+        _conversationCoordinator.Verify(
+            coordinator => coordinator.DeleteMessageAndFollowingAsync(It.IsAny<long>(), It.IsAny<long>()), Times.Never);
+        _notificationService.Verify(
+            service => service.ShowInfo("Response in progress", It.IsAny<string>(), It.IsAny<int>()), Times.Exactly(2));
+
+        inFlight.SetResult(new SendMessageResult { ConversationId = 42, ResponseContent = "Done" });
+        await sending;
+    }
+
+    // ── Generation state after every outcome ─────────────────────────────
+    // A stop returned without any event and a thread switch discarded the completion, and in
+    // both cases IsGenerating stayed true: Send hidden, Stop pointing at nothing, Enter blocked.
+
+    [Fact]
+    public async Task StopGeneration_WhenTheSendReturnsCancelled_ReleasesTheChatAndMarksTheAnswer()
+    {
+        var inFlight = new TaskCompletionSource<SendMessageResult>();
+        _messagingCoordinator
+            .Setup(coordinator => coordinator.SendMessageAsync("Long question", 42, null, null, false))
+            .Returns(inFlight.Task);
+
+        var viewModel = CreateViewModel();
+        viewModel.ActiveConversationId = 42;
+        viewModel.UserInput = "Long question";
+        var sending = viewModel.SendMessageCommand.ExecuteAsync(null);
+        _messagingCoordinator.Raise(coordinator => coordinator.TokenReceived += null, _messagingCoordinator.Object, "Partial");
+
+        await viewModel.StopGenerationCommand.ExecuteAsync(null);
+        inFlight.SetResult(new SendMessageResult
+        {
+            ConversationId = 42,
+            WasCancelled = true,
+            ResponseContent = "Partial\n\n[Generation stopped]",
+            UserMessageId = 1001
+        });
+        await sending;
+
+        viewModel.IsGenerating.Should().BeFalse();
+        viewModel.UserInput = "Another question";
+        viewModel.CanSend.Should().BeTrue();
+        viewModel.SendMessageCommand.CanExecute(null).Should().BeTrue();
+        var answer = viewModel.Messages[1];
+        answer.IsStreaming.Should().BeFalse();
+        answer.Content.Should().Be("Partial\n\n[Generation stopped]");
+        viewModel.Messages[0].MessageId.Should().Be(1001, "the prompt was saved before the stop");
+    }
+
+    [Fact]
+    public async Task SelectConversationAsync_MidGeneration_StopsItAndLeavesTheOpenedThreadUsable()
+    {
+        _conversationCoordinator
+            .Setup(service => service.LoadMessagesAsync(42))
+            .ReturnsAsync(Array.Empty<MessageSummary>());
+        var inFlight = new TaskCompletionSource<SendMessageResult>();
+        _messagingCoordinator
+            .Setup(coordinator => coordinator.SendMessageAsync(
+                It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool>()))
+            .Returns(inFlight.Task);
+
+        var viewModel = CreateViewModel();
+        viewModel.Conversations.Add(new ConversationListItem { Id = 42, Title = "Startup Investigation" });
+        viewModel.ActiveConversationId = 84;
+        viewModel.UserInput = "explain the retry backoff";
+        var sending = viewModel.SendMessageCommand.ExecuteAsync(null);
+
+        await viewModel.SelectConversationCommand.ExecuteAsync(42L);
+
+        _messagingCoordinator.Verify(coordinator => coordinator.StopGenerationAsync(), Times.Once);
+        viewModel.IsGenerating.Should().BeFalse();
+        viewModel.UserInput = "a question for this thread";
+        viewModel.CanSend.Should().BeTrue();
+
+        inFlight.SetResult(new SendMessageResult { ConversationId = 84, WasCancelled = true });
+        await sending;
+        viewModel.IsGenerating.Should().BeFalse();
+        viewModel.ActiveConversationId.Should().Be(42);
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_AfterAnAbandonedGeneration_StreamsOnlyItsOwnTokens()
+    {
+        // A generation left behind by a thread switch can still be winding down when the next
+        // one starts; nothing it still reports may land in the new answer.
+        _conversationCoordinator
+            .Setup(service => service.LoadMessagesAsync(42))
+            .ReturnsAsync(Array.Empty<MessageSummary>());
+        var abandoned = new TaskCompletionSource<SendMessageResult>();
+        var next = new TaskCompletionSource<SendMessageResult>();
+        _messagingCoordinator
+            .Setup(coordinator => coordinator.SendMessageAsync("first", 84, null, null, false))
+            .Returns(abandoned.Task);
+        _messagingCoordinator
+            .Setup(coordinator => coordinator.SendMessageAsync("second", 42, null, null, false))
+            .Returns(next.Task);
+
+        var viewModel = CreateViewModel();
+        viewModel.Conversations.Add(new ConversationListItem { Id = 42, Title = "Startup Investigation" });
+        viewModel.ActiveConversationId = 84;
+        viewModel.UserInput = "first";
+        var firstSend = viewModel.SendMessageCommand.ExecuteAsync(null);
+        await viewModel.SelectConversationCommand.ExecuteAsync(42L);
+
+        viewModel.UserInput = "second";
+        var secondSend = viewModel.SendMessageCommand.ExecuteAsync(null);
+        _messagingCoordinator.Raise(coordinator => coordinator.TokenReceived += null, _messagingCoordinator.Object, "stale ");
+
+        abandoned.SetResult(new SendMessageResult { ConversationId = 84, WasCancelled = true });
+        await firstSend;
+        await WaitUntilAsync(() => _messagingCoordinator.Invocations.Any(invocation =>
+            invocation.Method.Name == nameof(IMessagingCoordinator.SendMessageAsync) &&
+            Equals(invocation.Arguments[0], "second")));
+        _messagingCoordinator.Raise(coordinator => coordinator.TokenReceived += null, _messagingCoordinator.Object, "fresh");
+
+        var answer = viewModel.Messages.Last(message => message.IsAssistant);
+        answer.Content.Should().Be("fresh");
+
+        next.SetResult(new SendMessageResult { ConversationId = 42, ResponseContent = "fresh" });
+        await secondSend;
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_WhenNothingStreamed_ShowsTheFinalResponseText()
+    {
+        // The offline fallback builds its help text without raising a single token.
+        SetupSend("Hello?", new SendMessageResult
+        {
+            ConversationId = 42,
+            ResponseContent = "Unable to generate a response. Please ensure Ollama is running."
+        });
+        var viewModel = CreateViewModel();
+        viewModel.ActiveConversationId = 42;
+        viewModel.UserInput = "Hello?";
+
+        await viewModel.SendMessageCommand.ExecuteAsync(null);
+
+        viewModel.Messages[1].Content.Should().Be("Unable to generate a response. Please ensure Ollama is running.");
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_ShowsTheStatsOfAStreamedReplyAsSoonAsItCompletes()
+    {
+        var viewModel = await SendFirstExchangeAsync();
+        var answer = viewModel.Messages[1];
+
+        answer.FormattedTokens.Should().Be("12 tokens");
+        answer.FormattedTokenSpeed.Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public void ChatMessageItem_StatsSetAfterTheBubbleIsShown_NotifyTheirDisplayText()
+    {
+        // The stats arrive when streaming completes, after the bubble is already bound.
+        var item = new ChatMessageItem { IsAssistant = true };
+        var changed = new List<string?>();
+        item.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        item.TokenCount = 12;
+        item.GenerationTimeMs = 480;
+
+        changed.Should().Contain(
+        [
+            nameof(ChatMessageItem.TokenCount),
+            nameof(ChatMessageItem.FormattedTokens),
+            nameof(ChatMessageItem.GenerationTimeMs),
+            nameof(ChatMessageItem.FormattedGenerationTime),
+            nameof(ChatMessageItem.FormattedTokenSpeed)
+        ]);
+        item.FormattedTokens.Should().Be("12 tokens");
+    }
+
+    [Fact]
+    public async Task StreamingCompletedEvent_WithNoSendInFlight_IsIgnored()
+    {
+        // Another chat sharing the singleton coordinator (or a view model left behind by the
+        // page cache) must not have its completion adopted here, nor learned from twice.
+        var viewModel = CreateViewModel();
+
+        _messagingCoordinator.Raise(
+            coordinator => coordinator.StreamingCompleted += null,
+            new StreamingCompletedEventArgs
+            {
+                ConversationId = 84,
+                ConversationTitle = "Someone else's thread",
+                ResponseContent = "Answer",
+                TokenCount = 12,
+                UserMessageId = 1001,
+                ContextInspection = CreateInspectionSnapshot(84)
+            });
+        await Task.Delay(50);
+
+        viewModel.ActiveConversationId.Should().BeNull();
+        viewModel.Conversations.Should().BeEmpty();
+        viewModel.TokenCount.Should().Be(0);
+        _temporalIdentity.Verify(
+            service => service.LearnFromMessageAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_LearnsFromThePromptOnce_AndRegenerateDoesNotLearnAgain()
+    {
+        var learned = new TaskCompletionSource();
+        _temporalIdentity
+            .Setup(service => service.LearnFromMessageAsync(1001, It.IsAny<CancellationToken>()))
+            .Callback(() => learned.TrySetResult())
+            .Returns(Task.CompletedTask);
+        var viewModel = await SendFirstExchangeAsync();
+        await learned.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        _messagingCoordinator
+            .Setup(coordinator => coordinator.RegenerateResponseAsync(
+                42, 1001, It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<ChatOrchestrationMode>()))
+            .ReturnsAsync(new SendMessageResult
+            {
+                ConversationId = 42,
+                ResponseContent = "Again",
+                UserMessageId = 1001,
+                AssistantMessageId = 1003
+            });
+        await viewModel.RegenerateMessageCommand.ExecuteAsync(viewModel.Messages[1]);
+        await Task.Delay(100);
+
+        _temporalIdentity.Verify(
+            service => service.LearnFromMessageAsync(1001, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    // ── Opening conversations ─────────────────────────────────────────────
+
+    [Fact]
+    public async Task ApplyNavigationParameterAsync_OnAColdPage_OpensTheConversationBeforeTheSidebarLoads()
+    {
+        // Jump-To navigates before the page has loaded its conversation list.
+        _conversationCoordinator
+            .Setup(service => service.LoadConversationSummaryAsync(42))
+            .ReturnsAsync(new ConversationSummary { Id = 42, Title = "Startup Investigation" });
+        _conversationCoordinator
+            .Setup(service => service.LoadMessagesAsync(42))
+            .ReturnsAsync(
+            [
+                new MessageSummary { MessageId = 1001, ConversationId = 42, Role = "user", Content = "Why?" }
+            ]);
+
+        var viewModel = CreateViewModel();
+        viewModel.Conversations.Should().BeEmpty();
+
+        await viewModel.ApplyNavigationParameterAsync(42L);
+
+        viewModel.ActiveConversationId.Should().Be(42);
+        viewModel.ActiveConversationTitle.Should().Be("Startup Investigation");
+        viewModel.Messages.Should().ContainSingle(message => message.MessageId == 1001);
+    }
+
+    [Fact]
+    public async Task SelectConversationAsync_ForAConversationThatNoLongerExists_LeavesTheScreenAlone()
+    {
+        _conversationCoordinator
+            .Setup(service => service.LoadConversationSummaryAsync(404))
+            .ReturnsAsync((ConversationSummary?)null);
+        var viewModel = CreateViewModel();
+        viewModel.ActiveConversationId = 42;
+
+        await viewModel.SelectConversationCommand.ExecuteAsync(404L);
+
+        viewModel.ActiveConversationId.Should().Be(42);
+        _conversationCoordinator.Verify(service => service.LoadMessagesAsync(It.IsAny<long>()), Times.Never);
+        _notificationService.Verify(
+            service => service.ShowInfo("Conversation not found", It.IsAny<string>(), It.IsAny<int>()), Times.Once);
+    }
+
+    // ── Sidebar row actions ───────────────────────────────────────────────
+
+    [Fact]
+    public async Task DeleteConversationAsync_WhenTheDeleteFails_KeepsTheRowAndSaysSo()
+    {
+        _conversationCoordinator.Setup(service => service.DeleteConversationAsync(42)).ReturnsAsync(false);
+        var viewModel = CreateViewModel();
+        viewModel.Conversations.Add(new ConversationListItem { Id = 42, Title = "Startup Investigation" });
+        viewModel.ActiveConversationId = 42;
+
+        await viewModel.DeleteConversationCommand.ExecuteAsync(42L);
+
+        viewModel.Conversations.Should().ContainSingle(item => item.Id == 42);
+        viewModel.ActiveConversationId.Should().Be(42);
+        _notificationService.Verify(
+            service => service.ShowError("Delete failed", It.IsAny<string>(), It.IsAny<int>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteConversationAsync_OfTheOpenConversation_RemovesItsRowAndStartsOver()
+    {
+        _conversationCoordinator.Setup(service => service.DeleteConversationAsync(42)).ReturnsAsync(true);
+        var viewModel = CreateViewModel();
+        viewModel.Conversations.Add(new ConversationListItem { Id = 42, Title = "Startup Investigation" });
+        viewModel.ActiveConversationId = 42;
+        viewModel.Messages.Add(new ChatMessageItem { Role = "user", IsUser = true, Content = "Why?" });
+
+        await viewModel.DeleteConversationCommand.ExecuteAsync(42L);
+
+        viewModel.Conversations.Should().BeEmpty();
+        viewModel.ActiveConversationId.Should().BeNull();
+        viewModel.Messages.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task TogglePinAsync_PinsTheRowAndMovesItToTheTop()
+    {
+        _conversationCoordinator.Setup(service => service.TogglePinAsync(84)).ReturnsAsync(true);
+        var viewModel = CreateViewModel();
+        viewModel.Conversations.Add(new ConversationListItem { Id = 42, Title = "First" });
+        viewModel.Conversations.Add(new ConversationListItem { Id = 84, Title = "Second" });
+
+        await viewModel.TogglePinCommand.ExecuteAsync(84L);
+
+        viewModel.Conversations[0].Id.Should().Be(84);
+        viewModel.Conversations[0].IsPinned.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task TogglePinAsync_WhenTheUpdateFails_LeavesThePinAlone()
+    {
+        _conversationCoordinator.Setup(service => service.TogglePinAsync(84)).ReturnsAsync(false);
+        var viewModel = CreateViewModel();
+        viewModel.Conversations.Add(new ConversationListItem { Id = 84, Title = "Second" });
+
+        await viewModel.TogglePinCommand.ExecuteAsync(84L);
+
+        viewModel.Conversations[0].IsPinned.Should().BeFalse();
+        _notificationService.Verify(
+            service => service.ShowError("Pin not changed", It.IsAny<string>(), It.IsAny<int>()), Times.Once);
+    }
+
+    // ── Lifetime ──────────────────────────────────────────────────────────
+    // The page cache evicts ChatPage; its view model stayed subscribed to the singleton
+    // coordinators forever and kept reacting (duplicate toasts, duplicate learning).
+
+    [Fact]
+    public void Dispose_DetachesFromTheSharedCoordinators()
+    {
+        var viewModel = CreateViewModel();
+
+        viewModel.Dispose();
+        _messagingCoordinator.Raise(
+            coordinator => coordinator.NotificationRequested += null,
+            new NotificationRequestEventArgs { Level = "error", Title = "Generation Failed", Message = "x" });
+        _voiceCoordinator.Raise(coordinator => coordinator.RecordingStateChanged += null, _voiceCoordinator.Object, true);
+
+        _notificationService.Verify(
+            service => service.ShowError(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+        viewModel.IsRecording.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Dispose_LeavesTheSharedVoiceCoordinatorUsableForTheNextChat()
+    {
+        var disposableVoice = _voiceCoordinator.As<IDisposable>();
+        var viewModel = CreateViewModel();
+
+        viewModel.Dispose();
+        viewModel.Dispose();
+
+        disposableVoice.Verify(voice => voice.Dispose(), Times.Never);
+    }
+
+    /// <summary>
+    /// Sends "How should I proceed?" in conversation 42 and completes it with persisted ids:
+    /// prompt 1001 (sort 4) and answer 1002 (sort 5).
+    /// </summary>
+    private async Task<ChatViewModel> SendFirstExchangeAsync()
+    {
+        SetupSend("How should I proceed?", new SendMessageResult
+        {
+            ConversationId = 42,
+            ResponseContent = "Answer",
+            TokenCount = 12,
+            GenerationTimeMs = 480,
+            UserMessageId = 1001,
+            UserMessageSortOrder = 4,
+            AssistantMessageId = 1002,
+            AssistantMessageSortOrder = 5
+        });
+
+        var viewModel = CreateViewModel();
+        viewModel.Conversations.Add(new ConversationListItem { Id = 42, Title = "Startup Investigation" });
+        viewModel.ActiveConversationId = 42;
+        viewModel.UserInput = "How should I proceed?";
+        await viewModel.SendMessageCommand.ExecuteAsync(null);
+        return viewModel;
+    }
+
+    private void SetupSend(string content, SendMessageResult result) =>
+        _messagingCoordinator
+            .Setup(coordinator => coordinator.SendMessageAsync(content, It.IsAny<long?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool>()))
+            .ReturnsAsync(result);
+
+    private static async Task WaitUntilAsync(Func<bool> condition)
+    {
+        var deadline = DateTime.UtcNow.AddSeconds(5);
+        while (!condition())
+        {
+            if (DateTime.UtcNow > deadline)
+            {
+                throw new TimeoutException("Condition was not met in time.");
+            }
+
+            await Task.Delay(10);
+        }
     }
 
     private ChatViewModel CreateViewModel() =>

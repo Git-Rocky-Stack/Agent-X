@@ -16,6 +16,8 @@ public class ChatMessageItem : ObservableObject
     private string _editContent = string.Empty;
     private string _inlineContextStoryText = string.Empty;
     private IReadOnlyList<string> _inlineContextStorySourceChips = Array.Empty<string>();
+    private int _tokenCount;
+    private double _generationTimeMs;
 
     /// <summary>Database primary key. 0 if not yet persisted.</summary>
     public long MessageId { get; set; }
@@ -50,8 +52,37 @@ public class ChatMessageItem : ObservableObject
     public bool IsUser { get; set; }
     public bool IsAssistant { get; set; }
     public bool IsSystem { get; set; }
-    public int TokenCount { get; set; }
-    public double GenerationTimeMs { get; set; }
+
+    /// <summary>
+    /// Token count of the response. Set when a streamed reply completes, after the bubble is
+    /// already on screen, so it notifies along with the stats derived from it.
+    /// </summary>
+    public int TokenCount
+    {
+        get => _tokenCount;
+        set
+        {
+            if (SetProperty(ref _tokenCount, value))
+            {
+                OnPropertyChanged(nameof(FormattedTokens));
+                OnPropertyChanged(nameof(FormattedTokenSpeed));
+            }
+        }
+    }
+
+    /// <summary>Generation time of the response in milliseconds. See <see cref="TokenCount"/>.</summary>
+    public double GenerationTimeMs
+    {
+        get => _generationTimeMs;
+        set
+        {
+            if (SetProperty(ref _generationTimeMs, value))
+            {
+                OnPropertyChanged(nameof(FormattedGenerationTime));
+                OnPropertyChanged(nameof(FormattedTokenSpeed));
+            }
+        }
+    }
 
     public bool IsStreaming
     {

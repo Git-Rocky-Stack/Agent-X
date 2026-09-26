@@ -28,9 +28,16 @@ public interface IConversationCoordinator
     Task<ConversationSummary?> CreateConversationAsync(string title, string? systemPrompt, string? modelId);
 
     /// <summary>
-    /// Deletes a conversation by ID.
+    /// Deletes a conversation by ID. Its branches are kept and promoted in its place.
     /// </summary>
-    Task DeleteConversationAsync(long conversationId);
+    /// <returns>True when the conversation was deleted; false when the delete failed.</returns>
+    Task<bool> DeleteConversationAsync(long conversationId);
+
+    /// <summary>
+    /// Loads one conversation's summary by ID, whether or not it is in the loaded list.
+    /// </summary>
+    /// <returns>The summary, or null when the conversation does not exist or cannot be read.</returns>
+    Task<ConversationSummary?> LoadConversationSummaryAsync(long conversationId);
 
     /// <summary>
     /// Loads all conversations from the service and returns them as summary objects.
@@ -40,7 +47,8 @@ public interface IConversationCoordinator
     /// <summary>
     /// Toggles the pinned state of a conversation.
     /// </summary>
-    Task TogglePinAsync(long conversationId);
+    /// <returns>True when the pinned state was changed; false when the update failed.</returns>
+    Task<bool> TogglePinAsync(long conversationId);
 
     /// <summary>
     /// Sets the folder for a conversation.
@@ -71,6 +79,14 @@ public interface IConversationCoordinator
     /// Deletes all messages in a conversation after the specified sort order.
     /// </summary>
     Task DeleteMessagesAfterAsync(long conversationId, int sortOrder);
+
+    /// <summary>
+    /// Deletes a persisted message and every message after it. Used before an edited prompt
+    /// is resent, since the resend persists the new text as a fresh message.
+    /// </summary>
+    /// <returns>True when the messages were deleted; false when the id is not persisted in
+    /// the conversation or the delete failed, in which case nothing was removed.</returns>
+    Task<bool> DeleteMessageAndFollowingAsync(long conversationId, long messageId);
 
     /// <summary>
     /// Loads messages for a specific conversation, including feedback ratings

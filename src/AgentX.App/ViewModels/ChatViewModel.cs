@@ -70,8 +70,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     }
 
     public string ResearchModeTooltip => IsResearchMode
-        ? "Research Mode ON — answers include web sources"
-        : "Research Mode OFF — local vault only";
+        ? "Research Mode ON: answers add cited web search results (needs Research Mode and a web search provider in Settings)"
+        : "Research Mode OFF: answers use your local knowledge only";
 
     // ── Orchestration Mode ───────────────────────────────────────
     [ObservableProperty] private ChatOrchestrationMode _orchestrationMode = ChatOrchestrationMode.Standard;
@@ -323,19 +323,27 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private readonly INotificationService _notificationService;
     private readonly ITemporalIdentityService _temporalIdentity;
 
-    // ── Streaming assistant message (for token-by-token updates) ──
-    private ChatMessageItem? _streamingAssistantMessage;
     private ChatContextInspectionSnapshot? _latestContextInspection;
 
+    // ── The generation streaming into the screen (for token-by-token updates) ──
+    // Null when nothing this view model started is running on the thread on screen. Moving off
+    // a thread clears it, so tokens and completions that still arrive for the thread left
+    // behind are ignored instead of landing on the one now shown.
+    private ChatGeneration? _activeGeneration;
+
+    // The coordinator call of the most recent generation. A generation abandoned by a thread
+    // switch can take a moment to wind down; the next one waits for it (briefly) so its last
+    // tokens and rows cannot be mistaken for the new generation's.
+    private Task? _lastGenerationTask;
+    private static readonly TimeSpan PreviousGenerationGrace = TimeSpan.FromSeconds(5);
+
     // ── Which conversation the screen is on, as a generation sees it ──
-    // Cancellation is cooperative, so a stream told to stop can still have passed the token
-    // loop and reached the StreamingCompleted raise at MessagingCoordinator.cs:198. Cancelling
-    // therefore cannot decide whether a completion belongs on screen. This counter can: every
-    // move off a thread advances it, and a generation carries the value it started under, so a
-    // completion that arrives under a newer value is known to belong to a thread already left.
+    // Every move off a thread advances this counter, and a generation carries the value it
+    // started under, so work that finishes under a newer value is known to belong to a thread
+    // already left (a completion, or messages loaded for a thread the operator moved past).
     private int _conversationEpoch;
-    private int? _inFlightGenerationEpoch;
     private readonly Dictionary<long, ChatContextInspectionSnapshot> _assistantMessageContextSnapshots = new();
+    private bool _disposed;
 
     public ChatViewModel(
         IConversationCoordinator conversationCoordinator,
@@ -379,9 +387,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         _messagingCoordinator.NotificationRequested += OnMessagingNotification;
 
         // ── VoiceCoordinator ─────────────────────────────────────
-        _voiceCoordinator.RecordingStateChanged += (s, isRec) => IsRecording = isRec;
-        _voiceCoordinator.TranscribingStateChanged += (s, isTrans) => IsTranscribing = isTrans;
-        _voiceCoordinator.StatusChanged += (s, msg) => VoiceStatusMessage = msg;
+        _voiceCoordinator.RecordingStateChanged += OnRecordingStateChanged;
+        _voiceCoordinator.TranscribingStateChanged += OnTranscribingStateChanged;
+        _voiceCoordinator.StatusChanged += OnVoiceStatusChanged;
         _voiceCoordinator.NotificationRequested += OnVoiceNotification;
 
         // ── BranchingCoordinator ─────────────────────────────────
@@ -389,125 +397,67 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         _branchingCoordinator.NotificationRequested += OnBranchingNotification;
     }
 
+    /// <summary>
+    /// The coordinators are app-wide singletons, so a subscription outlives the page that made
+    /// it. A view model left subscribed keeps reacting to every other chat's generations.
+    /// </summary>
+    private void UnsubscribeFromCoordinatorEvents()
+    {
+        _messagingCoordinator.TokenReceived -= OnTokenReceived;
+        _messagingCoordinator.StreamingCompleted -= OnStreamingCompleted;
+        _messagingCoordinator.GenerationError -= OnGenerationError;
+        _messagingCoordinator.NotificationRequested -= OnMessagingNotification;
+
+        _voiceCoordinator.RecordingStateChanged -= OnRecordingStateChanged;
+        _voiceCoordinator.TranscribingStateChanged -= OnTranscribingStateChanged;
+        _voiceCoordinator.StatusChanged -= OnVoiceStatusChanged;
+        _voiceCoordinator.NotificationRequested -= OnVoiceNotification;
+
+        _branchingCoordinator.BranchTreeChanged -= OnBranchTreeChanged;
+        _branchingCoordinator.NotificationRequested -= OnBranchingNotification;
+    }
+
+    private void OnRecordingStateChanged(object? sender, bool isRecording) => IsRecording = isRecording;
+
+    private void OnTranscribingStateChanged(object? sender, bool isTranscribing) => IsTranscribing = isTranscribing;
+
+    private void OnVoiceStatusChanged(object? sender, string message) => VoiceStatusMessage = message;
+
     private void OnTokenReceived(object? sender, string token)
     {
-        if (_streamingAssistantMessage is not null)
+        if (_activeGeneration is { IsLive: true } generation)
         {
-            _streamingAssistantMessage.Content += token;
-            CurrentStreamingResponse = _streamingAssistantMessage.Content;
+            generation.AssistantMessage.Content += token;
+            CurrentStreamingResponse = generation.AssistantMessage.Content;
             OnPropertyChanged(nameof(Messages));
         }
     }
 
     private void OnStreamingCompleted(object? sender, StreamingCompletedEventArgs e)
     {
-        if (!GenerationStillOwnsScreen(_inFlightGenerationEpoch))
+        // Only a generation this view model started, still live on the thread it began on, is
+        // applied. Anything else was raised for a thread the operator has left, or by another
+        // chat sharing the singleton coordinator; adopting it would drag the screen onto that
+        // thread and file a sidebar row for it. The stream's output is already persisted, so
+        // the thread shows it when it is next opened.
+        if (_activeGeneration is not { IsLive: true } generation || generation.Epoch != _conversationEpoch)
         {
-            // The operator left this thread while it was generating. Adopting the id below
-            // would drag the screen back onto it and file a sidebar row for it. Everything the
-            // stream produced was already persisted by the coordinator, so there is nothing to
-            // salvage here: the thread shows it when it is next opened.
-            Log.Debug("Discarding completion for a conversation the operator has left");
+            Log.Debug("Discarding a completion this chat is not waiting for");
             return;
         }
 
-        if (_streamingAssistantMessage is not null)
-        {
-            _streamingAssistantMessage.IsStreaming = false;
-            _streamingAssistantMessage.TokenCount = e.TokenCount;
-            _streamingAssistantMessage.GenerationTimeMs = e.GenerationTimeMs;
-            if (e.AssistantMessageId.HasValue)
-            {
-                _streamingAssistantMessage.MessageId = e.AssistantMessageId.Value;
-            }
-
-            ApplyInlineContextNote(_streamingAssistantMessage, e.ContextInspection);
-            if (e.AssistantMessageId.HasValue && e.ContextInspection is not null)
-            {
-                _assistantMessageContextSnapshots[e.AssistantMessageId.Value] = e.ContextInspection;
-            }
-        }
-
-        TokenCount += e.TokenCount;
-        GenerationTimeMs = e.GenerationTimeMs;
-        IsGenerating = false;
-        CurrentStreamingResponse = string.Empty;
-
-        // Update conversation ID if newly created
-        if (e.ConversationId.HasValue && ActiveConversationId != e.ConversationId)
-        {
-            ActiveConversationId = e.ConversationId;
-            ActiveConversationTitle = e.ConversationTitle ?? ActiveConversationTitle;
-
-            Conversations.Insert(0, new ConversationListItem
-            {
-                Id = e.ConversationId.Value,
-                Title = ActiveConversationTitle,
-                LastMessage = e.ResponseContent.Length > 80
-                    ? e.ResponseContent[..80] + "..."
-                    : e.ResponseContent,
-                UpdatedAt = DateTime.UtcNow,
-                IsPinned = false,
-                MessageCount = 0
-            });
-            OnPropertyChanged(nameof(HasNoConversations));
-        }
-
-        // Update sidebar last message
-        if (ActiveConversationId.HasValue)
-        {
-            var convItem = Conversations.FirstOrDefault(c => c.Id == ActiveConversationId);
-            if (convItem is not null && !string.IsNullOrEmpty(e.ResponseContent))
-            {
-                convItem.LastMessage = e.ResponseContent.Length > 80
-                    ? e.ResponseContent[..80] + "..."
-                    : e.ResponseContent;
-            }
-        }
-
-        // Temporal Identity: Learn from message and detect insights (non-blocking background)
-        if (e.UserMessageId.HasValue && e.ConversationId.HasValue)
-        {
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await _temporalIdentity.LearnFromMessageAsync(e.UserMessageId.Value);
-                    await _temporalIdentity.DetectInsightsAsync(e.ConversationId.Value);
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning(ex, "Failed to process temporal identity for message {MessageId}", e.UserMessageId.Value);
-                }
-            });
-        }
-
-        _streamingAssistantMessage = null;
-        ApplyContextInspection(e.ContextInspection);
-
-        // Load follow-ups and update memory (non-blocking)
-        _ = InitializePostSendAsync();
+        ApplyCompletion(generation, CompletionData.From(e));
     }
-
-    /// <summary>
-    /// Whether a generation that began under <paramref name="startedEpoch"/> still owns the
-    /// conversation on screen. A null epoch means no generation of this view model's is in
-    /// flight, which is the case for a completion raised by another surface sharing the
-    /// coordinator: those are still adopted, because there is no screen state to protect.
-    /// </summary>
-    private bool GenerationStillOwnsScreen(int? startedEpoch)
-        => startedEpoch is null || startedEpoch.Value == _conversationEpoch;
 
     private void OnGenerationError(object? sender, string errorMsg)
     {
-        if (_streamingAssistantMessage is not null)
+        // The send's own result finishes the generation (FinishGeneration); this only shows the
+        // error a moment sooner. A failed regeneration keeps the previous answer instead.
+        if (_activeGeneration is { IsLive: true, ReplacedAssistantMessage: null } generation)
         {
-            _streamingAssistantMessage.Content = errorMsg;
-            _streamingAssistantMessage.IsStreaming = false;
+            generation.AssistantMessage.Content = errorMsg;
+            generation.AssistantMessage.IsStreaming = false;
         }
-        IsGenerating = false;
-        CurrentStreamingResponse = string.Empty;
-        _streamingAssistantMessage = null;
     }
 
     private void OnMessagingNotification(object? sender, NotificationRequestEventArgs e)
@@ -720,16 +670,26 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [RelayCommand(CanExecute = nameof(CanSend))]
     private async Task SendMessageAsync()
     {
-        if (string.IsNullOrWhiteSpace(UserInput)) return;
+        if (string.IsNullOrWhiteSpace(UserInput) || IsGenerating) return;
 
         var userContent = UserInput.Trim();
         UserInput = string.Empty;
 
+        await SendContentAsync(userContent);
+    }
+
+    /// <summary>
+    /// Sends <paramref name="userContent"/> as a new prompt in the conversation on screen.
+    /// Edit and non-persisted regeneration resend through here rather than through
+    /// <see cref="UserInput"/>, so a draft the operator is typing is left alone.
+    /// </summary>
+    private async Task SendContentAsync(string userContent)
+    {
         Log.Debug("Sending message: {MessagePreview}", userContent.Length > 50
             ? userContent[..50] + "..." : userContent);
 
         // Add user message to UI
-        Messages.Add(new ChatMessageItem
+        var userMessage = new ChatMessageItem
         {
             Role = "user",
             Content = userContent,
@@ -738,67 +698,351 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             IsAssistant = false,
             IsSystem = false,
             IsStreaming = false
-        });
+        };
+        Messages.Add(userMessage);
         OnPropertyChanged(nameof(HasNoMessages));
 
         // Create streaming placeholder
-        _streamingAssistantMessage = new ChatMessageItem
-        {
-            Role = "assistant",
-            Content = "",
-            Timestamp = DateTime.UtcNow,
-            IsUser = false,
-            IsAssistant = true,
-            IsSystem = false,
-            IsStreaming = true
-        };
-        Messages.Add(_streamingAssistantMessage);
+        var assistantMessage = CreateStreamingAssistantMessage();
+        Messages.Add(assistantMessage);
 
+        var conversationId = ActiveConversationId;
+        var systemPrompt = ActiveSystemPrompt;
+        var modelId = _aiService.ActiveModelId;
+        var isResearchMode = IsResearchMode;
+        var orchestrationMode = OrchestrationMode;
+
+        await RunGenerationAsync(
+            new ChatGeneration
+            {
+                Epoch = _conversationEpoch,
+                UserMessage = userMessage,
+                AssistantMessage = assistantMessage
+            },
+            () => orchestrationMode == ChatOrchestrationMode.Standard
+                ? _messagingCoordinator.SendMessageAsync(
+                    userContent, conversationId, systemPrompt, modelId, isResearchMode)
+                : _messagingCoordinator.SendMessageAsync(
+                    userContent, conversationId, systemPrompt, modelId, isResearchMode, orchestrationMode));
+    }
+
+    private static ChatMessageItem CreateStreamingAssistantMessage() => new()
+    {
+        Role = "assistant",
+        Content = "",
+        Timestamp = DateTime.UtcNow,
+        IsUser = false,
+        IsAssistant = true,
+        IsSystem = false,
+        IsStreaming = true
+    };
+
+    /// <summary>
+    /// Runs one generation and settles the screen afterwards, whatever the outcome: a
+    /// completion, a stop, or a failure all end with generation state cleared, so Send
+    /// returns and Stop is not left pointing at nothing. A generation the operator moved
+    /// away from is settled by the move itself and changes nothing here when it ends.
+    /// </summary>
+    private async Task RunGenerationAsync(ChatGeneration generation, Func<Task<SendMessageResult>> start)
+    {
+        _activeGeneration = generation;
         IsGenerating = true;
 
-        // Stamp the generation with the conversation it belongs to, so both the completion
-        // handler and the continuation below can tell their own results from those of a thread
-        // the operator has since left.
-        var startedEpoch = _conversationEpoch;
-        _inFlightGenerationEpoch = startedEpoch;
+        // A generation abandoned by a thread switch may still be winding down. Its remaining
+        // events are ignored while this one is not live yet, and waiting for it keeps the rows
+        // it may still write out of this generation's view of the conversation.
+        var previous = _lastGenerationTask;
+        if (previous is { IsCompleted: false })
+        {
+            await Task.WhenAny(previous, Task.Delay(PreviousGenerationGrace));
+        }
+
+        if (!ReferenceEquals(_activeGeneration, generation))
+        {
+            return;
+        }
+
+        generation.IsLive = true;
 
         SendMessageResult result;
         try
         {
-            // Delegate to messaging coordinator
-            result = OrchestrationMode == ChatOrchestrationMode.Standard
-                ? await _messagingCoordinator.SendMessageAsync(
-                    userContent, ActiveConversationId, ActiveSystemPrompt,
-                    _aiService.ActiveModelId, IsResearchMode)
-                : await _messagingCoordinator.SendMessageAsync(
-                    userContent, ActiveConversationId, ActiveSystemPrompt,
-                    _aiService.ActiveModelId, IsResearchMode, OrchestrationMode);
+            var coordinatorCall = start();
+            _lastGenerationTask = coordinatorCall;
+            result = await coordinatorCall;
         }
-        finally
+        catch (Exception ex)
         {
-            _inFlightGenerationEpoch = null;
+            Log.Error(ex, "Chat generation failed unexpectedly");
+            result = new SendMessageResult
+            {
+                ConversationId = ActiveConversationId,
+                HadError = true,
+                ResponseContent = "An error occurred while generating a response.",
+                ErrorMessage = ex.Message
+            };
         }
 
-        if (!GenerationStillOwnsScreen(startedEpoch))
+        FinishGeneration(generation, result);
+    }
+
+    private void FinishGeneration(ChatGeneration generation, SendMessageResult result)
+    {
+        if (!ReferenceEquals(_activeGeneration, generation))
         {
-            // The cancel arm back-fills ContextInspection from the conversation it was
-            // generating for (MessagingCoordinator.cs:217). Applying it here would re-stamp the
-            // thread the operator left over the one now on screen, with no lost race needed.
+            // The operator left this thread (or started over) while it ran. What it produced is
+            // persisted and shows when that thread is opened again; its result, including the
+            // context inspection the cancel path back-fills, belongs to that thread.
             return;
         }
 
-        if (result.ContextInspection is not null)
+        _activeGeneration = null;
+
+        if (result.WasCancelled || result.HadError)
         {
-            ApplyContextInspection(result.ContextInspection);
+            if (generation.ReplacedAssistantMessage is not null)
+            {
+                // The coordinator kept the previous answer, so the screen shows it again.
+                RestoreReplacedAnswer(generation);
+            }
+            else if (result.WasCancelled)
+            {
+                generation.AssistantMessage.Content = string.IsNullOrEmpty(result.ResponseContent)
+                    ? AppendStopMarker(generation.AssistantMessage.Content)
+                    : result.ResponseContent;
+            }
+            else
+            {
+                generation.AssistantMessage.Content = result.ResponseContent;
+            }
+
+            // The prompt is saved before the answer streams, so it usually outlives a stop or
+            // a failure; stamping it lets edit, branch and delete act on the saved row. A send
+            // that created its conversation keeps that conversation rather than orphaning it.
+            StampPersistedIdentity(generation.UserMessage, result.UserMessageId, result.UserMessageSortOrder, result.ConversationId);
+            AdoptConversation(result.ConversationId, result.ConversationTitle, lastMessage: null);
+
+            if (result.ContextInspection is not null)
+            {
+                ApplyContextInspection(result.ContextInspection);
+            }
+        }
+        else
+        {
+            ApplyCompletion(generation, CompletionData.From(result));
+
+            if (generation.ReplacedAssistantMessage is { } replaced)
+            {
+                if (result.AssistantMessageId is null)
+                {
+                    // Nothing new was saved (an empty reply), so the previous answer still stands.
+                    RestoreReplacedAnswer(generation);
+                    _notificationService.ShowInfo(
+                        "Response kept",
+                        "The model returned no new response, so the previous one was kept.");
+                }
+                else if (replaced.MessageId > 0)
+                {
+                    _assistantMessageContextSnapshots.Remove(replaced.MessageId);
+                }
+            }
         }
 
-        // Handle cancellation/error inline responses
-        if (result.WasCancelled && _streamingAssistantMessage is not null)
-            _streamingAssistantMessage.Content += "\n\n[Generation stopped]";
-
-        if (result.HadError && _streamingAssistantMessage is not null)
-            _streamingAssistantMessage.Content = result.ResponseContent;
+        generation.AssistantMessage.IsStreaming = false;
+        IsGenerating = false;
+        CurrentStreamingResponse = string.Empty;
     }
+
+    private void ApplyCompletion(ChatGeneration generation, CompletionData completion)
+    {
+        if (generation.IsCompleted)
+        {
+            return;
+        }
+
+        generation.IsCompleted = true;
+
+        var assistantMessage = generation.AssistantMessage;
+        assistantMessage.IsStreaming = false;
+
+        // The final text is authoritative: the offline fallback builds its help text without
+        // streaming it, and tokens that raced a stop are only in the final text.
+        if (!string.IsNullOrEmpty(completion.ResponseContent) &&
+            assistantMessage.Content != completion.ResponseContent)
+        {
+            assistantMessage.Content = completion.ResponseContent;
+        }
+
+        assistantMessage.TokenCount = completion.TokenCount;
+        assistantMessage.GenerationTimeMs = completion.GenerationTimeMs;
+        StampPersistedIdentity(
+            assistantMessage,
+            completion.AssistantMessageId,
+            completion.AssistantMessageSortOrder,
+            completion.ConversationId);
+        if (completion.WebCitations is { Count: > 0 } citations)
+        {
+            assistantMessage.WebCitations = citations;
+        }
+
+        ApplyInlineContextNote(assistantMessage, completion.ContextInspection);
+        if (completion.AssistantMessageId.HasValue && completion.ContextInspection is not null)
+        {
+            _assistantMessageContextSnapshots[completion.AssistantMessageId.Value] = completion.ContextInspection;
+        }
+
+        // Messages sent in this session carry their persisted identity like loaded ones, so
+        // delete, edit, branch and regenerate act on the rows they show.
+        StampPersistedIdentity(
+            generation.UserMessage,
+            completion.UserMessageId,
+            completion.UserMessageSortOrder,
+            completion.ConversationId);
+
+        TokenCount += completion.TokenCount;
+        GenerationTimeMs = completion.GenerationTimeMs;
+
+        AdoptConversation(completion.ConversationId, completion.ConversationTitle, completion.ResponseContent);
+
+        // Update sidebar last message
+        if (ActiveConversationId.HasValue && !string.IsNullOrEmpty(completion.ResponseContent))
+        {
+            var convItem = Conversations.FirstOrDefault(c => c.Id == ActiveConversationId);
+            if (convItem is not null)
+            {
+                convItem.LastMessage = PreviewOf(completion.ResponseContent);
+            }
+        }
+
+        // Temporal Identity learns from each prompt once. A regeneration answers a prompt it
+        // has already learned from; learning again would count the same message twice.
+        if (!generation.IsRegeneration &&
+            completion.UserMessageId.HasValue &&
+            completion.ConversationId.HasValue)
+        {
+            LearnFromPromptInBackground(completion.UserMessageId.Value, completion.ConversationId.Value);
+        }
+
+        ApplyContextInspection(completion.ContextInspection);
+
+        // Load follow-ups and update memory (non-blocking)
+        _ = InitializePostSendAsync();
+    }
+
+    /// <summary>
+    /// Takes over the conversation a send created when the screen had none yet, and lists it
+    /// in the sidebar unless it is already there.
+    /// </summary>
+    private void AdoptConversation(long? conversationId, string? conversationTitle, string? lastMessage)
+    {
+        if (conversationId is not long id || ActiveConversationId == id)
+        {
+            return;
+        }
+
+        ActiveConversationId = id;
+        ActiveConversationTitle = conversationTitle ?? ActiveConversationTitle;
+
+        if (Conversations.All(c => c.Id != id))
+        {
+            Conversations.Insert(0, new ConversationListItem
+            {
+                Id = id,
+                Title = ActiveConversationTitle,
+                LastMessage = PreviewOf(lastMessage),
+                UpdatedAt = DateTime.UtcNow,
+                IsPinned = false,
+                MessageCount = 0
+            });
+            OnPropertyChanged(nameof(HasNoConversations));
+        }
+    }
+
+    private static void StampPersistedIdentity(
+        ChatMessageItem message,
+        long? messageId,
+        int? sortOrder,
+        long? conversationId)
+    {
+        if (messageId is > 0)
+        {
+            message.MessageId = messageId.Value;
+        }
+
+        if (sortOrder.HasValue)
+        {
+            message.SortOrder = sortOrder.Value;
+        }
+
+        if (conversationId.HasValue)
+        {
+            message.ConversationId = conversationId.Value;
+        }
+    }
+
+    private void RestoreReplacedAnswer(ChatGeneration generation)
+    {
+        var index = Messages.IndexOf(generation.AssistantMessage);
+        if (index >= 0 && generation.ReplacedAssistantMessage is not null)
+        {
+            Messages[index] = generation.ReplacedAssistantMessage;
+        }
+    }
+
+    private static string AppendStopMarker(string content) =>
+        string.IsNullOrEmpty(content)
+            ? "[Generation stopped]"
+            : content + "\n\n[Generation stopped]";
+
+    private static string PreviewOf(string? content) =>
+        string.IsNullOrEmpty(content)
+            ? string.Empty
+            : content.Length > 80 ? content[..80] + "..." : content;
+
+    private void LearnFromPromptInBackground(long userMessageId, long conversationId)
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _temporalIdentity.LearnFromMessageAsync(userMessageId);
+                await _temporalIdentity.DetectInsightsAsync(conversationId);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to process temporal identity for message {MessageId}", userMessageId);
+            }
+        });
+    }
+
+    /// <summary>
+    /// Moves the screen off whatever generation is running: it is stopped, and anything it
+    /// still reports is ignored. Leaves Send usable at once rather than after the stop lands.
+    /// </summary>
+    private async Task LeaveActiveGenerationAsync()
+    {
+        var generation = _activeGeneration;
+        _activeGeneration = null;
+        _conversationEpoch++;
+
+        if (generation is not null || IsGenerating)
+        {
+            if (generation is not null)
+            {
+                generation.AssistantMessage.IsStreaming = false;
+            }
+
+            await _messagingCoordinator.StopGenerationAsync();
+        }
+
+        IsGenerating = false;
+        CurrentStreamingResponse = string.Empty;
+    }
+
+    private void NotifyGenerationInProgress() =>
+        _notificationService.ShowInfo(
+            "Response in progress",
+            "Stop the current response or wait for it to finish, then try again.");
 
     [RelayCommand]
     private async Task StopGenerationAsync()
@@ -812,20 +1056,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private async Task NewConversationAsync()
     {
         // A generation belonging to the thread being left must not follow the operator into
-        // the blank one. Left running, it finishes into OnStreamingCompleted, whose adopt
-        // branch sees the null id below, takes the finished stream's conversation id back and
-        // files a second sidebar row for it: the new conversation silently becomes the old
-        // one. The coordinator's cancel path returns without raising StreamingCompleted
-        // (MessagingCoordinator.cs OperationCanceledException arm), so stopping here ends it.
-        if (IsGenerating)
-        {
-            await _messagingCoordinator.StopGenerationAsync();
-        }
-
-        _streamingAssistantMessage = null;
-        IsGenerating = false;
-        CurrentStreamingResponse = string.Empty;
-        _conversationEpoch++;
+        // the blank one: left running, its completion would carry the old thread's id into the
+        // null one below and the new conversation would silently become the old one.
+        await LeaveActiveGenerationAsync();
 
         ActiveConversationId = null;
         ActiveConversationTitle = "New Conversation";
@@ -843,34 +1076,79 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task DeleteConversationAsync(long conversationId)
     {
-        await _conversationCoordinator.DeleteConversationAsync(conversationId);
+        var isOpen = ActiveConversationId == conversationId;
+        if (isOpen && IsGenerating)
+        {
+            // Nothing may still be writing into the thread being deleted.
+            await LeaveActiveGenerationAsync();
+        }
+
+        if (!await _conversationCoordinator.DeleteConversationAsync(conversationId))
+        {
+            _notificationService.ShowError(
+                "Delete failed",
+                "The conversation could not be deleted and is still in your history.");
+            return;
+        }
+
         var item = Conversations.FirstOrDefault(c => c.Id == conversationId);
         if (item is not null)
         {
             Conversations.Remove(item);
             OnPropertyChanged(nameof(HasNoConversations));
-            if (ActiveConversationId == conversationId)
-                await NewConversationAsync();
+        }
+
+        if (isOpen)
+        {
+            await NewConversationAsync();
+        }
+        else if (ActiveConversationId.HasValue)
+        {
+            // The open thread may have been a branch of the deleted one, or its parent.
+            await RefreshBranchTreeAsync();
         }
     }
 
     [RelayCommand]
     private async Task SelectConversationAsync(long conversationId)
     {
-        var item = Conversations.FirstOrDefault(c => c.Id == conversationId);
-        if (item is null) return;
+        if (conversationId <= 0) return;
+
+        // The sidebar is only a cache of the conversation list: a caller arriving before it has
+        // loaded (Jump-To on a cold Chat page) or naming a thread it does not show (a filtered
+        // list) still opens the conversation it asked for.
+        var title = Conversations.FirstOrDefault(c => c.Id == conversationId)?.Title;
+        if (title is null)
+        {
+            var summary = await _conversationCoordinator.LoadConversationSummaryAsync(conversationId);
+            if (summary is null)
+            {
+                _notificationService.ShowInfo(
+                    "Conversation not found",
+                    "The conversation could not be opened. It may have been deleted.");
+                return;
+            }
+
+            title = summary.Title;
+        }
 
         // Picking another thread moves the screen off any running generation just as Ctrl+N
-        // does, and this path never cancelled anything, so the epoch is the only thing
-        // stopping that generation from dragging the screen back when it finishes.
-        _conversationEpoch++;
+        // does, so it stops that generation and clears the generation state with it.
+        await LeaveActiveGenerationAsync();
+        var epoch = _conversationEpoch;
 
         ActiveConversationId = conversationId;
-        ActiveConversationTitle = item.Title;
+        ActiveConversationTitle = title;
         Messages.Clear();
         ConversationSummaryRefreshError = string.Empty;
 
         var messageSummaries = await _conversationCoordinator.LoadMessagesAsync(conversationId);
+        if (epoch != _conversationEpoch)
+        {
+            // Another thread was opened while this one loaded.
+            return;
+        }
+
         foreach (var ms in messageSummaries)
         {
             var messageItem = MapToChatMessageItem(ms);
@@ -886,9 +1164,26 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task TogglePinAsync(long conversationId)
     {
-        await _conversationCoordinator.TogglePinAsync(conversationId);
+        if (!await _conversationCoordinator.TogglePinAsync(conversationId))
+        {
+            _notificationService.ShowError(
+                "Pin not changed",
+                "The conversation's pinned state could not be changed.");
+            return;
+        }
+
         var item = Conversations.FirstOrDefault(c => c.Id == conversationId);
-        if (item is not null) item.IsPinned = !item.IsPinned;
+        if (item is null) return;
+
+        item.IsPinned = !item.IsPinned;
+
+        // Keep pinned conversations first, the order the list is loaded in.
+        var from = Conversations.IndexOf(item);
+        var to = item.IsPinned ? 0 : Conversations.Count(c => c.IsPinned);
+        if (from != to)
+        {
+            Conversations.Move(from, to);
+        }
     }
 
     [RelayCommand]
@@ -973,20 +1268,24 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private void SelectSystemPrompt(SystemPromptItem? prompt)
+    private async Task SelectSystemPromptAsync(SystemPromptItem? prompt)
     {
-        if (prompt is null) { ActiveSystemPrompt = null; ActiveSystemPromptName = null; }
-        else
-        {
-            ActiveSystemPrompt = prompt.Content;
-            ActiveSystemPromptName = prompt.Name;
-            _ = Task.Run(async () =>
-            {
-                try { await _systemPromptService.IncrementUsageAsync(prompt.Id); }
-                catch (Exception ex) { Log.Warning(ex, "Failed to increment system prompt usage"); }
-            });
-        }
         ShowSystemPromptPicker = false;
+
+        if (prompt is null)
+        {
+            ActiveSystemPrompt = null;
+            ActiveSystemPromptName = null;
+            return;
+        }
+
+        ActiveSystemPrompt = prompt.Content;
+        ActiveSystemPromptName = prompt.Name;
+
+        // A single counter update, awaited here rather than raced against the chat's own
+        // queries on the shared context from a background task.
+        try { await _systemPromptService.IncrementUsageAsync(prompt.Id); }
+        catch (Exception ex) { Log.Warning(ex, "Failed to increment system prompt usage"); }
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -997,28 +1296,39 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private async Task DeleteMessageAsync(ChatMessageItem? message)
     {
         if (message is null) return;
-        await _messagingCoordinator.DeleteMessageAsync(message.MessageId);
-        if (message.MessageId > 0)
+
+        if (_activeGeneration is { } generation &&
+            (ReferenceEquals(message, generation.UserMessage) || ReferenceEquals(message, generation.AssistantMessage)))
         {
-            _assistantMessageContextSnapshots.Remove(message.MessageId);
+            // Its row is still being written; deleting now would race the save.
+            NotifyGenerationInProgress();
+            return;
         }
+
+        if (message.MessageId <= 0)
+        {
+            // Never saved (an offline answer, a stopped or failed response), so the screen is
+            // the only place it exists.
+            Messages.Remove(message);
+            OnPropertyChanged(nameof(HasNoMessages));
+            _notificationService.ShowInfo(
+                "Message removed",
+                "This message was never saved, so it was only removed from the screen.");
+            return;
+        }
+
+        if (!await _messagingCoordinator.DeleteMessageAsync(message.MessageId))
+        {
+            _notificationService.ShowError(
+                "Delete failed",
+                "The message could not be deleted and is still in this conversation.");
+            return;
+        }
+
+        _assistantMessageContextSnapshots.Remove(message.MessageId);
         Messages.Remove(message);
         OnPropertyChanged(nameof(HasNoMessages));
         _notificationService.ShowInfo("Message deleted", "The message has been removed.");
-    }
-
-    [RelayCommand]
-    private async Task SubmitFeedbackAsync(ChatMessageItem? message)
-    {
-        if (message is null || !message.IsAssistant || message.MessageId <= 0) return;
-        var newRating = message.FeedbackRating switch
-        {
-            "positive" => "negative",
-            "negative" => "none",
-            _ => "positive"
-        };
-        message.FeedbackRating = newRating;
-        await _messagingCoordinator.SubmitFeedbackAsync(message.MessageId, ActiveConversationId ?? 0, newRating);
     }
 
     [RelayCommand]
@@ -1043,22 +1353,66 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private async Task RegenerateMessageAsync(ChatMessageItem? message)
     {
         if (message is null || !message.IsAssistant) return;
+        if (IsGenerating)
+        {
+            NotifyGenerationInProgress();
+            return;
+        }
+
         var msgIndex = Messages.IndexOf(message);
         if (msgIndex < 1) return;
         var userMessage = Messages[msgIndex - 1];
         if (!userMessage.IsUser) return;
 
-        Messages.Remove(message);
-        if (message.MessageId > 0)
+        if (msgIndex != Messages.Count - 1)
         {
-            _assistantMessageContextSnapshots.Remove(message.MessageId);
-            await _messagingCoordinator.DeleteMessageAsync(message.MessageId);
+            // A new answer can only replace the one that closes the thread: anything after an
+            // earlier answer was a reply to it.
+            _notificationService.ShowInfo(
+                "Only the latest response can be regenerated",
+                "Use Branch from here on an earlier message to explore a different answer.");
+            return;
         }
 
-        UserInput = userMessage.Content;
+        if (ActiveConversationId is long conversationId && userMessage.MessageId > 0)
+        {
+            // The saved prompt is answered again in place: it is not persisted a second time,
+            // and the old answer stays (on screen and in the thread) until the new one is saved.
+            var replacement = CreateStreamingAssistantMessage();
+            Messages[msgIndex] = replacement;
+
+            var promptId = userMessage.MessageId;
+            var promptContent = userMessage.Content;
+            var systemPrompt = ActiveSystemPrompt;
+            var orchestrationMode = OrchestrationMode;
+
+            await RunGenerationAsync(
+                new ChatGeneration
+                {
+                    Epoch = _conversationEpoch,
+                    UserMessage = userMessage,
+                    AssistantMessage = replacement,
+                    ReplacedAssistantMessage = message
+                },
+                () => _messagingCoordinator.RegenerateResponseAsync(
+                    conversationId, promptId, promptContent, systemPrompt, orchestrationMode));
+            return;
+        }
+
+        // The prompt was never saved (an offline answer, or a send that failed before saving
+        // it), so there is no saved exchange to replace: the prompt is simply sent again.
+        if (message.MessageId > 0 && !await _messagingCoordinator.DeleteMessageAsync(message.MessageId))
+        {
+            _notificationService.ShowError(
+                "Regenerate failed",
+                "The previous response could not be removed, so nothing was regenerated.");
+            return;
+        }
+
+        Messages.Remove(message);
         Messages.Remove(userMessage);
         OnPropertyChanged(nameof(HasNoMessages));
-        await SendMessageAsync();
+        await SendContentAsync(userMessage.Content);
     }
 
     [RelayCommand]
@@ -1082,28 +1436,44 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private async Task SaveEditMessageAsync(ChatMessageItem? message)
     {
         if (message is null || !message.IsUser || string.IsNullOrWhiteSpace(message.EditContent)) return;
-        var newContent = message.EditContent.Trim();
-        message.IsEditing = false;
-        message.Content = newContent;
-
-        if (message.MessageId > 0)
+        if (IsGenerating)
         {
-            try { await _conversationCoordinator.UpdateMessageContentAsync(message.MessageId, newContent); }
-            catch (Exception ex) { Log.Warning(ex, "Failed to update message content in database"); }
+            NotifyGenerationInProgress();
+            return;
         }
 
         var msgIndex = Messages.IndexOf(message);
-        if (msgIndex >= 0 && ActiveConversationId is not null && message.SortOrder >= 0)
+        if (msgIndex < 0) return;
+        var newContent = message.EditContent.Trim();
+
+        // Resending persists the new text as a fresh message, so the edited row goes too, with
+        // everything after it. The cut starts at the first saved message from the edited one
+        // on and is keyed by its persisted id alone: a message never saved has no row to cut
+        // from. Nothing is resent unless the cut succeeded.
+        var firstSaved = Messages.Skip(msgIndex).FirstOrDefault(m => m.MessageId > 0);
+        if (firstSaved is not null && ActiveConversationId is long conversationId &&
+            !await _conversationCoordinator.DeleteMessageAndFollowingAsync(conversationId, firstSaved.MessageId))
         {
-            try { await _conversationCoordinator.DeleteMessagesAfterAsync(ActiveConversationId.Value, message.SortOrder); }
-            catch (Exception ex) { Log.Warning(ex, "Failed to delete subsequent messages"); }
-            while (Messages.Count > msgIndex + 1) Messages.RemoveAt(Messages.Count - 1);
+            _notificationService.ShowError(
+                "Edit not sent",
+                "The conversation could not be updated, so the edited message was not sent. Try again.");
+            return;
         }
 
-        UserInput = newContent;
-        Messages.Remove(message);
+        message.IsEditing = false;
+        while (Messages.Count > msgIndex)
+        {
+            var removed = Messages[^1];
+            if (removed.MessageId > 0)
+            {
+                _assistantMessageContextSnapshots.Remove(removed.MessageId);
+            }
+
+            Messages.RemoveAt(Messages.Count - 1);
+        }
+
         OnPropertyChanged(nameof(HasNoMessages));
-        await SendMessageAsync();
+        await SendContentAsync(newContent);
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -1146,6 +1516,14 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         if (ActiveConversationId is null) return;
         var label = PendingBranchLabel;
         PendingBranchLabel = null;
+        if (messageId <= 0)
+        {
+            _notificationService.ShowInfo(
+                "Cannot branch here",
+                "This message was never saved, so a branch cannot start from it.");
+            return;
+        }
+
         var result = await _branchingCoordinator.BranchFromMessageAsync(ActiveConversationId.Value, messageId, label);
         if (result is not null)
         {
@@ -1153,10 +1531,6 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             _notificationService.ShowInfo("Branch Created", $"Created branch: {result.Title}");
         }
     }
-
-    [RelayCommand]
-    private async Task LoadBranchTreeAsync()
-        => await RefreshBranchTreeAsync();
 
     [RelayCommand]
     private async Task SwitchToBranchAsync(long branchConversationId)
@@ -1304,15 +1678,6 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         {
             IsRefreshingConversationSummary = false;
         }
-    }
-
-    [RelayCommand]
-    private async Task ClearConversationAsync()
-    {
-        Messages.Clear(); TokenCount = 0; GenerationTimeMs = 0;
-        CurrentStreamingResponse = string.Empty;
-        OnPropertyChanged(nameof(HasNoMessages));
-        await Task.CompletedTask;
     }
 
     [RelayCommand]
@@ -1607,10 +1972,87 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     // DISPOSAL
     // ═══════════════════════════════════════════════════════════════
 
+    /// <summary>
+    /// Detaches this view model from the singleton coordinators. The coordinators themselves
+    /// belong to the DI container and serve the next chat page, so they are not disposed here:
+    /// disposing the voice coordinator from a view model left every later chat without voice.
+    /// </summary>
     public void Dispose()
     {
-        if (_voiceCoordinator is IDisposable voiceDisposable) voiceDisposable.Dispose();
+        if (_disposed) return;
+        _disposed = true;
+
+        UnsubscribeFromCoordinatorEvents();
+        _activeGeneration = null;
         Log.Debug("ChatViewModel disposed");
+    }
+
+    /// <summary>
+    /// One generation started from this view model: the bubbles it streams into and the
+    /// conversation epoch it belongs to.
+    /// </summary>
+    private sealed class ChatGeneration
+    {
+        public required int Epoch { get; init; }
+        public required ChatMessageItem UserMessage { get; init; }
+        public required ChatMessageItem AssistantMessage { get; init; }
+
+        /// <summary>
+        /// For a regeneration, the answer being replaced. It stays in the thread until the new
+        /// one is saved, and comes back on screen when the new one does not arrive.
+        /// </summary>
+        public ChatMessageItem? ReplacedAssistantMessage { get; init; }
+
+        public bool IsRegeneration => ReplacedAssistantMessage is not null;
+
+        /// <summary>False while an abandoned earlier generation is still winding down.</summary>
+        public bool IsLive { get; set; }
+
+        /// <summary>Whether the completion was applied, from the event or from the result.</summary>
+        public bool IsCompleted { get; set; }
+    }
+
+    /// <summary>
+    /// A completed generation as reported by the coordinator's event or by its result.
+    /// </summary>
+    private sealed record CompletionData(
+        long? ConversationId,
+        string? ConversationTitle,
+        string ResponseContent,
+        int TokenCount,
+        double GenerationTimeMs,
+        ChatContextInspectionSnapshot? ContextInspection,
+        long? AssistantMessageId,
+        int? AssistantMessageSortOrder,
+        long? UserMessageId,
+        int? UserMessageSortOrder,
+        IReadOnlyList<WebCitation>? WebCitations)
+    {
+        public static CompletionData From(StreamingCompletedEventArgs e) => new(
+            e.ConversationId,
+            e.ConversationTitle,
+            e.ResponseContent,
+            e.TokenCount,
+            e.GenerationTimeMs,
+            e.ContextInspection,
+            e.AssistantMessageId,
+            e.AssistantMessageSortOrder,
+            e.UserMessageId,
+            e.UserMessageSortOrder,
+            e.WebCitations);
+
+        public static CompletionData From(SendMessageResult result) => new(
+            result.ConversationId,
+            result.ConversationTitle,
+            result.ResponseContent,
+            result.TokenCount,
+            result.GenerationTimeMs,
+            result.ContextInspection,
+            result.AssistantMessageId,
+            result.AssistantMessageSortOrder,
+            result.UserMessageId,
+            result.UserMessageSortOrder,
+            result.WebCitations);
     }
 }
 
