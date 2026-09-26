@@ -478,6 +478,7 @@ public sealed class RagPipelineTests
     public async Task AskAsync_EvalSampleRateOne_InvokesEvaluator()
     {
         _config.Setup(c => c.EvalSampleRate).Returns(1.0);
+        var evaluated = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var evaluator = new Mock<IRagEvaluator>();
         evaluator
             .Setup(e => e.EvaluateAsync(
@@ -485,6 +486,7 @@ public sealed class RagPipelineTests
                 It.IsAny<string>(),
                 It.IsAny<IReadOnlyList<RagContextChunk>>(),
                 It.IsAny<CancellationToken>()))
+            .Callback(() => evaluated.TrySetResult())
             .ReturnsAsync(new RagEvalMetrics { ContextRelevance = 0.9 });
 
         SetupSearchReturns(MakeResult(1));
@@ -493,8 +495,9 @@ public sealed class RagPipelineTests
         var pipeline = BuildPipeline(evaluator: evaluator.Object);
         await pipeline.AskAsync("question");
 
-        // Eval is fire-and-forget — wait briefly for the background task.
-        await Task.Delay(200);
+        // Evaluation is fire-and-forget. Wait for the call itself: a fixed 200 ms delay was
+        // sometimes too short on a loaded machine, and the call arrived just after the check.
+        await evaluated.Task.WaitAsync(TimeSpan.FromSeconds(10));
 
         evaluator.Verify(e => e.EvaluateAsync(
             It.IsAny<string>(),
