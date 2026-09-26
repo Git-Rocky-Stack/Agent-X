@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
+using AgentX.Core.Services.Settings;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -17,6 +18,7 @@ public sealed class FileWatcherService : IFileWatcherService
 {
     private readonly AgentXDbContext _db;
     private readonly IDocumentService _documentService;
+    private readonly ISettingsService? _settingsService;
     private readonly ILogger _logger;
 
     /// <summary>
@@ -53,11 +55,116 @@ public sealed class FileWatcherService : IFileWatcherService
     public FileWatcherService(
         AgentXDbContext db,
         IDocumentService documentService,
-        ILogger logger)
+        ILogger logger,
+        ISettingsService? settingsService = null)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
         _documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _settingsService = settingsService;
+    }
+
+    /// <inheritdoc />
+    public async Task InitializeAsync(CancellationToken ct = default)
+    {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(FileWatcherService));
+        }
+
+        if (!await IsAutoIndexEnabledAsync())
+        {
+            _logger.Information("Watch folder monitoring is turned off (AutoIndexWatchFolders); not starting");
+            return;
+        }
+
+        await StartWatchingAsync(ct);
+
+        var handled = await ScanWatchFoldersAsync(ct);
+        _logger.Information("Watch folder catch-up scan imported or refreshed {Count} files", handled);
+    }
+
+    /// <summary>
+    /// Imports files added to the enabled watch folders while the app was not running and
+    /// re-indexes files that changed since they were imported. Returns how many files were
+    /// imported or refreshed.
+    /// </summary>
+    internal async Task<int> ScanWatchFoldersAsync(CancellationToken ct = default)
+    {
+        var folders = await _db.WatchFolders
+            .AsNoTracking()
+            .Where(wf => wf.IsEnabled)
+            .ToListAsync(ct);
+
+        var handled = 0;
+        foreach (var folder in folders)
+        {
+            if (!Directory.Exists(folder.FolderPath))
+            {
+                _logger.Warning("Watch folder path does not exist, skipping catch-up scan: {Path}", folder.FolderPath);
+                continue;
+            }
+
+            var context = CreateContext(folder);
+            var options = new EnumerationOptions
+            {
+                RecurseSubdirectories = folder.IncludeSubfolders,
+                IgnoreInaccessible = true
+            };
+
+            foreach (var filePath in Directory.EnumerateFiles(folder.FolderPath, "*", options))
+            {
+                ct.ThrowIfCancellationRequested();
+
+                if (!ShouldHandle(filePath, context))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    if (await ImportOrRefreshAsync(filePath, context, ct))
+                    {
+                        handled++;
+                    }
+                }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex, "Failed to import file from watch folder during catch-up: {FilePath}", filePath);
+                }
+            }
+
+            await MarkScannedAsync(folder.Id);
+        }
+
+        return handled;
+    }
+
+    /// <summary>
+    /// Reads the AutoIndexWatchFolders setting. Without a settings service the setting's
+    /// default (on) applies; when settings cannot be read, watching stays off.
+    /// </summary>
+    private async Task<bool> IsAutoIndexEnabledAsync()
+    {
+        if (_settingsService is null)
+        {
+            return true;
+        }
+
+        try
+        {
+            var settings = await _settingsService.GetSettingsAsync();
+            return settings.AutoIndexWatchFolders;
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Could not read the AutoIndexWatchFolders setting; watch folders stay off");
+            return false;
+        }
     }
 
     /// <inheritdoc />
@@ -244,12 +351,7 @@ public sealed class FileWatcherService : IFileWatcherService
         };
 
         // Build the context for filtering decisions in the event handlers
-        var context = new WatchFolderContext
-        {
-            WatchFolderId = entity.Id,
-            TargetCollectionId = entity.TargetCollectionId,
-            AllowedExtensions = ParseFileTypeFilter(entity.FileTypeFilter)
-        };
+        var context = CreateContext(entity);
 
         // Wire up event handlers
         watcher.Created += (_, e) => OnFileEvent(e.FullPath, context);
@@ -321,24 +423,7 @@ public sealed class FileWatcherService : IFileWatcherService
         // Quick filter: only process files (not directories)
         if (Directory.Exists(filePath)) return;
 
-        // Check extension against the watcher's filter
-        var extension = Path.GetExtension(filePath);
-        if (string.IsNullOrEmpty(extension)) return;
-
-        // If the watch folder has an extension filter, check against it
-        if (context.AllowedExtensions is not null && context.AllowedExtensions.Count > 0)
-        {
-            if (!context.AllowedExtensions.Contains(extension))
-            {
-                return;
-            }
-        }
-
-        // Check if any registered processor can handle this file type
-        if (!_documentService.CanProcess(filePath))
-        {
-            return;
-        }
+        if (!ShouldHandle(filePath, context)) return;
 
         // Debounce: reset the timer for this file path
         var normalizedPath = Path.GetFullPath(filePath).ToLowerInvariant();
@@ -402,8 +487,51 @@ public sealed class FileWatcherService : IFileWatcherService
 
         try
         {
+            await ImportOrRefreshAsync(filePath, context, CancellationToken.None).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Failed to auto-import file from watch folder: {FilePath}", filePath);
+        }
+    }
+
+    /// <summary>
+    /// Brings one watched file into the vault. A new file is imported; a file that is already
+    /// a document is re-indexed when its size or last-write time changed since its import,
+    /// instead of being imported as a second, separate document; an unchanged one is left
+    /// alone. Returns true when the file was imported or refreshed.
+    /// </summary>
+    private async Task<bool> ImportOrRefreshAsync(string filePath, WatchFolderContext context, CancellationToken ct)
+    {
+        var fullPath = Path.GetFullPath(filePath);
+
+        var existing = await _db.Documents
+            .AsNoTracking()
+            .Where(d => d.FilePath == fullPath)
+            .OrderByDescending(d => d.ImportedAt)
+            .Select(d => new { d.Id, d.FileSizeBytes, d.FileModifiedAt })
+            .FirstOrDefaultAsync(ct)
+            .ConfigureAwait(false);
+
+        if (existing is not null)
+        {
+            var fileInfo = new FileInfo(fullPath);
+            if (fileInfo.Length == existing.FileSizeBytes
+                && fileInfo.LastWriteTimeUtc.Ticks == existing.FileModifiedAt.Ticks)
+            {
+                return false;
+            }
+
+            await _documentService.ReindexDocumentAsync(existing.Id, ct).ConfigureAwait(false);
+            _logger.Information(
+                "Watched file changed; re-indexing document {DocumentId}: {FilePath}", existing.Id, fullPath);
+            return true;
+        }
+
+        try
+        {
             // Import the file through DocumentService
-            var document = await _documentService.ImportFileAsync(filePath, context.TargetCollectionId).ConfigureAwait(false);
+            var document = await _documentService.ImportFileAsync(fullPath, context.TargetCollectionId, ct).ConfigureAwait(false);
 
             // Update the watch folder's stats
             await UpdateWatchFolderStatsAsync(context.WatchFolderId).ConfigureAwait(false);
@@ -411,17 +539,46 @@ public sealed class FileWatcherService : IFileWatcherService
             _logger.Information(
                 "Auto-imported file from watch folder: {FileName} (document ID {DocumentId})",
                 document.FileName, document.Id);
+            return true;
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("identical content"))
         {
             // Duplicate file - this is expected and not an error
             _logger.Debug("Skipped duplicate file in watch folder: {FilePath}", filePath);
-        }
-        catch (Exception ex)
-        {
-            _logger.Error(ex, "Failed to auto-import file from watch folder: {FilePath}", filePath);
+            return false;
         }
     }
+
+    /// <summary>
+    /// Whether a file in a watch folder should be imported: it has an extension, passes the
+    /// folder's extension filter, and a processor can read it.
+    /// </summary>
+    private bool ShouldHandle(string filePath, WatchFolderContext context)
+    {
+        // Check extension against the watcher's filter
+        var extension = Path.GetExtension(filePath);
+        if (string.IsNullOrEmpty(extension))
+        {
+            return false;
+        }
+
+        // If the watch folder has an extension filter, check against it
+        if (context.AllowedExtensions is not null && context.AllowedExtensions.Count > 0
+            && !context.AllowedExtensions.Contains(extension))
+        {
+            return false;
+        }
+
+        // Check if any registered processor can handle this file type
+        return _documentService.CanProcess(filePath);
+    }
+
+    private static WatchFolderContext CreateContext(WatchFolderEntity entity) => new()
+    {
+        WatchFolderId = entity.Id,
+        TargetCollectionId = entity.TargetCollectionId,
+        AllowedExtensions = ParseFileTypeFilter(entity.FileTypeFilter)
+    };
 
     /// <summary>
     /// Handles FileSystemWatcher errors (e.g., buffer overflow, access denied).
@@ -473,6 +630,26 @@ public sealed class FileWatcherService : IFileWatcherService
         catch (Exception ex)
         {
             _logger.Warning(ex, "Failed to update stats for watch folder {Id}", watchFolderId);
+        }
+    }
+
+    /// <summary>
+    /// Records when a watch folder was last scanned.
+    /// </summary>
+    private async Task MarkScannedAsync(long watchFolderId)
+    {
+        try
+        {
+            var entity = await _db.WatchFolders.FindAsync(watchFolderId);
+            if (entity is not null)
+            {
+                entity.LastScanAt = DateTime.UtcNow;
+                await _db.SaveChangesAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Failed to record the scan time of watch folder {Id}", watchFolderId);
         }
     }
 
