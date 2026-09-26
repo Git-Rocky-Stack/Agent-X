@@ -308,6 +308,46 @@ public sealed class DocumentServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task ImportFileAsync_Valid_QueuesTheDocumentForIndexing()
+    {
+        // Imports used to create "pending" rows that nothing picked up until the next start.
+        var h = NewHarness();
+        var path = h.WriteFile("queued.txt", "alpha beta gamma");
+        var raised = new List<DocumentPendingIndexingEventArgs>();
+        h.Service.DocumentPendingIndexing += (_, e) => raised.Add(e);
+
+        var entity = await h.Service.ImportFileAsync(path);
+
+        raised.Should().ContainSingle();
+        raised[0].DocumentId.Should().Be(entity.Id);
+        raised[0].Extracted!.ExtractedText.Should().Be("stub extracted text");
+    }
+
+    [Fact]
+    public async Task ImportExternalContentAsync_QueuesTheDocumentForIndexing()
+    {
+        var h = NewHarness();
+        var path = h.WriteFile("event.txt", "calendar body");
+        var raised = new List<long>();
+        h.Service.DocumentPendingIndexing += (_, e) => raised.Add(e.DocumentId);
+
+        var entity = await h.Service.ImportExternalContentAsync(path, "CalendarEvent", "Standup");
+
+        raised.Should().Equal(entity.Id);
+    }
+
+    [Fact]
+    public async Task ImportFileAsync_FailingIndexingSubscriber_DoesNotFailTheImport()
+    {
+        var h = NewHarness();
+        h.Service.DocumentPendingIndexing += (_, _) => throw new InvalidOperationException("subscriber bug");
+
+        var entity = await h.Service.ImportFileAsync(h.WriteFile("safe.txt", "content"));
+
+        entity.Id.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
     public async Task ImportFileAsync_UnknownExtension_HasNullMimeType()
     {
         var h = NewHarness(new StubProcessor(new[] { ".xyz" }));
@@ -1262,6 +1302,72 @@ public sealed class DocumentServiceTests : IDisposable
         doc.ChunkCount.Should().Be(0);
         (await fresh.DocumentChunks.CountAsync()).Should().Be(0);
         h.Processor.ProcessedPaths.Should().Contain(path);
+    }
+
+    [Fact]
+    public async Task ReindexDocumentAsync_Valid_QueuesTheDocumentForIndexing()
+    {
+        // Every caller reports a re-index as "queued"; the document must actually reach the
+        // indexing pipeline instead of waiting in "pending" until the next startup.
+        var h = NewHarness();
+        var path = h.WriteFile("queued.txt", "content");
+        long id = 0;
+        h.Seed(ctx =>
+        {
+            var d = NewDoc(fileName: "queued.txt", filePath: path);
+            ctx.Documents.Add(d);
+            ctx.SaveChanges();
+            id = d.Id;
+        });
+        var raised = new List<DocumentPendingIndexingEventArgs>();
+        h.Service.DocumentPendingIndexing += (_, e) => raised.Add(e);
+
+        await h.Service.ReindexDocumentAsync(id);
+
+        raised.Should().ContainSingle();
+        raised[0].DocumentId.Should().Be(id);
+        raised[0].Extracted.Should().NotBeNull("the indexer reuses the extraction instead of running it again");
+        h.KeywordSearch.Verify(k => k.RemoveDocumentFromFtsAsync(id, It.IsAny<CancellationToken>()), Times.Once);
+        h.SearchCache.Verify(c => c.InvalidateForDocument(id), Times.Once);
+    }
+
+    [Fact]
+    public async Task ReindexDocumentAsync_ExtractionFails_KeepsTheExistingChunksAndMarksFailed()
+    {
+        // Chunks used to be removed before extraction ran, so a failing extraction left the
+        // deletes pending in the shared change tracker for the next SaveChanges to flush.
+        var h = NewHarness();
+        var path = h.WriteFile("broken.txt", "content");
+        long id = 0;
+        h.Seed(ctx =>
+        {
+            var d = NewDoc(fileName: "broken.txt", filePath: path, status: "completed");
+            ctx.Documents.Add(d);
+            ctx.SaveChanges();
+            id = d.Id;
+            ctx.DocumentChunks.Add(new DocumentChunkEntity { DocumentId = id, ChunkIndex = 0, Content = "kept", IsEmbedded = true, VectorRowId = 3 });
+            ctx.SaveChanges();
+        });
+        h.Processor.ThrowOnProcess = new InvalidDataException("corrupt file");
+        var raised = 0;
+        h.Service.DocumentPendingIndexing += (_, _) => raised++;
+
+        var act = () => h.Service.ReindexDocumentAsync(id);
+
+        await act.Should().ThrowAsync<InvalidDataException>();
+
+        // Nothing may be left pending in the shared context either.
+        await h.Db.SaveChangesAsync();
+
+        using var fresh = h.Fresh();
+        var doc = await fresh.Documents.FindAsync(id);
+        doc!.IndexingStatus.Should().Be("failed");
+        doc.IndexingError.Should().Contain("corrupt file");
+        (await fresh.DocumentChunks.CountAsync(c => c.DocumentId == id)).Should().Be(1);
+        h.VectorStore.Verify(
+            v => v.DeleteEmbeddingsForDocumentAsync(It.IsAny<long>(), It.IsAny<IReadOnlyList<long>>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+        raised.Should().Be(0);
     }
 
     [Fact]

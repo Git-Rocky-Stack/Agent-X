@@ -10,6 +10,14 @@ namespace AgentX.Core.Documents;
 public interface IDocumentService
 {
     /// <summary>
+    /// Raised after a document has been imported or reset for re-indexing and is waiting in
+    /// "pending" status. The indexing pipeline subscribes so new work is processed during the
+    /// session instead of only at the next startup. Handlers run on the caller's thread and
+    /// must not block.
+    /// </summary>
+    event EventHandler<DocumentPendingIndexingEventArgs>? DocumentPendingIndexing;
+
+    /// <summary>
     /// Imports a single file: validates, hashes, extracts text, creates DocumentEntity.
     /// </summary>
     /// <param name="filePath">Absolute path to the file to import.</param>
@@ -103,8 +111,11 @@ public interface IDocumentService
     Task DeleteDocumentAsync(long documentId);
 
     /// <summary>
-    /// Re-processes a document by deleting existing chunks and re-extracting text.
-    /// Resets the document status to "pending" for re-indexing.
+    /// Re-processes a document: re-extracts its text first, then deletes the existing chunks,
+    /// vectors and keyword rows, resets the status to "pending" and raises
+    /// <see cref="DocumentPendingIndexing"/> so the indexing pipeline picks it up. When the
+    /// source is missing or extraction fails, the document is marked "failed" and its current
+    /// index data is left untouched.
     /// </summary>
     Task ReindexDocumentAsync(long documentId, CancellationToken ct = default);
 
@@ -159,9 +170,9 @@ public interface IDocumentService
     Task BulkDeleteAsync(IReadOnlyList<long> documentIds, CancellationToken ct = default);
 
     /// <summary>
-    /// Re-indexes multiple documents by their IDs. Each document is reset to
-    /// "pending" status. Failures for individual documents are logged but do not
-    /// abort the batch.
+    /// Re-indexes multiple documents by their IDs through <see cref="ReindexDocumentAsync"/>,
+    /// so each one is queued for the indexing pipeline. Failures for individual documents are
+    /// logged but do not abort the batch.
     /// </summary>
     Task BulkReindexAsync(IReadOnlyList<long> documentIds, CancellationToken ct = default);
 

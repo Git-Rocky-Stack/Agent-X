@@ -25,7 +25,11 @@ namespace AgentX.Core.Services.Indexing;
 ///   4. Vector storage via <see cref="IVectorStore"/>
 ///
 /// Uses a <see cref="Channel{T}"/> for queue-based sequential processing to avoid
-/// overwhelming local model inference.
+/// overwhelming local model inference. Work arrives three ways: documents that
+/// <see cref="IDocumentService"/> imports or re-indexes are queued the moment its
+/// <see cref="IDocumentService.DocumentPendingIndexing"/> event fires; explicit
+/// <see cref="IndexDocumentAsync"/> calls; and a periodic sweep for "pending" documents
+/// written by paths that do not signal the indexer (web import, sync, the local API).
 /// </summary>
 public sealed class IndexingService : IIndexingService
 {
@@ -38,15 +42,45 @@ public sealed class IndexingService : IIndexingService
     private readonly IKeywordSearchService _keywordSearchService;
     private readonly IAutoTagService _autoTagService;
     private readonly ISearchCacheService? _searchCacheService;
+    private readonly IDocumentService? _documentService;
     private readonly ILogger _logger;
 
     // Background processing infrastructure
     private readonly Channel<long> _documentQueue;
     private readonly CancellationTokenSource _shutdownCts = new();
+    private readonly object _startLock = new();
     private Task? _backgroundTask;
+
+    /// <summary>
+    /// Ids currently waiting in the channel. Keeps the same document from being queued twice
+    /// by the event, the sweep and explicit requests. An id is released when the loop starts
+    /// on it, so a re-index requested while the document is being processed queues a second
+    /// pass instead of being dropped.
+    /// </summary>
+    private readonly ConcurrentDictionary<long, byte> _queuedDocumentIds = new();
+
+    /// <summary>
+    /// Extractions handed over by <see cref="IDocumentService"/>, keyed by document id, so a
+    /// freshly imported file is not parsed, OCR'd or fetched a second time. Bounded by
+    /// <see cref="MaxHandoffCharacters"/>; anything over the budget is simply re-extracted.
+    /// </summary>
+    private readonly Dictionary<long, ProcessedDocument> _extractionHandoff = new();
+    private readonly object _handoffLock = new();
+    private long _handoffCharacters;
+    private const long MaxHandoffCharacters = 8_000_000;
+
+    /// <summary>How long the idle loop waits for new work before sweeping for pending documents.</summary>
+    private static readonly TimeSpan DefaultPendingSweepInterval = TimeSpan.FromSeconds(30);
+
+    // Vector store readiness: initialized once, and a failure is reported on every document
+    // instead of leaving the queue to stall silently.
+    private readonly SemaphoreSlim _vectorStoreGate = new(1, 1);
+    private volatile bool _vectorStoreReady;
+    private string? _vectorStoreError;
 
     // State tracking
     private int _processedCount;
+    private int _notStartedWarned;
     private volatile bool _isProcessing;
     private bool _disposed;
 
@@ -58,6 +92,12 @@ public sealed class IndexingService : IIndexingService
 
     /// <inheritdoc />
     public event EventHandler<long>? DocumentIndexed;
+
+    /// <summary>
+    /// Idle time between sweeps for pending documents. Settable by tests so the sweep can be
+    /// exercised without waiting for the production interval.
+    /// </summary>
+    internal TimeSpan PendingSweepInterval { get; set; } = DefaultPendingSweepInterval;
 
     /// <summary>
     /// Default batch size for embedding generation when no IRagConfiguration is
@@ -99,7 +139,8 @@ public sealed class IndexingService : IIndexingService
         IAutoTagService autoTagService,
         IRagConfiguration? ragConfiguration,
         ILogger logger,
-        ISearchCacheService? searchCacheService = null)
+        ISearchCacheService? searchCacheService = null,
+        IDocumentService? documentService = null)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
         _processors = processors ?? throw new ArgumentNullException(nameof(processors));
@@ -112,6 +153,7 @@ public sealed class IndexingService : IIndexingService
         _ragConfiguration = ragConfiguration;
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _searchCacheService = searchCacheService;
+        _documentService = documentService;
 
         // Unbounded channel: items are cheap (just a long ID) and we want to accept
         // enqueue requests without blocking the caller. Processing is serialized.
@@ -120,6 +162,13 @@ public sealed class IndexingService : IIndexingService
             SingleReader = true,
             SingleWriter = false
         });
+
+        // Imports and re-indexes queue themselves as they happen. The handler only touches
+        // in-memory state, so it is safe to run on whichever thread raised the event.
+        if (_documentService is not null)
+        {
+            _documentService.DocumentPendingIndexing += OnDocumentPendingIndexing;
+        }
     }
 
     /// <inheritdoc />
@@ -127,50 +176,35 @@ public sealed class IndexingService : IIndexingService
     {
         _logger.Information("Initializing IndexingService");
 
-        // Initialize the vector store (creates tables, loads indexes, etc.)
-        await _vectorStore.InitializeAsync(ct);
+        // Initialize the vector store (creates tables, loads indexes, etc.). A failure is
+        // logged and remembered rather than thrown: the loop still starts, and every document
+        // it takes is marked failed with the reason instead of waiting silently forever.
+        await EnsureVectorStoreReadyAsync(ct);
 
-        // Re-enqueue any documents that were left in "processing" state (from a previous crash)
-        var staleJobs = await _db.IndexingJobs
-            .Where(j => j.Status == "processing")
-            .ToListAsync(ct);
-
-        foreach (var staleJob in staleJobs)
+        try
         {
-            staleJob.Status = "queued";
-            staleJob.StartedAt = null;
-            _logger.Warning("Reset stale indexing job {JobId} for document {DocumentId} back to queued",
-                staleJob.Id, staleJob.DocumentId);
+            await RecoverInterruptedWorkAsync(ct);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Failed to recover indexing work interrupted by the previous shutdown");
         }
 
-        if (staleJobs.Count > 0)
+        // Queue everything left in "pending": documents imported while the service was not
+        // running, and documents handed back by the recovery step above.
+        var queued = await EnqueuePendingDocumentsAsync(ct);
+
+        // Start the background processing loop (once)
+        lock (_startLock)
         {
-            await _db.SaveChangesAsync(ct);
+            _backgroundTask ??= Task.Run(() => ProcessQueueAsync(_shutdownCts.Token), CancellationToken.None);
         }
 
-        // Enqueue any pending documents that have no indexing job yet
-        var pendingDocIds = await _db.Documents
-            .Where(d => d.IndexingStatus == "pending")
-            .Select(d => d.Id)
-            .ToListAsync(ct);
-
-        foreach (var docId in pendingDocIds)
-        {
-            // Check if there is already a queued job for this document
-            var hasQueuedJob = await _db.IndexingJobs
-                .AnyAsync(j => j.DocumentId == docId && (j.Status == "queued" || j.Status == "processing"), ct);
-
-            if (!hasQueuedJob)
-            {
-                _documentQueue.Writer.TryWrite(docId);
-                _logger.Debug("Re-enqueued pending document {DocumentId} for indexing", docId);
-            }
-        }
-
-        // Start the background processing loop
-        _backgroundTask = Task.Run(() => ProcessQueueAsync(_shutdownCts.Token), ct);
-
-        _logger.Information("IndexingService initialized. {PendingCount} documents queued for processing", pendingDocIds.Count);
+        _logger.Information("IndexingService initialized. {PendingCount} documents queued for processing", queued);
     }
 
     /// <inheritdoc />
@@ -183,10 +217,10 @@ public sealed class IndexingService : IIndexingService
         }
 
         // Enqueue for background processing
-        _documentQueue.Writer.TryWrite(documentId);
+        Enqueue(documentId);
+        WarnIfLoopNotRunning();
 
-        var queueLength = await GetQueueLengthAsync();
-        RaiseProgressChanged(queueLength, _processedCount, document.FileName);
+        RaiseProgressChanged(QueueLength, _processedCount, document.FileName);
 
         _logger.Information("Document {DocumentId} ({FileName}) enqueued for indexing", documentId, document.FileName);
     }
@@ -260,21 +294,23 @@ public sealed class IndexingService : IIndexingService
             await _db.SaveChangesAsync(ct);
 
             // Enqueue for indexing
-            _documentQueue.Writer.TryWrite(docId);
+            Enqueue(docId);
 
             processed++;
             progress?.Report((processed, total));
         }
 
+        WarnIfLoopNotRunning();
+
         _logger.Information("Re-index enqueued {Processed}/{Total} documents", processed, total);
     }
 
     /// <inheritdoc />
-    public async Task<int> GetQueueLengthAsync()
-    {
-        return await _db.IndexingJobs
-            .CountAsync(j => j.Status == "queued" || j.Status == "processing");
-    }
+    /// <remarks>
+    /// Counts the in-memory backlog (documents waiting in the channel plus the one being
+    /// processed). The indexing_jobs table is a history log, not the queue.
+    /// </remarks>
+    public Task<int> GetQueueLengthAsync() => Task.FromResult(QueueLength);
 
     /// <inheritdoc />
     public async Task<int> GetProcessedCountAsync()
@@ -290,6 +326,11 @@ public sealed class IndexingService : IIndexingService
         _disposed = true;
 
         _logger.Debug("Disposing IndexingService");
+
+        if (_documentService is not null)
+        {
+            _documentService.DocumentPendingIndexing -= OnDocumentPendingIndexing;
+        }
 
         // Signal the background loop to stop
         _shutdownCts.Cancel();
@@ -312,6 +353,8 @@ public sealed class IndexingService : IIndexingService
 
     /// <summary>
     /// Continuously reads document IDs from the channel and processes them one at a time.
+    /// When the channel stays empty for <see cref="PendingSweepInterval"/>, sweeps the
+    /// database for pending documents that were created without signalling the indexer.
     /// </summary>
     private async Task ProcessQueueAsync(CancellationToken ct)
     {
@@ -319,25 +362,49 @@ public sealed class IndexingService : IIndexingService
 
         try
         {
-            await foreach (var documentId in _documentQueue.Reader.ReadAllAsync(ct))
+            while (!ct.IsCancellationRequested)
             {
+                while (_documentQueue.Reader.TryRead(out var documentId))
+                {
+                    // Flag processing before releasing the id so the queue length never
+                    // reads zero while a document is changing hands.
+                    _isProcessing = true;
+                    _queuedDocumentIds.TryRemove(documentId, out _);
+
+                    try
+                    {
+                        await ProcessSingleDocumentAsync(documentId, ct);
+                    }
+                    catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                    {
+                        _logger.Information("Indexing loop cancelled during document {DocumentId}", documentId);
+                        return;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error(ex, "Unexpected error processing document {DocumentId} in background loop", documentId);
+                    }
+                    finally
+                    {
+                        _isProcessing = false;
+                    }
+                }
+
+                using var idleCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                idleCts.CancelAfter(PendingSweepInterval);
+
                 try
                 {
-                    _isProcessing = true;
-                    await ProcessSingleDocumentAsync(documentId, ct);
+                    if (!await _documentQueue.Reader.WaitToReadAsync(idleCts.Token))
+                    {
+                        break; // The channel was completed by Dispose.
+                    }
                 }
-                catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                catch (OperationCanceledException) when (!ct.IsCancellationRequested)
                 {
-                    _logger.Information("Indexing loop cancelled during document {DocumentId}", documentId);
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error(ex, "Unexpected error processing document {DocumentId} in background loop", documentId);
-                }
-                finally
-                {
-                    _isProcessing = false;
+                    // Idle long enough: pick up documents left "pending" by paths that write
+                    // documents directly instead of going through IDocumentService.
+                    await EnqueuePendingDocumentsAsync(ct);
                 }
             }
         }
@@ -365,10 +432,14 @@ public sealed class IndexingService : IIndexingService
         if (document is null)
         {
             _logger.Warning("Document {DocumentId} not found; skipping indexing", documentId);
+            TakeHandoff(documentId);
             return;
         }
 
         _logger.Information("Starting indexing pipeline for document {DocumentId} ({FileName})", documentId, document.FileName);
+
+        // Claim the import's extraction now so it is released even if this attempt fails early.
+        var handedOver = TakeUsableHandoff(document);
 
         // Update document status to "processing"
         document.IndexingStatus = "processing";
@@ -398,25 +469,24 @@ public sealed class IndexingService : IIndexingService
 
         await _db.SaveChangesAsync(ct);
 
-        RaiseProgressChanged(await GetQueueLengthAsync(), _processedCount, document.FileName);
+        RaiseProgressChanged(QueueLength, _processedCount, document.FileName);
+
+        var indexed = false;
 
         try
         {
-            // 1. Validate source file still exists
-            if (!File.Exists(document.FilePath))
+            // 1. Embeddings have nowhere to go without the vector store. Fail with the
+            //    store's own error so the document shows why it was not indexed.
+            await EnsureVectorStoreReadyAsync(ct);
+            if (!_vectorStoreReady)
             {
-                throw new FileNotFoundException($"Source file no longer exists: {document.FilePath}", document.FilePath);
+                throw new InvalidOperationException(
+                    $"The vector store is not available ({_vectorStoreError ?? "not initialized"}). " +
+                    "Re-index the document once the store is available.");
             }
 
-            // 2. Find the appropriate processor and re-extract text
-            var processor = FindProcessorFor(document.FilePath);
-            if (processor is null)
-            {
-                throw new NotSupportedException(
-                    $"No processor found for file type: {Path.GetExtension(document.FilePath)}");
-            }
-
-            var processed = await processor.ProcessAsync(document.FilePath, ct);
+            // 2. Extract text, reusing the import's extraction when the file is unchanged
+            var processed = handedOver ?? await ExtractAsync(document, ct);
 
             // 3. Get chunking settings
             var settings = await _settingsService.GetSettingsAsync();
@@ -485,6 +555,10 @@ public sealed class IndexingService : IIndexingService
             var embeddingBatchSize = Math.Max(1,
                 _ragConfiguration?.EmbeddingBatchSize ?? FallbackEmbeddingBatchSize);
 
+            // Stamped on every chunk so retrieval can tell vectors from different models
+            // apart instead of treating every chunk as an unversioned legacy row.
+            var embeddingModelVersion = _embeddingService.ModelVersion;
+
             for (var batchStart = 0; batchStart < chunkEntities.Count; batchStart += embeddingBatchSize)
             {
                 ct.ThrowIfCancellationRequested();
@@ -509,21 +583,36 @@ public sealed class IndexingService : IIndexingService
 
                     chunkEntity.VectorRowId = vectorRowId;
                     chunkEntity.IsEmbedded = true;
+                    chunkEntity.EmbeddingModelVersion = embeddingModelVersion;
+                    chunkEntity.EmbeddingDimensions = embedding.Length;
+                    chunkEntity.EmbeddedAt = DateTime.UtcNow;
                     embeddingsGenerated++;
                 }
 
                 await _db.SaveChangesAsync(ct);
             }
 
+            // 9. Index document chunks into FTS5 for keyword search (non-fatal). Done before
+            //    the document is reported complete so a search that follows the completion
+            //    sees both the vectors and the keyword rows.
+            try
+            {
+                await _keywordSearchService.IndexDocumentChunksAsync(documentId, ct);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.Warning(ex, "FTS5 keyword indexing failed for document {DocumentId}", documentId);
+            }
+
             stopwatch.Stop();
 
-            // 9. Update document with indexing results
+            // 10. Update document with indexing results
             document.ChunkCount = chunkEntities.Count;
             document.IndexingStatus = "completed";
             document.IndexingError = null;
             document.LastIndexedAt = DateTime.UtcNow;
 
-            // 10. Update the indexing job
+            // 11. Update the indexing job
             job.Status = "completed";
             job.CompletedAt = DateTime.UtcNow;
             job.ChunksProcessed = chunkEntities.Count;
@@ -538,36 +627,23 @@ public sealed class IndexingService : IIndexingService
                 "Indexed document {DocumentId} ({FileName}): {ChunkCount} chunks, {EmbeddingCount} embeddings in {ElapsedMs:F0}ms",
                 documentId, document.FileName, chunkEntities.Count, embeddingsGenerated, stopwatch.Elapsed.TotalMilliseconds);
 
-            // Raise events
-            var queueLength = await GetQueueLengthAsync();
-            RaiseProgressChanged(queueLength, _processedCount, null);
-            DocumentIndexed?.Invoke(this, documentId);
-
             // Any cached result set may now be stale: entries that referenced this document
             // hold its old chunks, and every other entry was computed without the new text.
             _searchCacheService?.InvalidateAll();
 
-            // Auto-tag the document (non-fatal — must not block the indexing pipeline)
-            try
-            {
-                await _autoTagService.ApplyAutoTagsAsync(documentId, ct);
-            }
-            catch (Exception ex)
-            {
-                _logger.Warning(ex, "Auto-tagging failed for document {DocumentId}", documentId);
-            }
-
-            // Index document chunks into FTS5 for keyword search (non-fatal)
-            try
-            {
-                await _keywordSearchService.IndexDocumentChunksAsync(documentId, ct);
-            }
-            catch (Exception ex)
-            {
-                _logger.Warning(ex, "FTS5 keyword indexing failed for document {DocumentId}", documentId);
-            }
+            // Raise events
+            RaiseProgressChanged(QueueLength, _processedCount, null);
+            DocumentIndexed?.Invoke(this, documentId);
+            indexed = true;
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            // Shutdown mid-document: hand it back to the queue for the next start instead of
+            // leaving it in "processing", where nothing would ever pick it up again.
+            await RequeueInterruptedAsync(document, job);
+            throw;
+        }
+        catch (Exception ex)
         {
             stopwatch.Stop();
 
@@ -585,11 +661,317 @@ public sealed class IndexingService : IIndexingService
 
             await _db.SaveChangesAsync(CancellationToken.None);
 
-            RaiseProgressChanged(await GetQueueLengthAsync(), _processedCount, null);
+            RaiseProgressChanged(QueueLength, _processedCount, null);
+        }
+
+        if (!indexed)
+        {
+            return;
+        }
+
+        // Auto-tag the document (non-fatal: it must not block the indexing pipeline, and the
+        // document is already indexed, so a shutdown here must not send it back to the queue)
+        try
+        {
+            await _autoTagService.ApplyAutoTagsAsync(documentId, ct);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            _logger.Debug("Auto-tagging of document {DocumentId} stopped by shutdown", documentId);
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Auto-tagging failed for document {DocumentId}", documentId);
         }
     }
 
     // ─── Private Helpers ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Documents waiting in the channel plus the one currently being processed.
+    /// </summary>
+    private int QueueLength => _queuedDocumentIds.Count + (_isProcessing ? 1 : 0);
+
+    /// <summary>
+    /// Queues a document unless it is already waiting. Returns true when it was added.
+    /// </summary>
+    private bool Enqueue(long documentId)
+    {
+        if (!_queuedDocumentIds.TryAdd(documentId, 0))
+        {
+            return false;
+        }
+
+        if (_documentQueue.Writer.TryWrite(documentId))
+        {
+            return true;
+        }
+
+        // The channel is completed (the service is shutting down).
+        _queuedDocumentIds.TryRemove(documentId, out _);
+        return false;
+    }
+
+    private void OnDocumentPendingIndexing(object? sender, DocumentPendingIndexingEventArgs e)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (e.Extracted is not null)
+        {
+            StoreHandoff(e.DocumentId, e.Extracted);
+        }
+
+        if (Enqueue(e.DocumentId))
+        {
+            _logger.Debug("Document {DocumentId} queued for indexing", e.DocumentId);
+            RaiseProgressChanged(QueueLength, _processedCount, null);
+        }
+
+        WarnIfLoopNotRunning();
+    }
+
+    private void WarnIfLoopNotRunning()
+    {
+        if (_backgroundTask is null && Interlocked.Exchange(ref _notStartedWarned, 1) == 0)
+        {
+            _logger.Warning(
+                "Documents are being queued for indexing before IndexingService.InitializeAsync ran; they will be processed once the service starts");
+        }
+    }
+
+    /// <summary>
+    /// Queues every document in "pending" status. Returns the number newly queued.
+    /// </summary>
+    private async Task<int> EnqueuePendingDocumentsAsync(CancellationToken ct)
+    {
+        try
+        {
+            var pendingDocIds = await _db.Documents
+                .AsNoTracking()
+                .Where(d => d.IndexingStatus == "pending")
+                .OrderBy(d => d.Id)
+                .Select(d => d.Id)
+                .ToListAsync(ct);
+
+            var added = 0;
+            foreach (var docId in pendingDocIds)
+            {
+                if (Enqueue(docId))
+                {
+                    added++;
+                    _logger.Debug("Queued pending document {DocumentId} for indexing", docId);
+                }
+            }
+
+            if (added > 0)
+            {
+                RaiseProgressChanged(QueueLength, _processedCount, null);
+            }
+
+            return added;
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Failed to look up pending documents for indexing");
+            return 0;
+        }
+    }
+
+    /// <summary>
+    /// Hands work interrupted by a previous shutdown back to the queue. Nothing is being
+    /// processed while the service starts, so any document or job still marked
+    /// "processing" was cut off mid-pipeline.
+    /// </summary>
+    private async Task RecoverInterruptedWorkAsync(CancellationToken ct)
+    {
+        var interruptedDocs = await _db.Documents
+            .Where(d => d.IndexingStatus == "processing")
+            .ToListAsync(ct);
+
+        foreach (var doc in interruptedDocs)
+        {
+            doc.IndexingStatus = "pending";
+            _logger.Warning("Document {DocumentId} was interrupted while indexing; queued again", doc.Id);
+        }
+
+        var staleJobs = await _db.IndexingJobs
+            .Where(j => j.Status == "processing")
+            .ToListAsync(ct);
+
+        foreach (var staleJob in staleJobs)
+        {
+            staleJob.Status = "queued";
+            staleJob.StartedAt = null;
+            _logger.Warning("Reset stale indexing job {JobId} for document {DocumentId} back to queued",
+                staleJob.Id, staleJob.DocumentId);
+        }
+
+        if (interruptedDocs.Count > 0 || staleJobs.Count > 0)
+        {
+            await _db.SaveChangesAsync(ct);
+        }
+    }
+
+    /// <summary>
+    /// Best-effort reset of a document interrupted by shutdown. When this cannot be saved
+    /// (the database may already be closing), <see cref="RecoverInterruptedWorkAsync"/>
+    /// performs the same reset on the next start.
+    /// </summary>
+    private async Task RequeueInterruptedAsync(DocumentEntity document, IndexingJobEntity job)
+    {
+        try
+        {
+            document.IndexingStatus = "pending";
+            job.Status = "queued";
+            job.StartedAt = null;
+            await _db.SaveChangesAsync(CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex,
+                "Could not return interrupted document {DocumentId} to the queue; it will be recovered at the next start",
+                document.Id);
+        }
+    }
+
+    /// <summary>
+    /// Initializes the vector store once. Failures are logged and remembered, never thrown,
+    /// so the next document retries and, if the store is still unavailable, fails loudly
+    /// with the reason.
+    /// </summary>
+    private async Task EnsureVectorStoreReadyAsync(CancellationToken ct)
+    {
+        if (_vectorStoreReady)
+        {
+            return;
+        }
+
+        await _vectorStoreGate.WaitAsync(ct);
+        try
+        {
+            if (_vectorStoreReady)
+            {
+                return;
+            }
+
+            await _vectorStore.InitializeAsync(ct);
+            _vectorStoreReady = true;
+            _vectorStoreError = null;
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _vectorStoreError = ex.Message;
+            _logger.Error(ex, "Vector store failed to initialize; documents cannot be indexed until it is available");
+        }
+        finally
+        {
+            _vectorStoreGate.Release();
+        }
+    }
+
+    /// <summary>
+    /// Runs the document's processor over its source file.
+    /// </summary>
+    private async Task<ProcessedDocument> ExtractAsync(DocumentEntity document, CancellationToken ct)
+    {
+        // Validate source file still exists
+        if (!File.Exists(document.FilePath))
+        {
+            throw new FileNotFoundException($"Source file no longer exists: {document.FilePath}", document.FilePath);
+        }
+
+        // Find the appropriate processor and re-extract text
+        var processor = FindProcessorFor(document.FilePath);
+        if (processor is null)
+        {
+            throw new NotSupportedException(
+                $"No processor found for file type: {Path.GetExtension(document.FilePath)}");
+        }
+
+        return await processor.ProcessAsync(document.FilePath, ct);
+    }
+
+    private void StoreHandoff(long documentId, ProcessedDocument extracted)
+    {
+        var length = extracted.ExtractedText?.Length ?? 0;
+
+        lock (_handoffLock)
+        {
+            if (_extractionHandoff.Remove(documentId, out var previous))
+            {
+                _handoffCharacters -= previous.ExtractedText?.Length ?? 0;
+            }
+
+            if (_handoffCharacters + length > MaxHandoffCharacters)
+            {
+                return; // Over budget: this document is re-extracted when it is processed.
+            }
+
+            _extractionHandoff[documentId] = extracted;
+            _handoffCharacters += length;
+        }
+    }
+
+    private ProcessedDocument? TakeHandoff(long documentId)
+    {
+        lock (_handoffLock)
+        {
+            if (!_extractionHandoff.Remove(documentId, out var extracted))
+            {
+                return null;
+            }
+
+            _handoffCharacters -= extracted.ExtractedText?.Length ?? 0;
+            return extracted;
+        }
+    }
+
+    /// <summary>
+    /// Returns the handed-over extraction when it still describes the file on disk: same
+    /// size and last-write time as recorded on the document when it was extracted. A file
+    /// that has disappeared since keeps the extraction, which was taken from it at import.
+    /// </summary>
+    private ProcessedDocument? TakeUsableHandoff(DocumentEntity document)
+    {
+        var extracted = TakeHandoff(document.Id);
+        if (extracted is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            var fileInfo = new FileInfo(document.FilePath);
+            if (!fileInfo.Exists)
+            {
+                return extracted;
+            }
+
+            if (fileInfo.Length == document.FileSizeBytes
+                && fileInfo.LastWriteTimeUtc.Ticks == document.FileModifiedAt.Ticks)
+            {
+                return extracted;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Debug(ex, "Could not compare document {DocumentId} with its source file", document.Id);
+        }
+
+        _logger.Debug("Source of document {DocumentId} changed since extraction; extracting again", document.Id);
+        return null;
+    }
 
     /// <summary>
     /// Finds the first registered processor that can handle the given file path.

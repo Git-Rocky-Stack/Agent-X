@@ -2,6 +2,7 @@ using System.Text.Json;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Data.VectorDb;
+using AgentX.Core.Documents.Models;
 using AgentX.Core.Helpers;
 using AgentX.Core.Search;
 using AgentX.Core.Services.Search;
@@ -30,6 +31,9 @@ public sealed class DocumentService : IDocumentService
     /// Lazily computed union of all supported extensions across every registered processor.
     /// </summary>
     private readonly Lazy<IReadOnlySet<string>> _allSupportedExtensions;
+
+    /// <inheritdoc />
+    public event EventHandler<DocumentPendingIndexingEventArgs>? DocumentPendingIndexing;
 
     public DocumentService(
         AgentXDbContext db,
@@ -165,6 +169,8 @@ public sealed class DocumentService : IDocumentService
             }
         }
 
+        RaisePendingIndexing(entity.Id, processed);
+
         return entity;
     }
 
@@ -251,6 +257,8 @@ public sealed class DocumentService : IDocumentService
                 await _db.SaveChangesAsync(ct);
             }
         }
+
+        RaisePendingIndexing(entity.Id, processed);
 
         return entity;
     }
@@ -525,7 +533,6 @@ public sealed class DocumentService : IDocumentService
     public async Task ReindexDocumentAsync(long documentId, CancellationToken ct = default)
     {
         var document = await _db.Documents
-            .Include(d => d.Chunks)
             .FirstOrDefaultAsync(d => d.Id == documentId, ct);
 
         if (document is null)
@@ -536,50 +543,61 @@ public sealed class DocumentService : IDocumentService
         // Verify the source file still exists
         if (!File.Exists(document.FilePath))
         {
-            document.IndexingStatus = "failed";
-            document.IndexingError = $"Source file no longer exists: {document.FilePath}";
-            await _db.SaveChangesAsync(ct);
+            await MarkFailedAsync(document, $"Source file no longer exists: {document.FilePath}");
             throw new FileNotFoundException($"Source file no longer exists: {document.FilePath}", document.FilePath);
         }
 
-        // Delete existing vector embeddings
-        if (_vectorStore is not null && document.Chunks.Count > 0)
-        {
-            var chunkIds = document.Chunks
-                .Where(c => c.IsEmbedded && c.VectorRowId.HasValue)
-                .Select(c => c.Id)
-                .ToList();
-
-            if (chunkIds.Count > 0)
-            {
-                try
-                {
-                    await _vectorStore.DeleteEmbeddingsForDocumentAsync(documentId, chunkIds);
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error(ex, "Failed to delete vector embeddings during re-index for document {DocumentId}", documentId);
-                }
-            }
-        }
-
-        // Remove existing chunks
-        _db.DocumentChunks.RemoveRange(document.Chunks);
-
-        // Recompute hash (file may have changed)
-        var newHash = await HashHelper.ComputeFileHashAsync(document.FilePath, ct);
-
-        // Re-extract text
         var processor = FindProcessorFor(document.FilePath);
         if (processor is null)
         {
-            document.IndexingStatus = "failed";
-            document.IndexingError = $"No processor found for file type: {Path.GetExtension(document.FilePath)}";
-            await _db.SaveChangesAsync(ct);
-            throw new NotSupportedException(document.IndexingError);
+            var error = $"No processor found for file type: {Path.GetExtension(document.FilePath)}";
+            await MarkFailedAsync(document, error);
+            throw new NotSupportedException(error);
         }
 
-        var processed = await processor.ProcessAsync(document.FilePath, ct);
+        // Hash and extract BEFORE touching the existing index data. If either throws, the
+        // document keeps its current chunks and vectors, and no half-finished deletes are
+        // left pending in the shared change tracker for some later SaveChanges to flush.
+        string newHash;
+        ProcessedDocument processed;
+        try
+        {
+            newHash = await HashHelper.ComputeFileHashAsync(document.FilePath, ct);
+            processed = await processor.ProcessAsync(document.FilePath, ct);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.Warning(ex, "Re-index of document {DocumentId} failed during text extraction", documentId);
+            await MarkFailedAsync(document, $"Text extraction failed: {ex.Message}");
+            throw;
+        }
+
+        // Extraction succeeded: remove the previous version's index data.
+        var existingChunks = await _db.DocumentChunks
+            .Where(c => c.DocumentId == documentId)
+            .ToListAsync(ct);
+
+        var embeddedChunkIds = existingChunks
+            .Where(c => c.IsEmbedded && c.VectorRowId.HasValue)
+            .Select(c => c.Id)
+            .ToList();
+
+        if (_vectorStore is not null && embeddedChunkIds.Count > 0)
+        {
+            try
+            {
+                await _vectorStore.DeleteEmbeddingsForDocumentAsync(documentId, embeddedChunkIds, ct);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.Error(ex, "Failed to delete vector embeddings during re-index for document {DocumentId}", documentId);
+            }
+        }
+
+        await RemoveFromKeywordIndexAsync(documentId, "re-index", ct);
+
+        _db.DocumentChunks.RemoveRange(existingChunks);
+
         var fileInfo = new FileInfo(document.FilePath);
 
         // Update document metadata
@@ -598,7 +616,40 @@ public sealed class DocumentService : IDocumentService
 
         await _db.SaveChangesAsync(ct);
 
+        _searchCacheService?.InvalidateForDocument(documentId);
+
         _logger.Information("Document {DocumentId} ({FileName}) reset to pending for re-indexing", documentId, document.FileName);
+
+        // Hand the document to the indexing pipeline; without this it would sit in "pending"
+        // until the next startup even though every caller reports it as queued.
+        RaisePendingIndexing(documentId, processed);
+    }
+
+    /// <summary>
+    /// Records a failure on the document. Saved without the caller's token so the status
+    /// persists even when the failure was raised on the way out of a cancelled operation.
+    /// </summary>
+    private async Task MarkFailedAsync(DocumentEntity document, string error)
+    {
+        document.IndexingStatus = "failed";
+        document.IndexingError = error;
+        await _db.SaveChangesAsync(CancellationToken.None);
+    }
+
+    /// <summary>
+    /// Notifies subscribers (the indexing pipeline) that a document is waiting in "pending".
+    /// A failing handler must not fail the import that raised the event.
+    /// </summary>
+    private void RaisePendingIndexing(long documentId, ProcessedDocument? extracted)
+    {
+        try
+        {
+            DocumentPendingIndexing?.Invoke(this, new DocumentPendingIndexingEventArgs(documentId, extracted));
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "A DocumentPendingIndexing handler failed for document {DocumentId}", documentId);
+        }
     }
 
     /// <inheritdoc />
