@@ -115,6 +115,12 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     public bool CanRunSelectedWorkflow => SelectedWorkflow is not null && !IsRunning;
     public bool ShowWorkflowStarterEmptyState => !IsEditing && !HasSelectedWorkflow;
     public bool ShowWorkflowRunnerSection => !IsEditing && HasSelectedWorkflow;
+
+    /// <summary>
+    /// The workflow list is locked while the editor is open, so the selection (which the list
+    /// binds two-way) cannot drift to another workflow in the middle of an edit.
+    /// </summary>
+    public bool CanChangeWorkflowSelection => !IsEditing;
     public bool HasRecentRuns => RecentRuns.Count > 0;
     public bool ShowRecentRunsEmptyState => HasSelectedWorkflow && !HasRecentRuns;
     public bool HasFocusedWorkflowRunLanding => !string.IsNullOrWhiteSpace(FocusedWorkflowRunSourceLabel);
@@ -155,6 +161,12 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
 
     private CancellationTokenSource? _runCts;
     private OperationsWorkflowRunDrillInRequest? _pendingOperationsRunRequest;
+
+    /// <summary>
+    /// The workflow the editor is editing, captured when editing starts; null while composing a
+    /// new workflow. Save writes to this workflow, never to whatever the list selection became.
+    /// </summary>
+    private long? _editingWorkflowId;
 
     public WorkflowBuilderViewModel(
         IWorkflowService workflowService,
@@ -433,6 +445,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
                 PromptTemplate = "{{input}}"
             });
 
+            _editingWorkflowId = null;
             IsEditing = true;
             SelectedWorkflow = null;
         }
@@ -472,10 +485,12 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
                     PromptTemplate = step.PromptTemplate,
                     ModelOverride = step.ModelOverride,
                     TemperatureOverride = step.TemperatureOverride,
-                    MaxTokensOverride = step.MaxTokensOverride
+                    MaxTokensOverride = step.MaxTokensOverride,
+                    ConfigJson = step.ConfigJson
                 });
             }
 
+            _editingWorkflowId = workflow.Id;
             IsEditing = true;
 
             // Select matching item in list
@@ -548,11 +563,23 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         try
         {
             WorkflowEntity workflow;
+            string? savedAsCopyOf = null;
 
-            if (SelectedWorkflow is not null && SelectedWorkflow.Id > 0)
+            var existing = _editingWorkflowId is { } editingId && editingId > 0
+                ? await _workflowService.GetWorkflowAsync(editingId) ?? throw new InvalidOperationException("Workflow not found")
+                : null;
+
+            if (existing is { IsBuiltIn: true })
             {
-                // Update existing
-                workflow = await _workflowService.GetWorkflowAsync(SelectedWorkflow.Id) ?? throw new InvalidOperationException("Workflow not found");
+                // Built-in templates are never changed in place; the edits become a new workflow.
+                savedAsCopyOf = existing.Name;
+                existing = null;
+            }
+
+            if (existing is not null)
+            {
+                // Update the workflow that was opened for editing
+                workflow = existing;
                 workflow.Name = EditName;
                 workflow.Description = EditDescription;
                 workflow.Category = EditCategory;
@@ -574,7 +601,8 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
                         PromptTemplate = step.PromptTemplate,
                         ModelOverride = step.ModelOverride,
                         TemperatureOverride = step.TemperatureOverride,
-                        MaxTokensOverride = step.MaxTokensOverride
+                        MaxTokensOverride = step.MaxTokensOverride,
+                        ConfigJson = step.ConfigJson
                     });
                 }
             }
@@ -595,14 +623,18 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
                         PromptTemplate = step.PromptTemplate,
                         ModelOverride = step.ModelOverride,
                         TemperatureOverride = step.TemperatureOverride,
-                        MaxTokensOverride = step.MaxTokensOverride
+                        MaxTokensOverride = step.MaxTokensOverride,
+                        ConfigJson = step.ConfigJson
                     });
                 }
             }
 
+            _editingWorkflowId = null;
             IsEditing = false;
             await LoadWorkflowsAsync();
-            StatusMessage = $"Workflow \"{EditName}\" saved";
+            StatusMessage = savedAsCopyOf is null
+                ? $"Workflow \"{EditName}\" saved"
+                : $"Built-in workflow \"{savedAsCopyOf}\" was not changed; your edits were saved as the new workflow \"{EditName}\"";
         }
         catch (Exception ex)
         {
@@ -614,6 +646,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void CancelEdit()
     {
+        _editingWorkflowId = null;
         IsEditing = false;
         EditSteps.Clear();
     }
@@ -737,16 +770,26 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             RunDurationMs = result.TotalDurationMs;
             RunCompleted = result.Success;
             RunFailed = !result.Success;
-            RunResultContextText = "Showing latest execution result";
 
-            if (!result.Success)
+            if (result.WasCancelled)
             {
-                RunErrorMessage = "One or more steps failed. Check step outputs for details.";
+                RunErrorMessage = "Cancelled by user";
+                RunResultContextText = "Showing the cancelled execution result";
+                StatusMessage = "Workflow cancelled";
             }
+            else
+            {
+                RunResultContextText = "Showing latest execution result";
 
-            StatusMessage = result.Success
-                ? $"Workflow completed in {result.TotalDurationMs:F0}ms"
-                : "Workflow failed";
+                if (!result.Success)
+                {
+                    RunErrorMessage = "One or more steps failed. Check step outputs for details.";
+                }
+
+                StatusMessage = result.Success
+                    ? $"Workflow completed in {result.TotalDurationMs:F0}ms"
+                    : "Workflow failed";
+            }
 
             await LoadWorkflowsAsync();
         }
@@ -863,6 +906,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     {
         OnPropertyChanged(nameof(ShowWorkflowStarterEmptyState));
         OnPropertyChanged(nameof(ShowWorkflowRunnerSection));
+        OnPropertyChanged(nameof(CanChangeWorkflowSelection));
     }
 
     partial void OnRunOutputChanged(string value)
@@ -1303,6 +1347,12 @@ public partial class WorkflowStepItem : ObservableObject
     [ObservableProperty] private string? _modelOverride;
     [ObservableProperty] private double? _temperatureOverride;
     [ObservableProperty] private int? _maxTokensOverride;
+
+    /// <summary>
+    /// Step-specific settings (transform type, lookup collection, branch condition). Not edited
+    /// on this page yet, but carried through edit and save so they are not erased.
+    /// </summary>
+    [ObservableProperty] private string? _configJson;
 }
 
 public partial class StepOutputItem : ObservableObject

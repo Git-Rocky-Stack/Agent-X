@@ -814,6 +814,85 @@ public sealed class WorkflowServiceTests : IDisposable
         (await _dbFactory.CreateContext().Workflows.CountAsync(w => w.IsBuiltIn)).Should().Be(1);
     }
 
+    [Fact]
+    public async Task SeedBuiltInWorkflowsAsync_email_step_names_the_tweet_thread_it_actually_receives()
+    {
+        using var db = _dbFactory.CreateContext();
+
+        await Sut(db).SeedBuiltInWorkflowsAsync();
+
+        await using var verify = _dbFactory.CreateContext();
+        var steps = await verify.WorkflowSteps
+            .Where(step => step.Workflow.Name == "Content Repurpose")
+            .OrderBy(step => step.StepOrder)
+            .ToListAsync();
+
+        steps[1].Name.Should().Be("Tweet Thread");
+        steps[2].Name.Should().Be("Professional Email");
+        steps[2].PromptTemplate.Should().Contain("Tweet thread:\n{{previous_output}}");
+        steps[2].PromptTemplate.Should().NotContain("Core message");
+    }
+
+    [Fact]
+    public async Task SeedBuiltInWorkflowsAsync_repairs_the_shipped_email_prompt_but_keeps_user_edits()
+    {
+        using var db = _dbFactory.CreateContext();
+        var shipped = NewWorkflow("Content Repurpose", "Writing", isBuiltIn: true);
+        shipped.Steps.Add(new WorkflowStepEntity
+        {
+            StepOrder = 2,
+            Name = "Professional Email",
+            StepType = "AiPrompt",
+            PromptTemplate = WorkflowTemplate.LegacyContentRepurposeEmailTemplate,
+        });
+        var edited = NewWorkflow("Content Repurpose", "Writing", isBuiltIn: true);
+        edited.Steps.Add(new WorkflowStepEntity
+        {
+            StepOrder = 2,
+            Name = "Professional Email",
+            StepType = "AiPrompt",
+            PromptTemplate = "My own email prompt\n{{previous_output}}",
+        });
+        db.Workflows.AddRange(shipped, edited);
+        await db.SaveChangesAsync();
+
+        await Sut(db).SeedBuiltInWorkflowsAsync();
+
+        await using var verify = _dbFactory.CreateContext();
+        (await verify.WorkflowSteps.SingleAsync(step => step.WorkflowId == shipped.Id))
+            .PromptTemplate.Should().Be(WorkflowTemplate.ContentRepurposeEmailTemplate);
+        (await verify.WorkflowSteps.SingleAsync(step => step.WorkflowId == edited.Id))
+            .PromptTemplate.Should().Be("My own email prompt\n{{previous_output}}");
+    }
+
+    [Fact]
+    public async Task ReconcileInterruptedRunsAsync_marks_runs_left_running_as_interrupted()
+    {
+        using var db = _dbFactory.CreateContext();
+        var workflow = NewWorkflow("Wf", "Custom");
+        db.Workflows.Add(workflow);
+        await db.SaveChangesAsync();
+
+        var started = new DateTime(2026, 4, 23, 14, 0, 0, DateTimeKind.Utc);
+        db.WorkflowRuns.AddRange(
+            new WorkflowRunEntity { WorkflowId = workflow.Id, Status = "running", StartedAt = started, TotalSteps = 3 },
+            new WorkflowRunEntity { WorkflowId = workflow.Id, Status = "completed", StartedAt = started, CompletedAt = started.AddMinutes(1) },
+            new WorkflowRunEntity { WorkflowId = workflow.Id, Status = "cancelled", StartedAt = started, CompletedAt = started.AddMinutes(1) });
+        await db.SaveChangesAsync();
+
+        var reconciled = await Sut(db).ReconcileInterruptedRunsAsync();
+
+        reconciled.Should().Be(1);
+        await using var verify = _dbFactory.CreateContext();
+        var runs = await verify.WorkflowRuns.OrderBy(run => run.Id).ToListAsync();
+        runs[0].Status.Should().Be("failed");
+        runs[0].ErrorMessage.Should().StartWith("Interrupted");
+        runs[0].CompletedAt.Should().NotBeNull();
+        runs[1].Status.Should().Be("completed");
+        runs[2].Status.Should().Be("cancelled");
+        (await verify.WorkflowRuns.CountAsync(run => run.Status == "running")).Should().Be(0);
+    }
+
     private WorkflowService Sut(AgentXDbContext db) => new(db, Log.ForContext<WorkflowServiceTests>());
 
     private static WorkflowEntity NewWorkflow(string name, string category, bool isBuiltIn = false, long id = 0) => new()

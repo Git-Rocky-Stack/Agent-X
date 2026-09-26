@@ -101,6 +101,7 @@
                 <ListView Grid.Row="2"
                           ItemsSource="{x:Bind ViewModel.Workflows}"
                           SelectedItem="{x:Bind ViewModel.SelectedWorkflow, Mode=TwoWay}"
+                          IsEnabled="{x:Bind ViewModel.CanChangeWorkflowSelection, Mode=OneWay}"
                           SelectionMode="Single"
                           Padding="8,0">
                     <ListView.ItemTemplate>

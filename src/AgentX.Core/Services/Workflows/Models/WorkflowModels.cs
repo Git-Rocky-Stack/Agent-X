@@ -56,6 +56,13 @@ public record WorkflowRunResult
 
     /// <summary>Indicates whether all steps completed successfully.</summary>
     public bool Success { get; init; }
+
+    /// <summary>
+    /// True when the run stopped because cancellation was requested (not because a step
+    /// failed). <see cref="Success"/> is false for a cancelled run as well, so callers use
+    /// this flag to tell the two apart.
+    /// </summary>
+    public bool WasCancelled { get; init; }
 }
 
 /// <summary>
@@ -111,6 +118,22 @@ public record WorkflowRunHistoryItem
 /// </summary>
 public static class WorkflowTemplate
 {
+    /// <summary>
+    /// Prompt of the "Professional Email" step in <see cref="ContentRepurpose"/>. Its
+    /// <c>{{previous_output}}</c> is the preceding step's output, the tweet thread, so the
+    /// prompt names it as such.
+    /// </summary>
+    internal const string ContentRepurposeEmailTemplate =
+        "Using the original content and the tweet thread below, which distills its key points, write a professional email that communicates those key points. Include a clear subject line, greeting, body, call-to-action, and sign-off.\n\nOriginal content:\n{{input}}\n\nTweet thread:\n{{previous_output}}";
+
+    /// <summary>
+    /// The email prompt as first shipped. It labelled <c>{{previous_output}}</c> "Core message"
+    /// although the previous step is the tweet thread. Seeded rows that still carry it verbatim
+    /// are repaired by <see cref="IWorkflowService.SeedBuiltInWorkflowsAsync"/>.
+    /// </summary>
+    internal const string LegacyContentRepurposeEmailTemplate =
+        "Using the original content and the core message, write a professional email that communicates the key points. Include a clear subject line, greeting, body, call-to-action, and sign-off.\n\nOriginal content:\n{{input}}\n\nCore message:\n{{previous_output}}";
+
     /// <summary>
     /// Creates a "Summarize and Act" workflow that summarizes input,
     /// extracts key points, and generates actionable items.
@@ -289,7 +312,7 @@ public static class WorkflowTemplate
                     StepOrder = 2,
                     Name = "Professional Email",
                     StepType = "AiPrompt",
-                    PromptTemplate = "Using the original content and the core message, write a professional email that communicates the key points. Include a clear subject line, greeting, body, call-to-action, and sign-off.\n\nOriginal content:\n{{input}}\n\nCore message:\n{{previous_output}}",
+                    PromptTemplate = ContentRepurposeEmailTemplate,
                     TemperatureOverride = 0.6,
                 },
                 new()

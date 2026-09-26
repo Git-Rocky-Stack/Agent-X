@@ -25,7 +25,26 @@ public class WorkflowEngine : IWorkflowEngine
     private readonly ILogger _log;
 
     private CancellationTokenSource? _cancellationSource;
-    private volatile bool _isRunning;
+
+    /// <summary>1 while a workflow executes. Set with a compare-exchange so two callers can never both start.</summary>
+    private int _running;
+
+    /// <summary>1 once runs left "running" by a previous process have been reconciled.</summary>
+    private int _interruptedRunsReconciled;
+
+    /// <summary>
+    /// Upper bound for a "matches" condition. The pattern comes from workflow JSON, which can be
+    /// imported from anywhere, so a catastrophic-backtracking pattern must not hang the engine.
+    /// </summary>
+    private static readonly TimeSpan ConditionRegexTimeout = TimeSpan.FromSeconds(2);
+
+    /// <summary>
+    /// Matches the two template placeholders. Templates are resolved in a single pass so text
+    /// substituted for one placeholder is never scanned for the other.
+    /// </summary>
+    private static readonly Regex TemplatePlaceholder = new(
+        @"\{\{(input|previous_output)\}\}",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     /// <summary>
     /// Supported text transform operations for the TextTransform step type.
@@ -61,7 +80,7 @@ public class WorkflowEngine : IWorkflowEngine
     }
 
     /// <inheritdoc />
-    public bool IsRunning => _isRunning;
+    public bool IsRunning => Volatile.Read(ref _running) == 1;
 
     /// <inheritdoc />
     public event EventHandler<WorkflowStepResult>? StepCompleted;
@@ -73,18 +92,61 @@ public class WorkflowEngine : IWorkflowEngine
         IProgress<WorkflowStepResult>? progress = null,
         CancellationToken ct = default)
     {
-        if (_isRunning)
-        {
-            throw new InvalidOperationException(
-                "A workflow is already being executed. Cancel the current execution before starting a new one.");
-        }
-
         if (string.IsNullOrWhiteSpace(input))
         {
             throw new ArgumentException(
                 "Workflow input must not be empty.", nameof(input));
         }
 
+        // Atomic check-and-set: a second caller can never slip in between the check and the set.
+        if (Interlocked.CompareExchange(ref _running, 1, 0) != 0)
+        {
+            throw new InvalidOperationException(
+                "A workflow is already being executed. Cancel the current execution before starting a new one.");
+        }
+
+        try
+        {
+            await ReconcileInterruptedRunsOnceAsync(ct);
+            return await ExecuteCoreAsync(workflowId, input, progress, ct);
+        }
+        finally
+        {
+            // Every exit path, including a failed load or a failed save of the run record,
+            // releases the engine; otherwise it would refuse all work until restart.
+            Interlocked.Exchange(ref _cancellationSource, null)?.Dispose();
+            Volatile.Write(ref _running, 0);
+        }
+    }
+
+    /// <summary>
+    /// Runs left "running" by a previous process can never finish; mark them interrupted once,
+    /// before this engine creates its first run (no run of ours can be active at that point).
+    /// </summary>
+    private async Task ReconcileInterruptedRunsOnceAsync(CancellationToken ct)
+    {
+        if (Interlocked.CompareExchange(ref _interruptedRunsReconciled, 1, 0) != 0)
+        {
+            return;
+        }
+
+        try
+        {
+            await _workflowService.ReconcileInterruptedRunsAsync(ct);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // Not fatal for the run about to start; stale rows are retried next session.
+            _log.Warning(ex, "Could not reconcile workflow runs interrupted by a previous session");
+        }
+    }
+
+    private async Task<WorkflowRunResult> ExecuteCoreAsync(
+        long workflowId,
+        string input,
+        IProgress<WorkflowStepResult>? progress,
+        CancellationToken ct)
+    {
         // Load the workflow with its steps
         var workflow = await _workflowService.GetWorkflowAsync(workflowId);
         if (workflow is null)
@@ -104,8 +166,8 @@ public class WorkflowEngine : IWorkflowEngine
         }
 
         // Create a linked cancellation source so we can cancel internally
-        _cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        _isRunning = true;
+        var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        _cancellationSource = cancellationSource;
 
         var overallStopwatch = Stopwatch.StartNew();
         var stepResults = new List<WorkflowStepResult>();
@@ -122,8 +184,17 @@ public class WorkflowEngine : IWorkflowEngine
             StepsCompleted = 0,
         };
 
-        _db.WorkflowRuns.Add(run);
-        await _db.SaveChangesAsync();
+        var runEntry = _db.WorkflowRuns.Add(run);
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch
+        {
+            // Do not leave an unsaveable run tracked on the shared context.
+            runEntry.State = Microsoft.EntityFrameworkCore.EntityState.Detached;
+            throw;
+        }
 
         _log.Information(
             "Starting workflow '{WorkflowName}' (Id={WorkflowId}) with {StepCount} steps, RunId={RunId}",
@@ -134,7 +205,7 @@ public class WorkflowEngine : IWorkflowEngine
             for (var i = 0; i < orderedSteps.Count; i++)
             {
                 // Check for cancellation before each step
-                if (_cancellationSource.Token.IsCancellationRequested)
+                if (cancellationSource.Token.IsCancellationRequested)
                 {
                     _log.Information(
                         "Workflow execution cancelled before step {StepOrder} '{StepName}'",
@@ -152,7 +223,7 @@ public class WorkflowEngine : IWorkflowEngine
 
                 var step = orderedSteps[i];
                 var stepResult = await ExecuteStepAsync(
-                    step, input, previousOutput, _cancellationSource.Token);
+                    step, input, previousOutput, cancellationSource.Token);
 
                 stepResults.Add(stepResult);
 
@@ -231,9 +302,10 @@ public class WorkflowEngine : IWorkflowEngine
                 TotalTokensUsed = stepResults.Sum(r => r.TokensUsed),
                 TotalDurationMs = overallStopwatch.Elapsed.TotalMilliseconds,
                 Success = run.Status == "completed",
+                WasCancelled = run.Status == "cancelled",
             };
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (cancellationSource.IsCancellationRequested)
         {
             overallStopwatch.Stop();
 
@@ -256,6 +328,7 @@ public class WorkflowEngine : IWorkflowEngine
                 TotalTokensUsed = stepResults.Sum(r => r.TokensUsed),
                 TotalDurationMs = overallStopwatch.Elapsed.TotalMilliseconds,
                 Success = false,
+                WasCancelled = true,
             };
         }
         catch (Exception ex)
@@ -284,12 +357,6 @@ public class WorkflowEngine : IWorkflowEngine
                 Success = false,
             };
         }
-        finally
-        {
-            _isRunning = false;
-            _cancellationSource?.Dispose();
-            _cancellationSource = null;
-        }
     }
 
     /// <inheritdoc />
@@ -298,10 +365,18 @@ public class WorkflowEngine : IWorkflowEngine
         // FU-2: changed from sync Cancel() returning Task.CompletedTask to async
         // Task awaiting CancelAsync(). Method signature unchanged from caller's
         // perspective — they were already awaiting it.
-        if (_cancellationSource is not null && !_cancellationSource.IsCancellationRequested)
+        var source = Volatile.Read(ref _cancellationSource);
+        if (source is not null && !source.IsCancellationRequested)
         {
             _log.Information("Cancellation requested for running workflow");
-            await _cancellationSource.CancelAsync().ConfigureAwait(false);
+            try
+            {
+                await source.CancelAsync().ConfigureAwait(false);
+            }
+            catch (ObjectDisposedException)
+            {
+                // The run finished and released its token source in the meantime.
+            }
         }
         else
         {
@@ -344,9 +419,29 @@ public class WorkflowEngine : IWorkflowEngine
                 },
             };
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
             throw; // Let the caller handle cancellation
+        }
+        catch (OperationCanceledException ex)
+        {
+            // Nobody asked to cancel, so this is a provider timeout (HttpClient reports its
+            // timeout as TaskCanceledException). Record it as a failed step, not a cancellation.
+            stepStopwatch.Stop();
+
+            _log.Warning(ex,
+                "Step '{StepName}' (Type={StepType}) timed out",
+                step.Name, step.StepType);
+
+            return new WorkflowStepResult
+            {
+                StepName = step.Name,
+                StepOrder = step.StepOrder,
+                Output = string.Empty,
+                DurationMs = stepStopwatch.Elapsed.TotalMilliseconds,
+                Success = false,
+                ErrorMessage = "The step timed out before the model or search service responded.",
+            };
         }
         catch (Exception ex)
         {
@@ -750,10 +845,29 @@ public class WorkflowEngine : IWorkflowEngine
             "starts_with" => text.StartsWith(value, StringComparison.OrdinalIgnoreCase),
             "ends_with" => text.EndsWith(value, StringComparison.OrdinalIgnoreCase),
             "equals" => text.Equals(value, StringComparison.OrdinalIgnoreCase),
-            "matches" => Regex.IsMatch(text, value, RegexOptions.IgnoreCase),
+            "matches" => MatchesPattern(text, value),
             "length_greater_than" => int.TryParse(value, out var len) && text.Length > len,
             _ => false,
         };
+    }
+
+    /// <summary>
+    /// Evaluates a "matches" condition with a timeout. The pattern may come from an imported
+    /// workflow, so a pattern that backtracks catastrophically fails the step instead of
+    /// hanging the engine.
+    /// </summary>
+    private static bool MatchesPattern(string text, string pattern)
+    {
+        try
+        {
+            return Regex.IsMatch(text, pattern, RegexOptions.IgnoreCase, ConditionRegexTimeout);
+        }
+        catch (RegexMatchTimeoutException ex)
+        {
+            throw new InvalidOperationException(
+                $"The 'matches' condition took longer than {ConditionRegexTimeout.TotalSeconds:F0} seconds and was stopped. Simplify the pattern.",
+                ex);
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -857,8 +971,8 @@ public class WorkflowEngine : IWorkflowEngine
     private static string WrapAsHtml(string text, string title)
     {
         var escapedTitle = System.Net.WebUtility.HtmlEncode(title);
-        var escapedText = System.Net.WebUtility.HtmlEncode(text)
-            .Replace(Environment.NewLine, "<br/>\n")
+        var normalized = text.Replace("\r\n", "\n").Replace('\r', '\n');
+        var escapedText = System.Net.WebUtility.HtmlEncode(normalized)
             .Replace("\n", "<br/>\n");
         return $"<div>\n<h2>{escapedTitle}</h2>\n<p>{escapedText}</p>\n</div>";
     }
@@ -896,9 +1010,12 @@ public class WorkflowEngine : IWorkflowEngine
             return string.Empty;
         }
 
-        return template
-            .Replace("{{input}}", input)
-            .Replace("{{previous_output}}", previousOutput);
+        // One pass over the template: a value substituted for one placeholder (user input or
+        // model output) is never scanned for the other, so "{{previous_output}}" typed by the
+        // user stays literal.
+        return TemplatePlaceholder.Replace(
+            template,
+            match => match.Groups[1].Value == "input" ? input : previousOutput);
     }
 
     // ─────────────────────────────────────────────────────────────────────

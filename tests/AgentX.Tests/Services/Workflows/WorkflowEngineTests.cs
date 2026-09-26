@@ -1051,7 +1051,35 @@ public sealed class WorkflowEngineTests
     }
 
     [Fact]
-    public async Task Step_throwing_operation_cancelled_marks_run_cancelled()
+    public async Task Step_timing_out_without_a_cancel_request_fails_the_run_instead_of_cancelling_it()
+    {
+        using var harness = new WorkflowEngineHarness();
+        var id = harness.ConfigureWorkflow("wf",
+            Step("AiPrompt", name: "Gen", template: "{{input}}"));
+
+        // HttpClient reports its own timeout as TaskCanceledException while nobody asked to
+        // cancel; that is a failed step, not a user cancellation.
+        harness.AiService
+            .Setup(s => s.ChatAsync(
+                It.IsAny<IReadOnlyList<ChatMessage>>(),
+                It.IsAny<string?>(),
+                It.IsAny<ChatOptions?>(),
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new TaskCanceledException("The request was canceled due to the configured HttpClient.Timeout"));
+
+        var result = await harness.Engine.ExecuteWorkflowAsync(id, "in");
+
+        result.Success.Should().BeFalse();
+        result.WasCancelled.Should().BeFalse();
+        result.Steps.Should().ContainSingle().Which.ErrorMessage.Should().Contain("timed out");
+
+        var run = harness.LastRun();
+        run.Status.Should().Be("failed");
+        run.ErrorMessage.Should().Contain("timed out");
+    }
+
+    [Fact]
+    public async Task Step_cancelled_through_the_engine_marks_the_run_cancelled_and_reports_it()
     {
         using var harness = new WorkflowEngineHarness();
         var id = harness.ConfigureWorkflow("wf",
@@ -1063,13 +1091,121 @@ public sealed class WorkflowEngineTests
                 It.IsAny<string?>(),
                 It.IsAny<ChatOptions?>(),
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new OperationCanceledException());
+            .Returns(async (IReadOnlyList<ChatMessage> _, string? _, ChatOptions? _, CancellationToken ct) =>
+            {
+                await harness.Engine.CancelExecutionAsync();
+                ct.ThrowIfCancellationRequested();
+                return "never";
+            });
 
         var result = await harness.Engine.ExecuteWorkflowAsync(id, "in");
 
         result.Success.Should().BeFalse();
-        result.Steps.Should().BeEmpty();
+        result.WasCancelled.Should().BeTrue();
         harness.LastRun().Status.Should().Be("cancelled");
+        harness.Engine.IsRunning.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Precancelled_run_reports_it_was_cancelled()
+    {
+        using var harness = new WorkflowEngineHarness();
+        var id = harness.ConfigureWorkflow("wf", Step("AiPrompt", template: "{{input}}"));
+
+        var result = await harness.Engine.ExecuteWorkflowAsync(
+            id, "in", progress: null, ct: new CancellationToken(canceled: true));
+
+        result.WasCancelled.Should().BeTrue();
+    }
+
+    // ---- Engine lock, interrupted runs, templates, formatting and regex safety ----
+
+    [Fact]
+    public async Task Failed_save_of_the_run_record_does_not_lock_the_engine()
+    {
+        using var harness = new WorkflowEngineHarness();
+
+        // A workflow the store returns but the database has no row for: inserting its run
+        // violates the foreign key, so the very first save fails.
+        harness.WorkflowService
+            .Setup(s => s.GetWorkflowAsync(555))
+            .ReturnsAsync(new WorkflowEntity
+            {
+                Id = 555,
+                Name = "ghost",
+                Category = "Custom",
+                Steps = [Step("AiPrompt", template: "{{input}}")],
+            });
+
+        await harness.Engine.Invoking(e => e.ExecuteWorkflowAsync(555, "in"))
+            .Should().ThrowAsync<Exception>();
+
+        harness.Engine.IsRunning.Should().BeFalse("a failed save must release the engine");
+
+        var id = harness.ConfigureWorkflow("wf", Step("AiPrompt", template: "{{input}}"));
+        var result = await harness.Engine.ExecuteWorkflowAsync(id, "in");
+
+        result.Success.Should().BeTrue("the next run starts normally instead of reporting 'already being executed'");
+    }
+
+    [Fact]
+    public async Task First_execution_reconciles_runs_interrupted_by_a_previous_session_once()
+    {
+        using var harness = new WorkflowEngineHarness();
+        var id = harness.ConfigureWorkflow("wf", Step("AiPrompt", template: "{{input}}"));
+
+        await harness.Engine.ExecuteWorkflowAsync(id, "one");
+        await harness.Engine.ExecuteWorkflowAsync(id, "two");
+
+        harness.WorkflowService.Verify(s => s.ReconcileInterruptedRunsAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Templates_are_resolved_in_one_pass_so_user_text_is_never_rescanned()
+    {
+        using var harness = new WorkflowEngineHarness();
+        var id = harness.ConfigureWorkflow("wf",
+            Step("OutputFormat", order: 0, template: "first"),
+            Step("OutputFormat", order: 1, template: "[{{input}}] [{{previous_output}}]"));
+
+        var result = await harness.Engine.ExecuteWorkflowAsync(id, "literal {{previous_output}} and {{input}}");
+
+        result.FinalOutput.Should().Be("[literal {{previous_output}} and {{input}}] [first]");
+    }
+
+    [Fact]
+    public async Task OutputFormat_html_emits_one_line_break_per_newline()
+    {
+        using var harness = new WorkflowEngineHarness();
+        var config = JsonSerializer.Serialize(new { format = "html" });
+        var id = harness.ConfigureWorkflow("wf",
+            Step("OutputFormat", name: "Doc", template: "{{input}}", config: config));
+
+        var result = await harness.Engine.ExecuteWorkflowAsync(id, "a\r\nb\nc\rd");
+
+        result.Steps[0].Output.Should().Contain("<p>a<br/>\nb<br/>\nc<br/>\nd</p>");
+        result.Steps[0].Output.Should().NotContain("<br/><br/>");
+    }
+
+    [Fact]
+    public async Task ConditionalBranch_matches_with_a_runaway_pattern_fails_the_step_instead_of_hanging()
+    {
+        using var harness = new WorkflowEngineHarness();
+        var config = JsonSerializer.Serialize(new
+        {
+            condition = "matches",
+            value = "^(a+)+$",
+            trueBranch = "yes",
+            falseBranch = "no",
+        });
+        var id = harness.ConfigureWorkflow("wf",
+            Step("OutputFormat", order: 0, template: "{{input}}"),
+            Step("ConditionalBranch", order: 1, name: "Branch", config: config));
+
+        var result = await harness.Engine.ExecuteWorkflowAsync(id, new string('a', 64) + "!");
+
+        result.Success.Should().BeFalse();
+        result.Steps[^1].ErrorMessage.Should().Contain("longer than");
     }
 
     [Fact]

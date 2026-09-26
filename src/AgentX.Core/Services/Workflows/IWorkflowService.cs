@@ -121,7 +121,18 @@ public interface IWorkflowService
     /// <summary>
     /// Seeds the database with built-in workflow templates if none exist.
     /// This method is idempotent: calling it multiple times has no additional effect
-    /// once the built-in workflows have been created.
+    /// once the built-in workflows have been created. It also repairs known defects in
+    /// previously seeded built-in templates that the user has not changed.
     /// </summary>
     Task SeedBuiltInWorkflowsAsync();
+
+    /// <summary>
+    /// Marks runs left in the "running" state by a previous process (the app closed or
+    /// crashed mid-run) as failed with an "interrupted" message, so they stop showing as
+    /// active jobs. Call only when no workflow is executing in this process, for example
+    /// at startup; the workflow engine also calls it before its first execution.
+    /// </summary>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>The number of runs that were marked as interrupted.</returns>
+    Task<int> ReconcileInterruptedRunsAsync(CancellationToken ct = default);
 }

@@ -1160,4 +1160,129 @@ public sealed class WorkflowBuilderViewModelTests : IDisposable
 
         public override SynchronizationContext CreateCopy() => this;
     }
+
+    // ---- Editing identity, ConfigJson round-trip, cancelled runs ----
+
+    private WorkflowBuilderViewModel CreateEditingViewModel(long workflowId, bool isBuiltIn = false, string? configJson = null)
+    {
+        _workflowService.Setup(service => service.GetWorkflowAsync(workflowId))
+            .ReturnsAsync(() => new WorkflowEntity
+            {
+                Id = workflowId,
+                Name = $"Workflow {workflowId}",
+                Category = "Custom",
+                IsBuiltIn = isBuiltIn,
+                Steps =
+                [
+                    new WorkflowStepEntity
+                    {
+                        Id = 5,
+                        StepOrder = 1,
+                        Name = "Transform",
+                        StepType = "TextTransform",
+                        PromptTemplate = "{{input}}",
+                        ConfigJson = configJson,
+                    }
+                ]
+            });
+        _workflowService.Setup(service => service.GetAllWorkflowsAsync(It.IsAny<bool>()))
+            .ReturnsAsync(Array.Empty<WorkflowEntity>());
+        _workflowService.Setup(service => service.UpdateWorkflowAsync(It.IsAny<WorkflowEntity>()))
+            .Returns(Task.CompletedTask);
+        _workflowService.Setup(service => service.AddStepAsync(It.IsAny<long>(), It.IsAny<WorkflowStepEntity>()))
+            .Returns(Task.CompletedTask);
+
+        return new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object);
+    }
+
+    [Fact]
+    public async Task SaveWorkflowAsync_updates_the_workflow_opened_for_editing_even_if_the_selection_moved()
+    {
+        var viewModel = CreateEditingViewModel(10);
+        await viewModel.EditWorkflowCommand.ExecuteAsync(10L);
+
+        // The list binds its selection two-way; a click elsewhere used to redirect the save.
+        viewModel.SelectedWorkflow = new WorkflowListItem { Id = 99, Name = "Someone else" };
+        viewModel.EditName = "Renamed";
+        await viewModel.SaveWorkflowCommand.ExecuteAsync(null);
+
+        _workflowService.Verify(service => service.UpdateWorkflowAsync(It.Is<WorkflowEntity>(w => w.Id == 10 && w.Name == "Renamed")), Times.Once);
+        _workflowService.Verify(service => service.GetWorkflowAsync(99), Times.Never);
+        _workflowService.Verify(service => service.AddStepAsync(10, It.IsAny<WorkflowStepEntity>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task SaveWorkflowAsync_keeps_each_steps_config_json()
+    {
+        const string config = "{\"transform\":\"lowercase\"}";
+        var viewModel = CreateEditingViewModel(11, configJson: config);
+        await viewModel.EditWorkflowCommand.ExecuteAsync(11L);
+
+        viewModel.EditSteps.Single().ConfigJson.Should().Be(config);
+        await viewModel.SaveWorkflowCommand.ExecuteAsync(null);
+
+        _workflowService.Verify(service => service.AddStepAsync(11, It.Is<WorkflowStepEntity>(step => step.ConfigJson == config)), Times.Once);
+    }
+
+    [Fact]
+    public async Task SaveWorkflowAsync_never_overwrites_a_built_in_workflow()
+    {
+        var viewModel = CreateEditingViewModel(12);
+        await viewModel.EditWorkflowCommand.ExecuteAsync(12L);
+
+        // The workflow turned out to be a built-in template by the time it is saved.
+        _workflowService.Setup(service => service.GetWorkflowAsync(12))
+            .ReturnsAsync(new WorkflowEntity { Id = 12, Name = "Research Brief", Category = "Research", IsBuiltIn = true });
+        _workflowService.Setup(service => service.CreateWorkflowAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
+            .ReturnsAsync(new WorkflowEntity { Id = 300, Name = "Workflow 12", Category = "Custom" });
+
+        await viewModel.SaveWorkflowCommand.ExecuteAsync(null);
+
+        _workflowService.Verify(service => service.UpdateWorkflowAsync(It.IsAny<WorkflowEntity>()), Times.Never);
+        _workflowService.Verify(service => service.AddStepAsync(300, It.IsAny<WorkflowStepEntity>()), Times.Once);
+        viewModel.StatusMessage.Should().Contain("was not changed");
+    }
+
+    [Fact]
+    public async Task Workflow_list_selection_is_locked_while_editing()
+    {
+        var viewModel = CreateEditingViewModel(13);
+        viewModel.CanChangeWorkflowSelection.Should().BeTrue();
+
+        await viewModel.EditWorkflowCommand.ExecuteAsync(13L);
+        viewModel.CanChangeWorkflowSelection.Should().BeFalse();
+
+        viewModel.CancelEditCommand.Execute(null);
+        viewModel.CanChangeWorkflowSelection.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task RunWorkflowAsync_reports_a_cancelled_run_as_cancelled_not_failed()
+    {
+        _workflowService.Setup(service => service.GetWorkflowAsync(77))
+            .ReturnsAsync(new WorkflowEntity { Id = 77, Name = "Wf", Steps = [new WorkflowStepEntity { Id = 1, Name = "S" }] });
+        _workflowService.Setup(service => service.GetAllWorkflowsAsync(It.IsAny<bool>()))
+            .ReturnsAsync(Array.Empty<WorkflowEntity>());
+        _workflowEngine.Setup(engine => engine.ExecuteWorkflowAsync(77, "in", It.IsAny<IProgress<WorkflowStepResult>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WorkflowRunResult { WorkflowName = "Wf", Success = false, WasCancelled = true });
+
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object)
+        {
+            RunInput = "in",
+        };
+
+        await viewModel.RunWorkflowCommand.ExecuteAsync(77L);
+
+        viewModel.StatusMessage.Should().Be("Workflow cancelled");
+        viewModel.RunErrorMessage.Should().Be("Cancelled by user");
+        viewModel.RunResultContextText.Should().Be("Showing the cancelled execution result");
+    }
 }
