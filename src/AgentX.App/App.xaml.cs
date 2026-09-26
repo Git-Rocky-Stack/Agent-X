@@ -295,7 +295,7 @@ public partial class App : Application
         // 5. Start the indexing pipeline: initialize the vector store, re-queue documents left
         //    pending or interrupted, and start the background loop that chunks, embeds and
         //    FTS-indexes every import. Nothing else starts it, so without this call no document
-        //    ever becomes searchable. Last, because embedding needs the AI service from step 2,
+        //    ever becomes searchable. Late, because embedding needs the AI service from step 2,
         //    and on the thread pool, because rebuilding the vector index is CPU-heavy.
         try
         {
@@ -306,6 +306,19 @@ public partial class App : Application
         catch (Exception ex)
         {
             Log.Error(ex, "Indexing pipeline failed to start; imported documents will not be indexed");
+        }
+
+        // 6. Watch folders: when AutoIndexWatchFolders is on, start monitoring and run a
+        //    catch-up scan for files added or changed while the app was closed. After step 5,
+        //    so the files it imports are picked up by the running indexing pipeline.
+        try
+        {
+            var watcher = GetService<IFileWatcherService>();
+            await Task.Run(() => watcher.InitializeAsync());
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Watch folder monitoring failed to start");
         }
     }
 
