@@ -148,6 +148,77 @@ public sealed class CollectionManagerViewModelTests
         viewModel.SelectedCount.Should().Be(0);
     }
 
+    // Delete keeps sub-collections visible
+    // The service moves a deleted collection's children up to its parent, but the list
+    // removed the row together with its children, hiding them until a refresh.
+
+    [Fact]
+    public async Task DeleteCollectionCommand_MovesTheChildrenIntoTheDeletedRowsPlace()
+    {
+        _collectionService.Setup(service => service.GetCollectionCountAsync()).ReturnsAsync(3);
+        var viewModel = CreateViewModel();
+        var first = new CollectionDisplayItem { Id = 1, Name = "First" };
+        var parent = new CollectionDisplayItem { Id = 2, Name = "Parent" };
+        var childA = new CollectionDisplayItem { Id = 3, Name = "Child A", ParentCollectionId = 2 };
+        var childB = new CollectionDisplayItem { Id = 4, Name = "Child B", ParentCollectionId = 2 };
+        parent.Children.Add(childA);
+        parent.Children.Add(childB);
+        var last = new CollectionDisplayItem { Id = 5, Name = "Last" };
+        viewModel.Collections.Add(first);
+        viewModel.Collections.Add(parent);
+        viewModel.Collections.Add(last);
+
+        await viewModel.DeleteCollectionCommand.ExecuteAsync(2L);
+
+        _collectionService.Verify(service => service.DeleteCollectionAsync(2, false), Times.Once);
+        viewModel.Collections.Select(c => c.Id).Should().Equal(1L, 3L, 4L, 5L);
+        childA.ParentCollectionId.Should().BeNull();
+        childB.ParentCollectionId.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task DeleteCollectionCommand_NestedCollection_HandsItsChildrenToItsParent()
+    {
+        _collectionService.Setup(service => service.GetCollectionCountAsync()).ReturnsAsync(2);
+        var viewModel = CreateViewModel();
+        var root = new CollectionDisplayItem { Id = 1, Name = "Root" };
+        var middle = new CollectionDisplayItem { Id = 2, Name = "Middle", ParentCollectionId = 1 };
+        var leaf = new CollectionDisplayItem { Id = 3, Name = "Leaf", ParentCollectionId = 2 };
+        middle.Children.Add(leaf);
+        root.Children.Add(middle);
+        viewModel.Collections.Add(root);
+
+        await viewModel.DeleteCollectionCommand.ExecuteAsync(2L);
+
+        root.Children.Should().ContainSingle().Which.Should().BeSameAs(leaf);
+        leaf.ParentCollectionId.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_ShowsTheStoredDocumentCount()
+    {
+        // The count was taken from the document links, which the collection tree does not
+        // load, so every collection showed 0 documents.
+        _collectionService.Setup(service => service.GetRootCollectionsAsync())
+            .ReturnsAsync(new[]
+            {
+                new CollectionEntity
+                {
+                    Id = 1,
+                    Name = "Research",
+                    DocumentCount = 7,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                }
+            });
+        _collectionService.Setup(service => service.GetCollectionCountAsync()).ReturnsAsync(1);
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.Collections.Should().ContainSingle().Which.DocumentCount.Should().Be(7);
+    }
+
     private CollectionManagerViewModel CreateViewModel() =>
         new(_collectionService.Object, _documentService.Object);
 }

@@ -131,7 +131,10 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
             IconGlyph = entity.IconGlyph ?? "\uF168",
             ColorHex = entity.ColorHex ?? "#AA2024",
             ParentCollectionId = entity.ParentCollectionId,
-            DocumentCount = entity.DocumentCollections?.Count ?? 0,
+            // The stored count, which the collection service keeps correct on every read.
+            // The document links are not loaded with the tree, so counting them showed 0
+            // (or whatever links happened to be tracked already).
+            DocumentCount = entity.DocumentCount,
             CreatedAtFormatted = entity.CreatedAt.ToString("MMM d, yyyy"),
             UpdatedAtFormatted = FormatHelper.TimeAgoWithMonths(entity.UpdatedAt)
         };
@@ -291,14 +294,27 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
             {
                 // Check if it's a root collection or child
                 var parentCollection = FindParentCollection(id);
-                if (parentCollection is not null)
+                var siblings = parentCollection?.Children ?? Collections;
+                var insertAt = siblings.IndexOf(item);
+                siblings.Remove(item);
+
+                // The service moves the deleted collection's children up to its parent (or to
+                // the root). Mirror that here, in the deleted row's place, so the children stay
+                // visible instead of disappearing with their parent's row until a refresh.
+                foreach (var child in item.Children.ToList())
                 {
-                    parentCollection.Children.Remove(item);
+                    child.ParentCollectionId = item.ParentCollectionId;
+                    if (insertAt >= 0 && insertAt <= siblings.Count)
+                    {
+                        siblings.Insert(insertAt++, child);
+                    }
+                    else
+                    {
+                        siblings.Add(child);
+                    }
                 }
-                else
-                {
-                    Collections.Remove(item);
-                }
+
+                item.Children.Clear();
 
                 TotalCollections = await _collectionService.GetCollectionCountAsync();
                 OnPropertyChanged(nameof(HasCollections));
