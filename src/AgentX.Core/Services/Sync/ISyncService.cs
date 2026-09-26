@@ -55,11 +55,13 @@ public interface ISyncService
     /// Collects all local entity changes made after <paramref name="since"/> and
     /// packages them into a <see cref="SyncChangeSet"/>.  The change set is then
     /// AES-256 encrypted and written to the configured sync folder as an
-    /// <c>agentx-sync-{deviceId}-{timestamp}.axs</c> file.
+    /// <c>agentx-sync-{deviceId}-{timestamp}.axs</c> file.  Every change carries a
+    /// natural key so the receiving installation can match it to its own rows.
     /// </summary>
     /// <param name="since">
     /// Lower-bound timestamp for change collection.  Pass <see langword="null"/>
-    /// to export every entity (full sync).
+    /// to export every entity (full sync).  The scheduled and manual passes pass the
+    /// persisted export watermark (see <see cref="SyncNowAsync"/>).
     /// </param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>The exported <see cref="SyncChangeSet"/>.</returns>
@@ -68,34 +70,58 @@ public interface ISyncService
         CancellationToken ct = default);
 
     /// <summary>
-    /// Decrypts and deserialises a <see cref="SyncChangeSet"/> received from a
-    /// peer installation, resolves conflicts, and applies non-conflicting changes
-    /// to the local database.
+    /// Applies a <see cref="SyncChangeSet"/> received from a peer installation.
+    /// Each change is matched to a local row by its natural key (never by the remote
+    /// numeric id), settled by last writer wins, and saved on its own, so one bad
+    /// change is rolled back without affecting the others or later database writes.
     /// </summary>
     /// <param name="changeSet">The remote change set to apply.</param>
     /// <param name="ct">Cancellation token.</param>
-    /// <returns>The number of entity changes successfully applied.</returns>
+    /// <returns>The number of entity changes whose effect is now reflected locally.</returns>
     Task<int> ImportChangesAsync(
         SyncChangeSet changeSet,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Runs one complete sync pass right now: exports local changes made since the
+    /// persisted export watermark, then imports every peer file in the sync folder.
+    /// Waits for a pass already in progress (for example the auto-sync loop) instead of
+    /// running concurrently with it.
+    /// </summary>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>What was exported, imported, retried and rejected.</returns>
+    Task<SyncRunResult> SyncNowAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Imports every peer file currently in the sync folder without exporting.
+    /// A file is renamed to <c>.imported</c> only when all of its changes were applied
+    /// (or deliberately discarded); files with failed changes stay in place and are
+    /// retried on the next pass.
+    /// </summary>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>What was imported, retried and rejected.</returns>
+    Task<SyncRunResult> ImportNowAsync(CancellationToken ct = default);
 
     // ── Conflict handling ─────────────────────────────────────────────────────
 
     /// <summary>
     /// Compares the changes in <paramref name="incoming"/> against the local
-    /// database to identify entities that were independently modified on both sides
-    /// since the last sync.
+    /// database and returns the ones an import would discard because the local copy
+    /// of the same entity (matched by natural key) was modified more recently.
     /// </summary>
     /// <param name="incoming">A remote change set to compare against local state.</param>
     /// <returns>
-    /// A list of <see cref="SyncConflict"/> instances for every entity where both
-    /// a local and a remote change exist.  Empty when there are no conflicts.
+    /// A list of <see cref="SyncConflict"/> instances, each resolved as
+    /// <see cref="SyncResolution.KeepLocal"/> by last writer wins.  Empty when there
+    /// are no conflicts.
     /// </returns>
     Task<IReadOnlyList<SyncConflict>> DetectConflictsAsync(SyncChangeSet incoming);
 
     /// <summary>
     /// Applies the chosen <paramref name="resolution"/> strategy to the given
     /// <paramref name="conflict"/>, updating the local database accordingly.
+    /// <see cref="SyncResolution.KeepRemote"/> overwrites the local copy (matched by
+    /// natural key) even though it is newer.
     /// </summary>
     /// <param name="conflict">The conflict to resolve.</param>
     /// <param name="resolution">
@@ -117,16 +143,29 @@ public interface ISyncService
     /// <summary>
     /// Starts a background polling loop that performs a full export/import cycle
     /// at the interval configured in <see cref="SyncConfiguration.SyncIntervalMinutes"/>.
-    /// Safe to call when a loop is already running — the existing loop is replaced.
-    /// The loop runs until <paramref name="ct"/> is cancelled or
+    /// Safe to call when a loop is already running; the existing loop is replaced.
+    /// Does nothing when sync is not configured or auto-sync is disabled in the
+    /// stored configuration. The loop runs until <paramref name="ct"/> is cancelled or
     /// <see cref="StopAutoSyncAsync"/> is called.
     /// </summary>
     /// <param name="ct">Token that stops the loop when cancelled.</param>
     Task StartAutoSyncAsync(CancellationToken ct = default);
 
     /// <summary>
-    /// Signals the running auto-sync loop to stop after the current cycle completes.
-    /// Safe to call when no loop is active.
+    /// Startup entry point: restores the persisted sync status (last sync time) and,
+    /// when the stored configuration has auto-sync enabled, starts the loop with a
+    /// short first delay so peer files that arrived while the app was closed are picked
+    /// up soon after launch. A no-op when sync is unconfigured or auto-sync is off.
+    /// </summary>
+    /// <param name="ct">Token that stops the loop when cancelled (typically app shutdown).</param>
+    Task ResumeAutoSyncAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Stops the running auto-sync loop and waits for an in-flight cycle to finish
+    /// unwinding. Safe to call when no loop is active.
     /// </summary>
     Task StopAutoSyncAsync();
+
+    /// <summary>True while the background auto-sync loop is running.</summary>
+    bool IsAutoSyncRunning { get; }
 }
