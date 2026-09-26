@@ -82,7 +82,7 @@
 
 1. **Manual shortcut**
    - Navigate to installation folder
-   - Right-click `AgentX.exe`
+   - Right-click `AgentX.App.exe`
    - Send to → Desktop (create shortcut)
 
 2. **Rebuild search index**
@@ -505,7 +505,7 @@
 **Solutions:**
 
 1. **Close other instances**
-   - Check Task Manager for `AgentX.exe`
+   - Check Task Manager for `AgentX.App.exe`
    - End duplicate processes
 
 2. **Check for backup**

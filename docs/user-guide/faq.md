@@ -429,7 +429,7 @@ Yes. The MIT License lets you use, copy, modify, merge, publish, distribute, sub
 **Possible causes:**
 
 1. **Another instance is running**
-   - Check Task Manager for `AgentX.exe`
+   - Check Task Manager for `AgentX.App.exe`
    - End the process and restart
 
 2. **Database locked**

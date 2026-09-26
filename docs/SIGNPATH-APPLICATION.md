@@ -38,7 +38,7 @@ warning when installing a fully open-source, auditable application.
 | **Primary language** | C# (.NET 8.0), WinUI 3 / Windows App SDK |
 | **Maintainer** | Rocky Elsalaymeh — Elsalaymeh@gmail.com |
 | **Platform / target** | Windows 10 build 19041+ (x64) |
-| **Artifacts to sign** | `AgentX.exe` (app) and the Inno Setup installer(s) |
+| **Artifacts to sign** | `AgentX.App.exe` (app) and the Inno Setup installer(s) |
 | **Build tooling** | `dotnet publish` (self-contained, win-x64) + Inno Setup 6, via `scripts/build-installers.ps1` |
 | **CI** | GitHub Actions — build/test + coverage gate, dependency & locale audits, format gate, Android build (all public) |
 | **Commercial model** | None. No paid tier, no closed-source components, no paywalled binary features. |
@@ -101,7 +101,7 @@ release tag and compare `SHA256SUMS.txt`.
 
 | Artifact | Where | Signing need |
 |---|---|---|
-| `AgentX.exe` | inside both installers | Authenticode — the executed binary |
+| `AgentX.App.exe` | inside both installers | Authenticode — the executed binary |
 | `AgentX-Setup-<ver>-x64.exe` (SLIM) | GitHub release | Authenticode — what users download & run |
 | `AgentX-Setup-<ver>-x64-offline.exe` (OFFLINE) | Cloudflare R2 | Authenticode — alternative download |
 
@@ -119,7 +119,7 @@ HSM). Two integration paths, in order of preference:
 
 1. **CI submission (preferred).** Add the
    [`signpath/github-action-submit-signing-request`](https://github.com/SignPath/github-action-submit-signing-request)
-   step to a release workflow: CI uploads the unsigned `AgentX.exe` / installer to SignPath, which
+   step to a release workflow: CI uploads the unsigned `AgentX.App.exe` / installer to SignPath, which
    signs and returns them. This keeps signing automated and auditable, and dovetails with the
    existing keyless provenance job.
 2. **Portal/API submission (fallback).** The maintainer submits the artifacts produced locally by
