@@ -2049,4 +2049,11 @@
   <data name="Palette_ImportFiles" xml:space="preserve"><value>Importer des fichiers</value></data>
   <data name="Palette_ToggleTheme" xml:space="preserve"><value>Changer de thème</value></data>
   <data name="Palette_NoMatches" xml:space="preserve"><value>Aucune commande correspondante</value></data>
+  <data name="Chat_PinConversationItem.Text" xml:space="preserve"><value>Épingler la conversation</value></data>
+  <data name="Chat_UnpinConversationItem.Text" xml:space="preserve"><value>Désépingler la conversation</value></data>
+  <data name="Chat_DeleteConversationItem.Text" xml:space="preserve"><value>Supprimer la conversation</value></data>
+  <data name="Chat_DeleteConversationTitle" xml:space="preserve"><value>Supprimer la conversation ?</value></data>
+  <data name="Chat_DeleteConversationBody" xml:space="preserve"><value>« {0} » et tous ses messages seront définitivement supprimés. Les branches créées à partir de celle-ci sont conservées.</value></data>
+  <data name="Chat_DeleteConversationConfirm" xml:space="preserve"><value>Supprimer</value></data>
+  <data name="Chat_DeleteConversationCancel" xml:space="preserve"><value>Annuler</value></data>
 </root>

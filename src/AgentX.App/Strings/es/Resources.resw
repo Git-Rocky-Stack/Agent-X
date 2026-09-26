@@ -2049,4 +2049,11 @@
   <data name="Palette_ImportFiles" xml:space="preserve"><value>Importar archivos</value></data>
   <data name="Palette_ToggleTheme" xml:space="preserve"><value>Cambiar tema</value></data>
   <data name="Palette_NoMatches" xml:space="preserve"><value>No hay comandos coincidentes</value></data>
+  <data name="Chat_PinConversationItem.Text" xml:space="preserve"><value>Anclar conversación</value></data>
+  <data name="Chat_UnpinConversationItem.Text" xml:space="preserve"><value>Desanclar conversación</value></data>
+  <data name="Chat_DeleteConversationItem.Text" xml:space="preserve"><value>Eliminar conversación</value></data>
+  <data name="Chat_DeleteConversationTitle" xml:space="preserve"><value>¿Eliminar la conversación?</value></data>
+  <data name="Chat_DeleteConversationBody" xml:space="preserve"><value>"{0}" y todos sus mensajes se eliminarán de forma permanente. Las ramas creadas a partir de ella se conservan.</value></data>
+  <data name="Chat_DeleteConversationConfirm" xml:space="preserve"><value>Eliminar</value></data>
+  <data name="Chat_DeleteConversationCancel" xml:space="preserve"><value>Cancelar</value></data>
 </root>

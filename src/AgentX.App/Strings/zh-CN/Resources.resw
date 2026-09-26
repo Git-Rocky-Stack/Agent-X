@@ -2049,4 +2049,11 @@
   <data name="Palette_ImportFiles" xml:space="preserve"><value>导入文件</value></data>
   <data name="Palette_ToggleTheme" xml:space="preserve"><value>切换主题</value></data>
   <data name="Palette_NoMatches" xml:space="preserve"><value>没有匹配的命令</value></data>
+  <data name="Chat_PinConversationItem.Text" xml:space="preserve"><value>固定对话</value></data>
+  <data name="Chat_UnpinConversationItem.Text" xml:space="preserve"><value>取消固定对话</value></data>
+  <data name="Chat_DeleteConversationItem.Text" xml:space="preserve"><value>删除对话</value></data>
+  <data name="Chat_DeleteConversationTitle" xml:space="preserve"><value>删除对话？</value></data>
+  <data name="Chat_DeleteConversationBody" xml:space="preserve"><value>“{0}”及其所有消息将被永久删除。从中创建的分支会保留。</value></data>
+  <data name="Chat_DeleteConversationConfirm" xml:space="preserve"><value>删除</value></data>
+  <data name="Chat_DeleteConversationCancel" xml:space="preserve"><value>取消</value></data>
 </root>

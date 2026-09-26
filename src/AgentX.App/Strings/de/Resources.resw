@@ -2049,4 +2049,11 @@
   <data name="Palette_ImportFiles" xml:space="preserve"><value>Dateien importieren</value></data>
   <data name="Palette_ToggleTheme" xml:space="preserve"><value>Design wechseln</value></data>
   <data name="Palette_NoMatches" xml:space="preserve"><value>Keine passenden Befehle</value></data>
+  <data name="Chat_PinConversationItem.Text" xml:space="preserve"><value>Unterhaltung anheften</value></data>
+  <data name="Chat_UnpinConversationItem.Text" xml:space="preserve"><value>Unterhaltung loslösen</value></data>
+  <data name="Chat_DeleteConversationItem.Text" xml:space="preserve"><value>Unterhaltung löschen</value></data>
+  <data name="Chat_DeleteConversationTitle" xml:space="preserve"><value>Unterhaltung löschen?</value></data>
+  <data name="Chat_DeleteConversationBody" xml:space="preserve"><value>"{0}" und alle zugehörigen Nachrichten werden endgültig gelöscht. Daraus erstellte Zweige bleiben erhalten.</value></data>
+  <data name="Chat_DeleteConversationConfirm" xml:space="preserve"><value>Löschen</value></data>
+  <data name="Chat_DeleteConversationCancel" xml:space="preserve"><value>Abbrechen</value></data>
 </root>

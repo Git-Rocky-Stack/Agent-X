@@ -2,6 +2,7 @@ using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
 using AgentX.App.ViewModels.Coordinators;
 using AgentX.Core.Services.Chat.Models;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Shortcuts;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -19,16 +20,26 @@ namespace AgentX.App.Views;
 /// </summary>
 public sealed partial class ChatPage : Page
 {
+    // The frame caches this page (NavigationCacheMode="Enabled") and only builds a new instance
+    // after it has evicted the previous one. The evicted page's view model is still subscribed
+    // to the singleton chat coordinators, so it keeps reacting to every generation (duplicate
+    // toasts, duplicate learning) until it is released here.
+    private static ChatViewModel? s_liveViewModel;
+
     private readonly IShortcutRegistry _shortcutRegistry;
     private IDisposable? _shortcutScope;
     private DispatcherTimer? _cursorBlinkTimer;
     private bool _cursorVisible = true;
+
+    // The sidebar row whose context menu is open.
+    private ConversationListItem? _contextConversation;
 
     public ChatViewModel ViewModel { get; }
 
     public ChatPage()
     {
         ViewModel = App.GetService<ChatViewModel>();
+        Interlocked.Exchange(ref s_liveViewModel, ViewModel)?.Dispose();
         _shortcutRegistry = App.GetService<IShortcutRegistry>();
         InitializeComponent();
 
@@ -82,6 +93,7 @@ public sealed partial class ChatPage : Page
 
         // Initialize the ViewModel
         await ViewModel.InitializeAsync();
+        SyncConversationSelection();
 
         // Start the streaming cursor blink timer
         StartCursorBlinkTimer();
@@ -118,6 +130,10 @@ public sealed partial class ChatPage : Page
         if (e.PropertyName == nameof(ChatViewModel.IsGenerating))
         {
             UpdateGenLamp();
+        }
+        else if (e.PropertyName == nameof(ChatViewModel.ActiveConversationId))
+        {
+            SyncConversationSelection();
         }
     }
 
@@ -533,22 +549,110 @@ public sealed partial class ChatPage : Page
         }
     }
 
+    /// <summary>
+    /// Applies the prompt picked in the system prompt flyout and closes the flyout.
+    /// </summary>
+    private void OnSystemPromptItemClick(object sender, ItemClickEventArgs e)
+    {
+        if (e.ClickedItem is SystemPromptItem prompt)
+        {
+            ViewModel.SelectSystemPromptCommand.Execute(prompt);
+            SystemPromptFlyout.Hide();
+        }
+    }
+
     // ═══════════════════════════════════════════════════════════════
     // CONVERSATION LIST SELECTION
     // ═══════════════════════════════════════════════════════════════
 
     /// <summary>
-    /// Wired up to handle conversation selection from the sidebar ListView.
-    /// This is connected via SelectionChanged in case x:Bind commands
-    /// need supplementary event handling.
+    /// Opens the conversation clicked (or invoked with Enter) in the sidebar.
     /// </summary>
-    internal void OnConversationSelected(ConversationListItem? item)
+    private void OnConversationItemClick(object sender, ItemClickEventArgs e)
     {
-        if (item is null) return;
-
-        if (ViewModel.SelectConversationCommand.CanExecute(item.Id))
+        if (e.ClickedItem is ConversationListItem item &&
+            item.Id != ViewModel.ActiveConversationId &&
+            ViewModel.SelectConversationCommand.CanExecute(item.Id))
         {
             ViewModel.SelectConversationCommand.Execute(item.Id);
+        }
+    }
+
+    /// <summary>
+    /// Keeps the highlighted sidebar row on the open conversation, however it was opened
+    /// (sidebar, Jump-To, branch switch) or closed (New conversation, delete).
+    /// </summary>
+    private void SyncConversationSelection()
+    {
+        var active = ViewModel.ActiveConversationId;
+        ConversationListView.SelectedItem = active is null
+            ? null
+            : ViewModel.Conversations.FirstOrDefault(conversation => conversation.Id == active);
+    }
+
+    /// <summary>
+    /// Resolves the row the menu was opened on and offers Pin or Unpin to match it.
+    /// </summary>
+    private void OnConversationRowFlyoutOpening(object sender, object e)
+    {
+        if (sender is not MenuFlyout flyout)
+        {
+            return;
+        }
+
+        _contextConversation = flyout.Target is ListViewItem container
+            ? ConversationListView.ItemFromContainer(container) as ConversationListItem
+            : null;
+
+        if (_contextConversation is null)
+        {
+            return;
+        }
+
+        foreach (var item in flyout.Items.OfType<MenuFlyoutItem>())
+        {
+            item.Visibility = (item.Tag as string) switch
+            {
+                "Pin" => _contextConversation.IsPinned ? Visibility.Collapsed : Visibility.Visible,
+                "Unpin" => _contextConversation.IsPinned ? Visibility.Visible : Visibility.Collapsed,
+                _ => Visibility.Visible
+            };
+        }
+    }
+
+    private void OnTogglePinConversationClick(object sender, RoutedEventArgs e)
+    {
+        if (_contextConversation is { } conversation)
+        {
+            ViewModel.TogglePinCommand.Execute(conversation.Id);
+        }
+    }
+
+    /// <summary>
+    /// Deletes the row's conversation after confirmation. Deleting cannot be undone; branches
+    /// made from the conversation are kept as conversations of their own.
+    /// </summary>
+    private async void OnDeleteConversationClick(object sender, RoutedEventArgs e)
+    {
+        if (_contextConversation is not { } conversation)
+        {
+            return;
+        }
+
+        var localization = App.GetService<ILocalizationService>();
+        var dialog = new ContentDialog
+        {
+            Title = localization.GetString("Chat_DeleteConversationTitle"),
+            Content = localization.GetString("Chat_DeleteConversationBody", conversation.Title),
+            PrimaryButtonText = localization.GetString("Chat_DeleteConversationConfirm"),
+            CloseButtonText = localization.GetString("Chat_DeleteConversationCancel"),
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = this.XamlRoot
+        };
+
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        {
+            await ViewModel.DeleteConversationCommand.ExecuteAsync(conversation.Id);
         }
     }
 }

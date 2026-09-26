@@ -2049,4 +2049,11 @@
   <data name="Palette_ImportFiles" xml:space="preserve"><value>ファイルをインポート</value></data>
   <data name="Palette_ToggleTheme" xml:space="preserve"><value>テーマを切り替え</value></data>
   <data name="Palette_NoMatches" xml:space="preserve"><value>一致するコマンドはありません</value></data>
+  <data name="Chat_PinConversationItem.Text" xml:space="preserve"><value>会話をピン留め</value></data>
+  <data name="Chat_UnpinConversationItem.Text" xml:space="preserve"><value>会話のピン留めを解除</value></data>
+  <data name="Chat_DeleteConversationItem.Text" xml:space="preserve"><value>会話を削除</value></data>
+  <data name="Chat_DeleteConversationTitle" xml:space="preserve"><value>会話を削除しますか?</value></data>
+  <data name="Chat_DeleteConversationBody" xml:space="preserve"><value>「{0}」とそのすべてのメッセージは完全に削除されます。この会話から作成したブランチは残ります。</value></data>
+  <data name="Chat_DeleteConversationConfirm" xml:space="preserve"><value>削除</value></data>
+  <data name="Chat_DeleteConversationCancel" xml:space="preserve"><value>キャンセル</value></data>
 </root>

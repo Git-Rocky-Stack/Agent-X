@@ -2159,4 +2159,11 @@
   <data name="Sync_RefreshStatusBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Refresh sync status</value></data>
   <data name="Workspace_RefreshProfilesTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Refresh profiles</value></data>
   <data name="Plugin_Active.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Plugin enabled</value></data>
+  <data name="Chat_PinConversationItem.Text" xml:space="preserve"><value>Pin conversation</value></data>
+  <data name="Chat_UnpinConversationItem.Text" xml:space="preserve"><value>Unpin conversation</value></data>
+  <data name="Chat_DeleteConversationItem.Text" xml:space="preserve"><value>Delete conversation</value></data>
+  <data name="Chat_DeleteConversationTitle" xml:space="preserve"><value>Delete conversation?</value></data>
+  <data name="Chat_DeleteConversationBody" xml:space="preserve"><value>"{0}" and all of its messages will be permanently deleted. Branches made from it are kept.</value></data>
+  <data name="Chat_DeleteConversationConfirm" xml:space="preserve"><value>Delete</value></data>
+  <data name="Chat_DeleteConversationCancel" xml:space="preserve"><value>Cancel</value></data>
 </root>

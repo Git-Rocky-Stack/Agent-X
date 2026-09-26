@@ -85,6 +85,39 @@
             </Border>
         </DataTemplate>
 
+        <!-- Row actions for a sidebar conversation. Attached to each row's container
+             (the list's ItemContainerStyle) so it opens on right-click and on the
+             context-menu key or Shift+F10 over the focused row. The opening handler
+             shows Pin or Unpin to match the row. -->
+        <MenuFlyout x:Key="ConversationRowFlyout"
+                    Opening="OnConversationRowFlyoutOpening">
+            <MenuFlyoutItem x:Uid="Chat_PinConversationItem"
+                            Text="Pin conversation"
+                            Tag="Pin"
+                            Click="OnTogglePinConversationClick">
+                <MenuFlyoutItem.Icon>
+                    <FontIcon Glyph="&#xE718;" />
+                </MenuFlyoutItem.Icon>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem x:Uid="Chat_UnpinConversationItem"
+                            Text="Unpin conversation"
+                            Tag="Unpin"
+                            Click="OnTogglePinConversationClick">
+                <MenuFlyoutItem.Icon>
+                    <FontIcon Glyph="&#xE77A;" />
+                </MenuFlyoutItem.Icon>
+            </MenuFlyoutItem>
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem x:Uid="Chat_DeleteConversationItem"
+                            Text="Delete conversation"
+                            Tag="Delete"
+                            Click="OnDeleteConversationClick">
+                <MenuFlyoutItem.Icon>
+                    <FontIcon Glyph="&#xE74D;" />
+                </MenuFlyoutItem.Icon>
+            </MenuFlyoutItem>
+        </MenuFlyout>
+
         <!-- ═══════════════════════════════════════════════════════════
              USER MESSAGE TEMPLATE
              ═══════════════════════════════════════════════════════════ -->
@@ -187,12 +220,12 @@
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <TextBlock Text="{x:Bind FormattedTime}"
                                    Style="{StaticResource ChatTimestampStyle}" />
-                        <TextBlock Text="{x:Bind FormattedTokens}"
+                        <TextBlock Text="{x:Bind FormattedTokens, Mode=OneWay}"
                                    Style="{StaticResource MessageMetaStyle}"
-                                   Visibility="{x:Bind FormattedTokens, Converter={StaticResource StringToVisibility}}" />
-                        <TextBlock Text="{x:Bind FormattedTokenSpeed}"
+                                   Visibility="{x:Bind FormattedTokens, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
+                        <TextBlock Text="{x:Bind FormattedTokenSpeed, Mode=OneWay}"
                                    Style="{StaticResource MessageMetaStyle}"
-                                   Visibility="{x:Bind FormattedTokenSpeed, Converter={StaticResource StringToVisibility}}" />
+                                   Visibility="{x:Bind FormattedTokenSpeed, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
                     </StackPanel>
                 </Grid>
             </StackPanel>
@@ -411,12 +444,15 @@
                 </ScrollViewer>
             </Border>
 
-            <!-- Conversation List -->
+            <!-- Conversation List: a click (or Enter on the focused row) opens the
+                 conversation; the selection highlight follows the open conversation. -->
             <ListView Grid.Row="3"
                       x:Name="ConversationListView"
                       ItemsSource="{x:Bind ViewModel.Conversations, Mode=OneWay}"
                       ItemTemplate="{StaticResource ConversationItemTemplate}"
                       SelectionMode="Single"
+                      IsItemClickEnabled="True"
+                      ItemClick="OnConversationItemClick"
                       Padding="8,0,8,0"
                       Background="Transparent">
                 <ListView.ItemContainerStyle>
@@ -426,6 +462,7 @@
                         <Setter Property="Margin" Value="0" />
                         <Setter Property="MinHeight" Value="0" />
                         <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="ContextFlyout" Value="{StaticResource ConversationRowFlyout}" />
                     </Style>
                 </ListView.ItemContainerStyle>
             </ListView>
@@ -618,7 +655,7 @@
                         </StackPanel>
 
                         <Button.Flyout>
-                            <Flyout Placement="Bottom">
+                            <Flyout x:Name="SystemPromptFlyout" Placement="Bottom">
                                 <StackPanel Width="280" Spacing="8">
                                     <TextBlock x:Uid="Chat_SystemPromptTitle" Text="System Prompt"
                                                Style="{StaticResource HeadingSmallStyle}" />
@@ -645,10 +682,12 @@
 
                                     <Border Style="{StaticResource SeparatorStyle}" Margin="0,2,0,2" />
 
-                                    <!-- Prompt list -->
+                                    <!-- Prompt list: a click (or Enter) applies the prompt -->
                                     <ListView ItemsSource="{x:Bind ViewModel.SystemPrompts, Mode=OneWay}"
                                               ItemTemplate="{StaticResource SystemPromptItemTemplate}"
                                               SelectionMode="None"
+                                              IsItemClickEnabled="True"
+                                              ItemClick="OnSystemPromptItemClick"
                                               MaxHeight="300"
                                               Background="Transparent">
                                         <ListView.ItemContainerStyle>
@@ -1123,12 +1162,14 @@
                                                         Spacing="8">
                                                 <TextBlock Text="{x:Bind FormattedTime}"
                                                            Style="{StaticResource ChatTimestampStyle}" />
-                                                <TextBlock Text="{x:Bind FormattedTokens}"
+                                                <!-- The stats arrive when a streamed reply completes,
+                                                     after this bubble is already realized. -->
+                                                <TextBlock Text="{x:Bind FormattedTokens, Mode=OneWay}"
                                                            Style="{StaticResource MessageMetaStyle}"
-                                                           Visibility="{x:Bind FormattedTokens, Converter={StaticResource StringToVisibility}}" />
-                                                <TextBlock Text="{x:Bind FormattedTokenSpeed}"
+                                                           Visibility="{x:Bind FormattedTokens, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
+                                                <TextBlock Text="{x:Bind FormattedTokenSpeed, Mode=OneWay}"
                                                            Style="{StaticResource MessageMetaStyle}"
-                                                           Visibility="{x:Bind FormattedTokenSpeed, Converter={StaticResource StringToVisibility}}" />
+                                                           Visibility="{x:Bind FormattedTokenSpeed, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
                                             </StackPanel>
 
                                             <!-- Right: action buttons -->
