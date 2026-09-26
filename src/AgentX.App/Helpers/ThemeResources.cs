@@ -27,7 +27,14 @@ public static class ThemeResources
     /// falling back to the application-level value when no theme-scoped
     /// definition exists (shift-invariant tokens such as the Red ramp).
     /// </summary>
-    public static object? Get(string key)
+    public static object? Get(string key) => Get(key, RootActualTheme());
+
+    /// <summary>
+    /// Same lookup against an explicit shift, for callers that hold the element whose
+    /// theme matters (the window chrome resolves against its own root while the window
+    /// is still being constructed, before App.MainWindow is assigned).
+    /// </summary>
+    public static object? Get(string key, ElementTheme actualTheme)
     {
         if (string.IsNullOrEmpty(key))
         {
@@ -40,7 +47,7 @@ public static class ThemeResources
             return null;
         }
 
-        var scoped = FindThemeScoped(app, CurrentThemeKey(), key);
+        var scoped = FindThemeScoped(app, ThemeKeyFor(actualTheme), key);
         if (scoped is not null)
         {
             return scoped;
@@ -53,22 +60,27 @@ public static class ThemeResources
     public static Brush? Brush(string key) => Get(key) as Brush;
 
     /// <summary>
-    /// Names the ThemeDictionary that matches the window root's current shift.
+    /// Names the ThemeDictionary that matches a shift.
     /// HighContrast wins outright: it is exempt from the hardware skin.
     /// </summary>
-    private static string CurrentThemeKey()
+    private static string ThemeKeyFor(ElementTheme actualTheme)
     {
         if (IsHighContrast())
         {
             return "HighContrast";
         }
 
+        return actualTheme == ElementTheme.Light ? "Light" : "Default";
+    }
+
+    /// <summary>The window root's current shift, or Night Ops before the root exists.</summary>
+    private static ElementTheme RootActualTheme()
+    {
         try
         {
-            if (App.MainWindow?.Content is FrameworkElement root
-                && root.ActualTheme == ElementTheme.Light)
+            if (App.MainWindow?.Content is FrameworkElement root)
             {
-                return "Light";
+                return root.ActualTheme;
             }
         }
         catch
@@ -76,10 +88,11 @@ public static class ThemeResources
             // Root not yet built - fall through to the Night Ops default.
         }
 
-        return "Default";
+        return ElementTheme.Dark;
     }
 
-    private static bool IsHighContrast()
+    /// <summary>True when the system high-contrast setting is on.</summary>
+    public static bool IsHighContrast()
     {
         try
         {

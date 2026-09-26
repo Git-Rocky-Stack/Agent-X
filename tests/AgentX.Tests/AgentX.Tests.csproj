@@ -161,5 +161,9 @@
     <Compile Include="..\..\src\AgentX.App\Services\INavigationGate.cs" Link="Services\INavigationGate.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\IOnboardingService.cs" Link="Services\IOnboardingService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\OnboardingService.cs" Link="Services\OnboardingService.cs" />
+    <!-- Window chrome decisions ChromeService applies: first-launch placement and the
+         caption-button theme tokens. -->
+    <Compile Include="..\..\src\AgentX.App\Helpers\WindowPlacement.cs" Link="Helpers\WindowPlacement.cs" />
+    <Compile Include="..\..\src\AgentX.App\Helpers\CaptionButtonPalette.cs" Link="Helpers\CaptionButtonPalette.cs" />
   </ItemGroup>
 </Project>

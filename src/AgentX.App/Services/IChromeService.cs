@@ -9,13 +9,15 @@ namespace AgentX.App.Services;
 public interface IChromeService
 {
     /// <summary>
-    /// Configures the window size, position, and title.
+    /// Configures the window title, and a first-launch size clamped to the display's
+    /// work area and centered in it.
     /// </summary>
     void ConfigureWindow(Window window);
 
     /// <summary>
-    /// Extends content into the title bar and applies custom dark-theme colors
-    /// to the caption buttons.
+    /// Extends content into the title bar and paints the caption buttons from the current
+    /// shift's theme tokens, repainting them whenever the root's theme or the system
+    /// high-contrast setting changes. Call after the window content exists.
     /// </summary>
     void ConfigureTitleBar(Window window);
 
