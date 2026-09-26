@@ -236,4 +236,30 @@ public sealed class AiServiceTests : IDisposable
         service.GetDefaultModelId("local").Should().Be("llama-3.2-3b-instruct-q4_k_m.gguf");
         service.RegisteredProviderIds.Should().BeEquivalentTo("local", "ollama", "openai", "anthropic");
     }
+
+    [Fact]
+    public async Task Cloud_and_Ollama_providers_receive_the_cost_tracker()
+    {
+        // Only the active provider (a connected fake) is contacted; the real cloud and Ollama
+        // providers are constructed but never called, so no request leaves the machine.
+        var tracker = new Mock<ICostTracker>().Object;
+        var service = new AiService(_settingsService.Object, tracker)
+        {
+            ProviderFactoryOverride = (id, _) => id == "local" ? Fake("local").Object : null
+        };
+        _services.Add(service);
+        _settings.ActiveProviderId = "local";
+
+        await service.InitializeAsync();
+
+        foreach (var id in new[] { "ollama", "openai", "anthropic" })
+        {
+            var provider = service.GetProvider(id);
+            provider.Should().NotBeNull();
+            var field = provider!.GetType().GetField("_costTracker",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            field.Should().NotBeNull($"{provider.GetType().Name} records usage through _costTracker");
+            field!.GetValue(provider).Should().BeSameAs(tracker, $"{id} must record its token usage");
+        }
+    }
 }

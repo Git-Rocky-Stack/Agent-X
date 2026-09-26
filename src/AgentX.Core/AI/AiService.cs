@@ -30,6 +30,7 @@ public sealed class AiService : IAiService
     private static readonly TimeSpan DisconnectedCacheDuration = TimeSpan.FromSeconds(15);
 
     private readonly ISettingsService _settingsService;
+    private readonly ICostTracker? _costTracker;
     private readonly ILogger _logger;
     private readonly object _stateLock = new();
     private readonly SemaphoreSlim _initLock = new(1, 1);
@@ -74,9 +75,14 @@ public sealed class AiService : IAiService
     /// Creates a new AiService with the specified settings service.
     /// </summary>
     /// <param name="settingsService">Service for reading/writing application settings.</param>
-    public AiService(ISettingsService settingsService)
+    /// <param name="costTracker">
+    /// Optional usage recorder handed to the providers, which record the token usage the APIs
+    /// report for every response (resolved from DI when registered).
+    /// </param>
+    public AiService(ISettingsService settingsService, ICostTracker? costTracker = null)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _costTracker = costTracker;
         _logger = Log.ForContext<AiService>();
         _logger.Information("AiService created");
     }
@@ -146,7 +152,7 @@ public sealed class AiService : IAiService
             if (TryParseHttpEndpoint(settings.OllamaEndpoint, out var ollamaEndpoint))
             {
                 Register("ollama", Fingerprint(ollamaEndpoint.AbsoluteUri),
-                    () => new OllamaProvider(ollamaEndpoint, _logger));
+                    () => new OllamaProvider(ollamaEndpoint, _logger, _costTracker));
             }
             else
             {
@@ -159,14 +165,14 @@ public sealed class AiService : IAiService
             if (!string.IsNullOrWhiteSpace(settings.OpenAiApiKey))
             {
                 Register("openai", Fingerprint(settings.OpenAiApiKey, settings.OpenAiEndpoint),
-                    () => new OpenAiProvider(settings.OpenAiApiKey, settings.OpenAiEndpoint, _logger));
+                    () => new OpenAiProvider(settings.OpenAiApiKey, settings.OpenAiEndpoint, _logger, _costTracker));
             }
 
             // 3. Anthropic when an API key is configured
             if (!string.IsNullOrWhiteSpace(settings.AnthropicApiKey))
             {
                 Register("anthropic", Fingerprint(settings.AnthropicApiKey, settings.AnthropicEndpoint),
-                    () => new AnthropicProvider(settings.AnthropicApiKey, settings.AnthropicEndpoint, _logger));
+                    () => new AnthropicProvider(settings.AnthropicApiKey, settings.AnthropicEndpoint, _logger, _costTracker));
             }
 
             // 4. Activate the preferred provider
