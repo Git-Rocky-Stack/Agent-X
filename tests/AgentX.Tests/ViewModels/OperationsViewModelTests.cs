@@ -1125,6 +1125,31 @@ public sealed class OperationsViewModelTests
         navigations.Should().Equal("Workflows");
     }
 
+    [Fact]
+    public async Task RunManualSyncAsync_shows_an_error_when_the_action_throws()
+    {
+        _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot(),
+                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", Detail = "Ready" },
+                IngestionBacklog = new OperationsCardSnapshot(),
+                WorkflowActivity = new OperationsCardSnapshot(),
+                Connectors = new OperationsCardSnapshot()
+            });
+        _operationsActionService.Setup(service => service.RunManualSyncAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new IOException("Sync folder is offline"));
+
+        var viewModel = CreateViewModel();
+        await viewModel.LoadAsync();
+
+        await viewModel.RunManualSyncCommand.ExecuteAsync(null);
+
+        viewModel.HasActionError.Should().BeTrue();
+        viewModel.ActionErrorMessage.Should().Be("Sync failed: Sync folder is offline");
+        viewModel.IsRunningManualSync.Should().BeFalse();
+    }
+
     private OperationsViewModel CreateViewModel() =>
         new(
             _operationsActionService.Object,

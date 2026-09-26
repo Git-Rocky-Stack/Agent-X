@@ -146,16 +146,13 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     private async Task RefreshConversationSummariesAsync(CancellationToken ct = default)
     {
         IsRefreshingConversationSummaries = true;
-        ClearActionFeedback();
 
         try
         {
-            var result = await _operationsActionService
-                .RefreshConversationSummariesAsync(ct: ct)
-                .ConfigureAwait(false);
-
-            ApplyActionFeedback(result);
-            await LoadAsync(ct).ConfigureAwait(false);
+            await RunActionAsync(
+                "Refreshing conversation summaries",
+                token => _operationsActionService.RefreshConversationSummariesAsync(ct: token),
+                ct);
         }
         finally
         {
@@ -167,16 +164,13 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     private async Task GenerateInboxPreviewsAsync(CancellationToken ct = default)
     {
         IsGeneratingInboxPreviews = true;
-        ClearActionFeedback();
 
         try
         {
-            var result = await _operationsActionService
-                .GenerateInboxPreviewsAsync(ct)
-                .ConfigureAwait(false);
-
-            ApplyActionFeedback(result);
-            await LoadAsync(ct).ConfigureAwait(false);
+            await RunActionAsync(
+                "Generating inbox previews",
+                _operationsActionService.GenerateInboxPreviewsAsync,
+                ct);
         }
         finally
         {
@@ -193,16 +187,13 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         }
 
         IsEnablingConnector = true;
-        ClearActionFeedback();
 
         try
         {
-            var result = await _operationsActionService
-                .EnableConnectorAsync(preview.PluginId, ct)
-                .ConfigureAwait(false);
-
-            ApplyActionFeedback(result);
-            await LoadAsync(ct).ConfigureAwait(false);
+            await RunActionAsync(
+                "Enabling the connector",
+                token => _operationsActionService.EnableConnectorAsync(preview.PluginId, token),
+                ct);
         }
         finally
         {
@@ -219,16 +210,13 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         }
 
         IsReindexingImportedDocument = true;
-        ClearActionFeedback();
 
         try
         {
-            var result = await _operationsActionService
-                .ReindexImportedDocumentAsync(preview.DocumentId, ct)
-                .ConfigureAwait(false);
-
-            ApplyActionFeedback(result);
-            await LoadAsync(ct).ConfigureAwait(false);
+            await RunActionAsync(
+                "Re-indexing the document",
+                token => _operationsActionService.ReindexImportedDocumentAsync(preview.DocumentId, token),
+                ct);
         }
         finally
         {
@@ -240,16 +228,13 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     private async Task RunManualSyncAsync(CancellationToken ct = default)
     {
         IsRunningManualSync = true;
-        ClearActionFeedback();
 
         try
         {
-            var result = await _operationsActionService
-                .RunManualSyncAsync(ct)
-                .ConfigureAwait(false);
-
-            ApplyActionFeedback(result);
-            await LoadAsync(ct).ConfigureAwait(false);
+            await RunActionAsync(
+                "Sync",
+                _operationsActionService.RunManualSyncAsync,
+                ct);
         }
         finally
         {
@@ -300,15 +285,15 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         switch (action.Kind)
         {
             case OperationsRecommendedActionKind.RefreshConversationSummaries:
-                await RefreshConversationSummariesAsync(ct).ConfigureAwait(false);
+                await RefreshConversationSummariesAsync(ct);
                 break;
 
             case OperationsRecommendedActionKind.RunManualSync:
-                await RunManualSyncAsync(ct).ConfigureAwait(false);
+                await RunManualSyncAsync(ct);
                 break;
 
             case OperationsRecommendedActionKind.GenerateInboxPreviews:
-                await GenerateInboxPreviewsAsync(ct).ConfigureAwait(false);
+                await GenerateInboxPreviewsAsync(ct);
                 break;
 
             case OperationsRecommendedActionKind.RetryImportedDocumentIndexing:
@@ -316,7 +301,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
                     var preview = RecentImportedDocuments.FirstOrDefault(item => item.DocumentId == action.TargetId);
                     if (preview is not null && CanRetryImportedDocumentIndexing(preview))
                     {
-                        await RetryImportedDocumentIndexingAsync(preview, ct).ConfigureAwait(false);
+                        await RetryImportedDocumentIndexingAsync(preview, ct);
                         break;
                     }
 
@@ -330,7 +315,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
                     var preview = ConnectorPreviews.FirstOrDefault(item => item.PluginId == action.TargetId);
                     if (preview is not null && CanEnableConnector(preview))
                     {
-                        await EnableConnectorAsync(preview, ct).ConfigureAwait(false);
+                        await EnableConnectorAsync(preview, ct);
                         break;
                     }
 
@@ -486,6 +471,35 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     public void Dispose()
     {
         _log.Debug("OperationsViewModel disposed");
+    }
+
+    /// <summary>
+    /// Runs one operations action and shows its outcome, then reloads the overview. The awaits
+    /// stay on the UI context because the feedback and overview properties are bound; an
+    /// exception becomes an error message instead of an unobserved command failure.
+    /// </summary>
+    private async Task RunActionAsync(
+        string actionName,
+        Func<CancellationToken, Task<OperationsActionResult>> action,
+        CancellationToken ct)
+    {
+        ClearActionFeedback();
+
+        try
+        {
+            var result = await action(ct);
+            ApplyActionFeedback(result);
+            await LoadAsync(ct);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            // Cancelled by the caller; there is no outcome to report.
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Operations action failed: {Action}", actionName);
+            ApplyActionFeedback(new OperationsActionResult(false, $"{actionName} failed: {ex.Message}"));
+        }
     }
 
     private void ApplyActionFeedback(OperationsActionResult result)

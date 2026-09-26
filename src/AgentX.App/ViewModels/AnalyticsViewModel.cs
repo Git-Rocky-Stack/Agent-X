@@ -796,8 +796,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         try
         {
             var refreshed = await _conversationSummaryService
-                .RefreshConversationSummaryAsync(targetConversationId, ct)
-                .ConfigureAwait(false);
+                .RefreshConversationSummaryAsync(targetConversationId, ct);
 
             if (!refreshed)
             {
@@ -806,7 +805,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             }
 
             ClearFocusedConversationLanding();
-            await LoadConversationIntelligenceAsync(ct).ConfigureAwait(false);
+            await LoadConversationIntelligenceAsync(ct);
             ConversationIntelligenceStatusMessage = BuildConversationSummaryResolutionMessage(targetTitle);
         }
         catch (Exception ex)
@@ -833,12 +832,10 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         try
         {
             await _conversationRecallService
-                .RefreshRecentConversationEmbeddingsAsync(6, ct)
-                .ConfigureAwait(false);
+                .RefreshRecentConversationEmbeddingsAsync(6, ct);
 
             var results = await _conversationRecallService
-                .SearchRelevantMessagesAsync(RecallQuery, maxResults: 6, minSimilarity: 0.68f, ct: ct)
-                .ConfigureAwait(false);
+                .SearchRelevantMessagesAsync(RecallQuery, maxResults: 6, minSimilarity: 0.68f, ct: ct);
 
             ConversationRecallResults = new ObservableCollection<AnalyticsConversationRecallItem>(
                 results.Select(result => new AnalyticsConversationRecallItem
@@ -862,7 +859,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
                     ? "1 durable recall match found."
                     : $"{ConversationRecallResults.Count} durable recall matches found.";
 
-            await LoadConversationRecallAsync(ct).ConfigureAwait(false);
+            await LoadConversationRecallAsync(ct);
         }
         catch (Exception ex)
         {
