@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
@@ -480,9 +481,11 @@ public class AnnotationService : IAnnotationService
             // Top-level heading.
             sb.AppendLine("# Annotations");
             sb.AppendLine();
+            // Timestamps use the invariant culture: under th-TH or ar-SA the current culture's
+            // calendar turned these ISO-style dates into Buddhist or Hijri years.
             sb.AppendLine(
                 $"_Exported {annotations.Count} annotation{(annotations.Count == 1 ? string.Empty : "s")} " +
-                $"on {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC_");
+                $"on {IsoMinutes(DateTime.UtcNow)} UTC_");
             sb.AppendLine();
 
             // Group by document for readability.
@@ -522,9 +525,9 @@ public class AnnotationService : IAnnotationService
                     }
 
                     sb.AppendLine(
-                        $"_Created: {annotation.CreatedAt:yyyy-MM-dd HH:mm} UTC" +
+                        $"_Created: {IsoMinutes(annotation.CreatedAt)} UTC" +
                         (annotation.UpdatedAt != annotation.CreatedAt
-                            ? $" · Updated: {annotation.UpdatedAt:yyyy-MM-dd HH:mm} UTC"
+                            ? $" · Updated: {IsoMinutes(annotation.UpdatedAt)} UTC"
                             : string.Empty) +
                         "_");
 
@@ -551,4 +554,7 @@ public class AnnotationService : IAnnotationService
             throw;
         }
     }
+
+    private static string IsoMinutes(DateTime value) =>
+        value.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 }
