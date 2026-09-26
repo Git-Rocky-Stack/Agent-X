@@ -106,13 +106,23 @@ public sealed class DatabaseEncryptionManagerTests : IDisposable
     {
         var sut = CreateSut();
         await sut.EnableEncryptionAsync();
-        var encrypted = File.ReadAllBytes(_dbPath);
+        var encrypted = ReadAllBytesShared(_dbPath);
 
         var second = await sut.EnableEncryptionAsync();
 
         second.Should().BeFalse();
-        File.ReadAllBytes(_dbPath).Should().Equal(encrypted);
+        ReadAllBytesShared(_dbPath).Should().Equal(encrypted);
         (await _db.Conversations.CountAsync()).Should().Be(1);
+    }
+
+    // The shared connection keeps the database open for writing after enabling encryption, and
+    // Windows refuses File.ReadAllBytes (FileShare.Read) while another handle can write.
+    private static byte[] ReadAllBytesShared(string path)
+    {
+        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        using var copy = new MemoryStream();
+        stream.CopyTo(copy);
+        return copy.ToArray();
     }
 
     private static bool IsPlaintext(string path)
