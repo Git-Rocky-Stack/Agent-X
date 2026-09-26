@@ -109,8 +109,8 @@ public sealed class ApiHealthDto
     /// <summary>Always "ok" when the host is reachable.</summary>
     public string Status { get; init; } = "ok";
 
-    /// <summary>API version string.</summary>
-    public string Version { get; init; } = "1.0.0";
+    /// <summary>AgentX application version (<see cref="AppVersionInfo.Display"/>).</summary>
+    public string Version { get; init; } = string.Empty;
 
     /// <summary>Human-readable process uptime (e.g., "2h 15m 40s").</summary>
     public string Uptime { get; init; } = string.Empty;

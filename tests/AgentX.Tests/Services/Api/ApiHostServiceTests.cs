@@ -1,10 +1,13 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
+using AgentX.Core;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
+using AgentX.Core.Helpers;
 using AgentX.Core.Search;
 using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Api;
@@ -12,6 +15,7 @@ using AgentX.Core.Services.Api.Models;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Inbox;
+using AgentX.Core.Services.Settings;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -156,6 +160,71 @@ public sealed class ApiHostServiceTests
         publicRoute.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
+    [Fact]
+    public async Task SetAuthToken_RevokesThePreviousTokenAndAcceptsTheNewOneWithoutARestart()
+    {
+        // Regression: the listener captured its token once at StartAsync, so a regenerated token
+        // got 401 while the old (possibly leaked) one kept working until the app restarted.
+        await using var harness = await ApiHostHarness.StartAsync();
+        harness.Collections.Setup(c => c.GetAllCollectionsAsync()).ReturnsAsync(Array.Empty<CollectionEntity>());
+        const string regenerated = "REGENERATED-TOKEN-FEDCBA9876543210FEDCBA9876543210FEDCBA9876543210";
+
+        harness.Service.SetAuthToken(regenerated);
+
+        var withOldToken = await harness.Client.GetAsync("api/collections");
+        harness.SetAuthToken(regenerated);
+        var withNewToken = await harness.Client.GetAsync("api/collections");
+
+        withOldToken.StatusCode.Should().Be(HttpStatusCode.Unauthorized, "the replaced token must stop working at once");
+        withNewToken.StatusCode.Should().Be(HttpStatusCode.OK, "the new token must work without restarting the listener");
+        harness.Service.IsRunning.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SetAuthToken_Null_FailsClosedOnDataRoutes()
+    {
+        await using var harness = await ApiHostHarness.StartAsync();
+
+        harness.Service.SetAuthToken(null);
+        var response = await harness.Client.GetAsync("api/collections");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    // ----------------------------------------------------------------------
+    //  GET /api/auth/check
+    // ----------------------------------------------------------------------
+
+    [Fact]
+    public async Task GetAuthCheck_WithValidToken_ConfirmsAuthentication()
+    {
+        await using var harness = await ApiHostHarness.StartAsync();
+
+        var response = await harness.Client.GetAsync("api/auth/check");
+        var body = await ReadAsync<ApiAuthCheckDto>(response);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        body!.Data!.Authenticated.Should().BeTrue();
+        body.Data.Version.Should().Be(AppVersionInfo.Display);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("WRONG-TOKEN")]
+    public async Task GetAuthCheck_WithMissingOrWrongToken_Returns401(string? token)
+    {
+        // Pairing validates against this route; unlike the public health probe it must reject a bad token.
+        await using var harness = await ApiHostHarness.StartAsync();
+        if (token is null)
+            harness.RemoveAuthHeader();
+        else
+            harness.SetAuthToken(token);
+
+        var response = await harness.Client.GetAsync("api/auth/check");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
     // ══════════════════════════════════════════════════════════════════════
     //  CORS
     // ══════════════════════════════════════════════════════════════════════
@@ -236,10 +305,50 @@ public sealed class ApiHostServiceTests
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         body!.Success.Should().BeTrue();
         body.Data!.Status.Should().Be("ok");
-        body.Data.Version.Should().Be("1.0.0");
+        body.Data.Version.Should().Be(AppVersionInfo.Display, "the health payload reports the real build, not a hardcoded 1.0.0");
         body.Data.DocumentCount.Should().Be(7);
         body.Data.ConversationCount.Should().Be(3);
         body.Data.Uptime.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public async Task GetHealth_NeverRunsItsTwoDatabaseQueriesAtTheSameTime()
+    {
+        // Regression: both counts were started with Task.Run in parallel on the one shared
+        // AgentXDbContext, which EF Core rejects ("A second operation was started on this
+        // context"), so the mobile connectivity check failed intermittently with a 500.
+        await using var harness = await ApiHostHarness.StartAsync();
+        var inFlight = 0;
+        var maxInFlight = 0;
+
+        async Task<T> TrackAsync<T>(T result)
+        {
+            var now = Interlocked.Increment(ref inFlight);
+            InterlockedMax(ref maxInFlight, now);
+            await Task.Delay(50);
+            Interlocked.Decrement(ref inFlight);
+            return result;
+        }
+
+        harness.Documents.Setup(d => d.GetTotalDocumentCountAsync()).Returns(() => TrackAsync(7L));
+        harness.Conversations.Setup(c => c.GetConversationCountAsync()).Returns(() => TrackAsync(3));
+
+        var response = await harness.Client.GetAsync("api/health");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        maxInFlight.Should().Be(1, "the shared DbContext allows only one operation at a time");
+    }
+
+    private static void InterlockedMax(ref int target, int value)
+    {
+        var current = Volatile.Read(ref target);
+        while (current < value)
+        {
+            var observed = Interlocked.CompareExchange(ref target, value, current);
+            if (observed == current)
+                return;
+            current = observed;
+        }
     }
 
     [Fact]
@@ -704,8 +813,8 @@ public sealed class ApiHostServiceTests
             capturedPath.Should().NotBeNull();
             var written = await File.ReadAllTextAsync(capturedPath!);
             written.Should().Contain("published_date: \"2026-03-15\"");
-            written.Should().Contain("category: \"tech\"");
-            written.Should().Contain("readingMinutes: \"8\"");
+            written.Should().Contain("\"category\": \"tech\"");
+            written.Should().Contain("\"readingMinutes\": \"8\"");
         }
         finally
         {
@@ -713,6 +822,204 @@ public sealed class ApiHostServiceTests
                 File.Delete(capturedPath);
         }
     }
+
+    [Theory]
+    [InlineData("2024-03-05T10:00:00+0000", "2024-03-05")]
+    [InlineData("2024-03-05 10:00:00", "2024-03-05")]
+    [InlineData("2024-03", "2024-03-01")]
+    [InlineData("20240305", "2024-03-05")]
+    [InlineData("Tue, 05 Mar 2024 10:00:00 GMT", "2024-03-05")]
+    [InlineData("2024-03-05T23:30:00-08:00", "2024-03-05")]
+    public async Task PostClip_WithNonIsoPublishedDate_IsAcceptedAndNormalized(string raw, string expected)
+    {
+        // Regression: PublishedDate was a DateTime?, so every one of these real-world meta/<time>
+        // values failed the whole clip with 400 "Invalid JSON in request body".
+        await using var harness = await ApiHostHarness.StartAsync();
+        var capturedPath = harness.CaptureClipPath();
+
+        var response = await harness.PostJsonAsync("api/inbox/clip",
+            new { title = "Dated", content = "body", sourceUrl = "https://example.com", publishedDate = raw });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var written = await File.ReadAllTextAsync(capturedPath()!);
+        written.Should().Contain($"published_date: \"{expected}\"");
+    }
+
+    [Theory]
+    [InlineData("{\"when\":\"soon\"}")]
+    [InlineData("[2024, 3, 5]")]
+    [InlineData("true")]
+    [InlineData("\"yesterday-ish\"")]
+    [InlineData("\"2024-13-45\"")]
+    public async Task PostClip_WithUnreadablePublishedDate_IsAcceptedWithoutADate(string publishedDateJson)
+    {
+        await using var harness = await ApiHostHarness.StartAsync();
+        var capturedPath = harness.CaptureClipPath();
+
+        using var content = new StringContent(
+            "{\"title\":\"t\",\"content\":\"body\",\"sourceUrl\":\"u\",\"publishedDate\":" + publishedDateJson + "}",
+            Encoding.UTF8, "application/json");
+        var response = await harness.Client.PostAsync("api/inbox/clip", content);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created, "a bad date must never fail the clip");
+        (await File.ReadAllTextAsync(capturedPath()!)).Should().NotContain("published_date");
+    }
+
+    [Fact]
+    public async Task PostClip_WithNumericCompactPublishedDate_IsAcceptedAndNormalized()
+    {
+        await using var harness = await ApiHostHarness.StartAsync();
+        var capturedPath = harness.CaptureClipPath();
+
+        using var content = new StringContent(
+            "{\"title\":\"t\",\"content\":\"body\",\"sourceUrl\":\"u\",\"publishedDate\":20240305}",
+            Encoding.UTF8, "application/json");
+        var response = await harness.Client.PostAsync("api/inbox/clip", content);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        (await File.ReadAllTextAsync(capturedPath()!)).Should().Contain("published_date: \"2024-03-05\"");
+    }
+
+    [Fact]
+    public async Task PostClip_SameTitleWithinOneSecond_KeepsEveryClip()
+    {
+        // Regression: the file name was title + timestamp to the second, so "Clip All Tabs" with
+        // same-title tabs overwrote the first clip, and the inbox (which de-duplicates by path)
+        // kept a single item pointing at the last one.
+        await using var harness = await ApiHostHarness.StartAsync();
+        var paths = new List<string>();
+        harness.Inbox
+            .Setup(i => i.AddToInboxAsync(It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<string?>(), It.IsAny<string?>()))
+            .Callback<string, long?, string?, string?>((path, _, _, _) => paths.Add(path))
+            .ReturnsAsync(new InboxItemEntity { Id = 1 });
+
+        var first = await harness.PostJsonAsync("api/inbox/clip", new { title = "Same Title", content = "first body", sourceUrl = "u1" });
+        var second = await harness.PostJsonAsync("api/inbox/clip", new { title = "Same Title", content = "second body", sourceUrl = "u2" });
+
+        first.StatusCode.Should().Be(HttpStatusCode.Created);
+        second.StatusCode.Should().Be(HttpStatusCode.Created);
+        paths.Should().HaveCount(2).And.OnlyHaveUniqueItems();
+        (await File.ReadAllTextAsync(paths[0])).Should().Contain("first body");
+        (await File.ReadAllTextAsync(paths[1])).Should().Contain("second body");
+    }
+
+    [Fact]
+    public async Task PostClip_WithNullTitleAndNullMetadataValue_Returns201()
+    {
+        // Regression: a JSON null title or metadata value threw NullReferenceException (500).
+        await using var harness = await ApiHostHarness.StartAsync();
+        var capturedPath = harness.CaptureClipPath();
+
+        using var content = new StringContent(
+            "{\"title\":null,\"content\":\"body\",\"sourceUrl\":null,\"metadata\":{\"kept\":\"yes\",\"dropped\":null}}",
+            Encoding.UTF8, "application/json");
+        var response = await harness.Client.PostAsync("api/inbox/clip", content);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var written = await File.ReadAllTextAsync(capturedPath()!);
+        written.Should().Contain("title: \"Untitled\"");
+        written.Should().Contain("\"kept\": \"yes\"");
+        written.Should().NotContain("dropped");
+        Path.GetFileName(capturedPath()!).Should().StartWith("untitled");
+    }
+
+    [Fact]
+    public async Task PostClip_EscapesNewlinesQuotesAndBackslashes_SoValuesCannotEscapeTheFrontMatter()
+    {
+        // Regression: values were written raw, so a newline in a title ended the front matter
+        // early ("\n---") and let the remainder inject keys of its own.
+        await using var harness = await ApiHostHarness.StartAsync();
+        var capturedPath = harness.CaptureClipPath();
+
+        var response = await harness.PostJsonAsync("api/inbox/clip", new
+        {
+            title = "Line one\n---\ninjected: true",
+            content = "body",
+            sourceUrl = "https://example.com/a\"b\\c",
+            metadata = new Dictionary<string, string> { ["key: with colon"] = "v\r\nw", ["title"] = "shadow" }
+        });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var written = await File.ReadAllTextAsync(capturedPath()!);
+        written.Should().Contain("title: \"Line one\\n---\\ninjected: true\"");
+        written.Should().Contain("source_url: \"https://example.com/a\\\"b\\\\c\"");
+        written.Should().Contain("\"key: with colon\": \"v\\r\\nw\"");
+        written.Should().NotContain("shadow", "metadata must not redefine a key the host writes itself");
+
+        // Exactly two delimiter lines: the front matter opens and closes once.
+        written.Split('\n').Select(l => l.TrimEnd('\r')).Count(l => l == "---").Should().Be(2);
+    }
+
+    [Fact]
+    public async Task PostClip_WithVeryLongTitle_CapsTheFileNameLength()
+    {
+        // Regression: a 300-character title produced a path past MAX_PATH and failed with 500.
+        await using var harness = await ApiHostHarness.StartAsync();
+        var capturedPath = harness.CaptureClipPath();
+        var longTitle = string.Concat(Enumerable.Repeat("Very long headline segment ", 12));
+
+        var response = await harness.PostJsonAsync("api/inbox/clip", new { title = longTitle, content = "body", sourceUrl = "u" });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var fileName = Path.GetFileName(capturedPath()!);
+        fileName.Length.Should().BeLessThanOrEqualTo(ApiHostService.MaxClipFileStemLength + 30);
+        fileName.Should().StartWith("Very long headline segment");
+        (await File.ReadAllTextAsync(capturedPath()!)).Should().Contain(longTitle.Trim(), "the full title stays in the front matter");
+    }
+
+    [Fact]
+    public async Task PostClip_StoresTheClipUnderTheAppDataClipsFolderNotTemp()
+    {
+        // Regression: clips were written under %TEMP%, which Storage Sense and disk cleanup delete
+        // while the inbox item still points at the file.
+        await using var harness = await ApiHostHarness.StartAsync();
+        var capturedPath = harness.CaptureClipPath();
+
+        var response = await harness.PostJsonAsync("api/inbox/clip", new { title = "Kept", content = "body", sourceUrl = "u" });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        Path.GetDirectoryName(capturedPath()!).Should().Be(harness.AppPaths.ClipsDirectory);
+    }
+
+    [Fact]
+    public void BuildClipMarkdownAndFileName_UseGregorianInvariantDatesUnderAnyCulture()
+    {
+        // Regression: dates were formatted with the current culture's calendar, so th-TH wrote
+        // Buddhist-era years (2569) and ar-SA Hijri years into machine-readable fields and names.
+        var clippedAt = new DateTime(2026, 3, 15, 1, 2, 3, DateTimeKind.Utc);
+        var clip = new ApiClipRequest { Title = "T", Content = "body", SourceUrl = "u", PublishedDate = "2026-03-14", WordCount = 1234 };
+        var original = CultureInfo.CurrentCulture;
+
+        foreach (var culture in new[] { "th-TH", "ar-SA" })
+        {
+            try
+            {
+                CultureInfo.CurrentCulture = new CultureInfo(culture);
+
+                var markdown = ApiHostService.BuildClipMarkdown(clip, clippedAt);
+                var fileName = ApiHostService.BuildClipFileName(clip.Title, clippedAt);
+
+                markdown.Should().Contain("published_date: \"2026-03-14\"", culture);
+                markdown.Should().Contain("clipped_at: \"2026-03-15T01:02:03.0000000Z\"", culture);
+                markdown.Should().Contain("word_count: 1234", culture);
+                fileName.Should().StartWith("T-20260315-010203-", culture);
+            }
+            finally
+            {
+                CultureInfo.CurrentCulture = original;
+            }
+        }
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("not a date")]
+    [InlineData("10:00")]
+    [InlineData("5 March")]
+    [InlineData("2024-13-45")]
+    public void ParsePublishedDate_ReturnsNullForValuesThatAreNotDates(string? raw)
+        => ApiHostService.ParsePublishedDate(raw).Should().BeNull();
 
     // ══════════════════════════════════════════════════════════════════════
     //  GET /api/extension/health
@@ -731,6 +1038,22 @@ public sealed class ApiHostServiceTests
         body.Data.InboxEnabled.Should().BeTrue();
         body.Data.Provider.Should().Be("local");
         body.Data.Version.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public async Task GetExtensionHealth_ReportsTheRealVersionAndTheConfiguredProvider()
+    {
+        // Regression: the payload hardcoded version "1.4.0" and provider "local" whatever the
+        // build and the user's settings were.
+        await using var harness = await ApiHostHarness.StartAsync();
+        harness.CurrentSettings.ActiveProviderId = "ollama";
+
+        var response = await harness.Client.GetAsync("api/extension/health");
+        var body = await ReadAsync<ApiExtensionHealthDto>(response);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        body!.Data!.Version.Should().Be(AppVersionInfo.Display);
+        body.Data.Provider.Should().Be("ollama");
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -785,14 +1108,21 @@ public sealed class ApiHostServiceTests
         public Mock<ICollectionService> Collections { get; } = new();
         public Mock<ISemanticSearchService> Search { get; } = new();
         public Mock<IInboxService> Inbox { get; } = new();
+        public Mock<ISettingsService> Settings { get; } = new();
+        public AppSettings CurrentSettings { get; } = new();
+        public TempAppPathService AppPaths { get; } = new();
 
         public ApiHostService Service { get; }
         public HttpClient Client { get; private set; } = null!;
         public int Port { get; private set; }
 
-        private ApiHostHarness() =>
+        private ApiHostHarness()
+        {
+            Settings.Setup(s => s.GetSettingsAsync()).ReturnsAsync(() => CurrentSettings);
             Service = new ApiHostService(
-                Conversations.Object, Documents.Object, Collections.Object, Search.Object, Inbox.Object);
+                Conversations.Object, Documents.Object, Collections.Object, Search.Object, Inbox.Object,
+                Settings.Object, AppPaths);
+        }
 
         public static async Task<ApiHostHarness> StartAsync(string? token = DefaultToken)
         {
@@ -812,6 +1142,20 @@ public sealed class ApiHostServiceTests
             var json = JsonSerializer.Serialize(payload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             return Client.PostAsync(path, content);
+        }
+
+        /// <summary>
+        /// Makes inbox ingestion succeed and records the clip file path it was handed; the returned
+        /// accessor yields the most recent path.
+        /// </summary>
+        public Func<string?> CaptureClipPath()
+        {
+            string? captured = null;
+            Inbox
+                .Setup(i => i.AddToInboxAsync(It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<string?>(), It.IsAny<string?>()))
+                .Callback<string, long?, string?, string?>((path, _, _, _) => captured = path)
+                .ReturnsAsync(new InboxItemEntity { Id = 1 });
+            return () => captured;
         }
 
         public void RemoveAuthHeader() => Client.DefaultRequestHeaders.Authorization = null;
@@ -837,6 +1181,35 @@ public sealed class ApiHostServiceTests
         {
             Client?.Dispose();
             await Service.StopAsync();
+            AppPaths.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// <see cref="IAppPathService"/> rooted at a disposable per-harness directory, so clip files
+    /// never land in the real user profile (AX-QA-011).
+    /// </summary>
+    private sealed class TempAppPathService : IAppPathService, IDisposable
+    {
+        public string Root { get; } = Path.Combine(Path.GetTempPath(), "agentx-api-tests-" + Guid.NewGuid().ToString("N"));
+
+        public string ClipsDirectory => Path.Combine(Root, ApiHostService.ClipsFolderName);
+
+        public string GetAppDataPath() => Directory.CreateDirectory(Root).FullName;
+
+        public string GetTempPath() => Directory.CreateDirectory(Path.Combine(Root, "Temp")).FullName;
+
+        public void Dispose()
+        {
+            try
+            {
+                if (Directory.Exists(Root))
+                    Directory.Delete(Root, recursive: true);
+            }
+            catch (IOException)
+            {
+                // Best effort: a file still held open must not fail the test run.
+            }
         }
     }
 }

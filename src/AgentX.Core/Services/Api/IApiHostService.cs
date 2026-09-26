@@ -35,6 +35,14 @@ public interface IApiHostService
     Task StartAsync(int port = 9846, string? authToken = null, CancellationToken ct = default);
 
     /// <summary>
+    /// Replaces the bearer token required on every non-public route. Takes effect from the next
+    /// request, so a regenerated token revokes the previous one immediately, without a restart.
+    /// Null or empty locks every data route (fail closed). Safe to call from any thread.
+    /// </summary>
+    /// <param name="authToken">The new per-install bearer token.</param>
+    void SetAuthToken(string? authToken);
+
+    /// <summary>
     /// Stops the HTTP listener gracefully, draining in-flight requests.
     /// Idempotent — calling Stop when already stopped is a no-op.
     /// </summary>
