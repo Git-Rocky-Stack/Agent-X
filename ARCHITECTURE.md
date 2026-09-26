@@ -425,26 +425,46 @@ public interface IWorkflowEngine
 
 ## REST API Layer
 
-Agent-X exposes a **local REST API** for browser extension and mobile companion:
+Agent-X exposes a **local REST API** for the browser extension and the Android companion. It is an
+`HttpListener` host inside the desktop process (`src/AgentX.Core/Services/Api/ApiHostService.cs`),
+bound to loopback only:
 
 ```
-http://localhost:5324/
-├── GET  /api/v1/health
-├── POST /api/v1/chat/completions
-├── POST /api/v1/search
-├── POST /api/v1/documents/index
-└── GET  /api/v1/conversations
+http://localhost:9846/
+  GET  /api/extension/health     public liveness probe (no token)
+  GET  /api/auth/check           confirms the bearer token (pairing)
+  GET  /api/health               status, version, uptime, document and conversation counts
+  GET  /api/documents            all documents
+  GET  /api/documents/{id}
+  GET  /api/conversations        non-archived conversations
+  GET  /api/conversations/{id}
+  GET  /api/collections
+  POST /api/search               semantic search {query, topK, minScore}
+  POST /api/inbox/clip           clip web content into the Smart Inbox
 ```
+
+Every route except the extension health probe requires `Authorization: Bearer <token>`
+(`LocalApiSecurity`, constant-time comparison); the per-install token is stored DPAPI-encrypted
+in settings. CORS grants go to browser-extension origins only. Every response uses the
+`{success, data, error, timestamp}` envelope (`ApiResponse<T>`).
 
 **Implementation:**
 ```csharp
 public interface IApiHostService
 {
-    Task StartAsync();
-    Task StopAsync();
     bool IsRunning { get; }
+    int Port { get; }
+    string BaseUrl { get; }
+    Task StartAsync(int port = 9846, string? authToken = null, CancellationToken ct = default);
+    void SetAuthToken(string? authToken); // takes effect on the next request, no restart
+    Task StopAsync(CancellationToken ct = default);
 }
 ```
+
+`ApiHostLifecycleService` (App) starts the host at launch when the Local API is enabled and
+provisions the token on first start; its `ApplySettingsAsync` re-applies the enable toggle and the
+token when Settings are saved or the token is regenerated. The full route reference is in
+[API_ENDPOINTS.md](API_ENDPOINTS.md#local-rest-api).
 
 ## Localization Architecture
 

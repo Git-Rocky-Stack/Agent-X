@@ -496,191 +496,319 @@ public interface IAiProviderPlugin
 
 ## Local REST API
 
-Agent-X exposes a **local REST API** for the browser extension and mobile companion.
+Agent-X exposes a **local REST API** for the browser extension and the Android companion. It is an
+`HttpListener` host inside the desktop process (`src/AgentX.Core/Services/Api/ApiHostService.cs`);
+there is no separate server, no ASP.NET Core, and no native messaging host.
 
-### Base URL
+### Base URL and lifecycle
 
 ```
-http://localhost:5324/api/v1
+http://localhost:9846/
 ```
+
+- **Loopback only.** The listener is registered for the HTTP.sys prefix `http://localhost:9846/`
+  and is not reachable from the LAN. Plain HTTP, no TLS. HTTP.sys also rejects a request whose
+  `Host` header names another host (`400 Invalid Hostname`), which is why the Android client sends
+  `Host: localhost:9846` when it connects through the emulator alias `10.0.2.2`
+  (see [`docs/MOBILE-TRANSPORT.md`](docs/MOBILE-TRANSPORT.md)).
+- **Started at app launch** by `ApiHostLifecycleService` when **Settings > Connections > Enable
+  Local API** is on (the default). Saving settings applies the toggle at once (the listener stops
+  or starts), and regenerating the token applies it at once (see Authentication).
+- **Routing:** paths are matched case-insensitively and a trailing slash is ignored. An unknown
+  path, or a known path with the wrong method, returns `404`.
+- **Concurrency:** at most 16 requests are processed at the same time.
+
+### Authentication
+
+Every route except `GET /api/extension/health` requires a bearer token:
+
+```
+Authorization: Bearer <token>
+```
+
+- The token is a per-install, 256-bit random value, hex-encoded (64 characters). It is generated
+  on first start, stored DPAPI-encrypted in `settings.json`, and shown masked in **Settings >
+  Connections** with **Show**, **Copy** and **Regenerate**.
+- **Regenerate** revokes the previous token immediately: from the next request only the new token
+  is accepted, so paired clients must be re-paired.
+- A missing or wrong token gets `401` with `WWW-Authenticate: Bearer`. If no token is provisioned,
+  every protected route returns `401` (fail closed). Tokens are compared in constant time
+  (`LocalApiSecurity.IsAuthorized`).
+- Clients validate a token with `GET /api/auth/check`. The public extension health probe accepts
+  any token and must not be used to decide that a client is paired.
+
+### CORS
+
+`Access-Control-Allow-Origin` is echoed back only for browser-extension origins
+(`chrome-extension://`, `moz-extension://`, `ms-browser-extension://`), together with `Vary: Origin`.
+Web pages get no CORS grant, so they cannot read responses. A preflight `OPTIONS` request on any
+path returns `204`. Allowed methods: `GET, POST, OPTIONS`; allowed headers: `Content-Type,
+Authorization, Accept, X-Requested-With`; `Access-Control-Max-Age: 86400`.
+
+### Response envelope
+
+Every response body, success or error, is JSON (`application/json; charset=utf-8`) with camelCase
+names, wrapped in the same envelope (`ApiResponse<T>`). Null properties are omitted, so `error` is
+absent on success and `data` is absent on error.
+
+```json
+{ "success": true, "data": { "status": "ok" }, "timestamp": "2026-09-26T10:00:00.0000000Z" }
+```
+
+```json
+{ "success": false, "error": "Unauthorized. A valid API token is required. Pair the client with the token from AgentX Settings.", "timestamp": "2026-09-26T10:00:00.0000000Z" }
+```
+
+| Status | When |
+|--------|------|
+| `200` | Success |
+| `201` | `POST /api/inbox/clip` created an inbox item |
+| `204` | CORS preflight (`OPTIONS`) |
+| `400` | Malformed JSON body, or a required field is missing or empty |
+| `401` | Missing or wrong bearer token |
+| `404` | Unknown route, wrong method, non-numeric id, or an item that does not exist |
+| `500` | Unexpected server error (`"An internal server error occurred."`) or failed inbox ingestion |
 
 ### Endpoints
 
-#### Health Check
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| `GET` | `/api/extension/health` | none | Liveness probe for the browser extension |
+| `GET` | `/api/auth/check` | bearer | Confirms the token (pairing) |
+| `GET` | `/api/health` | bearer | Status, version, uptime and counts (mobile connectivity check) |
+| `GET` | `/api/documents` | bearer | All documents in the Knowledge Vault |
+| `GET` | `/api/documents/{id}` | bearer | One document |
+| `GET` | `/api/conversations` | bearer | All non-archived conversations |
+| `GET` | `/api/conversations/{id}` | bearer | One conversation |
+| `GET` | `/api/collections` | bearer | All collections |
+| `POST` | `/api/search` | bearer | Semantic search over indexed documents |
+| `POST` | `/api/inbox/clip` | bearer | Clip web content into the Smart Inbox |
 
-```
-GET /api/v1/health
-```
+#### GET /api/extension/health
 
-**Response:**
+Public (no token). Returns no user data; lets the extension detect that Agent-X is running.
+
 ```json
 {
-  "status": "healthy",
-  "version": "1.0.0",
-  "timestamp": "2025-01-03T12:00:00Z"
+  "success": true,
+  "data": {
+    "connected": true,
+    "version": "2.2.0",
+    "inboxEnabled": true,
+    "provider": "local"
+  },
+  "timestamp": "2026-09-26T10:00:00.0000000Z"
 }
 ```
 
----
+- `version` is the application version (`AppVersionInfo.Display`).
+- `provider` is the active provider from Settings (`local`, `ollama`, `openai` or `anthropic`).
+- `inboxEnabled` is always `true`: the Smart Inbox has no off switch, and the clip route is served
+  whenever the API runs.
 
-#### Chat Completions
+#### GET /api/auth/check
 
+Answers only when the bearer token is valid (otherwise `401`).
+
+```json
+{ "success": true, "data": { "authenticated": true, "version": "2.2.0" }, "timestamp": "..." }
 ```
-POST /api/v1/chat/completions
-```
 
-**Request:**
+#### GET /api/health
+
 ```json
 {
-  "modelId": "claude-sonnet-4-20250514",
-  "messages": [
-    { "role": "user", "content": "Hello!" }
+  "success": true,
+  "data": {
+    "status": "ok",
+    "version": "2.2.0",
+    "uptime": "2h 15m 40s",
+    "documentCount": 42,
+    "conversationCount": 7
+  },
+  "timestamp": "..."
+}
+```
+
+`uptime` is measured since the listener started. `conversationCount` counts non-archived
+conversations.
+
+#### GET /api/documents and GET /api/documents/{id}
+
+The list returns every document (no paging or filters); the by-id form returns one object, or
+`404` when the id does not exist or is not a number.
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 12,
+      "fileName": "report.pdf",
+      "fileType": "pdf",
+      "fileSizeBytes": 204800,
+      "importedAt": "2026-09-20T08:30:00Z",
+      "indexingStatus": "completed"
+    }
   ],
-  "stream": true
+  "timestamp": "..."
 }
 ```
 
-**Response:** SSE stream matching provider format
+#### GET /api/conversations and GET /api/conversations/{id}
 
----
+The list returns non-archived conversations; the by-id form returns one object, or `404`.
 
-#### Semantic Search
-
-```
-POST /api/v1/search
-```
-
-**Request:**
 ```json
 {
-  "query": "search query",
-  "collectionIds": [1, 2, 3],
-  "limit": 10
-}
-```
-
-**Response:**
-```json
-{
-  "results": [
+  "success": true,
+  "data": [
     {
-      "documentId": 123,
-      "chunkId": 456,
-      "content": "matched content",
-      "score": 0.95,
-      "citations": [
-        {
-          "documentId": 123,
-          "fileName": "example.pdf",
-          "filePath": "/path/to/file.pdf",
-          "page": 10
-        }
-      ]
+      "id": 5,
+      "title": "Planning",
+      "modelId": "llama3.2",
+      "createdAt": "2026-09-20T08:30:00Z",
+      "updatedAt": "2026-09-21T10:00:00Z",
+      "messageCount": 12,
+      "tokensUsed": 3400
     }
-  ]
+  ],
+  "timestamp": "..."
 }
 ```
 
+#### GET /api/collections
+
+```json
+{
+  "success": true,
+  "data": [
+    { "id": 1, "name": "Finance", "description": "Quarterly reports", "documentCount": 4, "createdAt": "2026-09-01T12:00:00Z" }
+  ],
+  "timestamp": "..."
+}
+```
+
+#### POST /api/search
+
+Semantic search. Field names are camelCase.
+
+```json
+{ "query": "vector databases", "topK": 10, "minScore": 0.3 }
+```
+
+| Field | Type | Default | Notes |
+|-------|------|---------|-------|
+| `query` | string | (required) | Empty or whitespace returns `400` |
+| `topK` | int | `10` | Clamped to 1-50 |
+| `minScore` | float | `0.3` | Clamped to 0.0-1.0 |
+
+```json
+{
+  "success": true,
+  "data": [
+    { "documentId": 3, "fileName": "a.pdf", "chunkContent": "matched snippet", "score": 0.91 }
+  ],
+  "timestamp": "..."
+}
+```
+
+#### POST /api/inbox/clip
+
+Saves clipped web content as a Markdown file and adds it to the Smart Inbox as a pending item
+(`sourceType` `browser-extension`).
+
+```json
+{
+  "title": "Example Article",
+  "content": "The clipped text, as Markdown or plain text.",
+  "sourceUrl": "https://example.com/post",
+  "author": "Jane Doe",
+  "publishedDate": "2024-03-05T10:00:00+0000",
+  "clipMode": "reader",
+  "wordCount": 1234,
+  "metadata": { "category": "tech" }
+}
+```
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `content` | string | Required and non-empty, otherwise `400` |
+| `title` | string | Optional; missing or blank becomes `Untitled` |
+| `sourceUrl` | string | Optional |
+| `author` | string | Optional |
+| `publishedDate` | string | Optional. Parsed leniently (ISO 8601 with or without the offset colon, `yyyy-MM-dd HH:mm:ss`, `yyyy-MM`, `yyyyMMdd`, RFC 1123, ...). A value that cannot be read is dropped; it never fails the clip. |
+| `clipMode` | string | `full`, `selection` (default) or `reader` |
+| `wordCount` | int | Optional |
+| `metadata` | object of strings | Optional; written as extra front matter keys. Keys that collide with the host's own keys are ignored. |
+
+The file is written to `%LOCALAPPDATA%\AgentX\Clips\` as
+`<title, sanitized, at most 80 characters>-<yyyyMMdd-HHmmss UTC>-<8 hex>.md`, never overwriting an
+existing file. Every value in the front matter is an escaped YAML double-quoted string, and dates
+and numbers are culture-invariant:
+
+```yaml
+---
+title: "Example Article"
+source_url: "https://example.com/post"
+author: "Jane Doe"
+published_date: "2024-03-05"
+clip_mode: reader
+word_count: 1234
+clipped_at: "2026-09-26T10:00:00.0000000Z"
+"category": "tech"
 ---
 
-#### Index Document
-
-```
-POST /api/v1/documents/index
+The clipped text, as Markdown or plain text.
 ```
 
-**Request:**
+Response (`201`):
+
 ```json
 {
-  "filePath": "/path/to/document.pdf",
-  "collectionId": 1
+  "success": true,
+  "data": { "inboxItemId": 12, "status": "clipped", "message": "Content clipped to inbox as item #12." },
+  "timestamp": "..."
 }
 ```
 
-**Response:**
-```json
-{
-  "documentId": 123,
-  "status": "indexing",
-  "chunkCount": 0
-}
-```
-
----
-
-#### Get Conversations
-
-```
-GET /api/v1/conversations
-```
-
-**Response:**
-```json
-{
-  "conversations": [
-    {
-      "id": 1,
-      "title": "Example Chat",
-      "modelId": "claude-sonnet-4-20250514",
-      "createdAt": "2025-01-03T12:00:00Z",
-      "updatedAt": "2025-01-03T12:30:00Z",
-      "messageCount": 10
-    }
-  ]
-}
-```
+If the inbox rejects the item, the file is deleted and the route returns `500`.
 
 ---
 
 ## Browser Extension Integration
 
-### Message Passing
+The extension (`browser-extension/`, Manifest V3) talks to the Local REST API over HTTP from its
+service worker; there is no native messaging host.
 
-The extension uses **Chrome runtime messaging** to communicate with the local API:
-
-```javascript
-// Extension side
-chrome.runtime.sendNativeMessage(
-    "com.agentx.bridge",
-    { type: "search", query: "example" },
-    (response) => console.log(response)
-);
-```
-
-### Native Messaging Host
-
-**Manifest:** `com.agentx.bridge.json` (installed to registry)
-
-```json
-{
-  "name": "com.agentx.bridge",
-  "description": "Agent-X Native Messaging Host",
-  "path": "C:\\Path\\To\\AgentX.NativeMessagingHost.exe",
-  "type": "stdio",
-  "allowed_origins": [
-    "chrome-extension://YOUR_EXTENSION_ID/"
-  ]
-}
-```
+- **Pairing:** the user pastes the token from **Settings > Connections** into the popup. The service
+  worker validates it with `GET /api/auth/check` before storing it; a token Agent-X rejects is not
+  stored.
+- **Liveness and status:** `GET /api/extension/health` (public) plus `GET /api/auth/check`, so the
+  popup distinguishes paired, "Not paired" and "Offline".
+- **Clipping:** the extractor is injected into the page on demand with `chrome.scripting` and the
+  result is posted to `POST /api/inbox/clip`. The token stays in the service worker; the injected
+  script never reads it.
 
 ---
 
 ## Mobile Companion API
 
-### Authentication
+The Android companion (`src/AgentX.Mobile`) uses the same routes and the same bearer token:
+`GET /api/health` (connectivity check and Settings > Test Connection), `GET /api/documents`,
+`GET /api/conversations` and `POST /api/search`; its client also wraps the by-id routes and
+`GET /api/collections`.
 
-Uses **shared secret** negotiated during QR code pairing.
+- **Pairing:** paste the desktop token into the app's Settings. There is no QR pairing and no sync
+  API.
+- **Reaching the desktop:** the listener is loopback only, so the app connects through the Android
+  emulator alias `http://10.0.2.2:9846` or, on a device, through `adb reverse tcp:9846 tcp:9846`
+  and `http://localhost:9846`. LAN connections are not supported. See
+  [`docs/MOBILE-TRANSPORT.md`](docs/MOBILE-TRANSPORT.md).
 
-### Endpoints
-
-Mobile companion uses the same REST API as browser extension, with additional:
-
-| Endpoint | Purpose |
-|----------|---------|
-| `POST /api/v1/pair/initiate` | Initiate pairing flow |
-| `POST /api/v1/pair/confirm` | Confirm pairing code |
-| `GET /api/v1/sync/status` | Sync status |
-| `POST /api/v1/sync/pull` | Pull data from desktop |
+> Earlier revisions of this document described a different API (`http://localhost:5324/api/v1`,
+> chat completions, document indexing, a `com.agentx.bridge` native messaging host, and pairing
+> and sync routes). None of those exist; the routes above are the complete API.
 
 ---
 
@@ -849,8 +977,8 @@ public interface IDpapiEncryptionService
 
 ### Data in Transit
 
-- Local API uses **localhost only** (no network exposure)
-- Native messaging uses **stdio pipes**
+- The Local REST API listens on **localhost only** (no network exposure). It is plain HTTP on
+  loopback, authenticated with a bearer token; there is no native messaging host.
 
 ---
 
