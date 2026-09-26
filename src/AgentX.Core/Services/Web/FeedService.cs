@@ -21,11 +21,12 @@ namespace AgentX.Core.Services.Web;
 public class FeedService : IFeedService
 {
     private readonly ILogger _log;
+    private readonly HttpClient _httpClient;
 
     /// <summary>
     /// A long-lived, shared HttpClient instance configured with appropriate defaults
     /// for fetching feed XML: a realistic User-Agent header, 30-second timeout, and
-    /// automatic decompression.
+    /// automatic decompression. Redirects are followed by <see cref="WebHttp"/>.
     /// </summary>
     private static readonly HttpClient SharedHttpClient;
 
@@ -33,6 +34,12 @@ public class FeedService : IFeedService
     /// Default timeout for HTTP requests when fetching feed XML.
     /// </summary>
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// Largest feed document accepted (10 MB, counted after decompression), so an endless or
+    /// oversized response cannot exhaust memory.
+    /// </summary>
+    internal const int MaxFeedBytes = 10 * 1024 * 1024;
 
     // ─── XML Namespace Constants ─────────────────────────────────────────────
 
@@ -47,8 +54,7 @@ public class FeedService : IFeedService
         var handler = new HttpClientHandler
         {
             AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
-            AllowAutoRedirect = true,
-            MaxAutomaticRedirections = 5,
+            AllowAutoRedirect = false,
         };
 
         SharedHttpClient = new HttpClient(handler)
@@ -73,9 +79,18 @@ public class FeedService : IFeedService
     /// <param name="logger">The Serilog logger instance for structured logging.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="logger"/> is null.</exception>
     public FeedService(ILogger logger)
+        : this(logger, SharedHttpClient)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance with a caller-provided client (tests use a stub handler).
+    /// </summary>
+    internal FeedService(ILogger logger, HttpClient httpClient)
     {
         _log = logger?.ForContext<FeedService>()
                ?? throw new ArgumentNullException(nameof(logger));
+        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
     }
 
     // ─── IFeedService Implementation ────────────────────────────────────────
@@ -366,16 +381,29 @@ public class FeedService : IFeedService
     // ─── HTTP Fetching ──────────────────────────────────────────────────────
 
     /// <summary>
-    /// Fetches the raw XML content from the specified feed URL using the shared HttpClient.
+    /// Fetches the raw XML content from the specified feed URL, reading at most
+    /// <see cref="MaxFeedBytes"/> and honoring the charset the response or the XML declaration names.
     /// </summary>
     private async Task<string> FetchFeedXmlAsync(string feedUrl, CancellationToken ct)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, feedUrl);
-        using var response = await SharedHttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
-        response.EnsureSuccessStatusCode();
+        if (!Uri.TryCreate(feedUrl, UriKind.Absolute, out var feedUri)
+            || (feedUri.Scheme != Uri.UriSchemeHttp && feedUri.Scheme != Uri.UriSchemeHttps))
+        {
+            throw new ArgumentException($"Invalid feed URL: '{feedUrl}'. Only HTTP and HTTPS URLs are supported.", nameof(feedUrl));
+        }
 
-        // Some feeds return text/html; accept it as well for compatibility
-        var content = await response.Content.ReadAsStringAsync(ct);
+        var (response, _) = await WebHttp.GetFollowingRedirectsAsync(
+            _httpClient, feedUri, configureRequest: null, checkRedirect: null, ct);
+
+        string content;
+        using (response)
+        {
+            response.EnsureSuccessStatusCode();
+
+            // Some feeds return text/html; accept it as well for compatibility
+            var bytes = await WebHttp.ReadBoundedAsync(response.Content, MaxFeedBytes, ct);
+            content = WebHttp.DecodeText(bytes, response.Content.Headers.ContentType?.CharSet);
+        }
 
         // Strip any BOM or leading whitespace that might break XML parsing
         content = content.TrimStart('\uFEFF', '\u200B', ' ', '\r', '\n');

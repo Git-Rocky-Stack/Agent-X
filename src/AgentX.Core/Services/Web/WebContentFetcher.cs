@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Net;
-using System.Text;
 using Serilog;
 
 namespace AgentX.Core.Services.Web;
@@ -95,13 +94,12 @@ public class WebContentFetcher : IWebContentFetcher, IDisposable
 
         var stopwatch = Stopwatch.StartNew();
         var usedJsRendering = false;
-        var html = string.Empty;
-        string? finalUrl = url;
+        string html;
+        string finalUrl;
 
         try
         {
-            html = await FetchHtmlInternalAsync(url, ct).ConfigureAwait(false);
-            finalUrl = url;
+            (html, finalUrl) = await FetchHtmlInternalAsync(url, ct).ConfigureAwait(false);
         }
         catch (TaskCanceledException ex) when (!ct.IsCancellationRequested)
         {
@@ -111,12 +109,12 @@ public class WebContentFetcher : IWebContentFetcher, IDisposable
                 $"The request to '{url}' timed out after {DefaultTimeout.TotalSeconds} seconds.", ex);
         }
 
-        // Attempt JS rendering fallback when the HTML response is empty or minimal
-        // and a JS rendering service is available.
-        if (string.IsNullOrWhiteSpace(html) && _jsRenderingService is not null)
+        // Attempt JS rendering fallback when the HTML response is empty or only a script shell
+        // with minimal visible text, and a JS rendering service is available.
+        if (_jsRenderingService is not null && NeedsJsRendering(html))
         {
             _log.Information(
-                "HTTP fetch returned empty content for {Url}, falling back to JS rendering", url);
+                "HTTP fetch returned empty or minimal content for {Url}, falling back to JS rendering", url);
 
             try
             {
@@ -132,10 +130,14 @@ public class WebContentFetcher : IWebContentFetcher, IDisposable
                         url, html.Length);
                 }
             }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 _log.Warning(ex, "JS rendering fallback failed for {Url}", url);
-                // Continue with whatever HTTP fetch produced (empty in this case)
+                // Continue with whatever the HTTP fetch produced
             }
         }
 
@@ -151,94 +153,81 @@ public class WebContentFetcher : IWebContentFetcher, IDisposable
     // ─── Internal Fetch Logic ────────────────────────────────────────────────
 
     /// <summary>
-    /// Performs the actual HTTP GET request with content size validation.
+    /// Performs the HTTP GET (following redirects one hop at a time) with content size
+    /// validation and charset detection. Returns the decoded HTML and the final URL: the
+    /// caller's own URL string when no redirect happened, else the redirect target.
     /// </summary>
-    private async Task<string> FetchHtmlInternalAsync(string url, CancellationToken ct)
+    private async Task<(string Html, string FinalUrl)> FetchHtmlInternalAsync(string url, CancellationToken ct)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        var requestUri = new Uri(url);
 
-        // Some sites return different content based on Accept header
-        request.Headers.Accept.ParseAdd("text/html,application/xhtml+xml");
+        var (response, finalUri) = await WebHttp.GetFollowingRedirectsAsync(
+            _httpClient,
+            requestUri,
+            // Some sites return different content based on Accept header
+            request => request.Headers.Accept.ParseAdd("text/html,application/xhtml+xml"),
+            checkRedirect: null,
+            ct).ConfigureAwait(false);
 
-        using var response = await _httpClient.SendAsync(
-            request, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
-
-        response.EnsureSuccessStatusCode();
-
-        // Capture the final URL after redirects
-        var finalUrl = response.RequestMessage?.RequestUri?.ToString() ?? url;
-
-        // Reject early when the server advertises an oversize body via Content-Length.
-        var declaredLength = response.Content.Headers.ContentLength;
-
-        if (declaredLength.HasValue && declaredLength.Value > MaxContentLengthBytes)
+        using (response)
         {
-            throw new InvalidOperationException(
-                $"Page content too large ({declaredLength.Value / 1024d / 1024d:F1} MB). " +
-                $"Maximum is {MaxContentLengthBytes / 1024 / 1024} MB.");
-        }
+            response.EnsureSuccessStatusCode();
 
-        // Enforce the cap while streaming so a missing or dishonest Content-Length
-        // cannot force unbounded buffering. Previously the limit was only checked
-        // when the header was present, leaving a memory-exhaustion bypass.
-        var bytes = await ReadBoundedAsync(response.Content, MaxContentLengthBytes, ct)
-            .ConfigureAwait(false);
+            // Reject early when the server advertises an oversize body via Content-Length.
+            var declaredLength = response.Content.Headers.ContentLength;
 
-        return ResolveEncoding(response.Content.Headers.ContentType?.CharSet).GetString(bytes);
-    }
-
-    /// <summary>
-    /// Reads an HTTP content stream fully into memory while enforcing a hard byte
-    /// cap. Aborts as soon as the cap is exceeded, regardless of whether the server
-    /// supplied an accurate <c>Content-Length</c> header.
-    /// </summary>
-    private static async Task<byte[]> ReadBoundedAsync(HttpContent content, int maxBytes, CancellationToken ct)
-    {
-        await using var source = await content.ReadAsStreamAsync(ct).ConfigureAwait(false);
-
-        // Pre-size the buffer only when the declared length is present and within
-        // the cap; never trust a declared length beyond the cap.
-        var declared = content.Headers.ContentLength;
-        var initialCapacity = declared.HasValue && declared.Value > 0 && declared.Value <= maxBytes
-            ? (int)declared.Value
-            : 0;
-
-        using var buffer = new MemoryStream(initialCapacity);
-        var chunk = new byte[81920];
-        int read;
-        while ((read = await source.ReadAsync(chunk.AsMemory(0, chunk.Length), ct).ConfigureAwait(false)) > 0)
-        {
-            if (buffer.Length + read > maxBytes)
+            if (declaredLength.HasValue && declaredLength.Value > MaxContentLengthBytes)
             {
                 throw new InvalidOperationException(
-                    "Page content exceeded the maximum allowed size of " +
-                    $"{maxBytes / 1024 / 1024} MB while streaming the response.");
+                    $"Page content too large ({declaredLength.Value / 1024d / 1024d:F1} MB). " +
+                    $"Maximum is {MaxContentLengthBytes / 1024 / 1024} MB.");
             }
 
-            await buffer.WriteAsync(chunk.AsMemory(0, read), ct).ConfigureAwait(false);
-        }
+            // Enforce the cap while streaming so a missing or dishonest Content-Length
+            // cannot force unbounded buffering.
+            var bytes = await WebHttp.ReadBoundedAsync(response.Content, MaxContentLengthBytes, ct)
+                .ConfigureAwait(false);
 
-        return buffer.ToArray();
+            var html = WebHttp.DecodeText(bytes, response.Content.Headers.ContentType?.CharSet);
+            var finalUrl = finalUri == requestUri ? url : finalUri.AbsoluteUri;
+            return (html, finalUrl);
+        }
     }
 
     /// <summary>
-    /// Resolves a .NET <see cref="Encoding"/> from an HTTP charset token, defaulting
-    /// to UTF-8 when the charset is missing or unrecognized. Mirrors the behavior of
-    /// <c>HttpContent.ReadAsStringAsync</c> for the common cases.
+    /// Below this many characters of visible body text, a page that loads scripts is treated
+    /// as a JavaScript shell whose content only appears once the scripts run.
     /// </summary>
-    private static Encoding ResolveEncoding(string? charSet)
-    {
-        if (string.IsNullOrWhiteSpace(charSet))
-            return Encoding.UTF8;
+    internal const int MinimalContentChars = 200;
 
-        try
+    /// <summary>
+    /// True when the HTML is empty, or is a script-driven page whose body shows fewer than
+    /// <see cref="MinimalContentChars"/> characters of text without JavaScript. A page without
+    /// scripts is never rendered: a headless browser would not add anything to it.
+    /// </summary>
+    internal static bool NeedsJsRendering(string html)
+    {
+        if (string.IsNullOrWhiteSpace(html))
+            return true;
+
+        var doc = new HtmlAgilityPack.HtmlDocument();
+        doc.LoadHtml(html);
+
+        if (doc.DocumentNode.SelectSingleNode("//script") is null)
+            return false;
+
+        var body = doc.DocumentNode.SelectSingleNode("//body") ?? doc.DocumentNode;
+        var hidden = body.SelectNodes(".//script|.//style|.//noscript|.//template");
+        if (hidden is not null)
         {
-            return Encoding.GetEncoding(charSet.Trim().Trim('"'));
+            foreach (var node in hidden.ToList())
+            {
+                node.Remove();
+            }
         }
-        catch (ArgumentException)
-        {
-            return Encoding.UTF8;
-        }
+
+        var visibleChars = WebUtility.HtmlDecode(body.InnerText).Count(c => !char.IsWhiteSpace(c));
+        return visibleChars < MinimalContentChars;
     }
 
     // ─── URL Validation ──────────────────────────────────────────────────────
@@ -271,8 +260,8 @@ public class WebContentFetcher : IWebContentFetcher, IDisposable
 
     /// <summary>
     /// Creates the default <see cref="HttpClient"/> with appropriate configuration
-    /// for web scraping: decompression, realistic User-Agent, redirect following,
-    /// and reasonable timeout.
+    /// for web scraping: decompression, realistic User-Agent and reasonable timeout.
+    /// Redirects are followed by <see cref="WebHttp"/> one hop at a time, not by the handler.
     /// </summary>
     private static HttpClient CreateDefaultHttpClient()
     {
@@ -281,8 +270,7 @@ public class WebContentFetcher : IWebContentFetcher, IDisposable
             AutomaticDecompression = DecompressionMethods.GZip
                                      | DecompressionMethods.Deflate
                                      | DecompressionMethods.Brotli,
-            AllowAutoRedirect = true,
-            MaxAutomaticRedirections = 5,
+            AllowAutoRedirect = false,
         };
 
         var client = new HttpClient(handler)

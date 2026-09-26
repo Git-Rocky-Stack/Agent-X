@@ -16,7 +16,17 @@ namespace AgentX.Core.Services.Web;
 /// </summary>
 public sealed class JsRenderingService : IJsRenderingService, IDisposable, IAsyncDisposable
 {
+    /// <summary>
+    /// Upper bound for loading one page (navigation plus the requested wait condition), so a
+    /// page that never settles cannot hold the import forever.
+    /// </summary>
+    internal static readonly TimeSpan NavigationTimeout = TimeSpan.FromSeconds(30);
+
     private readonly ILogger<JsRenderingService> _logger;
+
+    /// <summary>Serializes the lazy browser launch so concurrent first calls start one browser.</summary>
+    private readonly SemaphoreSlim _browserGate = new(1, 1);
+
     private IPlaywright? _playwright;
     private IBrowser? _browser;
 
@@ -32,19 +42,38 @@ public sealed class JsRenderingService : IJsRenderingService, IDisposable, IAsyn
     /// <inheritdoc />
     public async Task<string> RenderPageAsync(string url, bool waitForNetworkIdle = false, CancellationToken ct = default)
     {
-        await EnsureBrowserAsync();
+        ct.ThrowIfCancellationRequested();
 
-        var page = await _browser!.NewPageAsync(new BrowserNewPageOptions
+        var browser = await EnsureBrowserAsync(ct);
+
+        var page = await browser.NewPageAsync(new BrowserNewPageOptions
         {
             UserAgent = "Agent-X/1.5.0 (Knowledge Vault Web Clipper)"
         });
 
         try
         {
-            var response = await page.GotoAsync(url, new PageGotoOptions
+            IResponse? response;
+
+            // Playwright takes no cancellation token; closing the page aborts a navigation in
+            // flight, which is how a cancelled import stops a slow render.
+            using (ct.Register(() => _ = ClosePageQuietlyAsync(page)))
             {
-                WaitUntil = waitForNetworkIdle ? WaitUntilState.NetworkIdle : WaitUntilState.DOMContentLoaded
-            });
+                try
+                {
+                    response = await page.GotoAsync(url, new PageGotoOptions
+                    {
+                        WaitUntil = waitForNetworkIdle ? WaitUntilState.NetworkIdle : WaitUntilState.DOMContentLoaded,
+                        Timeout = (float)NavigationTimeout.TotalMilliseconds,
+                    });
+                }
+                catch (PlaywrightException) when (ct.IsCancellationRequested)
+                {
+                    throw new OperationCanceledException(ct);
+                }
+            }
+
+            ct.ThrowIfCancellationRequested();
 
             if (response == null || !response.Ok)
             {
@@ -57,23 +86,64 @@ public sealed class JsRenderingService : IJsRenderingService, IDisposable, IAsyn
         }
         finally
         {
-            await page.CloseAsync();
+            await ClosePageQuietlyAsync(page);
         }
     }
 
     /// <summary>
-    /// Lazily initializes the Playwright browser instance on first use.
-    /// Subsequent calls are no-ops if the browser is already running.
+    /// Closes a page, ignoring the error Playwright raises when it is already closed (for
+    /// example by a cancellation callback) or the browser went away.
     /// </summary>
-    private async Task EnsureBrowserAsync()
+    private static async Task ClosePageQuietlyAsync(IPage page)
     {
-        if (_browser != null) return;
-
-        _playwright = await Playwright.CreateAsync();
-        _browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+        try
         {
-            Headless = true
-        });
+            await page.CloseAsync();
+        }
+        catch (PlaywrightException)
+        {
+            // Already closed
+        }
+    }
+
+    /// <summary>
+    /// Lazily starts Playwright and the headless browser on first use, under a lock so two
+    /// concurrent first calls cannot each launch a browser. A failed launch (for example when
+    /// Chromium is not installed) disposes the Playwright driver it started and leaves the
+    /// service ready to try again on the next call.
+    /// </summary>
+    private async Task<IBrowser> EnsureBrowserAsync(CancellationToken ct)
+    {
+        var existing = _browser;
+        if (existing is not null) return existing;
+
+        await _browserGate.WaitAsync(ct);
+        try
+        {
+            if (_browser is not null) return _browser;
+
+            var playwright = await Playwright.CreateAsync();
+            try
+            {
+                var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+                {
+                    Headless = true
+                });
+
+                _playwright = playwright;
+                _browser = browser;
+                return browser;
+            }
+            catch
+            {
+                playwright.Dispose();
+                throw;
+            }
+        }
+        finally
+        {
+            _browserGate.Release();
+        }
     }
 
     /// <summary>
