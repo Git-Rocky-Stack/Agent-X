@@ -905,7 +905,7 @@ Choose a backup file and select **Restore**. If the backup is encrypted, Agent-X
 
 Restore checks the backup before changing anything: the file is decrypted and validated, and its database is unpacked next to the current one and verified with this installation's database key. A backup made before you turned on database encryption is encrypted with the current key as it is restored. Only then is the current database replaced. If anything fails after that point, the previous database and document files are put back.
 
-Restore replaces the database and the web-imported document files with the backup's contents. It does not change settings, API keys, or the encryption marker. Restart Agent-X when the restore completes: open pages, search caches, and the vector index keep the previous data until then, and the restored database is upgraded to the current version at startup.
+Restore replaces the database with the backup's database and puts the backup's web-imported document files back, overwriting files with the same name; other files in that folder are left in place. It does not change settings, API keys, or the encryption marker. Restart Agent-X when the restore completes: open pages, search caches, and the vector index keep the previous data until then, and the restored database is upgraded to the current version at startup.
 
 - If Agent-X reports that the database is in use, wait for background work (indexing, sync, workflows) to finish or restart Agent-X, then restore again. Nothing is changed in that case.
 - A backup whose database is encrypted with another key (another installation or Windows account) is refused, and nothing is changed.
